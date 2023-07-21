@@ -68,6 +68,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestNodalContainerExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionContainerExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementContainerExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestNodalPositionExpressionIO]))
 
     # adding non-mpi tests also as mpi tests
     smallSuite.addTest(TestProcesses("test_FindGlobalNodalNeighboursProcess"))

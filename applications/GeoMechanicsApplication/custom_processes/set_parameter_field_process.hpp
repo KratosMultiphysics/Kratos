@@ -59,7 +59,7 @@ public:
     ///@{
 
     SetParameterFieldProcess(ModelPart& rModelPart,
-                                  const Parameters& rParameters);
+                             const Parameters& rParameters);
 
     ///@}
     ///@name Operations
@@ -79,13 +79,6 @@ public:
     std::string Info() const override {
         return "SetParameterFieldProcess";
     }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override {
-        rOStream << "SetParameterFieldProcess";
-    }
-
-
     ///@}
 
 private:

@@ -1,0 +1,71 @@
+# Optimization problem ascii output
+# Kratos version: not_given
+# Timestamp     : not_specified
+# -----------------------------------------------
+# --------------- Initial values ----------------
+# 	resp_1:
+# 		v_float: 2.300000000e+00
+# 		v_int: 2
+# 		v_bool: yes
+# 		v_str: lengthy_str_1
+# 	resp_2:
+# 		v_float: 2.300000000e+00
+# 		v_int: 2
+# 		v_bool: yes
+# 		v_str: lengthy_str_1
+# 	resp_3:
+# 		v_float: 2.300000000e+00
+# 		v_int: 2
+# 		v_bool: yes
+# 		v_str: lengthy_str_1
+# 	control_1:
+# 		v_float: 2.300000000e+00
+# 		v_int: 2
+# 		v_bool: yes
+# 		v_str: lengthy_str_1
+# 	control_2:
+# 		v_float: 2.300000000e+00
+# 		v_int: 2
+# 		v_bool: yes
+# 		v_str: lengthy_str_1
+# 	control_3:
+# 		v_float: 2.300000000e+00
+# 		v_int: 2
+# 		v_bool: yes
+# 		v_str: lengthy_str_1
+# 	policy_1:
+# 		v_float: 2.300000000e+00
+# 		v_int: 2
+# 		v_bool: yes
+# 		v_str: lengthy_str_1
+# 	policy_2:
+# 		v_float: 2.300000000e+00
+# 		v_int: 2
+# 		v_bool: yes
+# 		v_str: lengthy_str_1
+# 	policy_3:
+# 		v_float: 2.300000000e+00
+# 		v_int: 2
+# 		v_bool: yes
+# 		v_str: lengthy_str_1
+# 	algorithm:
+# 		v_float: 2.300000000e+00
+# 		v_int: 2
+# 		v_bool: yes
+# 		v_str: lengthy_str_1
+# ------------ End of initial values ------------
+# -----------------------------------------------
+# ------------ Start of step values -------------
+# Headers:
+#  STEP,  resp_1:v_float, resp_1:v_int, resp_1:v_bool,   resp_1:v_str,  resp_2:v_float, resp_2:v_int, resp_2:v_bool,   resp_2:v_str,  resp_3:v_float, resp_3:v_int, resp_3:v_bool,   resp_3:v_str, control_1:v_float, control_1:v_int, control_1:v_bool, control_1:v_str, control_2:v_float, control_2:v_int, control_2:v_bool, control_2:v_str, control_3:v_float, control_3:v_int, control_3:v_bool, control_3:v_str, policy_1:v_float, policy_1:v_int, policy_1:v_bool, policy_1:v_str, policy_2:v_float, policy_2:v_int, policy_2:v_bool, policy_2:v_str, policy_3:v_float, policy_3:v_int, policy_3:v_bool, policy_3:v_str, algorithm:v_float, algorithm:v_int, algorithm:v_bool, algorithm:v_str
+      0, 2.300000000e+00,            2,           yes,  lengthy_str_1, 2.300000000e+00,            2,           yes,  lengthy_str_1, 2.300000000e+00,            2,           yes,  lengthy_str_1,   2.300000000e+00,               2,              yes,   lengthy_str_1,   2.300000000e+00,               2,              yes,   lengthy_str_1,   2.300000000e+00,               2,              yes,   lengthy_str_1,  2.300000000e+00,              2,             yes,  lengthy_str_1,  2.300000000e+00,              2,             yes,  lengthy_str_1,  2.300000000e+00,              2,             yes,  lengthy_str_1,   2.300000000e+00,               2,              yes,   lengthy_str_1
+      1, 4.600000000e+00,            4,            no,  lengthy_str_2, 4.600000000e+00,            4,            no,  lengthy_str_2, 4.600000000e+00,            4,            no,  lengthy_str_2,   4.600000000e+00,               4,               no,   lengthy_str_2,   4.600000000e+00,               4,               no,   lengthy_str_2,   4.600000000e+00,               4,               no,   lengthy_str_2,  4.600000000e+00,              4,              no,  lengthy_str_2,  4.600000000e+00,              4,              no,  lengthy_str_2,  4.600000000e+00,              4,              no,  lengthy_str_2,   4.600000000e+00,               4,               no,   lengthy_str_2
+      2, 6.900000000e+00,            6,           yes,  lengthy_str_3, 6.900000000e+00,            6,           yes,  lengthy_str_3, 6.900000000e+00,            6,           yes,  lengthy_str_3,   6.900000000e+00,               6,              yes,   lengthy_str_3,   6.900000000e+00,               6,              yes,   lengthy_str_3,   6.900000000e+00,               6,              yes,   lengthy_str_3,  6.900000000e+00,              6,             yes,  lengthy_str_3,  6.900000000e+00,              6,             yes,  lengthy_str_3,  6.900000000e+00,              6,             yes,  lengthy_str_3,   6.900000000e+00,               6,              yes,   lengthy_str_3
+      3, 9.200000000e+00,            8,            no,  lengthy_str_4, 9.200000000e+00,            8,            no,  lengthy_str_4, 9.200000000e+00,            8,            no,  lengthy_str_4,   9.200000000e+00,               8,               no,   lengthy_str_4,   9.200000000e+00,               8,               no,   lengthy_str_4,   9.200000000e+00,               8,               no,   lengthy_str_4,  9.200000000e+00,              8,              no,  lengthy_str_4,  9.200000000e+00,              8,              no,  lengthy_str_4,  9.200000000e+00,              8,              no,  lengthy_str_4,   9.200000000e+00,               8,               no,   lengthy_str_4
+      4, 1.150000000e+01,           10,           yes,  lengthy_str_5, 1.150000000e+01,           10,           yes,  lengthy_str_5, 1.150000000e+01,           10,           yes,  lengthy_str_5,   1.150000000e+01,              10,              yes,   lengthy_str_5,   1.150000000e+01,              10,              yes,   lengthy_str_5,   1.150000000e+01,              10,              yes,   lengthy_str_5,  1.150000000e+01,             10,             yes,  lengthy_str_5,  1.150000000e+01,             10,             yes,  lengthy_str_5,  1.150000000e+01,             10,             yes,  lengthy_str_5,   1.150000000e+01,              10,              yes,   lengthy_str_5
+      5, 1.380000000e+01,           12,            no,  lengthy_str_6, 1.380000000e+01,           12,            no,  lengthy_str_6, 1.380000000e+01,           12,            no,  lengthy_str_6,   1.380000000e+01,              12,               no,   lengthy_str_6,   1.380000000e+01,              12,               no,   lengthy_str_6,   1.380000000e+01,              12,               no,   lengthy_str_6,  1.380000000e+01,             12,              no,  lengthy_str_6,  1.380000000e+01,             12,              no,  lengthy_str_6,  1.380000000e+01,             12,              no,  lengthy_str_6,   1.380000000e+01,              12,               no,   lengthy_str_6
+      6, 1.610000000e+01,           14,           yes,  lengthy_str_7, 1.610000000e+01,           14,           yes,  lengthy_str_7, 1.610000000e+01,           14,           yes,  lengthy_str_7,   1.610000000e+01,              14,              yes,   lengthy_str_7,   1.610000000e+01,              14,              yes,   lengthy_str_7,   1.610000000e+01,              14,              yes,   lengthy_str_7,  1.610000000e+01,             14,             yes,  lengthy_str_7,  1.610000000e+01,             14,             yes,  lengthy_str_7,  1.610000000e+01,             14,             yes,  lengthy_str_7,   1.610000000e+01,              14,              yes,   lengthy_str_7
+      7, 1.840000000e+01,           16,            no,  lengthy_str_8, 1.840000000e+01,           16,            no,  lengthy_str_8, 1.840000000e+01,           16,            no,  lengthy_str_8,   1.840000000e+01,              16,               no,   lengthy_str_8,   1.840000000e+01,              16,               no,   lengthy_str_8,   1.840000000e+01,              16,               no,   lengthy_str_8,  1.840000000e+01,             16,              no,  lengthy_str_8,  1.840000000e+01,             16,              no,  lengthy_str_8,  1.840000000e+01,             16,              no,  lengthy_str_8,   1.840000000e+01,              16,               no,   lengthy_str_8
+      8, 2.070000000e+01,           18,           yes,  lengthy_str_9, 2.070000000e+01,           18,           yes,  lengthy_str_9, 2.070000000e+01,           18,           yes,  lengthy_str_9,   2.070000000e+01,              18,              yes,   lengthy_str_9,   2.070000000e+01,              18,              yes,   lengthy_str_9,   2.070000000e+01,              18,              yes,   lengthy_str_9,  2.070000000e+01,             18,             yes,  lengthy_str_9,  2.070000000e+01,             18,             yes,  lengthy_str_9,  2.070000000e+01,             18,             yes,  lengthy_str_9,   2.070000000e+01,              18,              yes,   lengthy_str_9
+      9, 2.300000000e+01,           20,            no, lengthy_str_10, 2.300000000e+01,           20,            no, lengthy_str_10, 2.300000000e+01,           20,            no, lengthy_str_10,   2.300000000e+01,              20,               no,  lengthy_str_10,   2.300000000e+01,              20,               no,  lengthy_str_10,   2.300000000e+01,              20,               no,  lengthy_str_10,  2.300000000e+01,             20,              no, lengthy_str_10,  2.300000000e+01,             20,              no, lengthy_str_10,  2.300000000e+01,             20,              no, lengthy_str_10,   2.300000000e+01,              20,               no,  lengthy_str_10
+# End of file
