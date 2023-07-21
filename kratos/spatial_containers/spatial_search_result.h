@@ -20,24 +20,30 @@
 
 // Project includes
 #include "includes/define.h"
-
+#include "includes/indexed_object.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Classes
 ///@{
 
-/// This class is the result of the spatial searches.
-/** It provides:
+/** 
+ * @class SpatialSearchResult
+ * @brief This class is the result of the spatial searches.
+ * @details It provides:
  *  - A global pointer to the object found.
  *  - Distance to the object if IsDistanceCalculated() is true
  *  - IsObjectFound if for example search nearest fails or not
-*/
+ * @ingroup KratosCore
+ * @author Pooyan Dadvand
+ */
 template <typename TObjectType>
 class SpatialSearchResult
+    : public IndexedObject
 {
 public:
     ///@name Type Definitions
@@ -46,8 +52,14 @@ public:
     /// Pointer definition of SpatialSearchResult
     KRATOS_CLASS_POINTER_DEFINITION(SpatialSearchResult);
 
+    /// Define the base class
+    using BaseType = IndexedObject;
+
     /// Global pointer definition of TObjectType
     using TPointerType = GlobalPointer<TObjectType>;
+
+    /// Define index type
+    using IndexType = std::size_t;
 
     ///@}
     ///@name Life Cycle
@@ -55,10 +67,11 @@ public:
 
     /// Default constructor.
     SpatialSearchResult()
-    : mpObject(nullptr),
-        mDistance(0.0),
-        mIsObjectFound(false),
-        mIsDistanceCalculated(false)
+        : BaseType(0),
+          mpObject(nullptr),
+          mDistance(0.0),
+          mIsObjectFound(false),
+          mIsDistanceCalculated(false)
     {
     }
 
@@ -66,13 +79,39 @@ public:
     SpatialSearchResult(
         TObjectType* pObject,
         const int Rank = 0
-        ) : mpObject(pObject, Rank),
+        ) : BaseType(0),
+            mpObject(pObject, Rank),
             mDistance(0.0),
             mIsObjectFound(false),
             mIsDistanceCalculated(false)
     {
         if (mpObject.get() != nullptr)
             mIsObjectFound = true;
+
+        // Set Id if the object is derived from BaseType
+        if constexpr (std::is_base_of_v<BaseType, TObjectType>) {
+            BaseType::SetId(mpObject->Id());
+        }
+    }
+
+    /// Constructor with index and the resulted object
+    SpatialSearchResult(
+        const IndexType Id,
+        TObjectType* pObject,
+        const int Rank = 0
+        ) : BaseType(Id),
+            mpObject(pObject, Rank),
+            mDistance(0.0),
+            mIsObjectFound(false),
+            mIsDistanceCalculated(false)
+    {
+        if (mpObject.get() != nullptr)
+            mIsObjectFound = true;
+
+        // Set Id if the object is derived from BaseType
+        if constexpr (std::is_base_of_v<BaseType, TObjectType>) {
+            KRATOS_WARNING_IF(mpObject->Id() != Id, "SpatialSearchResult") << "The object id " << mpObject->Id() << " is not equal to the given id: " << Id <<". This may lead to inconsistencies" << std::endl;
+        }
     }
 
     /// Copy constructor.
@@ -90,7 +129,6 @@ public:
 
     /// Assignment operator.
     SpatialSearchResult& operator=(SpatialSearchResult const& /*Other*/) = default;
-
 
     ///@}
     ///@name Operations
@@ -123,6 +161,11 @@ public:
     void Set(TObjectType* pObject) {
         mpObject = pObject;
         mIsObjectFound = true;
+
+        // Set Id if the object is derived from BaseType
+        if constexpr (std::is_base_of_v<BaseType, TObjectType>) {
+            BaseType::SetId(mpObject->Id());
+        }
     }
 
     /// Getting the result distance
@@ -175,21 +218,24 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const override
     {
-        std::stringstream buffer;
-            buffer << "SpatialSearchResult" ;
-            return buffer.str();
+        return "SpatialSearchResult";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SpatialSearchResult";}
+    void PrintInfo(std::ostream& rOStream) const override
+    {
+        rOStream << "SpatialSearchResult";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const override 
+    {
+
+    }
 
     ///@}
-
 private:
     ///@name Member Variables
     ///@{
@@ -209,16 +255,26 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const
+    /**
+     * @brief Saves the object data to a serializer.
+     * @param rSerializer The serializer to save the data to.
+     */
+    void save(Serializer& rSerializer) const override
     {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject);
         rSerializer.save("Object", mpObject);
         rSerializer.save("Distance", mDistance);
         rSerializer.save("Is Object Found", mIsObjectFound);
         rSerializer.save("Is Distance Calculated", mIsDistanceCalculated);
     }
 
-    void load(Serializer& rSerializer)
+    /**
+     * @brief Loads the data of an object from a Serializer.
+     * @param rSerializer The Serializer to load the data from.
+     */
+    void load(Serializer& rSerializer) override
     {
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, IndexedObject);
         rSerializer.load("Object", mpObject);
         rSerializer.load("Distance", mDistance);
         rSerializer.load("Is Object Found", mIsObjectFound);
@@ -260,5 +316,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-
