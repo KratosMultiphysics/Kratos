@@ -1,10 +1,12 @@
+from typing import Optional
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
-from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> Control:
     if not parameters.Has("name"):
@@ -40,14 +42,15 @@ class MaterialPropertiesControl(Control):
             raise RuntimeError(f"{control_variable_name} with {control_variable_type} type is not supported. Only supports double variables")
         self.controlled_physical_variable = Kratos.KratosGlobals.GetVariable(control_variable_name)
 
-        controlled_model_parts = [model[model_part_name] for model_part_name in parameters["model_part_names"].GetStringArray()]
-        if len(controlled_model_parts) == 0:
+        controlled_model_part_names = parameters["model_part_names"].GetStringArray()
+        if len(controlled_model_part_names) == 0:
             raise RuntimeError(f"No model parts were provided for MaterialPropertiesControl. [ control name = \"{self.GetName()}\"]")
 
-        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", controlled_model_parts, False)
+        self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_part_names, False)
+        self.model_part: Optional[Kratos.ModelPart] = None
 
     def Initialize(self) -> None:
-        ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
+        self.model_part = self.model_part_operation.GetModelPart()
 
         if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
