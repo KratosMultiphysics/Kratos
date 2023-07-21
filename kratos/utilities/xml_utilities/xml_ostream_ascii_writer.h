@@ -57,7 +57,7 @@ protected:
     ///@{
 
     void WriteExpressions(
-        const std::vector<Expression::Pointer>& rExpressions,
+        const std::vector<Expression::ConstPointer>& rExpressions,
         const std::string& rTabbing) override;
 
     ///@}

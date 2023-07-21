@@ -18,15 +18,17 @@
 // External includes
 
 // Project includes
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
-#include "containers/container_expression/specialized_container_expression.h"
+#include "expression/container_data_io.h"
+#include "expression/container_expression.h"
+#include "expression/literal_flat_expression.h"
+#include "expression/variable_expression_io.h"
 #include "includes/data_communicator.h"
+#include "input_output/base_64_encoded_output.h"
+#include "input_output/vtk_definitions.h"
 #include "utilities/global_pointer_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/pointer_communicator.h"
 #include "utilities/string_utilities.h"
-#include "input_output/base_64_encoded_output.h"
-#include "input_output/vtk_definitions.h"
 #include "utilities/xml_utilities/xml_expression_element.h"
 #include "utilities/xml_utilities/xml_ostream_ascii_writer.h"
 #include "utilities/xml_utilities/xml_ostream_base64_binary_writer.h"
@@ -42,7 +44,7 @@ namespace Kratos {
 
 namespace VtuOutputHelperUtilities {
 
-Expression::Pointer CreatePositionsExpression(
+Expression::ConstPointer CreatePositionsExpression(
     const ModelPart::NodesContainerType& rNodes,
     const bool IsInitialConfiguration)
 {
@@ -74,7 +76,7 @@ XmlExpressionElement::Pointer CreateDataArrayElement(
     const std::string& rDataArrayName,
     const std::vector<const Expression*>& rExpressions)
 {
-    std::vector<Expression::Pointer> expressions;
+    std::vector<Expression::ConstPointer> expressions;
     for (const auto& p_expression : rExpressions) {
         if (p_expression) {
             expressions.push_back(p_expression);
@@ -87,7 +89,7 @@ XmlExpressionElement::Pointer CreateDataArrayElement(
     }
 }
 
-template<class TContainerType, class TMeshType>
+template<class TContainerType, MeshType TMeshType>
 const Expression* pGetExpression(const ContainerExpression<TContainerType, TMeshType>& rContainerExpression)
 {
     if (rContainerExpression.HasExpression()) {
@@ -211,17 +213,33 @@ XmlExpressionElement::Pointer CreateVariableDataXmlElement(
     ModelPart& rModelPart)
 {
     if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
-        SpecializedContainerExpression<TContainerType, ContainerDataIO<TContainerDataIOTag>, MeshType::Local> local_container(rModelPart);
-        local_container.Read(rVariable);
-        SpecializedContainerExpression<TContainerType, ContainerDataIO<TContainerDataIOTag>, MeshType::Ghost> ghost_container(rModelPart);
-        ghost_container.Read(rVariable);
+        ContainerExpression<TContainerType> local_container(rModelPart);
+        if constexpr(std::is_same_v<TContainerDataIOTag, ContainerDataIOTags::Historical>) {
+            VariableExpressionIO::Read(local_container, &rVariable, true);
+        } else {
+            VariableExpressionIO::Read(local_container, &rVariable, false);
+        }
 
-        return CreateDataArrayElement(
-            rVariable.Name(),
-            {pGetExpression(local_container), pGetExpression(ghost_container)});
+        if (rModelPart.GetCommunicator().GhostMesh().NumberOfNodes() > 0) {
+            ContainerExpression<TContainerType, MeshType::Ghost> ghost_container(rModelPart);
+            if constexpr(std::is_same_v<TContainerDataIOTag, ContainerDataIOTags::Historical>) {
+                VariableExpressionIO::Read(ghost_container, &rVariable, true);
+            } else {
+                VariableExpressionIO::Read(ghost_container, &rVariable, false);
+            }
+
+            return CreateDataArrayElement(
+                rVariable.Name(),
+                {pGetExpression(local_container), pGetExpression(ghost_container)});
+        } else {
+            return CreateDataArrayElement(
+                rVariable.Name(),
+                {pGetExpression(local_container)});
+        }
+
     } else {
-        SpecializedContainerExpression<TContainerType, ContainerDataIO<TContainerDataIOTag>> local_container(rModelPart);
-        local_container.Read(rVariable);
+        ContainerExpression<TContainerType> local_container(rModelPart);
+        VariableExpressionIO::Read(local_container, &rVariable);
 
         return CreateDataArrayElement(rVariable.Name(), {pGetExpression(local_container)});
     }

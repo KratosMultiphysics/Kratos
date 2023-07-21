@@ -26,6 +26,8 @@
 namespace Kratos {
 namespace Testing {
 
+using DataLocation = Globals::DataLocation;
+
 KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart_NodesOnly, KratosCosimulationFastSuite)
 {
     Model model;
