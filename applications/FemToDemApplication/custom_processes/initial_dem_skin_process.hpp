@@ -62,7 +62,7 @@ class InitialDemSkinProcess : public Process
 
         // Let's assign the DEM radius to those nodes...
         for (ModelPart::NodeIterator it = (*p_auxiliar_model_part).NodesBegin(); it != (*p_auxiliar_model_part).NodesEnd(); ++it) {
-            GlobalPointersVector<Node<3>> &rneigh = (*it).GetValue(NEIGHBOUR_NODES);
+            GlobalPointersVector<Node> &rneigh = (*it).GetValue(NEIGHBOUR_NODES);
             KRATOS_ERROR_IF(rneigh.size() == 0) << "Nodal neighbours not computed..." << std::endl;
             std::vector<double> radius_is_dems, radius_not_dem;
             double distance, radius_dem, min_radius, min_radius_is_dem, min_radius_no_dem;
@@ -104,8 +104,8 @@ class InitialDemSkinProcess : public Process
     }
 
     double CalculateDistanceBetweenNodes(
-        const Node<3> &Node1,
-        const Node<3> &Node2)
+        const Node &Node1,
+        const Node &Node2)
     {
         const double X1 = Node1.X();
         const double X2 = Node2.X();

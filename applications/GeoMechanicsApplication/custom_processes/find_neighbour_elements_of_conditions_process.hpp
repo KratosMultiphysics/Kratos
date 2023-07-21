@@ -28,7 +28,7 @@ namespace Kratos
 {
 ///@name Type Definitions
 ///@{
-    typedef std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
+    using hashmap = std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>>>;
 
 ///@}
 ///@name Kratos Classes
@@ -54,7 +54,7 @@ public:
     typedef std::size_t IndexType;
 
     /// Definition of the node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     // Definition of the geometry
     typedef Geometry<NodeType> GeometryType;
@@ -153,6 +153,13 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
+
+    bool CheckIfAllConditionsAreVisited() const;
+
+    void CheckIf1DElementIsNeighbour(hashmap& rFacesMap);
+
+    static void CheckForMultipleConditionsOnElement(hashmap& rFacesMap, hashmap::iterator& rItFace,
+        PointerVector<Element>::iterator pItElem);
 
     ///@}
     ///@name Un accessible methods

@@ -31,7 +31,7 @@ namespace Kratos
 namespace Testing
 {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef ParticleHardeningLaw HL;
 
@@ -74,11 +74,9 @@ namespace Testing
         // Construct Hardening law
         // 1. For Cam Clay hardening law
         HL::Pointer cc_hl_pointer = HL::Pointer( new CCHL() );
-        cc_hl_pointer->InitializeMaterial(material_properties);
 
         // 2. For Exponential strain softening law
         HL::Pointer ExpSS_hl_pointer = HL::Pointer( new ExpSSHL() );
-        ExpSS_hl_pointer->InitializeMaterial(material_properties);
 
         // Test parameters
         double CC_result = 0.0;
@@ -87,10 +85,10 @@ namespace Testing
         double alpha = 0.1;
         double prev_pc = -119.4e3;
 
-        CC_result = cc_hl_pointer->CalculateHardening(CC_result, alpha, prev_pc);
-        ExpSS_result[0] = ExpSS_hl_pointer->CalculateHardening(ExpSS_result[0], alpha, INTERNAL_FRICTION_ANGLE);
-        ExpSS_result[1] = ExpSS_hl_pointer->CalculateHardening(ExpSS_result[1], alpha, COHESION);
-        ExpSS_result[2] = ExpSS_hl_pointer->CalculateHardening(ExpSS_result[2], alpha, INTERNAL_DILATANCY_ANGLE);
+        CC_result = cc_hl_pointer->CalculateHardening(CC_result, alpha, prev_pc, material_properties);
+        ExpSS_result[0] = ExpSS_hl_pointer->CalculateHardening(ExpSS_result[0], alpha, INTERNAL_FRICTION_ANGLE, material_properties);
+        ExpSS_result[1] = ExpSS_hl_pointer->CalculateHardening(ExpSS_result[1], alpha, COHESION, material_properties);
+        ExpSS_result[2] = ExpSS_hl_pointer->CalculateHardening(ExpSS_result[2], alpha, INTERNAL_DILATANCY_ANGLE, material_properties);
 
         // Check results
         KRATOS_CHECK_NEAR(CC_result, CC_analytical, 1.e-3);

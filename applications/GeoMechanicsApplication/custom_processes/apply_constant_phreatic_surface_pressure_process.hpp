@@ -64,6 +64,8 @@ public:
         rParameters["variable_name"];
         rParameters["model_part_name"];
 
+        mIsFixedProvided = rParameters.Has("is_fixed");
+
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
@@ -84,7 +86,7 @@ public:
         else
           mPressureTensionCutOff = 0.0;
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
     ///------------------------------------------------------------------------------------
@@ -111,7 +113,7 @@ public:
             direction[mGravityDirection] = 1.0;
 
             if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node& rNode) {
                     double distance = 0.0;
                     double d = 0.0;
                     for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
@@ -126,13 +128,13 @@ public:
                         rNode.FastGetSolutionStepValue(var) = pressure;
                         if (mIsFixed) rNode.Fix(var);
                     } else {
-                        rNode.Free(var);
+                        if (mIsFixedProvided) rNode.Free(var);
                     }
                 });
             } else {
-                block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node& rNode) {
                     if (mIsFixed) rNode.Fix(var);
-                    else          rNode.Free(var);
+                    else if (mIsFixedProvided) rNode.Free(var);
 
                     double distance = 0.0;
                     double d = 0.0;
@@ -183,6 +185,7 @@ protected:
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
+    bool mIsFixedProvided;
     bool mIsSeepage;
     unsigned int mGravityDirection;
     double mSpecificWeight;

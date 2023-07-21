@@ -126,13 +126,13 @@ void GeoLinearElasticPlaneStrain2DLaw::
                        Vector& rStressVector,
                        ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     Matrix C;
     this->CalculateElasticMatrix(C, rValues);
     noalias(rStressVector) = prod(C, rStrainVector);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
 
 

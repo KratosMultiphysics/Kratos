@@ -105,7 +105,7 @@ File::File(Parameters Settings)
                 "echo_level" : 0
             })");
 
-    Settings.RecursivelyValidateAndAssignDefaults(default_params);
+    Settings.RecursivelyAddMissingParameters(default_params);
 
     m_file_name = Settings["file_name"].GetString();
     KRATOS_ERROR_IF(m_file_name == "PLEASE_SPECIFY_HDF5_FILENAME") << "Invalid file name: " << m_file_name << std::endl;

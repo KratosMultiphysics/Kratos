@@ -32,6 +32,24 @@ namespace Testing
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults2, KratosHDF5TestSuite)
 {
+    Model this_model;
+    ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
+    ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
+
+    std::vector<std::string> variables_list {
+        "DISPLACEMENT",
+        "PRESSURE",
+        "REFINEMENT_LEVEL"
+    };
+
+    // "shuffle" the list of variables to check whether it's handled
+    // without deadlocks.
+    std::rotate(
+        variables_list.begin(),
+        variables_list.begin() + (r_read_model_part.GetCommunicator().GetDataCommunicator().Rank() % variables_list.size()),
+        variables_list.end()
+    );
+
     Parameters file_params(R"(
         {
             "file_name" : "test.h5",
@@ -40,9 +58,6 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults2, KratosHDF5TestSuite)
         })");
     auto p_test_file = Kratos::make_shared<HDF5::FileSerial>(file_params);
 
-    Model this_model;
-    ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
-    ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
     r_read_model_part.AddNodalSolutionStepVariable(DISPLACEMENT); // array_1d
     r_read_model_part.AddNodalSolutionStepVariable(PRESSURE); // double
     r_read_model_part.AddNodalSolutionStepVariable(REFINEMENT_LEVEL); // int
@@ -64,11 +79,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults2, KratosHDF5TestSuite)
         r_node.FastGetSolutionStepValue(REFINEMENT_LEVEL) = r_node.Id() + 4;
     }
 
-    Parameters io_params(R"(
-        {
-            "prefix": "/Step",
-            "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL"]
-        })");
+    Parameters io_params(R"({
+        "prefix": "/Step",
+        "list_of_variables": []
+    })");
+    io_params["list_of_variables"].SetStringArray(variables_list);
+
     HDF5::NodalSolutionStepDataIO data_io(io_params, p_test_file);
     data_io.WriteNodalResults(r_write_model_part);
     data_io.ReadNodalResults(r_read_model_part);

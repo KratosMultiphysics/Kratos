@@ -154,7 +154,7 @@ int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rC
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
-        const Node<3>& rNode = this->GetGeometry()[i];
+        const Node& rNode = this->GetGeometry()[i];
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_COMPONENT_GRADIENT_X,rNode);
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_COMPONENT_GRADIENT_Y,rNode);
         if constexpr (TDim == 3){

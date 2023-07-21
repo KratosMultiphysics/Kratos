@@ -152,66 +152,6 @@ void CalculateGeometryParameterDerivativesShapeSensitivity(
     }
 }
 
-template <unsigned int TDim>
-void CalculateGradient(
-    BoundedMatrix<double, TDim, TDim>& rOutput,
-    const Geometry<ModelPart::NodeType>& rGeometry,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step)
-{
-    rOutput.clear();
-    std::size_t number_of_nodes = rGeometry.PointsNumber();
-
-    for (unsigned int a = 0; a < number_of_nodes; ++a) {
-        const auto& r_value = rGeometry[a].FastGetSolutionStepValue(rVariable, Step);
-        for (unsigned int i = 0; i < TDim; ++i) {
-            for (unsigned int j = 0; j < TDim; ++j) {
-                rOutput(i, j) += rShapeDerivatives(a, j) * r_value[i];
-            }
-        }
-    }
-}
-
-void CalculateGradient(
-    array_1d<double, 3>& rOutput,
-    const Geometry<ModelPart::NodeType>& rGeometry,
-    const Variable<double>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step)
-{
-    rOutput.clear();
-    std::size_t number_of_nodes = rGeometry.PointsNumber();
-    unsigned int domain_size = rShapeDerivatives.size2();
-
-    for (std::size_t a = 0; a < number_of_nodes; ++a) {
-        const double value = rGeometry[a].FastGetSolutionStepValue(rVariable, Step);
-        for (unsigned int i = 0; i < domain_size; ++i) {
-            rOutput[i] += rShapeDerivatives(a, i) * value;
-        }
-    }
-}
-
-double GetDivergence(
-    const Geometry<ModelPart::NodeType>& rGeometry,
-    const Variable<array_1d<double, 3>>& rVariable,
-    const Matrix& rShapeDerivatives,
-    const int Step)
-{
-    double value = 0.0;
-    const int number_of_nodes = rGeometry.PointsNumber();
-    const int dim = rShapeDerivatives.size2();
-
-    for (int i = 0; i < number_of_nodes; ++i) {
-        const auto& r_value = rGeometry[i].FastGetSolutionStepValue(rVariable, Step);
-        for (int j = 0; j < dim; ++j) {
-            value += r_value[j] * rShapeDerivatives(i, j);
-        }
-    }
-
-    return value;
-}
-
 template <unsigned int TNumNodes>
 void CalculateGaussSensitivities(
     BoundedVector<double, TNumNodes>& rGaussSensitivities,
@@ -223,32 +163,6 @@ void CalculateGaussSensitivities(
         rGaussSensitivities[i_node] =
             rGaussShapeFunctions[i_node] * rNodalSensitivities[i_node];
     }
-}
-
-template <unsigned int TDim>
-Vector GetVector(
-    const array_1d<double, 3>& rVector)
-{
-    Vector result(TDim);
-
-    for (unsigned int i_dim = 0; i_dim < TDim; ++i_dim) {
-        result[i_dim] = rVector[i_dim];
-    }
-
-    return result;
-}
-
-Vector GetVector(
-    const array_1d<double, 3>& rVector,
-    const unsigned int Dim)
-{
-    Vector result(Dim);
-
-    for (unsigned int i_dim = 0; i_dim < Dim; ++i_dim) {
-        result[i_dim] = rVector[i_dim];
-    }
-
-    return result;
 }
 
 double CalculateLogarithmicYPlusLimit(
@@ -441,20 +355,6 @@ template double CalculateMatrixTrace<2>(
 template double CalculateMatrixTrace<3>(
     const BoundedMatrix<double, 3, 3>&);
 
-template void CalculateGradient<2>(
-    BoundedMatrix<double, 2, 2>&,
-    const Geometry<ModelPart::NodeType>&,
-    const Variable<array_1d<double, 3>>&,
-    const Matrix&,
-    const int);
-
-template void CalculateGradient<3>(
-    BoundedMatrix<double, 3, 3>&,
-    const Geometry<ModelPart::NodeType>&,
-    const Variable<array_1d<double, 3>>&,
-    const Matrix&,
-    const int);
-
 template void CalculateGeometryParameterDerivativesShapeSensitivity<2>(
     BoundedMatrix<double, 2, 2>&,
     const ShapeParameter&,
@@ -476,12 +376,6 @@ template void CalculateGaussSensitivities<4>(
     BoundedVector<double, 4>&,
     const BoundedVector<double, 4>&,
     const Vector&);
-
-template Vector GetVector<2>(
-    const array_1d<double, 3>&);
-
-template Vector GetVector<3>(
-    const array_1d<double, 3>&);
 
 template void CalculateNumberOfNeighbourEntities<ModelPart::ConditionsContainerType>(
     ModelPart&,

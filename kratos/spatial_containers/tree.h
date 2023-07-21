@@ -4,27 +4,20 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    klabra
 //
 
-
-
-#if !defined(KRATOS_TREE_H_INCLUDED )
-#define  KRATOS_TREE_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 #include <cmath>
 
-
 // External includes
-
 
 // Project includes
 #include "search_structure.h"
@@ -32,7 +25,6 @@
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -47,7 +39,6 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-
 
 ///@}
 ///@name Kratos Classes
@@ -67,6 +58,11 @@ std::size_t TDimension,
 class TreeNode
 {
 public:
+
+    ///@name Type Definitions
+
+    /// Pointer definition of TreeNode
+    KRATOS_CLASS_POINTER_DEFINITION(TreeNode);
 
     // Global definitions
     typedef std::size_t SizeType;
@@ -151,8 +147,6 @@ private:
     static IteratorType msNull;
     static PointerType msNullPointer;
     static TreeNode msNullLeaf;
-
-
 };
 
 template<std::size_t TDimension, class TPointType, class TPointerType, class TIteratorType, class TDistanceIteratorType, class TIteratorIteratorType>
@@ -163,11 +157,9 @@ template<std::size_t TDimension, class TPointType, class TPointerType, class TIt
 typename TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::PointerType
 TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::msNullPointer;
 
-
 template<std::size_t TDimension, class TPointType, class TPointerType, class TIteratorType, class TDistanceIteratorType, class TIteratorIteratorType>
 TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>
 TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::msNullLeaf;
-
 
 /// Short class definition.
 /** Detail class definition.
@@ -189,93 +181,116 @@ public:
 
     /// Pointer definition of Tree
     KRATOS_CLASS_POINTER_DEFINITION(Tree);
+    /// The partition type definition
+    using PartitionType = TPartitionType;
 
-    typedef TPartitionType PartitionType;
+    /// The leaf type definition
+    using LeafType = typename PartitionType::LeafType;
 
-    typedef typename PartitionType::LeafType LeafType;
+    /// The point type definition
+    using PointType = typename PartitionType::PointType;
 
-    typedef typename PartitionType::PointType PointType;
+    /// The iterator type definition
+    using IteratorType = typename PartitionType::IteratorType;
 
-    typedef typename PartitionType::IteratorType IteratorType;
+    /// The distance iterator type definition
+    using DistanceIteratorType = typename PartitionType::DistanceIteratorType;
 
-    typedef typename PartitionType::DistanceIteratorType DistanceIteratorType;
+    /// The pointer type definition
+    using PointerType = typename PartitionType::PointerType;
 
-    typedef typename PartitionType::PointerType PointerType;
+    /// The distance function type definition
+    using DistanceFunction = typename PartitionType::DistanceFunction;
 
-    typedef typename PartitionType::DistanceFunction DistanceFunction;
+    /// Dimension definition
+    static constexpr std::size_t Dimension = PartitionType::Dimension;
 
-    enum { Dimension = PartitionType::Dimension };
+    /// The node type definition
+    using NodeType = TreeNode<Dimension,PointType,PointerType,IteratorType,DistanceIteratorType> ;
 
-    typedef TreeNode<Dimension,PointType,PointerType,IteratorType,DistanceIteratorType> NodeType;
+    /// The coordinate type definition
+    using CoordinateType = typename NodeType::CoordinateType;
 
-    typedef typename NodeType::CoordinateType CoordinateType;
+    /// The size type definition
+    using SizeType = typename NodeType::SizeType;
 
-    typedef typename NodeType::SizeType       SizeType;
+    /// The index type definition
+    using IndexType = typename NodeType::IndexType;
 
-    typedef typename NodeType::IndexType      IndexType;
-
-    //typedef typename NodeType::SearchStructureType SearchStructureType;
-    typedef typename PartitionType::SearchStructureType SearchStructureType;
+    /// The search structure type definition
+    using SearchStructureType = typename PartitionType::SearchStructureType;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor.
-    Tree(IteratorType PointsBegin, IteratorType PointsEnd, SizeType BucketSize = 1)
-        : mBucketSize(BucketSize), mPointsBegin(PointsBegin), mPointsEnd(PointsEnd)
+    /**
+     * @brief Construct a new Tree object
+     * @param PointsBegin Iterator to the first point
+     * @param PointsEnd Iterator to the last point
+     * @param BucketSize Size of the bucket
+     */
+    Tree(
+        IteratorType PointsBegin,
+        IteratorType PointsEnd,
+        SizeType BucketSize = 1
+        ) : mBucketSize(BucketSize),
+            mPointsBegin(PointsBegin),
+            mPointsEnd(PointsEnd)
     {
-
         if(mPointsBegin == mPointsEnd)
             return;
-        PointType max_point;
-        PointType min_point;
-        for(SizeType i = 0 ; i < Dimension ; i++)
-        {
-            max_point[i] = (**mPointsBegin)[i];
-            min_point[i] = (**mPointsBegin)[i];
-        }
-        //	PointType max_point = **mPointsBegin;
-        //	PointType min_point = **mPointsBegin;
-        for(IteratorType point_iterator = mPointsBegin ; point_iterator != mPointsEnd ; point_iterator++)
-            for(SizeType i = 0 ; i < Dimension ; i++)
-            {
-                if((**point_iterator)[i] > max_point[i])
-                    max_point[i] = (**point_iterator)[i];
-                else if((**point_iterator)[i] < min_point[i])
-                   min_point[i]  = (**point_iterator)[i];
-            }
 
-            //TODO: commenting the next line is plain wrong. it is just to try compiling without copy constructor
-//             KRATOS_THROW_ERROR(std::logic_error,"TODO: commenting the next line is plain wrong. it is just to try compiling without copy constructor - it completely breaks the code","")
-            //CHAPUZA CHAPUZA CHAPUZA
-            
-       mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, max_point, min_point, mBucketSize);
+        for(SizeType i = 0 ; i < Dimension ; i++) {
+            mBoundingBoxHighPoint[i] = (**mPointsBegin)[i];
+            mBoundingBoxLowPoint[i] = (**mPointsBegin)[i];
+        }
+
+        for(IteratorType point_iterator = mPointsBegin ; point_iterator != mPointsEnd ; point_iterator++) {
+            for(SizeType i = 0 ; i < Dimension ; i++) {
+                if((**point_iterator)[i] > mBoundingBoxHighPoint[i]) {
+                    mBoundingBoxHighPoint[i] = (**point_iterator)[i];
+                } else if((**point_iterator)[i] < mBoundingBoxLowPoint[i]) {
+                   mBoundingBoxLowPoint[i]  = (**point_iterator)[i];
+                }
+            }
+        }
+
+       mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, mBoundingBoxHighPoint, mBoundingBoxLowPoint, mBucketSize);
     }
 
-
-    Tree(IteratorType PointsBegin, IteratorType PointsEnd, Partitions Parts )
-        : mPointsBegin(PointsBegin), mPointsEnd(PointsEnd)
+    /**
+     * @brief Construct a new Tree object
+     * @param PointsBegin Iterator to the first point
+     * @param PointsEnd Iterator to the last point
+     * @param Parts The partitions definition
+     */
+    Tree(
+        IteratorType PointsBegin,
+        IteratorType PointsEnd,
+        Partitions Parts
+        ) : mPointsBegin(PointsBegin), 
+            mPointsEnd(PointsEnd)
     {
-
         if(mPointsBegin == mPointsEnd)
             return;
 
         SizeType NumPoints = SearchUtils::PointerDistance(mPointsBegin,mPointsEnd);
         mBucketSize = static_cast<std::size_t>( (double) NumPoints / (double) Parts.mNumPartitions ) + 1;
 
-        PointType max_point = **mPointsBegin;
-        PointType min_point = **mPointsBegin;
-        for(IteratorType point_iterator = mPointsBegin ; point_iterator != mPointsEnd ; point_iterator++)
-            for(SizeType i = 0 ; i < Dimension ; i++)
-            {
-                if((**point_iterator)[i] > max_point[i])
-                    max_point[i] = (**point_iterator)[i];
-                else if((**point_iterator)[i] < min_point[i])
-                    min_point[i] = (**point_iterator)[i];
+        mBoundingBoxHighPoint = **mPointsBegin;
+        mBoundingBoxLowPoint = **mPointsBegin;
+        for(IteratorType point_iterator = mPointsBegin ; point_iterator != mPointsEnd ; point_iterator++) {
+            for(SizeType i = 0 ; i < Dimension ; i++) {
+                if((**point_iterator)[i] > mBoundingBoxHighPoint[i]) {
+                    mBoundingBoxHighPoint[i] = (**point_iterator)[i];
+                } else if((**point_iterator)[i] < mBoundingBoxLowPoint[i]) {
+                    mBoundingBoxLowPoint[i] = (**point_iterator)[i];
+                }
             }
+        }
 
-        mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, max_point, min_point, mBucketSize);
+        mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, mBoundingBoxHighPoint, mBoundingBoxLowPoint, mBucketSize);
     }
 
     /// Destructor.
@@ -284,34 +299,38 @@ public:
         delete mRoot;
     }
 
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
     ///@{
 
-    PointerType ExistPoint( PointerType const& ThisPoint, CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) )
+    PointerType ExistPoint(
+        PointerType const& ThisPoint,
+        CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) 
+        )
     {
         PointerType Result = *mPointsBegin;
         CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
-        // searching the tree
-        mRoot->SearchNearestPoint(ThisPoint,Result,ResultDistance);
+        // Searching the tree
+        mRoot->SearchNearestPoint(*ThisPoint, Result, ResultDistance);
         if (ResultDistance<Tolerance*Tolerance)
             return Result;
-        return this->NullPointer();
+        return NodeType::NullPointer();
     }
 
-    PointerType SearchNearestPoint(PointType const& ThisPoint, CoordinateType& rResultDistance)
+    PointerType SearchNearestPoint(
+        PointType const& ThisPoint,
+        CoordinateType& rResultDistance
+        )
     {
         PointerType Result = *mPointsBegin;
         rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
 
-        // searching the tree
-        mRoot->SearchNearestPoint(ThisPoint,Result,rResultDistance);
+        // Searching the tree
+        mRoot->SearchNearestPoint(ThisPoint, Result, rResultDistance);
 
         return Result;
     }
@@ -321,60 +340,57 @@ public:
         PointerType Result = *mPointsBegin; // NULL ??
         CoordinateType rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
 
-        // searching the tree
-        mRoot->SearchNearestPoint(ThisPoint,Result,rResultDistance);
+        // Searching the tree
+        mRoot->SearchNearestPoint(ThisPoint, Result, rResultDistance);
 
         return Result;
     }
-    
-    void SearchNearestPoint( PointerType const& ThisPoints, SizeType const& NumberOfPoints, IteratorType &Results, std::vector<CoordinateType> ResultsDistances)
-    {
-        IndexPartition<SizeType>(NumberOfPoints).for_each(
-            [&](SizeType iPoint)
-            { Results[iPoint] = SearchNearestPoint(ThisPoints[iPoint],ResultsDistances[iPoint]); }
-        );
-    }
 
-    SizeType SearchInRadius(PointType const& ThisPoint, CoordinateType Radius, IteratorType Results,
-                            DistanceIteratorType ResultsDistances, SizeType MaxNumberOfResults)
+    SizeType SearchInRadius(
+        PointType const& ThisPoint,
+        CoordinateType Radius,
+        IteratorType Results,
+        DistanceIteratorType ResultsDistances,
+        SizeType MaxNumberOfResults
+        )
     {
         // Using the square of radius for avoiding square root calculation during search
-        CoordinateType Radius2 = Radius * Radius;
+        const CoordinateType Radius2 = Radius * Radius;
 
-        // searching the tree
+        // Searching the tree
         SizeType NumberOfResults = 0;
         mRoot->SearchInRadius(ThisPoint, Radius, Radius2, Results, ResultsDistances, NumberOfResults, MaxNumberOfResults);
 
         return NumberOfResults;
     }
 
-    SizeType SearchInRadius(PointType const& ThisPoint, CoordinateType Radius, IteratorType Results, SizeType MaxNumberOfResults)
+    SizeType SearchInRadius(
+        PointType const& ThisPoint,
+        CoordinateType Radius,
+        IteratorType Results,
+        SizeType MaxNumberOfResults
+        )
     {
         // Using the square of radius for avoiding square root calculation during search
-        CoordinateType Radius2 = Radius * Radius;
+        const CoordinateType Radius2 = Radius * Radius;
 
-        // searching the tree
+        // Searching the tree
         SizeType NumberOfResults = 0;
         mRoot->SearchInRadius(ThisPoint, Radius, Radius2, Results, NumberOfResults, MaxNumberOfResults);
         return NumberOfResults;
     }
-    
-    void SearchInRadius( PointerType const& ThisPoints, SizeType const& NumberOfPoints, std::vector<CoordinateType> const& Radius, std::vector<IteratorType> Results,
-                        std::vector<DistanceIteratorType> ResultsDistances, std::vector<SizeType>& NumberOfResults, SizeType const& MaxNumberOfResults )
-    {
-        IndexPartition<SizeType>(NumberOfPoints).for_each(
-            [&](SizeType iPoint)
-            { NumberOfResults[iPoint] = SearchInRadius(ThisPoints[iPoint],Radius[iPoint],Results[iPoint],ResultsDistances[iPoint],MaxNumberOfResults); }
-        );
-    }
 
-    SizeType SearchInBox(PointType const& MinPointBox, PointType const& MaxPointBox, IteratorType Results, SizeType MaxNumberOfResults )
+    SizeType SearchInBox(
+        PointType const& MinPointBox,
+        PointType const& MaxPointBox,
+        IteratorType Results,
+        SizeType MaxNumberOfResults
+        )
     {
         SizeType NumberOfResults = 0;
         mRoot->SearchInBox(MinPointBox,MaxPointBox,Results,NumberOfResults,MaxNumberOfResults);
         return NumberOfResults;
     }
-
 
     ///@}
     ///@name Access
@@ -390,11 +406,9 @@ public:
         return mBoundingBoxHighPoint;
     }
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -418,51 +432,40 @@ public:
         mRoot->PrintData(rOStream, "  ");
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -487,21 +490,17 @@ private:
     ///@name Private Operators:
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -513,24 +512,19 @@ private:
     /// Copy constructor.
     Tree(Tree const& rOther);
 
-
     ///@}
-
 }; // Class Tree
 
 template< class TPartitionType >
 typename Tree<TPartitionType>::LeafType Tree<TPartitionType>::msEmptyLeaf;
 
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 template<class TPartitionType>
@@ -548,9 +542,4 @@ inline std::ostream& operator << (std::ostream& rOStream, const Tree<TPartitionT
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_TREE_H_INCLUDED  defined 
-
-

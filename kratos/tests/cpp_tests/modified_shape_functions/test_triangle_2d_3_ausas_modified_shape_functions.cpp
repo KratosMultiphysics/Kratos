@@ -44,7 +44,7 @@ namespace Kratos
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
 
 			// Set the elemental distances vector
-			Geometry<Node<3>>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
+			Geometry<Node>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
 
 			array_1d<double, 3> distances_vector;
 			for (unsigned int i = 0; i < p_geometry->size(); ++i) {
@@ -365,7 +365,7 @@ namespace Kratos
 			base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) = -1.0;
 
 			// Set the elemental distances vector
-			Geometry<Node<3>>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
+			Geometry<Node>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
 
 			array_1d<double, 3> distances_vector;
 			for (unsigned int i = 0; i < p_geometry->size(); ++i) {

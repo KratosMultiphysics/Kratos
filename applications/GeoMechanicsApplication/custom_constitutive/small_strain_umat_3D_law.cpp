@@ -52,11 +52,9 @@ typedef void(*f_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doubl
 //************************************************************************************
 
 SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw()
-   : ConstitutiveLaw(),
-     mIsModelInitialized(false),
-     mIsUMATLoaded(false)
+   : ConstitutiveLaw()
    {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     KRATOS_CATCH("")
 
@@ -76,13 +74,13 @@ SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw &rOther)
      mStateVariablesFinalized(rOther.mStateVariablesFinalized)
 
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    for (unsigned int i = 0; i < VOIGT_SIZE_3D; ++i)
       for (unsigned int j = 0; j < VOIGT_SIZE_3D; ++j)
          mMatrixD[i][j] = rOther.mMatrixD[i][j];
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************CLONE***********************************************
@@ -90,18 +88,18 @@ SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw &rOther)
 
 ConstitutiveLaw::Pointer SmallStrainUMAT3DLaw::Clone() const
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    return Kratos::make_shared<SmallStrainUMAT3DLaw>(*this);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //********************************ASSIGNMENT******************************************
 //************************************************************************************
 SmallStrainUMAT3DLaw &SmallStrainUMAT3DLaw::operator=(SmallStrainUMAT3DLaw const &rOther)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    ConstitutiveLaw::operator=(rOther);
    this->mIsModelInitialized      = rOther.mIsModelInitialized;
@@ -119,7 +117,7 @@ SmallStrainUMAT3DLaw &SmallStrainUMAT3DLaw::operator=(SmallStrainUMAT3DLaw const
 
    return *this;
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 //*******************************DESTRUCTOR*******************************************
@@ -173,7 +171,7 @@ void SmallStrainUMAT3DLaw::InitializeMaterial(const Properties &rMaterialPropert
                                               const Vector &rShapeFunctionsValues)
 
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // we need to check if the model is loaded or not
    mIsUMATLoaded = loadUMAT(rMaterialProperties);
 
@@ -183,12 +181,12 @@ void SmallStrainUMAT3DLaw::InitializeMaterial(const Properties &rMaterialPropert
 
    ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
-   KRATOS_CATCH(" ");
+   KRATOS_CATCH(" ")
 }
 
 void SmallStrainUMAT3DLaw::ResetStateVariables(const Properties& rMaterialProperties)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
    // reset state variables
 
    const auto &StateVariables = rMaterialProperties[STATE_VARIABLES];
@@ -200,7 +198,7 @@ void SmallStrainUMAT3DLaw::ResetStateVariables(const Properties& rMaterialProper
    noalias(mStateVariables)          = StateVariables;
    noalias(mStateVariablesFinalized) = StateVariables;
 
-   KRATOS_CATCH(" ");
+   KRATOS_CATCH(" ")
 }
 
 
@@ -208,7 +206,7 @@ void SmallStrainUMAT3DLaw::ResetMaterial(const Properties& rMaterialProperties,
                                          const GeometryType& rElementGeometry,
                                          const Vector& rShapeFunctionsValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    // reset state variables
    ResetStateVariables(rMaterialProperties);
@@ -227,28 +225,22 @@ void SmallStrainUMAT3DLaw::ResetMaterial(const Properties& rMaterialProperties,
 
    mIsModelInitialized = false;
 
-   KRATOS_CATCH(" ");
+   KRATOS_CATCH(" ")
 }
 
 bool SmallStrainUMAT3DLaw::loadUMAT(const Properties &rMaterialProperties)
 {
-   KRATOS_TRY;
-
-   bool isLoaded = false;
+   KRATOS_TRY
 
 #ifdef KRATOS_COMPILED_IN_WINDOWS
    return loadUMATWindows(rMaterialProperties);
-#endif
-
-#if defined(KRATOS_COMPILED_IN_LINUX) || defined(KRATOS_COMPILED_IN_OS)
+#elif defined(KRATOS_COMPILED_IN_LINUX) || defined(KRATOS_COMPILED_IN_OS)
    return loadUMATLinux(rMaterialProperties);
+#else
+   KRATOS_ERROR << "loadUMAT is not supported yet for Mac OS applications" << std::endl;
 #endif
 
-   KRATOS_ERROR << "loadUMAT is not supported yet for Mac OS applications" << std::endl;
-
-   return isLoaded;
-
-   KRATOS_CATCH(" ");
+   KRATOS_CATCH(" ")
 }
 
 bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties &rMaterialProperties)
@@ -295,7 +287,6 @@ bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties &rMaterialProperties)
 
 #else
    KRATOS_ERROR << "loadUMATLinux should be called in Linux applications" << rMaterialProperties[UDSM_NAME] << std::endl;
-   return false;
 #endif
 }
 
@@ -322,7 +313,6 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties &rMaterialProperties
    {
       KRATOS_INFO("Error in loadUMATWindows") << "cannot load the specified UMAT: " << rMaterialProperties[UDSM_NAME] << std::endl;
       KRATOS_ERROR << "cannot load the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
-      return false;
    }
 
    pUserMod = (f_UMATMod)GetProcAddress(hGetProcIDDLL, "umat");
@@ -330,7 +320,6 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties &rMaterialProperties
    {
       KRATOS_INFO("Error in loadUMATWindows") << "cannot load function umat in the specified UMAT: "<< rMaterialProperties[UDSM_NAME] << std::endl;
       KRATOS_ERROR << "cannot load function umat in the specified UMAT " << rMaterialProperties[UDSM_NAME] << std::endl;
-      return false;
    }
 
    return true;
@@ -346,34 +335,34 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties &rMaterialProperties
 
 void SmallStrainUMAT3DLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters & rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    CalculateMaterialResponseCauchy(rValues);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 void SmallStrainUMAT3DLaw::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters & rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    CalculateMaterialResponseCauchy(rValues);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 void SmallStrainUMAT3DLaw::CalculateMaterialResponseKirchhoff(ConstitutiveLaw::Parameters & rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    CalculateMaterialResponseCauchy(rValues);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 void SmallStrainUMAT3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters &rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    // Get Values to compute the constitutive law:
    Flags &rOptions=rValues.GetOptions();
@@ -398,7 +387,7 @@ void SmallStrainUMAT3DLaw::CalculateMaterialResponseCauchy(ConstitutiveLaw::Para
       CalculateConstitutiveMatrix(rValues, rConstitutiveMatrix);
    }
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 
@@ -462,7 +451,7 @@ void SmallStrainUMAT3DLaw::CopyConstitutiveMatrix( ConstitutiveLaw::Parameters &
 void SmallStrainUMAT3DLaw::CalculateConstitutiveMatrix( ConstitutiveLaw::Parameters &rValues,
                                                         Matrix& rConstitutiveMatrix )
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    // update strain vector
    UpdateInternalDeltaStrainVector(rValues);
@@ -471,13 +460,13 @@ void SmallStrainUMAT3DLaw::CalculateConstitutiveMatrix( ConstitutiveLaw::Paramet
 
    CopyConstitutiveMatrix(rValues, rConstitutiveMatrix);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 void SmallStrainUMAT3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues,
                                             Vector& rStressVector )
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    // update strain vector
    UpdateInternalDeltaStrainVector(rValues);
@@ -486,12 +475,12 @@ void SmallStrainUMAT3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues
 
    SetExternalStressVector(rStressVector);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 void SmallStrainUMAT3DLaw::CallUMAT( ConstitutiveLaw::Parameters &rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    // process data
    double deltaTime = rValues.GetProcessInfo()[DELTA_TIME];
@@ -532,7 +521,7 @@ void SmallStrainUMAT3DLaw::CallUMAT( ConstitutiveLaw::Parameters &rValues)
             NULL,                 &iElement,              &integrationNumber,   NULL,   NULL,                          &iStep,
             &iteration);
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 
 }
 
@@ -556,7 +545,7 @@ void SmallStrainUMAT3DLaw::InitializeMaterialResponseKirchhoff(ConstitutiveLaw::
 
 void SmallStrainUMAT3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-   KRATOS_TRY;
+   KRATOS_TRY
 
    if (!mIsModelInitialized)
    {
@@ -572,7 +561,7 @@ void SmallStrainUMAT3DLaw::InitializeMaterialResponseCauchy(ConstitutiveLaw::Par
       mIsModelInitialized = true;
    }
 
-   KRATOS_CATCH("");
+   KRATOS_CATCH("")
 }
 
 void SmallStrainUMAT3DLaw::FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters& rValues)

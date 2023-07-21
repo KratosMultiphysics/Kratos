@@ -4,20 +4,19 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_MIXED_FRICTIONAL_CONTACT_CRITERIA_H)
-#define KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_MIXED_FRICTIONAL_CONTACT_CRITERIA_H
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "utilities/table_stream_utility.h"
 #include "utilities/color_utilities.h"
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
@@ -79,28 +78,28 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( INITIAL_RESIDUAL_IS_SET );
 
     /// The base class definition
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace >                                           BaseType;
+    using BaseType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The definition of the current class
-    typedef DisplacementLagrangeMultiplierMixedFrictionalContactCriteria< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = DisplacementLagrangeMultiplierMixedFrictionalContactCriteria<TSparseSpace, TDenseSpace>;
 
     /// The dofs array type
-    typedef typename BaseType::DofsArrayType                                                      DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// The sparse matrix type
-    typedef typename BaseType::TSystemMatrixType                                              TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     /// The dense vector type
-    typedef typename BaseType::TSystemVectorType                                              TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     /// The sparse space used
-    typedef TSparseSpace                                                                        SparseSpaceType;
+    using SparseSpaceType = TSparseSpace;
 
     /// The table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer                                                 TablePrinterPointerType;
+    using TablePrinterPointerType = TableStreamUtility::Pointer;
 
     /// The index type definition
-    typedef std::size_t                                                                               IndexType;
+    using IndexType = std::size_t;
 
     /// The epsilon tolerance definition
     static constexpr double Tolerance = std::numeric_limits<double>::epsilon();
@@ -619,11 +618,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -678,18 +673,6 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -724,29 +707,6 @@ private:
     std::vector<int> mActiveDofs;       /// This vector contains the dofs that are active
 
     ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-
-    ///@name Unaccessible methods
-    ///@{
-    ///@}
 };  // Kratos DisplacementLagrangeMultiplierMixedFrictionalContactCriteria
 
 ///@name Local flags creation
@@ -766,5 +726,3 @@ const Kratos::Flags DisplacementLagrangeMultiplierMixedFrictionalContactCriteria
 template<class TSparseSpace, class TDenseSpace>
 const Kratos::Flags DisplacementLagrangeMultiplierMixedFrictionalContactCriteria<TSparseSpace, TDenseSpace>::INITIAL_RESIDUAL_IS_SET(Kratos::Flags::Create(5));
 }
-
-#endif	/* KRATOS_DISPLACEMENT_LAGRANGE_MULTIPLIER_MIXED_FRICTIONAL_CONTACT_CRITERIA_H */

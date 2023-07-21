@@ -5,18 +5,16 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 //
 
-
 // System includes
 
 // External includes
 #include <pybind11/stl.h>
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -82,17 +80,17 @@ ModelPart::MeshType::Pointer ModelPartGetMesh2(ModelPart& rModelPart, ModelPart:
     return rModelPart.pGetMesh(MeshIndex);
 }
 
-Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, double x, double y, double z)
+Node ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, double x, double y, double z)
 {
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry1(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry1(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
-    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    Geometry<Node>::PointsArrayType pGeometryNodeList;
     for (std::size_t i = 0; i < NodeIdList.size(); i++) {
         pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
@@ -100,13 +98,13 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry1(
     return rModelPart.CreateNewGeometry(GeometryTypeName, pGeometryNodeList);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry2(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry2(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     ModelPart::IndexType GeometryId,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
-    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    Geometry<Node>::PointsArrayType pGeometryNodeList;
     for(std::size_t i = 0; i < NodeIdList.size(); i++) {
         pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
@@ -114,13 +112,13 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry2(
     return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryId, pGeometryNodeList);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry3(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry3(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     const std::string& GeometryIdentifierName,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
-    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    Geometry<Node>::PointsArrayType pGeometryNodeList;
     for (std::size_t i = 0; i < NodeIdList.size(); i++) {
         pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
@@ -128,7 +126,7 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry3(
     return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryIdentifierName, pGeometryNodeList);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry4(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry4(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     ModelPart::GeometryType::Pointer pGeometry)
@@ -136,7 +134,7 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry4(
     return rModelPart.CreateNewGeometry(GeometryTypeName, pGeometry);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry5(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry5(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     ModelPart::IndexType GeometryId,
@@ -145,7 +143,7 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry5(
     return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryId, pGeometry);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry6(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry6(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     const std::string& GeometryIdentifierName,
@@ -164,7 +162,7 @@ Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::str
         KRATOS_ERROR << "The Element \"" << ElementName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Elements are registered:\n" << msg.str() << std::endl;
     }
 
-    Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
+    Geometry< Node >::PointsArrayType pElementNodeList;
 
     for(unsigned int i = 0; i < NodeIdList.size(); i++) {
         pElementNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
@@ -183,7 +181,7 @@ Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std:
         KRATOS_ERROR << "The Condition \"" << ConditionName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Conditions are registered:\n" << msg.str() << std::endl;
     }
 
-    Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
+    Geometry< Node >::PointsArrayType pConditionNodeList;
 
     for(unsigned int i = 0; i <NodeIdList.size(); i++) {
         pConditionNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
@@ -650,19 +648,39 @@ void RemoveSubModelPart2(ModelPart& rModelPart, ModelPart& ThisSubModelPart)
     rModelPart.RemoveSubModelPart(ThisSubModelPart);
 }
 
+void AddNode1(ModelPart& rModelPart, ModelPart::NodeType::Pointer pNode)
+{
+    rModelPart.AddNode(pNode);
+}
+
+void AddNode2(ModelPart& rModelPart, ModelPart::NodeType::Pointer pNode, const ModelPart::IndexType MeshId )
+{
+    rModelPart.AddNode(pNode, MeshId);
+}
+
 void AddNodesByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& NodesIds )
 {
     rModelPart.AddNodes(NodesIds);
 }
 
-void AddConditionsByIds(ModelPart& rModelPart,std::vector< ModelPart::IndexType >& ConditionsIds )
+void AddElement1(ModelPart& rModelPart, Element::Pointer pElement)
 {
-    rModelPart.AddConditions(ConditionsIds);
+    rModelPart.AddElement(pElement);
+}
+
+void AddElement2(ModelPart& rModelPart, Element::Pointer pElement, const ModelPart::IndexType MeshId )
+{
+    rModelPart.AddElement(pElement, MeshId);
 }
 
 void AddElementsByIds(ModelPart& rModelPart, std::vector< ModelPart::IndexType >& ElementsIds )
 {
     rModelPart.AddElements(ElementsIds);
+}
+
+void AddConditionsByIds(ModelPart& rModelPart,std::vector< ModelPart::IndexType >& ConditionsIds )
+{
+    rModelPart.AddConditions(ConditionsIds);
 }
 
 const ModelPart::SubModelPartIterator GetSubModelPartBegin(ModelPart& rModelPart)
@@ -766,6 +784,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("SetNodes", ModelPartSetNodes1)
         .def("GetNodes", ModelPartGetNodes2)
         .def("SetNodes", ModelPartSetNodes2)
+        .def("AddNode", AddNode1)
+        .def("AddNode", AddNode2)
         .def("RemoveNode", ModelPartRemoveNode1)
         .def("RemoveNode", ModelPartRemoveNode2)
         .def("RemoveNode", ModelPartRemoveNode3)
@@ -804,6 +824,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("SetElements", ModelPartSetElements1)
         .def("GetElements", ModelPartGetElements2)
         .def("SetElements", ModelPartSetElements2)
+        .def("AddElement", AddElement1)
+        .def("AddElement", AddElement2)
         .def("RemoveElement", ModelPartRemoveElement1)
         .def("RemoveElement", ModelPartRemoveElement2)
         .def("RemoveElement", ModelPartRemoveElement3)
@@ -850,7 +872,7 @@ void AddModelPartToPython(pybind11::module& m)
                 KRATOS_ERROR << "Setting geometries is not allowed! Trying to set value of ModelPart::Geometries."; })
         .def("CreateSubModelPart", &ModelPart::CreateSubModelPart, py::return_value_policy::reference_internal)
         .def("NumberOfSubModelParts", &ModelPart::NumberOfSubModelParts)
-        .def("GetSubModelPart", &ModelPart::GetSubModelPart, py::return_value_policy::reference_internal)
+        .def("GetSubModelPart", py::overload_cast<const std::string&>(&ModelPart::GetSubModelPart), py::return_value_policy::reference_internal) // non-const version
         .def("RemoveSubModelPart", RemoveSubModelPart1)
         .def("RemoveSubModelPart", RemoveSubModelPart2)
         .def("HasSubModelPart", &ModelPart::HasSubModelPart)
@@ -891,11 +913,8 @@ void AddModelPartToPython(pybind11::module& m)
         .def("Check", &ModelPart::Check)
         .def("IsSubModelPart", &ModelPart::IsSubModelPart)
         .def("IsDistributed", &ModelPart::IsDistributed)
-        .def("AddNode", &ModelPart::AddNode)
         .def("AddNodes",AddNodesByIds)
-        .def("AddCondition", &ModelPart::AddCondition)
         .def("AddConditions",AddConditionsByIds)
-        .def("AddElement", &ModelPart::AddElement)
         .def("AddElements",AddElementsByIds)
         .def("GetParentModelPart", [](ModelPart& self) -> ModelPart& {return self.GetParentModelPart();}, py::return_value_policy::reference_internal)
         .def("GetRootModelPart",   [](ModelPart& self) -> ModelPart& {return self.GetRootModelPart();},   py::return_value_policy::reference_internal)

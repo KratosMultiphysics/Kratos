@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos Roig
 //
@@ -87,7 +87,7 @@ void UnvOutput::WriteElements() {
         const int elementLabel = element.Id();
         Kratos::ModelPart::ConditionType::GeometryType elementGeometry = element.GetGeometry();
         // Write triangles
-        if (elementGeometry.size() == 3 && elementGeometry.Dimension() == 2) {
+        if (elementGeometry.size() == 3 && elementGeometry.WorkingSpaceDimension() == 2) {
             const int feDescriptorId = 41; // Plane Stress Linear Triangle
             const int numberOfNodes = 3;
             outputFile << std::setw(10) << elementLabel;
@@ -101,7 +101,7 @@ void UnvOutput::WriteElements() {
             outputFile << std::setw(10) << elementGeometry[2].Id() << "\n";
         }
             // Write tetrahedras
-        else if (elementGeometry.size() == 4 && elementGeometry.Dimension() == 3) {
+        else if (elementGeometry.size() == 4 && elementGeometry.WorkingSpaceDimension() == 3) {
             const int feDescriptorId = 111; // Solid linear tetrahedron
             const int numberOfNodes = 4;
             outputFile << std::setw(10) << elementLabel;
@@ -168,19 +168,19 @@ UnvOutput::DataCharacteristics UnvOutput::GetDataType(const Variable<Matrix>& rV
     KRATOS_ERROR << "Matrix results are not yet supported in UNV" << std::endl;
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<bool>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<bool>& rVariable) {
     outputFile << std::setw(13) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<int>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<int>& rVariable) {
     outputFile << std::setw(13) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<double>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<double>& rVariable) {
     outputFile << std::setw(13) << node.FastGetSolutionStepValue(rVariable) << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<array_1d<double,3>>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<array_1d<double,3>>& rVariable) {
     auto & temp = node.FastGetSolutionStepValue(rVariable);
 
     outputFile << std::setw(13) << temp[0];
@@ -189,11 +189,11 @@ void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>&
     outputFile << "\n";
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Vector>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<Vector>& rVariable) {
     KRATOS_ERROR << "Dynamic Vector results are not yet supported by in UNV" << std::endl;
 }
 
-void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node<3>& node, const Variable<Matrix>& rVariable) {
+void UnvOutput::WriteNodalResultValues(std::ofstream &outputFile, const Node& node, const Variable<Matrix>& rVariable) {
     KRATOS_ERROR << "Matrix results are not yet supported by in UNV" << std::endl;
 }
 

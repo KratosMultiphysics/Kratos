@@ -18,7 +18,7 @@ namespace Kratos {
 
     namespace GeometryFunctions {
 
-    typedef Geometry<Node < 3 > > GeometryType;
+    typedef Geometry<Node > GeometryType;
 
     static inline void RotateAVectorAGivenAngleAroundAUnitaryVector(const array_1d<double, 3>& old_vec, const array_1d<double, 3>& axis,
                                                                     const double ang, array_1d<double, 3>& new_vec) {

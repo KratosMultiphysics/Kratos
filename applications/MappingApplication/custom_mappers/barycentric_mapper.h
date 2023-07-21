@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_BARYCENTRIC_MAPPER_H_INCLUDED )
-#define  KRATOS_BARYCENTRIC_MAPPER_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -21,7 +20,6 @@
 #include "interpolative_mapper_base.h"
 #include "custom_utilities/closest_points.h"
 #include "custom_utilities/projection_utilities.h"
-
 
 namespace Kratos
 {
@@ -257,5 +255,3 @@ private:
 
 ///@} addtogroup block
 }  // namespace Kratos.
-
-#endif // KRATOS_BARYCENTRIC_MAPPER_H_INCLUDED  defined

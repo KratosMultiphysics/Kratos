@@ -70,8 +70,8 @@ class MSuitePFEMModeler
 public:
     ///@name Type Definitions
     ///@{
-    typedef Node < 3 > PointType;
-    typedef Node < 3 > ::Pointer PointPointerType;
+    typedef Node PointType;
+    typedef Node ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
     typedef PointVector::iterator PointIterator;
     typedef std::vector<double> DistanceVector;
@@ -118,7 +118,7 @@ public:
         ModelPart& ThisModelPart,
         Element const& rReferenceElement,
         Condition const& rReferenceBoundaryCondition,
-        EntitiesEraseProcess<Node<3>>& node_erase, bool rem_nodes = true, bool add_nodes = true,
+        EntitiesEraseProcess<Node>& node_erase, bool rem_nodes = true, bool add_nodes = true,
         double my_alpha = 1.4, double h_factor = 0.5)
     {
 
@@ -155,8 +155,8 @@ public:
         {
             in->SetId(index_I++);
 //                in->Id() = index_I++;
-            Node<3>::DofsContainerType& node_dofs = in->GetDofs();
-            for(Node<3>::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
+            Node::DofsContainerType& node_dofs = in->GetDofs();
+            for(Node::DofsContainerType::iterator iii = node_dofs.begin();    iii != node_dofs.end(); iii++)
             {
                 iii->SetId(in->Id());
             }
@@ -214,7 +214,7 @@ public:
             m.e.resize(elen);
             for (i = 0; i < elen; i++)
             {
-                Geometry< Node < 3 > >& geom = (ThisModelPart.ElementsBegin() + i)->GetGeometry();
+                Geometry< Node >& geom = (ThisModelPart.ElementsBegin() + i)->GetGeometry();
                 for (j = 0; j < nv; j++)
                 {
                     int ix = int(geom[j].Id());
@@ -246,17 +246,17 @@ public:
         KRATOS_WATCH(ThisModelPart.Nodes().size());
 
         //create the new nodes
-        Node<3>::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
+        Node::DofsContainerType& reference_dofs = (ThisModelPart.NodesBegin())->GetDofs();
         int old_size = ThisModelPart.Nodes().size();
         for(int iii=old_size; iii<m.n.len; iii++)
         {
             unsigned int id=iii+1;
-            Node<3>::Pointer pnode = ThisModelPart.CreateNewNode(id,m.n[iii][0],m.n[iii][1],m.n[iii][2]);
+            Node::Pointer pnode = ThisModelPart.CreateNewNode(id,m.n[iii][0],m.n[iii][1],m.n[iii][2]);
             pnode->SetBufferSize(ThisModelPart.NodesBegin()->GetBufferSize() );
-            for(Node<3>::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
+            for(Node::DofsContainerType::iterator iii = reference_dofs.begin();    iii != reference_dofs.end(); iii++)
             {
-                Node<3>::DofType& rDof = *iii;
-                Node<3>::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
+                Node::DofType& rDof = *iii;
+                Node::DofType::Pointer p_new_dof = pnode->pAddDof( rDof );
                 (p_new_dof)->FreeDof();
             }
         }
@@ -269,7 +269,7 @@ public:
         {
             int base = iii * (dim+1);
 
-            Node<3>::Pointer pnode = *(ThisModelPart.NodesBegin() + old_size + iii).base();
+            Node::Pointer pnode = *(ThisModelPart.NodesBegin() + old_size + iii).base();
 
             for(unsigned int step=0; step<buffer_size; step++)
             {
@@ -320,7 +320,7 @@ public:
             int id = i + 1;
             const elemento& ei = el_list[i];
 
-            Triangle2D3<Node < 3 > > geom(
+            Triangle2D3<Node > geom(
                 *((nodes_begin + ei[0]).base()),
                 *((nodes_begin + ei[1]).base()),
                 *((nodes_begin + ei[2]).base())
@@ -341,11 +341,11 @@ public:
                 int id = counter++;
                 const elemento& ei = el_list_fk[i];
 
-//                    Line2D2<Node < 3 > > geom(
+//                    Line2D2<Node > geom(
 //                            *((nodes_begin + ei[0]).base()),
 //                            *((nodes_begin + ei[1]).base())
 //                            );
-                Line2D2<Node < 3 > > geom(
+                Line2D2<Node > geom(
                     *((nodes_begin + ei[1]).base()),
                     *((nodes_begin + ei[0]).base())
                 );
@@ -507,7 +507,7 @@ private:
 
     void CleanCloudOfNodes(
         ModelPart& ThisModelPart,
-        EntitiesEraseProcess<Node<3>>& node_erase,
+        EntitiesEraseProcess<Node>& node_erase,
         double h_factor)
     {
         KRATOS_TRY
@@ -530,7 +530,7 @@ private:
 
         unsigned int n_points_in_radius;
         double radius; //radius means the distance, closer than which no node shall be allowd. if closer -> mark for erasing
-        Node<3> work_point(0,0.0,0.0,0.0);
+        Node work_point(0,0.0,0.0,0.0);
         for (ModelPart::NodesContainerType::iterator in = ThisModelPart.NodesBegin();
                 in != ThisModelPart.NodesEnd(); in++)
         {
@@ -582,7 +582,7 @@ private:
 //            for (ModelPart::ElementsContainerType::iterator ie = ThisModelPart.ElementsBegin();
 //                    ie != ThisModelPart.ElementsEnd(); ie++)
 //            {
-//                Geometry<Node<3> >& geom = ie->GetGeometry();
+//                Geometry<Node >& geom = ie->GetGeometry();
 //                for(unsigned int i=0; i<geom.size(); i++)
 //                {
 //                   if(geom[i].FastGetSolutionStepValue(IS_STRUCTURE) == 0) //we identify the node that is "free" to move
@@ -593,7 +593,7 @@ private:
         for (ModelPart::ElementsContainerType::iterator ie = ThisModelPart.ElementsBegin();
                 ie != ThisModelPart.ElementsEnd(); ie++)
         {
-            Geometry<Node<3> >& geom = ie->GetGeometry();
+            Geometry<Node >& geom = ie->GetGeometry();
 
             unsigned int nstructure = 0;
             for(unsigned int i=0; i<geom.size(); i++)
@@ -633,7 +633,7 @@ private:
 //            ThisModelPart.Conditions().clear();
 
 
-//             Node<3>::Pointer temp = ThisModelPart.Nodes()(807);
+//             Node::Pointer temp = ThisModelPart.Nodes()(807);
 
 //             KRATOS_WATCH(temp->Is(TO_ERASE));
 //             KRATOS_WATCH(temp->Id());
@@ -650,7 +650,7 @@ private:
         KRATOS_CATCH("");
     }
 
-//        void Interpolate(ModelPart::NodesContainerType& old_list_of_elements, PointerVector< Node<3> >& list_of_new_nodes)
+//        void Interpolate(ModelPart::NodesContainerType& old_list_of_elements, PointerVector< Node >& list_of_new_nodes)
 //        {
 //            KRATOS_TRY
 //

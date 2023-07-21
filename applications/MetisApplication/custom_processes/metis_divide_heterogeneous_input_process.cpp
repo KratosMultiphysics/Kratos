@@ -28,7 +28,7 @@
 
 namespace Kratos {
 
-void MetisDivideHeterogeneousInputProcess::Execute()
+void MetisDivideHeterogeneousInputProcess::ExecutePartitioning(PartitioningInfo& rPartitioningInfo)
 {
     SizeType NumNodes;
     std::vector<idxtype> NodePartition;
@@ -86,8 +86,7 @@ void MetisDivideHeterogeneousInputProcess::Execute()
     LegacyPartitioningUtilities::CalculateDomainsGraph(DomainGraph,NumConditions,ConditionConnectivities,NodePartition,ConditionPartition);
 
     int NumColors;
-    GraphType ColoredDomainGraph;
-    GraphColoringProcess(mNumberOfPartitions,DomainGraph,ColoredDomainGraph,NumColors).Execute();
+    GraphColoringProcess(mNumberOfPartitions,DomainGraph,rPartitioningInfo.Graph,NumColors).Execute();
 
     if (mVerbosity > 0)
     {
@@ -96,21 +95,18 @@ void MetisDivideHeterogeneousInputProcess::Execute()
 
 if (mVerbosity > 2)
 {
-        KRATOS_WATCH(ColoredDomainGraph);
+        KRATOS_WATCH(rPartitioningInfo.Graph);
 }
 
     // Write partition info into separate input files
-    IO::PartitionIndicesContainerType nodes_all_partitions;
-    IO::PartitionIndicesContainerType elements_all_partitions;
-    IO::PartitionIndicesContainerType conditions_all_partitions;
-
     // Create lists containing all nodes/elements/conditions known to each partition
-    LegacyPartitioningUtilities::DividingNodes(nodes_all_partitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
-    LegacyPartitioningUtilities::DividingElements(elements_all_partitions, ElementPartition);
-    LegacyPartitioningUtilities::DividingConditions(conditions_all_partitions, ConditionPartition);
+    LegacyPartitioningUtilities::DividingNodes(rPartitioningInfo.NodesAllPartitions, ElementConnectivities, ConditionConnectivities, NodePartition, ElementPartition, ConditionPartition);
+    LegacyPartitioningUtilities::DividingElements(rPartitioningInfo.ElementsAllPartitions, ElementPartition);
+    LegacyPartitioningUtilities::DividingConditions(rPartitioningInfo.ConditionsAllPartitions, ConditionPartition);
 
     if (mVerbosity > 1)
     {
+        auto& nodes_all_partitions = rPartitioningInfo.NodesAllPartitions;
         std::cout << "Final list of nodes known by each partition" << std::endl;
         for(SizeType i = 0 ; i < NumNodes ; i++)
         {
@@ -121,14 +117,22 @@ if (mVerbosity > 2)
         }
     }
 
-    IO::PartitionIndicesType io_nodes_partitions(NodePartition.begin(), NodePartition.end());
-    IO::PartitionIndicesType io_elements_partitions(ElementPartition.begin(), ElementPartition.end());
-    IO::PartitionIndicesType io_conditions_partitions(ConditionPartition.begin(), ConditionPartition.end());
+    rPartitioningInfo.NodesPartitions.assign(NodePartition.begin(), NodePartition.end());
+    rPartitioningInfo.ElementsPartitions.assign(ElementPartition.begin(), ElementPartition.end());
+    rPartitioningInfo.ConditionsPartitions.assign(ConditionPartition.begin(), ConditionPartition.end());
+}
+
+void MetisDivideHeterogeneousInputProcess::Execute()
+{
+
+    PartitioningInfo part_info;
+
+    ExecutePartitioning(part_info);
 
     // Write files
-    mrIO.DivideInputToPartitions(mNumberOfPartitions, ColoredDomainGraph,
-                                    io_nodes_partitions, io_elements_partitions, io_conditions_partitions,
-                                    nodes_all_partitions, elements_all_partitions, conditions_all_partitions);
+    mrIO.DivideInputToPartitions(
+        mNumberOfPartitions,
+        part_info);
 }
 
 
@@ -415,74 +419,48 @@ void MetisDivideHeterogeneousInputProcess::PartitionConditionsSynchronous(const 
     for (SizeType i=0; i<NumElements; i++)
         std::sort(ElementsSorted[i].begin(), ElementsSorted[i].end());
 
-    // Conditions where all nodes belong to the same partition always go to that partition
     IO::ConnectivitiesContainerType::const_iterator itCond = rCondConnectivities.begin();
-    for (std::vector<idxtype>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
-    {
-        int MyPartition = rNodePartition[ (*itCond)[0] - 1 ]; // Node Ids start from 1
-        SizeType NeighbourNodes = 1; // Nodes in the same partition
-        for (std::vector<SizeType>::const_iterator itNode = itCond->begin()+1; itNode != itCond->end(); ++itNode)
-        {
-            if ( rNodePartition[ *itNode - 1 ] == MyPartition )
-                ++NeighbourNodes;
-            else
-                break;
-        }
-
-        if ( NeighbourNodes == itCond->size() )
-        {
-            *itPart = MyPartition;
-        }
-
-        // Advance to next condition in connectivities array
-        itCond++;
-    }
-
-    // Now distribute boundary conditions
-    itCond = rCondConnectivities.begin();
     //int MaxWeight = 1.03 * NumConditions / mNumberOfPartitions;
     for (std::vector<idxtype>::iterator itPart = rCondPartition.begin(); itPart != rCondPartition.end(); itPart++)
     {
-        if (*itPart == -1) // If condition is still unassigned
+        SizeType FoundNeighbours = 0;
+        SizeType NodesInCond = itCond->size();
+        std::vector<int> NeighbourPartitions(NodesInCond,-1);
+        std::vector<int> NeighbourWeights(NodesInCond,0);
+
+        for (std::vector<SizeType>::const_iterator itNode = itCond->begin(); itNode != itCond->end(); ++itNode)
         {
-            SizeType FoundNeighbours = 0;
-            SizeType NodesInCond = itCond->size();
-            std::vector<int> NeighbourPartitions(NodesInCond,-1);
-            std::vector<int> NeighbourWeights(NodesInCond,0);
-
-            for (std::vector<SizeType>::const_iterator itNode = itCond->begin(); itNode != itCond->end(); ++itNode)
+            // Check if the node's partition was already found in this condition
+            int MyPartition = rNodePartition[ *itNode - 1 ]; // This node's partition
+            SizeType i=0;
+            for (i = 0; i < FoundNeighbours; i++)
             {
-                // Check if the node's partition was already found in this condition
-                int MyPartition = rNodePartition[ *itNode - 1 ]; // This node's partition
-                SizeType i=0;
-                for (i = 0; i < FoundNeighbours; i++)
+                if (MyPartition == NeighbourPartitions[i])
                 {
-                    if (MyPartition == NeighbourPartitions[i])
-                    {
-                        NeighbourWeights[i]++;
-                        break;
-                    }
-                }
-
-                // If this is the first node in this partition, add the partition to the candidate partition list
-                if (i == FoundNeighbours)
-                {
-                    NeighbourWeights[i] = 1;
-                    NeighbourPartitions[i] = MyPartition;
-                    FoundNeighbours++;
+                    NeighbourWeights[i]++;
+                    break;
                 }
             }
-            // Determine the partition that owns the most nodes, and try to assign the condition to that partition
-            int MajorityPartition = NeighbourPartitions[ FindMax(FoundNeighbours,NeighbourWeights) ];
+
+            // If this is the first node in this partition, add the partition to the candidate partition list
+            if (i == FoundNeighbours)
             {
-                *itPart = MajorityPartition;
+                NeighbourWeights[i] = 1;
+                NeighbourPartitions[i] = MyPartition;
+                FoundNeighbours++;
             }
+        }
+        // Determine the partition that owns the most nodes, and try to assign the condition to that partition
+        int MajorityPartition = NeighbourPartitions[ FindMax(FoundNeighbours,NeighbourWeights) ];
+        {
+            *itPart = MajorityPartition;
+        }
 
-            // ensure conditions sharing nodes with an element have same partition as the element
-            IO::ConnectivitiesContainerType::value_type tmp(*itCond);
-            std::sort(tmp.begin(), tmp.end());
+        // ensure conditions sharing nodes with an element have same partition as the element
+        IO::ConnectivitiesContainerType::value_type tmp(*itCond);
+        std::sort(tmp.begin(), tmp.end());
 
-            for (std::vector<SizeType>::const_iterator itNode = itCond->begin(); itNode != itCond->end(); ++itNode) {
+        for (std::vector<SizeType>::const_iterator itNode = itCond->begin(); itNode != itCond->end(); ++itNode) {
             for(auto shared_element : mNodeConnectivities[*itNode - 1]) {
                 // Would it be faster to sort the element here as well?
                 // Should be as far as "numConditions * conPerNode >> numElements", but not otherwise
@@ -491,11 +469,10 @@ void MetisDivideHeterogeneousInputProcess::PartitionConditionsSynchronous(const 
                 break;
                 }
             }
-            }
         }
 
         // Advance to next condition in connectivities array
-        itCond++;
+        ++itCond;
     }
 
     PrintDebugData("Condition Partition",rCondPartition);

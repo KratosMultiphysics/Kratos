@@ -1434,7 +1434,7 @@ namespace Kratos
 		const unsigned int TDim=2;
 
 		double Area;
-		Geometry<Node<3> >& geom = this->GetGeometry();
+		Geometry<Node >& geom = this->GetGeometry();
 		BoundedMatrix<double, (TDim+1), TDim > DN_DX;
 		array_1d<double, (TDim+1) > N;
 		GeometryUtils::CalculateGeometryData(geom, DN_DX, N, Area);

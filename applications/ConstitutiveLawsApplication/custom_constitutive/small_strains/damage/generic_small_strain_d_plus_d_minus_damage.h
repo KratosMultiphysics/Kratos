@@ -12,8 +12,7 @@
 //
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_D_PLUS_D_MINUS_DAMAGE_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_D_PLUS_D_MINUS_DAMAGE_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -75,7 +74,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainDplusDminusDamage);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -548,4 +547,3 @@ private:
 }; // Class
 
 } // namespace Kratos
-#endif

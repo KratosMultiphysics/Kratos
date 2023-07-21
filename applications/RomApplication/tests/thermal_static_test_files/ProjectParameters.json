@@ -15,10 +15,10 @@
         "domain_size": 2,
         "model_import_settings": {
             "input_type": "mdpa",
-            "input_filename": "Square_Radiation_Stationary"
+            "input_filename": "../Square_Radiation_Stationary"
         },
         "material_import_settings": {
-            "materials_filename": "ConvectionDiffusionMaterials.json"
+            "materials_filename": "../ConvectionDiffusionMaterials.json"
         },
         "line_search": false,
         "echo_level": 0,
@@ -56,7 +56,7 @@
                 "model_part_name" : "ThermalModelPart.HeatFlux2D_Top_Wall",
                 "variable_name"   : "FACE_HEAT_FLUX",
                 "constrained"     : false,
-                "value"           : -700.0,
+                "value"           : 2000.0,
                 "interval"        : [0.0,"End"]
             }
         },{
@@ -66,7 +66,7 @@
                 "model_part_name" : "ThermalModelPart.HeatFlux2D_Bottom_Wall",
                 "variable_name"   : "FACE_HEAT_FLUX",
                 "constrained"     : false,
-                "value"           : 700.0,
+                "value"           : 2000.0,
                 "interval"        : [0.0,"End"]
             }
         },{
@@ -76,7 +76,7 @@
                 "model_part_name" : "ThermalModelPart.ImposedTemperature2D_Left_Wall",
                 "variable_name"   : "TEMPERATURE",
                 "constrained"     : true,
-                "value"           : 90.0,
+                "value"           : 303.15,
                 "interval"        : [0.0,"End"]
             }
         },{
@@ -84,7 +84,7 @@
             "kratos_module" : "KratosMultiphysics.ConvectionDiffusionApplication",
             "Parameters"    : {
                 "model_part_name"        : "ThermalModelPart.ThermalFace2D_Right_Wall",
-                "ambient_temperature"    : 12.0,
+                "ambient_temperature"    : 283.15,
                 "add_ambient_radiation"  : true,
                 "emissivity"             : 0.8,
                 "add_ambient_convection" : true,

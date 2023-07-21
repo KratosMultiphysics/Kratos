@@ -22,7 +22,7 @@
 namespace Kratos {
   namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     void GenerateGenericModelPart(ModelPart& rModelPart)
     {
@@ -55,6 +55,26 @@ namespace Kratos {
         rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_8", {{5,6,3}});
     }
 
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartDataValueContainer, KratosCoreFastSuite)
+    {
+        Model model;
+        ModelPart& r_model_part = model.CreateModelPart("Main");
+        r_model_part.SetValue(DENSITY,1.0);
+        KRATOS_CHECK(r_model_part.Has(DENSITY));
+        KRATOS_CHECK_IS_FALSE(r_model_part.Has(TEMPERATURE));
+        KRATOS_CHECK_DOUBLE_EQUAL(r_model_part.GetValue(DENSITY),1.0);
+    }
+    
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartFlag, KratosCoreFastSuite)
+    {
+        Model model;
+        ModelPart& r_model_part = model.CreateModelPart("Main");
+        
+        r_model_part.Set(ACTIVE);
+        KRATOS_CHECK(r_model_part.Is(ACTIVE));
+        KRATOS_CHECK_IS_FALSE(r_model_part.Is(BOUNDARY));
+    }
+
     KRATOS_TEST_CASE_IN_SUITE(ModelPartSubModelPartsIterator, KratosCoreFastSuite)
     {
         Model current_model;
@@ -66,6 +86,8 @@ namespace Kratos {
         r_model_part.CreateSubModelPart("Outlet");
         r_model_part.CreateSubModelPart("AnotherOutlet");
 
+        KRATOS_CHECK_EQUAL(r_model_part.NumberOfSubModelParts(), 4);
+
         std::size_t id = 1;
         for(auto i_SubModelPart = r_model_part.SubModelPartsBegin() ; i_SubModelPart != r_model_part.SubModelPartsEnd() ; i_SubModelPart++){
             i_SubModelPart->CreateNewNode(id++, 0.00,0.00,0.00);
@@ -74,6 +96,15 @@ namespace Kratos {
         KRATOS_CHECK_EQUAL(r_model_part.NumberOfNodes(), 4);
         KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("Inlet1").NumberOfNodes(), 1);
         KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("Outlet").NumberOfNodes(), 1);
+
+        const auto& r_const_ref = r_model_part;
+        auto r_smp_names = r_const_ref.GetSubModelPartNames();
+        std::sort(r_smp_names.begin(), r_smp_names.end());
+        const std::vector<std::string> r_smp_ref_names {"AnotherOutlet", "Inlet1", "Inlet2", "Outlet"};
+
+        for (std::size_t i=0; i<r_smp_names.size(); ++i) {
+            KRATOS_CHECK_EQUAL(r_smp_names[i], r_smp_ref_names[i]);
+        }
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartAddNodalSolutionStepVariable, KratosCoreFastSuite)
@@ -339,6 +370,7 @@ namespace Kratos {
         Model model;
 
         auto& model_part = model.CreateModelPart("Main");
+        const auto& r_const_model_part = model_part;
 
         // Checking SubModelPart
         model_part.CreateSubModelPart("Inlet1");
@@ -346,29 +378,46 @@ namespace Kratos {
         ModelPart& smp = model_part.GetSubModelPart("Inlet1");
         KRATOS_CHECK_EQUAL("Inlet1", smp.Name());
 
+        const ModelPart& c_smp = r_const_model_part.GetSubModelPart("Inlet1");
+        KRATOS_CHECK_EQUAL("Inlet1", c_smp.Name());
+
         KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Random"),
-            "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe the following sub model parts are available:");
+            "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe following sub model parts are available:");
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(r_const_model_part.GetSubModelPart("Random"),
+            "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe following sub model parts are available:");
 
         // Checking SubSubModelPart
         auto& ssmp = smp.CreateSubModelPart("sub_inlet");
 
         KRATOS_CHECK(model_part.HasSubModelPart("Inlet1"));
         KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet"));
+        KRATOS_CHECK(r_const_model_part.HasSubModelPart("Inlet1"));
+        KRATOS_CHECK(r_const_model_part.HasSubModelPart("Inlet1.sub_inlet"));
 
         KRATOS_CHECK_EQUAL("sub_inlet", model_part.GetSubModelPart("Inlet1.sub_inlet").Name());
+        KRATOS_CHECK_EQUAL("sub_inlet", r_const_model_part.GetSubModelPart("Inlet1.sub_inlet").Name());
 
         KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.random_sub_inlet"),
-            "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Main.Inlet1\"\nThe the following sub model parts are available:\n\tsub_inlet");
+            "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Main.Inlet1\"\nThe following sub model parts are available:\n\t\"sub_inlet\"");
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(r_const_model_part.GetSubModelPart("Inlet1.random_sub_inlet"),
+            "Error: There is no sub model part with name \"random_sub_inlet\" in model part \"Main.Inlet1\"\nThe following sub model parts are available:\n\t\"sub_inlet\"");
 
         // Checking SubSubSubModelPart
         ssmp.CreateSubModelPart("tiny_inlet");
 
         KRATOS_CHECK(model_part.HasSubModelPart("Inlet1.sub_inlet.tiny_inlet"));
+        KRATOS_CHECK(r_const_model_part.HasSubModelPart("Inlet1.sub_inlet.tiny_inlet"));
 
         KRATOS_CHECK_EQUAL("tiny_inlet", model_part.GetSubModelPart("Inlet1.sub_inlet.tiny_inlet").Name());
+        KRATOS_CHECK_EQUAL("tiny_inlet", r_const_model_part.GetSubModelPart("Inlet1.sub_inlet.tiny_inlet").Name());
 
         KRATOS_CHECK_EXCEPTION_IS_THROWN(model_part.GetSubModelPart("Inlet1.sub_inlet.big_inlet"),
-            "Error: There is no sub model part with name \"big_inlet\" in model part \"Main.Inlet1.sub_inlet\"\nThe the following sub model parts are available:\n\ttiny_inlet");
+            "Error: There is no sub model part with name \"big_inlet\" in model part \"Main.Inlet1.sub_inlet\"\nThe following sub model parts are available:\n\t\"tiny_inlet\"");
+
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(r_const_model_part.GetSubModelPart("Inlet1.sub_inlet.big_inlet"),
+            "Error: There is no sub model part with name \"big_inlet\" in model part \"Main.Inlet1.sub_inlet\"\nThe following sub model parts are available:\n\t\"tiny_inlet\"");
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartHasSubModelPart, KratosCoreFastSuite)

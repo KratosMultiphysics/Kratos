@@ -35,7 +35,7 @@ namespace MPMParticleGeneratorUtility
 
     typedef std::size_t SizeType;
 
-    typedef Geometry< Node<3> > GeometryType;
+    typedef Geometry< Node > GeometryType;
 
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 

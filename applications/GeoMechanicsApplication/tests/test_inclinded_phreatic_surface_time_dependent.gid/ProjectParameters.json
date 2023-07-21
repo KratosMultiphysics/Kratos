@@ -48,7 +48,6 @@
         "number_cycles":                      100,
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
-        "realised_factor":                    0.9999,
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,

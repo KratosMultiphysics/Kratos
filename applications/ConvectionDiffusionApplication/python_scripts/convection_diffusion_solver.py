@@ -152,7 +152,8 @@ class ConvectionDiffusionSolver(PythonSolver):
             },
             "problem_domain_sub_model_part_list": [""],
             "processes_sub_model_part_list": [""],
-            "auxiliary_variables_list" : []
+            "auxiliary_variables_list" : [],
+            "assign_neighbour_elements_to_conditions" : true
         }
         """)
         default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -307,6 +308,7 @@ class ConvectionDiffusionSolver(PythonSolver):
                 self.distributed_model_part_importer.ImportModelPart()
 
     def PrepareModelPart(self):
+        assign_neighbour_elements = self.settings["assign_neighbour_elements_to_conditions"].GetBool()
         if not self.is_restarted():
             # Import material properties
             materials_imported = self.import_materials()
@@ -315,10 +317,16 @@ class ConvectionDiffusionSolver(PythonSolver):
             else:
                 KratosMultiphysics.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
 
-            throw_errors = False
-            KratosMultiphysics.TetrahedralMeshOrientationCheck(self.main_model_part, throw_errors).Execute()
-
             KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part,self._get_element_condition_replace_settings()).Execute()
+
+            tmoc = KratosMultiphysics.TetrahedralMeshOrientationCheck
+            throw_errors = False
+            flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse()
+            if assign_neighbour_elements:
+                flags |= tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
+            else:
+                flags |= (tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS).AsFalse()
+            tmoc(self.main_model_part,throw_errors, flags).Execute()
 
             self._set_and_fill_buffer()
 

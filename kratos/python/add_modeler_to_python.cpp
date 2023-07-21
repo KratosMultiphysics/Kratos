@@ -24,6 +24,7 @@
 #include "modeler/serial_model_part_combinator_modeler.h"
 #include "modeler/duplicate_mesh_modeler.h"
 #include "modeler/copy_properties_modeler.h"
+#include "modeler/combine_model_part_modeler.h"
 
 namespace Kratos
 {
@@ -102,6 +103,10 @@ void  AddModelerToPython(pybind11::module& m)
     py::class_< CopyPropertiesModeler, CopyPropertiesModeler::Pointer, Modeler >(m,"CopyPropertiesModeler")
         .def(py::init<Model&, Parameters>())
         .def(py::init<ModelPart&, ModelPart&>())
+    ;
+
+    py::class_< CombineModelPartModeler, CombineModelPartModeler::Pointer, Modeler >(m,"CombineModelPartModeler")
+        .def(py::init<Model&, Parameters>())
     ;
 
 }

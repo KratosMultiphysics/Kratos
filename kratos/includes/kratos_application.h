@@ -11,31 +11,24 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_KRATOS_APPLICATION_H_INCLUDED)
-#define KRATOS_KRATOS_APPLICATION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 
 // Project includes
-#include "includes/define.h"
-#include "includes/kratos_components.h"
 #include "includes/element.h"
-#include "elements/mesh_element.h"
-#include "elements/distance_calculation_element_simplex.h"
-#include "elements/edge_based_gradient_recovery_element.h"
-#include "elements/levelset_convection_element_simplex.h"
-#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
 #include "includes/condition.h"
-#include "conditions/mesh_condition.h"
-#include "includes/periodic_condition.h"
-#include "utilities/quaternion.h"
-#include "includes/master_slave_constraint.h"
-#include "constraints/linear_master_slave_constraint.h"
+#include "includes/kratos_components.h"
 #include "includes/geometrical_object.h"
+#include "includes/periodic_condition.h"
+#include "includes/master_slave_constraint.h"
+#include "input_output/logger.h"
+#include "utilities/quaternion.h"
+#include "constraints/linear_master_slave_constraint.h"
 
-/* Geometries definition */
+// Geometries definition
 #include "geometries/register_kratos_components_for_geometry.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/line_2d_3.h"
@@ -66,11 +59,22 @@
 #include "geometries/hexahedra_3d_27.h"
 #include "geometries/quadrature_point_geometry.h"
 
+// Elements
+#include "elements/mesh_element.h"
+#include "elements/distance_calculation_element_simplex.h"
+#include "elements/edge_based_gradient_recovery_element.h"
+#include "elements/levelset_convection_element_simplex.h"
+#include "elements/levelset_convection_element_simplex_algebraic_stabilization.h"
+
+// Conditions
+#include "conditions/mesh_condition.h"
+
 // Modelers
 #include "modeler/modeler.h"
 #include "modeler/cad_io_modeler.h"
 #include "modeler/cad_tessellation_modeler.h"
 #include "modeler/serial_model_part_combinator_modeler.h"
+#include "modeler/combine_model_part_modeler.h"
 
 namespace Kratos {
 ///@name Kratos Classes
@@ -79,7 +83,7 @@ namespace Kratos {
 /**
  * @class KratosApplication
  * @brief This class defines the interface with kernel for all applications in Kratos.
- * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole sistem correctly.
+ * @details The application class defines the interface necessary for providing the information needed by Kernel in order to configure the whole system correctly.
  * @ingroup KratosCore
  * @author Pooyan Dadvand
  * @author Riccardo Rossi
@@ -89,7 +93,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     ///@name Type Definitions
     ///@{
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
 
     /// Pointer definition of KratosApplication
@@ -137,8 +141,6 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     void RegisterKratosCore();
 
     ///////////////////////////////////////////////////////////////////
-    void RegisterOperations(); // This contains the whole list of operations in the Kratos Core
-    void RegisterProcesses();  // This contains the whole list of standard (i.e. model - parameters constructible) processes in the Kratos Core
     void RegisterVariables();  // This contains the whole list of common variables in the Kratos Core
     void RegisterDeprecatedVariables();           //TODO: remove, this variables should not be there
     void RegisterCFDVariables();                  //TODO: move to application
@@ -211,7 +213,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         return *mpVariableData;
     }
 
-    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType& GetGeometries() {
+    KratosComponents<Geometry<Node>>::ComponentsContainerType& GetGeometries() {
         return *mpGeometries;
     }
 
@@ -243,7 +245,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
         }
     }
 
-    void SetComponents(KratosComponents<Geometry<Node<3>>>::ComponentsContainerType const& GeometryComponents)
+    void SetComponents(KratosComponents<Geometry<Node>>::ComponentsContainerType const& GeometryComponents)
     {
         mpGeometries->insert(GeometryComponents.begin(), GeometryComponents.end());
     }
@@ -326,7 +328,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
         rOStream << "Geometries:" << std::endl;
 
-        KratosComponents<Geometry<Node<3>>>().PrintData(rOStream);
+        KratosComponents<Geometry<Node>>().PrintData(rOStream);
 
         rOStream << "Elements:" << std::endl;
 
@@ -404,17 +406,17 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const Hexahedra3D20<NodeType> mHexahedra3D20Prototype = Hexahedra3D20<NodeType>( GeometryType::PointsArrayType(20));
     const Hexahedra3D27<NodeType> mHexahedra3D27Prototype = Hexahedra3D27<NodeType>( GeometryType::PointsArrayType(27));
     //QuadraturePointGeometries:
-    const QuadraturePointGeometry<Node<3>,1> mQuadraturePointGeometryPoint1D = QuadraturePointGeometry<Node<3>,1>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,1> mQuadraturePointGeometryPoint1D = QuadraturePointGeometry<Node,1>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,2,1> mQuadraturePointGeometryPoint2D = QuadraturePointGeometry<Node<3>,2,1>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,2,1> mQuadraturePointGeometryPoint2D = QuadraturePointGeometry<Node,2,1>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,3,1> mQuadraturePointGeometryPoint3D = QuadraturePointGeometry<Node<3>,3,1>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,3,1> mQuadraturePointGeometryPoint3D = QuadraturePointGeometry<Node,3,1>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,2> mQuadraturePointGeometrySurface2D = QuadraturePointGeometry<Node<3>,2>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,2> mQuadraturePointGeometrySurface2D = QuadraturePointGeometry<Node,2>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,3,2> mQuadraturePointGeometrySurface3D = QuadraturePointGeometry<Node<3>,3,2>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,3,2> mQuadraturePointGeometrySurface3D = QuadraturePointGeometry<Node,3,2>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
-    const QuadraturePointGeometry<Node<3>,3> mQuadraturePointGeometryVolume3D = QuadraturePointGeometry<Node<3>,3>(GeometryType::PointsArrayType(),
+    const QuadraturePointGeometry<Node,3> mQuadraturePointGeometryVolume3D = QuadraturePointGeometry<Node,3>(GeometryType::PointsArrayType(),
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>(GeometryData::IntegrationMethod::GI_GAUSS_1, IntegrationPoint<3>(), Matrix(), Matrix()));
 
     // General conditions must be defined
@@ -490,6 +492,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
     const CadTessellationModeler mCadTessellationModeler;
 #endif
     const SerialModelPartCombinatorModeler mSerialModelPartCombinatorModeler;
+    const CombineModelPartModeler mCombineModelPartModeler;
 
     // Base constitutive law definition
     const ConstitutiveLaw mConstitutiveLaw;
@@ -517,7 +520,7 @@ class KRATOS_API(KRATOS_CORE) KratosApplication {
 
     KratosComponents<Variable<Matrix> >::ComponentsContainerType* mpMatrixVariables;
 
-    KratosComponents<Geometry<Node<3>>>::ComponentsContainerType* mpGeometries;
+    KratosComponents<Geometry<Node>>::ComponentsContainerType* mpGeometries;
 
     KratosComponents<Element>::ComponentsContainerType* mpElements;
 
@@ -650,5 +653,3 @@ inline std::ostream& operator<<(std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif  // KRATOS_KRATOS_APPLICATION_H_INCLUDED  defined

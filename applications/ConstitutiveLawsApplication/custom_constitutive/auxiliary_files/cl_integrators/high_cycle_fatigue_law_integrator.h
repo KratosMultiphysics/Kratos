@@ -11,8 +11,7 @@
 //  Main authors:    Sergio Jimenez/Alejandro Cornejo/Lucia Barbu
 //
 
-#if !defined(KRATOS_HIGH_CYCLE_FATIGUE_LAW_INTEGRATOR_H_INCLUDED)
-#define KRATOS_HIGH_CYCLE_FATIGUE_LAW_INTEGRATOR_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -357,4 +356,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif

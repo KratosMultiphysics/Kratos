@@ -37,7 +37,7 @@ namespace Testing
         Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
         // Elements
-        auto pElement = rModelPart.CreateNewElement("UpdatedLagrangian3D4N", 1, {{1, 2, 3, 4}}, p_elem_prop);
+        auto pElement = rModelPart.CreateNewElement("MPMUpdatedLagrangian3D4N", 1, {{1, 2, 3, 4}}, p_elem_prop);
 
         // For potential energy
         array_1d<double, 3> mp_coordinate;
