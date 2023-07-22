@@ -764,7 +764,7 @@ class TestHistoricalContainerExpression(kratos_unittest.TestCase, TestContainerE
         self.assertEqual(e.GetExpressionMaxDepth(), 1)
         self.assertVectorAlmostEqual(d.Evaluate(), e.Evaluate(), 12)
 
-    def test_AutoShrinkVec(self):
+    def test_AutoShrinkDataVector(self):
         a = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.VariableExpressionIO.Read(a, Kratos.PRESSURE, True)
 
@@ -798,7 +798,7 @@ class TestHistoricalContainerExpression(kratos_unittest.TestCase, TestContainerE
 
         b = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(b, Kratos.Vector(5, 2 + 10 * 25))
-        self.assertAlmostEqual(numpy.linalg.norm(a.Evaluate()- b.Evaluate()), 0.0)
+        self.assertAlmostEqual(numpy.linalg.norm(a.Evaluate() - b.Evaluate()), 0.0)
 
     def test_AutoShrinkMatrix(self):
         a = Kratos.Expression.NodalExpression(self.model_part)
@@ -810,25 +810,7 @@ class TestHistoricalContainerExpression(kratos_unittest.TestCase, TestContainerE
 
         b = Kratos.Expression.NodalExpression(self.model_part)
         Kratos.Expression.LiteralExpressionIO.SetData(b, Kratos.Matrix(2, 2, 3 + 10 * 25))
-        self.assertAlmostEqual(numpy.linalg.norm(a.Evaluate()- b.Evaluate()), 0.0)
-
-    def test_AutoShrinkScalar(self):
-        a = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(a, 11)
-        for _ in range(21):
-            a += 10
-
-    def test_AutoShrinkVector(self):
-        a = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(a, Kratos.Vector(10, 2.0))
-        for _ in range(21):
-            a += 10
-
-    def test_AutoShrinkVector(self):
-        a = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.LiteralExpressionIO.SetData(a, Kratos.Matrix(2, 2, 3.0))
-        for _ in range(21):
-            a += 10
+        self.assertAlmostEqual(numpy.linalg.norm(a.Evaluate() - b.Evaluate()), 0.0)
 
 class TestNodalContainerExpression(kratos_unittest.TestCase, TestContainerExpression):
     @classmethod
