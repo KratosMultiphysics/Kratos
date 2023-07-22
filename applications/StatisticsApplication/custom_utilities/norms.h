@@ -37,6 +37,8 @@ public:
     template<class TDataType>
     using ResultantValueType = TDataType;
 
+    KRATOS_CLASS_POINTER_DEFINITION(Value);
+
     ///@}
     ///@name Public operations
     ///@{
@@ -57,6 +59,8 @@ public:
 
     template<class TDataType>
     using ResultantValueType = double;
+
+    KRATOS_CLASS_POINTER_DEFINITION(L2);
 
     ///@}
     ///@name Public operations
@@ -94,6 +98,8 @@ public:
     template<class TDataType>
     using ResultantValueType = double;
 
+    KRATOS_CLASS_POINTER_DEFINITION(Infinity);
+
     ///@}
     ///@name Public operations
     ///@{
@@ -127,6 +133,8 @@ public:
 
     template<class TDataType>
     using ResultantValueType = double;
+
+    KRATOS_CLASS_POINTER_DEFINITION(VectorComponent);
 
     ///@}
     ///@name Life cycle
@@ -179,6 +187,8 @@ public:
     template<class TDataType>
     using ResultantValueType = double;
 
+    KRATOS_CLASS_POINTER_DEFINITION(MatrixComponent);
+
     ///@}
     ///@name Life cycle
     ///@{
@@ -229,6 +239,8 @@ public:
 
     template<class TDataType>
     using ResultantValueType = double;
+
+    KRATOS_CLASS_POINTER_DEFINITION(P);
 
     ///@}
     ///@name Life cycle
@@ -296,6 +308,8 @@ public:
     template<class TDataType>
     using ResultantValueType = double;
 
+    KRATOS_CLASS_POINTER_DEFINITION(Trace);
+
     ///@}
     ///@name Public operations
     ///@{
@@ -328,6 +342,8 @@ public:
 
     template<class TDataType>
     using ResultantValueType = double;
+
+    KRATOS_CLASS_POINTER_DEFINITION(LPQ);
 
     ///@}
     ///@name Life cycle
