@@ -62,7 +62,7 @@ virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::P
 
 
    
-}
+};
 
 }  // namespace Kratos.
 
