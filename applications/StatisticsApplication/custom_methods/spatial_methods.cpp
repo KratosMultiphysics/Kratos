@@ -127,10 +127,10 @@ public:
             Initialize();
         }
 
-        typename OperationTraits::VectorType local_values, global_values;
+        typename OperationTraits::VectorType local_values;
         OperationTraits::FillToVector(local_values, mValue);
-        rDataCommunicator.SumAll(local_values, global_values);
-        OperationTraits::FillFromVector(mValue, global_values);
+        rDataCommunicator.SumAll(local_values, local_values);
+        OperationTraits::FillFromVector(mValue, local_values);
     }
 
     ///@}

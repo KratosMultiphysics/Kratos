@@ -295,9 +295,9 @@ struct DataTypeTraits<Vector>
         }
 
         // check all sizes in all ranks
-        KRATOS_ERROR_IF(std::all_of(sizes.begin(), sizes.end(), [&rValue](const auto Size) {
-            return Size == 0 || (Size > 0 && Size == rValue.size());
-        })) << "All the ranks should have the same vector size.\n";
+        KRATOS_ERROR_IF_NOT(std::all_of(sizes.begin(), sizes.end(), [&rValue](const auto Size) {
+                                    return Size == 0 || (Size > 0 && Size == rValue.size());
+                            })) << "All the ranks should have the same vector size.\n";
 
         return is_resized;
 
@@ -417,9 +417,9 @@ struct DataTypeTraits<Matrix>
         }
 
         // check all sizes in all ranks
-        KRATOS_ERROR_IF(std::all_of(sizes.begin(), sizes.end(), [&rValue](const auto SizeInfo) {
-            return SizeInfo[0] == 0 || SizeInfo[1] == 0 || (SizeInfo[0] > 0 && SizeInfo[0] == rValue.size1() && SizeInfo[1] == rValue.size2());
-        })) << "All the ranks should have the same matrix size.\n";
+        KRATOS_ERROR_IF_NOT(std::all_of(sizes.begin(), sizes.end(), [&rValue](const auto SizeInfo) {
+                                return SizeInfo[0] == 0 || SizeInfo[1] == 0 || (SizeInfo[0] > 0 && SizeInfo[0] == rValue.size1() && SizeInfo[1] == rValue.size2());
+                            })) << "All the ranks should have the same matrix size.\n";
 
         return is_resized;
 

@@ -143,21 +143,12 @@ namespace Kratos
 namespace Python
 {
 
-template<class... TArgs>
-struct PybindOperatorExtendedVariant: public std::variant<TArgs...>
-{
-    PybindOperatorExtendedVariant& operator=(PybindOperatorExtendedVariant&& rOther) {
-        *this = rOther;
-        return *this;
-    }
-};
-
 template <class T>
-struct PybindVariantWrapper {};
+struct VariantPointer {};
 
 template<class... TArgs>
-struct PybindVariantWrapper<std::variant<TArgs...>> {
-    using type = PybindOperatorExtendedVariant<TArgs...>;
+struct VariantPointer<std::variant<TArgs...>> {
+    using type = std::variant<typename TArgs::Pointer...>;
 };
 
 template<class TDataType>
@@ -167,33 +158,33 @@ void AddSpatialMethods(pybind11::module& m)
 
     using NormType = typename Norms::NormType<TDataType>::type;
 
-    using PybindVariant = typename PybindVariantWrapper<NormType>::type;
+    using VariantPointer = typename VariantPointer<NormType>::type;
 
     namespace py = pybind11;
 
     m.def("Sum", py::overload_cast<const ModelPart&,const Variable<TDataType>&,const DataLocation&>(&SpatialMethods::Sum<TDataType>), py::arg("model_part"), py::arg("variable"), py::arg("data_location"));
-    m.def("Sum", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const PybindVariant& rPybindVariantNorm) { return SpatialMethods::Sum<TDataType>(rModelPart, rVariable, rDataLocation, rPybindVariantNorm); }, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
+    m.def("Sum", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::Sum<TDataType>(rModelPart, rVariable, rDataLocation, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
 
     m.def("Mean", py::overload_cast<const ModelPart&,const Variable<TDataType>&,const DataLocation&>(&SpatialMethods::Mean<TDataType>), py::arg("model_part"), py::arg("variable"), py::arg("data_location"));
-    m.def("Mean", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const PybindVariant& rPybindVariantNorm) { return SpatialMethods::Mean<TDataType>(rModelPart, rVariable, rDataLocation, rPybindVariantNorm); }, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
+    m.def("Mean", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::Mean<TDataType>(rModelPart, rVariable, rDataLocation, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
 
     m.def("RootMeanSquare", py::overload_cast<const ModelPart&,const Variable<TDataType>&,const DataLocation&>(&SpatialMethods::RootMeanSquare<TDataType>), py::arg("model_part"), py::arg("variable"), py::arg("data_location"));
-    m.def("RootMeanSquare", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const PybindVariant& rPybindVariantNorm) { return SpatialMethods::RootMeanSquare<TDataType>(rModelPart, rVariable, rDataLocation, rPybindVariantNorm); }, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
+    m.def("RootMeanSquare", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::RootMeanSquare<TDataType>(rModelPart, rVariable, rDataLocation, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
 
     m.def("Variance", py::overload_cast<const ModelPart&,const Variable<TDataType>&,const DataLocation&>(&SpatialMethods::Variance<TDataType>), py::arg("model_part"), py::arg("variable"), py::arg("data_location"));
-    m.def("Variance", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const PybindVariant& rPybindVariantNorm) { return SpatialMethods::Variance<TDataType>(rModelPart, rVariable, rDataLocation, rPybindVariantNorm); }, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
+    m.def("Variance", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::Variance<TDataType>(rModelPart, rVariable, rDataLocation, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
 
     m.def("Min", py::overload_cast<const ModelPart&,const Variable<TDataType>&,const DataLocation&>(&SpatialMethods::Min<TDataType>), py::arg("model_part"), py::arg("variable"), py::arg("data_location"));
-    m.def("Min", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const PybindVariant& rPybindVariantNorm) { return SpatialMethods::Min<TDataType>(rModelPart, rVariable, rDataLocation, rPybindVariantNorm); }, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
+    m.def("Min", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::Min<TDataType>(rModelPart, rVariable, rDataLocation, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
 
     m.def("Max", py::overload_cast<const ModelPart&,const Variable<TDataType>&,const DataLocation&>(&SpatialMethods::Max<TDataType>), py::arg("model_part"), py::arg("variable"), py::arg("data_location"));
-    m.def("Max", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const PybindVariant& rPybindVariantNorm) { return SpatialMethods::Max<TDataType>(rModelPart, rVariable, rDataLocation, rPybindVariantNorm); }, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
+    m.def("Max", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::Max<TDataType>(rModelPart, rVariable, rDataLocation, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
 
     m.def("Median", py::overload_cast<const ModelPart&,const Variable<TDataType>&,const DataLocation&>(&SpatialMethods::Median<TDataType>), py::arg("model_part"), py::arg("variable"), py::arg("data_location"));
-    m.def("Median", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const PybindVariant& rPybindVariantNorm) { return SpatialMethods::Median<TDataType>(rModelPart, rVariable, rDataLocation, rPybindVariantNorm); }, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
+    m.def("Median", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::Median<TDataType>(rModelPart, rVariable, rDataLocation, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
 
     m.def("Distribution", py::overload_cast<const ModelPart&,const Variable<TDataType>&,const DataLocation&, Parameters>(&SpatialMethods::Distribution<TDataType>), py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("parameters"));
-    m.def("Distribution", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, Parameters Params, const PybindVariant& rPybindVariantNorm) { return SpatialMethods::Distribution<TDataType>(rModelPart, rVariable, rDataLocation, Params, rPybindVariantNorm); }, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("parameters"), py::arg("norm"));
+    m.def("Distribution", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, Parameters Params, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::Distribution<TDataType>(rModelPart, rVariable, rDataLocation, Params, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"), py::arg("parameters"));
 }
 
 void AddCustomSpatialMethodsToPython(pybind11::module& m)
@@ -203,7 +194,7 @@ void AddCustomSpatialMethodsToPython(pybind11::module& m)
     using DataLocation = Globals::DataLocation;
 
     auto spatial_method_module = m.def_submodule("SpatialMethods");
-    spatial_method_module.def("Sum", [](const ModelPart& rModelPart, const Flags& rFlag, const DataLocation& rLocation) { return SpatialMethods::Sum(rModelPart, rFlag, rLocation);}, py::arg("model_part"), py::arg("flag"), py::arg("data_location"));
+    spatial_method_module.def("Sum", [](const ModelPart& rModelPart, const Flags& rFlag, const DataLocation& rLocation) { return SpatialMethods::Sum(rModelPart, rFlag, rLocation); }, py::arg("model_part"), py::arg("flag"), py::arg("data_location"));
     AddSpatialMethods<double>(spatial_method_module);
     AddSpatialMethods<array_1d<double, 3>>(spatial_method_module);
     AddSpatialMethods<array_1d<double, 4>>(spatial_method_module);
