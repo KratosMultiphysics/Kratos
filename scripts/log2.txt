@@ -54,15 +54,11 @@ C:\KRATOS\Kratos\scripts>cmake -G"Visual Studio 16 2019" -H"C:\KRATOS\Kratos\scr
 -- Looking for pthread_create in pthread - not found
 -- Found Threads: TRUE  
 -- Configuring applications (ENV):
--- Performing Test COMPILER_HAS_DEPRECATED_ATTR
--- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Failed
--- Performing Test COMPILER_HAS_DEPRECATED
--- Performing Test COMPILER_HAS_DEPRECATED - Success
 -- clipper : C:/KRATOS/Kratos/external_libraries/clipper
 -- triangle : C:/KRATOS/Kratos/external_libraries/triangle
 -- tinyexpr : C:/KRATOS/Kratos/external_libraries/tinyexpr/tinyexpr/
--- Configuring done (14.6s)
--- Generating done (0.4s)
+-- Configuring done (17.3s)
+-- Generating done (0.2s)
 -- Build files have been written to: C:/KRATOS/Kratos/build/FullDebug
 
 C:\KRATOS\Kratos\scripts>rem Build 
@@ -71,6 +67,7 @@ C:\KRATOS\Kratos\scripts>cmake --build "C:\KRATOS\Kratos\scripts\../build/FullDe
 Microsoft (R) Build Engine version 16.11.2+f32259642 for .NET Framework
 Copyright (C) Microsoft Corporation. All rights reserved.
 
+  1>Checking Build System
   KratosVersion.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\KratosVersion.dir\FullDebug\KratosVersion.lib
   clipper.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\clipper\FullDebug\clipper.lib
   zlib.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\zlib\FullDebug\zlib.dll
@@ -79,25 +76,13 @@ Copyright (C) Microsoft Corporation. All rights reserved.
   triangle.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\triangle\FullDebug\triangle.lib
   KratosCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\FullDebug\KratosCore.dll
   Kratos.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\FullDebug\Kratos.cp311-win_amd64.pyd
-  co_sim_io.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\custom_external_libraries\CoSimIO\FullDebug\co_sim_io.dll
-  KratosCoSimulationCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\FullDebug\KratosCoSimulationCore.dll
-  KratosCoSimulationApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\FullDebug\KratosCoSimulationApplication.pyd
-  DEM_application.cpp
-  spheric_particle.cpp
-C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(934,64): error C2065: 'NODAL_COUPLING_WEIGHT': undeclared identifier [C:\KRATOS\Kratos\build\FullDebug\applications\DEMApplication\KratosDEMCore.vcxproj]
-  nanoparticle.cpp
-  analytic_RigidFace.cpp
-  RigidEdge.cpp
-  DEM_Dempack_dev_CL.cpp
-  DEM_Dempack_2D_dev_CL.cpp
-  DEM_D_Linear_HighStiffness_2D_CL.cpp
-  DEM_D_Linear_confined_CL.cpp
-  force_based_inlet.cpp
-  DEM_rolling_friction_model_bounded.cpp
+  Building Custom Rule C:/KRATOS/Kratos/applications/DEMFEMVolumeCouplingApplication/CMakeLists.txt
+  DEMFEM_volume_coupling_application.cpp
+C:\KRATOS\Kratos\applications\DEMFEMVolumeCouplingApplication\custom_elements/volume_coupling_element.h(24,10): fatal error C1083: Cannot open include file: 'StructuralMechanicsApplication/custom_elements/small_displacement.h': No such file or directory [C:\KRATOS\Kratos\build\FullDebug\applications\DEMFEMVolumeCouplingApplication\KratosDEMFEMVolumeCouplingCore.vcxproj]
+  volume_coupling_element.cpp
+C:\KRATOS\Kratos\applications\DEMFEMVolumeCouplingApplication\custom_elements/volume_coupling_element.h(24,10): fatal error C1083: Cannot open include file: 'StructuralMechanicsApplication/custom_elements/small_displacement.h': No such file or directory [C:\KRATOS\Kratos\build\FullDebug\applications\DEMFEMVolumeCouplingApplication\KratosDEMFEMVolumeCouplingCore.vcxproj]
+  volume_coupling_particle.cpp
+C:\KRATOS\Kratos\applications\DEMFEMVolumeCouplingApplication\custom_elements\volume_coupling_particle.h(22,10): fatal error C1083: Cannot open include file: 'spheric_particle.h': No such file or directory [C:\KRATOS\Kratos\build\FullDebug\applications\DEMFEMVolumeCouplingApplication\KratosDEMFEMVolumeCouplingCore.vcxproj]
   Generating Code...
-  KratosStructuralMechanicsCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\StructuralMechanicsApplication\FullDebug\KratosStructuralMechanicsCore.dll
-  KratosMappingCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\MappingApplication\FullDebug\KratosMappingCore.dll
-  KratosMappingApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\MappingApplication\FullDebug\KratosMappingApplication.pyd
-  KratosStructuralMechanicsApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\StructuralMechanicsApplication\FullDebug\KratosStructuralMechanicsApplication.pyd
 
 C:\KRATOS\Kratos\scripts>goto:eof
