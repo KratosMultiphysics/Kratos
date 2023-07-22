@@ -1,275 +1,194 @@
+from typing import Any
+from math import sqrt
+
 import KratosMultiphysics as Kratos
 
 import KratosMultiphysics.StatisticsApplication as KratosStats
 import KratosMultiphysics.KratosUnittest as KratosUnittest
-from KratosMultiphysics.StatisticsApplication.spatial_utilities import GetItemContainer
-from KratosMultiphysics.StatisticsApplication.method_utilities import GetNormTypeContainer
-from KratosMultiphysics.StatisticsApplication.method_utilities import GetMethod
+from KratosMultiphysics.testing.utilities import ReadModelPart
 from KratosMultiphysics.StatisticsApplication.test_utilities import CheckValues
-from KratosMultiphysics.StatisticsApplication.test_utilities import CreateModelPart
-from KratosMultiphysics.StatisticsApplication.test_utilities import InitializeModelPartVariables
-from KratosMultiphysics.StatisticsApplication.test_utilities import GetInitialVariableValue
 
 
 class SpatialMethodTests(KratosUnittest.TestCase):
-    def setUp(self):
-        self.model = Kratos.Model()
-        self.model_part = self.model.CreateModelPart("test_model_part")
-        self.containers_to_test = [
-            "nodal_historical", "nodal_non_historical",
-            "element_non_historical", "condition_non_historical"
-        ]
+    class ValueNorm:
+        def Evaluate(self, v: Any) -> Any:
+            return v
 
-        self.test_cases = {}
-        self.test_cases[Kratos.PRESSURE] = ["none", "magnitude", "value"]
-        self.test_cases[Kratos.VELOCITY] = [
-            "none", "magnitude", "component_x", "component_y", "component_z"
-        ]
-        self.test_cases[Kratos.LOAD_MESHES] = [
-            "magnitude", "index_0", "index_1", "index_2", "index_4"
-        ]
-        self.test_cases[Kratos.GREEN_LAGRANGE_STRAIN_TENSOR] = [
-            "frobenius", "index_(0,0)", "index_(0,1)", "index_(4,1)",
-            "index_(1,1)"
-        ]
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.model = Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("test")
+        cls.model_part.ProcessInfo[Kratos.DOMAIN_SIZE] = 2
 
-        self.norm_only_methods = ["min", "max", "median", "distribution"]
+        # add all variable types solution step
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.INITIAL_STRAIN)
+        cls.model_part.AddNodalSolutionStepVariable(Kratos.LOCAL_TANGENT_MATRIX)
 
-        SpatialMethodTests.__AddNodalSolutionStepVariables(self.model_part)
-        CreateModelPart(self.model_part)
-        InitializeModelPartVariables(self.model_part)
+        with KratosUnittest.WorkFolderScope(".", __file__):
+            ReadModelPart("spatial_statistics_process/spatial_statistics_process", cls.model_part)
 
-    def tearDown(self):
-        # Code here will be placed AFTER every test in this TestCase.
-        pass
+        def populate(container, setter_method, offset):
+            for item in container:
+                item_id = item.Id
+                setter_method(item, Kratos.PRESSURE, -item_id - 1 - offset)
+                setter_method(item, Kratos.VELOCITY, Kratos.Array3([item_id + 1 + offset, -item_id - 2 - offset, item_id + 3 + offset]))
+                setter_method(item, Kratos.INITIAL_STRAIN, Kratos.Vector([item_id + 1 + offset, -item_id - 2 - offset, item_id + 3 + offset, -item_id - 4 - offset, item_id + 5 + offset]))
+                setter_method(item, Kratos.LOCAL_TANGENT_MATRIX, Kratos.Matrix([[item_id + 1 + offset, -item_id - 2 - offset], [item_id + 3 + offset, -item_id - 4 - offset]]))
+
+        populate(cls.model_part.Nodes, lambda x, y, z: x.SetSolutionStepValue(y, z), 1)
+        populate(cls.model_part.Nodes, lambda x, y, z: x.SetValue(y, z), 2)
+        populate(cls.model_part.Conditions, lambda x, y, z: x.SetValue(y, z), 3)
+        populate(cls.model_part.Elements, lambda x, y, z: x.SetValue(y, z), 4)
+
+        cls.data_location = Kratos.Globals.DataLocation
+
+        cls.data_locations = [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical, Kratos.Globals.DataLocation.Condition, Kratos.Globals.DataLocation.Element]
+        cls.norms_dict = {
+            Kratos.PRESSURE: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity()],
+            Kratos.VELOCITY: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5)],
+            Kratos.INITIAL_STRAIN: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5)],
+            Kratos.LOCAL_TANGENT_MATRIX: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5), KratosStats.Norms.Trace(), KratosStats.Norms.LPQ(1.3, 2.3)]
+        }
+
+    def __GetDataRetrievalInfo(self, data_location: Kratos.Globals.DataLocation) -> Any:
+        if data_location == Kratos.Globals.DataLocation.NodeHistorical:
+            return self.model_part.GetCommunicator().LocalMesh().Nodes, lambda x, y: x.GetSolutionStepValue(y)
+        elif data_location == Kratos.Globals.DataLocation.NodeNonHistorical:
+            return self.model_part.GetCommunicator().LocalMesh().Nodes,lambda x, y: x.GetValue(y)
+        elif data_location == Kratos.Globals.DataLocation.Condition:
+            return self.model_part.GetCommunicator().LocalMesh().Conditions,lambda x, y: x.GetValue(y)
+        elif data_location == Kratos.Globals.DataLocation.Element:
+            return self.model_part.GetCommunicator().LocalMesh().Elements,lambda x, y: x.GetValue(y)
+        else:
+            raise RuntimeError("Unsupported data location provided.")
+
+    @staticmethod
+    def __ConvertValueToList(value: Any) -> 'list[float]':
+        if isinstance(value, float) or isinstance(value, int):
+            return [value]
+        elif isinstance(value, Kratos.Array3):
+            return [value[0], value[1], value[2]]
+        elif isinstance(value, Kratos.Vector):
+            return [value[0], value[1], value[2], value[3], value[4]]
+        elif isinstance(value, Kratos.Matrix):
+            return [value[0, 0], value[0, 1], value[1, 0], value[1, 1]]
+        else:
+            raise RuntimeError("Unsupported value type.")
+
+    @staticmethod
+    def __ConvertListToValue(values_list: 'list[float]') -> Any:
+        if  len(values_list) == 1:
+            return values_list[0]
+        elif len(values_list) == 3:
+            return Kratos.Array3([values_list[0], values_list[1], values_list[2]])
+        elif len(values_list) == 5:
+            return Kratos.Vector([values_list[0], values_list[1], values_list[2], values_list[3], values_list[4]])
+        elif len(values_list) == 4:
+            return Kratos.Matrix([[values_list[0], values_list[1]], [values_list[2], values_list[3]]])
+        else:
+            raise RuntimeError("Unsupported values list length.")
+
+    @staticmethod
+    def __GetInitializedValue(variable: Any, norm: Any, initialization_value):
+        if isinstance(variable, Kratos.DoubleVariable):
+            initialized_variable_value = initialization_value
+        elif isinstance(variable, Kratos.Array1DVariable3):
+            initialized_variable_value = Kratos.Array3([initialization_value, initialization_value, initialization_value])
+        elif isinstance(variable, Kratos.VectorVariable):
+            initialized_variable_value = Kratos.Vector([initialization_value, initialization_value, initialization_value, initialization_value, initialization_value])
+        elif isinstance(variable, Kratos.MatrixVariable):
+            initialized_variable_value = Kratos.Matrix([[initialization_value, initialization_value], [initialization_value, initialization_value]])
+        else:
+            raise RuntimeError("Unsupported variable type.")
+
+        if isinstance(norm, SpatialMethodTests.ValueNorm):
+            return initialized_variable_value
+        else:
+            return initialization_value
+
+    def __RunTest(self, stat_method: Any, analytical_method: Any) -> None:
+        def run_granular_test(stat_method: Any, variable: Any, data_location: Kratos.Globals.DataLocation, ref_value: Any, norm: Any = None):
+            if isinstance(norm, SpatialMethodTests.ValueNorm):
+                stat_results = stat_method(self.model_part, variable, data_location)
+            else:
+                stat_results = stat_method(self.model_part, variable, data_location, norm)
+
+            CheckValues(self, stat_results, ref_value, 12)
+
+        for data_location in self.data_locations:
+            container, data_retrieval_method = self.__GetDataRetrievalInfo(data_location)
+            for variable, norms_list in self.norms_dict.items():
+                for norm in norms_list:
+                    ref_value = analytical_method(container, variable, norm, data_retrieval_method)
+                    run_granular_test(stat_method, variable, data_location, ref_value, norm)
 
     def testSumMethod(self):
-        def analytical_method(container, container_type, norm_type, variable):
-            analytical_value = GetInitialVariableValue(variable, norm_type)
+        def analytical_method(container, variable, norm, value_retriever):
+            v = SpatialMethodTests.__GetInitializedValue(variable, norm, 0.0)
             for item in container:
-                analytical_value += SpatialMethodTests.__GetNormValue(
-                    variable,
-                    SpatialMethodTests.__GetValue(item, container_type,
-                                                  variable), norm_type)
-            return analytical_value
+                v += norm.Evaluate(value_retriever(item, variable))
+            v_list = SpatialMethodTests.__ConvertValueToList(v)
+            global_v_list = []
+            for v in v_list:
+                global_v_list.append(self.model_part.GetCommunicator().GetDataCommunicator().SumAll(v))
+            return SpatialMethodTests.__ConvertListToValue(global_v_list)
 
-        self.__TestMethod("sum", analytical_method)
-
-    def testRootMeanSquareMethod(self):
-        def analytical_method(container, container_type, norm_type, variable):
-            analytical_value = GetInitialVariableValue(variable, norm_type)
-            for item in container:
-                analytical_value += KratosStats.MethodUtilities.RaiseToPower(
-                    SpatialMethodTests.__GetNormValue(
-                        variable,
-                        SpatialMethodTests.__GetValue(item, container_type,
-                                                      variable), norm_type), 2)
-
-            return KratosStats.MethodUtilities.RaiseToPower(
-                analytical_value * (1.0 / len(container)), 0.5)
-
-        self.__TestMethod("rootmeansquare", analytical_method)
+        self.__RunTest(KratosStats.SpatialMethods.Sum, analytical_method)
 
     def testMeanMethod(self):
-        def analytical_method(container, container_type, norm_type, variable):
-            analytical_value = GetInitialVariableValue(variable, norm_type)
+        def analytical_method(container, variable, norm, value_retriever):
+            v = SpatialMethodTests.__GetInitializedValue(variable, norm, 0.0)
             for item in container:
-                analytical_value += SpatialMethodTests.__GetNormValue(
-                    variable,
-                    SpatialMethodTests.__GetValue(item, container_type,
-                                                  variable), norm_type)
+                v += norm.Evaluate(value_retriever(item, variable))
+            v_list = SpatialMethodTests.__ConvertValueToList(v)
+            global_v_list = []
+            for v in v_list:
+                global_v_list.append(self.model_part.GetCommunicator().GetDataCommunicator().SumAll(v))
+            global_sum = SpatialMethodTests.__ConvertListToValue(global_v_list)
 
-            return analytical_value / len(container)
+            global_n = self.model_part.GetCommunicator().GetDataCommunicator().SumAll(len(container))
+            return global_sum / global_n
 
-        self.__TestMethod("mean", analytical_method)
+        self.__RunTest(KratosStats.SpatialMethods.Mean, analytical_method)
+
+    def testRootMeanSquareMethod(self):
+        def analytical_method(container, variable, norm, value_retriever):
+            global_n = self.model_part.GetCommunicator().GetDataCommunicator().SumAll(len(container))
+
+            v_list = self.__ConvertValueToList(SpatialMethodTests.__GetInitializedValue(variable, norm, 0.0))
+            for item in container:
+                temp = self.__ConvertValueToList(norm.Evaluate(value_retriever(item, variable)))
+                for i, t_i in enumerate(temp):
+                    v_list[i] += t_i ** 2
+            global_v_list = []
+            for v in v_list:
+                global_v_list.append(sqrt(self.model_part.GetCommunicator().GetDataCommunicator().SumAll(v) / global_n))
+            return SpatialMethodTests.__ConvertListToValue(global_v_list)
+
+        self.__RunTest(KratosStats.SpatialMethods.RootMeanSquare, analytical_method)
 
     def testVarianceMethod(self):
-        def analytical_method(container, container_type, norm_type, variable):
-            mean_value = GetInitialVariableValue(variable, norm_type)
-            variance_value = GetInitialVariableValue(variable, norm_type)
+        def analytical_method(container, variable, norm, value_retriever):
+            global_n = self.model_part.GetCommunicator().GetDataCommunicator().SumAll(len(container))
+
+            v_mean_list = self.__ConvertValueToList(SpatialMethodTests.__GetInitializedValue(variable, norm, 0.0))
+            v_variance_list = self.__ConvertValueToList(SpatialMethodTests.__GetInitializedValue(variable, norm, 0.0))
             for item in container:
-                current_value = SpatialMethodTests.__GetNormValue(
-                    variable,
-                    SpatialMethodTests.__GetValue(item, container_type,
-                                                  variable), norm_type)
-                mean_value += current_value
-                variance_value += KratosStats.MethodUtilities.RaiseToPower(
-                    current_value, 2)
+                temp = self.__ConvertValueToList(norm.Evaluate(value_retriever(item, variable)))
+                for i, t_i in enumerate(temp):
+                    v_mean_list[i] += t_i
+                    v_variance_list[i] += t_i ** 2
+            global_v_mean_list = []
+            global_v_variance_list = []
+            for v_mean, v_variance in zip(v_mean_list, v_variance_list):
+                current_mean = self.model_part.GetCommunicator().GetDataCommunicator().SumAll(v_mean) / global_n
+                global_v_mean_list.append(current_mean)
+                global_v_variance_list.append(self.model_part.GetCommunicator().GetDataCommunicator().SumAll(v_variance) / global_n - current_mean ** 2)
+            return SpatialMethodTests.__ConvertListToValue(global_v_mean_list), SpatialMethodTests.__ConvertListToValue(global_v_variance_list)
 
-            n = len(container)
-            mean_value /= n
-            variance_value = variance_value / n - KratosStats.MethodUtilities.RaiseToPower(
-                mean_value, 2)
-
-            return mean_value, variance_value
-
-        self.__TestMethod("variance", analytical_method)
-
-    def testMinMethod(self):
-        def analytical_method(container, container_type, norm_type, variable):
-            analytical_value = 1e+12
-            for item in container:
-                current_value = SpatialMethodTests.__GetNormValue(
-                    variable,
-                    SpatialMethodTests.__GetValue(item, container_type,
-                                                  variable), norm_type)
-                if (current_value < analytical_value):
-                    analytical_value = current_value
-                    analytical_id = item.Id
-
-            return analytical_value, analytical_id
-
-        self.__TestMethod("min", analytical_method)
-
-    def testMaxMethod(self):
-        def analytical_method(container, container_type, norm_type, variable):
-            analytical_value = -1e+12
-            for item in container:
-                current_value = SpatialMethodTests.__GetNormValue(
-                    variable,
-                    SpatialMethodTests.__GetValue(item, container_type,
-                                                  variable), norm_type)
-                if (current_value > analytical_value):
-                    analytical_value = current_value
-                    analytical_id = item.Id
-
-            return analytical_value, analytical_id
-
-        self.__TestMethod("max", analytical_method)
-
-    def testMedianMethod(self):
-        def analytical_method(container, container_type, norm_type, variable):
-            item_values = []
-            for item in container:
-                current_value = SpatialMethodTests.__GetNormValue(
-                    variable,
-                    SpatialMethodTests.__GetValue(item, container_type,
-                                                  variable), norm_type)
-
-                item_values.append(current_value)
-
-            item_values = sorted(item_values)
-            n = len(item_values)
-            if (n % 2 != 0):
-                return item_values[n // 2]
-            else:
-                return (item_values[(n - 1) // 2] + item_values[n // 2]) * 0.5
-
-        self.__TestMethod("median", analytical_method)
-
-    def testDistributionMethod(self):
-        default_parameters = Kratos.Parameters("""
-        {
-            "number_of_value_groups" : 10,
-            "min_value"              : "min",
-            "max_value"              : "max"
-        }""")
-
-        def analytical_method(container, container_type, norm_type, variable):
-            item_values = []
-            for item in container:
-                current_value = SpatialMethodTests.__GetNormValue(
-                    variable,
-                    SpatialMethodTests.__GetValue(item, container_type,
-                                                  variable), norm_type)
-                item_values.append(current_value)
-
-            min_value = min(item_values)
-            max_value = max(item_values)
-            group_limits = [
-                min_value + (max_value - min_value) * i / 10 for i in range(11)
-            ]
-            group_limits[-1] += 1e-16
-            group_limits.append(1e+100)
-
-            data_distribution = [0 for i in range(len(group_limits))]
-            mean_distribution = [0.0 for i in range(len(group_limits))]
-            variance_distribution = [0.0 for i in range(len(group_limits))]
-            for value in item_values:
-                for i, v in enumerate(group_limits):
-                    if (value < v):
-                        data_distribution[i] += 1
-                        mean_distribution[i] += value
-                        variance_distribution[i] += value**2.0
-                        break
-            percentage_data_distribution = []
-            for i, _ in enumerate(group_limits):
-                percentage_data_distribution.append(data_distribution[i] /
-                                                    len(item_values))
-                if (data_distribution[i] > 0):
-                    mean_distribution[i] /= data_distribution[i]
-                    variance_distribution[i] /= data_distribution[i]
-                    variance_distribution[i] -= mean_distribution[i]**2.0
-
-            group_limits[-2] -= 1e-16
-            group_limits[-1] = max_value
-            return min_value, max_value, group_limits, data_distribution, percentage_data_distribution, mean_distribution, variance_distribution
-
-        self.__TestMethod("distribution", analytical_method,
-                          default_parameters)
-
-    def __TestMethod(self,
-                     test_method_name,
-                     analytical_method,
-                     method_params=Kratos.Parameters("""{}""")):
-        for container_type in self.containers_to_test:
-            container = SpatialMethodTests.__GetContainer(
-                self.model_part, container_type)
-            item_method_container = GetItemContainer(container_type)
-            for variable, norm_types in self.test_cases.items():
-                for norm_type in norm_types:
-                    item_method_norm_container = GetNormTypeContainer(
-                        item_method_container, norm_type)
-
-                    if ((norm_type == "none" or norm_type == "value")
-                            and test_method_name in self.norm_only_methods):
-                        continue
-
-                    test_method = GetMethod(item_method_norm_container,
-                                            test_method_name)
-                    if (norm_type == "none" or norm_type == "value"):
-                        method_value = test_method(self.model_part, variable)
-                    else:
-                        method_value = test_method(self.model_part, variable,
-                                                   norm_type, method_params)
-
-                    analytical_value = analytical_method(
-                        container, container_type, norm_type, variable)
-                    CheckValues(self, analytical_value, method_value, 10)
-
-    @staticmethod
-    def __AddNodalSolutionStepVariables(model_part):
-        model_part.AddNodalSolutionStepVariable(Kratos.PRESSURE)
-        model_part.AddNodalSolutionStepVariable(Kratos.VELOCITY)
-        model_part.AddNodalSolutionStepVariable(Kratos.LOAD_MESHES)
-        model_part.AddNodalSolutionStepVariable(
-            Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
-
-    @staticmethod
-    def __GetValue(item, container_type, variable):
-        if (container_type.endswith("non_historical")):
-            return item.GetValue(variable)
-        else:
-            return item.GetSolutionStepValue(variable)
-
-    @staticmethod
-    def __GetNormValue(variable, value, norm_type):
-        if (norm_type == "none"):
-            return value
-
-        norm_method = KratosStats.MethodUtilities.GetNormMethod(
-            variable, norm_type)
-        return norm_method(value)
-
-    @staticmethod
-    def __GetContainer(model_part, container_type):
-        if (container_type.startswith("nodal")):
-            return model_part.Nodes
-        elif (container_type.startswith("element")):
-            return model_part.Elements
-        elif (container_type.startswith("condition")):
-            return model_part.Conditions
-
+        self.__RunTest(KratosStats.SpatialMethods.Variance, analytical_method)
 
 if __name__ == '__main__':
     KratosUnittest.main()
