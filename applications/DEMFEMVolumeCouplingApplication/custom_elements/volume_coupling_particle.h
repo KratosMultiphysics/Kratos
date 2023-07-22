@@ -19,8 +19,7 @@
 // #include "includes/kratos_export_api.h"
 // #include "custom_utilities/properties_proxies.h"
 // #include "includes/kratos_flags.h"
-#include "spheric_particle.h"
-#include "DEMApplication/custom_elements/small_displacement.h"
+#include "custom_elements/spheric_particle.h"
 
 namespace Kratos
 {

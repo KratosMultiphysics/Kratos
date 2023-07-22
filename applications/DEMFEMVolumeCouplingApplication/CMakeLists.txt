@@ -2,10 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosDEMFEMVolumeCouplingApplication ****")
 
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MappingApplication)
-kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/CoSimulationApplication)
+#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
+#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MappingApplication)
+#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/CoSimulationApplication)
 
 
 
@@ -68,7 +68,7 @@ if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 # Add to the KratosMultiphisics Python module
-kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/DEMFEMVolumeCouplingApplication.py KratosMultiphysics/DEMFEMVolumeCouplingApplication/__init__.py )
+kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/DEMFEM_volume_coupling_application.py KratosMultiphysics/DEMFEMVolumeCouplingApplication/__init__.py)
 
 # Install python files
 #get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
