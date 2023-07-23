@@ -359,6 +359,7 @@ public:
         // first check the sizes. Requires resizing if dynamic types
         // such as Vector and Matrices are used.
         if (mValues.size() != rOther.mValues.size()) {
+            mResultantValue = rOther.mResultantValue;
             mValues.resize(rOther.mValues.size());
             IndicesTraits::Resize(mResultantIndex, {rOther.mValues.size()});
         }
@@ -368,16 +369,8 @@ public:
             auto& current_component_values = mValues[i_comp];
             const auto& r_other_component_values = rOther.mValues[i_comp];
 
-            // assumes all the values in r_component_values is sorted
-            // in the acending order of values.
             for (const auto& r_other_value_info : r_other_component_values) {
-                auto i_lower_bound = std::lower_bound(
-                    current_component_values.begin(),
-                    current_component_values.end(), r_other_value_info,
-                    [](const auto& rV1, const auto& rV2) {
-                        return std::get<0>(rV1) < std::get<0>(rV2);
-                    });
-                current_component_values.insert(i_lower_bound, r_other_value_info);
+                current_component_values.push_back(r_other_value_info);
             }
         }
     }
@@ -404,35 +397,34 @@ public:
             const auto& global_values = rDataCommunicator.Gatherv(local_values, 0);
 
             // get the indices in rank 0
-            typename IndicesTraits::VectorType local_indices;
-            IndicesTraits::FillToVector(local_indices, mResultantIndex);
+            typename IndicesTraits::VectorType local_indices(current_values.size());
+            std::transform(current_values.begin(), current_values.end(), local_indices.begin(), [](const auto& rV) { return std::get<1>(rV); });
             const auto& global_indices = rDataCommunicator.Gatherv(local_indices, 0);
 
             if (rDataCommunicator.Rank() == 0) {
                 const IndexType number_of_values = std::accumulate(global_values.begin(), global_values.end(), 0, [](const auto& rV1, const auto& rV2) { return rV1 + rV2.size();});
-                std::vector<RawDataType> sorted_values;
-                sorted_values.reserve(number_of_values);
-                std::vector<IndexType> sorted_indices;
-                sorted_indices.reserve(number_of_values);
+                std::vector<std::tuple<RawDataType, IndexType>> global_values_info;
+                global_values_info.reserve(number_of_values);
 
                 for (IndexType rank = 0; rank < global_values.size(); ++rank) {
                     const auto& rank_values = global_values[rank];
                     const auto& rank_indices = global_indices[rank];
                     for (IndexType i_value = 0; i_value < rank_values.size(); ++i_value) {
-                        const auto lower_bound = std::lower_bound(sorted_values.begin(), sorted_values.end(), rank_values[i_value]);
-                        sorted_indices.insert(sorted_indices.begin() + std::distance(sorted_values.begin(), lower_bound), rank_indices[i_value]);
-                        sorted_values.insert(lower_bound, rank_values[i_value]);
+                        global_values_info.push_back(std::make_tuple(rank_values[i_value], rank_indices[i_value]));
                     }
                 }
 
+                // now sort everything
+                std::sort(global_values_info.begin(), global_values_info.end(), [](const auto& rV1, const auto& rV2) { return std::get<0>(rV1) < std::get<0>(rV2); });
+
                 if (number_of_values > 0) {
                     const IndexType mid_point = number_of_values / 2;
-                    current_median_index = sorted_indices[mid_point];
+                    current_median_index = std::get<1>(global_values_info[mid_point]);
                     if (number_of_values % 2 != 0) {
-                        current_median_value = sorted_values[mid_point];
+                        current_median_value = std::get<0>(global_values_info[mid_point]);
                     } else {
                         const IndexType adjacent_mid_point = (number_of_values - 1) / 2;
-                        current_median_value = (sorted_values[adjacent_mid_point] + sorted_values[mid_point]) * 0.5;
+                        current_median_value = (std::get<0>(global_values_info[adjacent_mid_point]) + std::get<0>(global_values_info[mid_point])) * 0.5;
                     }
                 }
             }

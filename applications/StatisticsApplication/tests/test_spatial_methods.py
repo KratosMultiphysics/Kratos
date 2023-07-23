@@ -51,6 +51,11 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             Kratos.LOCAL_TANGENT_MATRIX: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5), KratosStats.Norms.Trace(), KratosStats.Norms.LPQ(1.3, 2.3)]
         }
 
+        cls.data_locations = [Kratos.Globals.DataLocation.NodeHistorical]
+        cls.norms_dict = {
+            Kratos.INITIAL_STRAIN: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5)]
+        }
+
     def __GetDataRetrievalInfo(self, data_location: Kratos.Globals.DataLocation) -> Any:
         if data_location == Kratos.Globals.DataLocation.NodeHistorical:
             return self.model_part.GetCommunicator().LocalMesh().Nodes, lambda x, y: x.GetSolutionStepValue(y)
@@ -256,34 +261,52 @@ class SpatialMethodTests(KratosUnittest.TestCase):
     def testMedianMethod(self):
         data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
         def analytical_method(container, variable, norm, value_retriever):
-            v_list = SpatialMethodTests.__ConvertValueToList(SpatialMethodTests.__GetInitializedValue(variable, norm, -1e+16))
-            v_id_list = [1e+5] * len(v_list)
+            local_values_list = []
+            local_indices_list = []
             for item in container:
                 current_v = SpatialMethodTests.__ConvertValueToList(norm.Evaluate(value_retriever(item, variable)))
-                for i, c_v in enumerate(current_v):
-                    if v_list[i] < c_v:
-                        v_list[i] = c_v
-                        v_id_list[i] = item.Id
-                    elif v_list[i] == c_v:
-                        v_id_list[i] = min(v_id_list[i], item.Id)
+                component_size = len(current_v)
+                if len(local_values_list) != component_size:
+                    local_values_list = [[] for _ in current_v]
+                    local_indices_list = [[] for _ in current_v]
+                for i, v in enumerate(current_v):
+                    local_values_list[i].append(v)
+                    local_indices_list[i].append(item.Id)
 
-            all_v_list = data_communicator.AllGathervDoubles(v_list)
-            all_v_id_list = data_communicator.AllGathervInts(v_id_list)
+            component_size = data_communicator.MaxAll(component_size)
+            global_v_id_pair_list = [[] for _ in range(component_size)]
+            if len(local_values_list) == 0:
+                local_values_list = [[] for _ in range(component_size)]
+                local_indices_list = [[] for _ in range(component_size)]
 
-            for global_v_list, global_v_id_list in zip(all_v_list, all_v_id_list):
-                for i, global_v in enumerate(global_v_list):
-                    if v_list[i] < global_v:
-                        v_list[i] = global_v
-                        v_id_list[i] = global_v_id_list[i]
-                    elif v_list[i] == c_v:
-                        v_id_list[i] = min(v_id_list[i], global_v_id_list[i])
+            for i in range(component_size):
+                all_rank_v_list = data_communicator.AllGathervDoubles(local_values_list[i])
+                all_rank_i_list = data_communicator.AllGathervInts(local_indices_list[i])
+                for rank_v_list, rank_v_id_list in zip(all_rank_v_list, all_rank_i_list):
+                    for rank_v, rank_id in zip(rank_v_list, rank_v_id_list):
+                        global_v_id_pair_list[i].append([rank_v, rank_id])
+                global_v_id_pair_list[i] = sorted(global_v_id_pair_list[i], key=lambda x:x[0])
 
-            if len(v_id_list) == 1:
+            v_list = [0.0] * component_size
+            v_id_list = [0] * component_size
+
+            n = len(global_v_id_pair_list[0])
+
+            if n % 2 != 0:
+                for i in range(component_size):
+                    v_list[i] = global_v_id_pair_list[i][int((n-1) / 2)][0]
+                    v_id_list[i] = global_v_id_pair_list[i][int((n-1) / 2)][1]
+            else:
+                for i in range(component_size):
+                    v_list[i] = 0.5 * (global_v_id_pair_list[i][int((n-1) / 2)][0] + global_v_id_pair_list[i][int((n+1) / 2)][0])
+                    v_id_list[i] = global_v_id_pair_list[i][int((n-1) / 2)][1]
+
+            if component_size == 1:
                 return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list[0]
             else:
                 return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list
 
-        self.__RunTest(KratosStats.SpatialMethods.Max, analytical_method)
+        self.__RunTest(KratosStats.SpatialMethods.Median, analytical_method)
 
 if __name__ == '__main__':
     KratosUnittest.main()
