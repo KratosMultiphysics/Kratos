@@ -22,11 +22,7 @@ def AssembleTestSuites():
     # smallSuite will contain the following tests:
     # - testSmallExample
     smallSuite = suites['small']
-    smallSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases([
-            test_med_model_part_io
-        ])
-    )
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_med_model_part_io.TestMedModelPartIO]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:

@@ -65,39 +65,51 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         self._execute_tests("only_nodes", mp_check_fct)
 
     def test_nodes_with_sub_meshes(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
     def test_2D_mesh(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
     def test_2D_mesh_with_sub_meshes(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
     def test_2D_mesh_in_3D_space(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
     def test_2D_mesh_in_3D_space_with_sub_meshes(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
     def test_3D_mesh(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
     def test_3D_mesh_with_sub_meshes(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
     def test_line_2N_linear_mesh(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
     def test_triangle_3N_linear_mesh(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
     def test_quadrilateral_4N_linear_mesh(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
     def test_tetrahedra_4N_linear_mesh(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
     def test_hexahedra_8N_linear_mesh(self):
+        self.skipTest("This test is not yet implemented")
         raise NotImplementedError
 
 
