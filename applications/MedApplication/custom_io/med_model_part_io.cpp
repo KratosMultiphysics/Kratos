@@ -164,95 +164,6 @@ std::string GetKratosGeometryName(
     }
 }
 
-typedef std::vector<std::string> StringVectorType;
-
-/// The map containing the id for each component and the corresponding tag
-typedef std::unordered_map<IndexType, IndexType> IndexIndexMapType;
-
-/// The map containing the tags and the names of the related submodelparts
-typedef std::unordered_map<IndexType, StringVectorType> IndexStringMapType;
-
-/// Auxiliary map
-typedef std::unordered_map<IndexType, std::set<IndexType>> IndexIndexSetMapType;
-
-/// Auxiliary map
-typedef std::unordered_map<std::set<IndexType>, IndexType, KeyHasherRange<std::set<IndexType>>, KeyComparorRange<std::set<IndexType>> >  IndexSetIndexMapType;
-
-/// Copmutes the collections and assign the tags
-void ComputeFamilies(
-    const ModelPart& rModelPart,
-    IndexIndexMapType& rNodeFamilies,
-    IndexIndexMapType& rGeomFamilies,
-    IndexStringMapType& rFamilySubModelPartNames
-    )
-{
-    // Initialize and create the auxiliary maps
-    IndexIndexSetMapType aux_node_tags, aux_geom_tags;
-
-    // Initialize the collections
-    auto insert_tags = [](const auto& rEntities, auto& rAuxTags, const IndexType Tag){
-        for(const auto& r_entity : rEntities) {
-            rAuxTags[r_entity.Id()].insert(Tag);
-        }
-    };
-
-    IndexType tag = 1;
-    for (const auto& r_smp : rModelPart.SubModelParts()) {
-        rFamilySubModelPartNames[tag].push_back(r_smp.Name());
-
-        insert_tags(r_smp.Nodes(), aux_node_tags, tag);
-        insert_tags(r_smp.Geometries(), aux_geom_tags, tag);
-
-        ++tag;
-    }
-
-    // Now detect all the cases in which an entity belongs to more than one part simultaneously
-    IndexSetIndexMapType combinations;
-
-    auto detect_combinations = [&combinations](const auto& rAuxTags){
-        for(const auto& r_aux_tag : rAuxTags) {
-            const auto& r_value = r_aux_tag.second;
-            if (r_value.size() > 1) combinations[r_value] = 0;
-        }
-    };
-
-   detect_combinations(aux_node_tags);
-   detect_combinations(aux_geom_tags);
-
-    // Combinations
-    for(auto& combination : combinations) {
-        const auto& r_key_set = combination.first;
-        for(IndexType it : r_key_set)
-            rFamilySubModelPartNames[tag].push_back(rFamilySubModelPartNames[it][0]);
-        combinations[r_key_set] = tag;
-        ++tag;
-    }
-
-    // The final maps are created
-    auto assign_families = [&combinations](const auto& rAuxTags, auto& rFamilies){
-        for(const auto& [key, r_value] : rAuxTags) {
-            if (r_value.size() == 0)
-                rFamilies[key] = 0; // Main Model Part
-            else if (r_value.size() == 1) // A Sub Model Part
-                rFamilies[key] = *r_value.begin();
-            else // There is a combination
-                rFamilies[key] = combinations[r_value];
-        }
-    };
-
-    assign_families(aux_node_tags, rNodeFamilies);
-    assign_families(aux_geom_tags, rGeomFamilies);
-
-    // Clean up the rFamilySubModelPartNames
-    auto uniquify = [](StringVectorType& rVec){
-        std::set<std::string> aux_set(rVec.begin(), rVec.end());
-        rVec.assign(aux_set.begin(), aux_set.end());
-    };
-
-    for (auto& r_smp_names : rFamilySubModelPartNames) {
-        uniquify(r_smp_names.second);
-    }
-}
 
 int GetNumberOfNodes(
     const med_idt FileHandle,
@@ -648,52 +559,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         }
     };
 
-    auto write_family_numbers = [this](
-        const med_entity_type med_type,
-        const med_geometry_type med_geom,
-        const FamilyNumbersVector& rFamilyNumbers){
-            if (MEDmeshEntityFamilyNumberWr(
-                mpFileHandler->GetFileHandle(),
-                mpFileHandler->GetMeshName(),
-                MED_NO_DT, MED_NO_IT,
-                med_type, med_geom,
-                rFamilyNumbers.size(), rFamilyNumbers.data())<0){
-                    KRATOS_ERROR << "Writing failed!" << std::endl;
-                }
-    };
-
-    IndexIndexMapType node_family_numbers_map;
-    IndexIndexMapType geom_family_numbers_map;
-    IndexStringMapType fam_groups;
-    ComputeFamilies(rThisModelPart, node_family_numbers_map, geom_family_numbers_map, fam_groups);
-
-    for (const auto& [fam_id, smp_names] : fam_groups) {
-        MEDfamilyCr(
-            mpFileHandler->GetFileHandle(),
-            mpFileHandler->GetMeshName(),
-            "asdf", // TODO what to put here???
-            fam_id,
-            smp_names.size(),
-            "smp_names.data()"/*smp_names.data_consecutive*/); // TODO this is wrong!!!
-    }
-
-    FamilyNumbersVector node_family_numbers(rThisModelPart.NumberOfNodes(), 0); // zero unless otherwise defined
-
-    const auto nodes_begin = rThisModelPart.NodesBegin();
-    IndexPartition(rThisModelPart.NumberOfNodes()).for_each([
-        &node_family_numbers_map,
-        &node_family_numbers,
-        nodes_begin](const std::size_t i) {
-            const auto it = node_family_numbers_map.find((nodes_begin+i)->Id());
-            if (it != node_family_numbers_map.end()) {
-                node_family_numbers[i] = it->second;
-            }
-    });
-
-    write_family_numbers(MED_NODE, MED_NONE, node_family_numbers);
-
     std::unordered_map<GeometryData::KratosGeometryType, ConnectivitiesVector> conn_map;
-    std::unordered_map<GeometryData::KratosGeometryType, FamilyNumbersVector> fam_map;
     std::unordered_map<GeometryData::KratosGeometryType, int> np_map; // TODO this can be solved better
 
     for (const auto& r_geom : rThisModelPart.Geometries()) {
@@ -706,9 +572,6 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         conn_map[this_geom_type].push_back(conn);
         np_map[this_geom_type] = r_geom.PointsNumber();
 
-        const auto fam_it = geom_family_numbers_map.find(r_geom.Id());
-        const int fam_id = (fam_it != geom_family_numbers_map.end()) ? fam_it->second : 0;
-        fam_map[this_geom_type].push_back(-fam_id); // groups have negative family ids
     }
 
     // entities of a type have to be written at the same time
@@ -716,7 +579,6 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
     for (auto& [geom_type, conn] : conn_map) {
         const auto med_geom_type = KratosToMedGeometryType.at(geom_type);
         write_geometries(med_geom_type, np_map[geom_type], conn);
-        write_family_numbers(MED_CELL, med_geom_type, fam_map[geom_type]);
     }
 
     KRATOS_CATCH("")
