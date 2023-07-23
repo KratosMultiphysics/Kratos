@@ -151,8 +151,8 @@ private:
     ///@}
 };
 
-template<class TDataType>
-class MinOperation
+template<class TDataType, class TSubOperation>
+class MinMaxOperation
 {
 public:
     ///@name Type definitions
@@ -168,9 +168,9 @@ public:
     ///@name Life cycle
     ///@{
 
-    MinOperation() { Initialize(); }
+    MinMaxOperation() { Initialize(); }
 
-    MinOperation(
+    MinMaxOperation(
         const TDataType& rValue,
         const IndexType rId)
     {
@@ -188,7 +188,7 @@ public:
         return std::make_tuple(mValue, mIndices);
     }
 
-    void Execute(const MinOperation<TDataType>& rOther)
+    void Execute(const MinMaxOperation<TDataType, TSubOperation>& rOther)
     {
         if (OperationTraits::Resize(mValue, OperationTraits::Shape(rOther.mValue))) {
             Initialize();
@@ -199,7 +199,7 @@ public:
             const auto other_index = IndicesTraits::GetComponent(rOther.mIndices, i);
             auto& current_value = OperationTraits::GetComponent(mValue, i);
             auto& current_index = IndicesTraits::GetComponent(mIndices, i);
-            if (current_value > other_value) {
+            if (TSubOperation::IsCurrentValueNotValid(current_value, other_value)) {
                 current_value = other_value;
                 current_index = other_index;
             } else if (current_value == other_value) {
@@ -229,7 +229,7 @@ public:
             for (IndexType rank = 0; rank < global_values.size(); ++rank) {
                 const auto other_value = global_values[rank][i];
                 const auto other_index = global_indices[rank][i];
-                if (current_value > other_value) {
+                if (TSubOperation::IsCurrentValueNotValid(current_value, other_value)) {
                     current_value = other_value;
                     current_index = other_index;
                 } else if (current_value == other_value) {
@@ -258,7 +258,7 @@ private:
 
     void Initialize()
     {
-        OperationTraits::Initialize(mValue, std::numeric_limits<double>::max());
+        OperationTraits::Initialize(mValue, TSubOperation::InitialValue);
         IndicesTraits::Resize(mIndices, {OperationTraits::Size(mValue)});
         IndicesTraits::Initialize(mIndices, std::numeric_limits<IndexType>::max());
     }
@@ -267,119 +267,37 @@ private:
 };
 
 template<class TDataType>
-class MaxOperation
+struct MinSubOperation
 {
-public:
-    ///@name Type definitions
-    ///@{
+    using RawDataType = typename DataTypeTraits<TDataType>::RawDataType;
 
-    using ItemPositionType = SpatialMethods::ItemPositionType<TDataType>;
+    static constexpr RawDataType InitialValue = std::numeric_limits<RawDataType>::max();
 
-    using IndicesTraits = DataTypeTraits<ItemPositionType>;
-
-    using OperationTraits = DataTypeTraits<TDataType>;
-
-    ///@}
-    ///@name Life cycle
-    ///@{
-
-    MaxOperation() { Initialize(); }
-
-    MaxOperation(
-        const TDataType& rValue,
-        const IndexType rId)
+    static bool IsCurrentValueNotValid(
+        const RawDataType rCurrentValue,
+        const RawDataType rOtherValue)
     {
-        mValue = rValue;
-        IndicesTraits::Resize(mIndices, {OperationTraits::Size(mValue)});
-        IndicesTraits::Initialize(mIndices, rId);
+        return rCurrentValue > rOtherValue;
     }
-
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    std::tuple<TDataType, ItemPositionType> GetValue() const
-    {
-        return std::make_tuple(mValue, mIndices);
-    }
-
-    void Execute(const MaxOperation<TDataType>& rOther)
-    {
-        if (OperationTraits::Resize(mValue, OperationTraits::Shape(rOther.mValue))) {
-            Initialize();
-        }
-
-        for (IndexType i = 0; i < OperationTraits::Size(mValue); ++i) {
-            const auto other_value = OperationTraits::GetComponent(rOther.mValue, i);
-            const auto other_index = IndicesTraits::GetComponent(rOther.mIndices, i);
-            auto& current_value = OperationTraits::GetComponent(mValue, i);
-            auto& current_index = IndicesTraits::GetComponent(mIndices, i);
-            if (current_value < other_value) {
-                current_value = other_value;
-                current_index = other_index;
-            } else if (current_value == other_value) {
-                current_index = std::min(current_index, other_index);
-            }
-        }
-    }
-
-    void Synchronize(const DataCommunicator& rDataCommunicator)
-    {
-        if (OperationTraits::SynchronizeSize(mValue, rDataCommunicator)) {
-            Initialize();
-        }
-
-        typename OperationTraits::VectorType local_values;
-        OperationTraits::FillToVector(local_values, mValue);
-        auto global_values = rDataCommunicator.AllGatherv(local_values);
-
-        typename IndicesTraits::VectorType local_indices;
-        IndicesTraits::FillToVector(local_indices, mIndices);
-        auto global_indices = rDataCommunicator.AllGatherv(local_indices);
-
-
-        for (IndexType i = 0; i < OperationTraits::Size(mValue); ++i) {
-            auto& current_value = local_values[i];
-            auto& current_index = local_indices[i];
-            for (IndexType rank = 0; rank < global_values.size(); ++rank) {
-                const auto other_value = global_values[rank][i];
-                const auto other_index = global_indices[rank][i];
-                if (current_value < other_value) {
-                    current_value = other_value;
-                    current_index = other_index;
-                } else if (current_value == other_value) {
-                    current_index = std::min(current_index, other_index);
-                }
-            }
-        }
-
-        OperationTraits::FillFromVector(mValue, local_values);
-        IndicesTraits::FillFromVector(mIndices, local_indices);
-    }
-
-    ///@}
-
-private:
-    ///@name Private member variables
-    ///@{
-
-    TDataType mValue;
-
-    ItemPositionType mIndices;
-
-    ///@}
-    ///@name Private operations
-    ///@{
-
-    void Initialize()
-    {
-        OperationTraits::Initialize(mValue, std::numeric_limits<double>::lowest());
-        IndicesTraits::Resize(mIndices, {OperationTraits::Size(mValue)});
-        IndicesTraits::Initialize(mIndices, std::numeric_limits<IndexType>::max());
-    }
-
-    ///@}
 };
+
+template<class TDataType>
+struct MaxSubOperation
+{
+    using RawDataType = typename DataTypeTraits<TDataType>::RawDataType;
+
+    static constexpr RawDataType InitialValue = std::numeric_limits<RawDataType>::lowest();
+
+    static bool IsCurrentValueNotValid(
+        const RawDataType rCurrentValue,
+        const RawDataType rOtherValue)
+    {
+        return rCurrentValue < rOtherValue;
+    }
+};
+
+template<class TDataType> class MinOperation: public MinMaxOperation<TDataType, MinSubOperation<TDataType>> { public: using MinMaxOperation<TDataType, MinSubOperation<TDataType>>::MinMaxOperation; };
+template<class TDataType> class MaxOperation: public MinMaxOperation<TDataType, MaxSubOperation<TDataType>> { public: using MinMaxOperation<TDataType, MaxSubOperation<TDataType>>::MinMaxOperation; };
 
 template<class TDataType>
 class MedianOperation
