@@ -195,9 +195,15 @@ public:
         }
 
         for (IndexType i = 0; i < OperationTraits::Size(mValue); ++i) {
-            if (OperationTraits::GetComponent(mValue, i) > OperationTraits::GetComponent(rOther.mValue, i)) {
-                OperationTraits::GetComponent(mValue, i) = OperationTraits::GetComponent(rOther.mValue, i);
-                IndicesTraits::GetComponent(mIndices, i) = IndicesTraits::GetComponent(rOther.mIndices, i);
+            const auto other_value = OperationTraits::GetComponent(rOther.mValue, i);
+            const auto other_index = IndicesTraits::GetComponent(rOther.mIndices, i);
+            auto& current_value = OperationTraits::GetComponent(mValue, i);
+            auto& current_index = IndicesTraits::GetComponent(mIndices, i);
+            if (current_value > other_value) {
+                current_value = other_value;
+                current_index = other_index;
+            } else if (current_value == other_value) {
+                current_index = std::min(current_index, other_index);
             }
         }
     }
