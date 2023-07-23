@@ -49,7 +49,18 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
     def test_only_nodes(self):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 4)
-            # TODO check also the coords
+
+            exp_coords = [
+                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
+            ]
+
+            for coords, node in zip(exp_coords, model_part.Nodes):
+                self.assertAlmostEqual(node.X, coords[0])
+                self.assertAlmostEqual(node.X0, coords[0])
+                self.assertAlmostEqual(node.Y, coords[1])
+                self.assertAlmostEqual(node.Y0, coords[1])
+                self.assertAlmostEqual(node.Z, coords[2])
+                self.assertAlmostEqual(node.Z0, coords[2])
 
         self._execute_tests("only_nodes", mp_check_fct)
 
