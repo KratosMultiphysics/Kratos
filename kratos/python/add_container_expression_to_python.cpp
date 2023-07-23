@@ -40,36 +40,6 @@ void AddContainerExpressionToPython(pybind11::module& m, const std::string& rNam
     py::class_<container_expression_holder_base, typename container_expression_holder_base::Pointer>(m, rName.c_str())
         .def(py::init<ModelPart&>(), py::arg("model_part"))
         .def("CopyFrom", &container_expression_holder_base::CopyFrom, py::arg("origin_container_expression"))
-        .def("MoveFrom", [](container_expression_holder_base& rSelf, py::array_t<int>& rData){
-            KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
-
-            // dimension of the numpy array is always one dimension greater than the kratos stored dimension for each
-            // entity. That is because, first dimension of the numpy array shows how many entities are there
-            // in the numpy array to be read in. If the numpy array dimension is [45, 3, 4] then it shows
-            // there are 45 entities each having matrices of shape [3, 4].
-            std::vector<int> shape(rData.ndim() - 1);
-            std::copy(rData.shape() + 1, rData.shape() + rData.ndim(), shape.begin());
-
-            rSelf.MoveFrom(rData.mutable_data(),
-                           rData.shape()[0],
-                           shape.data(),
-                           shape.size());
-        }, py::arg("numpy_int_array").noconvert())
-        .def("MoveFrom", [](container_expression_holder_base& rSelf, py::array_t<double>& rData){
-            KRATOS_ERROR_IF(rData.ndim() == 0) << "Passed data is not compatible.\n";
-
-            // dimension of the numpy array is always one dimension greater than the kratos stored dimension for each
-            // entity. That is because, first dimension of the numpy array shows how many entities are there
-            // in the numpy array to be read in. If the numpy array dimension is [45, 3, 4] then it shows
-            // there are 45 entities each having matrices of shape [3, 4].
-            std::vector<int> shape(rData.ndim() - 1);
-            std::copy(rData.shape() + 1, rData.shape() + rData.ndim(), shape.begin());
-
-            rSelf.MoveFrom(rData.mutable_data(),
-                           rData.shape()[0],
-                           shape.data(),
-                           shape.size());
-        }, py::arg("numpy_double_array").noconvert())
         .def("SetExpression", &container_expression_holder_base::SetExpression)
         .def("HasExpression", &container_expression_holder_base::HasExpression)
         .def("GetExpression", &container_expression_holder_base::pGetExpression)

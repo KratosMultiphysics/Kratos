@@ -72,7 +72,7 @@ public:
     void FinalizeMaterialResponseCauchy(Parameters & rValues) override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    Vector& GetValue( const Variable<Vector>& rThisVariable, Vector& rValue ) override;
+    double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
 
     void SetValue( const Variable<Vector>& rThisVariable,
                    const Vector& rValue,
@@ -97,7 +97,6 @@ protected:
         double DamageThreshold;
 
         // Variables dependent on the state variables
-        double DamageVariable;     // scalar damage variable
         double DerivativeSDV;      // derivative of the scalar damage variable
 
         // Auxiliary variables
@@ -109,6 +108,7 @@ protected:
     };
 
     // Member Variables
+    double mDamageVariable = 0.0;               // scalar damage variable
     Vector mStateVariable = ZeroVector(2);      // [max(|delta_shear|) max(<delta_normal>)]
     Vector mOldStateVariable = ZeroVector(2);
 

@@ -30,7 +30,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -68,61 +68,80 @@ public:
     /// Counted pointer of PenaltyMethodFrictionlessMortarContactCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PenaltyMethodFrictionlessMortarContactCondition );
 
-    typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_PENALTY, TNormalVariation, TNumNodesMaster> BaseType;
+    /// Base type definition
+    using BaseType = MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS_PENALTY, TNormalVariation, TNumNodesMaster>;
 
-    typedef typename BaseType::MortarConditionMatrices                    MortarConditionMatrices;
+    /// Type definition for mortar condition matrices
+    using MortarConditionMatrices = typename BaseType::MortarConditionMatrices;
 
-    typedef typename BaseType::GeneralVariables                                  GeneralVariables;
+    /// Type definition for general variables
+    using GeneralVariables = typename BaseType::GeneralVariables;
 
-    typedef typename BaseType::AeData                                                      AeData;
+    /// Type definition for Ae data
+    using AeData = typename BaseType::AeData;
 
-    typedef typename BaseType::IntegrationUtility                              IntegrationUtility;
+    /// Type definition for integration utility
+    using IntegrationUtility = typename BaseType::IntegrationUtility;
 
-    typedef typename BaseType::DerivativesUtilitiesType                  DerivativesUtilitiesType;
+    /// Type definition for derivatives utilities type
+    using DerivativesUtilitiesType = typename BaseType::DerivativesUtilitiesType;
 
-    typedef typename BaseType::BelongType                                              BelongType;
+    /// Type definition for belong type
+    using BelongType = typename BaseType::BelongType;
 
-    typedef typename BaseType::ConditionArrayType                              ConditionArrayType;
+    /// Type definition for pair index container
+    using ConditionArrayType = typename BaseType::ConditionArrayType;
 
-    typedef typename BaseType::ConditionArrayListType                      ConditionArrayListType;
+    /// Type definition for condition array list type
+    using ConditionArrayListType = typename BaseType::ConditionArrayListType;
 
-    typedef typename BaseType::DecompositionType                                DecompositionType;
+    /// Type definition for decomposition type
+    using DecompositionType = typename BaseType::DecompositionType;
 
-    typedef typename BaseType::DerivativeDataType                              DerivativeDataType;
+    /// Type definition for derivative data type
+    using DerivativeDataType = typename BaseType::DerivativeDataType;
 
-    typedef Condition                                                           ConditionBaseType;
+    /// Condition base type definition
+    using ConditionBaseType = Condition;
 
-    typedef PairedCondition                                               PairedConditionBaseType;
+    /// Paired condition base type definition
+    using PairedConditionBaseType = PairedCondition;
 
-    typedef typename ConditionBaseType::VectorType                                     VectorType;
+    /// Type definition for vector type
+    using VectorType = typename ConditionBaseType::VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                     MatrixType;
+    /// Type definition for matrix type
+    using MatrixType = typename ConditionBaseType::MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                       IndexType;
+    /// Type definition for index type
+    using IndexType = typename ConditionBaseType::IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                 GeometryPointerType;
+    /// Type definition for geometry pointer type
+    using GeometryPointerType = typename ConditionBaseType::GeometryType::Pointer;
 
-    typedef typename ConditionBaseType::NodesArrayType                             NodesArrayType;
+    /// Type definition for nodes array type
+    using NodesArrayType = typename ConditionBaseType::NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType                             PropertiesType;
+    /// Type definition for properties type
+    using PropertiesType = typename ConditionBaseType::PropertiesType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer             PropertiesPointerType;
+    /// Type definition for properties pointer type
+    using PropertiesPointerType = typename PropertiesType::Pointer;
 
-    typedef typename ConditionBaseType::EquationIdVectorType                 EquationIdVectorType;
+    /// Type definition for equation ID vector type
+    using EquationIdVectorType = typename ConditionBaseType::EquationIdVectorType;
 
-    typedef typename ConditionBaseType::DofsVectorType                             DofsVectorType;
+    /// Type definition for DOFs vector type
+    using DofsVectorType = typename ConditionBaseType::DofsVectorType;
 
     /// Point definition
-    typedef Point                                                                       PointType;
+    using PointType = Point;
 
-    /// Node type definition
-    typedef Node                                                                      NodeType;
-
-    /// Geoemtry type definition
-    typedef Geometry<NodeType>                                                       GeometryType;
+    /// Geometry type definition
+    using GeometryType = Geometry<Node>;
 
     // Type definition for integration methods
-    typedef GeometryType::IntegrationPointsArrayType                        IntegrationPointsType;
+    using IntegrationPointsType = typename GeometryType::IntegrationPointsArrayType;
 
     static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodesMaster);
 
