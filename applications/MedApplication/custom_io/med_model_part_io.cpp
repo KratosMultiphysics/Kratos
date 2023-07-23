@@ -234,6 +234,7 @@ public:
             med_bool hdf_ok;
             med_bool med_ok;
             const med_err err = MEDfileCompatibility(rFileName.c_str(), &hdf_ok, &med_ok);
+            CheckMEDErrorCode(err, "MEDfileCompatibility");
 
             KRATOS_ERROR_IF(err != 0) << "A problem occured while trying to check the compatibility of file " << rFileName << "!" << std::endl;
             KRATOS_ERROR_IF(hdf_ok != MED_TRUE) << "A problem with HDF occured while trying to open file " << rFileName << "!" << std::endl;
@@ -278,6 +279,7 @@ public:
                 &axis_type,
                 axis_name.data(),
                 axis_unit.data());
+            CheckMEDErrorCode(err, "MEDmeshInfo");
 
             mMeshName.erase(std::find(mMeshName.begin(), mMeshName.end(), '\0'), mMeshName.end());
             mDimension = space_dim;
@@ -398,6 +400,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             MED_NO_DT, MED_NO_IT,
             MED_CELL, it_geo,
             geotypename.data(), &geo_type);
+        CheckMEDErrorCode(err, "MEDmeshEntityInfo");
 
         // how many cells of type geotype ?
         const int num_geometries = MEDmeshnEntity(
@@ -419,6 +422,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             MED_CELL, geo_type,
             MED_NODAL, MED_FULL_INTERLACE,
             connectivity.data());
+        CheckMEDErrorCode(err, "MEDmeshElementConnectivityRd");
 
         // create geometries
         const std::string kratos_geo_name = GetKratosGeometryName(geo_type, dimension);
@@ -472,6 +476,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         MED_CARTESIAN,
         "",
         "");
+    CheckMEDErrorCode(err, "MEDmeshCr");
 
     const std::vector<double> nodal_coords = VariableUtils().GetCurrentPositionsVector<std::vector<double>>(rThisModelPart.Nodes(), dimension);
 
@@ -486,6 +491,7 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         MED_FULL_INTERLACE,
         rThisModelPart.NumberOfNodes(),
         nodal_coords.data());
+    CheckMEDErrorCode(err, "MEDmeshNodeCoordinateWr");
 
     if (rThisModelPart.NumberOfGeometries() == 0) {
         return;
@@ -529,15 +535,15 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
         const std::vector<med_int> med_conn = GetMedConnectivities(NumberOfPoints, Connectivities);
 
-        if (MEDmeshElementConnectivityWr (
+        auto mederr = MEDmeshElementConnectivityWr (
             mpFileHandler->GetFileHandle(),
             mpFileHandler->GetMeshName(),
             MED_NO_DT, MED_NO_IT , 0.0,
             MED_CELL, MedGeomType ,
             MED_NODAL, MED_FULL_INTERLACE,
-            Connectivities.size(), med_conn.data()) < 0) {
-                KRATOS_ERROR << "Writing failed!" << std::endl;
-        }
+            Connectivities.size(), med_conn.data());
+        CheckMEDErrorCode(mederr, "MEDmeshElementConnectivityWr");
+
     };
 
     std::unordered_map<GeometryData::KratosGeometryType, ConnectivitiesVector> conn_map;
