@@ -4,8 +4,8 @@
  *  maceli@cimne.upc.edu
  */
 
-// #if !defined (KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_H_INCLUDED)
-// #define KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_H_INCLUDED
+#if !defined (KRATOS_DEMFEM_VOLUME_COUPLING_APPLICATION_H_INCLUDED)
+#define KRATOS_DEMFEM_VOLUME_COUPLING_APPLICATION_H_INCLUDED
 
 // System includes
 #include <string>
@@ -15,6 +15,8 @@
 #include "includes/define.h"
 #include "includes/kratos_application.h"
 #include "includes/variables.h"
+#include "DEM_application_variables.h"
+#include "structural_mechanics_application_variables.h"
 
 /* CONDITIONS */
 #include "custom_elements/volume_coupling_element.h"
@@ -107,6 +109,6 @@ namespace Kratos {
 
 }  // namespace Kratos
 
-// #endif //KRATOS_DEM_STRUCTURES_COUPLING_APPLICATION_H_INCLUDED defined
+ #endif //KRATOS_DEMFEM_VOLUME_COUPLING_APPLICATION_H_INCLUDED defined
 
 

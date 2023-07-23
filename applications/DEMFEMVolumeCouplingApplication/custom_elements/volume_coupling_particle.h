@@ -65,5 +65,5 @@ virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::P
 };
 
 }  // namespace Kratos.
-
+#endif // KRATOS_VOLUME_COUPLING_PARTICLE_H_INCLUDED  defined
 
