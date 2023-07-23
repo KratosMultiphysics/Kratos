@@ -51,11 +51,6 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             Kratos.LOCAL_TANGENT_MATRIX: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5), KratosStats.Norms.Trace(), KratosStats.Norms.LPQ(1.3, 2.3)]
         }
 
-        cls.data_locations = [Kratos.Globals.DataLocation.NodeHistorical]
-        cls.norms_dict = {
-            Kratos.INITIAL_STRAIN: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5)]
-        }
-
     def __GetDataRetrievalInfo(self, data_location: Kratos.Globals.DataLocation) -> Any:
         if data_location == Kratos.Globals.DataLocation.NodeHistorical:
             return self.model_part.GetCommunicator().LocalMesh().Nodes, lambda x, y: x.GetSolutionStepValue(y)
@@ -299,7 +294,7 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             else:
                 for i in range(component_size):
                     v_list[i] = 0.5 * (global_v_id_pair_list[i][int((n-1) / 2)][0] + global_v_id_pair_list[i][int((n+1) / 2)][0])
-                    v_id_list[i] = global_v_id_pair_list[i][int((n-1) / 2)][1]
+                    v_id_list[i] = global_v_id_pair_list[i][int((n+1) / 2)][1]
 
             if component_size == 1:
                 return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list[0]
