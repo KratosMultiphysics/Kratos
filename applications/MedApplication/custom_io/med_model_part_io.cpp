@@ -82,35 +82,29 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
     case MED_TRIA3:
         return [](auto& Connectivities){
             CheckConnectivitiesSize(3, Connectivities);
-            auto t1 = Connectivities[1];
-            Connectivities[1] = Connectivities[2];
-            Connectivities[2] = t1;
-            // std::swap(Connectivities[1], Connectivities[2]);
+            std::swap(Connectivities[1], Connectivities[2]);
         };
 
     case MED_TRIA6:
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        KRATOS_ERROR << "MED_TRIA6 is not implemented!" << std::endl;
 
     case MED_QUAD4:
         return [](auto& Connectivities){
             CheckConnectivitiesSize(4, Connectivities);
-            T t1 = Connectivities[1];
-            Connectivities[1] = Connectivities[3];
-            Connectivities[3] = t1;
-            // std::swap(Connectivities[1], Connectivities[3]);
+            std::swap(Connectivities[1], Connectivities[3]);
         };
 
     case MED_QUAD8:
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        KRATOS_ERROR << "MED_QUAD8 is med_quad8 is not implemented!" << std::endl;
 
     case MED_QUAD9: // should be same as MED_QUAD8
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        KRATOS_ERROR << "MED_QUAD9 is not implemented!" << std::endl;
 
     case MED_PYRA5:
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        KRATOS_ERROR << "MED_PYRA5 is not implemented!" << std::endl;
 
     case MED_PYRA13:
-        KRATOS_ERROR << "Not implemented!" << std::endl;
+        KRATOS_ERROR << "MED_PYRA13 is not implemented!" << std::endl;
 
     default:
         return [](auto& Connectivities){
@@ -364,12 +358,10 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         num_nodes,
         dimension);
 
-    std::vector<NodePointerType> new_nodes(num_nodes);
-
     for (int i=0; i<num_nodes; ++i) {
         std::array<double, 3> coords{0,0,0};
         for (int j=0; j<dimension; ++j) {coords[j] = node_coords[i*dimension+j];}
-        new_nodes[i] = rThisModelPart.CreateNewNode(
+        rThisModelPart.CreateNewNode(
             i+1,
             coords[0],
             coords[1],
@@ -381,7 +373,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     med_bool coordinatechangement, geotransformation;
 
-    // reading cells
+    // reading geometries
     const int num_geometry_types = MEDmeshnEntity(
         mpFileHandler->GetFileHandle(),
         mpFileHandler->GetMeshName(),
@@ -485,12 +477,8 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
     const std::vector<double> nodal_coords = VariableUtils().GetCurrentPositionsVector<std::vector<double>>(rThisModelPart.Nodes(), dimension);
 
-    if (rThisModelPart.NumberOfNodes() == 0) {
-        // TODO warning? like in read
-        return;
-    }
+    KRATOS_WARNING_IF("MedModelPartIO", rThisModelPart.NumberOfNodes() == 0) << "ModelPart \"" << rThisModelPart.FullName() << "\" does not contain any entities!" << std::endl;
 
-    // add check and warning if ModelPart is empty
     err = MEDmeshNodeCoordinateWr(
         mpFileHandler->GetFileHandle(),
         mpFileHandler->GetMeshName(),
