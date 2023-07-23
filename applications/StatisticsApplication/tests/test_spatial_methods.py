@@ -221,5 +221,37 @@ class SpatialMethodTests(KratosUnittest.TestCase):
 
         self.__RunTest(KratosStats.SpatialMethods.Min, analytical_method)
 
+    def testMaxMethod(self):
+        data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
+        def analytical_method(container, variable, norm, value_retriever):
+            v_list = SpatialMethodTests.__ConvertValueToList(SpatialMethodTests.__GetInitializedValue(variable, norm, -1e+16))
+            v_id_list = [1e+5] * len(v_list)
+            for item in container:
+                current_v = SpatialMethodTests.__ConvertValueToList(norm.Evaluate(value_retriever(item, variable)))
+                for i, c_v in enumerate(current_v):
+                    if v_list[i] < c_v:
+                        v_list[i] = c_v
+                        v_id_list[i] = item.Id
+                    elif v_list[i] == c_v:
+                        v_id_list[i] = min(v_id_list[i], item.Id)
+
+            all_v_list = data_communicator.AllGathervDoubles(v_list)
+            all_v_id_list = data_communicator.AllGathervInts(v_id_list)
+
+            for global_v_list, global_v_id_list in zip(all_v_list, all_v_id_list):
+                for i, global_v in enumerate(global_v_list):
+                    if v_list[i] < global_v:
+                        v_list[i] = global_v
+                        v_id_list[i] = global_v_id_list[i]
+                    elif v_list[i] == c_v:
+                        v_id_list[i] = min(v_id_list[i], global_v_id_list[i])
+
+            if len(v_id_list) == 1:
+                return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list[0]
+            else:
+                return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list
+
+        self.__RunTest(KratosStats.SpatialMethods.Max, analytical_method)
+
 if __name__ == '__main__':
     KratosUnittest.main()

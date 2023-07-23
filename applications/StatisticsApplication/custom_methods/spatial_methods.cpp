@@ -227,9 +227,13 @@ public:
             auto& current_value = local_values[i];
             auto& current_index = local_indices[i];
             for (IndexType rank = 0; rank < global_values.size(); ++rank) {
-                if (current_value > global_values[rank][i]) {
-                    current_value = global_values[rank][i];
-                    current_index = global_indices[rank][i];
+                const auto other_value = global_values[rank][i];
+                const auto other_index = global_indices[rank][i];
+                if (current_value > other_value) {
+                    current_value = other_value;
+                    current_index = other_index;
+                } else if (current_value == other_value) {
+                    current_index = std::min(current_index, other_index);
                 }
             }
         }
@@ -306,9 +310,15 @@ public:
         }
 
         for (IndexType i = 0; i < OperationTraits::Size(mValue); ++i) {
-            if (OperationTraits::GetComponent(mValue, i) < OperationTraits::GetComponent(rOther.mValue, i)) {
-                OperationTraits::GetComponent(mValue, i) = OperationTraits::GetComponent(rOther.mValue, i);
-                IndicesTraits::GetComponent(mIndices, i) = IndicesTraits::GetComponent(rOther.mIndices, i);
+            const auto other_value = OperationTraits::GetComponent(rOther.mValue, i);
+            const auto other_index = IndicesTraits::GetComponent(rOther.mIndices, i);
+            auto& current_value = OperationTraits::GetComponent(mValue, i);
+            auto& current_index = IndicesTraits::GetComponent(mIndices, i);
+            if (current_value < other_value) {
+                current_value = other_value;
+                current_index = other_index;
+            } else if (current_value == other_value) {
+                current_index = std::min(current_index, other_index);
             }
         }
     }
@@ -332,9 +342,13 @@ public:
             auto& current_value = local_values[i];
             auto& current_index = local_indices[i];
             for (IndexType rank = 0; rank < global_values.size(); ++rank) {
-                if (current_value < global_values[rank][i]) {
-                    current_value = global_values[rank][i];
-                    current_index = global_indices[rank][i];
+                const auto other_value = global_values[rank][i];
+                const auto other_index = global_indices[rank][i];
+                if (current_value < other_value) {
+                    current_value = other_value;
+                    current_index = other_index;
+                } else if (current_value == other_value) {
+                    current_index = std::min(current_index, other_index);
                 }
             }
         }
