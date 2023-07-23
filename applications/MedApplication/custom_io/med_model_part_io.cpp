@@ -237,7 +237,7 @@ public:
 
             KRATOS_ERROR_IF(err != 0) << "A problem occured while trying to check the compatibility of file " << rFileName << "!" << std::endl;
             KRATOS_ERROR_IF(hdf_ok != MED_TRUE) << "A problem with HDF occured while trying to open file " << rFileName << "!" << std::endl;
-            KRATOS_ERROR_IF(med_ok != MED_TRUE) << "A problem with MED occured while trying to open file " << rFileName << "!" << std::endl;
+            KRATOS_ERROR_IF(med_ok != MED_TRUE) << "A problem with MED occured while trying to open file " << rFileName << "! This is most likely because the version of MED used to write the file is newer than the version used to read it" << std::endl;
         } else {
             open_mode = MED_ACC_CREAT;
             mMeshName = "Kratos_Mesh"; // Maybe could use the name of the ModelPart (this is what is displayed in Salome)
@@ -391,7 +391,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         std::string geotypename;
         geotypename.resize(MED_NAME_SIZE +1);
 
-        /* get geometry type */
+        // get geometry type
         med_err err = MEDmeshEntityInfo(
             mpFileHandler->GetFileHandle(),
             mpFileHandler->GetMeshName(),
@@ -399,7 +399,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             MED_CELL, it_geo,
             geotypename.data(), &geo_type);
 
-        /* how many cells of type geotype ? */
+        // how many cells of type geotype ?
         const int num_geometries = MEDmeshnEntity(
             mpFileHandler->GetFileHandle(),
             mpFileHandler->GetMeshName(),
@@ -408,9 +408,9 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             MED_CONNECTIVITY, MED_NODAL,
             &coordinatechangement, &geotransformation);
 
-        /* read cells connectivity in the mesh */
+        // read cells connectivity in the mesh
         const int num_nodes_geo_type = geo_type%100;
-        std::vector<med_int> connectivity(num_geometries * num_nodes_geo_type); // TODO use typedef
+        std::vector<med_int> connectivity(num_geometries * num_nodes_geo_type);
 
         err = MEDmeshElementConnectivityRd(
             mpFileHandler->GetFileHandle(),
@@ -455,12 +455,10 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
     KRATOS_ERROR_IF(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in write mode to write a ModelPart!" << std::endl;
 
-    MEDfileCommentWr(mpFileHandler->GetFileHandle(), "A 2D unstructured mesh : 15 nodes, 12 cells");
+    // TODO use this?
+    // MEDfileCommentWr(mpFileHandler->GetFileHandle(), "A 2D unstructured mesh : 15 nodes, 12 cells");
 
     constexpr med_int dimension = 3; // in Kratos, everything is 3D
-
-    const char axisname[MED_SNAME_SIZE] = "x y";
-    const char unitname[MED_SNAME_SIZE] = "cm cm";
 
     med_err err = MEDmeshCr(
         mpFileHandler->GetFileHandle(),
@@ -472,8 +470,8 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         "",
         MED_SORT_DTIT,
         MED_CARTESIAN,
-        axisname,
-        unitname);
+        "",
+        "");
 
     const std::vector<double> nodal_coords = VariableUtils().GetCurrentPositionsVector<std::vector<double>>(rThisModelPart.Nodes(), dimension);
 
@@ -502,7 +500,6 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
     using ConnectivitiesType = std::vector<med_int>;
     using ConnectivitiesVector = std::vector<ConnectivitiesType>;
-    using FamilyNumbersVector = std::vector<med_int>;
 
     ConnectivitiesVector connectivities;
     connectivities.reserve(rThisModelPart.NumberOfGeometries()/3); // assuming that three different types of geometries exist
@@ -521,13 +518,9 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 
                 std::vector<med_int> med_conn(Connectivities.size() * NumberOfPoints);
 
-                // flatten and reorder the connectivities
+                // reorder and flatten the connectivities
                 IndexPartition(Connectivities.size()).for_each([&](const std::size_t i) {
                     reorder_fct(Connectivities[i]);
-                    // for (std::size_t p=0; p<NumberOfPoints; ++p) {
-                    //     med_conn[i*NumberOfPoints+p] = Connectivities[i][p];
-                    // }
-
                     std::copy(Connectivities[i].begin(), Connectivities[i].end(), med_conn.begin()+(i*NumberOfPoints));
                 });
 

@@ -31,7 +31,7 @@ KratosMedApplication::KratosMedApplication():
 
     KRATOS_ERROR_IF(v_med_major   != MED_MAJOR_NUM ||
                     v_med_minor   != MED_NUM_MINEUR ||
-                    v_med_release != MED_NUM_RELEASE) << "The MED library that was used during compilation (v" << v_med_major << "." << v_med_minor << "." << v_med_release << ") is different from the one loaded at runtime (v" << MED_MAJOR_NUM << "." << MED_NUM_MINEUR << "." << MED_NUM_RELEASE << ")!\nThis will cause problems with reading/writing MED files, please check your paths for loading the library (e.g. \"PATH\" or \"LD_LIBRARY_PATH\")" << std::endl;
+                    v_med_release != MED_NUM_RELEASE) << "The MED library that was used during compilation (v" << v_med_major << "." << v_med_minor << "." << v_med_release << ") is different from the one loaded at runtime (v" << MED_MAJOR_NUM << "." << MED_NUM_MINEUR << "." << MED_NUM_RELEASE << ")!\nThis causes problems with reading/writing MED files, please check your paths for loading the library (e.g. \"PATH\" or \"LD_LIBRARY_PATH\")" << std::endl;
 }
 
 void KratosMedApplication::Register()
