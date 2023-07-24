@@ -37,6 +37,14 @@ void Max(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_KRATOS_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(...)                   \
+__VA_ARGS__ Sum(const __VA_ARGS__& rLocalValue, const int Root) const override;                      \
+__VA_ARGS__ Min(const __VA_ARGS__& rLocalValue, const int Root) const override;                      \
+__VA_ARGS__ Max(const __VA_ARGS__& rLocalValue, const int Root) const override;                      \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_TYPE(type)                      \
 type SumAll(const type rLocalValue) const override;                                                  \
@@ -133,6 +141,12 @@ KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)    \
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(...)   \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)    \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(type)   \
 KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)  \
@@ -197,13 +211,12 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(double)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(char)
 
-    // Reduce operations
-
-    array_1d<double,3> Sum(const array_1d<double,3>& rLocalValue, const int Root) const override;
-
-    array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const override;
-
-    array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const override;
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 3>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 4>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 6>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 9>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Vector)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Matrix)
 
     bool AndReduce(
         const bool Value,

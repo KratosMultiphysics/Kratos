@@ -51,6 +51,24 @@ void MPIDataCommunicator::Max(                                                  
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(...)                           \
+__VA_ARGS__ MPIDataCommunicator::Sum(const __VA_ARGS__& rLocalValue, const int Root) const {                \
+    return ReduceDetail(rLocalValue, MPI_SUM, Root);                                                        \
+}                                                                                                           \
+__VA_ARGS__ MPIDataCommunicator::Min(const __VA_ARGS__& rLocalValue, const int Root) const {                \
+    __VA_ARGS__ global_value(rLocalValue);                                                                  \
+    ReduceDetail(rLocalValue, global_value, MPI_MIN, Root);                                                 \
+    return global_value;                                                                                    \
+}                                                                                                           \
+__VA_ARGS__ MPIDataCommunicator::Max(const __VA_ARGS__& rLocalValue, const int Root) const {                \
+    __VA_ARGS__ global_value(rLocalValue);                                                                  \
+    ReduceDetail(rLocalValue, global_value, MPI_MAX, Root);                                                 \
+    return global_value;                                                                                    \
+}                                                                                                           \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(type)               \
 type MPIDataCommunicator::SumAll(const type rLocalValue) const {                             \
@@ -221,6 +239,12 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(type)    \
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(...)   \
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)   \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(type)   \
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(type)  \
@@ -275,26 +299,14 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(long unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(double)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(char)
 
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 3>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 4>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 6>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 9>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Vector)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Matrix)
+
 // Reduce operations
-
-array_1d<double,3> MPIDataCommunicator::Sum(const array_1d<double,3>& rLocalValue, const int Root) const
-{
-    return ReduceDetail(rLocalValue, MPI_SUM, Root);
-}
-
-array_1d<double,3> MPIDataCommunicator::Min(const array_1d<double,3>& rLocalValue, const int Root) const
-{
-    array_1d<double,3> global_value(rLocalValue);
-    ReduceDetail(rLocalValue, global_value, MPI_MIN, Root);
-    return global_value;
-}
-
-array_1d<double,3> MPIDataCommunicator::Max(const array_1d<double,3>& rLocalValue, const int Root) const
-{
-    array_1d<double,3> global_value(rLocalValue);
-    ReduceDetail(rLocalValue,global_value,MPI_MAX,Root);
-    return global_value;
-}
 
 bool MPIDataCommunicator::AndReduce(const bool Value, const int Root) const
 {
