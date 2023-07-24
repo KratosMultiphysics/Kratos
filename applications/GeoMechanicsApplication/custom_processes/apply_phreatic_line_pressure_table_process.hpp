@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_APPLY_PHREATIC_LINE_PRESSURE_TABLE_PROCESS )
-#define  KRATOS_GEO_APPLY_PHREATIC_LINE_PRESSURE_TABLE_PROCESS
+#pragma once
 
 #include "includes/table.h"
 
@@ -31,11 +30,8 @@ public:
     /// Defining a table with double argument and result type as table type.
     typedef Table<double,double> TableType;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Constructor
     ApplyPhreaticLinePressureTableProcess(ModelPart& model_part,
-                                         Parameters rParameters
+                                          Parameters rParameters
                                          ) : ApplyConstantPhreaticLinePressureProcess(model_part, rParameters)
     {
         KRATOS_TRY
@@ -54,66 +50,48 @@ public:
         KRATOS_CATCH("")
     }
 
-    ///------------------------------------------------------------------------------------
-
-    /// Destructor
-    ~ApplyPhreaticLinePressureTableProcess() override {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Execute method is used to execute the ApplyPhreaticLinePressureTableProcess algorithms.
-    void Execute() override
-    {
-    }
+    ApplyPhreaticLinePressureTableProcess(const ApplyPhreaticLinePressureTableProcess&) = delete;
+    ApplyPhreaticLinePressureTableProcess& operator=(const ApplyPhreaticLinePressureTableProcess&) = delete;
+    ~ApplyPhreaticLinePressureTableProcess() override = default;
 
     /// this function will be executed at every time step BEFORE performing the solve phase
     void ExecuteInitializeSolutionStep() override
     {
         KRATOS_TRY
 
-        if (mrModelPart.NumberOfNodes() > 0) {
-            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-            const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
-            array_1d<double, 2> deltaH;
-            for (unsigned int i=0; i < mpTable.size(); ++i) {
-                if (!mpTable[i]) {
-                deltaH[i] = 0.0;
-                } else {
+        const double Time = mrModelPart.GetProcessInfo()[TIME] / mTimeUnitConverter;
+        array_1d<double, 2> deltaH;
+        for (unsigned int i=0; i < mpTable.size(); ++i) {
+            if (mpTable[i]) {
                 deltaH[i] = mpTable[i]->GetValue(Time);
-                }
-            }
-
-            array_1d<double, 2> y;
-            y[0] = deltaH[0] + mFirstReferenceCoordinate[mGravityDirection];
-            y[1] = deltaH[1] + mSecondReferenceCoordinate[mGravityDirection];
-
-            mSlope = (y[1] - y[0])
-                    /(mSecondReferenceCoordinate[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]);
-
-            if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node& rNode) {
-                    const double pressure = CalculatePressure(rNode, y);
-
-                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
-                        rNode.FastGetSolutionStepValue(var) = pressure;
-                        if (mIsFixed) rNode.Fix(var);
-                    } else {
-                        if (mIsFixedProvided) rNode.Free(var);
-                    }
-                });
             } else {
-                block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node& rNode) {
-                    const double pressure = CalculatePressure(rNode, y);
-
-                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
-                        rNode.FastGetSolutionStepValue(var) = pressure;
-                    } else {
-                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                    }
-                });
+                deltaH[i] = 0.0;
             }
         }
+
+        array_1d<double, 2> y;
+        y[0] = mFirstReferenceCoordinate[mGravityDirection];
+        y[1] = mSecondReferenceCoordinate[mGravityDirection];
+        y += deltaH;
+
+        mSlope = (y[1] - y[0])
+               / (mSecondReferenceCoordinate[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]);
+
+        block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node& rNode) {
+            const double pressure = PORE_PRESSURE_SIGN_FACTOR * CalculatePressure(rNode, y);
+            if (mIsSeepage) {
+                if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) { // Before 0. was used i.s.o. the tension cut off value -> no effect in any test.
+                    rNode.FastGetSolutionStepValue(var) = pressure;
+                    if (mIsFixed) rNode.Fix(var);
+                } else {
+                    if (mIsFixedProvided) rNode.Free(var);
+                }
+            } else {
+                rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
+            }
+        });
 
         KRATOS_CATCH("")
     }
@@ -124,71 +102,23 @@ public:
         return "ApplyPhreaticLinePressureTableProcess";
     }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ApplyPhreaticLinePressureTableProcess";
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
-
-    /// Member Variables
-
-    array_1d<TableType::Pointer,2> mpTable;
-    double mTimeUnitConverter;
 
     double CalculatePressure(const Node &rNode, const array_1d<double, 2> &y) const
     {
-        double height = 0.0;
-        if (rNode.Coordinates()[mHorizontalDirection] >= mMinHorizontalCoordinate && rNode.Coordinates()[mHorizontalDirection] <= mMaxHorizontalCoordinate) {
-            height = mSlope * (rNode.Coordinates()[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
-
-        } else if (rNode.Coordinates()[mHorizontalDirection] < mMinHorizontalCoordinate) {
-            height = mSlope * (mMinHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
-
-        } else if (rNode.Coordinates()[mHorizontalDirection] > mMaxHorizontalCoordinate) {
-            height = mSlope * (mMaxHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
-        }
-
+        double horCoord = rNode.Coordinates()[mHorizontalDirection];
+        horCoord = std::max(horCoord, mMinHorizontalCoordinate);
+        horCoord = std::min(horCoord, mMaxHorizontalCoordinate);
+        const double height = mSlope * (horCoord - mFirstReferenceCoordinate[mHorizontalDirection]) + y[0];
         const double distance = height - rNode.Coordinates()[mGravityDirection];
-        const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * distance;
-        return pressure;
+        return - mSpecificWeight * distance;
     }
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
+    /// Member Variables
+    array_1d<TableType::Pointer,2> mpTable;
+    double mTimeUnitConverter;
 
-    /// Assignment operator.
-    ApplyPhreaticLinePressureTableProcess& operator=(ApplyPhreaticLinePressureTableProcess const& rOther);
+};
 
-    /// Copy constructor.
-    //ApplyPhreaticLinePressureTableProcess(ApplyPhreaticLinePressureTableProcess const& rOther);
-}; // Class ApplyPhreaticLinePressureTableProcess
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyPhreaticLinePressureTableProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyPhreaticLinePressureTableProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
 }
-
-
-} // namespace Kratos.
-
-#endif /* KRATOS_GEO_APPLY_PHREATIC_LINE_PRESSURE_TABLE_PROCESS defined */
