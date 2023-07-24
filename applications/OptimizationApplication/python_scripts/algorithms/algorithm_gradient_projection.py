@@ -222,41 +222,6 @@ class AlgorithmGradientProjection(Algorithm):
                 self._optimization_problem.AdvanceStep()
 
         return self.converged
-
-
-    # def Solve(self):
-    #     algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
-    #     while not self.converged:
-    #         print("")
-    #         with TimeLogger("Optimization", f" Start Iteration {self._optimization_problem.GetStep()}", f"End Iteration {self._optimization_problem.GetStep()}"):
-
-    #             with TimeLogger("Calculate objective value", "Start", "End"):
-    #                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field) 
-    #                 algorithm_data.GetBufferedData()["std_obj_value"] = self.__obj_val
-    #                 print(self.__objective.GetInfo())
-
-    #             with TimeLogger("Calculate gradient", "Start", "End"):
-    #                 obj_grad = self.__objective.CalculateStandardizedGradient()
-                
-    #             with TimeLogger("Calculate design update", "Start", "End"):
-    #                 search_direction = self.ComputeSearchDirection(obj_grad)
-    #                 algorithm_data.GetBufferedData()["search_direction"] = search_direction
-
-    #                 alpha = self.__line_search_method.ComputeStep()
-
-    #                 update = search_direction * alpha
-    #                 self.__control_field += update
-
-    #             algorithm_data.GetBufferedData()["parameter_update"] = update
-    #             algorithm_data.GetBufferedData()["control_field"] = self.__control_field
-
-    #             self.converged = self.__convergence_criteria.IsConverged()
-
-    #             self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
-
-    #             self._optimization_problem.AdvanceStep()
-
-    #         self.Finalize()
     
     def GetOptimizedObjectiveValue(self) -> float:
         if self.converged:
