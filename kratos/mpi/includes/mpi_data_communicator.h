@@ -59,6 +59,14 @@ void MaxAll(const std::vector<type>& rLocalValues, std::vector<type>& rGlobalVal
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_KRATOS_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_KRATOS_TYPE(...)                \
+__VA_ARGS__ SumAll(const __VA_ARGS__& rLocalValue) const override;                                   \
+__VA_ARGS__ MinAll(const __VA_ARGS__& rLocalValue) const override;                                   \
+__VA_ARGS__ MaxAll(const __VA_ARGS__& rLocalValue) const override;                                   \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE(type)                         \
 type ScanSum(const type rLocalValue) const override;                                                  \
@@ -143,7 +151,8 @@ KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)    \
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(...)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)    \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)   \
+KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)\
 
 #endif
 
@@ -237,12 +246,6 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
         const int Root) const override;
 
     // Allreduce operations
-
-    array_1d<double,3> SumAll(const array_1d<double,3>& rLocalValue) const override;
-
-    array_1d<double,3> MinAll(const array_1d<double,3>& rLocalValue) const override;
-
-    array_1d<double,3> MaxAll(const array_1d<double,3>& rLocalValue) const override;
 
     bool AndReduceAll(const bool Value) const override;
 

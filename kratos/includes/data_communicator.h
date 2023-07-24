@@ -107,6 +107,14 @@ virtual void MaxAll(const std::vector<type>& rLocalValues, std::vector<type>& rG
 
 #endif
 
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_KRATOS_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_KRATOS_TYPE(...)                  \
+virtual __VA_ARGS__ SumAll(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }                \
+virtual __VA_ARGS__ MinAll(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }                \
+virtual __VA_ARGS__ MaxAll(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }                \
+
+#endif
+
 // Compute the partial sum of the given quantity from rank 0 to the current rank (included).
 /* This is a wrapper to MPI_Scan.
  * Variants for each method are provided, either returning the reduced value or filling a provided vector buffer.
@@ -283,6 +291,7 @@ KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)    \
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(...)   \
 KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)   \
+KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)\
 
 #endif
 
@@ -423,36 +432,6 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     }
 
     // Allreduce operations
-
-    /// Sum rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
-    /** This is a wrapper to MPI_Alleduce.
-     *  @param[in] rLocalValue Local contribution to the sum.
-     *  @return The summed quantity.
-     */
-    virtual array_1d<double,3> SumAll(const array_1d<double,3>& rLocalValue) const
-    {
-        return rLocalValue;
-    }
-
-    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValue Local value to consider in computing the minimum.
-     *  @return The minimum value.
-     */
-    virtual array_1d<double,3> MinAll(const array_1d<double,3>& rLocalValue) const
-    {
-        return rLocalValue;
-    }
-
-    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
-    /** This is a wrapper to MPI_Allreduce.
-     *  @param[in] rLocalValue Local value to consider in computing the maximum.
-     *  @return The maximum value.
-     */
-    virtual array_1d<double,3> MaxAll(const array_1d<double,3>& rLocalValue) const
-    {
-        return rLocalValue;
-    }
 
     virtual bool AndReduceAll(const bool Value) const
     {
