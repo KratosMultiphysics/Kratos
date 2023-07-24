@@ -8,7 +8,7 @@ if KratosMultiphysics.IsDistributedRun():
     import KratosMultiphysics.mpi as KratosMPI
     try:
         import KratosMultiphysics.MetisApplication
-    except:
+    except ImportError:
         skip_test = True
 
 def SetParameters(name, use_memory="false"):
