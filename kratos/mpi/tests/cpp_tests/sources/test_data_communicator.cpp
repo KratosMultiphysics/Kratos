@@ -103,6 +103,52 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumArray1d, KratosMPICoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumVector, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
+    constexpr int root = 0;
+
+    const int world_rank = r_world.Rank();
+
+    Vector local(4);
+    local[0] = -1.0;
+    local[1] =  0.0;
+    local[2] =  1.0;
+    local[3] =  2.0;
+    auto result = serial_communicator.Sum(local, root);
+    if (world_rank == root)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            KRATOS_CHECK_EQUAL(result[i], local[i]);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumMatrix, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
+    constexpr int root = 0;
+
+    const int world_rank = r_world.Rank();
+
+    Matrix local(2, 2);
+    local.data()[0] = -1.0;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0;
+    local.data()[3] =  2.0;
+    auto result = serial_communicator.Sum(local, root);
+    if (world_rank == root)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            KRATOS_CHECK_EQUAL(result.data()[i], local.data()[i]);
+        }
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumIntVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
@@ -241,6 +287,52 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinArray1d, KratosMPICoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinVector, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
+    constexpr int root = 0;
+
+    const int world_rank = r_world.Rank();
+
+    Vector local(4);
+    local[0] = -1.0;
+    local[1] =  0.0;
+    local[2] =  1.0;
+    local[3] =  2.0;
+    Vector result = serial_communicator.Min(local, root);
+    if (world_rank == root)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            KRATOS_CHECK_EQUAL(result[i], local[i]);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinMatrix, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
+    constexpr int root = 0;
+
+    const int world_rank = r_world.Rank();
+
+    Matrix local(2, 2);
+    local.data()[0] = -1.0;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0;
+    local.data()[3] =  2.0;
+    Matrix result = serial_communicator.Min(local, root);
+    if (world_rank == root)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            KRATOS_CHECK_EQUAL(result.data()[i], local.data()[i]);
+        }
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinIntVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
@@ -375,6 +467,52 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxArray1d, KratosMPICoreFastSuite)
         for (int i = 0; i < 3; i++)
         {
             KRATOS_CHECK_EQUAL(result[i], local[i]);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxVector, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
+    constexpr int root = 0;
+
+    const int world_rank = r_world.Rank();
+
+    Vector local(4);
+    local[0] = -1.0;
+    local[1] =  0.0;
+    local[2] =  1.0;
+    local[3] =  2.0;
+    Vector result = serial_communicator.Max(local, root);
+    if (world_rank == root)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            KRATOS_CHECK_EQUAL(result[i], local[i]);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxMatrix, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+    const DataCommunicator& r_world = Testing::GetDefaultDataCommunicator();
+    constexpr int root = 0;
+
+    const int world_rank = r_world.Rank();
+
+    Matrix local(2, 2);
+    local.data()[0] = -1.0;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0;
+    local.data()[3] =  2.0;
+    Matrix result = serial_communicator.Max(local, root);
+    if (world_rank == root)
+    {
+        for (int i = 0; i < 4; i++)
+        {
+            KRATOS_CHECK_EQUAL(result.data()[i], local.data()[i]);
         }
     }
 }
