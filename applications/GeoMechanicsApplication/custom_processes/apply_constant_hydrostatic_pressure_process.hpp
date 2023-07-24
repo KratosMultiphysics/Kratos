@@ -81,15 +81,16 @@ public:
         const Variable<double> &var = KratosComponents<Variable<double>>::Get(mVariableName);
         block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
             const double pressure = - PORE_PRESSURE_SIGN_FACTOR * mSpecificWeight * (mReferenceCoordinate - rNode.Coordinates()[mGravityDirection]);
-            rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
 
             if (mIsSeepage) {
                 if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) {  // Before 0. was used i.s.o. the tension cut off value -> no effect in any test.
+                    rNode.FastGetSolutionStepValue(var) = pressure;
                     if (mIsFixed) rNode.Fix(var);
                 } else {
                     if (mIsFixedProvided) rNode.Free(var);
                 }
             } else {
+                rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
                 if (mIsFixed) rNode.Fix(var);
                 else if (mIsFixedProvided) rNode.Free(var);
             }

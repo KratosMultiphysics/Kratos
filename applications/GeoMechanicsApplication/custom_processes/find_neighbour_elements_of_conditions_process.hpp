@@ -44,13 +44,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FindNeighbourElementsOfConditionsProcess);
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of the node type
-    typedef Node NodeType;
+    using NodeType = Node;
 
     // Definition of the geometry
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
 
     ///@}
@@ -61,7 +61,7 @@ public:
     /**
      * @param rModelPart The model part to check.
      */
-    FindNeighbourElementsOfConditionsProcess( ModelPart& rModelPart ): Process(),
+    explicit FindNeighbourElementsOfConditionsProcess( ModelPart& rModelPart ): Process(),
             mrModelPart(rModelPart)
     {
     }
