@@ -232,8 +232,8 @@ class AlgorithmSystemIdentification(Algorithm):
             roots = np.polynomial.polynomial.polyroots(polynomial_coefficients[1:])
             best_step_length = float(np.min(np.abs(roots)))
 
-        if best_step_length > 2 * n__steps * tests_step_size:
-            best_step_length = 2 * n__steps * tests_step_size
+        if best_step_length > 4 * n__steps * tests_step_size:
+            best_step_length = 4 * n__steps * tests_step_size
 
         best_step_length *= self.line_search_damping
 
