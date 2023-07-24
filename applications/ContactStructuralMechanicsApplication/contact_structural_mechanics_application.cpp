@@ -169,6 +169,7 @@ void KratosContactStructuralMechanicsApplication::Register()
 
     /* For mesh tying mortar condition */
     KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                        // The variable name for the mesh tying
+    KRATOS_REGISTER_VARIABLE( PARENT_ELEMENT )                                        // The parent element considered in the mesh tying with static condensation
 
     /* For mesh tying mortar condition */
     KRATOS_REGISTER_VARIABLE( MAX_GAP_THRESHOLD )                                     // The gap considered as threshold to rescale penalty

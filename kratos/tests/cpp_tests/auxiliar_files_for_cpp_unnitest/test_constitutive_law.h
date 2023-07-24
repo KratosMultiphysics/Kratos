@@ -4,14 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
 //
 //
 
-#if !defined (KRATOS_TEST_CONSTITUTIVE_LAW_H_INCLUDED)
-#define  KRATOS_TEST_CONSTITUTIVE_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -58,13 +58,13 @@ public:
     ///@{
 
     /// The process info type definition
-    typedef ProcessInfo      ProcessInfoType;
+    using ProcessInfoType = ProcessInfo;
 
     /// The base class ConstitutiveLaw type definition
-    typedef ConstitutiveLaw         BaseType;
+    using BaseType = ConstitutiveLaw;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 3;
@@ -405,4 +405,3 @@ private:
 
 }; // Class TestConstitutiveLaw
 }  // namespace Kratos.
-#endif // KRATOS_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED  defined
