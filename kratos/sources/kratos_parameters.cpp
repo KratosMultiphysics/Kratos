@@ -592,7 +592,7 @@ bool Parameters::IsStringArray() const
                 return false;
             }
         }
-        return true; // All entries are numbers or Vector is empty
+        return true; // All entries are strings or Vector is empty
     }
 }
 

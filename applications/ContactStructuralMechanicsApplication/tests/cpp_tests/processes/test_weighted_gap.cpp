@@ -331,7 +331,7 @@ void SimplestCreateNewProblem3D(
 /**
 * This method can be used to create a 2D plane condition set
 */
-void SimpleCreateNewProblem3D(
+void SimpleCreateNewProblem3DGapGap(
     ModelPart& rModelPart,
     const double MoveMesh = 0.0
     )
@@ -965,7 +965,7 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap3b, KratosContactStructuralMechanicsFastSui
 
     // We create our problem
     const double delta_x = 1.0e-1;
-    SimpleCreateNewProblem3D(r_model_part, delta_x);
+    SimpleCreateNewProblem3DGapGap(r_model_part, delta_x);
 
     // We compute the explicit contribution
     const array_1d<double, 3> zero_vector = ZeroVector(3);;
@@ -1080,7 +1080,7 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap4b, KratosContactStructuralMechanicsFastSui
 
     // We create our problem
     const double delta_x = 1.0e-1;
-    SimpleCreateNewProblem3D(r_model_part, delta_x);
+    SimpleCreateNewProblem3DGapGap(r_model_part, delta_x);
 
     // We compute the explicit contribution
     const array_1d<double, 3> zero_vector = ZeroVector(3);;

@@ -10,12 +10,12 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_APPLY_CONSTANT_BOUNDARY_PHREATIC_SURFACE_PRESSURE_PROCESS )
-#define  KRATOS_GEO_APPLY_CONSTANT_BOUNDARY_PHREATIC_SURFACE_PRESSURE_PROCESS
+#pragma once
 
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
+#include "utilities/math_utils.h"
 
 #include "geo_mechanics_application_variables.h"
 
@@ -29,9 +29,6 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantBoundaryPhreaticSurfacePressureProcess);
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Constructor
     ApplyConstantBoundaryPhreaticSurfacePressureProcess(ModelPart& model_part,
                                                     Parameters rParameters
                                                     ) : Process(Flags()) , mrModelPart(model_part)
@@ -61,15 +58,15 @@ public:
         rParameters["model_part_name"];
         mIsFixedProvided = rParameters.Has("is_fixed");
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mVariableName = rParameters["variable_name"].GetString();
-        mIsFixed = rParameters["is_fixed"].GetBool();
-        mGravityDirection = rParameters["gravity_direction"].GetInt();
-        mFirstReferenceCoordinate = rParameters["first_reference_coordinate"].GetVector();
-        mSecondReferenceCoordinate= rParameters["second_reference_coordinate"].GetVector();
-        mThirdReferenceCoordinate= rParameters["third_reference_coordinate"].GetVector();
+        mVariableName              = rParameters["variable_name"].GetString();
+        mIsFixed                   = rParameters["is_fixed"].GetBool();
+        mGravityDirection          = rParameters["gravity_direction"].GetInt();
+        mFirstReferenceCoordinate  = rParameters["first_reference_coordinate"].GetVector();
+        mSecondReferenceCoordinate = rParameters["second_reference_coordinate"].GetVector();
+        mThirdReferenceCoordinate  = rParameters["third_reference_coordinate"].GetVector();
 
         calculateEquationParameters();
 
@@ -78,17 +75,9 @@ public:
         KRATOS_CATCH("")
     }
 
-    ///------------------------------------------------------------------------------------
-
-    /// Destructor
-    ~ApplyConstantBoundaryPhreaticSurfacePressureProcess() override {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Execute method is used to execute the ApplyConstantBoundaryPhreaticSurfacePressureProcess algorithms.
-    void Execute() override
-    {
-    }
+    ApplyConstantBoundaryPhreaticSurfacePressureProcess(const ApplyConstantBoundaryPhreaticSurfacePressureProcess&) = delete;
+    ApplyConstantBoundaryPhreaticSurfacePressureProcess& operator=(const ApplyConstantBoundaryPhreaticSurfacePressureProcess&) = delete;
+    ~ApplyConstantBoundaryPhreaticSurfacePressureProcess() override = default;
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
@@ -96,32 +85,21 @@ public:
     {
         KRATOS_TRY
 
-        if (mrModelPart.NumberOfNodes() > 0) {
-            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-            Vector3 direction=ZeroVector(3);
-            direction[mGravityDirection] = 1.0;
+        Vector3 direction = ZeroVector(3);
+        direction[mGravityDirection] = 1.0;
 
-            block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node& rNode){
-                if (mIsFixed) rNode.Fix(var);
-                else if (mIsFixedProvided) rNode.Free(var);
+        block_for_each(mrModelPart.Nodes(), [&var, &direction, this](Node& rNode){
+            if (mIsFixed) rNode.Fix(var);
+            else if (mIsFixedProvided) rNode.Free(var);
 
-                double distance = 0.0;
-                double d = 0.0;
-                for (unsigned int j=0; j < rNode.Coordinates().size(); ++j) {
-                    distance += mNormalVector[j]*rNode.Coordinates()[j];
-                    d += mNormalVector[j]*direction[j];
-                }
-                distance = -(distance - mEqRHS) / d;
-                const double pressure = mSpecificWeight * distance;
-
-                if (pressure > 0.0) {
-                    rNode.FastGetSolutionStepValue(var) = pressure;
-                } else {
-                    rNode.FastGetSolutionStepValue(var) = 0.0;
-                }
-            });
-        }
+            double distance = inner_prod(mNormalVector, rNode.Coordinates());
+            const double d  = inner_prod(mNormalVector, direction);
+            distance = -(distance - mEqRHS) / d;
+            const double pressure = mSpecificWeight * distance;
+            rNode.FastGetSolutionStepValue(var) = std::max(pressure,0.0);
+        });
 
         KRATOS_CATCH("")
     }
@@ -132,23 +110,8 @@ public:
         return "ApplyConstantBoundaryPhreaticSurfacePressureProcess";
     }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ApplyConstantBoundaryPhreaticSurfacePressureProcess";
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
-
     /// Member Variables
-
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
@@ -161,61 +124,19 @@ protected:
     Vector3 mNormalVector;
     double mEqRHS;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-
     void calculateEquationParameters()
     {
-        Vector3 v1;
-        Vector3 v2;
-        v1 = mSecondReferenceCoordinate - mFirstReferenceCoordinate;
-        v2 = mThirdReferenceCoordinate - mFirstReferenceCoordinate;
-
-        mNormalVector[0] = v1[1] * v2[2] - v1[2] * v2[1];
-        mNormalVector[1] = v1[2] * v2[0] - v1[0] * v2[2];
-        mNormalVector[2] = v1[0] * v2[1] - v1[1] * v2[0];
-
-        double sum=0;
-        for (unsigned int i=0; i < mNormalVector.size(); ++i)
-        {
-            sum += mNormalVector[i]*mNormalVector[i];
-        }
-        double norm = std::sqrt(sum);
-        if (!(norm > 0.0))
+        const Vector3 v1 = mSecondReferenceCoordinate - mFirstReferenceCoordinate;
+        const Vector3 v2 = mThirdReferenceCoordinate  - mFirstReferenceCoordinate;
+        mNormalVector = MathUtils<>::CrossProduct(v1, v2);
+        if (norm_2(mNormalVector) == 0.0)
             KRATOS_ERROR << "Normal vector to phreatic surface has zero size!"
                          << std::endl;
 
-        mEqRHS = 0.0;
-        for (unsigned int i=0; i < mFirstReferenceCoordinate.size(); ++i)
-        {
-            mEqRHS += mNormalVector[i]*mFirstReferenceCoordinate[i];
-        }
+        mEqRHS = inner_prod(mNormalVector,mFirstReferenceCoordinate);
     }
 
-    /// Assignment operator.
-    ApplyConstantBoundaryPhreaticSurfacePressureProcess& operator=(ApplyConstantBoundaryPhreaticSurfacePressureProcess const& rOther);
+};
 
-    /// Copy constructor.
-    //ApplyConstantPhreaticSurfacePressureProcess(ApplyConstantBoundaryPhreaticSurfacePressureProcess const& rOther);
-
-}; // Class ApplyConstantBoundaryPhreaticSurfacePressureProcess
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyConstantBoundaryPhreaticSurfacePressureProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyConstantBoundaryPhreaticSurfacePressureProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
 }
-
-} // namespace Kratos.
-
-#endif /* KRATOS_GEO_APPLY_CONSTANT_BOUNDARY_PHREATIC_SURFACE_PRESSURE_PROCESS defined */

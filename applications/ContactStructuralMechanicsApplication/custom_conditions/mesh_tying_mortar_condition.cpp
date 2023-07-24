@@ -78,6 +78,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Initialize(const
 
     // We get the unkown variable
     const std::string r_variable_name = GetProperties().Has(TYING_VARIABLE) ? GetProperties().GetValue(TYING_VARIABLE) : "DISPLACEMENT";
+    mpDoFVariables.clear();
+    mpLMVariables.clear();
     if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
         mpDoFVariables.push_back(&KratosComponents<Variable<double>>::Get(r_variable_name));
         mpLMVariables.push_back(&SCALAR_LAGRANGE_MULTIPLIER);
@@ -541,7 +543,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLH
     const SizeType dof_size = mpDoFVariables.size();
 
     // Get the scale factor
-    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : 1.0;
+    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : rCurrentProcessInfo.Has(BUILD_SCALE_FACTOR) ? rCurrentProcessInfo[BUILD_SCALE_FACTOR] : 1.0;
 
     // Initial index 
     IndexType initial_row_index = 0;
@@ -600,7 +602,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalRH
     const SizeType dof_size = mpDoFVariables.size();
 
     // Get the scale factor
-    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : 1.0;
+    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : rCurrentProcessInfo.Has(BUILD_SCALE_FACTOR) ? rCurrentProcessInfo[BUILD_SCALE_FACTOR] : 1.0;
 
     // Initial index 
     IndexType initial_index = 0;
