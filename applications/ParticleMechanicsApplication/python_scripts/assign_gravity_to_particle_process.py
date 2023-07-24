@@ -51,4 +51,4 @@ class AssignGravityToParticleProcess(KratosMultiphysics.Process):
             # Assign gravity to MP after solver.Initialize() - only apply once at the beginning!
             for element in self.model_part.Elements:
                 element.SetValuesOnIntegrationPoints(KratosParticle.MP_VOLUME_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)
-                element.SetValuesOnIntegrationPoints(KratosParticle.MP_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)
+                # element.SetValuesOnIntegrationPoints(KratosParticle.MP_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)
