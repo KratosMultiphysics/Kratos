@@ -2,10 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosDEMFEMVolumeCouplingApplication ****")
 
-#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
-#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
-#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MappingApplication)
-#kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/CoSimulationApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/DEMApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/MappingApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/CoSimulationApplication)
 
 
 
@@ -75,16 +75,16 @@ kratos_python_install(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/
 #kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
-if(${INSTALL_TESTING_FILES} MATCHES ON )
-    get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
-    install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
-        PATTERN "*.git" EXCLUDE
-        PATTERN "*.c" EXCLUDE
-        PATTERN "*.h" EXCLUDE
-        PATTERN "*.cpp" EXCLUDE
-        PATTERN "*.hpp" EXCLUDE
-  )
-endif(${INSTALL_TESTING_FILES} MATCHES ON)
+# if(${INSTALL_TESTING_FILES} MATCHES ON )
+#     get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
+#     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
+#         PATTERN "*.git" EXCLUDE
+#         PATTERN "*.c" EXCLUDE
+#         PATTERN "*.h" EXCLUDE
+#         PATTERN "*.cpp" EXCLUDE
+#         PATTERN "*.hpp" EXCLUDE
+#   )
+# endif(${INSTALL_TESTING_FILES} MATCHES ON)
 
 # Install targets
 install(TARGETS KratosDEMFEMVolumeCouplingCore DESTINATION libs )

@@ -26,13 +26,14 @@
 namespace Kratos
 {
 
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) VolumeCouplingElement
+class KRATOS_API(DEMFEM_VOLUME_COUPLING_APPLICATION) VolumeCouplingElement
     : public SmallDisplacement
 {
 
 
 public:
-
+VolumeCouplingElement(IndexType NewId, GeometryType::Pointer pGeometry);
+VolumeCouplingElement();// Default constructor needed for serialization
    
     virtual double GetIntegrationWeight(
         const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,

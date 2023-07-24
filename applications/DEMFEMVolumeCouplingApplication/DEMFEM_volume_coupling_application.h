@@ -20,67 +20,59 @@
 
 /* CONDITIONS */
 #include "custom_elements/volume_coupling_element.h"
-
+#include "custom_elements/volume_coupling_particle.h"
 
 namespace Kratos {
 
-  KRATOS_DEFINE_APPLICATION_VARIABLE(STRUCTURAL_MECHANICS_APPLICATION, double, NODAL_COUPLING_WEIGHT)
-  KRATOS_DEFINE_APPLICATION_VARIABLE(DEM_APPLICATION, double, PARTICLE_COUPLING_WEIGHT)
-  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(DEM_APPLICATION, DISPLACEMENT_MULTIPLIED_MASS)
-  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(DEM_APPLICATION, DEMFEM_VOLUME_COUPLING_FORCE)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEMFEM_VOLUME_COUPLING_APPLICATION, double, NODAL_COUPLING_WEIGHT)
+  KRATOS_DEFINE_APPLICATION_VARIABLE(DEMFEM_VOLUME_COUPLING_APPLICATION, double, PARTICLE_COUPLING_WEIGHT)
+  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(DEMFEM_VOLUME_COUPLING_APPLICATION, DISPLACEMENT_MULTIPLIED_MASS)
+  KRATOS_DEFINE_3D_APPLICATION_VARIABLE_WITH_COMPONENTS(DEMFEM_VOLUME_COUPLING_APPLICATION, DEMFEM_VOLUME_COUPLING_FORCE)
 
-  KRATOS_CREATE_VARIABLE(double, NODAL_COUPLING_WEIGHT )
-  KRATOS_CREATE_VARIABLE(double, PARTICLE_COUPLING_WEIGHT ) // if i use same variable NODAL_COUPLING_WEIGHT for particles and nodes, then do i need create and register it twice?
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_MULTIPLIED_MASS)
-  KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DEMFEM_VOLUME_COUPLING_FORCE)
 
-  KRATOS_REGISTER_VARIABLE(double, NODAL_COUPLING_WEIGHT )
-  KRATOS_REGISTER_VARIABLE(double, PARTICLE_COUPLING_WEIGHT )
-  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_MULTIPLIED_MASS)
-  KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(DEMFEM_VOLUME_COUPLING_FORCE)
 
 
 
   
 
-    class KRATOS_API(DEMFEM_VOLUME_COUPLING_APPLICATION) FEMDEMVolumeCouplingApplication : public KratosApplication {  // doubt about KRATOS_API(DEMFEM_VOLUME_COUPLING_APPLICATION)
+    class KRATOS_API(DEMFEM_VOLUME_COUPLING_APPLICATION) DEMFEMVolumeCouplingApplication : public KratosApplication {  // doubt about KRATOS_API(DEMFEM_VOLUME_COUPLING_APPLICATION)
 
         public:
 
             // ///@name Type Definitions
             // ///@{
-            // KRATOS_CLASS_POINTER_DEFINITION(KratosDemStructuresCouplingApplication);
+            KRATOS_CLASS_POINTER_DEFINITION(DEMFEMVolumeCouplingApplication);
 
-            // /// Default constructor.
-            // KratosDemStructuresCouplingApplication();
+            /// Default constructor.
+            DEMFEMVolumeCouplingApplication();
 
-            // /// Destructor.
-            // virtual ~KratosDemStructuresCouplingApplication() {}
+            /// Destructor.
+            virtual ~DEMFEMVolumeCouplingApplication() {}
 
-            // virtual void Register() override;
+            virtual void Register() override;
 
-            // /// Turn back information as a string.
-            // virtual std::string Info() const override {
-            //     return "KratosDemStructuresCouplingApplication";
-            // }
+            /// Turn back information as a string.
+            virtual std::string Info() const override {
+                return "DEMFEMVolumeCouplingApplication";
+            }
 
-            // /// Print information about this object.
-            // virtual void PrintInfo(std::ostream& rOStream) const override {
-            //     rOStream << Info();
-            //     PrintData(rOStream);
-            // }
+            /// Print information about this object.
+            virtual void PrintInfo(std::ostream& rOStream) const override {
+                rOStream << Info();
+                PrintData(rOStream);
+            }
 
-            // ///// Print object's data.
-            // virtual void PrintData(std::ostream& rOStream) const override {
-            //     rOStream << "Variables:" << std::endl;
-            //     KratosComponents<VariableData>().PrintData(rOStream);
-            //     rOStream << std::endl;
-            //     rOStream << "Elements:" << std::endl;
-            //     KratosComponents<Element>().PrintData(rOStream);
-            //     rOStream << std::endl;
-            //     rOStream << "Conditions:" << std::endl;
-            //     KratosComponents<Condition>().PrintData(rOStream);
-            // }
+            ///// Print object's data.
+            virtual void PrintData(std::ostream& rOStream) const override {
+                rOStream << "Variables:" << std::endl;
+                KratosComponents<VariableData>().PrintData(rOStream);
+                rOStream << std::endl;
+                rOStream << "Elements:" << std::endl;
+                KratosComponents<Element>().PrintData(rOStream);
+                rOStream << std::endl;
+                rOStream << "Conditions:" << std::endl;
+                KratosComponents<Condition>().PrintData(rOStream);
+            }
 
         protected:
 
@@ -104,6 +96,8 @@ namespace Kratos {
             const VolumeCouplingElement mVolumeCouplingElement3D15N;
             const VolumeCouplingElement mVolumeCouplingElement3D20N;
             const VolumeCouplingElement mVolumeCouplingElement3D27N;
+
+            const VolumeCouplingParticle mVolumeCouplingParticle3D;
 
     }; // Class KratosDemStructuresCouplingApplication
 

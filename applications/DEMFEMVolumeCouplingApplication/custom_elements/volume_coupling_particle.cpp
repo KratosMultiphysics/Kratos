@@ -4,9 +4,23 @@
 #include "custom_utilities/AuxiliaryFunctions.h"
 #include "custom_utilities/discrete_particle_configure.h"
 #include "custom_strategies/schemes/glued_to_wall_scheme.h"
+#include "../DEMFEM_volume_coupling_application.h"
 
 
 namespace Kratos {
+
+
+
+VolumeCouplingParticle::VolumeCouplingParticle( IndexType NewId, GeometryType::Pointer pGeometry )
+    : SphericParticle( NewId, pGeometry )
+{
+    
+}
+VolumeCouplingParticle::VolumeCouplingParticle( ) // Default constructor needed for serialization
+    : SphericParticle( )
+{
+    
+}
 
 // Function to compute contact forces and moments between ball and rigid face considering coupling weight.
 void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
@@ -53,7 +67,7 @@ void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(Spheric
 }
 
 // Function to compute forces for positive indentations between balls considering coupling weight.
-void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
+void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                             const ProcessInfo& r_process_info,
                                                             double LocalElasticContactForce[3],
                                                             double DeltDisp[3],
@@ -83,7 +97,7 @@ void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleD
     const double inverse_of_sum_of_youngs = 1.0 / (other_young + my_young);
     const double my_arm_length = this->GetRadius() - indentation * other_young * inverse_of_sum_of_youngs;
     const double other_arm_length  = element2->GetRadius() - indentation * my_young * inverse_of_sum_of_youngs;
-    double interpolated_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)*other_arm_length*inverse_of_sum_of_youngs+element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)*my_arm_length*inverse_of_sum_of_youngs;
+    double interpolated_weight = (this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)*other_arm_length+element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)*my_arm_length)/(my_arm_length+other_arm_length);
 
     // Calculate the interpolated weight based on the current and neighboring particles, w'=w1+((3r1+r2-|y1-y2|)/2|y1-y2|)*(w2-w1) considering some indentation
     // double interpolated_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)+

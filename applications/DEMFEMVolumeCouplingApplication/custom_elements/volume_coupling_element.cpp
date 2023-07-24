@@ -29,6 +29,17 @@
 namespace Kratos
 {
 
+VolumeCouplingElement::VolumeCouplingElement( IndexType NewId, GeometryType::Pointer pGeometry )
+    : SmallDisplacement( NewId, pGeometry )
+{
+    
+}
+
+VolumeCouplingElement::VolumeCouplingElement( ) // Default constructor needed for serialization
+    : SmallDisplacement( )
+{
+    
+}
 
 double VolumeCouplingElement::GetIntegrationWeight(
     const GeometryType::IntegrationPointsArrayType& rThisIntegrationPoints,
@@ -37,11 +48,11 @@ double VolumeCouplingElement::GetIntegrationWeight(
     ) const 
 {
 
-    auto N = row(this->GetGeometry().ShapeFunctionValues(this->GetIntegrationMethod()), PointNumber);
+    auto N = row(this->GetGeometry().ShapeFunctionsValues(this->GetIntegrationMethod()), PointNumber);
     double interpolated_coupling_weight_at_int_point=0; 
-    for (int i=0, i < this->GetGeometry().GetNodes(), i++)
+    for (int i=0; i < this->GetGeometry().size(); i++)
     {
-       interpolated_coupling_weight_at_int_point += N[i]*this->GetNodes()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT);
+       interpolated_coupling_weight_at_int_point += N[i]*this->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT);
     }
     return (1-interpolated_coupling_weight_at_int_point) * SmallDisplacement::GetIntegrationWeight(rThisIntegrationPoints,PointNumber,detJ);
 }
