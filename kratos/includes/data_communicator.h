@@ -66,6 +66,14 @@ virtual void Max(const std::vector<type>& rLocalValues, std::vector<type>& rGlob
 
 #endif
 
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_KRATOS_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(...)                                 \
+virtual __VA_ARGS__ Sum(const __VA_ARGS__& rLocalValue, const int Root) const { return rLocalValue; }               \
+virtual __VA_ARGS__ Min(const __VA_ARGS__& rLocalValue, const int Root) const { return rLocalValue; }               \
+virtual __VA_ARGS__ Max(const __VA_ARGS__& rLocalValue, const int Root) const { return rLocalValue; }               \
+
+#endif
+
 // Methods based on MPI_Allreduce, supporting sum, max or min operations.
 /* Variants for each method are provided, either returning the reduced value or filling a provided vector buffer.
  * The returned value is defined on all ranks.
@@ -272,6 +280,12 @@ KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)    \
 
 #endif
 
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(...)   \
+KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)   \
+
+#endif
+
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_IMPLEMENTATION_FOR_TYPE(type)   \
 KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(type)  \
@@ -370,41 +384,13 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(double)
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(char)
 
-    // Reduce operations
-
-    /// Sum rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValue Local contribution to the sum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The summed quantity (meaningful only in Root).
-     */
-    virtual array_1d<double,3> Sum(const array_1d<double,3>& rLocalValue, const int Root) const
-    {
-        return rLocalValue;
-    }
-
-
-    /// Obtain the minimum of rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValue Local value to consider in computing the minimum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The minimum value (meaningful only in Root).
-     */
-    virtual array_1d<double,3> Min(const array_1d<double,3>& rLocalValue, const int Root) const
-    {
-        return rLocalValue;
-    }
-
-    /// Obtain the maximum of rLocalValue across all ranks in the Communicator (array_1d<double,3> version).
-    /** This is a wrapper to MPI_Reduce.
-     *  @param[in] rLocalValue Local value to consider in computing the maximum.
-     *  @param[in] Root The rank where the result will be computed.
-     *  @return The maximum value (meaningful only in Root).
-     */
-    virtual array_1d<double,3> Max(const array_1d<double,3>& rLocalValue, const int Root) const
-    {
-        return rLocalValue;
-    }
+    // Complete interface for kratos types
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 3>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 4>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 6>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 9>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Vector)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Matrix)
 
     virtual bool AndReduce(
         const bool Value,
