@@ -83,7 +83,7 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
         if self.old_alpha == 0.0:
             self.old_alpha = self.alpha_increment
         self.alpha += self.alpha_increment
-        if self.alpha < self.expected_alpha:
+        if self.alpha <= self.expected_alpha:
             for node in self.destination_model_part.Nodes:
                 for variable in self.interpolation_variables_list:
                     node.SetSolutionStepValue(variable, self.alpha * node.GetSolutionStepValue(variable) / self.old_alpha)
