@@ -242,7 +242,7 @@ public:
         const DecompositionType& rDecompGeom,
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
-        const NormalDerivativesComputation ConsiderNormalVariation = NO_DERIVATIVES_COMPUTATION
+        const NormalDerivativesComputation ConsiderNormalVariation = NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION
         );
 
     /**
@@ -269,7 +269,7 @@ public:
         const DecompositionType& rDecompGeom,
         const PointType& rLocalPointDecomp,
         const PointType& rLocalPointParent,
-        const NormalDerivativesComputation ConsiderNormalVariation = NO_DERIVATIVES_COMPUTATION,
+        const NormalDerivativesComputation ConsiderNormalVariation = NormalDerivativesComputation::NO_DERIVATIVES_COMPUTATION,
         const bool DualLM = false
         );
 

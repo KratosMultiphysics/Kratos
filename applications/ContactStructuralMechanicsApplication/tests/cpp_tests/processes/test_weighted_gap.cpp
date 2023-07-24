@@ -331,7 +331,7 @@ void SimplestCreateNewProblem3D(
 /**
 * This method can be used to create a 2D plane condition set
 */
-void SimpleCreateNewProblem3D(
+void SimpleCreateNewProblem3DGapGap(
     ModelPart& rModelPart,
     const double MoveMesh = 0.0
     )
@@ -498,7 +498,7 @@ void SimpleCreateNewProblem3D(
     // We set the mapper parameters
     Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
     mapping_parameters["distance_threshold"].SetDouble(rModelPart.GetProcessInfo()[DISTANCE_THRESHOLD]);
-    typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>> MapperType;
+    using MapperType = SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>>;
     MapperType mapper = MapperType(r_master_model_part, r_slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
     mapper.Execute();
 
@@ -687,7 +687,7 @@ void CreateNewProblem3D(
     // We set the mapper parameters
     Parameters mapping_parameters = Parameters(R"({"distance_threshold" : 1.0e24, "origin_variable_historical" : false, "destination_variable_historical" : false})" );
     mapping_parameters["distance_threshold"].SetDouble(rModelPart.GetProcessInfo()[DISTANCE_THRESHOLD]);
-    typedef SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>> MapperType;
+    using MapperType = SimpleMortarMapperProcess<3, 4, Variable<array_1d<double, 3>>>;
     MapperType mapper = MapperType(r_master_model_part, r_slave_model_part, AUXILIAR_COORDINATES, mapping_parameters);
     mapper.Execute();
 
@@ -965,7 +965,7 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap3b, KratosContactStructuralMechanicsFastSui
 
     // We create our problem
     const double delta_x = 1.0e-1;
-    SimpleCreateNewProblem3D(r_model_part, delta_x);
+    SimpleCreateNewProblem3DGapGap(r_model_part, delta_x);
 
     // We compute the explicit contribution
     const array_1d<double, 3> zero_vector = ZeroVector(3);;
@@ -1080,7 +1080,7 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap4b, KratosContactStructuralMechanicsFastSui
 
     // We create our problem
     const double delta_x = 1.0e-1;
-    SimpleCreateNewProblem3D(r_model_part, delta_x);
+    SimpleCreateNewProblem3DGapGap(r_model_part, delta_x);
 
     // We compute the explicit contribution
     const array_1d<double, 3> zero_vector = ZeroVector(3);;
