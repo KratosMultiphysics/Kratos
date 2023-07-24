@@ -339,8 +339,8 @@ class NavierStokesSolverMonolithic(FluidSolver):
         time=self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]  
         print("dt=", self.timestep)
         #if (time==self.timestep or time>4.998):  
-        #if (True):
-        if (time>1.27888999):       
+        if (True):
+        #if (time>1.27888999):       
          print("CalculateTheError")  
          self.CalculateNodalArea()   
          #mu=0.001
