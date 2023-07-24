@@ -92,7 +92,7 @@ class TestCombineModelPartModeler(KratosUnittest.TestCase):
             }
         }''')
         full_path = GetFilePath(material_settings["Parameters"]["materials_filename"].GetString())
-        material_settings["Parameters"]["materials_filename"].SetString(full_path)
+        material_settings["Parameters"]["materials_filename"].SetString(str(full_path))
         KratosMultiphysics.ReadMaterialsUtility(material_settings,model_part.GetModel())
         settings = KratosMultiphysics.Parameters('''{
             "combined_model_part_name" : "thermal_model_part",
