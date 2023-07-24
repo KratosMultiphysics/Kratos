@@ -139,6 +139,16 @@ void MPIDataCommunicator::ScanSum(                                              
 
 #endif
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_KRATOS_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_KRATOS_TYPE(...)           \
+__VA_ARGS__ MPIDataCommunicator::ScanSum(const __VA_ARGS__& LocalValue) const {              \
+    __VA_ARGS__ global_value(LocalValue);                                                    \
+    ScanDetail(LocalValue, global_value, MPI_SUM);                                           \
+    return global_value;                                                                     \
+}                                                                                            \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(type)           \
 type MPIDataCommunicator::SendRecvImpl(                                                 \
@@ -263,6 +273,7 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(type)    \
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(...)   \
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)   \
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)\
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)  \
 
 #endif
 

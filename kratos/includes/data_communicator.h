@@ -133,6 +133,12 @@ virtual void ScanSum(const std::vector<type>& rLocalValues, std::vector<type>& r
 
 #endif
 
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_KRATOS_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_KRATOS_TYPE(...)                \
+virtual __VA_ARGS__ ScanSum(const __VA_ARGS__& rLocalValue) const { return rLocalValue; }           \
+
+#endif
+
 // Exchange data with other ranks. This is a wrapper for MPI_Sendrecv, MPI_Send and MPI_Recv.
 /* Versions which outputting the result as a return argument or by filling an output buffer argument are provided.
  * The return version has a performance overhead, since the dimensions of the receiving buffer have to be
@@ -292,6 +298,7 @@ KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_GATHER_INTERFACE_FOR_TYPE(type)    \
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(...)   \
 KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)   \
 KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)\
+KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)  \
 
 #endif
 
