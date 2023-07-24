@@ -27,6 +27,7 @@
 // Application includes
 #include "entity_point.h"
 #include "filter_function.h"
+#include "damping_function.h"
 
 namespace Kratos {
 
@@ -34,7 +35,7 @@ namespace Kratos {
 ///@{
 
 template<class TContainerType>
-class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitVertexMorphingFilter
+class KRATOS_API(OPTIMIZATION_APPLICATION) ExplicitFilter
 {
 public:
     ///@name Type definitions
@@ -50,15 +51,22 @@ public:
     using KDTree = Tree<KDTreePartition<BucketType>>;
 
     /// Pointer definition of ContainerMapper
-    KRATOS_CLASS_POINTER_DEFINITION(ExplicitVertexMorphingFilter);
+    KRATOS_CLASS_POINTER_DEFINITION(ExplicitFilter);
 
     ///@}
     ///@name LifeCycle
     ///@{
 
-    ExplicitVertexMorphingFilter(
+    ExplicitFilter(
         const ModelPart& rModelPart,
         const std::string& rKernelFunctionType,
+        const IndexType MaxNumberOfNeighbours);
+
+    ExplicitFilter(
+        const ModelPart& rModelPart,
+        const ModelPart& rFixedModelPart,
+        const std::string& rKernelFunctionType,
+        const std::string& rDampingFunctionType,
         const IndexType MaxNumberOfNeighbours);
 
     ///@}
@@ -72,6 +80,8 @@ public:
 
     ContainerExpression<TContainerType> FilterIntegratedField(const ContainerExpression<TContainerType>& rContainerExpression) const;
 
+    void GetIntegrationWeights(ContainerExpression<TContainerType>& rContainerExpression) const;
+
     std::string Info() const;
 
     ///@}
@@ -81,7 +91,11 @@ private:
 
     const ModelPart& mrModelPart;
 
+    const ModelPart* mpFixedModelPart = nullptr;
+
     FilterFunction::UniquePointer mpKernelFunction;
+
+    DampingFunction::UniquePointer mpDampingFunction;
 
     typename ContainerExpression<TContainerType>::Pointer mpFilterRadiusContainer;
 
@@ -89,11 +103,15 @@ private:
 
     EntityPointVector mEntityPointVector;
 
+    EntityPointVector mFixedModelPartEntityPointVector;
+
     IndexType mBucketSize = 100;
 
     IndexType mMaxNumberOfNeighbors;
 
     typename KDTree::Pointer mpSearchTree;
+
+    typename KDTree::Pointer mpFixedModelPartSearchTree;
 
     ///@}
     ///@name Private operations
@@ -112,7 +130,7 @@ private:
 template<class TContainerType>
 inline std::ostream& operator<<(
     std::ostream& rOStream,
-    const ExplicitVertexMorphingFilter<TContainerType>& rThis)
+    const ExplicitFilter<TContainerType>& rThis)
 {
     return rOStream << rThis.Info();
 }

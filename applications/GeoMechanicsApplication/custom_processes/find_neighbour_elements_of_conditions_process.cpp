@@ -10,16 +10,9 @@
 //  Main authors:    Vahid Galavi
 //
 
-
-// System includes
-
-// External includes
-
-// Project includes
 #include "geometries/geometry.h"
 #include "includes/kratos_flags.h"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
-
 
 namespace Kratos
 {
@@ -428,7 +421,4 @@ hashmap::iterator FindNeighbourElementsOfConditionsProcess::
     KRATOS_CATCH("")
 }
 
-
-} // namespace Kratos
-
-
+}
