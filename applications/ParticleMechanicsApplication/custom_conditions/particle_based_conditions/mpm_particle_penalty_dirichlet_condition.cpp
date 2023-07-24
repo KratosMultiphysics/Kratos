@@ -96,16 +96,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
 
 void MPMParticlePenaltyDirichletCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    GeometryType& r_geometry = GetGeometry();
-    const unsigned int number_of_nodes = r_geometry.PointsNumber();
-
-    // At the beginning of NonLinearIteration, REACTION has to be reset to zero
-    for ( unsigned int i = 0; i < number_of_nodes; i++ )
-    {
-        r_geometry[i].SetLock();
-        r_geometry[i].FastGetSolutionStepValue(REACTION).clear();
-        r_geometry[i].UnSetLock();
-    }
+    AccumulateReactionToNodes(rCurrentProcessInfo);
 }
 
 //************************************************************************************
@@ -222,9 +213,14 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 
 void MPMParticlePenaltyDirichletCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
+    AccumulateReactionToNodes(rCurrentProcessInfo);
+}
+
+void MPMParticlePenaltyDirichletCondition::AccumulateReactionToNodes(const ProcessInfo& rCurrentProcessInfo)
+{
     KRATOS_TRY
 
-    // Recalculate resiudal vector for converged solution
+    // Recalculate residual vector for converged solution
     const bool CalculateStiffnessMatrixFlag = false;
     const bool CalculateResidualVectorFlag = true;
     MatrixType temp = Matrix();
@@ -342,6 +338,8 @@ void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Va
 
     if (rVariable == PENALTY_FACTOR) {
         rValues[0] = m_penalty;
+    } else if (rVariable == NORMAL_REACTION){
+//        rValues[0] = m_prev_normal_force;
     }
     else {
         MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
@@ -381,6 +379,8 @@ void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(const Va
 
     if (rVariable == PENALTY_FACTOR) {
         m_penalty = rValues[0];
+    }  else if (rVariable == NORMAL_REACTION){
+//        m_prev_normal_force = rValues[0];
     }
     else {
         MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(

@@ -258,7 +258,7 @@ private:
         rSerializer.load("penalty", m_penalty);
     }
 
-
+    void AccumulateReactionToNodes(const ProcessInfo& rCurrentProcessInfo);
 }; // Class MPMParticlePenaltyDirichletCondition
 
 ///@}

@@ -274,6 +274,8 @@ public:
     // Additionally resets INLET flag so that nodal friction can be properly set in every iteration
     void InitializeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
+        ClearReaction();
+
         BossakBaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
 
         mRotationTool.ClearFrictionFlag(mGridModelPart);
@@ -282,6 +284,8 @@ public:
     // Clear friction-related flags so that RHS can be properly constructed for current iteration
     void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
+        ClearReaction();
+
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
         mRotationTool.ClearFrictionFlag(mGridModelPart);
@@ -556,6 +560,19 @@ protected:
     unsigned int mDomainSize;
     unsigned int mBlockSize;
     MPMBoundaryRotationUtility<LocalSystemMatrixType,LocalSystemVectorType> mRotationTool;
+
+
+    // Loop over the grid nodes performed to clear all REACTION values
+    void ClearReaction() const
+    {
+        #pragma omp parallel for
+        for (int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter) {
+            auto i = mGridModelPart.NodesBegin() + iter;
+            (i)->SetLock();
+            (i)->FastGetSolutionStepValue(REACTION).clear();
+            (i)->UnSetLock();
+        }
+    }
 
 }; /* Class MPMResidualBasedBossakScheme */
 }  /* namespace Kratos.*/
