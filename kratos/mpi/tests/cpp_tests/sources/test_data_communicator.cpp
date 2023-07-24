@@ -634,6 +634,38 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumAllArray1d, KratosMPICoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumAllVector, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    Vector local(4);
+    local[0] = -1.0;
+    local[1] =  0.0;
+    local[2] =  1.0;
+    local[3] =  2.0;
+    Vector result = serial_communicator.SumAll(local);
+    for (int i = 0; i < 4; i++)
+    {
+        KRATOS_CHECK_EQUAL(result[i], local[i]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorSumAllMatrix, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    Matrix local(2, 2);
+    local.data()[0] = -1.0;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0;
+    local.data()[3] =  2.0;
+    Matrix result = serial_communicator.SumAll(local);
+    for (int i = 0; i < 4; i++)
+    {
+        KRATOS_CHECK_EQUAL(result.data()[i], local.data()[i]);
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSumAllIntVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
@@ -731,6 +763,38 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinAllArray1d, KratosMPICoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinAllVector, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    Vector local(4);
+    local[0] = -1.0;
+    local[1] =  0.0;
+    local[2] =  1.0;
+    local[3] =  2.0;
+    Vector result = serial_communicator.MinAll(local);
+    for (int i = 0; i < 4; i++)
+    {
+        KRATOS_CHECK_EQUAL(result[i], local[i]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMinAllMatrix, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    Matrix local(2, 2);
+    local.data()[0] = -1.0;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0;
+    local.data()[3] =  2.0;
+    Matrix result = serial_communicator.MinAll(local);
+    for (int i = 0; i < 4; i++)
+    {
+        KRATOS_CHECK_EQUAL(result.data()[i], local.data()[i]);
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorMinAllIntVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
@@ -825,6 +889,38 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllArray1d, KratosMPICoreFastSuite)
     for (int i = 0; i < 3; i++)
     {
         KRATOS_CHECK_EQUAL(result[i], local[i]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllVector, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    Vector local(4);
+    local[0] = -1.0;
+    local[1] =  0.0;
+    local[2] =  1.0;
+    local[3] =  2.0;
+    Vector result = serial_communicator.MaxAll(local);
+    for (int i = 0; i < 4; i++)
+    {
+        KRATOS_CHECK_EQUAL(result[i], local[i]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorMaxAllMatrix, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    Matrix local(2, 2);
+    local.data()[0] = -1.0;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0;
+    local.data()[3] =  2.0;
+    Matrix result = serial_communicator.MaxAll(local);
+    for (int i = 0; i < 4; i++)
+    {
+        KRATOS_CHECK_EQUAL(result.data()[i], local.data()[i]);
     }
 }
 

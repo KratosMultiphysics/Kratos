@@ -902,6 +902,40 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllArray1d, KratosMP
     KRATOS_CHECK_EQUAL(result[2],  1.0*world_size);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    Vector local(4);
+    local[0] = -1.0;
+    local[1] =  0.0;
+    local[2] =  1.0;
+    local[3] =  2.0;
+
+    Vector result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(result[0], -1.0*world_size);
+    KRATOS_CHECK_EQUAL(result[1],  0.0);
+    KRATOS_CHECK_EQUAL(result[2],  1.0*world_size);
+    KRATOS_CHECK_EQUAL(result[3],  2.0*world_size);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    Matrix local(2, 2);
+    local.data()[0] = -1.0;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0;
+    local.data()[3] =  2.0;
+
+    Matrix result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(result.data()[0], -1.0*world_size);
+    KRATOS_CHECK_EQUAL(result.data()[1],  0.0);
+    KRATOS_CHECK_EQUAL(result.data()[2],  1.0*world_size);
+    KRATOS_CHECK_EQUAL(result.data()[3],  2.0*world_size);
+}
+
 namespace {
 template<typename T> void MPIDataCommunicatorSumAllIntegralTypeVectorTest()
 {
@@ -1054,6 +1088,42 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllArray1d, KratosMP
     KRATOS_CHECK_EQUAL(result[2],  0.0);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    Vector local(4);
+    local[0] = -1.0*world_rank;
+    local[1] =  0.0;
+    local[2] =  1.0*world_rank;
+    local[3] = -2.0*world_rank;
+
+    Vector result = mpi_world_communicator.MinAll(local);
+    KRATOS_CHECK_EQUAL(result[0], -1.0*(world_size-1));
+    KRATOS_CHECK_EQUAL(result[1],  0.0);
+    KRATOS_CHECK_EQUAL(result[2],  0.0);
+    KRATOS_CHECK_EQUAL(result[3], -2.0*(world_size-1));
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    Matrix local(2, 2);
+    local.data()[0] = -1.0*world_rank;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0*world_rank;
+    local.data()[3] = -2.0*world_rank;
+
+    Matrix result = mpi_world_communicator.MinAll(local);
+    KRATOS_CHECK_EQUAL(result.data()[0], -1.0*(world_size-1));
+    KRATOS_CHECK_EQUAL(result.data()[1],  0.0);
+    KRATOS_CHECK_EQUAL(result.data()[2],  0.0);
+    KRATOS_CHECK_EQUAL(result.data()[3], -2.0*(world_size-1));
+}
+
 namespace {
 template<typename T> void MPIDataCommunicatorMinAllIntegralTypeVectorTest()
 {
@@ -1198,6 +1268,42 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllArray1d, KratosMP
     KRATOS_CHECK_EQUAL(result[0], 0.0);
     KRATOS_CHECK_EQUAL(result[1], 0.0);
     KRATOS_CHECK_EQUAL(result[2], 1.0*(world_size-1));
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    Vector local(4);
+    local[0] = -1.0*world_rank;
+    local[1] =  0.0;
+    local[2] =  1.0*world_rank;
+    local[3] =  2.0*world_rank;
+
+    Vector result = mpi_world_communicator.MaxAll(local);
+    KRATOS_CHECK_EQUAL(result[0],  0.0);
+    KRATOS_CHECK_EQUAL(result[1],  0.0);
+    KRATOS_CHECK_EQUAL(result[2],  1.0*(world_size-1));
+    KRATOS_CHECK_EQUAL(result[3],  2.0*(world_size-1));
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    Matrix local(2, 2);
+    local.data()[0] = -1.0*world_rank;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0*world_rank;
+    local.data()[3] =  2.0*world_rank;
+
+    Matrix result = mpi_world_communicator.MaxAll(local);
+    KRATOS_CHECK_EQUAL(result.data()[0],  0.0);
+    KRATOS_CHECK_EQUAL(result.data()[1],  0.0);
+    KRATOS_CHECK_EQUAL(result.data()[2],  1.0*(world_size-1));
+    KRATOS_CHECK_EQUAL(result.data()[3],  2.0*(world_size-1));
 }
 
 namespace {
