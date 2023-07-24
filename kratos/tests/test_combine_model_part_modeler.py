@@ -3,8 +3,13 @@ import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as KratosUtilities
 
+skip_test = False
 if KratosMultiphysics.IsDistributedRun():
     import KratosMultiphysics.mpi as KratosMPI
+    try:
+        import KratosMultiphysics.MetisApplication
+    except:
+        skip_test = True
 
 def SetParameters(name, use_memory="false"):
     parameters = """{
@@ -34,6 +39,7 @@ def ImportModelPart(model_part, import_settings):
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
+@KratosUnittest.skipIf(skip_test, "This test requires MetisApplication in MPI runs")
 class TestCombineModelPartModeler(KratosUnittest.TestCase):
 
     def setUp(self):
