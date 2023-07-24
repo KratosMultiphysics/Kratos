@@ -127,6 +127,18 @@ class MeasurementResidualResponseFunction(ResponseFunction):
 
         return objective_value
 
+    def normalize_sensitivities_to_element_area(self, expression: Kratos.Expression) -> None:
+        sensitivities = expression.Evaluate()
+
+        for i, element in enumerate(expression.GetModelPart().GetElements()):
+            nodes = element.GetNodes()
+            if not (len(nodes) == 3):
+                raise ValueError("MeasurementResidualResponseFunction:: Normalization of gradients is only implemented for triangles (3D3N) at the moment.")
+            area = Kratos.Triangle3D3(nodes[0], nodes[1], nodes[2]).Area()
+            sensitivities[i] /= area
+
+        Kratos.Expression.CArrayExpressionIO.Read(expression, sensitivities)
+
     def CalculateGradient(self, physical_variable_collective_expressions: "dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]") -> None:
         # first merge all the model parts
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
@@ -169,6 +181,8 @@ class MeasurementResidualResponseFunction(ResponseFunction):
                     Kratos.Expression.CArrayExpressionIO.Read(expression, adjoint_young_modulus_sensitivity.Evaluate())
                 else:
                     KratosOA.PropertiesVariableExpressionIO.Read(expression, Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
+
+                self.normalize_sensitivities_to_element_area(expression)
             print("MeasurementResidualResponseFunction:: Finished writing sensitivities to expression")
 
             # Calculate via finite differencing
