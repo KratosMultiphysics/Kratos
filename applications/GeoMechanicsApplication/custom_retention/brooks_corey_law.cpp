@@ -8,7 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //
-//  Main authors:    Vahid Galavi
+//  Main authors:    Samira Fazli
 //
 
 // System includes

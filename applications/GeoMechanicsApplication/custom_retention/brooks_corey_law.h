@@ -7,7 +7,7 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Vahid Galavi
+//  Main authors:    Samira Fazli
 //
 
 #if !defined (KRATOS_Brooks_Corey_LAW_H_INCLUDED)
