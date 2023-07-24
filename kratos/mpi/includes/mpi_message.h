@@ -136,7 +136,9 @@ public:
     }
 };
 
-template<class TDataType, std::size_t Dimension> class ArrayMessage
+template<class TDataType> class ArrayMessage {};
+
+template<class TDataType, std::size_t Dimension> class ArrayMessage<array_1d<TDataType,Dimension>>
 {
 public:
     static inline void* Buffer(array_1d<TDataType,Dimension>& rValues)
@@ -152,6 +154,44 @@ public:
     static inline int Size(const array_1d<TDataType,Dimension>& rValues)
     {
         return Dimension * MPIDataType<TDataType>::LengthPerObject;
+    }
+};
+
+template<> class ArrayMessage<Vector>
+{
+public:
+    static inline void* Buffer(Vector& rValues)
+    {
+        return rValues.data().begin();
+    }
+
+    static inline const void* Buffer(const Vector& rValues)
+    {
+        return rValues.data().begin();
+    }
+
+    static inline int Size(const Vector& rValues)
+    {
+        return rValues.size();
+    }
+};
+
+class MatrixMessage
+{
+public:
+    static inline void* Buffer(Matrix& rValues)
+    {
+        return rValues.data().begin();
+    }
+
+    static inline const void* Buffer(const Matrix& rValues)
+    {
+        return rValues.data().begin();
+    }
+
+    static inline int Size(const Matrix& rValues)
+    {
+        return rValues.size1() * rValues.size2();
     }
 };
 
@@ -193,6 +233,8 @@ template<> class MPIMessage<Flags::BlockType>: public Internals::ValueMessage<Fl
 template<> class MPIMessage<std::string>: public Internals::StringMessage, public Internals::MPIDataType<std::string> {};
 
 template<class ValueType> class MPIMessage< std::vector<ValueType> >: public Internals::VectorMessage<ValueType>, public Internals::MPIDataType<ValueType> {};
-template<class ValueType, std::size_t Dimension> class MPIMessage<array_1d<ValueType,Dimension>>: public Internals::ArrayMessage<ValueType,Dimension>, public Internals::MPIDataType<ValueType> {};
+template<class ValueType, std::size_t Dimension> class MPIMessage<array_1d<ValueType,Dimension>>: public Internals::ArrayMessage<array_1d<ValueType,Dimension>>, public Internals::MPIDataType<ValueType> {};
+template<> class MPIMessage<Vector>: public Internals::ArrayMessage<Vector>, public Internals::MPIDataType<double> {};
+template<> class MPIMessage<Matrix>: public Internals::MatrixMessage, public Internals::MPIDataType<double> {};
 
 } // namespace Kratos
