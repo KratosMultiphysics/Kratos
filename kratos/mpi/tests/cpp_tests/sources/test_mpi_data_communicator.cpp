@@ -1436,6 +1436,53 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumDouble, KratosMP
     KRATOS_CHECK_EQUAL(partial_sum, 2.0*(rank + 1));
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumArray1d, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
+
+    array_1d<double, 3> local_total({2.0, 3.0, 4.0});
+    array_1d<double, 3> partial_sum = mpi_world_communicator.ScanSum(local_total);
+    for (unsigned int i = 0; i < 3; i++)
+    {
+        KRATOS_CHECK_EQUAL(partial_sum[i], local_total[i]*(rank + 1));
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
+
+    Vector local_total(4);
+    local_total[0] = 2.0;
+    local_total[1] = 3.0;
+    local_total[2] = 4.0;
+    local_total[3] = 5.0;
+    Vector partial_sum = mpi_world_communicator.ScanSum(local_total);
+    for (unsigned int i = 0; i < 4; i++)
+    {
+        KRATOS_CHECK_EQUAL(partial_sum[i], local_total[i]*(rank + 1));
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
+
+    Matrix local_total(2, 2);
+    local_total.data()[0] = 2.0;
+    local_total.data()[1] = 3.0;
+    local_total.data()[2] = 4.0;
+    local_total.data()[3] = 5.0;
+    Matrix partial_sum = mpi_world_communicator.ScanSum(local_total);
+    for (unsigned int i = 0; i < 4; i++)
+    {
+        KRATOS_CHECK_EQUAL(partial_sum.data()[i], local_total.data()[i]*(rank + 1));
+    }
+}
+
 namespace {
 template<typename T> void MPIDataCommunicatorScanSumIntegralVectorTypeTest()
 {

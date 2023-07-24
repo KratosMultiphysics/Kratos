@@ -990,6 +990,50 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorScanSumDouble, KratosMPICoreFastSuite)
     KRATOS_CHECK_EQUAL(result, local);
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorScanSumArray1d, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    array_1d<double, 3> local({1.0, 2.0, 3.0});
+    array_1d<double, 3> result = serial_communicator.ScanSum(local);
+    for (int i = 0; i < 3; ++i)
+    {
+        KRATOS_CHECK_EQUAL(result[i], local[i]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorScanSumVector, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    Vector local(4);
+    local[0] = 1.0;
+    local[1] = 2.0;
+    local[2] = 3.0;
+    local[3] = 4.0;
+    Vector result = serial_communicator.ScanSum(local);
+    for (int i = 0; i < 4; ++i)
+    {
+        KRATOS_CHECK_EQUAL(result[i], local[i]);
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataCommuniactorScanSumMatrix, KratosMPICoreFastSuite)
+{
+    DataCommunicator serial_communicator;
+
+    Matrix local(2, 2);
+    local.data()[0] = 1.0;
+    local.data()[1] = 2.0;
+    local.data()[2] = 3.0;
+    local.data()[3] = 4.0;
+    Matrix result = serial_communicator.ScanSum(local);
+    for (int i = 0; i < 4; ++i)
+    {
+        KRATOS_CHECK_EQUAL(result.data()[i], local.data()[i]);
+    }
+}
+
 KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorScanSumIntVector, KratosMPICoreFastSuite)
 {
     DataCommunicator serial_communicator;
