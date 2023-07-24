@@ -175,8 +175,6 @@ void LocalRefineGeometryMesh::CreateListOfNewNodes(
 
     unsigned int number_of_new_nodes = 0;
 
-    NodesArrayType& pNodes = rModelPart.Nodes();
-
     typedef compressed_matrix<int>::iterator1 i1_t;
     typedef compressed_matrix<int>::iterator2 i2_t;
 
