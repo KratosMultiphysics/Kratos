@@ -58,14 +58,6 @@ template<> struct MPIDataType<double>
     }
 };
 
-template<> struct MPIDataType<std::string>
-{
-    static inline MPI_Datatype DataType()
-    {
-        return MPI_CHAR;
-    }
-};
-
 template<> struct MPIDataType<bool>
 {
     static inline MPI_Datatype DataType()
@@ -82,7 +74,7 @@ template<> struct MPIDataType<char>
     }
 };
 
-template<> struct MPIDataType<Flags::BlockType>
+template<> struct MPIDataType<int64_t>
 {
     static inline MPI_Datatype DataType()
     {
@@ -182,7 +174,7 @@ template<> class MPIMessage<bool>: public Internals::ValueMessage<bool>, public 
 template<> class MPIMessage<char>: public Internals::ValueMessage<char>, public Internals::MPIDataType<char> {};
 template<> class MPIMessage<Flags::BlockType>: public Internals::ValueMessage<Flags::BlockType>, public Internals::MPIDataType<Flags::BlockType> {};
 
-template<> class MPIMessage<std::string>: public Internals::StringMessage, public Internals::MPIDataType<std::string> {};
+template<> class MPIMessage<std::string>: public Internals::StringMessage, public Internals::MPIDataType<char> {};
 
 template<class ValueType> class MPIMessage< std::vector<ValueType> >: public Internals::VectorMessage<ValueType>, public Internals::MPIDataType<ValueType> {};
 template<class ValueType, std::size_t Dimension> class MPIMessage<array_1d<ValueType,Dimension>>: public Internals::ArrayMessage<ValueType,Dimension>, public Internals::MPIDataType<ValueType> {};
