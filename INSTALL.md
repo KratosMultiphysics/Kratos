@@ -613,9 +613,6 @@ Root directory for boost. Overrided by `BOOST_ROOT` environmental variable if de
 `-DPYTHON_EXECUTABLE=String`
 Python executable to be used. It is recommended to set this option if more than one version of python is present in the system (For example while using ubuntu). Overrided by `PYTHON_EXECUTABLE` environmental variable if defined.
 
-`-DINSTALL_RUNKRATOS=ON/OFF`
-Enables(Default) or Disables the compilation of the embedded python interpreter (aka Runkratos).
-
 `-DKRATOS_BUILD_TESTING=ON/OFF`
 Enables(Default) or Disables the compilation of the C++ unitary tests for *Kratos* and Applications.
 
