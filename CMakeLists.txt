@@ -1,5 +1,6 @@
+cmake_minimum_required (VERSION 3.14.0)
+
 project (KratosMultiphysics)
-cmake_minimum_required (VERSION 2.8.6)
 set (CMAKE_CXX_STANDARD 17)
 set (CMAKE_CXX_STANDARD_REQUIRED ON)
 set (CMAKE_CXX_EXTENSIONS OFF)
@@ -24,6 +25,11 @@ endif(POLICY CMP0074)
 if(POLICY CMP0057)
   cmake_policy(SET CMP0057 NEW)
 endif(POLICY CMP0057)
+
+# Timestamp for extracted files
+if(POLICY CMP0135)
+  cmake_policy(SET CMP0135 NEW)
+endif(POLICY CMP0135)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
@@ -282,6 +288,17 @@ include(KratosDependencies)
 if(KRATOS_COLORED_OUTPUT MATCHES ON)
   add_definitions(-DKRATOS_COLORED_OUTPUT)
 endif(KRATOS_COLORED_OUTPUT MATCHES ON)
+
+# Testing
+include(FetchContent)
+FetchContent_Declare(
+  googletest
+  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+)
+# For Windows: Prevent overriding the parent project's compiler/linker settings
+set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+FetchContent_MakeAvailable(googletest)
+
 
 ################### PYBIND11
 
