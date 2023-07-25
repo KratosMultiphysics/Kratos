@@ -108,6 +108,34 @@ public:
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
     /**
+     * @brief Adds conditions from a given ModelPart to the HROM weights if not already present
+     * This function iterates through the conditions in the provided ModelPart, checks if they exist in the HROM weights,
+     * and adds them if they are missing. The ids of the new conditions are returned.
+     * @param rModelPart Complete model part (all elements and conditions)
+     * @param rModelPartWithConditionsToInclude ModelPart with conditions that should be added to HROM weights
+     * @param rHRomWeights Map containing the original HROM conditions and elements weights
+     * @return std::vector<IndexType> List containing the ids of the newly added conditions
+     */
+    static std::vector<IndexType> AddModelPartConditionsToHROM(
+        const ModelPart& rModelPart,
+        const ModelPart& rModelPartWithConditionsToInclude,
+        std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
+    /**
+     * @brief Adds elements from a given ModelPart to the HROM weights if not already present
+     * This function iterates through the elements in the provided ModelPart, checks if they exist in the HROM weights,
+     * and adds them if they are missing. The ids of the new elements are returned.
+     * @param rModelPart Complete model part (all elements and conditions)
+     * @param rModelPartWithElementsToInclude ModelPart with elements that should be added to HROM weights
+     * @param rHRomWeights Map containing the original HROM conditions and elements weights
+     * @return std::vector<IndexType> List containing the ids of the newly added elements
+     */
+    static std::vector<IndexType> AddModelPartElementsToHROM(
+        const ModelPart& rModelPart,
+        const ModelPart& rModelPartWithElementsToInclude,
+        std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
+    /**
      * @brief Return the a minimum condition for each HROM submodelpart
      * This function loops the HROM mesh submodelparts and checks if there is at least a minimum condition
      * for each submodelpart in the HROM condition weights. If there are no conditions it adds a null weight

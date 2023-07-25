@@ -50,6 +50,8 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("SetHRomComputingModelPart", &RomAuxiliaryUtilities::SetHRomComputingModelPart)
         .def_static("SetHRomVolumetricVisualizationModelPart", &RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart)
         .def_static("GetHRomConditionParentsIds", &RomAuxiliaryUtilities::GetHRomConditionParentsIds)
+        .def_static("AddModelPartConditionsToHROM", &RomAuxiliaryUtilities::AddModelPartConditionsToHROM)
+        .def_static("AddModelPartElementsToHROM", &RomAuxiliaryUtilities::AddModelPartElementsToHROM)
         .def_static("GetHRomMinimumConditionsIds", &RomAuxiliaryUtilities::GetHRomMinimumConditionsIds)
         .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
         ;
