@@ -89,6 +89,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
             r_geometry[i].Set(SLIP);
             r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0; // flag for penalty-based slip cond
             r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_unit_normal;
+            r_geometry[i].FastGetSolutionStepValue(NORMAL_REACTION, 1) += Variables.N[i] * m_normal_reaction;
             r_geometry[i].UnSetLock();
         }
     }
@@ -268,15 +269,37 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
         GeometryType& r_geometry = GetGeometry();
         const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
-        // Here MPC normal vector and IS_STRUCTURE are reset
-        // reset flags on nodes because material pt. can move to a different grid element in the next timestep
+        // Prepare variables
+        GeneralVariables Variables;
+        const double & r_mpc_area = this->GetIntegrationWeight();
+        MPMShapeFunctionPointValues(Variables.N);
+
+        // Reset normal reaction
+        m_normal_reaction = 0.0;
+
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
+            // Here MPC normal vector and IS_STRUCTURE are reset
             r_geometry[i].SetLock();
             r_geometry[i].Reset(SLIP);
             r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 0.0;
             r_geometry[i].FastGetSolutionStepValue(NORMAL).clear();
             r_geometry[i].UnSetLock();
+
+            // Interpolate the nodal normal reaction to mpc assuming linear shape function
+
+            // Check whether there is material point inside the node
+            const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
+            double nodal_area  = 0.0;
+            if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
+                nodal_area= r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
+
+            const double nodal_normal_reaction = r_geometry[i].FastGetSolutionStepValue(NORMAL_REACTION);
+
+            if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
+            {
+                m_normal_reaction += Variables.N[i] * nodal_normal_reaction * r_mpc_area / nodal_area;
+            }
         }
     }
 
@@ -338,8 +361,6 @@ void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Va
 
     if (rVariable == PENALTY_FACTOR) {
         rValues[0] = m_penalty;
-    } else if (rVariable == NORMAL_REACTION){
-//        rValues[0] = m_prev_normal_force;
     }
     else {
         MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
@@ -379,8 +400,6 @@ void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(const Va
 
     if (rVariable == PENALTY_FACTOR) {
         m_penalty = rValues[0];
-    }  else if (rVariable == NORMAL_REACTION){
-//        m_prev_normal_force = rValues[0];
     }
     else {
         MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(

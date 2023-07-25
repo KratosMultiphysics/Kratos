@@ -253,6 +253,43 @@ public:
             if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
         }
 
+
+        // recompute in very first timestep if friction is set [FLAG_VARIABLE == 1.0]
+        if (BaseType::GetModelPart().GetProcessInfo()[FLAG_VARIABLE] == 1.0){
+
+            // Indicates that friction is active + pre-computation in 1st timestep is complete
+            BaseType::GetModelPart().GetProcessInfo()[FLAG_VARIABLE] = -2.0;
+
+            // Transfer NORMAL_REACTION into a 'previous' timestep
+            // [since friction algorithm requires values of normal forces at the 'previous' timestep]
+            for (Node &curr_node : BaseType::GetModelPart().Nodes()){
+                curr_node.SetLock();
+                curr_node.FastGetSolutionStepValue(NORMAL_REACTION, 1) = curr_node.FastGetSolutionStepValue(NORMAL_REACTION, 0);
+                curr_node.UnSetLock();
+            }
+
+            is_converged=false;
+
+            KRATOS_INFO("") << "\n";
+            KRATOS_INFO("MPMNewtonRaphsonStrategy") << "Running another Newton-Rhapson loop for friction" << std::endl;
+
+
+            // Reset iteration_number and run another loop
+            iteration_number = 1;
+            while (is_converged == false &&
+                   iteration_number++ < this->mMaxIterationNumber)
+            {
+                SolveSolutionStepIteration(p_scheme, p_builder_and_solver, rA, rDx, rb,
+                                           r_dof_set, iteration_number, is_converged);
+            }
+
+            // Plot a warning if the maximum number of iterations is exceeded
+            if (iteration_number >= this->mMaxIterationNumber && BaseType::GetModelPart().GetCommunicator().MyPID() == 0)
+            {
+                if (this->GetEchoLevel() > 1) this->MaxIterationsExceeded();
+            }
+        }
+
         return is_converged;
     }
 
@@ -313,10 +350,10 @@ private:
         }
 
         // Updating the results stored in the database
-            r_dof_set = p_builder_and_solver->GetDofSet();
+        r_dof_set = p_builder_and_solver->GetDofSet();
 
         p_scheme->Update(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);
-            p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
+        p_scheme->FinalizeNonLinIteration(BaseType::GetModelPart(), rA, rDx, rb);
 
         // Move the mesh if needed
             if (BaseType::MoveMeshFlag() == true) BaseType::MoveMesh();
@@ -327,9 +364,7 @@ private:
                 if (this->mpConvergenceCriteria->GetActualizeRHSflag() == true)
                 {
                     TSparseSpace::SetToZero(rb);
-                    MPMBoundaryRotationUtility<LocalSystemMatrixType, LocalSystemVectorType>::ClearFrictionFlag(BaseType::GetModelPart());
                     p_builder_and_solver->BuildRHS(p_scheme, BaseType::GetModelPart(), rb);
-
                 }
 
                 is_converged = this->mpConvergenceCriteria->PostCriteria(BaseType::GetModelPart(), r_dof_set, rA, rDx, rb);

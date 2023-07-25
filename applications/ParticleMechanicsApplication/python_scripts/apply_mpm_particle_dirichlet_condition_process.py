@@ -81,6 +81,10 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
 
         # get friction parameters
         self.friction_coefficient = settings["friction_coefficient"].GetDouble()
+        if self.friction_coefficient > 0 and self.is_slip_boundary:
+            # friction active -- set flag on ProcessInfo
+            self.model_part.ProcessInfo[KratosMultiphysics.FLAG_VARIABLE] = 1.0
+
 
         # get variable imposed and check
         variable_name = settings["variable_name"].GetString()

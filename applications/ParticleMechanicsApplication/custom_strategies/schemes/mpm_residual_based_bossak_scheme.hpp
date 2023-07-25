@@ -279,6 +279,7 @@ public:
         BossakBaseType::InitializeNonLinIteration(rModelPart, rA, rDx, rb);
 
         mRotationTool.ClearFrictionFlag(mGridModelPart);
+        mRotationTool.AssignFrictionState(mGridModelPart);
     }
 
     // Clear friction-related flags so that RHS can be properly constructed for current iteration
@@ -289,6 +290,7 @@ public:
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
 
         mRotationTool.ClearFrictionFlag(mGridModelPart);
+        mRotationTool.AssignFrictionState(mGridModelPart);
     }
 
     /**
@@ -327,6 +329,8 @@ public:
             double & r_nodal_old_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
             double & r_nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE);
 
+            double & r_nodal_old_normal_reaction = (i)->FastGetSolutionStepValue(NORMAL_REACTION,1);
+
             // Clear
             r_nodal_mass = 0.0;
             r_nodal_momentum.clear();
@@ -337,6 +341,8 @@ public:
             r_nodal_acceleration.clear();
             r_nodal_old_pressure = 0.0;
             r_nodal_pressure = 0.0;
+
+            r_nodal_old_normal_reaction = 0.0;
 
             // Other additional variables
             if ((i)->SolutionStepsDataHas(NODAL_AREA)){
@@ -509,7 +515,7 @@ public:
 
         // Rotate contributions (to match coordinates for slip conditions)
         mRotationTool.Rotate(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
-        mRotationTool.ConditionApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry());
+        mRotationTool.ConditionApplySlipCondition(LHS_Contribution,RHS_Contribution,rCurrentCondition.GetGeometry(),rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -543,7 +549,7 @@ public:
 
         // Rotate contributions (to match coordinates for slip conditions)
         mRotationTool.RotateRHS(RHS_Contribution,rCurrentCondition.GetGeometry());
-        mRotationTool.ConditionApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry());
+        mRotationTool.ConditionApplySlipCondition(RHS_Contribution,rCurrentCondition.GetGeometry(),rCurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }

@@ -115,6 +115,9 @@ void MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(const Varia
     if (rVariable == FRICTION_COEFFICIENT) {
         rValues[0] = m_friction_coefficient;
     }
+    else if (rVariable == NORMAL_REACTION) {
+        rValues[0] = m_normal_reaction;
+    }
     else {
         MPMParticleBaseCondition::SetValuesOnIntegrationPoints(
             rVariable, rValues, rCurrentProcessInfo);
@@ -156,6 +159,9 @@ void MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
 
     if (rVariable == FRICTION_COEFFICIENT) {
         m_friction_coefficient = rValues[0];
+    }
+    else if (rVariable == NORMAL_REACTION) {
+        m_normal_reaction = rValues[0];
     }
     else {
         MPMParticleBaseCondition::SetValuesOnIntegrationPoints(

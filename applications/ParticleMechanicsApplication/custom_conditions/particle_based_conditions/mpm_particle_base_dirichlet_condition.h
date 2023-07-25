@@ -144,6 +144,7 @@ protected:
     array_1d<double, 3> m_imposed_acceleration;
 
     double m_friction_coefficient = 0.0;
+    double m_normal_reaction = 0.0;
 
     ///@}
     ///@name Protected Operations
@@ -167,6 +168,7 @@ private:
         rSerializer.save("imposed_velocity",m_imposed_velocity);
         rSerializer.save("imposed_acceleration",m_imposed_acceleration);
         rSerializer.save("friction_coefficient", m_friction_coefficient);
+        rSerializer.save("normal_reaction", m_normal_reaction);
     }
 
     void load( Serializer& rSerializer ) override
@@ -176,6 +178,7 @@ private:
         rSerializer.load("imposed_velocity",m_imposed_velocity);
         rSerializer.load("imposed_acceleration",m_imposed_acceleration);
         rSerializer.load("friction_coefficient", m_friction_coefficient);
+        rSerializer.load("normal_reaction", m_normal_reaction);
     }
 
     ///@}
