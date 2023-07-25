@@ -112,6 +112,16 @@ public:
     {
         return 1;
     }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType&)
+    {
+        return {};
+    }
+
+    inline bool Resize(MessageDataType&, const std::vector<unsigned int>&)
+    {
+        return false;
+    }
 };
 
 template<class TDataType, std::size_t Dimension> class MPIMessage<array_1d<TDataType, Dimension>>
@@ -139,6 +149,16 @@ public:
     inline int Size(const MessageDataType& rValues)
     {
         return Dimension;
+    }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType&)
+    {
+        return {static_cast<unsigned int>(Dimension)};
+    }
+
+    inline bool Resize(MessageDataType&, const std::vector<unsigned int>&)
+    {
+        return false;
     }
 };
 
@@ -168,6 +188,23 @@ public:
     {
         return rValues.size();
     }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType& rValues)
+    {
+        return {static_cast<unsigned int>(rValues.size())};
+    }
+
+    inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_ERROR_IF_NOT(rShape.size() != 1) << "Invalid shape provided for std::string.";
+
+        if (rValues.size() != rShape[0]) {
+            rValues.resize(rShape[0]);
+            return true;
+        }
+
+        return false;
+    }
 };
 
 template<> class MPIMessage<Vector>
@@ -195,6 +232,23 @@ public:
     inline int Size(const MessageDataType& rValues)
     {
         return rValues.size();
+    }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType& rValues)
+    {
+        return {static_cast<unsigned int>(rValues.size())};
+    }
+
+    inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_ERROR_IF_NOT(rShape.size() != 1) << "Invalid shape provided for Vector.";
+
+        if (rValues.size() != rShape[0]) {
+            rValues.resize(rShape[0], false);
+            return true;
+        }
+
+        return false;
     }
 };
 
@@ -224,6 +278,23 @@ public:
     {
         return rValues.size1() * rValues.size1();
     }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType& rValues)
+    {
+        return {static_cast<unsigned int>(rValues.size1()), static_cast<unsigned int>(rValues.size2())};
+    }
+
+    inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_ERROR_IF_NOT(rShape.size() != 2) << "Invalid shape provided for Matrix.";
+
+        if (rValues.size1() != rShape[0] || rValues.size2() != rShape[1]) {
+            rValues.resize(rShape[0], rShape[0], false);
+            return true;
+        }
+
+        return false;
+    }
 };
 
 template<class TDataType> class MPIMessage<std::vector<TDataType>>
@@ -251,6 +322,23 @@ public:
     inline int Size(const MessageDataType& rValue)
     {
         return rValue.size();
+    }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType& rValues)
+    {
+        return {static_cast<unsigned int>(rValues.size())};
+    }
+
+    inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_ERROR_IF_NOT(rShape.size() != 1) << "Invalid shape provided for std::vector.";
+
+        if (rValues.size() != rShape[0]) {
+            rValues.resize(rShape[0]);
+            return true;
+        }
+
+        return false;
     }
 };
 
