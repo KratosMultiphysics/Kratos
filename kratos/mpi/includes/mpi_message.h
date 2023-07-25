@@ -350,6 +350,47 @@ public:
     }
 };
 
+template<> class MPIMessage<Flags::BlockType>
+{
+public:
+    using MessageDataType = Flags::BlockType;
+
+    static inline MPI_Datatype DataType()
+    {
+        return Internals::MPIDataType<bool>::DataType();
+    }
+
+    static inline void* Buffer(MessageDataType& rValues)
+    {
+        return &rValues;
+    }
+
+    static inline const void* Buffer(const MessageDataType& rValues)
+    {
+        return &rValues;
+    }
+
+    static inline int Size(const MessageDataType& rValues)
+    {
+        return 1;
+    }
+
+    static inline std::vector<unsigned int> Shape(const MessageDataType& rValues)
+    {
+        return {};
+    }
+
+    static inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
+    {
+        return false;
+    }
+
+    static constexpr bool IsContiguous()
+    {
+        return true;
+    }
+};
+
 // template<> class MPIMessage<int>: public Internals::ValueMessage<int>, public Internals::MPIDataType<int> {};
 // template<> class MPIMessage<unsigned int>: public Internals::ValueMessage<unsigned int>, public Internals::MPIDataType<unsigned int> {};
 // template<> class MPIMessage<long unsigned int>: public Internals::ValueMessage<long unsigned int>, public Internals::MPIDataType<long unsigned int> {};
