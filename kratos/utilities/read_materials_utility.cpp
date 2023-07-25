@@ -342,8 +342,8 @@ void ReadMaterialsUtility::AssignAccessorsToProperty(
 {
     KRATOS_TRY;
 
-    if (MaterialData.Has("Accessors")) {
-        Parameters accessors = MaterialData["Accessors"];
+    if (MaterialData.Has("accessors")) {
+        Parameters accessors = MaterialData["accessors"];
 
         for (auto iter = accessors.begin(); iter != accessors.end(); ++iter) {
             auto accessor_param = accessors.GetValue(iter.name());
