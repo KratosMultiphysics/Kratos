@@ -33,6 +33,17 @@
     << ": The sizes of the local and distributed buffers do not match." << std::endl;
 #endif
 
+// Shape synchronization methods. Only usefull in the case of
+// dynamic data types. IF synchronization changes the shape of the given value
+// true is returned, otherwise false is returned.
+
+#ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(...)   \
+virtual bool SynchronizeShape(__VA_ARGS__& rValue) const { return false; }              \
+virtual bool SynchronizeShape(std::vector<__VA_ARGS__>& rValue) const { return false; } \
+
+#endif
+
 // Methods based on MPI_Reduce, supporting sum, max or min operations.
 /* Variants for each method are provided, either returning the reduced value or filling a provided vector buffer.
  * The returned value is only meaningful on the Root rank.
@@ -407,6 +418,19 @@ class KRATOS_API(KRATOS_CORE) DataCommunicator
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 9>)
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Vector)
     KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Matrix)
+
+    // Synchronization interface
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(int)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(unsigned int)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(long unsigned int)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(double)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(char)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(Vector)
+    KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(Matrix)
 
     virtual bool AndReduce(
         const bool Value,

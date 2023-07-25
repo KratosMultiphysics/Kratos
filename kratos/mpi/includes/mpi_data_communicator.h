@@ -23,6 +23,17 @@
 #include "includes/define.h"
 #include "includes/data_communicator.h"
 
+// Shape synchronization methods. Only usefull in the case of
+// dynamic data types. IF synchronization changes the shape of the given value
+// true is returned, otherwise false is returned.
+
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(...)    \
+bool SynchronizeShape(__VA_ARGS__& rValue) const override                               \
+bool SynchronizeShape(std::vector<__VA_ARGS__>& rValue) const override                  \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(type)                                      \
 type Sum(const type rLocalValue, const int Root) const override;                                                  \
@@ -234,6 +245,18 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Vector)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Matrix)
 
+    // KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(int)
+    // KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(unsigned int)
+    // KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(long unsigned int)
+    // KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(double)
+    // KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(char)
+    // KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+    // KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+    // KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+    // KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+    // KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(Vector)
+    // KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(Matrix)
+
     bool AndReduce(
         const bool Value,
         const int Root) const override;
@@ -349,6 +372,8 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     ///@{
 
     void CheckMPIErrorCode(const int ierr, const std::string& MPICallName) const;
+
+    template<class TDataType>  bool SynchronizeShapeDetail(TDataType& rValue) const;
 
     template<class TDataType> void ReduceDetail(
         const TDataType& rLocalValues,

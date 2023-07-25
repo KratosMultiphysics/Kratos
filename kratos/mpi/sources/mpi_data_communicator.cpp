@@ -16,6 +16,13 @@
 #include "mpi/includes/mpi_manager.h"
 #include "mpi/includes/mpi_message.h"
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNCHRONIZATION_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(...)                                 \
+bool MPIDataCommunicator::SynchronizeShape(__VA_ARGS__& rValue) const { return SynchronizeShapeDetail(rValue); }    \
+bool SynchronizeShape(std::vector<__VA_ARGS__>& rValue) const { return SynchronizeShapeDetail(rValue); }            \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(type)                                 \
 type MPIDataCommunicator::Sum(const type rLocalValue, const int Root) const {                               \
@@ -548,6 +555,13 @@ void MPIDataCommunicator::RecvImpl(std::string& rRecvValues, const int RecvSourc
 }
 
 // Implementation details of MPI calls
+
+template<class TDataType>  bool MPIDataCommunicator::SynchronizeShapeDetail(TDataType& rValue) const
+{
+    // if constexpr(std::is_arithmetic_v<TDataType>) {
+    //     return false;
+    // } else if (std::is_)
+}
 
 template<class TDataType> void MPIDataCommunicator::ReduceDetail(
     const TDataType& rLocalValues, TDataType& rReducedValues,
