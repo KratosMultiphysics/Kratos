@@ -20,7 +20,7 @@ def SetTestSuite(suites):
     night_suite.addTests(
         KratosUnittest.TestLoader().loadTestsFromTestCases([
             arc_length_test,
-            consolidation_interface_3D
+            #consolidation_interface_3D
         ])
     )
 

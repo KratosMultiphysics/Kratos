@@ -22,9 +22,11 @@
 
 // Project includes
 #include "geometries/geometry.h"
+#include "geometries/line_3d_2.h"
 #include "integration/line_gauss_legendre_integration_points.h"
 #include "integration/line_collocation_integration_points.h"
 #include "utilities/integration_utilities.h"
+#include "utilities/polynomial_utilities.h"
 
 namespace Kratos
 {
@@ -602,6 +604,91 @@ public:
         rResult( 0, 0 ) = -1.0;
         rResult( 1, 0 ) =  1.0;
         rResult( 2, 0 ) =  0.0;
+        return rResult;
+    }
+
+    /**
+     * @brief Returns the local coordinates of a given arbitrary point
+     * @param rResult The vector containing the local coordinates of the point
+     * @param rPoint The point in global coordinates
+     * @return The vector containing the local coordinates of the point
+     */
+    CoordinatesArrayType& PointLocalCoordinates(
+            CoordinatesArrayType& rResult,
+            const CoordinatesArrayType& rPoint
+            ) const override
+    {
+        // Define distance_objective as the gradient of ||point - global_coordinate(xi)||**2,
+        // that is (point - local_coordinate(xi))*coordinate_derivative(xi) (times -2, which we ignore)
+        // The zeros of the distance_objective are local extremes of the distance between point and line
+        // We will get the zeros contained in the interval [-1, 1] (if any). If, for any of these zeros,
+        // the point is on the line, the local coordinate is our result.
+        rResult.clear();
+
+        constexpr double TOLERANCE = 1e-12;
+
+        const auto& r_p0 = this->GetPoint(0);
+        const auto& r_p1 = this->GetPoint(1);
+        const auto& r_p2 = this->GetPoint(2);
+
+        // The method is prone to numerical instability close to the ends of the search interval
+        // exit early in that case
+        const array_1d<double,3> d0 = r_p0 - rPoint;
+        if (MathUtils<double>::Dot3(d0, d0) < TOLERANCE) {
+            rResult[0] = -1.0;
+            return rResult;
+        }
+        const array_1d<double,3> d1 = r_p1 - rPoint;
+        if (MathUtils<double>::Dot3(d1, d1) < TOLERANCE) {
+            rResult[0] = 1.0;
+            return rResult;
+        }
+
+        array_1d<double, 3> c1 = r_p0 + r_p1 - 2*r_p2;
+        array_1d<double, 3> c2 = r_p1 - r_p0;
+        array_1d<double, 3> c3 = r_p2 - rPoint;
+
+        const double aux1 = MathUtils<double>::Dot3(c1, c1);
+        if (aux1 < TOLERANCE) {
+            // The geometry is a straight line, fall back to Line3D2.h
+            auto line = Line3D2<TPointType>(
+                this->pGetPoint(0), this->pGetPoint(1));
+            return line.PointLocalCoordinates(rResult, rPoint);
+        }
+
+        const double aux2 = MathUtils<double>::Dot3(c1, c3);
+        if (std::abs(aux2) < TOLERANCE) {
+            // r_p2 == rPoint (we got the center of the line),
+            //the local coordinate is 0
+            return rResult;
+        }
+
+        PolynomialUtilities::PolynomialType distance_objective{
+            0.5 * aux1,
+            0.75 * MathUtils<double>::Dot3(c1, c2),
+            0.25 * MathUtils<double>::Dot3(c2, c2) + aux2,
+            0.5 * MathUtils<double>::Dot3(c2, c3)
+        };
+
+        std::vector<PolynomialUtilities::IntervalType> root_ranges;
+        PolynomialUtilities::IsolateRoots(
+            root_ranges, distance_objective,
+            PolynomialUtilities::IntervalType{-1,1});
+
+        Vector shape;
+        for (const auto& interval: root_ranges) {
+            double root = PolynomialUtilities::FindRoot(distance_objective, interval);
+            // if point == line(root) we found our coordinate;
+            rResult[0] = root;
+            this->ShapeFunctionsValues(shape, rResult);
+            array_1d<double,3> d = (shape[0]*r_p0 + shape[1]*r_p1 + shape[2]*r_p2) - rPoint;
+            if (MathUtils<double>::Dot3(d, d) < TOLERANCE) {
+                return rResult;
+            }
+        }
+
+        // No points in the interval [-1,1] correspond to our local coordinate
+        rResult[0] = 2.0;
         return rResult;
     }
 

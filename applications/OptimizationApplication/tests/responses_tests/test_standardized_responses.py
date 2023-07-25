@@ -53,18 +53,17 @@ class TestStandardizedComponent(kratos_unittest.TestCase):
         cls.properties_control.Initialize()
 
         cls.initial_configuration = cls.master_control.GetEmptyField()
-        cls.initial_configuration.Read(Kratos.DENSITY)
+        KratosOA.CollectiveExpressionIO.Read(cls.initial_configuration, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
 
     def _CheckSensitivity(self, standardized_component: Union[StandardizedObjective, StandardizedConstraint], delta: float, precision: int):
         self.optimization_problem.AdvanceStep()
         ref_value = standardized_component.CalculateStandardizedValue(self.initial_configuration)
         gradients = standardized_component.CalculateStandardizedGradient()
-        gradients.Evaluate(Kratos.YOUNG_MODULUS)
+        KratosOA.CollectiveExpressionIO.Write(gradients, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.YOUNG_MODULUS))
 
-        current_configuration = self.master_control.GetEmptyField()
         for element in self.model_part.Elements:
             element.Properties[Kratos.DENSITY] += delta
-            current_configuration.Read(Kratos.DENSITY)
+            current_configuration = self.master_control.GetControlField()
             value = standardized_component.CalculateStandardizedValue(current_configuration, False)
             sensitivity = (value - ref_value)/delta
             element.Properties[Kratos.DENSITY] -= delta

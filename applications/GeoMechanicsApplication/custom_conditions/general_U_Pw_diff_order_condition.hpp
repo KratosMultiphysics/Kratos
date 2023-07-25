@@ -60,9 +60,6 @@ public:
         : Condition(NewId, pGeometry, pProperties)
     {}
 
-    // Destructor
-    virtual ~GeneralUPwDiffOrderCondition();
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,

@@ -34,17 +34,30 @@ namespace Kratos
         /* ELEMENTS */
         mHelmholtzSurfShape3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
         mHelmholtzSurfThickness3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
-        mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
-        mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
-        mAdjointSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4))),Element::Pointer() ),
+        mHelmholtzBulkShape3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzBulkTopology3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mAdjointSmallDisplacementElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4))),Element::Pointer() ),
+        // Helmholtz elements
+        mHelmholtzSurfaceElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+        mHelmholtzSurfaceElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzVectorSurfaceElement3D3N(0, Element::GeometryType::Pointer(new Triangle3D3<NodeType >(Element::GeometryType::PointsArrayType(3)))),
+        mHelmholtzVectorSurfaceElement3D4N(0, Element::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzSolidElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzSolidElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node>(Element::GeometryType::PointsArrayType(8)))),
+        mHelmholtzVectorSolidElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzVectorSolidElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node>(Element::GeometryType::PointsArrayType(8)))),
+        mHelmholtzSolidShapeElement3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node>(Element::GeometryType::PointsArrayType(4)))),
+        mHelmholtzSolidShapeElement3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node>(Element::GeometryType::PointsArrayType(8)))),
         /* CONDITIONS */
-        mHelmholtzSurfShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3))))
+        mHelmholtzSurfShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+        mHelmholtzSurfaceShapeCondition3D3N(0, Condition::GeometryType::Pointer(new Triangle3D3<NodeType >(Condition::GeometryType::PointsArrayType(3)))),
+        mHelmholtzSurfaceShapeCondition3D4N(0, Condition::GeometryType::Pointer(new Quadrilateral3D4<NodeType >(Condition::GeometryType::PointsArrayType(4))))
     {}
 
  	void KratosOptimizationApplication::Register()
  	{
 
-        KRATOS_INFO("") << "_______        ____________             \n"       
+        KRATOS_INFO("") << "_______        ____________             \n"
                         << "__  __ \\_________  /___    |_______________             \n"
                         << "_  / / /__  __ \\  __/_  /| |__  __ \\__  __ \\            \n"
                         << "/ /_/ /__  /_/ / /_ _  ___ |_  /_/ /_  /_/ /            \n"
@@ -93,7 +106,6 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(D_INTERFACE_D_CD);
         KRATOS_REGISTER_VARIABLE(D_PARTITION_MASS_D_FD);
         KRATOS_REGISTER_VARIABLE(D_PARTITION_MASS_D_CD);
-
 
         //symmetry plane
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(D_PLANE_SYMMETRY_D_X);
@@ -169,7 +181,16 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE(HELMHOLTZ_RADIUS_DENSITY);
         KRATOS_REGISTER_VARIABLE(COMPUTE_CONTROL_DENSITIES);
 
-        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(SHAPE);
+        // For helholtz solvers
+        KRATOS_REGISTER_VARIABLE(COMPUTE_HELMHOLTZ_INVERSE);
+        KRATOS_REGISTER_VARIABLE(HELMHOLTZ_INTEGRATED_FIELD);
+        KRATOS_REGISTER_VARIABLE(HELMHOLTZ_RADIUS);
+        KRATOS_REGISTER_VARIABLE(HELMHOLTZ_SCALAR);
+        KRATOS_REGISTER_VARIABLE(HELMHOLTZ_SCALAR_SOURCE);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( HELMHOLTZ_VECTOR);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( HELMHOLTZ_VECTOR_SOURCE);
+
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(SHAPE);
         KRATOS_REGISTER_VARIABLE(CROSS_AREA);
         KRATOS_REGISTER_VARIABLE(DENSITY_SENSITIVITY);
         KRATOS_REGISTER_VARIABLE(THICKNESS_SENSITIVITY);
@@ -182,10 +203,12 @@ namespace Kratos
         // at any point of time in an analysis.
         // Hence, not recommended to be used for calculations
         // unless existing values on those variables are not of interest
-        KRATOS_CREATE_VARIABLE(double, TEMPORARY_SCALAR_VARIABLE_1);
-        KRATOS_CREATE_VARIABLE(double, TEMPORARY_SCALAR_VARIABLE_2);
-        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TEMPORARY_ARRAY3_VARIABLE_1);
-        KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(TEMPORARY_ARRAY3_VARIABLE_2);
+        KRATOS_REGISTER_VARIABLE(TEMPORARY_SCALAR_VARIABLE_1);
+        KRATOS_REGISTER_VARIABLE(TEMPORARY_SCALAR_VARIABLE_2);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TEMPORARY_ARRAY3_VARIABLE_1);
+        KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(TEMPORARY_ARRAY3_VARIABLE_2);
+
+        KRATOS_REGISTER_VARIABLE(MODEL_PART_STATUS);
 
         // Shape optimization elements
         KRATOS_REGISTER_ELEMENT("HelmholtzSurfShape3D3N", mHelmholtzSurfShape3D3N);
@@ -193,6 +216,22 @@ namespace Kratos
 
         // Topology optimization elements
         KRATOS_REGISTER_ELEMENT("HelmholtzBulkTopology3D4N", mHelmholtzBulkTopology3D4N);
+
+        // Register the helmholtz elements
+		KRATOS_REGISTER_ELEMENT("HelmholtzSurfaceElement3D3N", mHelmholtzSurfaceElement3D3N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzSurfaceElement3D4N", mHelmholtzSurfaceElement3D4N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzVectorSurfaceElement3D3N", mHelmholtzVectorSurfaceElement3D3N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzVectorSurfaceElement3D4N", mHelmholtzVectorSurfaceElement3D4N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzSolidElement3D4N", mHelmholtzSolidElement3D4N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzSolidElement3D8N", mHelmholtzSolidElement3D8N);
+	    KRATOS_REGISTER_ELEMENT("HelmholtzVectorSolidElement3D4N", mHelmholtzVectorSolidElement3D4N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzVectorSolidElement3D8N", mHelmholtzVectorSolidElement3D8N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzSolidShapeElement3D4N", mHelmholtzSolidShapeElement3D4N);
+		KRATOS_REGISTER_ELEMENT("HelmholtzSolidShapeElement3D8N", mHelmholtzSolidShapeElement3D8N);
+
+        // Register the helmholtz conditions
+		KRATOS_REGISTER_CONDITION("HelmholtzSurfaceShapeCondition3D3N", mHelmholtzSurfaceShapeCondition3D3N);
+		KRATOS_REGISTER_CONDITION("HelmholtzSurfaceShapeCondition3D4N", mHelmholtzSurfaceShapeCondition3D4N);
 
         // Adjoint elements
         KRATOS_REGISTER_ELEMENT("AdjointSmallDisplacementElement3D4N", mAdjointSmallDisplacementElement3D4N);
@@ -205,6 +244,10 @@ namespace Kratos
 
         // Shape optimization conditions
         KRATOS_REGISTER_CONDITION("HelmholtzSurfShapeCondition3D3N", mHelmholtzSurfShapeCondition3D3N);
+
+        // Register linear elastics laws
+        KRATOS_REGISTER_CONSTITUTIVE_LAW("HelmholtzJacobianStiffened3D", mHelmholtzJacobianStiffened3D);
+
  	}
 
 }  // namespace Kratos.
