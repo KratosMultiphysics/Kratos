@@ -65,6 +65,9 @@ endif()
 
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
+if(KRATOS_BUILD_TESTING MATCHES ON)     
+  enable_testing()
+endif(KRATOS_BUILD_TESTING MATCHES ON) 
 
 # If no pch policy disable by default
 option(KRATOS_USE_PCH "KRATOS_USE_PCH defines if pch will be used during the compilation. This may will decrease compilation for clean build or if core components are touched. Default setting is OFF" OFF)
