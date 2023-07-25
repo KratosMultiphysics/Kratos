@@ -71,6 +71,59 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFromKratosComponents, K
     KRATOS_CHECK_EQUAL(r_world.IsDistributed(), true);
 }
 
+// SynchronizeShape ///////////////////////////////////////////////////////////
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSynchronizeDouble, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    double local = 2.0;
+    KRATOS_CHECK_IS_FALSE(mpi_world_communicator.SynchronizeShape(local));
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSynchronizeArray1d, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    array_1d<double, 3> local{1, 2, 3};
+    KRATOS_CHECK_IS_FALSE(mpi_world_communicator.SynchronizeShape(local));
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSynchronizeVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+
+    Vector local(world_rank + 1, world_rank);
+    const auto is_resized = mpi_world_communicator.SynchronizeShape(local);
+
+    if (world_rank + 1 == world_size) {
+        KRATOS_CHECK_IS_FALSE(is_resized);
+    } else {
+        KRATOS_CHECK(is_resized);
+    }
+
+    KRATOS_CHECK_EQUAL(local.size(), world_size);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSynchronizeMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+
+    Matrix local(world_rank + 1, world_rank + 1, world_rank);
+    const auto is_resized = mpi_world_communicator.SynchronizeShape(local);
+
+    if (world_rank + 1 == world_size) {
+        KRATOS_CHECK_IS_FALSE(is_resized);
+    } else {
+        KRATOS_CHECK(is_resized);
+    }
+
+    KRATOS_CHECK_EQUAL(local.size1(), world_size);
+    KRATOS_CHECK_EQUAL(local.size2(), world_size);
+}
+
 // Sum ////////////////////////////////////////////////////////////////////////
 
 namespace {
@@ -1246,7 +1299,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVectorDouble, Kr
 // SendRecv ///////////////////////////////////////////////////////////////////
 
 namespace {
-template<typename T> 
+template<typename T>
 void MPIDataCommunicatorSendRecvIntegralTypeTest()
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -1287,7 +1340,7 @@ void MPIDataCommunicatorSendRecvIntegralTypeTest()
     }
 }
 
-template<typename T> 
+template<typename T>
 void MPIDataCommunicatorSendAndRecvIntegralTypeTest()
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
