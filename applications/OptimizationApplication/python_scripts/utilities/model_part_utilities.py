@@ -53,7 +53,7 @@ class ModelPartOperation:
         if self.root_model_part.HasSubModelPart(self.suggested_model_part_name):
             # this means, it already has a model part with suggeted name, but
             # it does not match the operation identifier. So throw an error
-            raise RuntimeError(f"Found an already existing submodel part named \"{self.suggested_model_part_name}\" in {self.root_model_part.FullName()} without the required operation identifier = \"{operation_identifier}\".")
+            raise RuntimeError(f"Found an already existing submodel part named \"{self.suggested_model_part_name}\" in {self.root_model_part.FullName()} without the required operation identifier = \"{status_msg_suffix}\".")
 
         self.status_msg = f"{status_msg_prefix}{self.suggested_model_part_name}{status_msg_suffix}"
         KratosOA.ModelPartUtils.LogModelPartStatus(self.GetRootModelPart(), self.status_msg)
