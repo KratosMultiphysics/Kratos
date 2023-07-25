@@ -19,6 +19,7 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
             "origin_model_part_file_name" : "NameOfMDPAfile",
             "destination_model_part_name" : "ModelPartName",
             "interpolation_variables_list": [],
+            "constrain_varibles": false,
             "alpha_increment": 0.0,
             "steps_for_full_interpolation": 0.0
         }""")
@@ -27,6 +28,7 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
 
         self.model = model
         self.settings = settings
+        self.constrain_variables = self.settings["constrain_varibles"].GetBool()
         self.alpha_increment = self.settings["alpha_increment"].GetDouble()
         self.steps_for_full_interpolation = self.settings["steps_for_full_interpolation"].GetInt()
 
@@ -53,9 +55,9 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
         destination_model_part_name = self.settings["destination_model_part_name"].GetString()
         self.destination_model_part = self.model.GetModelPart(destination_model_part_name)
 
-        self.InterpolateVelocityWithMA()
+        self.InterpolateVariables()
 
-    def InterpolateVelocityWithMA(self):
+    def InterpolateVariables(self):
         #Import Origin Model Part 
         self.origin_model_part = self.model.CreateModelPart("OriginModelPart")
         for variable in self.destination_model_part.GetHistoricalVariablesNames():
@@ -73,10 +75,16 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
         #Interpolate velocity to destination model part 
         interpolation = KratosMA.NodalValuesInterpolationProcess2D(self.origin_model_part, self.destination_model_part)
         interpolation.Execute()
-        for node in self.destination_model_part.Nodes:
-            for variable in self.interpolation_variables_list:
-                node.SetSolutionStepValue(variable, node.GetValue(variable))
-                node.Fix(variable)
+        if self.constrain_variables:
+            for node in self.destination_model_part.Nodes:
+                for variable in self.interpolation_variables_list:
+                    node.SetSolutionStepValue(variable, node.GetValue(variable))
+                    node.Fix(variable)
+        else:
+            for node in self.destination_model_part.Nodes:
+                for variable in self.interpolation_variables_list:
+                    node.SetSolutionStepValue(variable, node.GetValue(variable))
+
 
     def ExecuteInitializeSolutionStep(self):
         self.old_alpha = self.alpha
@@ -84,7 +92,13 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
             self.old_alpha = self.alpha_increment
         self.alpha += self.alpha_increment
         if self.alpha <= self.expected_alpha:
-            for node in self.destination_model_part.Nodes:
-                for variable in self.interpolation_variables_list:
-                    node.SetSolutionStepValue(variable, self.alpha * node.GetSolutionStepValue(variable) / self.old_alpha)
-                    node.Fix(variable)
+            if self.constrain_variables:
+                for node in self.destination_model_part.Nodes:
+                    for variable in self.interpolation_variables_list:
+                        node.SetSolutionStepValue(variable, self.alpha * node.GetSolutionStepValue(variable) / self.old_alpha)
+                        node.Fix(variable)
+            else:
+                for node in self.destination_model_part.Nodes:
+                    for variable in self.interpolation_variables_list:
+                        node.SetSolutionStepValue(variable, self.alpha * node.GetSolutionStepValue(variable) / self.old_alpha)
+
