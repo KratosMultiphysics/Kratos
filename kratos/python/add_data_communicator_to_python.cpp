@@ -50,6 +50,8 @@ std::vector<TValue> VectorBroadcastWrapper(
     KRATOS_CATCH("")
 }
 
+
+
 void AddDataCommunicatorToPython(pybind11::module &m)
 {
     namespace py = pybind11;
@@ -57,44 +59,44 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     py::class_<DataCommunicator, DataCommunicator::Pointer>(m,"DataCommunicator")
     .def("Barrier", &DataCommunicator::Barrier)
     // Reduce sum
-    .def("Sum", (int (DataCommunicator::*)(const int, const int) const) &DataCommunicator::Sum)
-    .def("Sum", (double (DataCommunicator::*)(const double, const int) const) &DataCommunicator::Sum)
+    .def("Sum", (int (DataCommunicator::*)(const int&, const int) const) &DataCommunicator::Sum)
+    .def("Sum", (double (DataCommunicator::*)(const double&, const int) const) &DataCommunicator::Sum)
     .def("Sum", (array_1d<double,3> (DataCommunicator::*)(const array_1d<double,3>&, const int) const) &DataCommunicator::Sum)
     .def("SumInts", (std::vector<int> (DataCommunicator::*)(const std::vector<int>&, const int) const) &DataCommunicator::Sum)
     .def("SumDoubles", (std::vector<double> (DataCommunicator::*)(const std::vector<double>&, const int) const) &DataCommunicator::Sum)
     // Reduce min
-    .def("Min", (int (DataCommunicator::*)(const int, const int) const) &DataCommunicator::Min)
-    .def("Min", (double (DataCommunicator::*)(const double, const int) const) &DataCommunicator::Min)
+    .def("Min", (int (DataCommunicator::*)(const int&, const int) const) &DataCommunicator::Min)
+    .def("Min", (double (DataCommunicator::*)(const double&, const int) const) &DataCommunicator::Min)
     .def("Min", (array_1d<double,3> (DataCommunicator::*)(const array_1d<double,3>&, const int) const) &DataCommunicator::Min)
     .def("MinInts", (std::vector<int> (DataCommunicator::*)(const std::vector<int>&, const int) const) &DataCommunicator::Min)
     .def("MinDoubles", (std::vector<double> (DataCommunicator::*)(const std::vector<double>&, const int) const) &DataCommunicator::Min)
     // Reduce max
-    .def("Max", (int (DataCommunicator::*)(const int, const int) const) &DataCommunicator::Max)
-    .def("Max", (double (DataCommunicator::*)(const double, const int) const) &DataCommunicator::Max)
+    .def("Max", (int (DataCommunicator::*)(const int&, const int) const) &DataCommunicator::Max)
+    .def("Max", (double (DataCommunicator::*)(const double&, const int) const) &DataCommunicator::Max)
     .def("Max", (array_1d<double,3> (DataCommunicator::*)(const array_1d<double,3>&, const int) const) &DataCommunicator::Max)
     .def("MaxInts", (std::vector<int> (DataCommunicator::*)(const std::vector<int>&, const int) const) &DataCommunicator::Max)
     .def("MaxDoubles", (std::vector<double> (DataCommunicator::*)(const std::vector<double>&, const int) const) &DataCommunicator::Max)
     // Allreduce sum
-    .def("SumAll", (int (DataCommunicator::*)(const int) const) &DataCommunicator::SumAll)
-    .def("SumAll", (double (DataCommunicator::*)(const double) const) &DataCommunicator::SumAll)
+    .def("SumAll", (int (DataCommunicator::*)(const int&) const) &DataCommunicator::SumAll)
+    .def("SumAll", (double (DataCommunicator::*)(const double&) const) &DataCommunicator::SumAll)
     .def("SumAll", (array_1d<double,3> (DataCommunicator::*)(const array_1d<double,3>&) const) &DataCommunicator::SumAll)
     .def("SumAllInts", (std::vector<int> (DataCommunicator::*)(const std::vector<int>&) const) &DataCommunicator::SumAll)
     .def("SumAllDoubles", (std::vector<double> (DataCommunicator::*)(const std::vector<double>&) const) &DataCommunicator::SumAll)
     // Allreduce min
-    .def("MinAll", (int (DataCommunicator::*)(const int) const) &DataCommunicator::MinAll)
-    .def("MinAll", (double (DataCommunicator::*)(const double) const) &DataCommunicator::MinAll)
+    .def("MinAll", (int (DataCommunicator::*)(const int&) const) &DataCommunicator::MinAll)
+    .def("MinAll", (double (DataCommunicator::*)(const double&) const) &DataCommunicator::MinAll)
     .def("MinAll", (array_1d<double,3> (DataCommunicator::*)(const array_1d<double,3>&) const) &DataCommunicator::MinAll)
     .def("MinAllInts", (std::vector<int> (DataCommunicator::*)(const std::vector<int>&) const) &DataCommunicator::MinAll)
     .def("MinAllDoubles", (std::vector<double> (DataCommunicator::*)(const std::vector<double>&) const) &DataCommunicator::MinAll)
     // Allreduce max
-    .def("MaxAll", (int (DataCommunicator::*)(const int) const) &DataCommunicator::MaxAll)
-    .def("MaxAll", (double (DataCommunicator::*)(const double) const) &DataCommunicator::MaxAll)
+    .def("MaxAll", (int (DataCommunicator::*)(const int&) const) &DataCommunicator::MaxAll)
+    .def("MaxAll", (double (DataCommunicator::*)(const double&) const) &DataCommunicator::MaxAll)
     .def("MaxAll", (array_1d<double,3> (DataCommunicator::*)(const array_1d<double,3>&) const) &DataCommunicator::MaxAll)
     .def("MaxAllInts", (std::vector<int> (DataCommunicator::*)(const std::vector<int>&) const) &DataCommunicator::MaxAll)
     .def("MaxAllDoubles", (std::vector<double> (DataCommunicator::*)(const std::vector<double>&) const) &DataCommunicator::MaxAll)
     // ScanSum
-    .def("ScanSum", (int (DataCommunicator::*)(const int) const) &DataCommunicator::ScanSum)
-    .def("ScanSum", (double (DataCommunicator::*)(const double) const) &DataCommunicator::ScanSum)
+    .def("ScanSum", (int (DataCommunicator::*)(const int&) const) &DataCommunicator::ScanSum)
+    .def("ScanSum", (double (DataCommunicator::*)(const double&) const) &DataCommunicator::ScanSum)
     .def("ScanSumInts", (std::vector<int> (DataCommunicator::*)(const std::vector<int>&) const) &DataCommunicator::ScanSum)
     .def("ScanSumDoubles",(std::vector<double> (DataCommunicator::*)(const std::vector<double>&) const) &DataCommunicator::ScanSum)
     // SendRecv
