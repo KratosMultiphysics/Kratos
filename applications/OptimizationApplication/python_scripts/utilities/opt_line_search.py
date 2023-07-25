@@ -12,7 +12,7 @@ def CreateLineSearch(parameters: Kratos.Parameters, optimization_problem: Optimi
     if type == "const_step":
         return ConstStep(parameters, optimization_problem)
     elif type == "BB_step":
-        return BB_Step(parameters, optimization_problem)
+        return BBStep(parameters, optimization_problem)
     else:
         raise RuntimeError(f"CreateConvergenceCriteria: unsupported convergence type {type}.")
 
