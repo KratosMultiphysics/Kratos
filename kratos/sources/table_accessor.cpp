@@ -50,21 +50,21 @@ double TableAccessor::GetValueFromTable(
         const ProcessInfo& rProcessInfo) const
 {
     double independent_at_gauss = 0.0;
-    if (mInputVariableType == static_cast<int>(InputVariableType::NodalHistorical)) {
+    if (mInputVariableType == Globals::DataLocation::NodeHistorical) {
         KRATOS_ERROR_IF_NOT(rGeometry[0].SolutionStepsDataHas(rIndependentVariable)) << "The Variable " << rIndependentVariable.Name() << " is not available at the nodes of the Geometry to retrieve Table values." << std::endl;
         for (SizeType i = 0; i < rShapeFunctionVector.size(); ++i) {
             KRATOS_DEBUG_ERROR_IF_NOT(rGeometry[i].SolutionStepsDataHas(rIndependentVariable)) << "The Variable " << rIndependentVariable.Name() << " is not available at the nodes of the Geometry to retrieve Table values." << std::endl;
             const double nodal_value = rGeometry[i].FastGetSolutionStepValue(rIndependentVariable);
             independent_at_gauss += nodal_value * rShapeFunctionVector[i];
         }
-    } else if (mInputVariableType == static_cast<int>(InputVariableType::NodalNonHistorical)) {
+    } else if (mInputVariableType == Globals::DataLocation::NodeNonHistorical) {
         KRATOS_ERROR_IF_NOT(rGeometry[0].Has(rIndependentVariable)) << "The Variable " << rIndependentVariable.Name() << " is not available at the nodes of the Geometry to retrieve Table values." << std::endl;
         for (SizeType i = 0; i < rShapeFunctionVector.size(); ++i) {
             KRATOS_DEBUG_ERROR_IF_NOT(rGeometry[i].Has(rIndependentVariable)) << "The Variable " << rIndependentVariable.Name() << " is not available at the nodes of the Geometry to retrieve Table values." << std::endl;
             const double nodal_value = rGeometry[i].GetValue(rIndependentVariable);
             independent_at_gauss += nodal_value * rShapeFunctionVector[i];
         }
-    } else if (mInputVariableType == static_cast<int>(InputVariableType::ElementalNonHistorical)) {
+    } else if (mInputVariableType == Globals::DataLocation::Element) {
         KRATOS_ERROR_IF_NOT(rGeometry.Has(rIndependentVariable)) << "The Variable " << rIndependentVariable.Name() << " is not available at the Geometry to retrieve Table values." << std::endl;
         independent_at_gauss = rGeometry.GetValue(rIndependentVariable);
     } else {

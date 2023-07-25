@@ -53,14 +53,9 @@ public:
     /// BaseType
     using BaseType = Accessor;
 
-    using SizeType = std::size_t;
+    using DataLocation = Globals::DataLocation;
 
-    enum class InputVariableType
-    {
-        NodalHistorical = 0,
-        NodalNonHistorical = 1,
-        ElementalNonHistorical = 2
-    };
+    using SizeType = std::size_t;
 
     /// Pointer definition of TableAccessor
     KRATOS_CLASS_POINTER_DEFINITION(TableAccessor);
@@ -75,11 +70,11 @@ public:
     {
         // We initialize the variable type only once
         if (rInputVariableType == "nodal_historical") {
-            mInputVariableType = static_cast<int>(InputVariableType::NodalHistorical);
+            mInputVariableType = Globals::DataLocation::NodeHistorical;
         } else if (rInputVariableType == "nodal_non_historical") {
-            mInputVariableType = static_cast<int>(InputVariableType::NodalNonHistorical);
+            mInputVariableType = Globals::DataLocation::NodeNonHistorical;
         } else if (rInputVariableType == "elemental_non_historical") {
-            mInputVariableType = static_cast<int>(InputVariableType::ElementalNonHistorical);
+            mInputVariableType = Globals::DataLocation::Element;
         } else {
             KRATOS_ERROR << "The table_input_variable_type is incorrect or not supported. Types available are : nodal_historical, nodal_non_historical and elemental_non_historical" << std::endl;
         }
@@ -134,14 +129,6 @@ public:
         return *mpInputVariable;
     }
 
-    /**
-     * @brief Sets the InputVariable to a VariableType
-     */
-    // void SetInputVariableType(const VariableType& rVariable)
-    // {
-    //     mInputVariable = rVariable;
-    // }
-
     // Getting a pointer to the class
     Accessor::UniquePointer Clone() const override;
 
@@ -172,7 +159,7 @@ private:
     ///@{
 
     VariableType* mpInputVariable;
-    int mInputVariableType = 0; // NodalHistorical by default
+    Globals::DataLocation mInputVariableType = Globals::DataLocation::NodeHistorical; // NodalHistorical by default
 
     friend class Serializer;
 
@@ -180,14 +167,14 @@ private:
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
         rSerializer.save("InputVariable", mpInputVariable);
-        rSerializer.save("InputVariableType", mInputVariableType);
+        // rSerializer.save("InputVariableType", mInputVariableType);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
         rSerializer.load("InputVariable", mpInputVariable);
-        rSerializer.load("InputVariableType", mInputVariableType);
+        // rSerializer.load("InputVariableType", mInputVariableType);
     }
 
 
