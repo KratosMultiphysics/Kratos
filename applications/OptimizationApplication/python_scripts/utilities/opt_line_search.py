@@ -62,7 +62,7 @@ class ConstStep():
 
         return info
     
-class BB_Step():
+class BBStep():
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
