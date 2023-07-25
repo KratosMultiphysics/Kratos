@@ -63,6 +63,9 @@ file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+
+    add_executable(KratosCoreTests ${KRATOS_TEST_SOURCES})
+    target_link_libraries(KratosCoreTests KratosCore GTest::gtest_main)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define KratosVersion object
@@ -78,7 +81,7 @@ target_compile_definitions(KratosVersion PRIVATE
 )
 
 ## Define library KratosCore to be included in all of the others
-add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TEST_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
+add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
 set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper)
