@@ -64,12 +64,23 @@ class TestLineSearch(kratos_unittest.TestCase):
     def test_ConstantLineSearchNoneNorm(self):
         line_search_settings = Kratos.Parameters("""{
             "type"              : "const_step",
-            "gradient_scaling": "none",
-            "init_step"          : 3.0
+            "gradient_scaling"  : "none",
+            "init_step"         : 3.0
         }""")
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
         alpha = line_search.ComputeStep()
         self.assertEqual(alpha, 3.0)
+
+    def test_BBStepDefParam(self):
+        line_search_settings = Kratos.Parameters("""{
+            "type"              : "BB_step",
+            "gradient_scaling"  : "inf_norm",
+            "init_step"         : 0.0,
+            "max_step"          : 0.0
+        }""")
+        line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
+        alpha = line_search.ComputeStep()
+        self.assertEqual(alpha, 0.0)
 
     def test_BBStepInfNorm(self):
         line_search_settings = Kratos.Parameters("""{

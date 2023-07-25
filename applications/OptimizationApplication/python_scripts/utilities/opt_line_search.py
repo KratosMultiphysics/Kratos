@@ -16,7 +16,7 @@ def CreateLineSearch(parameters: Kratos.Parameters, optimization_problem: Optimi
     else:
         raise RuntimeError(f"CreateConvergenceCriteria: unsupported convergence type {type}.")
 
-class ConstStep(object):
+class ConstStep():
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
@@ -62,14 +62,14 @@ class ConstStep(object):
 
         return info
     
-class BB_Step(object):
+class BB_Step():
     @classmethod
     def GetDefaultParameters(cls):
         return Kratos.Parameters("""{
             "type"               : "BB_step",
             "init_step"          : 0,
             "max_step"           : 0,
-            "gradient_scaling": ": inf_norm"
+            "gradient_scaling"   : "inf_norm"
         }""")
 
     def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
@@ -102,11 +102,13 @@ class BB_Step(object):
             previous_search_direction = algorithm_buffered_data.GetValue("search_direction", 1)
             y = previous_search_direction - current_search_direction
             d = algorithm_buffered_data.GetValue("control_field_update", 1)
-            if not math.isclose(KratosOA.ExpressionUtils.InnerProduct(d,y), 0.0, abs_tol=1e-16):
-                self.unscaled_step = KratosOA.ExpressionUtils.InnerProduct(d,d) / KratosOA.ExpressionUtils.InnerProduct(d,y)
-            if math.isclose(KratosOA.ExpressionUtils.InnerProduct(d,y), 0.0, abs_tol=1e-16):
+            dy = KratosOA.ExpressionUtils.InnerProduct(d,y)
+            dd = KratosOA.ExpressionUtils.InnerProduct(d,d)
+            if not math.isclose(dy, 0.0, abs_tol=1e-16):
+                self.unscaled_step = dd / dy
+            if math.isclose(dy, 0.0, abs_tol=1e-16):
                 self.unscaled_step = self.max_step
-            if math.isclose(KratosOA.ExpressionUtils.InnerProduct(d,d), 0.0, abs_tol=1e-16):
+            if math.isclose(dd, 0.0, abs_tol=1e-16):
                 self.unscaled_step = 0.0
 
         if not math.isclose(norm, 0.0, abs_tol=1e-16):
