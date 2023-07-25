@@ -211,8 +211,8 @@ class HRomTrainingUtility(object):
             if self.solver.model.HasModelPart(model_part_name):
                 conditions_to_include_model_part = self.solver.model.GetModelPart(model_part_name)
 
-                # Call the AddModelPartConditionsToHROM function
-                new_conditions = KratosROM.RomAuxiliaryUtilities.AddModelPartConditionsToHROM(
+                # Call the GetConditionIdsNotInHRomModelPart function
+                new_conditions = KratosROM.RomAuxiliaryUtilities.GetConditionIdsNotInHRomModelPart(
                     root_model_part, # The complete model part
                     conditions_to_include_model_part, # The model part containing the conditions to be included
                     hrom_weights)
@@ -230,8 +230,8 @@ class HRomTrainingUtility(object):
             if self.solver.model.HasModelPart(model_part_name):
                 elements_to_include_model_part = self.solver.model.GetModelPart(model_part_name)
 
-                # Call the AddModelPartElementsToHROM function
-                new_elements = KratosROM.RomAuxiliaryUtilities.AddModelPartElementsToHROM(
+                # Call the GetElementIdsNotInHRomModelPart function
+                new_elements = KratosROM.RomAuxiliaryUtilities.GetElementIdsNotInHRomModelPart(
                     root_model_part, # The complete model part
                     elements_to_include_model_part, # The model part containing the elements to be included
                     hrom_weights)
