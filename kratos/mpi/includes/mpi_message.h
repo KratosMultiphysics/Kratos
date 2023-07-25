@@ -32,7 +32,6 @@ template<> struct MPIDataType<int>
     {
         return MPI_INT;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<unsigned int>
@@ -41,7 +40,6 @@ template<> struct MPIDataType<unsigned int>
     {
         return MPI_UNSIGNED;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<long unsigned int>
@@ -50,7 +48,6 @@ template<> struct MPIDataType<long unsigned int>
     {
         return MPI_UNSIGNED_LONG;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<double>
@@ -59,7 +56,6 @@ template<> struct MPIDataType<double>
     {
         return MPI_DOUBLE;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<std::string>
@@ -68,7 +64,6 @@ template<> struct MPIDataType<std::string>
     {
         return MPI_CHAR;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<bool>
@@ -77,7 +72,6 @@ template<> struct MPIDataType<bool>
     {
         return MPI_C_BOOL;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<char>
@@ -86,7 +80,6 @@ template<> struct MPIDataType<char>
     {
         return MPI_CHAR;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<Flags::BlockType>
@@ -95,7 +88,6 @@ template<> struct MPIDataType<Flags::BlockType>
     {
         return MPI_INT64_T;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<class TDataType> class ValueMessage
@@ -132,7 +124,7 @@ public:
 
     static inline int Size(const std::vector<TDataType>& rValue)
     {
-        return rValue.size() * MPIDataType<TDataType>::LengthPerObject;
+        return rValue.size();
     }
 };
 
@@ -151,7 +143,7 @@ public:
 
     static inline int Size(const array_1d<TDataType,Dimension>& rValues)
     {
-        return Dimension * MPIDataType<TDataType>::LengthPerObject;
+        return Dimension;
     }
 };
 
