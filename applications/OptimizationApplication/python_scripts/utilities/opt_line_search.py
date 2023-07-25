@@ -105,7 +105,7 @@ class BBStep():
             dy = KratosOA.ExpressionUtils.InnerProduct(d,y)
             dd = KratosOA.ExpressionUtils.InnerProduct(d,d)
             if not math.isclose(dy, 0.0, abs_tol=1e-16):
-                self.unscaled_step = dd / dy
+                self.unscaled_step = abs(dd / dy)
             if math.isclose(dy, 0.0, abs_tol=1e-16):
                 self.unscaled_step = self.max_step
             if math.isclose(dd, 0.0, abs_tol=1e-16):
