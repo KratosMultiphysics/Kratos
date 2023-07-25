@@ -82,101 +82,120 @@ template<> struct MPIDataType<int64_t>
     }
 };
 
-template<class TDataType> class ValueMessage
+}
+
+template<class TDataType> class MPIMessage;
+
+template<class TDataType> class MPIMessage
 {
 public:
-    static inline void* Buffer(TDataType& rValue)
+    using MessageDataType = TDataType;
+
+    using PrimitiveDataType = TDataType;
+
+    static inline MPI_Datatype DataType()
+    {
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
+    }
+
+    static inline void* Buffer(MessageDataType& rValue)
     {
         return &rValue;
     }
 
-    static inline const void* Buffer(const TDataType& rValue)
+    static inline const void* Buffer(const MessageDataType& rValue)
     {
         return &rValue;
     }
 
-    static inline int Size(const TDataType&)
+    static inline int Size(const MessageDataType&)
     {
         return 1;
     }
 };
 
-template<class TDataType> class VectorMessage
+template<class TDataType, std::size_t Dimension> class MPIMessage<array_1d<TDataType, Dimension>>
 {
 public:
-    static inline void* Buffer(std::vector<TDataType>& rValue)
+    using MessageDataType = array_1d<TDataType, Dimension>;
+
+    using PrimitiveDataType = TDataType;
+
+    static inline MPI_Datatype DataType()
     {
-        return rValue.data();
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
     }
 
-    static inline const void* Buffer(const std::vector<TDataType>& rValue)
-    {
-        return rValue.data();
-    }
-
-    static inline int Size(const std::vector<TDataType>& rValue)
-    {
-        return rValue.size();
-    }
-};
-
-template<class TDataType, std::size_t Dimension> class ArrayMessage
-{
-public:
-    static inline void* Buffer(array_1d<TDataType,Dimension>& rValues)
+    static inline void* Buffer(MessageDataType& rValues)
     {
         return rValues.data().data();
     }
 
-    static inline const void* Buffer(const array_1d<TDataType,Dimension>& rValues)
+    static inline const void* Buffer(const MessageDataType& rValues)
     {
         return rValues.data().data();
     }
 
-    static inline int Size(const array_1d<TDataType,Dimension>& rValues)
+    static inline int Size(const MessageDataType& rValues)
     {
         return Dimension;
     }
 };
 
-class StringMessage
+template<> class MPIMessage<std::string>
 {
 public:
-    static inline void* Buffer(std::string& rValue)
+    using MessageDataType = std::string;
+
+    using PrimitiveDataType = char;
+
+    static inline MPI_Datatype DataType()
     {
-        // Note: this uses the fact that the C++11 standard defines std::strings to
-        // be contiguous in memory to perform MPI communication (based on char*) in place.
-        // In older C++, this cannot be expected to be always the case, so a copy of the
-        // string would be required.
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
+    }
+
+    static inline void* Buffer(MessageDataType& rValue)
+    {
         return rValue.data();
     }
 
-    static inline const void* Buffer(const std::string& rValue)
+    static inline const void* Buffer(const MessageDataType& rValue)
     {
         return rValue.data();
     }
 
-    static inline int Size(const std::string& rValues)
+    static inline int Size(const MessageDataType& rValues)
     {
         return rValues.size();
     }
 };
 
-}
+template<class TDataType> class MPIMessage<std::vector<TDataType>>
+{
+public:
+    using MessageDataType = std::vector<TDataType>;
 
-template<class TDataType> class MPIMessage;
+    using PrimitiveDataType = typename MPIMessage<TDataType>::PrimitiveDataType;
 
-template<> class MPIMessage<int>: public Internals::ValueMessage<int>, public Internals::MPIDataType<int> {};
-template<> class MPIMessage<unsigned int>: public Internals::ValueMessage<unsigned int>, public Internals::MPIDataType<unsigned int> {};
-template<> class MPIMessage<long unsigned int>: public Internals::ValueMessage<long unsigned int>, public Internals::MPIDataType<long unsigned int> {};
-template<> class MPIMessage<double>: public Internals::ValueMessage<double>, public Internals::MPIDataType<double> {};
-template<> class MPIMessage<bool>: public Internals::ValueMessage<bool>, public Internals::MPIDataType<bool> {};
-template<> class MPIMessage<char>: public Internals::ValueMessage<char>, public Internals::MPIDataType<char> {};
-template<> class MPIMessage<Flags::BlockType>: public Internals::ValueMessage<Flags::BlockType>, public Internals::MPIDataType<Flags::BlockType> {};
+    static inline MPI_Datatype DataType()
+    {
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
+    }
 
-template<> class MPIMessage<std::string>: public Internals::StringMessage, public Internals::MPIDataType<char> {};
+    static inline void* Buffer(MessageDataType& rValue)
+    {
+        return rValue.data();
+    }
 
-template<class ValueType> class MPIMessage< std::vector<ValueType> >: public Internals::VectorMessage<ValueType>, public Internals::MPIDataType<ValueType> {};
-template<class ValueType, std::size_t Dimension> class MPIMessage<array_1d<ValueType,Dimension>>: public Internals::ArrayMessage<ValueType,Dimension>, public Internals::MPIDataType<ValueType> {};
+    static inline const void* Buffer(const MessageDataType& rValue)
+    {
+        return rValue.data();
+    }
+
+    static inline int Size(const MessageDataType& rValue)
+    {
+        return rValue.size();
+    }
+};
 
 } // namespace Kratos
