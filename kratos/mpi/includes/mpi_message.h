@@ -93,22 +93,22 @@ public:
 
     using PrimitiveDataType = TDataType;
 
-    static inline MPI_Datatype DataType()
+    inline MPI_Datatype DataType()
     {
         return Internals::MPIDataType<PrimitiveDataType>::DataType();
     }
 
-    static inline void* Buffer(MessageDataType& rValue)
+    inline void* Buffer(MessageDataType& rValue)
     {
         return &rValue;
     }
 
-    static inline const void* Buffer(const MessageDataType& rValue)
+    inline const void* Buffer(const MessageDataType& rValue)
     {
         return &rValue;
     }
 
-    static inline int Size(const MessageDataType&)
+    inline int Size(const MessageDataType&)
     {
         return 1;
     }
@@ -121,22 +121,22 @@ public:
 
     using PrimitiveDataType = TDataType;
 
-    static inline MPI_Datatype DataType()
+    inline MPI_Datatype DataType()
     {
         return Internals::MPIDataType<PrimitiveDataType>::DataType();
     }
 
-    static inline void* Buffer(MessageDataType& rValues)
+    inline void* Buffer(MessageDataType& rValues)
     {
         return rValues.data().data();
     }
 
-    static inline const void* Buffer(const MessageDataType& rValues)
+    inline const void* Buffer(const MessageDataType& rValues)
     {
         return rValues.data().data();
     }
 
-    static inline int Size(const MessageDataType& rValues)
+    inline int Size(const MessageDataType& rValues)
     {
         return Dimension;
     }
@@ -149,24 +149,80 @@ public:
 
     using PrimitiveDataType = char;
 
-    static inline MPI_Datatype DataType()
+    inline MPI_Datatype DataType()
     {
         return Internals::MPIDataType<PrimitiveDataType>::DataType();
     }
 
-    static inline void* Buffer(MessageDataType& rValue)
+    inline void* Buffer(MessageDataType& rValue)
     {
         return rValue.data();
     }
 
-    static inline const void* Buffer(const MessageDataType& rValue)
+    inline const void* Buffer(const MessageDataType& rValue)
     {
         return rValue.data();
     }
 
-    static inline int Size(const MessageDataType& rValues)
+    inline int Size(const MessageDataType& rValues)
     {
         return rValues.size();
+    }
+};
+
+template<> class MPIMessage<Vector>
+{
+public:
+    using MessageDataType = Vector;
+
+    using PrimitiveDataType = double;
+
+    inline MPI_Datatype DataType()
+    {
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
+    }
+
+    inline void* Buffer(MessageDataType& rValue)
+    {
+        return rValue.data().begin();
+    }
+
+    inline const void* Buffer(const MessageDataType& rValue)
+    {
+        return rValue.data().begin();
+    }
+
+    inline int Size(const MessageDataType& rValues)
+    {
+        return rValues.size();
+    }
+};
+
+template<> class MPIMessage<Matrix>
+{
+public:
+    using MessageDataType = Matrix;
+
+    using PrimitiveDataType = double;
+
+    inline MPI_Datatype DataType()
+    {
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
+    }
+
+    inline void* Buffer(MessageDataType& rValue)
+    {
+        return rValue.data().begin();
+    }
+
+    inline const void* Buffer(const MessageDataType& rValue)
+    {
+        return rValue.data().begin();
+    }
+
+    inline int Size(const MessageDataType& rValues)
+    {
+        return rValues.size1() * rValues.size1();
     }
 };
 
@@ -177,22 +233,22 @@ public:
 
     using PrimitiveDataType = typename MPIMessage<TDataType>::PrimitiveDataType;
 
-    static inline MPI_Datatype DataType()
+    inline MPI_Datatype DataType()
     {
         return Internals::MPIDataType<PrimitiveDataType>::DataType();
     }
 
-    static inline void* Buffer(MessageDataType& rValue)
+    inline void* Buffer(MessageDataType& rValue)
     {
         return rValue.data();
     }
 
-    static inline const void* Buffer(const MessageDataType& rValue)
+    inline const void* Buffer(const MessageDataType& rValue)
     {
         return rValue.data();
     }
 
-    static inline int Size(const MessageDataType& rValue)
+    inline int Size(const MessageDataType& rValue)
     {
         return rValue.size();
     }

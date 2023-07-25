@@ -1263,24 +1263,24 @@ void MPIDataCommunicator::PrepareAllGathervReturn(
 // MPI_Datatype wrapper
 template<class TValue> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const TValue&) const
 {
-    return MPIMessage<TValue>::DataType();
+    return MPIMessage<TValue>().DataType();
 }
 
 // Buffer argument deduction
 template<class TContainer> inline void* MPIDataCommunicator::MPIBuffer(TContainer& rValues) const
 {
-    return MPIMessage<TContainer>::Buffer(rValues);
+    return MPIMessage<TContainer>().Buffer(rValues);
 }
 
 template<class TContainer> inline const void* MPIDataCommunicator::MPIBuffer(const TContainer& rValues) const
 {
-    return MPIMessage<TContainer>::Buffer(rValues);
+    return MPIMessage<TContainer>().Buffer(rValues);
 }
 
 // MPI message size deduction
 template<class TContainer> inline int MPIDataCommunicator::MPIMessageSize(const TContainer& rValues) const
 {
-    return MPIMessage<TContainer>::Size(rValues);
+    return MPIMessage<TContainer>().Size(rValues);
 }
 
 }
