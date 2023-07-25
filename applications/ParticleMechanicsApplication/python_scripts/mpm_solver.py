@@ -72,7 +72,8 @@ class MPMSolver(PythonSolver):
             "element_search_settings"            : {
                 "search_algorithm_type"          : "bin_based",
                 "max_number_of_results"          : 1000,
-                "searching_tolerance"            : 1.0E-5
+                "searching_tolerance"            : 1.0E-5,
+                "remove_entities_not_found"      : true
             },
             "linear_solver_settings"             : {
                 "solver_type" : "amgcl",
@@ -248,6 +249,8 @@ class MPMSolver(PythonSolver):
             err_msg += "\" is not available for ParticleMechanicsApplication!\n"
             err_msg += "Available options are: \"bin_based\""
             raise Exception(err_msg)
+        remove_entities_not_found = self.settings["element_search_settings"]["remove_entities_not_found"].GetBool()
+        if remove_entities_not_found: KratosParticle.ParticleEraseProcess(self.material_point_model_part).Execute()
 
     def _AddModelPartContainers(self):
         domain_size = self._GetDomainSize()

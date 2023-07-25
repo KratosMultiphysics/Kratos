@@ -18,10 +18,10 @@
 // External includes
 
 // Project includes
+#include "expression/container_data_io.h"
 #include "expression/container_expression.h"
-#include "expression/variable_expression_io.h"
 #include "expression/literal_flat_expression.h"
-#include "expression/specialized_container_expression.h"
+#include "expression/variable_expression_io.h"
 #include "includes/data_communicator.h"
 #include "input_output/base_64_encoded_output.h"
 #include "input_output/vtk_definitions.h"

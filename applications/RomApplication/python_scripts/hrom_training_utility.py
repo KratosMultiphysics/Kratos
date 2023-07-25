@@ -87,7 +87,11 @@ class HRomTrainingUtility(object):
         model_part_name = self.solver.settings["model_part_name"].GetString()
         model_part_output_name = self.solver.settings["model_import_settings"]["input_filename"].GetString()
         # computing_model_part = self.solver.GetComputingModelPart()
-        computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
+        #computing_model_part = self.solver.GetComputingModelPart().GetRootModelPart() #TODO: DECIDE WHICH ONE WE SHOULD USE?¿?¿ MOST PROBABLY THE ROOT FOR THOSE CASES IN WHICH THE COMPUTING IS CUSTOM (e.g. CFD)
+        aux_model = KratosMultiphysics.Model()
+        computing_model_part = aux_model.CreateModelPart("main")
+        model_part_io = KratosMultiphysics.ModelPartIO(model_part_output_name)
+        model_part_io.ReadModelPart(computing_model_part)
 
         # Create a new model with the HROM main model part
         # This is intentionally done in order to completely emulate the origin model part

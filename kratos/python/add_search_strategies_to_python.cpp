@@ -106,6 +106,24 @@ std::tuple<pybind11::list, pybind11::list> GenerateSpatialSearchSolutionTuple(
     return results_tuple;
 }
 
+/**
+ * @brief Defines a specialized spatial search module in Pybind11.
+ * @param m The Pybind11 module to define the specialized spatial search in.
+ * @param rClassName The name of the specialized spatial search class.
+ */
+template <SpatialContainer TSearchBackend>
+void DefineSpecializedSpatialSearch(pybind11::module& m, const std::string& rClassName)
+{
+    using SpatialSearchType = SpecializedSpatialSearch<TSearchBackend>;
+    using SpatialSearchPointerType = typename SpecializedSpatialSearch<TSearchBackend>::Pointer;
+    using BaseSpatialSearchType = SpatialSearch;
+
+    pybind11::class_<SpatialSearchType, SpatialSearchPointerType, BaseSpatialSearchType>(m, rClassName.c_str())
+    .def(pybind11::init<>())
+    .def(pybind11::init<Parameters>())
+    ;
+}
+
 void AddSearchStrategiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -459,30 +477,17 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     ;
 
+    // The factory of the search strategies
     py::class_<SpecializedSpatialSearchFactory, SpecializedSpatialSearchFactory::Pointer, SpatialSearch>(m, "SpecializedSpatialSearch")
     .def(py::init< >())
     .def(py::init<Parameters>())
     ;
 
-    py::class_<SpecializedSpatialSearch<SpatialContainer::KDTree>, SpecializedSpatialSearch<SpatialContainer::KDTree>::Pointer, SpatialSearch>(m, "SpatialSearchKDTree")
-    .def(py::init< >())
-    .def(py::init<Parameters>())
-    ;
-
-    py::class_<SpecializedSpatialSearch<SpatialContainer::Octree>, SpecializedSpatialSearch<SpatialContainer::Octree>::Pointer, SpatialSearch>(m, "SpatialSearchOctree")
-    .def(py::init< >())
-    .def(py::init<Parameters>())
-    ;
-
-    py::class_<SpecializedSpatialSearch<SpatialContainer::BinsStatic>, SpecializedSpatialSearch<SpatialContainer::BinsStatic>::Pointer, SpatialSearch>(m, "SpatialSearchBinsStatic")
-    .def(py::init< >())
-    .def(py::init<Parameters>())
-    ;
-
-    py::class_<SpecializedSpatialSearch<SpatialContainer::BinsDynamic>, SpecializedSpatialSearch<SpatialContainer::BinsDynamic>::Pointer, SpatialSearch>(m, "SpatialSearchBinsDynamic")
-    .def(py::init< >())
-    .def(py::init<Parameters>())
-    ;
+    // Register the specializations
+    DefineSpecializedSpatialSearch<SpatialContainer::KDTree>(m, "SpatialSearchKDTree");
+    DefineSpecializedSpatialSearch<SpatialContainer::Octree>(m, "SpatialSearchOctree");
+    DefineSpecializedSpatialSearch<SpatialContainer::BinsStatic>(m, "SpatialSearchBinsStatic");
+    DefineSpecializedSpatialSearch<SpatialContainer::BinsDynamic>(m, "SpatialSearchBinsDynamic");
 
     using ResultType = SpatialSearchResult<GeometricalObject>;
 
@@ -505,6 +510,8 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     py::class_<GeometricalObjectsBins, GeometricalObjectsBins::Pointer>(m, "GeometricalObjectsBins")
     .def(py::init<ElementsContainerType&>())
     .def(py::init<ConditionsContainerType&>())
+    .def(py::init<ElementsContainerType&, double>())
+    .def(py::init<ConditionsContainerType&, double>())
     .def("GetBoundingBox", &GeometricalObjectsBins::GetBoundingBox)
     .def("GetCellSizes", &GeometricalObjectsBins::GetCellSizes)
     .def("GetNumberOfCells", &GeometricalObjectsBins::GetNumberOfCells)
