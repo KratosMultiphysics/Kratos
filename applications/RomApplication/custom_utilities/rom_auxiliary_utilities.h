@@ -116,7 +116,7 @@ public:
      * @param rHRomWeights Map containing the original HROM conditions and elements weights
      * @return std::vector<IndexType> List containing the IDs of the conditions absent in HROM weights
      */
-    static std::vector<IndexType> GetElementIdsNotInHRomModelPart(
+    static std::vector<IndexType> GetConditionIdsNotInHRomModelPart(
         const ModelPart& rModelPart,
         const ModelPart& rModelPartWithConditionsToInclude,
         std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
