@@ -16,6 +16,14 @@
 #include "mpi/includes/mpi_manager.h"
 #include "mpi/includes/mpi_message.h"
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(...) \
+bool MPIDataCommunicator::SynchronizeShape(__VA_ARGS__& rValue) const {         \
+    return SynchronizeShapeDetail(rValue);                                      \
+}                                                                               \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(...)                                              \
 __VA_ARGS__ MPIDataCommunicator::Sum(const __VA_ARGS__& rLocalValue, const int Root) const {                            \
@@ -275,6 +283,19 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(long unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(double)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(char)
 
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(unsigned int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(long unsigned int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(double)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(Vector)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(Matrix)
+
+
+
 // Reduce operations
 
 array_1d<double,3> MPIDataCommunicator::Sum(const array_1d<double,3>& rLocalValue, const int Root) const
@@ -525,6 +546,14 @@ void MPIDataCommunicator::RecvImpl(std::string& rRecvValues, const int RecvSourc
 }
 
 // Implementation details of MPI calls
+
+template<class TDataType> bool MPIDataCommunicator::SynchronizeShapeDetail(TDataType& rValue) const
+{
+    MPIMessage<TDataType> mpi_message;
+    const auto& shape = mpi_message.Shape(rValue);
+    const auto& reduced_shape = MaxAll(shape);
+    return mpi_message.Resize(rValue, reduced_shape);
+}
 
 template<class TDataType> void MPIDataCommunicator::ReduceDetail(
     const TDataType& rLocalValues, TDataType& rReducedValues,

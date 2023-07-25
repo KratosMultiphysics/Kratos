@@ -196,7 +196,7 @@ public:
 
     inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
     {
-        KRATOS_ERROR_IF_NOT(rShape.size() != 1) << "Invalid shape provided for std::string.";
+        KRATOS_ERROR_IF_NOT(rShape.size() == 1) << "Invalid shape provided for std::string.";
 
         if (rValues.size() != rShape[0]) {
             rValues.resize(rShape[0]);
@@ -241,7 +241,7 @@ public:
 
     inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
     {
-        KRATOS_ERROR_IF_NOT(rShape.size() != 1) << "Invalid shape provided for Vector.";
+        KRATOS_ERROR_IF_NOT(rShape.size() == 1) << "Invalid shape provided for Vector.";
 
         if (rValues.size() != rShape[0]) {
             rValues.resize(rShape[0], false);
@@ -286,7 +286,7 @@ public:
 
     inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
     {
-        KRATOS_ERROR_IF_NOT(rShape.size() != 2) << "Invalid shape provided for Matrix.";
+        KRATOS_ERROR_IF_NOT(rShape.size() == 2) << "Invalid shape provided for Matrix.";
 
         if (rValues.size1() != rShape[0] || rValues.size2() != rShape[1]) {
             rValues.resize(rShape[0], rShape[0], false);
@@ -331,7 +331,7 @@ public:
 
     inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
     {
-        KRATOS_ERROR_IF_NOT(rShape.size() != 1) << "Invalid shape provided for std::vector.";
+        KRATOS_ERROR_IF_NOT(rShape.size() == 1) << "Invalid shape provided for std::vector.";
 
         if (rValues.size() != rShape[0]) {
             rValues.resize(rShape[0]);

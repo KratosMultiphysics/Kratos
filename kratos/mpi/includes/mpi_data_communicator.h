@@ -23,6 +23,12 @@
 #include "includes/define.h"
 #include "includes/data_communicator.h"
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(...)\
+bool SynchronizeShape(__VA_ARGS__&) const override;                            \
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_REDUCE_INTERFACE_FOR_TYPE(...)                                                         \
 __VA_ARGS__ Sum(const __VA_ARGS__& rLocalValue, const int Root) const override;                                                     \
@@ -197,6 +203,17 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(double)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCATTER_INTERFACE_FOR_TYPE(char)
 
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(long unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(double)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(Vector)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(Matrix)
+
     // Reduce operations
 
     array_1d<double,3> Sum(const array_1d<double,3>& rLocalValue, const int Root) const override;
@@ -326,6 +343,8 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     ///@{
 
     void CheckMPIErrorCode(const int ierr, const std::string& MPICallName) const;
+
+    template<class TDataType> bool SynchronizeShapeDetail(TDataType& rValue) const;
 
     template<class TDataType> void ReduceDetail(
         const TDataType& rLocalValues,
