@@ -69,12 +69,9 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor
-    TableAccessor() = default;
-
     /// Custom constructor
-    TableAccessor(const VariableType& rInputVariable, const std::string& rInputVariableType = "nodal_historical") 
-        : mpInputVariable(std::make_shared<VariableType>(rInputVariable)) 
+    TableAccessor(VariableType& rInputVariable, const std::string& rInputVariableType = "nodal_historical") 
+        : mpInputVariable(&rInputVariable)
     {
         // We initialize the variable type only once
         if (rInputVariableType == "nodal_historical") {
@@ -87,9 +84,6 @@ public:
             KRATOS_ERROR << "The table_input_variable_type is incorrect or not supported. Types available are : nodal_historical, nodal_non_historical and elemental_non_historical" << std::endl;
         }
     }
-
-    /// Destructor.
-    ~TableAccessor() = default;
 
     /// Copy constructor
     TableAccessor(const TableAccessor& rOther) 
@@ -135,9 +129,9 @@ public:
     /**
      * @brief Returns the member input variable
      */
-    VariableType::Pointer GetInputVariable()
+    VariableType& GetInputVariable() const
     {
-        return mpInputVariable;
+        return *mpInputVariable;
     }
 
     /**
@@ -177,7 +171,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    VariableType::Pointer mpInputVariable;
+    VariableType* mpInputVariable;
     int mInputVariableType = 0; // NodalHistorical by default
 
     friend class Serializer;

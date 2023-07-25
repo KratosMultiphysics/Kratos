@@ -161,7 +161,7 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
      * @param MaterialData The parameters containing all the configurations of the materials
      * @param rProperty The reference to the property for which the materials are to be assigned
      */
-    virtual void AssignAccessorsToProperty(
+    void AssignAccessorsToProperty(
         const Parameters MaterialData,
         Properties& rProperty
         );
