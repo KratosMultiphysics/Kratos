@@ -180,9 +180,6 @@ void KratosDamApplication::Register()
     Serializer::Register("ThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw",mThermalModifiedMisesNonlocalDamagePlaneStrain2DLaw);
     Serializer::Register("ThermalModifiedMisesNonlocalDamagePlaneStress2DLaw",mThermalModifiedMisesNonlocalDamagePlaneStress2DLaw);
 
-    Serializer::Register("DamJoint3DLaw",mDamJoint3DLaw);
-    Serializer::Register("DamJoint2DLaw",mDamJoint2DLaw);
-
     //Register Variables
     KRATOS_REGISTER_VARIABLE( TIME_UNIT_CONVERTER )
     KRATOS_REGISTER_VARIABLE( THERMAL_EXPANSION )
