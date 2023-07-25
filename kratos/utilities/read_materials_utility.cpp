@@ -348,20 +348,20 @@ void ReadMaterialsUtility::AssignAccessorsToProperty(
         for (auto iter = accessors.begin(); iter != accessors.end(); ++iter) {
             auto accessor_param = accessors.GetValue(iter.name());
 
-            // Independent Variable
-            std::string input_var_name = accessor_param["table_input_variable"].GetString();
-            TrimComponentName(input_var_name);
-            const auto& r_input_var  = KratosComponents<Variable<double>>().Get(input_var_name);
-
-            // Dependent Variable
-            std::string output_var_name = accessor_param["table_output_variable"].GetString();
-            TrimComponentName(output_var_name);
-            const auto& r_output_var  = KratosComponents<Variable<double>>().Get(output_var_name);
-
             if (accessor_param["accessor_type"].GetString() == "table_accessor") {
+                // Independent Variable
+                std::string input_var_name = accessor_param["table_input_variable"].GetString();
+                TrimComponentName(input_var_name);
+                Variable<double> *p_input_var = static_cast<Variable<double> *>(KratosComponents<VariableData>::pGet(input_var_name));
+
+                // Dependent Variable
+                std::string output_var_name = accessor_param["table_output_variable"].GetString();
+                TrimComponentName(output_var_name);
+                const auto& r_output_var  = KratosComponents<Variable<double>>().Get(output_var_name);
+
                 // We set the variable type of the input variable (nodal_historical, nodal_non_historicala and elemental_non_historical)
                 std::string input_var_type = accessor_param.Has("table_input_variable_type") ? accessor_param["table_input_variable_type"].GetString() : "nodal_historical";
-                rProperty.SetAccessor(r_output_var, TableAccessor(r_input_var, input_var_type).Clone());
+                rProperty.SetAccessor(r_output_var, (TableAccessor(p_input_var, input_var_type)).Clone());
             } else {
                 KRATOS_ERROR << "This Accessor type is not available, only TableAccessor is ready for now" << std::endl;
             }

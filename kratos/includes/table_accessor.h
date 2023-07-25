@@ -70,8 +70,8 @@ public:
     ///@{
 
     /// Custom constructor
-    TableAccessor(VariableType& rInputVariable, const std::string& rInputVariableType = "nodal_historical") 
-        : mpInputVariable(&rInputVariable)
+    TableAccessor(VariableType* pInputVariable, const std::string& rInputVariableType = "nodal_historical") 
+        : mpInputVariable(pInputVariable)
     {
         // We initialize the variable type only once
         if (rInputVariableType == "nodal_historical") {
