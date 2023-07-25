@@ -15,15 +15,22 @@ file(GLOB_RECURSE KRATOS_MPI_SOURCES
 ## Kratos MPI extension Python interface
 file(GLOB_RECURSE KRATOS_MPI_PYTHON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/python/*.cpp)
 
-## Kratos MPI test sources.
+## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
+    file(GLOB_RECURSE KRATOS_MPI_TEST_UTILITIES_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp)
     file(GLOB_RECURSE KRATOS_MPI_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+
+    add_library(KratosMPICoreTestUtilities SHARED ${KRATOS_MPI_TEST_UTILITIES_SOURCES})
+    add_executable(KratosMPICoreTest ${KRATOS_MPI_TEST_SOURCES})
+
+    target_link_libraries(KratosMPICoreTestUtilities KratosMPICore KratosCoreTestUtilities)
+    target_link_libraries(KratosMPICoreTest KratosMPICoreTestUtilities GTest::gtest_main)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################
 
 ## Define library for the C++ layer
-add_library(KratosMPICore SHARED ${KRATOS_MPI_SOURCES} ${KRATOS_MPI_TEST_SOURCES})
+add_library(KratosMPICore SHARED ${KRATOS_MPI_SOURCES})
 target_link_libraries(KratosMPICore PUBLIC KratosCore ${MPI_LIBRARIES} )
 #set_target_properties(KratosMPICore PROPERTIES COMPILE_DEFINITIONS "KRATOS_MPI_CORE=IMPORT,API")
 

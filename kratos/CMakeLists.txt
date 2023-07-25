@@ -46,7 +46,7 @@ if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 
 ## Kratos python interface code
-FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp") #all .cpp
+FILE(GLOB_RECURSE KRATOS_PYTHON_SOURCES "python/*.cpp")
 
 ## Kratos Version
 set( KRATOS_VERSION_SOURCES
@@ -62,10 +62,14 @@ file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp
 
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    file(GLOB_RECURSE KRATOS_TEST_UTILITIES_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp)
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 
-    add_executable(KratosCoreTests ${KRATOS_TEST_SOURCES})
-    target_link_libraries(KratosCoreTests KratosCore GTest::gtest_main)
+    add_library(KratosCoreTestUtilities SHARED ${KRATOS_TEST_UTILITIES_SOURCES})
+    add_executable(KratosCoreTest ${KRATOS_TEST_SOURCES})
+
+    target_link_libraries(KratosCoreTestUtilities KratosCore)
+    target_link_libraries(KratosCoreTest KratosCoreTestUtilities GTest::gtest_main)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define KratosVersion object
