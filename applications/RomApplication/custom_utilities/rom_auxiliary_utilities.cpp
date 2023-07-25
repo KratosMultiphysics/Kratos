@@ -335,7 +335,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     return parent_ids;
 }
 
-std::vector<IndexType> RomAuxiliaryUtilities::AddModelPartElementsToHROM(
+std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
     const ModelPart& rModelPart,
     const ModelPart& rModelPartWithElementsToInclude,
     std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
@@ -349,7 +349,6 @@ std::vector<IndexType> RomAuxiliaryUtilities::AddModelPartElementsToHROM(
         // Check if the element is already added
         if (r_elem_weights.find(element_id - 1) == r_elem_weights.end()) {
             // If it's not added, we add it to the HROM weights and the new_element_ids list
-            r_elem_weights[element_id - 1] = 0; // Adjust the value 0 based on your needs.
             new_element_ids.push_back(element_id - 1);
         }
     }
@@ -357,7 +356,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::AddModelPartElementsToHROM(
     return new_element_ids;
 }
 
-std::vector<IndexType> RomAuxiliaryUtilities::AddModelPartConditionsToHROM(
+std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart(
     const ModelPart& rModelPart,
     const ModelPart& rModelPartWithConditionsToInclude,
     std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
@@ -371,7 +370,6 @@ std::vector<IndexType> RomAuxiliaryUtilities::AddModelPartConditionsToHROM(
         // Check if the condition is already added
         if (r_cond_weights.find(condition_id - 1) == r_cond_weights.end()) {
             // If it's not added, we add it to the HROM weights and the new_condition_ids list
-            r_cond_weights[condition_id - 1] = 0; // Adjust the value 0 based on your needs.
             new_condition_ids.push_back(condition_id - 1);
         }
     }
