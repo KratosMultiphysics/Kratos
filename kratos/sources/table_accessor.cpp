@@ -79,6 +79,22 @@ double TableAccessor::GetValueFromTable(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void TableAccessor::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
+    rSerializer.save("InputVariable", mpInputVariable);
+    // rSerializer.save("InputVariableType", mInputVariableType);
+}
+void TableAccessor::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
+    rSerializer.load("InputVariable", mpInputVariable);
+    // rSerializer.load("InputVariableType", mInputVariableType);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 Accessor::UniquePointer TableAccessor::Clone() const
 {
     return Kratos::make_unique<TableAccessor>(*this);

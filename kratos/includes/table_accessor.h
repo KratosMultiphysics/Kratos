@@ -163,20 +163,9 @@ private:
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
-        rSerializer.save("InputVariable", mpInputVariable);
-        // rSerializer.save("InputVariableType", mInputVariableType);
-    }
+    void save(Serializer &rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
-        rSerializer.load("InputVariable", mpInputVariable);
-        // rSerializer.load("InputVariableType", mInputVariableType);
-    }
-
+    void load(Serializer &rSerializer) override;
 
 }; // class
 ///@}
