@@ -2542,6 +2542,165 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterDoubleVector, Kr
     #endif
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterArray1d, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = 0;
+
+    std::vector<array_1d<double, 3>> send_buffer(0);
+    std::vector<array_1d<double, 3>> recv_buffer(2, array_1d<double, 3>{0, 0, 0});
+
+    if (world_rank == send_rank) {
+        send_buffer.resize(2*world_size);
+        for (int i = 0; i < 2*world_size; i++) {
+            const double v = i + 1;
+            send_buffer[i] = array_1d<double, 3>{v * 2, v * 3, v * 5};
+        }
+    }
+
+    // two-buffer version
+    mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank);
+    array_1d<double, 3> base_values{2, 3, 5}, resultant;
+    for (int i = 0; i < 2; i++) {
+        resultant = base_values * (world_rank * 2 + i + 1);
+        KRATOS_CHECK_VECTOR_EQUAL(recv_buffer[i], resultant);
+    }
+
+    // return version
+    const auto& return_buffer = mpi_world_communicator.Scatter(send_buffer, send_rank);
+    KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+    for (int i = 0; i < 2; i++) {
+        resultant = base_values * (world_rank * 2 + i + 1);
+        KRATOS_CHECK_VECTOR_EQUAL(return_buffer[i], resultant);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1) {
+        // One of the ranks has a different size
+        if (world_rank == 0) {
+            recv_buffer.resize(3, array_1d<double, 3>(3, -1));
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    }
+    // send rank has wrong size
+    if (world_rank == send_rank) {
+        recv_buffer.resize(2, array_1d<double, 3>(3, -1));
+        send_buffer = {array_1d<double, 3>{-1, -1, -1}};
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = 0;
+
+    std::vector<Vector> send_buffer(0);
+    std::vector<Vector> recv_buffer(2, Vector(4));
+
+    if (world_rank == send_rank) {
+        send_buffer.resize(2*world_size);
+        for (int i = 0; i < 2*world_size; i++) {
+            const double v = i + 1;
+            send_buffer[i] = Vector(4);
+            send_buffer[i][0] = v * 2; send_buffer[i][1] = v * 3; send_buffer[i][2] = v * 5; send_buffer[i][3] = v * 7;
+        }
+    }
+
+    // two-buffer version
+    mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank);
+    array_1d<double, 4> base_values{2, 3, 5, 7}, resultant;
+    for (int i = 0; i < 2; i++) {
+        resultant = base_values * (world_rank * 2 + i + 1);
+        KRATOS_CHECK_VECTOR_EQUAL(recv_buffer[i], resultant);
+    }
+
+    // return version
+    const auto& return_buffer = mpi_world_communicator.Scatter(send_buffer, send_rank);
+    KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+    for (int i = 0; i < 2; i++) {
+        resultant = base_values * (world_rank * 2 + i + 1);
+        KRATOS_CHECK_VECTOR_EQUAL(return_buffer[i], resultant);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1) {
+        // One of the ranks has a different size
+        if (world_rank == 0) {
+            recv_buffer.resize(3, Vector(4, -1));
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    }
+    // send rank has wrong size
+    if (world_rank == send_rank) {
+        recv_buffer.resize(2, Vector(4, -1));
+        send_buffer = {Vector(4, -1)};
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = 0;
+
+    std::vector<Matrix> send_buffer(0);
+    std::vector<Matrix> recv_buffer(2, Matrix(2, 2));
+
+    if (world_rank == send_rank) {
+        send_buffer.resize(2*world_size);
+        for (int i = 0; i < 2*world_size; i++) {
+            const double v = i + 1;
+            send_buffer[i] = Matrix(2, 2);
+            send_buffer[i].data()[0] = v * 2; send_buffer[i].data()[1] = v * 3; send_buffer[i].data()[2] = v * 5; send_buffer[i].data()[3] = v * 7;
+        }
+    }
+
+    // two-buffer version
+    mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank);
+    Matrix base_values(2, 2), resultant(2, 2);
+    base_values.data()[0] = 2; base_values.data()[1] = 3; base_values.data()[2] = 5; base_values.data()[3] = 7;
+    for (int i = 0; i < 2; i++) {
+        resultant = base_values * (world_rank * 2 + i + 1);
+        KRATOS_CHECK_MATRIX_EQUAL(recv_buffer[i], resultant);
+    }
+
+    // return version
+    const auto& return_buffer = mpi_world_communicator.Scatter(send_buffer, send_rank);
+    KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+    for (int i = 0; i < 2; i++) {
+        resultant = base_values * (world_rank * 2 + i + 1);
+        KRATOS_CHECK_MATRIX_EQUAL(return_buffer[i], resultant);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1) {
+        // One of the ranks has a different size
+        if (world_rank == 0) {
+            recv_buffer.resize(3, Matrix(2, 2, -1));
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    }
+    // send rank has wrong size
+    if (world_rank == send_rank) {
+        recv_buffer.resize(2, Matrix(2, 2 -1));
+        send_buffer = {Matrix(2, 2, -1)};
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    #endif
+}
+
 // Scatterv ///////////////////////////////////////////////////////////////////
 
 namespace {
@@ -2772,6 +2931,306 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervDouble, KratosM
     std::vector<int> wrong_send_offsets = send_offsets;
     if (world_rank == send_rank)
     {
+        wrong_send_offsets[world_size - 1] += 5;
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Scatterv(send_buffer, send_sizes, wrong_send_offsets, recv_buffer, send_rank),
+        "Error");
+
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervArray1d, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    std::vector<array_1d<double, 3>> send_buffer(0);
+    std::vector<int> send_sizes(0);
+    std::vector<int> send_offsets(0);
+
+    auto make_message_size = [](int rank) { return rank < 5 ? rank : 5; };
+    auto make_message_distance = [](int rank, int padding) {
+        return rank < 5 ? ((rank-1)*rank)/2 + rank*padding : rank*(5+padding) - 15;
+    };
+
+    const int recv_size = make_message_size(world_rank);
+    std::vector<array_1d<double, 3>> recv_buffer(recv_size, array_1d<double, 3>(3, -1));
+
+    const int message_padding = 1;
+    if (world_rank == send_rank) {
+        const int send_size = make_message_distance(world_size, message_padding);
+        send_buffer.resize(send_size);
+        send_sizes.resize(world_size);
+        send_offsets.resize(world_size);
+        int counter = 0;
+        for (int rank = 0; rank < world_size; rank++) {
+            send_sizes[rank] = make_message_size(rank);
+            send_offsets[rank] = make_message_distance(rank, message_padding);
+            for (int i = 0; i < send_sizes[rank] + message_padding; i++, counter++) {
+                send_buffer[counter] = array_1d<double, 3>{2, 3, 4}*rank;
+            }
+        }
+    }
+
+    // two-buffer version
+    mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, recv_buffer, send_rank);
+
+    const array_1d<double, 3> result{2.0*world_rank, 3.0*world_rank, 4.0*world_rank};
+    for (int i = 0; i < recv_size; i++) {
+        KRATOS_CHECK_VECTOR_EQUAL(recv_buffer[i], result);
+    }
+
+    // return buffer version
+
+    // pre-process: prepare input vector-of-vectors
+    std::vector<std::vector<array_1d<double, 3>>> scatterv_message;
+    if (world_rank == send_rank) {
+        scatterv_message.resize(world_size);
+        for (int rank = 0; rank < world_size; rank++) {
+            // note: single-buffer version does not support padding, entire message is sent.
+            scatterv_message[rank].resize(make_message_size(rank));
+            for (int i = 0; i < send_sizes[rank]; i++) {
+                scatterv_message[rank][i] = array_1d<double, 3>{2, 3, 4}*rank;
+            }
+        }
+    }
+    const auto& returned_result = mpi_world_communicator.Scatterv(scatterv_message, send_rank);
+    for (int i = 0; i < recv_size; i++) {
+        KRATOS_CHECK_VECTOR_EQUAL(returned_result[i], result);
+    }
+
+    #ifdef KRATOS_DEBUG
+    // send sizes do not match
+    std::vector<int> wrong_send_sizes = send_sizes;
+    if (world_rank == send_rank) {
+        wrong_send_sizes[0] += 1;
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Scatterv(send_buffer, wrong_send_sizes, send_offsets, recv_buffer, send_rank),
+        "Error");
+
+    // sent message is too large
+    if (world_size > 1) // This test should be skipped when running with one rank, since recv_buffer.size() is 0 in that case
+    {
+        std::vector<array_1d<double, 3>> wrong_recv_message;
+        if (world_rank == send_rank)  {
+            wrong_recv_message.resize(recv_buffer.size()-1);
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, wrong_recv_message, send_rank),
+            "Error");
+    }
+
+    // sent offsets overflow
+    std::vector<int> wrong_send_offsets = send_offsets;
+    if (world_rank == send_rank) {
+        wrong_send_offsets[world_size - 1] += 5;
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Scatterv(send_buffer, send_sizes, wrong_send_offsets, recv_buffer, send_rank),
+        "Error");
+
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    std::vector<Vector> send_buffer(0);
+    std::vector<int> send_sizes(0);
+    std::vector<int> send_offsets(0);
+
+    auto make_message_size = [](int rank) { return rank < 5 ? rank : 5; };
+    auto make_message_distance = [](int rank, int padding) {
+        return rank < 5 ? ((rank-1)*rank)/2 + rank*padding : rank*(5+padding) - 15;
+    };
+
+    const int recv_size = make_message_size(world_rank);
+    std::vector<Vector> recv_buffer(recv_size, Vector(4, -1));
+
+    Vector base_value(4);
+    base_value[0] = 2; base_value[1] = 3; base_value[2] = 4; base_value[3] = 5;
+
+    const int message_padding = 1;
+    if (world_rank == send_rank) {
+        const int send_size = make_message_distance(world_size, message_padding);
+        send_buffer.resize(send_size);
+        send_sizes.resize(world_size);
+        send_offsets.resize(world_size);
+        int counter = 0;
+        for (int rank = 0; rank < world_size; rank++) {
+            send_sizes[rank] = make_message_size(rank);
+            send_offsets[rank] = make_message_distance(rank, message_padding);
+            for (int i = 0; i < send_sizes[rank] + message_padding; i++, counter++) {
+                send_buffer[counter] = base_value*rank;
+
+            }
+        }
+    }
+
+    // two-buffer version
+    mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, recv_buffer, send_rank);
+
+    const array_1d<double, 4> result{2.0*world_rank, 3.0*world_rank, 4.0*world_rank, 5.0*world_rank};
+    for (int i = 0; i < recv_size; i++) {
+        KRATOS_CHECK_VECTOR_EQUAL(recv_buffer[i], result);
+    }
+
+    // return buffer version
+
+    // pre-process: prepare input vector-of-vectors
+    std::vector<std::vector<Vector>> scatterv_message;
+    if (world_rank == send_rank) {
+        scatterv_message.resize(world_size);
+        for (int rank = 0; rank < world_size; rank++) {
+            // note: single-buffer version does not support padding, entire message is sent.
+            scatterv_message[rank].resize(make_message_size(rank));
+            for (int i = 0; i < send_sizes[rank]; i++) {
+                scatterv_message[rank][i] = base_value*rank;
+            }
+        }
+    }
+    const auto& returned_result = mpi_world_communicator.Scatterv(scatterv_message, send_rank);
+    for (int i = 0; i < recv_size; i++) {
+        KRATOS_CHECK_VECTOR_EQUAL(returned_result[i], result);
+    }
+
+    #ifdef KRATOS_DEBUG
+    // send sizes do not match
+    std::vector<int> wrong_send_sizes = send_sizes;
+    if (world_rank == send_rank) {
+        wrong_send_sizes[0] += 1;
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Scatterv(send_buffer, wrong_send_sizes, send_offsets, recv_buffer, send_rank),
+        "Error");
+
+    // sent message is too large
+    if (world_size > 1) // This test should be skipped when running with one rank, since recv_buffer.size() is 0 in that case
+    {
+        std::vector<Vector> wrong_recv_message;
+        if (world_rank == send_rank)  {
+            wrong_recv_message.resize(recv_buffer.size()-1, Vector(4));
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, wrong_recv_message, send_rank),
+            "Error");
+    }
+
+    // sent offsets overflow
+    std::vector<int> wrong_send_offsets = send_offsets;
+    if (world_rank == send_rank) {
+        wrong_send_offsets[world_size - 1] += 5;
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Scatterv(send_buffer, send_sizes, wrong_send_offsets, recv_buffer, send_rank),
+        "Error");
+
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    std::vector<Matrix> send_buffer(0);
+    std::vector<int> send_sizes(0);
+    std::vector<int> send_offsets(0);
+
+    auto make_message_size = [](int rank) { return rank < 5 ? rank : 5; };
+    auto make_message_distance = [](int rank, int padding) {
+        return rank < 5 ? ((rank-1)*rank)/2 + rank*padding : rank*(5+padding) - 15;
+    };
+
+    const int recv_size = make_message_size(world_rank);
+    std::vector<Matrix> recv_buffer(recv_size, Matrix(2, 2, -1));
+
+    Matrix base_value(2, 2);
+    base_value.data()[0] = 2; base_value.data()[1] = 3; base_value.data()[2] = 4; base_value.data()[3] = 5;
+
+    const int message_padding = 1;
+    if (world_rank == send_rank) {
+        const int send_size = make_message_distance(world_size, message_padding);
+        send_buffer.resize(send_size);
+        send_sizes.resize(world_size);
+        send_offsets.resize(world_size);
+        int counter = 0;
+        for (int rank = 0; rank < world_size; rank++) {
+            send_sizes[rank] = make_message_size(rank);
+            send_offsets[rank] = make_message_distance(rank, message_padding);
+            for (int i = 0; i < send_sizes[rank] + message_padding; i++, counter++) {
+                send_buffer[counter] = base_value*rank;
+
+            }
+        }
+    }
+
+    // two-buffer version
+    mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, recv_buffer, send_rank);
+
+    Matrix result(2,2);
+    result.data()[0] = 2.0*world_rank; result.data()[1] = 3.0*world_rank; result.data()[2] = 4.0*world_rank; result.data()[3] = 5.0*world_rank;
+    for (int i = 0; i < recv_size; i++) {
+        KRATOS_CHECK_MATRIX_EQUAL(recv_buffer[i], result);
+    }
+
+    // return buffer version
+
+    // pre-process: prepare input vector-of-vectors
+    std::vector<std::vector<Matrix>> scatterv_message;
+    if (world_rank == send_rank) {
+        scatterv_message.resize(world_size);
+        for (int rank = 0; rank < world_size; rank++) {
+            // note: single-buffer version does not support padding, entire message is sent.
+            scatterv_message[rank].resize(make_message_size(rank));
+            for (int i = 0; i < send_sizes[rank]; i++) {
+                scatterv_message[rank][i] = base_value*rank;
+            }
+        }
+    }
+    const auto& returned_result = mpi_world_communicator.Scatterv(scatterv_message, send_rank);
+    for (int i = 0; i < recv_size; i++) {
+        KRATOS_CHECK_MATRIX_EQUAL(returned_result[i], result);
+    }
+
+    #ifdef KRATOS_DEBUG
+    // send sizes do not match
+    std::vector<int> wrong_send_sizes = send_sizes;
+    if (world_rank == send_rank) {
+        wrong_send_sizes[0] += 1;
+    }
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        mpi_world_communicator.Scatterv(send_buffer, wrong_send_sizes, send_offsets, recv_buffer, send_rank),
+        "Error");
+
+    // sent message is too large
+    if (world_size > 1) // This test should be skipped when running with one rank, since recv_buffer.size() is 0 in that case
+    {
+        std::vector<Matrix> wrong_recv_message;
+        if (world_rank == send_rank)  {
+            wrong_recv_message.resize(recv_buffer.size()-1, Matrix(2, 2));
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+            mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, wrong_recv_message, send_rank),
+            "Error");
+    }
+
+    // sent offsets overflow
+    std::vector<int> wrong_send_offsets = send_offsets;
+    if (world_rank == send_rank) {
         wrong_send_offsets[world_size - 1] += 5;
     }
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
