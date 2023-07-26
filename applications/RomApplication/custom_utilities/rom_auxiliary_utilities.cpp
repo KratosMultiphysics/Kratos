@@ -348,7 +348,6 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
         
         // Check if the element is already added
         if (r_elem_weights.find(element_id - 1) == r_elem_weights.end()) {
-            // If it's not added, we add it to the HROM weights and the new_element_ids list
             new_element_ids.push_back(element_id - 1);
         }
     }
@@ -369,7 +368,6 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart(
         
         // Check if the condition is already added
         if (r_cond_weights.find(condition_id - 1) == r_cond_weights.end()) {
-            // If it's not added, we add it to the HROM weights and the new_condition_ids list
             new_condition_ids.push_back(condition_id - 1);
         }
     }
