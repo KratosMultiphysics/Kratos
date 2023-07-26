@@ -109,7 +109,9 @@ void MPIDataCommunicator::MaxAll(                                               
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(...)                                 \
 __VA_ARGS__ MPIDataCommunicator::ScanSum(const __VA_ARGS__& LocalValue) const {                             \
-    return ScanDetail(LocalValue, MPI_SUM);                                                                 \
+    __VA_ARGS__ partial_sums(LocalValue);                                                                   \
+    ScanDetail(LocalValue, partial_sums, MPI_SUM);                                                          \
+    return partial_sums;                                                                                    \
 }                                                                                                           \
 std::vector<__VA_ARGS__> MPIDataCommunicator::ScanSum(const std::vector<__VA_ARGS__>& rLocalValues) const { \
     return ScanDetail(rLocalValues, MPI_SUM);                                                               \
@@ -308,6 +310,13 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(array_1d<double
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(array_1d<double, 9>)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(Vector)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(Matrix)
+
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(Vector)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(Matrix)
 
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(unsigned int)
@@ -664,9 +673,11 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
     const TDataType& rLocalValues, TDataType& rReducedValues,
     MPI_Op Operation) const
 {
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
     #ifdef KRATOS_DEBUG
-    const int local_size = MPIMessageSize(rLocalValues);
-    const int reduced_size = MPIMessageSize(rReducedValues);
+    const int local_size = mpi_send_msg.Size(rLocalValues);
+    const int reduced_size = mpi_recv_msg.Size(rReducedValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Scan: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -676,10 +687,12 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
     #endif // KRATOS_DEBUG
 
     const int ierr = MPI_Scan(
-        MPIBuffer(rLocalValues), MPIBuffer(rReducedValues),
-        MPIMessageSize(rLocalValues), MPIDatatype(rLocalValues),
+        mpi_send_msg.Buffer(rLocalValues), mpi_recv_msg.Buffer(rReducedValues),
+        mpi_send_msg.Size(rLocalValues), mpi_send_msg.DataType(),
         Operation, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scan");
+
+    mpi_recv_msg.Update(rReducedValues);
 }
 
 template<class TDataType> TDataType MPIDataCommunicator::ScanDetail(
@@ -693,7 +706,14 @@ template<class TDataType> TDataType MPIDataCommunicator::ScanDetail(
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScanDetail(
     const std::vector<TDataType>& rLocalValues, MPI_Op Operation) const
 {
-    std::vector<TDataType> global_values(rLocalValues.size());
+    TDataType temp;
+    if (rLocalValues.size() > 0) {
+        temp = rLocalValues.front();
+    }
+
+    SynchronizeShape(temp);
+
+    std::vector<TDataType> global_values(rLocalValues.size(), temp);
     ScanDetail(rLocalValues, global_values, MPI_SUM);
     return global_values;
 }
