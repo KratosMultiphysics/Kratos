@@ -42,12 +42,12 @@ public:
         bool ConstrainVariables) 
         {
             // Set variables field to origin model part
-            block_for_each(rOriginModelPart.Nodes(), [&](Node& node) {
-                for(auto& variable : rInterpolationVariablesList) {
-                    const double value = node.FastGetSolutionStepValue(variable);
-                    node.SetValue(variable, AlphaRampUpIncrement * value);
-                }
-            });
+            for(auto& r_variable : rInterpolationVariablesList){
+                block_for_each(rOriginModelPart.Nodes(), [&](Node& rNode) {
+                    const double value = rNode.FastGetSolutionStepValue(r_variable);
+                    rNode.SetValue(r_variable, AlphaRampUpIncrement * value);
+                });
+            }
 
             // Interpolate variables to destination model part
             if (DomainSize == 2) {
@@ -60,27 +60,34 @@ public:
                 KRATOS_ERROR << "Invalid DomainSize: " << DomainSize << ". DomainSize should be 2 or 3." << std::endl;
             }
 
+            for(auto& r_variable : rInterpolationVariablesList){
+                for(auto& rNode: rDestinationModelPart.Nodes()) {
+                    rNode.AddDof(r_variable);
+                }
+            }
+
             // Using the parallel utilities
             if(ConstrainVariables)
             {
                 // Apply constraints to variables
-                block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
-                    for(auto& variable : rInterpolationVariablesList){
-                        auto& r_value = rNode.GetValue(variable);
-                        rNode.FastGetSolutionStepValue(variable) = r_value;
-                        rNode.Fix(variable);
-                    }
-                });
+                for(auto& r_variable : rInterpolationVariablesList){
+                    block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
+                        const double value = rNode.GetValue(r_variable);
+                        rNode.FastGetSolutionStepValue(r_variable) = value;
+                        rNode.Fix(r_variable);
+                    });
+                }
             }
             else
             {
                 // Simply set the variables
-                block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
-                    for(auto& variable : rInterpolationVariablesList){
-                        auto& r_value = rNode.GetValue(variable);
-                        rNode.FastGetSolutionStepValue(variable) = r_value;
-                    }
-                });
+                for(auto& r_variable : rInterpolationVariablesList){
+                    block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
+                        const double value = rNode.GetValue(r_variable);
+                        rNode.FastGetSolutionStepValue(r_variable) = value;
+                    });
+                }
+
             }
         }
     
@@ -93,22 +100,22 @@ public:
         {
             if(ConstrainVariables)
             {
-                block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
-                    for(auto& variable : rInterpolationVariablesList){
-                        double value = rNode.FastGetSolutionStepValue(variable);
-                        rNode.FastGetSolutionStepValue(variable) = rAlpha * value / rOldAlpha;
-                        rNode.Fix(variable);
-                    }
-                });
+                for(auto& r_variable : rInterpolationVariablesList){
+                    block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
+                        const double value = rNode.FastGetSolutionStepValue(r_variable);
+                        rNode.FastGetSolutionStepValue(r_variable) = rAlpha * value / rOldAlpha;
+                        rNode.Fix(r_variable);
+                    });
+                }
             }
             else
             {
-                block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
-                    for(auto& variable : rInterpolationVariablesList){
-                        double value = rNode.FastGetSolutionStepValue(variable);
+                for(auto& variable : rInterpolationVariablesList){
+                    block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
+                        const double value = rNode.FastGetSolutionStepValue(variable);
                         rNode.FastGetSolutionStepValue(variable) = rAlpha * value / rOldAlpha;
-                    }
-                });
+                    });
+                }
             }
         }
 };
