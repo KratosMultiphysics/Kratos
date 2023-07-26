@@ -1877,6 +1877,98 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumDouble, KratosMP
     KRATOS_CHECK_EQUAL(partial_sum, 2.0*(rank + 1));
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumArray1d, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
+
+    array_1d<double, 3> local{2.0, 3.0, 4.0}, resultant{2.0*(rank+1), 3.0*(rank+1), 4.0*(rank+1)};
+    const auto& partial_sum = mpi_world_communicator.ScanSum(local);
+    KRATOS_CHECK_VECTOR_EQUAL(partial_sum, resultant);
+
+    // check std::vector methods
+    std::vector<array_1d<double, 3>> vec_local(3);
+    vec_local[0] = array_1d<double, 3>{2.0*(rank+1), 3.0*(rank+1), 4.0*(rank+1)};
+    vec_local[1] = array_1d<double, 3>{4.0*(rank+1), 6.0*(rank+1), 8.0*(rank+1)};
+    vec_local[2] = array_1d<double, 3>{6.0*(rank+1), 9.0*(rank+1), 12.0*(rank+1)};
+
+    std::vector<array_1d<double, 3>> global_vec(3);
+    const auto& vec_partial_sum = mpi_world_communicator.ScanSum(vec_local);
+    mpi_world_communicator.ScanSum(vec_local, global_vec);
+
+    array_1d<double, 3> base_values{2.0*(rank+1)*(rank+2)/2, 3.0*(rank+1)*(rank+2)/2, 4.0*(rank+1)*(rank+2)/2}, resultant_vec;
+
+    KRATOS_CHECK_EQUAL(vec_partial_sum.size(), 3);
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_vec = base_values * (i+1);
+        KRATOS_CHECK_VECTOR_EQUAL(vec_partial_sum[i], resultant_vec);
+        KRATOS_CHECK_VECTOR_EQUAL(global_vec[i], resultant_vec);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
+
+    Vector local(4), resultant(4);
+    local[0] = 2.0; local[1] = 3.0; local[2] = 4.0; local[3] = 5.0;
+    resultant[0] = 2.0*(rank+1); resultant[1] = 3.0*(rank+1); resultant[2] = 4.0*(rank+1); resultant[3] = 5.0*(rank+1);
+    const auto& partial_sum = mpi_world_communicator.ScanSum(local);
+    KRATOS_CHECK_VECTOR_EQUAL(partial_sum, resultant);
+
+    // check std::vector methods
+    std::vector<Vector> vec_local(3, Vector(4));
+    vec_local[0][0] = 2.0*(rank+1); vec_local[0][1] = 3.0*(rank+1); vec_local[0][2] =  4.0*(rank+1); vec_local[0][3] =  5.0*(rank+1);
+    vec_local[1][0] = 4.0*(rank+1); vec_local[1][1] = 6.0*(rank+1); vec_local[1][2] =  8.0*(rank+1); vec_local[1][3] = 10.0*(rank+1);
+    vec_local[2][0] = 6.0*(rank+1); vec_local[2][1] = 9.0*(rank+1); vec_local[2][2] = 12.0*(rank+1); vec_local[2][3] = 15.0*(rank+1);
+
+    std::vector<Vector> global_vec(3, Vector(4));
+    const auto& vec_partial_sum = mpi_world_communicator.ScanSum(vec_local);
+    mpi_world_communicator.ScanSum(vec_local, global_vec);
+
+    array_1d<double, 4> base_values{2.0*(rank+1)*(rank+2)/2, 3.0*(rank+1)*(rank+2)/2, 4.0*(rank+1)*(rank+2)/2, 5.0*(rank+1)*(rank+2)/2}, resultant_vec;
+
+    KRATOS_CHECK_EQUAL(vec_partial_sum.size(), 3);
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_vec = base_values * (i+1);
+        KRATOS_CHECK_VECTOR_EQUAL(vec_partial_sum[i], resultant_vec);
+        KRATOS_CHECK_VECTOR_EQUAL(global_vec[i], resultant_vec);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    int rank = mpi_world_communicator.Rank();
+
+    Matrix local(2, 2), resultant(2, 2);
+    local.data()[0] = 2.0; local.data()[1] = 3.0; local.data()[2] = 4.0; local.data()[3] = 5.0;
+    resultant.data()[0] = 2.0*(rank+1); resultant.data()[1] = 3.0*(rank+1); resultant.data()[2] = 4.0*(rank+1); resultant.data()[3] = 5.0*(rank+1);
+    const auto& partial_sum = mpi_world_communicator.ScanSum(local);
+    KRATOS_CHECK_MATRIX_EQUAL(partial_sum, resultant);
+
+    // check std::vector methods
+    std::vector<Matrix> vec_local(3, Matrix(2, 2));
+    vec_local[0].data()[0] = 2.0*(rank+1); vec_local[0].data()[1] = 3.0*(rank+1); vec_local[0].data()[2] =  4.0*(rank+1); vec_local[0].data()[3] =  5.0*(rank+1);
+    vec_local[1].data()[0] = 4.0*(rank+1); vec_local[1].data()[1] = 6.0*(rank+1); vec_local[1].data()[2] =  8.0*(rank+1); vec_local[1].data()[3] = 10.0*(rank+1);
+    vec_local[2].data()[0] = 6.0*(rank+1); vec_local[2].data()[1] = 9.0*(rank+1); vec_local[2].data()[2] = 12.0*(rank+1); vec_local[2].data()[3] = 15.0*(rank+1);
+
+    std::vector<Matrix> global_vec(3, Matrix(2, 2));
+    const auto& vec_partial_sum = mpi_world_communicator.ScanSum(vec_local);
+    mpi_world_communicator.ScanSum(vec_local, global_vec);
+
+    Matrix base_values(2, 2), resultant_matrix(2, 2);
+    base_values.data()[0] = 2.0*(rank+1)*(rank+2)/2; base_values.data()[1] = 3.0*(rank+1)*(rank+2)/2; base_values.data()[2] = 4.0*(rank+1)*(rank+2)/2; base_values.data()[3] = 5.0*(rank+1)*(rank+2)/2;
+
+    KRATOS_CHECK_EQUAL(vec_partial_sum.size(), 3);
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_matrix = base_values * (i+1);
+        KRATOS_CHECK_MATRIX_EQUAL(vec_partial_sum[i], resultant_matrix);
+        KRATOS_CHECK_MATRIX_EQUAL(global_vec[i], resultant_matrix);
+    }
+}
+
 namespace {
 template<typename T> void MPIDataCommunicatorScanSumIntegralVectorTypeTest()
 {
