@@ -404,7 +404,12 @@ public:
 
     inline int Size(const MessageDataType& rValue)
     {
-        return (rValue.size() == 0 ? 0 : rValue.size() * MPIMessage<TDataType>().Size(rValue.front()));
+        return rValue.size() * SubDataTypeSize(rValue);
+    }
+
+    inline int SubDataTypeSize(const MessageDataType& rValue)
+    {
+        return (rValue.size() == 0 ? 0 : MPIMessage<TDataType>().Size(rValue.front()));
     }
 
     inline std::vector<unsigned int> Shape(const MessageDataType& rValues)
