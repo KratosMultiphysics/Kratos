@@ -10,6 +10,7 @@
 //  Main author:     Jordi Cotela
 //
 
+#include <algorithm>
 #include "includes/parallel_environment.h"
 
 #include "mpi/includes/mpi_data_communicator.h"
@@ -318,6 +319,14 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(array_1d<double, 
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(Vector)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(Matrix)
 
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(Vector)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(Matrix)
+
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(char)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(long unsigned int)
@@ -799,11 +808,14 @@ template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
 template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::ScatterDetail(
     const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int SourceRank) const
 {
+    MPIMessage<TSendDataType> mpi_send_msg;
+    MPIMessage<TRecvDataType> mpi_recv_msg;
+
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
     << "In call to MPI_Scatter: " << SourceRank << " is not a valid rank." << std::endl;
-    const int send_size = MPIMessageSize(rSendValues);
-    const int recv_size = MPIMessageSize(rRecvValues);
+    const int send_size = mpi_send_msg.Size(rSendValues);
+    const int recv_size = mpi_recv_msg.Size(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(recv_size))
     << "Input error in call to MPI_Scatter: "
     << "The destination buffer does not have the same size on all ranks." << std::endl;
@@ -813,12 +825,14 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Sca
     << recv_size * Size() << " values to send expected)." << std::endl;
     #endif // KRATOS_DEBUG
 
-    const int sends_per_rank = MPIMessageSize(rRecvValues);
+    const int sends_per_rank = mpi_recv_msg.Size(rRecvValues);
     const int ierr = MPI_Scatter(
-        MPIBuffer(rSendValues), sends_per_rank, MPIDatatype(rSendValues),
-        MPIBuffer(rRecvValues), sends_per_rank, MPIDatatype(rRecvValues),
+        mpi_send_msg.Buffer(rSendValues), sends_per_rank, mpi_send_msg.DataType(),
+        mpi_recv_msg.Buffer(rRecvValues), sends_per_rank, mpi_recv_msg.DataType(),
         SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatter");
+
+    mpi_recv_msg.Update(rRecvValues);
 }
 
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScatterDetail(
@@ -833,8 +847,17 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScatterDet
 
     Broadcast(message_size, SourceRank);
 
-    std::vector<TDataType> message(message_size);
-    ScatterDetail(rSendValues, message, SourceRank);
+    std::vector<TDataType> message;
+    if (message_size > 0) {
+        TDataType temp;
+        if (Rank() == SourceRank) {
+            temp = rSendValues.front();
+        }
+        SynchronizeShape(temp);
+        message.resize(message_size, temp);
+        ScatterDetail(rSendValues, message, SourceRank);
+    }
+
     return message;
 }
 
@@ -846,11 +869,35 @@ template<class TDataType> void MPIDataCommunicator::ScattervDetail(
     ValidateScattervInput(rSendValues, rSendCounts, rSendOffsets, rRecvValues, SourceRank);
     #endif
 
-    const int ierr = MPI_Scatterv(
-        MPIBuffer(rSendValues), rSendCounts.data(), rSendOffsets.data(), MPIDatatype(rSendValues),
-        MPIBuffer(rRecvValues), MPIMessageSize(rRecvValues), MPIDatatype(rRecvValues),
-        SourceRank, mComm);
-    CheckMPIErrorCode(ierr, "MPI_Scatterv");
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
+    int sub_data_type_length = mpi_send_msg.SubDataTypeSize(rSendValues);
+
+    Broadcast(sub_data_type_length, SourceRank);
+
+    if (sub_data_type_length == 1) {
+        const int ierr = MPI_Scatterv(
+            mpi_send_msg.Buffer(rSendValues), rSendCounts.data(), rSendOffsets.data(), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), mpi_recv_msg.Size(rRecvValues), mpi_recv_msg.DataType(),
+            SourceRank, mComm);
+        CheckMPIErrorCode(ierr, "MPI_Scatterv");
+    } else {
+        // now we have update the rSendCounts and rSendOffsets properly for primitive data type sizes
+        // because the TDataType is not contiguous
+        std::vector<int> primitive_send_counts(rSendCounts.size());
+        std::vector<int> primitive_send_offsets(rSendOffsets.size());
+
+        std::transform(rSendCounts.begin(), rSendCounts.end(), primitive_send_counts.begin(), [sub_data_type_length](const auto SendCount) { return SendCount * sub_data_type_length; });
+        std::transform(rSendOffsets.begin(), rSendOffsets.end(), primitive_send_offsets.begin(), [sub_data_type_length](const auto SendOffset) { return SendOffset * sub_data_type_length; });
+
+        const int ierr = MPI_Scatterv(
+            mpi_send_msg.Buffer(rSendValues), primitive_send_counts.data(), primitive_send_offsets.data(), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), mpi_recv_msg.Size(rRecvValues), mpi_recv_msg.DataType(),
+            SourceRank, mComm);
+        CheckMPIErrorCode(ierr, "MPI_Scatterv");
+    }
+
+    mpi_recv_msg.Update(rRecvValues);
 }
 
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScattervDetail(
@@ -1068,7 +1115,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(
 
     // All ranks expect a message of the correct size
     int expected_size = 0;
-    const int available_recv_size = MPIMessageSize(rRecvValues);
+    const int available_recv_size = rRecvValues.size();
     int ierr = MPI_Scatter(rSendCounts.data(), 1, MPI_INT, &expected_size, 1, MPI_INT, SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatter");
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(expected_size != available_recv_size))
@@ -1078,7 +1125,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(
 
     // Message size is not smaller than total expected size (can only check for too small, since the source message may be padded).
     int total_size = 0;
-    const int message_size = MPIMessageSize(rSendValues);
+    const int message_size = rSendValues.size();
     ierr = MPI_Reduce(&available_recv_size, &total_size, 1, MPI_INT, MPI_SUM, SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
     KRATOS_ERROR_IF(BroadcastErrorIfTrue(total_size > message_size, SourceRank))
@@ -1230,9 +1277,15 @@ template <class TDataType> void MPIDataCommunicator::PrepareScattervBuffers(
         }
     }
 
+    TDataType temp;
+    if (rScattervMessage.size() > 0) {
+        temp = rScattervMessage.front();
+    }
+    SynchronizeShape(temp);
+
     int result_size;
     ScatterDetail(rMessageLengths, result_size, SourceRank);
-    rResult.resize(result_size);
+    rResult.resize(result_size, temp);
 }
 
 
