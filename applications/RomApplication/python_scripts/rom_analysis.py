@@ -10,6 +10,7 @@ import numpy as np
 
 from glob import glob
 from os import remove
+from pathlib import Path
 
 def CreateRomAnalysisInstance(cls, global_model, parameters, rom_training_parameters):
     class RomAnalysis(cls):
@@ -35,6 +36,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, rom_training_parame
             else:
                 self.rom_basis_output_name = self.rom_training_parameters["Parameters"]["rom_basis_output_name"].GetString()
                 self.rom_basis_output_folder = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+            self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
 
             # Get the ROM settings from the RomParameters.json input file
             with open(f"{self.rom_basis_output_folder}/{self.rom_basis_output_name}.json") as rom_parameters:
@@ -155,30 +157,31 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, rom_training_parame
                         node.SetValue(KratosROM.ROM_LEFT_BASIS, aux)
 
             elif self.rom_parameters["rom_format"].GetString() == "numpy":
-                #### Set the nodal ROM basis ####
-                node_ids = np.load(f"{self.rom_basis_output_folder}/NodeIds.npy")
-                right_modes = np.load(f"{self.rom_basis_output_folder}/RightBasisMatrix.npy")
+                # Set the nodal ROM basis
+                node_ids = np.load(self.rom_basis_output_folder / "NodeIds.npy")
+                right_modes = np.load(self.rom_basis_output_folder / "RightBasisMatrix.npy")
                 if right_modes.ndim ==1: #check if matrix contains a single mode (a 1D numpy array)
                     right_modes.reshape(-1,1)
                 right_modes = right_modes[:,:rom_dofs]
                 if (self.solving_strategy == "petrov_galerkin"):
                     petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
-                    left_modes = np.load(f"{self.rom_basis_output_folder}/LeftBasisMatrix.npy")
+                    left_modes = np.load(self.rom_basis_output_folder / "LeftBasisMatrix.npy")
                     if left_modes.ndim ==1:
                         left_modes.reshape(-1,1)
                     left_modes = left_modes[:,:petrov_galerkin_rom_dofs]
 
                 for node in computing_model_part.Nodes:
                     offset = np.where(node_ids == node.Id)[0][0]*nodal_dofs
-                    node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset+nodal_dofs, :]) ) # ROM basis
+                    node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset+nodal_dofs, :])) # ROM basis
                     if (self.solving_strategy == "petrov_galerkin"):
-                        node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset+nodal_dofs, :]) ) # ROM basis
+                        node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset+nodal_dofs, :])) # ROM basis
+
 
             # Check for HROM stages
             if self.train_hrom:
                 # Pass the name of the Rom Parameters file and folder
-                self.rom_parameters.AddString("rom_basis_output_name", self.rom_basis_output_name)
-                self.rom_parameters.AddString("rom_basis_output_folder", self.rom_basis_output_folder)
+                self.rom_parameters.AddString("rom_basis_output_name", str(self.rom_basis_output_name))
+                self.rom_parameters.AddString("rom_basis_output_folder", str(self.rom_basis_output_folder))
                 # Create the training utility to calculate the HROM weights
                 self.__hrom_training_utility = HRomTrainingUtility(
                     self._GetSolver(),
@@ -210,8 +213,8 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, rom_training_parame
             # Check and Initialize Petrov Galerkin Training stage
             if self.train_petrov_galerkin:
                 # Pass the name of the Rom Parameters file and folder
-                self.rom_parameters.AddString("rom_basis_output_name", self.rom_basis_output_name)
-                self.rom_parameters.AddString("rom_basis_output_folder", self.rom_basis_output_folder)
+                self.rom_parameters.AddString("rom_basis_output_name", str(self.rom_basis_output_name))
+                self.rom_parameters.AddString("rom_basis_output_folder", str(self.rom_basis_output_folder))
                 self.__petrov_galerkin_training_utility = PetrovGalerkinTrainingUtility(
                     self._GetSolver(),
                     self.rom_parameters)

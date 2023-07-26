@@ -1,6 +1,7 @@
 # Import Python modules
 import json
 import numpy as np
+from pathlib import Path
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -46,6 +47,8 @@ class HRomTrainingUtility(object):
         # Rom settings files
         self.rom_basis_output_name = custom_settings["rom_basis_output_name"].GetString()
         self.rom_basis_output_folder = custom_settings["rom_basis_output_folder"].GetString()
+        self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
+        self.rom_basis_output_name = Path(self.rom_basis_output_name)   
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -102,10 +105,10 @@ class HRomTrainingUtility(object):
         aux_model = KratosMultiphysics.Model()
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
-        if  self.hrom_output_format == "numpy":
+        if self.hrom_output_format == "numpy":
             hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
         elif self.hrom_output_format == "json":
-            with open(f"{self.rom_basis_output_folder}/{self.rom_basis_output_name}.json",'r') as f:
+            with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
                 rom_parameters = KratosMultiphysics.Parameters(f.read())
                 hrom_info = rom_parameters["elements_and_weights"]
 
@@ -218,19 +221,20 @@ class HRomTrainingUtility(object):
             weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
 
         if self.hrom_output_format=="numpy":
-            element_indexes = np.where( indexes < number_of_elements )[0]
-            condition_indexes = np.where( indexes >= number_of_elements )[0]
-            np.save(f'{self.rom_basis_output_folder}/HROM_ElementWeights.npy',weights[element_indexes])
-            np.save(f'{self.rom_basis_output_folder}/HROM_ConditionWeights.npy',weights[condition_indexes])
-            np.save(f'{self.rom_basis_output_folder}/HROM_ElementIds.npy',indexes[element_indexes]) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
-            np.save(f'{self.rom_basis_output_folder}/HROM_ConditionIds.npy',indexes[condition_indexes]-number_of_elements) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
+            element_indexes = np.where(indexes < number_of_elements)[0]
+            condition_indexes = np.where(indexes >= number_of_elements)[0]
+            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights[element_indexes])
+            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_indexes])
+            np.save(self.rom_basis_output_folder / "HROM_ElementIds.npy", indexes[element_indexes])  # FIXME fix the -1 in the indexes of numpy and ids of Kratos
+            np.save(self.rom_basis_output_folder / "HROM_ConditionIds.npy", indexes[condition_indexes] - number_of_elements)  # FIXME fix the -1 in the indexes of numpy and ids of Kratos
 
         elif self.hrom_output_format=="json":
-            with open(f"{self.rom_basis_output_folder}/{self.rom_basis_output_name}.json",'r') as f:
+            with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
                 updated_rom_parameters = json.load(f)
-                updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
-            with open(f"{self.rom_basis_output_folder}/{self.rom_basis_output_name}.json",'w') as f:
-                json.dump(updated_rom_parameters, f, indent = 4)
+                updated_rom_parameters["elements_and_weights"] = hrom_weights  # TODO: Rename elements_and_weights to hrom_weights
+
+            with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('w') as f:
+                json.dump(updated_rom_parameters, f, indent=4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
@@ -255,10 +259,9 @@ class HRomTrainingUtility(object):
         if number_of_elements is None:
             number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
         if weights is None:
-            weights = np.r_[np.load(f'{self.rom_basis_output_folder}/HROM_ElementWeights.npy'),np.load(f'{self.rom_basis_output_folder}/HROM_ConditionWeights.npy')]
+            weights = np.r_[np.load(self.rom_basis_output_folder / "HROM_ElementWeights.npy"), np.load(self.rom_basis_output_folder / "HROM_ConditionWeights.npy")]
         if indexes is None:
-            indexes = np.r_[np.load(f'{self.rom_basis_output_folder}/HROM_ElementIds.npy'),np.load(f'{self.rom_basis_output_folder}/HROM_ConditionIds.npy')+number_of_elements]
-
+            indexes = np.r_[np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy"), np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements]
         hrom_weights = {}
         hrom_weights["Elements"] = {}
         hrom_weights["Conditions"] = {}

@@ -1,7 +1,7 @@
 # Import Python modules
 import json
 import numpy as np
-import os
+from pathlib import Path
 from glob import glob
 
 # Importing the Kratos Library
@@ -11,9 +11,6 @@ import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 import KratosMultiphysics.kratos_utilities as kratos_utils
-
-def GetFilePath(fileName):
-    return os.path.join(os.getcwd(), fileName)
 
 class PetrovGalerkinTrainingUtility(object):
     """Auxiliary utility for the Petrov Galerkin training.
@@ -37,6 +34,8 @@ class PetrovGalerkinTrainingUtility(object):
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
         self.rom_basis_output_name = custom_settings["rom_basis_output_name"].GetString()
         self.rom_basis_output_folder = custom_settings["rom_basis_output_folder"].GetString()
+        self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
+        self.rom_basis_output_name = Path(self.rom_basis_output_name)
 
         self.rom_format =  custom_settings["rom_format"].GetString()
         available_rom_format = ["json", "numpy"]
@@ -128,15 +127,15 @@ class PetrovGalerkinTrainingUtility(object):
 
         elif self.rom_format == "numpy":
             # Storing Petrov-Galerkin modes in Numpy format
-            np.save(f'{self.rom_basis_output_folder}/LeftBasisMatrix.npy', u)
+            np.save(self.rom_basis_output_folder / "LeftBasisMatrix.npy", u)
 
-        with open(f"{self.rom_basis_output_folder}/{self.rom_basis_output_name}.json",'r') as f:
+        with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
             updated_rom_parameters = json.load(f)
             updated_rom_parameters["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = petrov_galerkin_number_of_rom_dofs
             updated_rom_parameters["petrov_galerkin_nodal_modes"] = petrov_galerkin_nodal_modes
 
-        with open(f"{self.rom_basis_output_folder}/{self.rom_basis_output_name}.json",'w') as f:
-            json.dump(updated_rom_parameters, f, indent = 4)
+        with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('w') as f:
+            json.dump(updated_rom_parameters, f, indent=4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 

@@ -5,7 +5,7 @@ from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition i
 import numpy as np
 import importlib
 import json
-import os
+from pathlib import Path
 
 
 
@@ -489,8 +489,14 @@ class RomManager(object):
         #taken from code by Philipa & Catharina
         parameters_file_folder = self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder") else "rom_data"
         parameters_file_name = self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name") else "RomParameters"
-        parameters_file_name = f"{parameters_file_folder}/{parameters_file_name}.json"
-        with open(parameters_file_name, 'r+') as parameter_file:
+
+        # Convert to Path objects
+        parameters_file_folder = Path(parameters_file_folder)
+        parameters_file_name = Path(parameters_file_name)
+
+        parameters_file_path = parameters_file_folder / parameters_file_name.with_suffix('.json')
+
+        with parameters_file_path.open('r+') as parameter_file:
             f=json.load(parameter_file)
             f['assembling_strategy'] = self.general_rom_manager_parameters['assembling_strategy'].GetString() if self.general_rom_manager_parameters.Has('assembling_strategy') else 'global'
             if simulation_to_run=='GalerkinROM':
@@ -658,12 +664,11 @@ class RomManager(object):
 
         # Define the directory and file path
         rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
-        directory = f'{rom_output_folder_name}/SnapshotsMatrices'
-        file_path = os.path.join(directory, f'{string_numpy_array_name}.npy')
+        directory = Path(rom_output_folder_name) / 'SnapshotsMatrices'
+        file_path = directory / f'{string_numpy_array_name}.npy'
 
         # Create the directory if it doesn't exist
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        directory.mkdir(parents=True, exist_ok=True)
 
         #save the array inside the chosen directory
         np.save(file_path, numpy_array)
