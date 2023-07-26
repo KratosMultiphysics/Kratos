@@ -27,42 +27,9 @@ bool MPIDataCommunicator::SynchronizeShape(__VA_ARGS__& rValue) const {         
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(...)                                              \
 __VA_ARGS__ MPIDataCommunicator::Sum(const __VA_ARGS__& rLocalValue, const int Root) const {                            \
-    return ReduceDetail(rLocalValue, MPI_SUM, Root);                                                                    \
-}                                                                                                                       \
-std::vector<__VA_ARGS__> MPIDataCommunicator::Sum(const std::vector<__VA_ARGS__>& rLocalValues, const int Root) const { \
-    return ReduceDetailVector(rLocalValues, MPI_SUM, Root);                                                             \
-}                                                                                                                       \
-void MPIDataCommunicator::Sum(                                                                                          \
-    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues, const int Root) const {      \
-    ReduceDetail(rLocalValues, rGlobalValues, MPI_SUM, Root);                                                           \
-}                                                                                                                       \
-__VA_ARGS__ MPIDataCommunicator::Min(const __VA_ARGS__& rLocalValue, const int Root) const {                            \
-    return ReduceDetail(rLocalValue, MPI_MIN, Root);                                                                    \
-}                                                                                                                       \
-std::vector<__VA_ARGS__> MPIDataCommunicator::Min(const std::vector<__VA_ARGS__>& rLocalValues, const int Root) const { \
-    return ReduceDetailVector(rLocalValues, MPI_MIN, Root);                                                             \
-}                                                                                                                       \
-void MPIDataCommunicator::Min(                                                                                          \
-    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues, const int Root) const {      \
-    ReduceDetail(rLocalValues, rGlobalValues, MPI_MIN, Root);                                                           \
-}                                                                                                                       \
-__VA_ARGS__ MPIDataCommunicator::Max(const __VA_ARGS__& rLocalValue, const int Root) const {                            \
-    return ReduceDetail(rLocalValue, MPI_MAX, Root);                                                                    \
-}                                                                                                                       \
-std::vector<__VA_ARGS__> MPIDataCommunicator::Max(const std::vector<__VA_ARGS__>& rLocalValues, const int Root) const { \
-    return ReduceDetailVector(rLocalValues, MPI_MAX, Root);                                                             \
-}                                                                                                                       \
-void MPIDataCommunicator::Max(                                                                                          \
-    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues, const int Root) const {      \
-    ReduceDetail(rLocalValues, rGlobalValues, MPI_MAX, Root);                                                           \
-}                                                                                                                       \
-
-#endif
-
-#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(...)                                       \
-__VA_ARGS__ MPIDataCommunicator::Sum(const __VA_ARGS__& rLocalValue, const int Root) const {                            \
-    return ReduceDetail(rLocalValue, MPI_SUM, Root);                                                                    \
+    __VA_ARGS__ global_values(rLocalValue);                                                                             \
+    ReduceDetail(rLocalValue, global_values, MPI_SUM, Root);                                                            \
+    return global_values;                                                                                               \
 }                                                                                                                       \
 std::vector<__VA_ARGS__> MPIDataCommunicator::Sum(const std::vector<__VA_ARGS__>& rLocalValues, const int Root) const { \
     return ReduceDetailVector(rLocalValues, MPI_SUM, Root);                                                             \
@@ -322,12 +289,12 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(long unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(double)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(char)
 
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 3>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 4>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 6>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 9>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(Vector)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(Matrix)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(Vector)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(Matrix)
 
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(unsigned int)
