@@ -1,7 +1,7 @@
 # Import Python modules
 import json
 import numpy
-import os
+from pathlib import Path
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -175,8 +175,9 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         #NOTE "petrov_galerkin_number_of_rom_dofs" is not used unless a Petrov-Galerkin simulation is called, in which case it shall be modified either manually or from the RomManager
 
         # Create the folder if it doesn't already exist
-        if not os.path.exists(self.rom_basis_output_folder):
-            os.makedirs(self.rom_basis_output_folder)
+        self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
+        if not self.rom_basis_output_folder.exists():
+            self.rom_basis_output_folder.mkdir(parents=True)
 
         if self.rom_basis_output_format == "json":
             # Storing modes in JSON format
@@ -187,15 +188,16 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         elif self.rom_basis_output_format == "numpy":
             # Storing modes in Numpy format
-            numpy.save(f'{self.rom_basis_output_folder}/RightBasisMatrix.npy', u)
-            numpy.save(f'{self.rom_basis_output_folder}/NodeIds.npy',  numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int)   )
+            numpy.save(self.rom_basis_output_folder / "RightBasisMatrix.npy", u)
+            numpy.save(self.rom_basis_output_folder / "NodeIds.npy", numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int))
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
 
         # Creating the ROM JSON file containing or not the modes depending on "self.rom_basis_output_format"
-        output_filename = f"{self.rom_basis_output_folder}/{self.rom_basis_output_name}.json"
-        with open(output_filename, 'w') as f:
+        self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
+        output_filename = self.rom_basis_output_folder / f"{self.rom_basis_output_name}.json"
+        with output_filename.open('w') as f:
             json.dump(rom_basis_dict, f, indent = 4)
 
 
