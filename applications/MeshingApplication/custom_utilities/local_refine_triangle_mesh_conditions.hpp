@@ -200,7 +200,7 @@ public:
         rCoord.resize(pNodes.size(), pNodes.size(), false);
 
         for(auto i = it_begin; i!=it_end; i++) {
-            int index_i = mMapNodeIdToPos[i->Id()]; // WARNING: MESH MUST BE IN ORDER
+            int index_i = mMapNodeIdToPos[i->Id()];
             GlobalPointersVector< Node >& neighb_nodes = i->GetValue(NEIGHBOUR_CONDITION_NODES);
 
             std::vector<unsigned int> aux(neighb_nodes.size());
