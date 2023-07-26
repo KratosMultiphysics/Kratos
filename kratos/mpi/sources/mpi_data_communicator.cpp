@@ -544,9 +544,8 @@ void MPIDataCommunicator::RecvImpl(std::string& rRecvValues, const int RecvSourc
 
 template<class TDataType> bool MPIDataCommunicator::SynchronizeShapeDetail(TDataType& rValue) const
 {
-    MPIMessage<TDataType> mpi_message;
-
     if constexpr(MPIMessage<TDataType>::HasDynamicMemoryAllocation) {
+        MPIMessage<TDataType> mpi_message;
         const auto& shape = mpi_message.Shape(rValue);
         const auto& reduced_shape = MaxAll(shape);
         return mpi_message.Resize(rValue, reduced_shape);
