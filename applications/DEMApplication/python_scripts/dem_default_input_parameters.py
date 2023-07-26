@@ -184,6 +184,7 @@ def GetDefaultInputParameters():
             "processes" : {},
             "RVEEvalFreq"                      : 1000,
             "LimitConsolidationStress"         : 100000,
+            "LimitConsolidationPorosity"       : 0.15,
             "PostWriteCoordinates"             : true,
             "PostWritePorosity"                : true,
             "PostWriteContactNumber"           : true,

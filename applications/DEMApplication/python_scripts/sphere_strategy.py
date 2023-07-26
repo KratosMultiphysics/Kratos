@@ -191,6 +191,7 @@ class ExplicitStrategy():
 
         self.rve_eval_freq                        = DEM_parameters["RVEEvalFreq"].GetInt()
         self.limit_consolidation_stress           = DEM_parameters["LimitConsolidationStress"].GetDouble()
+        self.limit_consolidation_porosity         = DEM_parameters["LimitConsolidationPorosity"].GetDouble()
         self.post_write_coordinates               = DEM_parameters["PostWriteCoordinates"].GetBool()
         self.post_write_porosity                  = DEM_parameters["PostWritePorosity"].GetBool()
         self.post_write_contact_number            = DEM_parameters["PostWriteContactNumber"].GetBool()
@@ -332,7 +333,8 @@ class ExplicitStrategy():
         self.settings.cluster_model_part = self.cluster_model_part
 
         self.spheres_model_part.ProcessInfo.SetValue(RVE_EVAL_FREQ, self.rve_eval_freq)
-        self.spheres_model_part.ProcessInfo.SetValue(LIMIT_CONSOLIDATION_STRESS, self.limit_consolidation_stress)
+        self.spheres_model_part.ProcessInfo.SetValue(LIMIT_CONSOLIDATION_STRESS,   self.limit_consolidation_stress)
+        self.spheres_model_part.ProcessInfo.SetValue(LIMIT_CONSOLIDATION_POROSITY, self.limit_consolidation_porosity)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, POST_WRITE_COORDINATES,               self.post_write_coordinates)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, POST_WRITE_POROSITY,                  self.post_write_porosity)
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, POST_WRITE_CONTACT_NUMBER,            self.post_write_contact_number)

@@ -2516,9 +2516,10 @@ namespace Kratos {
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEStopCompression(void) {
       ModelPart& r_dem_model_part = GetModelPart();
-      const double limit_stress = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
+      const double limit_stress   = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
+      const double limit_porosity = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_POROSITY];
 
-      if (mRVE_Compress && mRVE_Porosity < limit_stress) {
+      if (mRVE_Compress && (std::abs(mRVE_EffectStressInner) > limit_stress || mRVE_Porosity < limit_porosity)) {
         mRVE_Compress = false;
 
         if (mRVE_FlatWalls) {
