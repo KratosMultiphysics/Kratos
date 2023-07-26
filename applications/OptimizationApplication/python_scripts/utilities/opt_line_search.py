@@ -90,9 +90,7 @@ class BBStep(ConstStep):
     @time_decorator()
     def ComputeStep(self) -> float:
         algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
-
         norm = self.ComputeScaleFactor()
-        
         if self._optimization_problem.GetStep() == 0:
             self.unscaled_step = self._init_step
         else:
@@ -135,46 +133,44 @@ class QNBBStep(BBStep):
     def ComputeStep(self) -> numpy.ndarray:
         algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
         norm = self.ComputeScaleFactor()
-        
-        self.unscaled_step = algorithm_buffered_data.GetValue("search_direction", 0).Clone()
-        self.unscaled_step *= 0.0
-        self.unscaled_step = self.unscaled_step.Evaluate()
+        self.step = algorithm_buffered_data.GetValue("search_direction", 0).Clone()
+        self.step *= 0.0
+        if not algorithm_buffered_data.HasValue("step_size"):
+            algorithm_buffered_data["step_size"] = self.step
+        self.step_numpy = self.step.Evaluate()
         if self._optimization_problem.GetStep() == 0:
-            self.unscaled_step[:] = self._init_step
+            self.step_numpy[:] = self._init_step
         else:
             current_search_direction = algorithm_buffered_data.GetValue("search_direction", 0)
             previous_search_direction = algorithm_buffered_data.GetValue("search_direction", 1)
             y = previous_search_direction - current_search_direction
             y = y.Evaluate()
-            print(y)
             d = algorithm_buffered_data.GetValue("control_field_update", 1)
             d = d.Evaluate()
             for i in range(len(y)):
                 yy = y[i] * y[i]
                 yd = y[i] * d[i]
-                print(yy ,yd)
-                if not math.isclose(yy, 0.0, abs_tol=1e-16):
-                    self.unscaled_step[i] = abs( yd / yy )
                 if math.isclose(yy, 0.0, abs_tol=1e-16):
-                    self.unscaled_step[i] = self._max_step
-                if math.isclose(yd, 0.0, abs_tol=1e-16):
-                    self.unscaled_step[i] = 0.0
-            
-        if not math.isclose(norm, 0.0, abs_tol=1e-16):
-            self.step = self.unscaled_step / norm
-        else:
-            self.step =  self.unscaled_step
+                    self.step_numpy[i] = self._max_step
+                elif not math.isclose(yy, 0.0, abs_tol=1e-16):
+                    self.step_numpy[i] = abs( yd / yy )
+                elif math.isclose(yd, 0.0, abs_tol=1e-16):
+                    self.step_numpy[i] = 0.0
+                if self.step_numpy[i] > self._max_step:
+                    self.step_numpy[i] = self._max_step
 
-        self.step = numpy.array([value if value < self._max_step else self._max_step for value in self.step])
-        print(self.step)
+        if not math.isclose(norm, 0.0, abs_tol=1e-16):
+            self.step_numpy[:] /= norm
 
         DictLogger("Line Search info",self.GetInfo())
 
+        shape = [c.GetItemShape() for c in self.step.GetContainerExpressions()]
+        KratosOA.CollectiveExpressionIO.Read(self.step, self.step_numpy, shape)
         return self.step
     
     def GetInfo(self) -> dict:
         info = {'type': 'QNBB_step',
-                'max scaled_step': self.step.max(),
+                # 'max scaled_step': self.step.max(),
                 'max_step': self._max_step,
                 'init_step': self._init_step}
 

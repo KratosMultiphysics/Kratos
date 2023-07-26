@@ -146,7 +146,7 @@ class TestLineSearch(kratos_unittest.TestCase):
         }""")
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
         alpha = line_search.ComputeStep()
-        self.assertTrue(all(numpy.isclose(alpha, [0.0, 0.0])))
+        self.assertTrue(all(numpy.isclose(alpha.Evaluate(), [0.0, 0.0])))
 
     def test_QNBBStepInfNormStep(self):
         line_search_settings = Kratos.Parameters("""{
@@ -157,7 +157,7 @@ class TestLineSearch(kratos_unittest.TestCase):
         }""")
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
         alpha = line_search.ComputeStep()
-        self.assertTrue(all(numpy.isclose(alpha, [0.00555556, 0.00555556])))
+        self.assertTrue(all(numpy.isclose(alpha.Evaluate(), [0.00555556, 0.00555556])))
 
     def test_QNBBStepL2NormStep(self):
         line_search_settings = Kratos.Parameters("""{
@@ -168,7 +168,7 @@ class TestLineSearch(kratos_unittest.TestCase):
         }""")
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
         alpha = line_search.ComputeStep()
-        self.assertTrue(all(numpy.isclose(alpha, [0.00496904, 0.00496904])))
+        self.assertTrue(all(numpy.isclose(alpha.Evaluate(), [0.00496904, 0.00496904])))
 
     def test_QNBBStepNoneNormStep(self):
         line_search_settings = Kratos.Parameters("""{
@@ -179,7 +179,7 @@ class TestLineSearch(kratos_unittest.TestCase):
         }""")
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
         alpha = line_search.ComputeStep()
-        self.assertTrue(all(numpy.isclose(alpha, [0.02222222, 0.02222222])))
+        self.assertTrue(all(numpy.isclose(alpha.Evaluate(), [0.02222222, 0.02222222])))
 
     def test_QNBBStepNoneNormMaxStep(self):
         line_search_settings = Kratos.Parameters("""{
@@ -190,7 +190,7 @@ class TestLineSearch(kratos_unittest.TestCase):
         }""")
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem)
         alpha = line_search.ComputeStep()
-        self.assertTrue(all(numpy.isclose(alpha, [0.01, 0.01])))
+        self.assertTrue(all(numpy.isclose(alpha.Evaluate(), [0.01, 0.01])))
 
     def test_QNBBStepNoneNormInitStep(self):
         line_search_settings = Kratos.Parameters("""{
@@ -201,7 +201,7 @@ class TestLineSearch(kratos_unittest.TestCase):
         }""")
         line_search = CreateLineSearch(line_search_settings, self.optimization_problem_one_step)
         alpha = line_search.ComputeStep()
-        self.assertTrue(all(numpy.isclose(alpha, [3.0, 3.0])))
+        self.assertTrue(all(numpy.isclose(alpha.Evaluate(), [3.0, 3.0])))
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
