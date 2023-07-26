@@ -55,14 +55,16 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
         destination_model_part_name = self.settings["destination_model_part_name"].GetString()
         self.destination_model_part = self.model.GetModelPart(destination_model_part_name)
         
-        #Import Origin Model Part 
+        # Import Origin Model Part 
         self.origin_model_part = self.model.CreateModelPart("OriginModelPart")
         for variable in self.destination_model_part.GetHistoricalVariablesNames():
             if KratosMultiphysics.KratosGlobals.HasVariable(variable):
                 self.origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
-
+            else:
+                raise Exception(f"Variable '{variable}' does not exist or is not valid in KratosMultiphysics.")
+                
         model_part_io = KratosMultiphysics.ModelPartIO(origin_model_part_file_name)
-        model_part_io.ReadModelPart(self.origin_model_part) 
+        model_part_io.ReadModelPart(self.origin_model_part)
 
         self.domain_size = self.destination_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
 
