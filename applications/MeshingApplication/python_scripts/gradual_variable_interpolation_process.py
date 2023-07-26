@@ -19,7 +19,7 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
             "origin_model_part_file_name" : "NameOfMDPAfile",
             "destination_model_part_name" : "ModelPartName",
             "interpolation_variables_list": [],
-            "constrain_varibles": false,
+            "constrain_variables": false,
             "alpha_rampup_increment": 0.0,
             "steps_for_rampup": 0.0
         }""")
@@ -28,7 +28,7 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
 
         self.model = model
         self.settings = settings
-        self.constrain_variables = self.settings["constrain_varibles"].GetBool()
+        self.constrain_variables = self.settings["constrain_variables"].GetBool()
         self.alpha_rampup_increment = self.settings["alpha_rampup_increment"].GetDouble()
         self.steps_for_rampup = self.settings["steps_for_rampup"].GetInt()
 
@@ -51,40 +51,22 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
         self.interpolation_variables_list = [KratosMultiphysics.KratosGlobals.GetVariable(i) for i in self.settings["interpolation_variables_list"].GetStringArray()]
 
     def ExecuteInitialize(self):
-        self.origin_model_part_file_name = self.settings["origin_model_part_file_name"].GetString()
+        origin_model_part_file_name = self.settings["origin_model_part_file_name"].GetString()
         destination_model_part_name = self.settings["destination_model_part_name"].GetString()
         self.destination_model_part = self.model.GetModelPart(destination_model_part_name)
-
-        self.InterpolateVariables()
-
-    def InterpolateVariables(self):
+        
         #Import Origin Model Part 
         self.origin_model_part = self.model.CreateModelPart("OriginModelPart")
         for variable in self.destination_model_part.GetHistoricalVariablesNames():
             if KratosMultiphysics.KratosGlobals.HasVariable(variable):
                 self.origin_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.KratosGlobals.GetVariable(variable))
 
-        model_part_io = KratosMultiphysics.ModelPartIO(self.origin_model_part_file_name)
+        model_part_io = KratosMultiphysics.ModelPartIO(origin_model_part_file_name)
         model_part_io.ReadModelPart(self.origin_model_part) 
 
-        #Set variables field to origin model part
-        for node in self.origin_model_part.Nodes:
-            for variable in self.interpolation_variables_list:
-                node.SetValue(variable, self.alpha_rampup_increment * node.GetSolutionStepValue(variable))
+        self.domain_size = self.destination_model_part.ProcessInfo.GetValue(KratosMultiphysics.DOMAIN_SIZE)
 
-        #Interpolate variables to destination model part 
-        interpolation = KratosMA.NodalValuesInterpolationProcess2D(self.origin_model_part, self.destination_model_part)
-        interpolation.Execute()
-        if self.constrain_variables:
-            for node in self.destination_model_part.Nodes:
-                for variable in self.interpolation_variables_list:
-                    node.SetSolutionStepValue(variable, node.GetValue(variable))
-                    node.Fix(variable)
-        else:
-            for node in self.destination_model_part.Nodes:
-                for variable in self.interpolation_variables_list:
-                    node.SetSolutionStepValue(variable, node.GetValue(variable))
-
+        KratosMA.GradualVariableInterpolationUtility.InitializeInterpolationAndConstraints(self.origin_model_part, self.destination_model_part, self.interpolation_variables_list, self.alpha_rampup_increment, self.domain_size, self.constrain_variables)
 
     def ExecuteInitializeSolutionStep(self):
         self.old_alpha = self.alpha
@@ -92,13 +74,4 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
             self.old_alpha = self.alpha_rampup_increment
         self.alpha += self.alpha_rampup_increment
         if self.alpha <= self.expected_alpha:
-            if self.constrain_variables:
-                for node in self.destination_model_part.Nodes:
-                    for variable in self.interpolation_variables_list:
-                        node.SetSolutionStepValue(variable, self.alpha * node.GetSolutionStepValue(variable) / self.old_alpha)
-                        node.Fix(variable)
-            else:
-                for node in self.destination_model_part.Nodes:
-                    for variable in self.interpolation_variables_list:
-                        node.SetSolutionStepValue(variable, self.alpha * node.GetSolutionStepValue(variable) / self.old_alpha)
-
+            KratosMA.GradualVariableInterpolationUtility.UpdateSolutionStepVariables(self.destination_model_part, self.interpolation_variables_list, self.alpha, self.old_alpha, self.constrain_variables)

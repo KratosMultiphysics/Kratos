@@ -44,7 +44,7 @@ class TestGradualVariableInterpolationProcess(KratosUnittest.TestCase):
                 "destination_model_part_name": "destination_model_part",
                 "origin_model_part_file_name": "gradual_variable_interpolation_test_files/origin_model_part",
                 "interpolation_variables_list": ["TEMPERATURE"],
-                "constrain_varibles": true,
+                "constrain_variables": true,
                 "steps_for_rampup": 2,
                 "alpha_rampup_increment": 0.0
             }
