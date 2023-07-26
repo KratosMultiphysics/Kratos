@@ -30,14 +30,14 @@ class AssignAverageMasterSlaveConstraintsProcess(KM.Process):
 
     def ExecuteInitialize(self):
         # Store model part names from the settings
-        self.computing_model_part_name = self.settings["computing_model_part_name"].GetString()
-        self.slave_model_part_name = self.settings["slave_model_part_name"].GetString()
-        self.master_model_part_name = self.settings["master_model_part_name"].GetString()
+        computing_model_part_name = self.settings["computing_model_part_name"].GetString()
+        slave_model_part_name = self.settings["slave_model_part_name"].GetString()
+        master_model_part_name = self.settings["master_model_part_name"].GetString()
         
         # Get the actual model parts from the model
-        self.computing_model_part = self.model.GetModelPart(self.computing_model_part_name)
-        self.slave_model_part = self.model.GetModelPart(self.slave_model_part_name)
-        self.master_model_part = self.model.GetModelPart(self.master_model_part_name)
+        self.computing_model_part = self.model.GetModelPart(computing_model_part_name)
+        self.slave_model_part = self.model.GetModelPart(slave_model_part_name)
+        self.master_model_part = self.model.GetModelPart(master_model_part_name)
         
         # Decide whether to reform constraints at each step based on settings
         self.reform_constraints_at_each_step = self.settings["reform_constraints_at_each_step"].GetBool()
@@ -67,7 +67,9 @@ class AssignAverageMasterSlaveConstraintsProcess(KM.Process):
         number_of_master_nodes = self.master_model_part.NumberOfNodes()
         weights_vector = KM.Matrix(1, number_of_master_nodes)
         weight = 1/number_of_master_nodes
+        weights_vector.fill(weight)
         constant_vector = KM.Vector(number_of_master_nodes)
+        constant_vector.fill(0.0)
         
         counter = 1
         master_dofs_container = []
@@ -75,8 +77,6 @@ class AssignAverageMasterSlaveConstraintsProcess(KM.Process):
         
         # Loop over all master nodes to fill the containers
         for node in self.master_model_part.Nodes:
-            constant_vector[i] = 0
-            weights_vector[0,i] = weight
             master_dofs_container.append(node.GetDof(variable))
             i += 1
         
