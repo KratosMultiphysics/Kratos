@@ -124,6 +124,13 @@ public:
 
     void ExecuteInitialize() override
     {
+        // Check that there are DOFs for the convected variable
+        // These are required to check the fixity of the convected variable
+        block_for_each(mpModelPart->Nodes(), [this](auto& rNode){
+            KRATOS_ERROR_IF_NOT(rNode.HasDofFor(*mpConvectedVar))
+                << "No DOF for convected variable '" << mpConvectedVar->Name() << "' in node " << rNode.Id() << std::endl;
+        });
+
         // Fill the edge-based data structure
         mpEdgeDataStructure->CalculateEdgeDataStructure(*mpModelPart);
         KRATOS_INFO_IF("FluxCorrectedTransportConvectionProcess", mEchoLevel > 0) << "Edge-based data structure completed." << std::endl;
@@ -188,7 +195,9 @@ public:
         // Set final solution in the model part database
         IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([this](IndexType iNode){
             auto it_node = mpModelPart->NodesBegin() + iNode;
-            it_node->FastGetSolutionStepValue(*mpConvectedVar) = mSolution[it_node->Id()];
+            if (!it_node->IsFixed(*mpConvectedVar)) {
+                it_node->FastGetSolutionStepValue(*mpConvectedVar) = mSolution[it_node->Id()];
+            }
         });
 
         KRATOS_CATCH("")
@@ -566,7 +575,8 @@ private:
 
                 // Do the explicit lumped mass matrix solve
                 const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
-                const double update = (DeltaTime / M_l) * std::inner_product(rSolveCoeffBegin, rSolveCoeffEnd, rResiduals[i_node_id].begin(), 0.0);
+                const bool is_fixed = it_node->IsFixed(*mpConvectedVar);
+                const double update = is_fixed ? 0.0 : (DeltaTime / M_l) * std::inner_product(rSolveCoeffBegin, rSolveCoeffEnd, rResiduals[i_node_id].begin(), 0.0);
                 rUpdater(rSolution, i_node_id, update);
             });
         } else {
@@ -585,10 +595,14 @@ private:
                 const IndexType i_node_id = it_node->Id();
 
                 // Do the explicit lumped mass matrix solve
-                const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
-                const double i_node_res = std::inner_product(rSolveCoeffBegin, rSolveCoeffEnd, rResiduals[i_node_id].begin(), 0.0);
-                galerkin_residual[i_node_id] = i_node_res;
-                aux_update[i_node_id] = (DeltaTime / M_l) * i_node_res;
+                if (it_node->IsFixed(*mpConvectedVar)) {
+                    aux_update[i_node_id] = 0.0;
+                } else {
+                    const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
+                    const double i_node_res = std::inner_product(rSolveCoeffBegin, rSolveCoeffEnd, rResiduals[i_node_id].begin(), 0.0);
+                    galerkin_residual[i_node_id] = i_node_res;
+                    aux_update[i_node_id] = (DeltaTime / M_l) * i_node_res;
+                }
             });
 
             // Do the consistent mass matrix solve (iteratively with lumped mass matrix)
@@ -638,16 +652,22 @@ private:
                     const IndexType i_node_id = it_node->Id();
 
                     // Do the explicit lumped mass matrix solve
-                    const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
-                    aux_update[i_node_id] = (DeltaTime / M_l) * it_residual[i_node_id];
+                    if (it_node->IsFixed(*mpConvectedVar)) {
+                        aux_update[i_node_id] = 0.0;
+                    } else {
+                        const double M_l = mpEdgeDataStructure->GetLumpedMassMatrixDiagonal(i_node_id);
+                        aux_update[i_node_id] = (DeltaTime / M_l) * it_residual[i_node_id];
+                    }
                 });
             }
 
             // Add the iterative update to the solution vector
             IndexPartition<IndexType>(mpModelPart->NumberOfNodes()).for_each([&](IndexType iNode){
                 const auto it_node = mpModelPart->NodesBegin() + iNode;
-                const IndexType i_node_id = it_node->Id();
-                rUpdater(rSolution, i_node_id, aux_update[i_node_id]);
+                if (!it_node->IsFixed(*mpConvectedVar)) {
+                    const IndexType i_node_id = it_node->Id();
+                    rUpdater(rSolution, i_node_id, aux_update[i_node_id]);
+                }
             });
         } 
     }
@@ -939,8 +959,7 @@ private:
 
                     // Set as correction factor the minimum in the edge
                     const double alpha_ij = AEC_ij > 0.0 ? std::min(R_max[iRow], R_min[j_node_id]) : std::min(R_min[iRow], R_max[j_node_id]);
-                    KRATOS_ERROR_IF("FluxCorrectedTransportConvectionProcess", alpha_ij < 0.0 || alpha_ij > 1.0)
-                        << "Correction factor is " << alpha_ij << " for edge " << iRow << "-" << j_node_id << std::endl;
+                    KRATOS_ERROR_IF(alpha_ij < 0.0 || alpha_ij > 1.0) << "Correction factor is " << alpha_ij << " for edge " << iRow << "-" << j_node_id << std::endl;
 
                     // Assemble current edge antidiffusive contribution
                     const double aux = alpha_ij * AEC_ij;
