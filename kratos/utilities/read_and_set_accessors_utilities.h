@@ -18,6 +18,10 @@
 /* External includes */
 
 /* Project includes */
+#include "includes/table_accessor.h"
+#include "includes/properties.h"
+#include "includes/kratos_parameters.h"
+
 
 namespace Kratos
 {
@@ -41,13 +45,12 @@ namespace Kratos
 ///@{
 
 /**
- * @class SVDUtils
+ * @class ReadAndSetAccessorsUtilities
  * @ingroup KratosCore
- * @brief Various mathematical utilities to compute SVD and the condition number of a matrix
- * @details Defines several utility functions
- * @author Vicente Mataix Ferrandiz
+ * @details static methods class to read and add Accessors to the ReadMaterialsUtility
+ * @author Alejandro Cornejo
  */
-class ReadAndSetAccessorsUtilities
+class KRATOS_API(KRATOS_CORE) ReadAndSetAccessorsUtilities
 {
 public:
 
@@ -66,6 +69,9 @@ public:
     ///@name Operations
     ///@{
 
+    static void ReadAndSetAccessors(
+        const Parameters MaterialData,
+        Properties &rProperty);
 
     ///@}
     ///@name Access
