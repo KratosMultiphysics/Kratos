@@ -42,6 +42,21 @@ class HRomTrainingUtility(object):
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
         self.projection_strategy = settings["projection_strategy"].GetString()
         self.hrom_output_format = settings["hrom_format"].GetString()
+        self.include_minimum_condition = settings["include_minimum_condition"].GetBool()
+        self.include_condition_parents = settings["include_condition_parents"].GetBool()
+
+        # Retrieve list of model parts from settings
+        self.include_conditions_model_parts_list = settings["include_conditions_model_parts_list"].GetStringArray()
+        self.include_elements_model_parts_list = settings["include_elements_model_parts_list"].GetStringArray()
+
+        # Check if the model parts exist
+        for model_part_name in self.include_conditions_model_parts_list:
+            if not self.solver.model.HasModelPart(model_part_name):
+                raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
+
+        for model_part_name in self.include_elements_model_parts_list:
+            if not self.solver.model.HasModelPart(model_part_name):
+                raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -147,7 +162,11 @@ class HRomTrainingUtility(object):
             "element_selection_svd_truncation_tolerance": 1.0e-6,
             "echo_level" : 0,
             "create_hrom_visualization_model_part" : true,
-            "projection_strategy": "galerkin"
+            "projection_strategy": "galerkin",
+            "include_conditions_model_parts_list": [],
+            "include_elements_model_parts_list": [],
+            "include_minimum_condition": false,
+            "include_condition_parents": false
         }""")
         return default_settings
 
@@ -176,18 +195,57 @@ class HRomTrainingUtility(object):
 
 
     def AppendHRomWeightsToRomParameters(self):
-        number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
+        number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
         weights = np.squeeze(self.hyper_reduction_element_selector.w)
         indexes = self.hyper_reduction_element_selector.z
 
         # Create dictionary with HROM weights (Only used for the expansion of the selected Conditions to include their parent Elements)
         hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(weights,indexes,number_of_elements)
 
-        #TODO: Make this optional
+        # Get the root model part
+        root_model_part = self.solver.GetComputingModelPart().GetRootModelPart()
+
+        # Add conditions
+        for model_part_name in self.include_conditions_model_parts_list:
+            # Check if the sub model part exists
+            if self.solver.model.HasModelPart(model_part_name):
+                conditions_to_include_model_part = self.solver.model.GetModelPart(model_part_name)
+
+                # Call the GetConditionIdsNotInHRomModelPart function
+                new_conditions = KratosROM.RomAuxiliaryUtilities.GetConditionIdsNotInHRomModelPart(
+                    root_model_part, # The complete model part
+                    conditions_to_include_model_part, # The model part containing the conditions to be included
+                    hrom_weights)
+
+                # Add the new conditions to the conditions dict with a null weight
+                for condition_id in new_conditions:
+                    hrom_weights["Conditions"][condition_id] = 0.0
+
+                # If needed, update your weights and indexes using __AddSelectedConditionsWithZeroWeights function with the new_conditions
+                weights, indexes = self.__AddSelectedConditionsWithZeroWeights(weights, indexes, new_conditions, number_of_elements)
+
+        # Add elements
+        for model_part_name in self.include_elements_model_parts_list:
+            # Check if the sub model part exists
+            if self.solver.model.HasModelPart(model_part_name):
+                elements_to_include_model_part = self.solver.model.GetModelPart(model_part_name)
+
+                # Call the GetElementIdsNotInHRomModelPart function
+                new_elements = KratosROM.RomAuxiliaryUtilities.GetElementIdsNotInHRomModelPart(
+                    root_model_part, # The complete model part
+                    elements_to_include_model_part, # The model part containing the elements to be included
+                    hrom_weights)
+
+                # Add the new elements to the elements dict with a null weight
+                for element_id in new_elements:
+                    hrom_weights["Elements"][element_id] = 0.0
+
+                # If needed, update your weights and indexes using __AddSelectedElementsWithZeroWeights function with the new_elements
+                weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights, indexes, new_elements)
+
         # If required, keep at least one condition per submodelpart
         # This might be required by those BCs involving the faces (e.g. slip BCs)
-        include_minimum_condition = False
-        if include_minimum_condition:
+        if self.include_minimum_condition:
             # Get the HROM conditions to be added
             minimum_conditions = KratosROM.RomAuxiliaryUtilities.GetHRomMinimumConditionsIds(
                 self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
@@ -198,11 +256,9 @@ class HRomTrainingUtility(object):
                 hrom_weights["Conditions"][cond_id] = 0.0
             weights, indexes = self.__AddSelectedConditionsWithZeroWeights(weights, indexes, minimum_conditions, number_of_elements)
 
-        #TODO: Make this optional
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
-        include_condition_parents = False
-        if include_condition_parents:
+        if self.include_condition_parents:
             # Get the HROM condition parents from the current HROM weights
             missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
                 self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
