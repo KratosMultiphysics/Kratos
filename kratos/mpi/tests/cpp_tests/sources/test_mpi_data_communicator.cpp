@@ -102,7 +102,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSynchronizeVector, Krat
         KRATOS_CHECK(is_resized);
     }
 
-    KRATOS_CHECK_EQUAL(local.size(), world_size);
+    KRATOS_CHECK_EQUAL(local.size(), static_cast<unsigned int>(world_size));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSynchronizeMatrix, KratosMPICoreFastSuite)
@@ -120,8 +120,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSynchronizeMatrix, Krat
         KRATOS_CHECK(is_resized);
     }
 
-    KRATOS_CHECK_EQUAL(local.size1(), world_size);
-    KRATOS_CHECK_EQUAL(local.size2(), world_size);
+    KRATOS_CHECK_EQUAL(local.size1(), static_cast<unsigned int>(world_size));
+    KRATOS_CHECK_EQUAL(local.size2(), static_cast<unsigned int>(world_size));
 }
 
 // Sum ////////////////////////////////////////////////////////////////////////
@@ -221,20 +221,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumArray1d, KratosMPICo
         KRATOS_CHECK_EQUAL(vec_result.size(), 3);
 
         array_1d<double, 3> base_values{-1, 1, 2}, resultant_array;
-        resultant_array = base_values * world_size;
-        // TODO: For some reason, if the following line is uncommented,
-        //       It produces an error which is totally unrelated.
-        // resultant_array = base_values * (world_size * 2);
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[0], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[0], resultant_array);
 
-        resultant_array = base_values * world_size * 2;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[1], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[1], resultant_array);
-
-        resultant_array = base_values * world_size * 3;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[2], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[2], resultant_array);
+        for (unsigned int i = 0; i < 3; ++i) {
+            resultant_array = base_values * world_size * (i + 1);
+            // TODO: For some reason, if the following line is uncommented,
+            //       It produces an error which is totally unrelated.
+            // resultant_array = base_values * (world_size * (i + 2));
+            KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+            KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+        }
     }
 
     #ifdef KRATOS_DEBUG
@@ -280,20 +275,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumVector, KratosMPICor
         KRATOS_CHECK_EQUAL(vec_result.size(), 3);
 
         array_1d<double, 4> base_values({-1, 1, 2, 3}), resultant_array;
-        resultant_array = base_values * world_size;
-        // TODO: For some reason, if the following line is uncommented,
-        //       It produces an error which is totally unrelated.
-        // resultant_array = base_values * (world_size * 2);
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[0], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[0], resultant_array);
-
-        resultant_array = base_values * world_size * 2;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[1], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[1], resultant_array);
-
-        resultant_array = base_values * world_size * 3;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[2], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[2], resultant_array);
+        for (unsigned int i = 0; i < 3; ++i) {
+            resultant_array = base_values * world_size * (i + 1);
+            // TODO: For some reason, if the following line is uncommented,
+            //       It produces an error which is totally unrelated.
+            // resultant_array = base_values * (world_size * (i + 2));
+            KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+            KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+        }
     }
 
     #ifdef KRATOS_DEBUG
@@ -340,20 +329,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumMatrix, KratosMPICor
 
         Matrix base_values(2, 2), resultant_matrix(2 ,2);
         base_values.data()[0] = -1; base_values.data()[1] = 1; base_values.data()[2] = 2; base_values.data()[3] = 3;
-        resultant_matrix = base_values * world_size;
-        // TODO: For some reason, if the following line is uncommented,
-        //       It produces an error which is totally unrelated.
-        // resultant_matrix = base_values * (world_size * 2);
-        KRATOS_CHECK_MATRIX_EQUAL(vec_result[0], resultant_matrix);
-        KRATOS_CHECK_MATRIX_EQUAL(global_results[0], resultant_matrix);
 
-        resultant_matrix = base_values * world_size * 2;
-        KRATOS_CHECK_MATRIX_EQUAL(vec_result[1], resultant_matrix);
-        KRATOS_CHECK_MATRIX_EQUAL(global_results[1], resultant_matrix);
-
-        resultant_matrix = base_values * world_size * 3;
-        KRATOS_CHECK_MATRIX_EQUAL(vec_result[2], resultant_matrix);
-        KRATOS_CHECK_MATRIX_EQUAL(global_results[2], resultant_matrix);
+        for (unsigned int i = 0; i < 3; ++i) {
+            resultant_matrix = base_values * world_size * (i + 1);
+            // TODO: For some reason, if the following line is uncommented,
+            //       It produces an error which is totally unrelated.
+            // resultant_matrix = base_values * (world_size * (i + 2));
+            KRATOS_CHECK_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+            KRATOS_CHECK_MATRIX_EQUAL(global_results[i], resultant_matrix);
+        }
     }
 
     #ifdef KRATOS_DEBUG
@@ -573,20 +557,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinArray1d, KratosMPICo
         KRATOS_CHECK_EQUAL(vec_result.size(), 3);
 
         array_1d<double, 3> base_values{-1.0, 0, -2.0}, resultant_array;
-        resultant_array = base_values * (world_size - 1);
-        // TODO: For some reason, if the following line is uncommented,
-        //       It produces an error which is totally unrelated.
-        // resultant_array = base_values * (world_size * 2);
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[0], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[0], resultant_array);
 
-        resultant_array = base_values * (world_size - 1) * 2;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[1], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[1], resultant_array);
-
-        resultant_array = base_values * (world_size - 1) * 3;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[2], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[2], resultant_array);
+        for (unsigned int i = 0; i < 3; ++i) {
+            resultant_array = base_values * (world_size - 1) * (i + 1);
+            KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+            KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+        }
     }
 
     #ifdef KRATOS_DEBUG
@@ -632,20 +608,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinVector, KratosMPICor
         KRATOS_CHECK_EQUAL(vec_result.size(), 3);
 
         array_1d<double, 4> base_values({-1, 0, 0, -3}), resultant_array;
-        resultant_array = base_values * (world_size - 1);
-        // TODO: For some reason, if the following line is uncommented,
-        //       It produces an error which is totally unrelated.
-        // resultant_array = base_values * (world_size * 2);
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[0], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[0], resultant_array);
-
-        resultant_array = base_values * (world_size - 1) * 2;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[1], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[1], resultant_array);
-
-        resultant_array = base_values * (world_size - 1) * 3;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[2], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[2], resultant_array);
+        for (unsigned int i = 0; i < 3; ++i) {
+            resultant_array = base_values * (world_size - 1) * (i + 1);
+            KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+            KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+        }
     }
 
     #ifdef KRATOS_DEBUG
@@ -692,20 +659,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinMatrix, KratosMPICor
 
         Matrix base_values(2, 2), resultant_matrix(2 ,2);
         base_values.data()[0] = -1; base_values.data()[1] = 0; base_values.data()[2] = 0; base_values.data()[3] = -3;
-        resultant_matrix = base_values * (world_size-1);
-        // TODO: For some reason, if the following line is uncommented,
-        //       It produces an error which is totally unrelated.
-        // resultant_matrix = base_values * (world_size * 2);
-        KRATOS_CHECK_MATRIX_EQUAL(vec_result[0], resultant_matrix);
-        KRATOS_CHECK_MATRIX_EQUAL(global_results[0], resultant_matrix);
 
-        resultant_matrix = base_values * (world_size-1) * 2;
-        KRATOS_CHECK_MATRIX_EQUAL(vec_result[1], resultant_matrix);
-        KRATOS_CHECK_MATRIX_EQUAL(global_results[1], resultant_matrix);
-
-        resultant_matrix = base_values * (world_size-1) * 3;
-        KRATOS_CHECK_MATRIX_EQUAL(vec_result[2], resultant_matrix);
-        KRATOS_CHECK_MATRIX_EQUAL(global_results[2], resultant_matrix);
+        for (unsigned int i = 0; i < 3; ++i) {
+            resultant_matrix = base_values * (world_size - 1) * (i + 1);
+            KRATOS_CHECK_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+            KRATOS_CHECK_MATRIX_EQUAL(global_results[i], resultant_matrix);
+        }
     }
 
     #ifdef KRATOS_DEBUG
@@ -918,20 +877,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxArray1d, KratosMPICo
         KRATOS_CHECK_EQUAL(vec_result.size(), 3);
 
         array_1d<double, 3> base_values{0.0, 1.0, 2.0}, resultant_array;
-        resultant_array = base_values * (world_size - 1);
-        // TODO: For some reason, if the following line is uncommented,
-        //       It produces an error which is totally unrelated.
-        // resultant_array = base_values * (world_size * 2);
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[0], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[0], resultant_array);
 
-        resultant_array = base_values * (world_size - 1) * 2;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[1], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[1], resultant_array);
-
-        resultant_array = base_values * (world_size - 1) * 3;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[2], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[2], resultant_array);
+        for (unsigned int i = 0; i < 3; ++i) {
+            resultant_array = base_values * (world_size - 1) * (i + 1);
+            KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+            KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+        }
     }
 
     #ifdef KRATOS_DEBUG
@@ -977,20 +928,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxVector, KratosMPICor
         KRATOS_CHECK_EQUAL(vec_result.size(), 3);
 
         array_1d<double, 4> base_values({0, 1, 2, 0}), resultant_array;
-        resultant_array = base_values * (world_size - 1);
-        // TODO: For some reason, if the following line is uncommented,
-        //       It produces an error which is totally unrelated.
-        // resultant_array = base_values * (world_size * 2);
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[0], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[0], resultant_array);
-
-        resultant_array = base_values * (world_size - 1) * 2;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[1], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[1], resultant_array);
-
-        resultant_array = base_values * (world_size - 1) * 3;
-        KRATOS_CHECK_VECTOR_EQUAL(vec_result[2], resultant_array);
-        KRATOS_CHECK_VECTOR_EQUAL(global_results[2], resultant_array);
+        for (unsigned int i = 0; i < 3; ++i) {
+            resultant_array = base_values * (world_size - 1) * (i + 1);
+            KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+            KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+        }
     }
 
     #ifdef KRATOS_DEBUG
@@ -1037,20 +979,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxMatrix, KratosMPICor
 
         Matrix base_values(2, 2), resultant_matrix(2 ,2);
         base_values.data()[0] = 0; base_values.data()[1] = 1; base_values.data()[2] = 2; base_values.data()[3] = 0;
-        resultant_matrix = base_values * (world_size-1);
-        // TODO: For some reason, if the following line is uncommented,
-        //       It produces an error which is totally unrelated.
-        // resultant_matrix = base_values * (world_size * 2);
-        KRATOS_CHECK_MATRIX_EQUAL(vec_result[0], resultant_matrix);
-        KRATOS_CHECK_MATRIX_EQUAL(global_results[0], resultant_matrix);
-
-        resultant_matrix = base_values * (world_size-1) * 2;
-        KRATOS_CHECK_MATRIX_EQUAL(vec_result[1], resultant_matrix);
-        KRATOS_CHECK_MATRIX_EQUAL(global_results[1], resultant_matrix);
-
-        resultant_matrix = base_values * (world_size-1) * 3;
-        KRATOS_CHECK_MATRIX_EQUAL(vec_result[2], resultant_matrix);
-        KRATOS_CHECK_MATRIX_EQUAL(global_results[2], resultant_matrix);
+        for (unsigned int i = 0; i < 3; ++i) {
+            resultant_matrix = base_values * (world_size - 1) * (i + 1);
+            KRATOS_CHECK_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+            KRATOS_CHECK_MATRIX_EQUAL(global_results[i], resultant_matrix);
+        }
     }
 
     #ifdef KRATOS_DEBUG
@@ -1217,6 +1150,109 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllArray1d, KratosMP
     KRATOS_CHECK_EQUAL(result[0], -1.0*world_size);
     KRATOS_CHECK_EQUAL(result[1],  0.0);
     KRATOS_CHECK_EQUAL(result[2],  1.0*world_size);
+
+    // check for std::vector<array_1d<double, 3>>
+    std::vector<array_1d<double, 3>> vec_local(3);
+    vec_local[0] = array_1d<double, 3>{-1, 1, 2};
+    vec_local[1] = array_1d<double, 3>{-2, 2, 4};
+    vec_local[2] = array_1d<double, 3>{-3, 3, 6};
+
+    std::vector<array_1d<double, 3>> global_results(3);
+    const auto& vec_result = mpi_world_communicator.SumAll(vec_local);
+    mpi_world_communicator.SumAll(vec_local, global_results);
+
+    KRATOS_CHECK_EQUAL(vec_result.size(), 3);
+
+    array_1d<double, 3> base_values{-1, 1, 2}, resultant_array;
+
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_array = base_values * world_size * (i + 1);
+        // TODO: For some reason, if the following line is uncommented,
+        //       It produces an error which is totally unrelated.
+        // resultant_array = base_values * (world_size * (i + 2));
+        KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+        KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    Vector local(4);
+    local[0] = -1.0;
+    local[1] =  0.0;
+    local[2] =  1.0;
+    local[3] =  2.0;
+
+    Vector result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(result[0], -1.0*world_size);
+    KRATOS_CHECK_EQUAL(result[1],  0.0);
+    KRATOS_CHECK_EQUAL(result[2],  1.0*world_size);
+    KRATOS_CHECK_EQUAL(result[3],  2.0*world_size);
+
+    // check for std::vector<Vector>
+    std::vector<Vector> vec_local(3, Vector(4));
+    vec_local[0][0] = -1; vec_local[0][1] = 1; vec_local[0][2] = 2; vec_local[0][3] = 3;
+    vec_local[1][0] = -2; vec_local[1][1] = 2; vec_local[1][2] = 4; vec_local[1][3] = 6;
+    vec_local[2][0] = -3; vec_local[2][1] = 3; vec_local[2][2] = 6; vec_local[2][3] = 9;
+
+    std::vector<Vector> global_results(3, Vector(4));
+    const auto& vec_result = mpi_world_communicator.SumAll(vec_local);
+    mpi_world_communicator.SumAll(vec_local, global_results);
+
+    KRATOS_CHECK_EQUAL(vec_result.size(), 3);
+
+    array_1d<double, 4> base_values({-1, 1, 2, 3}), resultant_array;
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_array = base_values * world_size * (i + 1);
+        // TODO: For some reason, if the following line is uncommented,
+        //       It produces an error which is totally unrelated.
+        // resultant_array = base_values * (world_size * (i + 2));
+        KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+        KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    Matrix local(2, 2);
+    local.data()[0] = -1.0;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0;
+    local.data()[3] =  2.0;
+
+    Matrix result = mpi_world_communicator.SumAll(local);
+    KRATOS_CHECK_EQUAL(result.data()[0], -1.0*world_size);
+    KRATOS_CHECK_EQUAL(result.data()[1],  0.0);
+    KRATOS_CHECK_EQUAL(result.data()[2],  1.0*world_size);
+    KRATOS_CHECK_EQUAL(result.data()[3],  2.0*world_size);
+
+    // check for std::vector<Matrix>
+    std::vector<Matrix> vec_local(3, Matrix(2, 2));
+    vec_local[0].data()[0] = -1; vec_local[0].data()[1] = 1; vec_local[0].data()[2] = 2; vec_local[0].data()[3] = 3;
+    vec_local[1].data()[0] = -2; vec_local[1].data()[1] = 2; vec_local[1].data()[2] = 4; vec_local[1].data()[3] = 6;
+    vec_local[2].data()[0] = -3; vec_local[2].data()[1] = 3; vec_local[2].data()[2] = 6; vec_local[2].data()[3] = 9;
+
+    std::vector<Matrix> global_results(3, Matrix(2, 2));
+    const auto& vec_result = mpi_world_communicator.SumAll(vec_local);
+    mpi_world_communicator.SumAll(vec_local, global_results);
+
+    KRATOS_CHECK_EQUAL(vec_result.size(), 3);
+
+    Matrix base_values(2, 2), resultant_matrix(2 ,2);
+    base_values.data()[0] = -1; base_values.data()[1] = 1; base_values.data()[2] = 2; base_values.data()[3] = 3;
+
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_matrix = base_values * world_size * (i + 1);
+        // TODO: For some reason, if the following line is uncommented,
+        //       It produces an error which is totally unrelated.
+        // resultant_matrix = base_values * (world_size * (i + 2));
+        KRATOS_CHECK_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+        KRATOS_CHECK_MATRIX_EQUAL(global_results[i], resultant_matrix);
+    }
 }
 
 namespace {
@@ -1369,6 +1405,104 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllArray1d, KratosMP
     KRATOS_CHECK_EQUAL(result[0], -1.0*(world_size-1));
     KRATOS_CHECK_EQUAL(result[1],  0.0);
     KRATOS_CHECK_EQUAL(result[2],  0.0);
+
+    // check for std::vector<array_1d<double, 3>>
+    std::vector<array_1d<double, 3>> vec_local(3);
+    vec_local[0] = array_1d<double, 3>{-1.0*world_rank, 1.0*world_rank, -2.0*world_rank};
+    vec_local[1] = array_1d<double, 3>{-2.0*world_rank, 2.0*world_rank, -4.0*world_rank};
+    vec_local[2] = array_1d<double, 3>{-3.0*world_rank, 3.0*world_rank, -6.0*world_rank};
+
+    std::vector<array_1d<double, 3>> global_results(3);
+    const auto& vec_result = mpi_world_communicator.MinAll(vec_local);
+    mpi_world_communicator.MinAll(vec_local, global_results);
+
+    KRATOS_CHECK_EQUAL(vec_result.size(), 3);
+
+    array_1d<double, 3> base_values{-1.0, 0, -2.0}, resultant_array;
+
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_array = base_values * (world_size - 1) * (i + 1);
+        KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+        KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    Vector local(4);
+    local[0] = -1.0*world_rank;
+    local[1] =  0.0;
+    local[2] =  1.0*world_rank;
+    local[3] = -2.0*world_rank;
+
+    Vector result = mpi_world_communicator.MinAll(local);
+
+    KRATOS_CHECK_EQUAL(result[0], -1.0*(world_size - 1));
+    KRATOS_CHECK_EQUAL(result[1],  0.0);
+    KRATOS_CHECK_EQUAL(result[2],  0.0);
+    KRATOS_CHECK_EQUAL(result[3], -2.0*(world_size - 1));
+
+    // check for std::vector<Vector>
+    std::vector<Vector> vec_local(3, Vector(4));
+    vec_local[0][0] = -1.0*world_rank; vec_local[0][1] = 1.0*world_rank; vec_local[0][2] = 2.0*world_rank; vec_local[0][3] = -3.0*world_rank;
+    vec_local[1][0] = -2.0*world_rank; vec_local[1][1] = 2.0*world_rank; vec_local[1][2] = 4.0*world_rank; vec_local[1][3] = -6.0*world_rank;
+    vec_local[2][0] = -3.0*world_rank; vec_local[2][1] = 3.0*world_rank; vec_local[2][2] = 6.0*world_rank; vec_local[2][3] = -9.0*world_rank;
+
+    std::vector<Vector> global_results(3, Vector(4));
+    const auto& vec_result = mpi_world_communicator.MinAll(vec_local);
+    mpi_world_communicator.MinAll(vec_local, global_results);
+
+    KRATOS_CHECK_EQUAL(vec_result.size(), 3);
+
+    array_1d<double, 4> base_values({-1, 0, 0, -3}), resultant_array;
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_array = base_values * (world_size - 1) * (i + 1);
+        KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+        KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    Matrix local(2, 2);
+    local.data()[0] = -1.0*world_rank;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0*world_rank;
+    local.data()[3] = -2.0*world_rank;
+
+    Matrix result = mpi_world_communicator.MinAll(local);
+
+    KRATOS_CHECK_EQUAL(result.data()[0], -1.0*(world_size-1));
+    KRATOS_CHECK_EQUAL(result.data()[1],  0.0);
+    KRATOS_CHECK_EQUAL(result.data()[2],  0.0);
+    KRATOS_CHECK_EQUAL(result.data()[3], -2.0*(world_size-1));
+
+    // check for std::vector<Matrix>
+    std::vector<Matrix> vec_local(3, Matrix(2, 2));
+    vec_local[0].data()[0] = -1.0*world_rank; vec_local[0].data()[1] = 1.0*world_rank; vec_local[0].data()[2] = 2.0*world_rank; vec_local[0].data()[3] = -3.0*world_rank;
+    vec_local[1].data()[0] = -2.0*world_rank; vec_local[1].data()[1] = 2.0*world_rank; vec_local[1].data()[2] = 4.0*world_rank; vec_local[1].data()[3] = -6.0*world_rank;
+    vec_local[2].data()[0] = -3.0*world_rank; vec_local[2].data()[1] = 3.0*world_rank; vec_local[2].data()[2] = 6.0*world_rank; vec_local[2].data()[3] = -9.0*world_rank;
+
+    std::vector<Matrix> global_results(3, Matrix(2, 2));
+    const auto& vec_result = mpi_world_communicator.MinAll(vec_local);
+    mpi_world_communicator.MinAll(vec_local, global_results);
+
+    KRATOS_CHECK_EQUAL(vec_result.size(), 3);
+
+    Matrix base_values(2, 2), resultant_matrix(2 ,2);
+    base_values.data()[0] = -1; base_values.data()[1] = 0; base_values.data()[2] = 0; base_values.data()[3] = -3;
+
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_matrix = base_values * (world_size - 1) * (i + 1);
+        KRATOS_CHECK_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+        KRATOS_CHECK_MATRIX_EQUAL(global_results[i], resultant_matrix);
+    }
 }
 
 namespace {
@@ -1515,6 +1649,102 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllArray1d, KratosMP
     KRATOS_CHECK_EQUAL(result[0], 0.0);
     KRATOS_CHECK_EQUAL(result[1], 0.0);
     KRATOS_CHECK_EQUAL(result[2], 1.0*(world_size-1));
+
+    // check for std::vector<array_1d<double, 3>>
+    std::vector<array_1d<double, 3>> vec_local(3);
+    vec_local[0] = array_1d<double, 3>{-1.0*world_rank, 1.0*world_rank, 2.0*world_rank};
+    vec_local[1] = array_1d<double, 3>{-2.0*world_rank, 2.0*world_rank, 4.0*world_rank};
+    vec_local[2] = array_1d<double, 3>{-3.0*world_rank, 3.0*world_rank, 6.0*world_rank};
+
+    std::vector<array_1d<double, 3>> global_results(3);
+    const auto& vec_result = mpi_world_communicator.MaxAll(vec_local);
+    mpi_world_communicator.MaxAll(vec_local, global_results);
+
+    KRATOS_CHECK_EQUAL(vec_result.size(), 3);
+
+    array_1d<double, 3> base_values{0.0, 1.0, 2.0}, resultant_array;
+
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_array = base_values * (world_size - 1) * (i + 1);
+        KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+        KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    Vector local(4);
+    local[0] = -1.0*world_rank;
+    local[1] =  0.0;
+    local[2] =  1.0*world_rank;
+    local[3] =  2.0*world_rank;
+
+    Vector result = mpi_world_communicator.MaxAll(local);
+
+    KRATOS_CHECK_EQUAL(result[0], 0.0);
+    KRATOS_CHECK_EQUAL(result[1], 0.0);
+    KRATOS_CHECK_EQUAL(result[2], 1.0*(world_size - 1));
+    KRATOS_CHECK_EQUAL(result[3], 2.0*(world_size - 1));
+
+    // check for std::vector<Vector>
+    std::vector<Vector> vec_local(3, Vector(4));
+    vec_local[0][0] = -1.0*world_rank; vec_local[0][1] = 1.0*world_rank; vec_local[0][2] = 2.0*world_rank; vec_local[0][3] = -3.0*world_rank;
+    vec_local[1][0] = -2.0*world_rank; vec_local[1][1] = 2.0*world_rank; vec_local[1][2] = 4.0*world_rank; vec_local[1][3] = -6.0*world_rank;
+    vec_local[2][0] = -3.0*world_rank; vec_local[2][1] = 3.0*world_rank; vec_local[2][2] = 6.0*world_rank; vec_local[2][3] = -9.0*world_rank;
+
+    std::vector<Vector> global_results(3, Vector(4));
+    const auto& vec_result = mpi_world_communicator.MaxAll(vec_local);
+    mpi_world_communicator.MaxAll(vec_local, global_results);
+
+    KRATOS_CHECK_EQUAL(vec_result.size(), 3);
+
+    array_1d<double, 4> base_values({0, 1, 2, 0}), resultant_array;
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_array = base_values * (world_size - 1) * (i + 1);
+        KRATOS_CHECK_VECTOR_EQUAL(vec_result[i], resultant_array);
+        KRATOS_CHECK_VECTOR_EQUAL(global_results[i], resultant_array);
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_rank = mpi_world_communicator.Rank();
+    const int world_size = mpi_world_communicator.Size();
+    Matrix local(2, 2);
+    local.data()[0] = -1.0*world_rank;
+    local.data()[1] =  0.0;
+    local.data()[2] =  1.0*world_rank;
+    local.data()[3] =  2.0*world_rank;
+
+    Matrix result = mpi_world_communicator.MaxAll(local);
+    KRATOS_CHECK_EQUAL(result.data()[0], 0.0);
+    KRATOS_CHECK_EQUAL(result.data()[1], 0.0);
+    KRATOS_CHECK_EQUAL(result.data()[2], 1.0*(world_size-1));
+    KRATOS_CHECK_EQUAL(result.data()[3], 2.0*(world_size-1));
+
+    // check for std::vector<Matrix>
+    std::vector<Matrix> vec_local(3, Matrix(2, 2));
+    vec_local[0].data()[0] = -1.0*world_rank; vec_local[0].data()[1] = 1.0*world_rank; vec_local[0].data()[2] = 2.0*world_rank; vec_local[0].data()[3] = -3.0*world_rank;
+    vec_local[1].data()[0] = -2.0*world_rank; vec_local[1].data()[1] = 2.0*world_rank; vec_local[1].data()[2] = 4.0*world_rank; vec_local[1].data()[3] = -6.0*world_rank;
+    vec_local[2].data()[0] = -3.0*world_rank; vec_local[2].data()[1] = 3.0*world_rank; vec_local[2].data()[2] = 6.0*world_rank; vec_local[2].data()[3] = -9.0*world_rank;
+
+    std::vector<Matrix> global_results(3, Matrix(2, 2));
+    const auto& vec_result = mpi_world_communicator.MaxAll(vec_local);
+    mpi_world_communicator.MaxAll(vec_local, global_results);
+
+    KRATOS_CHECK_EQUAL(vec_result.size(), 3);
+
+    Matrix base_values(2, 2), resultant_matrix(2 ,2);
+    base_values.data()[0] = 0; base_values.data()[1] = 1; base_values.data()[2] = 2; base_values.data()[3] = 0;
+    for (unsigned int i = 0; i < 3; ++i) {
+        resultant_matrix = base_values * (world_size - 1) * (i + 1);
+        KRATOS_CHECK_MATRIX_EQUAL(vec_result[i], resultant_matrix);
+        KRATOS_CHECK_MATRIX_EQUAL(global_results[i], resultant_matrix);
+    }
 }
 
 namespace {
