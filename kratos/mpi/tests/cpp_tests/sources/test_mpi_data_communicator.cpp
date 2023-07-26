@@ -3188,7 +3188,6 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervMatrix, KratosM
     }
 
     // return buffer version
-
     // pre-process: prepare input vector-of-vectors
     std::vector<std::vector<Matrix>> scatterv_message;
     if (world_rank == send_rank) {
