@@ -50,7 +50,7 @@ class ConstStep():
             raise RuntimeError("\"gradient_scaling\" has unknown type.")
 
         return norm
-
+    
     @time_decorator()
     def ComputeStep(self) -> float:
         norm = self.ComputeScaleFactor()
@@ -67,7 +67,6 @@ class ConstStep():
         info = {'type': 'constant',
                 'unscaled_step': self._init_step,
                 'scaled_step': self.step}
-
         return info
     
 class BBStep(ConstStep):
@@ -88,7 +87,7 @@ class BBStep(ConstStep):
         self._gradient_scaling = parameters["gradient_scaling"].GetString()
 
     @time_decorator()
-    def ComputeStep(self) -> float:
+    def ComputeStep(self) -> KratosOA.CollectiveExpression:
         algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
         norm = self.ComputeScaleFactor()
         if self._optimization_problem.GetStep() == 0:
@@ -130,7 +129,7 @@ class BBStep(ConstStep):
 
 class QNBBStep(BBStep):
     @time_decorator()
-    def ComputeStep(self) -> numpy.ndarray:
+    def ComputeStep(self) -> KratosOA.CollectiveExpression:
         algorithm_buffered_data = ComponentDataView("algorithm", self._optimization_problem).GetBufferedData()
         norm = self.ComputeScaleFactor()
         self.step = algorithm_buffered_data.GetValue("search_direction", 0).Clone()
