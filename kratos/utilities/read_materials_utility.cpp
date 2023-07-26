@@ -19,7 +19,6 @@
 // Project includes
 #include "utilities/read_materials_utility.h"
 #include "utilities/parallel_utilities.h"
-#include "includes/table_accessor.h"
 
 namespace Kratos {
 namespace {
@@ -342,34 +341,7 @@ void ReadMaterialsUtility::AssignAccessorsToProperty(
 {
     KRATOS_TRY;
 
-    if (MaterialData.Has("accessors")) {
-        Parameters accessors = MaterialData["accessors"];
-
-        for (auto iter = accessors.begin(); iter != accessors.end(); ++iter) {
-            auto accessor_param = accessors.GetValue(iter.name());
-
-            if (accessor_param["accessor_type"].GetString() == "table_accessor") {
-                // Independent Variable
-                std::string input_var_name = accessor_param["properties"]["table_input_variable"].GetString();
-                Variable<double> *p_input_var = static_cast<Variable<double> *>(KratosComponents<VariableData>::pGet(input_var_name));
-
-                // Dependent Variable
-                std::string output_var_name = accessor_param["properties"]["table_output_variable"].GetString();
-                const auto& r_output_var  = KratosComponents<Variable<double>>().Get(output_var_name);
-
-                // We set the variable type of the input variable (nodal_historical, nodal_non_historicala and elemental_non_historical)
-                std::string input_var_type = accessor_param["properties"].Has("table_input_variable_type") ? accessor_param["properties"]["table_input_variable_type"].GetString() : "nodal_historical";
-
-                KRATOS_ERROR_IF(rProperty.HasAccessor(r_output_var)) << "You are trying to add an TableAccessor between " << input_var_name << " and " << output_var_name << " which already exists..." << std::endl;
-
-                rProperty.SetAccessor(r_output_var, (TableAccessor(p_input_var, input_var_type)).Clone());
-            } else {
-                KRATOS_ERROR << "This Accessor type is not available, only TableAccessor is ready for now" << std::endl;
-            }
-        }
-    } else {
-        KRATOS_INFO("Read materials") << "No accessors defined for material ID: " << rProperty.Id() << std::endl;
-    }
+    ReadAndSetAccessorsUtilities::ReadAndSetAccessors(MaterialData, rProperty);
 
     KRATOS_CATCH("");
 }

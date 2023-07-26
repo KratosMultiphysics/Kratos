@@ -11,8 +11,7 @@
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_READ_MATERIALS_H_INCLUDED )
-#define  KRATOS_READ_MATERIALS_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -21,6 +20,7 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/kratos_parameters.h"
+#include "utilities/read_and_set_accessors_utilities.h"
 
 namespace Kratos {
 
@@ -61,126 +61,121 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
     ///@{
 
     /// Definition of the index type
-    typedef std::size_t IndexType;
+      using IndexType = std::size_t;
 
-    /// Definition of the size type
-    typedef std::size_t SizeType;
+      /// Definition of the size type
+      using SizeType = std::size_t;
 
-    ///@}
-    ///@name Pointer Definitions
+      ///@}
+      ///@name Pointer Definitions
 
-    /// Pointer definition of ReadMaterialProcess
-    KRATOS_CLASS_POINTER_DEFINITION(ReadMaterialsUtility);
+      /// Pointer definition of ReadMaterialProcess
+      KRATOS_CLASS_POINTER_DEFINITION(ReadMaterialsUtility);
 
-    ///@}
-    ///@name Life Cycle
-    ///@{
+      ///@}
+      ///@name Life Cycle
+      ///@{
 
-    /**
-     * @brief Default constructor
-     * @param rModel The model containing the problem to solve
-     */
-    ReadMaterialsUtility(Model& rModel) : mrModel(rModel) {};
+      /**
+       * @brief Default constructor
+       * @param rModel The model containing the problem to solve
+       */
+      ReadMaterialsUtility(Model &rModel) : mrModel(rModel){};
 
-    /**
-     * @brief Constructor reading directly from file, via parameters
-     * @param Params The configuration parameters telling where the configuration file can be found
-     * @param rModel The model containing the problem to solve
-     */
-    ReadMaterialsUtility(
-        Parameters Params,
-        Model& rModel
-        );
+      /**
+       * @brief Constructor reading directly from file, via parameters
+       * @param Params The configuration parameters telling where the configuration file can be found
+       * @param rModel The model containing the problem to solve
+       */
+      ReadMaterialsUtility(
+          Parameters Params,
+          Model &rModel);
 
-    /**
-     * @brief Constructor reading directly from file, via text
-     * @param Params The string telling where the configuration file can be found
-     * @param rModel The model containing the problem to solve
-     */
-    ReadMaterialsUtility(const std::string& rParametersName, Model& rModel);
+      /**
+       * @brief Constructor reading directly from file, via text
+       * @param Params The string telling where the configuration file can be found
+       * @param rModel The model containing the problem to solve
+       */
+      ReadMaterialsUtility(const std::string &rParametersName, Model &rModel);
 
-    /// Destructor.
-    virtual ~ReadMaterialsUtility() {}
+      /// Destructor.
+      virtual ~ReadMaterialsUtility() {}
 
-    ///@}
-    ///@name Operators
-    ///@{
+      ///@}
+      ///@name Operators
+      ///@{
 
-    ///@}
-    ///@name Operations
-    ///@{
+      ///@}
+      ///@name Operations
+      ///@{
 
-    /**
-     * @brief This reads the properties from parameters
-     * @param MaterialData The configuration parameters defining the properties
-     */
-    void ReadMaterials(Parameters MaterialData);
+      /**
+       * @brief This reads the properties from parameters
+       * @param MaterialData The configuration parameters defining the properties
+       */
+      void ReadMaterials(Parameters MaterialData);
 
-    /**
-     * @brief This method assigns the material parameters to a property from configuration parameters
-     * @param MaterialData The parameters containing all the configurations of the materials
-     * @param rProperty The reference to the property for which the materials are to be assigned
-     */
-    virtual void AssignMaterialToProperty(
-        const Parameters MaterialData,
-        Properties& rProperty
-        );
+      /**
+       * @brief This method assigns the material parameters to a property from configuration parameters
+       * @param MaterialData The parameters containing all the configurations of the materials
+       * @param rProperty The reference to the property for which the materials are to be assigned
+       */
+      virtual void AssignMaterialToProperty(
+          const Parameters MaterialData,
+          Properties &rProperty);
 
-    /**
-     * @brief This method assigns the constitutive law to a property from configuration parameters
-     * @param MaterialData The parameters containing all the configurations of the materials
-     * @param rProperty The reference to the property for which the materials are to be assigned
-     */
-    virtual void AssignConstitutiveLawToProperty(
-        const Parameters MaterialData,
-        Properties& rProperty
-        );
+      /**
+       * @brief This method assigns the constitutive law to a property from configuration parameters
+       * @param MaterialData The parameters containing all the configurations of the materials
+       * @param rProperty The reference to the property for which the materials are to be assigned
+       */
+      virtual void AssignConstitutiveLawToProperty(
+          const Parameters MaterialData,
+          Properties &rProperty);
 
-    /**
-     * @brief This method assigns the variables to a property from configuration parameters
-     * @param MaterialData The parameters containing all the configurations of the materials
-     * @param rProperty The reference to the property for which the materials are to be assigned
-     */
-    virtual void AssignVariablesToProperty(
-        const Parameters MaterialData,
-        Properties& rProperty
-        );
+      /**
+       * @brief This method assigns the variables to a property from configuration parameters
+       * @param MaterialData The parameters containing all the configurations of the materials
+       * @param rProperty The reference to the property for which the materials are to be assigned
+       */
+      virtual void AssignVariablesToProperty(
+          const Parameters MaterialData,
+          Properties &rProperty);
 
-    /**
-     * @brief This method assigns the tables to a property from configuration parameters
-     * @param MaterialData The parameters containing all the configurations of the materials
-     * @param rProperty The reference to the property for which the materials are to be assigned
-     */
-    virtual void AssignTablesToProperty(
-        const Parameters MaterialData,
-        Properties& rProperty
-        );
+      /**
+       * @brief This method assigns the tables to a property from configuration parameters
+       * @param MaterialData The parameters containing all the configurations of the materials
+       * @param rProperty The reference to the property for which the materials are to be assigned
+       */
+      virtual void AssignTablesToProperty(
+          const Parameters MaterialData,
+          Properties &rProperty);
 
-    /**
-     * @brief This method assigns the accessors to a property from configuration parameters
-     * @param MaterialData The parameters containing all the configurations of the materials
-     * @param rProperty The reference to the property for which the materials are to be assigned
-     */
-    void AssignAccessorsToProperty(
-        const Parameters MaterialData,
-        Properties& rProperty
-        );
+      /**
+       * @brief This method assigns the accessors to a property from configuration parameters
+       * @param MaterialData The parameters containing all the configurations of the materials
+       * @param rProperty The reference to the property for which the materials are to be assigned
+       */
+      void AssignAccessorsToProperty(
+          const Parameters MaterialData,
+          Properties &rProperty);
 
-    ///@}
-    ///@name Access
-    ///@{
+      ///@}
+      ///@name Access
+      ///@{
 
-    ///@}
-    ///@name Inquiry
-    ///@{
+      ///@}
+      ///@name Inquiry
+      ///@{
 
-    ///@}
-    ///@name Input and output
-    ///@{
+      ///@}
+      ///@name Input and output
+      ///@{
 
-    /// Turn back information as a string.
-    std::string Info() const  {
-        return "ReadMaterialsUtility";
+      /// Turn back information as a string.
+      std::string Info() const
+      {
+          return "ReadMaterialsUtility";
     }
 
     /// Print information about this object.
@@ -335,5 +330,3 @@ class KRATOS_API(KRATOS_CORE) ReadMaterialsUtility
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_READ;MATERIALS_H_INCLUDED defined
