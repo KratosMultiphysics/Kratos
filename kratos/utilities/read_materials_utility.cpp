@@ -355,11 +355,13 @@ void ReadMaterialsUtility::AssignAccessorsToProperty(
 
                 // Dependent Variable
                 std::string output_var_name = accessor_param["properties"]["table_output_variable"].GetString();
-                TrimComponentName(output_var_name);
                 const auto& r_output_var  = KratosComponents<Variable<double>>().Get(output_var_name);
 
                 // We set the variable type of the input variable (nodal_historical, nodal_non_historicala and elemental_non_historical)
                 std::string input_var_type = accessor_param["properties"].Has("table_input_variable_type") ? accessor_param["properties"]["table_input_variable_type"].GetString() : "nodal_historical";
+
+                KRATOS_ERROR_IF(rProperty.HasAccessor(r_output_var)) << "You are trying to add an TableAccessor between " << input_var_name << " and " << output_var_name << " which already exists..." << std::endl;
+
                 rProperty.SetAccessor(r_output_var, (TableAccessor(p_input_var, input_var_type)).Clone());
             } else {
                 KRATOS_ERROR << "This Accessor type is not available, only TableAccessor is ready for now" << std::endl;
