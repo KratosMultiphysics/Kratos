@@ -20,7 +20,8 @@ def SetUpSimulationInstance(model, parameters, rom_trainning_parameters = None):
     simulation = instance_factory(
         analysis_stage_class,
         model,
-        parameters, rom_trainning_parameters)
+        parameters,
+        rom_trainning_parameters)
 
     return simulation
 
