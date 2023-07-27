@@ -32,8 +32,6 @@ void LocalRefineGeometryMesh::LocalRefineMesh(
 {
     KRATOS_TRY;
 
-    KRATOS_ERROR_IF(mModelPart.IsSubModelPart()) << "modelpart must be root modelpart" << std::endl;
-
     KRATOS_ERROR_IF(RefineOnReference && !(mModelPart.NodesBegin()->SolutionStepsDataHas(DISPLACEMENT))) << "DISPLACEMENT Variable is not in the model part -- needed if refine_on_reference = true" << std::endl;
 
     compressed_matrix<int> coord;                            // The matrix that stores all the index of the geometry
