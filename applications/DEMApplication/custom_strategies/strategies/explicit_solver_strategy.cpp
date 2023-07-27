@@ -2459,58 +2459,59 @@ namespace Kratos {
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
-    void ExplicitSolverStrategy::RVEComputeRoseUniformity(void) {
+    void ExplicitSolverStrategy::RVEComputeRoseUniformity(void) { // 2D ONLY!
+      int len_rose_all = mRVE_RoseDiagram.size2();
+      int len_rose_inn = mRVE_RoseDiagramInner.size2();
+
+      // Summation
+      double sum_rose_xy_all = 0.0;
+      double sum_rose_xy_inn = 0.0;
+
+      for (int i = 0; i < len_rose_all; i++)
+        sum_rose_xy_all += mRVE_RoseDiagram(0,i);
+
+      for (int i = 0; i < len_rose_inn; i++)
+        sum_rose_xy_inn += mRVE_RoseDiagramInner(0,i);
+
+      // Normalize
+      std::vector<double> rose_xy_all_norm(len_rose_all, 0.0);
+      std::vector<double> rose_xy_inn_norm(len_rose_inn, 0.0);
+      
+      if (sum_rose_xy_all != 0.0)
+        for (int i = 0; i < len_rose_all; i++)
+          rose_xy_all_norm[i] = mRVE_RoseDiagram(0,i) / sum_rose_xy_all;
+      
+      if (sum_rose_xy_inn != 0.0)
+        for (int i = 0; i < len_rose_inn; i++)
+          rose_xy_inn_norm[i] = mRVE_RoseDiagramInner(0,i) / sum_rose_xy_inn;
+
       // Mean
       double mean_rose_xy_all = 0.0;
-      double mean_rose_az_all = 0.0;
       double mean_rose_xy_inn = 0.0;
-      double mean_rose_az_inn = 0.0;
+      
+      if (sum_rose_xy_all != 0.0)
+        mean_rose_xy_all = sum_rose_xy_all / len_rose_all;
 
-      for (int i = 0; i < mRVE_RoseDiagram.size2(); i++) {
-        mean_rose_xy_all += mRVE_RoseDiagram(0,i);
-        mean_rose_az_all += mRVE_RoseDiagram(1,i);
-      }
-      for (int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) {
-        mean_rose_xy_inn += mRVE_RoseDiagramInner(0,i);
-        mean_rose_az_inn += mRVE_RoseDiagramInner(1,i);
-      }
-
-      mean_rose_xy_all /= mRVE_RoseDiagram.size2();
-      mean_rose_az_all /= mRVE_RoseDiagram.size2();
-      mean_rose_xy_inn /= mRVE_RoseDiagramInner.size2();
-      mean_rose_az_inn /= mRVE_RoseDiagramInner.size2();
+      if (sum_rose_xy_inn != 0.0)
+        mean_rose_xy_inn = sum_rose_xy_inn / len_rose_inn;
 
       // Variance
       double var_rose_xy_all = 0.0;
-      double var_rose_az_all = 0.0;
       double var_rose_xy_inn = 0.0;
-      double var_rose_az_inn = 0.0;
-
-      for (int i = 0; i < mRVE_RoseDiagram.size2(); i++) {
+      
+      for (int i = 0; i < len_rose_all; i++)
         var_rose_xy_all += pow(mRVE_RoseDiagram(0,i) - mean_rose_xy_all, 2.0);
-        var_rose_az_all += pow(mRVE_RoseDiagram(1,i) - mean_rose_az_all, 2.0);
-      }
-      for (int i = 0; i < mRVE_RoseDiagramInner.size2(); i++) {
-        var_rose_xy_inn += pow(mRVE_RoseDiagramInner(0,i) - mean_rose_xy_inn, 2.0);
-        var_rose_az_inn += pow(mRVE_RoseDiagramInner(1,i) - mean_rose_az_inn, 2.0);
-      }
+      var_rose_xy_all /= len_rose_all;
 
-      var_rose_xy_all /= mRVE_RoseDiagram.size2();
-      var_rose_az_all /= mRVE_RoseDiagram.size2();
-      var_rose_xy_inn /= mRVE_RoseDiagramInner.size2();
-      var_rose_az_inn /= mRVE_RoseDiagramInner.size2();
+      for (int i = 0; i < len_rose_inn; i++)
+        var_rose_xy_inn += pow(mRVE_RoseDiagramInner(0,i) - mean_rose_xy_inn, 2.0);
+      var_rose_xy_inn /= len_rose_inn;
 
       // Standard deviation
-      double std_dev_rose_xy_all = sqrt(var_rose_xy_all);
-      double std_dev_rose_az_all = sqrt(var_rose_az_all);
-      double std_dev_rose_xy_inn = sqrt(var_rose_xy_inn);
-      double std_dev_rose_az_inn = sqrt(var_rose_az_inn);
-
-      // Relative value
-      mRVE_StdDevRoseXYAll = std_dev_rose_xy_all / mRVE_NumParticles;
-      mRVE_StdDevRoseAzAll = std_dev_rose_az_all / mRVE_NumParticles;
-      mRVE_StdDevRoseXYInn = std_dev_rose_xy_inn / mRVE_NumParticlesInner;
-      mRVE_StdDevRoseAzInn = std_dev_rose_az_inn / mRVE_NumParticlesInner;
+      mRVE_StdDevRoseXYAll = sqrt(var_rose_xy_all);
+      mRVE_StdDevRoseXYInn = sqrt(var_rose_xy_inn);
+      mRVE_StdDevRoseAzAll = 0.0;
+      mRVE_StdDevRoseAzInn = 0.0;
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2720,9 +2721,7 @@ namespace Kratos {
         mRVE_FileRoseDiagramUniformity << time_step << " "
                                        << time      << " "
                                        << mRVE_StdDevRoseXYAll << " "
-                                       << mRVE_StdDevRoseAzAll << " "
-                                       << mRVE_StdDevRoseXYInn << " "
-                                       << mRVE_StdDevRoseAzInn
+                                       << mRVE_StdDevRoseXYInn
                                        << std::endl;
 
       if (mRVE_FileAnisotropy.is_open())
@@ -2992,9 +2991,7 @@ namespace Kratos {
         mRVE_FileRoseDiagramUniformity << "1 - STEP | ";
         mRVE_FileRoseDiagramUniformity << "2 - TIME | ";
         mRVE_FileRoseDiagramUniformity << "3 - STD DEV XY - ALL | ";
-        mRVE_FileRoseDiagramUniformity << "4 - STD DEV AZ - ALL | ";
-        mRVE_FileRoseDiagramUniformity << "5 - STD DEV XY - INNER | ";
-        mRVE_FileRoseDiagramUniformity << "6 - STD DEV AZ - INNER";
+        mRVE_FileRoseDiagramUniformity << "4 - STD DEV XY - INNER";
         mRVE_FileRoseDiagramUniformity << std::endl;
       }
 
