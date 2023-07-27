@@ -23,10 +23,11 @@ class StandardizedConstraint(ResponseRoutine):
     """
     def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_problem: OptimizationProblem, required_buffer_size: int = 2):
         default_parameters = Kratos.Parameters("""{
-            "response_name"   : "",
-            "type"            : "",
-            "scaling"         : 1.0,
-            "scaled_ref_value": "initial_value"
+            "response_name"       : "",
+            "type"                : "",
+            "scaling"             : 1.0,
+            "violation_scaling"   : 1.0,
+            "scaled_ref_value"    : "initial_value"
         }""")
 
         if parameters.Has("scaled_ref_value") and parameters["scaled_ref_value"].IsDouble():
@@ -61,6 +62,7 @@ class StandardizedConstraint(ResponseRoutine):
         else:
             raise RuntimeError(f"Provided \"reference_type\" = {self.__ref_type} is not supported for constraint response functions. Followings are supported options: \n\tinitial_value\n\tfloat value")
 
+        self.__violation_scaling = parameters["violation_scaling"].GetDouble() 
         self.__constraint_type = parameters["type"].GetString()
         if self.__constraint_type in ["<=", "="]:
             self.__scaling = scaling
@@ -129,6 +131,13 @@ class StandardizedConstraint(ResponseRoutine):
 
     def GetStandardizedValue(self, step_index: int = 0) -> float:
         return self.GetValue(step_index) * self.__scaling - self.GetStandardizedReferenceValue()
+    
+    def GetScaledViolationValue(self, step_index: int = 0) -> float:
+        value = self.GetStandardizedValue(step_index)
+        if value < 0.0:
+            return 0.0
+        else:
+            return value * self.__violation_scaling
 
     def GetAbsoluteViolation(self, step_index: int = 0) -> float:
         is_violated = self.IsEqualityType() or self.GetStandardizedValue(step_index) >= 0.0
@@ -150,6 +159,7 @@ class StandardizedConstraint(ResponseRoutine):
         info = {
             "name": self.GetResponseName(),
             "value": self.GetValue(),
+            "scaled_value": self.GetValue() * abs(self.__scaling),
             "type": self.__constraint_type,
             "ref_value": self.GetStandardizedReferenceValue(),
             "abs_change": self.GetAbsoluteChange(),

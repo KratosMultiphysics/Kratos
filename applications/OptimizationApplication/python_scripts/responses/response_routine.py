@@ -87,13 +87,14 @@ class ResponseRoutine:
             float: Respone value.
         """
         # update using the master control and get updated states.
-        update_states = self.__master_control.Update(control_field)
-
+        self.__master_control.Update(control_field)
         compute_response_value_flag = False
-        for control, is_updated in update_states.items():
-            if is_updated and control in self.__contributing_controls_list:
-                compute_response_value_flag = True
-
+        if self.__response_value is None:
+            self.my_current_control_field = control_field
+        diff = self.my_current_control_field - control_field
+        norm = KratosOA.ExpressionUtils.NormInf(diff) 
+        if norm > 1e-12:
+            compute_response_value_flag = True
         compute_response_value_flag = compute_response_value_flag or self.__response_value is None
 
         # TODO: In the case of having two analysis with the same mesh (model parts) for two different

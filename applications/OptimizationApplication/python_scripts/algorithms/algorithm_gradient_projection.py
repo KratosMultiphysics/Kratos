@@ -106,13 +106,15 @@ class AlgorithmGradientProjection(Algorithm):
         active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constr_value[i] >= 0.0]
         number_of_active_constraints = len(active_constraints_list)
 
+        print("TEst", number_of_active_constraints)
+
         if not number_of_active_constraints:
             search_direction = obj_grad.Clone() * -1.0
             correction = obj_grad.Clone() * 0.0
         else:
             constraint_violations = Kratos.Vector(number_of_active_constraints)
             for i, active_constraint in enumerate(active_constraints_list):
-                    constraint_violations[i] = active_constraint.GetStandardizedValue()
+                    constraint_violations[i] = active_constraint.GetScaledViolationValue()
 
             # compute the projected search direction and correction
             ntn = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
@@ -135,6 +137,7 @@ class AlgorithmGradientProjection(Algorithm):
                 search_direction = - (obj_grad - self.__CollectiveListVectorProduct(constr_grad, ntn_inverse * self.__CollectiveListCollectiveProduct(constr_grad, obj_grad)))
                 correction = - self.__CollectiveListVectorProduct(constr_grad, ntn_inverse * constraint_violations)
         correction_norm = KratosOA.ExpressionUtils.NormInf(correction)
+        print("TEst2", correction_norm)
         if correction_norm > self.correction_size:
             correction *= self.correction_size / correction_norm
         self.algorithm_data.GetBufferedData()["search_direction"] = search_direction.Clone()
@@ -185,7 +188,8 @@ class AlgorithmGradientProjection(Algorithm):
     @time_decorator()
     def Solve(self):
         while not self.converged:
-            with OptimizationAlgorithmTimeLogger("AlgorithmSteepestDescent",self._optimization_problem.GetStep()):
+            with OptimizationAlgorithmTimeLogger("Gradient Projection",self._optimization_problem.GetStep()):
+                print(self.__control_field.Evaluate())
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 obj_info = self.__objective.GetInfo()
                 self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
@@ -196,18 +200,17 @@ class AlgorithmGradientProjection(Algorithm):
                 obj_grad = self.__objective.CalculateStandardizedGradient()
 
                 self.__constr_value = []
-                constr_grad = []
+                active_constr_grad = []
                 for constraint in self.__constraints_list:
-                    self.__constr_value.append(constraint.CalculateStandardizedValue(self.__control_field))
+                    value = constraint.CalculateStandardizedValue(self.__control_field)
+                    self.__constr_value.append(value)
                     constr_info = constraint.GetInfo()
                     constr_name = constraint.GetResponseName()
                     self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = constr_info["value"]
-                    self.algorithm_data.GetBufferedData()["rel_constr_{constr_name}[%]"] = constr_info["rel_change [%]"]
-                    if "abs_change [%]" in constr_info:
-                        self.algorithm_data.GetBufferedData()["abs_constr_{constr_name}[%]"] = constr_info["abs_change [%]"]
-                    constr_grad.append(constraint.CalculateStandardizedGradient())
+                    if value >= 0.0:
+                        active_constr_grad.append(constraint.CalculateStandardizedGradient())
 
-                self.ComputeSearchDirection(obj_grad, constr_grad)
+                self.ComputeSearchDirection(obj_grad, active_constr_grad)
 
                 alpha = self.__line_search_method.ComputeStep()
 

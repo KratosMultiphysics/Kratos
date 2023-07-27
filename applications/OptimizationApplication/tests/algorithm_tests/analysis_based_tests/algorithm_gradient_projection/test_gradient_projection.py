@@ -20,7 +20,9 @@ class TestSteepestDescentAnalysis(kratos_unittest.TestCase):
                 "reference_file_name"   : "summary_orig.csv",
                 "output_file_name"      : "summary.csv",
                 "remove_output_file"    : true,
-                "comparison_type"       : "deterministic"
+                "comparison_type"       : "deterministic",
+                "tolerance"             : 1e-6,
+                "relative_tolerance"    : 1e-6
             }""")).Execute()
 
     @classmethod
