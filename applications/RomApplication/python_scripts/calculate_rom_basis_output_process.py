@@ -66,7 +66,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         self.rom_basis_output_name = settings["rom_basis_output_name"].GetString()
 
-        self.rom_basis_output_folder = settings["rom_basis_output_folder"].GetString()
+        self.rom_basis_output_folder = Path(settings["rom_basis_output_folder"].GetString())
 
         # Get the SVD truncation tolerance
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
