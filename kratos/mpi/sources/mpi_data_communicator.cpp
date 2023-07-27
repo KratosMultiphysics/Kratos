@@ -326,6 +326,13 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(array_1d<double, 
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(Vector)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(Matrix)
 
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(Vector)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(Matrix)
+
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(char)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(unsigned int)
@@ -871,11 +878,7 @@ template<class TDataType> void MPIDataCommunicator::ScattervDetail(
 
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
-    int sub_data_type_length = mpi_send_msg.SubDataTypeSize(rSendValues);
-
-    Broadcast(sub_data_type_length, SourceRank);
-
-    if (sub_data_type_length == 1) {
+    if constexpr(MPIMessage<TDataType>::HasContiguousPrimitiveData) {
         const int ierr = MPI_Scatterv(
             mpi_send_msg.Buffer(rSendValues), rSendCounts.data(), rSendOffsets.data(), mpi_send_msg.DataType(),
             mpi_recv_msg.Buffer(rRecvValues), mpi_recv_msg.Size(rRecvValues), mpi_recv_msg.DataType(),
@@ -884,6 +887,8 @@ template<class TDataType> void MPIDataCommunicator::ScattervDetail(
     } else {
         // now we have update the rSendCounts and rSendOffsets properly for primitive data type sizes
         // because the TDataType is not contiguous
+        int sub_data_type_length = mpi_send_msg.SubDataTypeSize(rSendValues);
+
         std::vector<int> primitive_send_counts(rSendCounts.size());
         std::vector<int> primitive_send_offsets(rSendOffsets.size());
 
@@ -917,11 +922,14 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScattervDe
 template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::GatherDetail(
     const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int RecvRank) const
 {
+    MPIMessage<TSendDataType> mpi_send_msg;
+    MPIMessage<TRecvDataType> mpi_recv_msg;
+
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(RecvRank)))
     << "In call to MPI_Gather: " << RecvRank << " is not a valid rank." << std::endl;
-    const int send_size = MPIMessageSize(rSendValues);
-    const int recv_size = MPIMessageSize(rRecvValues);
+    const int send_size = mpi_send_msg.Size(rSendValues);
+    const int recv_size = mpi_recv_msg.Size(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
     << "Input error in call to MPI_Gather: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -931,22 +939,32 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Gat
     << send_size * Size() << " values to receive expected)." << std::endl;
     #endif // KRATOS_DEBUG
 
-    const int sends_per_rank = MPIMessageSize(rSendValues);
+    const int sends_per_rank = mpi_send_msg.Size(rSendValues);
     const int ierr = MPI_Gather(
-        MPIBuffer(rSendValues), sends_per_rank, MPIDatatype(rSendValues),
-        MPIBuffer(rRecvValues), sends_per_rank, MPIDatatype(rRecvValues),
+        mpi_send_msg.Buffer(rSendValues), sends_per_rank, mpi_send_msg.DataType(),
+        mpi_recv_msg.Buffer(rRecvValues), sends_per_rank, mpi_recv_msg.DataType(),
         RecvRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Gather");
+
+    if (Rank() == RecvRank) {
+        mpi_recv_msg.Update(rRecvValues);
+    }
 }
 
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::GatherDetail(
     const std::vector<TDataType>& rSendValues, const int DestinationRank) const
 {
     int message_size = rSendValues.size();
+
+    TDataType temp;
+    if (rSendValues.size() > 0) {
+        temp = rSendValues.front();
+    }
+    SynchronizeShape(temp);
+
     std::vector<TDataType> gathered_values;
-    if (Rank() == DestinationRank)
-    {
-        gathered_values.resize(message_size*Size());
+    if (Rank() == DestinationRank) {
+        gathered_values.resize(message_size*Size(), temp);
     }
     GatherDetail(rSendValues, gathered_values, DestinationRank);
     return gathered_values;
@@ -961,11 +979,36 @@ template<class TDataType> void MPIDataCommunicator::GathervDetail(
     ValidateGathervInput(rSendValues, rRecvValues, rRecvCounts, rRecvOffsets, RecvRank);
     #endif
 
-    const int ierr = MPI_Gatherv(
-        MPIBuffer(rSendValues), MPIMessageSize(rSendValues), MPIDatatype(rSendValues),
-        MPIBuffer(rRecvValues), rRecvCounts.data(), rRecvOffsets.data(), MPIDatatype(rRecvValues),
-        RecvRank, mComm);
-    CheckMPIErrorCode(ierr, "MPI_Gatherv");
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
+    if constexpr(MPIMessage<TDataType>::HasContiguousPrimitiveData) {
+        const int ierr = MPI_Gatherv(
+            mpi_send_msg.Buffer(rSendValues), mpi_send_msg.Size(rSendValues), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), rRecvCounts.data(), rRecvOffsets.data(), mpi_recv_msg.DataType(),
+            RecvRank, mComm);
+        CheckMPIErrorCode(ierr, "MPI_Gatherv");
+    } else {
+        // now we have update the rRecvCounts and rRecvOffsets properly for primitive data type sizes
+        // because the TDataType is not contiguous
+
+        int sub_data_type_length = mpi_recv_msg.SubDataTypeSize(rRecvValues);
+
+        std::vector<int> primitive_recv_counts(rRecvCounts.size());
+        std::vector<int> primitive_recv_offsets(rRecvOffsets.size());
+
+        std::transform(rRecvCounts.begin(), rRecvCounts.end(), primitive_recv_counts.begin(), [sub_data_type_length](const auto RecvCount) { return RecvCount * sub_data_type_length; });
+        std::transform(rRecvOffsets.begin(), rRecvOffsets.end(), primitive_recv_offsets.begin(), [sub_data_type_length](const auto RecvOffset) { return RecvOffset * sub_data_type_length; });
+
+        const int ierr = MPI_Gatherv(
+            mpi_send_msg.Buffer(rSendValues), mpi_send_msg.Size(rSendValues), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), primitive_recv_counts.data(), primitive_recv_offsets.data(), mpi_recv_msg.DataType(),
+            RecvRank, mComm);
+        CheckMPIErrorCode(ierr, "MPI_Scatterv");
+    }
+
+    if (Rank() == RecvRank) {
+        mpi_recv_msg.Update(rRecvValues);
+    }
 }
 
 template<class TDataType> std::vector<std::vector<TDataType>>
@@ -986,9 +1029,11 @@ MPIDataCommunicator::GathervDetail(const std::vector<TDataType>& rSendValues, co
 template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
     const TDataType& rSendValues, TDataType& rRecvValues) const
 {
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
     #ifdef KRATOS_DEBUG
-    const int send_size = MPIMessageSize(rSendValues);
-    const int recv_size = MPIMessageSize(rRecvValues);
+    const int send_size = mpi_send_msg.Size(rSendValues);
+    const int recv_size = mpi_recv_msg.Size(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
     << "Input error in call to MPI_Allgather: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -998,18 +1043,25 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
     << send_size * Size() << " values to receive expected)." << std::endl;
     #endif // KRATOS_DEBUG
 
-    const int sends_per_rank = MPIMessageSize(rSendValues);
+    const int sends_per_rank = mpi_send_msg.Size(rSendValues);
     const int ierr = MPI_Allgather(
-        MPIBuffer(rSendValues), sends_per_rank, MPIDatatype(rSendValues),
-        MPIBuffer(rRecvValues), sends_per_rank, MPIDatatype(rRecvValues),
+        mpi_send_msg.Buffer(rSendValues), sends_per_rank, mpi_send_msg.DataType(),
+        mpi_recv_msg.Buffer(rRecvValues), sends_per_rank, mpi_recv_msg.DataType(),
         mComm);
     CheckMPIErrorCode(ierr, "MPI_Allgather");
+
+    mpi_recv_msg.Update(rRecvValues);
 }
 
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::AllGatherDetail(
     const std::vector<TDataType>& rSendValues) const
 {
-    std::vector<TDataType> output(rSendValues.size()*Size());
+    TDataType temp;
+    if (rSendValues.size() > 0) {
+        temp = rSendValues.front();
+    }
+    SynchronizeShape(temp);
+    std::vector<TDataType> output(rSendValues.size()*Size(), temp);
     AllGatherDetail(rSendValues, output);
     return output;
 }
@@ -1023,12 +1075,34 @@ void MPIDataCommunicator::AllGathervDetail(
     ValidateAllGathervInput(rSendValues, rRecvValues, rRecvCounts, rRecvOffsets);
     #endif // KRATOS_DEBUG
 
-    const int sends_per_rank = MPIMessageSize(rSendValues);
-    const int ierr = MPI_Allgatherv(
-        MPIBuffer(rSendValues), sends_per_rank, MPIDatatype(rSendValues), MPIBuffer(rRecvValues),
-        rRecvCounts.data(), rRecvOffsets.data(), MPIDatatype(rRecvValues),
-        mComm);
-    CheckMPIErrorCode(ierr, "MPI_Allgatherv");
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
+    if constexpr(MPIMessage<TDataType>::HasContiguousPrimitiveData) {
+        const int ierr = MPI_Allgatherv(
+            mpi_send_msg.Buffer(rSendValues), mpi_send_msg.Size(rSendValues), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), rRecvCounts.data(), rRecvOffsets.data(), mpi_recv_msg.DataType(),
+            mComm);
+        CheckMPIErrorCode(ierr, "MPI_Allgatherv");
+    } else {
+        // now we have update the rRecvCounts and rRecvOffsets properly for primitive data type sizes
+        // because the TDataType is not contiguous
+
+        int sub_data_type_length = mpi_recv_msg.SubDataTypeSize(rRecvValues);
+
+        std::vector<int> primitive_recv_counts(rRecvCounts.size());
+        std::vector<int> primitive_recv_offsets(rRecvOffsets.size());
+
+        std::transform(rRecvCounts.begin(), rRecvCounts.end(), primitive_recv_counts.begin(), [sub_data_type_length](const auto RecvCount) { return RecvCount * sub_data_type_length; });
+        std::transform(rRecvOffsets.begin(), rRecvOffsets.end(), primitive_recv_offsets.begin(), [sub_data_type_length](const auto RecvOffset) { return RecvOffset * sub_data_type_length; });
+
+        const int ierr = MPI_Allgatherv(
+            mpi_send_msg.Buffer(rSendValues), mpi_send_msg.Size(rSendValues), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), primitive_recv_counts.data(), primitive_recv_offsets.data(), mpi_recv_msg.DataType(),
+            mComm);
+        CheckMPIErrorCode(ierr, "MPI_Allgatherv");
+    }
+
+    mpi_recv_msg.Update(rRecvValues);
 }
 
 template<class TDataType>
@@ -1162,7 +1236,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
 
     // All ranks send a message of the correct size
     int expected_recv_size = 0;
-    const int send_size = MPIMessageSize(rSendValues);
+    const int send_size = rSendValues.size();
     int ierr = MPI_Scatter(rRecvCounts.data(), 1, MPI_INT, &expected_recv_size, 1, MPI_INT, RecvRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatter");
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(send_size != expected_recv_size))
@@ -1172,8 +1246,8 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
 
     // Message size is not larger than total expected size (can only check for too large, since the recv message may be padded).
     int total_size = 0;
-    const int message_size = MPIMessageSize(rSendValues);
-    const int expected_message_size = MPIMessageSize(rRecvValues);
+    const int message_size = rSendValues.size();
+    const int expected_message_size = rRecvValues.size();
     ierr = MPI_Reduce(&message_size, &total_size, 1, MPI_INT, MPI_SUM, RecvRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
     KRATOS_ERROR_IF(BroadcastErrorIfTrue(total_size > expected_message_size, RecvRank))
@@ -1206,7 +1280,7 @@ void MPIDataCommunicator::ValidateAllGathervInput(
     const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const
 {
     // All ranks send a message of the expected size
-    const int send_size = MPIMessageSize(rSendValues);
+    const int send_size = rSendValues.size();
     const int comm_size = Size();
     std::vector<int> effective_recv_sizes(comm_size);
     const int ierr = MPI_Allgather(&send_size, 1, MPI_INT, effective_recv_sizes.data(), 1, MPI_INT, mComm);
@@ -1219,8 +1293,8 @@ void MPIDataCommunicator::ValidateAllGathervInput(
     }
 
     // Message size is not larger than total expected size (can only check for too large, since the recv message may be padded).
-    const int message_size = MPIMessageSize(rSendValues);
-    const int expected_message_size = MPIMessageSize(rRecvValues);
+    const int message_size = rSendValues.size();
+    const int expected_message_size = rRecvValues.size();
     const int total_size = this->SumAll(message_size);
     KRATOS_ERROR_IF(total_size > expected_message_size)
     << "Input error in call to MPI_Allgatherv for rank " << Rank() << ": "
@@ -1305,6 +1379,13 @@ template<class TDataType> void MPIDataCommunicator::PrepareGathervBuffers(
     }
     GatherDetail(message_size_send, rMessageLengths, DestinationRank);
 
+    TDataType temp;
+    if (rGathervInput.size() > 0) {
+        temp = rGathervInput.front();
+    }
+
+    SynchronizeShape(temp);
+
     if (rank == DestinationRank)
     {
         rMessageDistances.resize(size);
@@ -1314,7 +1395,7 @@ template<class TDataType> void MPIDataCommunicator::PrepareGathervBuffers(
             rMessageDistances[i] = message_size;
             message_size += rMessageLengths[i];
         }
-        rGathervMessage.resize(message_size);
+        rGathervMessage.resize(message_size, temp);
     }
 }
 
@@ -1335,7 +1416,14 @@ void MPIDataCommunicator::PrepareAllGathervBuffers(
         rMessageDistances[i] = message_size;
         message_size += rMessageLengths[i];
     }
-    rGathervMessage.resize(message_size);
+
+    TDataType temp;
+    if (rGathervInput.size() > 0) {
+        temp = rGathervInput.front();
+    }
+
+    SynchronizeShape(temp);
+    rGathervMessage.resize(message_size, temp);
 }
 
 template<class TDataType> void MPIDataCommunicator::PrepareGathervReturn(
