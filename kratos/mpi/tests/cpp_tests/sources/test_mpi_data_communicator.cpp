@@ -29,13 +29,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorRankAndSize, KratosMPIC
 {
     DataCommunicator serial_communicator;
 
-    KRATOS_CHECK_EQUAL(serial_communicator.Rank(), 0);
-    KRATOS_CHECK_EQUAL(serial_communicator.Size(), 1);
+    KRATOS_EXPECT_EQ(serial_communicator.Rank(), 0);
+    KRATOS_EXPECT_EQ(serial_communicator.Size(), 1);
 
     MPIDataCommunicator mpi_self_communicator(MPI_COMM_SELF);
 
-    KRATOS_CHECK_EQUAL(mpi_self_communicator.Rank(), 0);
-    KRATOS_CHECK_EQUAL(mpi_self_communicator.Size(), 1);
+    KRATOS_EXPECT_EQ(mpi_self_communicator.Rank(), 0);
+    KRATOS_EXPECT_EQ(mpi_self_communicator.Size(), 1);
 
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
@@ -43,8 +43,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorRankAndSize, KratosMPIC
     MPI_Comm_rank(MPI_COMM_WORLD,&world_rank);
     MPI_Comm_size(MPI_COMM_WORLD,&world_size);
 
-    KRATOS_CHECK_EQUAL(mpi_world_communicator.Rank(), world_rank);
-    KRATOS_CHECK_EQUAL(mpi_world_communicator.Size(), world_size);
+    KRATOS_EXPECT_EQ(mpi_world_communicator.Rank(), world_rank);
+    KRATOS_EXPECT_EQ(mpi_world_communicator.Size(), world_size);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommRetrieval, KratosMPICoreFastSuite)
@@ -53,22 +53,22 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPICommRetrieval, KratosMPICoreFastSuite)
     MPIDataCommunicator mpi_self_communicator(MPI_COMM_SELF);
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
 
-    KRATOS_CHECK_EQUAL(MPIDataCommunicator::GetMPICommunicator(serial_communicator), MPI_COMM_SELF);
-    KRATOS_CHECK_EQUAL(MPIDataCommunicator::GetMPICommunicator(mpi_self_communicator), MPI_COMM_SELF);
-    KRATOS_CHECK_EQUAL(MPIDataCommunicator::GetMPICommunicator(mpi_world_communicator), MPI_COMM_WORLD);
-    KRATOS_CHECK_NOT_EQUAL(MPIDataCommunicator::GetMPICommunicator(mpi_world_communicator), MPI_COMM_SELF);
+    KRATOS_EXPECT_EQ(MPIDataCommunicator::GetMPICommunicator(serial_communicator), MPI_COMM_SELF);
+    KRATOS_EXPECT_EQ(MPIDataCommunicator::GetMPICommunicator(mpi_self_communicator), MPI_COMM_SELF);
+    KRATOS_EXPECT_EQ(MPIDataCommunicator::GetMPICommunicator(mpi_world_communicator), MPI_COMM_WORLD);
+    KRATOS_EXPECT_NE(MPIDataCommunicator::GetMPICommunicator(mpi_world_communicator), MPI_COMM_SELF);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorFromKratosComponents, KratosMPICoreFastSuite)
 {
     // This should work always
-    KRATOS_CHECK_EQUAL(KratosComponents<DataCommunicator>::Has("Serial"), true);
+    KRATOS_EXPECT_EQ(KratosComponents<DataCommunicator>::Has("Serial"), true);
     const DataCommunicator& r_serial = KratosComponents<DataCommunicator>::Get("Serial");
-    KRATOS_CHECK_EQUAL(r_serial.IsDistributed(), false);
+    KRATOS_EXPECT_EQ(r_serial.IsDistributed(), false);
     // This assumes running Kratos with mpi (this should be the case, since this test should be auto-disabled in serial runs)
-    KRATOS_CHECK_EQUAL(KratosComponents<DataCommunicator>::Has("World"), true);
+    KRATOS_EXPECT_EQ(KratosComponents<DataCommunicator>::Has("World"), true);
     const DataCommunicator& r_world = KratosComponents<DataCommunicator>::Get("World");
-    KRATOS_CHECK_EQUAL(r_world.IsDistributed(), true);
+    KRATOS_EXPECT_EQ(r_world.IsDistributed(), true);
 }
 
 // Sum ////////////////////////////////////////////////////////////////////////
@@ -85,14 +85,14 @@ template<typename T> void MPIDataCommunicatorSumIntegralTypeTest()
     T result = mpi_world_communicator.Sum(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, world_size);
+        KRATOS_EXPECT_EQ(result, world_size);
     }
 
     #ifdef KRATOS_DEBUG
     // passing invalid rank as argument
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Sum(local, world_size),"is not a valid rank.");
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Sum(local, -1),"is not a valid rank.");
     #endif
 }
@@ -124,14 +124,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumDouble, KratosMPICor
     double result = mpi_world_communicator.Sum(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, 2.0*world_size);
+        KRATOS_EXPECT_EQ(result, 2.0*world_size);
     }
 
     #ifdef KRATOS_DEBUG
     // passing invalid rank as argument
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Sum(local, world_size),"is not a valid rank.");
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Sum(local, -1),"is not a valid rank.");
     #endif
 }
@@ -150,16 +150,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumArray1d, KratosMPICo
     array_1d<double,3> result = mpi_world_communicator.Sum(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result[0], -1.0*world_size);
-        KRATOS_CHECK_EQUAL(result[1],  0.0);
-        KRATOS_CHECK_EQUAL(result[2],  1.0*world_size);
+        KRATOS_EXPECT_EQ(result[0], -1.0*world_size);
+        KRATOS_EXPECT_EQ(result[1],  0.0);
+        KRATOS_EXPECT_EQ(result[2],  1.0*world_size);
     }
 
     #ifdef KRATOS_DEBUG
     // passing invalid rank as argument
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Sum(local, world_size),"is not a valid rank.");
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Sum(local, -1),"is not a valid rank.");
     #endif
 }
@@ -181,7 +181,7 @@ template<typename T> void MPIDataCommunicatorSumIntegralTypeVectorTest()
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], world_size);
+            KRATOS_EXPECT_EQ(output[i], world_size);
         }
     }
 
@@ -189,10 +189,10 @@ template<typename T> void MPIDataCommunicatorSumIntegralTypeVectorTest()
     std::vector<T> returned_result = mpi_world_communicator.Sum(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(returned_result[i], world_size);
+            KRATOS_EXPECT_EQ(returned_result[i], world_size);
         }
     }
 
@@ -204,11 +204,11 @@ template<typename T> void MPIDataCommunicatorSumIntegralTypeVectorTest()
             local.resize(3);
             local = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local, output, root),"Input error in call to MPI_Reduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local, output, root),"Input error in call to MPI_Reduce");
     }
     // Input size != output size
     std::vector<T> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local_vector_wrong_size, output, root),"Error:");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local_vector_wrong_size, output, root),"Error:");
     #endif
 }
 }
@@ -244,7 +244,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumDoubleVector, Kratos
     {
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(output[i], 2.0*world_size);
+            KRATOS_EXPECT_EQ(output[i], 2.0*world_size);
         }
     }
 
@@ -252,10 +252,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumDoubleVector, Kratos
     std::vector<double> returned_result = mpi_world_communicator.Sum(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(returned_result[i], 2.0*world_size);
+            KRATOS_EXPECT_EQ(returned_result[i], 2.0*world_size);
         }
     }
 
@@ -267,11 +267,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumDoubleVector, Kratos
             local.resize(3);
             local = {1.0,2.0,3.0};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local, output, root),"Input error in call to MPI_Reduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local, output, root),"Input error in call to MPI_Reduce");
     }
     // Input size != output size
     std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local_vector_wrong_size, output, root),"Error:");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Sum(local_vector_wrong_size, output, root),"Error:");
     #endif
 }
 
@@ -288,15 +288,15 @@ template<typename T> void MPIDataCommunicatorMinIntegralTypeTest()
     T result = mpi_world_communicator.Min(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, 0);
+        KRATOS_EXPECT_EQ(result, 0);
     }
 
     #ifdef KRATOS_DEBUG
     const int world_size = mpi_world_communicator.Size();
     // passing invalid rank as argument
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Min(local, world_size),"is not a valid rank.");
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Min(local, -1),"is not a valid rank.");
     #endif
 }
@@ -327,15 +327,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinDouble, KratosMPICor
     double result = mpi_world_communicator.Min(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, 0.0);
+        KRATOS_EXPECT_EQ(result, 0.0);
     }
 
     #ifdef KRATOS_DEBUG
     const int world_size = mpi_world_communicator.Size();
     // passing invalid rank as argument
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Min(local, world_size),"is not a valid rank.");
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Min(local, -1),"is not a valid rank.");
     #endif
 }
@@ -354,16 +354,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinArray1d, KratosMPICo
     array_1d<double,3> result = mpi_world_communicator.Min(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result[0], -1.0*(world_size-1));
-        KRATOS_CHECK_EQUAL(result[1],  0.0);
-        KRATOS_CHECK_EQUAL(result[2],  0.0);
+        KRATOS_EXPECT_EQ(result[0], -1.0*(world_size-1));
+        KRATOS_EXPECT_EQ(result[1],  0.0);
+        KRATOS_EXPECT_EQ(result[2],  0.0);
     }
 
     #ifdef KRATOS_DEBUG
     // passing invalid rank as argument
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Min(local, world_size),"is not a valid rank.");
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Min(local, -1),"is not a valid rank.");
     #endif
 }
@@ -382,17 +382,17 @@ template<typename T> void MPIDataCommunicatorMinIntegralVectorTypeTest()
     mpi_world_communicator.Min(local, output, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(output[0], 0);
-        KRATOS_CHECK_EQUAL(output[1], 0);
+        KRATOS_EXPECT_EQ(output[0], 0);
+        KRATOS_EXPECT_EQ(output[1], 0);
     }
 
     // return buffer version
     std::vector<T> returned_result = mpi_world_communicator.Min(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
-        KRATOS_CHECK_EQUAL(returned_result[0], 0);
-        KRATOS_CHECK_EQUAL(returned_result[1], 0);
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result[0], 0);
+        KRATOS_EXPECT_EQ(returned_result[1], 0);
     }
 
     #ifdef KRATOS_DEBUG
@@ -404,11 +404,11 @@ template<typename T> void MPIDataCommunicatorMinIntegralVectorTypeTest()
             local.resize(3);
             local = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local, output, root),"Input error in call to MPI_Reduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local, output, root),"Input error in call to MPI_Reduce");
     }
     // Input size != output size
     std::vector<T> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local_vector_wrong_size, output, root),"Error:");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local_vector_wrong_size, output, root),"Error:");
     #endif
 }
 }
@@ -442,17 +442,17 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinDoubleVector, Kratos
     mpi_world_communicator.Min(local, output, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(output[0], 0);
-        KRATOS_CHECK_EQUAL(output[1], -2.0*(world_size-1));
+        KRATOS_EXPECT_EQ(output[0], 0);
+        KRATOS_EXPECT_EQ(output[1], -2.0*(world_size-1));
     }
 
     // return buffer version
     std::vector<double> returned_result = mpi_world_communicator.Min(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
-        KRATOS_CHECK_EQUAL(returned_result[0], 0.0);
-        KRATOS_CHECK_EQUAL(returned_result[1], -2.0*(world_size-1));
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result[0], 0.0);
+        KRATOS_EXPECT_EQ(returned_result[1], -2.0*(world_size-1));
     }
 
     #ifdef KRATOS_DEBUG
@@ -463,11 +463,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinDoubleVector, Kratos
             local.resize(3);
             local = {1.0,2.0,3.0};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local, output, root),"Input error in call to MPI_Reduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local, output, root),"Input error in call to MPI_Reduce");
     }
     // Input size != output size
     std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local_vector_wrong_size, output, root),"Error:");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Min(local_vector_wrong_size, output, root),"Error:");
     #endif
 }
 
@@ -486,14 +486,14 @@ template<typename T> void MPIDataCommunicatorMaxIntegralTypeTest()
     T result = mpi_world_communicator.Max(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, (T)(world_size-1));
+        KRATOS_EXPECT_EQ(result, (T)(world_size-1));
     }
 
     #ifdef KRATOS_DEBUG
     // passing invalid rank as argument
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Max(local, world_size),"is not a valid rank.");
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Max(local, -1),"is not a valid rank.");
     #endif
 }
@@ -525,14 +525,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxDouble, KratosMPICor
     double result = mpi_world_communicator.Max(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result, 2.0*(world_size-1));
+        KRATOS_EXPECT_EQ(result, 2.0*(world_size-1));
     }
 
     #ifdef KRATOS_DEBUG
     // passing invalid rank as argument
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Max(local, world_size),"is not a valid rank.");
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Max(local, -1),"is not a valid rank.");
     #endif
 }
@@ -551,16 +551,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxArray1d, KratosMPICo
     array_1d<double,3> result = mpi_world_communicator.Max(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(result[0], 0.0);
-        KRATOS_CHECK_EQUAL(result[1], 0.0);
-        KRATOS_CHECK_EQUAL(result[2], 1.0*(world_size-1));
+        KRATOS_EXPECT_EQ(result[0], 0.0);
+        KRATOS_EXPECT_EQ(result[1], 0.0);
+        KRATOS_EXPECT_EQ(result[2], 1.0*(world_size-1));
     }
 
     #ifdef KRATOS_DEBUG
     // passing invalid rank as argument
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Max(local, world_size),"is not a valid rank.");
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Max(local, -1),"is not a valid rank.");
     #endif
 }
@@ -580,17 +580,17 @@ template<typename T> void MPIDataCommunicatorMaxIntegralTypeVectorTest()
     mpi_world_communicator.Max(local, output, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(output[0], (T)(world_size-1));
-        KRATOS_CHECK_EQUAL(output[1], 0);
+        KRATOS_EXPECT_EQ(output[0], (T)(world_size-1));
+        KRATOS_EXPECT_EQ(output[1], 0);
     }
 
     // return buffer version
     std::vector<T> returned_result = mpi_world_communicator.Max(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
-        KRATOS_CHECK_EQUAL(returned_result[0], (T)(world_size-1));
-        KRATOS_CHECK_EQUAL(returned_result[1], 0);
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result[0], (T)(world_size-1));
+        KRATOS_EXPECT_EQ(returned_result[1], 0);
     }
 
     #ifdef KRATOS_DEBUG
@@ -601,11 +601,11 @@ template<typename T> void MPIDataCommunicatorMaxIntegralTypeVectorTest()
             local.resize(3);
             local = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local, output, root),"Input error in call to MPI_Reduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local, output, root),"Input error in call to MPI_Reduce");
     }
     // Input size != output size
     std::vector<T> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local_vector_wrong_size, output, root),"Error:");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local_vector_wrong_size, output, root),"Error:");
     #endif
 }
 }
@@ -639,17 +639,17 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxDoubleVector, Kratos
     mpi_world_communicator.Max(local, output, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(output[0], 2.0*(world_size-1));
-        KRATOS_CHECK_EQUAL(output[1], 0.0);
+        KRATOS_EXPECT_EQ(output[0], 2.0*(world_size-1));
+        KRATOS_EXPECT_EQ(output[1], 0.0);
     }
 
     // return buffer version
     std::vector<double> returned_result = mpi_world_communicator.Max(local, root);
     if (world_rank == root)
     {
-        KRATOS_CHECK_EQUAL(returned_result.size(), 2);
-        KRATOS_CHECK_EQUAL(returned_result[0], 2.0*(world_size-1));
-        KRATOS_CHECK_EQUAL(returned_result[1], 0.0);
+        KRATOS_EXPECT_EQ(returned_result.size(), 2);
+        KRATOS_EXPECT_EQ(returned_result[0], 2.0*(world_size-1));
+        KRATOS_EXPECT_EQ(returned_result[1], 0.0);
     }
 
     #ifdef KRATOS_DEBUG
@@ -660,11 +660,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxDoubleVector, Kratos
             local.resize(3);
             local = {1.0,2.0,3.0};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local, output, root),"Input error in call to MPI_Reduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local, output, root),"Input error in call to MPI_Reduce");
     }
     // Input size != output size
     std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local_vector_wrong_size, output, root),"Error:");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Max(local_vector_wrong_size, output, root),"Error:");
     #endif
 }
 
@@ -678,7 +678,7 @@ template<typename T> void MPIDataCommunicatorSumAllIntegralTypeTest()
 
     T local = 1;
     T result = mpi_world_communicator.SumAll(local);
-    KRATOS_CHECK_EQUAL(result, (T)world_size);
+    KRATOS_EXPECT_EQ(result, (T)world_size);
 }
 }
 
@@ -704,7 +704,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllDouble, KratosMPI
 
     double local = 2.0;
     double result = mpi_world_communicator.SumAll(local);
-    KRATOS_CHECK_EQUAL(result, 2.0*world_size);
+    KRATOS_EXPECT_EQ(result, 2.0*world_size);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllArray1d, KratosMPICoreFastSuite)
@@ -717,9 +717,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllArray1d, KratosMP
     local[2] =  1.0;
 
     array_1d<double,3> result = mpi_world_communicator.SumAll(local);
-    KRATOS_CHECK_EQUAL(result[0], -1.0*world_size);
-    KRATOS_CHECK_EQUAL(result[1],  0.0);
-    KRATOS_CHECK_EQUAL(result[2],  1.0*world_size);
+    KRATOS_EXPECT_EQ(result[0], -1.0*world_size);
+    KRATOS_EXPECT_EQ(result[1],  0.0);
+    KRATOS_EXPECT_EQ(result[2],  1.0*world_size);
 }
 
 namespace {
@@ -737,15 +737,15 @@ template<typename T> void MPIDataCommunicatorSumAllIntegralTypeVectorTest()
     mpi_world_communicator.SumAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], expected);
+        KRATOS_EXPECT_EQ(output[i], expected);
     }
 
     // return buffer version
     std::vector<T> returned_result = mpi_world_communicator.SumAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(returned_result[i], expected);
+        KRATOS_EXPECT_EQ(returned_result[i], expected);
     }
 
     #ifdef KRATOS_DEBUG
@@ -756,11 +756,11 @@ template<typename T> void MPIDataCommunicatorSumAllIntegralTypeVectorTest()
             local.resize(3);
             local = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local, output),"Input error in call to MPI_Allreduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local, output),"Input error in call to MPI_Allreduce");
     }
     // Input size != output size
     std::vector<T> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
     #endif
 }
 }
@@ -792,15 +792,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllDoubleVector, Kra
     mpi_world_communicator.SumAll(local, output);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], 2.0*world_size);
+        KRATOS_EXPECT_EQ(output[i], 2.0*world_size);
     }
 
     // return buffer version
     std::vector<double> returned_result = mpi_world_communicator.SumAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(returned_result[i], 2.0*world_size);
+        KRATOS_EXPECT_EQ(returned_result[i], 2.0*world_size);
     }
 
     #ifdef KRATOS_DEBUG
@@ -811,11 +811,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSumAllDoubleVector, Kra
             local.resize(3);
             local = {1.0,2.0,3.0};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local, output),"Input error in call to MPI_Allreduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local, output),"Input error in call to MPI_Allreduce");
     }
     // Input size != output size
     std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.SumAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
     #endif
 }
 
@@ -829,7 +829,7 @@ template<typename T> void MPIDataCommunicatorMinAllIntegralTypeTest()
 
     T local = world_rank;
     T result = mpi_world_communicator.MinAll(local);
-    KRATOS_CHECK_EQUAL(result, 0);
+    KRATOS_EXPECT_EQ(result, 0);
 }
 }
 
@@ -855,7 +855,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllDouble, KratosMPI
 
     double local = 2.0*world_rank;
     double result = mpi_world_communicator.MinAll(local);
-    KRATOS_CHECK_EQUAL(result, 0.0);
+    KRATOS_EXPECT_EQ(result, 0.0);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllArray1d, KratosMPICoreFastSuite)
@@ -869,9 +869,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllArray1d, KratosMP
     local[2] =  1.0*world_rank;
 
     array_1d<double,3> result = mpi_world_communicator.MinAll(local);
-    KRATOS_CHECK_EQUAL(result[0], -1.0*(world_size-1));
-    KRATOS_CHECK_EQUAL(result[1],  0.0);
-    KRATOS_CHECK_EQUAL(result[2],  0.0);
+    KRATOS_EXPECT_EQ(result[0], -1.0*(world_size-1));
+    KRATOS_EXPECT_EQ(result[1],  0.0);
+    KRATOS_EXPECT_EQ(result[2],  0.0);
 }
 
 namespace {
@@ -885,14 +885,14 @@ template<typename T> void MPIDataCommunicatorMinAllIntegralTypeVectorTest()
 
     // two-buffer version
     mpi_world_communicator.MinAll(local, output);
-    KRATOS_CHECK_EQUAL(output[0], 0);
-    KRATOS_CHECK_EQUAL(output[1], 0);
+    KRATOS_EXPECT_EQ(output[0], 0);
+    KRATOS_EXPECT_EQ(output[1], 0);
 
     // return buffer version
     std::vector<T> returned_result = mpi_world_communicator.MinAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
-    KRATOS_CHECK_EQUAL(returned_result[0], 0);
-    KRATOS_CHECK_EQUAL(returned_result[1], 0);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result[0], 0);
+    KRATOS_EXPECT_EQ(returned_result[1], 0);
 
     #ifdef KRATOS_DEBUG
     const int world_size = mpi_world_communicator.Size();
@@ -903,11 +903,11 @@ template<typename T> void MPIDataCommunicatorMinAllIntegralTypeVectorTest()
             local.resize(3);
             local = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local, output),"Input error in call to MPI_Allreduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local, output),"Input error in call to MPI_Allreduce");
     }
     // Input size != output size
     std::vector<T> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
     #endif
 }
 }
@@ -938,14 +938,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllDoubleVector, Kra
 
     // two-buffer version
     mpi_world_communicator.MinAll(local, output);
-    KRATOS_CHECK_EQUAL(output[0], 0);
-    KRATOS_CHECK_EQUAL(output[1], -2.0*(world_size-1));
+    KRATOS_EXPECT_EQ(output[0], 0);
+    KRATOS_EXPECT_EQ(output[1], -2.0*(world_size-1));
 
     // return buffer version
     std::vector<double> returned_result = mpi_world_communicator.MinAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
-    KRATOS_CHECK_EQUAL(returned_result[0], 0.0);
-    KRATOS_CHECK_EQUAL(returned_result[1], -2.0*(world_size-1));
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result[0], 0.0);
+    KRATOS_EXPECT_EQ(returned_result[1], -2.0*(world_size-1));
 
     #ifdef KRATOS_DEBUG
     if (world_size > 1)
@@ -955,11 +955,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMinAllDoubleVector, Kra
             local.resize(3);
             local = {1.0,2.0,3.0};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local, output),"Input error in call to MPI_Allreduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local, output),"Input error in call to MPI_Allreduce");
     }
     // Input size != output size
     std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.MinAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
     #endif
 }
 
@@ -974,7 +974,7 @@ template<typename T> void MPIDataCommunicatorMaxAllIntegralTypeTest()
 
     T local = world_rank;
     T result = mpi_world_communicator.MaxAll(local);
-    KRATOS_CHECK_EQUAL(result, (T)(world_size-1));
+    KRATOS_EXPECT_EQ(result, (T)(world_size-1));
 }
 }
 
@@ -1001,7 +1001,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllDouble, KratosMPI
 
     double local = 2.0*world_rank;
     double result = mpi_world_communicator.MaxAll(local);
-    KRATOS_CHECK_EQUAL(result, 2.0*(world_size-1));
+    KRATOS_EXPECT_EQ(result, 2.0*(world_size-1));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllArray1d, KratosMPICoreFastSuite)
@@ -1015,9 +1015,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllArray1d, KratosMP
     local[2] =  1.0*world_rank;
 
     array_1d<double,3> result = mpi_world_communicator.MaxAll(local);
-    KRATOS_CHECK_EQUAL(result[0], 0.0);
-    KRATOS_CHECK_EQUAL(result[1], 0.0);
-    KRATOS_CHECK_EQUAL(result[2], 1.0*(world_size-1));
+    KRATOS_EXPECT_EQ(result[0], 0.0);
+    KRATOS_EXPECT_EQ(result[1], 0.0);
+    KRATOS_EXPECT_EQ(result[2], 1.0*(world_size-1));
 }
 
 namespace {
@@ -1034,14 +1034,14 @@ template<typename T> void MPIDataCommunicatorMaxAllIntegralTypeVectorTest()
 
     // two-buffer version
     mpi_world_communicator.MaxAll(local, output);
-    KRATOS_CHECK_EQUAL(output[0], expected);
-    KRATOS_CHECK_EQUAL(output[1], 0);
+    KRATOS_EXPECT_EQ(output[0], expected);
+    KRATOS_EXPECT_EQ(output[1], 0);
 
     // return buffer version
     std::vector<T> returned_result = mpi_world_communicator.MaxAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
-    KRATOS_CHECK_EQUAL(returned_result[0], expected);
-    KRATOS_CHECK_EQUAL(returned_result[1], 0);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result[0], expected);
+    KRATOS_EXPECT_EQ(returned_result[1], 0);
 
     #ifdef KRATOS_DEBUG
     if (world_size > 1)
@@ -1051,11 +1051,11 @@ template<typename T> void MPIDataCommunicatorMaxAllIntegralTypeVectorTest()
             local.resize(3);
             local = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local, output),"Input error in call to MPI_Allreduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local, output),"Input error in call to MPI_Allreduce");
     }
     // Input size != output size
     std::vector<T> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
     #endif
 }
 }
@@ -1086,14 +1086,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllDoubleVector, Kra
 
     // two-buffer version
     mpi_world_communicator.MaxAll(local, output);
-    KRATOS_CHECK_EQUAL(output[0], 2.0*(world_size-1));
-    KRATOS_CHECK_EQUAL(output[1], 0.0);
+    KRATOS_EXPECT_EQ(output[0], 2.0*(world_size-1));
+    KRATOS_EXPECT_EQ(output[1], 0.0);
 
     // return buffer version
     std::vector<double> returned_result = mpi_world_communicator.MaxAll(local);
-    KRATOS_CHECK_EQUAL(returned_result.size(), 2);
-    KRATOS_CHECK_EQUAL(returned_result[0], 2.0*(world_size-1));
-    KRATOS_CHECK_EQUAL(returned_result[1], 0.0);
+    KRATOS_EXPECT_EQ(returned_result.size(), 2);
+    KRATOS_EXPECT_EQ(returned_result[0], 2.0*(world_size-1));
+    KRATOS_EXPECT_EQ(returned_result[1], 0.0);
 
     #ifdef KRATOS_DEBUG
     if (world_size > 1)
@@ -1103,11 +1103,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorMaxAllDoubleVector, Kra
             local.resize(3);
             local = {1.0,2.0,3.0};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local, output),"Input error in call to MPI_Allreduce");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local, output),"Input error in call to MPI_Allreduce");
     }
     // Input size != output size
     std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.MaxAll(local_vector_wrong_size, output),"Input error in call to MPI_Allreduce");
     #endif
 }
 
@@ -1121,7 +1121,7 @@ template<typename T> void MPIDataCommunicatorScanSumIntegralTypeTest()
 
     T local_total = 1;
     T partial_sum = mpi_world_communicator.ScanSum(local_total);
-    KRATOS_CHECK_EQUAL(partial_sum, (T)(rank + 1));
+    KRATOS_EXPECT_EQ(partial_sum, (T)(rank + 1));
 }
 }
 
@@ -1147,7 +1147,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumDouble, KratosMP
 
     double local_total = 2.0;
     double partial_sum = mpi_world_communicator.ScanSum(local_total);
-    KRATOS_CHECK_EQUAL(partial_sum, 2.0*(rank + 1));
+    KRATOS_EXPECT_EQ(partial_sum, 2.0*(rank + 1));
 }
 
 namespace {
@@ -1165,14 +1165,14 @@ template<typename T> void MPIDataCommunicatorScanSumIntegralVectorTypeTest()
     mpi_world_communicator.ScanSum(local_total, output);
     for (unsigned int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], expected);
+        KRATOS_EXPECT_EQ(output[i], expected);
     }
 
     // return buffer version
     std::vector<T> partial_sum = mpi_world_communicator.ScanSum(local_total);
-    KRATOS_CHECK_EQUAL(partial_sum.size(), 2);
-    KRATOS_CHECK_EQUAL(partial_sum[0], expected);
-    KRATOS_CHECK_EQUAL(partial_sum[1], expected);
+    KRATOS_EXPECT_EQ(partial_sum.size(), 2);
+    KRATOS_EXPECT_EQ(partial_sum[0], expected);
+    KRATOS_EXPECT_EQ(partial_sum[1], expected);
 
     #ifdef KRATOS_DEBUG
     if (mpi_world_communicator.Size() > 1)
@@ -1182,11 +1182,11 @@ template<typename T> void MPIDataCommunicatorScanSumIntegralVectorTypeTest()
             local_total.resize(3);
             local_total = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_total, partial_sum),"Input error in call to MPI_Scan");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_total, partial_sum),"Input error in call to MPI_Scan");
     }
     // Input size != output size
     std::vector<T> local_vector_wrong_size{1,2,3};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_vector_wrong_size, partial_sum),"Input error in call to MPI_Scan");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_vector_wrong_size, partial_sum),"Input error in call to MPI_Scan");
     #endif
 }
 }
@@ -1218,14 +1218,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVectorDouble, Kr
     mpi_world_communicator.ScanSum(local_total, output);
     for (unsigned int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(output[i], 2.0*(rank + 1));
+        KRATOS_EXPECT_EQ(output[i], 2.0*(rank + 1));
     }
 
     // return buffer version
     std::vector<double> partial_sum = mpi_world_communicator.ScanSum(local_total);
-    KRATOS_CHECK_EQUAL(partial_sum.size(), 2);
-    KRATOS_CHECK_EQUAL(partial_sum[0], 2.0*(rank + 1));
-    KRATOS_CHECK_EQUAL(partial_sum[1], 2.0*(rank + 1));
+    KRATOS_EXPECT_EQ(partial_sum.size(), 2);
+    KRATOS_EXPECT_EQ(partial_sum[0], 2.0*(rank + 1));
+    KRATOS_EXPECT_EQ(partial_sum[1], 2.0*(rank + 1));
 
     #ifdef KRATOS_DEBUG
     if (mpi_world_communicator.Size() > 1)
@@ -1235,11 +1235,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScanSumVectorDouble, Kr
             local_total.resize(3);
             local_total = {1.0,2.0,3.0};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_total, partial_sum),"Input error in call to MPI_Scan");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_total, partial_sum),"Input error in call to MPI_Scan");
     }
     // Input size != output size
     std::vector<double> local_vector_wrong_size{1.0,2.0,3.0};
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_vector_wrong_size, partial_sum),"Input error in call to MPI_Scan");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.ScanSum(local_vector_wrong_size, partial_sum),"Input error in call to MPI_Scan");
     #endif
 }
 
@@ -1266,11 +1266,11 @@ void MPIDataCommunicatorSendRecvIntegralTypeTest()
 
         // value two-buffer version
         mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_value, recv_rank, 0);
-        KRATOS_CHECK_EQUAL(recv_value, expected_recv);
+        KRATOS_EXPECT_EQ(recv_value, expected_recv);
 
         // value return version
         T return_value = mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_rank, 0);
-        KRATOS_CHECK_EQUAL(return_value, expected_recv);
+        KRATOS_EXPECT_EQ(return_value, expected_recv);
 
         // vector two-buffer version
         mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
@@ -1278,11 +1278,11 @@ void MPIDataCommunicatorSendRecvIntegralTypeTest()
         // vector return version
         std::vector<T> return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
 
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+        KRATOS_EXPECT_EQ(return_buffer.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(recv_buffer[i], expected_recv);
-            KRATOS_CHECK_EQUAL(return_buffer[i], expected_recv);
+            KRATOS_EXPECT_EQ(recv_buffer[i], expected_recv);
+            KRATOS_EXPECT_EQ(return_buffer[i], expected_recv);
         }
     }
 }
@@ -1307,14 +1307,14 @@ void MPIDataCommunicatorSendAndRecvIntegralTypeTest()
         // value two-buffer version
         mpi_world_communicator.Send(send_value, send_rank, 0);
         mpi_world_communicator.Recv(recv_value, recv_rank, 0);
-        KRATOS_CHECK_EQUAL(recv_value, expected_recv);
+        KRATOS_EXPECT_EQ(recv_value, expected_recv);
 
         // vector two-buffer version
         mpi_world_communicator.Send(send_buffer, send_rank, 0);
         mpi_world_communicator.Recv(recv_buffer, recv_rank, 0);
 
         for (int i = 0; i < 2; i++) {
-            KRATOS_CHECK_EQUAL(recv_buffer[i], expected_recv);
+            KRATOS_EXPECT_EQ(recv_buffer[i], expected_recv);
         }
     }
 }
@@ -1370,11 +1370,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosM
 
         // value two-buffer version
         mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_value, recv_rank, 0);
-        KRATOS_CHECK_EQUAL(recv_value, expected_recv);
+        KRATOS_EXPECT_EQ(recv_value, expected_recv);
 
         // value return version
         double return_value = mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_rank, 0);
-        KRATOS_CHECK_EQUAL(return_value, expected_recv);
+        KRATOS_EXPECT_EQ(return_value, expected_recv);
 
         // two-buffer version
         mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
@@ -1382,11 +1382,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosM
         // return version
         std::vector<double> return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
 
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+        KRATOS_EXPECT_EQ(return_buffer.size(), 2);
         for (int i = 0; i < 2; i++)
         {
-            KRATOS_CHECK_EQUAL(recv_buffer[i], expected_recv);
-            KRATOS_CHECK_EQUAL(return_buffer[i], expected_recv);
+            KRATOS_EXPECT_EQ(recv_buffer[i], expected_recv);
+            KRATOS_EXPECT_EQ(return_buffer[i], expected_recv);
         }
     }
 }
@@ -1411,14 +1411,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvDouble, Krat
         // value two-buffer version
         mpi_world_communicator.Send(send_value, send_rank, 0);
         mpi_world_communicator.Recv(recv_value, recv_rank, 0);
-        KRATOS_CHECK_EQUAL(recv_value, expected_recv);
+        KRATOS_EXPECT_EQ(recv_value, expected_recv);
 
         // two-buffer version
         mpi_world_communicator.Send(send_buffer, send_rank, 0);
         mpi_world_communicator.Recv(recv_buffer, recv_rank, 0);
 
         for (int i = 0; i < 2; i++) {
-            KRATOS_CHECK_EQUAL(recv_buffer[i], expected_recv);
+            KRATOS_EXPECT_EQ(recv_buffer[i], expected_recv);
         }
     }
 }
@@ -1443,9 +1443,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvString, KratosM
         // return version
         std::string return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
 
-        KRATOS_CHECK_EQUAL(return_buffer.size(), 12);
-        KRATOS_CHECK_EQUAL(recv_buffer, send_buffer);
-        KRATOS_CHECK_EQUAL(return_buffer, send_buffer);
+        KRATOS_EXPECT_EQ(return_buffer.size(), 12);
+        KRATOS_EXPECT_EQ(recv_buffer, send_buffer);
+        KRATOS_EXPECT_EQ(return_buffer, send_buffer);
     }
 }
 
@@ -1466,7 +1466,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvString, Krat
         mpi_world_communicator.Send(send_buffer, send_rank, 0);
         mpi_world_communicator.Recv(recv_buffer, recv_rank, 0);
 
-        KRATOS_CHECK_EQUAL(recv_buffer, send_buffer);
+        KRATOS_EXPECT_EQ(recv_buffer, send_buffer);
     }
 }
 
@@ -1483,7 +1483,7 @@ template<typename T> void MPIDataCommunicatorBroadcastIntegralTypeTest()
     T send = world_rank == send_rank ? 1 : 0;
 
     mpi_world_communicator.Broadcast(send,send_rank);
-    KRATOS_CHECK_EQUAL(send, 1);
+    KRATOS_EXPECT_EQ(send, 1);
 }
 }
 
@@ -1512,7 +1512,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastDouble, Kratos
     double send = world_rank == send_rank ? 2.0 : 0.0;
 
     mpi_world_communicator.Broadcast(send,send_rank);
-    KRATOS_CHECK_EQUAL(send, 2.0);
+    KRATOS_EXPECT_EQ(send, 2.0);
 }
 
 namespace {
@@ -1528,7 +1528,7 @@ template<typename T> void MPIDataCommunicatorBroadcastIntegralTypeVectorTest()
     mpi_world_communicator.Broadcast(send,send_rank);
     for (unsigned int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(send[i], 1);
+        KRATOS_EXPECT_EQ(send[i], 1);
     }
 
     #ifdef KRATOS_DEBUG
@@ -1540,7 +1540,7 @@ template<typename T> void MPIDataCommunicatorBroadcastIntegralTypeVectorTest()
             send.resize(3);
             send = {1,2,3};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send, send_rank),"Input error in call to MPI_Bcast");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send, send_rank),"Input error in call to MPI_Bcast");
     }
     #endif
 }
@@ -1573,7 +1573,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastDoubleVector, 
     mpi_world_communicator.Broadcast(send,send_rank);
     for (unsigned int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(send[i], 2.0);
+        KRATOS_EXPECT_EQ(send[i], 2.0);
     }
 
     #ifdef KRATOS_DEBUG
@@ -1585,7 +1585,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastDoubleVector, 
             send.resize(3);
             send = {1.0,2.0,3.0};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send, send_rank),"Input error in call to MPI_Bcast");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send, send_rank),"Input error in call to MPI_Bcast");
     }
     #endif
 }
@@ -1617,15 +1617,15 @@ template<typename T> void MPIDataCommunicatorScatterIntegralTypeVectorTest()
     mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], 1);
+        KRATOS_EXPECT_EQ(recv_buffer[i], 1);
     }
 
     // return version
     std::vector<T> return_buffer = mpi_world_communicator.Scatter(send_buffer, send_rank);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+    KRATOS_EXPECT_EQ(return_buffer.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], 1);
+        KRATOS_EXPECT_EQ(return_buffer[i], 1);
     }
 
     #ifdef KRATOS_DEBUG
@@ -1638,7 +1638,7 @@ template<typename T> void MPIDataCommunicatorScatterIntegralTypeVectorTest()
             recv_buffer.resize(3);
             recv_buffer = {999, 999, 999};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
     }
     // send rank has wrong size
     std::vector<T> wrong_send(0);
@@ -1646,7 +1646,7 @@ template<typename T> void MPIDataCommunicatorScatterIntegralTypeVectorTest()
     {
         wrong_send = {1};
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
     #endif
 }
 }
@@ -1690,15 +1690,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterDoubleVector, Kr
     mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], 2.0);
+        KRATOS_EXPECT_EQ(recv_buffer[i], 2.0);
     }
 
     // return version
     std::vector<double> return_buffer = mpi_world_communicator.Scatter(send_buffer, send_rank);
-    KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+    KRATOS_EXPECT_EQ(return_buffer.size(), 2);
     for (int i = 0; i < 2; i++)
     {
-        KRATOS_CHECK_EQUAL(return_buffer[i], 2.0);
+        KRATOS_EXPECT_EQ(return_buffer[i], 2.0);
     }
 
     #ifdef KRATOS_DEBUG
@@ -1711,7 +1711,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterDoubleVector, Kr
             recv_buffer.resize(3);
             recv_buffer = {-1.0,-1.0,-1.0};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
     }
     // send rank has wrong size
     std::vector<double> wrong_send(0);
@@ -1719,7 +1719,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterDoubleVector, Kr
     {
         wrong_send = {1.0};
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
     #endif
 }
 
@@ -1774,7 +1774,7 @@ template<typename T> void MPIDataCommunicatorScattervIntegralTypeVectorTest()
 
     for (int i = 0; i < recv_size; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], (T)world_rank);
+        KRATOS_EXPECT_EQ(recv_buffer[i], (T)world_rank);
     }
 
     // return buffer version
@@ -1797,7 +1797,7 @@ template<typename T> void MPIDataCommunicatorScattervIntegralTypeVectorTest()
     std::vector<T> result = mpi_world_communicator.Scatterv(scatterv_message, send_rank);
     for (int i = 0; i < recv_size; i++)
     {
-        KRATOS_CHECK_EQUAL(result[i], (T)world_rank);
+        KRATOS_EXPECT_EQ(result[i], (T)world_rank);
     }
 
     #ifdef KRATOS_DEBUG
@@ -1806,7 +1806,7 @@ template<typename T> void MPIDataCommunicatorScattervIntegralTypeVectorTest()
     if (world_rank == send_rank) {
         wrong_send_sizes[0] += 1;
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Scatterv(send_buffer, wrong_send_sizes, send_offsets, recv_buffer, send_rank),
         "Error");
 
@@ -1818,7 +1818,7 @@ template<typename T> void MPIDataCommunicatorScattervIntegralTypeVectorTest()
         {
             wrong_recv_message.resize(recv_buffer.size()-1);
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, wrong_recv_message, send_rank),
             "Error");
     }
@@ -1829,7 +1829,7 @@ template<typename T> void MPIDataCommunicatorScattervIntegralTypeVectorTest()
     {
         wrong_send_offsets[world_size - 1] += 5;
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Scatterv(send_buffer, send_sizes, wrong_send_offsets, recv_buffer, send_rank),
         "Error");
 
@@ -1900,7 +1900,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervDouble, KratosM
 
     for (int i = 0; i < recv_size; i++)
     {
-        KRATOS_CHECK_EQUAL(recv_buffer[i], 2.0*world_rank);
+        KRATOS_EXPECT_EQ(recv_buffer[i], 2.0*world_rank);
     }
 
     // return buffer version
@@ -1923,7 +1923,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervDouble, KratosM
     std::vector<double> result = mpi_world_communicator.Scatterv(scatterv_message, send_rank);
     for (int i = 0; i < recv_size; i++)
     {
-        KRATOS_CHECK_EQUAL(result[i], 2.0*world_rank);
+        KRATOS_EXPECT_EQ(result[i], 2.0*world_rank);
     }
 
     #ifdef KRATOS_DEBUG
@@ -1932,7 +1932,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervDouble, KratosM
     if (world_rank == send_rank) {
         wrong_send_sizes[0] += 1;
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Scatterv(send_buffer, wrong_send_sizes, send_offsets, recv_buffer, send_rank),
         "Error");
 
@@ -1944,7 +1944,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervDouble, KratosM
         {
             wrong_recv_message.resize(recv_buffer.size()-1);
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             mpi_world_communicator.Scatterv(send_buffer, send_sizes, send_offsets, wrong_recv_message, send_rank),
             "Error");
     }
@@ -1955,7 +1955,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScattervDouble, KratosM
     {
         wrong_send_offsets[world_size - 1] += 5;
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Scatterv(send_buffer, send_sizes, wrong_send_offsets, recv_buffer, send_rank),
         "Error");
 
@@ -1990,7 +1990,7 @@ template<typename T> void MPIDataCommunicatorGatherIntegralTypeVectorTest()
         {
             for (int j = 2*rank; j < 2*rank+2; j++)
             {
-                KRATOS_CHECK_EQUAL(recv_buffer[j], (T)rank);
+                KRATOS_EXPECT_EQ(recv_buffer[j], (T)rank);
             }
         }
     }
@@ -1999,12 +1999,12 @@ template<typename T> void MPIDataCommunicatorGatherIntegralTypeVectorTest()
     std::vector<T> return_buffer = mpi_world_communicator.Gather(send_buffer, recv_rank);
     if (world_rank == recv_rank)
     {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(2*world_size));
+        KRATOS_EXPECT_EQ(return_buffer.size(), static_cast<unsigned int>(2*world_size));
         for (int rank = 0; rank < world_size; rank++)
         {
             for (int j = 2*rank; j < 2*rank+2; j++)
             {
-                KRATOS_CHECK_EQUAL(return_buffer[j], (T)rank);
+                KRATOS_EXPECT_EQ(return_buffer[j], (T)rank);
             }
         }
     }
@@ -2018,11 +2018,11 @@ template<typename T> void MPIDataCommunicatorGatherIntegralTypeVectorTest()
         {
             wrong_buffer.push_back((T)world_rank);
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(wrong_buffer, recv_buffer, recv_rank),"Error");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(wrong_buffer, recv_buffer, recv_rank),"Error");
     }
     // recv rank has wrong size
     recv_buffer.push_back(0);
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(send_buffer, recv_buffer, recv_rank),"Error");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(send_buffer, recv_buffer, recv_rank),"Error");
     #endif
 }
 }
@@ -2067,7 +2067,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGatherDouble, KratosMPI
         {
             for (int j = 2*rank; j < 2*rank+2; j++)
             {
-                KRATOS_CHECK_EQUAL(recv_buffer[j], 2.0*rank);
+                KRATOS_EXPECT_EQ(recv_buffer[j], 2.0*rank);
             }
         }
     }
@@ -2076,12 +2076,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGatherDouble, KratosMPI
     std::vector<double> return_buffer = mpi_world_communicator.Gather(send_buffer, recv_rank);
     if (world_rank == recv_rank)
     {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(2*world_size));
+        KRATOS_EXPECT_EQ(return_buffer.size(), static_cast<unsigned int>(2*world_size));
         for (int rank = 0; rank < world_size; rank++)
         {
             for (int j = 2*rank; j < 2*rank+2; j++)
             {
-                KRATOS_CHECK_EQUAL(return_buffer[j], 2.0*rank);
+                KRATOS_EXPECT_EQ(return_buffer[j], 2.0*rank);
             }
         }
     }
@@ -2095,11 +2095,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGatherDouble, KratosMPI
         {
             wrong_buffer.push_back(2.0*world_rank);
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(wrong_buffer, recv_buffer, recv_rank),"Error");
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(wrong_buffer, recv_buffer, recv_rank),"Error");
     }
     // recv rank has wrong size
     recv_buffer.push_back(0.0);
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(send_buffer, recv_buffer, recv_rank),"Error");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(mpi_world_communicator.Gather(send_buffer, recv_buffer, recv_rank),"Error");
     #endif
 }
 
@@ -2157,12 +2157,12 @@ template<typename T> void MPIDataCommunicatorGathervIntegralTypeVectorTest()
             // the message from this rank...
             for (int i = recv_offset; i < recv_offset + recv_size; i++)
             {
-                KRATOS_CHECK_EQUAL(recv_buffer[i], (T)rank);
+                KRATOS_EXPECT_EQ(recv_buffer[i], (T)rank);
             }
             // ...followed by the expected padding.
             for (int i = recv_offset + recv_size; i < recv_offset + recv_size + message_padding; i++)
             {
-                KRATOS_CHECK_EQUAL(recv_buffer[i], 999);
+                KRATOS_EXPECT_EQ(recv_buffer[i], 999);
             }
 
         }
@@ -2173,14 +2173,14 @@ template<typename T> void MPIDataCommunicatorGathervIntegralTypeVectorTest()
 
     if (world_rank == recv_rank)
     {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(world_size));
+        KRATOS_EXPECT_EQ(return_buffer.size(), static_cast<unsigned int>(world_size));
         for (int rank = 0; rank < world_size; rank++)
         {
             unsigned int expected_size = make_message_size(rank);
-            KRATOS_CHECK_EQUAL(return_buffer[rank].size(), expected_size);
+            KRATOS_EXPECT_EQ(return_buffer[rank].size(), expected_size);
             for (unsigned int i = 0; i < expected_size; i++)
             {
-                KRATOS_CHECK_EQUAL(return_buffer[rank][i], (T)rank);
+                KRATOS_EXPECT_EQ(return_buffer[rank][i], (T)rank);
             }
             // no padding in return version
         }
@@ -2192,7 +2192,7 @@ template<typename T> void MPIDataCommunicatorGathervIntegralTypeVectorTest()
     if (world_rank == recv_rank) {
         wrong_recv_sizes[0] += 1;
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Gatherv(
             send_buffer, recv_buffer, wrong_recv_sizes, recv_offsets, recv_rank),
             "Error");
@@ -2203,7 +2203,7 @@ template<typename T> void MPIDataCommunicatorGathervIntegralTypeVectorTest()
     {
         wrong_recv_message.resize(recv_buffer.size()-1);
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Gatherv(send_buffer, wrong_recv_message, recv_sizes, recv_offsets, recv_rank),
         "Error");
     // sent offsets overflow
@@ -2212,7 +2212,7 @@ template<typename T> void MPIDataCommunicatorGathervIntegralTypeVectorTest()
     {
         wrong_recv_offsets[world_size - 1] += 5;
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Gatherv(send_buffer, recv_buffer, recv_sizes, wrong_recv_offsets, recv_rank),
         "Error");
 
@@ -2286,12 +2286,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervDouble, KratosMP
             // the message from this rank...
             for (int i = recv_offset; i < recv_offset + recv_size; i++)
             {
-                KRATOS_CHECK_EQUAL(recv_buffer[i], 2.0*rank);
+                KRATOS_EXPECT_EQ(recv_buffer[i], 2.0*rank);
             }
             // ...followed by the expected padding.
             for (int i = recv_offset + recv_size; i < recv_offset + recv_size + message_padding; i++)
             {
-                KRATOS_CHECK_EQUAL(recv_buffer[i], -1.0);
+                KRATOS_EXPECT_EQ(recv_buffer[i], -1.0);
             }
 
         }
@@ -2302,14 +2302,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervDouble, KratosMP
 
     if (world_rank == recv_rank)
     {
-        KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(world_size));
+        KRATOS_EXPECT_EQ(return_buffer.size(), static_cast<unsigned int>(world_size));
         for (int rank = 0; rank < world_size; rank++)
         {
             unsigned int expected_size = make_message_size(rank);
-            KRATOS_CHECK_EQUAL(return_buffer[rank].size(), expected_size);
+            KRATOS_EXPECT_EQ(return_buffer[rank].size(), expected_size);
             for (unsigned int i = 0; i < expected_size; i++)
             {
-                KRATOS_CHECK_EQUAL(return_buffer[rank][i], 2.0*rank);
+                KRATOS_EXPECT_EQ(return_buffer[rank][i], 2.0*rank);
             }
             // no padding in return version
         }
@@ -2321,7 +2321,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervDouble, KratosMP
     if (world_rank == recv_rank) {
         wrong_recv_sizes[0] += 1;
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Gatherv(
             send_buffer, recv_buffer, wrong_recv_sizes, recv_offsets, recv_rank),
             "Error");
@@ -2332,7 +2332,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervDouble, KratosMP
     {
         wrong_recv_message.resize(recv_buffer.size()-1);
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Gatherv(send_buffer, wrong_recv_message, recv_sizes, recv_offsets, recv_rank),
         "Error");
 
@@ -2342,7 +2342,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorGathervDouble, KratosMP
     {
         wrong_recv_offsets[world_size - 1] += 5;
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.Gatherv(send_buffer, recv_buffer, recv_sizes, wrong_recv_offsets, recv_rank),
         "Error");
 
@@ -2369,19 +2369,19 @@ template<typename T> void MPIDataCommunicatorAllGatherIntegralTypeTest()
     {
         for (int j = 2*rank; j < 2*rank+2; j++)
         {
-            KRATOS_CHECK_EQUAL(recv_buffer[j], (T)rank);
+            KRATOS_EXPECT_EQ(recv_buffer[j], (T)rank);
         }
     }
 
     // return buffer version
     std::vector<T> return_buffer = mpi_world_communicator.AllGather(send_buffer);
 
-    KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(2*world_size));
+    KRATOS_EXPECT_EQ(return_buffer.size(), static_cast<unsigned int>(2*world_size));
     for (int rank = 0; rank < world_size; rank++)
     {
         for (int j = 2*rank; j < 2*rank+2; j++)
         {
-            KRATOS_CHECK_EQUAL(return_buffer[j], (T)rank);
+            KRATOS_EXPECT_EQ(return_buffer[j], (T)rank);
         }
     }
 
@@ -2394,13 +2394,13 @@ template<typename T> void MPIDataCommunicatorAllGatherIntegralTypeTest()
         {
             wrong_send.push_back(999);
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             mpi_world_communicator.AllGather(wrong_send, recv_buffer),
             "Input error in call to MPI_Allgather");
     }
     // recv rank has wrong size
     recv_buffer.push_back(999);
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.AllGather(send_buffer, recv_buffer),
         "Input error in call to MPI_Allgather");
     #endif
@@ -2439,19 +2439,19 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGatherDouble, Kratos
     {
         for (int j = 2*rank; j < 2*rank+2; j++)
         {
-            KRATOS_CHECK_EQUAL(recv_buffer[j], 2.0*rank);
+            KRATOS_EXPECT_EQ(recv_buffer[j], 2.0*rank);
         }
     }
 
     // return buffer version
     std::vector<double> return_buffer = mpi_world_communicator.AllGather(send_buffer);
 
-    KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(2*world_size));
+    KRATOS_EXPECT_EQ(return_buffer.size(), static_cast<unsigned int>(2*world_size));
     for (int rank = 0; rank < world_size; rank++)
     {
         for (int j = 2*rank; j < 2*rank+2; j++)
         {
-            KRATOS_CHECK_EQUAL(return_buffer[j], 2.0*rank);
+            KRATOS_EXPECT_EQ(return_buffer[j], 2.0*rank);
         }
     }
 
@@ -2464,13 +2464,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGatherDouble, Kratos
         {
             wrong_send.push_back(-1.0);
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             mpi_world_communicator.AllGather(wrong_send, recv_buffer),
             "Input error in call to MPI_Allgather");
     }
     // recv rank has wrong size
     recv_buffer.push_back(-1);
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.AllGather(send_buffer, recv_buffer),
         "Input error in call to MPI_Allgather");
     #endif
@@ -2522,23 +2522,23 @@ template<typename T> void MPIDataCommunicatorAllGathervIntegralTypeVectorTest()
         int recv_offset = make_message_distance(rank, message_padding);
         // the message from this rank...
         for (int i = recv_offset; i < recv_offset + recv_size; i++) {
-            KRATOS_CHECK_EQUAL(recv_buffer[i], (T)rank);
+            KRATOS_EXPECT_EQ(recv_buffer[i], (T)rank);
         }
         // ...followed by the expected padding.
         for (int i = recv_offset + recv_size; i < recv_offset + recv_size + message_padding; i++) {
-            KRATOS_CHECK_EQUAL(recv_buffer[i], 999);
+            KRATOS_EXPECT_EQ(recv_buffer[i], 999);
         }
     }
 
     // return buffer version
     std::vector<std::vector<T>> return_buffer = mpi_world_communicator.AllGatherv(send_buffer);
 
-    KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(world_size));
+    KRATOS_EXPECT_EQ(return_buffer.size(), static_cast<unsigned int>(world_size));
     for (int rank = 0; rank < world_size; rank++) {
         unsigned int expected_size = make_message_size(rank);
-        KRATOS_CHECK_EQUAL(return_buffer[rank].size(), expected_size);
+        KRATOS_EXPECT_EQ(return_buffer[rank].size(), expected_size);
         for (unsigned int i = 0; i < expected_size; i++) {
-            KRATOS_CHECK_EQUAL(return_buffer[rank][i], (T)rank);
+            KRATOS_EXPECT_EQ(return_buffer[rank][i], (T)rank);
         }
         // no padding in return version
     }
@@ -2547,7 +2547,7 @@ template<typename T> void MPIDataCommunicatorAllGathervIntegralTypeVectorTest()
     // recv sizes do not match
     std::vector<int> wrong_recv_sizes = recv_sizes;
     wrong_recv_sizes[0] += 1;
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.AllGatherv(
             send_buffer, recv_buffer, wrong_recv_sizes, recv_offsets),
             "Error");
@@ -2558,13 +2558,13 @@ template<typename T> void MPIDataCommunicatorAllGathervIntegralTypeVectorTest()
     {
         wrong_recv_message.resize(recv_buffer.size()-1);
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.AllGatherv(send_buffer, wrong_recv_message, recv_sizes, recv_offsets),
         "Error");
     // sent offsets overflow
     std::vector<int> wrong_recv_offsets = recv_offsets;
     wrong_recv_offsets[world_size - 1] += 5;
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.AllGatherv(send_buffer, recv_buffer, recv_sizes, wrong_recv_offsets),
         "Error");
 
@@ -2629,11 +2629,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGathervDouble, Krato
         int recv_offset = make_message_distance(rank, message_padding);
         // the message from this rank...
         for (int i = recv_offset; i < recv_offset + recv_size; i++) {
-            KRATOS_CHECK_EQUAL(recv_buffer[i], 2.0*rank);
+            KRATOS_EXPECT_EQ(recv_buffer[i], 2.0*rank);
         }
         // ...followed by the expected padding.
         for (int i = recv_offset + recv_size; i < recv_offset + recv_size + message_padding; i++) {
-            KRATOS_CHECK_EQUAL(recv_buffer[i], -1.0);
+            KRATOS_EXPECT_EQ(recv_buffer[i], -1.0);
         }
 
     }
@@ -2641,12 +2641,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGathervDouble, Krato
     // return buffer version
     std::vector<std::vector<double>> return_buffer = mpi_world_communicator.AllGatherv(send_buffer);
 
-    KRATOS_CHECK_EQUAL(return_buffer.size(), static_cast<unsigned int>(world_size));
+    KRATOS_EXPECT_EQ(return_buffer.size(), static_cast<unsigned int>(world_size));
     for (int rank = 0; rank < world_size; rank++) {
         unsigned int expected_size = make_message_size(rank);
-        KRATOS_CHECK_EQUAL(return_buffer[rank].size(), expected_size);
+        KRATOS_EXPECT_EQ(return_buffer[rank].size(), expected_size);
         for (unsigned int i = 0; i < expected_size; i++) {
-            KRATOS_CHECK_EQUAL(return_buffer[rank][i], 2.0*rank);
+            KRATOS_EXPECT_EQ(return_buffer[rank][i], 2.0*rank);
         }
         // no padding in return version
     }
@@ -2655,7 +2655,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGathervDouble, Krato
     // recv sizes do not match
     std::vector<int> wrong_recv_sizes = recv_sizes;
     wrong_recv_sizes[0] += 1;
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.AllGatherv(
             send_buffer, recv_buffer, wrong_recv_sizes, recv_offsets),
             "Error");
@@ -2663,14 +2663,14 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorAllGathervDouble, Krato
     // recv message is too small
     std::vector<double> wrong_recv_message;
     wrong_recv_message.resize(recv_buffer.size()-1);
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.AllGatherv(send_buffer, wrong_recv_message, recv_sizes, recv_offsets),
         "Error");
 
     // sent offsets overflow
     std::vector<int> wrong_recv_offsets = recv_offsets;
     wrong_recv_offsets[world_size - 1] += 5;
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         mpi_world_communicator.AllGatherv(send_buffer, recv_buffer, recv_sizes, wrong_recv_offsets),
         "Error");
 
@@ -2703,12 +2703,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorErrorBroadcasting, Krat
     {
         broadcast_message << "Stopping because of error in rank 0.";
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         broadcast_if_true_test(),
         broadcast_message.str()
     );
 
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         broadcast_if_false_test(),
         broadcast_message.str()
     );
@@ -2732,11 +2732,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorErrorBroadcasting, Krat
     {
         error_on_any_rank_message << "Stopping because an error was detected on a different rank.";
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         true_on_any_rank_test(size-1),
         error_on_any_rank_message.str()
     );
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         false_on_any_rank_test(size-1),
         error_on_any_rank_message.str()
     );

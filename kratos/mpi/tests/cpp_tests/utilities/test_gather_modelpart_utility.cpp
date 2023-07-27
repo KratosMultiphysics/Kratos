@@ -96,7 +96,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(GatherModelPartUtilityGatherEntitiesFromOt
     GatherModelPartUtility::GatherEntitiesFromOtherPartitions(r_model_part, nodes_to_bring,elements_to_bring, conditions_to_bring);
 
     // Check the number of nodes (all partitions have 11 nodes)
-    KRATOS_CHECK_EQUAL(r_model_part.NumberOfNodes(), 11);
+    KRATOS_EXPECT_EQ(r_model_part.NumberOfNodes(), 11);
 }
 
 } // namespace Kratos::Testing

@@ -55,7 +55,7 @@ namespace Testing {
         p_line_2->SetId(1);
 
         // check correct error if multiple geometries with sam id are added
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             model_part_lines.AddGeometry(p_line_2),
             "Geometry with Id: 1 exists already.");
 
@@ -63,39 +63,39 @@ namespace Testing {
         model_part_lines.AddGeometry(p_line_2);
 
         // check correct number of geometries
-        KRATOS_CHECK_EQUAL(model_part_lines.NumberOfGeometries(), 2);
-        KRATOS_CHECK_EQUAL(model_part.NumberOfGeometries(), 2);
-        KRATOS_CHECK_EQUAL(model_part_no_lines.NumberOfGeometries(), 0);
+        KRATOS_EXPECT_EQ(model_part_lines.NumberOfGeometries(), 2);
+        KRATOS_EXPECT_EQ(model_part.NumberOfGeometries(), 2);
+        KRATOS_EXPECT_EQ(model_part_no_lines.NumberOfGeometries(), 0);
 
         // check adding with string
         auto p_line_3 = GenerateLineModelPartGeometryContainer();
         p_line_3->SetId("GeometryLine1");
         model_part_lines.AddGeometry(p_line_3);
 
-        KRATOS_CHECK_EQUAL(model_part_lines.NumberOfGeometries(), 3);
+        KRATOS_EXPECT_EQ(model_part_lines.NumberOfGeometries(), 3);
 
         // check if correct element is returned
-        KRATOS_CHECK_EQUAL(model_part_lines.GetGeometry(1).Id(), 1);
-        KRATOS_CHECK_EQUAL(model_part_lines.pGetGeometry(1)->Id(), 1);
+        KRATOS_EXPECT_EQ(model_part_lines.GetGeometry(1).Id(), 1);
+        KRATOS_EXPECT_EQ(model_part_lines.pGetGeometry(1)->Id(), 1);
 
         // check if correct element is returned from root
-        KRATOS_CHECK_EQUAL(model_part.GetGeometry(1).Id(), 1);
-        KRATOS_CHECK_EQUAL(model_part.pGetGeometry(1)->Id(), 1);
+        KRATOS_EXPECT_EQ(model_part.GetGeometry(1).Id(), 1);
+        KRATOS_EXPECT_EQ(model_part.pGetGeometry(1)->Id(), 1);
 
         // check remove functions
         model_part_lines.RemoveGeometry("GeometryLine1");
         model_part_lines.RemoveGeometryFromAllLevels(1);
-        KRATOS_CHECK_EQUAL(model_part_lines.NumberOfGeometries(), 1);
-        KRATOS_CHECK_EQUAL(model_part.NumberOfGeometries(), 2);
-        KRATOS_CHECK_EQUAL(model_part.NumberOfGeometries(), 2);
+        KRATOS_EXPECT_EQ(model_part_lines.NumberOfGeometries(), 1);
+        KRATOS_EXPECT_EQ(model_part.NumberOfGeometries(), 2);
+        KRATOS_EXPECT_EQ(model_part.NumberOfGeometries(), 2);
 
         // check if correct geometries are removed
-        KRATOS_CHECK_IS_FALSE(model_part_lines.HasGeometry("GeometryLine1"));
-        KRATOS_CHECK(model_part.HasGeometry("GeometryLine1"));
+        KRATOS_EXPECT_FALSE(model_part_lines.HasGeometry("GeometryLine1"));
+        KRATOS_EXPECT_TRUE(model_part.HasGeometry("GeometryLine1"));
 
         // check if correct geometries are removed
-        KRATOS_CHECK_IS_FALSE(model_part_lines.HasGeometry(1));
-        KRATOS_CHECK_IS_FALSE(model_part.HasGeometry(1));
+        KRATOS_EXPECT_FALSE(model_part_lines.HasGeometry(1));
+        KRATOS_EXPECT_FALSE(model_part.HasGeometry(1));
     }
 } // namespace Testing.
 } // namespace Kratos.

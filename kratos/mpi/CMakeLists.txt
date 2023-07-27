@@ -23,8 +23,10 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     add_library(KratosMPICoreTestUtilities SHARED ${KRATOS_MPI_TEST_UTILITIES_SOURCES})
     add_executable(KratosMPICoreTest ${KRATOS_MPI_TEST_SOURCES})
 
+    include(GoogleTest)
+
     target_link_libraries(KratosMPICoreTestUtilities KratosMPICore KratosCoreTestUtilities)
-    target_link_libraries(KratosMPICoreTest KratosMPICoreTestUtilities GTest::gtest_main)
+    target_link_libraries(KratosMPICoreTest KratosMPICoreTestUtilities)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################

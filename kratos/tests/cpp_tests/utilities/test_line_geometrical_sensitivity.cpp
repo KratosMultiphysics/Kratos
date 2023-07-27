@@ -135,7 +135,7 @@ void CheckIntegrationPointWeightSensitivity(
             line_sensitivity.CalculateSensitivity(deriv, result);
             double obtained_sensitivity = result * integration_points[g].Weight();
 
-            KRATOS_CHECK_NEAR(obtained_sensitivity, finite_difference_sensitivity, Tolerance);
+            KRATOS_EXPECT_NEAR(obtained_sensitivity, finite_difference_sensitivity, Tolerance);
 
             // undo perturbation for next step
             r_geometry[deriv.NodeIndex].Coordinates()[deriv.Direction] -= Perturbation;

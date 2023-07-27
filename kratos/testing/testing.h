@@ -16,15 +16,44 @@
 // System includes
 
 // External includes
+#include <gtest/gtest.h>
+#include <gmock/gmock.h>
 
 // Project includes
-#include "testing/test_suite.h" // This includes the test_case.h which includes tester.h
-#include "includes/checks.h"  // It is almost always necessary. includes the exception
+#include "includes/kernel.h"
+#include "includes/expect.h"                // Includes the expects from gtest and gmock adapted to kratos checks.
 #include "includes/data_communicator.h"
 #include "testing/test_skipped_exception.h" // Macros and exception class used to skip tests.
 
+#define KRATOS_TEST_CASE(A) TEST_F(KratosCoreFastSuite, A)
+#define KRATOS_TEST_CASE_IN_SUITE(A, B) TEST_F(B, A)
+#define KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(A, B) TEST_F(B, A)
+
 namespace Kratos::Testing 
 {
+
+/*
+ * This Fixture creates a new kernel instance for kratos, so the test is able to interact with the database.
+ * Its called this way to that all tests belong to a existing kernel fixture
+*/
+class KratosCoreFastSuite : public ::testing::Test 
+{
+    protected:
+        KratosCoreFastSuite(): mKernel() {}
+        ~KratosCoreFastSuite() {}
+
+        Kratos::Kernel mKernel;
+};
+
+class KratosSensitivityTestSuite : public KratosCoreFastSuite {};
+class KratosCoreGeometriesFastSuite : public KratosCoreFastSuite {};
+class KratosCoreGeometryContainerFastSuite : public KratosCoreFastSuite {};
+class KratosCoreNurbsGeometriesFastSuite : public KratosCoreFastSuite {};
+class KratosCoreCouplingGeometriesFastSuite : public KratosCoreFastSuite {};
+class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
+class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
+class KratosCoreStressSuite : public KratosCoreFastSuite {};
+class KratosMPICoreFastSuite : public KratosCoreFastSuite {};
 
 DataCommunicator& GetDefaultDataCommunicator();
 
