@@ -71,16 +71,13 @@ class AssignAverageMasterSlaveConstraintsProcess(KM.Process):
         constant_vector = KM.Vector(number_of_master_nodes)
         constant_vector.fill(0.0)
         
-        counter = 1
-        master_dofs_container = []
-        i = 0
-        
         # Loop over all master nodes to fill the containers
+        master_dofs_container = []
         for node in self.master_model_part.Nodes:
             master_dofs_container.append(node.GetDof(variable))
-            i += 1
         
         # Loop over all slave nodes to assign the constraints
+        counter = 1
         for node in self.slave_model_part.Nodes:
             slave_dof_container = [node.GetDof(variable)]
             self.computing_model_part.CreateNewMasterSlaveConstraint("LinearMasterSlaveConstraint", counter, master_dofs_container, slave_dof_container, weights_vector, constant_vector)
