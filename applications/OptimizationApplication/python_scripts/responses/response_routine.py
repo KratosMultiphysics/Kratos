@@ -90,7 +90,7 @@ class ResponseRoutine:
         self.__master_control.Update(control_field)
         compute_response_value_flag = False
         if self.__response_value is None:
-            self.my_current_control_field = control_field
+            self.my_current_control_field = control_field.Clone()
         diff = self.my_current_control_field - control_field
         norm = KratosOA.ExpressionUtils.NormInf(diff) 
         if norm > 1e-12:

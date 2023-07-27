@@ -131,7 +131,7 @@
                         "write_time_stamp": false,
                         "format_info": {
                             "int_length": 7,
-                            "float_precision": 8,
+                            "float_precision": 5,
                             "bool_values": [
                                 "no",
                                 "yes"
