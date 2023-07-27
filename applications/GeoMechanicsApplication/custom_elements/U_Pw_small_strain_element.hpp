@@ -340,6 +340,10 @@ protected:
                                                           ElementVariables& rVariables,
                                                           unsigned int GPoint );
 
+    void UpdateWaterProperties(ElementVariables& rVariables, unsigned int gPoint);
+    void CalculateWaterDensityOnIntegrationPoints(ElementVariables& rVariables);
+    void CalculateWaterViscosityOnIntegrationPoints(ElementVariables& rVariables);
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
