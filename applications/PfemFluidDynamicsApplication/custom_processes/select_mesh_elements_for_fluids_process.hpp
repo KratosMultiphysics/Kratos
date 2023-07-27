@@ -196,7 +196,7 @@ namespace Kratos
                         }
                         vertices.push_back(rNodes(OutElementList[el * nds + pn]));
 
-                        if (vertices.back().IsNot(RIGID) && vertices.back().IsNot(SOLID))
+                        if (vertices.back().IsNot(RIGID) && vertices.back().IsNot(SOLID) && vertices.back().GetSolutionStepValue(DISTANCE) > 0.0)
                         {
                             isolatedNodesInTheElement += vertices.back().FastGetSolutionStepValue(ISOLATED_NODE);
                         }
@@ -222,7 +222,7 @@ namespace Kratos
                             noremesh = true;
                         }
 
-                        if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
+                        if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID) || vertices.back().GetSolutionStepValue(DISTANCE) < 0.0)
                         {
                             if (vertices.back().Is(RIGID))
                             {
@@ -247,7 +247,7 @@ namespace Kratos
                             }
                         }
 
-                        if (vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY))
+                        if (vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY) && vertices.back().GetSolutionStepValue(DISTANCE) > 0.0)
                         {
                             numfreesurf++;
                             const array_1d<double, 3> &velocityP0 = vertices.back().FastGetSolutionStepValue(VELOCITY, 0);

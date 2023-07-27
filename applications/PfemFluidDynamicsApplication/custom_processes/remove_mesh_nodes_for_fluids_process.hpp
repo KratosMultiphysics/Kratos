@@ -473,7 +473,7 @@ namespace Kratos
 					if (n_points_in_radius > 1 && neighErasedNodes == 0 && in->IsNot(INLET))
 					{
 
-						if (in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED))
+						if (in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED) && in->GetSolutionStepValue(DISTANCE) > 0.0)
 						{
 							if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE))
 							{
@@ -579,9 +579,20 @@ namespace Kratos
 						}
 					}
 				}
+
+				if (in->Is(ISOLATED) && in->GetSolutionStepValue(DISTANCE) < 0.0 && in->IsNot(TO_ERASE))
+				{
+					in->Set(TO_ERASE);
+					some_node_is_removed = true;
+					inside_nodes_removed++;
+					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
+					{
+						mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
+					}
+				}
 			}
 
-			if (boundary_nodes_removed > 0 || inside_nodes_removed>0)
+			if (boundary_nodes_removed > 0 || inside_nodes_removed > 0)
 			{
 				some_node_is_removed = true;
 			}
