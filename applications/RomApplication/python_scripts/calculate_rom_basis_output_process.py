@@ -175,7 +175,6 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         #NOTE "petrov_galerkin_number_of_rom_dofs" is not used unless a Petrov-Galerkin simulation is called, in which case it shall be modified either manually or from the RomManager
 
         # Create the folder if it doesn't already exist
-        self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
         if not self.rom_basis_output_folder.exists():
             self.rom_basis_output_folder.mkdir(parents=True)
 
@@ -195,7 +194,6 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             raise Exception(err_msg)
 
         # Creating the ROM JSON file containing or not the modes depending on "self.rom_basis_output_format"
-        self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
         output_filename = self.rom_basis_output_folder / f"{self.rom_basis_output_name}.json"
         with output_filename.open('w') as f:
             json.dump(rom_basis_dict, f, indent = 4)
