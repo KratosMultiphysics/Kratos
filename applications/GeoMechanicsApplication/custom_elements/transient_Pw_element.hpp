@@ -131,6 +131,10 @@ public:
                                       std::vector<Matrix>& rOutput,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
+    void UpdateWaterProperties(ElementVariables& rVariables, unsigned int gPoint);
+    void CalculateWaterDensityOnIntegrationPoints(ElementVariables& rVariables);
+    void CalculateWaterViscosityOnIntegrationPoints(ElementVariables& rVariables);
+
     // Turn back information as a string.
     std::string Info() const override
     {

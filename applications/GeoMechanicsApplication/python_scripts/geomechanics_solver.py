@@ -145,20 +145,24 @@ class GeoMechanicalSolver(PythonSolver):
         self._add_displacement_variables()
 
         # Add rotational variables
-        self._add_rotational_variables()
+        if self.settings["rotation_dofs"].GetBool():
+            self._add_rotational_variables()
 
         # Add dynamic variables
         self._add_dynamic_variables()
 
         # Variables for 2-phase types of calculations:
         ## Fluid Variables
-        self._add_water_variables()
+        if self.settings["solver_type"].GetString() == "Pw" or self.settings["solver_type"].GetString() == "UPw" or self.settings["thermal_pressure_coupled"].GetBool():
+            self._add_water_variables()
 
         # Add temperature variables
-        self._add_temperature_variables()
+        if self.settings["solver_type"].GetString() == "T" or self.settings["thermal_pressure_coupled"].GetBool():
+            self._add_temperature_variables()
 
         ## smoothing variables
-        self._add_smoothing_variables()
+        if self.settings["nodal_smoothing"].GetBool():
+            self._add_smoothing_variables()
 
         # Add variables that the user defined in the ProjectParameters
         if (self.settings.Has("auxiliary_variables_list")):

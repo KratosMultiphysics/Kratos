@@ -532,6 +532,12 @@ void TransientPwElement<TDim,TNumNodes>::
                                                   GPoint,
                                                   Variables.detJ);
 
+        //
+        if (Geom[0].SolutionStepsDataHas(TEMPERATURE))
+        {
+            this->UpdateWaterProperties(Variables, GPoint);
+        }
+
         //Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
 
@@ -760,6 +766,54 @@ template< unsigned int TDim, unsigned int TNumNodes >
 unsigned int TransientPwElement<TDim,TNumNodes>::GetNumberOfDOF() const
 {
     return TNumNodes;
+}
+
+// ============================================================================================
+// ============================================================================================
+template<unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::UpdateWaterProperties(
+    ElementVariables& rVariables, unsigned int gPoint)
+{
+    this->CalculateWaterDensityOnIntegrationPoints(rVariables);
+    this->CalculateWaterViscosityOnIntegrationPoints(rVariables);
+}
+
+// ============================================================================================
+// ============================================================================================
+template<unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::CalculateWaterDensityOnIntegrationPoints(
+    ElementVariables& rVariables)
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    array_1d<double, TNumNodes> TemperatureVector;
+    //Nodal Variables
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        TemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);
+    }
+
+    double temp = inner_prod(rVariables.Np, TemperatureVector);
+    rVariables.FluidDensity =
+        + 9.998396e+2 + 6.764771e-2 * temp - 8.993699e-3 * std::pow(temp, 2)
+        + 9.143518e-5 * std::pow(temp, 3) - 8.907391e-7 * std::pow(temp, 4)
+        + 5.291959e-9 * std::pow(temp, 5) - 1.359813e-11 * std::pow(temp, 6);
+}
+
+// ============================================================================================
+// ============================================================================================
+template<unsigned int TDim, unsigned int TNumNodes>
+void TransientPwElement<TDim, TNumNodes>::CalculateWaterViscosityOnIntegrationPoints(
+    ElementVariables& rVariables)
+{
+    const GeometryType& rGeom = this->GetGeometry();
+    array_1d<double, TNumNodes> TemperatureVector;
+    //Nodal Variables
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        TemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);
+    }
+
+    double temp = inner_prod(rVariables.Np, TemperatureVector);
+    double c1 = 247.8 / (temp + 133.0);
+    rVariables.DynamicViscosityInverse = 1.0 / (2.4318e-5 * std::pow(10.0, c1));
 }
 
 //----------------------------------------------------------------------------------------------------
