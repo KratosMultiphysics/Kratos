@@ -535,7 +535,7 @@ protected:
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    inline void UpdateVariablesDerivatives(ModelPart& r_model_part)
+    virtual inline void UpdateVariablesDerivatives(ModelPart& r_model_part)
     {
         KRATOS_TRY
 
@@ -552,14 +552,13 @@ protected:
         {
             ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 
-            array_1d<double,3>& CurrentAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION);
             array_1d<double,3>& CurrentVelocity = itNode->FastGetSolutionStepValue(VELOCITY);
             noalias(DeltaDisplacement) = itNode->FastGetSolutionStepValue(DISPLACEMENT) - itNode->FastGetSolutionStepValue(DISPLACEMENT, 1);
-            const array_1d<double,3>& PreviousAcceleration = itNode->FastGetSolutionStepValue(ACCELERATION, 1);
             const array_1d<double,3>& PreviousVelocity = itNode->FastGetSolutionStepValue(VELOCITY, 1);
 
-            noalias(CurrentAcceleration) = 1.0/(mBeta*mDeltaTime*mDeltaTime)*(DeltaDisplacement - mDeltaTime*PreviousVelocity - (0.5-mBeta)*mDeltaTime*mDeltaTime*PreviousAcceleration);
-            noalias(CurrentVelocity) = PreviousVelocity + (1.0-mGamma)*mDeltaTime*PreviousAcceleration + mGamma*mDeltaTime*CurrentAcceleration;
+            // Note: Since acceleration is not used in the quasi-static scheme, here we use a GN11 scheme to update velocity. 
+            // A GN22 is used in the dynamic scheme
+            noalias(CurrentVelocity) = 1.0/(mTheta*mDeltaTime)*(DeltaDisplacement - (1.0-mTheta)*mDeltaTime*PreviousVelocity);
 
             double& CurrentDtPressure = itNode->FastGetSolutionStepValue(DT_WATER_PRESSURE);
             DeltaPressure = itNode->FastGetSolutionStepValue(WATER_PRESSURE) - itNode->FastGetSolutionStepValue(WATER_PRESSURE, 1);
