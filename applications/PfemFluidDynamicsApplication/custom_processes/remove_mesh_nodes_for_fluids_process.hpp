@@ -63,10 +63,10 @@ namespace Kratos
 		typedef ModelPart::ConditionType ConditionType;
 		typedef ModelPart::PropertiesType PropertiesType;
 		typedef ConditionType::GeometryType GeometryType;
-		typedef Bucket<3, Node<3>, std::vector<Node<3>::Pointer>, Node<3>::Pointer, std::vector<Node<3>::Pointer>::iterator, std::vector<double>::iterator> BucketType;
+		typedef Bucket<3, Node, std::vector<Node::Pointer>, Node::Pointer, std::vector<Node::Pointer>::iterator, std::vector<double>::iterator> BucketType;
 		typedef Tree<KDTreePartition<BucketType>> KdtreeType; // Kdtree
 		typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
-		typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+		typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 		typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 		typedef std::size_t SizeType;
 		///@}
@@ -281,7 +281,7 @@ namespace Kratos
 			SizeType bucket_size = 20;
 
 			// create the list of the nodes to be check during the search
-			std::vector<Node<3>::Pointer> list_of_nodes;
+			std::vector<Node::Pointer> list_of_nodes;
 			list_of_nodes.reserve(mrModelPart.NumberOfNodes());
 			for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
 			{
@@ -292,12 +292,12 @@ namespace Kratos
 			////////////////////////////////////////////////////////////
 			// all of the nodes in this list will be preserved
 			SizeType num_neighbours = 100;
-			std::vector<Node<3>::Pointer> neighbours(num_neighbours);
+			std::vector<Node::Pointer> neighbours(num_neighbours);
 			std::vector<double> neighbour_distances(num_neighbours);
 
 			// radius means the distance, if the distance between two nodes is closer to radius -> mark for removing
 			double radius = 0;
-			Node<3> work_point(0, 0.0, 0.0, 0.0);
+			Node work_point(0, 0.0, 0.0, 0.0);
 			SizeType n_points_in_radius;
 
 			const ProcessInfo &rCurrentProcessInfo = mrModelPart.GetProcessInfo();
@@ -473,7 +473,7 @@ namespace Kratos
 					if (n_points_in_radius > 1 && neighErasedNodes == 0 && in->IsNot(INLET))
 					{
 
-						if (in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED) && in->GetSolutionStepValue(DISTANCE) > 0.0)
+						if (in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED))
 						{
 							if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE))
 							{
@@ -538,7 +538,7 @@ namespace Kratos
 						{
 							SizeType k = 0;
 							SizeType counter = 0;
-							for (std::vector<Node<3>::Pointer>::iterator nn = neighbours.begin(); nn != neighbours.begin() + n_points_in_radius; nn++)
+							for (std::vector<Node::Pointer>::iterator nn = neighbours.begin(); nn != neighbours.begin() + n_points_in_radius; nn++)
 							{
 								bool nn_on_contact_tip = false;
 
@@ -579,20 +579,9 @@ namespace Kratos
 						}
 					}
 				}
-
-				if (in->Is(ISOLATED) && in->GetSolutionStepValue(DISTANCE) < 0.0 && in->IsNot(TO_ERASE))
-				{
-					in->Set(TO_ERASE);
-					some_node_is_removed = true;
-					inside_nodes_removed++;
-					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
-					{
-						mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-					}
-				}
 			}
 
-			if (boundary_nodes_removed > 0 || inside_nodes_removed > 0)
+			if (boundary_nodes_removed > 0 || inside_nodes_removed>0)
 			{
 				some_node_is_removed = true;
 			}
@@ -714,7 +703,7 @@ namespace Kratos
 					{
 
 						GlobalPointersVector<Element> &neighb_elems = eElement[i].GetValue(NEIGHBOUR_ELEMENTS);
-						GlobalPointersVector<Node<3>> &neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
+						GlobalPointersVector<Node> &neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
 
 						if (neighb_elems.size() < 2)
 						{
@@ -960,7 +949,7 @@ namespace Kratos
 					{
 
 						GlobalPointersVector<Element> &neighb_elems = eElement[i].GetValue(NEIGHBOUR_ELEMENTS);
-						GlobalPointersVector<Node<3>> &neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
+						GlobalPointersVector<Node> &neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
 
 						if (neighb_elems.size() < 2)
 						{
@@ -1223,7 +1212,7 @@ namespace Kratos
 			KRATOS_CATCH("")
 		}
 
-		bool CheckForMovingLayerNodes(Node<3> &CheckedNode, const double wallLength)
+		bool CheckForMovingLayerNodes(Node &CheckedNode, const double wallLength)
 		{
 			KRATOS_TRY
 			const SizeType dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
@@ -1298,9 +1287,9 @@ namespace Kratos
 
 			KRATOS_TRY
 
-			Node<3>::Pointer MasterNode = mrModelPart.pGetNode(idMaster);
-			Node<3>::Pointer SlaveNode1 = mrModelPart.pGetNode(idSlave1);
-			Node<3>::Pointer SlaveNode2 = mrModelPart.pGetNode(idSlave2);
+			Node::Pointer MasterNode = mrModelPart.pGetNode(idMaster);
+			Node::Pointer SlaveNode1 = mrModelPart.pGetNode(idSlave1);
+			Node::Pointer SlaveNode2 = mrModelPart.pGetNode(idSlave2);
 
 			VariablesList &rVariablesList = mrModelPart.GetNodalSolutionStepVariablesList();
 
