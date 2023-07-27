@@ -105,9 +105,6 @@ class AlgorithmGradientProjection(Algorithm):
     def ComputeSearchDirection(self, obj_grad: KratosOA.CollectiveExpression, constr_grad: 'list[KratosOA.CollectiveExpression]') -> KratosOA.CollectiveExpression:
         active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constr_value[i] >= 0.0]
         number_of_active_constraints = len(active_constraints_list)
-
-        print("TEst", number_of_active_constraints)
-
         if not number_of_active_constraints:
             search_direction = obj_grad.Clone() * -1.0
             correction = obj_grad.Clone() * 0.0
@@ -137,7 +134,6 @@ class AlgorithmGradientProjection(Algorithm):
                 search_direction = - (obj_grad - self.__CollectiveListVectorProduct(constr_grad, ntn_inverse * self.__CollectiveListCollectiveProduct(constr_grad, obj_grad)))
                 correction = - self.__CollectiveListVectorProduct(constr_grad, ntn_inverse * constraint_violations)
         correction_norm = KratosOA.ExpressionUtils.NormInf(correction)
-        print("TEst2", correction_norm)
         if correction_norm > self.correction_size:
             correction *= self.correction_size / correction_norm
         self.algorithm_data.GetBufferedData()["search_direction"] = search_direction.Clone()
@@ -189,7 +185,6 @@ class AlgorithmGradientProjection(Algorithm):
     def Solve(self):
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("Gradient Projection",self._optimization_problem.GetStep()):
-                print(self.__control_field.Evaluate())
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 obj_info = self.__objective.GetInfo()
                 self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
