@@ -41,9 +41,6 @@ class AlgorithmSystemIdentification(Algorithm):
             "echo_level"        : 0,
             "settings"          : {
                 "echo_level"      : 0,
-                "line_search_tests_step_size": 1,
-                "line_search_degree_of_polynomial": 3,
-                "line_search_damping": 0.25,
                 "line_search"     : {},
                 "conv_settings"   : {}
             }
@@ -70,16 +67,13 @@ class AlgorithmSystemIdentification(Algorithm):
         ComponentDataView("algorithm", self._optimization_problem).SetDataBuffer(self.GetMinimumBufferSize())
 
         self.__convergence_criteria = CreateConvergenceCriteria(settings["conv_settings"], self._optimization_problem)
-        self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem)
-
-        self.line_search_tests_step_size = settings["line_search_tests_step_size"].GetDouble()
-        self.line_search_degree_of_polynomial = settings["line_search_degree_of_polynomial"].GetInt()
-        self.line_search_damping = settings["line_search_damping"].GetDouble()
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self.__control_field: KratosOA.CollectiveExpression = None
         self.__obj_val = None
         self.algorithm_data = None
+
+        self.__line_search_method = CreateLineSearch(settings["line_search"], self._optimization_problem, self.__objective)
 
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -187,9 +181,9 @@ class AlgorithmSystemIdentification(Algorithm):
                 obj_grad = self.__objective.CalculateStandardizedGradient()
 
                 self.ComputeSearchDirection(obj_grad)
-                alpha = self.find_best_step_size_from_polynomial_approximation(tests_step_size=self.line_search_tests_step_size, degree_of_polynomial=self.line_search_degree_of_polynomial)
+                alpha = self.__line_search_method.ComputeStep()
 
-                self.algorithm_data.GetBufferedData()["step_size_alpha"] = alpha
+                self.algorithm_data.GetBufferedData()["step_size"] = alpha
 
                 self.ComputeControlUpdate(alpha)
 
@@ -210,31 +204,3 @@ class AlgorithmSystemIdentification(Algorithm):
             return self.__obj_val
         else:
             raise RuntimeError("Optimization problem hasn't been solved.")
-
-    def find_best_step_size_from_polynomial_approximation(self, tests_step_size, degree_of_polynomial: int = 3):
-
-        n__steps = degree_of_polynomial
-        objective_values = np.zeros(n__steps)
-        step_values = np.zeros(n__steps)
-        update = self.algorithm_data.GetBufferedData()["search_direction"] * tests_step_size
-
-        for i in range(n__steps):
-            self.__control_field += update
-
-            objective_values[i] = self.__objective.CalculateStandardizedValue(self.__control_field)
-            step_values[i] = (i+1) * tests_step_size
-
-        polynomial_coefficients = np.polynomial.polynomial.polyfit(x=step_values, y=objective_values, deg=n__steps-1)
-        gradient_polynomial_coefficients = polynomial_coefficients[1:]
-        if gradient_polynomial_coefficients.size == 2:
-            best_step_length = float(-(gradient_polynomial_coefficients[0] / (2*gradient_polynomial_coefficients[1])))
-        else:
-            roots = np.polynomial.polynomial.polyroots(polynomial_coefficients[1:])
-            best_step_length = float(np.min(np.abs(roots)))
-
-        if best_step_length > 4 * n__steps * tests_step_size:
-            best_step_length = 4 * n__steps * tests_step_size
-
-        best_step_length *= self.line_search_damping
-
-        return best_step_length
