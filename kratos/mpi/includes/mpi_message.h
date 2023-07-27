@@ -94,6 +94,8 @@ public:
 
     using PrimitiveDataType = TDataType;
 
+    static constexpr bool HasContiguousPrimitiveData = true;
+
     static constexpr bool HasDynamicMemoryAllocation = false;
 
     inline MPI_Datatype DataType()
@@ -136,7 +138,11 @@ template<class TDataType, std::size_t Dimension> class MPIMessage<array_1d<TData
 public:
     using MessageDataType = array_1d<TDataType, Dimension>;
 
+    using SubDataType = TDataType;
+
     using PrimitiveDataType = TDataType;
+
+    static constexpr bool HasContiguousPrimitiveData = true;
 
     static constexpr bool HasDynamicMemoryAllocation = false;
 
@@ -157,7 +163,7 @@ public:
 
     inline int Size(const MessageDataType& rValues)
     {
-        return Dimension;
+        return Dimension * MPIMessage<SubDataType>().Size(rValues[0]);
     }
 
     inline std::vector<unsigned int> Shape(const MessageDataType&)
@@ -180,7 +186,11 @@ template<> class MPIMessage<std::string>
 public:
     using MessageDataType = std::string;
 
+    using SubDataType = char;
+
     using PrimitiveDataType = char;
+
+    static constexpr bool HasContiguousPrimitiveData = true;
 
     static constexpr bool HasDynamicMemoryAllocation = true;
 
@@ -231,7 +241,11 @@ template<> class MPIMessage<Vector>
 public:
     using MessageDataType = Vector;
 
+    using SubDataType = double;
+
     using PrimitiveDataType = double;
+
+    static constexpr bool HasContiguousPrimitiveData = true;
 
     static constexpr bool HasDynamicMemoryAllocation = true;
 
@@ -282,7 +296,11 @@ template<> class MPIMessage<Matrix>
 public:
     using MessageDataType = Matrix;
 
+    using SubDataType = double;
+
     using PrimitiveDataType = double;
+
+    static constexpr bool HasContiguousPrimitiveData = true;
 
     static constexpr bool HasDynamicMemoryAllocation = true;
 
@@ -333,9 +351,11 @@ template<class TDataType> class MPIMessage<std::vector<TDataType>>
 public:
     using MessageDataType = std::vector<TDataType>;
 
+    using SubDataType = TDataType;
+
     using PrimitiveDataType = typename MPIMessage<TDataType>::PrimitiveDataType;
 
-    static constexpr bool IsContiguous = std::is_same_v<TDataType, PrimitiveDataType>;
+    static constexpr bool HasContiguousPrimitiveData = std::is_same_v<TDataType, PrimitiveDataType>;
 
     static constexpr bool HasDynamicMemoryAllocation = true;
 
@@ -346,7 +366,7 @@ public:
 
     inline void* Buffer(MessageDataType& rValue)
     {
-        if constexpr(IsContiguous) {
+        if constexpr(HasContiguousPrimitiveData) {
             return rValue.data();
         } else {
             if (rValue.size() > 0) {
@@ -375,7 +395,7 @@ public:
 
     inline const void* Buffer(const MessageDataType& rValue)
     {
-        if constexpr(IsContiguous) {
+        if constexpr(HasContiguousPrimitiveData) {
             return rValue.data();
         } else {
             if (rValue.size() > 0) {
@@ -409,7 +429,7 @@ public:
 
     inline int SubDataTypeSize(const MessageDataType& rValue)
     {
-        return (rValue.size() == 0 ? 0 : MPIMessage<TDataType>().Size(rValue.front()));
+        return rValue.size() == 0 ? 0 : MPIMessage<SubDataType>().Size(rValue.front());
     }
 
     inline std::vector<unsigned int> Shape(const MessageDataType& rValues)
@@ -431,7 +451,7 @@ public:
 
     inline void Update(MessageDataType& rValue)
     {
-        if constexpr(!IsContiguous) {
+        if constexpr(!HasContiguousPrimitiveData) {
             KRATOS_ERROR_IF(rValue.size() == 0 && mTempValues.size() != 0)
                 << "Size mismatch. [ rValue.size() = " << rValue.size()
                 << ", mTempValues.size() = " << mTempValues.size() << " ].\n";
