@@ -32,10 +32,8 @@ class PetrovGalerkinTrainingUtility(object):
         self.basis_strategy = settings["basis_strategy"].GetString()
         self.include_phi = settings["include_phi"].GetBool()
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
-        self.rom_basis_output_name = custom_settings["rom_basis_output_name"].GetString()
-        self.rom_basis_output_folder = custom_settings["rom_basis_output_folder"].GetString()
-        self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
-        self.rom_basis_output_name = Path(self.rom_basis_output_name)
+        self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
+        self.rom_basis_output_folder = Path(custom_settings["rom_basis_output_folder"].GetString())
 
         self.rom_format =  custom_settings["rom_format"].GetString()
         available_rom_format = ["json", "numpy"]
