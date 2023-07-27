@@ -65,9 +65,6 @@ endif()
 
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
-if(KRATOS_BUILD_TESTING MATCHES ON)     
-  enable_testing()
-endif(KRATOS_BUILD_TESTING MATCHES ON) 
 
 # If no pch policy disable by default
 option(KRATOS_USE_PCH "KRATOS_USE_PCH defines if pch will be used during the compilation. This may will decrease compilation for clean build or if core components are touched. Default setting is OFF" OFF)
@@ -281,6 +278,7 @@ SET(INSTALL_PYTHON_FILES ON)        # To be removed when all applications are po
 #include the file with custom installation properties
 include(install_function)
 include(KratosDependencies)
+include(FetchContent)
 
 # Logger configuration
 if(KRATOS_COLORED_OUTPUT MATCHES ON)
@@ -288,15 +286,16 @@ if(KRATOS_COLORED_OUTPUT MATCHES ON)
 endif(KRATOS_COLORED_OUTPUT MATCHES ON)
 
 # Testing
-include(FetchContent)
-FetchContent_Declare(
-  googletest
-  URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
-)
-# For Windows: Prevent overriding the parent project's compiler/linker settings
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
-
+if(KRATOS_BUILD_TESTING MATCHES ON)   
+  FetchContent_Declare(
+    googletest
+    URL https://github.com/google/googletest/archive/03597a01ee50ed33e9dfd640b249b4be3799d395.zip
+  )
+  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+  FetchContent_MakeAvailable(googletest)
+  enable_testing()
+endif(KRATOS_BUILD_TESTING MATCHES ON) 
 
 ################### PYBIND11
 
