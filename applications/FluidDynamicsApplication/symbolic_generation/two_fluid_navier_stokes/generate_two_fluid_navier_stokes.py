@@ -20,7 +20,7 @@ linearisation = "Picard"            # Iteration type. Options: "Picard", "FullNR
 divide_by_rho = True                # Divide by density in mass conservation equation
 ASGS_stabilization = True           # Consider ASGS stabilization terms
 mode = "c"                          # Output mode to a c++ file
-time_integration="bdf2"
+time_integration = "alpha_method"
 
 if time_integration == "bdf2":
     output_filename = "two_fluid_navier_stokes.cpp"

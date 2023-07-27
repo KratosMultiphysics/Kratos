@@ -88,7 +88,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateOnIntegrationPoints
         // Iterate over integration points to evaluate the artificial viscosity at each Gauss point
         for (unsigned int g = 0; g < number_of_gauss_points; ++g){
             this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
-            rOutput[g] = CalculateArtificialDynamicViscositySpecialization(data);
+            rOutput[g] = this->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
         }
     }
     else{
@@ -96,17 +96,48 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateOnIntegrationPoints
     }
 }
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Public Inquiry
+template <class TElementData>
+void TwoFluidNavierStokesAlphaMethod<TElementData>::Calculate(
+    const Variable<double> &rVariable,
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    // Create new temporary data container
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Public I/O
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
 
-///////////////////////////////////////////////////////////////////////////////////////////////////
-// Protected operations
+    if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY)
+    {
 
-template <>
-double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::CalculateArtificialDynamicViscositySpecialization(TwoFluidNavierStokesAlphaMethodData<2, 3> &rData) const
+        // Iterate over integration points to evaluate the artificial viscosity at each Gauss point
+        for (unsigned int g = 0; g < number_of_gauss_points; ++g)
+        {
+            this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+            rOutput += CalculateArtificialDynamicViscositySpecialization(data);
+        }
+
+        rOutput /= number_of_gauss_points;
+    }
+}
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // Public Inquiry
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // Public I/O
+
+    ///////////////////////////////////////////////////////////////////////////////////////////////////
+    // Protected operations
+
+    template <>
+    double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::CalculateArtificialDynamicViscositySpecialization(TwoFluidNavierStokesAlphaMethodData<2, 3> &rData) const
 {
     // Variables for artificial viscosity calculation
     double artificial_mu = 0.0;
@@ -469,9 +500,16 @@ lhs(8,6)=clhs124*clhs138;
 lhs(8,7)=clhs125*clhs138;
 lhs(8,8)=clhs20*(clhs133 + clhs137);
 
+MatrixType lhs_outlet;
+double penalty_factor = 1000;
+if (this->Is(OUTLET))
+    {
+    // OutletPenaltyContributionLHS(mu, penalty_factor,h, lhs_outlet, DN);
+    // noalias(rLHS) += (lhs_outlet)*rData.Weight;
+    }
 
-    // Add intermediate results to local system
-    noalias(rLHS) += lhs * rData.Weight;
+// Add intermediate results to local system
+noalias(rLHS) += (lhs) * rData.Weight;
 }
 
 template <>
@@ -1131,7 +1169,6 @@ lhs(15,13)=clhs342*clhs364;
 lhs(15,14)=clhs343*clhs364;
 lhs(15,15)=clhs24*(clhs352 + clhs361 + clhs363);
 
-
     // Add intermediate results to local system
     noalias(rLHS) += lhs * rData.Weight;
 }
@@ -1246,8 +1283,28 @@ rhs[6]=DN(2,0)*crhs0 - DN(2,0)*crhs7 - DN(2,0)*stress[0] - DN(2,1)*stress[2] - N
 rhs[7]=-DN(2,0)*stress[2] + DN(2,1)*crhs0 - DN(2,1)*crhs7 - DN(2,1)*stress[1] + N[2]*crhs39 - N[2]*crhs46 - crhs50*crhs56 - crhs51*crhs57 - crhs51*crhs58;
 rhs[8]=-DN(2,0)*crhs35 - DN(2,1)*crhs51 + N[2]*crhs52;
 
+if (this->Is(OUTLET))
+    {
+        VectorType rhs_outlet;
+        double penalty_factor = 1000;
+        VectorType U;
+        U = ZeroVector(NumNodes * (Dim + 1));
+        for (unsigned int i = 0; i < NumNodes; ++i)
+        {
+                U((Dim + 1) * i + (Dim)) = p(i);
+                for (unsigned int j = 0; j < Dim; ++j)
+                    {
+                    U((Dim + 1) * i + j) = v(i, j);
+                }
+            }
+            // OutletPenaltyContributionRHS(mu, penalty_factor, h, rhs_outlet, DN, U);
+            // noalias(rRHS) += rData.Weight * (rhs_outlet);
 
-    noalias(rRHS) += rData.Weight * rhs;
+
+}
+
+
+noalias(rRHS) += rData.Weight * rhs;
 }
 
 template <>
@@ -1986,6 +2043,142 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::PressureGradientStabilizatio
     noalias(rKeeTot) += kee;
     noalias(rRHSeeTot) += rhs_enr;
 }
+
+template <class TElementData>
+void TwoFluidNavierStokesAlphaMethod<TElementData>::NormalProjectionMatrixMethod(
+    MatrixType &NormalProjectionMatrix
+   )
+{
+    // Compute normal vector for the element taking into accoun the outlet condition.
+    double out_nodes = 0.0;
+    VectorType OutletNormalElement;
+    OutletNormalElement=ZeroVector(3);
+    VectorType UnitNormalVector;
+    for (unsigned int i = 0; i < NumNodes; ++i)
+    {
+        if (this->GetGeometry()[i].Is(OUTLET))
+        {   UnitNormalVector = this->GetGeometry()[i].GetValue(DISPLACEMENT);
+            const double normal_norm = norm_2(UnitNormalVector);
+            UnitNormalVector /= normal_norm;
+            OutletNormalElement += UnitNormalVector;
+            out_nodes += 1.0;
+            }
+        }
+
+    OutletNormalElement /= out_nodes;
+
+    // Construct the normal projection matrix
+    const unsigned int BlockSize = Dim+1;
+    MatrixType NormalMatrix = ZeroMatrix(BlockSize+1, BlockSize*Dim);
+
+    for (unsigned int i = 0; i < Dim+1; ++i)
+    {   for (unsigned int j = 0; j < Dim; ++j){
+            NormalMatrix(i, j*(BlockSize) + i) = OutletNormalElement(j);
+    }
+    }
+    NormalProjectionMatrix = prod(trans(NormalMatrix), NormalMatrix);
+    // const unsigned int BlockSize = Dim;
+    // MatrixType NormalMatrix = ZeroMatrix(Dim, BlockSize*Dim);
+
+    // for (unsigned int j = 0; j < Dim; ++j){
+    //         NormalMatrix(0, j*(BlockSize)) = OutletNormalElement(j);
+    //         NormalMatrix(1, j * (BlockSize)+1) = OutletNormalElement(j);
+    // }
+
+    // NormalProjectionMatrix = prod(trans(NormalMatrix), NormalMatrix);
+}
+
+template <class TElementData>
+void TwoFluidNavierStokesAlphaMethod<TElementData>::ExtendedShapeFunctionGradientMatrixMethod(
+    const MatrixType& GradientMatrix,
+    MatrixType &ExtendedShapeFunctionGradientMatrix,
+    double viscosity,
+    double element_size)
+{
+    // KRATOS_WATCH(GradientMatrix)
+        ExtendedShapeFunctionGradientMatrix = ZeroMatrix(Dim * (Dim + 1), NumNodes * (Dim + 1));
+        double alpha_p = std::sqrt(1000000*element_size / viscosity);
+        double alpha_v = std::sqrt(100*viscosity);
+
+        for (unsigned int i = 0; i < (Dim); ++i)
+
+        {
+    for (unsigned int j = 0; j < NumNodes; ++j)
+    {
+            for (unsigned int k = 0; k < Dim+1; ++k)
+
+            {
+                ExtendedShapeFunctionGradientMatrix(i * (Dim + 1) + k, j * NumNodes + k) = GradientMatrix(j, i);
+                if (k==(Dim+1))
+                {
+                    ExtendedShapeFunctionGradientMatrix(i * (Dim + 1) + k, j * NumNodes + k)*=alpha_p;
+                }
+                else{
+
+                    ExtendedShapeFunctionGradientMatrix(i * (Dim + 1) + k, j * NumNodes + k) *= alpha_v;
+                }
+            }
+
+        }
+
+    }
+
+    // ExtendedShapeFunctionGradientMatrix = ZeroMatrix(Dim * Dim, NumNodes * (Dim + 1));
+
+    // for (unsigned int i = 0; i < (Dim); ++i)
+
+    // {
+    //     for (unsigned int j = 0; j < NumNodes; ++j)
+    //     {
+    //         for (unsigned int k = 0; k < Dim; ++k)
+
+    //         {
+    //             ExtendedShapeFunctionGradientMatrix(i * (Dim) + k, j * NumNodes + k) = GradientMatrix(j, i);
+    //         }
+    //     }
+    // }
+}
+
+template <class TElementData>
+void TwoFluidNavierStokesAlphaMethod<TElementData>::OutletPenaltyContributionRHS(
+    double viscosity,
+    double penalty_factor,
+    double element_size,
+    VectorType& rhs_outlet,
+    MatrixType DN,
+    VectorType U)
+    {
+    MatrixType NormalProjectionMatrix;
+    MatrixType ExtendedShapeFunctionGradientMatrix;
+    NormalProjectionMatrixMethod(NormalProjectionMatrix);
+    ExtendedShapeFunctionGradientMatrixMethod(DN, ExtendedShapeFunctionGradientMatrix, viscosity, element_size);
+    MatrixType G_t_P;
+    MatrixType rhs_outlet_matrix;
+    G_t_P = prod(trans(ExtendedShapeFunctionGradientMatrix), NormalProjectionMatrix);
+    rhs_outlet_matrix = prod(G_t_P, ExtendedShapeFunctionGradientMatrix);
+    // rhs_outlet_matrix = prod(trans(ExtendedShapeFunctionGradientMatrix), ExtendedShapeFunctionGradientMatrix);
+    rhs_outlet_matrix *= penalty_factor;
+    // rhs_outlet_matrix *= viscosity;
+    rhs_outlet = prod(rhs_outlet_matrix, U);
+
+    }
+
+    template <class TElementData>
+    void TwoFluidNavierStokesAlphaMethod<TElementData>::OutletPenaltyContributionLHS(double viscosity, double penalty_factor, double element_size, MatrixType &lhs_outlet, MatrixType DN)
+    {
+    MatrixType NormalProjectionMatrix;
+    MatrixType ExtendedShapeFunctionGradientMatrix;
+    NormalProjectionMatrixMethod(NormalProjectionMatrix);
+    ExtendedShapeFunctionGradientMatrixMethod(DN, ExtendedShapeFunctionGradientMatrix, viscosity, element_size);
+
+    MatrixType G_t_P;
+    G_t_P = prod(trans(ExtendedShapeFunctionGradientMatrix),NormalProjectionMatrix);
+    lhs_outlet = -prod(G_t_P, ExtendedShapeFunctionGradientMatrix);
+    lhs_outlet *= penalty_factor;
+    // lhs_outlet *=viscosity;
+
+    }
+
 template <class TElementData>
 void TwoFluidNavierStokesAlphaMethod<TElementData>::save(Serializer &rSerializer) const
 {

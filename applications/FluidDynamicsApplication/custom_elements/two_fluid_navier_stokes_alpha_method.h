@@ -27,6 +27,7 @@
 #include "utilities/geometry_utilities.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
+#include "utilities/sparse_matrix_multiplication_utility.h"
 
 namespace Kratos
 {
@@ -166,6 +167,12 @@ public:
         std::vector<double> &rOutput,
         const ProcessInfo &rCurrentProcessInfo) override;
 
+
+    void Calculate(
+    const Variable<double> &rVariable,
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo) override ;
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -268,6 +275,48 @@ protected:
      * @param rData Data container with the input velocity and gradients and output strain rate vector
      */
     void CalculateStrainRate(TElementData& rData) const override;
+
+    /**
+     * @brief Calculate Outlet Penalty contribution for the LHS
+     * In this function we calculate the  Outlet Penalty contribution considering that at the outlet boundary the velocity gradient projected into boundary normal is null.
+     * @param viscosity Viscosity in each gauss point
+     * @param penalty_factor A penalty factor on the boundary condition
+     * @param lhs_outlet Contribution related to outlet boundary condition in the LHS
+     * @param DN Shape function gradient to each Gauss Point
+     */
+
+    void OutletPenaltyContributionLHS(double viscosity, double penalty_factor, double element_size, MatrixType &lhs_outlet, MatrixType DN);
+
+    /**
+     * @brief Calculate Outlet Penalty contribution for the RHS
+     * In this function we calculate the  Outlet Penalty contribution considering that at the outlet boundary the velocity gradient projected into boundary normal is null.
+     * @param viscosity Viscosity in each gauss point
+     * @param penalty_factor A penalty factor on the boundary condition
+     * @param rhs_outlet Contribution related to outlet boundary condition in the RHS
+     * @param DN Shape function gradient to each Gauss Point
+     */
+
+    void OutletPenaltyContributionRHS(double viscosity, double penalty_factor,  double element_size, VectorType &rhs_outlet, MatrixType DN, VectorType U);
+
+    /**
+     * @brief Calculate the Normal projection matrix
+     * In this function we calculate the Normal projection matrix for the outlet boundary contribution term in NS.
+     * @param NormalProjectionMatrix Normal projection matrix
+     */
+
+    void NormalProjectionMatrixMethod(MatrixType &NormalProjectionMatrix);
+
+    /**
+     * @brief Calculate the extended shape function gradient matrix.
+     * In this function wethe extended shape function gradient matrix for the outlet boundary contribution term in NS.
+     * @param rData Data container
+     */
+
+    void ExtendedShapeFunctionGradientMatrixMethod(
+        const MatrixType& GradientMatrix,
+        MatrixType &ExtendedShapeFunctionGradientMatrix,
+        double viscosity,
+        double element_size);
 
     /**
      * @brief Calculate the artificial dynamic viscosity.

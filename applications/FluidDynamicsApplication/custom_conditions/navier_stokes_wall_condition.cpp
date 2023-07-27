@@ -136,6 +136,99 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateLocalSyst
         noalias(rLeftHandSideMatrix) += lhs_gauss;
         noalias(rRightHandSideVector) += rhs_gauss;
     }
+    if (this->Is(OUTLET))
+    {
+        if constexpr (TDim == 2)
+        {
+            // Check if the element it cut or not
+            bool element_is_cut = false;
+            double neg_node = 0.0;
+            double pos_node = 0.0;
+            for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+            {
+                double node_dis = rGeom[i_node].FastGetSolutionStepValue(DISTANCE);
+
+                if (node_dis < 0.0)
+                {
+                    neg_node += 1.0;
+                }
+                else
+                {
+                    pos_node += 1.0;
+                }
+            }
+
+            if (neg_node > 0 && pos_node > 0.0)
+            {
+                element_is_cut = true;
+            }
+            double p_sl_air = 0.0;
+            double q_enrich_air = 0.0;
+            double q_enrich_water=0.0;
+            double p_air = 0.0;
+            double p_water = 0.0;
+            double phi_air = 0.0;
+            double phi_water = 0.0;
+            if (element_is_cut)
+            {
+                for (unsigned int i_node = 0; i_node < TNumNodes; i_node++)
+                {
+                    // find air node for the aproximation of the p_fs
+                    if (rGeom[i_node].FastGetSolutionStepValue(DISTANCE) > 0.0)
+                    {
+                        p_air = rGeom[i_node].FastGetSolutionStepValue(PRESSURE, 0);
+                        phi_air = rGeom[i_node].FastGetSolutionStepValue(DISTANCE);
+                        // Calculate de pressure column according to the air in the free surface
+
+                        p_sl_air = p_air  + 1.2 * 9.81 * phi_air;
+                    }
+                    else{
+                    p_water = rGeom[i_node].FastGetSolutionStepValue(PRESSURE, 0);
+                    phi_water = rGeom[i_node].FastGetSolutionStepValue(DISTANCE);
+                    }
+                }
+                // The area between the real pressure distribution and the artificial pressure distribution
+                double element_height =this->GetGeometry().DomainSize();
+                q_enrich_air= (-(p_air-p_water)*phi_air/element_height - p_sl_air)*phi_air;
+                q_enrich_water=(-(p_air-p_water)*phi_air/element_height - p_sl_air)*(-phi_water);
+
+                // q_enrich =p_sl_air;
+
+                // KRATOS_WATCH(q_enrich)
+
+                // Calculate normal
+                array_1d<double, 3> normal;
+                CalculateNormal(normal);
+                normal /= norm_2(normal);
+
+                // Get the resultant of the enrichment aproximation contribution
+                // double free_surface_force_resultant = element_height * q_enrich ;
+
+                // Add the to rhs the resultant of the enrichment aproximation projected to the outlet surface normal
+                // SIGN??
+                // KRATOS_WATCH(free_surface_force_resultant * normal)
+                // KRATOS_WATCH(rRightHandSideVector)
+                for (unsigned int i = 0; i < TNumNodes; i++) {
+                    double dis = rGeom[i].FastGetSolutionStepValue(DISTANCE);
+
+                    for (unsigned int d = 0; d<TDim; d++)
+                    {
+                        if (dis<0.0){
+                                rRightHandSideVector(i * (TDim + 1) + d) -= -dis * q_enrich_water * normal(d);
+                        }
+                        else{
+                        rRightHandSideVector(i * (TDim + 1) + d) -= dis * q_enrich_air * normal(d);
+                        }
+                    }
+                }
+                KRATOS_WATCH(rRightHandSideVector)
+            }
+        }
+        else if constexpr (TDim == 3)
+        {
+            KRATOS_ERROR << "Outlet enrichment pressure correction is not implemented for current geometry." << std::endl;
+        }
+    }
 
     // Add the wall law contribution
     constexpr SizeType n_wall_models = sizeof...(TWallModel);
@@ -145,9 +238,7 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateLocalSyst
     }
 
     KRATOS_CATCH("")
-}
-
-
+    }
 
 template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
 void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::CalculateLeftHandSide(
@@ -374,6 +465,27 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointL
             CalculateGaussPointSlipTangentialCorrectionLHSContribution(lhs_gauss, data);
         }
     }
+    // Add P= PEXTERNAL CONTRIBUTION FOR OUTLET.
+    // // Add Neumann BC contribution
+    if (this->Is(OUTLET)){
+
+        for (std::size_t i_node = 0; i_node < TNumNodes; ++i_node)
+        {
+            for (std::size_t j_node = 0; j_node < TNumNodes; ++j_node)
+            {
+                for (std::size_t d = 0; d < TDim; ++d)
+                {
+                    lhs_gauss(i_node * LocalSize + d, j_node * LocalSize + TDim) += data.wGauss * data.N[j_node] * data.N[i_node] * data.Normal[d];
+
+
+                }
+            }
+        }
+        // KRATOS_WATCH(data.N)
+        // KRATOS_WATCH(data.Normal)
+        // KRATOS_WATCH(lhs_gauss)
+
+    }
 }
 
 
@@ -403,6 +515,28 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeGaussPointR
         if (this->Is(SLIP) && rProcessInfo[SLIP_TANGENTIAL_CORRECTION_SWITCH]) {
             CalculateGaussPointSlipTangentialCorrectionRHSContribution(rhs_gauss, data);
         }
+    }
+
+    if (this->Is(OUTLET)){
+        const GeometryType &rGeom = this->GetGeometry();
+
+        // Add Neumann BC contribution
+        for (unsigned int i = 0; i < TNumNodes; ++i)
+        {
+            const double p = rGeom[i].FastGetSolutionStepValue(PRESSURE);
+
+            for (unsigned int j = 0; j < TNumNodes; ++j)
+            {
+        unsigned int row = j * LocalSize;
+        for (unsigned int d = 0; d < TDim; ++d)
+        {
+                    rhs_gauss[row + d] -= data.wGauss * data.N[j] * data.N[i] * p * data.Normal[d];
+
+
+        }
+            }
+        }
+
     }
 }
 
@@ -444,7 +578,7 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeRHSOutletIn
 
     // Get DENSITY from parent element properties
     auto & r_neighbours = this->GetValue(NEIGHBOUR_ELEMENTS);
-    const double rho = r_neighbours[0].GetProperties().GetValue(DENSITY);
+    double rho = r_neighbours[0].GetProperties().GetValue(DENSITY);
 
     // Compute Gauss pt. density, velocity norm and velocity projection
     array_1d<double, 3> vGauss = ZeroVector(3);
@@ -453,14 +587,28 @@ void NavierStokesWallCondition<TDim,TNumNodes,TWallModel...>::ComputeRHSOutletIn
         const array_1d<double, 3>& rVelNode = rGeom[i].FastGetSolutionStepValue(VELOCITY);
         vGauss += data.N[i]*rVelNode;
     }
+    double phiGauss=0.0;
+    for (unsigned int i = 0; i < TNumNodes; ++i)
+    {
+        const double &rDistanceNode = rGeom[i].FastGetSolutionStepValue(DISTANCE);
+        phiGauss += data.N[i] * rDistanceNode;
+    }
+    if (phiGauss<0.0){
+        rho = 1000.0;
+    }
+    else{
+        rho = 1.2;
+    }
 
     const double vGaussProj = inner_prod(vGauss, data.Normal);
     const double vGaussSquaredNorm = std::pow(vGauss[0],2) + std::pow(vGauss[1],2) + std::pow(vGauss[2],2);
 
     // Add outlet inflow prevention contribution
     const double delta = 1.0e-2;
-    const double U_0 = rProcessInfo[CHARACTERISTIC_VELOCITY];
+    // const double U_0 = rProcessInfo[CHARACTERISTIC_VELOCITY];
+    const double U_0 =1.0;
     const double S_0 = 0.5*(1-tanh(vGaussProj/(U_0*delta)));
+
 
     for (unsigned int i=0; i<TNumNodes; ++i)
     {
