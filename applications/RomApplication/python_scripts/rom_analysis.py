@@ -36,10 +36,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, rom_training_parame
             else:
                 self.rom_basis_output_name = self.rom_training_parameters["Parameters"]["rom_basis_output_name"].GetString()
                 self.rom_basis_output_folder = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+            self.rom_basis_output_name = Path(self.rom_basis_output_name)
             self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
 
             # Get the ROM settings from the RomParameters.json input file
-            with open(f"{self.rom_basis_output_folder}/{self.rom_basis_output_name}.json") as rom_parameters:
+            with open(self.rom_basis_output_folder / self.rom_basis_output_name.with_suffix('.json')) as rom_parameters:
                 self.rom_parameters = KratosMultiphysics.Parameters(rom_parameters.read())
 
             # Set the ROM settings in the "solver_settings" of the solver introducing the physics
