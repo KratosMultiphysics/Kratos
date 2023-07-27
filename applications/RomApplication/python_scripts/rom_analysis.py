@@ -24,7 +24,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, rom_training_parame
             """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
             # Assign rom basis output folder and file name
-            if rom_training_parameters == None:
+            if self.rom_training_parameters == None:
                 self.rom_basis_output_name = 'RomParameters' #Default
                 self.rom_basis_output_folder = 'rom_data' #Default
                 if self.project_parameters.Has("output_processes"):
