@@ -81,7 +81,11 @@ public:
 
     static int RunAllTestCases();
 
+    static int RunAllDistributedTestCases();
+
     static int ProfileAllTestCases();
+
+    static int ProfileAllDistributedTestCases();
 
     static int RunTestSuite(std::string const& TestSuiteName);
 
@@ -184,6 +188,12 @@ private:
     * @details This function iterates over all the test cases in the `mTestCases` map of the `Tester` singleton instance, and selects only the ones that are enabled by calling their `Select()` method. The test cases that are disabled are unselected by calling their `UnSelect()` method.
     */
     static void SelectOnlyEnabledTestCases();
+
+    /**
+    * @brief Selects only the distributed test cases.
+    * @details This function iterates over all the test cases in the `mTestCases` map of the `Tester` singleton instance, and selects only the ones that are enabled by calling their `Select()` method. The test cases that are disabled are unselected by calling their `UnSelect()` method.
+    */
+    static void SelectOnlyDistributedTestCases();
 
     /**
     * @brief Select test cases whose names match a given pattern.

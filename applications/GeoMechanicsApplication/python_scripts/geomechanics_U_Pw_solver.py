@@ -7,12 +7,12 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructure
 
 # Import base class file
-import KratosMultiphysics.GeoMechanicsApplication.geomechanics_solver as GeoSolver
+from KratosMultiphysics.GeoMechanicsApplication.geomechanics_solver import GeoMechanicalSolver as GeoSolver
 
 def CreateSolver(model, custom_settings):
     return UPwSolver(model, custom_settings)
 
-class UPwSolver(GeoSolver.GeoMechanicalSolver):
+class UPwSolver(GeoSolver):
     '''Solver for the solution of displacement-pore pressure coupled problems.'''
 
     def __init__(self, model, custom_settings):
@@ -71,7 +71,6 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
             "number_cycles"              : 5,
             "increase_factor"            : 2.0,
             "reduction_factor"           : 0.5,
-            "realised_factor"            : 1.0,
             "calculate_reactions"        : true,
             "max_line_search_iterations" : 5,
             "first_alpha_value"          : 0.5,
@@ -105,28 +104,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
         return this_defaults
 
     def PrepareModelPart(self):
-
-        # Set ProcessInfo variables
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME,
-                                                  self.settings["start_time"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
-                                                  self.settings["time_stepping"]["time_step"].GetDouble())
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
-
-        self.main_model_part.ProcessInfo.SetValue(KratosGeo.TIME_UNIT_CONVERTER, 1.0)
-
-        self.main_model_part.ProcessInfo.SetValue(KratosGeo.NODAL_SMOOTHING,
-                                                  self.settings["nodal_smoothing"].GetBool())
-
-        if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
-            ## Executes the check and prepare model process (Create computing_model_part and set constitutive law)
-            self._ExecuteCheckAndPrepare()
-            ## Set buffer size
-            self._SetBufferSize()
-
-        if not self.model.HasModelPart(self.settings["model_part_name"].GetString()):
-            self.model.AddModelPart(self.main_model_part)
-
+        super().PrepareModelPart()
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Model reading finished.")
 
     def AddDofs(self):
@@ -173,41 +151,10 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "DOFs added correctly.")
 
-
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_U_Pw_Solver]:: ", "Initialisation ...")
 
-        self.computing_model_part = self.GetComputingModelPart()
-
-        # Fill the previous steps of the buffer with the initial conditions
-        self._FillBuffer()
-
-        # Construct the linear solver
-        self.linear_solver = self._ConstructLinearSolver()
-
-        # Builder and solver creation
-        self.builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool(),
-                                                                  self.settings["prebuild_dynamics"].GetBool())
-
-        # Solution scheme creation
-        self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
-                                            self.settings["solution_type"].GetString())
-
-        # Get the convergence criterion
-        self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
-
-        # Solver creation
-        self.solver = self._ConstructSolver(self.builder_and_solver,
-                                            self.settings["strategy_type"].GetString())
-
-        # Set echo_level
-        self.SetEchoLevel(self.settings["echo_level"].GetInt())
-
-        # Initialize Strategy
-        if self.settings["clear_storage"].GetBool():
-            self.Clear()
-
-        self.solver.Initialize()
+        super().Initialize()
 
         self.find_neighbour_elements_of_conditions_process = KratosGeo.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
         self.find_neighbour_elements_of_conditions_process.Execute()
@@ -222,103 +169,7 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver", "Solver initialization finished.")
 
-    def InitializeSolutionStep(self):
-        self.solver.InitializeSolutionStep()
-
-    def Predict(self):
-        self.solver.Predict()
-
-    def SolveSolutionStep(self):
-        is_converged = self.solver.SolveSolutionStep()
-        return is_converged
-
-    def FinalizeSolutionStep(self):
-        self.solver.FinalizeSolutionStep()
-
     #### Specific internal functions ####
-
-    def _ExecuteCheckAndPrepare(self):
-
-        self.computing_model_part_name = "porous_computational_model_part"
-
-        # Create list of sub sub model parts (it is a copy of the standard lists with a different name)
-        import json
-
-        self.body_domain_sub_sub_model_part_list = []
-        for i in range(self.settings["body_domain_sub_model_part_list"].size()):
-            self.body_domain_sub_sub_model_part_list.append("sub_"+self.settings["body_domain_sub_model_part_list"][i].GetString())
-        self.body_domain_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.body_domain_sub_sub_model_part_list))
-
-        self.loads_sub_sub_model_part_list = []
-        for i in range(self.settings["loads_sub_model_part_list"].size()):
-            self.loads_sub_sub_model_part_list.append("sub_"+self.settings["loads_sub_model_part_list"][i].GetString())
-        self.loads_sub_sub_model_part_list = KratosMultiphysics.Parameters(json.dumps(self.loads_sub_sub_model_part_list))
-
-        # Auxiliary parameters object for the CheckAndPepareModelProcess
-        params = KratosMultiphysics.Parameters("{}")
-        params.AddEmptyValue("computing_model_part_name").SetString(self.computing_model_part_name)
-        params.AddValue("problem_domain_sub_model_part_list",self.settings["problem_domain_sub_model_part_list"])
-        params.AddValue("processes_sub_model_part_list",self.settings["processes_sub_model_part_list"])
-        params.AddValue("body_domain_sub_model_part_list",self.settings["body_domain_sub_model_part_list"])
-        params.AddValue("body_domain_sub_sub_model_part_list",self.body_domain_sub_sub_model_part_list)
-        params.AddValue("loads_sub_model_part_list",self.settings["loads_sub_model_part_list"])
-        params.AddValue("loads_sub_sub_model_part_list",self.loads_sub_sub_model_part_list)
-        # CheckAndPrepareModelProcess creates the porous_computational_model_part
-        from KratosMultiphysics.GeoMechanicsApplication import check_and_prepare_model_process_geo
-        check_and_prepare_model_process_geo.CheckAndPrepareModelProcess(self.main_model_part, params).Execute()
-
-        # NOTE: We do this here in case the model is empty, so the properties can be assigned
-        if not self.model.HasModelPart(self.main_model_part.Name):
-            self.model.AddModelPart(self.main_model_part)
-
-        # Import constitutive laws.
-        materials_imported = self.import_constitutive_laws()
-        if materials_imported:
-            KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: ", "Constitutive law was successfully imported.")
-        else:
-            # KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: ", "Constitutive law was not imported.")
-            raise Exception("::[GeoMechanicalSolver]:: ", "Constitutive law was not imported.")
-
-    def _SetBufferSize(self):
-        required_buffer_size = self.settings["buffer_size"].GetInt()
-        if required_buffer_size < self.GetMinimumBufferSize():
-            required_buffer_size = self.GetMinimumBufferSize()
-        current_buffer_size = self.main_model_part.GetBufferSize()
-        buffer_size = max(current_buffer_size, required_buffer_size)
-        self.main_model_part.SetBufferSize(buffer_size)
-
-    def _FillBuffer(self):
-        buffer_size = self.main_model_part.GetBufferSize()
-        time = self.main_model_part.ProcessInfo[KratosMultiphysics.TIME]
-        delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
-        step = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-
-        step = step - (buffer_size-1)*1
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-        time = time - (buffer_size-1)*delta_time
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for i in range(buffer_size-1):
-            step = step + 1
-            self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-            time = time + delta_time
-            self.main_model_part.CloneTimeStep(time)
-
-    def _ConstructLinearSolver(self):
-        import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
-        return linear_solver_factory.ConstructSolver(self.settings["linear_solver_settings"])
-
-    def _ConstructBuilderAndSolver(self, block_builder, prebuild_dynamics):
-
-        # Creating the builder and solver
-        if (block_builder):
-            if prebuild_dynamics:
-                builder_and_solver = KratosGeo.ResidualBasedBlockBuilderAndSolverWithMassAndDamping(self.linear_solver)
-            else:
-                builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(self.linear_solver)
-        else:
-            builder_and_solver = KratosMultiphysics.ResidualBasedEliminationBuilderAndSolver(self.linear_solver)
-
-        return builder_and_solver
 
     def _ConstructScheme(self, scheme_type, solution_type):
 
@@ -412,97 +263,9 @@ class UPwSolver(GeoSolver.GeoMechanicalSolver):
 
         return convergence_criterion
 
-    def _ConstructSolver(self, builder_and_solver, strategy_type):
-
-        self.main_model_part.ProcessInfo.SetValue(KratosGeo.IS_CONVERGED, True)
-        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.NL_ITERATION_NUMBER, 1)
-
-        max_iters = self.settings["max_iterations"].GetInt()
-        compute_reactions = self.settings["compute_reactions"].GetBool()
-        reform_step_dofs = self.settings["reform_dofs_at_each_step"].GetBool()
-        move_mesh_flag = self.settings["move_mesh_flag"].GetBool()
-
-        if strategy_type.lower() == "newton_raphson":
-            self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
-            solving_strategy = KratosGeo.GeoMechanicsNewtonRaphsonStrategy(self.computing_model_part,
-                                                                           self.scheme,
-                                                                           self.linear_solver,
-                                                                           self.convergence_criterion,
-                                                                           builder_and_solver,
-                                                                           self.strategy_params,
-                                                                           max_iters,
-                                                                           compute_reactions,
-                                                                           reform_step_dofs,
-                                                                           move_mesh_flag)
-        elif strategy_type.lower() == "newton_raphson_with_piping":
-            self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
-            self.strategy_params.AddValue("max_piping_iterations", self.settings["max_piping_iterations"])
-            solving_strategy = KratosGeo.GeoMechanicsNewtonRaphsonErosionProcessStrategy(self.computing_model_part,
-                                                                                             self.scheme,
-                                                                                             self.linear_solver,
-                                                                                             self.convergence_criterion,
-                                                                                             builder_and_solver,
-                                                                                             self.strategy_params,
-                                                                                             max_iters,
-                                                                                             compute_reactions,
-                                                                                             reform_step_dofs,
-                                                                                             move_mesh_flag)
-
-        elif strategy_type.lower() == "line_search":
-            self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("max_iteration",              self.settings["max_iterations"])
-            self.strategy_params.AddValue("compute_reactions",          self.settings["compute_reactions"])
-            self.strategy_params.AddValue("max_line_search_iterations", self.settings["max_line_search_iterations"])
-            self.strategy_params.AddValue("first_alpha_value",          self.settings["first_alpha_value"])
-            self.strategy_params.AddValue("second_alpha_value",         self.settings["second_alpha_value"])
-            self.strategy_params.AddValue("min_alpha",                  self.settings["min_alpha"])
-            self.strategy_params.AddValue("max_alpha",                  self.settings["max_alpha"])
-            self.strategy_params.AddValue("line_search_tolerance",      self.settings["line_search_tolerance"])
-            self.strategy_params.AddValue("move_mesh_flag",             self.settings["move_mesh_flag"])
-            self.strategy_params.AddValue("reform_dofs_at_each_step",   self.settings["reform_dofs_at_each_step"])
-            self.strategy_params.AddValue("echo_level",                 self.settings["echo_level"])
-
-            solving_strategy = KratosMultiphysics.LineSearchStrategy(self.computing_model_part,
-                                                                     self.scheme,
-                                                                     self.linear_solver,
-                                                                     self.convergence_criterion,
-                                                                     self.strategy_params)
-
-        elif strategy_type.lower() == "arc_length":
-            # Arc-Length strategy
-            self.main_model_part.ProcessInfo.SetValue(KratosGeo.ARC_LENGTH_LAMBDA,        1.0)
-            self.main_model_part.ProcessInfo.SetValue(KratosGeo.ARC_LENGTH_RADIUS_FACTOR, 1.0)
-            self.strategy_params = KratosMultiphysics.Parameters("{}")
-            self.strategy_params.AddValue("desired_iterations",self.settings["desired_iterations"])
-            self.strategy_params.AddValue("max_radius_factor",self.settings["max_radius_factor"])
-            self.strategy_params.AddValue("min_radius_factor",self.settings["min_radius_factor"])
-            self.strategy_params.AddValue("loads_sub_model_part_list",self.loads_sub_sub_model_part_list)
-            self.strategy_params.AddValue("loads_variable_list",self.settings["loads_variable_list"])
-            solving_strategy = KratosGeo.GeoMechanicsRammArcLengthStrategy(self.computing_model_part,
-                                                                           self.scheme,
-                                                                           self.linear_solver,
-                                                                           self.convergence_criterion,
-                                                                           builder_and_solver,
-                                                                           self.strategy_params,
-                                                                           max_iters,
-                                                                           compute_reactions,
-                                                                           reform_step_dofs,
-                                                                           move_mesh_flag)
-        else:
-            raise Exception("Undefined strategy type", strategy_type)
-
-        return solving_strategy
-
     def _CheckConvergence(self):
-
         IsConverged = self.solver.IsConverged()
-
         return IsConverged
 
     def _UpdateLoads(self):
-
         self.solver.UpdateLoads()

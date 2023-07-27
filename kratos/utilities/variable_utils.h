@@ -677,7 +677,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodes, [&](Node<3>& rNode) {
+        block_for_each(rNodes, [&](Node& rNode) {
             rNode.FastGetSolutionStepValue(rVariable, Step) = rValue;
         });
 
@@ -704,7 +704,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodes, [&](Node<3>& rNode){
+        block_for_each(rNodes, [&](Node& rNode){
             if(rNode.Is(Flag) == CheckValue){
                 rNode.FastGetSolutionStepValue(rVariable) = rValue;}
         });
@@ -967,7 +967,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+        block_for_each(rNodesContainer, [&](Node& rNode){
             rNode.SetValue(rSavedVariable, rNode.FastGetSolutionStepValue(rOriginVariable));
         });
 
@@ -1018,7 +1018,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+        block_for_each(rNodesContainer, [&](Node& rNode){
             rNode.FastGetSolutionStepValue(rDestinationVariable) = rNode.FastGetSolutionStepValue(rOriginVariable);
         });
 
@@ -1088,11 +1088,11 @@ public:
             CheckVariableExists(rVar, rNodes);
 
             if (IsFixed) {
-                block_for_each(rNodes,[&](Node<3>& rNode){
+                block_for_each(rNodes,[&](Node& rNode){
                     rNode.pGetDof(rVar)->FixDof();
                 });
             } else {
-                block_for_each(rNodes,[&](Node<3>& rNode){
+                block_for_each(rNodes,[&](Node& rNode){
                     rNode.pGetDof(rVar)->FreeDof();
                 });
             }
@@ -1226,7 +1226,7 @@ public:
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_nodes_array = r_local_mesh.Nodes();
 
-        sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node<3>& rNode){
+        sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node& rNode){
             return rNode.GetValue(rVar);
         });
 
@@ -1257,7 +1257,7 @@ public:
 
         const auto &r_communicator = rModelPart.GetCommunicator();
 
-        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node<3>& rNode){
+        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node& rNode){
             return rNode.GetSolutionStepValue(rVariable, BuffStep);
         });
 
@@ -1368,7 +1368,7 @@ public:
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar);
 
-        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(),[&](Node& rNode){
             rNode.AddDof(rVar);
         });
 
@@ -1403,7 +1403,7 @@ public:
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar, &rReactionVar);
 
-        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(),[&](Node& rNode){
             rNode.AddDof(rVar,rReactionVar);
         });
 

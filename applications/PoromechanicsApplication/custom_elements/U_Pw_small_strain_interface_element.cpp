@@ -1418,10 +1418,14 @@ void UPwSmallStrainInterfaceElement<2,4>::CalculateShapeFunctionsGradients(TMatr
     rAuxVariables.GlobalCoordinatesGradients[1] = Jacobian(1,0);
     noalias(rAuxVariables.LocalCoordinatesGradients) = prod(RotationMatrix,rAuxVariables.GlobalCoordinatesGradients);
 
-    rGradNpT(0,0) = DN_De(0,0)/rAuxVariables.LocalCoordinatesGradients[0]; rGradNpT(0,1) = -Ncontainer(GPoint,0)/JointWidth;
-    rGradNpT(1,0) = DN_De(1,0)/rAuxVariables.LocalCoordinatesGradients[0]; rGradNpT(1,1) = -Ncontainer(GPoint,1)/JointWidth;
-    rGradNpT(2,0) = DN_De(2,0)/rAuxVariables.LocalCoordinatesGradients[0]; rGradNpT(2,1) = Ncontainer(GPoint,2)/JointWidth;
-    rGradNpT(3,0) = DN_De(3,0)/rAuxVariables.LocalCoordinatesGradients[0]; rGradNpT(3,1) = Ncontainer(GPoint,3)/JointWidth;
+    // NOTE: 
+    // Taking into account that we evaluate the shape functions at the lobatto integration points of order 1 (at the mid plane of the interface),
+    // and that we need to reduce the dimension of those shape functions in order to interpolate the pressure drop at the interface for the transversal flow,
+    // we must multiply Ncontainer by 2.0. Otherwise we would have just half of the pressure drop.
+    rGradNpT(0,0) = DN_De(0,0)/rAuxVariables.LocalCoordinatesGradients[0]; rGradNpT(0,1) = -2.0*Ncontainer(GPoint,0)/JointWidth;
+    rGradNpT(1,0) = DN_De(1,0)/rAuxVariables.LocalCoordinatesGradients[0]; rGradNpT(1,1) = -2.0*Ncontainer(GPoint,1)/JointWidth;
+    rGradNpT(2,0) = DN_De(2,0)/rAuxVariables.LocalCoordinatesGradients[0]; rGradNpT(2,1) =  2.0*Ncontainer(GPoint,2)/JointWidth;
+    rGradNpT(3,0) = DN_De(3,0)/rAuxVariables.LocalCoordinatesGradients[0]; rGradNpT(3,1) =  2.0*Ncontainer(GPoint,3)/JointWidth;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1458,12 +1462,16 @@ void UPwSmallStrainInterfaceElement<3,6>::CalculateShapeFunctionsGradients(TMatr
 
     noalias(rAuxVariables.ShapeFunctionsGradientsMatrix) = prod(rAuxVariables.ShapeFunctionsNaturalGradientsMatrix,rAuxVariables.LocalCoordinatesGradientsInvMatrix);
 
-    rGradNpT(0,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(0,0); rGradNpT(0,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(0,1); rGradNpT(0,2) = -Ncontainer(GPoint,0)/JointWidth;
-    rGradNpT(1,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(1,0); rGradNpT(1,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(1,1); rGradNpT(1,2) = -Ncontainer(GPoint,1)/JointWidth;
-    rGradNpT(2,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(2,0); rGradNpT(2,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(2,1); rGradNpT(2,2) = -Ncontainer(GPoint,2)/JointWidth;
-    rGradNpT(3,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(3,0); rGradNpT(3,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(3,1); rGradNpT(3,2) = Ncontainer(GPoint,3)/JointWidth;
-    rGradNpT(4,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(4,0); rGradNpT(4,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(4,1); rGradNpT(4,2) = Ncontainer(GPoint,4)/JointWidth;
-    rGradNpT(5,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(5,0); rGradNpT(5,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(5,1); rGradNpT(5,2) = Ncontainer(GPoint,5)/JointWidth;
+    // NOTE: 
+    // Taking into account that we evaluate the shape functions at the lobatto integration points of order 1 (at the mid plane of the interface),
+    // and that we need to reduce the dimension of those shape functions in order to interpolate the pressure drop at the interface for the transversal flow,
+    // we must multiply Ncontainer by 2.0. Otherwise we would have just half of the pressure drop.
+    rGradNpT(0,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(0,0); rGradNpT(0,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(0,1); rGradNpT(0,2) = -2.0*Ncontainer(GPoint,0)/JointWidth;
+    rGradNpT(1,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(1,0); rGradNpT(1,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(1,1); rGradNpT(1,2) = -2.0*Ncontainer(GPoint,1)/JointWidth;
+    rGradNpT(2,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(2,0); rGradNpT(2,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(2,1); rGradNpT(2,2) = -2.0*Ncontainer(GPoint,2)/JointWidth;
+    rGradNpT(3,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(3,0); rGradNpT(3,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(3,1); rGradNpT(3,2) = 2.0*Ncontainer(GPoint,3)/JointWidth;
+    rGradNpT(4,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(4,0); rGradNpT(4,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(4,1); rGradNpT(4,2) = 2.0*Ncontainer(GPoint,4)/JointWidth;
+    rGradNpT(5,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(5,0); rGradNpT(5,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(5,1); rGradNpT(5,2) = 2.0*Ncontainer(GPoint,5)/JointWidth;
 }
 
 //----------------------------------------------------------------------------------------
@@ -1500,14 +1508,18 @@ void UPwSmallStrainInterfaceElement<3,8>::CalculateShapeFunctionsGradients(TMatr
 
     noalias(rAuxVariables.ShapeFunctionsGradientsMatrix) = prod(rAuxVariables.ShapeFunctionsNaturalGradientsMatrix,rAuxVariables.LocalCoordinatesGradientsInvMatrix);
 
-    rGradNpT(0,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(0,0); rGradNpT(0,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(0,1); rGradNpT(0,2) = -Ncontainer(GPoint,0)/JointWidth;
-    rGradNpT(1,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(1,0); rGradNpT(1,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(1,1); rGradNpT(1,2) = -Ncontainer(GPoint,1)/JointWidth;
-    rGradNpT(2,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(2,0); rGradNpT(2,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(2,1); rGradNpT(2,2) = -Ncontainer(GPoint,2)/JointWidth;
-    rGradNpT(3,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(3,0); rGradNpT(3,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(3,1); rGradNpT(3,2) = -Ncontainer(GPoint,3)/JointWidth;
-    rGradNpT(4,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(4,0); rGradNpT(4,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(4,1); rGradNpT(4,2) = Ncontainer(GPoint,4)/JointWidth;
-    rGradNpT(5,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(5,0); rGradNpT(5,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(5,1); rGradNpT(5,2) = Ncontainer(GPoint,5)/JointWidth;
-    rGradNpT(6,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(6,0); rGradNpT(6,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(6,1); rGradNpT(6,2) = Ncontainer(GPoint,6)/JointWidth;
-    rGradNpT(7,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(7,0); rGradNpT(7,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(7,1); rGradNpT(7,2) = Ncontainer(GPoint,7)/JointWidth;
+    // NOTE: 
+    // Taking into account that we evaluate the shape functions at the lobatto integration points of order 1 (at the mid plane of the interface),
+    // and that we need to reduce the dimension of those shape functions in order to interpolate the pressure drop at the interface for the transversal flow,
+    // we must multiply Ncontainer by 2.0. Otherwise we would have just half of the pressure drop.
+    rGradNpT(0,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(0,0); rGradNpT(0,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(0,1); rGradNpT(0,2) = -2.0*Ncontainer(GPoint,0)/JointWidth;
+    rGradNpT(1,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(1,0); rGradNpT(1,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(1,1); rGradNpT(1,2) = -2.0*Ncontainer(GPoint,1)/JointWidth;
+    rGradNpT(2,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(2,0); rGradNpT(2,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(2,1); rGradNpT(2,2) = -2.0*Ncontainer(GPoint,2)/JointWidth;
+    rGradNpT(3,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(3,0); rGradNpT(3,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(3,1); rGradNpT(3,2) = -2.0*Ncontainer(GPoint,3)/JointWidth;
+    rGradNpT(4,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(4,0); rGradNpT(4,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(4,1); rGradNpT(4,2) = 2.0*Ncontainer(GPoint,4)/JointWidth;
+    rGradNpT(5,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(5,0); rGradNpT(5,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(5,1); rGradNpT(5,2) = 2.0*Ncontainer(GPoint,5)/JointWidth;
+    rGradNpT(6,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(6,0); rGradNpT(6,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(6,1); rGradNpT(6,2) = 2.0*Ncontainer(GPoint,6)/JointWidth;
+    rGradNpT(7,0) = rAuxVariables.ShapeFunctionsGradientsMatrix(7,0); rGradNpT(7,1) = rAuxVariables.ShapeFunctionsGradientsMatrix(7,1); rGradNpT(7,2) = 2.0*Ncontainer(GPoint,7)/JointWidth;
 }
 
 //----------------------------------------------------------------------------------------

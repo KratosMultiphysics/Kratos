@@ -177,6 +177,8 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("CalculateFluidPositiveVolume", &FluidAuxiliaryUtilities::CalculateFluidPositiveVolume)
         .def_static("CalculateFluidNegativeVolume", &FluidAuxiliaryUtilities::CalculateFluidNegativeVolume)
         .def_static("MapVelocityFromSkinToVolumeRBF", &FluidAuxiliaryUtilities::MapVelocityFromSkinToVolumeRBF)
+        .def_static("FindMaximumEdgeLength", [](ModelPart& rModelPart){return FluidAuxiliaryUtilities::FindMaximumEdgeLength(rModelPart);})
+        .def_static("FindMaximumEdgeLength", [](ModelPart& rModelPart, const bool CalculateNodalNeighbours){return FluidAuxiliaryUtilities::FindMaximumEdgeLength(rModelPart, CalculateNodalNeighbours);})
         ;
 
     py::class_<FluidTestUtilities>(m, "FluidTestUtilities")
@@ -197,7 +199,6 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>))
         .def_static("RandomFillNonHistoricalVariable", py::overload_cast<ModelPart::ElementsContainerType&, const Variable<array_1d<double, 3>>&, const std::string&, const IndexType, const double, const double>(&FluidTestUtilities::RandomFillNonHistoricalVariable<ModelPart::ElementsContainerType, array_1d<double, 3>>))
         ;
-
 }
 
 }  // namespace Python.

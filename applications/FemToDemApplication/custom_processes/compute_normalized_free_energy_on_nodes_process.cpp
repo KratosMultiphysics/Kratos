@@ -105,7 +105,7 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateNormalizedFreeEnergy(
     const Vector& rStressVector, 
     const double Damage, 
     const Properties& rMatProps,
-    Geometry<Node<3>>& rGeometry
+    Geometry<Node>& rGeometry
     )
 {
     double normalized_free_energy;
@@ -147,7 +147,7 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateNormalizedFreeEnergy(
 /***********************************************************************************/
 
 double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength2D(
-    const Geometry<Node<3>>& rGeometry
+    const Geometry<Node>& rGeometry
     )
 {
     const auto& r_node_1_coordinates = rGeometry[0].Coordinates();
@@ -164,7 +164,7 @@ double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength2
 /***********************************************************************************/
 
 double ComputeNormalizedFreeEnergyOnNodesProcess::CalculateCharacteristicLength3D(
-    Geometry<Node<3>>& rGeometry
+    Geometry<Node>& rGeometry
     )
 {
     Vector lengths = ZeroVector(6);

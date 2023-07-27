@@ -14,10 +14,10 @@ from structural_mechanics_test_factory_mpi import ShellT3AndQ4LinearStaticStruct
 
 
 def AssembleTestSuites():
-    ''' Populates the test suites to run.
+    ''' Populates the MPI test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    "mpi_small", "mpi_nightly" and "mpi_all"
 
     Return
     ------
@@ -41,6 +41,6 @@ def AssembleTestSuites():
 
     return suites
 
-
 if __name__ == '__main__':
+    KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     KratosUnittest.runTests(AssembleTestSuites())

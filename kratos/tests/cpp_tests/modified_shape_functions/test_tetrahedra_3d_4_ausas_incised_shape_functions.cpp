@@ -39,7 +39,7 @@ namespace Kratos
             base_model_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties);
 
             // Set the elemental distances vector
-            Geometry<Node<3>>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
+            Geometry<Node>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
 
             array_1d<double, 4> distances_vector;
             distances_vector[0] = -1.0;
@@ -193,7 +193,7 @@ namespace Kratos
             base_model_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties);
 
             // Set the elemental distances vector
-            Geometry<Node<3>>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
+            Geometry<Node>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
 
             array_1d<double, 4> distances_vector;
             distances_vector[0] = -1.0;
@@ -375,7 +375,7 @@ namespace Kratos
             base_model_part.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties);
 
             // Set the elemental distances vector
-            Geometry<Node<3>>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
+            Geometry<Node>::Pointer p_geometry = base_model_part.Elements()[1].pGetGeometry();
 
             array_1d<double, 4> distances_vector;
             distances_vector[0] = -0.5;

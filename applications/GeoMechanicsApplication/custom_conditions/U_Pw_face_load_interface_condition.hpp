@@ -38,7 +38,7 @@ public:
 
     using IndexType = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType = Vector;
@@ -62,8 +62,6 @@ public:
         this->SetIntegrationMethod(GeometryData::IntegrationMethod::GI_GAUSS_1);
     }
 
-    ~UPwFaceLoadInterfaceCondition() override {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
@@ -86,7 +84,7 @@ protected:
                                 const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
                                 array_1d<double,TDim>& rLocalRelDispVector, const double& MinimumJointWidth, const unsigned int& GPoint );
 
-    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth);
+    double CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight, const double& JointWidth);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -250,7 +250,16 @@ virtual void AllGather(const std::vector<type>& rSendValues, std::vector<type>& 
     KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rSendValues.size(),rRecvValues.size(),"AllGather");                   \
     rRecvValues = AllGather(rSendValues);                                                                           \
 }                                                                                                                   \
-
+virtual std::vector<std::vector<type>> AllGatherv(const std::vector<type>& rSendValues) const {                     \
+    return std::vector<std::vector<type>>{rSendValues};                                                             \
+}                                                                                                                   \
+virtual void AllGatherv(const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,                       \
+    const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const {                              \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvValues.size(), rSendValues.size(), "AllGatherv (values check)"); \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvCounts.size(), 1, "AllGatherv (counts check)");                  \
+    KRATOS_DATA_COMMUNICATOR_DEBUG_SIZE_CHECK(rRecvOffsets.size(), 1, "AllGatherv (offset check)");                 \
+    rRecvValues = rSendValues;                                                                          \
+}
 #endif
 
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE

@@ -109,7 +109,7 @@ public:
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
             if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
                     const double pressure = CalculatePressure(rNode);
 
                     if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0.0) {
@@ -120,7 +120,7 @@ public:
                     }
                 });
             } else {
-                block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode) {
+                block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
                     if (mIsFixed) rNode.Fix(var);
                     else if (mIsFixedProvided) rNode.Free(var);
 
@@ -169,20 +169,20 @@ protected:
     unsigned int mGravityDirection;
     unsigned int mOutOfPlaneDirection;
     unsigned int mHorizontalDirection;
-    std::vector< Node<3> * > mBoundaryNodes;
+    std::vector< Node * > mBoundaryNodes;
     double mPressureTensionCutOff;
 
-    double CalculatePressure(const Node<3> &rNode)
+    double CalculatePressure(const Node &rNode)
     {
         // find top boundary
-        std::vector< Node<3>* > TopBoundaryNodes;
+        std::vector< Node* > TopBoundaryNodes;
         FindTopBoundaryNodes(rNode, TopBoundaryNodes);
         double PressureTop;
         double CoordinateTop;
         CalculateBoundaryPressure(rNode, TopBoundaryNodes, PressureTop, CoordinateTop);
 
         // find bottom boundary
-        std::vector< Node<3>* > BottomBoundaryNodes;
+        std::vector< Node* > BottomBoundaryNodes;
         FindBottomBoundaryNodes(rNode, BottomBoundaryNodes);
         double PressureBottom;
         double CoordinateBottom;
@@ -208,23 +208,23 @@ private:
     /// Copy constructor.
     //ApplyConstantInterpolateLinePressureProcess(ApplyConstantInterpolateLinePressureProcess const& rOther);
 
-    void CalculateBoundaryPressure( const Node<3> &rNode,
-                                    const std::vector< Node<3>*> &BoundaryNodes,
+    void CalculateBoundaryPressure( const Node &rNode,
+                                    const std::vector< Node*> &BoundaryNodes,
                                     double &pressure,
                                     double &coordinate,
                                     bool isBottom=false )
     {
         // find top boundary
-        std::vector< Node<3>*> LeftBoundaryNodes;
+        std::vector< Node*> LeftBoundaryNodes;
         FindLeftBoundaryNodes(rNode, BoundaryNodes, LeftBoundaryNodes);
 
-        std::vector< Node<3>*> RightBoundaryNodes;
+        std::vector< Node*> RightBoundaryNodes;
         FindRightBoundaryNodes(rNode, BoundaryNodes, RightBoundaryNodes);
 
         if (LeftBoundaryNodes.size() > 0 && RightBoundaryNodes.size() > 0) {
-            Node<3> *LeftNode;
+            Node *LeftNode;
             LeftNode = FindClosestNodeOnBoundaryNodes(rNode, LeftBoundaryNodes, isBottom);
-            Node<3> *RightNode;
+            Node *RightNode;
             RightNode = FindClosestNodeOnBoundaryNodes(rNode, RightBoundaryNodes, isBottom);
 
             InterpolateBoundaryPressure(rNode, LeftNode, RightNode, pressure, coordinate);
@@ -244,12 +244,12 @@ private:
 
     }
 
-    void InterpolateBoundaryPressureWithOneContainer(const Node<3> &rNode,
-                                                     const std::vector< Node<3>*> &BoundaryNodes,
+    void InterpolateBoundaryPressureWithOneContainer(const Node &rNode,
+                                                     const std::vector< Node*> &BoundaryNodes,
                                                      double &pressure,
                                                      double &coordinate )
     {
-        std::vector< Node<3>*> FoundNodes;
+        std::vector< Node*> FoundNodes;
         FindTwoClosestNodeOnBoundaryNodes(rNode, BoundaryNodes, FoundNodes);
 
         const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
@@ -275,9 +275,9 @@ private:
         }
     }
 
-    void InterpolateBoundaryPressure(const Node<3> &rNode,
-                                     const Node<3> *LeftNode,
-                                     const Node<3> *RightNode,
+    void InterpolateBoundaryPressure(const Node &rNode,
+                                     const Node *LeftNode,
+                                     const Node *RightNode,
                                      double &pressure,
                                      double &coordinate )
     {
@@ -304,9 +304,9 @@ private:
         }
     }
 
-    void FindTwoClosestNodeOnBoundaryNodes(const Node<3> &rNode,
-                                           const std::vector< Node<3>*> &BoundaryNodes,
-                                           std::vector< Node<3>*> &FoundNodes)
+    void FindTwoClosestNodeOnBoundaryNodes(const Node &rNode,
+                                           const std::vector< Node*> &BoundaryNodes,
+                                           std::vector< Node*> &FoundNodes)
     {
         const double HorizontalCoordiante = rNode.Coordinates()[mHorizontalDirection];
         FoundNodes.resize(2);
@@ -341,14 +341,14 @@ private:
     }
 
 
-    Node<3>* 
-        FindClosestNodeOnBoundaryNodes(const Node<3> &rNode,
-                                       const std::vector< Node<3>* > &BoundaryNodes,
+    Node* 
+        FindClosestNodeOnBoundaryNodes(const Node &rNode,
+                                       const std::vector< Node* > &BoundaryNodes,
                                        const bool isBottom)
     {
         const double HorizontalCoordiante = rNode.Coordinates()[mHorizontalDirection];
-        Node<3> *pNode;
-        std::vector< Node<3>*> FoundNodes;
+        Node *pNode;
+        std::vector< Node*> FoundNodes;
 
         double horizontalDistance = LARGE;
         for (unsigned int i = 0; i < BoundaryNodes.size(); ++i) {
@@ -379,8 +379,8 @@ private:
         return pNode;
     }
 
-    void FindTopBoundaryNodes(const Node<3> &rNode,
-                              std::vector< Node<3>* > &TopBoundaryNodes)
+    void FindTopBoundaryNodes(const Node &rNode,
+                              std::vector< Node* > &TopBoundaryNodes)
     {
         for (unsigned int i = 0; i < mBoundaryNodes.size(); ++i) {
             if (mBoundaryNodes[i]->Coordinates()[mGravityDirection] >= rNode.Coordinates()[mGravityDirection]) {
@@ -390,8 +390,8 @@ private:
         }
     }
 
-    void FindBottomBoundaryNodes(const Node<3> &rNode,
-                                 std::vector< Node<3>*> &BottomBoundaryNodes)
+    void FindBottomBoundaryNodes(const Node &rNode,
+                                 std::vector< Node*> &BottomBoundaryNodes)
     {
         for (unsigned int i = 0; i < mBoundaryNodes.size(); ++i) {
             if (mBoundaryNodes[i]->Coordinates()[mGravityDirection] <= rNode.Coordinates()[mGravityDirection]) {
@@ -401,9 +401,9 @@ private:
         }
     }
 
-    void FindLeftBoundaryNodes(const Node<3> &rNode,
-                               const std::vector< Node<3>*> &BoundaryNodes,
-                               std::vector< Node<3>*> &LeftBoundaryNodes)
+    void FindLeftBoundaryNodes(const Node &rNode,
+                               const std::vector< Node*> &BoundaryNodes,
+                               std::vector< Node*> &LeftBoundaryNodes)
     {
         for (unsigned int i = 0; i < BoundaryNodes.size(); ++i) {
             if (BoundaryNodes[i]->Coordinates()[mHorizontalDirection] <= rNode.Coordinates()[mHorizontalDirection]) {
@@ -413,9 +413,9 @@ private:
         }
     }
 
-    void FindRightBoundaryNodes(const Node<3> &rNode,
-                                const std::vector< Node<3>*> &BoundaryNodes,
-                                std::vector< Node<3>*> &RightBoundaryNodes)
+    void FindRightBoundaryNodes(const Node &rNode,
+                                const std::vector< Node*> &BoundaryNodes,
+                                std::vector< Node*> &RightBoundaryNodes)
     {
         for (unsigned int i = 0; i < BoundaryNodes.size(); ++i) {
             if (BoundaryNodes[i]->Coordinates()[mHorizontalDirection] >= rNode.Coordinates()[mHorizontalDirection]) {
@@ -430,7 +430,7 @@ private:
         KRATOS_TRY
 
         int MaxNodeID = -1;
-        block_for_each(mrModelPart.Nodes(), [&MaxNodeID](Node<3>& rNode) {
+        block_for_each(mrModelPart.Nodes(), [&MaxNodeID](Node& rNode) {
             #pragma omp critical
             MaxNodeID = std::max<int>(MaxNodeID, rNode.Id());
         });
@@ -450,7 +450,7 @@ private:
         mBoundaryNodes.resize(BoundaryNodes.size());
 
         unsigned int iPosition = 0;
-        block_for_each(mrModelPart.Nodes(), [&iPosition, &BoundaryNodes, this](Node<3>& rNode) {
+        block_for_each(mrModelPart.Nodes(), [&iPosition, &BoundaryNodes, this](Node& rNode) {
             const int Id = rNode.Id();
             for (unsigned int j = 0; j < BoundaryNodes.size(); ++j) {
                 if (Id == BoundaryNodes[j]) {

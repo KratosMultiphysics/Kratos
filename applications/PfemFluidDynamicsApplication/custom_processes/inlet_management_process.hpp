@@ -57,7 +57,7 @@ namespace Kratos
     typedef ModelPart::PropertiesType PropertiesType;
     typedef ConditionType::GeometryType GeometryType;
 
-    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
     typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 
     ///@}
@@ -201,7 +201,7 @@ namespace Kratos
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
       double maxSeparation = mrRemesh.Refine->CriticalRadius;
 
-      std::vector<Node<3>::Pointer> clonedNodes;
+      std::vector<Node::Pointer> clonedNodes;
       clonedNodes.clear();
       clonedNodes.resize(1);
       unsigned int numberClonedNodes = 0;
@@ -232,7 +232,7 @@ namespace Kratos
 
               if (i_node->Is(FLUID))
               {
-                Node<3>::Pointer pnode = i_node->Clone();
+                Node::Pointer pnode = i_node->Clone();
                 sizeClonedNodes = numberClonedNodes + 1;
                 clonedNodes.resize(sizeClonedNodes);
                 clonedNodes[numberClonedNodes] = pnode;
@@ -260,7 +260,7 @@ namespace Kratos
       for (unsigned int i = 0; i < sizeClonedNodes; i++)
       {
 
-        Node<3>::Pointer pnode = clonedNodes[i];
+        Node::Pointer pnode = clonedNodes[i];
         double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
         double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
         unsigned int id = NodeIdParent + 1; // total model part node size

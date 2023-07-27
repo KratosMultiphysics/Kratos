@@ -49,7 +49,7 @@ public:
 
     typedef typename BaseType::CoordinatesArrayType CoordinatesArrayType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef NodeType* NodePointerType;
 
     typedef Geometry<NodeType> GeometryType;

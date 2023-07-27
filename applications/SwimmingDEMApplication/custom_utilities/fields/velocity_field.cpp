@@ -245,7 +245,7 @@ void VelocityField::ImposeFieldOnNodes(ModelPart& r_model_part, const VariablesL
     for (int i = 0; i < (int)r_model_part.Nodes().size(); i++){
         int thread_number = OpenMPUtils::ThisThread();
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         const array_1d<double, 3>& coor = p_node->Coordinates();
         UpdateCoordinates(time, coor, thread_number);
         LockCoordinates(thread_number);
@@ -290,7 +290,7 @@ void VelocityField::ImposeVelocityOnNodes(ModelPart& r_model_part, const Variabl
 
     for (int i = 0; i < (int)r_model_part.Nodes().size(); ++i){
         ModelPart::NodesContainerType::iterator i_particle = r_model_part.NodesBegin() + i;
-        Node<3>::Pointer p_node = *(i_particle.base());
+        Node::Pointer p_node = *(i_particle.base());
         const array_1d<double, 3>& coor = p_node->Coordinates();
         array_1d<double, 3> fluid_vel;
         Evaluate(time, coor, fluid_vel, thread_number);

@@ -107,7 +107,7 @@ public:
 	/// Pointer definition of FSWernerWengleWallCondition
 	KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(FSWernerWengleWallCondition);
 
-	typedef Node < 3 > NodeType;
+	typedef Node NodeType;
 
 	typedef Properties PropertiesType;
 

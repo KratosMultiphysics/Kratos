@@ -23,8 +23,8 @@ namespace Testing {
 
 namespace {
     //Type definitions 
-    typedef Node<3> NodeType;
-    typedef Node<3>::Pointer NodePtrType;
+    typedef Node NodeType;
+    typedef Node::Pointer NodePtrType;
     typedef Geometry<NodeType> GeometryType;
     typedef GeometryType::Pointer GeometryPtrType;
     typedef GeometryType::GeometriesArrayType GeometryArrayType;

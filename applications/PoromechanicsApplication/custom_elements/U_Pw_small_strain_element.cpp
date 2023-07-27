@@ -304,10 +304,10 @@ void UPwSmallStrainElement<2,3>::ExtrapolateGPValues(const Matrix& GradPressureC
     array_1d<Matrix,3> NodalStressTensor;
     const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
 
-    for(unsigned int Node = 0; Node < 3; Node++)
+    for(unsigned int iNode = 0; iNode < 3; iNode++)
     {
-        NodalStressVector[Node].resize(VoigtSize);
-        NodalStressTensor[Node].resize(cl_dimension,cl_dimension);
+        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressTensor[iNode].resize(cl_dimension,cl_dimension);
     }
 
     BoundedMatrix<double,3,3> ExtrapolationMatrix;
@@ -390,10 +390,10 @@ void UPwSmallStrainElement<2,4>::ExtrapolateGPValues(const Matrix& GradPressureC
     array_1d<Matrix,4> NodalStressTensor;
     const unsigned int cl_dimension = this->GetProperties().GetValue( CONSTITUTIVE_LAW )->WorkingSpaceDimension();
 
-    for(unsigned int Node = 0; Node < 4; Node ++)
+    for(unsigned int iNode = 0; iNode < 4; iNode ++)
     {
-        NodalStressVector[Node].resize(VoigtSize);
-        NodalStressTensor[Node].resize(cl_dimension,cl_dimension);
+        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressTensor[iNode].resize(cl_dimension,cl_dimension);
     }
 
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
@@ -467,10 +467,10 @@ void UPwSmallStrainElement<3,4>::ExtrapolateGPValues(const Matrix& GradPressureC
     array_1d<Vector,4> NodalStressVector; //List with stresses at each node
     array_1d<Matrix,4> NodalStressTensor;
 
-    for(unsigned int Node = 0; Node < 4; Node ++)
+    for(unsigned int iNode = 0; iNode < 4; iNode ++)
     {
-        NodalStressVector[Node].resize(VoigtSize);
-        NodalStressTensor[Node].resize(3,3);
+        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressTensor[iNode].resize(3,3);
     }
 
     BoundedMatrix<double,4,4> ExtrapolationMatrix;
@@ -525,10 +525,10 @@ void UPwSmallStrainElement<3,8>::ExtrapolateGPValues(const Matrix& GradPressureC
     array_1d<Vector,8> NodalStressVector; //List with stresses at each node
     array_1d<Matrix,8> NodalStressTensor;
 
-    for(unsigned int Node = 0; Node < 8; Node ++)
+    for(unsigned int iNode = 0; iNode < 8; iNode ++)
     {
-        NodalStressVector[Node].resize(VoigtSize);
-        NodalStressTensor[Node].resize(3,3);
+        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressTensor[iNode].resize(3,3);
     }
 
     BoundedMatrix<double,8,8> ExtrapolationMatrix;

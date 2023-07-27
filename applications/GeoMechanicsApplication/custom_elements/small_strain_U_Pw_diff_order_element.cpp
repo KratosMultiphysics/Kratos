@@ -204,28 +204,28 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     switch(NumUNodes)
     {
         case 6: //2D T6P3
-            mpPressureGeometry = make_shared<Triangle2D3<Node<3>>>(rGeom(0), rGeom(1), rGeom(2));
+            mpPressureGeometry = make_shared<Triangle2D3<Node>>(rGeom(0), rGeom(1), rGeom(2));
             break;
         case 8: //2D Q8P4
-            mpPressureGeometry = make_shared<Quadrilateral2D4<Node<3>>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
+            mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
             break;
         case 9: //2D Q9P4
-            mpPressureGeometry = make_shared<Quadrilateral2D4<Node<3>>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
+            mpPressureGeometry = make_shared<Quadrilateral2D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
             break;
         case 10: //3D T10P4  //2D T10P6
             if (NumDim == 3)
-                mpPressureGeometry = make_shared<Tetrahedra3D4<Node<3>>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
+                mpPressureGeometry = make_shared<Tetrahedra3D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
             else if (NumDim == 2)
-                mpPressureGeometry = make_shared<Triangle2D6<Node<3>>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5));
+                mpPressureGeometry = make_shared<Triangle2D6<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5));
             break;
         case 15: //2D T15P10
-            mpPressureGeometry = make_shared<Triangle2D10<Node<3>>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7), rGeom(8), rGeom(9));
+            mpPressureGeometry = make_shared<Triangle2D10<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7), rGeom(8), rGeom(9));
             break;
         case 20: //3D H20P8
-            mpPressureGeometry = make_shared<Hexahedra3D8<Node<3>>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7));
+            mpPressureGeometry = make_shared<Hexahedra3D8<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7));
             break;
         case 27: //3D H27P8
-            mpPressureGeometry = make_shared<Hexahedra3D8<Node<3>>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7));
+            mpPressureGeometry = make_shared<Hexahedra3D8<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7));
             break;
         default:
             KRATOS_ERROR << "Unexpected geometry type for different order interpolation element" << this->Id() << std::endl;
@@ -1021,10 +1021,10 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints()") << std::endl;
+        // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints()") << std::endl;
 
-    for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint )
-        mConstitutiveLawVector[GPoint]->SetValue( rVariable, rValues[GPoint], rCurrentProcessInfo );
+        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint )
+            mConstitutiveLawVector[GPoint]->SetValue( rVariable, rValues[GPoint], rCurrentProcessInfo );
 
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints()") << std::endl;
 
@@ -1042,9 +1042,17 @@ void SmallStrainUPwDiffOrderElement::
 
     // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::1-SetValuesOnIntegrationPoints()") << std::endl;
 
-    for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint )
-        mConstitutiveLawVector[GPoint]->SetValue( rVariable, rValues[GPoint], rCurrentProcessInfo );
-
+          if (rVariable == CAUCHY_STRESS_VECTOR) {
+              KRATOS_ERROR_IF (rValues.size() != mStressVector.size()) <<
+                  "Unexpected number of values for SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints" << std::endl;
+              std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
+          } else {
+              KRATOS_ERROR_IF (rValues.size() < mConstitutiveLawVector.size()) <<
+                  "Insufficient number of values for SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints" << std::endl;
+              for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+                  mConstitutiveLawVector[GPoint]->SetValue(rVariable, rValues[GPoint], rCurrentProcessInfo);
+              }
+          }
     // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::1-SetValuesOnIntegrationPoints()") << std::endl;
 
     KRATOS_CATCH( "" )

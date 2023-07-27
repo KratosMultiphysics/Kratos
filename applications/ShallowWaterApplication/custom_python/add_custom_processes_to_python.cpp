@@ -40,7 +40,7 @@ namespace Python
         typedef ApplyPerturbationFunctionProcess<Variable<double>> ApplyPerturbationScalarFunctionProcess;
         py::class_<ApplyPerturbationScalarFunctionProcess, ApplyPerturbationScalarFunctionProcess::Pointer, Process>
         (m, "ApplyPerturbationFunctionToScalar")
-        .def(py::init<ModelPart&, Node<3>::Pointer, Variable<double>&, Parameters&>())
+        .def(py::init<ModelPart&, Node::Pointer, Variable<double>&, Parameters&>())
         .def(py::init<ModelPart&, ModelPart::NodesContainerType&, Variable<double>&, Parameters&>())
         ;
 

@@ -61,7 +61,7 @@ void AssignMPCsToNeighboursUtility::SearchNodesInRadiusForNodes(
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
 
-    block_for_each(nodes_array, [&](Node<3>::Pointer& pNode)
+    block_for_each(nodes_array, [&](Node::Pointer& pNode)
     {
         double localRadius = Radius;
 
@@ -252,7 +252,7 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
 
-    block_for_each(nodes_array, [&](Node<3>::Pointer& pNode) {
+    block_for_each(nodes_array, [&](Node::Pointer& pNode) {
 
         double local_radius = Radius;
 
@@ -325,7 +325,7 @@ void AssignMPCsToNeighboursUtility::AssignMPCsToNodes(
     // Declare a counter variable outside the loop as std::atomic<int>
     std::atomic<int> i(0);
 
-    block_for_each(nodes_array, [&](Node<3>::Pointer& pNode) {
+    block_for_each(nodes_array, [&](Node::Pointer& pNode) {
 
         double local_radius = Radius;
 

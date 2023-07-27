@@ -75,7 +75,7 @@ void CreateTestModelPartTriangle2D3N(ModelPart& rModelPart)
 {
     Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     // Clear the model part
     rModelPart.Clear();
@@ -208,7 +208,7 @@ void CreateTestModelPartTetrahedra3D4N(ModelPart& rModelPart)
 {
     Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     // Clear the model part
     rModelPart.Clear();

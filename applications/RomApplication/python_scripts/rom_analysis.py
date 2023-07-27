@@ -65,6 +65,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             self.assembling_strategy = self.rom_parameters["assembling_strategy"].GetString() if self.rom_parameters.Has("assembling_strategy") else "global"
             self.project_parameters["solver_settings"].AddString("assembling_strategy",self.assembling_strategy)
 
+            # Monotonicity preserving flag
+            self.monotonicity_preserving = self.rom_parameters["monotonicity_preserving"].GetBool() if self.rom_parameters.Has("monotonicity_preserving") else False
+            self.project_parameters["solver_settings"].AddBool("monotonicity_preserving", self.monotonicity_preserving)
+
             # Create the ROM solver
             return new_python_solvers_wrapper_rom.CreateSolver(
                 self.model,
