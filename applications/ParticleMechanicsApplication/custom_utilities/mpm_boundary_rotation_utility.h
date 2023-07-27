@@ -296,10 +296,10 @@ public:
                             // Positive friction coefficient -- friction active
 
                             // ONLY need to modify the LHS/RHS for friction if node is in sliding state, i.e. the
-                            // max tangential force has been exceeded for the node => is_sliding == true
-                            bool is_sliding = rGeometry[itNode].GetValue(IS_SLIDING);
+                            // max tangential force has been exceeded for the node => friction_state == true
+                            int friction_state = rGeometry[itNode].FastGetSolutionStepValue(FRICTION_STATE, 0);
 
-                            if (is_sliding) {
+                            if (friction_state == SLIDING) {
                                 // check if dynamic friction has already been set
                                 rGeometry[itNode].SetLock();
                                 bool dyn_friction_set = rGeometry[itNode].Is(OUTLET);
@@ -475,32 +475,32 @@ public:
         this->RotateVector(rCurrentAcceleration, rNode, true);
     }
 
-    // Sets IS_SLIDING for each friction node to indicate its stick/sliding state.
+    // Sets FRICTION_STATE for each friction node to indicate its stick/sliding state.
     // Also stores the maximum tangent force allowed in each direction.
     void AssignFrictionState(ModelPart& rModelPart){
-        double mu = 0;
-
         ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
+
+        bool isFirstTimestep = (rModelPart.GetProcessInfo()[FLAG_VARIABLE] == 1.0);
 
         for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
         {
             ModelPart::NodeIterator itNode = it_begin+iii;
 
-            mu = itNode->GetValue(FRICTION_COEFFICIENT);
+            const double mu = itNode->GetValue(FRICTION_COEFFICIENT);
+            const double nodal_mass = itNode->FastGetSolutionStepValue(NODAL_MASS, 0);
 
-            // for all SLIP nodes with active friction
-            if( this->IsSlip(*itNode) &&  mu > 0)
+            // for all SLIP nodes with active friction that contain material
+            if( this->IsSlip(*itNode) &&  mu > 0 && nodal_mass > std::numeric_limits<double>::epsilon())
             {
                 // Rotate REACTION to normal-tangential frame of reference
                 // [by-value to avoid modifying REACTION value stored at nodes]
                 array_1d<double,3> reaction = itNode->FastGetSolutionStepValue(REACTION);
                 this->RotateVector(reaction, *itNode);
 
-                bool& r_is_sliding = itNode->GetValue(IS_SLIDING);
+                int& r_friction_state = itNode->FastGetSolutionStepValue(FRICTION_STATE, 0);
 
                 // update normal force norm assoc. with current timestep
                 // [note: no friction if REACTION[0] > 0 [i.e. contact lost]]
-//                KRATOS_WATCH(reaction);
                 itNode->FastGetSolutionStepValue(NORMAL_REACTION, 0) = fmax(-reaction[0], 0.0);
 
                 // obtain normal (prev timestep) and tangent forces (current) assoc. with node
@@ -512,22 +512,24 @@ public:
 
                 double max_tangent_force_norm = prev_normal_force_norm * mu;
 
+//                KRATOS_WATCH(*itNode);
 //                KRATOS_WATCH(prev_normal_force_norm);
 //                KRATOS_WATCH(tangent_force_norm);
+//                KRATOS_WATCH(max_tangent_force_norm);
 
-                r_is_sliding = (tangent_force_norm > max_tangent_force_norm);
+                r_friction_state = (tangent_force_norm >= max_tangent_force_norm) ? SLIDING : STICK;
 
-                if (r_is_sliding) {
+                if (r_friction_state == SLIDING) {
                     // TODO: extend for 3d and add check for tangent_force_norm being close to zero
                     const double tangent_force_dir1 = tangent_force1 / tangent_force_norm;
 
                     itNode->GetValue(MAX_TANGENT_FORCE) = tangent_force_dir1 * max_tangent_force_norm;
                 }
 
-//                KRATOS_WATCH(r_is_sliding);
+//                KRATOS_WATCH(r_friction_state);
             } else {
-                // If friction no longer active, reset IS_SLIDING
-                itNode->GetValue(IS_SLIDING) = false;
+                // If friction no longer active OR node contains no material, set FRICTION_STATE to SLIDING
+                itNode->FastGetSolutionStepValue(FRICTION_STATE) = SLIDING;
             }
         }
     }
@@ -606,6 +608,9 @@ private:
 
     const double FRICTION_FORCE = 0000;
     const double VELOCITY_THRESHOLD = 1e-10;
+
+    const int SLIDING = 0;
+    const int STICK = 1;
 
 	///@}
 	///@name Member Variables
