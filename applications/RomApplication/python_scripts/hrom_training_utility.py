@@ -45,10 +45,8 @@ class HRomTrainingUtility(object):
         self.hrom_output_format = settings["hrom_format"].GetString()
 
         # Rom settings files
-        self.rom_basis_output_name = custom_settings["rom_basis_output_name"].GetString()
-        self.rom_basis_output_folder = custom_settings["rom_basis_output_folder"].GetString()
-        self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
-        self.rom_basis_output_name = Path(self.rom_basis_output_name)   
+        self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
+        self.rom_basis_output_folder = Path(custom_settings["rom_basis_output_folder"].GetString())
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
