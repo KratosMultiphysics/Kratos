@@ -187,9 +187,6 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, rom_training_parame
                 self.__hrom_training_utility = HRomTrainingUtility(
                     self._GetSolver(),
                     self.rom_parameters)
-                # Remove the name of the Rom Parameters file and folder
-                self.rom_parameters.RemoveValue("rom_basis_output_name")
-                self.rom_parameters.RemoveValue("rom_basis_output_folder")
             elif self.run_hrom:
                 if self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "json":
                     # Set the HROM weights in elements and conditions
@@ -219,9 +216,6 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, rom_training_parame
                 self.__petrov_galerkin_training_utility = PetrovGalerkinTrainingUtility(
                     self._GetSolver(),
                     self.rom_parameters)
-                # Remove the name of the Rom Parameters file and folder
-                self.rom_parameters.RemoveValue("rom_basis_output_name")
-                self.rom_parameters.RemoveValue("rom_basis_output_folder")
 
         def FinalizeSolutionStep(self):
             if self.train_petrov_galerkin:
