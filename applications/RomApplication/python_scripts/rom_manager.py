@@ -486,7 +486,6 @@ class RomManager(object):
         for launching the correct part of the ROM workflow
         """
         #other options: "trainHROM", "runHROM"
-        #taken from code by Philipa & Catharina
         parameters_file_folder = self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder") else "rom_data"
         parameters_file_name = self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name") else "RomParameters"
 
