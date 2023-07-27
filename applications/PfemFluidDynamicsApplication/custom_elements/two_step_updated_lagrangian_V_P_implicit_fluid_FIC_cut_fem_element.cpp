@@ -947,7 +947,7 @@ namespace Kratos
             this->InitializeElementalVariables(elemental_variables);
 
             // Add the boundary terms
-            const double kappa = 1.0e1; // TODO: Make this user-definable
+            const double kappa = rCurrentProcessInfo[PENALTY_COEFFICIENT];
             const double h = this->ElementSize();
 
             array_1d<double, TDim> proj_dev_stress;
