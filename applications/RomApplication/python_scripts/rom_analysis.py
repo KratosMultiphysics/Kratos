@@ -28,7 +28,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters, rom_training_parame
                 self.rom_basis_output_name = 'RomParameters' #Default
                 self.rom_basis_output_folder = 'rom_data' #Default
                 if self.project_parameters.Has("output_processes"):
-                    for name, _ in self.project_parameters["output_processes"].items():
+                    for name in self.project_parameters["output_processes"].keys():
                         if name=="rom_output":
                             rom_output_paramaters = self.project_parameters["output_processes"]["rom_output"]
                             self.rom_basis_output_name = rom_output_paramaters[0]["Parameters"]["rom_basis_output_name"].GetString()
