@@ -475,16 +475,17 @@ void MPIDataCommunicator::CheckMPIErrorCode(const int ierr, const std::string& M
 
 // Protected interface reimplementing DataCommunicator calls
 
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(char)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(long unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(double)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(array_1d<double, 3>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(array_1d<double, 4>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(array_1d<double, 6>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(array_1d<double, 9>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(Vector)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(Matrix)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 3>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 4>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 6>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 9>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(Vector)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(Matrix)
 
 // Broadcast operations
 
@@ -859,18 +860,23 @@ template<class TDataType> void MPIDataCommunicator::RecvDetail(
 template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
     TDataType& rBuffer, const int SourceRank) const
 {
+    MPIMessage<TDataType> mpi_message;
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
     << "In call to MPI_Bcast: " << SourceRank << " is not a valid rank." << std::endl;
-    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(MPIMessageSize(rBuffer)))
+    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(mpi_message.Size(rBuffer)))
     << "Input error in call to MPI_Bcast: "
     << "The buffer does not have the same size on all ranks." << std::endl;
     #endif
 
     const int ierr = MPI_Bcast(
-        MPIBuffer(rBuffer), MPIMessageSize(rBuffer),
-        MPIDatatype(rBuffer), SourceRank, mComm);
+        mpi_message.Buffer(rBuffer), mpi_message.Size(rBuffer),
+        mpi_message.DataType(), SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Bcast");
+
+    if (Rank() != SourceRank) {
+        mpi_message.Update(rBuffer);
+    }
 }
 
 template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::ScatterDetail(
