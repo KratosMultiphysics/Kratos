@@ -948,8 +948,13 @@ namespace Kratos
 
             // Add the boundary terms
             const double kappa = rCurrentProcessInfo[PENALTY_COEFFICIENT];
+            KRATOS_ERROR_IF(kappa < 1.0e-12) << "'PENALTY_COEFFICIENT' is zero." << std::endl;
             const double h = this->ElementSize();
 
+            array_1d<double,3> vel_gauss;
+            const double rho = this->mMaterialDensity;
+            const double dt = rCurrentProcessInfo[DELTA_TIME];
+            const double theta = this->GetThetaMomentum();
             array_1d<double, TDim> proj_dev_stress;
             const auto &r_geom = this->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
@@ -994,11 +999,17 @@ namespace Kratos
                 {
                     mu = max_mu_value;
                 }
-                // Interpolate the pressure at the interface Gauss point to calculate the isochoric stress
+                // Interpolate the pressure and velocity at the interface Gauss point to calculate the isochoric stress
                 double pres_gauss = 0.0;
+                vel_gauss = ZeroVector(3);
                 for (std::size_t j = 0; j < n_nodes; ++j)
                 {
-                    pres_gauss += g_shape_functions[j] * r_geom[j].FastGetSolutionStepValue(PRESSURE); // FIXME: This must be evaluated at n+theta
+                    const double p_0 = r_geom[j].FastGetSolutionStepValue(PRESSURE);
+                    const double p_1 = r_geom[j].FastGetSolutionStepValue(PRESSURE,1);
+                    pres_gauss += g_shape_functions[j] * (theta * p_0 + (1 - theta) * p_1);
+                    const auto &r_vel_j_0 = r_geom[j].FastGetSolutionStepValue(VELOCITY);
+                    const auto &r_vel_j_1 = r_geom[j].FastGetSolutionStepValue(VELOCITY,1);
+                    noalias(vel_gauss) += g_shape_functions[j] * (theta * r_vel_j_0 + (1.0 - theta) * r_vel_j_1) ;
                 }
 
                 // Navier-Stokes traction boundary term
@@ -1015,7 +1026,8 @@ namespace Kratos
                 }
 
                 // Cut-FEM boundary condition Nitsche imposition
-                const double penalty_parameter = kappa * mu / h;
+                array_1d<double,3> vel_j;
+                const double penalty_parameter = kappa * (mu / h + rho * (norm_2(vel_gauss) + h / dt));
                 // const double penalty_parameter = 1e7;
                 BoundedMatrix<double, StrainSize, TDim * NumNodes> B;
                 BoundedMatrix<double, TDim, StrainSize> voigt_normal;
@@ -1027,20 +1039,22 @@ namespace Kratos
                 {
                     for (IndexType j = 0; j < n_nodes; ++j)
                     {
-                        const auto &r_vel_j = r_geom[j].FastGetSolutionStepValue(VELOCITY); // FIXME: This must be evaluated at n+theta
-                        const array_1d<double, 3> bc_vel = ZeroVector(3);                   // TODO: This should be the "structure" velocity in the future
+                        const auto &r_vel_j_0 = r_geom[j].FastGetSolutionStepValue(VELOCITY);
+                        const auto &r_vel_j_1 = r_geom[j].FastGetSolutionStepValue(VELOCITY,1);
+                        vel_j = theta * r_vel_j_0 + (1.0 - theta) * r_vel_j_1;
+                        const array_1d<double, 3> bc_vel = ZeroVector(3); // TODO: This should be the "structure" velocity in the future
                         const double aux_1 = g_weight * penalty_parameter * g_shape_functions[i] * g_shape_functions[j];
                         const double aux_2 = g_weight * g_shape_functions[j];
                         for (IndexType d1 = 0; d1 < TDim; ++d1)
                         {
                             // Penalty term
                             rLeftHandSideMatrix(i * TDim + d1, j * TDim + d1) += aux_1;
-                            rRightHandSideVector(i * TDim + d1) -= aux_1 * (r_vel_j[d1] - bc_vel[d1]);
+                            rRightHandSideVector(i * TDim + d1) -= aux_1 * (vel_j[d1] - bc_vel[d1]);
                             // Nitsche term (only viscous component)
                             for (IndexType d2 = 0; d2 < TDim; ++d2)
                             {
                                 rLeftHandSideMatrix(i * TDim + d1, j * TDim + d2) -= aux_BC_proj(i * TDim + d1,  d2) * aux_2;
-                                rRightHandSideVector(i * TDim + d1) += aux_BC_proj(i * TDim + d1, d2) * aux_2 * (r_vel_j[d1] - bc_vel[d1]);
+                                rRightHandSideVector(i * TDim + d1) += aux_BC_proj(i * TDim + d1, d2) * aux_2 * (vel_j[d1] - bc_vel[d1]);
                             }
                         }
                     }
