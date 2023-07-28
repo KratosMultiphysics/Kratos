@@ -19,12 +19,6 @@ namespace Kratos {
         bool RefineOnReference, 
         bool InterpolateInternalVariables) 
     {
-        block_for_each(mModelPart.Elements(), [&](Element element) {
-            element.SetValue(SPLIT_ELEMENT,true);
-        });
-        block_for_each(mModelPart.Conditions(), [&](Condition condition) {
-            condition.SetValue(SPLIT_ELEMENT,true);
-        });
         LocalRefineMesh(RefineOnReference, InterpolateInternalVariables);
     } 
 
@@ -99,33 +93,35 @@ namespace Kratos {
         const Element& r_elem = KratosComponents<Element>::Get("Element3D10N");
         for (ElementsArrayType::iterator& it = it_begin; it != it_end; ++it)
         {
-            // GlobalPointersVector< Element >& r_child_elements = it->GetValue(NEIGHBOUR_ELEMENTS);
-            auto& r_child_elements = it->GetValue(NEIGHBOUR_ELEMENTS);
-            r_child_elements.resize(0);
+            if(it->GetValue(SPLIT_ELEMENT)){
+                // GlobalPointersVector< Element >& r_child_elements = it->GetValue(NEIGHBOUR_ELEMENTS);
+                auto& r_child_elements = it->GetValue(NEIGHBOUR_ELEMENTS);
+                r_child_elements.resize(0);
 
-            CalculateEdges(it->GetGeometry(), Coord, edge_ids, node_ids);
+                CalculateEdges(it->GetGeometry(), Coord, edge_ids, node_ids);
 
-            // Generate the new Tetrahedra3D10 element
-            Tetrahedra3D10<Node> geom = GenerateTetrahedra(rThisModelPart, node_ids);
-            Element::Pointer p_element;
-            p_element = r_elem.Create(it->Id(), geom, it->pGetProperties());
-            p_element->Initialize(r_current_process_info);
-            p_element->InitializeSolutionStep(r_current_process_info);
-            p_element->FinalizeSolutionStep(r_current_process_info);
+                // Generate the new Tetrahedra3D10 element
+                Tetrahedra3D10<Node> geom = GenerateTetrahedra(rThisModelPart, node_ids);
+                Element::Pointer p_element;
+                p_element = r_elem.Create(it->Id(), geom, it->pGetProperties());
+                p_element->Initialize(r_current_process_info);
+                p_element->InitializeSolutionStep(r_current_process_info);
+                p_element->FinalizeSolutionStep(r_current_process_info);
 
-            // Setting the internal variables in the "child" elem (the element replacing the old one)
-            if (InterpolateInternalVariables == true)
-            {
-                //This method only copies the current information to the new element
-                InterpolateInteralVariables(0, *it.base(), p_element, r_current_process_info);
+                // Setting the internal variables in the "child" elem (the element replacing the old one)
+                if (InterpolateInternalVariables == true)
+                {
+                    //This method only copies the current information to the new element
+                    InterpolateInteralVariables(0, *it.base(), p_element, r_current_process_info);
+                }
+                
+                // Transfer elemental variables to new element
+                p_element->GetData() = it->GetData();
+                p_element->GetValue(SPLIT_ELEMENT) = false;
+                NewElements.push_back(p_element);
+
+                r_child_elements.push_back( Element::WeakPointer(p_element) );
             }
-            
-            // Transfer elemental variables to new element
-            p_element->GetData() = it->GetData();
-            p_element->GetValue(SPLIT_ELEMENT) = false;
-            NewElements.push_back(p_element);
-
-            r_child_elements.push_back( Element::WeakPointer(p_element) );
         }
 
         // Now replace the elements in SubModelParts
@@ -173,26 +169,28 @@ namespace Kratos {
 
             for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it)
             {
-                CalculateEdgesFaces(it->GetGeometry(), Coord, edge_ids, node_ids);
+                if(it->GetValue(SPLIT_ELEMENT)){
+                    CalculateEdgesFaces(it->GetGeometry(), Coord, edge_ids, node_ids);
 
-                // GlobalPointersVector< Condition >& r_child_conditions = it->GetValue(NEIGHBOUR_CONDITIONS);
-                auto& r_child_conditions = it->GetValue(NEIGHBOUR_CONDITIONS);
-                r_child_conditions.resize(0);
+                    // GlobalPointersVector< Condition >& r_child_conditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                    auto& r_child_conditions = it->GetValue(NEIGHBOUR_CONDITIONS);
+                    r_child_conditions.resize(0);
 
-                //Generate the new condition
-                Triangle3D6<Node > geom = GenerateTriangle3D6 (rThisModelPart, node_ids);
-                Condition::Pointer p_cond;
-                p_cond = r_cond.Create(it->Id(), geom, it->pGetProperties());
-                p_cond ->Initialize(r_current_process_info);
-                p_cond ->InitializeSolutionStep(r_current_process_info);
-                p_cond ->FinalizeSolutionStep(r_current_process_info);
+                    //Generate the new condition
+                    Triangle3D6<Node > geom = GenerateTriangle3D6 (rThisModelPart, node_ids);
+                    Condition::Pointer p_cond;
+                    p_cond = r_cond.Create(it->Id(), geom, it->pGetProperties());
+                    p_cond ->Initialize(r_current_process_info);
+                    p_cond ->InitializeSolutionStep(r_current_process_info);
+                    p_cond ->FinalizeSolutionStep(r_current_process_info);
 
-                // Transfer condition variables
-                p_cond->GetData() = it->GetData();
-                p_cond->GetValue(SPLIT_ELEMENT) = false;
-                NewConditions.push_back(p_cond);
+                    // Transfer condition variables
+                    p_cond->GetData() = it->GetData();
+                    p_cond->GetValue(SPLIT_ELEMENT) = false;
+                    NewConditions.push_back(p_cond);
 
-                r_child_conditions.push_back( Condition::WeakPointer( p_cond ) );
+                    r_child_conditions.push_back( Condition::WeakPointer( p_cond ) );
+                }
             }
 
             // Replace the conditions in SubModelParts

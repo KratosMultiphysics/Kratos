@@ -82,6 +82,13 @@ namespace {
         GeometryPtrType geom3 = cond1->pGetGeometry();
         volumes[cond1->Id()] = geom3->Area(); 
 
+        for(auto elem : modelpart.Elements()) {
+            elem.SetValue(SPLIT_ELEMENT,true);
+        }
+        for(auto cond : modelpart.Conditions()) {
+            cond.SetValue(SPLIT_ELEMENT,true);
+        }
+
         LinearToQuadraticTetrahedraMeshConverter refineTetra(modelpart); 
         refineTetra.LocalConvertLinearToQuadraticTetrahedraMesh(false,false);
 
