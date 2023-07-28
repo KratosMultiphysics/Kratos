@@ -2655,6 +2655,64 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastDouble, Kratos
     KRATOS_CHECK_EQUAL(send, 2.0);
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastArray1d, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    array_1d<double, 3> send{2.0*(world_rank+1), 3.0*(world_rank+1), 5.0*(world_rank+1)};
+    array_1d<double, 3> result{2.0*(send_rank+1), 3.0*(send_rank+1), 5.0*(send_rank+1)};
+
+    mpi_world_communicator.Broadcast(send, send_rank);
+    KRATOS_CHECK_VECTOR_EQUAL(send, result);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    Vector send(4);
+    send[0] = 2.0*(world_rank+1);
+    send[1] = 3.0*(world_rank+1);
+    send[2] = 5.0*(world_rank+1);
+    send[3] = 7.0*(world_rank+1);
+    Vector result(4);
+    result[0] = 2.0*(send_rank+1);
+    result[1] = 3.0*(send_rank+1);
+    result[2] = 5.0*(send_rank+1);
+    result[3] = 7.0*(send_rank+1);
+
+    mpi_world_communicator.Broadcast(send, send_rank);
+    KRATOS_CHECK_VECTOR_EQUAL(send, result);
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    Matrix send(2, 2);
+    send.data()[0] = 2.0*(world_rank+1);
+    send.data()[1] = 3.0*(world_rank+1);
+    send.data()[2] = 5.0*(world_rank+1);
+    send.data()[3] = 7.0*(world_rank+1);
+    Matrix result(2, 2);
+    result.data()[0] = 2.0*(send_rank+1);
+    result.data()[1] = 3.0*(send_rank+1);
+    result.data()[2] = 5.0*(send_rank+1);
+    result.data()[3] = 7.0*(send_rank+1);
+
+    mpi_world_communicator.Broadcast(send, send_rank);
+    KRATOS_CHECK_MATRIX_EQUAL(send, result);
+}
+
 namespace {
 template<typename T> void MPIDataCommunicatorBroadcastIntegralTypeVectorTest()
 {
@@ -2724,6 +2782,134 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastDoubleVector, 
         {
             send.resize(3);
             send = {1.0,2.0,3.0};
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send, send_rank),"Input error in call to MPI_Bcast");
+    }
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastArray1dVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    std::vector<array_1d<double, 3>> send(2);
+    send[0][0] =  2.0*(world_rank+1);
+    send[0][1] =  3.0*(world_rank+1);
+    send[0][2] =  5.0*(world_rank+1);
+    send[1][0] =  4.0*(world_rank+1);
+    send[1][1] =  6.0*(world_rank+1);
+    send[1][2] = 10.0*(world_rank+1);
+
+    std::vector<array_1d<double, 3>> result(2);
+    result[0][0] =  2.0*(send_rank+1);
+    result[0][1] =  3.0*(send_rank+1);
+    result[0][2] =  5.0*(send_rank+1);
+    result[1][0] =  4.0*(send_rank+1);
+    result[1][1] =  6.0*(send_rank+1);
+    result[1][2] = 10.0*(send_rank+1);
+
+    mpi_world_communicator.Broadcast(send,send_rank);
+    for (unsigned int i = 0; i < 2; i++) {
+        KRATOS_CHECK_VECTOR_EQUAL(send[i], result[i]);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1) {
+        // One of the ranks has a different size
+        if (world_rank == 0) {
+            send.resize(3);
+            send[2] = array_1d<double, 3>(3, -1);
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send, send_rank),"Input error in call to MPI_Bcast");
+    }
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastVectorVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    std::vector<Vector> send(2, Vector(4));
+    send[0][0] =  2.0*(world_rank+1);
+    send[0][1] =  3.0*(world_rank+1);
+    send[0][2] =  5.0*(world_rank+1);
+    send[0][3] =  7.0*(world_rank+1);
+    send[1][0] =  4.0*(world_rank+1);
+    send[1][1] =  6.0*(world_rank+1);
+    send[1][2] = 10.0*(world_rank+1);
+    send[1][3] = 14.0*(world_rank+1);
+
+    std::vector<Vector> result(2, Vector(4));
+    result[0][0] =  2.0*(send_rank+1);
+    result[0][1] =  3.0*(send_rank+1);
+    result[0][2] =  5.0*(send_rank+1);
+    result[0][3] =  7.0*(send_rank+1);
+    result[1][0] =  4.0*(send_rank+1);
+    result[1][1] =  6.0*(send_rank+1);
+    result[1][2] = 10.0*(send_rank+1);
+    result[1][3] = 14.0*(send_rank+1);
+
+    mpi_world_communicator.Broadcast(send,send_rank);
+    for (unsigned int i = 0; i < 2; i++) {
+        KRATOS_CHECK_VECTOR_EQUAL(send[i], result[i]);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1) {
+        // One of the ranks has a different size
+        if (world_rank == 0) {
+            send.resize(3);
+            send[2] = Vector(4, -1);
+        }
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send, send_rank),"Input error in call to MPI_Bcast");
+    }
+    #endif
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorBroadcastMatrixVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_size-1;
+
+    std::vector<Matrix> send(2, Matrix(2, 2));
+    send[0].data()[0] =  2.0*(world_rank+1);
+    send[0].data()[1] =  3.0*(world_rank+1);
+    send[0].data()[2] =  5.0*(world_rank+1);
+    send[0].data()[3] =  7.0*(world_rank+1);
+    send[1].data()[0] =  4.0*(world_rank+1);
+    send[1].data()[1] =  6.0*(world_rank+1);
+    send[1].data()[2] = 10.0*(world_rank+1);
+    send[1].data()[3] = 14.0*(world_rank+1);
+
+    std::vector<Matrix> result(2, Matrix(2, 2));
+    result[0].data()[0] =  2.0*(send_rank+1);
+    result[0].data()[1] =  3.0*(send_rank+1);
+    result[0].data()[2] =  5.0*(send_rank+1);
+    result[0].data()[3] =  7.0*(send_rank+1);
+    result[1].data()[0] =  4.0*(send_rank+1);
+    result[1].data()[1] =  6.0*(send_rank+1);
+    result[1].data()[2] = 10.0*(send_rank+1);
+    result[1].data()[3] = 14.0*(send_rank+1);
+
+    mpi_world_communicator.Broadcast(send,send_rank);
+    for (unsigned int i = 0; i < 2; i++) {
+        KRATOS_CHECK_MATRIX_EQUAL(send[i], result[i]);
+    }
+
+    #ifdef KRATOS_DEBUG
+    if (mpi_world_communicator.Size() > 1) {
+        // One of the ranks has a different size
+        if (world_rank == 0) {
+            send.resize(3);
+            send[2] = Matrix(2, 2, -1);
         }
         KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Broadcast(send, send_rank),"Input error in call to MPI_Bcast");
     }
