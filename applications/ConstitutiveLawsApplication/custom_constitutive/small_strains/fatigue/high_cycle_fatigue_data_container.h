@@ -17,6 +17,7 @@
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_3d.h"
+#include "custom_constitutive/small_strains/fatigue/hcf_data_container.h"
 
 namespace Kratos
 {
@@ -134,7 +135,7 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    HCFDataContainer mFatigueData = HCFDataContainer();
     ///@}
     ///@name Private Operators
     ///@{
