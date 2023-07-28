@@ -171,7 +171,7 @@ class HRomTrainingUtility(object):
             "include_conditions_model_parts_list": [],
             "include_elements_model_parts_list": [],
             "include_minimum_condition": false,
-            "include_condition_parents": false
+            "include_condition_parents": true
         }""")
         return default_settings
 
