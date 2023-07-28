@@ -479,6 +479,12 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(long unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(double)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(Vector)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(Matrix)
 
 // Broadcast operations
 
@@ -745,30 +751,14 @@ template<class TDataType> TDataType MPIDataCommunicator::SendRecvDetail(
     const int SendDestination, const int SendTag,
     const int RecvSource, const int RecvTag) const
 {
-    TDataType recv_values;
+    TDataType recv_message;
 
     if constexpr(MPIMessage<TDataType>::HasDynamicMemoryAllocation) {
-        // If it is a dynamically allocated data type, then recv_values
-        // should be resized according to the send value from the RecvSource
-        // Hence following communication is required.
-
-        // first shapes needs to be communicated.
-        const std::vector<unsigned int>& send_shape = MPIMessage<TDataType>().Shape(rSendMessage);
-
-        // first communicate the number of dimensions.
-        const unsigned int send_dims = send_shape.size();
-        unsigned int recv_dims = 0;
-        MPI_Sendrecv(&send_dims, 1, MPI_UNSIGNED, SendDestination, SendTag, &recv_dims, 1, MPI_UNSIGNED, RecvSource, RecvTag, mComm, MPI_STATUS_IGNORE);
-
-        // now communicate the shapes
-        std::vector<unsigned int> recv_shape(recv_dims);
-        MPI_Sendrecv(send_shape.data(), send_shape.size(), MPI_UNSIGNED, SendDestination, SendTag, recv_shape.data(), recv_dims, MPI_UNSIGNED, RecvSource, RecvTag, mComm, MPI_STATUS_IGNORE);
-
-        MPIMessage<TDataType>().Resize(recv_values, recv_shape);
+        SynchronizeShape(rSendMessage, SendDestination, SendTag, recv_message, RecvSource,RecvTag);
     }
 
-    SendRecvDetail(rSendMessage,SendDestination, SendTag ,recv_values,RecvSource, RecvTag);
-    return recv_values;
+    SendRecvDetail(rSendMessage,SendDestination, SendTag, recv_message, RecvSource, RecvTag);
+    return recv_message;
 }
 
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDetail(
@@ -780,34 +770,90 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDe
     int recv_size;
     SendRecvDetail(send_size, SendDestination, SendTag, recv_size, RecvSource, RecvTag);
 
-    std::vector<TDataType> recv_values(recv_size);
-    SendRecvDetail(rSendMessage,SendDestination, SendTag ,recv_values,RecvSource, RecvTag);
+    TDataType send_temp, recv_temp;
+
+    if constexpr(MPIMessage<TDataType>::HasDynamicMemoryAllocation) {
+        if (rSendMessage.size() > 0) {
+            send_temp = rSendMessage.front();
+        }
+        SynchronizeShape(send_temp, SendDestination, SendTag, recv_temp, RecvSource,RecvTag);
+    }
+
+    std::vector<TDataType> recv_values(recv_size, recv_temp);
+    SendRecvDetail(rSendMessage,SendDestination, SendTag ,recv_values, RecvSource, RecvTag);
     return recv_values;
 }
 
 template<class TDataType> void MPIDataCommunicator::SendDetail(
     const TDataType& rSendValues, const int SendDestination, const int SendTag) const
 {
-    const int ierr = MPI_Send(MPIBuffer(rSendValues), MPIMessageSize(rSendValues),
-        MPIDatatype(rSendValues), SendDestination, SendTag, mComm);
+    using sub_data_type = typename MPIMessage<TDataType>::SubDataType;
+
+    MPIMessage<TDataType> mpi_send_message;
+
+    if constexpr(MPIMessage<sub_data_type>::HasDynamicMemoryAllocation) {
+        // first send the shape
+        std::vector<unsigned int> shape;
+        if (rSendValues.size() > 0) {
+            shape = MPIMessage<sub_data_type>().Shape(rSendValues.front());
+        } else {
+            shape = MPIMessage<sub_data_type>().Shape(sub_data_type{});
+        }
+
+        // increases the SendTag by one to ensure the communicated data
+        // is received by the shape recieve.
+        const int ierr = MPI_Send(shape.data(), shape.size(), MPI_UNSIGNED, SendDestination, SendTag + 1, mComm);
+        CheckMPIErrorCode(ierr, "MPI_Send");
+    }
+
+    const int ierr = MPI_Send(mpi_send_message.Buffer(rSendValues), mpi_send_message.Size(rSendValues),
+        mpi_send_message.DataType(), SendDestination, SendTag, mComm);
     CheckMPIErrorCode(ierr, "MPI_Send");
 }
 
 template<class TDataType> void MPIDataCommunicator::RecvDetail(
     TDataType& rRecvValues, const int RecvSource, const int RecvTag) const
 {
+    using sub_data_type = typename MPIMessage<TDataType>::SubDataType;
+
+    MPIMessage<TDataType> mpi_recv_message;
     MPI_Status status;
-    int ierr = MPI_Probe(RecvSource,RecvTag,mComm,&status);
+
+    sub_data_type temp;
+
+
+    if constexpr(MPIMessage<sub_data_type>::HasDynamicMemoryAllocation) {
+        // first receive the shape dims of sub data type
+        // recieves with RecvTag + 1, becaues shape information is sent
+        // with this mdofied tag.
+        int ierr = MPI_Probe(RecvSource, RecvTag + 1, mComm,&status);
+        CheckMPIErrorCode(ierr, "MPI_Probe");
+        int recv_dims;
+        ierr = MPI_Get_count(&status, MPI_UNSIGNED, &recv_dims);
+        CheckMPIErrorCode(ierr, "MPI_Get_count");
+
+        // now recieve the shape of the sub data type
+        std::vector<unsigned int> recv_shape(recv_dims);
+        ierr = MPI_Recv(recv_shape.data(), recv_dims, MPI_UNSIGNED, RecvSource, RecvTag + 1, mComm, MPI_STATUS_IGNORE);
+        CheckMPIErrorCode(ierr, "MPI_Recv");
+        MPIMessage<sub_data_type>().Resize(temp, recv_shape);
+    }
+
+    int ierr = MPI_Probe(RecvSource, RecvTag, mComm, &status);
     CheckMPIErrorCode(ierr, "MPI_Probe");
 
     int recv_size;
-    ierr = MPI_Get_count(&status, MPIDatatype(rRecvValues), &recv_size);
+    ierr = MPI_Get_count(&status, mpi_recv_message.DataType(), &recv_size);
 
-    if (rRecvValues.size() != (unsigned int)recv_size) rRecvValues.resize(recv_size);
+    const unsigned int sub_data_type_size = MPIMessage<sub_data_type>().Size(temp);
+    recv_size /= (sub_data_type_size > 0 ? sub_data_type_size : 1);
+    if (rRecvValues.size() != (unsigned int)recv_size) rRecvValues.resize(recv_size, temp);
 
-    ierr = MPI_Recv(MPIBuffer(rRecvValues), recv_size, MPIDatatype(rRecvValues),
+    ierr = MPI_Recv(mpi_recv_message.Buffer(rRecvValues), mpi_recv_message.Size(rRecvValues), mpi_recv_message.DataType(),
         RecvSource, RecvTag, mComm, MPI_STATUS_IGNORE);
     CheckMPIErrorCode(ierr, "MPI_Recv");
+
+    mpi_recv_message.Update(rRecvValues);
 }
 
 template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
