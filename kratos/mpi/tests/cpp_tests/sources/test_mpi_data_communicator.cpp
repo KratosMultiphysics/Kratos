@@ -2245,6 +2245,155 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvDouble, KratosM
     }
 }
 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvArray1d, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    array_1d<double, 3> send_value{2.0*(world_rank+1), 3.0*(world_rank+1), 5.0*(world_rank+1)};
+    array_1d<double, 3> recv_value{3, -1};
+    std::vector<array_1d<double, 3>> send_buffer{2};
+    send_buffer[0] = array_1d<double, 3>{2.0*(world_rank+1), 3.0*(world_rank+1),  5.0*(world_rank+1)};
+    send_buffer[1] = array_1d<double, 3>{4.0*(world_rank+1), 6.0*(world_rank+1), 10.0*(world_rank+1)};
+    std::vector<array_1d<double, 3>> recv_buffer(2, array_1d<double, 3>(3, -1));
+
+    if (world_size > 1) {
+        array_1d<double, 3> expected_recv{2.0*(recv_rank+1), 3.0*(recv_rank+1), 5.0*(recv_rank+1)}, result;
+
+        // value two-buffer version
+        mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_value, recv_rank, 0);
+        KRATOS_CHECK_VECTOR_EQUAL(recv_value, expected_recv);
+
+        // value return version
+        const auto& return_value = mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_rank, 0);
+        KRATOS_CHECK_VECTOR_EQUAL(return_value, expected_recv);
+
+        // two-buffer version
+        mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
+
+        // return version
+        const auto& return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
+
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+        for (int i = 0; i < 2; i++) {
+            result = expected_recv * (i+1);
+            KRATOS_CHECK_VECTOR_EQUAL(recv_buffer[i], result);
+            KRATOS_CHECK_VECTOR_EQUAL(return_buffer[i], result);
+        }
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    Vector send_value(4);
+    send_value[0] = 2.0*(world_rank+1);
+    send_value[1] = 3.0*(world_rank+1);
+    send_value[2] = 5.0*(world_rank+1);
+    send_value[3] = 7.0*(world_rank+1);
+    Vector recv_value{4, -1};
+
+    std::vector<Vector> send_buffer{2, Vector(4)};
+    send_buffer[0][0] =  2.0*(world_rank+1);
+    send_buffer[0][1] =  3.0*(world_rank+1);
+    send_buffer[0][2] =  5.0*(world_rank+1);
+    send_buffer[0][3] =  7.0*(world_rank+1);
+    send_buffer[1][0] =  4.0*(world_rank+1);
+    send_buffer[1][1] =  6.0*(world_rank+1);
+    send_buffer[1][2] = 10.0*(world_rank+1);
+    send_buffer[1][3] = 14.0*(world_rank+1);
+    std::vector<Vector> recv_buffer(2, Vector(4, -1));
+
+    if (world_size > 1) {
+        array_1d<double, 4> expected_recv{2.0*(recv_rank+1), 3.0*(recv_rank+1), 5.0*(recv_rank+1), 7.0*(recv_rank+1)}, result;
+
+        // value two-buffer version
+        mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_value, recv_rank, 0);
+        KRATOS_CHECK_VECTOR_EQUAL(recv_value, expected_recv);
+
+        // value return version
+        const auto& return_value = mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_rank, 0);
+        KRATOS_CHECK_VECTOR_EQUAL(return_value, expected_recv);
+
+        // two-buffer version
+        mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
+
+        // return version
+        const auto& return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
+
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+        for (int i = 0; i < 2; i++) {
+            result = expected_recv * (i+1);
+            KRATOS_CHECK_VECTOR_EQUAL(recv_buffer[i], result);
+            KRATOS_CHECK_VECTOR_EQUAL(return_buffer[i], result);
+        }
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendRecvMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    Matrix send_value(2, 2);
+    send_value.data()[0] = 2.0*(world_rank+1);
+    send_value.data()[1] = 3.0*(world_rank+1);
+    send_value.data()[2] = 5.0*(world_rank+1);
+    send_value.data()[3] = 7.0*(world_rank+1);
+    Matrix recv_value{2, 2, -1};
+
+    std::vector<Matrix> send_buffer{2, Matrix(2, 2)};
+    send_buffer[0].data()[0] =  2.0*(world_rank+1);
+    send_buffer[0].data()[1] =  3.0*(world_rank+1);
+    send_buffer[0].data()[2] =  5.0*(world_rank+1);
+    send_buffer[0].data()[3] =  7.0*(world_rank+1);
+    send_buffer[1].data()[0] =  4.0*(world_rank+1);
+    send_buffer[1].data()[1] =  6.0*(world_rank+1);
+    send_buffer[1].data()[2] = 10.0*(world_rank+1);
+    send_buffer[1].data()[3] = 14.0*(world_rank+1);
+    std::vector<Matrix> recv_buffer(2, Matrix(2, 2, -1));
+
+    if (world_size > 1) {
+        Matrix expected_recv(2, 2), result(2, 2);
+        expected_recv.data()[0] = 2.0*(recv_rank+1);
+        expected_recv.data()[1] = 3.0*(recv_rank+1);
+        expected_recv.data()[2] = 5.0*(recv_rank+1);
+        expected_recv.data()[3] = 7.0*(recv_rank+1);
+
+        // value two-buffer version
+        mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_value, recv_rank, 0);
+        KRATOS_CHECK_MATRIX_EQUAL(recv_value, expected_recv);
+
+        // value return version
+        const auto& return_value = mpi_world_communicator.SendRecv(send_value, send_rank, 0, recv_rank, 0);
+        KRATOS_CHECK_MATRIX_EQUAL(return_value, expected_recv);
+
+        // two-buffer version
+        mpi_world_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
+
+        // return version
+        const auto& return_buffer = mpi_world_communicator.SendRecv(send_buffer, send_rank, recv_rank);
+
+        KRATOS_CHECK_EQUAL(return_buffer.size(), 2);
+        for (int i = 0; i < 2; i++) {
+            result = expected_recv * (i+1);
+            KRATOS_CHECK_MATRIX_EQUAL(recv_buffer[i], result);
+            KRATOS_CHECK_MATRIX_EQUAL(return_buffer[i], result);
+        }
+    }
+}
+
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvDouble, KratosMPICoreFastSuite)
 {
     MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
@@ -2273,6 +2422,143 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvDouble, Krat
 
         for (int i = 0; i < 2; i++) {
             KRATOS_CHECK_EQUAL(recv_buffer[i], expected_recv);
+        }
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvArray1d, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    array_1d<double, 3> send_value{2.0*(world_rank+1), 3.0*(world_rank+1), 5.0*(world_rank+1)};
+    array_1d<double, 3> recv_value{3, -1};
+    std::vector<array_1d<double, 3>> send_buffer{2};
+    send_buffer[0] = array_1d<double, 3>{2.0*(world_rank+1), 3.0*(world_rank+1),  5.0*(world_rank+1)};
+    send_buffer[1] = array_1d<double, 3>{4.0*(world_rank+1), 6.0*(world_rank+1), 10.0*(world_rank+1)};
+    std::vector<array_1d<double, 3>> recv_buffer;
+
+    if (world_size > 1)
+    {
+        array_1d<double, 3> expected_recv{2.0*(recv_rank+1), 3.0*(recv_rank+1), 5.0*(recv_rank+1)}, result;
+
+        // value two-buffer version
+        mpi_world_communicator.Send(send_value, send_rank, 0);
+        mpi_world_communicator.Recv(recv_value, recv_rank, 0);
+        KRATOS_CHECK_VECTOR_EQUAL(recv_value, expected_recv);
+
+        // two-buffer version
+        mpi_world_communicator.Send(send_buffer, send_rank, 0);
+        mpi_world_communicator.Recv(recv_buffer, recv_rank, 0);
+
+        KRATOS_CHECK_EQUAL(recv_buffer.size(), 2);
+
+        for (int i = 0; i < 2; i++) {
+            result = expected_recv * (i+1);
+            KRATOS_CHECK_VECTOR_EQUAL(recv_buffer[i], result);
+        }
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvVector, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    Vector send_value(4);
+    send_value[0] = 2.0*(world_rank+1);
+    send_value[1] = 3.0*(world_rank+1);
+    send_value[2] = 5.0*(world_rank+1);
+    send_value[3] = 7.0*(world_rank+1);
+    Vector recv_value;
+
+    std::vector<Vector> send_buffer{2, Vector(4)};
+    send_buffer[0][0] =  2.0*(world_rank+1);
+    send_buffer[0][1] =  3.0*(world_rank+1);
+    send_buffer[0][2] =  5.0*(world_rank+1);
+    send_buffer[0][3] =  7.0*(world_rank+1);
+    send_buffer[1][0] =  4.0*(world_rank+1);
+    send_buffer[1][1] =  6.0*(world_rank+1);
+    send_buffer[1][2] = 10.0*(world_rank+1);
+    send_buffer[1][3] = 14.0*(world_rank+1);
+    std::vector<Vector> recv_buffer;
+
+    if (world_size > 1)
+    {
+        array_1d<double, 4> expected_recv{2.0*(recv_rank+1), 3.0*(recv_rank+1), 5.0*(recv_rank+1), 7.0*(recv_rank+1)}, result;
+
+        // value two-buffer version
+        mpi_world_communicator.Send(send_value, send_rank, 0);
+        mpi_world_communicator.Recv(recv_value, recv_rank, 0);
+        KRATOS_CHECK_VECTOR_EQUAL(recv_value, expected_recv);
+
+        // two-buffer version
+        mpi_world_communicator.Send(send_buffer, send_rank, 0);
+        mpi_world_communicator.Recv(recv_buffer, recv_rank, 0);
+
+        KRATOS_CHECK_EQUAL(recv_buffer.size(), 2);
+
+        for (int i = 0; i < 2; i++) {
+            result = expected_recv * (i+1);
+            KRATOS_CHECK_VECTOR_EQUAL(recv_buffer[i], result);
+        }
+    }
+}
+
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorSendAndRecvMatrix, KratosMPICoreFastSuite)
+{
+    MPIDataCommunicator mpi_world_communicator(MPI_COMM_WORLD);
+    const int world_size = mpi_world_communicator.Size();
+    const int world_rank = mpi_world_communicator.Rank();
+    const int send_rank = world_rank + 1 == world_size ? 0 : world_rank + 1;
+    const int recv_rank = world_rank == 0 ? world_size - 1 : world_rank - 1;
+
+    Matrix send_value(2, 2);
+    send_value.data()[0] = 2.0*(world_rank+1);
+    send_value.data()[1] = 3.0*(world_rank+1);
+    send_value.data()[2] = 5.0*(world_rank+1);
+    send_value.data()[3] = 7.0*(world_rank+1);
+    Matrix recv_value;
+
+    std::vector<Matrix> send_buffer{2, Matrix(2, 2)};
+    send_buffer[0].data()[0] =  2.0*(world_rank+1);
+    send_buffer[0].data()[1] =  3.0*(world_rank+1);
+    send_buffer[0].data()[2] =  5.0*(world_rank+1);
+    send_buffer[0].data()[3] =  7.0*(world_rank+1);
+    send_buffer[1].data()[0] =  4.0*(world_rank+1);
+    send_buffer[1].data()[1] =  6.0*(world_rank+1);
+    send_buffer[1].data()[2] = 10.0*(world_rank+1);
+    send_buffer[1].data()[3] = 14.0*(world_rank+1);
+    std::vector<Matrix> recv_buffer;
+
+    if (world_size > 1)
+    {
+        Matrix expected_recv(2, 2), result(2, 2);
+        expected_recv.data()[0] = 2.0*(recv_rank+1);
+        expected_recv.data()[1] = 3.0*(recv_rank+1);
+        expected_recv.data()[2] = 5.0*(recv_rank+1);
+        expected_recv.data()[3] = 7.0*(recv_rank+1);
+
+        // value two-buffer version
+        mpi_world_communicator.Send(send_value, send_rank, 0);
+        mpi_world_communicator.Recv(recv_value, recv_rank, 0);
+        KRATOS_CHECK_MATRIX_EQUAL(recv_value, expected_recv);
+
+        // two-buffer version
+        mpi_world_communicator.Send(send_buffer, send_rank, 0);
+        mpi_world_communicator.Recv(recv_buffer, recv_rank, 0);
+
+        KRATOS_CHECK_EQUAL(recv_buffer.size(), 2);
+
+        for (int i = 0; i < 2; i++) {
+            result = expected_recv * (i+1);
+            KRATOS_CHECK_MATRIX_EQUAL(recv_buffer[i], result);
         }
     }
 }
