@@ -844,6 +844,7 @@ template<class TDataType> void MPIDataCommunicator::RecvDetail(
 
     int recv_size;
     ierr = MPI_Get_count(&status, mpi_recv_message.DataType(), &recv_size);
+    CheckMPIErrorCode(ierr, "MPI_Get_count");
 
     const unsigned int sub_data_type_size = MPIMessage<sub_data_type>().Size(temp);
     recv_size /= (sub_data_type_size > 0 ? sub_data_type_size : 1);
