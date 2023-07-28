@@ -92,6 +92,9 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwNormalFluxCondition<2,2>;
+template class UPwNormalFluxCondition<2,3>;
+template class UPwNormalFluxCondition<2,4>;
+template class UPwNormalFluxCondition<2,5>;
 template class UPwNormalFluxCondition<3,3>;
 template class UPwNormalFluxCondition<3,4>;
 
