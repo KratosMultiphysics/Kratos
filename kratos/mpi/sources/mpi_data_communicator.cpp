@@ -616,7 +616,7 @@ std::vector<TDataType> MPIDataCommunicator::ReduceDetailVector(
 {
     std::vector<TDataType> reduced_values;
 
-    TDataType temp;
+    TDataType temp{};
     if (rLocalValues.size() > 0) {
         temp = rLocalValues.front();
     }
@@ -671,7 +671,7 @@ std::vector<TDataType> MPIDataCommunicator::AllReduceDetailVector(
     const std::vector<TDataType>& rLocalValues,
     MPI_Op Operation) const
 {
-    TDataType temp;
+    TDataType temp{};
     if (rLocalValues.size() > 0) {
         temp = rLocalValues.front();
     }
@@ -720,7 +720,7 @@ template<class TDataType> TDataType MPIDataCommunicator::ScanDetail(
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScanDetail(
     const std::vector<TDataType>& rLocalValues, MPI_Op Operation) const
 {
-    TDataType temp;
+    TDataType temp{};
     if (rLocalValues.size() > 0) {
         temp = rLocalValues.front();
     }
@@ -771,7 +771,7 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDe
     int recv_size;
     SendRecvDetail(send_size, SendDestination, SendTag, recv_size, RecvSource, RecvTag);
 
-    TDataType send_temp, recv_temp;
+    TDataType send_temp{}, recv_temp{};
 
     if constexpr(MPIMessage<TDataType>::HasDynamicMemoryAllocation) {
         if (rSendMessage.size() > 0) {
@@ -820,8 +820,7 @@ template<class TDataType> void MPIDataCommunicator::RecvDetail(
     MPIMessage<TDataType> mpi_recv_message;
     MPI_Status status;
 
-    sub_data_type temp;
-
+    sub_data_type temp{};
 
     if constexpr(MPIMessage<sub_data_type>::HasDynamicMemoryAllocation) {
         // first receive the shape dims of sub data type
@@ -923,7 +922,7 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScatterDet
 
     std::vector<TDataType> message;
     if (message_size > 0) {
-        TDataType temp;
+        TDataType temp{};
         if (Rank() == SourceRank) {
             temp = rSendValues.front();
         }
@@ -1023,7 +1022,7 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::GatherDeta
 {
     int message_size = rSendValues.size();
 
-    TDataType temp;
+    TDataType temp{};
     if (rSendValues.size() > 0) {
         temp = rSendValues.front();
     }
@@ -1123,7 +1122,7 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::AllGatherDetail(
     const std::vector<TDataType>& rSendValues) const
 {
-    TDataType temp;
+    TDataType temp{};
     if (rSendValues.size() > 0) {
         temp = rSendValues.front();
     }
@@ -1418,7 +1417,7 @@ template <class TDataType> void MPIDataCommunicator::PrepareScattervBuffers(
         }
     }
 
-    TDataType temp;
+    TDataType temp{};
     if (rScattervMessage.size() > 0) {
         temp = rScattervMessage.front();
     }
@@ -1446,7 +1445,7 @@ template<class TDataType> void MPIDataCommunicator::PrepareGathervBuffers(
     }
     GatherDetail(message_size_send, rMessageLengths, DestinationRank);
 
-    TDataType temp;
+    TDataType temp{};
     if (rGathervInput.size() > 0) {
         temp = rGathervInput.front();
     }
@@ -1484,7 +1483,7 @@ void MPIDataCommunicator::PrepareAllGathervBuffers(
         message_size += rMessageLengths[i];
     }
 
-    TDataType temp;
+    TDataType temp{};
     if (rGathervInput.size() > 0) {
         temp = rGathervInput.front();
     }
