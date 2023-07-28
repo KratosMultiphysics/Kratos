@@ -1,8 +1,11 @@
+from typing import Optional
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ResponseFunction:
@@ -26,17 +29,18 @@ class MassResponseFunction(ResponseFunction):
 
         self.model = model
 
-        evaluated_model_parts = [model[model_part_name] for model_part_name in parameters["evaluated_model_part_names"].GetStringArray()]
-        if len(evaluated_model_parts) == 0:
+        evaluated_model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
+        if len(evaluated_model_part_names) == 0:
             raise RuntimeError(f"No model parts were provided for MassResponseFunction. [ response name = \"{self.GetName()}\"]")
 
-        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_parts, False)
+        self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
+        self.model_part: Optional[Kratos.ModelPart] = None
 
     def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
         return [KratosOA.SHAPE, Kratos.DENSITY, Kratos.THICKNESS, KratosOA.CROSS_AREA]
 
     def Initialize(self) -> None:
-        ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
+        self.model_part = self.model_part_operation.GetModelPart()
 
     def Check(self) -> None:
         KratosOA.ResponseUtils.MassResponseUtils.Check(self.model_part)
