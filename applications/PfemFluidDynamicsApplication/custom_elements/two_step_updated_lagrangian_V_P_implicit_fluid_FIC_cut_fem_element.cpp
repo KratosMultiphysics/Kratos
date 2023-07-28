@@ -946,17 +946,28 @@ namespace Kratos
             ElementalVariables elemental_variables;
             this->InitializeElementalVariables(elemental_variables);
 
-            // Add the boundary terms
+            // Get other data
             const double kappa = rCurrentProcessInfo[PENALTY_COEFFICIENT];
             KRATOS_ERROR_IF(kappa < 1.0e-12) << "'PENALTY_COEFFICIENT' is zero." << std::endl;
             const double h = this->ElementSize();
 
+            // Check if the element is "slip"
+            // Note that if one node is flagged as SLIP the entire element is considered slip
+            bool is_slip = false;
+            const auto &r_geom = this->GetGeometry();
+            for (const auto& r_node : r_geom) {
+                if (r_node.Is(SLIP)) {
+                    is_slip = true;
+                    break;
+                }
+            }
+
+            // Interface Gauss points loop
             array_1d<double,3> vel_gauss;
             const double rho = this->mMaterialDensity;
             const double dt = rCurrentProcessInfo[DELTA_TIME];
             const double theta = this->GetThetaMomentum();
             array_1d<double, TDim> proj_dev_stress;
-            const auto &r_geom = this->GetGeometry();
             const std::size_t n_nodes = r_geom.PointsNumber();
             const unsigned int n_int_gauss_pts = interface_gauss_weights.size();
             for (unsigned int g = 0; g < n_int_gauss_pts; g++)
@@ -1050,10 +1061,9 @@ namespace Kratos
                         noalias(wall_vel) = ZeroVector(3); // TODO: This should be the interpolation of the "structure" velocity in the future
 
                         // Check the boundary condition to be imposed (no-slip or pure slip)
-                        // TODO: Discuss with Ale if we should flag the elements or the nodes --> This depends on how the remeshing algorithm works
-                        if (this->Is(SLIP)) {
+                        if (is_slip) {
                             noalias(norm_proj_mat) = outer_prod(r_g_unit_normal, r_g_unit_normal);
-                            noalias(bc_vel) = prod(norm_proj_mat, vel_j - wall_b);
+                            noalias(bc_vel) = prod(norm_proj_mat, vel_j - wall_vel);
                         } else {
                             noalias(bc_vel) = vel_j - wall_vel;
                         }
@@ -1065,12 +1075,12 @@ namespace Kratos
                         {
                             // Penalty term
                             rLeftHandSideMatrix(i * TDim + d1, j * TDim + d1) += aux_1;
-                            rRightHandSideVector(i * TDim + d1) -= aux_1 * bc_vel;
+                            rRightHandSideVector(i * TDim + d1) -= aux_1 * bc_vel[d1];
                             // Nitsche term (only viscous component)
                             for (IndexType d2 = 0; d2 < TDim; ++d2)
                             {
                                 rLeftHandSideMatrix(i * TDim + d1, j * TDim + d2) -= aux_BC_proj(i * TDim + d1,  d2) * aux_2;
-                                rRightHandSideVector(i * TDim + d1) += aux_BC_proj(i * TDim + d1, d2) * aux_2 * bc_vel;
+                                rRightHandSideVector(i * TDim + d1) += aux_BC_proj(i * TDim + d1, d2) * aux_2 * bc_vel[d1];
                             }
                         }
                     }
