@@ -1025,36 +1025,52 @@ namespace Kratos
                     }
                 }
 
-                // Cut-FEM boundary condition Nitsche imposition
+                // Allocate and calculate auxiliary arrays
                 array_1d<double,3> vel_j;
-                const double penalty_parameter = kappa * (mu / h + rho * (norm_2(vel_gauss) + h / dt));
-                // const double penalty_parameter = 1e7;
+                array_1d<double,3> bc_vel;
+                array_1d<double,3> wall_vel;
+                BoundedMatrix<double, 3, 3> norm_proj_mat;
                 BoundedMatrix<double, StrainSize, TDim * NumNodes> B;
                 BoundedMatrix<double, TDim, StrainSize> voigt_normal;
                 CalculateBMatrix(g_DN_DX, B);
                 VoigtTransformForProduct(r_g_unit_normal, voigt_normal);
                 BoundedMatrix<double, StrainSize, TDim *NumNodes> aux_BC = prod(trans(B), trans(r_constitutive_matrix));
                 BoundedMatrix<double, TDim * NumNodes, TDim> aux_BC_proj = prod(aux_BC, trans(voigt_normal));
+
+                // Cut-FEM boundary condition Nitsche imposition
+                const double penalty_parameter = kappa * (mu / h + rho * (norm_2(vel_gauss) + h / dt));
                 for (IndexType i = 0; i < n_nodes; ++i)
                 {
                     for (IndexType j = 0; j < n_nodes; ++j)
                     {
+                        // j-node data
                         const auto &r_vel_j_0 = r_geom[j].FastGetSolutionStepValue(VELOCITY);
                         const auto &r_vel_j_1 = r_geom[j].FastGetSolutionStepValue(VELOCITY,1);
                         vel_j = theta * r_vel_j_0 + (1.0 - theta) * r_vel_j_1;
-                        const array_1d<double, 3> bc_vel = ZeroVector(3); // TODO: This should be the "structure" velocity in the future
+                        noalias(wall_vel) = ZeroVector(3); // TODO: This should be the interpolation of the "structure" velocity in the future
+
+                        // Check the boundary condition to be imposed (no-slip or pure slip)
+                        // TODO: Discuss with Ale if we should flag the elements or the nodes --> This depends on how the remeshing algorithm works
+                        if (this->Is(SLIP)) {
+                            noalias(norm_proj_mat) = outer_prod(r_g_unit_normal, r_g_unit_normal);
+                            noalias(bc_vel) = prod(norm_proj_mat, vel_j - wall_b);
+                        } else {
+                            noalias(bc_vel) = vel_j - wall_vel;
+                        }
+
+                        // Assemble boundary condition RHS and LHS contributions
                         const double aux_1 = g_weight * penalty_parameter * g_shape_functions[i] * g_shape_functions[j];
                         const double aux_2 = g_weight * g_shape_functions[j];
                         for (IndexType d1 = 0; d1 < TDim; ++d1)
                         {
                             // Penalty term
                             rLeftHandSideMatrix(i * TDim + d1, j * TDim + d1) += aux_1;
-                            rRightHandSideVector(i * TDim + d1) -= aux_1 * (vel_j[d1] - bc_vel[d1]);
+                            rRightHandSideVector(i * TDim + d1) -= aux_1 * bc_vel;
                             // Nitsche term (only viscous component)
                             for (IndexType d2 = 0; d2 < TDim; ++d2)
                             {
                                 rLeftHandSideMatrix(i * TDim + d1, j * TDim + d2) -= aux_BC_proj(i * TDim + d1,  d2) * aux_2;
-                                rRightHandSideVector(i * TDim + d1) += aux_BC_proj(i * TDim + d1, d2) * aux_2 * (vel_j[d1] - bc_vel[d1]);
+                                rRightHandSideVector(i * TDim + d1) += aux_BC_proj(i * TDim + d1, d2) * aux_2 * bc_vel;
                             }
                         }
                     }
