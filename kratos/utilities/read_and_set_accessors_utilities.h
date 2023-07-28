@@ -91,6 +91,7 @@ public:
     ///@name Friends
     ///@{
 
+    ///@}
 private:
 
     ///@name Private static Member Variables
