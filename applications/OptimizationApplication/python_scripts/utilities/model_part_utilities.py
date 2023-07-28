@@ -3,11 +3,84 @@ from enum import Enum
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 
-class ModelPartUtilities:
+class ModelPartOperation:
     class OperationType(Enum):
         UNION = 1,
         INTERSECT = 2
 
+    def __init__(self, model: Kratos.Model, operation_type: OperationType, suggested_model_part_name: str, list_of_operation_model_part_full_names: 'list[str]', add_neighbours: bool) -> None:
+        self.model = model
+        self.operation_type = operation_type
+        self.suggested_model_part_name = suggested_model_part_name
+        self.list_of_operation_model_part_full_names = sorted(list(set(list_of_operation_model_part_full_names)))
+        self.add_neighbours = add_neighbours
+
+        if len(list_of_operation_model_part_full_names) == 0:
+            raise RuntimeError("No operating model part names are provided.")
+
+        if suggested_model_part_name.find("#") != -1 or any([mp_name.find("#") != -1 for mp_name in list_of_operation_model_part_full_names]):
+            # find '#' in the model part names which is not allwed.
+            raise RuntimeError(f"The model part names cannot contain '#' character. Parsed model part names are as followings:\n\t suggested model part name: \"{suggested_model_part_name}\"\n\toperation model part names:\n\t" + "\n\t\t".join(list_of_operation_model_part_full_names))
+
+        # set the root model part. This needs to always exist.
+        self.root_model_part = self.model[self.list_of_operation_model_part_full_names[0].split(".")[0]]
+        self.status_msg = ""
+
+    def GetRootModelPart(self) -> Kratos.ModelPart:
+        return self.root_model_part
+
+    def GetModelPartFullName(self) -> str:
+        # check whether is there a need to perform binary operations
+        if self.operation_type == ModelPartOperation.OperationType.UNION or self.operation_type == ModelPartOperation.OperationType.INTERSECT:
+            if len(self.list_of_operation_model_part_full_names) == 1:
+                # all the operation model parts are the same, hence no need of doing an operation.
+                self.status_msg = ""
+                return self.list_of_operation_model_part_full_names[0]
+
+        # now check in the status messages of the root model part whether this operation is already added.
+        status_msg_prefix = "ModelPartUtilities_created#"
+        status_msg_suffix = f"#{self.operation_type.name}#{self.add_neighbours:d}#" + "#".join(self.list_of_operation_model_part_full_names)
+        status_msg_log = KratosOA.ModelPartUtils.GetModelPartStatusLog(self.GetRootModelPart())
+        for status_msg in status_msg_log:
+            if status_msg.startswith(status_msg_prefix) and status_msg.endswith(status_msg_suffix):
+                # found the same operation done on a different model part, hence sending that name
+                self.status_msg = status_msg
+                full_model_part_name = f"{self.GetRootModelPart().FullName()}.{status_msg.split('#')[1]}"
+                Kratos.Logger.PrintInfo("ModelPartUtilities", f"Using \"{full_model_part_name}\" with the same operation instead of suggested model part with name = \"{self.GetRootModelPart().FullName()}.{self.suggested_model_part_name}\".")
+                return full_model_part_name
+
+        # it is not already called for creation. Then put that in the status msg.
+        if self.root_model_part.HasSubModelPart(self.suggested_model_part_name):
+            # this means, it already has a model part with suggeted name, but
+            # it does not match the operation identifier. So throw an error
+            raise RuntimeError(f"Found an already existing submodel part named \"{self.suggested_model_part_name}\" in {self.root_model_part.FullName()} without the required operation identifier = \"{status_msg_suffix}\".")
+
+        self.status_msg = f"{status_msg_prefix}{self.suggested_model_part_name}{status_msg_suffix}"
+        KratosOA.ModelPartUtils.LogModelPartStatus(self.GetRootModelPart(), self.status_msg)
+        return f"{self.GetRootModelPart().FullName()}.{self.suggested_model_part_name}"
+
+    def GetModelPart(self) -> Kratos.ModelPart:
+        model_part_name = self.GetModelPartFullName()
+        if self.status_msg == "" or self.model.HasModelPart(model_part_name):
+            # if it is already there, that means it is already created. Hence return it or
+            # if the self.status_msg == "" means, there is no need to do any model part operations.
+            # therefore the model part should exist already.
+            return self.model[model_part_name]
+        else:
+            # the model part with the required operation not found. Hence creating it.
+            sub_model_part = self.model.CreateModelPart(model_part_name)
+            # now fill the submodel part
+            operation_model_parts = [self.model[name] for name in self.list_of_operation_model_part_full_names]
+            if self.operation_type == ModelPartOperation.OperationType.UNION:
+                Kratos.ModelPartOperationUtilities.Union(sub_model_part, self.root_model_part, operation_model_parts, self.add_neighbours)
+            elif self.operation_type == ModelPartOperation.OperationType.INTERSECT:
+                Kratos.ModelPartOperationUtilities.Intersect(sub_model_part, self.root_model_part, operation_model_parts, self.add_neighbours)
+
+            Kratos.Logger.PrintInfo("ModelPartUtilities", f"Created sub model part \"{sub_model_part.FullName()}\".")
+
+            return sub_model_part
+
+class ModelPartUtilities:
     @staticmethod
     def __GenerateUniqueIdentifier(prefix: str, list_of_names: 'list[str]', add_neighbours: bool) -> str:
         if not all([name.find("#") == -1 for name in list_of_names]):
@@ -18,80 +91,16 @@ class ModelPartUtilities:
         return (f"{prefix}_{post_fix}_" + "_".join(sorted_names)).replace(".", "-")
 
     @staticmethod
-    def GetOperatingModelPart(operation_type: OperationType, suggested_model_part_name: str, operation_model_parts: 'list[Kratos.ModelPart]', add_neighbours: bool) -> Kratos.ModelPart:
-        if len(operation_model_parts) == 0:
-            raise RuntimeError("No operating model parts are provided.")
-
-        # check whether is there a need to perform binary operations
-        if operation_type == ModelPartUtilities.OperationType.UNION or operation_type == ModelPartUtilities.OperationType.INTERSECT:
-            if len(set(operation_model_parts)) == 1:
-                # all the operation model parts are the same, hence no need of doing an operation.
-                return operation_model_parts[0]
-
-        model_part_names = [model_part.FullName() for model_part in operation_model_parts]
-        model_part_names = sorted(model_part_names)
-        root_model_part: Kratos.ModelPart = operation_model_parts[0].GetModel()[model_part_names[0]].GetRootModelPart()
-        operation_identifier = f"ModelPartUtilities_created#{operation_type.name}#{add_neighbours:d}#" + "#".join(model_part_names)
-
-        for sub_model_part in root_model_part.SubModelParts:
-            if KratosOA.ModelPartUtils.CheckModelPartStatus(sub_model_part, operation_identifier):
-                Kratos.Logger.PrintInfo("ModelPartUtilities", f"Using {sub_model_part.FullName()} with the same operation instead of suggested model part with name = \"{suggested_model_part_name}\".")
-                return sub_model_part
-
-        if root_model_part.HasSubModelPart(suggested_model_part_name):
-            # this means, it already has a model part with suggeted name, but
-            # it does not match the operation identifier. So throw an error
-            raise RuntimeError(f"Found an already existing submodel part named \"{suggested_model_part_name}\" in {root_model_part.FullName()} without the required operation identifier = \"{operation_identifier}\".")
-
-        # if the operation identifier is not found with multiple operation_model_partss, then have to create it
-        # the sub model part
-        sub_model_part = root_model_part.CreateSubModelPart(suggested_model_part_name)
-        KratosOA.ModelPartUtils.LogModelPartStatus(sub_model_part, operation_identifier)
-        Kratos.Logger.PrintInfo("ModelPartUtilities", f"Created sub model part \"{sub_model_part.FullName()}\".")
-        return sub_model_part
-
-    @staticmethod
-    def ExecuteOperationOnModelPart(model_part: Kratos.ModelPart) -> bool:
-        statuses = KratosOA.ModelPartUtils.GetModelPartStatusLog(model_part)
-        for status in statuses:
-            status_data = status.split("#")
-            if len(status_data) > 0 and status_data[0].startswith("ModelPartUtilities_created"):
-                # found a model part which was created using this utility. check whether it is
-                # filled with necessary entitites.
-
-                filled_status = "ModelPartUtilities_filled#" + "#".join(status_data[1:])
-                if not KratosOA.ModelPartUtils.CheckModelPartStatus(model_part, filled_status):
-                    # the model part is not filled with the corresponding entities
-                    # hence, fill it now
-                    if len(status_data) > 3:
-                        model = model_part.GetModel()
-                        operation_type = status_data[1]
-                        add_neighbours = bool(status_data[2])
-                        operation_model_parts = [model[name] for name in status_data[3:]]
-                        main_model_part = model_part.GetParentModelPart()
-
-                        if operation_type == "UNION":
-                            Kratos.ModelPartOperationUtilities.Union(model_part, main_model_part, operation_model_parts, add_neighbours)
-                        elif operation_type == "INTERSECT":
-                            Kratos.ModelPartOperationUtilities.Intersect(model_part, main_model_part, operation_model_parts, add_neighbours)
-                        else:
-                            raise RuntimeError(f"Unsupported operation type found [ operation_type = {operation_type}, model_part = {model_part.FullName()}]. Followings are list of statuses:\n\t" + "\n\t".join(statuses))
-
-                        KratosOA.ModelPartUtils.LogModelPartStatus(model_part, filled_status)
-                        return True
-                    else:
-                        raise RuntimeError(f"The model part {model_part.FullName()} cannot be properly constructed. Followings are list of statuses:\n\t" + "\n\t".join(statuses))
-
-        return False
-
-    @staticmethod
     def GetMergedMap(input_dict: 'dict[Any, KratosOA.CollectiveExpression]', add_neghbours: bool) -> 'dict[Any, Kratos.ModelPart]':
         result: 'dict[Any, Kratos.ModelPart]' = {}
         for k, v in input_dict.items():
-            merging_model_parts = [container_expression.GetModelPart() for container_expression in v.GetContainerExpressions()]
-            uniqe_identifier_name = ModelPartUtilities.__GenerateUniqueIdentifier("UNION", [model_part.FullName() for model_part in merging_model_parts], add_neghbours)
-            merged_model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, uniqe_identifier_name, merging_model_parts, add_neghbours)
-            ModelPartUtilities.ExecuteOperationOnModelPart(merged_model_part)
+            merging_model_part_names = [container_expression.GetModelPart().FullName() for container_expression in v.GetContainerExpressions()]
+
+            if not merging_model_part_names:
+                raise RuntimeError("Merging requires atleast one model part.")
+
+            uniqe_identifier_name = ModelPartUtilities.__GenerateUniqueIdentifier("UNION", merging_model_part_names, add_neghbours)
+            merged_model_part = ModelPartOperation(v.GetContainerExpressions()[0].GetModelPart().GetModel(), ModelPartOperation.OperationType.UNION, uniqe_identifier_name, merging_model_part_names, add_neghbours).GetModelPart()
             result[k] = merged_model_part
 
         return result
@@ -100,9 +109,9 @@ class ModelPartUtilities:
     def GetIntersectedMap(main_model_part: Kratos.ModelPart, input_dict: 'dict[Any, Kratos.ModelPart]', add_neghbours: bool) -> 'dict[Any, Kratos.ModelPart]':
         result: 'dict[Any, Kratos.ModelPart]' = {}
         for k, v in input_dict.items():
-            uniqe_identifier_name = ModelPartUtilities.__GenerateUniqueIdentifier("INTERSECT", [main_model_part.FullName(), v.FullName()], add_neghbours)
-            intersected_model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.INTERSECT, uniqe_identifier_name, [main_model_part, v], add_neghbours)
-            ModelPartUtilities.ExecuteOperationOnModelPart(intersected_model_part)
+            intersecting_model_part_names = [main_model_part.FullName(), v.FullName()]
+            uniqe_identifier_name = ModelPartUtilities.__GenerateUniqueIdentifier("INTERSECT", intersecting_model_part_names, add_neghbours)
+            intersected_model_part = ModelPartOperation(main_model_part.GetModel(), ModelPartOperation.OperationType.INTERSECT, uniqe_identifier_name, intersecting_model_part_names, add_neghbours).GetModelPart()
             result[k] = intersected_model_part
 
         return result
