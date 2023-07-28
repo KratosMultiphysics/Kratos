@@ -215,6 +215,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatigue3DLawRankine", mSmallStrainHighCycleFatigue3DLawRankine);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatigue3DLawSimoJu", mSmallStrainHighCycleFatigue3DLawSimoJu);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("SmallStrainHighCycleFatigue3DLawMohrCoulomb", mSmallStrainHighCycleFatigue3DLawMohrCoulomb);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("HighCycleFatigueDataContainer", mHighCycleFatigueDataContainer);
 
 
     // d+d- laws (3D)
