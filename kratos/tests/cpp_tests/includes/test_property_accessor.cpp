@@ -90,5 +90,40 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
     KRATOS_CHECK_NEAR(2.1e11 * 2.0, modified_E_from_acc, 1.0e-8);
 }
 
+/**
+* Checks the correct work of the TableAccessor
+*/
+KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
+{
+        Model current_model;
+        auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
+        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+
+        r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
+
+        // Set the element properties
+        auto p_elem_prop = r_model_part.CreateNewProperties(0);
+        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+
+        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+        auto p_node_2 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+        auto p_node_3 = r_model_part.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+        auto p_node_4 = r_model_part.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+
+        std::vector<Node::Pointer> geom(4);
+        geom[0] = p_node_1;
+        geom[1] = p_node_2;
+        geom[2] = p_node_3;
+        geom[3] = p_node_4;
+
+        for (auto& r_node : r_model_part.Nodes()){
+            r_node.AddDof(TEMPERATURE);
+        }
+
+        auto p_geom = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{geom});
+
+        // auto p_elem = Kratos::make_intrusive<TestElement>(0, geom, p_elem_prop, TestElement::ResidualType::LINEAR);
+}
 
 }  // namespace Kratos::Testing.
