@@ -27,7 +27,13 @@
 class GeoFlowApplyConstantScalarValueProcess : public Kratos::ApplyConstantScalarValueProcess
 {
 public:
-    using ApplyConstantScalarValueProcess ::ApplyConstantScalarValueProcess;
+    GeoFlowApplyConstantScalarValueProcess(Kratos::ModelPart&              rModelPart,
+                                           const Kratos::Variable<double>& rVariable,
+                                           double                          DoubleValue,
+                                           std::size_t                     MeshId,
+                                           const Flags                     Options)
+        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, Options)
+    {}
 
     bool hasWaterPressure()
     {
@@ -42,9 +48,12 @@ public:
 
 class GeoFlowApplyConstantHydrostaticPressureProcess : public Kratos::ApplyConstantHydrostaticPressureProcess
 {
-    using ApplyConstantHydrostaticPressureProcess::ApplyConstantHydrostaticPressureProcess;
-
 public:
+    GeoFlowApplyConstantHydrostaticPressureProcess(Kratos::ModelPart& rModelPart,
+                                                   Kratos::Parameters Settings)
+        : Kratos::ApplyConstantHydrostaticPressureProcess(rModelPart, Settings)
+    {}
+
     Kratos::ModelPart &GetModelPart()
     {
         return mrModelPart;
@@ -204,14 +213,13 @@ namespace Kratos
             if (pressure_type == "Uniform")
             {
                 auto value = process["Parameters"]["value"].GetDouble();
-                processes.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(GeoFlowApplyConstantScalarValueProcess(part, WATER_PRESSURE,
-                                                                                                                               value, 0, GeoFlowApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
+                processes.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(part, WATER_PRESSURE, value, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
             }
             else if (pressure_type == "Hydrostatic")
             {
                 auto cProcesses = process.Clone();
                 cProcesses["Parameters"].RemoveValue("fluid_pressure_type");
-                processes.push_back(make_shared<GeoFlowApplyConstantHydrostaticPressureProcess>(GeoFlowApplyConstantHydrostaticPressureProcess(part, cProcesses["Parameters"])));
+                processes.push_back(make_shared<GeoFlowApplyConstantHydrostaticPressureProcess>(part, cProcesses["Parameters"]));
             }
             else
             {
