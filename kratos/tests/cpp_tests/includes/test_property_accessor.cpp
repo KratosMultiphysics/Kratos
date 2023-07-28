@@ -18,6 +18,7 @@
 #include "containers/model.h"
 #include "testing/testing.h"
 #include "includes/properties.h"
+#include "includes/table_accessor.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
@@ -93,7 +94,7 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
 /**
 * Checks the correct work of the TableAccessor
 */
-KRATOS_TEST_CASE_IN_SUITE(AAAATableAccessorSimpleProperties, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
 {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -123,10 +124,10 @@ KRATOS_TEST_CASE_IN_SUITE(AAAATableAccessorSimpleProperties, KratosCoreFastSuite
 
         auto p_geom = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{geom});
         Vector N = ZeroVector(4);
-        N[0] = 1.0;
-        N[0] = 2.0;
-        N[0] = 3.0;
-        N[0] = 4.0;
+        N[0] = 0.1;
+        N[0] = 0.2;
+        N[0] = 0.3;
+        N[0] = 0.4;
 
         KRATOS_CHECK_EQUAL(2.0e6, (*p_elem_prop)[YOUNG_MODULUS]);
         KRATOS_CHECK_EQUAL(2.0e6, (*p_elem_prop).GetValue(YOUNG_MODULUS));
@@ -138,10 +139,33 @@ KRATOS_TEST_CASE_IN_SUITE(AAAATableAccessorSimpleProperties, KratosCoreFastSuite
         p_node_3->GetSolutionStepValue(TEMPERATURE) = 35.0;
         p_node_4->GetSolutionStepValue(TEMPERATURE) = 40.0;
 
-        // we create a table relating TEMPERATURE with YOUNG_MODULUS
+        Table<double> T_E_table;
+        T_E_table.PushBack(0.0,   2.0e6);
+        T_E_table.PushBack(25.0,  1.0e6);
+        T_E_table.PushBack(50.0,  0.5e6);
+        T_E_table.PushBack(200.0, 0.25e6);
 
-        // auto table_accessor = 
+        p_elem_prop->SetTable(TEMPERATURE, YOUNG_MODULUS, T_E_table);
+        KRATOS_CHECK_EQUAL(true, (*p_elem_prop).HasTable(TEMPERATURE, YOUNG_MODULUS));
 
+        TableAccessor E_table_accessor = TableAccessor(&TEMPERATURE, "nodal_historical");
+        p_elem_prop->SetAccessor(YOUNG_MODULUS, E_table_accessor.Clone());
+        KRATOS_CHECK_EQUAL(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+        KRATOS_CHECK_EQUAL(1.6e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+
+        Table<double> T_NU_table;
+        T_NU_table.PushBack(0.0,   0.3);
+        T_NU_table.PushBack(25.0,  0.4);
+        T_NU_table.PushBack(50.0,  0.41);
+        T_NU_table.PushBack(200.0, 0.43);
+        p_elem_prop->SetTable(TEMPERATURE, POISSON_RATIO, T_NU_table);
+        TableAccessor nu_table_accessor = TableAccessor(&TEMPERATURE); // using the default nodal_historical
+        p_elem_prop->SetAccessor(POISSON_RATIO, nu_table_accessor.Clone());
+
+        KRATOS_CHECK_EQUAL(true, (*p_elem_prop).HasAccessor(POISSON_RATIO));
+        KRATOS_CHECK_EQUAL(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+        KRATOS_CHECK_EQUAL(1.6e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+        KRATOS_CHECK_EQUAL(0.34, (*p_elem_prop).GetValue(POISSON_RATIO, *p_geom, N, r_model_part.GetProcessInfo()));
 }
 
 }  // namespace Kratos::Testing.
