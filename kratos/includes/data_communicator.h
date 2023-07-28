@@ -34,8 +34,11 @@
 #endif
 
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE
-#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(...)\
-virtual bool SynchronizeShape(__VA_ARGS__&) const { return false; }             \
+#define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(...)                \
+virtual bool SynchronizeShape(__VA_ARGS__&) const { return false; }                             \
+virtual bool SynchronizeShape(                                                                  \
+    const __VA_ARGS__& rSendValue, const int SendDestination, const int SendTag,                \
+    __VA_ARGS__& rRecvValue, const int RecvSource, const int RecvTag) const { return false; }   \
 
 #endif
 

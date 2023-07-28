@@ -24,8 +24,11 @@
 #include "includes/data_communicator.h"
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(...)\
-bool SynchronizeShape(__VA_ARGS__&) const override;                            \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SYNC_SHAPE_INTERFACE_FOR_TYPE(...)         \
+bool SynchronizeShape(__VA_ARGS__&) const override;                                     \
+bool SynchronizeShape(                                                                  \
+    const __VA_ARGS__& rSendValue, const int SendDestination, const int SendTag,        \
+    __VA_ARGS__& rRecvValue, const int RecvSource, const int RecvTag) const override;   \
 
 #endif
 
@@ -329,6 +332,14 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     void CheckMPIErrorCode(const int ierr, const std::string& MPICallName) const;
 
     template<class TDataType> bool SynchronizeShapeDetail(TDataType& rValue) const;
+
+    template<class TDataType> bool SynchronizeShapeDetail(
+        const TDataType& rSendValue,
+        const int SendDestination,
+        const int SendTag,
+        TDataType& rRecvValue,
+        const int RecvSource,
+        const int RecvTag) const;
 
     template<class TDataType> void ReduceDetail(
         const TDataType& rLocalValues,
