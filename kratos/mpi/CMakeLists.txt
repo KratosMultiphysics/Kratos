@@ -21,12 +21,17 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     file(GLOB_RECURSE KRATOS_MPI_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
 
     add_library(KratosMPICoreTestUtilities SHARED ${KRATOS_MPI_TEST_UTILITIES_SOURCES})
-    add_executable(KratosMPICoreTest ${KRATOS_MPI_TEST_SOURCES})
-
-    include(GoogleTest)
+    add_executable(KratosMPICoreTest ${KRATOS_MPI_TEST_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/testing/mpi_testing.cpp)
 
     target_link_libraries(KratosMPICoreTestUtilities KratosMPICore KratosCoreTestUtilities)
     target_link_libraries(KratosMPICoreTest KratosMPICoreTestUtilities)
+
+    # Discover mechanism for mpi tests in not implemented in gtest. We can wrapp the execution in a custom command
+    # but installing and calling it would be best for this case.
+
+    # gtest_discover_tests(KratosMPICoreTest)
+    install(TARGETS KratosMPICoreTestUtilities DESTINATION libs)
+    install(TARGETS KratosMPICoreTest)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################
@@ -43,7 +48,7 @@ target_link_libraries(KratosMPI PRIVATE KratosMPICore KratosCore )
 # set_target_properties(KratosMPI PROPERTIES PREFIX "")
 
 # Install library
-install(TARGETS KratosMPICore DESTINATION libs )
+install(TARGETS KratosMPICore DESTINATION libs)
 install(TARGETS KratosMPI DESTINATION libs)
 
 # Define custom targets

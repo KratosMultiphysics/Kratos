@@ -16,14 +16,14 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 #include "geometries/point.h"
 #include "mpi/utilities/mpi_search_utilities.h"
 
 namespace Kratos::Testing 
 {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPointsAreTheSame, KratosMPICoreFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPointsAreTheSame, KratosMPICoreFastSuite) 
 {
     // The data communicator
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
@@ -41,7 +41,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPoint
     KRATOS_EXPECT_EQ(all_points_coordinates, expected_coordinates);
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPointsAreDifferent, KratosMPICoreFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPointsAreDifferent, KratosMPICoreFastSuite) 
 {
     // The data communicator
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
@@ -71,7 +71,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPoint
     }
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPointsAreDifferentWithRadius, KratosMPICoreFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPointsAreDifferentWithRadius, KratosMPICoreFastSuite) 
 {
     // The data communicator
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();

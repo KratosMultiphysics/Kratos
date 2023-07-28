@@ -76,6 +76,9 @@ if(${KRATOS_BUILD_TESTING} MATCHES ON)
     target_link_libraries(KratosCoreTestUtilities KratosCore GTest::gtest_main GTest::gmock_main)
     target_link_libraries(KratosCoreTest KratosCoreTestUtilities)
 
+    install(TARGETS KratosCoreTestUtilities DESTINATION libs)
+    install(TARGETS KratosCoreTest)
+
     gtest_discover_tests(KratosCoreTest)
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 

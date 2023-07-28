@@ -19,7 +19,7 @@
 // Project includes
 #include "includes/data_communicator.h"
 #include "includes/kratos_components.h"
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 
 namespace Kratos::Testing {
 
@@ -946,11 +946,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataCommunicatorSendRecvString, KratosMPICoreFastSuite
 
     // two-buffer version
     serial_communicator.SendRecv(send_buffer, send_rank, 0, recv_buffer, recv_rank, 0);
-    KRATOS_EXPECT_EQ(recv_buffer.c_str(), "Hello world!");
+    KRATOS_EXPECT_STREQ(recv_buffer.c_str(), "Hello world!");
 
     // return version
     std::string return_buffer = serial_communicator.SendRecv(send_buffer, send_rank, recv_rank);
-    KRATOS_EXPECT_EQ(recv_buffer.c_str(), "Hello world!");
+    KRATOS_EXPECT_STREQ(recv_buffer.c_str(), "Hello world!");
 
     #ifdef KRATOS_DEBUG
     std::string wrong_size_recv("*");

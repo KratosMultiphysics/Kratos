@@ -27,7 +27,6 @@
 
 #define KRATOS_TEST_CASE(A) TEST_F(KratosCoreFastSuite, A)
 #define KRATOS_TEST_CASE_IN_SUITE(A, B) TEST_F(B, A)
-#define KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(A, B) TEST_F(B, A)
 
 namespace Kratos::Testing 
 {
@@ -53,7 +52,6 @@ class KratosCoreCouplingGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
 class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
 class KratosCoreStressSuite : public KratosCoreFastSuite {};
-class KratosMPICoreFastSuite : public KratosCoreFastSuite {};
 
 DataCommunicator& GetDefaultDataCommunicator();
 

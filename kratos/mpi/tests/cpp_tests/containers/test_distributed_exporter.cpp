@@ -16,13 +16,13 @@
 // External includes
 
 // Project includes
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 #include "containers/distributed_system_vector.h"
 #include "containers/distributed_vector_exporter.h"
 
 namespace Kratos::Testing {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosMPICoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosMPICoreFastSuite)
 {
     using IndexType = std::size_t;
     auto& r_comm = Testing::GetDefaultDataCommunicator();
