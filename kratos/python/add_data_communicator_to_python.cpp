@@ -131,6 +131,8 @@ void AddDataCommunicatorMethodForDataType(
 
     rDataCommunicatorModule.def("AllGather", py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::AllGather, py::const_), py::arg(list_of_values.c_str()));
     rDataCommunicatorModule.def("AllGatherv", py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::AllGatherv, py::const_), py::arg(list_of_values.c_str()));
+
+    rDataCommunicatorModule.def("SynchronizeShape", [](const DataCommunicator& rSelf, TDataType& rValue) { rSelf.SynchronizeShape(rValue); return rValue; }, py::arg(value_text.c_str()));
 }
 
 
