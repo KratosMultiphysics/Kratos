@@ -125,9 +125,20 @@ void MPIDataCommunicator::SendRecvImpl(                                         
     type& rRecvValue, const int RecvSource, const int RecvTag) const {                  \
     SendRecvDetail(SendValue,SendDestination,SendTag,rRecvValue,RecvSource,RecvTag);    \
 }                                                                                       \
+void MPIDataCommunicator::SendImpl(const type& rSendValues,                             \
+    const int SendDestination, const int SendTag) const {                               \
+    std::vector<type> send{rSendValues};                                                \
+    SendDetail(send, SendDestination, SendTag);                                         \
+}                                                                                       \
 void MPIDataCommunicator::SendImpl(const std::vector<type>& rSendValues,                \
     const int SendDestination, const int SendTag) const {                               \
     SendDetail(rSendValues, SendDestination, SendTag);                                  \
+}                                                                                       \
+void MPIDataCommunicator::RecvImpl(type& rRecvValues,                                   \
+    const int RecvSource, const int RecvTag) const {                                    \
+    std::vector<type> recv(1);                                                          \
+    RecvDetail(recv, RecvSource, RecvTag);                                              \
+    rRecvValues = recv[0];                                                              \
 }                                                                                       \
 void MPIDataCommunicator::RecvImpl(std::vector<type>& rRecvValues,                      \
     const int RecvSource, const int RecvTag) const {                                    \

@@ -151,9 +151,17 @@ virtual void SendRecvImpl(                                                      
     rRecvValues = SendRecvImpl(rSendValues, SendDestination, SendTag, RecvSource, RecvTag);                     \
 }                                                                                                               \
 virtual void SendImpl(                                                                                          \
+    const type& rSendValues, const int SendDestination, const int SendTag = 0) const {                          \
+    KRATOS_ERROR_IF(Rank() != SendDestination)                                                                  \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;    \
+}                                                                                                               \
+virtual void SendImpl(                                                                                          \
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag = 0) const {             \
     KRATOS_ERROR_IF(Rank() != SendDestination)                                                                  \
     << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;    \
+}                                                                                                               \
+virtual void RecvImpl(type& rRecvValues, const int RecvSource, const int RecvTag = 0) const {                   \
+    KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;      \
 }                                                                                                               \
 virtual void RecvImpl(std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag = 0) const {      \
     KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;      \

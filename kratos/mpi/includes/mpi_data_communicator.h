@@ -73,8 +73,12 @@ void SendRecvImpl(                                                              
 void SendRecvImpl(                                                                           \
     const std::vector<type>& rSendValues, const int SendDestination, const int SendTag,      \
     std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const override; \
+void SendImpl(const type& rSendValues,                                                       \
+    const int SendDestination, const int SendTag = 0) const override;                        \
 void SendImpl(const std::vector<type>& rSendValues,                                          \
     const int SendDestination, const int SendTag = 0) const override;                        \
+void RecvImpl(type& rRecvValues,                                                             \
+    const int RecvSource, const int RecvTag = 0) const override;                             \
 void RecvImpl(std::vector<type>& rRecvValues,                                                \
     const int RecvSource, const int RecvTag = 0) const override;                             \
 
