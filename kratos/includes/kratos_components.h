@@ -119,6 +119,15 @@ public:
     }
 
     /**
+     * @brief Removes all components.
+     * @details This function removes all components form the ComponentsContainer and leaves it empty.
+     */
+    static void Clear() 
+    {
+        msComponents.clear();
+    }
+
+    /**
      * @brief Registers the function.
      */
     static void Register()
