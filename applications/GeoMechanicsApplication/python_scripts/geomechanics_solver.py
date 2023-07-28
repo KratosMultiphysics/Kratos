@@ -59,6 +59,7 @@ class GeoMechanicalSolver(PythonSolver):
         this_defaults = KratosMultiphysics.Parameters("""{
             "solver_type": "geomechanics_U_Pw_solver",
             "model_part_name": "PorousDomain",
+            "thermal_pressure_coupled": false,
             "domain_size": 2,
             "start_time": 0.0,
             "model_import_settings":{
