@@ -18,21 +18,21 @@ extern "C"
                                                double maxCriticalHead,
                                                double stepCriticalHead,
                                                char *criticalHeadBoundaryModelPartName,
-                                               void __stdcall logCallback(char *),
+                                               void __stdcall logCallback(const char*),
                                                void __stdcall reportProgress(double),
-                                               void __stdcall reportTextualProgress(char *),
+                                               void __stdcall reportTextualProgress(const char*),
                                                bool __stdcall shouldCancel())
     {
-        int errorCode = instance->execute_flow_analysis(workingDirectory,
-                                                        projectFile,
-                                                        minCriticalHead,
-                                                        maxCriticalHead,
-                                                        stepCriticalHead,
-                                                        criticalHeadBoundaryModelPartName,
-                                                        logCallback,
-                                                        reportProgress,
-                                                        reportTextualProgress,
-                                                        shouldCancel);
+        int errorCode = instance->ExecuteFlowAnalysis(workingDirectory,
+                                                      projectFile,
+                                                      minCriticalHead,
+                                                      maxCriticalHead,
+                                                      stepCriticalHead,
+                                                      criticalHeadBoundaryModelPartName,
+                                                      logCallback,
+                                                      reportProgress,
+                                                      reportTextualProgress,
+                                                      shouldCancel);
         return errorCode;
     }
 

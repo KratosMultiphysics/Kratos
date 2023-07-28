@@ -163,10 +163,12 @@ void IsotropicDamageCohesive3DLaw::FinalizeMaterialResponseCauchy (Parameters& r
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-Vector& IsotropicDamageCohesive3DLaw::GetValue( const Variable<Vector>& rThisVariable, Vector& rValue )
+double& IsotropicDamageCohesive3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
-    rValue = mStateVariable;
+    if( rThisVariable == DAMAGE_VARIABLE )
+    {
+        rValue = mDamageVariable;
+    }
     return( rValue );
 }
 
@@ -217,7 +219,7 @@ void IsotropicDamageCohesive3DLaw::ComputeStressVector(Vector& rStressVector, Ve
     double normalStrain = StrainVector[VoigtSize-1];
 
     // Compute the stress vector
-    rStressVector = (1.0 - rVariables.DamageVariable)*EffectiveStressVector;
+    rStressVector = (1.0 - mDamageVariable)*EffectiveStressVector;
 
     // Fix the normal component in case it is a compression in the normal direction
     if (normalStrain < 0.0)
@@ -241,7 +243,7 @@ void IsotropicDamageCohesive3DLaw::ComputeTangentConstitutiveMatrix(Matrix& rCon
     this->ComputeDamageConstitutiveMatrix(DamageConstitutiveMatrix,EffectiveStressVector,rVariables,rValues);
 
     // Compute the tangent constitutive matrix
-    rConstitutiveMatrix = (1.0 - rVariables.DamageVariable)*ElasticConstitutiveMatrix - DamageConstitutiveMatrix;
+    rConstitutiveMatrix = (1.0 - mDamageVariable)*ElasticConstitutiveMatrix - DamageConstitutiveMatrix;
 
     // In case it is a compression in the normal direction:
     if (normalStrain < 0.0)
@@ -276,8 +278,11 @@ void IsotropicDamageCohesive3DLaw::ComputeEquivalentStrain(ConstitutiveLawVariab
     rVariables.OldEquivalentStrain = mOldStateVariable[1] + rVariables.BetaEqStrainShearFactor * mOldStateVariable[0];
 
     // Compute the vector with the derivatives of the equivalent strain wrt to the components of the strain vector
-    rVariables.DerivativeEquivalentStrain[0] = rVariables.BetaEqStrainShearFactor * StrainVector[0] / resShear;
-    rVariables.DerivativeEquivalentStrain[1] = rVariables.BetaEqStrainShearFactor * StrainVector[1] / resShear;
+    rVariables.DerivativeEquivalentStrain = ZeroVector(3);
+    if (resShear > 0.0) {
+        rVariables.DerivativeEquivalentStrain[0] = rVariables.BetaEqStrainShearFactor * StrainVector[0] / resShear;
+        rVariables.DerivativeEquivalentStrain[1] = rVariables.BetaEqStrainShearFactor * StrainVector[1] / resShear;
+    }
     rVariables.DerivativeEquivalentStrain[2] = 1.0;
 }
 
@@ -289,7 +294,7 @@ void IsotropicDamageCohesive3DLaw::ComputeScalarDamage(ConstitutiveLawVariables&
 {
     // Before damage initiated
     if((rVariables.EquivalentStrain - rVariables.DamageThreshold) <= 0.0){
-        rVariables.DamageVariable = 0.0;
+        mDamageVariable = 0.0;
         rVariables.DerivativeSDV  = 0.0;
     }
     // Damage initiated, but it didn't evolved 
@@ -317,21 +322,21 @@ void IsotropicDamageCohesive3DLaw::DamageLaw(ConstitutiveLawVariables& rVariable
 
     switch (rVariables.DamageEvolutionLaw){
         case 1: // Linear evolution law
-            rVariables.DamageVariable = (wmax / (wmax - w0)) * (1.0 - w0/w); 
+            mDamageVariable = (wmax / (wmax - w0)) * (1.0 - w0/w); 
             if (needsDerivative){
                 rVariables.DerivativeSDV = (w0*wmax)/(w*w*(wmax - w0)); 
             }
             break;
         case 2: // Exponential evolution law
-            rVariables.DamageVariable = 1.0 - w0/w * std::exp(-ft*(w - w0)/Gf);
+            mDamageVariable = 1.0 - w0/w * std::exp(-ft*(w - w0)/Gf);
             if (needsDerivative){
                 rVariables.DerivativeSDV = (ft * w + Gf)* w0/(w * w * Gf) * std::exp(-ft*(w - w0)/Gf);
             }
             break;
     }
 
-    if(rVariables.DamageVariable > 1.0){
-        rVariables.DamageVariable = 0.99999;
+    if(mDamageVariable > 1.0){
+        mDamageVariable = 0.99999;
     }
 }
 

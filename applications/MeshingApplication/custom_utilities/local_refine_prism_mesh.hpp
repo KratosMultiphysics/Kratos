@@ -407,18 +407,18 @@ public:
         aux.resize(12, false);
 
         // Lower face
-        int index_0 = geom[0].Id() - 1;
-        int index_1 = geom[1].Id() - 1;
-        int index_2 = geom[2].Id() - 1;
+        int index_0 = mMapNodeIdToPos[geom[0].Id()];
+        int index_1 = mMapNodeIdToPos[geom[1].Id()];
+        int index_2 = mMapNodeIdToPos[geom[2].Id()];
 
         aux[0] = geom[0].Id();
         aux[1] = geom[1].Id();
         aux[2] = geom[2].Id();
 
         // Upper face
-        int index_3 = geom[3].Id() - 1;
-        int index_4 = geom[4].Id() - 1;
-        int index_5 = geom[5].Id() - 1;
+        int index_3 = mMapNodeIdToPos[geom[3].Id()];
+        int index_4 = mMapNodeIdToPos[geom[4].Id()];
+        int index_5 = mMapNodeIdToPos[geom[5].Id()];
 
         aux[3] = geom[3].Id();
         aux[4] = geom[4].Id();
