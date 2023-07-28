@@ -16,13 +16,6 @@
 #include "mpi/includes/mpi_manager.h"
 #include "mpi/includes/mpi_message.h"
 
-#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNCHRONIZATION_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNCHRONIZATION_INTERFACE_FOR_TYPE(...)                                 \
-bool MPIDataCommunicator::SynchronizeShape(__VA_ARGS__& rValue) const { return SynchronizeShapeDetail(rValue); }    \
-bool SynchronizeShape(std::vector<__VA_ARGS__>& rValue) const { return SynchronizeShapeDetail(rValue); }            \
-
-#endif
-
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(type)                                 \
 type MPIDataCommunicator::Sum(const type rLocalValue, const int Root) const {                               \
@@ -54,24 +47,6 @@ std::vector<type> MPIDataCommunicator::Max(const std::vector<type>& rLocalValues
 void MPIDataCommunicator::Max(                                                                              \
     const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const {        \
     ReduceDetail(rLocalValues, rGlobalValues, MPI_MAX, Root);                                               \
-}                                                                                                           \
-
-#endif
-
-#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(...)                           \
-__VA_ARGS__ MPIDataCommunicator::Sum(const __VA_ARGS__& rLocalValue, const int Root) const {                \
-    return ReduceDetail(rLocalValue, MPI_SUM, Root);                                                        \
-}                                                                                                           \
-__VA_ARGS__ MPIDataCommunicator::Min(const __VA_ARGS__& rLocalValue, const int Root) const {                \
-    __VA_ARGS__ global_value(rLocalValue);                                                                  \
-    ReduceDetail(rLocalValue, global_value, MPI_MIN, Root);                                                 \
-    return global_value;                                                                                    \
-}                                                                                                           \
-__VA_ARGS__ MPIDataCommunicator::Max(const __VA_ARGS__& rLocalValue, const int Root) const {                \
-    __VA_ARGS__ global_value(rLocalValue);                                                                  \
-    ReduceDetail(rLocalValue, global_value, MPI_MAX, Root);                                                 \
-    return global_value;                                                                                    \
 }                                                                                                           \
 
 #endif
@@ -111,26 +86,6 @@ void MPIDataCommunicator::MaxAll(                                               
 
 #endif
 
-#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_KRATOS_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_KRATOS_TYPE(...)         \
-__VA_ARGS__ MPIDataCommunicator::SumAll(const __VA_ARGS__& rLocalValue) const {              \
-    __VA_ARGS__ global_value(rLocalValue);                                                   \
-    AllReduceDetail(rLocalValue,global_value,MPI_SUM);                                       \
-    return global_value;                                                                     \
-}                                                                                            \
-__VA_ARGS__ MPIDataCommunicator::MinAll(const __VA_ARGS__& rLocalValue) const {              \
-    __VA_ARGS__ global_value(rLocalValue);                                                   \
-    AllReduceDetail(rLocalValue,global_value,MPI_MIN);                                       \
-    return global_value;                                                                     \
-}                                                                                            \
-__VA_ARGS__ MPIDataCommunicator::MaxAll(const __VA_ARGS__& rLocalValue) const {              \
-    __VA_ARGS__ global_value(rLocalValue);                                                   \
-    AllReduceDetail(rLocalValue,global_value,MPI_MAX);                                       \
-    return global_value;                                                                     \
-}                                                                                            \
-
-#endif
-
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(type)                  \
 type MPIDataCommunicator::ScanSum(const type LocalValue) const {                              \
@@ -143,16 +98,6 @@ void MPIDataCommunicator::ScanSum(                                              
     const std::vector<type>& rLocalValues, std::vector<type>& rPartialSums) const {           \
     ScanDetail(rLocalValues,rPartialSums,MPI_SUM);                                            \
 }                                                                                             \
-
-#endif
-
-#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_KRATOS_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_KRATOS_TYPE(...)           \
-__VA_ARGS__ MPIDataCommunicator::ScanSum(const __VA_ARGS__& LocalValue) const {              \
-    __VA_ARGS__ global_value(LocalValue);                                                    \
-    ScanDetail(LocalValue, global_value, MPI_SUM);                                           \
-    return global_value;                                                                     \
-}                                                                                            \
 
 #endif
 
@@ -276,14 +221,6 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(type)    \
 
 #endif
 
-#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(...)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)\
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_KRATOS_TYPE(__VA_ARGS__)  \
-
-#endif
-
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE
 #define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(type)   \
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(type)  \
@@ -338,14 +275,26 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(long unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(double)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(char)
 
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 3>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 4>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 6>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(array_1d<double, 9>)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Vector)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_KRATOS_TYPE(Matrix)
-
 // Reduce operations
+
+array_1d<double,3> MPIDataCommunicator::Sum(const array_1d<double,3>& rLocalValue, const int Root) const
+{
+    return ReduceDetail(rLocalValue, MPI_SUM, Root);
+}
+
+array_1d<double,3> MPIDataCommunicator::Min(const array_1d<double,3>& rLocalValue, const int Root) const
+{
+    array_1d<double,3> global_value(rLocalValue);
+    ReduceDetail(rLocalValue, global_value, MPI_MIN, Root);
+    return global_value;
+}
+
+array_1d<double,3> MPIDataCommunicator::Max(const array_1d<double,3>& rLocalValue, const int Root) const
+{
+    array_1d<double,3> global_value(rLocalValue);
+    ReduceDetail(rLocalValue,global_value,MPI_MAX,Root);
+    return global_value;
+}
 
 bool MPIDataCommunicator::AndReduce(const bool Value, const int Root) const
 {
@@ -390,6 +339,27 @@ Kratos::Flags MPIDataCommunicator::OrReduce(const Kratos::Flags Values, const Kr
 }
 
 // Allreduce operations
+
+array_1d<double,3> MPIDataCommunicator::SumAll(const array_1d<double,3>& rLocalValue) const
+{
+    array_1d<double,3> global_value(rLocalValue);
+    AllReduceDetail(rLocalValue,global_value,MPI_SUM);
+    return global_value;
+}
+
+array_1d<double,3> MPIDataCommunicator::MinAll(const array_1d<double,3>& rLocalValue) const
+{
+    array_1d<double,3> global_value(rLocalValue);
+    AllReduceDetail(rLocalValue,global_value,MPI_MIN);
+    return global_value;
+}
+
+array_1d<double,3> MPIDataCommunicator::MaxAll(const array_1d<double,3>& rLocalValue) const
+{
+    array_1d<double,3> global_value(rLocalValue);
+    AllReduceDetail(rLocalValue,global_value,MPI_MAX);
+    return global_value;
+}
 
 bool MPIDataCommunicator::AndReduceAll(const bool Value) const
 {
@@ -555,13 +525,6 @@ void MPIDataCommunicator::RecvImpl(std::string& rRecvValues, const int RecvSourc
 }
 
 // Implementation details of MPI calls
-
-template<class TDataType>  bool MPIDataCommunicator::SynchronizeShapeDetail(TDataType& rValue) const
-{
-    // if constexpr(std::is_arithmetic_v<TDataType>) {
-    //     return false;
-    // } else if (std::is_)
-}
 
 template<class TDataType> void MPIDataCommunicator::ReduceDetail(
     const TDataType& rLocalValues, TDataType& rReducedValues,
