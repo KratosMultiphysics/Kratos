@@ -91,39 +91,7 @@ public:
     ///@name Friends
     ///@{
 
-private:
-
-    ///@name Private static Member Variables
-    ///@{
-
     ///@}
-    ///@name Private member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Private LifeCycle
-    ///@{
-
-    ///@}
-    ///@name Unaccessible methods
-    ///@{
-
 }; /* Class ReadAndSetAccessorsUtilities */
 
 ///@name Type Definitions

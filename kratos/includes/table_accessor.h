@@ -76,7 +76,7 @@ public:
         } else if (rInputVariableType == "elemental_non_historical") {
             mInputVariableType = Globals::DataLocation::Element;
         } else {
-            KRATOS_ERROR << "The table_input_variable_type is incorrect or not supported. Types available are : nodal_historical, nodal_non_historical and elemental_non_historical" << std::endl;
+            KRATOS_ERROR << "The table_input_variable_type is incorrect or not supported. Types available are : 'nodal_historical', 'nodal_non_historical' and 'elemental_non_historical'" << std::endl;
         }
     }
 
