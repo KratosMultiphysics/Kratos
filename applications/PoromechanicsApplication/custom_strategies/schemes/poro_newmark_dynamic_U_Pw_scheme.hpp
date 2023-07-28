@@ -41,6 +41,10 @@ public:
     PoroNewmarkDynamicUPwScheme(double beta, double gamma, double theta)
         : PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
     {
+        // Here mBeta and mGamma are used for the GN22 scheme
+        mBeta = beta;
+        mGamma = gamma;
+
         //Allocate auxiliary memory
         int NumThreads = ParallelUtilities::GetNumThreads();
         mMassMatrix.resize(NumThreads);
@@ -53,6 +57,50 @@ public:
 
     ///Destructor
     ~PoroNewmarkDynamicUPwScheme() override {}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    int Check(ModelPart& r_model_part) override
+    {
+        KRATOS_TRY
+
+        // Base class checks
+        int ierr = PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::Check(r_model_part);
+        if(ierr != 0) return ierr;
+
+        //check for variables keys (verify that the variables are correctly initialized)
+        if(ACCELERATION.Key() == 0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"ACCELERATION Key is 0. Check if all applications were correctly registered.", "" )
+
+        //check that variables are correctly allocated
+        for(ModelPart::NodesContainerType::iterator it=r_model_part.NodesBegin(); it!=r_model_part.NodesEnd(); it++)
+        {
+            if(it->SolutionStepsDataHas(ACCELERATION) == false)
+                KRATOS_THROW_ERROR( std::logic_error, "ACCELERATION variable is not allocated for node ", it->Id() )
+        }
+
+        // Check beta, gamma
+        if(mBeta <= 0.0 || mGamma< 0.0)
+            KRATOS_THROW_ERROR( std::invalid_argument,"Some of the scheme variables: beta or gamma has an invalid value ", "" )
+
+        return ierr;
+
+        KRATOS_CATCH( "" )
+    }
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+
+    void Initialize(ModelPart& r_model_part) override
+    {
+        KRATOS_TRY
+
+        PoroNewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::Initialize(r_model_part);
+
+        // Note: VELOCITY_COEFFICIENT is updated according to the GN22 scheme used here
+        r_model_part.GetProcessInfo().SetValue(VELOCITY_COEFFICIENT,mGamma/(mBeta*mDeltaTime));
+
+        KRATOS_CATCH("")
+    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
