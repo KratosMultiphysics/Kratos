@@ -106,6 +106,50 @@ CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
     rIntegrationCoefficient = ds * Weight;
 }
 
+//----------------------------------------------------------------------------------------
+template< >
+void PwNormalFluxCondition<2, 3>::
+CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
+    const Matrix& Jacobian,
+    const double& Weight)
+{
+    double dx_dxi = Jacobian(0, 0);
+    double dy_dxi = Jacobian(1, 0);
+
+    double ds = sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+
+    rIntegrationCoefficient = ds * Weight;
+}
+
+//----------------------------------------------------------------------------------------
+template< >
+void PwNormalFluxCondition<2, 4>::
+CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
+    const Matrix& Jacobian,
+    const double& Weight)
+{
+    double dx_dxi = Jacobian(0, 0);
+    double dy_dxi = Jacobian(1, 0);
+
+    double ds = sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+
+    rIntegrationCoefficient = ds * Weight;
+}
+
+//----------------------------------------------------------------------------------------
+template< >
+void PwNormalFluxCondition<2, 5>::
+CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
+    const Matrix& Jacobian,
+    const double& Weight)
+{
+    double dx_dxi = Jacobian(0, 0);
+    double dy_dxi = Jacobian(1, 0);
+
+    double ds = sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
+
+    rIntegrationCoefficient = ds * Weight;
+}
 
 //----------------------------------------------------------------------------------------
 template< >
@@ -155,6 +199,9 @@ CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class PwNormalFluxCondition<2,2>;
+template class PwNormalFluxCondition<2,3>;
+template class PwNormalFluxCondition<2,4>;
+template class PwNormalFluxCondition<2,5>;
 template class PwNormalFluxCondition<3,3>;
 template class PwNormalFluxCondition<3,4>;
 
