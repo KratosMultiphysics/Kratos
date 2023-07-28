@@ -153,7 +153,7 @@ class GeoMechanicalSolver(PythonSolver):
 
         # Variables for 2-phase types of calculations:
         ## Fluid Variables
-        if self.settings["solver_type"].GetString() == "Pw" or self.settings["solver_type"].GetString() == "UPw" or self.settings["thermal_pressure_coupled"].GetBool():
+        if self.settings["solver_type"].GetString() == "Pw" or self.settings["solver_type"].GetString() == "U_Pw" or self.settings["thermal_pressure_coupled"].GetBool():
             self._add_water_variables()
 
         # Add temperature variables
