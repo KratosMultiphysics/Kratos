@@ -93,7 +93,7 @@ KRATOS_TEST_CASE_IN_SUITE(PropertyAccessorSimpleProperties, KratosCoreFastSuite)
 /**
 * Checks the correct work of the TableAccessor
 */
-KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(AAAATableAccessorSimpleProperties, KratosCoreFastSuite)
 {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -122,8 +122,26 @@ KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
         }
 
         auto p_geom = Kratos::make_shared<Quadrilateral2D4<Node>>(PointerVector<Node>{geom});
+        Vector N = ZeroVector(4);
+        N[0] = 1.0;
+        N[0] = 2.0;
+        N[0] = 3.0;
+        N[0] = 4.0;
 
-        // auto p_elem = Kratos::make_intrusive<TestElement>(0, geom, p_elem_prop, TestElement::ResidualType::LINEAR);
+        KRATOS_CHECK_EQUAL(2.0e6, (*p_elem_prop)[YOUNG_MODULUS]);
+        KRATOS_CHECK_EQUAL(2.0e6, (*p_elem_prop).GetValue(YOUNG_MODULUS));
+        KRATOS_CHECK_EQUAL(2.0e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+        KRATOS_CHECK_EQUAL(false, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+
+        p_node_1->GetSolutionStepValue(TEMPERATURE) = 25.0;
+        p_node_2->GetSolutionStepValue(TEMPERATURE) = 30.0;
+        p_node_3->GetSolutionStepValue(TEMPERATURE) = 35.0;
+        p_node_4->GetSolutionStepValue(TEMPERATURE) = 40.0;
+
+        // we create a table relating TEMPERATURE with YOUNG_MODULUS
+
+        // auto table_accessor = 
+
 }
 
 }  // namespace Kratos::Testing.
