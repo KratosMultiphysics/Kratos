@@ -47,6 +47,7 @@ namespace Kratos
 
     	std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
         bool mIsInitialised = false;
+        bool mIsPressureCoupled = false;
 
 //        typedef typename BaseType::ElementVariables ElementVariables;
 

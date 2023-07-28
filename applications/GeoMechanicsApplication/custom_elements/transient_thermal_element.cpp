@@ -203,6 +203,11 @@ namespace Kratos
             mConstitutiveLawVector[i] = nullptr;
         }
 
+        if (rGeom[0].SolutionStepsDataHas(WATER_PRESSURE))
+        {
+            mIsPressureCoupled = true;
+        }
+
         mIsInitialised = true;
 
         KRATOS_CATCH("")
@@ -320,7 +325,7 @@ namespace Kratos
                 this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
 
             //
-            if (Geom[0].SolutionStepsDataHas(WATER_PRESSURE))
+            if (mIsPressureCoupled)
             {
                 this->UpdateWaterProperties(Variables, GPoint);
                 this->CalculateDischargeVector(Variables);
@@ -387,7 +392,10 @@ namespace Kratos
 
         this->CalculateAndAddConductivityMatrix(rLeftHandSideMatrix, rVariables);
         this->CalculateAndAddCapacityMatrix(rLeftHandSideMatrix, rVariables);
-        this->CalculateAndAddConvectionMatrix(rLeftHandSideMatrix, rVariables);
+        if (mIsPressureCoupled) 
+        {
+            this->CalculateAndAddConvectionMatrix(rLeftHandSideMatrix, rVariables);
+        }
 
         KRATOS_CATCH("")
     }
@@ -722,21 +730,24 @@ namespace Kratos
         C(1, 0) = c1 * rVariables.SolidThermalConductivityYX;
         C(1, 1) = c1 * rVariables.SolidThermalConductivityYY + c0;
 
-        double qtot = 0.0;
-        for (int i = 0; i < rVariables.DischargeVector.size(); ++i)
+        if (mIsPressureCoupled)
         {
-            qtot = qtot + rVariables.DischargeVector[i] * rVariables.DischargeVector[i];
-        }
-        qtot = std::sqrt(qtot);
-        if (qtot > 0.0)
-        {
-            const double c2 = rVariables.WaterHeatCapacity * rVariables.WaterDensity;
-            const double c3 = (rVariables.LongitudinalDispersivity - rVariables.TransverseDispersivity) / qtot;
-            const double c4 = rVariables.SolidCompressibility * qtot;
-            C(0, 0) = C(0, 0) + c2 * (c3 * rVariables.DischargeVector[0] * rVariables.DischargeVector[0] + c4);
-            C(0, 1) = C(0, 1) + c2 * c3 * rVariables.DischargeVector[0] * rVariables.DischargeVector[1];
-            C(1, 0) = C(1, 0) + c2 * c3 * rVariables.DischargeVector[0] * rVariables.DischargeVector[1];
-            C(1, 1) = C(1, 1) + c2 * (c3 * rVariables.DischargeVector[1] * rVariables.DischargeVector[1] + c4);
+            double qtot = 0.0;
+            for (int i = 0; i < rVariables.DischargeVector.size(); ++i)
+            {
+                qtot = qtot + rVariables.DischargeVector[i] * rVariables.DischargeVector[i];
+            }
+            qtot = std::sqrt(qtot);
+            if (qtot > 0.0)
+            {
+                const double c2 = rVariables.WaterHeatCapacity * rVariables.WaterDensity;
+                const double c3 = (rVariables.LongitudinalDispersivity - rVariables.TransverseDispersivity) / qtot;
+                const double c4 = rVariables.SolidCompressibility * qtot;
+                C(0, 0) = C(0, 0) + c2 * (c3 * rVariables.DischargeVector[0] * rVariables.DischargeVector[0] + c4);
+                C(0, 1) = C(0, 1) + c2 * c3 * rVariables.DischargeVector[0] * rVariables.DischargeVector[1];
+                C(1, 0) = C(1, 0) + c2 * c3 * rVariables.DischargeVector[0] * rVariables.DischargeVector[1];
+                C(1, 1) = C(1, 1) + c2 * (c3 * rVariables.DischargeVector[1] * rVariables.DischargeVector[1] + c4);
+            }
         }
 
         KRATOS_CATCH("")
