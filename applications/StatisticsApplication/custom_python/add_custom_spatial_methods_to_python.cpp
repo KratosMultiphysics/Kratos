@@ -162,6 +162,36 @@ void AddSpatialMethods(pybind11::module& m)
 
     namespace py = pybind11;
 
+    std::string distribution_info_name;
+    if constexpr(std::is_same_v<TDataType, double>) {
+        distribution_info_name = "DoubleDistributionInfo";
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
+        distribution_info_name = "Array3DistributionInfo";
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 4>>) {
+        distribution_info_name = "Array4DistributionInfo";
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 6>>) {
+        distribution_info_name = "Array6DistributionInfo";
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 9>>) {
+        distribution_info_name = "Array9DistributionInfo";
+    } else if constexpr(std::is_same_v<TDataType, Vector>) {
+        distribution_info_name = "VectorDistributionInfo";
+    } else if constexpr(std::is_same_v<TDataType, Matrix>) {
+        distribution_info_name = "MatrixDistributionInfo";
+    } else {
+        static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
+    }
+
+    using distribution_info_type = SpatialMethods::DistributionInfo<TDataType>;
+    py::class_<distribution_info_type, typename distribution_info_type::Pointer>(m, distribution_info_name.c_str())
+        .def("GetMin", &distribution_info_type::GetMin)
+        .def("GetMax", &distribution_info_type::GetMax)
+        .def("GetGroupUpperValues", &distribution_info_type::GetGroupUpperValues)
+        .def("GetGroupNumberOfValues", &distribution_info_type::GetGroupNumberOfValues)
+        .def("GetGroupValueDistributionPercentage", &distribution_info_type::GetGroupValueDistributionPercentage)
+        .def("GetGroupMeans", &distribution_info_type::GetGroupMeans)
+        .def("GetGroupVariances", &distribution_info_type::GetGroupVariances)
+        ;
+
     m.def("Sum", py::overload_cast<const ModelPart&,const Variable<TDataType>&,const DataLocation&>(&SpatialMethods::Sum<TDataType>), py::arg("model_part"), py::arg("variable"), py::arg("data_location"));
     m.def("Sum", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::Sum<TDataType>(rModelPart, rVariable, rDataLocation, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
 

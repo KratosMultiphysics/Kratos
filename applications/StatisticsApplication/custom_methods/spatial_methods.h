@@ -76,6 +76,8 @@ public:
 
         using RawDataType = typename DataTypeTrait::RawDataType;
 
+        KRATOS_CLASS_POINTER_DEFINITION(DistributionInfo);
+
         ///@}
         ///@name Life cycle
         ///@{
