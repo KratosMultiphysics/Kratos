@@ -50,27 +50,6 @@ using IndicesType = std::vector<IndexType>;
 
 using DataLocation = Globals::DataLocation;
 
-template <class TDataType>
-void ResizeAndInitialize(
-    TDataType& rOutput,
-    const TDataType& rValueForSize,
-    const typename DataTypeTraits<TDataType>::RawDataType& rInitializationValue)
-{
-    DataTypeTraits<TDataType>::Resize(rOutput, DataTypeTraits<TDataType>::Shape(rValueForSize));
-    DataTypeTraits<TDataType>::Initialize(rOutput, rInitializationValue);
-}
-
-template <class TDataType, class TIteratorType>
-void ResizeAndFill(
-    TDataType& rOutput,
-    const TDataType& rValueForSize,
-    TIteratorType Begin)
-{
-    const auto number_of_components = DataTypeTraits<TDataType>::Size(rValueForSize);
-    DataTypeTraits<TDataType>::Resize(rOutput, DataTypeTraits<TDataType>::Shape(rValueForSize));
-    DataTypeTraits<TDataType>::FillFromVector(rOutput, Begin, Begin + number_of_components);
-}
-
 IndexType GetDataLocationSize(
     const ModelPart& rModelPart,
     const DataLocation& rLocation)
@@ -88,7 +67,6 @@ IndexType GetDataLocationSize(
             return 0;
     }
 }
-
 
 template<class TDataType>
 class SumOperation
@@ -115,23 +93,24 @@ public:
 
     void Execute(const SumOperation<TDataType>& rOther)
     {
-        if (OperationTraits::Resize(mValue, DataTypeTraits<TDataType>::Shape(rOther.mValue))) {
-            Initialize();
+        if constexpr(OperationTraits::HasDynamicMemoryAllocation){
+            if (!mIsInitialized) {
+                mValue = rOther.mValue;
+                Initialize();
+                mIsInitialized = true;
+            }
         }
+
         mValue += rOther.mValue;
     }
 
     void Synchronize(const DataCommunicator& rDataCommunicator)
     {
-        if (OperationTraits::SynchronizeSize(mValue, rDataCommunicator)) {
+        if (rDataCommunicator.SynchronizeShape(mValue)) {
             Initialize();
         }
 
-        typename OperationTraits::VectorType local_values, global_values;
-        OperationTraits::FillToVector(local_values, mValue);
-        global_values.resize(local_values.size());
-        rDataCommunicator.SumAll(local_values, global_values);
-        OperationTraits::FillFromVector(mValue, global_values);
+        mValue = rDataCommunicator.SumAll(mValue);
     }
 
     ///@}
@@ -142,11 +121,15 @@ private:
 
     TDataType mValue;
 
+    bool mIsInitialized = !OperationTraits::HasDynamicMemoryAllocation;
+
     ///@}
     ///@name Private operations
     ///@{
 
-    void Initialize() { OperationTraits::Initialize(mValue, 0.0); }
+    void Initialize() {
+        OperationTraits::Initialize(mValue, 0.0);
+    }
 
     ///@}
 };
@@ -158,11 +141,15 @@ public:
     ///@name Type definitions
     ///@{
 
-    using ItemPositionType = SpatialMethods::ItemPositionType<TDataType>;
-
-    using IndicesTraits = DataTypeTraits<ItemPositionType>;
+    static constexpr bool IsPrimitiveType = std::is_arithmetic_v<TDataType>;
 
     using OperationTraits = DataTypeTraits<TDataType>;
+
+    using IndexType = unsigned int;
+
+    using IndicesType = std::vector<IndexType>;
+
+    using IndexReturnType = std::conditional_t<IsPrimitiveType, IndexType, IndicesType>;
 
     ///@}
     ///@name Life cycle
@@ -175,30 +162,37 @@ public:
         const IndexType rId)
     {
         mValue = rValue;
-        IndicesTraits::Resize(mIndices, {OperationTraits::Size(mValue)});
-        IndicesTraits::Initialize(mIndices, rId);
+        mIndices.resize(OperationTraits::Size(mValue), rId);
     }
 
     ///@}
     ///@name Public operations
     ///@{
 
-    std::tuple<TDataType, ItemPositionType> GetValue() const
+    std::tuple<TDataType, IndexReturnType> GetValue() const
     {
-        return std::make_tuple(mValue, mIndices);
+        if constexpr(IsPrimitiveType) {
+            return std::make_tuple(mValue, mIndices[0]);
+        } else {
+            return std::make_tuple(mValue, mIndices);
+        }
     }
 
     void Execute(const MinMaxOperation<TDataType, TSubOperation>& rOther)
     {
-        if (OperationTraits::Resize(mValue, OperationTraits::Shape(rOther.mValue))) {
-            Initialize();
+        if constexpr(OperationTraits::HasDynamicMemoryAllocation){
+            if (!mIsInitialized) {
+                mValue = rOther.mValue;
+                Initialize();
+                mIsInitialized = true;
+            }
         }
 
-        for (IndexType i = 0; i < OperationTraits::Size(mValue); ++i) {
-            const auto other_value = OperationTraits::GetComponent(rOther.mValue, i);
-            const auto other_index = IndicesTraits::GetComponent(rOther.mIndices, i);
-            auto& current_value = OperationTraits::GetComponent(mValue, i);
-            auto& current_index = IndicesTraits::GetComponent(mIndices, i);
+        for (IndexType i_comp = 0; i_comp < OperationTraits::Size(mValue); ++i_comp) {
+            const auto other_value = OperationTraits::GetComponent(rOther.mValue, i_comp);
+            const auto other_index = rOther.mIndices[i_comp];
+            auto& current_value = OperationTraits::GetComponent(mValue, i_comp);
+            auto& current_index = mIndices[i_comp];
             if (TSubOperation::IsCurrentValueNotValid(current_value, other_value)) {
                 current_value = other_value;
                 current_index = other_index;
@@ -210,25 +204,21 @@ public:
 
     void Synchronize(const DataCommunicator& rDataCommunicator)
     {
-        if (OperationTraits::SynchronizeSize(mValue, rDataCommunicator)) {
+        if (rDataCommunicator.SynchronizeShape(mValue)) {
             Initialize();
         }
 
-        typename OperationTraits::VectorType local_values;
-        OperationTraits::FillToVector(local_values, mValue);
-        auto global_values = rDataCommunicator.AllGatherv(local_values);
+        const auto& all_gather_values = rDataCommunicator.AllGatherv(std::vector<TDataType>{mValue});
+        const auto& all_gather_indices = rDataCommunicator.AllGatherv(mIndices);
 
-        typename IndicesTraits::VectorType local_indices;
-        IndicesTraits::FillToVector(local_indices, mIndices);
-        auto global_indices = rDataCommunicator.AllGatherv(local_indices);
+        for (IndexType i_comp = 0; i_comp < OperationTraits::Size(mValue); ++i_comp) {
+            auto& current_value = OperationTraits::GetComponent(mValue, i_comp);
+            auto& current_index = mIndices[i_comp];
 
+            for (IndexType i_rank = 0; i_rank < all_gather_values.size(); ++i_rank) {
+                const auto& other_value = OperationTraits::GetComponent(all_gather_values[i_rank][0], i_comp);
+                const auto& other_index = all_gather_indices[i_rank][i_comp];
 
-        for (IndexType i = 0; i < OperationTraits::Size(mValue); ++i) {
-            auto& current_value = local_values[i];
-            auto& current_index = local_indices[i];
-            for (IndexType rank = 0; rank < global_values.size(); ++rank) {
-                const auto other_value = global_values[rank][i];
-                const auto other_index = global_indices[rank][i];
                 if (TSubOperation::IsCurrentValueNotValid(current_value, other_value)) {
                     current_value = other_value;
                     current_index = other_index;
@@ -237,9 +227,6 @@ public:
                 }
             }
         }
-
-        OperationTraits::FillFromVector(mValue, local_values);
-        IndicesTraits::FillFromVector(mIndices, local_indices);
     }
 
     ///@}
@@ -250,7 +237,9 @@ private:
 
     TDataType mValue;
 
-    ItemPositionType mIndices;
+    IndicesType mIndices;
+
+    bool mIsInitialized = !OperationTraits::HasDynamicMemoryAllocation;
 
     ///@}
     ///@name Private operations
@@ -259,8 +248,7 @@ private:
     void Initialize()
     {
         OperationTraits::Initialize(mValue, TSubOperation::InitialValue);
-        IndicesTraits::Resize(mIndices, {OperationTraits::Size(mValue)});
-        IndicesTraits::Initialize(mIndices, std::numeric_limits<IndexType>::max());
+        mIndices.resize(OperationTraits::Size(mValue), std::numeric_limits<IndexType>::max());
     }
 
     ///@}
@@ -306,11 +294,15 @@ public:
     ///@name Type definitions
     ///@{
 
-    using ItemPositionType = SpatialMethods::ItemPositionType<TDataType>;
-
-    using IndicesTraits = DataTypeTraits<ItemPositionType>;
+    static constexpr bool IsPrimitiveType = std::is_arithmetic_v<TDataType>;
 
     using OperationTraits = DataTypeTraits<TDataType>;
+
+    using IndexType = unsigned int;
+
+    using IndicesType = std::vector<IndexType>;
+
+    using IndexReturnType = std::conditional_t<IsPrimitiveType, IndexType, IndicesType>;
 
     using RawDataType = typename OperationTraits::RawDataType;
 
@@ -324,7 +316,7 @@ public:
     {
         const IndexType data_size = OperationTraits::Size(TDataType{});
         mValues.resize(data_size);
-        IndicesTraits::Resize(mResultantIndex, {data_size});
+        mResultantIndex.resize(data_size);
     }
 
     MedianOperation(
@@ -336,7 +328,7 @@ public:
         const IndexType data_size = OperationTraits::Size(rValue);
         if (mValues.size() != data_size) {
             mValues.resize(data_size);
-            IndicesTraits::Resize(mResultantIndex, {data_size});
+            mResultantIndex.resize(data_size);
         }
 
         for (IndexType i = 0; i < data_size; ++i) {
@@ -349,9 +341,13 @@ public:
     ///@name Public operations
     ///@{
 
-    std::tuple<TDataType, ItemPositionType> GetValue() const
+    std::tuple<TDataType, IndexReturnType> GetValue() const
     {
-        return std::make_tuple(mResultantValue, mResultantIndex);
+        if constexpr(IsPrimitiveType) {
+            return std::make_tuple(mResultantValue, mResultantIndex[0]);
+        } else {
+            return std::make_tuple(mResultantValue, mResultantIndex);
+        }
     }
 
     void Execute(const MedianOperation<TDataType>& rOther)
@@ -361,7 +357,7 @@ public:
         if (mValues.size() != rOther.mValues.size()) {
             mResultantValue = rOther.mResultantValue;
             mValues.resize(rOther.mValues.size());
-            IndicesTraits::Resize(mResultantIndex, {rOther.mValues.size()});
+            mResultantIndex.resize(rOther.mValues.size());
         }
 
         // iterate through each component
@@ -377,18 +373,18 @@ public:
 
     void Synchronize(const DataCommunicator& rDataCommunicator)
     {
-        std::vector<RawDataType> results(mValues.size());
-        const IndexType data_size = rDataCommunicator.MaxAll(OperationTraits::Size(mResultantValue));
+        rDataCommunicator.SynchronizeShape(mResultantValue);
+
+        const IndexType data_size = OperationTraits::Size(mResultantValue);
+
         if (mValues.size() != data_size) {
             mValues.resize(data_size);
-            OperationTraits::SynchronizeSize(mResultantValue, rDataCommunicator);
-            IndicesTraits::Resize(mResultantIndex, {data_size});
-            results.resize(data_size);
+            mResultantIndex.resize(data_size);
         }
 
         for (IndexType i_comp = 0; i_comp < data_size; ++i_comp) {
-            auto& current_median_value = results[i_comp];
-            auto& current_median_index = IndicesTraits::GetComponent(mResultantIndex, i_comp);
+            auto& current_median_value = OperationTraits::GetComponent(mResultantValue, i_comp);
+            auto& current_median_index = mResultantIndex[i_comp];
             const auto& current_values = mValues[i_comp];
 
             // get the values in rank 0
@@ -397,7 +393,7 @@ public:
             const auto& global_values = rDataCommunicator.Gatherv(local_values, 0);
 
             // get the indices in rank 0
-            typename IndicesTraits::VectorType local_indices(current_values.size());
+            IndicesType local_indices(current_values.size());
             std::transform(current_values.begin(), current_values.end(), local_indices.begin(), [](const auto& rV) { return std::get<1>(rV); });
             const auto& global_indices = rDataCommunicator.Gatherv(local_indices, 0);
 
@@ -431,7 +427,6 @@ public:
 
             rDataCommunicator.Broadcast(current_median_value, 0);
             rDataCommunicator.Broadcast(current_median_index, 0);
-            OperationTraits::GetComponent(mResultantValue, i_comp) = current_median_value;
         }
     }
 
@@ -446,7 +441,7 @@ private:
 
     TDataType mResultantValue;
 
-    ItemPositionType mResultantIndex;
+    IndicesType mResultantIndex;
 
     ///@}
 };
@@ -550,8 +545,7 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
             auto& max_value = distribution_info.mMax;
             if (Params["max_value"].IsDouble()) {
                 data_type_traits::Initialize(max_value, Params["max_value"].GetDouble());
-            }
-            else if (Params["max_value"].IsString() && Params["max_value"].GetString() == "max") {
+            } else if (Params["max_value"].IsString() && Params["max_value"].GetString() == "max") {
                 max_value = std::get<0>(GenericReductionUtilities::GenericReduction<data_container_type, TNormType, MaxOperation, true>(rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm).GetValue());
             } else {
                 KRATOS_ERROR
@@ -570,18 +564,8 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
             for (IndexType i = 0; i < number_of_groups + 1; ++i) {
                 group_limits[i] = min_value + (max_value - min_value) * static_cast<double>(i) / static_cast<double>(number_of_groups);
             }
-
-            const IndexType number_of_components = DataTypeTraits<norm_return_type>::Size(max_value);
-
-            // final group limit is extended by a small amount. epsilon in numeric
-            // limits cannot be used since testing also need to have the same
-            // extending value in python. Therefore hard coded value is used
-            auto& last_group_limit = group_limits[group_limits.size() - 2];
-            for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                DataTypeTraits<norm_return_type>::GetComponent(last_group_limit, i_comp) += 1e-16;
-            }
-            norm_return_type additional_max_value;
-            SpatialMethodHelperUtilities::ResizeAndInitialize(additional_max_value, max_value, std::numeric_limits<typename DataTypeTraits<norm_return_type>::RawDataType>::max());
+            norm_return_type additional_max_value(max_value);
+            data_type_traits::Initialize(additional_max_value, std::numeric_limits<typename DataTypeTraits<norm_return_type>::RawDataType>::max());
             group_limits.back() = additional_max_value;
 
             /// reduction class
@@ -662,8 +646,10 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
                         if (r_group_count.size() != number_of_components) {
                             r_group_count.resize(number_of_components);
                             std::fill(r_group_count.begin(), r_group_count.end(), 0);
-                            SpatialMethodHelperUtilities::ResizeAndInitialize(r_group_mean, r_other_group_mean, 0.0);
-                            SpatialMethodHelperUtilities::ResizeAndInitialize(r_group_variance, r_other_group_variance, 0.0);
+                            r_group_mean = r_other_group_mean;
+                            r_group_variance = r_other_group_variance;
+                            data_type_traits::Initialize(r_group_mean, 0.0);
+                            data_type_traits::Initialize(r_group_variance, 0.0);
                         }
 
                         for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
@@ -694,12 +680,16 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
                         for (IndexType i_group = 0; i_group < number_of_groups; ++i_group) {
                             r_current_group_counts[i_group].resize(number_of_components);
                             std::fill(r_current_group_counts[i_group].begin(), r_current_group_counts[i_group].end(), 0);
-                            SpatialMethodHelperUtilities::ResizeAndInitialize(r_current_group_means[i_group], r_value, 0.0);
-                            SpatialMethodHelperUtilities::ResizeAndInitialize(r_current_group_variances[i_group], r_value, 0.0);
+                            r_current_group_means[i_group] = r_value;
+                            r_current_group_variances[i_group] = r_value;
+                            data_type_traits::Initialize(r_current_group_means[i_group], 0.0);
+                            data_type_traits::Initialize(r_current_group_variances[i_group], 0.0);
                         }
                     }
                 }
             };
+
+            const IndexType number_of_components = DataTypeTraits<norm_return_type>::Size(max_value);
 
             const auto& reuduced_values =
                 IndexPartition<IndexType>(rDataContainer.Size()).for_each<DistributionReduction>(TDataType{}, [&rDataContainer, &rNorm, &group_limits, number_of_components, number_of_groups](const IndexType Index, TDataType& rTLS) {
@@ -709,8 +699,17 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
                     IndicesType indices(number_of_components);
                     for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
                         const auto& comp_value = DataTypeTraits<norm_return_type>::GetComponent(norm_value, i_comp);
-                        for (IndexType i_group = 0; i_group < group_limits.size(); ++i_group) {
+                        IndexType i_group;
+                        for (i_group = 0; i_group < group_limits.size() - 2; ++i_group) {
                             if (comp_value < DataTypeTraits<norm_return_type>::GetComponent(group_limits[i_group], i_comp)) {
+                                indices[i_comp] = i_group;
+                                i_group = std::numeric_limits<IndexType>::max();
+                                break;
+                            }
+                        }
+
+                        for (; i_group < group_limits.size(); ++i_group) {
+                            if (comp_value <= DataTypeTraits<norm_return_type>::GetComponent(group_limits[i_group], i_comp)) {
                                 indices[i_comp] = i_group;
                                 break;
                             }
@@ -720,55 +719,32 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
                     return std::make_tuple(group_limits.size(), indices, norm_value);
                 });
 
-            // now prepare data for mpi communication
-            std::vector<typename DataTypeTraits<norm_return_type>::RawDataType> local_values;
-            local_values.resize(number_of_components * number_of_all_groups * 2);
-            auto values_begin = local_values.begin();
-            IndicesType local_distribution;
-            local_distribution.resize(number_of_components * number_of_all_groups);
-            auto indices_begin = local_distribution.begin();
-            for (IndexType i_group = 0; i_group < number_of_all_groups; ++i_group) {
-                DataTypeTraits<IndicesType>::FillToVector(indices_begin, std::get<0>(reuduced_values)[i_group]); // get the group counts
-                DataTypeTraits<norm_return_type>::FillToVector(values_begin, std::get<1>(reuduced_values)[i_group]); // put the means
-                DataTypeTraits<norm_return_type>::FillToVector(values_begin + number_of_components, std::get<2>(reuduced_values)[i_group]); // put the variances
-                values_begin += 2 * number_of_components;
-                indices_begin += number_of_components;
-            }
-
             // now do the mpi communicaton
-            const auto& global_distribution = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_distribution);
-            const auto& global_values = rModelPart.GetCommunicator().GetDataCommunicator().SumAll(local_values);
-            const double number_of_items = static_cast<double>(std::max(std::accumulate(global_distribution.begin(), global_distribution.end(), 0), 1)) / number_of_components;
+            const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
+            distribution_info.mGroupNumberOfValues.resize(number_of_all_groups);
+            double number_of_items = 0;
+            for (IndexType i = 0; i < number_of_all_groups; ++i) {
+                const auto& group_values = std::get<0>(reuduced_values)[i];
+                distribution_info.mGroupNumberOfValues[i] = r_data_communicator.SumAll(group_values);
+                number_of_items += std::accumulate(group_values.begin(), group_values.end(), 0U);
+            }
+            number_of_items = std::max(number_of_items / number_of_components, 1.0);
+            distribution_info.mGroupMean     = r_data_communicator.SumAll(std::get<1>(reuduced_values));
+            distribution_info.mGroupVariance = r_data_communicator.SumAll(std::get<2>(reuduced_values));
 
             // now revert back to the group values
-            distribution_info.mGroupNumberOfValues.resize(number_of_all_groups);
             distribution_info.mGroupValueDistributionPercentage.resize(number_of_all_groups);
-            distribution_info.mGroupMean.resize(number_of_all_groups);
-            distribution_info.mGroupVariance.resize(number_of_all_groups);
-            auto global_indices_begin = global_distribution.begin();
-            auto global_values_begin = global_values.begin();
             for (IndexType i_group = 0; i_group < number_of_all_groups; ++i_group) {
                 auto& current_number_of_values = distribution_info.mGroupNumberOfValues[i_group];
-                current_number_of_values.resize(number_of_components);
-                DataTypeTraits<IndicesType>::FillFromVector(current_number_of_values, global_indices_begin, global_indices_begin + number_of_components);
-
                 auto& current_distribution_percentage = distribution_info.mGroupValueDistributionPercentage[i_group];
-                SpatialMethodHelperUtilities::ResizeAndFill(current_distribution_percentage, max_value, global_indices_begin);
-
                 auto& current_mean = distribution_info.mGroupMean[i_group];
-                SpatialMethodHelperUtilities::ResizeAndFill(current_mean, max_value, global_values_begin);
-
                 auto& current_variance = distribution_info.mGroupVariance[i_group];
-                SpatialMethodHelperUtilities::ResizeAndFill(current_variance, max_value, global_values_begin + number_of_components);
-
-                global_indices_begin += number_of_components;
-                global_values_begin += number_of_components * 2;
 
                 // post processing of values
-                current_distribution_percentage /= number_of_items;
                 for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
                     const auto n = current_number_of_values[i_comp];
                     if (n > 0) {
+                        DataTypeTraits<norm_return_type>::GetComponent(current_distribution_percentage, i_comp) = n / number_of_items;
                         DataTypeTraits<norm_return_type>::GetComponent(current_mean, i_comp) /= n;
                         DataTypeTraits<norm_return_type>::GetComponent(current_variance, i_comp) /= n;
                     }
@@ -777,9 +753,6 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
             }
 
             // reversing group limit extention
-            for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                DataTypeTraits<norm_return_type>::GetComponent(group_limits[group_limits.size() - 2], i_comp) += 1e-16;
-            }
             group_limits[group_limits.size() - 1] = max_value;
 
             return distribution_info;
@@ -878,7 +851,6 @@ double SpatialMethods::RootMeanSquare(
     return std::visit([&rModelPart, &rVariable, &rLocation, number_of_items](const auto& rNorm){
         return std::pow(SpatialMethodHelperUtilities::GenericSumReduction<TDataType, std::decay_t<decltype(rNorm)>, 2>(rModelPart, rVariable, rLocation, rNorm) / std::max(number_of_items, 1.0), 0.5);
     }, rNorm);
-
 }
 
 template<class TDataType>

@@ -42,7 +42,7 @@ def GetItemContainer(item_container_name):
 
 
 def GetVariableHeaders(norm_type, variable_name):
-    if (norm_type == "none"):
+    if (norm_type == "none" or norm_type == "value"):
         variable_type = Kratos.KratosGlobals.GetVariableType(variable_name)
         if (variable_type == "Double"):
             return [variable_name]
@@ -67,14 +67,14 @@ class SpatialMethodOutput:
         method = GetMethod(self.norm_type_container, self.method_name)
 
         if method_settings.IsEquivalentTo(Kratos.Parameters("""{}""")):
-            if norm_type == "none":
+            if norm_type == "none" or norm_type == "value":
                 self.norm_type_container = self.container.ValueMethods
                 self.method = lambda model_part: method(model_part, self.variable)
             else:
                 self.norm_type_container = self.container.NormMethods
                 self.method = lambda model_part: method(model_part, self.variable, norm_type)
         else:
-            if norm_type == "none":
+            if norm_type == "none" or norm_type == "value":
                 self.norm_type_container = self.container.ValueMethods
                 self.method = lambda model_part: method(model_part, self.variable, method_settings)
             else:
