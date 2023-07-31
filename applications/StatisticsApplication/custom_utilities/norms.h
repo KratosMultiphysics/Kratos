@@ -63,6 +63,9 @@ public:
         }
     }
 
+
+    static std::string TypeInfo() { return "L2"; }
+
     ///@}
 };
 
@@ -99,6 +102,8 @@ public:
             return 0;
         }
     }
+
+    static std::string TypeInfo() { return "Infinity"; }
 
     ///@}
 };
@@ -144,6 +149,8 @@ public:
             return 0;
         }
     }
+
+    static std::string TypeInfo() { return "VectorComponent"; }
 
     ///@}
 
@@ -194,6 +201,8 @@ public:
 
         return rValue(mRowIndex, mColIndex);
     }
+
+    static std::string TypeInfo() { return "MatrixComponent"; }
 
     ///@}
 
@@ -265,6 +274,8 @@ public:
         }
     }
 
+    static std::string TypeInfo() { return "P"; }
+
     ///@}
 
 private:
@@ -307,6 +318,8 @@ public:
         }
         return result;
     }
+
+    static std::string TypeInfo() { return "Trace"; }
 
     ///@}
 };
@@ -360,6 +373,8 @@ public:
 
         return std::pow(result, 1.0 / mQ);
     }
+
+    static std::string TypeInfo() { return "LPQ"; }
 
     ///@}
 
@@ -481,6 +496,14 @@ static std::variant<Norms::L2, Norms::Infinity, Norms::P, Norms::MatrixComponent
         return Infinity();
     }
 }
+
+using AllNormTypes = std::variant<
+                                Norms::L2,
+                                Norms::Infinity,
+                                Norms::P,
+                                Norms::Trace,
+                                Norms::LPQ
+                            >;
 
 template<class TDataType>
 struct NormType {};
