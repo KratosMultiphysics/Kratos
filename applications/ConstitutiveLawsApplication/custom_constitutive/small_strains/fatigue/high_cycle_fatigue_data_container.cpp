@@ -52,4 +52,33 @@ HighCycleFatigueDataContainer::~HighCycleFatigueDataContainer()
 {
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+void HighCycleFatigueDataContainer::CalculatePK2Stress(
+    const ConstitutiveLaw::StrainVectorType& rStrainVector,
+    ConstitutiveLaw::StressVectorType& rStressVector,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
+
+    const double c1 = E / ((1.00 + NU) * (1 - 2 * NU));
+    const double c2 = c1 * (1 - NU);
+    const double c3 = c1 * NU;
+    const double c4 = c1 * 0.5 * (1 - 2 * NU);
+
+    rStressVector[0] = c2 * rStrainVector[0] + c3 * rStrainVector[1] + c3 * rStrainVector[2];
+    rStressVector[1] = c3 * rStrainVector[0] + c2 * rStrainVector[1] + c3 * rStrainVector[2];
+    rStressVector[2] = c3 * rStrainVector[0] + c3 * rStrainVector[1] + c2 * rStrainVector[2];
+    rStressVector[3] = c4 * rStrainVector[3];
+    rStressVector[4] = c4 * rStrainVector[4];
+    rStressVector[5] = c4 * rStrainVector[5];
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // Namespace Kratos

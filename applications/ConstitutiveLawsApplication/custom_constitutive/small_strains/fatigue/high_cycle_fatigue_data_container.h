@@ -82,6 +82,18 @@ public:
      */
     ~HighCycleFatigueDataContainer() override;
 
+    /**
+     * @brief It calculates the stress vector
+     * @param rStrainVector The strain vector in Voigt notation
+     * @param rStressVector The stress vector in Voigt notation
+     * @param rValues Parameters of the constitutive law
+     */
+    void CalculatePK2Stress(
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        ConstitutiveLaw::StressVectorType& rStressVector,
+        ConstitutiveLaw::Parameters& rValues
+        ) override;
+
     ///@}
     ///@name Operators
     ///@{
