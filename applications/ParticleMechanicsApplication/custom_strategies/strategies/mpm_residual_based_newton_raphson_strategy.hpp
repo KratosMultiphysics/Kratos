@@ -259,11 +259,11 @@ public:
             // Indicates that friction is active + pre-computation in 1st timestep is complete
             BaseType::GetModelPart().GetProcessInfo()[FLAG_VARIABLE] = -2.0;
 
-            // Transfer NORMAL_REACTION into a 'previous' timestep
+            // Transfer FRICTION_CONTACT_FORCE into a 'previous' timestep
             // [since friction algorithm requires values of normal forces at the 'previous' timestep]
             for (Node &curr_node : BaseType::GetModelPart().Nodes()){
                 curr_node.SetLock();
-                curr_node.FastGetSolutionStepValue(NORMAL_REACTION, 1) = curr_node.FastGetSolutionStepValue(NORMAL_REACTION, 0);
+                curr_node.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE, 1) = curr_node.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE, 0);
                 curr_node.UnSetLock();
             }
 

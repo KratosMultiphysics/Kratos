@@ -89,7 +89,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
             r_geometry[i].Set(SLIP);
             r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0; // flag for penalty-based slip cond
             r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_unit_normal;
-            r_geometry[i].FastGetSolutionStepValue(NORMAL_REACTION, 1) += Variables.N[i] * m_normal_reaction;
+            r_geometry[i].FastGetSolutionStepValue(FRICTION_CONTACT_FORCE, 1) += Variables.N[i] * m_friction_contact_force;
             r_geometry[i].UnSetLock();
         }
     }
@@ -274,8 +274,8 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
         const double & r_mpc_area = this->GetIntegrationWeight();
         MPMShapeFunctionPointValues(Variables.N);
 
-        // Reset normal reaction
-        m_normal_reaction = 0.0;
+        // Reset friction contact force
+        m_friction_contact_force.clear();
 
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
         {
@@ -294,11 +294,11 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
             if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
                 nodal_area= r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
 
-            const double nodal_normal_reaction = r_geometry[i].FastGetSolutionStepValue(NORMAL_REACTION);
+            const array_1d<double, 3> nodal_friction_contact_force = r_geometry[i].FastGetSolutionStepValue(FRICTION_CONTACT_FORCE);
 
             if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
             {
-                m_normal_reaction += Variables.N[i] * nodal_normal_reaction * r_mpc_area / nodal_area;
+                m_friction_contact_force += Variables.N[i] * nodal_friction_contact_force * r_mpc_area / nodal_area;
             }
         }
     }
