@@ -31,7 +31,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExceptionDefaultConstruction, KratosCoreFastSuite)
         throw Exception();
     }
     catch (Exception& e) {
-        KRATOS_EXPECT_EQ(e.what(), "Unknown Error\nin Unknown Location");
+        KRATOS_EXPECT_STREQ(e.what(), "Unknown Error\nin Unknown Location");
         KRATOS_EXPECT_EQ(e.where().CleanFileName(), "Unknown File");
         KRATOS_EXPECT_EQ(e.where().CleanFunctionName(), "Unknown Location");
         KRATOS_EXPECT_EQ(e.where().GetLineNumber(), 0);
