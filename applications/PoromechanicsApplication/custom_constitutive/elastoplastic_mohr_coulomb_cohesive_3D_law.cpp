@@ -380,8 +380,6 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::DerivativesPlasticPotentialSurface(V
 
     // Get material properties
     double tanPsi = std::tan(rVariables.DilatancyAngle);
-    double c      = rVariables.Cohesion;
-    double ft     = rVariables.TensileStrength;
     
     // Get the shear resultant
     double ts = this->GetShearResultantStressVector(StressVector);
@@ -409,8 +407,6 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::DerivativesYieldSurface(Vector& Stre
 
     // Get material properties
     double tanPhi = std::tan(rVariables.FrictionAngle);
-    double c      = rVariables.Cohesion;
-    double ft     = rVariables.TensileStrength;
     
     // Get the shear resultant
     double ts = this->GetShearResultantStressVector(StressVector);
