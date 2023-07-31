@@ -54,7 +54,7 @@ def CheckValues(test_unit, value_a, value_b, tolerance):
             test_unit.assertVectorAlmostEqual(value_a, value_b, tolerance)
         elif (isinstance(value_a, list)):
             for i, v_a in enumerate(value_a):
-                test_unit.assertAlmostEqual(v_a, value_b[i], tolerance)
+                CheckValues(test_unit, v_a, value_b[i], tolerance)
         else:
             test_unit.assertAlmostEqual(value_a, value_b, tolerance)
 
