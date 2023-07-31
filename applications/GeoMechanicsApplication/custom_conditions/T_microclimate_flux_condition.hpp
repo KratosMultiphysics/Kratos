@@ -151,9 +151,6 @@ protected:
 
     void CalculateKinematics(ElementVariables& rVariables, unsigned int PointNumber);
 
-    double CalculateIntegrationCoefficient(const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-        unsigned int PointNumber, double detJ);
-
     void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
