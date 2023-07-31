@@ -256,21 +256,21 @@ public:
         const DataLocation& rLocation,
         const typename Norms::NormType<TDataType>::type& rNorm);
 
-    // static std::tuple<ExpressionReturnType> Variance(
-    //     const Expression& rExpression,
-    //     const DataCommunicator& rDataCommunicator);
+    static std::tuple<ExpressionReturnType, ExpressionReturnType> Variance(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator);
 
-    // static std::tuple<ExpressionReturnType> Variance(
-    //     const Expression& rExpression,
-    //     const DataCommunicator& rDataCommunicator,
-    //     const Norms::AllNormTypes& rNorm);
+    static std::tuple<ExpressionReturnType, ExpressionReturnType> Variance(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator,
+        const Norms::AllNormTypes& rNorm);
 
-    // static std::tuple<ExpressionReturnType> Variance(
-    //     const ContainerExpressionType& rContainerExpression);
+    static std::tuple<ExpressionReturnType, ExpressionReturnType> Variance(
+        const ContainerExpressionType& rContainerExpression);
 
-    // static std::tuple<ExpressionReturnType> Variance(
-    //     const ContainerExpressionType& rContainerExpression,
-    //     const Norms::AllNormTypes& rNorm);
+    static std::tuple<ExpressionReturnType, ExpressionReturnType> Variance(
+        const ContainerExpressionType& rContainerExpression,
+        const Norms::AllNormTypes& rNorm);
 
     template<class TDataType>
     static std::tuple<TDataType, ItemPositionType<TDataType>> Min(

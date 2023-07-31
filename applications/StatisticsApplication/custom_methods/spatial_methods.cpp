@@ -1094,6 +1094,62 @@ std::tuple<double, double> SpatialMethods::Variance(
     return std::make_tuple(mean, std::pow(rms, 2) - std::pow(mean, 2));
 }
 
+std::tuple<SpatialMethods::ExpressionReturnType, SpatialMethods::ExpressionReturnType> SpatialMethods::Variance(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator)
+{
+    const auto mean = Mean(rExpression, rDataCommunicator);
+    auto rms = RootMeanSquare(rExpression, rDataCommunicator);
+
+    std::visit([&rms](const auto& rMean) {
+        using data_type = std::decay_t<decltype(rMean)>;
+        const auto number_of_components = DataTypeTraits<data_type>::Size(rMean);
+        for (IndexType i = 0; i < number_of_components; ++i) {
+            auto& v = DataTypeTraits<data_type>::GetComponent(std::get<data_type>(rms), i);
+            v = std::pow(v, 2) - std::pow(DataTypeTraits<data_type>::GetComponent(rMean, i), 2);
+        }
+    }, mean);
+
+    return std::tuple<ExpressionReturnType, ExpressionReturnType>(mean, rms);
+}
+
+std::tuple<SpatialMethods::ExpressionReturnType, SpatialMethods::ExpressionReturnType> SpatialMethods::Variance(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator,
+    const Norms::AllNormTypes& rNorm)
+{
+    const auto mean = Mean(rExpression, rDataCommunicator, rNorm);
+    auto rms = RootMeanSquare(rExpression, rDataCommunicator, rNorm);
+
+    std::visit([&rms](const auto& rMean) {
+        using data_type = std::decay_t<decltype(rMean)>;
+        const auto number_of_components = DataTypeTraits<data_type>::Size(rMean);
+        for (IndexType i = 0; i < number_of_components; ++i) {
+            auto& v = DataTypeTraits<data_type>::GetComponent(std::get<data_type>(rms), i);
+            v = std::pow(v, 2) - std::pow(DataTypeTraits<data_type>::GetComponent(rMean, i), 2);
+        }
+    }, mean);
+
+    return std::tuple<ExpressionReturnType, ExpressionReturnType>(mean, rms);
+}
+
+std::tuple<SpatialMethods::ExpressionReturnType, SpatialMethods::ExpressionReturnType> SpatialMethods::Variance(
+    const ContainerExpressionType& rContainerExpression)
+{
+    return std::visit([](const auto& rContainerExpression) {
+        return Variance(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator());
+    }, rContainerExpression);
+}
+
+std::tuple<SpatialMethods::ExpressionReturnType, SpatialMethods::ExpressionReturnType> SpatialMethods::Variance(
+    const ContainerExpressionType& rContainerExpression,
+    const Norms::AllNormTypes& rNorm)
+{
+    return std::visit([&rNorm](const auto& rContainerExpression) {
+        return Variance(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator(), rNorm);
+    }, rContainerExpression);
+}
+
 template<class TDataType>
 std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethods::Min(
     const ModelPart& rModelPart,
