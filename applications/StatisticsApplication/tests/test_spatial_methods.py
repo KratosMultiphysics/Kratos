@@ -474,5 +474,11 @@ class SpatialMethodTests(KratosUnittest.TestCase):
     def testMinExpression(self):
         self.__RunContainerExpressionTest(KratosStats.SpatialMethods.Min)
 
+    def testMaxExpression(self):
+        self.__RunContainerExpressionTest(KratosStats.SpatialMethods.Max)
+
+    def testMedianExpression(self):
+        self.__RunContainerExpressionTest(KratosStats.SpatialMethods.Median)
+
 if __name__ == '__main__':
     KratosUnittest.main()

@@ -1221,6 +1221,42 @@ std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Max(
     }, rNorm);
 }
 
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Max(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator)
+{
+    return std::visit([&rDataCommunicator](const auto& rDataContainer) -> SpatialMethods::ExpressionReturnTypeWithIndices{
+        return GenericReductionUtilities::GenericReduction<std::decay_t<decltype(rDataContainer)>, SpatialMethodHelperUtilities::Value, SpatialMethodHelperUtilities::MaxOperation, true>(
+                rDataCommunicator, rDataContainer, SpatialMethodHelperUtilities::Value())
+            .GetValue();
+    }, DataContainers::GetDataContainer(rExpression));
+}
+
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Max(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator,
+    const Norms::AllNormTypes& rNorm)
+{
+    return SpatialMethodHelperUtilities::GenericExpressionNormReduction<SpatialMethods::ExpressionReturnTypeWithIndices, SpatialMethodHelperUtilities::MaxOperation, true, 1>(rExpression, rDataCommunicator, rNorm);
+}
+
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Max(
+    const ContainerExpressionType& rContainerExpression)
+{
+    return std::visit([](const auto& rContainerExpression) {
+        return Max(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator());
+    }, rContainerExpression);
+}
+
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Max(
+    const ContainerExpressionType& rContainerExpression,
+    const Norms::AllNormTypes& rNorm)
+{
+    return std::visit([&rNorm](const auto& rContainerExpression) {
+        return Max(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator(), rNorm);
+    }, rContainerExpression);
+}
+
 template<class TDataType>
 std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethods::Median(
     const ModelPart& rModelPart,
@@ -1240,6 +1276,42 @@ std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Median(
     return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
         return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, std::decay_t<decltype(rNorm)>, SpatialMethodHelperUtilities::MedianOperation>(rModelPart, rVariable, rLocation, rNorm);
     }, rNorm);
+}
+
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Median(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator)
+{
+    return std::visit([&rDataCommunicator](const auto& rDataContainer) -> SpatialMethods::ExpressionReturnTypeWithIndices{
+        return GenericReductionUtilities::GenericReduction<std::decay_t<decltype(rDataContainer)>, SpatialMethodHelperUtilities::Value, SpatialMethodHelperUtilities::MedianOperation, true>(
+                rDataCommunicator, rDataContainer, SpatialMethodHelperUtilities::Value())
+            .GetValue();
+    }, DataContainers::GetDataContainer(rExpression));
+}
+
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Median(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator,
+    const Norms::AllNormTypes& rNorm)
+{
+    return SpatialMethodHelperUtilities::GenericExpressionNormReduction<SpatialMethods::ExpressionReturnTypeWithIndices, SpatialMethodHelperUtilities::MedianOperation, true, 1>(rExpression, rDataCommunicator, rNorm);
+}
+
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Median(
+    const ContainerExpressionType& rContainerExpression)
+{
+    return std::visit([](const auto& rContainerExpression) {
+        return Median(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator());
+    }, rContainerExpression);
+}
+
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Median(
+    const ContainerExpressionType& rContainerExpression,
+    const Norms::AllNormTypes& rNorm)
+{
+    return std::visit([&rNorm](const auto& rContainerExpression) {
+        return Median(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator(), rNorm);
+    }, rContainerExpression);
 }
 
 template<class TDataType>

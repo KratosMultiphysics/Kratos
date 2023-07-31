@@ -324,6 +324,22 @@ public:
         const DataLocation& rLocation,
         const typename Norms::NormType<TDataType>::type& rNorm);
 
+    static ExpressionReturnTypeWithIndices Max(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator);
+
+    static ExpressionReturnTypeWithIndices Max(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator,
+        const Norms::AllNormTypes& rNorm);
+
+    static ExpressionReturnTypeWithIndices Max(
+        const ContainerExpressionType& rContainerExpression);
+
+    static ExpressionReturnTypeWithIndices Max(
+        const ContainerExpressionType& rContainerExpression,
+        const Norms::AllNormTypes& rNorm);
+
     template<class TDataType>
     static std::tuple<TDataType, ItemPositionType<TDataType>> Median(
         const ModelPart& rModelPart,
@@ -336,6 +352,22 @@ public:
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation,
         const typename Norms::NormType<TDataType>::type& rNorm);
+
+    static ExpressionReturnTypeWithIndices Median(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator);
+
+    static ExpressionReturnTypeWithIndices Median(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator,
+        const Norms::AllNormTypes& rNorm);
+
+    static ExpressionReturnTypeWithIndices Median(
+        const ContainerExpressionType& rContainerExpression);
+
+    static ExpressionReturnTypeWithIndices Median(
+        const ContainerExpressionType& rContainerExpression,
+        const Norms::AllNormTypes& rNorm);
 
     template<class TDataType>
     static DistributionInfo<TDataType> Distribution(
