@@ -456,5 +456,8 @@ class SpatialMethodTests(KratosUnittest.TestCase):
     def testMeanContainerExpression(self):
         self.__RunContainerExpressionTest(KratosStats.SpatialMethods.Mean)
 
+    def testRootMeanSquareContainerExpression(self):
+        self.__RunContainerExpressionTest(KratosStats.SpatialMethods.RootMeanSquare)
+
 if __name__ == '__main__':
     KratosUnittest.main()
