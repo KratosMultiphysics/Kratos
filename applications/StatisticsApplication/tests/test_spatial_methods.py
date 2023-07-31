@@ -107,201 +107,332 @@ class SpatialMethodTests(KratosUnittest.TestCase):
         else:
             return initialization_value
 
-    def __RunTest(self, stat_method: Any, analytical_method: Any) -> None:
+    def __RunTest(self, stat_method: Any, ref_values: Any, *args) -> None:
         def run_granular_test(stat_method: Any, variable: Any, data_location: Kratos.Globals.DataLocation, ref_value: Any, norm: Any = None):
             if isinstance(norm, SpatialMethodTests.ValueNorm):
-                stat_results = stat_method(self.model_part, variable, data_location)
+                stat_results = stat_method(self.model_part, variable, data_location, *args)
             else:
-                stat_results = stat_method(self.model_part, variable, data_location, norm)
+                stat_results = stat_method(self.model_part, variable, data_location, *args, norm)
 
-            CheckValues(self, stat_results, ref_value, 12)
+            if stat_method == KratosStats.SpatialMethods.Distribution:
+                stat_results: KratosStats.SpatialMethods.Array3DistributionInfo
+                modified_stat_result = (
+                        stat_results.GetMin(),
+                        stat_results.GetMax(),
+                        stat_results.GetGroupUpperValues(),
+                        stat_results.GetGroupNumberOfValues(),
+                        stat_results.GetGroupValueDistributionPercentage(),
+                        stat_results.GetGroupMeans(),
+                        stat_results.GetGroupVariances()
+                    )
 
-        for data_location in self.data_locations:
-            container, data_retrieval_method = self.__GetDataRetrievalInfo(data_location)
-            for variable, norms_list in self.norms_dict.items():
-                for norm in norms_list:
-                    ref_value = analytical_method(container, variable, norm, data_retrieval_method)
+                print("mod", modified_stat_result)
+                print("---------------------")
+                print("ref", ref_value)
+                CheckValues(self, modified_stat_result, ref_value, 12)
+            else:
+                CheckValues(self, stat_results, ref_value, 12)
+
+        for data_location, info_1 in ref_values.items():
+            for variable, info_2 in info_1.items():
+                for norm, ref_value in info_2.items():
                     run_granular_test(stat_method, variable, data_location, ref_value, norm)
 
     def testSumMethod(self):
-        def analytical_method(container, variable, norm, value_retriever):
-            v = SpatialMethodTests.__GetInitializedValue(variable, norm, 0.0)
-            for item in container:
-                v += norm.Evaluate(value_retriever(item, variable))
-            v_list = SpatialMethodTests.__ConvertValueToList(v)
-            global_v_list = []
-            for v in v_list:
-                global_v_list.append(self.model_part.GetCommunicator().GetDataCommunicator().SumAll(v))
-            return SpatialMethodTests.__ConvertListToValue(global_v_list)
+        ref_values = {
+            self.data_location.NodeHistorical: {
+                Kratos.PRESSURE: {
+                    SpatialMethodTests.ValueNorm(): -63.0,
+                    KratosStats.Norms.Infinity()  : 63
+                },
+                Kratos.VELOCITY: {
+                    SpatialMethodTests.ValueNorm(): Kratos.Array3([63, -72, 81]),
+                    KratosStats.Norms.Infinity()  : 81
+                },
+                Kratos.INITIAL_STRAIN: {
+                    SpatialMethodTests.ValueNorm(): Kratos.Vector([63, -72, 81, -90, 99]),
+                    KratosStats.Norms.Infinity()  : 99
+                },
+                Kratos.LOCAL_TANGENT_MATRIX: {
+                    SpatialMethodTests.ValueNorm(): Kratos.Matrix([[63, -72], [81, 90]]),
+                    KratosStats.Norms.Infinity()  : 171
+                }
+            }
+        }
 
-        self.__RunTest(KratosStats.SpatialMethods.Sum, analytical_method)
+        self.__RunTest(KratosStats.SpatialMethods.Sum, ref_values)
 
     def testMeanMethod(self):
-        def analytical_method(container, variable, norm, value_retriever):
-            v = SpatialMethodTests.__GetInitializedValue(variable, norm, 0.0)
-            for item in container:
-                v += norm.Evaluate(value_retriever(item, variable))
-            v_list = SpatialMethodTests.__ConvertValueToList(v)
-            global_v_list = []
-            for v in v_list:
-                global_v_list.append(self.model_part.GetCommunicator().GetDataCommunicator().SumAll(v))
-            global_sum = SpatialMethodTests.__ConvertListToValue(global_v_list)
+        ref_values = {
+            self.data_location.NodeHistorical: {
+                Kratos.PRESSURE: {
+                    SpatialMethodTests.ValueNorm(): -63.0/9,
+                    KratosStats.Norms.Infinity()  : 63/9
+                },
+                Kratos.VELOCITY: {
+                    SpatialMethodTests.ValueNorm(): Kratos.Array3([63/9, -72/9, 81/9]),
+                    KratosStats.Norms.Infinity()  : 81/9
+                },
+                Kratos.INITIAL_STRAIN: {
+                    SpatialMethodTests.ValueNorm(): Kratos.Vector([63/9, -72/9, 81/9, -90/9, 99/9]),
+                    KratosStats.Norms.Infinity()  : 99/9
+                },
+                Kratos.LOCAL_TANGENT_MATRIX: {
+                    SpatialMethodTests.ValueNorm(): Kratos.Matrix([[63/9, -72/9], [81/9, 90/9]]),
+                    KratosStats.Norms.Infinity()  : 171/9
+                }
+            }
+        }
 
-            global_n = self.model_part.GetCommunicator().GetDataCommunicator().SumAll(len(container))
-            return global_sum / global_n
-
-        self.__RunTest(KratosStats.SpatialMethods.Mean, analytical_method)
+        self.__RunTest(KratosStats.SpatialMethods.Mean, ref_values)
 
     def testRootMeanSquareMethod(self):
-        def analytical_method(container, variable, norm, value_retriever):
-            global_n = self.model_part.GetCommunicator().GetDataCommunicator().SumAll(len(container))
+        ref_values = {
+            self.data_location.NodeHistorical: {
+                Kratos.PRESSURE: {
+                    SpatialMethodTests.ValueNorm(): sqrt((11*12*23/6-5)/9),
+                    KratosStats.Norms.Infinity()  : sqrt((11*12*23/6-5)/9)
+                },
+                Kratos.VELOCITY: {
+                    SpatialMethodTests.ValueNorm(): Kratos.Array3([sqrt((11*12*23/6-5)/9), sqrt((12*13*25/6-14)/9), sqrt((13*14*27/6-30)/9)]),
+                    KratosStats.Norms.Infinity()  : sqrt((13*14*27/6-30)/9)
+                },
+                Kratos.INITIAL_STRAIN: {
+                    SpatialMethodTests.ValueNorm(): Kratos.Vector([sqrt((11*12*23/6-5)/9), sqrt((12*13*25/6-14)/9), sqrt((13*14*27/6-30)/9), sqrt((14*15*29/6-55)/9), sqrt((15*16*31/6-91)/9)]),
+                    KratosStats.Norms.Infinity()  : sqrt((15*16*31/6-91)/9)
+                },
+                Kratos.LOCAL_TANGENT_MATRIX: {
+                    SpatialMethodTests.ValueNorm(): Kratos.Matrix([[sqrt((11*12*23/6-5)/9), sqrt((12*13*25/6-14)/9)], [sqrt((13*14*27/6-30)/9), sqrt((14*15*29/6-55)/9)]]),
+                    KratosStats.Norms.Infinity()  : sqrt((14*29*27/3-5*11*9/3)/9)
+                }
+            }
+        }
 
-            v_list = self.__ConvertValueToList(SpatialMethodTests.__GetInitializedValue(variable, norm, 0.0))
-            for item in container:
-                temp = self.__ConvertValueToList(norm.Evaluate(value_retriever(item, variable)))
-                for i, t_i in enumerate(temp):
-                    v_list[i] += t_i ** 2
-            global_v_list = []
-            for v in v_list:
-                global_v_list.append(sqrt(self.model_part.GetCommunicator().GetDataCommunicator().SumAll(v) / global_n))
-            return SpatialMethodTests.__ConvertListToValue(global_v_list)
-
-        self.__RunTest(KratosStats.SpatialMethods.RootMeanSquare, analytical_method)
+        self.__RunTest(KratosStats.SpatialMethods.RootMeanSquare, ref_values)
 
     def testVarianceMethod(self):
-        def analytical_method(container, variable, norm, value_retriever):
-            global_n = self.model_part.GetCommunicator().GetDataCommunicator().SumAll(len(container))
+        data_locations = [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical, Kratos.Globals.DataLocation.Condition, Kratos.Globals.DataLocation.Element]
+        norms_dict = {
+            Kratos.PRESSURE: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity()],
+            Kratos.VELOCITY: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5)],
+            Kratos.INITIAL_STRAIN: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5)],
+            Kratos.LOCAL_TANGENT_MATRIX: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5), KratosStats.Norms.Trace(), KratosStats.Norms.LPQ(1.3, 2.5)]
+        }
 
-            v_mean_list = self.__ConvertValueToList(SpatialMethodTests.__GetInitializedValue(variable, norm, 0.0))
-            v_variance_list = self.__ConvertValueToList(SpatialMethodTests.__GetInitializedValue(variable, norm, 0.0))
-            for item in container:
-                temp = self.__ConvertValueToList(norm.Evaluate(value_retriever(item, variable)))
-                for i, t_i in enumerate(temp):
-                    v_mean_list[i] += t_i
-                    v_variance_list[i] += t_i ** 2
-            global_v_mean_list = []
-            global_v_variance_list = []
-            for v_mean, v_variance in zip(v_mean_list, v_variance_list):
-                current_mean = self.model_part.GetCommunicator().GetDataCommunicator().SumAll(v_mean) / global_n
-                global_v_mean_list.append(current_mean)
-                global_v_variance_list.append(self.model_part.GetCommunicator().GetDataCommunicator().SumAll(v_variance) / global_n - current_mean ** 2)
-            return SpatialMethodTests.__ConvertListToValue(global_v_mean_list), SpatialMethodTests.__ConvertListToValue(global_v_variance_list)
+        ref_values = {}
+        for data_location in data_locations:
+            ref_values[data_location] = {}
+            for variable, norms_list in norms_dict.items():
+                ref_values[data_location][variable] = {}
+                for norm in norms_list:
+                    if isinstance(norm, SpatialMethodTests.ValueNorm):
+                        mean = KratosStats.SpatialMethods.Mean(self.model_part, variable, data_location)
+                        rms = KratosStats.SpatialMethods.RootMeanSquare(self.model_part, variable, data_location)
+                    else:
+                        mean = KratosStats.SpatialMethods.Mean(self.model_part, variable, data_location, norm)
+                        rms = KratosStats.SpatialMethods.RootMeanSquare(self.model_part, variable, data_location, norm)
+                    ref_values[data_location][variable][norm] = (mean, KratosStats.MethodUtilities.RaiseToPower(rms, 2) - KratosStats.MethodUtilities.RaiseToPower(mean, 2))
 
-        self.__RunTest(KratosStats.SpatialMethods.Variance, analytical_method)
+        self.__RunTest(KratosStats.SpatialMethods.Variance, ref_values)
 
     def testMinMethod(self):
-        data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
-        def analytical_method(container, variable, norm, value_retriever):
-            v_list = SpatialMethodTests.__ConvertValueToList(SpatialMethodTests.__GetInitializedValue(variable, norm, 1e+16))
-            v_id_list = [1e+5] * len(v_list)
-            for item in container:
-                current_v = SpatialMethodTests.__ConvertValueToList(norm.Evaluate(value_retriever(item, variable)))
-                for i, c_v in enumerate(current_v):
-                    if v_list[i] > c_v:
-                        v_list[i] = c_v
-                        v_id_list[i] = item.Id
-                    elif v_list[i] == c_v:
-                        v_id_list[i] = min(v_id_list[i], item.Id)
+        ref_values = {
+            self.data_location.NodeHistorical: {
+                Kratos.PRESSURE: {
+                    SpatialMethodTests.ValueNorm(): (-11, 9),
+                    KratosStats.Norms.Infinity()  : (3, 1)
+                },
+                Kratos.VELOCITY: {
+                    SpatialMethodTests.ValueNorm(): (Kratos.Array3([3, -12, 5]), [1, 9, 1]),
+                    KratosStats.Norms.Infinity()  : (5, 1)
+                },
+                Kratos.INITIAL_STRAIN: {
+                    SpatialMethodTests.ValueNorm(): (Kratos.Vector([3, -12, 5, -14, 7]), [1, 9, 1, 9, 1]),
+                    KratosStats.Norms.Infinity()  : (7, 1)
+                },
+                Kratos.LOCAL_TANGENT_MATRIX: {
+                    SpatialMethodTests.ValueNorm(): (Kratos.Matrix([[3, -12], [5, 6]]), [1, 9, 1, 1]),
+                    KratosStats.Norms.Infinity()  : (11, 1)
+                }
+            }
+        }
 
-            all_v_list = data_communicator.AllGathervDoubles(v_list)
-            all_v_id_list = data_communicator.AllGathervInts(v_id_list)
-
-            for global_v_list, global_v_id_list in zip(all_v_list, all_v_id_list):
-                for i, global_v in enumerate(global_v_list):
-                    if v_list[i] > global_v:
-                        v_list[i] = global_v
-                        v_id_list[i] = global_v_id_list[i]
-                    elif v_list[i] == c_v:
-                        v_id_list[i] = min(v_id_list[i], global_v_id_list[i])
-
-            if len(v_id_list) == 1:
-                return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list[0]
-            else:
-                return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list
-
-        self.__RunTest(KratosStats.SpatialMethods.Min, analytical_method)
+        self.__RunTest(KratosStats.SpatialMethods.Min, ref_values)
 
     def testMaxMethod(self):
-        data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
-        def analytical_method(container, variable, norm, value_retriever):
-            v_list = SpatialMethodTests.__ConvertValueToList(SpatialMethodTests.__GetInitializedValue(variable, norm, -1e+16))
-            v_id_list = [1e+5] * len(v_list)
-            for item in container:
-                current_v = SpatialMethodTests.__ConvertValueToList(norm.Evaluate(value_retriever(item, variable)))
-                for i, c_v in enumerate(current_v):
-                    if v_list[i] < c_v:
-                        v_list[i] = c_v
-                        v_id_list[i] = item.Id
-                    elif v_list[i] == c_v:
-                        v_id_list[i] = min(v_id_list[i], item.Id)
+        ref_values = {
+            self.data_location.NodeHistorical: {
+                Kratos.PRESSURE: {
+                    SpatialMethodTests.ValueNorm(): (-3, 1),
+                    KratosStats.Norms.Infinity()  : (11, 9)
+                },
+                Kratos.VELOCITY: {
+                    SpatialMethodTests.ValueNorm(): (Kratos.Array3([11, -4, 13]), [9, 1, 9]),
+                    KratosStats.Norms.Infinity()  : (13, 9)
+                },
+                Kratos.INITIAL_STRAIN: {
+                    SpatialMethodTests.ValueNorm(): (Kratos.Vector([11, -4, 13, -6, 15]), [9, 1, 9, 1, 9]),
+                    KratosStats.Norms.Infinity()  : (15, 9)
+                },
+                Kratos.LOCAL_TANGENT_MATRIX: {
+                    SpatialMethodTests.ValueNorm(): (Kratos.Matrix([[11, -4], [13, 14]]), [9, 1, 9, 9]),
+                    KratosStats.Norms.Infinity()  : (27, 9)
+                }
+            }
+        }
 
-            all_v_list = data_communicator.AllGathervDoubles(v_list)
-            all_v_id_list = data_communicator.AllGathervInts(v_id_list)
-
-            for global_v_list, global_v_id_list in zip(all_v_list, all_v_id_list):
-                for i, global_v in enumerate(global_v_list):
-                    if v_list[i] < global_v:
-                        v_list[i] = global_v
-                        v_id_list[i] = global_v_id_list[i]
-                    elif v_list[i] == c_v:
-                        v_id_list[i] = min(v_id_list[i], global_v_id_list[i])
-
-            if len(v_id_list) == 1:
-                return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list[0]
-            else:
-                return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list
-
-        self.__RunTest(KratosStats.SpatialMethods.Max, analytical_method)
+        self.__RunTest(KratosStats.SpatialMethods.Max, ref_values)
 
     def testMedianMethod(self):
-        data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
-        def analytical_method(container, variable, norm, value_retriever):
-            local_values_list = []
-            local_indices_list = []
-            for item in container:
-                current_v = SpatialMethodTests.__ConvertValueToList(norm.Evaluate(value_retriever(item, variable)))
-                component_size = len(current_v)
-                if len(local_values_list) != component_size:
-                    local_values_list = [[] for _ in current_v]
-                    local_indices_list = [[] for _ in current_v]
-                for i, v in enumerate(current_v):
-                    local_values_list[i].append(v)
-                    local_indices_list[i].append(item.Id)
+        ref_values = {
+            self.data_location.NodeHistorical: {
+                Kratos.PRESSURE: {
+                    SpatialMethodTests.ValueNorm(): (-7, 5),
+                    KratosStats.Norms.Infinity()  : (7, 5)
+                },
+                Kratos.VELOCITY: {
+                    SpatialMethodTests.ValueNorm(): (Kratos.Array3([7, -8, 9]), [5, 5, 5]),
+                    KratosStats.Norms.Infinity()  : (9, 5)
+                },
+                Kratos.INITIAL_STRAIN: {
+                    SpatialMethodTests.ValueNorm(): (Kratos.Vector([7, -8, 9, -10, 11]), [5, 5, 5, 5, 5]),
+                    KratosStats.Norms.Infinity()  : (11, 5)
+                },
+                Kratos.LOCAL_TANGENT_MATRIX: {
+                    SpatialMethodTests.ValueNorm(): (Kratos.Matrix([[7, -8], [9, 10]]), [5, 5, 5, 5]),
+                    KratosStats.Norms.Infinity()  : (19, 5)
+                }
+            }
+        }
 
-            component_size = data_communicator.MaxAll(component_size)
-            global_v_id_pair_list = [[] for _ in range(component_size)]
-            if len(local_values_list) == 0:
-                local_values_list = [[] for _ in range(component_size)]
-                local_indices_list = [[] for _ in range(component_size)]
+        self.__RunTest(KratosStats.SpatialMethods.Median, ref_values)
 
-            for i in range(component_size):
-                all_rank_v_list = data_communicator.AllGathervDoubles(local_values_list[i])
-                all_rank_i_list = data_communicator.AllGathervInts(local_indices_list[i])
-                for rank_v_list, rank_v_id_list in zip(all_rank_v_list, all_rank_i_list):
-                    for rank_v, rank_id in zip(rank_v_list, rank_v_id_list):
-                        global_v_id_pair_list[i].append([rank_v, rank_id])
-                global_v_id_pair_list[i] = sorted(global_v_id_pair_list[i], key=lambda x:x[0])
+    def testDistributionMethod(self):
+        ref_values = {
+            self.data_location.NodeHistorical: {
+                Kratos.PRESSURE: {
+                    SpatialMethodTests.ValueNorm(): (
+                        -11,
+                        -3,
+                        [(-11 + 8*i/4) for i in range(5)] + [-3.0],
+                        [[0], [2], [2], [2], [3], [0]],
+                        [0, 2/9, 2/9, 2/9, 3/9, 0],
+                        [0, -10.5, -8.5, -6.5, -4.0, 0],
+                        [0, 0.25, 0.25, 0.25, 2/3, 0]
+                    )
+                    # KratosStats.Norms.Infinity(): (
+                    #     3,
+                    #     11,
+                    #     [(3 + 8*i/4) for i in range(5)] + [11],
+                    #     [[0], [2], [2], [2], [3], [0]],
+                    #     [0, 2/9, 2/9, 2/9, 3/9, 0],
+                    #     [0, 3.5, 5.5, 7.5, 10.0, 0],
+                    #     [0, 0.25, 0.25, 0.25, 2/3, 0]
+                    # )
+                }
+                # Kratos.VELOCITY: {
+                #     SpatialMethodTests.ValueNorm(): (Kratos.Array3([7, -8, 9]), [5, 5, 5]),
+                #     KratosStats.Norms.Infinity()  : (9, 5)
+                # },
+                # Kratos.INITIAL_STRAIN: {
+                #     SpatialMethodTests.ValueNorm(): (Kratos.Vector([7, -8, 9, -10, 11]), [5, 5, 5, 5, 5]),
+                #     KratosStats.Norms.Infinity()  : (11, 5)
+                # },
+                # Kratos.LOCAL_TANGENT_MATRIX: {
+                #     SpatialMethodTests.ValueNorm(): (Kratos.Matrix([[7, -8], [9, 10]]), [5, 5, 5, 5]),
+                #     KratosStats.Norms.Infinity()  : (19, 5)
+                # }
+            }
+        }
 
-            v_list = [0.0] * component_size
-            v_id_list = [0] * component_size
+        params = Kratos.Parameters("""{
+            "number_of_value_groups" : 4,
+            "min_value"              : "min",
+            "max_value"              : "max"
+        }""")
+        self.__RunTest(KratosStats.SpatialMethods.Distribution, ref_values, params)
 
-            n = len(global_v_id_pair_list[0])
+    # def testMaxMethod(self):
+    #     data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
+    #     def analytical_method(container, variable, norm, value_retriever):
+    #         v_list = SpatialMethodTests.__ConvertValueToList(SpatialMethodTests.__GetInitializedValue(variable, norm, -1e+16))
+    #         v_id_list = [1e+5] * len(v_list)
+    #         for item in container:
+    #             current_v = SpatialMethodTests.__ConvertValueToList(norm.Evaluate(value_retriever(item, variable)))
+    #             for i, c_v in enumerate(current_v):
+    #                 if v_list[i] < c_v:
+    #                     v_list[i] = c_v
+    #                     v_id_list[i] = item.Id
+    #                 elif v_list[i] == c_v:
+    #                     v_id_list[i] = min(v_id_list[i], item.Id)
 
-            if n % 2 != 0:
-                for i in range(component_size):
-                    v_list[i] = global_v_id_pair_list[i][int((n-1) / 2)][0]
-                    v_id_list[i] = global_v_id_pair_list[i][int((n-1) / 2)][1]
-            else:
-                for i in range(component_size):
-                    v_list[i] = 0.5 * (global_v_id_pair_list[i][int((n-1) / 2)][0] + global_v_id_pair_list[i][int((n+1) / 2)][0])
-                    v_id_list[i] = global_v_id_pair_list[i][int((n+1) / 2)][1]
+    #         all_v_list = data_communicator.AllGathervDoubles(v_list)
+    #         all_v_id_list = data_communicator.AllGathervInts(v_id_list)
 
-            if component_size == 1:
-                return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list[0]
-            else:
-                return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list
+    #         for global_v_list, global_v_id_list in zip(all_v_list, all_v_id_list):
+    #             for i, global_v in enumerate(global_v_list):
+    #                 if v_list[i] < global_v:
+    #                     v_list[i] = global_v
+    #                     v_id_list[i] = global_v_id_list[i]
+    #                 elif v_list[i] == c_v:
+    #                     v_id_list[i] = min(v_id_list[i], global_v_id_list[i])
 
-        self.__RunTest(KratosStats.SpatialMethods.Median, analytical_method)
+    #         if len(v_id_list) == 1:
+    #             return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list[0]
+    #         else:
+    #             return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list
+
+    #     self.__RunTest(KratosStats.SpatialMethods.Max, analytical_method)
+
+    # def testMedianMethod(self):
+    #     data_communicator: Kratos.DataCommunicator = self.model_part.GetCommunicator().GetDataCommunicator()
+    #     def analytical_method(container, variable, norm, value_retriever):
+    #         local_values_list = []
+    #         local_indices_list = []
+    #         for item in container:
+    #             current_v = SpatialMethodTests.__ConvertValueToList(norm.Evaluate(value_retriever(item, variable)))
+    #             component_size = len(current_v)
+    #             if len(local_values_list) != component_size:
+    #                 local_values_list = [[] for _ in current_v]
+    #                 local_indices_list = [[] for _ in current_v]
+    #             for i, v in enumerate(current_v):
+    #                 local_values_list[i].append(v)
+    #                 local_indices_list[i].append(item.Id)
+
+    #         component_size = data_communicator.MaxAll(component_size)
+    #         global_v_id_pair_list = [[] for _ in range(component_size)]
+    #         if len(local_values_list) == 0:
+    #             local_values_list = [[] for _ in range(component_size)]
+    #             local_indices_list = [[] for _ in range(component_size)]
+
+    #         for i in range(component_size):
+    #             all_rank_v_list = data_communicator.AllGathervDoubles(local_values_list[i])
+    #             all_rank_i_list = data_communicator.AllGathervInts(local_indices_list[i])
+    #             for rank_v_list, rank_v_id_list in zip(all_rank_v_list, all_rank_i_list):
+    #                 for rank_v, rank_id in zip(rank_v_list, rank_v_id_list):
+    #                     global_v_id_pair_list[i].append([rank_v, rank_id])
+    #             global_v_id_pair_list[i] = sorted(global_v_id_pair_list[i], key=lambda x:x[0])
+
+    #         v_list = [0.0] * component_size
+    #         v_id_list = [0] * component_size
+
+    #         n = len(global_v_id_pair_list[0])
+
+    #         if n % 2 != 0:
+    #             for i in range(component_size):
+    #                 v_list[i] = global_v_id_pair_list[i][int((n-1) / 2)][0]
+    #                 v_id_list[i] = global_v_id_pair_list[i][int((n-1) / 2)][1]
+    #         else:
+    #             for i in range(component_size):
+    #                 v_list[i] = 0.5 * (global_v_id_pair_list[i][int((n-1) / 2)][0] + global_v_id_pair_list[i][int((n+1) / 2)][0])
+    #                 v_id_list[i] = global_v_id_pair_list[i][int((n+1) / 2)][1]
+
+    #         if component_size == 1:
+    #             return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list[0]
+    #         else:
+    #             return SpatialMethodTests.__ConvertListToValue(v_list), v_id_list
+
+    #     self.__RunTest(KratosStats.SpatialMethods.Median, analytical_method)
 
 if __name__ == '__main__':
     KratosUnittest.main()

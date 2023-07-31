@@ -214,7 +214,7 @@ void AddSpatialMethods(pybind11::module& m)
     m.def("Median", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::Median<TDataType>(rModelPart, rVariable, rDataLocation, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"));
 
     m.def("Distribution", py::overload_cast<const ModelPart&,const Variable<TDataType>&,const DataLocation&, Parameters>(&SpatialMethods::Distribution<TDataType>), py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("parameters"));
-    m.def("Distribution", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, Parameters Params, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::Distribution<TDataType>(rModelPart, rVariable, rDataLocation, Params, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("norm"), py::arg("parameters"));
+    m.def("Distribution", [](const ModelPart& rModelPart, const Variable<TDataType>& rVariable, const DataLocation& rDataLocation, Parameters Params, const VariantPointer& rNormPointer) { return std::visit([&](auto& pNorm) { return SpatialMethods::Distribution<TDataType>(rModelPart, rVariable, rDataLocation, Params, *pNorm); }, rNormPointer);}, py::arg("model_part"), py::arg("variable"), py::arg("data_location"), py::arg("parameters"), py::arg("norm"));
 }
 
 void AddCustomSpatialMethodsToPython(pybind11::module& m)

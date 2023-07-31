@@ -728,7 +728,7 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
                 distribution_info.mGroupNumberOfValues[i] = r_data_communicator.SumAll(group_values);
                 number_of_items += std::accumulate(group_values.begin(), group_values.end(), 0U);
             }
-            number_of_items = std::max(number_of_items / number_of_components, 1.0);
+            number_of_items = std::max(r_data_communicator.SumAll(number_of_items) / number_of_components, 1.0);
             distribution_info.mGroupMean     = r_data_communicator.SumAll(std::get<1>(reuduced_values));
             distribution_info.mGroupVariance = r_data_communicator.SumAll(std::get<2>(reuduced_values));
 
