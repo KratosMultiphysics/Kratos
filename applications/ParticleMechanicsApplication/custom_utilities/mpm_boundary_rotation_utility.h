@@ -139,7 +139,6 @@ public:
         // and remove the accumulated normal forces
         for(NodeType &curr_node : rModelPart.Nodes()){
             curr_node.SetLock();
-            curr_node.Reset(INLET);
             curr_node.Reset(OUTLET);
             curr_node.FastGetSolutionStepValue(NORMAL_REACTION, 0) = 0.0;
             curr_node.UnSetLock();
@@ -187,40 +186,8 @@ public:
                         rLocalMatrix(j, j) = 1.0; // set diagonal term to 1.0
                     }
 
-                    /// Computation of nodal reaction forces due to conforming SLIP BC -- use NORMAL_REACTION
-                    /// as frame of reference is aligned with node normals [& not global frame of ref per REACTION]
-                    // Accumulate RHS values along normal direction to FORCE_RESIDUAL [nodal reaction forces due to conforming SLIP]
-                    // -- when converged, RHS ~= 0 -> FORCE_RESIDUAL = -RHS value [computed without adding reaction force]
-
-                    rGeometry[itNode].SetLock();
-                    rGeometry[itNode].FastGetSolutionStepValue(NORMAL_REACTION) -= rLocalVector[j];
-                    rGeometry[itNode].UnSetLock();
-
                     // Set value of normal displacement at node directly to the normal displacement of the boundary mesh
 					rLocalVector[j] = inner_prod(rN,displacement);
-
-                    // TODO: refactor? [e.g. set INLET flag and local flag, unlock node and do another if based on local flag]
-                    // Prescribe a constant force of FRICTION_FORCE Newtons in the 1st tangential direction to all nodes
-                    // INLET flag (reset in MPMResidualBasedBossakScheme.InitializeSolutionStep) ensures that friction
-                    // is applied exactly once per node
-                    rGeometry[itNode].SetLock();
-                    if(!rGeometry[itNode].Is(INLET)) {
-                        // obtain nodal velocity and rotate it to the same frame of reference as the local geometry
-                        array_1d<double, 3> nodal_velocity = ZeroVector(3);
-
-                        nodal_velocity = rGeometry[itNode].FastGetSolutionStepValue(VELOCITY);
-
-                        // TODO: make threshold configurable?
-                        this->RotateAndNormalizeVector(nodal_velocity, rGeometry[itNode], VELOCITY_THRESHOLD);
-
-                        // apply friction force in opposite direction of tangential velocity components
-                        for (unsigned dim = 1; dim < this->GetDomainSize(); dim++) {
-                            rLocalVector[j + dim] -= FRICTION_FORCE * nodal_velocity[dim];
-                        }
-
-                        rGeometry[itNode].Set(INLET);
-                    }
-                    rGeometry[itNode].UnSetLock();
 				}
 			}
 		}
@@ -280,7 +247,6 @@ public:
 			if (LocalSize > 0)
 			{
 				const unsigned int block_size = this->GetBlockSize();
-                const unsigned int domain_size = this->GetDomainSize();
 				TLocalMatrixType temp_matrix = ZeroMatrix(rLocalMatrix.size1(),rLocalMatrix.size2());
 				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 				{
@@ -605,9 +571,6 @@ private:
 	///@{
 
 	const Variable<double>& mrFlagVariable;
-
-    const double FRICTION_FORCE = 0000;
-    const double VELOCITY_THRESHOLD = 1e-10;
 
     const int SLIDING = 0;
     const int STICK = 1;

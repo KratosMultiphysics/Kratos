@@ -271,7 +271,7 @@ public:
         KRATOS_CATCH( "" );
     }
 
-    // Additionally resets INLET flag so that nodal friction can be properly set in every iteration
+    // Clear friction-related flags & variables
     void InitializeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
         ClearReaction();
