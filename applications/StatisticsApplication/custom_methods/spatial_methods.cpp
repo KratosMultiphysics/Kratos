@@ -446,6 +446,137 @@ private:
     ///@}
 };
 
+template<class TDataType>
+class DistributionReduction {
+public:
+    using data_type = std::tuple<IndexType, IndicesType, TDataType>;
+
+    using ReturnIndicesType = typename SpatialMethods::DistributionInfo<TDataType>::IndicesType;
+
+    using return_type = std::tuple<
+                            std::vector<ReturnIndicesType>, // group value counts
+                            std::vector<TDataType>, // group means
+                            std::vector<TDataType>  // group variances
+                        >;
+
+    using data_type_traits = DataTypeTraits<TDataType>;
+
+    using indices_traits = DataTypeTraits<ReturnIndicesType>;
+
+    return_type mValue;
+
+    /// access to reduced value
+    return_type GetValue() const
+    {
+        return mValue;
+    }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const data_type& rValue)
+    {
+        ResizeAndInitialize(rValue);
+
+        auto& r_current_group_counts = std::get<0>(mValue);
+        auto& r_current_group_means = std::get<1>(mValue);
+        auto& r_current_group_variances = std::get<2>(mValue);
+
+        const auto& r_group_indices = std::get<1>(rValue);
+        const auto& r_value = std::get<2>(rValue);
+        const IndexType number_of_components = data_type_traits::Size(r_value);
+
+        for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
+            const auto group_index = r_group_indices[i_comp];
+            const auto raw_value = data_type_traits::GetComponent(r_value, i_comp);
+            ++indices_traits::GetComponent(r_current_group_counts[group_index], i_comp);
+            data_type_traits::GetComponent(r_current_group_means[group_index], i_comp) += raw_value;
+            data_type_traits::GetComponent(r_current_group_variances[group_index], i_comp) += std::pow(raw_value, 2);
+        }
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(const DistributionReduction& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+
+        auto& r_group_counts = std::get<0>(mValue);
+        auto& r_group_means = std::get<1>(mValue);
+        auto& r_group_variances = std::get<2>(mValue);
+
+        const auto& r_other_group_counts = std::get<0>(rOther.mValue);
+        const auto& r_other_group_means = std::get<1>(rOther.mValue);
+        const auto& r_other_group_variances = std::get<2>(rOther.mValue);
+
+        const IndexType number_of_groups = r_other_group_counts.size();
+
+        // first check and resize everything
+        if (r_group_counts.size() != number_of_groups) {
+            r_group_counts.resize(number_of_groups);
+            r_group_means.resize(number_of_groups);
+            r_group_variances.resize(number_of_groups);
+        }
+
+        for (IndexType i_group = 0; i_group < number_of_groups; ++i_group) {
+            auto& r_group_count = r_group_counts[i_group];
+            auto& r_group_mean = r_group_means[i_group];
+            auto& r_group_variance = r_group_variances[i_group];
+
+            const auto& r_other_group_count = r_other_group_counts[i_group];
+            const auto& r_other_group_mean = r_other_group_means[i_group];
+            const auto& r_other_group_variance = r_other_group_variances[i_group];
+
+            const IndexType number_of_components = indices_traits::Size(r_other_group_count);
+
+            if (indices_traits::Size(r_group_count) != number_of_components) {
+                r_group_count = r_other_group_count;
+                r_group_mean = r_other_group_mean;
+                r_group_variance = r_other_group_variance;
+                indices_traits::Initialize(r_group_count, 0);
+                data_type_traits::Initialize(r_group_mean, 0.0);
+                data_type_traits::Initialize(r_group_variance, 0.0);
+            }
+
+            for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
+                indices_traits::GetComponent(r_group_count, i_comp) += indices_traits::GetComponent(r_other_group_count, i_comp);
+            }
+            r_group_mean += r_other_group_mean;
+            r_group_variance += r_other_group_variance;
+        }
+    }
+
+    void ResizeAndInitialize(const data_type& rValue)
+    {
+        const auto number_of_groups = std::get<0>(rValue);
+        const auto& r_value = std::get<2>(rValue);
+        const auto number_of_components = data_type_traits::Size(r_value);
+
+        auto& r_current_group_counts = std::get<0>(mValue);
+        auto& r_current_group_means = std::get<1>(mValue);
+        auto& r_current_group_variances = std::get<2>(mValue);
+
+        if (r_current_group_counts.size() != number_of_groups) {
+            // resize
+            r_current_group_counts.resize(number_of_groups);
+            r_current_group_means.resize(number_of_groups);
+            r_current_group_variances.resize(number_of_groups);
+
+            // initialize
+            for (IndexType i_group = 0; i_group < number_of_groups; ++i_group) {
+                if constexpr(std::is_arithmetic_v<TDataType>) {
+                    r_current_group_counts[i_group] = 0;
+                } else {
+                    r_current_group_counts[i_group].resize(number_of_components);
+                    std::fill(r_current_group_counts[i_group].begin(), r_current_group_counts[i_group].end(), 0);
+                }
+                r_current_group_means[i_group] = r_value;
+                r_current_group_variances[i_group] = r_value;
+                data_type_traits::Initialize(r_current_group_means[i_group], 0.0);
+                data_type_traits::Initialize(r_current_group_variances[i_group], 0.0);
+            }
+        }
+    }
+};
+
+
 template<class TDataType, class TNormType, int TPower = 1>
 typename TNormType::ResultantValueType<TDataType> GenericSumReduction(
     const ModelPart& rModelPart,
@@ -501,11 +632,13 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
 
     using norm_return_type = typename TNormType::ResultantValueType<TDataType>;
 
+    using indices_return_type = typename SpatialMethods::DistributionInfo<norm_return_type>::IndicesType;
+
     using distribution_info_type = SpatialMethods::DistributionInfo<norm_return_type>;
 
     using data_type_traits = DataTypeTraits<norm_return_type>;
 
-    using ReturnIndicesType = typename SpatialMethods::DistributionInfo<norm_return_type>::IndicesType;
+    using indices_traits = DataTypeTraits<indices_return_type>;
 
     const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, rLocation);
 
@@ -567,147 +700,22 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
                 group_limits[i] = min_value + (max_value - min_value) * static_cast<double>(i) / static_cast<double>(number_of_groups);
             }
             norm_return_type additional_max_value(max_value);
-            data_type_traits::Initialize(additional_max_value, std::numeric_limits<typename DataTypeTraits<norm_return_type>::RawDataType>::max());
+            data_type_traits::Initialize(additional_max_value, std::numeric_limits<typename data_type_traits::RawDataType>::max());
             group_limits.back() = additional_max_value;
 
-            /// reduction class
-            class DistributionReduction {
-            public:
-                using data_type = std::tuple<IndexType, IndicesType, norm_return_type>;
-
-                using return_type = std::tuple<
-                                        std::vector<ReturnIndicesType>, // group value counts
-                                        std::vector<norm_return_type>, // group means
-                                        std::vector<norm_return_type>  // group variances
-                                    >;
-
-                return_type mValue;
-
-                /// access to reduced value
-                return_type GetValue() const
-                {
-                    return mValue;
-                }
-
-                /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
-                void LocalReduce(const data_type& rValue)
-                {
-                    ResizeAndInitialize(rValue);
-
-                    auto& r_current_group_counts = std::get<0>(mValue);
-                    auto& r_current_group_means = std::get<1>(mValue);
-                    auto& r_current_group_variances = std::get<2>(mValue);
-
-                    const auto& r_group_indices = std::get<1>(rValue);
-                    const auto& r_value = std::get<2>(rValue);
-                    const IndexType number_of_components = DataTypeTraits<norm_return_type>::Size(r_value);
-
-                    for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                        const auto group_index = r_group_indices[i_comp];
-                        const auto raw_value = DataTypeTraits<norm_return_type>::GetComponent(r_value, i_comp);
-                        ++DataTypeTraits<ReturnIndicesType>::GetComponent(r_current_group_counts[group_index], i_comp);
-                        DataTypeTraits<norm_return_type>::GetComponent(r_current_group_means[group_index], i_comp) += raw_value;
-                        DataTypeTraits<norm_return_type>::GetComponent(r_current_group_variances[group_index], i_comp) += std::pow(raw_value, 2);
-                    }
-                }
-
-                /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
-                void ThreadSafeReduce(const DistributionReduction& rOther)
-                {
-                    KRATOS_CRITICAL_SECTION
-
-                    auto& r_group_counts = std::get<0>(mValue);
-                    auto& r_group_means = std::get<1>(mValue);
-                    auto& r_group_variances = std::get<2>(mValue);
-
-                    const auto& r_other_group_counts = std::get<0>(rOther.mValue);
-                    const auto& r_other_group_means = std::get<1>(rOther.mValue);
-                    const auto& r_other_group_variances = std::get<2>(rOther.mValue);
-
-                    const IndexType number_of_groups = r_other_group_counts.size();
-
-                    // first check and resize everything
-                    if (r_group_counts.size() != number_of_groups) {
-                        r_group_counts.resize(number_of_groups);
-                        r_group_means.resize(number_of_groups);
-                        r_group_variances.resize(number_of_groups);
-                    }
-
-                    for (IndexType i_group = 0; i_group < number_of_groups; ++i_group) {
-                        auto& r_group_count = r_group_counts[i_group];
-                        auto& r_group_mean = r_group_means[i_group];
-                        auto& r_group_variance = r_group_variances[i_group];
-
-                        const auto& r_other_group_count = r_other_group_counts[i_group];
-                        const auto& r_other_group_mean = r_other_group_means[i_group];
-                        const auto& r_other_group_variance =
-                            r_other_group_variances[i_group];
-
-                        const IndexType number_of_components = DataTypeTraits<ReturnIndicesType>::Size(r_other_group_count);
-
-                        if (DataTypeTraits<ReturnIndicesType>::Size(r_group_count) != number_of_components) {
-                            r_group_count = r_other_group_count;
-                            r_group_mean = r_other_group_mean;
-                            r_group_variance = r_other_group_variance;
-                            DataTypeTraits<ReturnIndicesType>::Initialize(r_group_count, 0);
-                            data_type_traits::Initialize(r_group_mean, 0.0);
-                            data_type_traits::Initialize(r_group_variance, 0.0);
-                        }
-
-                        for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                            DataTypeTraits<ReturnIndicesType>::GetComponent(r_group_count, i_comp) += DataTypeTraits<ReturnIndicesType>::GetComponent(r_other_group_count, i_comp);
-                        }
-                        r_group_mean += r_other_group_mean;
-                        r_group_variance += r_other_group_variance;
-                    }
-                }
-
-                void ResizeAndInitialize(const data_type& rValue)
-                {
-                    const auto number_of_groups = std::get<0>(rValue);
-                    const auto& r_value = std::get<2>(rValue);
-                    const auto number_of_components = DataTypeTraits<norm_return_type>::Size(r_value);
-
-                    auto& r_current_group_counts = std::get<0>(mValue);
-                    auto& r_current_group_means = std::get<1>(mValue);
-                    auto& r_current_group_variances = std::get<2>(mValue);
-
-                    if (r_current_group_counts.size() != number_of_groups) {
-                        // resize
-                        r_current_group_counts.resize(number_of_groups);
-                        r_current_group_means.resize(number_of_groups);
-                        r_current_group_variances.resize(number_of_groups);
-
-                        // initialize
-                        for (IndexType i_group = 0; i_group < number_of_groups; ++i_group) {
-                            if constexpr(std::is_arithmetic_v<norm_return_type>) {
-                                r_current_group_counts[i_group] = 0;
-                            } else {
-                                r_current_group_counts[i_group].resize(number_of_components);
-                                std::fill(r_current_group_counts[i_group].begin(), r_current_group_counts[i_group].end(), 0);
-                            }
-                            r_current_group_means[i_group] = r_value;
-                            r_current_group_variances[i_group] = r_value;
-                            data_type_traits::Initialize(r_current_group_means[i_group], 0.0);
-                            data_type_traits::Initialize(r_current_group_variances[i_group], 0.0);
-                        }
-                    }
-                }
-            };
-
-            const IndexType number_of_components = DataTypeTraits<norm_return_type>::Size(max_value);
+            const IndexType number_of_components = data_type_traits::Size(max_value);
 
             const auto& reuduced_values =
-                IndexPartition<IndexType>(rDataContainer.Size()).for_each<DistributionReduction>(TDataType{}, [&rDataContainer, &rNorm, &group_limits, number_of_components, number_of_groups](const IndexType Index, TDataType& rTLS) {
+                IndexPartition<IndexType>(rDataContainer.Size()).for_each<SpatialMethodHelperUtilities::DistributionReduction<norm_return_type>>(TDataType{}, [&rDataContainer, &rNorm, &group_limits, number_of_components, number_of_groups](const IndexType Index, TDataType& rTLS) {
                     rDataContainer.GetValue(rTLS, Index);
                     auto norm_value = rNorm.Evaluate(rTLS);
 
                     IndicesType indices(number_of_components);
                     for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                        const auto& comp_value = DataTypeTraits<norm_return_type>::GetComponent(norm_value, i_comp);
+                        const auto& comp_value = data_type_traits::GetComponent(norm_value, i_comp);
                         IndexType i_group;
                         for (i_group = 0; i_group < group_limits.size() - 2; ++i_group) {
-                            if (comp_value < DataTypeTraits<norm_return_type>::GetComponent(group_limits[i_group], i_comp)) {
+                            if (comp_value < data_type_traits::GetComponent(group_limits[i_group], i_comp)) {
                                 indices[i_comp] = i_group;
                                 i_group = std::numeric_limits<IndexType>::max();
                                 break;
@@ -715,7 +723,7 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
                         }
 
                         for (; i_group < group_limits.size(); ++i_group) {
-                            if (comp_value <= DataTypeTraits<norm_return_type>::GetComponent(group_limits[i_group], i_comp)) {
+                            if (comp_value <= data_type_traits::GetComponent(group_limits[i_group], i_comp)) {
                                 indices[i_comp] = i_group;
                                 break;
                             }
@@ -732,7 +740,7 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
             for (IndexType i = 0; i < number_of_all_groups; ++i) {
                 const auto& group_values = std::get<0>(reuduced_values)[i];
                 distribution_info.mGroupNumberOfValues[i] = r_data_communicator.SumAll(group_values);
-                number_of_items += DataTypeTraits<ReturnIndicesType>::GetComponent(group_values, 0);
+                number_of_items += indices_traits::GetComponent(group_values, 0);
             }
             number_of_items = std::max(r_data_communicator.SumAll(number_of_items), 1.0);
             distribution_info.mGroupMean     = r_data_communicator.SumAll(std::get<1>(reuduced_values));
@@ -748,17 +756,17 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
 
                 // post processing of values
                 for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                    const auto n = DataTypeTraits<ReturnIndicesType>::GetComponent(current_number_of_values, i_comp);
+                    const auto n = indices_traits::GetComponent(current_number_of_values, i_comp);
                     if (n > 0) {
-                        DataTypeTraits<norm_return_type>::GetComponent(current_distribution_percentage, i_comp) = n / number_of_items;
-                        DataTypeTraits<norm_return_type>::GetComponent(current_mean, i_comp) /= n;
-                        DataTypeTraits<norm_return_type>::GetComponent(current_variance, i_comp) /= n;
+                        data_type_traits::GetComponent(current_distribution_percentage, i_comp) = n / number_of_items;
+                        data_type_traits::GetComponent(current_mean, i_comp) /= n;
+                        data_type_traits::GetComponent(current_variance, i_comp) /= n;
                     } else {
-                        DataTypeTraits<norm_return_type>::GetComponent(current_distribution_percentage, i_comp) = 0.0;
-                        DataTypeTraits<norm_return_type>::GetComponent(current_mean, i_comp) = 0.0;
-                        DataTypeTraits<norm_return_type>::GetComponent(current_variance, i_comp) = 0.0;
+                        data_type_traits::GetComponent(current_distribution_percentage, i_comp) = 0.0;
+                        data_type_traits::GetComponent(current_mean, i_comp) = 0.0;
+                        data_type_traits::GetComponent(current_variance, i_comp) = 0.0;
                     }
-                    DataTypeTraits<norm_return_type>::GetComponent(current_variance, i_comp) -= std::pow(DataTypeTraits<norm_return_type>::GetComponent(current_mean, i_comp), 2);
+                    data_type_traits::GetComponent(current_variance, i_comp) -= std::pow(data_type_traits::GetComponent(current_mean, i_comp), 2);
                 }
             }
 
