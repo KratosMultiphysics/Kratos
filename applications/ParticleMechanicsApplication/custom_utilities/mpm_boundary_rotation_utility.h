@@ -140,7 +140,7 @@ public:
         for(NodeType &curr_node : rModelPart.Nodes()){
             curr_node.SetLock();
             curr_node.Reset(OUTLET);
-            curr_node.FastGetSolutionStepValue(NORMAL_REACTION, 0) = 0.0;
+            curr_node.FastGetSolutionStepValue(FRICTION_CONTACT_FORCE, 0).clear();
             curr_node.UnSetLock();
         }
         KRATOS_CATCH( "" )
@@ -247,6 +247,8 @@ public:
 			if (LocalSize > 0)
 			{
 				const unsigned int block_size = this->GetBlockSize();
+                const unsigned int domain_size = this->GetDomainSize();
+
 				TLocalMatrixType temp_matrix = ZeroMatrix(rLocalMatrix.size1(),rLocalMatrix.size2());
 				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 				{
@@ -274,10 +276,13 @@ public:
 //                                KRATOS_WATCH(dyn_friction_set);
 
                                 // if dynamic friction has not been set, set it -- otherwise zero out current contribution
-//                                for (unsigned int i = 1; i < domain_size; i++)
-                                    rLocalVector[j + 1] = dyn_friction_set ? 0.0 : rGeometry[itNode].GetValue(MAX_TANGENT_FORCE);
-//                                    KRATOS_WATCH(rLocalVector[j+1]);
-//                                    KRATOS_WATCH(rGeometry[itNode]);
+                                for (unsigned int i = 1; i < domain_size; i++)
+                                    rLocalVector[j + i] = dyn_friction_set ? 0.0 : rGeometry[itNode].GetValue(FRICTION_CONTACT_FORCE)[i];
+
+
+//                                KRATOS_WATCH(rLocalVector[j+1]);
+//                                KRATOS_WATCH(rGeometry[itNode]);
+
                                 // allow slip along tangential direction -- zero out tangential penalty terms on LHS
                                 for (unsigned int k = j + 1; k < j + block_size; ++k) {
                                     for (unsigned int i = 0; i < rLocalMatrix.size1(); ++i) {
@@ -467,29 +472,42 @@ public:
 
                 // update normal force norm assoc. with current timestep
                 // [note: no friction if REACTION[0] > 0 [i.e. contact lost]]
-                itNode->FastGetSolutionStepValue(NORMAL_REACTION, 0) = fmax(-reaction[0], 0.0);
+                itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_X, 0) = fmax(-reaction[0], 0.0);
 
                 // obtain normal (prev timestep) and tangent forces (current) assoc. with node
-                const double prev_normal_force_norm = itNode->FastGetSolutionStepValue(NORMAL_REACTION, 1);
+                const double prev_normal_force_norm = itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_X, 1);
                 const double tangent_force1 = reaction[1];
                 const double tangent_force2 = reaction[2];
 
-                double tangent_force_norm = sqrt(tangent_force1 * tangent_force1 + tangent_force2 * tangent_force2);
+                const double tangent_force_norm = sqrt(tangent_force1 * tangent_force1 + tangent_force2 * tangent_force2);
+                const double max_tangent_force_norm = prev_normal_force_norm * mu;
+
+                // update curr tangent forces
+                itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Y) = tangent_force1;
+                itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Z) = tangent_force2;
 
                 double max_tangent_force_norm = prev_normal_force_norm * mu;
 
 //                KRATOS_WATCH(*itNode);
 //                KRATOS_WATCH(prev_normal_force_norm);
 //                KRATOS_WATCH(tangent_force_norm);
+//                KRATOS_WATCH(prev_normal_force_norm);
 //                KRATOS_WATCH(max_tangent_force_norm);
 
                 r_friction_state = (tangent_force_norm >= max_tangent_force_norm) ? SLIDING : STICK;
 
                 if (r_friction_state == SLIDING) {
-                    // TODO: extend for 3d and add check for tangent_force_norm being close to zero
-                    const double tangent_force_dir1 = tangent_force1 / tangent_force_norm;
+                    double tangent_force_dir1 = 0.0;
+                    double tangent_force_dir2 = 0.0;
 
-                    itNode->GetValue(MAX_TANGENT_FORCE) = tangent_force_dir1 * max_tangent_force_norm;
+                    if(tangent_force_norm > std::numeric_limits<double>::epsilon()) {
+                        tangent_force_dir1 = tangent_force1 / tangent_force_norm;
+                        tangent_force_dir2 = tangent_force2 / tangent_force_norm;
+                    }
+
+                    // SLIDING -> replace current tangent forces with frictional force for sliding friction
+                    itNode->GetValue(FRICTION_CONTACT_FORCE_Y, 0) = tangent_force_dir1 * max_tangent_force_norm;
+                    itNode->GetValue(FRICTION_CONTACT_FORCE_Z, 0) = tangent_force_dir2 * max_tangent_force_norm;
                 }
 
 //                KRATOS_WATCH(r_friction_state);

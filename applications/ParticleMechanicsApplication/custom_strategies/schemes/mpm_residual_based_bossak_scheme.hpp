@@ -329,7 +329,7 @@ public:
             double & r_nodal_old_pressure = (i)->FastGetSolutionStepValue(PRESSURE,1);
             double & r_nodal_pressure = (i)->FastGetSolutionStepValue(PRESSURE);
 
-            double & r_nodal_old_normal_reaction = (i)->FastGetSolutionStepValue(NORMAL_REACTION,1);
+            array_1d<double, 3 > & r_nodal_old_friction_contact_force = (i)->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE,1);
 
             // Clear
             r_nodal_mass = 0.0;
@@ -342,7 +342,7 @@ public:
             r_nodal_old_pressure = 0.0;
             r_nodal_pressure = 0.0;
 
-            r_nodal_old_normal_reaction = 0.0;
+            r_nodal_old_friction_contact_force.clear();
 
             // Other additional variables
             if ((i)->SolutionStepsDataHas(NODAL_AREA)){
