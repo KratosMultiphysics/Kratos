@@ -152,7 +152,7 @@ struct VariantPointer<std::variant<TArgs...>> {
 };
 
 template<class TDataType>
-void AddSpatialMethods(pybind11::module& m)
+void AddSpatialMethodsForVariableType(pybind11::module& m)
 {
     using DataLocation = Globals::DataLocation;
 
@@ -225,17 +225,23 @@ void AddCustomSpatialMethodsToPython(pybind11::module& m)
 
     auto spatial_method_module = m.def_submodule("SpatialMethods");
     spatial_method_module.def("Sum", [](const ModelPart& rModelPart, const Flags& rFlag, const DataLocation& rLocation) { return SpatialMethods::Sum(rModelPart, rFlag, rLocation); }, py::arg("model_part"), py::arg("flag"), py::arg("data_location"));
-    AddSpatialMethods<double>(spatial_method_module);
-    AddSpatialMethods<array_1d<double, 3>>(spatial_method_module);
-    AddSpatialMethods<array_1d<double, 4>>(spatial_method_module);
-    AddSpatialMethods<array_1d<double, 6>>(spatial_method_module);
-    AddSpatialMethods<array_1d<double, 9>>(spatial_method_module);
-    AddSpatialMethods<Vector>(spatial_method_module);
-    AddSpatialMethods<Matrix>(spatial_method_module);
+    AddSpatialMethodsForVariableType<double>(spatial_method_module);
+    AddSpatialMethodsForVariableType<array_1d<double, 3>>(spatial_method_module);
+    AddSpatialMethodsForVariableType<array_1d<double, 4>>(spatial_method_module);
+    AddSpatialMethodsForVariableType<array_1d<double, 6>>(spatial_method_module);
+    AddSpatialMethodsForVariableType<array_1d<double, 9>>(spatial_method_module);
+    AddSpatialMethodsForVariableType<Vector>(spatial_method_module);
+    AddSpatialMethodsForVariableType<Matrix>(spatial_method_module);
+
     spatial_method_module.def("Sum", [](const Expression::ConstPointer pExpression, const DataCommunicator& rDataCommunicator) { return SpatialMethods::Sum(*pExpression, rDataCommunicator); });
     spatial_method_module.def("Sum", [](const Expression::ConstPointer pExpression, const DataCommunicator& rDataCommunicator, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([&](auto& pNorm) {return SpatialMethods::Sum(*pExpression, rDataCommunicator, *pNorm); }, rNorm); });
     spatial_method_module.def("Sum", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression) { return std::visit([](auto& pContainerExpression) { return SpatialMethods::Sum(*pContainerExpression); }, rContainerExpression); });
     spatial_method_module.def("Sum", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([](auto& pContainerExpression, auto& pNorm) { return SpatialMethods::Sum(*pContainerExpression, *pNorm); }, rContainerExpression, rNorm); });
+
+    spatial_method_module.def("Mean", [](const Expression::ConstPointer pExpression, const DataCommunicator& rDataCommunicator) { return SpatialMethods::Mean(*pExpression, rDataCommunicator); });
+    spatial_method_module.def("Mean", [](const Expression::ConstPointer pExpression, const DataCommunicator& rDataCommunicator, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([&](auto& pNorm) {return SpatialMethods::Mean(*pExpression, rDataCommunicator, *pNorm); }, rNorm); });
+    spatial_method_module.def("Mean", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression) { return std::visit([](auto& pContainerExpression) { return SpatialMethods::Mean(*pContainerExpression); }, rContainerExpression); });
+    spatial_method_module.def("Mean", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([](auto& pContainerExpression, auto& pNorm) { return SpatialMethods::Mean(*pContainerExpression, *pNorm); }, rContainerExpression, rNorm); });
 
     auto spatial_historical_method_module = spatial_method_module.def_submodule("Historical");
     spatial_historical_method_module.def_submodule("ValueMethods");
