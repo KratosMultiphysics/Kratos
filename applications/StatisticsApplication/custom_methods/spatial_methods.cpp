@@ -757,15 +757,10 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
                 // post processing of values
                 for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
                     const auto n = indices_traits::GetComponent(current_number_of_values, i_comp);
-                    if (n > 0) {
-                        data_type_traits::GetComponent(current_distribution_percentage, i_comp) = n / number_of_items;
-                        data_type_traits::GetComponent(current_mean, i_comp) /= n;
-                        data_type_traits::GetComponent(current_variance, i_comp) /= n;
-                    } else {
-                        data_type_traits::GetComponent(current_distribution_percentage, i_comp) = 0.0;
-                        data_type_traits::GetComponent(current_mean, i_comp) = 0.0;
-                        data_type_traits::GetComponent(current_variance, i_comp) = 0.0;
-                    }
+                    const auto mod_n = std::max(n, 1U);
+                    data_type_traits::GetComponent(current_mean, i_comp) /= mod_n;
+                    data_type_traits::GetComponent(current_variance, i_comp) /= mod_n;
+                    data_type_traits::GetComponent(current_distribution_percentage, i_comp) = n / number_of_items;
                     data_type_traits::GetComponent(current_variance, i_comp) -= std::pow(data_type_traits::GetComponent(current_mean, i_comp), 2);
                 }
             }
