@@ -81,6 +81,20 @@ struct VariantRawPointer<std::variant<TArgs...>> {
     using type = std::variant<TArgs*...>;
 };
 
+template<class T>
+struct AllowedNormTypeInfo {};
+
+template<class... TAllowedNormTypes>
+struct AllowedNormTypeInfo<std::variant<TAllowedNormTypes...>>
+{
+    static std::string TypeInfo()
+    {
+        std::stringstream msg;
+        ((msg << "\n\t" << TAllowedNormTypes::TypeInfo()), ...);
+        return msg.str();
+    }
+};
+
 template<class TDataType>
 struct DataTypeInfo {};
 
@@ -614,7 +628,6 @@ public:
     }
 };
 
-
 template<class TDataType, class TNormType, int TPower = 1>
 typename TNormType::template ResultantValueType<TDataType> GenericSumReduction(
     const ModelPart& rModelPart,
@@ -824,7 +837,8 @@ TReturnType GenericExpressionNormReduction(
         } else {
             KRATOS_ERROR << "The requested norm type \"" << current_norm_type::TypeInfo()
                          << "\" is not supported for data type \""
-                         << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\".";
+                         << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\". Followings are the allowed norm types:"
+                         << SpatialMethodHelperUtilities::AllowedNormTypeInfo<allowed_norm_type>::TypeInfo();
             return TReturnType{};
         }
     }, DataContainers::GetDataContainer(rExpression), rNorm);
@@ -1366,7 +1380,8 @@ SpatialMethods::ExpressionDistributionReturnType SpatialMethods::Distribution(
         } else {
             KRATOS_ERROR << "The requested norm type \"" << current_norm_type::TypeInfo()
                          << "\" is not supported for data type \""
-                         << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\".";
+                         << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\". Followings are the allowed norm types:"
+                         << SpatialMethodHelperUtilities::AllowedNormTypeInfo<allowed_norm_type>::TypeInfo();
             return SpatialMethods::ExpressionDistributionReturnType{};
         }
     }, DataContainers::GetDataContainer(rExpression), rNorm);
