@@ -47,31 +47,6 @@ class PoromechanicsAnalysis(AnalysisStage):
 
         if (self.initial_stress_mode == 'load'):
             self.initial_stress_utility.Load()
-        """
-        # TODO. Impose INITIAL_STRESS_TENSOR at all nodes
-        for node in self.model.GetModelPart('PorousModelPart').Nodes:
-            X_coord = node.X
-            Y_coord = node.Y
-            Y_coord = node.Z
-            node_pressure = node.GetSolutionStepValue(KratosPoro.WATER_PRESSURE)
-            #node_initial_stresses = KratosMultiphysics.Matrix(3,3)
-            node_initial_stresses = node.GetSolutionStepValue(KratosPoro.INITIAL_STRESS_TENSOR)
-            node_initial_stresses.Resize(3,3)
-            # Fill the matrix (TODO)
-            node_initial_stresses[0,0] = 0.0
-            node_initial_stresses[1,1] = 0.0
-            node_initial_stresses[2,2] = 0.0
-            '''
-            for i in range(num_eigenvalues):
-                j = -1
-                for dof in dofs:
-                    j = j + 1
-                    if dof.IsFixed():
-                        node_initial_stresses[i,j] = 0.0
-                    else:
-                        node_initial_stresses[i,j] = eigenvectors[dof.EquationId,i]
-            '''
-            node.SetSolutionStepValue(KratosPoro.INITIAL_STRESS_TENSOR, node_initial_stresses) """
 
     def OutputSolutionStep(self):
         super(PoromechanicsAnalysis,self).OutputSolutionStep()
