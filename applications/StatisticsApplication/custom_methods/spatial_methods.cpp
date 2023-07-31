@@ -706,7 +706,7 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
             const IndexType number_of_components = data_type_traits::Size(max_value);
 
             const auto& reuduced_values =
-                IndexPartition<IndexType>(rDataContainer.Size()).for_each<SpatialMethodHelperUtilities::DistributionReduction<norm_return_type>>(TDataType{}, [&rDataContainer, &rNorm, &group_limits, number_of_components, number_of_groups](const IndexType Index, TDataType& rTLS) {
+                IndexPartition<IndexType>(rDataContainer.Size()).for_each<SpatialMethodHelperUtilities::DistributionReduction<norm_return_type>>(TDataType{}, [&rDataContainer, &rNorm, &group_limits, number_of_components](const IndexType Index, TDataType& rTLS) {
                     rDataContainer.GetValue(rTLS, Index);
                     auto norm_value = rNorm.Evaluate(rTLS);
 
