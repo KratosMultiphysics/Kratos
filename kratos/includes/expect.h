@@ -196,13 +196,13 @@ if(!(std::abs(b) <= std::numeric_limits<double>::epsilon())) {                  
 }
 
 #define KRATOS_EXPECT_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode) {                         \
-    EXPECT_TRUE(TheNode.SolutionStepsDataHas(TheVariable))                                  \
+    KRATOS_ERROR_IF_NOT(TheNode.SolutionStepsDataHas(TheVariable))                           \
         << "Missing " << TheVariable.Name() << " variable in solution step data for node "  \
         << TheNode.Id() << "." << std::endl;                                                \
 }
 
 #define KRATOS_EXPECT_DOF_IN_NODE(TheVariable, TheNode) {           \
-    EXPECT_TRUE(TheNode.HasDofFor(TheVariable))                     \
+    KRATOS_ERROR_IF_NOT(TheNode.HasDofFor(TheVariable))             \
         << "Missing Degree of Freedom for " << TheVariable.Name()   \
         << " in node " << TheNode.Id() << "." << std::endl;         \
 }
