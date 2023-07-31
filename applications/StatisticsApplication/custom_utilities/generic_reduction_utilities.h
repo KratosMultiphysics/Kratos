@@ -77,7 +77,7 @@ public:
 
         using entity_data_type = typename TDataContainerType::DataType;
 
-        using norm_resultant_type = typename TNormType::ResultantValueType<typename TDataContainerType::DataType>;
+        using norm_resultant_type = typename TNormType::template ResultantValueType<typename TDataContainerType::DataType>;
 
         using operation_type = TOperationType<norm_resultant_type>;
 
