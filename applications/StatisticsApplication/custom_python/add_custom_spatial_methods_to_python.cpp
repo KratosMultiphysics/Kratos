@@ -232,6 +232,10 @@ void AddCustomSpatialMethodsToPython(pybind11::module& m)
     AddSpatialMethods<array_1d<double, 9>>(spatial_method_module);
     AddSpatialMethods<Vector>(spatial_method_module);
     AddSpatialMethods<Matrix>(spatial_method_module);
+    spatial_method_module.def("Sum", [](const Expression::ConstPointer pExpression, const DataCommunicator& rDataCommunicator) { return SpatialMethods::Sum(*pExpression, rDataCommunicator); });
+    spatial_method_module.def("Sum", [](const Expression::ConstPointer pExpression, const DataCommunicator& rDataCommunicator, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([&](auto& pNorm) {return SpatialMethods::Sum(*pExpression, rDataCommunicator, *pNorm); }, rNorm); });
+    spatial_method_module.def("Sum", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression) { return std::visit([](auto& pContainerExpression) { return SpatialMethods::Sum(*pContainerExpression); }, rContainerExpression); });
+    spatial_method_module.def("Sum", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([](auto& pContainerExpression, auto& pNorm) { return SpatialMethods::Sum(*pContainerExpression, *pNorm); }, rContainerExpression, rNorm); });
 
     auto spatial_historical_method_module = spatial_method_module.def_submodule("Historical");
     spatial_historical_method_module.def_submodule("ValueMethods");
