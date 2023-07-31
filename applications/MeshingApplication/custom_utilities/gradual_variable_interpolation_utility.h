@@ -36,17 +36,18 @@ public:
     static void InitializeInterpolationAndConstraints(
         ModelPart& rOriginModelPart,
         ModelPart& rDestinationModelPart,
-        std::vector<Variable<double>>& rInterpolationVariablesList,
+        std::vector<std::string>& rInterpolationVariablesList,
         double AlphaRampUpIncrement,
         int DomainSize,
         bool ConstrainVariables) 
         {
             // Set variables field to origin model part
-            for(auto& r_variable : rInterpolationVariablesList){
-                block_for_each(rOriginModelPart.Nodes(), [&](Node& rNode) {
+            for(auto& r_variable_name : rInterpolationVariablesList){
+                auto& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
+                for(auto& rNode: rOriginModelPart.Nodes()) {
                     const double value = rNode.FastGetSolutionStepValue(r_variable);
                     rNode.SetValue(r_variable, AlphaRampUpIncrement * value);
-                });
+                }
             }
 
             // Interpolate variables to destination model part
@@ -60,7 +61,8 @@ public:
                 KRATOS_ERROR << "Invalid DomainSize: " << DomainSize << ". DomainSize should be 2 or 3." << std::endl;
             }
 
-            for(auto& r_variable : rInterpolationVariablesList){
+            for(auto& r_variable_name : rInterpolationVariablesList){
+                auto& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
                 for(auto& rNode: rDestinationModelPart.Nodes()) {
                     rNode.AddDof(r_variable);
                 }
@@ -70,7 +72,8 @@ public:
             if(ConstrainVariables)
             {
                 // Apply constraints to variables
-                for(auto& r_variable : rInterpolationVariablesList){
+                for(auto& r_variable_name : rInterpolationVariablesList){
+                    auto& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
                     block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
                         const double value = rNode.GetValue(r_variable);
                         rNode.FastGetSolutionStepValue(r_variable) = value;
@@ -81,26 +84,27 @@ public:
             else
             {
                 // Simply set the variables
-                for(auto& r_variable : rInterpolationVariablesList){
+                for(auto& r_variable_name : rInterpolationVariablesList){
+                    auto& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
                     block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
                         const double value = rNode.GetValue(r_variable);
                         rNode.FastGetSolutionStepValue(r_variable) = value;
                     });
                 }
-
             }
         }
     
     static void UpdateSolutionStepVariables(
         ModelPart& rDestinationModelPart,
-        std::vector<Variable<double>>& rInterpolationVariablesList,
+        std::vector<std::string>& rInterpolationVariablesList,
         double& rAlpha,
         double& rOldAlpha,
         bool ConstrainVariables) 
         {
             if(ConstrainVariables)
             {
-                for(auto& r_variable : rInterpolationVariablesList){
+                for(auto& r_variable_name : rInterpolationVariablesList){
+                    auto& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
                     block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
                         const double value = rNode.FastGetSolutionStepValue(r_variable);
                         rNode.FastGetSolutionStepValue(r_variable) = rAlpha * value / rOldAlpha;
@@ -110,10 +114,11 @@ public:
             }
             else
             {
-                for(auto& variable : rInterpolationVariablesList){
+                for(auto& r_variable_name : rInterpolationVariablesList){
+                    auto& r_variable = KratosComponents<Variable<double>>::Get(r_variable_name);
                     block_for_each(rDestinationModelPart.Nodes(), [&](Node& rNode){
-                        const double value = rNode.FastGetSolutionStepValue(variable);
-                        rNode.FastGetSolutionStepValue(variable) = rAlpha * value / rOldAlpha;
+                        const double value = rNode.FastGetSolutionStepValue(r_variable);
+                        rNode.FastGetSolutionStepValue(r_variable) = rAlpha * value / rOldAlpha;
                     });
                 }
             }

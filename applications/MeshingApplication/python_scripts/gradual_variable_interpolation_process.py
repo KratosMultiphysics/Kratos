@@ -48,7 +48,7 @@ class GradualVariableInterpolationProcess(KratosMultiphysics.Process):
 
         self.alpha = 0.0
         self.expected_alpha = 1.0
-        self.interpolation_variables_list = [KratosMultiphysics.KratosGlobals.GetVariable(i) for i in self.settings["interpolation_variables_list"].GetStringArray()]
+        self.interpolation_variables_list = self.settings["interpolation_variables_list"].GetStringArray()
 
     def ExecuteInitialize(self):
         origin_model_part_file_name = self.settings["origin_model_part_file_name"].GetString()
