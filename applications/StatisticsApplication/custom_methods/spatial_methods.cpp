@@ -599,7 +599,7 @@ typename TNormType::template ResultantValueType<TDataType> GenericSumReduction(
 }
 
 template<class TDataType, class TNormType, template <class T1> class OperationType>
-std::tuple<typename TNormType::ResultantValueType<TDataType>, typename SpatialMethods::ItemPositionType<typename TNormType::ResultantValueType<TDataType>>> GenericReductionWithIndices(
+std::tuple<typename TNormType::template ResultantValueType<TDataType>, typename SpatialMethods::ItemPositionType<typename TNormType::ResultantValueType<TDataType>>> GenericReductionWithIndices(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation,
@@ -621,7 +621,7 @@ std::tuple<typename TNormType::ResultantValueType<TDataType>, typename SpatialMe
 }
 
 template <class TDataType, class TNormType>
-SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataType>> GenericDistribution(
+SpatialMethods::DistributionInfo<typename TNormType::template ResultantValueType<TDataType>> GenericDistribution(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation,
@@ -630,9 +630,9 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
 {
     KRATOS_TRY
 
-    using norm_return_type = typename TNormType::ResultantValueType<TDataType>;
+    using norm_return_type = typename TNormType::template ResultantValueType<TDataType>;
 
-    using indices_return_type = typename SpatialMethods::DistributionInfo<norm_return_type>::IndicesType;
+    using indices_return_type = typename SpatialMethods::template DistributionInfo<norm_return_type>::IndicesType;
 
     using distribution_info_type = SpatialMethods::DistributionInfo<norm_return_type>;
 
