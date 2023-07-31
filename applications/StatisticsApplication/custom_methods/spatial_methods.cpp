@@ -83,7 +83,7 @@ public:
 
     SumOperation() { Initialize(); }
 
-    SumOperation(const TDataType& rValue) { mValue = rValue; }
+    SumOperation(const TDataType& rValue) : mValue(rValue) {}
 
     ///@}
     ///@name Public operations
@@ -160,8 +160,8 @@ public:
     MinMaxOperation(
         const TDataType& rValue,
         const IndexType rId)
+        : mValue(rValue)
     {
-        mValue = rValue;
         mIndices.resize(OperationTraits::Size(mValue), rId);
     }
 
@@ -322,9 +322,8 @@ public:
     MedianOperation(
         const TDataType& rValue,
         const IndexType rId)
+        : mResultantValue(rValue)
     {
-        mResultantValue = rValue;
-
         const IndexType data_size = OperationTraits::Size(rValue);
         if (mValues.size() != data_size) {
             mValues.resize(data_size);
@@ -463,7 +462,7 @@ public:
 
     using indices_traits = DataTypeTraits<ReturnIndicesType>;
 
-    return_type mValue;
+    return_type mValue{};
 
     /// access to reduced value
     return_type GetValue() const
