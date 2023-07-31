@@ -52,62 +52,6 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             Kratos.LOCAL_TANGENT_MATRIX: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5), KratosStats.Norms.Trace(), KratosStats.Norms.LPQ(1.3, 2.3)]
         }
 
-    def __GetDataRetrievalInfo(self, data_location: Kratos.Globals.DataLocation) -> Any:
-        if data_location == Kratos.Globals.DataLocation.NodeHistorical:
-            return self.model_part.GetCommunicator().LocalMesh().Nodes, lambda x, y: x.GetSolutionStepValue(y)
-        elif data_location == Kratos.Globals.DataLocation.NodeNonHistorical:
-            return self.model_part.GetCommunicator().LocalMesh().Nodes,lambda x, y: x.GetValue(y)
-        elif data_location == Kratos.Globals.DataLocation.Condition:
-            return self.model_part.GetCommunicator().LocalMesh().Conditions,lambda x, y: x.GetValue(y)
-        elif data_location == Kratos.Globals.DataLocation.Element:
-            return self.model_part.GetCommunicator().LocalMesh().Elements,lambda x, y: x.GetValue(y)
-        else:
-            raise RuntimeError("Unsupported data location provided.")
-
-    @staticmethod
-    def __ConvertValueToList(value: Any) -> 'list[float]':
-        if isinstance(value, float) or isinstance(value, int):
-            return [value]
-        elif isinstance(value, Kratos.Array3):
-            return [value[0], value[1], value[2]]
-        elif isinstance(value, Kratos.Vector):
-            return [value[0], value[1], value[2], value[3], value[4]]
-        elif isinstance(value, Kratos.Matrix):
-            return [value[0, 0], value[0, 1], value[1, 0], value[1, 1]]
-        else:
-            raise RuntimeError("Unsupported value type.")
-
-    @staticmethod
-    def __ConvertListToValue(values_list: 'list[float]') -> Any:
-        if  len(values_list) == 1:
-            return values_list[0]
-        elif len(values_list) == 3:
-            return Kratos.Array3([values_list[0], values_list[1], values_list[2]])
-        elif len(values_list) == 5:
-            return Kratos.Vector([values_list[0], values_list[1], values_list[2], values_list[3], values_list[4]])
-        elif len(values_list) == 4:
-            return Kratos.Matrix([[values_list[0], values_list[1]], [values_list[2], values_list[3]]])
-        else:
-            raise RuntimeError("Unsupported values list length.")
-
-    @staticmethod
-    def __GetInitializedValue(variable: Any, norm: Any, initialization_value):
-        if isinstance(variable, Kratos.DoubleVariable):
-            initialized_variable_value = initialization_value
-        elif isinstance(variable, Kratos.Array1DVariable3):
-            initialized_variable_value = Kratos.Array3([initialization_value, initialization_value, initialization_value])
-        elif isinstance(variable, Kratos.VectorVariable):
-            initialized_variable_value = Kratos.Vector([initialization_value, initialization_value, initialization_value, initialization_value, initialization_value])
-        elif isinstance(variable, Kratos.MatrixVariable):
-            initialized_variable_value = Kratos.Matrix([[initialization_value, initialization_value], [initialization_value, initialization_value]])
-        else:
-            raise RuntimeError("Unsupported variable type.")
-
-        if isinstance(norm, SpatialMethodTests.ValueNorm):
-            return initialized_variable_value
-        else:
-            return initialization_value
-
     def __GetContainerExpression(self, variable, data_location):
         if data_location == self.data_location.NodeHistorical:
             container_expression = Kratos.Expression.NodalExpression(self.model_part)
