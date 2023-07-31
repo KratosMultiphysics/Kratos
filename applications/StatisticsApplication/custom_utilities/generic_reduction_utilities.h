@@ -68,7 +68,7 @@ public:
     ///@{
 
     template<class TDataContainerType, class TNormType, template <class T1> class TOperationType, bool IdRequired, int TPower = 1>
-    static TOperationType<typename TNormType::ResultantValueType<typename TDataContainerType::DataType>> GenericReduction(
+    static TOperationType<typename TNormType::template ResultantValueType<typename TDataContainerType::DataType>> GenericReduction(
         const DataCommunicator& rDataCommunicator,
         const TDataContainerType& rDataContainer,
         const TNormType& rNorm)
