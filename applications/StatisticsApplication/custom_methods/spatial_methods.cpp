@@ -505,6 +505,8 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
 
     using data_type_traits = DataTypeTraits<norm_return_type>;
 
+    using ReturnIndicesType = typename SpatialMethods::DistributionInfo<norm_return_type>::IndicesType;
+
     const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, rLocation);
 
     return std::visit(
@@ -574,7 +576,7 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
                 using data_type = std::tuple<IndexType, IndicesType, norm_return_type>;
 
                 using return_type = std::tuple<
-                                        std::vector<IndicesType>, // group value counts
+                                        std::vector<ReturnIndicesType>, // group value counts
                                         std::vector<norm_return_type>, // group means
                                         std::vector<norm_return_type>  // group variances
                                     >;
@@ -603,7 +605,7 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
                     for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
                         const auto group_index = r_group_indices[i_comp];
                         const auto raw_value = DataTypeTraits<norm_return_type>::GetComponent(r_value, i_comp);
-                        ++r_current_group_counts[group_index][i_comp];
+                        ++DataTypeTraits<ReturnIndicesType>::GetComponent(r_current_group_counts[group_index], i_comp);
                         DataTypeTraits<norm_return_type>::GetComponent(r_current_group_means[group_index], i_comp) += raw_value;
                         DataTypeTraits<norm_return_type>::GetComponent(r_current_group_variances[group_index], i_comp) += std::pow(raw_value, 2);
                     }
@@ -641,19 +643,19 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
                         const auto& r_other_group_variance =
                             r_other_group_variances[i_group];
 
-                        const IndexType number_of_components = r_other_group_count.size();
+                        const IndexType number_of_components = DataTypeTraits<ReturnIndicesType>::Size(r_other_group_count);
 
-                        if (r_group_count.size() != number_of_components) {
-                            r_group_count.resize(number_of_components);
-                            std::fill(r_group_count.begin(), r_group_count.end(), 0);
+                        if (DataTypeTraits<ReturnIndicesType>::Size(r_group_count) != number_of_components) {
+                            r_group_count = r_other_group_count;
                             r_group_mean = r_other_group_mean;
                             r_group_variance = r_other_group_variance;
+                            DataTypeTraits<ReturnIndicesType>::Initialize(r_group_count, 0);
                             data_type_traits::Initialize(r_group_mean, 0.0);
                             data_type_traits::Initialize(r_group_variance, 0.0);
                         }
 
                         for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                            r_group_count[i_comp] += r_other_group_count[i_comp];
+                            DataTypeTraits<ReturnIndicesType>::GetComponent(r_group_count, i_comp) += DataTypeTraits<ReturnIndicesType>::GetComponent(r_other_group_count, i_comp);
                         }
                         r_group_mean += r_other_group_mean;
                         r_group_variance += r_other_group_variance;
@@ -678,8 +680,12 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
 
                         // initialize
                         for (IndexType i_group = 0; i_group < number_of_groups; ++i_group) {
-                            r_current_group_counts[i_group].resize(number_of_components);
-                            std::fill(r_current_group_counts[i_group].begin(), r_current_group_counts[i_group].end(), 0);
+                            if constexpr(std::is_arithmetic_v<norm_return_type>) {
+                                r_current_group_counts[i_group] = 0;
+                            } else {
+                                r_current_group_counts[i_group].resize(number_of_components);
+                                std::fill(r_current_group_counts[i_group].begin(), r_current_group_counts[i_group].end(), 0);
+                            }
                             r_current_group_means[i_group] = r_value;
                             r_current_group_variances[i_group] = r_value;
                             data_type_traits::Initialize(r_current_group_means[i_group], 0.0);
@@ -726,14 +732,14 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
             for (IndexType i = 0; i < number_of_all_groups; ++i) {
                 const auto& group_values = std::get<0>(reuduced_values)[i];
                 distribution_info.mGroupNumberOfValues[i] = r_data_communicator.SumAll(group_values);
-                number_of_items += std::accumulate(group_values.begin(), group_values.end(), 0U);
+                number_of_items += DataTypeTraits<ReturnIndicesType>::GetComponent(group_values, 0);
             }
-            number_of_items = std::max(r_data_communicator.SumAll(number_of_items) / number_of_components, 1.0);
+            number_of_items = std::max(r_data_communicator.SumAll(number_of_items), 1.0);
             distribution_info.mGroupMean     = r_data_communicator.SumAll(std::get<1>(reuduced_values));
             distribution_info.mGroupVariance = r_data_communicator.SumAll(std::get<2>(reuduced_values));
 
             // now revert back to the group values
-            distribution_info.mGroupValueDistributionPercentage.resize(number_of_all_groups);
+            distribution_info.mGroupValueDistributionPercentage.resize(number_of_all_groups, distribution_info.mGroupMean[0]);
             for (IndexType i_group = 0; i_group < number_of_all_groups; ++i_group) {
                 auto& current_number_of_values = distribution_info.mGroupNumberOfValues[i_group];
                 auto& current_distribution_percentage = distribution_info.mGroupValueDistributionPercentage[i_group];
@@ -742,11 +748,15 @@ SpatialMethods::DistributionInfo<typename TNormType::ResultantValueType<TDataTyp
 
                 // post processing of values
                 for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                    const auto n = current_number_of_values[i_comp];
+                    const auto n = DataTypeTraits<ReturnIndicesType>::GetComponent(current_number_of_values, i_comp);
                     if (n > 0) {
                         DataTypeTraits<norm_return_type>::GetComponent(current_distribution_percentage, i_comp) = n / number_of_items;
                         DataTypeTraits<norm_return_type>::GetComponent(current_mean, i_comp) /= n;
                         DataTypeTraits<norm_return_type>::GetComponent(current_variance, i_comp) /= n;
+                    } else {
+                        DataTypeTraits<norm_return_type>::GetComponent(current_distribution_percentage, i_comp) = 0.0;
+                        DataTypeTraits<norm_return_type>::GetComponent(current_mean, i_comp) = 0.0;
+                        DataTypeTraits<norm_return_type>::GetComponent(current_variance, i_comp) = 0.0;
                     }
                     DataTypeTraits<norm_return_type>::GetComponent(current_variance, i_comp) -= std::pow(DataTypeTraits<norm_return_type>::GetComponent(current_mean, i_comp), 2);
                 }

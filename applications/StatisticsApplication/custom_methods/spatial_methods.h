@@ -74,6 +74,8 @@ public:
 
         using DataTypeTrait = DataTypeTraits<TDataType>;
 
+        using IndicesType = std::conditional_t<std::is_arithmetic_v<TDataType>, IndexType, std::vector<IndexType>>;
+
         using RawDataType = typename DataTypeTrait::RawDataType;
 
         KRATOS_CLASS_POINTER_DEFINITION(DistributionInfo);
@@ -98,7 +100,7 @@ public:
 
         std::vector<TDataType> GetGroupUpperValues() const { return mGroupUpperValues; }
 
-        std::vector<std::vector<IndexType>> GetGroupNumberOfValues() const { return mGroupNumberOfValues; }
+        std::vector<IndicesType> GetGroupNumberOfValues() const { return mGroupNumberOfValues; }
 
         std::vector<TDataType> GetGroupValueDistributionPercentage() const { return mGroupValueDistributionPercentage; }
 
@@ -116,7 +118,7 @@ public:
 
         std::vector<TDataType> mGroupUpperValues;
 
-        std::vector<std::vector<IndexType>> mGroupNumberOfValues;
+        std::vector<IndicesType> mGroupNumberOfValues;
 
         std::vector<TDataType> mGroupValueDistributionPercentage;
 
@@ -381,7 +383,7 @@ public:
 
             const auto& r_group_number_of_values = values.GetGroupNumberOfValues();
             std::vector<IndexType> number_of_values(r_group_number_of_values.size());
-            std::transform(r_group_number_of_values.begin(), r_group_number_of_values.end(), number_of_values.begin(), [](const auto& V1) { return V1[0]; });
+            std::transform(r_group_number_of_values.begin(), r_group_number_of_values.end(), number_of_values.begin(), [](const auto& V1) { return V1; });
 
             return std::make_tuple(values.GetMin(), values.GetMax(), values.GetGroupUpperValues(),
                                    number_of_values,
