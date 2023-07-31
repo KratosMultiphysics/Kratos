@@ -107,7 +107,25 @@ class SpatialMethodTests(KratosUnittest.TestCase):
         else:
             return initialization_value
 
-    def __RunTest(self, stat_method: Any, ref_values: Any, *args) -> None:
+    def __GetContainerExpression(self, variable, data_location):
+        if data_location == self.data_location.NodeHistorical:
+            container_expression = Kratos.Expression.NodalExpression(self.model_part)
+            Kratos.Expression.VariableExpressionIO.Read(container_expression, variable, True)
+        elif data_location == self.data_location.NodeNonHistorical:
+            container_expression = Kratos.Expression.NodalExpression(self.model_part)
+            Kratos.Expression.VariableExpressionIO.Read(container_expression, variable, False)
+        elif data_location == self.data_location.Condition:
+            container_expression = Kratos.Expression.ConditionExpression(self.model_part)
+            Kratos.Expression.VariableExpressionIO.Read(container_expression, variable)
+        elif data_location == self.data_location.Element:
+            container_expression = Kratos.Expression.ElementExpression(self.model_part)
+            Kratos.Expression.VariableExpressionIO.Read(container_expression, variable)
+        else:
+            raise RuntimeError("Unsupported data container type.")
+
+        return container_expression
+
+    def __RunVariableTest(self, stat_method: Any, ref_values: Any, *args) -> None:
         def run_granular_test(stat_method: Any, variable: Any, data_location: Kratos.Globals.DataLocation, ref_value: Any, norm: Any = None):
             if isinstance(norm, SpatialMethodTests.ValueNorm):
                 stat_results = stat_method(self.model_part, variable, data_location, *args)
@@ -134,6 +152,42 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                 for norm, ref_value in info_2.items():
                     run_granular_test(stat_method, variable, data_location, ref_value, norm)
 
+    def __RunContainerExpressionTest(self, stat_method):
+        for data_location in self.data_locations:
+            for variable, norms_list in self.norms_dict.items():
+                container_expression = self.__GetContainerExpression(variable, data_location)
+                for norm in norms_list:
+                    if isinstance(norm, SpatialMethodTests.ValueNorm):
+                        exp_value = stat_method(container_expression)
+                        var_value = stat_method(self.model_part, variable, data_location)
+                    else:
+                        exp_value = stat_method(container_expression, norm)
+                        var_value = stat_method(self.model_part, variable, data_location, norm)
+
+                    if stat_method == KratosStats.SpatialMethods.Distribution:
+                        stat_results: KratosStats.SpatialMethods.Array3DistributionInfo
+                        modified_exp_result = (
+                                exp_value.GetMin(),
+                                exp_value.GetMax(),
+                                exp_value.GetGroupUpperValues(),
+                                exp_value.GetGroupNumberOfValues(),
+                                exp_value.GetGroupValueDistributionPercentage(),
+                                exp_value.GetGroupMeans(),
+                                exp_value.GetGroupVariances()
+                            )
+                        modified_var_result = (
+                                var_value.GetMin(),
+                                var_value.GetMax(),
+                                var_value.GetGroupUpperValues(),
+                                var_value.GetGroupNumberOfValues(),
+                                var_value.GetGroupValueDistributionPercentage(),
+                                var_value.GetGroupMeans(),
+                                var_value.GetGroupVariances()
+                            )
+                        CheckValues(self, modified_exp_result, modified_var_result, 12)
+                    else:
+                        CheckValues(self, exp_value, var_value, 12)
+
     def testSumMethod(self):
         ref_values = {
             self.data_location.NodeHistorical: {
@@ -156,7 +210,7 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             }
         }
 
-        self.__RunTest(KratosStats.SpatialMethods.Sum, ref_values)
+        self.__RunVariableTest(KratosStats.SpatialMethods.Sum, ref_values)
 
     def testMeanMethod(self):
         ref_values = {
@@ -180,7 +234,7 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             }
         }
 
-        self.__RunTest(KratosStats.SpatialMethods.Mean, ref_values)
+        self.__RunVariableTest(KratosStats.SpatialMethods.Mean, ref_values)
 
     def testRootMeanSquareMethod(self):
         ref_values = {
@@ -204,7 +258,7 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             }
         }
 
-        self.__RunTest(KratosStats.SpatialMethods.RootMeanSquare, ref_values)
+        self.__RunVariableTest(KratosStats.SpatialMethods.RootMeanSquare, ref_values)
 
     def testVarianceMethod(self):
         data_locations = [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical, Kratos.Globals.DataLocation.Condition, Kratos.Globals.DataLocation.Element]
@@ -229,7 +283,7 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                         rms = KratosStats.SpatialMethods.RootMeanSquare(self.model_part, variable, data_location, norm)
                     ref_values[data_location][variable][norm] = (mean, KratosStats.MethodUtilities.RaiseToPower(rms, 2) - KratosStats.MethodUtilities.RaiseToPower(mean, 2))
 
-        self.__RunTest(KratosStats.SpatialMethods.Variance, ref_values)
+        self.__RunVariableTest(KratosStats.SpatialMethods.Variance, ref_values)
 
     def testMinMethod(self):
         ref_values = {
@@ -253,7 +307,7 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             }
         }
 
-        self.__RunTest(KratosStats.SpatialMethods.Min, ref_values)
+        self.__RunVariableTest(KratosStats.SpatialMethods.Min, ref_values)
 
     def testMaxMethod(self):
         ref_values = {
@@ -277,7 +331,7 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             }
         }
 
-        self.__RunTest(KratosStats.SpatialMethods.Max, ref_values)
+        self.__RunVariableTest(KratosStats.SpatialMethods.Max, ref_values)
 
     def testMedianMethod(self):
         ref_values = {
@@ -301,7 +355,7 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             }
         }
 
-        self.__RunTest(KratosStats.SpatialMethods.Median, ref_values)
+        self.__RunVariableTest(KratosStats.SpatialMethods.Median, ref_values)
 
     def testDistributionMethod(self):
         ref_values = {
@@ -394,7 +448,10 @@ class SpatialMethodTests(KratosUnittest.TestCase):
             "min_value"              : "min",
             "max_value"              : "max"
         }""")
-        self.__RunTest(KratosStats.SpatialMethods.Distribution, ref_values, params)
+        self.__RunVariableTest(KratosStats.SpatialMethods.Distribution, ref_values, params)
+
+    def testSumContainerExpression(self):
+        self.__RunContainerExpressionTest(KratosStats.SpatialMethods.Sum)
 
 if __name__ == '__main__':
     KratosUnittest.main()
