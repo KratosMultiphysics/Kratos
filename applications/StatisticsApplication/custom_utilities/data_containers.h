@@ -223,9 +223,9 @@ public:
     ///@name Life cycle
     ///@{
 
-    ExpressionDataContainer(Expression::ConstPointer pExpression)
-        : mpExpression(pExpression),
-          mVariableExpressionDataIO(pExpression->GetItemShape())
+    ExpressionDataContainer(const Expression& rExpression)
+        : mrExpression(rExpression),
+          mVariableExpressionDataIO(rExpression.GetItemShape())
     {
     }
 
@@ -233,13 +233,13 @@ public:
     ///@name Public operations
     ///@{
 
-    IndexType Size() const { return mpExpression->NumberOfEntities(); }
+    IndexType Size() const { return mrExpression.NumberOfEntities(); }
 
     void GetValue(
         TDataType& rOutputValue,
         const IndexType EntityIndex) const
     {
-        mVariableExpressionDataIO.Assign(rOutputValue, *mpExpression, EntityIndex);
+        mVariableExpressionDataIO.Assign(rOutputValue, mrExpression, EntityIndex);
     }
 
     unsigned int GetId(const IndexType EntityIndex) const
@@ -253,7 +253,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    Expression::ConstPointer mpExpression;
+    const Expression& mrExpression;
 
     const VariableExpressionDataIO<TDataType> mVariableExpressionDataIO;
 
@@ -324,29 +324,29 @@ std::variant<
     ExpressionDataContainer<array_1d<double, 6>>,
     ExpressionDataContainer<array_1d<double, 9>>,
     ExpressionDataContainer<Vector>,
-    ExpressionDataContainer<Matrix>> GetDataContainer(const Expression::ConstPointer pExpression)
+    ExpressionDataContainer<Matrix>> GetDataContainer(const Expression& rExpression)
 {
-    const auto& r_shape = pExpression->GetItemShape();
+    const auto& r_shape = rExpression.GetItemShape();
     if (r_shape.size() == 0) {
-        return ExpressionDataContainer<double>(pExpression);
+        return ExpressionDataContainer<double>(rExpression);
     } else if (r_shape.size() == 1) {
         switch (r_shape[0]) {
             case 3:
-                return ExpressionDataContainer<array_1d<double, 3>>(pExpression);
+                return ExpressionDataContainer<array_1d<double, 3>>(rExpression);
             case 4:
-                return ExpressionDataContainer<array_1d<double, 4>>(pExpression);
+                return ExpressionDataContainer<array_1d<double, 4>>(rExpression);
             case 6:
-                return ExpressionDataContainer<array_1d<double, 6>>(pExpression);
+                return ExpressionDataContainer<array_1d<double, 6>>(rExpression);
             case 9:
-                return ExpressionDataContainer<array_1d<double, 9>>(pExpression);
+                return ExpressionDataContainer<array_1d<double, 9>>(rExpression);
             default:
-                return ExpressionDataContainer<Vector>(pExpression);
+                return ExpressionDataContainer<Vector>(rExpression);
         }
     } else if (r_shape.size() == 2) {
-        return ExpressionDataContainer<Matrix>(pExpression);
+        return ExpressionDataContainer<Matrix>(rExpression);
     } else {
         KRATOS_ERROR << "Unsupported expression.";
-        return ExpressionDataContainer<double>(pExpression);
+        return ExpressionDataContainer<double>(rExpression);
     }
 }
 
