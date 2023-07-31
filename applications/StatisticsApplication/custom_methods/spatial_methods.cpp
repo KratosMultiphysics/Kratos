@@ -658,17 +658,18 @@ std::tuple<typename TNormType::template ResultantValueType<TDataType>, typename 
     KRATOS_CATCH("");
 }
 
-template <class TDataType, class TNormType>
-SpatialMethods::DistributionInfo<typename TNormType::template ResultantValueType<TDataType>> GenericDistribution(
-    const ModelPart& rModelPart,
-    const Variable<TDataType>& rVariable,
-    const DataLocation& rLocation,
+template <class TDataContainerType, class TNormType>
+SpatialMethods::DistributionInfo<typename TNormType::template ResultantValueType<typename TDataContainerType::DataType>> GenericDistribution(
+    const TDataContainerType& rDataContainer,
+    const DataCommunicator& rDataCommunicator,
     Parameters Params,
     const TNormType& rNorm)
 {
     KRATOS_TRY
 
-    using norm_return_type = typename TNormType::template ResultantValueType<TDataType>;
+    using data_type = typename TDataContainerType::DataType;
+
+    using norm_return_type = typename TNormType::template ResultantValueType<typename TDataContainerType::DataType>;
 
     using indices_return_type = typename SpatialMethods::template DistributionInfo<norm_return_type>::IndicesType;
 
@@ -678,136 +679,128 @@ SpatialMethods::DistributionInfo<typename TNormType::template ResultantValueType
 
     using indices_traits = DataTypeTraits<indices_return_type>;
 
-    const auto data_container = DataContainers::GetDataContainer(rModelPart, rVariable, rLocation);
+    Parameters default_parameters = Parameters(R"(
+    {
+        "number_of_value_groups" : 10,
+        "min_value"              : "min",
+        "max_value"              : "max"
+    })");
 
-    return std::visit(
-        [&](auto& rDataContainer) {
-            using data_container_type = std::decay_t<decltype(rDataContainer)>;
+    // first fix the min value
+    if (Params.Has("min_value") && Params["min_value"].IsDouble()) {
+        default_parameters["min_value"].SetDouble(0.0);
+    }
+    if (Params.Has("max_value") && Params["max_value"].IsDouble()) {
+        default_parameters["max_value"].SetDouble(0.0);
+    }
+    Params.RecursivelyValidateAndAssignDefaults(default_parameters);
 
-            Parameters default_parameters = Parameters(R"(
-            {
-                "number_of_value_groups" : 10,
-                "min_value"              : "min",
-                "max_value"              : "max"
-            })");
+    distribution_info_type distribution_info;
 
-            // first fix the min value
-            if (Params.Has("min_value") && Params["min_value"].IsDouble()) {
-                default_parameters["min_value"].SetDouble(0.0);
-            }
-            if (Params.Has("max_value") && Params["max_value"].IsDouble()) {
-                default_parameters["max_value"].SetDouble(0.0);
-            }
-            Params.RecursivelyValidateAndAssignDefaults(default_parameters);
+    auto& min_value = distribution_info.mMin;
+    if (Params["min_value"].IsDouble()) {
+        data_type_traits::Initialize(min_value, Params["min_value"].GetDouble());
+    } else if (Params["min_value"].IsString() && Params["min_value"].GetString() == "min") {
+        min_value = std::get<0>(GenericReductionUtilities::GenericReduction<TDataContainerType, TNormType, MinOperation, true>(rDataCommunicator, rDataContainer, rNorm).GetValue());
+    } else {
+        KRATOS_ERROR
+            << "Unknown min_value. Allowed only double or \"min\" "
+                "string as a value. [ min_value = "
+            << Params["min_value"] << " ]\n.";
+    }
 
-            distribution_info_type distribution_info;
+    // first fix the max value
+    auto& max_value = distribution_info.mMax;
+    if (Params["max_value"].IsDouble()) {
+        data_type_traits::Initialize(max_value, Params["max_value"].GetDouble());
+    } else if (Params["max_value"].IsString() && Params["max_value"].GetString() == "max") {
+        max_value = std::get<0>(GenericReductionUtilities::GenericReduction<TDataContainerType, TNormType, MaxOperation, true>(rDataCommunicator, rDataContainer, rNorm).GetValue());
+    } else {
+        KRATOS_ERROR
+            << "Unknown max_value. Allowed only double or \"max\" "
+                "string as a value. [ max_value = "
+            << Params["max_value"] << " ]\n.";
+    }
 
-            auto& min_value = distribution_info.mMin;
-            if (Params["min_value"].IsDouble()) {
-                data_type_traits::Initialize(min_value, Params["min_value"].GetDouble());
-            } else if (Params["min_value"].IsString() && Params["min_value"].GetString() == "min") {
-                min_value = std::get<0>(GenericReductionUtilities::GenericReduction<data_container_type, TNormType, MinOperation, true>(rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm).GetValue());
-            } else {
-                KRATOS_ERROR
-                    << "Unknown min_value. Allowed only double or \"min\" "
-                       "string as a value. [ min_value = "
-                    << Params["min_value"] << " ]\n.";
-            }
+    auto& group_limits = distribution_info.mGroupUpperValues;
+    const IndexType number_of_groups = Params["number_of_value_groups"].GetInt();
 
-            // first fix the max value
-            auto& max_value = distribution_info.mMax;
-            if (Params["max_value"].IsDouble()) {
-                data_type_traits::Initialize(max_value, Params["max_value"].GetDouble());
-            } else if (Params["max_value"].IsString() && Params["max_value"].GetString() == "max") {
-                max_value = std::get<0>(GenericReductionUtilities::GenericReduction<data_container_type, TNormType, MaxOperation, true>(rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, rNorm).GetValue());
-            } else {
-                KRATOS_ERROR
-                    << "Unknown max_value. Allowed only double or \"max\" "
-                       "string as a value. [ max_value = "
-                    << Params["max_value"] << " ]\n.";
-            }
+    // we need additional two groups to store values below the specified
+    // minimum and values above the specified maximum.
+    const IndexType number_of_all_groups = number_of_groups + 2;
+    group_limits.resize(number_of_all_groups);
+    for (IndexType i = 0; i < number_of_groups + 1; ++i) {
+        group_limits[i] = min_value + (max_value - min_value) * static_cast<double>(i) / static_cast<double>(number_of_groups);
+    }
+    norm_return_type additional_max_value(max_value);
+    data_type_traits::Initialize(additional_max_value, std::numeric_limits<typename data_type_traits::RawDataType>::max());
+    group_limits.back() = additional_max_value;
 
-            auto& group_limits = distribution_info.mGroupUpperValues;
-            const IndexType number_of_groups = Params["number_of_value_groups"].GetInt();
+    const IndexType number_of_components = data_type_traits::Size(max_value);
 
-            // we need additional two groups to store values below the specified
-            // minimum and values above the specified maximum.
-            const IndexType number_of_all_groups = number_of_groups + 2;
-            group_limits.resize(number_of_all_groups);
-            for (IndexType i = 0; i < number_of_groups + 1; ++i) {
-                group_limits[i] = min_value + (max_value - min_value) * static_cast<double>(i) / static_cast<double>(number_of_groups);
-            }
-            norm_return_type additional_max_value(max_value);
-            data_type_traits::Initialize(additional_max_value, std::numeric_limits<typename data_type_traits::RawDataType>::max());
-            group_limits.back() = additional_max_value;
+    const auto& reuduced_values =
+        IndexPartition<IndexType>(rDataContainer.Size()).for_each<SpatialMethodHelperUtilities::DistributionReduction<norm_return_type>>(data_type{}, [&rDataContainer, &rNorm, &group_limits, number_of_components](const IndexType Index, data_type& rTLS) {
+            rDataContainer.GetValue(rTLS, Index);
+            auto norm_value = rNorm.Evaluate(rTLS);
 
-            const IndexType number_of_components = data_type_traits::Size(max_value);
-
-            const auto& reuduced_values =
-                IndexPartition<IndexType>(rDataContainer.Size()).for_each<SpatialMethodHelperUtilities::DistributionReduction<norm_return_type>>(TDataType{}, [&rDataContainer, &rNorm, &group_limits, number_of_components](const IndexType Index, TDataType& rTLS) {
-                    rDataContainer.GetValue(rTLS, Index);
-                    auto norm_value = rNorm.Evaluate(rTLS);
-
-                    IndicesType indices(number_of_components);
-                    for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                        const auto& comp_value = data_type_traits::GetComponent(norm_value, i_comp);
-                        IndexType i_group;
-                        for (i_group = 0; i_group < group_limits.size() - 2; ++i_group) {
-                            if (comp_value < data_type_traits::GetComponent(group_limits[i_group], i_comp)) {
-                                indices[i_comp] = i_group;
-                                i_group = std::numeric_limits<IndexType>::max();
-                                break;
-                            }
-                        }
-
-                        for (; i_group < group_limits.size(); ++i_group) {
-                            if (comp_value <= data_type_traits::GetComponent(group_limits[i_group], i_comp)) {
-                                indices[i_comp] = i_group;
-                                break;
-                            }
-                        }
+            IndicesType indices(number_of_components);
+            for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
+                const auto& comp_value = data_type_traits::GetComponent(norm_value, i_comp);
+                IndexType i_group;
+                for (i_group = 0; i_group < group_limits.size() - 2; ++i_group) {
+                    if (comp_value < data_type_traits::GetComponent(group_limits[i_group], i_comp)) {
+                        indices[i_comp] = i_group;
+                        i_group = std::numeric_limits<IndexType>::max();
+                        break;
                     }
+                }
 
-                    return std::make_tuple(group_limits.size(), indices, norm_value);
-                });
-
-            // now do the mpi communicaton
-            const auto& r_data_communicator = rModelPart.GetCommunicator().GetDataCommunicator();
-            distribution_info.mGroupNumberOfValues.resize(number_of_all_groups);
-            double number_of_items = 0;
-            for (IndexType i = 0; i < number_of_all_groups; ++i) {
-                const auto& group_values = std::get<0>(reuduced_values)[i];
-                distribution_info.mGroupNumberOfValues[i] = r_data_communicator.SumAll(group_values);
-                number_of_items += indices_traits::GetComponent(group_values, 0);
-            }
-            number_of_items = std::max(r_data_communicator.SumAll(number_of_items), 1.0);
-            distribution_info.mGroupMean     = r_data_communicator.SumAll(std::get<1>(reuduced_values));
-            distribution_info.mGroupVariance = r_data_communicator.SumAll(std::get<2>(reuduced_values));
-
-            // now revert back to the group values
-            distribution_info.mGroupValueDistributionPercentage.resize(number_of_all_groups, distribution_info.mGroupMean[0]);
-            for (IndexType i_group = 0; i_group < number_of_all_groups; ++i_group) {
-                auto& current_number_of_values = distribution_info.mGroupNumberOfValues[i_group];
-                auto& current_distribution_percentage = distribution_info.mGroupValueDistributionPercentage[i_group];
-                auto& current_mean = distribution_info.mGroupMean[i_group];
-                auto& current_variance = distribution_info.mGroupVariance[i_group];
-
-                // post processing of values
-                for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
-                    const auto n = indices_traits::GetComponent(current_number_of_values, i_comp);
-                    const auto mod_n = std::max(n, 1U);
-                    data_type_traits::GetComponent(current_mean, i_comp) /= mod_n;
-                    data_type_traits::GetComponent(current_variance, i_comp) /= mod_n;
-                    data_type_traits::GetComponent(current_distribution_percentage, i_comp) = n / number_of_items;
-                    data_type_traits::GetComponent(current_variance, i_comp) -= std::pow(data_type_traits::GetComponent(current_mean, i_comp), 2);
+                for (; i_group < group_limits.size(); ++i_group) {
+                    if (comp_value <= data_type_traits::GetComponent(group_limits[i_group], i_comp)) {
+                        indices[i_comp] = i_group;
+                        break;
+                    }
                 }
             }
 
-            // reversing group limit extention
-            group_limits[group_limits.size() - 1] = max_value;
+            return std::make_tuple(group_limits.size(), indices, norm_value);
+        });
 
-            return distribution_info;
-        }, data_container);
+    // now do the mpi communicaton
+    distribution_info.mGroupNumberOfValues.resize(number_of_all_groups);
+    double number_of_items = 0;
+    for (IndexType i = 0; i < number_of_all_groups; ++i) {
+        const auto& group_values = std::get<0>(reuduced_values)[i];
+        distribution_info.mGroupNumberOfValues[i] = rDataCommunicator.SumAll(group_values);
+        number_of_items += indices_traits::GetComponent(group_values, 0);
+    }
+    number_of_items = std::max(rDataCommunicator.SumAll(number_of_items), 1.0);
+    distribution_info.mGroupMean     = rDataCommunicator.SumAll(std::get<1>(reuduced_values));
+    distribution_info.mGroupVariance = rDataCommunicator.SumAll(std::get<2>(reuduced_values));
+
+    // now revert back to the group values
+    distribution_info.mGroupValueDistributionPercentage.resize(number_of_all_groups, distribution_info.mGroupMean[0]);
+    for (IndexType i_group = 0; i_group < number_of_all_groups; ++i_group) {
+        auto& current_number_of_values = distribution_info.mGroupNumberOfValues[i_group];
+        auto& current_distribution_percentage = distribution_info.mGroupValueDistributionPercentage[i_group];
+        auto& current_mean = distribution_info.mGroupMean[i_group];
+        auto& current_variance = distribution_info.mGroupVariance[i_group];
+
+        // post processing of values
+        for (IndexType i_comp = 0; i_comp < number_of_components; ++i_comp) {
+            const auto n = indices_traits::GetComponent(current_number_of_values, i_comp);
+            const auto mod_n = std::max(n, 1U);
+            data_type_traits::GetComponent(current_mean, i_comp) /= mod_n;
+            data_type_traits::GetComponent(current_variance, i_comp) /= mod_n;
+            data_type_traits::GetComponent(current_distribution_percentage, i_comp) = n / number_of_items;
+            data_type_traits::GetComponent(current_variance, i_comp) -= std::pow(data_type_traits::GetComponent(current_mean, i_comp), 2);
+        }
+    }
+
+    // reversing group limit extention
+    group_limits[group_limits.size() - 1] = max_value;
+
+    return distribution_info;
 
     KRATOS_CATCH("");
 }
@@ -1220,7 +1213,9 @@ SpatialMethods::DistributionInfo<TDataType> SpatialMethods::Distribution(
     const DataLocation& rLocation,
     Parameters Params)
 {
-    return SpatialMethodHelperUtilities::GenericDistribution<TDataType, SpatialMethodHelperUtilities::Value>(rModelPart, rVariable, rLocation, Params, SpatialMethodHelperUtilities::Value());
+    return std::visit([&Params, &rModelPart](const auto& rDataContainer) {
+        return SpatialMethodHelperUtilities::GenericDistribution(rDataContainer, rModelPart.GetCommunicator().GetDataCommunicator(), Params, SpatialMethodHelperUtilities::Value());
+    }, DataContainers::GetDataContainer(rModelPart, rVariable, rLocation));
 }
 
 template<class TDataType>
@@ -1231,9 +1226,9 @@ SpatialMethods::DistributionInfo<double> SpatialMethods::Distribution(
     Parameters Params,
     const typename Norms::NormType<TDataType>::type& rNorm)
 {
-    return std::visit([&rModelPart, &rVariable, &rLocation, Params](const auto& rNorm) {
-        return SpatialMethodHelperUtilities::GenericDistribution<TDataType, std::decay_t<decltype(rNorm)>>(rModelPart, rVariable, rLocation, Params, rNorm);
-    }, rNorm);
+    return std::visit([&Params, &rModelPart](const auto& rDataContainer, const auto& rNorm) {
+        return SpatialMethodHelperUtilities::GenericDistribution(rDataContainer, rModelPart.GetCommunicator().GetDataCommunicator(), Params, rNorm);
+    }, DataContainers::GetDataContainer(rModelPart, rVariable, rLocation), rNorm);
 }
 
 // template instantiations
