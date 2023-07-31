@@ -130,7 +130,7 @@ protected:
     //    const Matrix& Jacobian,
     //    const double& Weight);
 
-    virtual void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
+    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
         const Matrix& Jacobian,
         const double& Weight);
 
