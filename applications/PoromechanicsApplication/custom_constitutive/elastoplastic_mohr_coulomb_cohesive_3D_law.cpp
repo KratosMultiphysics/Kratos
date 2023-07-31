@@ -354,7 +354,6 @@ void ElastoPlasticMohrCoulombCohesive3DLaw::ReturnMapping(Vector& rStressVector,
 
         // Update the normal component of the traction vector
         this->StressVectorInstersectionYieldSurfaces(rStressVector, ts, ts_intersection, ft);
-        KRATOS_WATCH(rStressVector)
 
         // Update the current plastic displacement jumps
         mPlasticStrainVector = mOldPlasticStrainVector + dep;
