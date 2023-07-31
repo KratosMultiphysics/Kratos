@@ -744,16 +744,16 @@ private:
                         D_ij += std::pow(d_ij[d],2);
                     }
 
-                    // Calculate numerical flux "upwind" contribution at the edge midpoint
-                    // Note that this numerical flux corresponds to the Lax-Wendroff scheme
-                    const double u_ij_half = 0.5 * (u_i + u_j) - 0.5 * DeltaTime * inner_prod(-d_ij, F_i - F_j) / D_ij;
-                    noalias(vel_ij_half) = 0.5 * (r_i_vel + r_j_vel);
-                    for (IndexType d = 0; d < TDim; ++d) {
-                        F_ij_num[d] = 2.0 * (vel_ij_half[d] * u_ij_half);
-                    }
+                    // // Calculate numerical flux "upwind" contribution at the edge midpoint
+                    // // Note that this numerical flux corresponds to the Lax-Wendroff scheme
+                    // const double u_ij_half = 0.5 * (u_i + u_j) - 0.5 * DeltaTime * inner_prod(-d_ij, F_i - F_j) / D_ij;
+                    // noalias(vel_ij_half) = 0.5 * (r_i_vel + r_j_vel);
+                    // for (IndexType d = 0; d < TDim; ++d) {
+                    //     F_ij_num[d] = 2.0 * (vel_ij_half[d] * u_ij_half);
+                    // }
 
                     // Standard flux
-                    // F_ij_num = F_i + F_j;
+                    F_ij_num = F_i + F_j;
 
                     // Calculate convection volume residual contributions
                     double res_edge_i = inner_prod(-d_ij, F_ij_num);
