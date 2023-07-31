@@ -453,5 +453,8 @@ class SpatialMethodTests(KratosUnittest.TestCase):
     def testSumContainerExpression(self):
         self.__RunContainerExpressionTest(KratosStats.SpatialMethods.Sum)
 
+    def testMeanContainerExpression(self):
+        self.__RunContainerExpressionTest(KratosStats.SpatialMethods.Mean)
+
 if __name__ == '__main__':
     KratosUnittest.main()
