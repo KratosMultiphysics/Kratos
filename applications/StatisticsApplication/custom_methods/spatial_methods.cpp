@@ -50,6 +50,29 @@ using IndicesType = std::vector<IndexType>;
 
 using DataLocation = Globals::DataLocation;
 
+class Value {
+public:
+    ///@name Type definitions
+    ///@{
+
+    template<class TDataType>
+    using ResultantValueType = TDataType;
+
+    KRATOS_CLASS_POINTER_DEFINITION(Value);
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    template <class TDataType>
+    inline TDataType Evaluate(const TDataType& rValue) const
+    {
+        return rValue;
+    }
+
+    ///@}
+};
+
 IndexType GetDataLocationSize(
     const ModelPart& rModelPart,
     const DataLocation& rLocation)
@@ -785,8 +808,8 @@ SpatialMethods::IndexType SpatialMethods::Sum(
 
     return std::visit([&rModelPart](auto& rDataContainer) {
         using data_container_type = std::decay_t<decltype(rDataContainer)>;
-        return GenericReductionUtilities::GenericReduction<data_container_type, Norms::Value, SpatialMethodHelperUtilities::SumOperation, false, 1>(
-                rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, Norms::Value())
+        return GenericReductionUtilities::GenericReduction<data_container_type, SpatialMethodHelperUtilities::Value, SpatialMethodHelperUtilities::SumOperation, false, 1>(
+                rModelPart.GetCommunicator().GetDataCommunicator(), rDataContainer, SpatialMethodHelperUtilities::Value())
             .GetValue();
     }, data_container);
 }
@@ -797,8 +820,8 @@ TDataType SpatialMethods::Sum(
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
 {
-    return SpatialMethodHelperUtilities::GenericSumReduction<TDataType, Norms::Value, 1>(
-        rModelPart, rVariable, rLocation, Norms::Value());
+    return SpatialMethodHelperUtilities::GenericSumReduction<TDataType, SpatialMethodHelperUtilities::Value, 1>(
+        rModelPart, rVariable, rLocation, SpatialMethodHelperUtilities::Value());
 }
 
 template<class TDataType>
@@ -842,7 +865,7 @@ TDataType SpatialMethods::RootMeanSquare(
     const DataLocation& rLocation)
 {
     const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
-    auto sum_square = SpatialMethodHelperUtilities::GenericSumReduction<TDataType, Norms::Value, 2>(rModelPart, rVariable, rLocation, Norms::Value());
+    auto sum_square = SpatialMethodHelperUtilities::GenericSumReduction<TDataType, SpatialMethodHelperUtilities::Value, 2>(rModelPart, rVariable, rLocation, SpatialMethodHelperUtilities::Value());
 
     const auto number_of_components = DataTypeTraits<TDataType>::Size(sum_square);
     for (IndexType i = 0; i < number_of_components; ++i) {
@@ -900,7 +923,7 @@ std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethod
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
 {
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MinOperation>(rModelPart, rVariable, rLocation, Norms::Value());
+    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, SpatialMethodHelperUtilities::Value, SpatialMethodHelperUtilities::MinOperation>(rModelPart, rVariable, rLocation, SpatialMethodHelperUtilities::Value());
 }
 
 template<class TDataType>
@@ -921,7 +944,7 @@ std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethod
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
 {
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MaxOperation>(rModelPart, rVariable, rLocation, Norms::Value());
+    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, SpatialMethodHelperUtilities::Value, SpatialMethodHelperUtilities::MaxOperation>(rModelPart, rVariable, rLocation, SpatialMethodHelperUtilities::Value());
 }
 
 template<class TDataType>
@@ -942,7 +965,7 @@ std::tuple<TDataType, SpatialMethods::ItemPositionType<TDataType>> SpatialMethod
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation)
 {
-    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, Norms::Value, SpatialMethodHelperUtilities::MedianOperation>(rModelPart, rVariable, rLocation, Norms::Value());
+    return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, SpatialMethodHelperUtilities::Value, SpatialMethodHelperUtilities::MedianOperation>(rModelPart, rVariable, rLocation, SpatialMethodHelperUtilities::Value());
 }
 
 template<class TDataType>
@@ -964,7 +987,7 @@ SpatialMethods::DistributionInfo<TDataType> SpatialMethods::Distribution(
     const DataLocation& rLocation,
     Parameters Params)
 {
-    return SpatialMethodHelperUtilities::GenericDistribution<TDataType, Norms::Value>(rModelPart, rVariable, rLocation, Params, Norms::Value());
+    return SpatialMethodHelperUtilities::GenericDistribution<TDataType, SpatialMethodHelperUtilities::Value>(rModelPart, rVariable, rLocation, Params, SpatialMethodHelperUtilities::Value());
 }
 
 template<class TDataType>

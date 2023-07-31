@@ -29,29 +29,6 @@ namespace Norms
 
 using IndexType = std::size_t;
 
-class Value {
-public:
-    ///@name Type definitions
-    ///@{
-
-    template<class TDataType>
-    using ResultantValueType = TDataType;
-
-    KRATOS_CLASS_POINTER_DEFINITION(Value);
-
-    ///@}
-    ///@name Public operations
-    ///@{
-
-    template <class TDataType>
-    inline TDataType Evaluate(const TDataType& rValue) const
-    {
-        return rValue;
-    }
-
-    ///@}
-};
-
 class L2 {
 public:
     ///@name Type definitions
