@@ -805,31 +805,29 @@ SpatialMethods::DistributionInfo<typename TNormType::template ResultantValueType
     KRATOS_CATCH("");
 }
 
-template<int TPower>
-SpatialMethods::ExpressionReturnType GenericExpressionSumReduction(
+template<class TReturnType, template <class T1> class TOperationType, bool IdRequired, int TPower>
+TReturnType GenericExpressionNormReduction(
     const Expression& rExpression,
     const DataCommunicator& rDataCommunicator,
     const Norms::AllNormTypes& rNorm)
 {
-    const auto& data_container = DataContainers::GetDataContainer(rExpression);
-
-    return std::visit([&rDataCommunicator](const auto& rDataContainer, const auto& rNorm) -> SpatialMethods::ExpressionReturnType {
+    return std::visit([&rDataCommunicator](const auto& rDataContainer, const auto& rNorm) -> TReturnType {
         using data_container_type = std::decay_t<decltype(rDataContainer)>;
         using data_type = typename data_container_type::DataType;
         using current_norm_type = std::decay_t<decltype(rNorm)>;
         using allowed_norm_type = typename Norms::template NormType<data_type>::type;
 
         if constexpr(std::is_assignable_v<typename SpatialMethodHelperUtilities::VariantRawPointer<allowed_norm_type>::type, current_norm_type*>) {
-            return GenericReductionUtilities::GenericReduction<data_container_type, current_norm_type, SpatialMethodHelperUtilities::SumOperation, false, TPower>(
+            return GenericReductionUtilities::GenericReduction<data_container_type, current_norm_type, TOperationType, IdRequired, TPower>(
                     rDataCommunicator, rDataContainer, rNorm)
                 .GetValue();
         } else {
             KRATOS_ERROR << "The requested norm type \"" << current_norm_type::TypeInfo()
                          << "\" is not supported for data type \""
                          << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\".";
-            return 0.0;
+            return TReturnType{};
         }
-    }, data_container, rNorm);
+    }, DataContainers::GetDataContainer(rExpression), rNorm);
 }
 
 } // namespace SpatialMethodHelperUtilities
@@ -891,7 +889,9 @@ SpatialMethods::ExpressionReturnType SpatialMethods::Sum(
     const DataCommunicator& rDataCommunicator,
     const Norms::AllNormTypes& rNorm)
 {
-    return SpatialMethodHelperUtilities::GenericExpressionSumReduction<1>(rExpression,rDataCommunicator, rNorm);
+    return SpatialMethodHelperUtilities::GenericExpressionNormReduction<
+        SpatialMethods::ExpressionReturnType, SpatialMethodHelperUtilities::SumOperation, false, 1>(
+        rExpression, rDataCommunicator, rNorm);
 }
 
 SpatialMethods::ExpressionReturnType SpatialMethods::Sum(
@@ -1038,7 +1038,7 @@ SpatialMethods::ExpressionReturnType SpatialMethods::RootMeanSquare(
             v = std::pow(v / std::max(number_of_items, 1.0), 0.5);
         }
         return rValue;
-    }, SpatialMethodHelperUtilities::GenericExpressionSumReduction<2>(rExpression,rDataCommunicator, rNorm));
+    }, SpatialMethodHelperUtilities::GenericExpressionNormReduction<SpatialMethods::ExpressionReturnType, SpatialMethodHelperUtilities::SumOperation, false, 2>(rExpression, rDataCommunicator, rNorm));
 }
 
 SpatialMethods::ExpressionReturnType SpatialMethods::RootMeanSquare(
@@ -1162,6 +1162,42 @@ std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Min(
     return std::visit([&rModelPart, &rVariable, &rLocation](const auto& rNorm) {
         return SpatialMethodHelperUtilities::GenericReductionWithIndices<TDataType, std::decay_t<decltype(rNorm)>, SpatialMethodHelperUtilities::MinOperation>(rModelPart, rVariable, rLocation, rNorm);
     }, rNorm);
+}
+
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Min(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator)
+{
+    return std::visit([&rDataCommunicator](const auto& rDataContainer) -> SpatialMethods::ExpressionReturnTypeWithIndices{
+        return GenericReductionUtilities::GenericReduction<std::decay_t<decltype(rDataContainer)>, SpatialMethodHelperUtilities::Value, SpatialMethodHelperUtilities::MinOperation, true>(
+                rDataCommunicator, rDataContainer, SpatialMethodHelperUtilities::Value())
+            .GetValue();
+    }, DataContainers::GetDataContainer(rExpression));
+}
+
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Min(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator,
+    const Norms::AllNormTypes& rNorm)
+{
+    return SpatialMethodHelperUtilities::GenericExpressionNormReduction<SpatialMethods::ExpressionReturnTypeWithIndices, SpatialMethodHelperUtilities::MinOperation, true, 1>(rExpression, rDataCommunicator, rNorm);
+}
+
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Min(
+    const ContainerExpressionType& rContainerExpression)
+{
+    return std::visit([](const auto& rContainerExpression) {
+        return Min(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator());
+    }, rContainerExpression);
+}
+
+SpatialMethods::ExpressionReturnTypeWithIndices SpatialMethods::Min(
+    const ContainerExpressionType& rContainerExpression,
+    const Norms::AllNormTypes& rNorm)
+{
+    return std::visit([&rNorm](const auto& rContainerExpression) {
+        return Min(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator(), rNorm);
+    }, rContainerExpression);
 }
 
 template<class TDataType>

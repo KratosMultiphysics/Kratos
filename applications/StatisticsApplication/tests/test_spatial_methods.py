@@ -185,6 +185,15 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                                 var_value.GetGroupVariances()
                             )
                         CheckValues(self, modified_exp_result, modified_var_result, 12)
+                    elif stat_method in [KratosStats.SpatialMethods.Min, KratosStats.SpatialMethods.Max, KratosStats.SpatialMethods.Median]:
+                        # since expressions start indices from zero and model part entities indices start from one.
+
+                        CheckValues(self, exp_value[0], var_value[0], 12)
+                        if isinstance(exp_value[1], int):
+                            CheckValues(self, exp_value[1], var_value[1] - 1, 12)
+                        else:
+                            for i, v in enumerate(exp_value[1]):
+                                CheckValues(self, v, var_value[1][i]-1, 12)
                     else:
                         CheckValues(self, exp_value, var_value, 12)
 
@@ -461,6 +470,9 @@ class SpatialMethodTests(KratosUnittest.TestCase):
 
     def testVarianceContainerExpression(self):
         self.__RunContainerExpressionTest(KratosStats.SpatialMethods.Variance)
+
+    def testMinExpression(self):
+        self.__RunContainerExpressionTest(KratosStats.SpatialMethods.Min)
 
 if __name__ == '__main__':
     KratosUnittest.main()

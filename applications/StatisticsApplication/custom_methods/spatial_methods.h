@@ -79,6 +79,16 @@ public:
                                         Matrix
                                     >;
 
+    using ExpressionReturnTypeWithIndices = std::variant<
+                                                std::tuple<double, IndexType>,
+                                                std::tuple<array_1d<double, 3>, std::vector<IndexType>>,
+                                                std::tuple<array_1d<double, 4>, std::vector<IndexType>>,
+                                                std::tuple<array_1d<double, 6>, std::vector<IndexType>>,
+                                                std::tuple<array_1d<double, 9>, std::vector<IndexType>>,
+                                                std::tuple<Vector, std::vector<IndexType>>,
+                                                std::tuple<Matrix, std::vector<IndexType>>
+                                            >;
+
     ///@}
     ///@name Class definitions
     ///@{
@@ -284,6 +294,22 @@ public:
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation,
         const typename Norms::NormType<TDataType>::type& rNorm);
+
+    static ExpressionReturnTypeWithIndices Min(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator);
+
+    static ExpressionReturnTypeWithIndices Min(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator,
+        const Norms::AllNormTypes& rNorm);
+
+    static ExpressionReturnTypeWithIndices Min(
+        const ContainerExpressionType& rContainerExpression);
+
+    static ExpressionReturnTypeWithIndices Min(
+        const ContainerExpressionType& rContainerExpression,
+        const Norms::AllNormTypes& rNorm);
 
     template<class TDataType>
     static std::tuple<TDataType, ItemPositionType<TDataType>> Max(

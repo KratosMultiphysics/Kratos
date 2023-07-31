@@ -253,6 +253,11 @@ void AddCustomSpatialMethodsToPython(pybind11::module& m)
     spatial_method_module.def("Variance", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression) { return std::visit([](auto& pContainerExpression) { return SpatialMethods::Variance(*pContainerExpression); }, rContainerExpression); });
     spatial_method_module.def("Variance", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([](auto& pContainerExpression, auto& pNorm) { return SpatialMethods::Variance(*pContainerExpression, *pNorm); }, rContainerExpression, rNorm); });
 
+    spatial_method_module.def("Min", [](const Expression::ConstPointer pExpression, const DataCommunicator& rDataCommunicator) { return SpatialMethods::Min(*pExpression, rDataCommunicator); });
+    spatial_method_module.def("Min", [](const Expression::ConstPointer pExpression, const DataCommunicator& rDataCommunicator, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([&](auto& pNorm) {return SpatialMethods::Min(*pExpression, rDataCommunicator, *pNorm); }, rNorm); });
+    spatial_method_module.def("Min", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression) { return std::visit([](auto& pContainerExpression) { return SpatialMethods::Min(*pContainerExpression); }, rContainerExpression); });
+    spatial_method_module.def("Min", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([](auto& pContainerExpression, auto& pNorm) { return SpatialMethods::Min(*pContainerExpression, *pNorm); }, rContainerExpression, rNorm); });
+
     auto spatial_historical_method_module = spatial_method_module.def_submodule("Historical");
     spatial_historical_method_module.def_submodule("ValueMethods");
     spatial_historical_method_module.def_submodule("NormMethods");
