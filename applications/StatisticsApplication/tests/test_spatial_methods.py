@@ -3,6 +3,7 @@ from math import sqrt
 
 import KratosMultiphysics as Kratos
 
+from KratosMultiphysics import IsDistributedRun
 import KratosMultiphysics.StatisticsApplication as KratosStats
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
@@ -189,11 +190,14 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                         # since expressions start indices from zero and model part entities indices start from one.
 
                         CheckValues(self, exp_value[0], var_value[0], 12)
-                        if isinstance(exp_value[1], int):
-                            CheckValues(self, exp_value[1], var_value[1] - 1, 12)
-                        else:
-                            for i, v in enumerate(exp_value[1]):
-                                CheckValues(self, v, var_value[1][i]-1, 12)
+                        if not IsDistributedRun():
+                            # ids can only be checked in the shared memory case because,
+                            # in the case of expressions, the corresponding index israndom.
+                            if isinstance(exp_value[1], int):
+                                CheckValues(self, exp_value[1], var_value[1] - 1, 12)
+                            else:
+                                for i, v in enumerate(exp_value[1]):
+                                    CheckValues(self, v, var_value[1][i]-1, 12)
                     else:
                         CheckValues(self, exp_value, var_value, 12)
 
