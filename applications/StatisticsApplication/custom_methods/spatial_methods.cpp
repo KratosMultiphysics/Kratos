@@ -812,6 +812,32 @@ SpatialMethods::DistributionInfo<typename TNormType::template ResultantValueType
     KRATOS_CATCH("");
 }
 
+template<int TPower>
+SpatialMethods::ExpressionReturnType GenericExpressionSumReduction(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator,
+    const Norms::AllNormTypes& rNorm)
+{
+    const auto& data_container = DataContainers::GetDataContainer(rExpression);
+
+    return std::visit([&rDataCommunicator](const auto& rDataContainer, const auto& rNorm) -> SpatialMethods::ExpressionReturnType {
+        using data_container_type = std::decay_t<decltype(rDataContainer)>;
+        using data_type = typename data_container_type::DataType;
+        using current_norm_type = std::decay_t<decltype(rNorm)>;
+        using allowed_norm_type = typename Norms::template NormType<data_type>::type;
+
+        if constexpr(std::is_assignable_v<typename SpatialMethodHelperUtilities::VariantRawPointer<allowed_norm_type>::type, current_norm_type*>) {
+            return GenericReductionUtilities::GenericReduction<data_container_type, current_norm_type, SpatialMethodHelperUtilities::SumOperation, false, TPower>(
+                    rDataCommunicator, rDataContainer, rNorm)
+                .GetValue();
+        } else {
+            KRATOS_ERROR << "The requested norm type \"" << current_norm_type::TypeInfo()
+                         << "\" is not supported for data type \""
+                         << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\".";
+            return 0.0;
+        }
+    }, data_container, rNorm);
+}
 
 } // namespace SpatialMethodHelperUtilities
 
@@ -872,25 +898,7 @@ SpatialMethods::ExpressionReturnType SpatialMethods::Sum(
     const DataCommunicator& rDataCommunicator,
     const Norms::AllNormTypes& rNorm)
 {
-    const auto& data_container = DataContainers::GetDataContainer(rExpression);
-
-    return std::visit([&rDataCommunicator](const auto& rDataContainer, const auto& rNorm) -> SpatialMethods::ExpressionReturnType {
-        using data_container_type = std::decay_t<decltype(rDataContainer)>;
-        using data_type = typename data_container_type::DataType;
-        using current_norm_type = std::decay_t<decltype(rNorm)>;
-        using allowed_norm_type = typename Norms::template NormType<data_type>::type;
-
-        if constexpr(std::is_assignable_v<typename SpatialMethodHelperUtilities::VariantRawPointer<allowed_norm_type>::type, current_norm_type*>) {
-            return GenericReductionUtilities::GenericReduction<data_container_type, current_norm_type, SpatialMethodHelperUtilities::SumOperation, false, 1>(
-                    rDataCommunicator, rDataContainer, rNorm)
-                .GetValue();
-        } else {
-            KRATOS_ERROR << "The requested norm type \"" << current_norm_type::TypeInfo()
-                         << "\" is not supported for data type \""
-                         << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\".";
-            return 0.0;
-        }
-    }, data_container, rNorm);
+    return SpatialMethodHelperUtilities::GenericExpressionSumReduction<1>(rExpression,rDataCommunicator, rNorm);
 }
 
 SpatialMethods::ExpressionReturnType SpatialMethods::Sum(
@@ -929,6 +937,42 @@ double SpatialMethods::Mean(
 {
     const double number_of_items = SpatialMethodHelperUtilities::GetDataLocationSize(rModelPart, rLocation);
     return Sum(rModelPart, rVariable, rLocation, rNorm) / std::max(number_of_items, 1.0);
+}
+
+SpatialMethods::ExpressionReturnType SpatialMethods::Mean(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator)
+{
+    return std::visit([&rDataCommunicator, &rExpression](const auto& rSum) -> ExpressionReturnType {
+        return static_cast<std::decay_t<decltype(rSum)>>(rSum / std::max(rDataCommunicator.SumAll(static_cast<unsigned int>(rExpression.NumberOfEntities())), 1U));
+    }, Sum(rExpression, rDataCommunicator));
+}
+
+SpatialMethods::ExpressionReturnType SpatialMethods::Mean(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator,
+    const Norms::AllNormTypes& rNorm)
+{
+    return std::visit([&rDataCommunicator, &rExpression](const auto& rSum) -> ExpressionReturnType {
+        return static_cast<std::decay_t<decltype(rSum)>>(rSum / std::max(rDataCommunicator.SumAll(static_cast<unsigned int>(rExpression.NumberOfEntities())), 1U));
+    }, Sum(rExpression, rDataCommunicator, rNorm));
+}
+
+SpatialMethods::ExpressionReturnType SpatialMethods::Mean(
+    const ContainerExpressionType& rContainerExpression)
+{
+    return std::visit([](const auto& rContainerExpression) {
+        return Mean(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator());
+    }, rContainerExpression);
+}
+
+SpatialMethods::ExpressionReturnType SpatialMethods::Mean(
+    const ContainerExpressionType& rContainerExpression,
+    const Norms::AllNormTypes& rNorm)
+{
+    return std::visit([&rNorm](const auto& rContainerExpression) {
+        return Mean(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator(), rNorm);
+    }, rContainerExpression);
 }
 
 template<class TDataType>
