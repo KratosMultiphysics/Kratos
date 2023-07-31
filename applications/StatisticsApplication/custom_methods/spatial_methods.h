@@ -29,6 +29,8 @@
 #include "includes/define.h"
 #include "includes/global_variables.h"
 #include "includes/model_part.h"
+#include "expression/expression.h"
+#include "expression/container_expression.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 
@@ -60,6 +62,22 @@ public:
 
     template<class TDataType>
     using ItemPositionType = std::conditional_t<std::is_arithmetic_v<TDataType>, IndexType, IndicesType>;
+
+    using ContainerExpressionType = std::variant<
+                                            ContainerExpression<ModelPart::NodesContainerType>,
+                                            ContainerExpression<ModelPart::ConditionsContainerType>,
+                                            ContainerExpression<ModelPart::ElementsContainerType>
+                                        >;
+
+    using ExpressionReturnType = std::variant<
+                                        double,
+                                        array_1d<double, 3>,
+                                        array_1d<double, 4>,
+                                        array_1d<double, 6>,
+                                        array_1d<double, 9>,
+                                        Vector,
+                                        Matrix
+                                    >;
 
     ///@}
     ///@name Class definitions
@@ -150,6 +168,22 @@ public:
         const Variable<TDataType>& rVariable,
         const DataLocation& rLocation,
         const typename Norms::NormType<TDataType>::type& rNorm);
+
+    static ExpressionReturnType Sum(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator);
+
+    static ExpressionReturnType Sum(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator,
+        const Norms::AllNormTypes& rNorm);
+
+    static ExpressionReturnType Sum(
+        const ContainerExpressionType& rContainerExpression);
+
+    static ExpressionReturnType Sum(
+        const ContainerExpressionType& rContainerExpression,
+        const Norms::AllNormTypes& rNorm);
 
     template<class TDataType>
     static TDataType Mean(
