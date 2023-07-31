@@ -50,7 +50,7 @@ namespace Kratos {
             KRATOS_EXPECT_STREQ(message.GetMessage().c_str(), "Test message with number 12e00\n");
             KRATOS_EXPECT_EQ(message.GetSeverity(), LoggerMessage::Severity::DETAIL);
             KRATOS_EXPECT_EQ(message.GetCategory(), LoggerMessage::Category::CRITICAL);
-            KRATOS_EXPECT_EQ(message.GetLocation().GetFileName().find("test_logger.cpp"), std::string::npos);
+            KRATOS_EXPECT_NE(message.GetLocation().GetFileName().find("test_logger.cpp"), std::string::npos);
             KRATOS_EXPECT_EQ(message.GetLocation().GetFunctionName(), KRATOS_CURRENT_FUNCTION);
             KRATOS_EXPECT_EQ(message.GetLocation().GetLineNumber(), 48);
         }
