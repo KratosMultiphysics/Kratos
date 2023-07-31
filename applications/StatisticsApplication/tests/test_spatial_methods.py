@@ -110,7 +110,6 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                         var_value = stat_method(self.model_part, variable, data_location, *args, norm)
 
                     if stat_method == KratosStats.SpatialMethods.Distribution:
-                        stat_results: KratosStats.SpatialMethods.Array3DistributionInfo
                         modified_exp_result = (
                                 exp_value.GetMin(),
                                 exp_value.GetMax(),
