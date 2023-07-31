@@ -7,15 +7,15 @@
                 "name": "LinearElasticPlaneStrainSolid2DLaw"
             },
             "Variables": {
-                "YOUNG_MODULUS": 3.0e8,
-                "POISSON_RATIO": 0.0,
+                "YOUNG_MODULUS": 1.0e6,
+                "POISSON_RATIO": 0.3,
                 "DENSITY_SOLID": 2.0e3,
                 "DENSITY_WATER": 1.0e3,
-                "POROSITY": 0.3,
-                "BULK_MODULUS_SOLID": 1.0e12,
-                "BULK_MODULUS_FLUID": 2.0e9,
-                "PERMEABILITY_XX": 4.5e-13,
-                "PERMEABILITY_YY": 4.5e-13,
+                "POROSITY": 0.2,
+                "BULK_MODULUS_SOLID": 1.0e25,
+                "BULK_MODULUS_FLUID": 1.0e25,
+                "PERMEABILITY_XX": 1.15740740740741e-12,
+                "PERMEABILITY_YY": 1.15740740740741e-12,
                 "PERMEABILITY_ZZ": 4.5e-13,
                 "PERMEABILITY_XY": 0.0,
                 "PERMEABILITY_YZ": 0.0,
@@ -27,7 +27,7 @@
                 "FRACTURE_ENERGY": 100.0,
                 "RESIDUAL_STRENGTH": 0.8,
                 "SOFTENING_SLOPE": 9000.0,
-                "BIOT_COEFFICIENT": 0.6
+                "BIOT_COEFFICIENT": 1.0
             },
             "Tables": {}
         }
@@ -39,28 +39,33 @@
                 "name": "ElasticCohesive2DLaw"
             },
             "Variables": {
-                "NORMAL_STIFFNESS": 1.0e8,
-                "SHEAR_STIFFNESS": 1.0e0,
-                "PENALTY_STIFFNESS": 1.0e6,
+                "DAMAGE_EVOLUTION_LAW": 1,
+                "NORMAL_STIFFNESS": 2.0e7,
+                "SHEAR_STIFFNESS": 1.0e6,
+                "PENALTY_STIFFNESS": 1.0,
                 "YOUNG_MODULUS": 3.0e7,
                 "POISSON_RATIO": 0.2,
                 "DENSITY_SOLID": 2.0e3,
                 "DENSITY_WATER": 1.0e3,
                 "POROSITY": 0.3,
-                "BULK_MODULUS_SOLID": 1.0e12,
-                "BULK_MODULUS_FLUID": 2.0e9,
-                "TRANSVERSAL_PERMEABILITY": 1.0e-13,
+                "BULK_MODULUS_SOLID": 1.0e25,
+                "BULK_MODULUS_FLUID": 1.0e25,
+                "TRANSVERSAL_PERMEABILITY_COEFFICIENT": 0.0,
                 "DYNAMIC_VISCOSITY": 1.0e-3,
                 "THICKNESS": 1.0,
                 "DAMAGE_THRESHOLD": 1.0e-4,
-                "MINIMUM_JOINT_WIDTH": 1.0e-3,
+                "INITIAL_JOINT_WIDTH": 1.0e-4,
                 "CRITICAL_DISPLACEMENT": 0.05,
                 "YIELD_STRESS": 3.5e6,
                 "FRICTION_COEFFICIENT": 0.4,
                 "FRACTURE_ENERGY": 100.0,
                 "SHEAR_FRACTURE_ENERGY": 100.0,
+                "TENSILE_STRENGTH": 1.0,
+                "BETA_EQSTRAIN_SHEAR_FACTOR": 1.0,
                 "STATE_VARIABLE": 1.0e-12,
-                "BIOT_COEFFICIENT": 0.6
+                "TAU": 1.0,
+                "CURVE_FITTING_ETA": 1.0,
+                "BIOT_COEFFICIENT": 1.0
             },
             "Tables": {}
         }
