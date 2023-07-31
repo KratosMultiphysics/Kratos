@@ -578,7 +578,7 @@ public:
 
 
 template<class TDataType, class TNormType, int TPower = 1>
-typename TNormType::ResultantValueType<TDataType> GenericSumReduction(
+typename TNormType::template ResultantValueType<TDataType> GenericSumReduction(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation,
