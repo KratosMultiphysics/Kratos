@@ -111,8 +111,8 @@ private:
      * @param NumKnotSpans Number of equidistant elements/knot spans in each direction u,v,w.
      * @note The CP'S are defined as nodes and added to the rModelPart.
      **/
-    void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A, const Point& B, SizeType OrderU, SizeType OrderV, SizeType OrderW,
-        SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
+    void CreateAndAddRegularGrid3D( ModelPart& r_model_part, const Point& A_xyz, const Point& B_xyz, const Point& A_uvw, const Point& B_uvw,
+       SizeType OrderU, SizeType OrderV, SizeType OrderW, SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW );
 
 };
 
