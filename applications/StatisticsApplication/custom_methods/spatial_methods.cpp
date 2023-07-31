@@ -599,7 +599,7 @@ typename TNormType::template ResultantValueType<TDataType> GenericSumReduction(
 }
 
 template<class TDataType, class TNormType, template <class T1> class OperationType>
-std::tuple<typename TNormType::template ResultantValueType<TDataType>, typename SpatialMethods::ItemPositionType<typename TNormType::ResultantValueType<TDataType>>> GenericReductionWithIndices(
+std::tuple<typename TNormType::template ResultantValueType<TDataType>, typename SpatialMethods::template ItemPositionType<typename TNormType::template ResultantValueType<TDataType>>> GenericReductionWithIndices(
     const ModelPart& rModelPart,
     const Variable<TDataType>& rVariable,
     const DataLocation& rLocation,
