@@ -1005,6 +1005,66 @@ double SpatialMethods::RootMeanSquare(
     }, rNorm);
 }
 
+SpatialMethods::ExpressionReturnType SpatialMethods::RootMeanSquare(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator)
+{
+    const double number_of_items = std::max(rDataCommunicator.SumAll(static_cast<unsigned int>(rExpression.NumberOfEntities())), 1U);
+    const auto& data_container = DataContainers::GetDataContainer(rExpression);
+
+    return std::visit([&rDataCommunicator, number_of_items](const auto& rDataContainer) -> SpatialMethods::ExpressionReturnType {
+        using data_container_type = std::decay_t<decltype(rDataContainer)>;
+
+        auto sum_square = GenericReductionUtilities::GenericReduction<data_container_type, SpatialMethodHelperUtilities::Value, SpatialMethodHelperUtilities::SumOperation, false, 2>(
+                rDataCommunicator, rDataContainer, SpatialMethodHelperUtilities::Value())
+            .GetValue();
+
+        using return_type = std::decay_t<decltype(sum_square)>;
+
+        const auto number_of_components = DataTypeTraits<return_type>::Size(sum_square);
+        for (IndexType i = 0; i < number_of_components; ++i) {
+            auto& v = DataTypeTraits<return_type>::GetComponent(sum_square, i);
+            v = std::pow(v / std::max(number_of_items, 1.0), 0.5);
+        }
+
+        return sum_square;
+    }, data_container);
+}
+
+SpatialMethods::ExpressionReturnType SpatialMethods::RootMeanSquare(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator,
+    const Norms::AllNormTypes& rNorm)
+{
+    const double number_of_items = std::max(rDataCommunicator.SumAll(static_cast<unsigned int>(rExpression.NumberOfEntities())), 1U);
+    return std::visit([number_of_items](auto rValue) -> ExpressionReturnType {
+        using return_type = std::decay_t<decltype(rValue)>;
+        const auto number_of_components = DataTypeTraits<return_type>::Size(rValue);
+        for (IndexType i = 0; i < number_of_components; ++i) {
+            auto& v = DataTypeTraits<return_type>::GetComponent(rValue, i);
+            v = std::pow(v / std::max(number_of_items, 1.0), 0.5);
+        }
+        return rValue;
+    }, SpatialMethodHelperUtilities::GenericExpressionSumReduction<2>(rExpression,rDataCommunicator, rNorm));
+}
+
+SpatialMethods::ExpressionReturnType SpatialMethods::RootMeanSquare(
+    const ContainerExpressionType& rContainerExpression)
+{
+    return std::visit([](const auto& rContainerExpression) {
+        return RootMeanSquare(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator());
+    }, rContainerExpression);
+}
+
+SpatialMethods::ExpressionReturnType SpatialMethods::RootMeanSquare(
+    const ContainerExpressionType& rContainerExpression,
+    const Norms::AllNormTypes& rNorm)
+{
+    return std::visit([&rNorm](const auto& rContainerExpression) {
+        return RootMeanSquare(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator(), rNorm);
+    }, rContainerExpression);
+}
+
 template<class TDataType>
 std::tuple<TDataType, TDataType> SpatialMethods::Variance(
     const ModelPart& rModelPart,

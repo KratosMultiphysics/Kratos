@@ -227,21 +227,21 @@ public:
         const DataLocation& rLocation,
         const typename Norms::NormType<TDataType>::type& rNorm);
 
-    // static ExpressionReturnType RootMeanSquare(
-    //     const Expression& rExpression,
-    //     const DataCommunicator& rDataCommunicator);
+    static ExpressionReturnType RootMeanSquare(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator);
 
-    // static ExpressionReturnType RootMeanSquare(
-    //     const Expression& rExpression,
-    //     const DataCommunicator& rDataCommunicator,
-    //     const Norms::AllNormTypes& rNorm);
+    static ExpressionReturnType RootMeanSquare(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator,
+        const Norms::AllNormTypes& rNorm);
 
-    // static ExpressionReturnType RootMeanSquare(
-    //     const ContainerExpressionType& rContainerExpression);
+    static ExpressionReturnType RootMeanSquare(
+        const ContainerExpressionType& rContainerExpression);
 
-    // static ExpressionReturnType RootMeanSquare(
-    //     const ContainerExpressionType& rContainerExpression,
-    //     const Norms::AllNormTypes& rNorm);
+    static ExpressionReturnType RootMeanSquare(
+        const ContainerExpressionType& rContainerExpression,
+        const Norms::AllNormTypes& rNorm);
 
     template<class TDataType>
     static std::tuple<TDataType, TDataType> Variance(
