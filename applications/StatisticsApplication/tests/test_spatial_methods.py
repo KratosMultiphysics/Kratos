@@ -152,17 +152,17 @@ class SpatialMethodTests(KratosUnittest.TestCase):
                 for norm, ref_value in info_2.items():
                     run_granular_test(stat_method, variable, data_location, ref_value, norm)
 
-    def __RunContainerExpressionTest(self, stat_method):
+    def __RunContainerExpressionTest(self, stat_method, *args):
         for data_location in self.data_locations:
             for variable, norms_list in self.norms_dict.items():
                 container_expression = self.__GetContainerExpression(variable, data_location)
                 for norm in norms_list:
                     if isinstance(norm, SpatialMethodTests.ValueNorm):
-                        exp_value = stat_method(container_expression)
-                        var_value = stat_method(self.model_part, variable, data_location)
+                        exp_value = stat_method(container_expression, *args)
+                        var_value = stat_method(self.model_part, variable, data_location, *args)
                     else:
-                        exp_value = stat_method(container_expression, norm)
-                        var_value = stat_method(self.model_part, variable, data_location, norm)
+                        exp_value = stat_method(container_expression, *args, norm)
+                        var_value = stat_method(self.model_part, variable, data_location, *args, norm)
 
                     if stat_method == KratosStats.SpatialMethods.Distribution:
                         stat_results: KratosStats.SpatialMethods.Array3DistributionInfo
@@ -479,6 +479,14 @@ class SpatialMethodTests(KratosUnittest.TestCase):
 
     def testMedianExpression(self):
         self.__RunContainerExpressionTest(KratosStats.SpatialMethods.Median)
+
+    def testDistributionExpression(self):
+        params = Kratos.Parameters("""{
+            "number_of_value_groups" : 4,
+            "min_value"              : "min",
+            "max_value"              : "max"
+        }""")
+        self.__RunContainerExpressionTest(KratosStats.SpatialMethods.Distribution, params)
 
 if __name__ == '__main__':
     KratosUnittest.main()

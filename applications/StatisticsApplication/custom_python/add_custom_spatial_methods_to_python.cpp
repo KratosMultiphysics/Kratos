@@ -268,6 +268,11 @@ void AddCustomSpatialMethodsToPython(pybind11::module& m)
     spatial_method_module.def("Median", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression) { return std::visit([](auto& pContainerExpression) { return SpatialMethods::Median(*pContainerExpression); }, rContainerExpression); });
     spatial_method_module.def("Median", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([](auto& pContainerExpression, auto& pNorm) { return SpatialMethods::Median(*pContainerExpression, *pNorm); }, rContainerExpression, rNorm); });
 
+    spatial_method_module.def("Distribution", [](const Expression::ConstPointer pExpression, const DataCommunicator& rDataCommunicator, Parameters Params) { return SpatialMethods::Distribution(*pExpression, rDataCommunicator, Params); });
+    spatial_method_module.def("Distribution", [](const Expression::ConstPointer pExpression, const DataCommunicator& rDataCommunicator, Parameters Params, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([&](auto& pNorm) {return SpatialMethods::Distribution(*pExpression, rDataCommunicator, Params, *pNorm); }, rNorm); });
+    spatial_method_module.def("Distribution", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression, Parameters Params) { return std::visit([&](auto& pContainerExpression) { return SpatialMethods::Distribution(*pContainerExpression, Params); }, rContainerExpression); });
+    spatial_method_module.def("Distribution", [](const typename VariantPointer<SpatialMethods::ContainerExpressionType>::type& rContainerExpression, Parameters Params, const typename VariantPointer<Norms::AllNormTypes>::type& rNorm) { return std::visit([&](auto& pContainerExpression, auto& pNorm) { return SpatialMethods::Distribution(*pContainerExpression, Params, *pNorm); }, rContainerExpression, rNorm); });
+
     auto spatial_historical_method_module = spatial_method_module.def_submodule("Historical");
     spatial_historical_method_module.def_submodule("ValueMethods");
     spatial_historical_method_module.def_submodule("NormMethods");

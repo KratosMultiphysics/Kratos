@@ -63,32 +63,6 @@ public:
     template<class TDataType>
     using ItemPositionType = std::conditional_t<std::is_arithmetic_v<TDataType>, IndexType, IndicesType>;
 
-    using ContainerExpressionType = std::variant<
-                                            ContainerExpression<ModelPart::NodesContainerType>,
-                                            ContainerExpression<ModelPart::ConditionsContainerType>,
-                                            ContainerExpression<ModelPart::ElementsContainerType>
-                                        >;
-
-    using ExpressionReturnType = std::variant<
-                                        double,
-                                        array_1d<double, 3>,
-                                        array_1d<double, 4>,
-                                        array_1d<double, 6>,
-                                        array_1d<double, 9>,
-                                        Vector,
-                                        Matrix
-                                    >;
-
-    using ExpressionReturnTypeWithIndices = std::variant<
-                                                std::tuple<double, IndexType>,
-                                                std::tuple<array_1d<double, 3>, std::vector<IndexType>>,
-                                                std::tuple<array_1d<double, 4>, std::vector<IndexType>>,
-                                                std::tuple<array_1d<double, 6>, std::vector<IndexType>>,
-                                                std::tuple<array_1d<double, 9>, std::vector<IndexType>>,
-                                                std::tuple<Vector, std::vector<IndexType>>,
-                                                std::tuple<Matrix, std::vector<IndexType>>
-                                            >;
-
     ///@}
     ///@name Class definitions
     ///@{
@@ -156,6 +130,46 @@ public:
 
         ///@}
     };
+
+    ///@}
+    ///@name Dependent types for expressions
+    ///@{
+
+    using ContainerExpressionType = std::variant<
+                                            ContainerExpression<ModelPart::NodesContainerType>,
+                                            ContainerExpression<ModelPart::ConditionsContainerType>,
+                                            ContainerExpression<ModelPart::ElementsContainerType>
+                                        >;
+
+    using ExpressionReturnType = std::variant<
+                                        double,
+                                        array_1d<double, 3>,
+                                        array_1d<double, 4>,
+                                        array_1d<double, 6>,
+                                        array_1d<double, 9>,
+                                        Vector,
+                                        Matrix
+                                    >;
+
+    using ExpressionReturnTypeWithIndices = std::variant<
+                                                std::tuple<double, IndexType>,
+                                                std::tuple<array_1d<double, 3>, std::vector<IndexType>>,
+                                                std::tuple<array_1d<double, 4>, std::vector<IndexType>>,
+                                                std::tuple<array_1d<double, 6>, std::vector<IndexType>>,
+                                                std::tuple<array_1d<double, 9>, std::vector<IndexType>>,
+                                                std::tuple<Vector, std::vector<IndexType>>,
+                                                std::tuple<Matrix, std::vector<IndexType>>
+                                            >;
+
+    using ExpressionDistributionReturnType = std::variant<
+                                                DistributionInfo<double>,
+                                                DistributionInfo<array_1d<double, 3>>,
+                                                DistributionInfo<array_1d<double, 4>>,
+                                                DistributionInfo<array_1d<double, 6>>,
+                                                DistributionInfo<array_1d<double, 9>>,
+                                                DistributionInfo<Vector>,
+                                                DistributionInfo<Matrix>
+                                            >;
 
     ///@}
     ///@name Static operations
@@ -383,6 +397,26 @@ public:
         const DataLocation& rLocation,
         Parameters Params,
         const typename Norms::NormType<TDataType>::type& rNorm);
+
+    static ExpressionDistributionReturnType Distribution(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator,
+        Parameters Params);
+
+    static ExpressionDistributionReturnType Distribution(
+        const Expression& rExpression,
+        const DataCommunicator& rDataCommunicator,
+        Parameters Params,
+        const Norms::AllNormTypes& rNorm);
+
+    static ExpressionDistributionReturnType Distribution(
+        const ContainerExpressionType& rContainerExpression,
+        Parameters Params);
+
+    static ExpressionDistributionReturnType Distribution(
+        const ContainerExpressionType& rContainerExpression,
+        Parameters Params,
+        const Norms::AllNormTypes& rNorm);
 
     ///@}
     ///@name Static operations

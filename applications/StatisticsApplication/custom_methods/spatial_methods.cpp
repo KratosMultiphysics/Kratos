@@ -1339,6 +1339,58 @@ SpatialMethods::DistributionInfo<double> SpatialMethods::Distribution(
     }, DataContainers::GetDataContainer(rModelPart, rVariable, rLocation), rNorm);
 }
 
+SpatialMethods::ExpressionDistributionReturnType SpatialMethods::Distribution(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator,
+    Parameters Params)
+{
+    return std::visit([&Params, &rDataCommunicator](const auto& rDataContainer) -> SpatialMethods::ExpressionDistributionReturnType {
+        return SpatialMethodHelperUtilities::GenericDistribution(rDataContainer, rDataCommunicator, Params, SpatialMethodHelperUtilities::Value());
+    }, DataContainers::GetDataContainer(rExpression));
+}
+
+SpatialMethods::ExpressionDistributionReturnType SpatialMethods::Distribution(
+    const Expression& rExpression,
+    const DataCommunicator& rDataCommunicator,
+    Parameters Params,
+    const Norms::AllNormTypes& rNorm)
+{
+    return std::visit([&rDataCommunicator, &Params](const auto& rDataContainer, const auto& rNorm) -> SpatialMethods::ExpressionDistributionReturnType {
+        using data_container_type = std::decay_t<decltype(rDataContainer)>;
+        using data_type = typename data_container_type::DataType;
+        using current_norm_type = std::decay_t<decltype(rNorm)>;
+        using allowed_norm_type = typename Norms::template NormType<data_type>::type;
+
+        if constexpr(std::is_assignable_v<typename SpatialMethodHelperUtilities::VariantRawPointer<allowed_norm_type>::type, current_norm_type*>) {
+            return SpatialMethodHelperUtilities::GenericDistribution(rDataContainer, rDataCommunicator, Params, rNorm);
+        } else {
+            KRATOS_ERROR << "The requested norm type \"" << current_norm_type::TypeInfo()
+                         << "\" is not supported for data type \""
+                         << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\".";
+            return SpatialMethods::ExpressionDistributionReturnType{};
+        }
+    }, DataContainers::GetDataContainer(rExpression), rNorm);
+}
+
+SpatialMethods::ExpressionDistributionReturnType SpatialMethods::Distribution(
+    const ContainerExpressionType& rContainerExpression,
+    Parameters Params)
+{
+    return std::visit([&Params](const auto& rContainerExpression) {
+        return Distribution(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator(), Params);
+    }, rContainerExpression);
+}
+
+SpatialMethods::ExpressionDistributionReturnType SpatialMethods::Distribution(
+    const ContainerExpressionType& rContainerExpression,
+    Parameters Params,
+    const Norms::AllNormTypes& rNorm)
+{
+    return std::visit([&rNorm, &Params](const auto& rContainerExpression) {
+        return Distribution(rContainerExpression.GetExpression(), rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator(), Params, rNorm);
+    }, rContainerExpression);
+}
+
 // template instantiations
 #define KRATOS_TEMPLATE_VARIABLE_METHOD_INSTANTIATION(...)                                                                                                  \
     template __VA_ARGS__ SpatialMethods::Sum(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);                 \
