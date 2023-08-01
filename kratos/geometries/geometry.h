@@ -3840,15 +3840,22 @@ public:
         rOStream << std::endl;
         rOStream << std::endl;
 
+        bool null_points = false;
         for (unsigned int i = 0; i < this->size(); ++i) {
             rOStream << "\tPoint " << i + 1 << "\t : ";
-            mPoints[i].PrintData(rOStream);
+            if (mPoints(i) != nullptr) {
+                mPoints[i].PrintData(rOStream);
+            } else {
+                null_points = true;
+                rOStream << "point is empty (nullptr)." << std::endl;
+            }
             rOStream << std::endl;
         }
 
-        rOStream << "\tCenter\t : ";
-
-        Center().PrintData(rOStream);
+        if (!null_points) {
+            rOStream << "\tCenter\t : ";
+            Center().PrintData(rOStream);
+        }
 
         rOStream << std::endl;
         rOStream << std::endl;

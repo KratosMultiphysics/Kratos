@@ -704,14 +704,27 @@ namespace Kratos
          * @see PrintInfo()
          * @see Info()
          */
-        void PrintData(std::ostream& rOStream) const override
+        void PrintData( std::ostream& rOStream ) const override
         {
-            PrintInfo(rOStream);
-            BaseType::PrintData(rOStream);
+            // Base Geometry class PrintData call
+            BaseType::PrintData( rOStream );
             std::cout << std::endl;
-            Matrix jacobian;
-            this->Jacobian(jacobian, PointType());
-            rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+            // Check if the geometry has valid points
+            bool is_valid = true;
+            for (IndexType i = 0; i < this->PointsNumber(); ++i) {
+                if (this->pGetPoint(i) == nullptr) {
+                    is_valid = false;
+                    break;
+                }
+            }
+
+            // If the geometry has valid points, calculate and output its data
+            if (is_valid) {
+                Matrix jacobian;
+                this->Jacobian( jacobian, PointType() );
+                rOStream << "    Jacobian in the origin\t : " << jacobian;
+            }
         }
 
         ///@}
