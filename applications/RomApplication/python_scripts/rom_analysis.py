@@ -12,30 +12,24 @@ from glob import glob
 from os import remove
 from pathlib import Path
 
-def CreateRomAnalysisInstance(cls, global_model, parameters, rom_training_parameters):
+def CreateRomAnalysisInstance(cls, global_model, parameters):
     class RomAnalysis(cls):
 
         def __init__(self,global_model, parameters):
-            # Enables loading the corresponding folder and file (defined on the rom manager).
-            self.rom_training_parameters = rom_training_parameters
             super().__init__(global_model, parameters)
 
         def _CreateSolver(self):
             """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
             # Assign rom basis output folder and file name
-            if self.rom_training_parameters == None:
-                self.rom_basis_output_name = 'RomParameters' #Default
-                self.rom_basis_output_folder = 'rom_data' #Default
-                if self.project_parameters.Has("output_processes"):
-                    for name in self.project_parameters["output_processes"].keys():
-                        if name=="rom_output":
-                            rom_output_paramaters = self.project_parameters["output_processes"]["rom_output"]
-                            self.rom_basis_output_name = rom_output_paramaters[0]["Parameters"]["rom_basis_output_name"].GetString()
-                            self.rom_basis_output_folder = rom_output_paramaters[0]["Parameters"]["rom_basis_output_folder"].GetString()
-            else:
-                self.rom_basis_output_name = self.rom_training_parameters["Parameters"]["rom_basis_output_name"].GetString()
-                self.rom_basis_output_folder = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+            self.rom_basis_output_name = 'RomParameters' #Default
+            self.rom_basis_output_folder = 'rom_data' #Default
+            if self.project_parameters.Has("output_processes"):
+                for name in self.project_parameters["output_processes"].keys():
+                    if name=="rom_output":
+                        rom_output_paramaters = self.project_parameters["output_processes"]["rom_output"]
+                        self.rom_basis_output_name = rom_output_paramaters[0]["Parameters"]["rom_basis_output_name"].GetString()
+                        self.rom_basis_output_folder = rom_output_paramaters[0]["Parameters"]["rom_basis_output_folder"].GetString()
             self.rom_basis_output_name = Path(self.rom_basis_output_name)
             self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
 

@@ -251,7 +251,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
@@ -273,11 +273,12 @@ class RomManager(object):
         PetrovGalerkinTrainMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._AddBasisCreationToProjectParameters(parameters)
             parameters = self._StoreNoResults(parameters)
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             PetrovGalerkinTrainMatrix.append(simulation.GetPetrovGalerkinTrainUtility()._GetSnapshotsMatrix()) #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
@@ -294,11 +295,12 @@ class RomManager(object):
         RedidualsSnapshotsMatrix = []
         for mu in mu_train:
             parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._AddBasisCreationToProjectParameters(parameters)
             parameters = self._StoreNoResults(parameters)
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             RedidualsSnapshotsMatrix.append(simulation.GetHROM_utility()._GetResidualsProjectedMatrix()) #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
@@ -328,7 +330,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
@@ -383,7 +385,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
@@ -411,7 +413,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
@@ -454,7 +456,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
 
@@ -475,7 +477,7 @@ class RomManager(object):
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, self.rom_training_parameters))
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
 
