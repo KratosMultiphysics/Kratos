@@ -66,6 +66,8 @@ public:
 
     static std::string TypeInfo() { return "L2"; }
 
+    std::string Info() const { return "L2"; }
+
     ///@}
 };
 
@@ -104,6 +106,8 @@ public:
     }
 
     static std::string TypeInfo() { return "Infinity"; }
+
+    std::string Info() const { return "Infinity"; }
 
     ///@}
 };
@@ -151,6 +155,8 @@ public:
     }
 
     static std::string TypeInfo() { return "VectorComponent"; }
+
+    std::string Info() const { return "VecComp_" + std::to_string(mComponentIndex); }
 
     ///@}
 
@@ -203,6 +209,8 @@ public:
     }
 
     static std::string TypeInfo() { return "MatrixComponent"; }
+
+    std::string Info() const { return "MatComp_(" + std::to_string(mRowIndex) + "," + std::to_string(mColIndex) + ")";  }
 
     ///@}
 
@@ -276,6 +284,8 @@ public:
 
     static std::string TypeInfo() { return "P"; }
 
+    std::string Info() const { return "P_(" + std::to_string(mP) + ")"; }
+
     ///@}
 
 private:
@@ -320,6 +330,8 @@ public:
     }
 
     static std::string TypeInfo() { return "Trace"; }
+
+    std::string Info() const { return "Trace"; }
 
     ///@}
 };
@@ -375,6 +387,8 @@ public:
     }
 
     static std::string TypeInfo() { return "LPQ"; }
+
+    std::string Info() const { return "LPQ_(" + std::to_string(mP) + "," + std::to_string(mQ) + ")"; }
 
     ///@}
 

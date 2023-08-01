@@ -46,6 +46,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Evaluate", &Norms::L2::Evaluate<array_1d<double, 9>>)
         .def("Evaluate", &Norms::L2::Evaluate<Vector>)
         .def("Evaluate", &Norms::L2::Evaluate<Matrix>)
+        .def("__str__", &Norms::L2::Info)
         ;
     py::class_<Norms::Infinity, Norms::Infinity::Pointer>(norms, "Infinity")
         .def(py::init<>())
@@ -57,6 +58,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Evaluate", &Norms::Infinity::Evaluate<array_1d<double, 9>>)
         .def("Evaluate", &Norms::Infinity::Evaluate<Vector>)
         .def("Evaluate", &Norms::Infinity::Evaluate<Matrix>)
+        .def("__str__", &Norms::Infinity::Info)
         ;
 
     py::class_<Norms::P, Norms::P::Pointer>(norms, "P")
@@ -67,14 +69,17 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("Evaluate", &Norms::P::Evaluate<array_1d<double, 9>>)
         .def("Evaluate", &Norms::P::Evaluate<Vector>)
         .def("Evaluate", &Norms::P::Evaluate<Matrix>)
+        .def("__str__", &Norms::P::Info)
         ;
     py::class_<Norms::Trace, Norms::Trace::Pointer>(norms, "Trace")
         .def(py::init<>())
         .def("Evaluate", &Norms::Trace::Evaluate)
+        .def("__str__", &Norms::Trace::Info)
         ;
     py::class_<Norms::LPQ, Norms::LPQ::Pointer>(norms, "LPQ")
         .def(py::init<const double, const double>(), py::arg("p_coefficient"), py::arg("q_coefficient"))
         .def("Evaluate", &Norms::LPQ::Evaluate)
+        .def("__str__", &Norms::LPQ::Info)
         ;
 
     // adding norm getter methods
