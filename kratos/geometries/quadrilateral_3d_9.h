@@ -999,18 +999,25 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
 
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            rOStream << this->Points()[i] << "\t";
+        // Check if the geometry has valid points
+        bool is_valid = true;
+        for (IndexType i = 0; i < this->PointsNumber(); ++i) {
+            if (this->pGetPoint(i) == nullptr) {
+                is_valid = false;
+                break;
+            }
         }
 
-//                 Matrix jacobian;
-//                 Jacobian(jacobian, PointType());
-//                 rOStream << "    Jacobian in the origin\t : " << jacobian;
-        rOStream << std::endl;
+        // If the geometry has valid points, calculate and output its data
+        if (is_valid) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**
