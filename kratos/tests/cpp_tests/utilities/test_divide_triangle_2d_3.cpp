@@ -393,5 +393,42 @@ namespace Kratos
 			KRATOS_CHECK_EQUAL(divider.GetPositiveSubdivisions().size(), 1);
 			KRATOS_CHECK_EQUAL(divider.GetNegativeSubdivisions().size(), 1);
 		}
+
+
+		KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3TwoZeroNodes, KratosCoreFastSuite)
+		{
+			Model current_model;
+
+			// Generate a model part with the previous
+			ModelPart& base_model_part = current_model.CreateModelPart("Triangle");
+
+			// Fill the model part geometry data
+			base_model_part.CreateNewNode(1, 0.0, 0.6, 0.0);
+			base_model_part.CreateNewNode(2, 0.0, 0.9, 0.0);
+			base_model_part.CreateNewNode(3,-0.3, 0.3, 0.0);
+			Properties::Pointer p_properties(new Properties(0));
+			auto p_elem = base_model_part.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties);
+
+			Vector nodal_distances = ZeroVector(3);
+			// cut at y = 0.6, across node 0
+			nodal_distances[0] = 0.0;
+			nodal_distances[1] = 0.0;
+			nodal_distances[2] = -0.3;
+
+			auto divider_one_negative = DivideTriangle2D3<Node>(p_elem->GetGeometry(), nodal_distances);
+			divider_one_negative.GenerateDivision();
+
+			KRATOS_CHECK_IS_FALSE(divider_one_negative.mIsSplit);
+			KRATOS_CHECK_EQUAL(divider_one_negative.mDivisionsNumber, 1);
+			KRATOS_CHECK_EQUAL(divider_one_negative.mSplitEdgesNumber, 0);
+
+			nodal_distances[2] = 0.3;
+			auto divider_one_positive = DivideTriangle2D3<Node>(p_elem->GetGeometry(), nodal_distances);
+			divider_one_positive.GenerateDivision();
+
+			KRATOS_CHECK_IS_FALSE(divider_one_positive.mIsSplit);
+			KRATOS_CHECK_EQUAL(divider_one_positive.mDivisionsNumber, 1);
+			KRATOS_CHECK_EQUAL(divider_one_positive.mSplitEdgesNumber, 0);
+		}
 	}
 }  // namespace Kratos.
