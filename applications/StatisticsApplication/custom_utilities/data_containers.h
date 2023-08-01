@@ -13,7 +13,6 @@
 #pragma once
 
 // System includes
-#include <cmath>
 #include <type_traits>
 #include <variant>
 
