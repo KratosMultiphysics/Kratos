@@ -39,7 +39,7 @@ namespace Kratos
  * this modeler creates the corresponding entities from the submodelpart geometries.
  * @author Ruben Zorrilla
  */
-class KRATOS_API(KRATOS_CORE) CreateEntitiesFromGeometriesModeler 
+class KRATOS_API(KRATOS_CORE) CreateEntitiesFromGeometriesModeler
     : public Modeler
 {
 public:
