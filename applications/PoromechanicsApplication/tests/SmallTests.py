@@ -22,6 +22,10 @@ class interface_isotropic_damage(TF.TestFactory):
     file_name = "constitutive_law_tests/interface_isotropic_damage_linear/Test_UnixialTension"
     file_parameters = "constitutive_law_tests/interface_isotropic_damage_linear/ProjectParameters.json"
 
+class interface_mc_tension_cutoff(TF.TestFactory):
+    file_name = "constitutive_law_tests/interface_MC_tension_cutoff/Test_MixedMode3D"
+    file_parameters = "constitutive_law_tests/interface_MC_tension_cutoff//ProjectParameters.json"
+
 def SetTestSuite(suites):
     small_suite = suites['small']
 
@@ -30,7 +34,8 @@ def SetTestSuite(suites):
             consolidation_2D,
             consolidation_interface_2D,
             interface_elastic_linear,
-            interface_isotropic_damage
+            interface_isotropic_damage,
+            interface_mc_tension_cutoff
         ])
     )
 
