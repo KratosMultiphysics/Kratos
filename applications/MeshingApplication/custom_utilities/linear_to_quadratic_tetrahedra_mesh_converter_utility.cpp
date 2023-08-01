@@ -121,6 +121,13 @@ namespace Kratos {
                 NewElements.push_back(p_element);
 
                 r_child_elements.push_back( Element::WeakPointer(p_element) );
+            } else { //element must not be replaced
+                //checking that the element does not have split edges.
+                //which would lead to quad tets in contact with linear tets / other elems
+                CalculateEdges(it->GetGeometry(), Coord, edge_ids, node_ids);
+                for(unsigned int j=4; j<10; j++){
+                    KRATOS_ERROR_IF(node_ids[j]== -2)  << "Element #" << it->Id() << " is in contact with a refined edge" << std::endl;
+                }
             }
         }
 
