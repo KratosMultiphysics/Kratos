@@ -207,48 +207,54 @@ class SpatialStatisticsProcess(Kratos.OutputProcess):
             self.output_file.file.close()
 
     def __write_headers(self):
+        kratos_version = "not_given"
+        if (self.output_settings["write_kratos_version"].GetBool()):
+            kratos_version = str(Kratos.KratosGlobals.Kernel.Version())
+
+        time_stamp = "not_specified"
+        if (self.output_settings["write_time_stamp"].GetBool()):
+            time_stamp = str(datetime.now())
+
+        operation_info_dict:'dict[str, dict[str, int]]' = {
+            "variable": {},
+            "method"  : {},
+            "location": {},
+            "norm"    : {}
+        }
+        for statistics_operation in self.list_of_operations:
+            info = statistics_operation.GetVarianbleInfo()
+            if info not in operation_info_dict["variable"].keys():
+                operation_info_dict["variable"][info] = 0
+            operation_info_dict["variable"][info] += 1
+
+            info = statistics_operation.GetNormInfo()
+            if info not in operation_info_dict["norm"].keys():
+                operation_info_dict["norm"][info] = 0
+            operation_info_dict["norm"][info] += 1
+
+            info = statistics_operation.GetContainerInfo()
+            if info not in operation_info_dict["location"].keys():
+                operation_info_dict["location"][info] = 0
+            operation_info_dict["location"][info] += 1
+
+            info = statistics_operation.GetMethodInfo()
+            if info not in operation_info_dict["method"].keys():
+                operation_info_dict["method"][info] = 0
+            operation_info_dict["method"][info] += 1
+
+        header_details: 'dict[str, bool]' = {}
+        for info_type, operation_info in operation_info_dict.items():
+            header_details[info_type] = True
+            for k, v in operation_info.items():
+                if v == len(self.list_of_operations):
+                    header_details[info_type] = False
+
+        # now add the headers from all the methods in all ranks
+        all_rank_headers = ""
+        for statistics_operation in self.list_of_operations:
+            all_rank_headers += f", {statistics_operation.GetHeadersString(header_details)}"
+
         if (self.__is_writing_process()):
-            kratos_version = "not_given"
-            if (self.output_settings["write_kratos_version"].GetBool()):
-                kratos_version = str(Kratos.KratosGlobals.Kernel.Version())
-
-            time_stamp = "not_specified"
-            if (self.output_settings["write_time_stamp"].GetBool()):
-                time_stamp = str(datetime.now())
-
-            operation_info_dict:'dict[str, dict[str, int]]' = {
-                "variable": {},
-                "method"  : {},
-                "location": {},
-                "norm"    : {}
-            }
-            for statistics_operation in self.list_of_operations:
-                info = statistics_operation.GetVarianbleInfo()
-                if info not in operation_info_dict["variable"].keys():
-                    operation_info_dict["variable"][info] = 0
-                operation_info_dict["variable"][info] += 1
-
-                info = statistics_operation.GetNormInfo()
-                if info not in operation_info_dict["norm"].keys():
-                    operation_info_dict["norm"][info] = 0
-                operation_info_dict["norm"][info] += 1
-
-                info = statistics_operation.GetContainerInfo()
-                if info not in operation_info_dict["location"].keys():
-                    operation_info_dict["location"][info] = 0
-                operation_info_dict["location"][info] += 1
-
-                info = statistics_operation.GetMethodInfo()
-                if info not in operation_info_dict["method"].keys():
-                    operation_info_dict["method"][info] = 0
-                operation_info_dict["method"][info] += 1
-
-            header_details: 'dict[str, bool]' = {}
-            for info_type, operation_info in operation_info_dict.items():
-                header_details[info_type] = True
-                for k, v in operation_info.items():
-                    if v == len(self.list_of_operations):
-                        header_details[info_type] = False
 
             msg_header = ""
             msg_header += "# Spatial statistics process output\n"
@@ -281,12 +287,6 @@ class SpatialStatisticsProcess(Kratos.OutputProcess):
                 msg_header += f"#{self.output_control_variable.Name()}"
                 self.output_control_value = lambda : GetLengthAdjustedValue(self.model_part.ProcessInfo[self.output_control_variable], len(self.output_control_variable.Name()) + 1, self.output_value_precision)
 
-        # now add the headers from all the methods in all ranks
-        all_rank_headers = ""
-        for statistics_operation in self.list_of_operations:
-            all_rank_headers += f", {statistics_operation.GetHeadersString(header_details)}"
-
-        if (self.__is_writing_process()):
             msg_header += all_rank_headers
 
             msg_header += "\n"
