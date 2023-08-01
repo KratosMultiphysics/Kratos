@@ -218,7 +218,8 @@ namespace Kratos
                     int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
 
                     // Check the nodal keys to state which nodes belong to the interface
-                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
+                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliary interface points
+                    // For the zero distance case, the corresponding node is considered as part of the interface
                     if ((node_i_key >= n_nodes || this->mNodeIsCut[node_i_key]) && (node_j_key >= n_nodes || this->mNodeIsCut[node_j_key])) {
                         // Generate an indexed point line geometry pointer with the two interface nodes
                         IndexedPointGeometryPointerType p_intersection_line = this->GenerateIntersectionLine(node_i_key, node_j_key);
