@@ -62,9 +62,9 @@ public:
 	/// Pointer definition of CoordinateTransformationUtils
 	KRATOS_CLASS_POINTER_DEFINITION(CoordinateTransformationUtils);
 
-	typedef Node<3> NodeType;
+	typedef Node NodeType;
 
-	typedef Geometry< Node<3> > GeometryType;
+	typedef Geometry< Node > GeometryType;
 
 //     typedef boost::numeric::ublas::matrix_row<TLocalMatrixType>  LocalRowType;
 //
@@ -980,7 +980,7 @@ protected:
 		rRot(TSkip+2,TSkip+2) = rRot(TSkip,TSkip  )*rT1[1] - rRot(TSkip,TSkip+1)*rT1[0];
 	}
 
-	bool IsSlip(const Node<3>& rNode) const
+	bool IsSlip(const Node& rNode) const
 	{
 		return rNode.Is(mrFlag);
 	}

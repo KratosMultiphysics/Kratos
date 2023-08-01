@@ -409,8 +409,8 @@ public:
         return Volume();
     }
 
-    /** 
-     * @brief This method calculate and return volume of this geometry. 
+    /**
+     * @brief This method calculate and return volume of this geometry.
      * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
      * @see Length()
@@ -579,7 +579,7 @@ public:
     * @return double value with the average edge length
     *
     */
-    double AverageEdgeLength() const override 
+    double AverageEdgeLength() const override
     {
         const TPointType& p0 = this->GetPoint(0);
         const TPointType& p1 = this->GetPoint(1);
@@ -601,6 +601,40 @@ public:
             MathUtils<double>::Norm3(p1-p5) +
             MathUtils<double>::Norm3(p2-p6) +
             MathUtils<double>::Norm3(p3-p7)) /12.0;
+    }
+
+    /** This method calculates and returns the maximum edge
+     * length of the geometry
+     *
+     * @return double value with the maximum edge length
+     *
+     * @see MinEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    double MaxEdgeLength() const override {
+        const auto edges = GenerateEdges();
+        double max_edge_length = 0.0;
+        for (const auto& r_edge: edges) {
+            max_edge_length = std::max(max_edge_length, r_edge.Length());
+        }
+        return max_edge_length;
+    }
+
+    /** This method calculates and returns the minimum edge
+     * length of the geometry
+     *
+     * @return double value with the maximum edge length
+     *
+     * @see MaxEdgeLength()
+     * @see AverageEdgeLength()
+     */
+    double MinEdgeLength() const override {
+        const auto edges = GenerateEdges();
+        double min_edge_length = std::numeric_limits<double>::max();
+        for (const auto& r_edge: edges) {
+            min_edge_length = std::min(min_edge_length, r_edge.Length());
+        }
+        return min_edge_length;
     }
 
     ///@}
@@ -690,7 +724,7 @@ public:
         return false;
     }
 
-    /** 
+    /**
      * @brief Implements the calculus of the 8 solid angles of the hexa
      * @details Implements the calculus of the 8 solid angles of the hexa
      * @param rSolidAngles The solid angles of the geometry
@@ -712,7 +746,7 @@ public:
         }
     }
 
-    /** 
+    /**
      * @brief Implements the calculus of the 24 dihedral angles of the hexa
      * @details Implements the calculus of the 24 dihedral angles of the hexa.
      * Each edge has two different dihedral angles in each extreme.
@@ -746,7 +780,7 @@ public:
         }
     }
 
-    /** 
+    /**
      * @brief Calculates the min dihedral angle quality metric.
      * @details Calculates the min dihedral angle quality metric.
      * The min dihedral angle is min angle between two faces of the element
@@ -763,7 +797,7 @@ public:
       return min_dihedral_angle;
     }
 
-    /** 
+    /**
      * @brief Calculates the max dihedral angle quality metric.
      * @details Calculates the max dihedral angle quality metric.
      * The max dihedral angle is max angle between two faces of the element
@@ -804,7 +838,7 @@ public:
         return Volume() / std::pow(rms_edge, 3.0);
     }
 
-    /** 
+    /**
      * @brief Calculates the shortest to longest edge quality metric.
      * Calculates the shortest to longest edge quality metric.
      * This metric is bounded by the interval (0,1) being:
@@ -1441,7 +1475,6 @@ GeometryData Hexahedra3D8<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Hexahedra3D8<TPointType>::msGeometryDimension(
-    3, 3, 3);
+GeometryDimension Hexahedra3D8<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.

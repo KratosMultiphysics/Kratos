@@ -91,7 +91,7 @@ public:
     typedef std::vector< DofType::Pointer > DofPointerVectorType;
 
     /// The node type definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The equation Id vector type definition
     typedef std::vector<std::size_t> EquationIdVectorType;

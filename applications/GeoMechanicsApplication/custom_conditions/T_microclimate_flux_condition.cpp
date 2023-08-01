@@ -72,11 +72,11 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
 
     //Containers of variables at all integration points
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
-    const Matrix& NContainer = Geom.ShapeFunctionsValues(mThisIntegrationMethod);
+    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType JContainer(NumGPoints);
     for (unsigned int i = 0; i < NumGPoints; ++i)
         (JContainer[i]).resize(TDim, LocalDim, false);
-    Geom.Jacobian(JContainer, mThisIntegrationMethod);
+    Geom.Jacobian(JContainer, this->GetIntegrationMethod());
 
     //Element variables
     this->InitializeElementVariables(rVariables, rCurrentProcessInfo);
@@ -436,6 +436,8 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
+
+    unsigned int conditionSize = TNumNodes;
 
     //Resetting the LHS
     if (rLeftHandSideMatrix.size1() != conditionSize)

@@ -75,7 +75,7 @@ public:
     /// General type definitions
     typedef ModelPart::NodesContainerType                    NodesArrayType;
     typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef Node<3>                                                NodeType;
+    typedef Node                                                NodeType;
     typedef Geometry<NodeType>                                 GeometryType;
 
     /// Index type definition

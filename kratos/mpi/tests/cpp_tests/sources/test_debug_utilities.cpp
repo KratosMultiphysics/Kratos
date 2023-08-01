@@ -4,11 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
-//
 //
 
 // System includes
@@ -25,9 +24,7 @@
 #include "mpi/utilities/debug_utilities.h"
 #include "testing/testing.h"
 
-namespace Kratos {
-
-namespace Testing {
+namespace Kratos::Testing {
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableValue, KratosMPICoreFastSuite)
 {
@@ -61,6 +58,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFix
 {
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_size = r_comm.Size();
+    KRATOS_SKIP_TEST_IF(world_size == 1);
 
     Model model;
     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
@@ -92,6 +90,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableVal
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
+    KRATOS_SKIP_TEST_IF(world_size == 1);
 
     Model model;
     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
@@ -125,6 +124,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableFix
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
+    KRATOS_SKIP_TEST_IF(world_size == 1);
 
     Model model;
     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
@@ -161,6 +161,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleHistoricalVariableCom
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
+    KRATOS_SKIP_TEST_IF(world_size == 1);
 
     Model model;
     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
@@ -224,6 +225,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariable
     const DataCommunicator& r_comm = Testing::GetDefaultDataCommunicator();
     const int world_rank = r_comm.Rank();
     const int world_size = r_comm.Size();
+    KRATOS_SKIP_TEST_IF(world_size == 1);
 
     Model model;
     ModelPart& model_part = model.CreateModelPart("ConsistentModelPart");
@@ -280,5 +282,4 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DebugToolsCheckSingleNonHistoricalVariable
 //     MpiDebugUtilities::CheckNodalHistoricalDatabase(model_part);
 // }
 
-}
 }

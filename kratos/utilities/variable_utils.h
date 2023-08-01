@@ -115,15 +115,18 @@ public:
      * @param rDestinationVariable reference to the variable to be set
      * @param rOriginModelPart origin model part from where the values are retrieved
      * @param rDestinationModelPart destination model part to where the values are copied to
-     * @param BuffStep buffer step
+     * @param ReadBufferStep origin buffer step
+     * @param WriteBufferStep destination buffer step
+     *
      */
-    template< class TVarType >
+    template <class TVarType>
     void CopyModelPartNodalVar(
-        const TVarType& rVariable,
-        const TVarType& rDestinationVariable,
-        const ModelPart& rOriginModelPart,
-        ModelPart& rDestinationModelPart,
-        const unsigned int BuffStep = 0)
+        const TVarType &rVariable,
+        const TVarType &rDestinationVariable,
+        const ModelPart &rOriginModelPart,
+        ModelPart &rDestinationModelPart,
+        const unsigned int ReadBufferStep,
+        const unsigned int WriteBufferStep )
     {
         const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
         const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
@@ -133,14 +136,35 @@ public:
             << "\n\t- Number of origin nodes: " << n_orig_nodes
             << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
 
-        IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index){
+        IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index)
+                                                           {
             auto it_dest_node = rDestinationModelPart.NodesBegin() + index;
             const auto it_orig_node = rOriginModelPart.NodesBegin() + index;
-            const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
-            it_dest_node->FastGetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
-        });
+            const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, ReadBufferStep);
+            it_dest_node->FastGetSolutionStepValue(rDestinationVariable, WriteBufferStep) = r_value; });
 
         rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
+    }
+
+    /**
+     * @brief Copies the nodal value of a variable from an origin model
+     * part nodes to the nodes in a destination model part. It is assumed that
+     * both origin and destination model parts have the same number of nodes.
+     * @param rVariable reference to the variable to get the value from
+     * @param rDestinationVariable reference to the variable to be set
+     * @param rOriginModelPart origin model part from where the values are retrieved
+     * @param rDestinationModelPart destination model part to where the values are copied to
+     * @param BuffStep buffer step
+     */
+    template <class TVarType>
+    void CopyModelPartNodalVar(
+        const TVarType &rVariable,
+        const TVarType &rDestinationVariable,
+        const ModelPart &rOriginModelPart,
+        ModelPart &rDestinationModelPart,
+        const unsigned int BuffStep = 0)
+    {
+        this->CopyModelPartNodalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep, BuffStep);
     }
 
     /**
@@ -653,7 +677,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodes, [&](Node<3>& rNode) {
+        block_for_each(rNodes, [&](Node& rNode) {
             rNode.FastGetSolutionStepValue(rVariable, Step) = rValue;
         });
 
@@ -680,7 +704,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodes, [&](Node<3>& rNode){
+        block_for_each(rNodes, [&](Node& rNode){
             if(rNode.Is(Flag) == CheckValue){
                 rNode.FastGetSolutionStepValue(rVariable) = rValue;}
         });
@@ -943,7 +967,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+        block_for_each(rNodesContainer, [&](Node& rNode){
             rNode.SetValue(rSavedVariable, rNode.FastGetSolutionStepValue(rOriginVariable));
         });
 
@@ -994,7 +1018,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+        block_for_each(rNodesContainer, [&](Node& rNode){
             rNode.FastGetSolutionStepValue(rDestinationVariable) = rNode.FastGetSolutionStepValue(rOriginVariable);
         });
 
@@ -1064,11 +1088,11 @@ public:
             CheckVariableExists(rVar, rNodes);
 
             if (IsFixed) {
-                block_for_each(rNodes,[&](Node<3>& rNode){
+                block_for_each(rNodes,[&](Node& rNode){
                     rNode.pGetDof(rVar)->FixDof();
                 });
             } else {
-                block_for_each(rNodes,[&](Node<3>& rNode){
+                block_for_each(rNodes,[&](Node& rNode){
                     rNode.pGetDof(rVar)->FreeDof();
                 });
             }
@@ -1119,20 +1143,18 @@ public:
             CheckVariableExists(rVariable, rNodes);
 
             if (IsFixed) {
-                BlockPartition<NodesContainerType>(rNodes).for_each(
-                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
-                        if (rNode.Is(rFlag) == CheckValue) {
-                            rNode.pGetDof(rVariable)->FixDof();
-                        }
-                    });
+                block_for_each(rNodes, [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                    if (rNode.Is(rFlag) == CheckValue) {
+                        rNode.pGetDof(rVariable)->FixDof();
+                    }
+                });
             }
             else {
-                BlockPartition<NodesContainerType>(rNodes).for_each(
-                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
-                        if (rNode.Is(rFlag) == CheckValue) {
-                            rNode.pGetDof(rVariable)->FreeDof();
-                        }
-                    });
+                block_for_each(rNodes, [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                    if (rNode.Is(rFlag) == CheckValue) {
+                        rNode.pGetDof(rVariable)->FreeDof();
+                    }
+                });
             }
         }
 
@@ -1204,7 +1226,7 @@ public:
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_nodes_array = r_local_mesh.Nodes();
 
-        sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node<3>& rNode){
+        sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node& rNode){
             return rNode.GetValue(rVar);
         });
 
@@ -1235,7 +1257,7 @@ public:
 
         const auto &r_communicator = rModelPart.GetCommunicator();
 
-        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node<3>& rNode){
+        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node& rNode){
             return rNode.GetSolutionStepValue(rVariable, BuffStep);
         });
 
@@ -1346,7 +1368,7 @@ public:
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar);
 
-        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(),[&](Node& rNode){
             rNode.AddDof(rVar);
         });
 
@@ -1381,7 +1403,7 @@ public:
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar, &rReactionVar);
 
-        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(),[&](Node& rNode){
             rNode.AddDof(rVar,rReactionVar);
         });
 

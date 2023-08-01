@@ -57,7 +57,7 @@ namespace Kratos
     typedef ModelPart::PropertiesType PropertiesType;
     typedef ConditionType::GeometryType GeometryType;
 
-    typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
     typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 
     ///@}
@@ -108,7 +108,6 @@ namespace Kratos
       double currentTime = rCurrentProcessInfo[TIME];
       double timeInterval = rCurrentProcessInfo[DELTA_TIME];
 
-      unsigned int numberOfEulerianInletNodes = mrRemesh.Info->NumberOfEulerianInletNodes;
       unsigned int numberOfLagrangianInletNodes = mrRemesh.Info->NumberOfLagrangianInletNodes;
 
       if (currentTime < 2 * timeInterval)
@@ -202,7 +201,7 @@ namespace Kratos
       const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
       double maxSeparation = mrRemesh.Refine->CriticalRadius;
 
-      std::vector<Node<3>::Pointer> clonedNodes;
+      std::vector<Node::Pointer> clonedNodes;
       clonedNodes.clear();
       clonedNodes.resize(1);
       unsigned int numberClonedNodes = 0;
@@ -210,9 +209,8 @@ namespace Kratos
 
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
-        if (i_node->GetValue(LAGRANGIAN_INLET) == true)
+        if (i_node->Is(PFEMFlags::LAGRANGIAN_INLET))
         {
-
           ElementWeakPtrVectorType &neighb_elems = i_node->GetValue(NEIGHBOUR_ELEMENTS);
           NodeWeakPtrVectorType &rN = i_node->GetValue(NEIGHBOUR_NODES);
 
@@ -234,7 +232,7 @@ namespace Kratos
 
               if (i_node->Is(FLUID))
               {
-                Node<3>::Pointer pnode = i_node->Clone();
+                Node::Pointer pnode = i_node->Clone();
                 sizeClonedNodes = numberClonedNodes + 1;
                 clonedNodes.resize(sizeClonedNodes);
                 clonedNodes[numberClonedNodes] = pnode;
@@ -262,7 +260,7 @@ namespace Kratos
       for (unsigned int i = 0; i < sizeClonedNodes; i++)
       {
 
-        Node<3>::Pointer pnode = clonedNodes[i];
+        Node::Pointer pnode = clonedNodes[i];
         double NodeIdParent = MesherUtilities::GetMaxNodeId(mrModelPart.GetParentModelPart());
         double NodeId = MesherUtilities::GetMaxNodeId(mrModelPart);
         unsigned int id = NodeIdParent + 1; // total model part node size
@@ -278,7 +276,7 @@ namespace Kratos
         {
           pnode->Free(VELOCITY_Z);
         }
-        pnode->GetValue(LAGRANGIAN_INLET) = false;
+        pnode->Reset(PFEMFlags::LAGRANGIAN_INLET);
         pnode->Reset(INLET);
         pnode->Reset(RIGID);
         pnode->Reset(BOUNDARY);
@@ -296,13 +294,34 @@ namespace Kratos
 
       unsigned int eulerianInletNodes = 0;
       unsigned int lagrangianInletNodes = 0;
+      const unsigned int dimension = mrModelPart.ElementsBegin()->GetGeometry().WorkingSpaceDimension();
+      const double tolerance = -1e-12;
+
       for (ModelPart::NodesContainerType::iterator i_node = mrModelPart.NodesBegin(); i_node != mrModelPart.NodesEnd(); i_node++)
       {
-        if (i_node->GetValue(EULERIAN_INLET) == true)
+        if (i_node->Is(PFEMFlags::EULERIAN_INLET))
         {
-          eulerianInletNodes += 1;
+          const array_1d<double, 3> &inletVelocity = i_node->FastGetSolutionStepValue(VELOCITY);
+          const array_1d<double, 3> &inletNormal = i_node->FastGetSolutionStepValue(NORMAL);
+          const double inwardX = inletVelocity[0] * inletNormal[0];
+          const double inwardY = inletVelocity[1] * inletNormal[1];
+          if (dimension == 2)
+          {
+            if (inwardX < tolerance || inwardY < tolerance)
+            {
+              eulerianInletNodes += 1;
+            }
+          }
+          else if (dimension == 3)
+          {
+            const double inwardZ = inletVelocity[2] * inletNormal[2];
+            if (inwardX < tolerance || inwardY < tolerance || inwardZ < tolerance)
+            {
+              eulerianInletNodes += 1;
+            }
+          }
         }
-        if (i_node->GetValue(LAGRANGIAN_INLET) == true)
+        else if (i_node->Is(PFEMFlags::LAGRANGIAN_INLET))
         {
           lagrangianInletNodes += 1;
         }
@@ -326,7 +345,8 @@ namespace Kratos
     ///@{
 
     /// Assignment operator.
-    InletManagementProcess &operator=(InletManagementProcess const &rOther);
+    InletManagementProcess &
+    operator=(InletManagementProcess const &rOther);
 
     /// this function is a private function
 

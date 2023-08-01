@@ -353,7 +353,7 @@ namespace Kratos
     };
 
     
-    template class DivideTetrahedra3D4<Node<3>>;
+    template class DivideTetrahedra3D4<Node>;
     template class DivideTetrahedra3D4<IndexedPoint>;
         
 };

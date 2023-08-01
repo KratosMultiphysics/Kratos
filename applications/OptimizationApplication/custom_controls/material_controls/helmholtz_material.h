@@ -74,7 +74,7 @@ public:
     /// Default constructor.
     HelmholtzMaterial( std::string ControlName, Model& rModel, std::vector<LinearSolverType::Pointer>& rLinearSolvers, Parameters ControlSettings )
         :  MaterialControl(ControlName,rModel,ControlSettings){
-            for(int lin_i=0;lin_i<rLinearSolvers.size();lin_i++)
+            for(long unsigned int lin_i=0;lin_i<rLinearSolvers.size();lin_i++)
                 rLinearSystemSolvers.push_back(rLinearSolvers[lin_i]);
             mTechniqueSettings = ControlSettings["technique_settings"];
         }
@@ -103,7 +103,7 @@ public:
 
         CalculateNodeNeighbourCount();
         
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
             StrategyType* mpStrategy = new StrategyType (*mpVMModelParts[model_i],rLinearSystemSolvers[model_i]);            
             mpStrategy->Initialize();
             mpStrategies.push_back(mpStrategy);
@@ -120,13 +120,12 @@ public:
         beta_update_period = mTechniqueSettings["beta_settings"]["update_period"].GetInt();
 
         filtered_densities.resize(physical_densities.size());        
-        for(int i=0;i<physical_densities.size();i++)
+        for(long unsigned int i=0;i<physical_densities.size();i++)
             filtered_densities[i] = i;
         
         double initial_filtered_density = ProjectBackward(initial_density,filtered_densities,physical_densities,beta);
-        double initial_control_density = initial_filtered_density;
 
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
             SetVariable(mpVMModelParts[model_i],CD,initial_filtered_density); 
             SetVariable(mpVMModelParts[model_i],FD,initial_filtered_density); 
             SetVariable(mpVMModelParts[model_i],PD,initial_density);
@@ -135,7 +134,7 @@ public:
         const auto& fixed_model_parts =  mTechniqueSettings["fixed_model_parts"];
         const auto& fixed_model_parts_densities = mTechniqueSettings["fixed_model_parts_densities"].GetVector();
 
-        for(int i=0; i<fixed_model_parts.size();i++)
+        for(long unsigned int i=0; i<fixed_model_parts.size();i++)
         {
             const auto& model_part = mrModel.GetModelPart(fixed_model_parts[i].GetString());
             auto model_part_phyisical_dens = fixed_model_parts_densities[i];
@@ -151,7 +150,7 @@ public:
             }                
         }
 
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             ProcessInfo &rCurrentProcessInfo = (mpVMModePart)->GetProcessInfo();
@@ -190,7 +189,7 @@ public:
         KRATOS_INFO("") << std::endl;
         KRATOS_INFO("HelmholtzMaterial:MapFirstDerivative") << "Starting mapping of " << rDerivativeVariable.Name() << "..." << std::endl;
 
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             SetVariable1ToVarible2(mpVMModePart,rDerivativeVariable,HELMHOLTZ_SOURCE_DENSITY);
@@ -324,7 +323,7 @@ private:
 
     void CalculateNodeNeighbourCount()
     {
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             auto& r_nodes = mpVMModePart->Nodes();
@@ -378,7 +377,7 @@ private:
 
             if (root_model_part.HasSubModelPart(vm_model_part_name)){
                 p_vm_model_part = &(root_model_part.GetSubModelPart(vm_model_part_name));
-                for(int i =0; i<mpVMModelParts.size(); i++)
+                for(long unsigned int i =0; i<mpVMModelParts.size(); i++)
                     if(mpVMModelParts[i]->Name()==p_vm_model_part->Name())
                         p_vm_model_part_property = mpVMModelPartsProperties[i];
             }
@@ -398,10 +397,10 @@ private:
             ModelPart::ElementsContainerType &rmesh_elements = p_vm_model_part->Elements();   
 
             //check if the controlling model part has elements which have desnity value
-            if(!r_controlling_object.Elements().size()>0)
+            if(!(r_controlling_object.Elements().size()>0))
                 KRATOS_ERROR << "HelmholtzMaterial:CreateHelmholtzMaterialModelParts : controlling model part " <<control_obj.GetString()<<" does not have elements"<<std::endl;
 
-            for (int i = 0; i < (int)r_controlling_object.Elements().size(); i++) {
+            for (long unsigned int i = 0; i < r_controlling_object.Elements().size(); i++) {
                 ModelPart::ElementsContainerType::iterator it = r_controlling_object.ElementsBegin() + i;
                 const Properties& elem_i_prop = it->GetProperties();
                 Properties::Pointer elem_i_new_prop = r_controlling_object.CreateNewProperties(r_controlling_object.NumberOfProperties()+1);
@@ -413,7 +412,7 @@ private:
         }
 
         // now add dofs
-        for(int model_i =0;model_i<mpVMModelParts.size();model_i++)
+        for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             for(auto& node_i : mpVMModePart->Nodes())            
@@ -423,7 +422,7 @@ private:
         // now apply dirichlet BC
         const auto& fixed_model_parts =  mTechniqueSettings["fixed_model_parts"];
 
-        for(int i=0; i<fixed_model_parts.size();i++)
+        for(long unsigned int i=0; i<fixed_model_parts.size();i++)
         {
             const auto& model_part = mrModel.GetModelPart(fixed_model_parts[i].GetString());
             for(auto& node_i : model_part.Nodes())
@@ -434,7 +433,7 @@ private:
 
     void ComputeFilteredDensity(){   
 
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
 
             //first update control density
             AddVariable1ToVarible2(mpVMModelParts[model_i],D_CD,CD);
@@ -470,7 +469,7 @@ private:
 
     void ComputePhyiscalDensity(){
 
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
             //now do the projection and then set the PD
             #pragma omp parallel for
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
@@ -498,7 +497,7 @@ private:
     }
 
     void ComputeYoungModulus(){      
-        for(int model_i=0;model_i<mpVMModelParts.size();model_i++){
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
             //now do the projection and then set the PD
             #pragma omp parallel for
             for(auto& node_i : mpVMModelParts[model_i]->Nodes()){
@@ -528,30 +527,26 @@ private:
 
     double ProjectForward(double x, Vector x_limits, Vector y_limits, double beta, int penal_fac = 1){
 
-        double x1,x2,y1,y2;
-        int index_x1 = 0;
+        double x1=0.0,x2=0.0,y1=0.0,y2=0.0;
         if(x>=x_limits[x_limits.size()-1]){
             x1=x_limits[x_limits.size()-2];
-            index_x1 = x_limits.size()-2;
             x2=x_limits[x_limits.size()-1];
             y1=y_limits[y_limits.size()-2];
             y2=y_limits[y_limits.size()-1];
         }
         else if(x<=x_limits[0]){
             x1=x_limits[0];
-            index_x1 = 0;
             x2=x_limits[1];
             y1=y_limits[0];
             y2=y_limits[1];
         }
         else{
-            for(int i=0;i<x_limits.size()-1;i++)
+            for(long unsigned int i=0;i<x_limits.size()-1;i++)
                 if((x>=x_limits[i]) && (x<=x_limits[i+1]))
                 {
                     y1 = y_limits[i];
                     y2 = y_limits[i+1];
                     x1 = x_limits[i];
-                    index_x1 = i;
                     x2 = x_limits[i+1];
                     break;
                 }            
@@ -571,7 +566,7 @@ private:
         else if(y<=y_limits[0])
             x = x_limits[0];
         else{
-            for(int i=0;i<y_limits.size()-1;i++)
+            for(long unsigned int i=0;i<y_limits.size()-1;i++)
                 if((y>y_limits[i]) && (y<y_limits[i+1]))
                 {
                     double y1 = y_limits[i];
@@ -594,9 +589,7 @@ private:
     }
 
     double ProjectionDerivative(double x,Vector x_limits,Vector y_limits,double beta,int penal_fac = 1){
-
-        double dfdx = 0;
-        double x1,x2,y1,y2;
+        double x1=0.0,x2=0.0,y1=0.0,y2=0.0;
         if(x>=x_limits[x_limits.size()-1]){
             x1=x_limits[x_limits.size()-2];
             x2=x_limits[x_limits.size()-1];
@@ -610,7 +603,7 @@ private:
             y2=y_limits[1];
         }
         else{
-            for(int i=0;i<x_limits.size()-1;i++)
+            for(long unsigned int i=0;i<x_limits.size()-1;i++)
                 if((x>=x_limits[i]) && (x<=x_limits[i+1]))
                 {
                     y1 = y_limits[i];

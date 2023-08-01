@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -98,7 +98,7 @@ public:
     typedef Point                                                                        PointType;
 
     /// Node type definition
-    typedef Node<3>                                                                       NodeType;
+    typedef Node                                                                       NodeType;
 
     /// Geoemtry type definition
     typedef Geometry<NodeType>                                                        GeometryType;

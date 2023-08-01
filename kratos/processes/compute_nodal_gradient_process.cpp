@@ -330,7 +330,7 @@ void ComputeNodalGradientProcess<THistorical>::SynchronizeGradientAndVolume()
 
 template<bool THistorical>
 void VariableVectorRetriever<THistorical>::GetVariableVector(
-    const Geometry<Node<3>>& rGeometry,
+    const Geometry<Node>& rGeometry,
     const Variable<double>& rVariable,
     Vector& rVector
     )

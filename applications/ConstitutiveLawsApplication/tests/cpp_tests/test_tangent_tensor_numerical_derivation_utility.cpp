@@ -29,7 +29,7 @@ namespace Testing
 {
 
 /// Node definition
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /**
  * @brief This sets the basic case

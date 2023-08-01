@@ -6,19 +6,23 @@ import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructure
 
 # Import base class file
-from KratosMultiphysics.GeoMechanicsApplication.geomechanics_U_Pw_solver import UPwSolver
+from KratosMultiphysics.GeoMechanicsApplication.geomechanics_solver import GeoMechanicalSolver as GeoSolver
 
 def CreateSolver(model, custom_settings):
     return TSolver(model, custom_settings)
 
-class TSolver(UPwSolver):
-    '''Solver for the solution of displacement-pore pressure coupled problems.'''
+class TSolver(GeoSolver):
+    '''Solver for the solution of thermal problems.'''
 
+    # =============================================================================================
+    # =============================================================================================
     def __init__(self, model, custom_settings):
         super().__init__(model, custom_settings)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "Construction of Solver finished.")
 
+    # =============================================================================================
+    # =============================================================================================
     @classmethod
     def GetDefaultParameters(cls):
         this_defaults = KratosMultiphysics.Parameters("""{
@@ -51,8 +55,6 @@ class TSolver(UPwSolver):
             "newmark_beta": 0.25,
             "newmark_gamma": 0.5,
             "newmark_theta": 0.5,
-            "rayleigh_m": 0.0,
-            "rayleigh_k": 0.0,
             "strategy_type": "newton_raphson",
             "convergence_criterion": "temperature_criterion",
             "temperature_relative_tolerance": 1.0e-4,
@@ -67,7 +69,6 @@ class TSolver(UPwSolver):
             "number_cycles"              : 5,
             "increase_factor"            : 2.0,
             "reduction_factor"           : 0.5,
-            "realised_factor"            : 1.0,
             "calculate_reactions"        : true,
             "max_line_search_iterations" : 5,
             "first_alpha_value"          : 0.5,
@@ -99,15 +100,25 @@ class TSolver(UPwSolver):
         this_defaults.AddMissingParameters(super().GetDefaultParameters())
         return this_defaults
 
+    # =============================================================================================
+    # =============================================================================================
+    def PrepareModelPart(self):
+        super().PrepareModelPart()
+        KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "Model reading finished.")
+
+    # =============================================================================================
+    # =============================================================================================
     def AddDofs(self):
         ## Fluid dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.TEMPERATURE, self.main_model_part)
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "DOFs added correctly.")
 
-
+    # =============================================================================================
+    # =============================================================================================
     def Initialize(self):
         KratosMultiphysics.Logger.PrintInfo("::[GeoMechanics_T_Solver]:: ", "Initialisation ...")
+        
         super().Initialize()
 
         self.find_neighbour_elements_of_conditions_process = KratosGeo.FindNeighbourElementsOfConditionsProcess(self.computing_model_part)
@@ -123,19 +134,17 @@ class TSolver(UPwSolver):
 
         KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver", "Solver initialization finished.")
 
+
     #### Specific internal functions ####
 
-
+    # =============================================================================================
+    # =============================================================================================
     def _ConstructScheme(self, scheme_type, solution_type):
 
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.DT_TEMPERATURE_COEFFICIENT, 1.0)
 
         if (scheme_type.lower() == "newmark" or scheme_type.lower() == "newmark_flow"):
             theta = self.settings["newmark_theta"].GetDouble()
-            rayleigh_m = self.settings["rayleigh_m"].GetDouble()
-            rayleigh_k = self.settings["rayleigh_k"].GetDouble()
-            self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_ALPHA, rayleigh_m)
-            self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_BETA, rayleigh_k)
             KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, solution_type", solution_type)
             if (solution_type.lower() == "transient-heat-transfer" or solution_type.lower() == "transient_heat_transfer"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Newmark Transient heat transfer.")
@@ -154,10 +163,12 @@ class TSolver(UPwSolver):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Backward Euler Steady-state heat transfer.")
                 scheme = scheme = KratosGeo.BackwardEulerQuasistaticTScheme()
         else:
-            raise Exception("Apart from Newmark, other scheme_type are not available.")
+            raise Exception("Apart from Newmark and Backward Euler, other scheme_type are not available.")
 
         return scheme
 
+    # =============================================================================================
+    # =============================================================================================
     def _ConstructConvergenceCriterion(self, convergence_criterion):
 
         D_RT = self.settings["temperature_relative_tolerance"].GetDouble()
@@ -190,4 +201,3 @@ class TSolver(UPwSolver):
             raise Exception(err_msg)
 
         return convergence_criterion
-

@@ -57,8 +57,8 @@ public:
     typedef std::vector<Matrix> Matrix_Order_Tensor;
     typedef std::vector<Vector> Vector_Order_Tensor;
     typedef std::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
-    typedef Node < 3 > PointType;
-    typedef Node < 3 > ::Pointer PointPointerType;
+    typedef Node PointType;
+    typedef Node ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
     typedef PointVector::iterator PointIterator;
 

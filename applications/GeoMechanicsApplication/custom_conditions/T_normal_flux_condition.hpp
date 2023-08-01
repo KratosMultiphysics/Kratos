@@ -38,32 +38,34 @@ public:
     
     using IndexType = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
     using VectorType = Vector;
     using MatrixType = Matrix;
-    using TCondition<TDim,TNumNodes>::mThisIntegrationMethod;
     
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ============================================================================================
+    // ============================================================================================
 
     // Default constructor
-    TNormalFluxCondition() : TCondition<TDim,TNumNodes>() {}
+    TNormalFluxCondition();
     
     // Constructor 1
-    TNormalFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : TCondition<TDim,TNumNodes>(NewId, pGeometry) {}
+    TNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry);
     
     // Constructor 2
-    TNormalFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : TCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
+    TNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties);
 
     // Destructor
-    ~TNormalFluxCondition() override {}
+    ~TNormalFluxCondition() override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ============================================================================================
+    // ============================================================================================
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;
  
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ============================================================================================
+    // ============================================================================================
 
 protected:
 
@@ -75,9 +77,8 @@ protected:
         array_1d<double,TNumNodes> TVector;
     };
     
-    // Member Variables
-    
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ============================================================================================
+    // ============================================================================================
                                     
     void CalculateRHS(VectorType& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo) override;
@@ -88,13 +89,10 @@ protected:
         const Matrix& Jacobian,
         const double& Weight);
     
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    // ============================================================================================
+    // ============================================================================================
 
 private:
-    
-    // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     // Serialization
     

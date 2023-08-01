@@ -28,7 +28,7 @@ namespace Testing {
   // /// Factory functions
 
 namespace{
-  typedef Node<3> NodeType;
+  typedef Node NodeType;
 
   Geometry<NodeType>::PointsArrayType GenerateReferenceNodes3D10()
   {

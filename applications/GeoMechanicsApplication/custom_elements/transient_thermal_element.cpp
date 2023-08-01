@@ -12,9 +12,39 @@
 
 // Application includes
 #include "custom_elements/transient_thermal_element.hpp"
+#include "custom_constitutive/thermal_dispersion_2D_law.hpp"
 
 namespace Kratos
 {
+
+    template<unsigned int TDim, unsigned int TNumNodes>
+    TransientThermalElement<TDim, TNumNodes> ::
+    TransientThermalElement(IndexType NewId) : Element(NewId) {}
+
+    /// Constructor using an array of nodes
+    template<unsigned int TDim, unsigned int TNumNodes>
+    TransientThermalElement<TDim, TNumNodes> ::
+    TransientThermalElement(IndexType NewId,
+        const NodesArrayType& ThisNodes) : Element(NewId, ThisNodes) {}
+
+    /// Constructor using Geometry
+    template<unsigned int TDim, unsigned int TNumNodes>
+    TransientThermalElement<TDim, TNumNodes> ::
+    TransientThermalElement(IndexType NewId,
+        GeometryType::Pointer pGeometry) : Element(NewId, pGeometry) {}
+
+    /// Constructor using Properties
+    template<unsigned int TDim, unsigned int TNumNodes>
+    TransientThermalElement<TDim, TNumNodes> ::
+    TransientThermalElement(IndexType NewId,
+        GeometryType::Pointer pGeometry,
+        PropertiesType::Pointer pProperties) : Element(NewId, pGeometry, pProperties) {}
+
+    /// Destructor
+    template<unsigned int TDim, unsigned int TNumNodes>
+    TransientThermalElement<TDim, TNumNodes> ::
+    ~TransientThermalElement() = default;
+
     // ============================================================================================
 	// ============================================================================================
     template<unsigned int TDim, unsigned int TNumNodes>
@@ -48,14 +78,13 @@ namespace Kratos
 
     	const GeometryType& rGeom = this->GetGeometry();
         const unsigned int N_DOF = this->GetNumberOfDOF();
-        unsigned int index = 0;
 
         if (rElementalDofList.size() != N_DOF)
             rElementalDofList.resize(N_DOF);
 
-        for (unsigned int i = 0; i < TNumNodes; ++i)
+        for (unsigned int i = 0; i < N_DOF; ++i)
         {
-            rElementalDofList[index++] = rGeom[i].pGetDof(TEMPERATURE);
+            rElementalDofList[i] = rGeom[i].pGetDof(TEMPERATURE);
         }
 
         KRATOS_CATCH("")
@@ -80,105 +109,6 @@ namespace Kratos
         for (unsigned int i = 0; i < TNumNodes; ++i)
         {
             rResult[index++] = rGeom[i].GetDof(TEMPERATURE).EquationId();
-        }
-
-        KRATOS_CATCH("")
-    }
-
-	// ============================================================================================
-    // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
-    void TransientThermalElement<TDim, TNumNodes>::CalculateMassMatrix(
-        MatrixType& rMassMatrix,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-    	const unsigned int N_DOF = this->GetNumberOfDOF();
-
-        if (rMassMatrix.size1() != N_DOF)
-            rMassMatrix.resize(N_DOF, N_DOF, false);
-        noalias(rMassMatrix) = ZeroMatrix(N_DOF, N_DOF);
-
-        KRATOS_CATCH("")
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
-    void TransientThermalElement<TDim, TNumNodes>::CalculateDampingMatrix(
-        MatrixType& rDampingMatrix,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-    	const unsigned int N_DOF = this->GetNumberOfDOF();
-
-        if (rDampingMatrix.size1() != N_DOF)
-            rDampingMatrix.resize(N_DOF, N_DOF, false);
-        noalias(rDampingMatrix) = ZeroMatrix(N_DOF, N_DOF);
-
-        KRATOS_CATCH("")
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
-    void TransientThermalElement<TDim, TNumNodes>::GetValuesVector(
-        Vector& rValues,
-        int Step) const
-    {
-        KRATOS_TRY
-
-    	const unsigned int N_DOF = this->GetNumberOfDOF();
-
-        if (rValues.size() != N_DOF)
-            rValues.resize(N_DOF, false);
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[i] = 0.0;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
-    void TransientThermalElement<TDim, TNumNodes>::GetFirstDerivativesVector(
-        Vector& rValues,
-        int Step) const
-    {
-        KRATOS_TRY
-
-    	const unsigned int N_DOF = this->GetNumberOfDOF();
-
-        if (rValues.size() != N_DOF)
-            rValues.resize(N_DOF, false);
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[i] = 0.0;
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
-    void TransientThermalElement<TDim, TNumNodes>::GetSecondDerivativesVector(
-        Vector& rValues,
-        int Step) const
-    {
-        KRATOS_TRY
-
-    	const unsigned int N_DOF = this->GetNumberOfDOF();
-
-        if (rValues.size() != N_DOF)
-            rValues.resize(N_DOF, false);
-
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rValues[i] = 0.0;
         }
 
         KRATOS_CATCH("")
@@ -223,64 +153,64 @@ namespace Kratos
             KRATOS_ERROR << "DomainSize < 1.0e-15 for the element " << this->Id() << std::endl;
 
         for (unsigned int i = 0; i < TNumNodes; ++i) {
-            if (Geom[i].SolutionStepsDataHas(TEMPERATURE) == false)
+            if (!Geom[i].SolutionStepsDataHas(TEMPERATURE))
                 KRATOS_ERROR << "missing variable TEMPERATURE on node " << Geom[i].Id() << std::endl;
 
-            if (Geom[i].SolutionStepsDataHas(DT_TEMPERATURE) == false)
+            if (!Geom[i].SolutionStepsDataHas(DT_TEMPERATURE))
                 KRATOS_ERROR << "missing variable DT_TEMPERATURE on node " << Geom[i].Id() << std::endl;
 
-            if (Geom[i].HasDofFor(TEMPERATURE) == false)
+            if (!Geom[i].HasDofFor(TEMPERATURE))
                 KRATOS_ERROR << "missing variable TEMPERATURE on node " << Geom[i].Id() << std::endl;
         }
 
         // Verify properties
-        if (Prop.Has(DENSITY_WATER) == false || Prop[DENSITY_WATER] < 0.0)
+        if (!Prop.Has(DENSITY_WATER) || Prop[DENSITY_WATER] < 0.0)
             KRATOS_ERROR << "DENSITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(POROSITY) == false || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0)
+        if (!Prop.Has(POROSITY) || Prop[POROSITY] < 0.0 || Prop[POROSITY] > 1.0)
             KRATOS_ERROR << "POROSITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(SATURATION) == false || Prop[SATURATION] < 0.0 || Prop[SATURATION] > 1.0)
+        if (!Prop.Has(SATURATION) || Prop[SATURATION] < 0.0 || Prop[SATURATION] > 1.0)
             KRATOS_ERROR << "SATURATION does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(DENSITY_SOLID) == false || Prop[DENSITY_SOLID] < 0.0)
+        if (!Prop.Has(DENSITY_SOLID) || Prop[DENSITY_SOLID] < 0.0)
             KRATOS_ERROR << "DENSITY_SOLID does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(HEAT_CAPACITY_WATER) == false || Prop[HEAT_CAPACITY_WATER] < 0.0)
-            KRATOS_ERROR << "HEAT_CAPACITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
+        if (!Prop.Has(SPECIFIC_HEAT_CAPACITY_WATER) || Prop[SPECIFIC_HEAT_CAPACITY_WATER] < 0.0)
+            KRATOS_ERROR << "SPECIFIC_HEAT_CAPACITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(HEAT_CAPACITY_SOLID) == false || Prop[HEAT_CAPACITY_SOLID] < 0.0)
-            KRATOS_ERROR << "HEAT_CAPACITY_SOLID does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
+        if (!Prop.Has(SPECIFIC_HEAT_CAPACITY_SOLID) || Prop[SPECIFIC_HEAT_CAPACITY_SOLID] < 0.0)
+            KRATOS_ERROR << "SPECIFIC_HEAT_CAPACITY_SOLID does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(THERMAL_CONDUCTIVITY_WATER) == false || Prop[THERMAL_CONDUCTIVITY_WATER] < 0.0)
+        if (!Prop.Has(THERMAL_CONDUCTIVITY_WATER) || Prop[THERMAL_CONDUCTIVITY_WATER] < 0.0)
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(THERMAL_CONDUCTIVITY_SOLID_XX) == false || Prop[THERMAL_CONDUCTIVITY_SOLID_XX] < 0.0)
+        if (!Prop.Has(THERMAL_CONDUCTIVITY_SOLID_XX) || Prop[THERMAL_CONDUCTIVITY_SOLID_XX] < 0.0)
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_SOLID_XX does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(THERMAL_CONDUCTIVITY_SOLID_YY) == false || Prop[THERMAL_CONDUCTIVITY_SOLID_YY] < 0.0)
+        if (!Prop.Has(THERMAL_CONDUCTIVITY_SOLID_YY) || Prop[THERMAL_CONDUCTIVITY_SOLID_YY] < 0.0)
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_SOLID_YY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(THERMAL_CONDUCTIVITY_SOLID_XY) == false || Prop[THERMAL_CONDUCTIVITY_SOLID_XY] < 0.0)
+        if (!Prop.Has(THERMAL_CONDUCTIVITY_SOLID_XY) || Prop[THERMAL_CONDUCTIVITY_SOLID_XY] < 0.0)
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_SOLID_XY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(THERMAL_CONDUCTIVITY_SOLID_YX) == false || Prop[THERMAL_CONDUCTIVITY_SOLID_YX] < 0.0)
+        if (!Prop.Has(THERMAL_CONDUCTIVITY_SOLID_YX) || Prop[THERMAL_CONDUCTIVITY_SOLID_YX] < 0.0)
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_SOLID_YX does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(LONGITUDINAL_DISPERSIVITY) == false || Prop[LONGITUDINAL_DISPERSIVITY] < 0.0)
+        if (!Prop.Has(LONGITUDINAL_DISPERSIVITY) || Prop[LONGITUDINAL_DISPERSIVITY] < 0.0)
             KRATOS_ERROR << "LONGITUDINAL_DISPERSIVITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(TRANSVERSE_DISPERSIVITY) == false || Prop[TRANSVERSE_DISPERSIVITY] < 0.0)
+        if (!Prop.Has(TRANSVERSE_DISPERSIVITY) || Prop[TRANSVERSE_DISPERSIVITY] < 0.0)
             KRATOS_ERROR << "TRANSVERSE_DISPERSIVITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
-        if (Prop.Has(SOLID_COMPRESSIBILITY) == false || Prop[SOLID_COMPRESSIBILITY] < 0.0)
+        if (!Prop.Has(SOLID_COMPRESSIBILITY) || Prop[SOLID_COMPRESSIBILITY] < 0.0)
             KRATOS_ERROR << "SOLID_COMPRESSIBILITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
 
         if (TDim == 2) {
-            // If this is a 2D problem, nodes must be in XY plane
-            for (unsigned int i = 0; i < TNumNodes; ++i) {
-                if (Geom[i].Z() != 0.0)
-                    KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << Geom[i].Id() << std::endl;
+            auto pos = std::find_if(Geom.begin(), Geom.end(),
+                                    [](const auto& node) { return node.Z() != 0.0;  });
+            if (pos != Geom.end()) {
+                KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
             }
         }
 
@@ -348,8 +278,8 @@ namespace Kratos
         this->InitializeNodalTemperatureVariables(rVariables);
 
         //Variables computed at each GP
-        rVariables.Np.resize(TNumNodes, false);
-        rVariables.GradNpT.resize(TNumNodes, TDim, false);
+        rVariables.N.resize(TNumNodes, false);
+        rVariables.GradNT.resize(TNumNodes, TDim, false);
 
         //General Variables
         const GeometryType& Geom = this->GetGeometry();
@@ -445,8 +375,8 @@ namespace Kratos
         KRATOS_TRY
 
     	//Setting the vector of shape functions and the matrix of the shape functions global gradients
-    	rVariables.Np = row(rVariables.NContainer, PointNumber);
-        rVariables.GradNpT = rVariables.DN_DXContainer[PointNumber];
+    	rVariables.N = row(rVariables.NContainer, PointNumber);
+        rVariables.GradNT = rVariables.DN_DXContainer[PointNumber];
 
         rVariables.detJ = rVariables.detJContainer[PointNumber];
 
@@ -500,13 +430,13 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const double c1 = rVariables.Porosity * rVariables.Saturation
-    	                * rVariables.WaterDensity * rVariables.WaterHeatCapacity;
-        const double c2 = (1.0 - rVariables.Porosity) * rVariables.SolidDensity
-    	                * rVariables.SolidHeatCapacity;
-        TMatrix = (c1 + c2) * outer_prod(rVariables.Np, rVariables.Np)
-    	                * rVariables.IntegrationCoefficient
-    	                * rVariables.DtTemperatureCoefficient;
+        const double cWater = rVariables.Porosity * rVariables.Saturation
+            * rVariables.WaterDensity * rVariables.WaterHeatCapacity;
+        const double cSolid = (1.0 - rVariables.Porosity) * rVariables.SolidDensity
+            * rVariables.SolidHeatCapacity;
+        TMatrix = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
+            * rVariables.IntegrationCoefficient
+            * rVariables.DtTemperatureCoefficient;
 
         KRATOS_CATCH("")
     }
@@ -520,10 +450,12 @@ namespace Kratos
     {
         KRATOS_TRY
 
-    	this->CalculateThermalDispersionMatrix(rVariables.ConstitutiveMatrix, rVariables);
+        rVariables.ConstitutiveMatrix = ZeroMatrix(TDim, TDim);
+        const Properties& rProp = this->GetProperties();
+        GeoThermalDispersion2DLaw::CalculateThermalDispersionMatrix(rVariables.ConstitutiveMatrix, rProp);
 
-        BoundedMatrix<double, TDim, TNumNodes> Temp = prod(rVariables.ConstitutiveMatrix, trans(rVariables.GradNpT));
-        TMatrix = prod(rVariables.GradNpT, Temp) * rVariables.IntegrationCoefficient;
+        BoundedMatrix<double, TDim, TNumNodes> Temp = prod(rVariables.ConstitutiveMatrix, trans(rVariables.GradNT));
+        TMatrix = prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
 
         KRATOS_CATCH("");
     }
@@ -555,12 +487,12 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const double c1 = rVariables.Porosity * rVariables.Saturation
-    	                * rVariables.WaterDensity * rVariables.WaterHeatCapacity;
-        const double c2 = (1.0 - rVariables.Porosity) * rVariables.SolidDensity
-    	                * rVariables.SolidHeatCapacity;
-        TMatrix = (c1 + c2) * outer_prod(rVariables.Np, rVariables.Np)
-    	                * rVariables.IntegrationCoefficient;
+        const double cWater = rVariables.Porosity * rVariables.Saturation
+            * rVariables.WaterDensity * rVariables.WaterHeatCapacity;
+        const double cSolid = (1.0 - rVariables.Porosity) * rVariables.SolidDensity
+            * rVariables.SolidHeatCapacity;
+        TMatrix = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
+            * rVariables.IntegrationCoefficient;
 
         TVector = - prod(TMatrix, rVariables.DtTemperatureVector);
 
@@ -595,9 +527,9 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        TDimMatrix = prod(rVariables.GradNpT, rVariables.ConstitutiveMatrix);
+        TDimMatrix = prod(rVariables.GradNT, rVariables.ConstitutiveMatrix);
 
-        TMatrix = prod(TDimMatrix, trans(rVariables.GradNpT))
+        TMatrix = prod(TDimMatrix, trans(rVariables.GradNT))
             * rVariables.IntegrationCoefficient;
 
         noalias(TVector) = - prod(TMatrix, rVariables.TemperatureVector);
@@ -618,8 +550,8 @@ namespace Kratos
         rVariables.WaterDensity = rProp[DENSITY_WATER];
         rVariables.SolidDensity = rProp[DENSITY_SOLID];
         rVariables.Porosity = rProp[POROSITY];
-        rVariables.WaterHeatCapacity = rProp[HEAT_CAPACITY_WATER];
-        rVariables.SolidHeatCapacity = rProp[HEAT_CAPACITY_SOLID];
+        rVariables.WaterHeatCapacity = rProp[SPECIFIC_HEAT_CAPACITY_WATER];
+        rVariables.SolidHeatCapacity = rProp[SPECIFIC_HEAT_CAPACITY_SOLID];
         rVariables.WaterThermalConductivity = rProp[THERMAL_CONDUCTIVITY_WATER];
         rVariables.SolidThermalConductivityXX = rProp[THERMAL_CONDUCTIVITY_SOLID_XX];
         rVariables.SolidThermalConductivityXY = rProp[THERMAL_CONDUCTIVITY_SOLID_XY];
@@ -627,26 +559,6 @@ namespace Kratos
         rVariables.SolidThermalConductivityYY = rProp[THERMAL_CONDUCTIVITY_SOLID_YY];
         rVariables.Saturation = rProp[SATURATION];
         rVariables.DtTemperatureCoefficient = rProp[DT_TEMPERATURE_COEFFICIENT];
-
-        KRATOS_CATCH("")
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
-    void TransientThermalElement<TDim, TNumNodes>::CalculateThermalDispersionMatrix(
-        BoundedMatrix<double, TDim, TDim>& C,
-        ElementVariables& rVariables)
-    {
-        KRATOS_TRY
-
-        const double c0 = rVariables.Porosity * rVariables.Saturation * rVariables.WaterThermalConductivity;
-        const double c1 = 1.0 - rVariables.Porosity;
-
-        C(0, 0) = c1 * rVariables.SolidThermalConductivityXX + c0;
-        C(0, 1) = c1 * rVariables.SolidThermalConductivityXY;
-        C(1, 0) = c1 * rVariables.SolidThermalConductivityYX;
-        C(1, 1) = c1 * rVariables.SolidThermalConductivityYY + c0;
 
         KRATOS_CATCH("")
     }
@@ -689,61 +601,28 @@ namespace Kratos
     // ============================================================================================
     // ============================================================================================
     template< unsigned int TDim, unsigned int TNumNodes >
-    void TransientThermalElement<TDim, TNumNodes>::CalculateRightHandSide(
-        VectorType& rRightHandSideVector,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-    	const unsigned int N_DOF = this->GetNumberOfDOF();
-
-        //Resetting the RHS
-        if (rRightHandSideVector.size() != N_DOF)
-            rRightHandSideVector.resize(N_DOF, false);
-        noalias(rRightHandSideVector) = ZeroVector(N_DOF);
-
-        const bool CalculateStiffnessMatrixFlag = false;
-        const bool CalculateResidualVectorFlag = true;
-        MatrixType TempMatrix = Matrix();
-
-        CalculateAll(TempMatrix,
-            rRightHandSideVector,
-            rCurrentProcessInfo,
-            CalculateStiffnessMatrixFlag,
-            CalculateResidualVectorFlag);
-
-        KRATOS_CATCH("")
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template< unsigned int TDim, unsigned int TNumNodes >
-    void TransientThermalElement<TDim, TNumNodes>::CalculateLeftHandSide(
-        MatrixType& rLeftHandSideMatrix,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        KRATOS_TRY
-
-        // Calculation flags
-        const bool CalculateStiffnessMatrixFlag = true;
-        const bool CalculateResidualVectorFlag = false;
-        VectorType TempVector;
-
-        CalculateAll(rLeftHandSideMatrix,
-            TempVector,
-            rCurrentProcessInfo,
-            CalculateStiffnessMatrixFlag,
-            CalculateResidualVectorFlag);
-
-        KRATOS_CATCH("")
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template< unsigned int TDim, unsigned int TNumNodes >
     GeometryData::IntegrationMethod TransientThermalElement<TDim, TNumNodes>::GetIntegrationMethod() const
     {
-        return GeometryData::IntegrationMethod::GI_GAUSS_2;
+        GeometryData::IntegrationMethod GI_GAUSS;
+        //
+        switch (TNumNodes) {
+        case 3:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+            break;
+        case 6:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+            break;
+        case 10:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_4;
+            break;
+        case 15:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_5;
+            break;
+        default:
+            GI_GAUSS = GeometryData::IntegrationMethod::GI_GAUSS_2;
+            break;
+        }
+        return GI_GAUSS;
     }
 
     // ============================================================================================

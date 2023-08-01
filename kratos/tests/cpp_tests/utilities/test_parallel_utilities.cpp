@@ -56,8 +56,9 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     std::vector<double> data_vector(nsize, 5.0);
 
     //here we raise every entry of a vector to the power 0.1
-    BlockPartition<std::vector<double>>(data_vector).for_each(
-                                         [](double& item)
+    BlockPartition<std::vector<double>::iterator>(data_vector.begin(),
+                                                  data_vector.end()).for_each(
+        [](double& item)
     {
         item = std::pow(item, 0.1);
     });
@@ -80,7 +81,8 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     }
 
     //here we check for a reduction (computing the sum of all the entries)
-    auto final_sum = BlockPartition<std::vector<double>>(data_vector).for_each<SumReduction<double>>(
+    auto final_sum = BlockPartition<std::vector<double>::iterator>(data_vector.begin(),
+                                                                   data_vector.end()).for_each<SumReduction<double>>(
         [](double& item)
         {
             return item;
@@ -98,7 +100,8 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerConstContainer, KratosCoreFastSuite)
     const std::vector<double> data_vector(nsize, 5.0);
 
     //here we check for a reduction (computing the sum of all the entries)
-    auto final_sum = BlockPartition<decltype(data_vector)>(data_vector).for_each<SumReduction<double>>(
+    auto final_sum = BlockPartition<std::vector<double>::const_iterator>(data_vector.begin(),
+                                                                         data_vector.end()).for_each<SumReduction<double>>(
         [](const double item)
         {
             return item;
@@ -172,7 +175,8 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     // Manual Reduction, long form
     // here the TLS is constructed on the fly. This is the "private" approach of OpenMP
     // the result is checked with a "manual reduction"
-    BlockPartition<std::vector<RHSElementType>>(elements).for_each(std::vector<double>(), tls_lambda_manual_reduction);
+    BlockPartition<std::vector<RHSElementType>::iterator>(elements.begin(),
+                                                          elements.end()).for_each(std::vector<double>(), tls_lambda_manual_reduction);
 
     const double sum_elem_rhs_vals = std::accumulate(elements.begin(), elements.end(), 0.0, [](double acc, RHSElementType& rElem){
         return acc + rElem.GetAccumRHSValue();
@@ -197,7 +201,8 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuit
     // here the TLS is constructed beforehand. This is the "firstprivate" approach of OpenMP
     // checking the results using reduction
     std::vector<double> tls(6);
-    const double final_sum = BlockPartition<std::vector<RHSElementType>>(elements).for_each<SumReduction<double>>(tls, tls_lambda_reduction);
+    const double final_sum = BlockPartition<std::vector<RHSElementType>::iterator>(elements.begin(),
+                                                                                   elements.end()).for_each<SumReduction<double>>(tls, tls_lambda_reduction);
 
     KRATOS_CHECK_NEAR(final_sum, exp_sum, tol);
 
@@ -310,6 +315,21 @@ KRATOS_TEST_CASE_IN_SUITE(AccumReductionVector, KratosCoreFastSuite)
     std::sort(assembled_vector.begin(), assembled_vector.end());
 
     KRATOS_CHECK_VECTOR_EQUAL(assembled_vector, expct_data_vector);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(AccumReductionSet, KratosCoreFastSuite)
+{
+    int nsize = 1e3;
+    std::vector<int> input_data_vector(nsize);
+    std::iota(input_data_vector.begin(), input_data_vector.end(), 0);
+
+    const auto& assembled_vector = block_for_each<AccumReduction<int, std::set<int>>>(input_data_vector, [](const int rValue) -> int {
+        return rValue+1;
+    });
+
+    for (int i = 0; i < nsize; ++i) {
+        KRATOS_CHECK_NOT_EQUAL(assembled_vector.find(i+1), assembled_vector.end());
+    }
 }
 
 KRATOS_TEST_CASE_IN_SUITE(MapReduction, KratosCoreFastSuite)

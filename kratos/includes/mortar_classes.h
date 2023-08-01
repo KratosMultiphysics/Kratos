@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MORTAR_CLASSES )
-#define  KRATOS_MORTAR_CLASSES
+#pragma once
 
 // System includes
 
@@ -35,7 +34,7 @@ namespace Kratos
 
     // Point and nodes defines
     typedef Point                                                PointType;
-    typedef Node<3>                                               NodeType;
+    typedef Node                                               NodeType;
     typedef Geometry<NodeType>                                GeometryType;
 
     // Type definition for integration methods
@@ -2317,5 +2316,3 @@ private:
 ///@}
 
 }// namespace Kratos.
-
-#endif // KRATOS_MORTAR_CLASSES  defined

@@ -74,12 +74,12 @@ public:
 
         //using the conditions to mark the boundary with the flag boundary
         //note that we DO NOT add the conditions to the model part
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
+        block_for_each(mModelPart.Nodes(), [&](Node& rNode) {
             rNode.Set(BOUNDARY,false);
         });
 
         block_for_each(mModelPart.Conditions(), [&](ModelPart::ConditionType& rCondition) {
-            Geometry< Node<3> >& geom = rCondition.GetGeometry();
+            Geometry< Node >& geom = rCondition.GetGeometry();
             for(unsigned int i=0; i<geom.size(); i++){
                 geom[i].SetLock();
                 geom[i].Set(BOUNDARY,true);
@@ -101,9 +101,9 @@ public:
 
     void ResetFatherNodes(ModelPart &rModelPart) override
     {
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
+        block_for_each(mModelPart.Nodes(), [&](Node& rNode) {
             if(rNode.GetValue(REFINEMENT_LEVEL)==0){
-                GlobalPointersVector<Node<3>> empty_father_vector;
+                GlobalPointersVector<Node> empty_father_vector;
                 rNode.SetValue(FATHER_NODES, empty_father_vector);
             }
         });

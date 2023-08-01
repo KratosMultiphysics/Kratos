@@ -43,7 +43,7 @@ public:
     /// Pointer definition of MapNurbsVolumeResultsToEmbeddedGeometryProcess
     KRATOS_CLASS_POINTER_DEFINITION(MapNurbsVolumeResultsToEmbeddedGeometryProcess);
 
-    typedef Node<3>                                             NodeType;
+    typedef Node                                             NodeType;
     typedef Geometry<NodeType>                                  GeometryType;
     typedef GeometryType::Pointer                               GeometryPointerType;
     typedef typename GeometryType::GeometriesArrayType          GeometriesArrayType;

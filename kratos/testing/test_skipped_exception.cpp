@@ -4,15 +4,19 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:   Pooyan Dadvand
 //
 //
 
+// System includes
 #include <sstream>
 
+// External includes
+
+// Project includes
 #include "testing/test_skipped_exception.h"
 
 namespace Kratos

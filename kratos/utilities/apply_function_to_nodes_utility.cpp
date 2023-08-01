@@ -33,7 +33,7 @@ void ApplyFunctionToNodesUtility::ApplyFunction(
     if(!mpFunction->UseLocalSystem()) {
         block_for_each(
             mrNodes,r_function,
-            [&rVariable,&t](Node<3>& rNode, GenericFunctionUtility& rFunction) {
+            [&rVariable,&t](Node& rNode, GenericFunctionUtility& rFunction) {
                 const double value = rFunction.CallFunction(rNode.X(), rNode.Y(), rNode.Z(), t, rNode.X0(), rNode.Y0(), rNode.Z0());
                 rNode.FastGetSolutionStepValue(rVariable) = value;
             }
@@ -41,7 +41,7 @@ void ApplyFunctionToNodesUtility::ApplyFunction(
     } else {
         block_for_each(
             mrNodes,r_function,
-            [&rVariable,&t](Node<3>& rNode, GenericFunctionUtility& rFunction) {
+            [&rVariable,&t](Node& rNode, GenericFunctionUtility& rFunction) {
                 const double value = rFunction.RotateAndCallFunction(rNode.X(), rNode.Y(), rNode.Z(), t, rNode.X0(), rNode.Y0(), rNode.Z0());
                 rNode.FastGetSolutionStepValue(rVariable) = value;
             }

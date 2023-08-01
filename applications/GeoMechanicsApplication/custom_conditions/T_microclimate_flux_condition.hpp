@@ -38,12 +38,11 @@ public:
     
     using IndexType = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = Geometry<NodeType>::PointsArrayType;
     using VectorType = Vector;
     using MatrixType = Matrix;
-    using TCondition<TDim,TNumNodes>::mThisIntegrationMethod;
     
     bool mIsInitialised = false;
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

@@ -458,7 +458,7 @@ public:
         KRATOS_WARNING("QuadrilateralInterface3D4") << "Method not well defined. Replace with DomainSize() instead. This method preserves current behaviour but will be changed in June 2023 (returning error instead)" << std::endl;
         return Area();
         // TODO: Replace in June 2023
-        // KRATOS_ERROR << "QuadrilateralInterface3D4:: Method not well defined. Replace with DomainSize() instead." << std::endl; 
+        // KRATOS_ERROR << "QuadrilateralInterface3D4:: Method not well defined. Replace with DomainSize() instead." << std::endl;
         // return 0.0;
     }
 
@@ -1434,8 +1434,7 @@ GeometryData QuadrilateralInterface3D4<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension QuadrilateralInterface3D4<TPointType>::msGeometryDimension(
-    2, 3, 1);
+const GeometryDimension QuadrilateralInterface3D4<TPointType>::msGeometryDimension(3, 1);
 
 }// namespace Kratos.
 

@@ -69,7 +69,7 @@ public:
             const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
             const double deltaH = mpTable->GetValue(Time);
 
-            block_for_each(mrModelPart.Nodes(), [&deltaH, &var, this](Node<3>& rNode){
+            block_for_each(mrModelPart.Nodes(), [&deltaH, &var, this](Node& rNode){
                 double height = 0.0;
                 if ( rNode.Coordinates()[mHorizontalDirection] >= mMinHorizontalCoordinate &&  rNode.Coordinates()[mHorizontalDirection] <= mMaxHorizontalCoordinate) {
                     height = mSlope * ( rNode.Coordinates()[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];

@@ -25,6 +25,7 @@
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 
 //builders and solvers
+#include "custom_strategies/builder_and_solvers/residualbased_block_builder_and_solver_with_mass_and_damping.h"
 
 //schemes
 #include "custom_strategies/schemes/newmark_quasistatic_U_Pw_scheme.hpp"
@@ -112,6 +113,13 @@ void AddCustomStrategiesToPython(pybind11::module& m)
         BuilderAndSolverType::Pointer, Parameters&, int, bool, bool, bool >())
     .def("UpdateLoads",&GeoMechanicsRammArcLengthStrategyType::UpdateLoads);
 
+
+
+    using ResidualBasedBlockBuilderAndSolverWithMassAndDampingType = ResidualBasedBlockBuilderAndSolverWithMassAndDamping< SparseSpaceType, LocalSpaceType, LinearSolverType >;
+    py::class_< ResidualBasedBlockBuilderAndSolverWithMassAndDampingType, ResidualBasedBlockBuilderAndSolverWithMassAndDampingType::Pointer, BuilderAndSolverType>(m, "ResidualBasedBlockBuilderAndSolverWithMassAndDamping")
+        .def(py::init< LinearSolverType::Pointer >())
+        .def(py::init< LinearSolverType::Pointer, Parameters >())
+        ;
 }
 
 } // Namespace Python.

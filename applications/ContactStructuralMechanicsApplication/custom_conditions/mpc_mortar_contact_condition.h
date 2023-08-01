@@ -107,7 +107,7 @@ public:
     typedef typename std::vector<ConditionArrayType>                               ConditionArrayListType;
 
     /// Node type definition
-    typedef Node<3>                                                                              NodeType;
+    typedef Node                                                                              NodeType;
 
     /// Geoemtry type definition
     typedef Geometry<NodeType>                                                               GeometryType;

@@ -232,11 +232,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic2DInterfaceLaw)
     }
-
-    // stress vector indices
-    // const int VOIGT_INDEX_XX = 0;
-    // const int VOIGT_INDEX_YY = 1;
-
 }; // Class LinearElastic2DInterfaceLaw
 }  // namespace Kratos.
 #endif // KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED  defined

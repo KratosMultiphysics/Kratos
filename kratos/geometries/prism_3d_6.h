@@ -14,7 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#pragma once 
+#pragma once
 
 // System includes
 
@@ -406,8 +406,8 @@ public:
         return std::abs( this->DeterminantOfJacobian( PointType() ) ) * 0.5;
     }
 
-    /** 
-     * @brief This method calculate and return volume of this geometry. 
+    /**
+     * @brief This method calculate and return volume of this geometry.
      * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
      * @see Length()
@@ -1076,7 +1076,6 @@ GeometryData Prism3D6<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Prism3D6<TPointType>::msGeometryDimension(
-    3, 3, 3);
+GeometryDimension Prism3D6<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.

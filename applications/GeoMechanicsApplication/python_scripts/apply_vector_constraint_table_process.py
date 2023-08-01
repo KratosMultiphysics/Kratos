@@ -1,67 +1,83 @@
-import KratosMultiphysics
-import KratosMultiphysics.GeoMechanicsApplication as KratosGeo
+import KratosMultiphysics as Core
+import KratosMultiphysics.GeoMechanicsApplication as Geo
+
 
 def Factory(settings, Model):
-    if(type(settings) != KratosMultiphysics.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if not isinstance(settings, Core.Parameters):
+        raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyVectorConstraintTableProcess(Model, settings["Parameters"])
+
 
 ## All the python processes should be derived from "python_process"
 
-class ApplyVectorConstraintTableProcess(KratosMultiphysics.Process):
-    def __init__(self, Model, settings ):
-        KratosMultiphysics.Process.__init__(self)
-
+class ApplyVectorConstraintTableProcess(Core.Process):
+    def __init__(self, Model, settings):
+        super().__init__()
         self.model_part = Model[settings["model_part_name"].GetString()]
-        variable_name = settings["variable_name"].GetString()
+        self._CreateParametersForComponents(settings)
+        self._AddProcesses()
 
+
+    def _CreateParametersForComponents(self, settings):
+        self.x_params = self._CreateParametersForComponent(settings, "X")
+        self.y_params = self._CreateParametersForComponent(settings, "Y")
+        self.z_params = self._CreateParametersForComponent(settings, "Z")
+
+
+    def _AddProcesses(self):
         self.components_process_list = []
+        self._AddProcessUsing(self.x_params)
+        self._AddProcessUsing(self.y_params)
+        self._AddProcessUsing(self.z_params)
 
-        if settings["active"][0].GetBool() == True:
-            self.x_params = KratosMultiphysics.Parameters("{}")
-            self.x_params.AddValue("model_part_name",settings["model_part_name"])
-            if settings.Has("is_fixed"):
-                self.x_params.AddValue("is_fixed",settings["is_fixed"][0])
-            self.x_params.AddValue("value",settings["value"][0])
-            self.x_params.AddEmptyValue("variable_name").SetString(variable_name+"_X")
-            if settings["table"][0].GetInt() == 0:
-                self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.x_params))
-            else:
-                self.x_params.AddValue("table",settings["table"][0])
-                self.components_process_list.append(KratosGeo.ApplyComponentTableProcess(self.model_part, self.x_params))
 
-        if settings["active"][1].GetBool() == True:
-            self.y_params = KratosMultiphysics.Parameters("{}")
-            self.y_params.AddValue("model_part_name",settings["model_part_name"])
-            if settings.Has("is_fixed"):
-                self.y_params.AddValue("is_fixed",settings["is_fixed"][1])
-            self.y_params.AddValue("value",settings["value"][1])
-            self.y_params.AddEmptyValue("variable_name").SetString(variable_name+"_Y")
-            if settings["table"][1].GetInt() == 0:
-                self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.y_params))
-            else:
-                self.y_params.AddValue("table",settings["table"][1])
-                self.components_process_list.append(KratosGeo.ApplyComponentTableProcess(self.model_part, self.y_params))
+    def _CreateParametersForComponent(self, settings, component):
+        index = self.ComponentToIndex(component)
+        if not settings["active"][index].GetBool():
+            return None
 
-        if settings["active"][2].GetBool() == True:
-            self.z_params = KratosMultiphysics.Parameters("{}")
-            self.z_params.AddValue("model_part_name",settings["model_part_name"])
-            if settings.Has("is_fixed"):
-                self.z_params.AddValue("is_fixed",settings["is_fixed"][2])
-            self.z_params.AddValue("value",settings["value"][2])
-            self.z_params.AddEmptyValue("variable_name").SetString(variable_name+"_Z")
-            if settings["table"][2].GetInt() == 0:
-                self.components_process_list.append(KratosMultiphysics.ApplyConstantScalarValueProcess(self.model_part, self.z_params))
-            else:
-                self.z_params.AddValue("table",settings["table"][2])
-                self.components_process_list.append(KratosGeo.ApplyComponentTableProcess(self.model_part, self.z_params))
+        parameters = Core.Parameters("{}")
+        parameters.AddValue("model_part_name", settings["model_part_name"])
+        if settings.Has("is_fixed"):
+            parameters.AddValue("is_fixed", settings["is_fixed"][index])
+        parameters.AddValue("value", settings["value"][index])
+        variable_name = settings["variable_name"].GetString()
+        parameters.AddEmptyValue("variable_name").SetString(f"{variable_name}_{component}")
+        if settings["table"][index].GetInt() != 0:
+            parameters.AddValue("table", settings["table"][index])
+
+        return parameters
+
+
+    def _AddProcessUsing(self, parameters):
+        if not parameters:
+            return
+
+        if parameters.Has("table"):
+            process = Geo.ApplyComponentTableProcess(self.model_part, parameters)
+        else:
+            process = Core.ApplyConstantScalarValueProcess(self.model_part, parameters)
+
+        self.components_process_list.append(process)
+
+
+    @classmethod
+    def ComponentToIndex(cls, component):
+        if component == "X":
+            return 0
+        if component == "Y":
+            return 1
+        if component == "Z":
+            return 2
+
+        raise LookupError(f"Unknown component '{component}'")
+
 
     def ExecuteInitialize(self):
-
         for component in self.components_process_list:
             component.ExecuteInitialize()
 
-    def ExecuteInitializeSolutionStep(self):
 
+    def ExecuteInitializeSolutionStep(self):
         for component in self.components_process_list:
             component.ExecuteInitializeSolutionStep()

@@ -31,7 +31,7 @@ namespace Kratos {
 namespace Testing {
 
     // Adding some typedef
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;

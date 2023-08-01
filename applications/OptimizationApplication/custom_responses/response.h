@@ -113,7 +113,7 @@ public:
   virtual void Initialize(){};
 
   // --------------------------------------------------------------------------
-  virtual double CalculateValue(){};
+  virtual double CalculateValue() = 0;
 
   // --------------------------------------------------------------------------
   virtual void CalculateGradient() {};

@@ -37,7 +37,7 @@ public:
 
     using IndexType = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType = Vector;
@@ -95,7 +95,7 @@ public:
 
     bool InEquilibrium(const PropertiesType& Prop, const GeometryType& Geom);
 
-    double CalculateWaterPressureGradient(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length);
+    double CalculateHeadGradient(const PropertiesType& Prop, const GeometryType& Geom, double pipe_length);
 
     double CalculateEquilibriumPipeHeight(const PropertiesType& Prop, const GeometryType& Geom, double dx);
 

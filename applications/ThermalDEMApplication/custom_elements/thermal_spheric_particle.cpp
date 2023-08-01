@@ -156,7 +156,7 @@ namespace Kratos
     mContactParamsParticle.clear();
     mContactParamsWall.clear();
 
-    // Initialze accumulated energy dissipations
+    // Initialize accumulated energy dissipations
     mPreviousViscodampingEnergy = 0.0;
     mPreviousFrictionalEnergy   = 0.0;
     mPreviousRollResistEnergy   = 0.0;
@@ -1083,13 +1083,8 @@ namespace Kratos
   }
 
   //------------------------------------------------------------------------------------------------------------
-  double ThermalSphericParticle::GetParticleSurfaceArea(void) {
-    return 4.0 * Globals::Pi * GetRadius() * GetRadius();
-  }
-
-  //------------------------------------------------------------------------------------------------------------
   double ThermalSphericParticle::GetParticleCharacteristicLength(void) {
-    return 2.0 * GetRadius();
+    return 2.0 * GetRadius(); // ATTENTION: What about 2D?
   }
 
   //------------------------------------------------------------------------------------------------------------
@@ -1525,6 +1520,15 @@ namespace Kratos
 
     if      (mDimension == 2) return 0.5 * GetMass() * r * r;
     else if (mDimension == 3) return SphericParticle::CalculateMomentOfInertia();
+    else return 0.0;
+  }
+
+  //------------------------------------------------------------------------------------------------------------
+  double ThermalSphericParticle::GetParticleSurfaceArea(void) {
+    const double r = GetParticleRadius();
+
+    if      (mDimension == 2) return 2.0 * Globals::Pi * r;
+    else if (mDimension == 3) return 4.0 * Globals::Pi * r * r;
     else return 0.0;
   }
 

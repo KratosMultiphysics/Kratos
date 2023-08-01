@@ -24,7 +24,7 @@
 
 namespace Kratos::Testing 
 {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /** 
 * Checks the correct work of the AALM  dynamic penalty process

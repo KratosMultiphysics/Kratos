@@ -26,7 +26,7 @@
 namespace Kratos {
     namespace Testing {
 
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
 
         /// Generates a coupling geometry containing two nurbs curve geometries.

@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
@@ -98,7 +98,7 @@ void BaseLoadCondition::EquationIdVector(
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
     const SizeType block_size = this->GetBlockSize();
-    if (rResult.size() != dim * number_of_nodes) {
+    if (rResult.size() != block_size * number_of_nodes) {
         rResult.resize(number_of_nodes * block_size, false);
     }
 

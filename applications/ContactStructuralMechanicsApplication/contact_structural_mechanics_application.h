@@ -80,7 +80,7 @@ public:
     ///@{
 
     /// Definition of the node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// Definition of the geometry type
     typedef Geometry<NodeType> GeometryType;

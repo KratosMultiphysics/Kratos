@@ -24,7 +24,7 @@
 
 namespace Kratos {
 // We define the node type
-using NodeType = Node<3>;
+using NodeType = Node;
 
 KratosGeoMechanicsApplication::KratosGeoMechanicsApplication() :
     KratosApplication("GeoMechanicsApplication") {}
@@ -313,7 +313,7 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw",        mLinearElastic2DBeamLaw)
 
-	KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion2DLaw", mGeoThermalDispersion2DLaw)
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion2DLaw", mGeoThermalDispersion2DLaw)
 
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
@@ -330,8 +330,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_SOLID )
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_FLUID )
 
-    KRATOS_REGISTER_VARIABLE( HEAT_CAPACITY_WATER )
-    KRATOS_REGISTER_VARIABLE( HEAT_CAPACITY_SOLID )
+    KRATOS_REGISTER_VARIABLE( SPECIFIC_HEAT_CAPACITY_WATER )
+    KRATOS_REGISTER_VARIABLE( SPECIFIC_HEAT_CAPACITY_SOLID )
     KRATOS_REGISTER_VARIABLE( THERMAL_CONDUCTIVITY_WATER )
     KRATOS_REGISTER_VARIABLE( THERMAL_CONDUCTIVITY_SOLID_XX )
     KRATOS_REGISTER_VARIABLE( THERMAL_CONDUCTIVITY_SOLID_YY )

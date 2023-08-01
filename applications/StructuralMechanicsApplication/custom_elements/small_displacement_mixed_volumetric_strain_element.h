@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //                   Riccardo Rossi
@@ -148,7 +148,7 @@ public:
     typedef GeometryData::IntegrationMethod IntegrationMethod;
 
     /// This is the definition of the node.
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The base element type
     typedef Element BaseType;

@@ -1130,8 +1130,7 @@ const GeometryData NurbsVolumeGeometry<TPointType>::msGeometryData(
     {}, {}, {});
 
 template<class TPointType>
-const GeometryDimension NurbsVolumeGeometry<TPointType>::msGeometryDimension(
-    3, 3, 3);
+const GeometryDimension NurbsVolumeGeometry<TPointType>::msGeometryDimension(3, 3);
 
 } // namespace Kratos
 

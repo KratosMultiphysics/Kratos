@@ -15,10 +15,31 @@
 
 
 // Application includes
+#include "utilities/math_utils.h"
 #include "custom_conditions/T_normal_flux_condition.hpp"
 
 namespace Kratos
 {
+
+// ============================================================================================
+// ============================================================================================
+// Default constructor
+template<unsigned int TDim, unsigned int TNumNodes>
+TNormalFluxCondition<TDim, TNumNodes>::TNormalFluxCondition() : TCondition<TDim, TNumNodes>() {}
+
+// Constructor 1
+template<unsigned int TDim, unsigned int TNumNodes>
+TNormalFluxCondition<TDim, TNumNodes>::TNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : TCondition<TDim, TNumNodes>(NewId, pGeometry) {}
+
+// Constructor 2
+template<unsigned int TDim, unsigned int TNumNodes>
+TNormalFluxCondition<TDim, TNumNodes>::TNormalFluxCondition(IndexType NewId, GeometryType::Pointer pGeometry,
+    PropertiesType::Pointer pProperties) : TCondition<TDim, TNumNodes>(NewId, pGeometry, pProperties) {}
+
+// Destructor
+template<unsigned int TDim, unsigned int TNumNodes>
+TNormalFluxCondition<TDim, TNumNodes>::~TNormalFluxCondition() = default;
 
 // ============================================================================================
 // ============================================================================================
@@ -39,16 +60,16 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateRHS(
 {        
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints(this->GetIntegrationMethod());
     const unsigned int NumGPoints = IntegrationPoints.size();
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
     
     //Containers of variables at all integration points
-    const Matrix& NContainer = Geom.ShapeFunctionsValues( mThisIntegrationMethod );
+    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType JContainer(NumGPoints);
     for(unsigned int i = 0; i < NumGPoints; ++i)
         (JContainer[i]).resize(TDim,LocalDim,false);
-    Geom.Jacobian( JContainer, mThisIntegrationMethod );
+    Geom.Jacobian( JContainer, this->GetIntegrationMethod());
     
     //Condition variables
     array_1d<double,TNumNodes> NormalFluxVector;
@@ -94,80 +115,23 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(
 
 // ============================================================================================
 // ============================================================================================
-template< >
-void TNormalFluxCondition<2, 2>::CalculateIntegrationCoefficient(
+template<unsigned int TDim, unsigned int TNumNodes>
+void TNormalFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(
     double& rIntegrationCoefficient,
     const Matrix& Jacobian,
     const double& Weight)
 {
-    const double dx_dxi = Jacobian(0, 0);
-    const double dy_dxi = Jacobian(1, 0);
+    Vector NormalVector = ZeroVector(TDim);
 
-    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
-
-    rIntegrationCoefficient = ds * Weight;
-}
-
-// ============================================================================================
-// ============================================================================================
-template< >
-void TNormalFluxCondition<2, 3>::CalculateIntegrationCoefficient(
-    double& rIntegrationCoefficient,
-    const Matrix& Jacobian,
-    const double& Weight)
-{
-    const double dx_dxi = Jacobian(0, 0);
-    const double dy_dxi = Jacobian(1, 0);
-
-    const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
-
-    rIntegrationCoefficient = ds * Weight;
-}
-
-// ============================================================================================
-// ============================================================================================
-template< >
-void TNormalFluxCondition<3, 3>::CalculateIntegrationCoefficient(
-    double& rIntegrationCoefficient,
-    const Matrix& Jacobian,
-    const double& Weight)
-{
-    double NormalVector[3];
-
-    NormalVector[0] = Jacobian(1, 0) * Jacobian(2, 1) - Jacobian(2, 0) * Jacobian(1, 1);
-
-    NormalVector[1] = Jacobian(2, 0) * Jacobian(0, 1) - Jacobian(0, 0) * Jacobian(2, 1);
-
-    NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
-
-    const double dA = std::sqrt(NormalVector[0] * NormalVector[0]
-        + NormalVector[1] * NormalVector[1]
-        + NormalVector[2] * NormalVector[2]);
-
-    rIntegrationCoefficient = dA * Weight;
-}
-
-// ============================================================================================
-// ============================================================================================
-template< >
-void TNormalFluxCondition<3, 4>::CalculateIntegrationCoefficient(
-    double& rIntegrationCoefficient,
-    const Matrix& Jacobian,
-    const double& Weight)
-{
-    double NormalVector[3];
-
-    NormalVector[0] = Jacobian(1, 0) * Jacobian(2, 1) - Jacobian(2, 0) * Jacobian(1, 1);
-
-    NormalVector[1] = Jacobian(2, 0) * Jacobian(0, 1) - Jacobian(0, 0) * Jacobian(2, 1);
-
-    NormalVector[2] = Jacobian(0, 0) * Jacobian(1, 1) - Jacobian(1, 0) * Jacobian(0, 1);
-
-    const double dA = std::sqrt(NormalVector[0] * NormalVector[0]
-        + NormalVector[1] * NormalVector[1]
-        + NormalVector[2] * NormalVector[2]);
-
-    rIntegrationCoefficient = dA * Weight;
+    if (TDim == 2)
+    {
+        NormalVector = column(Jacobian, 0);
+    }
+    else if (TDim == 3)
+    {
+        MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
+    }
+    rIntegrationCoefficient = Weight * MathUtils<double>::Norm(NormalVector);
 }
 
 // ============================================================================================

@@ -55,7 +55,7 @@ public:
     ///Destructor
     // ============================================================================================
     // ============================================================================================
-    ~NewmarkQuasistaticTScheme() override {}
+    ~NewmarkQuasistaticTScheme() override = default;
 
     // ============================================================================================
     // ============================================================================================
@@ -86,7 +86,7 @@ public:
 
         //check for minimum value of the buffer index.
         if (rModelPart.GetBufferSize() < 2)
-            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is "
+            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater or equal to 2. Current size is "
                          << rModelPart.GetBufferSize()
                          << std::endl;
 
@@ -127,7 +127,7 @@ protected:
         KRATOS_TRY
 
         //Update DtPressure
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
             const double DeltaTemperature =  rNode.FastGetSolutionStepValue(TEMPERATURE)
                                         - rNode.FastGetSolutionStepValue(TEMPERATURE, 1);
             const auto &PreviousDtTemperature = rNode.FastGetSolutionStepValue(DT_TEMPERATURE, 1);
@@ -140,7 +140,7 @@ protected:
 
     // ============================================================================================
     // ============================================================================================
-    virtual inline void SetTimeFactors(ModelPart& rModelPart) override
+    inline void SetTimeFactors(ModelPart& rModelPart) override
     {
         KRATOS_TRY
 
