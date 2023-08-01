@@ -50,7 +50,7 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
             if not self.print_output:
                 for path in os.listdir():
                     full_path = os.path.join(os.getcwd(), path)
-                    if not "Results" in path:
+                    if not "_Results" in path:
                         if os.path.isfile(full_path):
                             kratos_utilities.DeleteFileIfExisting(full_path)
                         elif os.path.isdir(full_path):
@@ -101,7 +101,7 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
                 output_data = json.load(f)
 
             # Load reference file
-            reference_filename = "{}Results.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
+            reference_filename = "{}_Results.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
             with open(reference_filename) as f:
                 reference_data = json.load(f)
 
