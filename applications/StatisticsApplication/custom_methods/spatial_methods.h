@@ -38,7 +38,7 @@ namespace Kratos
 ///@name Kratos Globals
 ///@{
 
-class SpatialMethods
+class KRATOS_API(STATISTICS_APPLICATION) SpatialMethods
 {
 public:
     ///@name Type definitions

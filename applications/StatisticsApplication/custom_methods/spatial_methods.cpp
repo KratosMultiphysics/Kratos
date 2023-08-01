@@ -1408,22 +1408,22 @@ SpatialMethods::ExpressionDistributionReturnType SpatialMethods::Distribution(
 
 // template instantiations
 #define KRATOS_TEMPLATE_VARIABLE_METHOD_INSTANTIATION(...)                                                                                                  \
-    template __VA_ARGS__ SpatialMethods::Sum(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);                 \
-    template double SpatialMethods::Sum(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&);                 \
-    template __VA_ARGS__ SpatialMethods::Mean(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);                 \
-    template double SpatialMethods::Mean(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&);                 \
-    template __VA_ARGS__ SpatialMethods::RootMeanSquare(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);                 \
-    template double SpatialMethods::RootMeanSquare(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&);                 \
-    template std::tuple<__VA_ARGS__, __VA_ARGS__> SpatialMethods::Variance(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);            \
-    template std::tuple<double, double> SpatialMethods::Variance(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&);            \
-    template std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Min(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
-    template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Min(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&); \
-    template std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Max(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
-    template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Max(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&); \
-    template std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
-    template std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&); \
-    template SpatialMethods::DistributionInfo<__VA_ARGS__> SpatialMethods::Distribution(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, Parameters);\
-    template SpatialMethods::DistributionInfo<double> SpatialMethods::Distribution(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, Parameters, const typename Norms::NormType<__VA_ARGS__>::type&);
+    template KRATOS_API(STATISTICS_APPLICATION) __VA_ARGS__ SpatialMethods::Sum(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);                 \
+    template KRATOS_API(STATISTICS_APPLICATION) double SpatialMethods::Sum(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&);                 \
+    template KRATOS_API(STATISTICS_APPLICATION) __VA_ARGS__ SpatialMethods::Mean(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);                 \
+    template KRATOS_API(STATISTICS_APPLICATION) double SpatialMethods::Mean(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&);                 \
+    template KRATOS_API(STATISTICS_APPLICATION) __VA_ARGS__ SpatialMethods::RootMeanSquare(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);                 \
+    template KRATOS_API(STATISTICS_APPLICATION) double SpatialMethods::RootMeanSquare(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&);                 \
+    template KRATOS_API(STATISTICS_APPLICATION) std::tuple<__VA_ARGS__, __VA_ARGS__> SpatialMethods::Variance(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&);            \
+    template KRATOS_API(STATISTICS_APPLICATION) std::tuple<double, double> SpatialMethods::Variance(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&);            \
+    template KRATOS_API(STATISTICS_APPLICATION) std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Min(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
+    template KRATOS_API(STATISTICS_APPLICATION) std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Min(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&); \
+    template KRATOS_API(STATISTICS_APPLICATION) std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Max(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
+    template KRATOS_API(STATISTICS_APPLICATION) std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Max(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&); \
+    template KRATOS_API(STATISTICS_APPLICATION) std::tuple<__VA_ARGS__, SpatialMethods::ItemPositionType<__VA_ARGS__>> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&); \
+    template KRATOS_API(STATISTICS_APPLICATION) std::tuple<double, SpatialMethods::IndexType> SpatialMethods::Median(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, const typename Norms::NormType<__VA_ARGS__>::type&); \
+    template KRATOS_API(STATISTICS_APPLICATION) SpatialMethods::DistributionInfo<__VA_ARGS__> SpatialMethods::Distribution(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, Parameters);\
+    template KRATOS_API(STATISTICS_APPLICATION) SpatialMethods::DistributionInfo<double> SpatialMethods::Distribution(const ModelPart&, const Variable<__VA_ARGS__>&, const DataLocation&, Parameters, const typename Norms::NormType<__VA_ARGS__>::type&);
 
 KRATOS_TEMPLATE_VARIABLE_METHOD_INSTANTIATION(double)
 KRATOS_TEMPLATE_VARIABLE_METHOD_INSTANTIATION(array_1d<double, 3>)
