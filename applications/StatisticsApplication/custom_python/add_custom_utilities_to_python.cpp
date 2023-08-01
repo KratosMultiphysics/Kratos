@@ -82,17 +82,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("__str__", &Norms::LPQ::Info)
         ;
 
-    // adding norm getter methods
-    // norms.def("GetIntegerNorm", Norms::GetNorm<int>, py::arg("norm_type_name"));
-    // norms.def("GetDoubleNorm", Norms::GetNorm<double>, py::arg("norm_type_name"));
-    // norms.def("GetArray3Norm", Norms::GetNorm<array_1d<double, 3>>, py::arg("norm_type_name"));
-    // norms.def("GetArray4Norm", Norms::GetNorm<array_1d<double, 4>>, py::arg("norm_type_name"));
-    // norms.def("GetArray6Norm", Norms::GetNorm<array_1d<double, 6>>, py::arg("norm_type_name"));
-    // norms.def("GetArray9Norm", Norms::GetNorm<array_1d<double, 9>>, py::arg("norm_type_name"));
-    // norms.def("GetVectorNorm", Norms::GetNorm<Vector>, py::arg("norm_type_name"));
-    // norms.def("GetMatrixNorm", Norms::GetNorm<Vector>, py::arg("norm_type_name"));
-
-
     m.def_submodule("MethodUtilities")
         .def("GetNormMethod", &MethodUtilities::GetNormMethod<int>)
         .def("GetNormMethod", &MethodUtilities::GetNormMethod<double>)
@@ -105,7 +94,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("RaiseToPower", &MethodUtilities::RaiseToPower<Vector>)
         .def("RaiseToPower", &MethodUtilities::RaiseToPower<Matrix>)
         ;
-
 
 }
 
