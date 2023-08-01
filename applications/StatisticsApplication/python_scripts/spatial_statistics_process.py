@@ -281,9 +281,13 @@ class SpatialStatisticsProcess(Kratos.OutputProcess):
                 msg_header += f"#{self.output_control_variable.Name()}"
                 self.output_control_value = lambda : GetLengthAdjustedValue(self.model_part.ProcessInfo[self.output_control_variable], len(self.output_control_variable.Name()) + 1, self.output_value_precision)
 
-            # now add the headers from all the methods
-            for statistics_operation in self.list_of_operations:
-                msg_header += f", {statistics_operation.GetHeadersString(header_details)}"
+        # now add the headers from all the methods in all ranks
+        all_rank_headers = ""
+        for statistics_operation in self.list_of_operations:
+            all_rank_headers += f", {statistics_operation.GetHeadersString(header_details)}"
+
+        if (self.__is_writing_process()):
+            msg_header += all_rank_headers
 
             msg_header += "\n"
 
@@ -292,13 +296,16 @@ class SpatialStatisticsProcess(Kratos.OutputProcess):
             self.is_headers_written = True
 
     def __write_values(self):
+        # now write the method values in all ranks
+        all_rank_values = ""
+        for statistics_operation in self.list_of_operations:
+            all_rank_values += f", {statistics_operation.GetValueString()}"
+
         if (self.__is_writing_process()):
             # first write the output control value
             self.output_file.file.write(self.output_control_value())
 
-            # now write the method values
-            for statistics_operation in self.list_of_operations:
-                self.output_file.file.write(f", {statistics_operation.GetValueString()}")
+            self.output_file.file.write(all_rank_values)
 
             self.output_file.file.write("\n")
 
