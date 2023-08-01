@@ -5,41 +5,6 @@ from math import log10
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.StatisticsApplication as KratosStat
 
-def GetNorm(norm_name: str) -> Any:
-    if norm_name == "noen":
-        return None
-    elif norm_name == "l2":
-        return KratosStat.Norms.L2()
-    elif norm_name == "infinity":
-        return KratosStat.Norms.Infinity()
-    elif norm_name == "trace":
-        return KratosStat.Norms.Trace()
-    elif norm_name.startswith("pnorm_"):
-        return KratosStat.Norms.P(float(norm_name[6:]))
-    elif norm_name.startswith("lpqnorm_("):
-        pos = norm_name.rfind(",")
-        if pos != -1:
-            p = float(norm_name[9:pos])
-            q = float(norm_name[pos+1:-1])
-        else:
-            raise RuntimeError(f"Unsupported norm info provided for LPQ norm [ provided info = \"{norm_name}\", required info = \"lpqnorm_(p,q)\" ].")
-        return KratosStat.Norms.LPQ(p, q)
-    else:
-        raise RuntimeError(f"Unsupported norm name requested [ requested norm name = \"{norm_name}\" ]. Followings are supported:\n\tnone\n\tl2\n\tinfinity\n\ttrace\n\tpnorm_p\n\tlpqnorm_(p,q)")
-
-def GetContainerLocation(container_location_name: str) -> Kratos.Globals.DataLocation:
-    locations_dict = {
-        "nodal_historical"        : Kratos.Globals.DataLocation.NodeHistorical,
-        "nodal_non_historical"    : Kratos.Globals.DataLocation.NodeNonHistorical,
-        "condition_non_historical": Kratos.Globals.DataLocation.Condition,
-        "element_non_historical"  : Kratos.Globals.DataLocation.Element
-    }
-
-    if container_location_name in locations_dict.keys():
-        return locations_dict[container_location_name]
-    else:
-        raise RuntimeError(f"Unsupported container location name [ provided container location name = \"{container_location_name}\" ]. Followings are supported:\n\t" + "\n\t".join(locations_dict.keys()))
-
 def GetListOfValues(value: Any) -> 'Union[list[int],list[float]]':
     if isinstance(value, list):
         return value
@@ -174,6 +139,33 @@ def GetShapeSynchronizedValue(model_part: Kratos.ModelPart, variable: Any, conta
     return dummy_value
 
 class SpatialStatisticsOperation(ABC):
+    def __init__(self, model_part: Kratos.ModelPart, variable: Any, container_location: Kratos.Globals.DataLocation, norm: Any) -> None:
+        self.model_part = model_part
+        self.variable = variable
+        self.container_location = container_location
+        self.norm = norm
+
+    def Check(self) -> None:
+        if self.container_location == Kratos.Globals.DataLocation.NodeHistorical:
+            if not self.model_part.HasNodalSolutionStepVariable(self.variable):
+                raise RuntimeError(f"The statistics output operation with {self.variable.Name()} requires the {self.model_part.FullName()} to have the variable in the nodal solution step variables list.")
+
+    def GetNormInfo(self) -> str:
+        return str(self.norm)
+
+    def GetVarianbleInfo(self) -> str:
+        return self.variable.Name()
+
+    def GetContainerInfo(self) -> str:
+        return self.container_location.name
+
+    def __str__(self) -> str:
+        return f"{self.GetVarianbleInfo()} - {self.GetNormInfo()} - {self.GetContainerInfo()} - {self.GetMethodInfo()}"
+
+    @abstractmethod
+    def GetMethodInfo(self) -> str:
+        pass
+
     @abstractmethod
     def GetValueString(self) -> str:
         pass
@@ -184,13 +176,13 @@ class SpatialStatisticsOperation(ABC):
 
 class SpatialStatisticsValueOperation(SpatialStatisticsOperation):
     def __init__(self, method: Any, model_part: Kratos.ModelPart, variable: Any, container_location: Kratos.Globals.DataLocation, norm: Any, precision: int) -> None:
-        self.model_part = model_part
+        super().__init__(model_part, variable, container_location, norm)
         self.method = method
-        self.variable = variable
-        self.container_location = container_location
-        self.norm = norm
         self.precision = precision
         self.header_lengths: 'list[int]' = []
+
+    def GetMethodInfo(self) -> str:
+        return self.method.__name__.lower()
 
     def GetValueString(self) -> str:
         if self.norm is not None:
@@ -227,13 +219,13 @@ class SpatialStatisticsValueOperation(SpatialStatisticsOperation):
 
 class SpatialStatisticsValueIndexPairOperation(SpatialStatisticsOperation):
     def __init__(self, method: Any, model_part: Kratos.ModelPart, variable: Any, container_location: Kratos.Globals.DataLocation, norm: Any, precision: int) -> None:
-        self.model_part = model_part
+        super().__init__(model_part, variable, container_location, norm)
         self.method = method
-        self.variable = variable
-        self.container_location = container_location
-        self.norm = norm
         self.precision = precision
         self.header_lengths: 'list[int]' = []
+
+    def GetMethodInfo(self) -> str:
+        return self.method.__name__.lower()
 
     def GetValueString(self) -> str:
         if self.norm is not None:
@@ -283,12 +275,12 @@ class SpatialStatisticsValueIndexPairOperation(SpatialStatisticsOperation):
 
 class SpatialStatisticsVarianceOperation(SpatialStatisticsOperation):
     def __init__(self, model_part: Kratos.ModelPart, variable: Any, container_location: Kratos.Globals.DataLocation, norm: Any, precision: int) -> None:
-        self.model_part = model_part
-        self.variable = variable
-        self.container_location = container_location
-        self.norm = norm
+        super().__init__(model_part, variable, container_location, norm)
         self.precision = precision
         self.header_lengths: 'list[int]' = []
+
+    def GetMethodInfo(self) -> str:
+        return "variance"
 
     def GetValueString(self) -> str:
         if self.norm is not None:
@@ -337,13 +329,10 @@ class SpatialStatisticsVarianceOperation(SpatialStatisticsOperation):
 
 class SpatialStatisticsDistributionOperation(SpatialStatisticsOperation):
     def __init__(self, model_part: Kratos.ModelPart, variable: Any, container_location: Kratos.Globals.DataLocation, norm: Any, precision: int, parameters: Kratos.Parameters) -> None:
-        self.model_part = model_part
-        self.variable = variable
-        self.container_location = container_location
-        self.norm = norm
+        super().__init__(model_part, variable, container_location, norm)
         self.precision = precision
-        self.parameters = parameters
         self.header_lengths: 'list[int]' = []
+        self.parameters = parameters
 
         self.number_of_value_groups = 10
         if self.parameters.Has("number_of_value_groups"):
@@ -363,6 +352,9 @@ class SpatialStatisticsDistributionOperation(SpatialStatisticsOperation):
         for i in range(self.number_of_value_groups + 1):
             self.group_upper_limits.append(self.min_value + (self.max_value - self.min_value) * i / self.number_of_value_groups)
         self.group_upper_limits.append(self.max_value)
+
+    def GetMethodInfo(self) -> str:
+        return "distribution"
 
     def GetValueString(self) -> str:
         if self.norm is not None:
