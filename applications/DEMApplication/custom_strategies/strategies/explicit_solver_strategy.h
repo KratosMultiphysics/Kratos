@@ -315,10 +315,13 @@ namespace Kratos {
         double mRVE_AvgCoordNum;        // Average coordination number per particle
         double mRVE_AvgCoordNumInner;   // Average coordination number of inner particles (not in contact with walls)
         double mRVE_VolSolid;           // Volume of solid (particles) in RVE discounting overlaps
+        double mRVE_VolSolidInner;      // Volume of solid (particles) in convex hull discounting overlaps
         double mRVE_VolTotal;           // RVE total volume (volume inside flat walls)
         double mRVE_VolInner;           // RVE inner volume (considering only inner particles)
-        double mRVE_Porosity;           // RVE porosity (discounting overlaps)
-        double mRVE_VoidRatio;          // RVE void ratio (discounting overlaps)
+        double mRVE_Porosity;           // RVE porosity considering full RVE volume
+        double mRVE_PorosityInner;      // RVE porosity considering convex hull volume
+        double mRVE_VoidRatio;          // RVE void ratio considering full RVE volume
+        double mRVE_VoidRatioInner;     // RVE void ratio considering convex hull volume
         double mRVE_Anisotropy;         // Fabric anisotropy (all particles)
         double mRVE_AnisotropyInner;    // Fabric anisotropy (inner particles)
         double mRVE_EffectStress;       // Mean effective stress (all particles)

@@ -2322,7 +2322,7 @@ namespace Kratos {
         return 0.0;
       }
 
-      // Compute volume of convex hukll (area in 2D)
+      // Compute volume of convex hull (area in 2D)
       double total_volume = 0.0;
       for (int i = 0; i < out.numberoftriangles; i++) {
         // Get vertices IDs
@@ -2363,8 +2363,11 @@ namespace Kratos {
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
     void ExplicitSolverStrategy::RVEComputePorosity(void) {
-      mRVE_Porosity  = 1.0 - mRVE_VolSolid / mRVE_VolTotal;
+      mRVE_Porosity = 1.0 - mRVE_VolSolid / mRVE_VolTotal;
       mRVE_VoidRatio = mRVE_Porosity / (1.0 - mRVE_Porosity);
+
+      //mRVE_PorosityInner = 1.0 - mRVE_VolSolidInner / mRVE_VolInner;
+      //mRVE_VoidRatioInner = mRVE_PorosityInner / (1.0 - mRVE_PorosityInner);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2519,8 +2522,15 @@ namespace Kratos {
       ModelPart& r_dem_model_part = GetModelPart();
       const double limit_stress   = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_STRESS];
       const double limit_porosity = r_dem_model_part.GetProcessInfo()[LIMIT_CONSOLIDATION_POROSITY];
+      const bool   inner_porosity = r_dem_model_part.GetProcessInfo()[INNER_CONSOLIDATION_POROSITY];
 
-      if (mRVE_Compress && (std::abs(mRVE_EffectStressInner) > limit_stress || mRVE_Porosity < limit_porosity)) {
+      bool check;
+      if (inner_porosity)
+        check = mRVE_Compress && (std::abs(mRVE_EffectStressInner) > limit_stress || mRVE_PorosityInner < limit_porosity);
+      else
+        check = mRVE_Compress && (std::abs(mRVE_EffectStressInner) > limit_stress || mRVE_Porosity < limit_porosity);
+
+      if (check) {
         mRVE_Compress = false;
 
         if (mRVE_FlatWalls) {
