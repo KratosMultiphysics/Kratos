@@ -157,7 +157,8 @@ namespace Kratos
                     this->mAuxPointsContainer(i2),
                     this->mAuxPointsContainer(i3));
 
-                // Determine if the subdivision is wether in the negative or the positive side
+                // Determine if the subdivision is whether in the negative or the positive side
+                // Note that zero distance nodes are also identified and stored in here 
                 unsigned int neg = 0, pos = 0;
                 if(i0 <= 3) { if (nodal_distances(i0) < 0.0) neg++; else if (nodal_distances(i0) > 0.0) pos++; else mNodeIsCut.set(i0); }
                 if(i1 <= 3) { if (nodal_distances(i1) < 0.0) neg++; else if (nodal_distances(i1) > 0.0) pos++; else mNodeIsCut.set(i1); }
