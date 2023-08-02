@@ -187,7 +187,6 @@ namespace Kratos
     template<class TPointType>
     void DivideTetrahedra3D4<TPointType>::GenerateIntersectionsSkin() {
         // Set some geometry constant parameters
-        const int n_nodes = 4;
         const unsigned int n_faces = 4;
 
         // Clear the interfaces vectors
