@@ -19,6 +19,12 @@ namespace Kratos {
         bool RefineOnReference, 
         bool InterpolateInternalVariables) 
     {
+        //checking all elements to be refined are linear tets
+        block_for_each(mModelPart.Elements(), [&](Element element) {
+            if(element.Has(SPLIT_ELEMENT) && element.GetValue(SPLIT_ELEMENT)){
+                KRATOS_ERROR_IF_NOT(element.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4) << "Element #" << element.Id() << " is not a linear tetrahedron" << std::endl;
+            }
+        });
         LocalRefineMesh(RefineOnReference, InterpolateInternalVariables);
     } 
 
@@ -124,9 +130,27 @@ namespace Kratos {
             } else { //element must not be replaced
                 //checking that the element does not have split edges.
                 //which would lead to quad tets in contact with linear tets / other elems
-                CalculateEdges(it->GetGeometry(), Coord, edge_ids, node_ids);
-                for(unsigned int j=4; j<10; j++){
-                    KRATOS_ERROR_IF(node_ids[j]== -2)  << "Element #" << it->Id() << " is in contact with a refined edge" << std::endl;
+                if(it->GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4){
+                    //linear tet. Using member function to find edges
+                    CalculateEdges(it->GetGeometry(), Coord, edge_ids, node_ids);
+                    for(unsigned int j=4; j<10; j++){
+                        KRATOS_ERROR_IF(node_ids[j]== -2 || node_ids[j]>0)  << "Element #" << it->Id() << " is in contact with a refined edge" << std::endl;
+                    }
+                } else {
+                    //using generic(slow) implementation with edges:
+                    const auto& edges = it->GetGeometry().GenerateEdges();
+                    for (unsigned int j = 0; j < edges.size(); j++){
+                        const GeometryType& rEdge = edges[j];
+                        int index_0 = mMapNodeIdToPos[rEdge[0].Id()];
+                        int index_1 = mMapNodeIdToPos[rEdge[1].Id()];
+                        if(index_0>index_1){
+                            const int new_node = Coord(index_1,index_0);
+                            KRATOS_ERROR_IF(new_node== -2 || new_node>0)  << "Element #" << it->Id() << " is in contact with a refined edge" << std::endl;
+                        } else {
+                            const int new_node = Coord(index_0,index_1);
+                            KRATOS_ERROR_IF(new_node== -2 || new_node>0)  << "Element #" << it->Id() << " is in contact with a refined edge" << std::endl;
+                        }
+                    }
                 }
             }
         }

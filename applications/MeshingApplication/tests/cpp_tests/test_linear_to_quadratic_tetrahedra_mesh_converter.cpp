@@ -70,7 +70,8 @@ namespace {
         Properties::Pointer p_properties_1(new Properties(0)); 
         Element::Pointer tetra1 = subMp1.CreateNewElement("Element3D4N", 1, {1, 2, 3, 4}, p_properties_1);
         Element::Pointer tetra2 = subMp2.CreateNewElement("Element3D4N", 2, {2, 3, 4, 5}, p_properties_1);
-        Element::Pointer tetra3 = subMp_unmod.CreateNewElement("Element3D4N", 3, {6, 7, 8, 9}, p_properties_1);
+        subMp_unmod.CreateNewElement("Element3D4N", 3, {6, 7, 8, 9}, p_properties_1);
+        subMp_unmod.CreateNewElement("Element3D3N", 4, {6, 7, 8}, p_properties_1);
 
         subMp2.AddNode(modelpart.pGetNode(5));
         subMp2.AddNode(modelpart.pGetNode(2));
@@ -81,8 +82,6 @@ namespace {
         subMp_unmod.AddNode(modelpart.pGetNode(7));
         subMp_unmod.AddNode(modelpart.pGetNode(8));
         subMp_unmod.AddNode(modelpart.pGetNode(9));
-
-
 
     
         std::vector<double> volumes(4); 
@@ -110,7 +109,7 @@ namespace {
         KRATOS_CHECK_EQUAL(subMp0.Nodes().size(),14); //Also in the first level submodelpart
         KRATOS_CHECK_EQUAL(subMp1.Nodes().size(),14); //Also in the second level submodelpart
         KRATOS_CHECK_EQUAL(subMp2.Nodes().size(),10); //In the third level submodelpart only 10 nodes
-        KRATOS_CHECK_EQUAL(modelpart.Elements().size(),3); //No new elements are added
+        KRATOS_CHECK_EQUAL(modelpart.Elements().size(),4); //No new elements are added
         KRATOS_CHECK_EQUAL(subMp1.Elements().size(),2); //No new elements are added
         KRATOS_CHECK_EQUAL(subMp2.Elements().size(),1); //No new elements are added
         KRATOS_CHECK_EQUAL(subMp2.Conditions().size(),1); //No new conditions are added
@@ -130,8 +129,10 @@ namespace {
                 KRATOS_CHECK_EQUAL(Distance(points[3],points[0]), Distance(points[3],points[7]) + Distance(points[7],points[0]));
                 KRATOS_CHECK_EQUAL(Distance(points[0],points[2]), Distance(points[0],points[6]) + Distance(points[6],points[0]));
                 KRATOS_CHECK_EQUAL(Distance(points[1],points[3]), Distance(points[1],points[8]) + Distance(points[8],points[1]));
-            }else{ //original linear tet
+            }else if(elem.Id()==3) { //original linear tet
                 KRATOS_CHECK_EQUAL(geometryType, GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4);
+            } else {
+                KRATOS_CHECK_EQUAL(geometryType, GeometryData::KratosGeometryType::Kratos_Triangle3D3);
             }
         }
 
