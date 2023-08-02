@@ -3,7 +3,7 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 from KratosMultiphysics.testing.utilities import ReadModelPart
-from KratosMultiphysics.OptimizationApplication.responses.geometric_centroid_deviation import GeometricCentroidDeviation
+from KratosMultiphysics.OptimizationApplication.responses.geometric_centroid_deviation_response_function import GeometricCentroidDeviationResponseFunction
 
 class TestGeometricCentroidDeviationResponseFunction(kratos_unittest.TestCase):
     @classmethod
@@ -13,7 +13,7 @@ class TestGeometricCentroidDeviationResponseFunction(kratos_unittest.TestCase):
         with kratos_unittest.WorkFolderScope(".", __file__, True):
             ReadModelPart("../model_part_utils_test/quads", cls.model_part)
 
-        cls.response_function = GeometricCentroidDeviation("geo_centroid", cls.model, Kratos.Parameters("""{"evaluated_model_part_names": ["test"]}"""))
+        cls.response_function = GeometricCentroidDeviationResponseFunction("geo_centroid", cls.model, Kratos.Parameters("""{"evaluated_model_part_names": ["test"]}"""))
         cls.response_function.Initialize()
         cls.response_function.Check()
         cls.ref_value = cls.response_function.CalculateValue()

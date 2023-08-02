@@ -10,13 +10,13 @@ from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities i
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ResponseFunction:
     if not parameters.Has("name"):
-        raise RuntimeError(f"GeometricCentroidDeviation instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"GeometricCentroidDeviationResponseFunction instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
-        raise RuntimeError(f"GeometricCentroidDeviation instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"GeometricCentroidDeviationResponseFunction instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
-    return GeometricCentroidDeviation(parameters["name"].GetString(), model, parameters["settings"])
+    return GeometricCentroidDeviationResponseFunction(parameters["name"].GetString(), model, parameters["settings"])
 
-class GeometricCentroidDeviation(ResponseFunction):
+class GeometricCentroidDeviationResponseFunction(ResponseFunction):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):
         super().__init__(name)
 
@@ -31,7 +31,7 @@ class GeometricCentroidDeviation(ResponseFunction):
 
         evaluated_model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
         if len(evaluated_model_part_names) == 0:
-            raise RuntimeError(f"No model parts were provided for GeometricCentroidDeviation. [ response name = \"{self.GetName()}\"]")
+            raise RuntimeError(f"No model parts were provided for GeometricCentroidDeviationResponseFunction. [ response name = \"{self.GetName()}\"]")
 
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
         self.model_part: Optional[Kratos.ModelPart] = None
@@ -41,7 +41,7 @@ class GeometricCentroidDeviation(ResponseFunction):
 
     def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
         if self.model_part is None:
-            raise RuntimeError("Please call GeometricCentroidDeviation::Initialize first.")
+            raise RuntimeError("Please call GeometricCentroidDeviationResponseFunction::Initialize first.")
         return self.model_part
 
     def GetAnalysisModelPart(self) -> None:
