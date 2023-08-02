@@ -124,7 +124,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
 
     //Variables computed at each GP
     rVariables.Np.resize(TNumNodes, false);
-    //    rVariables.GradNpT.resize(TNumNodes, TDim, false);
 
     //General Variables
     const GeometryType& Geom = this->GetGeometry();
@@ -136,10 +135,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeElementVariables(
 
     // gradient of shape functions and determinant of Jacobian
     rVariables.detJContainer.resize(NumGPoints, false);
-
-    //Geom.ShapeFunctionsIntegrationPointsGradients(rVariables.DN_DXContainer,
-    //    rVariables.detJContainer,
-    //    this->GetIntegrationMethod());
 
     KRATOS_CATCH("")
 }
@@ -472,9 +467,9 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::InitializeProperties()
     rVariables.maximalStorage = rProp[SMAX_COEFFICIENT];
 
     const GeometryType& Geom = this->GetGeometry();
-    rVariables.roughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   //TODO: This value does not get read correctly
+    rVariables.roughnessTemperature = Geom[0].FastGetSolutionStepValue(AIR_TEMPERATURE, 1);   // This value is not read correctly
     rVariables.waterStorage = 0.0;                                                            // it is related to the initial value of the table
-    rVariables.netRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);  //TODO: This value does not get read correctly, initial value of the table
+    rVariables.netRadiation = Geom[0].FastGetSolutionStepValue(SOLAR_RADIATION, 1);  // This value is not read correctly, initial value of the table
 
     KRATOS_CATCH("")
 }
@@ -490,8 +485,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateKinematics(
 
     //Setting the vector of shape functions and the matrix of the shape functions global gradients
     rVariables.Np = row(rVariables.NContainer, PointNumber);
-    //rVariables.GradNpT = rVariables.DN_DXContainer[PointNumber];
-
     rVariables.detJ = rVariables.detJContainer[PointNumber];
 
     KRATOS_CATCH("")

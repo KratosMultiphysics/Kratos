@@ -95,7 +95,6 @@ protected:
 
         array_1d<double, TNumNodes> leftHandSideFlux;
         array_1d<double, TNumNodes> rightHandSideFlux;
-        //Matrix GradNpT;
         Vector detJContainer;
         Matrix NContainer;
         //GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
@@ -116,18 +115,10 @@ protected:
 
     void CalculateAll(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo);
-
-    //void CalculateRHS(VectorType& rRightHandSideVector,
-    //                  const ProcessInfo& CurrentProcessInfo) override;
     
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
-
-
-    //virtual void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-    //    const Matrix& Jacobian,
-    //    const double& Weight);
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
         const Matrix& Jacobian,
@@ -138,10 +129,6 @@ protected:
 
     void CalculateNodalFluxes(const ProcessInfo& CurrentProcessInfo,
         ElementVariables& rVariables);
-
-    //void CalculateAll(MatrixType& rLeftHandSideMatrix,
-    //    VectorType& rRightHandSideVector,
-    //    const ProcessInfo& CurrentProcessInfo);
 
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo);
