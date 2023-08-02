@@ -893,7 +893,7 @@ public:
     *        projection has to be found.
     * @param rProjectedPointLocalCoordinates the location of the
     *        projection in local coordinates.
-    * @param Tolerance Not used.
+    * @param Tolerance not used.
     * @return 1
     */
     int ProjectionPointGlobalToLocalSpace(
@@ -902,8 +902,8 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const override
     {
-        const CoordinatesArrayType lower_point = this->begin()->GetInitialPosition();
-        const CoordinatesArrayType upper_point = (this->end()-1)->GetInitialPosition();
+        const CoordinatesArrayType& lower_point = this->begin()->GetInitialPosition();
+        const CoordinatesArrayType& upper_point = (this->end()-1)->GetInitialPosition();
 
         const Vector& knots_u = this->KnotsU();
         const SizeType n_knots_u = this->NumberOfKnotsU();
