@@ -66,25 +66,9 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor.
-     */
-    GeoThermalDispersion2DLaw();
-
-    /**
      * @brief The clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    GeoThermalDispersion2DLaw(const GeoThermalDispersion2DLaw& rOther);
-
-
-    /**
-     * @brief Destructor.
-     */
-    ~GeoThermalDispersion2DLaw() override;
 
     /**
      * @brief Dimension of the law:
