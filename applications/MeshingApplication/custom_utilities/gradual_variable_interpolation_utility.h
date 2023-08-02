@@ -22,7 +22,7 @@
 
 namespace Kratos {
 
-class GradualVariableInterpolationUtility {
+class KRATOS_API(MESHING_APPLICATION) GradualVariableInterpolationUtility {
 public:
     KRATOS_CLASS_POINTER_DEFINITION(GradualVariableInterpolationUtility);
 
