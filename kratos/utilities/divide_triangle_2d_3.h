@@ -195,6 +195,8 @@ private:
     ///@name Private Inquiry
     ///@{
 
+    bool NodeIsInterface(int NodeKey) const;
+
     ///@}
     ///@name Un accessible methods
     ///@{
