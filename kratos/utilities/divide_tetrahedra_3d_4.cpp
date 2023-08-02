@@ -245,7 +245,8 @@ namespace Kratos
                     int node_k_key = r_face[2].Id();
 
                     // Check the nodal keys to state which nodes belong to the interface
-                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
+                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliary interface points
+                    // For the zero distance case, the corresponding node is considered as part of the interface
                     if (NodeIsInterface(node_i_key) && NodeIsInterface(node_j_key) && NodeIsInterface(node_k_key)) {
                         // Generate an indexed point triangle geometry pointer with the two interface nodes
                         IndexedPointGeometryPointerType p_intersection_tri = Kratos::make_shared<IndexedPointTriangleType>(this->mAuxPointsContainer(node_i_key),
