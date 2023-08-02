@@ -69,14 +69,15 @@ def GetValueForVariable(variable: Any) -> Any:
     else:
         raise RuntimeError(f"Unsupported variable [ variable = {variable} ].")
 
-def GetFormattedInt(value: int, precision: int) -> str:
+def GetValueExponentLength(value) -> int:
     abs_value = abs(value)
     if abs_value >= 1e+100:
-        exponents = int(log10(log10(abs_value))) + 1
+        return int(log10(log10(abs_value))) + 1
     else:
-        exponents = 2
+        return 2
 
-    fixed_scientific_str = ("{: ." + str(precision - exponents) + "e}").format(value)
+def GetFormattedInt(value: int, precision: int) -> str:
+    fixed_scientific_str = ("{: ." + str(precision - GetValueExponentLength(value)) + "e}").format(value)
     fixed_str = ("{:> " + str(len(fixed_scientific_str)) + "d}").format(value)
     if len(fixed_str) <= len(fixed_scientific_str):
         return fixed_str
@@ -84,13 +85,7 @@ def GetFormattedInt(value: int, precision: int) -> str:
         return fixed_scientific_str
 
 def GetFormattedFloat(value: float, precision: int) -> str:
-    abs_value = abs(value)
-    if abs_value >= 1e+100:
-        exponents = int(log10(log10(abs_value))) + 1
-    else:
-        exponents = 2
-
-    fixed_scientific_str = ("{: ." + str(precision - exponents) + "e}").format(value)
+    fixed_scientific_str = ("{: ." + str(precision - GetValueExponentLength(value)) + "e}").format(value)
     fixed_str = ("{: ." + str(precision) + "f}").format(value)
     if len(fixed_str) <= len(fixed_scientific_str):
         return fixed_str
@@ -159,6 +154,18 @@ class SpatialStatisticsOperation(ABC):
     def GetContainerInfo(self) -> str:
         return self.container_location.name
 
+    def _GetSuffixedTaggedHeaders(self, header_details: 'dict[str, bool]', method_name: str) -> 'list[str]':
+        if self.norm is None:
+            dummy_value = GetShapeSynchronizedValue(self.model_part, self.variable, self.container_location)
+        else:
+            dummy_value = 0.0
+
+        list_of_tagged_headers = []
+        for suffix in GetListOfValueHeaderSuffixes(dummy_value):
+            header = GetTaggedHeader(header_details, self.container_location.name, self.variable.Name(), self.norm, suffix, method_name)
+            list_of_tagged_headers.append(header)
+        return list_of_tagged_headers
+
     def __str__(self) -> str:
         return f"{self.GetVarianbleInfo()} - {self.GetNormInfo()} - {self.GetContainerInfo()} - {self.GetMethodInfo()}"
 
@@ -199,16 +206,10 @@ class SpatialStatisticsValueOperation(SpatialStatisticsOperation):
         return ", ".join(list_of_str_values)
 
     def GetHeadersString(self, header_details: 'dict[str, bool]') -> 'str':
-        if self.norm is None:
-            dummy_value = GetShapeSynchronizedValue(self.model_part, self.variable, self.container_location)
-        else:
-            dummy_value = 0.0
-
         value_length = GetFormattedFloat(1e+100, self.precision)
 
         list_of_headers = []
-        for suffix in GetListOfValueHeaderSuffixes(dummy_value):
-            header = GetTaggedHeader(header_details, self.container_location.name, self.variable.Name(), self.norm, suffix, self.method.__name__.lower())
+        for header in self._GetSuffixedTaggedHeaders(header_details, self.GetMethodInfo()):
             header = header.replace("<TAG>", "").strip()
             if len(header) < len(value_length):
                 header = ("{:>" + str(len(value_length)) + "s}").format(header)
@@ -247,18 +248,11 @@ class SpatialStatisticsValueIndexPairOperation(SpatialStatisticsOperation):
         return ", ".join(list_of_str_values)
 
     def GetHeadersString(self, header_details: 'dict[str, bool]') -> 'str':
-        if self.norm is None:
-            dummy_value = GetShapeSynchronizedValue(self.model_part, self.variable, self.container_location)
-        else:
-            dummy_value = 0.0
-
         value_length = GetFormattedFloat(1e+100, self.precision)
         id_length = GetFormattedInt(int(1e+100), self.precision)
 
         list_of_headers = []
-        for suffix in GetListOfValueHeaderSuffixes(dummy_value):
-            header = GetTaggedHeader(header_details, self.container_location.name, self.variable.Name(), self.norm, suffix, self.method.__name__.lower())
-
+        for header in self._GetSuffixedTaggedHeaders(header_details, self.GetMethodInfo()):
             value_header = header.replace("<TAG>", "value")
             if len(value_header) < len(value_length):
                 value_header = ("{:>" + str(len(value_length)) + "s}").format(value_header)
@@ -302,17 +296,10 @@ class SpatialStatisticsVarianceOperation(SpatialStatisticsOperation):
         return ", ".join(list_of_str_values)
 
     def GetHeadersString(self, header_details: 'dict[str, bool]') -> 'str':
-        if self.norm is None:
-            dummy_value = GetShapeSynchronizedValue(self.model_part, self.variable, self.container_location)
-        else:
-            dummy_value = 0.0
-
         value_length = GetFormattedFloat(1e+100, self.precision)
 
         list_of_headers = []
-        for suffix in GetListOfValueHeaderSuffixes(dummy_value):
-            header = GetTaggedHeader(header_details, self.container_location.name, self.variable.Name(), self.norm, suffix, "")
-
+        for header in self._GetSuffixedTaggedHeaders(header_details, ""):
             mean_header = header.replace("<TAG>", "mean")
             if len(mean_header) < len(value_length):
                 mean_header = ("{:>" + str(len(value_length)) + "s}").format(mean_header)
@@ -403,18 +390,11 @@ class SpatialStatisticsDistributionOperation(SpatialStatisticsOperation):
         return ", ".join(list_of_str_values)
 
     def GetHeadersString(self, header_details: 'dict[str, bool]') -> 'str':
-        if self.norm is None:
-            dummy_value = GetShapeSynchronizedValue(self.model_part, self.variable, self.container_location)
-        else:
-            dummy_value = 0.0
-
         value_length = GetFormattedFloat(1e+100, self.precision)
         id_length = GetFormattedInt(int(1e+100), self.precision)
 
         list_of_headers = []
-        for suffix in GetListOfValueHeaderSuffixes(dummy_value):
-            header = GetTaggedHeader(header_details, self.container_location.name, self.variable.Name(), self.norm, suffix, "")
-
+        for header in self._GetSuffixedTaggedHeaders(header_details, ""):
             min_header = header.replace("<TAG>", "min")
             if len(min_header) < len(value_length):
                 min_header = ("{:>" + str(len(value_length)) + "s}").format(min_header)
