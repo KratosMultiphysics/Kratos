@@ -94,6 +94,11 @@ void HighCycleFatigueDataContainer::CalculatePK2Stress(
                                     mPreviousStresses,
                                     max_indicator,
                                     min_indicator);
+
+    // KRATOS_WATCH(max_stress);
+    // KRATOS_WATCH(min_stress);
+    // KRATOS_WATCH(max_indicator);
+    // KRATOS_WATCH(min_indicator);
 }
 
 /***********************************************************************************/
