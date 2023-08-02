@@ -63,6 +63,8 @@ public:
     ///@}
     ///@name Life Cycle
     ///@{
+    TableAccessor()
+    {}
 
     /// Custom constructor
     TableAccessor(VariableType* pInputVariable, const std::string& rInputVariableType = "node_historical") 
