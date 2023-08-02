@@ -109,7 +109,11 @@ namespace Kratos
         const Point& A_uvw, const Point& B_uvw, SizeType OrderU, SizeType OrderV,SizeType NumKnotSpansU, SizeType NumKnotSpansV)
     {
         KRATOS_ERROR_IF( B_xyz.X() <= A_xyz.X() || B_xyz.Y() <= A_xyz.Y() ) << "NurbsGeometryModeler: "
-            << "The two Points A and B must meet the following requirement: (B-A) > (0,0,0). However, (B-A)=" << B_xyz-A_xyz << std::endl;
+            << "The two Points A_xyz and B_xyz must meet the following requirement: (B_xyz-A_xyz) > (0,0,0). However, (B_xyz-A_xyz)=" << B_xyz-A_xyz << std::endl;
+
+        KRATOS_ERROR_IF( B_uvw.X() <= A_uvw.X() || B_uvw.Y() <= A_uvw.Y() ) << "NurbsGeometryModeler: "
+            << "The two Points A_uvw and B_uvw must meet the following requirement: (B_uvw-A_uvw) > (0,0,0). However, (B_uvw-A_uvw)=" << B_uvw-A_uvw << std::endl;
+
 
         PointerVector<NodeType> points;
         double delta_x = std::abs(B_xyz.X()-A_xyz.X())/OrderU;
@@ -241,10 +245,10 @@ namespace Kratos
         SizeType NumKnotSpansU, SizeType NumKnotSpansV, SizeType NumKnotSpansW )
     {
         KRATOS_ERROR_IF( B_xyz.X() <= A_xyz.X() || B_xyz.Y() <= A_xyz.Y() || B_xyz.Z() <= A_xyz.Z() ) << "NurbsGeometryModeler: "
-            << "The two Points A and B must meet the following requirement: (B-A) > (0,0,0). However, (B-A)=" << B_xyz-A_xyz << std::endl;
+            << "The two Points A_xyz and B_xyz must meet the following requirement: (B_xyz-A_xyz) > (0,0,0). However, (B_xyz-A_xyz)=" << B_xyz-A_xyz << std::endl;
 
         KRATOS_ERROR_IF( B_uvw.X() <= A_uvw.X() || B_uvw.Y() <= A_uvw.Y() || B_uvw.Z() <= A_uvw.Z() ) << "NurbsGeometryModeler: "
-            << "The two Points A and B must meet the following requirement: (B-A) > (0,0,0). However, (B-A)=" << B_uvw-A_uvw << std::endl;
+            << "The two Points A_uvw and B_uvw must meet the following requirement: (B_uvw-A_uvw) > (0,0,0). However, (B_uvw-A_uvw)=" << B_uvw-A_uvw << std::endl;
 
         // Set up control points.
         // Note: The CP's are uniformly subdivided with increasing p.
