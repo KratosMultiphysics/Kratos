@@ -138,6 +138,17 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         else:
             self.CreateInitialSkin = self.FEM_Solution.ProjectParameters["create_initial_skin"].GetBool()
 
+        if self.FEM_Solution.ProjectParameters.Has("do_stabilization_solve") == False:
+            self.do_stabilization_solve = False
+        else:
+            self.do_stabilization_solve = self.FEM_Solution.ProjectParameters["do_stabilization_solve"].GetBool()
+
+        if self.CreateInitialSkin:
+            self.ComputeSkinSubModelPart()
+            if self.DEMFEM_contact:
+                self.TransferFEMSkinToDEM()
+            KratosFemDem.GenerateInitialSkinDEMProcess(self.FEM_Solution.main_model_part, self.SpheresModelPart).Execute()
+
         # Initialize the coupled post process
         if not self.is_slave:
             self.InitializePostProcess()

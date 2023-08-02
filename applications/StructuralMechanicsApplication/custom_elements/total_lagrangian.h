@@ -3,19 +3,16 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //
 
-
 #pragma once
 
-
 // System includes
-
 
 // External include
 
@@ -51,7 +48,6 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-
 class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) TotalLagrangian
     : public BaseSolidElement
 {

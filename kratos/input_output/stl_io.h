@@ -85,7 +85,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef ModelPart::GeometriesMapType GeometriesMapType;
+    using GeometriesMapType = ModelPart::GeometriesMapType;
+    using NodesArrayType = Element::NodesArrayType;
 
     /// Pointer definition of StlIO
     KRATOS_CLASS_POINTER_DEFINITION(StlIO);
@@ -95,10 +96,14 @@ public:
     ///@{
 
     /// Constructor with filename, and open option with default being read mode
-    StlIO(std::filesystem::path const& Filename, const Flags Options = IO::READ);
+    StlIO(
+        std::filesystem::path const& Filename,
+        Parameters ThisParameters = Parameters());
 
     /// Constructor with stream.
-    StlIO(Kratos::shared_ptr<std::iostream> pInputStream);
+    StlIO(
+        Kratos::shared_ptr<std::iostream> pInputStream,
+        Parameters ThisParameters = Parameters());
 
     /// Destructor.
     virtual ~StlIO(){}
@@ -110,6 +115,8 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    static Parameters GetDefaultParameters();
 
     void ReadModelPart(ModelPart & rThisModelPart) override;
 
@@ -148,6 +155,12 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
+
+    Parameters mParameters;
+
+    std::size_t mNextNodeId = 0;
+    std::size_t mNextElementId = 0;
+    std::size_t mNextConditionId = 0;
 
     ///@}
     ///@name Protected Operators
@@ -189,11 +202,17 @@ private:
     ///@name Private Operations
     ///@{
 
-    void ReadSolid(ModelPart & rThisModelPart);
-    
-    void ReadFacet(ModelPart & rThisModelPart);
+    void ReadSolid(
+        ModelPart & rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor );
 
-    void ReadLoop(ModelPart & rThisModelPart);
+    void ReadFacet(
+        ModelPart & rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor);
+
+    void ReadLoop(
+        ModelPart & rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor);
 
     Point ReadPoint();
 
@@ -207,7 +226,7 @@ private:
     void WriteFacet(const GeometryType & rGeom);
 
     bool IsValidGeometry(
-        const Geometry<Node<3>>& rGeometry,
+        const Geometry<Node>& rGeometry,
         std::size_t& rNumDegenerateGeos) const;
 
     ///@}

@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -63,6 +63,7 @@ KRATOS_CREATE_VARIABLE(double, TORSIONAL_INERTIA)
 KRATOS_CREATE_VARIABLE(double, I22)
 KRATOS_CREATE_VARIABLE(double, I33)
 KRATOS_CREATE_VARIABLE(double, LUMPED_MASS_ROTATION_COEFFICIENT)
+KRATOS_CREATE_VARIABLE(Vector, BEAM_INITIAL_STRAIN_VECTOR)
 
 // Shell generalized variables
 KRATOS_CREATE_VARIABLE(bool, STENBERG_SHEAR_STABILIZATION_SUITABLE)

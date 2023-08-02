@@ -57,13 +57,13 @@ namespace Kratos
     typedef ModelPart::ElementsContainerType                  ElementsContainerType;
     typedef ModelPart::NodesContainerType                        NodesContainerType;
     typedef ModelPart::MeshType::GeometryType::PointsArrayType      PointsArrayType;
-    typedef std::vector<Node<3>::Pointer >                       PointPointerVector;
+    typedef std::vector<Node::Pointer >                       PointPointerVector;
 
-    typedef Kratos::weak_ptr<Node<3> > NodeWeakPtrType;
+    typedef Kratos::weak_ptr<Node > NodeWeakPtrType;
     typedef Kratos::weak_ptr<Element> ElementWeakPtrType;
     typedef Kratos::weak_ptr<Condition> ConditionWeakPtrType;
 
-    typedef GlobalPointersVector<Node<3> > NodeWeakPtrVectorType;
+    typedef GlobalPointersVector<Node > NodeWeakPtrVectorType;
     typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
     typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
@@ -221,7 +221,7 @@ namespace Kratos
     void TransferData(ModelPart& rModelPart,
 		      const Element & rReferenceElement,
 		      PointPointerVector &list_of_new_centers,
-		      std::vector<Geometry<Node<3> > >& list_of_new_vertices,
+		      std::vector<Geometry<Node > >& list_of_new_vertices,
 		      Flags Options);
 
 
@@ -307,7 +307,7 @@ namespace Kratos
     void TransferNodalValuesToElements(ModelPart& rModelPart,
 				       const Element & rReferenceElement,
 				       PointPointerVector &list_of_new_centers,
-				       std::vector<Geometry<Node<3> > >& list_of_new_vertices);
+				       std::vector<Geometry<Node > >& list_of_new_vertices);
 
 
     //*******************************************************************************************
@@ -315,7 +315,7 @@ namespace Kratos
     void TransferElementalValuesToNodes(ModelPart& rModelPart,
 					const Element & rReferenceElement,
 					PointPointerVector &list_of_new_centers,
-					std::vector<Geometry<Node<3> > >& list_of_new_vertices);
+					std::vector<Geometry<Node > >& list_of_new_vertices);
 
 
     //*******************************************************************************************
@@ -324,7 +324,7 @@ namespace Kratos
     void TransferElementalValuesToElements(ModelPart& rModelPart,
 					   const Element & rReferenceElement,
 					   PointPointerVector &list_of_new_centers,
-					   std::vector<Geometry<Node<3> > >& list_of_new_vertices);
+					   std::vector<Geometry<Node > >& list_of_new_vertices);
 
 
 
@@ -441,33 +441,33 @@ namespace Kratos
 
 
     void FillVectorData( VariablesList& rVariablesList,
-			 Node<3>& rNode );
+			 Node& rNode );
 
 
-    void Interpolate( Geometry<Node<3> >& geom,
+    void Interpolate( Geometry<Node >& geom,
 		      const std::vector<double>& N,
 		      VariablesList& rVariablesList,
-		      Node<3>::Pointer pnode,
+		      Node::Pointer pnode,
 		      double alpha = 1.0 );
 
 
-    VariablesListDataValueContainer InterpolateVariables( Geometry<Node<3> >& geom,
+    VariablesListDataValueContainer InterpolateVariables( Geometry<Node >& geom,
 							  const std::vector<double>& N,
 							  VariablesList& rVariablesList,
-							  Node<3>::Pointer pnode,
+							  Node::Pointer pnode,
 							  double alpha = 1.0 );
     //doubles only
-    void InterpolateData( Geometry<Node<3> >& geom,
+    void InterpolateData( Geometry<Node >& geom,
 			  const std::vector<double>& N,
 			  unsigned int step_data_size,
-			  Node<3>::Pointer pnode,
+			  Node::Pointer pnode,
 			  double alpha = 1.0 );
 
 
-    VariablesListDataValueContainer InterpolateVariablesData( Geometry<Node<3> >& geom,
+    VariablesListDataValueContainer InterpolateVariablesData( Geometry<Node >& geom,
 							      const std::vector<double>& N,
 							      unsigned int step_data_size,
-							      Node<3>::Pointer pnode,
+							      Node::Pointer pnode,
 							      double alpha = 1.0 );
 
 

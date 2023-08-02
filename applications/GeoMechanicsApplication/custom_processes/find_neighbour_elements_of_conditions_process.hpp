@@ -11,24 +11,17 @@
 //
 
 
-#ifndef KRATOS_FIND_NEIGHBOUR_ELEMENTS_OF_CONDITIONS_PROCESS
-#define KRATOS_FIND_NEIGHBOUR_ELEMENTS_OF_CONDITIONS_PROCESS
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
-// #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-
 
 namespace Kratos
 {
 ///@name Type Definitions
 ///@{
-    typedef std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
+    using hashmap = std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>>>;
 
 ///@}
 ///@name Kratos Classes
@@ -54,7 +47,7 @@ public:
     typedef std::size_t IndexType;
 
     /// Definition of the node type
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     // Definition of the geometry
     typedef Geometry<NodeType> GeometryType;
@@ -73,8 +66,9 @@ public:
     {
     }
 
-    /// Destructor.
-    ~FindNeighbourElementsOfConditionsProcess() override {}
+    FindNeighbourElementsOfConditionsProcess& operator=(const FindNeighbourElementsOfConditionsProcess&) = delete;
+    FindNeighbourElementsOfConditionsProcess(const FindNeighbourElementsOfConditionsProcess&) = delete;
+    ~FindNeighbourElementsOfConditionsProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -114,12 +108,6 @@ public:
         return "FindNeighbourElementsOfConditionsProcess";
     }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "FindNeighbourElementsOfConditionsProcess";
-    }
-
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
@@ -128,13 +116,6 @@ public:
 
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -154,18 +135,14 @@ private:
     ///@name Private Operations
     ///@{
 
-    ///@}
-    ///@name Un accessible methods
-    ///@{
+    bool CheckIfAllConditionsAreVisited() const;
 
-    /// Assignment operator.
-    FindNeighbourElementsOfConditionsProcess& operator=(FindNeighbourElementsOfConditionsProcess const& rOther);
+    void CheckIf1DElementIsNeighbour(hashmap& rFacesMap);
 
-    /// Copy constructor.
-    FindNeighbourElementsOfConditionsProcess(FindNeighbourElementsOfConditionsProcess const& rOther);
+    static void CheckForMultipleConditionsOnElement(hashmap& rFacesMap, hashmap::iterator& rItFace,
+        PointerVector<Element>::iterator pItElem);
 
     ///@}
-
 }; // Class Process
 
 ///@}
@@ -194,7 +171,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-} // namespace Kratos
-
-
-#endif // KRATOS_FIND_NEIGHBOUR_ELEMENTS_OF_CONDITIONS_PROCESS
+}

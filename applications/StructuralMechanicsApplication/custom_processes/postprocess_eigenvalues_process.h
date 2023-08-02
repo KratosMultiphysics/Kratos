@@ -1,11 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
@@ -55,14 +54,21 @@ public:
     ///@name Life Cycle
     ///@{
 
-    PostprocessEigenvaluesProcess(ModelPart& rModelPart,
-                                  Parameters OutputParameters);
+    PostprocessEigenvaluesProcess(
+        Model& rModel,
+        Parameters OutputParameters);
 
     ///@}
     ///@name Operations
     ///@{
 
     void ExecuteFinalizeSolutionStep() override;
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    const Parameters GetDefaultParameters() const override;
 
     ///@}
     ///@name Input and output
@@ -88,7 +94,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
+    ModelPart* mpModelPart;
     Parameters mOutputParameters;
 
     ///@}

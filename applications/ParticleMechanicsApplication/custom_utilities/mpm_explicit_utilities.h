@@ -41,7 +41,7 @@ namespace Kratos
         /// The arrays of elements and nodes
         typedef ModelPart::ElementsContainerType ElementsArrayType;
         typedef ModelPart::NodesContainerType NodesArrayType;
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
 
         void KRATOS_API(PARTICLE_MECHANICS_APPLICATION) CalculateAndAddExplicitInternalForce(const ProcessInfo& rProcessInfo,

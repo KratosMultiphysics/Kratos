@@ -34,7 +34,7 @@ SymmetryUtility::SymmetryUtility(std::string Name, ModelPart& rModelPart, Parame
         const double norm_normal = norm_2(normal);
         if (norm_normal < std::numeric_limits<double>::epsilon())
             KRATOS_ERROR<<"SymmetryUtility: norm of normal is close to zero"<<std::endl;
-            
+
         mPlaneSymmetryData.Normal = normal/norm_normal;
         mPlaneSymmetryData.ReflectionMatrix = IdentityMatrix(3) - (2*outer_prod(mPlaneSymmetryData.Normal, mPlaneSymmetryData.Normal));
     }
@@ -45,15 +45,15 @@ SymmetryUtility::SymmetryUtility(std::string Name, ModelPart& rModelPart, Parame
         const double norm_axis = norm_2(axis);
         if (norm_axis < std::numeric_limits<double>::epsilon())
             KRATOS_ERROR<<"SymmetryUtility: norm of axis is close to zero"<<std::endl;
-            
+
         mRotationalSymmetryData.Axis = axis/norm_axis;
-        mRotationalSymmetryData.Angle = mSymmetrySettings["settings"]["angle"].GetDouble();  
+        mRotationalSymmetryData.Angle = mSymmetrySettings["settings"]["angle"].GetDouble();
         mRotationalSymmetryData.NumRot = (360.0/mRotationalSymmetryData.Angle);
         for(int r_i=1;r_i<mRotationalSymmetryData.NumRot;r_i++){
             Matrix rot_mat_i;
             GetRotationMatrix(r_i*mRotationalSymmetryData.Angle,rot_mat_i);
             mRotationalSymmetryData.RotationMatrices.push_back(rot_mat_i);
-        }    
+        }
     }
     else
         KRATOS_ERROR<<"SymmetryUtility: type should be either plane or axis"<<std::endl;
@@ -82,7 +82,7 @@ void SymmetryUtility::Initialize()
 
     if(mAxisSymmetry){
 
-        #pragma omp declare reduction (merge : std::vector<std::pair <NodeTypePointer,NodeVector>> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))        
+        #pragma omp declare reduction (merge : std::vector<std::pair <NodeTypePointer,NodeVector>> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
         std::vector<std::pair <NodeTypePointer,NodeVector>>& rMap = mRotationalSymmetryData.Map;
         #pragma omp parallel for reduction(merge: rMap)
         for (auto& r_node : mrModelPart.Nodes()){
@@ -102,7 +102,7 @@ void SymmetryUtility::Initialize()
     }
 
     if(mPlaneSymmetry){
-        #pragma omp declare reduction (merge : std::vector<std::pair <NodeTypePointer,NodeTypePointer>> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))        
+        #pragma omp declare reduction (merge : std::vector<std::pair <NodeTypePointer,NodeTypePointer>> : omp_out.insert(omp_out.end(), omp_in.begin(), omp_in.end()))
         std::vector<std::pair <NodeTypePointer,NodeTypePointer>>& rMap = mPlaneSymmetryData.Map;
         #pragma omp parallel for reduction(merge: rMap)
         for (auto& r_node : mrModelPart.Nodes()){
@@ -111,11 +111,11 @@ void SymmetryUtility::Initialize()
             NodeTypePointer p_neighbor_ref_node = search_tree.SearchNearestPoint(*p_ref_node, distance);
             std::pair <NodeTypePointer,NodeTypePointer> nodes_pair;
             nodes_pair = std::make_pair(mrModelPart.pGetNode(r_node.Id()),p_neighbor_ref_node);
-            rMap.push_back(nodes_pair);          
+            rMap.push_back(nodes_pair);
         }
     }
 
-    KRATOS_INFO("SymmetryUtility::Initialize: ") << " Finished initialization of symmetry utility "<<mUtilName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;    
+    KRATOS_INFO("SymmetryUtility::Initialize: ") << " Finished initialization of symmetry utility "<<mUtilName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
 }
 
 SymmetryUtility::NodeTypePointer SymmetryUtility::GetRotatedNode(NodeType& rNode, int rotation_index){
@@ -155,7 +155,7 @@ void SymmetryUtility::GetRotationMatrix(double angle, Matrix& rRotMat){
 
 void SymmetryUtility::ApplyOnVectorField( const Variable<array_3d> &rNodalVariable )
 {
-    if(mAxisSymmetry){        
+    if(mAxisSymmetry){
         std::vector<Vector> aux;
         #pragma omp parallel
         {
@@ -164,11 +164,11 @@ void SymmetryUtility::ApplyOnVectorField( const Variable<array_3d> &rNodalVariab
             for(auto& r_pair : mRotationalSymmetryData.Map) {
                 Vector vec_val = r_pair.first->FastGetSolutionStepValue(rNodalVariable);
                 Matrix rot_mat;
-                for(int n_c = 0; n_c<r_pair.second.size();n_c++){
+                for(unsigned int n_c = 0; n_c<r_pair.second.size();n_c++){
                     GetRotationMatrix((n_c+1)*mRotationalSymmetryData.Angle,rot_mat);
                     vec_val += prod(trans(rot_mat),r_pair.second[n_c]->FastGetSolutionStepValue(rNodalVariable));
-                }                
-                    
+                }
+
                 vec_val /= (r_pair.second.size()+1);
                 aux_private.push_back(vec_val);
             }
@@ -179,12 +179,12 @@ void SymmetryUtility::ApplyOnVectorField( const Variable<array_3d> &rNodalVariab
             }
         }
 
-        #pragma omp parallel for 
-        for(int i=0;i<aux.size();i++)
+        #pragma omp parallel for
+        for(unsigned int i=0;i<aux.size();i++)
             mRotationalSymmetryData.Map[i].first->FastGetSolutionStepValue(rNodalVariable) = aux[i];
     }
 
-    if(mPlaneSymmetry){  
+    if(mPlaneSymmetry){
 
         std::vector<Vector> aux;
         #pragma omp parallel
@@ -206,17 +206,17 @@ void SymmetryUtility::ApplyOnVectorField( const Variable<array_3d> &rNodalVariab
             }
         }
 
-        #pragma omp parallel for 
-        for(int i=0;i<aux.size();i++)
+        #pragma omp parallel for
+        for(unsigned int i=0;i<aux.size();i++)
             mPlaneSymmetryData.Map[i].first->FastGetSolutionStepValue(rNodalVariable) = aux[i];
-        
+
     }
 }
 
 void SymmetryUtility::ApplyOnScalarField( const Variable<double> &rNodalVariable )
-{    
+{
 
-    if(mAxisSymmetry){        
+    if(mAxisSymmetry){
         std::vector<double> aux;
         #pragma omp parallel
         {
@@ -224,7 +224,7 @@ void SymmetryUtility::ApplyOnScalarField( const Variable<double> &rNodalVariable
             #pragma omp for nowait schedule(static)
             for(auto& r_pair : mRotationalSymmetryData.Map) {
                 double val = r_pair.first->FastGetSolutionStepValue(rNodalVariable);
-                for(int n_c = 0; n_c<r_pair.second.size();n_c++)                
+                for(unsigned int n_c = 0; n_c<r_pair.second.size();n_c++)
                     val += r_pair.second[n_c]->FastGetSolutionStepValue(rNodalVariable);
                 val /= (r_pair.second.size()+1);
                 aux_private.push_back(val);
@@ -236,12 +236,12 @@ void SymmetryUtility::ApplyOnScalarField( const Variable<double> &rNodalVariable
             }
         }
 
-        #pragma omp parallel for 
-        for(int i=0;i<aux.size();i++)
+        #pragma omp parallel for
+        for(unsigned int i=0;i<aux.size();i++)
             mRotationalSymmetryData.Map[i].first->FastGetSolutionStepValue(rNodalVariable) = aux[i];
     }
 
-    if(mPlaneSymmetry){  
+    if(mPlaneSymmetry){
 
         std::vector<double> aux;
         #pragma omp parallel
@@ -261,10 +261,10 @@ void SymmetryUtility::ApplyOnScalarField( const Variable<double> &rNodalVariable
             }
         }
 
-        #pragma omp parallel for 
-        for(int i=0;i<aux.size();i++)
+        #pragma omp parallel for
+        for(unsigned int i=0;i<aux.size();i++)
             mPlaneSymmetryData.Map[i].first->FastGetSolutionStepValue(rNodalVariable) = aux[i];
-        
+
     }
 
 }

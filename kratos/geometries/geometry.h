@@ -1277,19 +1277,6 @@ public:
     ///@name Informations
     ///@{
 
-    /** Dimension of the geometry for example a triangle2d is a 2
-    dimensional shape
-
-    @return SizeType, dimension of this geometry.
-    @see WorkingSpaceDimension()
-    @see LocalSpaceDimension()
-    */
-    KRATOS_DEPRECATED_MESSAGE("'Dimension' is deprecated. Use either 'WorkingSpaceDimension' or 'LocalSpaceDimension' instead.")
-    inline SizeType Dimension() const
-    {
-        return mpGeometryData->Dimension();
-    }
-
     /** Working space dimension. for example a triangle is a 2
     dimensional shape but can be used in 3 dimensional space.
 
@@ -1347,8 +1334,8 @@ public:
         return 0.0;
     }
 
-    /** 
-     * @brief This method calculate and return area or surface area of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculate and return area or surface area of this geometry depending to it's dimension.
      * @details For one dimensional geometry it returns length, for two dimensional it gives area and for three dimensional geometries it gives surface area.
      * @return double value contains area or surface area.
      * @see Length()
@@ -1360,8 +1347,8 @@ public:
         return 0.0;
     }
 
-    /** 
-     * @brief This method calculate and return volume of this geometry. 
+    /**
+     * @brief This method calculate and return volume of this geometry.
      * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
      * @see Length()
@@ -1373,8 +1360,8 @@ public:
         return 0.0;
     }
 
-    /** 
-     * @brief This method calculate and return length, area or volume of this geometry depending to it's dimension. 
+    /**
+     * @brief This method calculate and return length, area or volume of this geometry depending to it's dimension.
      * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
@@ -2116,7 +2103,7 @@ public:
      * @see EdgesNumber()
      * @see Edge()
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdgesInstead)") virtual GeometriesArrayType Edges( void )
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdges instead)") virtual GeometriesArrayType Edges( void )
     {
         return this->GenerateEdges();
     }
@@ -2176,7 +2163,7 @@ public:
      * @see Edges
      * @see FacesNumber
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdgesInstead)") virtual GeometriesArrayType Faces( void )
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateFaces instead)") virtual GeometriesArrayType Faces( void )
     {
         const SizeType dimension = this->LocalSpaceDimension();
         if (dimension == 3) {
@@ -2689,7 +2676,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
-        KRATOS_ERROR << "Calling ProjectionPoinGlobalToLocalSpace within geometry base class."
+        KRATOS_ERROR << "Calling ProjectionPointGlobalToLocalSpace within geometry base class."
             << " Please check the definition within derived class. "
             << *this << std::endl;
     }
@@ -4296,7 +4283,6 @@ inline std::ostream& operator << ( std::ostream& rOStream,
 ///@}
 
 template<class TPointType>
-const GeometryDimension Geometry<TPointType>::msGeometryDimension(
-    3, 3, 3);
+const GeometryDimension Geometry<TPointType>::msGeometryDimension(3, 3);
 
 }  // namespace Kratos.

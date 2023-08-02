@@ -28,7 +28,7 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -57,34 +57,31 @@ public:
     ///@{
 
     /// The definition of the base constraint class
-    typedef MasterSlaveConstraint BaseConstraintType;
+    using BaseConstraintType = MasterSlaveConstraint;
 
     /// The definition of the base class, we take the rest of the definitions from the base class
-    typedef LinearMasterSlaveConstraint BaseType;
+    using BaseType = LinearMasterSlaveConstraint;
 
     /// The index type definition
-    typedef BaseType::IndexType IndexType;
+    using IndexType = typename BaseType::IndexType;
 
     /// The DoF type definition
-    typedef BaseType::DofType DofType;
+    using DofType = typename BaseType::DofType;
 
     /// The DoF pointer vector type definition
-    typedef BaseType::DofPointerVectorType DofPointerVectorType;
-
-    /// The node type definition
-    typedef BaseType::NodeType NodeType;
+    using DofPointerVectorType = typename BaseType::DofPointerVectorType;
 
     /// The equation Id vector type definition
-    typedef BaseType::EquationIdVectorType EquationIdVectorType;
+    using EquationIdVectorType = typename BaseType::EquationIdVectorType;
 
     /// The matrix type definition
-    typedef BaseType::MatrixType MatrixType;
+    using MatrixType = typename BaseType::MatrixType;
 
     /// The vector type definition
-    typedef BaseType::VectorType VectorType;
+    using VectorType = typename BaseType::VectorType;
 
     /// The variable type definition (double)
-    typedef BaseType::VariableType VariableType;
+    using VariableType = typename BaseType::VariableType;
 
     /// Pointer definition of DataValueContainer
     KRATOS_CLASS_POINTER_DEFINITION(ContactMasterSlaveConstraint);
@@ -131,9 +128,9 @@ public:
      */
     ContactMasterSlaveConstraint(
         IndexType Id,
-        NodeType& rMasterNode,
+        Node& rMasterNode,
         const VariableType& rMasterVariable,
-        NodeType& rSlaveNode,
+        Node& rSlaveNode,
         const VariableType& rSlaveVariable,
         const double Weight,
         const double Constant
@@ -186,9 +183,9 @@ public:
      */
     MasterSlaveConstraint::Pointer Create(
         IndexType Id,
-        NodeType& rMasterNode,
+        Node& rMasterNode,
         const VariableType& rMasterVariable,
-        NodeType& rSlaveNode,
+        Node& rSlaveNode,
         const VariableType& rSlaveVariable,
         const double Weight,
         const double Constant
@@ -216,36 +213,6 @@ public:
     void PrintInfo(std::ostream &rOStream) const override;
 
     ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -256,6 +223,7 @@ private:
 
     ///@name Serialization
     ///@{
+
     friend class Serializer;
 
     void save(Serializer &rSerializer) const override;

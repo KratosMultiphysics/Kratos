@@ -88,7 +88,7 @@ namespace Kratos {
     void RigidBodyElement3D::CustomInitialize(ModelPart& rigid_body_element_sub_model_part) {
         if (! rigid_body_element_sub_model_part[IS_RESTARTED]){
 
-            Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
+            Node& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
 
             central_node.FastGetSolutionStepValue(ORIENTATION) = Quaternion<double>::Identity();
             Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
@@ -159,7 +159,7 @@ namespace Kratos {
 
     void RigidBodyElement3D::UpdateLinearDisplacementAndVelocityOfNodes() {
 
-        Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
+        Node& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
         array_1d<double, 3>& rigid_body_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
         array_1d<double, 3> global_relative_coordinates;
         Quaternion<double>& Orientation = central_node.FastGetSolutionStepValue(ORIENTATION);
@@ -186,7 +186,7 @@ namespace Kratos {
 
     void RigidBodyElement3D::UpdateAngularDisplacementAndVelocityOfNodes() {
 
-        Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
+        Node& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
         array_1d<double, 3> global_relative_coordinates;
         array_1d<double, 3> linear_vel_due_to_rotation;
         array_1d<double, 3>& rigid_body_velocity = central_node.FastGetSolutionStepValue(VELOCITY);
@@ -220,7 +220,7 @@ namespace Kratos {
 
     void RigidBodyElement3D::CollectForcesAndTorquesFromTheNodes() {
 
-        Node<3>& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
+        Node& central_node = GetGeometry()[0]; //CENTRAL NODE OF THE RBE
 
         array_1d<double, 3>& center_forces = central_node.FastGetSolutionStepValue(TOTAL_FORCES);
         array_1d<double, 3>& center_torque = central_node.FastGetSolutionStepValue(PARTICLE_MOMENT);

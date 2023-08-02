@@ -24,6 +24,7 @@
 #include "utilities/reduction_utilities.h"
 
 // Application includes
+#include "optimization_application_variables.h"
 
 // Include base h
 #include "model_part_utils.h"
@@ -145,13 +146,13 @@ void ModelPartUtils::UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAn
     using reduction_type = MapReduction<map_type>;
 
     // need to use ptr_iterator here because, we need to increment the reference counter of the entity intrusive_ptr when push_back is used.
-    auto entity_id_ptr_map = BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).template for_each<reduction_type>([&](auto& pEntity) {
-        auto it = rEntityIdsSet.find(pEntity->Id());
+    auto entity_id_ptr_map = block_for_each<reduction_type>(rContainer, [&](auto& rEntity) {
+        auto it = rEntityIdsSet.find(rEntity.Id());
         if (it != rEntityIdsSet.end()) {
-            return std::make_pair(pEntity->Id(), pEntity);
+            return std::make_pair(rEntity.Id(), &rEntity);
         } else {
             // return a dummy entry which is removed later.
-            return std::make_pair(std::numeric_limits<IndexType>::max(), pEntity);
+            return std::make_pair(std::numeric_limits<IndexType>::max(), &rEntity);
         }
     });
 
@@ -174,8 +175,8 @@ void ModelPartUtils::UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAn
     using reduction_type = MapReduction<map_type>;
 
     // need to use ptr_iterator here because, we need to increment the reference counter of the entity intrusive_ptr when push_back is used.
-    auto entity_id_ptr_map = BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).template for_each<reduction_type>([&](auto& pEntity) {
-        auto& r_geometry = pEntity->GetGeometry();
+    auto entity_id_ptr_map = block_for_each<reduction_type>(rContainer, [&](auto& rEntity) {
+        auto& r_geometry = rEntity.GetGeometry();
         NodeIdsType geometry_node_ids(r_geometry.size());
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
             geometry_node_ids[i] = r_geometry[i].Id();
@@ -184,10 +185,10 @@ void ModelPartUtils::UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAn
 
         auto it = rEntityGeometryNodeIdsSet.find(geometry_node_ids);
         if (it != rEntityGeometryNodeIdsSet.end()) {
-            return std::make_pair(pEntity->Id(), pEntity);
+            return std::make_pair(rEntity.Id(), &rEntity);
         } else {
             // return a dummy entry which is removed later.
-            return std::make_pair(std::numeric_limits<IndexType>::max(), pEntity);
+            return std::make_pair(std::numeric_limits<IndexType>::max(), &rEntity);
         }
     });
 
@@ -210,12 +211,12 @@ void ModelPartUtils::UpdateNeighbourMaps(
     using reduction_type = ContainerEntityMapReduction<typename TContainerType::value_type, std::vector<entity_pointer_type>>;
 
     // need to use ptr_iterator here because, we need to increment the reference counter of the entity intrusive_ptr when push_back is used.
-    auto entity_id_ptrs_map = BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).template for_each<reduction_type>([&](auto& pEntity) {
+    auto entity_id_ptrs_map = block_for_each<reduction_type>(rContainer, [&](auto& rEntity) {
         std::vector<std::pair<IndexType, entity_pointer_type>> items;
-        for (const auto& r_node : pEntity->GetGeometry()) {
+        for (const auto& r_node : rEntity.GetGeometry()) {
             auto itr = rNodeIdsSet.find(r_node.Id());
             if (itr != rNodeIdsSet.end()) {
-                items.push_back(std::make_pair(r_node.Id(), pEntity));
+                items.push_back(std::make_pair(r_node.Id(), &rEntity));
             }
         }
         return items;
@@ -584,6 +585,43 @@ void ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReference
         if (it->Name().rfind("<OPTIMIZATION_APP_AUTO>", 0) == 0) {
             it->GetParentModelPart().RemoveSubModelPart(*it);
         }
+    }
+}
+
+void ModelPartUtils::LogModelPartStatus(
+    ModelPart& rModelPart,
+    const std::string& rStatus)
+{
+    if (!rModelPart.Has(MODEL_PART_STATUS)) {
+        rModelPart.SetValue(MODEL_PART_STATUS, {});
+    }
+
+    auto& r_statuses = rModelPart.GetValue(MODEL_PART_STATUS);
+    const auto p_itr = std::find(r_statuses.begin(), r_statuses.end(), rStatus);
+    if (p_itr == r_statuses.end()) {
+        r_statuses.push_back(rStatus);
+    }
+}
+
+std::vector<std::string> ModelPartUtils::GetModelPartStatusLog(ModelPart& rModelPart)
+{
+    if (!rModelPart.Has(MODEL_PART_STATUS)) {
+        return {};
+    } else {
+        return rModelPart.GetValue(MODEL_PART_STATUS);
+    }
+}
+
+bool ModelPartUtils::CheckModelPartStatus(
+    const ModelPart& rModelPart,
+    const std::string& rStatus)
+{
+    if (!rModelPart.Has(MODEL_PART_STATUS)) {
+        return false;
+    } else {
+        const auto& r_statuses = rModelPart.GetValue(MODEL_PART_STATUS);
+        const auto p_itr = std::find(r_statuses.begin(), r_statuses.end(), rStatus);
+        return p_itr != r_statuses.end();
     }
 }
 

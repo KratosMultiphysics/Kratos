@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -44,7 +44,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -84,71 +84,85 @@ public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MortarContactCondition );
 
     /// Base class definitions
-    typedef PairedCondition                                                               BaseType;
+    using BaseType = PairedCondition;
 
     /// Vector type definition
-    typedef typename BaseType::VectorType                                               VectorType;
+    using VectorType = typename BaseType::VectorType;
 
     /// Matrix type definition
-    typedef typename BaseType::MatrixType                                               MatrixType;
+    using MatrixType = typename BaseType::MatrixType;
 
     /// Index type definition
-    typedef typename BaseType::IndexType                                                 IndexType;
+    using IndexType = typename BaseType::IndexType;
 
     /// Geometry pointer definition
-    typedef typename BaseType::GeometryType::Pointer                           GeometryPointerType;
+    using GeometryPointerType = typename BaseType::GeometryType::Pointer;
 
     /// Nodes array type definition
-    typedef typename BaseType::NodesArrayType                                       NodesArrayType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
 
     /// Properties pointer definition
-    typedef typename BaseType::PropertiesType::Pointer                       PropertiesPointerType;
+    using PropertiesPointerType = typename BaseType::PropertiesType::Pointer;
 
     /// Point definition
-    typedef Point                                                                        PointType;
+    using PointType = Point;
 
-    /// Node type definition
-    typedef Node<3>                                                                       NodeType;
-
-    /// Geoemtry type definition
-    typedef Geometry<NodeType>                                                        GeometryType;
+    /// Geometry type definition
+    using GeometryType = Geometry<Node>;
 
     // Type definition for integration methods
-    typedef GeometryType::IntegrationPointsArrayType                         IntegrationPointsType;
+    using IntegrationPointsType = typename GeometryType::IntegrationPointsArrayType;
 
-    /// The type of points belongfs to be considered
-    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type BelongType;
+    /// The type of points belongs to be considered
+    using BelongType = typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type;
 
     /// The definition of the point with belonging
-    typedef PointBelong<TNumNodes, TNumNodesMaster>                                PointBelongType;
+    using PointBelongType = PointBelong<TNumNodes, TNumNodesMaster>;
 
-    typedef Geometry<PointBelongType>                                      GeometryPointBelongType;
+    /// Type definition for the geometry with point belonging
+    using GeometryPointBelongType = Geometry<PointBelongType>;
 
-    typedef array_1d<PointBelongType,TDim>                                      ConditionArrayType;
+    /// Type definition for an array of points with belonging
+    using ConditionArrayType = array_1d<PointBelongType, TDim>;
 
-    typedef typename std::vector<ConditionArrayType>                        ConditionArrayListType;
+    /// Type definition for a list of arrays of points with belonging
+    using ConditionArrayListType = typename std::vector<ConditionArrayType>;
 
-    typedef Line2D2<PointType>                                                            LineType;
+    /// Type definition for a line in 2D
+    using LineType = Line2D2<PointType>;
 
-    typedef Triangle3D3<PointType>                                                    TriangleType;
+    /// Type definition for a triangle in 3D
+    using TriangleType = Triangle3D3<PointType>;
 
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type  DecompositionType;
+    /// The decomposition type
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType >::type;
 
-    typedef typename std::conditional<TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY, DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNumNodesMaster> >::type DerivativeDataType;
+    /// The derivative data type
+    using DerivativeDataType = typename std::conditional<TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY, DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNumNodesMaster> >::type;
 
+    /// The matrix size definition
     static constexpr IndexType MatrixSize = (TFrictional == FrictionalCase::FRICTIONLESS) ? TDim * (TNumNodesMaster + TNumNodes) + TNumNodes : (TFrictional == FrictionalCase::FRICTIONLESS_COMPONENTS || TFrictional == FrictionalCase::FRICTIONAL) ? TDim * (TNumNodesMaster + TNumNodes + TNumNodes) :  TDim * (TNumNodesMaster + TNumNodes);
 
+    /// The definition of the frictional flag
     static constexpr bool IsFrictional  = (TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY) ? true: false;
 
-    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes,TNumNodesMaster>                               GeneralVariables;
+    /// Type definition for general variables with derivatives
+    using GeneralVariables = MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>;
 
-    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>                   AeData;
+    /// Type definition for AE data with derivatives
+    using AeData = DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>;
 
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>                   MortarConditionMatrices;
+    /// Type definition for mortar condition matrices with derivatives
+    using MortarConditionMatrices = MortarOperatorWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>;
 
-    typedef ExactMortarIntegrationUtility<TDim, TNumNodes, true, TNumNodesMaster>                                IntegrationUtility;
+    /// Type definition for integration utility with derivatives
+    using IntegrationUtility = ExactMortarIntegrationUtility<TDim, TNumNodes, true, TNumNodesMaster>;
 
-    typedef DerivativesUtilities<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster>         DerivativesUtilitiesType;
+    /// Type definition for derivatives utilities with derivatives
+    using DerivativesUtilitiesType = DerivativesUtilities<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster>;
+
+    // The threshold coefficient considered for checking
+    static constexpr double CheckThresholdCoefficient = 1.0e-12;
 
     ///@}
     ///@name Life Cycle

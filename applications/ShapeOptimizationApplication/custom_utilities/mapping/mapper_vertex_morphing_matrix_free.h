@@ -61,8 +61,8 @@ public:
     ///@{
 
     // Type definitions for better reading later
-    typedef Node < 3 > NodeType;
-    typedef Node < 3 > ::Pointer NodeTypePointer;
+    typedef Node NodeType;
+    typedef Node ::Pointer NodeTypePointer;
     typedef std::vector<NodeType::Pointer> NodeVector;
     typedef std::vector<NodeType::Pointer>::iterator NodeIterator;
     typedef std::vector<double>::iterator DoubleVectorIterator;

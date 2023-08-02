@@ -48,7 +48,7 @@ void CheckJacobianDimension(GeometryType::JacobiansType &rInvJ0,
 void MoveMesh(ModelPart::NodesContainerType& rNodes) {
     KRATOS_TRY;
 
-    block_for_each(rNodes, [](Node<3>& rNode ){
+    block_for_each(rNodes, [](Node& rNode ){
         noalias(rNode.Coordinates()) = rNode.GetInitialPosition() + rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT);
     });
 
@@ -105,7 +105,7 @@ void MoveModelPart(
 
     block_for_each(
         rModelPart.Nodes(),
-        [&rTransform](Node<3>& rNode){
+        [&rTransform](Node& rNode){
             const array_1d<double,3>& initial_position = rNode.GetInitialPosition();
             noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(initial_position) - initial_position;
         });
@@ -123,7 +123,7 @@ void MoveModelPart(
 
     block_for_each(
         rModelPart.Nodes(),
-        [&rTransform, time](Node<3>& rNode){
+        [&rTransform, time](Node& rNode){
             const array_1d<double,3>& initial_position = rNode.GetInitialPosition();
             noalias(rNode.GetSolutionStepValue(MESH_DISPLACEMENT)) = rTransform.Apply(
                 initial_position,
@@ -207,7 +207,7 @@ void SuperImposeVariables(ModelPart &rModelPart, const Variable< array_1d<double
 {
     KRATOS_TRY;
 
-    block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(rModelPart.Nodes(), [&](Node& rNode){
         if (rNode.Has(rVariableToSuperImpose)) {
             rNode.GetSolutionStepValue(rVariable,0) += rNode.GetValue(rVariableToSuperImpose);
         }

@@ -61,7 +61,7 @@ public:
     ///Type definition for quaternion
     typedef Quaternion<double>                            QuaternionType;
     ///Type for nodes
-    typedef Node<3>                                             NodeType;
+    typedef Node                                             NodeType;
     ///Type for nodes container
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
     ///Type of vector

@@ -159,10 +159,10 @@ void SmallDisplacementThermoMechanicElement::ExtrapolateGPStress(const Matrix& S
     std::vector<Vector> NodalStressVector(NumNodes); //List with stresses at each node
     std::vector<Matrix> NodalStressTensor(NumNodes);
 
-    for(unsigned int Node = 0; Node < NumNodes; Node ++)
+    for(unsigned int iNode = 0; iNode < NumNodes; iNode ++)
     {
-        NodalStressVector[Node].resize(VoigtSize);
-        NodalStressTensor[Node].resize(Dim,Dim);
+        NodalStressVector[iNode].resize(VoigtSize);
+        NodalStressTensor[iNode].resize(Dim,Dim);
     }
 
     if (Dim == 2)
@@ -277,17 +277,17 @@ void SmallDisplacementThermoMechanicElement::CalculateOnIntegrationPoints(const 
         Flags &ConstitutiveLawOptions=Values.GetOptions();
 
         if( rVariable == CAUCHY_STRESS_VECTOR){
-	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	}
-	else if(rVariable == THERMAL_STRESS_VECTOR){
-	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	  ConstitutiveLawOptions.Set(ConstitutiveLaw::THERMAL_RESPONSE_ONLY);
-	}
-	else if(rVariable == MECHANICAL_STRESS_VECTOR){
-	  ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
-	  ConstitutiveLawOptions.Set(ConstitutiveLaw::MECHANICAL_RESPONSE_ONLY);
-	}
-    ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+        }
+            else if(rVariable == THERMAL_STRESS_VECTOR){
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::THERMAL_RESPONSE_ONLY);
+        }
+            else if(rVariable == MECHANICAL_STRESS_VECTOR){
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::COMPUTE_STRESS);
+            ConstitutiveLawOptions.Set(ConstitutiveLaw::MECHANICAL_RESPONSE_ONLY);
+        }
+        ConstitutiveLawOptions.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
 
         //reading integration points
         for ( unsigned int PointNumber = 0; PointNumber < mConstitutiveLawVector.size(); PointNumber++ )

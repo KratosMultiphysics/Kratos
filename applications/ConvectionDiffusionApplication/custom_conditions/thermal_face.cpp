@@ -21,14 +21,14 @@ namespace Kratos
 
 // Public Life Cycle //////////////////////////////////////////////////////////
 
-ThermalFace::ThermalFace(IndexType NewId, Geometry< Node<3> >::Pointer pGeometry):
+ThermalFace::ThermalFace(IndexType NewId, Geometry< Node >::Pointer pGeometry):
     Condition(NewId,pGeometry)
 {
 }
 
 ThermalFace::ThermalFace(
     IndexType NewId,
-    Geometry< Node<3> >::Pointer pGeometry,
+    Geometry< Node >::Pointer pGeometry,
     Properties::Pointer pProperties):
     Condition(NewId,pGeometry,pProperties)
 {

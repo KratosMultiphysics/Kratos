@@ -257,7 +257,7 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorCurrentConfigurationTriangleElem
     Element::Pointer p_element = model_part.CreateNewElement("Element2D3N", elem_id_to_be_found, {1, 2, 3}, p_properties);
 
     // Set current configuration of the element (degenerate)
-    for ( Node<3>& r_node : p_element->GetGeometry() )
+    for ( Node& r_node : p_element->GetGeometry() )
         r_node.Coordinates() = array_1d<double, 3>( 3, 0.0 );
 
     BruteForcePointLocator point_locator(model_part);
@@ -269,7 +269,7 @@ KRATOS_TEST_CASE_IN_SUITE(BruteForcePointLocatorCurrentConfigurationTriangleElem
     const int found_id = point_locator.FindElement(the_point, shape_function_values);
 
     // Check whether the current configuration is restored after the search
-    for ( Node<3>& r_node : p_element->GetGeometry() )
+    for ( Node& r_node : p_element->GetGeometry() )
         for ( double component : r_node )
             KRATOS_CHECK_NEAR( component, 0.0, 1e-16 );
 

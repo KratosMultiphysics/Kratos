@@ -58,7 +58,7 @@ class ResponsesController:
         structural_responses = ["strain_energy", "stress"]        
         analysis_based_responses.extend(structural_responses)
 
-        analysis_free_responses = ["mass","linear","plane_symmetry","interface","partition_mass"]
+        analysis_free_responses = ["mass","linear","plane_symmetry","interface","partition_mass","am_max_overhang_angle"]
         shape_opt_responses = ["plane_based_packaging","mesh_based_packaging","surface_normal_shape_change","face_angle","airfoil_chord_length",
                                "airfoil_perimeter","total_volume"]                                
         analysis_free_responses.extend(shape_opt_responses)

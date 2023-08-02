@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
@@ -22,7 +22,7 @@
 #include "mapping_application_variables.h"
 
 namespace Kratos {
-typedef Node<3> NodeType;
+typedef Node NodeType;
 typedef Geometry<NodeType> GeometryType;
 
 namespace { // anonymous namespace
@@ -216,7 +216,7 @@ void BarycentricInterfaceInfo::ProcessSearchResult(const InterfaceObject& rInter
 
     mNumSearchResults++;
 
-    const Node<3>& r_node = *rInterfaceObject.pGetBaseNode();
+    const Node& r_node = *rInterfaceObject.pGetBaseNode();
 
     PointWithId point(
         r_node.GetValue(INTERFACE_EQUATION_ID),

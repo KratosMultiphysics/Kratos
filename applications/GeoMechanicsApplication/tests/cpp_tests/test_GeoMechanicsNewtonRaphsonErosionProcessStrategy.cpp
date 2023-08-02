@@ -36,8 +36,9 @@ namespace Kratos
             auto projectFile = "ProjectParameters.json";
 
             auto execute = KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", 
-            &flow_stubs::emptyLog, &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
         }
@@ -53,7 +54,7 @@ namespace Kratos
             bool finalMessageFound = false;
             int messageCount = 0;
 
-            std::function<void(char*)> reportTextualProgress = [&firstMessageFound, &finalMessageFound, &messageCount](char* message) 
+            std::function<void(const char*)> reportTextualProgress = [&firstMessageFound, &finalMessageFound, &messageCount](const char* message)
             {
                 messageCount++;
                 std::cout << "Captured: " << message << std::endl;
@@ -67,8 +68,9 @@ namespace Kratos
                 }
             };
             
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", 
-            &flow_stubs::emptyLog, &flow_stubs::emptyProgress, reportTextualProgress, &flow_stubs::emptyCancel);
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
+                                                     reportTextualProgress, &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
             KRATOS_CHECK_EQUAL(firstMessageFound, true);
@@ -101,8 +103,9 @@ namespace Kratos
                 }
             };
             
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
-            &flow_stubs::emptyLog, reportProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
+                                                     &flow_stubs::emptyLog, reportProgress, &flow_stubs::emptyLog,
+                                                     &flow_stubs::emptyCancel);
 
             KRATOS_CHECK_EQUAL(status, 0);
             KRATOS_CHECK_EQUAL(startProgressFound, true);

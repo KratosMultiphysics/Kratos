@@ -85,7 +85,7 @@ public:
 
     // --------------------------------------------------------------------------
     void Initialize() override {
-        for(int i=0;i<mrResponseSettings["evaluated_objects"].size();i++){
+        for(long unsigned int i=0;i<mrResponseSettings["evaluated_objects"].size();i++){
             auto eval_obj = mrResponseSettings["evaluated_objects"][i].GetString();
             ModelPart& eval_model_part = mrModel.GetModelPart(eval_obj);
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
@@ -107,7 +107,6 @@ public:
         double total_val = 0.0;
         for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());
-            const std::size_t domain_size = r_eval_object.GetProcessInfo()[DOMAIN_SIZE];
 			for (auto& elem_i : r_eval_object.Elements()){
 				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
 				if(element_is_active){
@@ -145,7 +144,6 @@ public:
     double CalculateElementValue(Element& elem_i, const std::size_t DomainSize){
         // We get the element geometry
         auto& r_this_geometry = elem_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_this_geometry.size();
 
         // We copy the current coordinates and move the coordinates to the initial configuration
@@ -172,7 +170,7 @@ public:
 
 		KRATOS_TRY;
 
-        for(int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
+        for(long unsigned int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
             ModelPart& controlled_model_part = mrModel.GetModelPart(controlled_obj);
             const std::size_t domain_size = controlled_model_part.GetProcessInfo()[DOMAIN_SIZE];
@@ -199,7 +197,6 @@ public:
 
         // We get the element geometry
         auto& r_this_geometry = elem_i.GetGeometry();
-        const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
         const std::size_t number_of_nodes = r_this_geometry.size();
 
         double elem_dens_grad = 0.0;

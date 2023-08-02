@@ -461,7 +461,7 @@ void SinusoidalPorositySolutionAndBodyForceProcess::SetFluidProperties()
         rElement.SetProperties(mrModelPart.pGetProperties(1));
     });
 
-    block_for_each(mrModelPart.Nodes(), [&](Node<3>& rNode){
+    block_for_each(mrModelPart.Nodes(), [&](Node& rNode){
         rNode.FastGetSolutionStepValue(VISCOSITY) = mViscosity;
         rNode.FastGetSolutionStepValue(DENSITY) = mDensity;
         rNode.FastGetSolutionStepValue(DYNAMIC_VISCOSITY) = mViscosity * mDensity;

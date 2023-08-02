@@ -82,7 +82,7 @@ public:
             mSumObjectivesImprovements +=  std::abs(objective_improvement);
             objetive.AddEmptyArray("controlled_objects_start_index");
             objetive.AddEmptyArray("controlled_objects_size");
-            for(int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
+            for(long unsigned int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
                 auto objective_control_name = objetive["controls"][objective_control_i].GetString();
                 auto objective_controlled_object_name = objetive["controlled_objects"][objective_control_i].GetString();
                 int objective_control_object_start_index = 0;
@@ -112,7 +112,7 @@ public:
         for(auto& constraint : mrSettings["constraints"]){
             constraint.AddEmptyArray("controlled_objects_start_index");
             constraint.AddEmptyArray("controlled_objects_size");
-            for(int constraint_control_i = 0; constraint_control_i<constraint["controls"].size(); constraint_control_i++){
+            for(long unsigned int constraint_control_i = 0; constraint_control_i<constraint["controls"].size(); constraint_control_i++){
                 auto constraint_control_name = constraint["controls"][constraint_control_i].GetString();
                 auto constraint_controlled_object_name = constraint["controlled_objects"][constraint_control_i].GetString();
                 int constraint_control_object_start_index = 0;
@@ -176,7 +176,7 @@ public:
             }
 
         
-            for(int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
+            for(long unsigned int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
                 auto objective_control_i_name = objetive["controls"][objective_control_i].GetString();
                 double objective_control_weight = 1.0;
 
@@ -243,11 +243,8 @@ public:
                     
                     if((const_type=="equality") || (const_type=="initial_value_equality")){
                         //first check the oscill
-                        if((100 * std::abs(previous_violation)>1) && (100 * std::abs(current_violation)>1) && (((current_violation>0.0) && (previous_violation<0)) || ((current_violation<0.0) && (previous_violation>0)))){
-                            double mult = std::abs(constraint["prev_itr_value"].GetDouble()-constraint["ref_value"].GetDouble());
-                            mult /= std::abs(constraint["prev_itr_value"].GetDouble()-constraint["value"].GetDouble());
+                        if((100 * std::abs(previous_violation)>1) && (100 * std::abs(current_violation)>1) && (((current_violation>0.0) && (previous_violation<0)) || ((current_violation<0.0) && (previous_violation>0))))
                             weight *= 0.95; 
-                        }
                         else if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>0.5))
                             weight *= 1.25;
                         else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)>0.5) && (100 * std::abs(relative_change)<1.0))
@@ -271,7 +268,7 @@ public:
                 constraint["weight"].SetDouble(weight);
 
                 active_constraints_violations[constraint_index] = weight * (constraint["value"].GetDouble()-constraint["ref_value"].GetDouble()) / constraint["ref_value"].GetDouble();                
-                for(int constraint_control_i = 0; constraint_control_i<constraint["controls"].size(); constraint_control_i++){
+                for(long unsigned int constraint_control_i = 0; constraint_control_i<constraint["controls"].size(); constraint_control_i++){
                     auto constraint_control_i_name = constraint["controls"][constraint_control_i].GetString();
                     double constraint_control_weight = 1.0;
 
@@ -306,7 +303,7 @@ public:
                     // L2_norm = 1.0;
                     L2_norm = std::sqrt(L2_norm);
                     // now do the l2_norm scaling
-                    for (int i=0;i<constraint_controlled_object_size*constraint_controlled_obj_model_part.Nodes().size();i++)
+                    for (long unsigned int i=0;i<constraint_controlled_object_size*constraint_controlled_obj_model_part.Nodes().size();i++)
                         active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+i) *= (constraint_control_weight/L2_norm);
                 }
                 constraint_index++;                
@@ -370,7 +367,6 @@ public:
             Vector projection = - (mObjectiveGradients - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv, Vector(prod(active_constraints_gradients, mObjectiveGradients))))));
             Vector correction = - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv,active_constraints_violations)));
             double current_sin_alpha = norm_2(projection);
-            double prev_sin_alpha = mrSettings["sin_alpha"].GetDouble();
             mrSettings["sin_alpha"].SetDouble(current_sin_alpha);
     
             mSearchDirection = (projection_step_size * projection / norm_2(projection)) + (correction_step_size * correction);

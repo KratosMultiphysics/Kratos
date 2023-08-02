@@ -86,7 +86,7 @@ public:
 
     // --------------------------------------------------------------------------
     void Initialize() override {
-        for(int i=0;i<mrResponseSettings["evaluated_objects"].size();i++){
+        for(long unsigned int i=0;i<mrResponseSettings["evaluated_objects"].size();i++){
             auto eval_obj = mrResponseSettings["evaluated_objects"][i].GetString();
             ModelPart& eval_model_part = mrModel.GetModelPart(eval_obj);
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
@@ -144,7 +144,7 @@ public:
 		KRATOS_TRY;
 
         // compute sensitivities       
-        for(int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
+        for(long unsigned int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
             ModelPart& controlled_model_part = mrModel.GetModelPart(controlled_obj);
             const ProcessInfo &CurrentProcessInfo = controlled_model_part.GetProcessInfo();
