@@ -140,8 +140,9 @@ class ReadFromSwInterfaceProcess(KM.Process):
             self.Moving_v()
 
         if self.interface_model_part.ProcessInfo[KM.DOMAIN_SIZE] == 3:
-            self.CorrectVelocity3D()
             self.interpolate_sw_to_pfem_utility.InterpolateVariables(self.interface_model_part,self.input_model_part)
+            self.corrective_factor = 1.0
+            self.ComputeCorrectiveFactor3D()
             for node in self.interface_model_part.Nodes:
                 
                 node_topography = node.GetValue(SW.TOPOGRAPHY)
@@ -155,11 +156,12 @@ class ReadFromSwInterfaceProcess(KM.Process):
                 
                 self.vel_z = node.GetValue(SW.VERTICAL_VELOCITY) 
                 vel_z_var  = (node.Z - self.z_bottom)/self.height*self.vel_z
-                vel_x      = node.GetValue(KM.VELOCITY_X)
-                vel_y      = node.GetValue(KM.VELOCITY_Y)
+                vel_x      = self.corrective_factor*node.GetValue(KM.VELOCITY_X)
+                vel_y      = self.corrective_factor*node.GetValue(KM.VELOCITY_Y)
                 node.SetSolutionStepValue(KM.VELOCITY_X, vel_x)
                 node.SetSolutionStepValue(KM.VELOCITY_Y, vel_y)
                 node.SetSolutionStepValue(KM.VELOCITY_Z, vel_z_var)
+            # self.CorrectVelocity3D()
                 
 
     def Fixed_v0(self):
@@ -204,15 +206,31 @@ class ReadFromSwInterfaceProcess(KM.Process):
         nElements = nNodes - 1
         self.avg_vel_x = 2*self.avg_vel_x*nElements/(2*nElements - 1)
 
-    def CorrectVelocity3D(self):
-        flux = 0
-        A_moving = 0
-        TotalArea = 0
+    #def CorrectVelocity3D(self):
+    #    flux_moving = 0
+    #    flux_total = 0
+    #    for node in self.interface_model_part.Nodes:
+    #        flux_fix = flux_fic + node.GetValue(KM.VELOCITY_X)*node.GetValue(KM.NODAL_AREA) 
+    #        if (node.IsNot(KM.RIGID)):
+    #            flux_moving = flux_moving + node.GetValue(KM.VELOCITY_X)*node.GetValue(KM.NODAL_AREA)
+    #    for node in self.interface_model_part.Nodes:
+    #        if (node.IsNot(KM.RIGID)):
+    #            vel_x = node.GetValue(KM.VELOCITY_X)*flux_fix/flux_moving
+    #            node.SetSolutionStepValue(KM.VELOCITY_X, vel_x)
+
+    def ComputeCorrectiveFactor3D(self):    ##to do implement correction
+        all_nodes = 0
+        base_nodes = 0
+        base_height = 0
+        tolerance = 0.001
         for node in self.interface_model_part.Nodes:
-            flux = flux + self.avg_vel_x*node.NODAL_AREA 
-            if (node.IsNot(KM.RIGID)):
-                TotalArea = TotalArea + node.NODAL_AREA
-        self.avg_vel_x = flux/TotalArea
+            all_nodes = all_nodes + 1
+            if (node.Z < base_height + tolerance):
+                base_nodes = base_nodes +1
+        height_nodes = all_nodes/base_nodes
+        inside_nodes = all_nodes - (2*height_nodes + base_nodes)*0.5
+        self.corrective_factor = all_nodes/inside_nodes
+
 
     def _GetInputTimes(self, file_settings):
         # Get all the file names
