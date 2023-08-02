@@ -345,9 +345,9 @@ class SpatialStatisticsDistributionOperation(SpatialStatisticsOperation):
 
     def GetValueString(self) -> str:
         if self.norm is not None:
-            distribution_info: KratosStat.SpatialMethods.Array3DistributionInfo = KratosStat.SpatialMethods.Distribution(self.model_part, self.variable, self.container_location, self.parameters, self.norm)
+            distribution_info = KratosStat.SpatialMethods.Distribution(self.model_part, self.variable, self.container_location, self.parameters, self.norm)
         else:
-            distribution_info: KratosStat.SpatialMethods.Array3DistributionInfo = KratosStat.SpatialMethods.Distribution(self.model_part, self.variable, self.container_location, self.parameters)
+            distribution_info = KratosStat.SpatialMethods.Distribution(self.model_part, self.variable, self.container_location, self.parameters)
 
         min_value = distribution_info.GetMin()
         max_value = distribution_info.GetMax()
