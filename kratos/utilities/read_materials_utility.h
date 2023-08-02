@@ -20,7 +20,6 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/kratos_parameters.h"
-#include "utilities/read_and_set_accessors_utilities.h"
 
 namespace Kratos {
 
