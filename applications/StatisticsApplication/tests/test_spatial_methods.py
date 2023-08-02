@@ -217,18 +217,10 @@ class SpatialMethodTests(KratosUnittest.TestCase):
         self.__RunVariableTest(KratosStats.SpatialMethods.RootMeanSquare, ref_values)
 
     def testVarianceMethod(self):
-        data_locations = [Kratos.Globals.DataLocation.NodeHistorical, Kratos.Globals.DataLocation.NodeNonHistorical, Kratos.Globals.DataLocation.Condition, Kratos.Globals.DataLocation.Element]
-        norms_dict = {
-            Kratos.PRESSURE: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity()],
-            Kratos.VELOCITY: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5)],
-            Kratos.INITIAL_STRAIN: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5)],
-            Kratos.LOCAL_TANGENT_MATRIX: [SpatialMethodTests.ValueNorm(), KratosStats.Norms.L2(), KratosStats.Norms.Infinity(), KratosStats.Norms.P(2.5), KratosStats.Norms.Trace(), KratosStats.Norms.LPQ(1.3, 2.5)]
-        }
-
         ref_values = {}
-        for data_location in data_locations:
+        for data_location in self.data_locations:
             ref_values[data_location] = {}
-            for variable, norms_list in norms_dict.items():
+            for variable, norms_list in self.norms_dict.items():
                 ref_values[data_location][variable] = {}
                 for norm in norms_list:
                     if isinstance(norm, SpatialMethodTests.ValueNorm):
