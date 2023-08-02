@@ -79,16 +79,14 @@ double TableAccessor::GetValueFromTable(
 
 void TableAccessor::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType)
-    rSerializer.save("InputVariable", mpInputVariable);
-    // we must do the int cast to be able to compile
+    rSerializer.save("InputVariable", mpInputVariable->Key());
+    // // we must do the int cast to be able to compile
     rSerializer.save("InputVariableType", static_cast<int>(mInputVariableType)); 
 }
 void TableAccessor::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType)
-    rSerializer.load("InputVariable", mpInputVariable);
-    // we must do the int cast to be able to compile
+    rSerializer.load("InputVariable", mpInputVariable->Key());
+    // // we must do the int cast to be able to compile
     rSerializer.load("InputVariableType", static_cast<int>(mInputVariableType));  
 }
 
