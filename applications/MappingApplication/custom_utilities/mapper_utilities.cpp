@@ -23,6 +23,7 @@
 #include "utilities/reduction_utilities.h"
 #include "mapper_utilities.h"
 #include "mapping_application_variables.h"
+#include "utilities/search_utilities.h"
 
 namespace Kratos {
 namespace MapperUtilities {
@@ -219,29 +220,6 @@ BoundingBoxType ComputeGlobalBoundingBox(const ModelPart& rModelPart)
     return global_bounding_box;
 }
 
-void ComputeBoundingBoxesWithTolerance(const std::vector<double>& rBoundingBoxes,
-                                       const double Tolerance,
-                                       std::vector<double>& rBoundingBoxesWithTolerance)
-{
-    const SizeType size_vec = rBoundingBoxes.size();
-
-    KRATOS_DEBUG_ERROR_IF_NOT(std::fmod(size_vec, 6) == 0)
-        << "Bounding Boxes size has to be a multiple of 6!" << std::endl;
-
-    if (rBoundingBoxesWithTolerance.size() != size_vec) {
-        rBoundingBoxesWithTolerance.resize(size_vec);
-    }
-
-    // Apply Tolerances
-    for (IndexType i=0; i<size_vec; i+=2) {
-        rBoundingBoxesWithTolerance[i] = rBoundingBoxes[i] + Tolerance;
-    }
-
-    for (IndexType i=1; i<size_vec; i+=2) {
-        rBoundingBoxesWithTolerance[i] = rBoundingBoxes[i] - Tolerance;
-    }
-}
-
 std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox)
 {
     // xmax, xmin,  ymax, ymin,  zmax, zmin
@@ -253,16 +231,6 @@ std::string BoundingBoxStringStream(const BoundingBoxType& rBoundingBox)
                   << rBoundingBox[2] << " "    // ymax
                   << rBoundingBox[4] << "]";   // zmax
     return buffer.str();
-}
-
-bool PointIsInsideBoundingBox(const BoundingBoxType& rBoundingBox,
-                              const array_1d<double, 3>& rCoords)
-{   // The Bounding Box should have some tolerance already!
-    if (rCoords[0] < rBoundingBox[0] && rCoords[0] > rBoundingBox[1])   // check x-direction
-        if (rCoords[1] < rBoundingBox[2] && rCoords[1] > rBoundingBox[3])   // check y-direction
-            if (rCoords[2] < rBoundingBox[4] && rCoords[2] > rBoundingBox[5])   // check z-direction
-                return true;
-    return false;
 }
 
 void CreateMapperLocalSystemsFromNodes(const MapperLocalSystem& rMapperLocalSystemPrototype,
@@ -364,7 +332,7 @@ void FillBufferBeforeLocalSearch(const MapperLocalSystemPointerVector& rMapperLo
 
             if (!rp_local_sys->IsDoneSearching()) {
                 const auto& r_coords = rp_local_sys->Coordinates();
-                if (MapperUtilities::PointIsInsideBoundingBox(bounding_box, r_coords)) {
+                if (SearchUtilities::PointIsInsideBoundingBox(bounding_box, r_coords)) {
                     // These push_backs are threadsafe bcs only one vector is accessed per thread!
                     r_rank_buffer.push_back(static_cast<double>(i_local_sys)); // this it the "mSourceLocalSystemIndex" of the MapperInterfaceInfo
                     r_rank_buffer.push_back(r_coords[0]);

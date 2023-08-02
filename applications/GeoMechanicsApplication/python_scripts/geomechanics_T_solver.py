@@ -12,7 +12,7 @@ def CreateSolver(model, custom_settings):
     return TSolver(model, custom_settings)
 
 class TSolver(GeoSolver):
-    '''Solver for the solution of displacement-pore pressure coupled problems.'''
+    '''Solver for the solution of thermal problems.'''
 
     # =============================================================================================
     # =============================================================================================
@@ -56,8 +56,6 @@ class TSolver(GeoSolver):
             "newmark_beta": 0.25,
             "newmark_gamma": 0.5,
             "newmark_theta": 0.5,
-            "rayleigh_m": 0.0,
-            "rayleigh_k": 0.0,
             "strategy_type": "newton_raphson",
             "convergence_criterion": "temperature_criterion",
             "temperature_relative_tolerance": 1.0e-4,
@@ -72,7 +70,6 @@ class TSolver(GeoSolver):
             "number_cycles"              : 5,
             "increase_factor"            : 2.0,
             "reduction_factor"           : 0.5,
-            "realised_factor"            : 1.0,
             "calculate_reactions"        : true,
             "max_line_search_iterations" : 5,
             "first_alpha_value"          : 0.5,
@@ -149,10 +146,6 @@ class TSolver(GeoSolver):
 
         if (scheme_type.lower() == "newmark" or scheme_type.lower() == "newmark_flow"):
             theta = self.settings["newmark_theta"].GetDouble()
-            rayleigh_m = self.settings["rayleigh_m"].GetDouble()
-            rayleigh_k = self.settings["rayleigh_k"].GetDouble()
-            self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_ALPHA, rayleigh_m)
-            self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_BETA, rayleigh_k)
             KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, solution_type", solution_type)
             if (solution_type.lower() == "transient-heat-transfer" or solution_type.lower() == "transient_heat_transfer"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Newmark Transient heat transfer.")
@@ -171,7 +164,7 @@ class TSolver(GeoSolver):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Backward Euler Steady-state heat transfer.")
                 scheme = scheme = KratosGeo.BackwardEulerQuasistaticTScheme()
         else:
-            raise Exception("Apart from Newmark, other scheme_type are not available.")
+            raise Exception("Apart from Newmark and Backward Euler, other scheme_type are not available.")
 
         return scheme
 

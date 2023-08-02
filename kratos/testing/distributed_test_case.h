@@ -71,8 +71,10 @@ public:
     ///@{
 
     bool IsEnabled() const override;
-    
+
     bool IsDisabled() const override;
+
+    bool IsDistributedTest() const override;
 
     ///@}
     ///@name Input and output

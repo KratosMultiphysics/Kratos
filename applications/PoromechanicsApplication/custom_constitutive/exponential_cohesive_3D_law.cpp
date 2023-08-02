@@ -111,8 +111,8 @@ void ExponentialCohesive3DLaw::InitializeConstitutiveLawVariables(ConstitutiveLa
     noalias(rVariables.CompressionMatrix) = ZeroMatrix(3,3);
     if(std::abs(MinusNormalStrain) > 1.0e-15)
         rVariables.CompressionMatrix(2,2) = this->MacaulayBrackets(MinusNormalStrain)/MinusNormalStrain;
-
-    const double WeightingParameter = 1.0; // TODO ?
+    
+    const double WeightingParameter = MaterialProperties[TAU]/rVariables.YieldStress;
     rVariables.WeightMatrix.resize(3,3);
     noalias(rVariables.WeightMatrix) = ZeroMatrix(3,3);
     rVariables.WeightMatrix(0,0) = WeightingParameter*WeightingParameter;
@@ -177,8 +177,7 @@ void ExponentialCohesive3DLaw::ComputeCriticalDisplacement(ConstitutiveLawVariab
         ModeMixingRatio = ShearStrain2 / TotalStrain2;
     else
         ModeMixingRatio = 1.0;
-    const double CurveFittingParameter = 1.0; // TODO ?
-    const double FractureThoughness = FractureEnergy+(MaterialProperties[SHEAR_FRACTURE_ENERGY]-FractureEnergy)*std::pow(ModeMixingRatio,CurveFittingParameter);
+    const double FractureThoughness = FractureEnergy+(MaterialProperties[SHEAR_FRACTURE_ENERGY]-FractureEnergy)*std::pow(ModeMixingRatio,MaterialProperties[CURVE_FITTING_ETA]);
 
     // TODO Should CriticalDisplacement be calculated with FractureEnergy ?
     rVariables.CriticalDisplacement = FractureThoughness / (std::exp(1.0) * MaterialProperties[YIELD_STRESS]);

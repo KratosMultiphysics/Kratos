@@ -86,7 +86,7 @@ protected:
                                 const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
                                 array_1d<double,TDim>& rLocalRelDispVector, const double& MinimumJointWidth, const unsigned int& GPoint );
 
-    void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth);
+    double CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight, const double& JointWidth);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

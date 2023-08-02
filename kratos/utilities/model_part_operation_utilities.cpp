@@ -216,6 +216,19 @@ ModelPart& ModelPartOperationUtilities::CreateOutputModelPart(
     // sets the communicator info.
     SetCommunicator(r_output_model_part, rMainModelPart);
 
+    // until now everything is sorted based on the memory location ptrs.
+    // sorting them based on the ids.
+    const auto& sort_mesh = [](ModelPart::MeshType& rMesh) {
+        rMesh.Nodes().Sort();
+        rMesh.Conditions().Sort();
+        rMesh.Elements().Sort();
+    };
+
+    sort_mesh(r_output_model_part.GetMesh());
+    sort_mesh(r_output_model_part.GetCommunicator().LocalMesh());
+    sort_mesh(r_output_model_part.GetCommunicator().GhostMesh());
+    sort_mesh(r_output_model_part.GetCommunicator().InterfaceMesh());
+
     return r_output_model_part;
 }
 

@@ -232,6 +232,15 @@ class TestContainerExpression(ABC):
         for node in a.GetContainer():
             self.assertEqual(self._GetValue(node, Kratos.DENSITY), 10)
 
+    def test_ReadEvaluate(self) -> None:
+        a = self._GetContainerExpression()
+        a.Read(Kratos.VELOCITY)
+        a.Evaluate(Kratos.ACCELERATION)
+        for node in a.GetContainer():
+            self.assertVectorAlmostEqual(self._GetValue(node, Kratos.ACCELERATION),
+                                         self._GetValue(node, Kratos.VELOCITY),
+                                         12)
+
     def test_Clone(self):
         a = self._GetContainerExpression()
 
@@ -286,7 +295,7 @@ class TestConditionPropertiesExpression(kratos_unittest.TestCase, TestContainerE
 
     def test_CopyData(self):
         a = self._GetContainerExpression()
-        b = Kratos.ContainerExpression.ConditionNonHistoricalExpression(self.model_part)
+        b = Kratos.Expression.ConditionNonHistoricalExpression(self.model_part)
 
         a.Read(Kratos.VELOCITY)
         b.CopyFrom(a)
@@ -304,7 +313,7 @@ class TestConditionPropertiesExpression(kratos_unittest.TestCase, TestContainerE
         for node in b.GetContainer():
             self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
-        b = Kratos.ContainerExpression.ConditionNonHistoricalExpression(a)
+        b = Kratos.Expression.ConditionNonHistoricalExpression(a)
         b += 1
         b.Evaluate(Kratos.DENSITY)
         for node in b.GetContainer():
@@ -326,7 +335,7 @@ class TestElementPropertiesExpression(kratos_unittest.TestCase, TestContainerExp
 
     def test_CopyData(self):
         a = self._GetContainerExpression()
-        b = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
+        b = Kratos.Expression.ElementNonHistoricalExpression(self.model_part)
 
         a.Read(Kratos.VELOCITY)
         b.CopyFrom(a)
@@ -344,7 +353,7 @@ class TestElementPropertiesExpression(kratos_unittest.TestCase, TestContainerExp
         for node in b.GetContainer():
             self.assertEqual(node.GetValue(Kratos.DENSITY), self._GetValue(node, Kratos.PRESSURE), 12)
 
-        b = Kratos.ContainerExpression.ElementNonHistoricalExpression(a)
+        b = Kratos.Expression.ElementNonHistoricalExpression(a)
         b += 1
         b.Evaluate(Kratos.DENSITY)
         for node in b.GetContainer():

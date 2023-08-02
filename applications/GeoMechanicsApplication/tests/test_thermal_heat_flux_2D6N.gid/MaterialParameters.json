@@ -7,20 +7,20 @@
               "name"             :  "GeoThermalDispersion2DLaw" 
           },
           "Variables": {
-              "DENSITY_SOLID"            :  2.65,
-              "DENSITY_WATER"            :  1.0,
-              "POROSITY"                 :  0.36,
-			  "SATURATION"               :  1.0,
-			  "HEAT_CAPACITY_SOLID"              :  400.0,
-			  "HEAT_CAPACITY_WATER"              :  3795.0,
-			  "THERMAL_CONDUCTIVITY_SOLID_XX"    :  1.50,
-			  "THERMAL_CONDUCTIVITY_SOLID_YY"    :  1.50,
-			  "THERMAL_CONDUCTIVITY_SOLID_XY"    :  0.0,
-			  "THERMAL_CONDUCTIVITY_SOLID_YX"    :  0.0,
-			  "THERMAL_CONDUCTIVITY_WATER"       :  0.48,
-			  "LONGITUDINAL_DISPERSIVITY"        :  1.0,
-			  "TRANSVERSE_DISPERSIVITY"          :  1.0,
-			  "SOLID_COMPRESSIBILITY"            :  1.0
+              "DENSITY_SOLID"                 :  2.65,
+              "DENSITY_WATER"                 :  1.0,
+              "POROSITY"                      :  0.36,
+              "SATURATION"                    :  1.0,
+              "SPECIFIC_HEAT_CAPACITY_SOLID"  :  400.0,
+              "SPECIFIC_HEAT_CAPACITY_WATER"  :  3795.0,
+              "THERMAL_CONDUCTIVITY_SOLID_XX" :  1.50,
+              "THERMAL_CONDUCTIVITY_SOLID_YY" :  1.50,
+              "THERMAL_CONDUCTIVITY_SOLID_XY" :  0.0,
+              "THERMAL_CONDUCTIVITY_SOLID_YX" :  0.0,
+              "THERMAL_CONDUCTIVITY_WATER"    :  0.48,
+              "LONGITUDINAL_DISPERSIVITY"     :  1.0,
+              "TRANSVERSE_DISPERSIVITY"       :  1.0,
+              "SOLID_COMPRESSIBILITY"         :  1.0
          },
          "Tables": {}
       }

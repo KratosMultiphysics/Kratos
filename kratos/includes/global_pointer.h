@@ -196,6 +196,21 @@ public:
     return mDataPointer;
   }
 
+  /**
+   * @brief Overloads the '==' operator to compare two GlobalPointer objects of the
+   * same template type. Returns true if the underlying pointers are equal.
+   * @param rOther The GlobalPointer object to be compared.
+   * @return true if the underlying pointers are equal, false otherwise.
+   */
+  bool operator==(const GlobalPointer& rOther)
+  {
+#ifdef KRATOS_USING_MPI
+    return this->get() == rOther.get() && this->GetRank() == rOther.GetRank();
+#else 
+    return this->get() == rOther.get();
+#endif
+  }
+
   /** Fills buffer with the GlobalPoiter data
    * Fills buffer with the GlobalPoiter data
    * @param buffer Object data buffer
@@ -227,8 +242,6 @@ public:
   private:
 
   friend class Serializer;
-
-
 
   void save(Serializer& rSerializer) const
   {

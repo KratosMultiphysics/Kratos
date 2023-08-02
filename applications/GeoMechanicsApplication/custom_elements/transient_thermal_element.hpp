@@ -49,8 +49,6 @@ namespace Kratos
         bool mIsInitialised = false;
         bool mIsPressureCoupled = false;
 
-//        typedef typename BaseType::ElementVariables ElementVariables;
-
         struct ElementVariables
         {
             ///Properties variables
@@ -79,10 +77,10 @@ namespace Kratos
             array_1d<double, TDim> DischargeVector;
 
             ///Constitutive Law parameters
-            BoundedMatrix<double, TDim, TDim> ConstitutiveMatrix;
-            Vector Np;
-            Matrix GradNpT;
-            Matrix GradNpTInitialConfiguration;
+            Matrix ConstitutiveMatrix;
+            Vector N;
+            Matrix GradNT;
+            Matrix GradNTInitialConfiguration;
             BoundedMatrix<double, TDim, TDim> PermiabilityMatrix;
 
             Vector detJContainer;
@@ -100,23 +98,29 @@ namespace Kratos
         };
 
     	/// Default Constructor
-        TransientThermalElement(IndexType NewId = 0) : BaseType(NewId) {}
+        explicit TransientThermalElement(IndexType NewId = 0);
 
         /// Constructor using an array of nodes
         TransientThermalElement(IndexType NewId,
-            const NodesArrayType & ThisNodes) : BaseType(NewId, ThisNodes) {}
+            const NodesArrayType& ThisNodes);
 
         /// Constructor using Geometry
         TransientThermalElement(IndexType NewId,
-            GeometryType::Pointer pGeometry) : BaseType(NewId, pGeometry) {}
+            GeometryType::Pointer pGeometry);
 
         /// Constructor using Properties
         TransientThermalElement(IndexType NewId,
             GeometryType::Pointer pGeometry,
-            PropertiesType::Pointer pProperties) : BaseType(NewId, pGeometry, pProperties) {}
+            PropertiesType::Pointer pProperties);
+
+        // Assignment operator.
+        TransientThermalElement& operator=(TransientThermalElement const& rOther) = delete;
+
+        // Copy constructor.
+        TransientThermalElement(TransientThermalElement const& rOther) = delete;
 
         /// Destructor
-        ~TransientThermalElement() override {}
+        ~TransientThermalElement() override;
 
         Element::Pointer Create(IndexType NewId,
             NodesArrayType const& ThisNodes,
@@ -136,18 +140,10 @@ namespace Kratos
         void EquationIdVector(EquationIdVectorType & rResult,
             const ProcessInfo & rCurrentProcessInfo) const override;
 
-        void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-        void CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo) override;
-        void GetValuesVector(Vector& rValues, int Step) const override;
-        void GetFirstDerivativesVector(Vector& rValues, int Step) const override;
-        void GetSecondDerivativesVector(Vector& rValues, int Step) const override;
-
         void CalculateDischargeVector(ElementVariables& rVariables);
 
-    protected:
 
-        GeometryData::IntegrationMethod mThisIntegrationMethod;
-        /// Member Variables
+    protected:
 
         void CalculateAll(MatrixType & rLeftHandSideMatrix,
             VectorType & rRightHandSideVector,
@@ -198,11 +194,7 @@ namespace Kratos
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-        void CalculateThermalDispersionMatrix(BoundedMatrix<double, TDim, TDim>& C, ElementVariables& rVariables);
         void CalculatePermiabilityMatrix(BoundedMatrix<double, TDim, TDim>& C, ElementVariables& rVariables);
-
-        void CalculateRightHandSide(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
-        void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
         GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
@@ -211,8 +203,6 @@ namespace Kratos
         void CalculateWaterViscosityOnIntegrationPoints(ElementVariables& rVariables);
 
     private:
-
-        /// Member Variables
 
         /// Serialization
 
@@ -227,12 +217,6 @@ namespace Kratos
         {
             KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
         }
-
-        // Assignment operator.
-        TransientThermalElement& operator=(TransientThermalElement const& rOther);
-
-        // Copy constructor.
-        TransientThermalElement(TransientThermalElement const& rOther);
 
     }; // Class TransientThermalElement
 

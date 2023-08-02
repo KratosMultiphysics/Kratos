@@ -57,7 +57,9 @@
                 "FRACTURE_ENERGY": 100.0,
                 "SHEAR_FRACTURE_ENERGY": 100.0,
                 "STATE_VARIABLE": 1.0e-12,
-                "BIOT_COEFFICIENT": 0.9999994444444444
+                "BIOT_COEFFICIENT": 0.9999994444444444,
+                "TAU": 1.0,
+                "CURVE_FITTING_ETA": 1.0
             },
             "Tables": {}
         }

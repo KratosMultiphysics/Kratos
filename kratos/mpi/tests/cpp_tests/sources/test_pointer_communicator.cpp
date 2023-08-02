@@ -59,8 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicator, KratosMPICoreFastSuite)
         {return gp->GetValue(TEMPERATURE);}
     );
 
-    for(unsigned int i=0; i<indices.size(); ++i)
-    {
+    for(unsigned int i=0; i<gp_list.size(); ++i) {
         int expected_id = indices[i];
         auto& gp = gp_list(i);
         KRATOS_CHECK_EQUAL(double_proxy.Get(gp), gp.GetRank());
@@ -75,8 +74,7 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicator, KratosMPICoreFastSuite)
     {return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );}
                       );
 
-    for(unsigned int i=0; i<indices.size(); ++i)
-    {
+    for(unsigned int i=0; i<indices.size(); ++i) {
         auto& gp = gp_list(i);
         return_type result = pair_proxy.Get(gp); //this is now a pair
 
@@ -84,6 +82,128 @@ KRATOS_TEST_CASE_IN_SUITE(PointerCommunicator, KratosMPICoreFastSuite)
 
         for(unsigned int k=0; k<3; ++k)
             KRATOS_CHECK_EQUAL(result.second[k], gp.GetRank());
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorLocalRetrieveGlobalPointers, KratosMPICoreFastSuite)
+{
+    DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    Model current_model;
+    auto& r_mp = current_model.CreateModelPart("mp");
+    r_mp.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    r_mp.AddNodalSolutionStepVariable(TEMPERATURE);
+
+    const int current_rank = r_default_comm.Rank();
+
+    auto pnode = r_mp.CreateNewNode(current_rank+1, current_rank,current_rank,current_rank); //the node is equal to the current rank;
+    pnode->FastGetSolutionStepValue(PARTITION_INDEX) = current_rank;
+    pnode->SetValue(TEMPERATURE, current_rank );
+
+    //we will gather on every node the global pointers of the nodes with index from
+    // 0 to world_size
+    std::vector<int> indices(1, current_rank+1);
+
+    auto gp_list = GlobalPointerUtilities::LocalRetrieveGlobalPointers(r_mp.Nodes(), r_default_comm );
+    auto gp_manual_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(r_mp.Nodes(), indices, r_default_comm );
+
+    GlobalPointerCommunicator< Node> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());GlobalPointerCommunicator< Node> pointer_comm_manual(r_default_comm, gp_manual_list.ptr_begin(), gp_manual_list.ptr_end());
+
+    auto double_proxy = pointer_comm.Apply(
+        [](GlobalPointer< Node >& gp)->double
+        {return gp->GetValue(TEMPERATURE);}
+    );
+
+    for(unsigned int i=0; i<gp_list.size(); ++i) {
+        auto& gp = gp_list(i);
+        auto& gp_manual = gp_manual_list(i);
+        KRATOS_CHECK_EQUAL(double_proxy.Get(gp), gp.GetRank());
+        KRATOS_CHECK_EQUAL(gp_manual.GetRank(), gp.GetRank());
+    }
+
+    //now let's try to retrieve at once TEMPERATURE, and Coordinates of the node
+    using return_type = std::pair<double, array_1d<double,3>>;
+
+    auto lambda = [](GlobalPointer< Node >& gp)-> return_type
+    {return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );};
+    auto pair_proxy = pointer_comm.Apply(lambda);
+    auto manual_pair_proxy = pointer_comm_manual.Apply(lambda);
+
+    for(unsigned int i=0; i<gp_list.size(); ++i) {
+        auto& gp = gp_list(i);
+        auto& gp_manual = gp_manual_list(i);
+        return_type result = pair_proxy.Get(gp); //this is now a pair
+        return_type manual_result = manual_pair_proxy.Get(gp_manual); //this is now a pair
+
+        KRATOS_CHECK_EQUAL(result.first, gp.GetRank());
+        KRATOS_CHECK_EQUAL(result.first, manual_result.first);
+
+        for(unsigned int k=0; k<3; ++k) {
+            KRATOS_CHECK_EQUAL(result.second[k], gp.GetRank());
+            KRATOS_CHECK_EQUAL(result.second[k], manual_result.second[k]);
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(PointerCommunicatorGlobalRetrieveGlobalPointers, KratosMPICoreFastSuite)
+{
+    DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
+    Model current_model;
+    auto& r_mp = current_model.CreateModelPart("mp");
+    r_mp.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    r_mp.AddNodalSolutionStepVariable(TEMPERATURE);
+
+    const int current_rank = r_default_comm.Rank();
+
+    auto pnode = r_mp.CreateNewNode(current_rank+1, current_rank,current_rank,current_rank); //the node is equal to the current rank;
+    pnode->FastGetSolutionStepValue(PARTITION_INDEX) = current_rank;
+    pnode->SetValue(TEMPERATURE, current_rank );
+
+    //we will gather on every node the global pointers of the nodes with index from
+    // 0 to world_size
+    const int world_size = r_default_comm.Size();
+    std::vector<int> indices;
+    for(int i=0; i<world_size; ++i) {
+        indices.push_back(i + 1);
+    }
+
+    auto gp_list = GlobalPointerUtilities::GlobalRetrieveGlobalPointers(r_mp.Nodes(), r_default_comm );
+    auto gp_manual_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(r_mp.Nodes(), indices, r_default_comm );
+
+    GlobalPointerCommunicator< Node> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());GlobalPointerCommunicator< Node> pointer_comm_manual(r_default_comm, gp_manual_list.ptr_begin(), gp_manual_list.ptr_end());
+
+    auto double_proxy = pointer_comm.Apply(
+        [](GlobalPointer< Node >& gp)->double
+        {return gp->GetValue(TEMPERATURE);}
+    );
+
+    for(unsigned int i=0; i<gp_list.size(); ++i) {
+        auto& gp = gp_list(i);
+        auto& gp_manual = gp_manual_list(i);
+        KRATOS_CHECK_EQUAL(double_proxy.Get(gp), gp.GetRank());
+        KRATOS_CHECK_EQUAL(gp_manual.GetRank(), gp.GetRank());
+    }
+
+    //now let's try to retrieve at once TEMPERATURE, and Coordinates of the node
+    using return_type = std::pair<double, array_1d<double,3>>;
+
+    auto lambda = [](GlobalPointer< Node >& gp)-> return_type
+    {return std::make_pair(gp->GetValue(TEMPERATURE), gp->Coordinates() );};
+    auto pair_proxy = pointer_comm.Apply(lambda);
+    auto manual_pair_proxy = pointer_comm_manual.Apply(lambda);
+
+    for(unsigned int i=0; i<gp_list.size(); ++i) {
+        auto& gp = gp_list(i);
+        auto& gp_manual = gp_manual_list(i);
+        return_type result = pair_proxy.Get(gp); //this is now a pair
+        return_type manual_result = manual_pair_proxy.Get(gp_manual); //this is now a pair
+
+        KRATOS_CHECK_EQUAL(result.first, gp.GetRank());
+        KRATOS_CHECK_EQUAL(result.first, manual_result.first);
+
+        for(unsigned int k=0; k<3; ++k) {
+            KRATOS_CHECK_EQUAL(result.second[k], gp.GetRank());
+            KRATOS_CHECK_EQUAL(result.second[k], manual_result.second[k]);
+        }
     }
 }
 

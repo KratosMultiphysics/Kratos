@@ -34,30 +34,17 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION( BackwardEulerQuasistaticTScheme );
 
-    using BaseType = Scheme<TSparseSpace, TDenseSpace>;
-    using DofsArrayType = typename BaseType::DofsArrayType;
-    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
-    using TSystemVectorType = typename BaseType::TSystemVectorType;
-    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
-    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
     using NewmarkQuasistaticTScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
 
     ///Constructor
-	// ============================================================================================
+    // ============================================================================================
     // ============================================================================================
     BackwardEulerQuasistaticTScheme() :
         NewmarkQuasistaticTScheme<TSparseSpace,TDenseSpace>(1.0)
     {}
 
-    ///Destructor
-    // ============================================================================================
-    // ============================================================================================
-    ~BackwardEulerQuasistaticTScheme() override {}
-
-
 protected:
 
-    /// Member Variables
     // ============================================================================================
     // ============================================================================================
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
@@ -66,7 +53,7 @@ protected:
 
         //Update DtTemperature
 
-        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
+        block_for_each(rModelPart.Nodes(), [this](Node& rNode){
             const double DeltaTemperature =  rNode.FastGetSolutionStepValue(TEMPERATURE)
                                            - rNode.FastGetSolutionStepValue(TEMPERATURE, 1);
             rNode.FastGetSolutionStepValue(DT_TEMPERATURE) = DeltaTemperature / mDeltaTime;

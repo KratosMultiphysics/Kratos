@@ -18,6 +18,29 @@
 namespace Kratos
 {
 
+// ============================================================================================
+// ============================================================================================
+// Default constructor
+template<unsigned int TDim, unsigned int TNumNodes>
+TCondition<TDim, TNumNodes>::TCondition() : Condition() {}
+
+// Constructor 1
+template<unsigned int TDim, unsigned int TNumNodes>
+TCondition<TDim, TNumNodes>::TCondition(IndexType NewId, GeometryType::Pointer pGeometry)
+    : Condition(NewId, pGeometry) {}
+
+// Constructor 2
+template<unsigned int TDim, unsigned int TNumNodes>
+TCondition<TDim, TNumNodes>::TCondition(IndexType NewId, GeometryType::Pointer pGeometry, 
+    PropertiesType::Pointer pProperties)
+    : Condition(NewId, pGeometry, pProperties) {}
+
+// Destructor
+template<unsigned int TDim, unsigned int TNumNodes>
+TCondition<TDim, TNumNodes>::~TCondition() = default;
+
+// ============================================================================================
+// ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
 Condition::Pointer TCondition<TDim,TNumNodes>::Create(
     IndexType NewId,
@@ -36,6 +59,7 @@ void TCondition<TDim,TNumNodes>::GetDofList(
 {
     KRATOS_TRY
 
+    unsigned int conditionSize = TNumNodes;
     const GeometryType& rGeom = GetGeometry();
     if (rConditionDofList.size() != conditionSize)
         rConditionDofList.resize( conditionSize );
@@ -57,6 +81,7 @@ void TCondition<TDim,TNumNodes>::CalculateLocalSystem(
 {
     KRATOS_TRY
 
+    unsigned int conditionSize = TNumNodes;
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != conditionSize )
         rLeftHandSideMatrix.resize( conditionSize, conditionSize, false );
@@ -75,45 +100,13 @@ void TCondition<TDim,TNumNodes>::CalculateLocalSystem(
 // ============================================================================================
 // ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim,TNumNodes>::CalculateLeftHandSide(
-    MatrixType& rLeftHandSideMatrix,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY;
-
-    KRATOS_ERROR << "TCondition::CalculateLeftHandSide is not implemented" << std::endl;
-
-    KRATOS_CATCH("");
-}
-
-// ============================================================================================
-// ============================================================================================
-template<unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim, TNumNodes>::CalculateRightHandSide(
-    VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_TRY
-
-    //Resetting the RHS
-    if ( rRightHandSideVector.size() != conditionSize )
-        rRightHandSideVector.resize( conditionSize, false );
-    noalias( rRightHandSideVector ) = ZeroVector( conditionSize );
-
-    this->CalculateRHS(rRightHandSideVector, rCurrentProcessInfo);
-
-    KRATOS_CATCH( "" )
-}
-
-// ============================================================================================
-// ============================================================================================
-template<unsigned int TDim, unsigned int TNumNodes>
 void TCondition<TDim,TNumNodes>::EquationIdVector(
     EquationIdVectorType& rResult,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
+    unsigned int conditionSize = TNumNodes;
     const GeometryType& rGeom = GetGeometry();
 
     if (rResult.size() != conditionSize)

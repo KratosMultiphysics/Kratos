@@ -166,6 +166,14 @@ public:
     typedef typename BaseType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
     /**
+     * A third order tensor to hold shape functions' local second derivatives.
+     * ShapefunctionsLocalGradients function return this
+     * type as its result.
+     */
+    typedef typename BaseType::ShapeFunctionsSecondDerivativesType
+    ShapeFunctionsSecondDerivativesType;
+
+    /**
      * Type of the normal vector used for normal to edges in geomety.
      */
     typedef typename BaseType::NormalType NormalType;
@@ -1410,6 +1418,28 @@ public:
                 rResult[i] = DN_DX;
     }
 
+    /**
+     * returns the second order derivatives of all shape functions
+     * in given arbitrary points
+     * @param rResult a third order tensor which contains the second derivatives
+     * @param rPoint the given point the second order derivatives are calculated in
+     */
+    ShapeFunctionsSecondDerivativesType& ShapeFunctionsSecondDerivatives( ShapeFunctionsSecondDerivativesType& rResult, const CoordinatesArrayType& rPoint ) const override
+    {
+        if ( rResult.size() != this->PointsNumber() )
+        {
+            // KLUDGE: While there is a bug in ublas vector resize, I have to put this beside resizing!!
+            ShapeFunctionsGradientsType temp( this->PointsNumber() );
+            rResult.swap( temp );
+        }
+
+        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
+        {
+            rResult[i] = ZeroMatrix(3,3);
+        }
+
+        return rResult;
+    }
 
     /**
      * @brief Test if this geometry intersects with other geometry
