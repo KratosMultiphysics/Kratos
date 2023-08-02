@@ -14,7 +14,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/small_strains/fatigue/high_cycle_fatigue_data_container.h"
+#include "custom_constitutive/small_strains/fatigue/high_cycle_fatigue_dummy_cl.h"
 #include "constitutive_laws_application_variables.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
@@ -24,7 +24,7 @@ namespace Kratos
 //******************************CONSTRUCTOR*******************************************
 /***********************************************************************************/
 
-HighCycleFatigueDataContainer::HighCycleFatigueDataContainer()
+HighCycleFatigueDummyCl::HighCycleFatigueDummyCl()
     : ElasticIsotropic3D()
 {
 }
@@ -32,7 +32,7 @@ HighCycleFatigueDataContainer::HighCycleFatigueDataContainer()
 //******************************COPY CONSTRUCTOR**************************************
 /***********************************************************************************/
 
-HighCycleFatigueDataContainer::HighCycleFatigueDataContainer(const HighCycleFatigueDataContainer& rOther)
+HighCycleFatigueDummyCl::HighCycleFatigueDummyCl(const HighCycleFatigueDummyCl& rOther)
     : ElasticIsotropic3D(rOther)
 {
 }
@@ -40,22 +40,22 @@ HighCycleFatigueDataContainer::HighCycleFatigueDataContainer(const HighCycleFati
 //********************************CLONE***********************************************
 /***********************************************************************************/
 
-ConstitutiveLaw::Pointer HighCycleFatigueDataContainer::Clone() const
+ConstitutiveLaw::Pointer HighCycleFatigueDummyCl::Clone() const
 {
-    return Kratos::make_shared<HighCycleFatigueDataContainer>(*this);
+    return Kratos::make_shared<HighCycleFatigueDummyCl>(*this);
 }
 
 //*******************************DESTRUCTOR*******************************************
 /***********************************************************************************/
 
-HighCycleFatigueDataContainer::~HighCycleFatigueDataContainer()
+HighCycleFatigueDummyCl::~HighCycleFatigueDummyCl()
 {
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HighCycleFatigueDataContainer::CalculatePK2Stress(
+void HighCycleFatigueDummyCl::CalculatePK2Stress(
     const ConstitutiveLaw::StrainVectorType& rStrainVector,
     ConstitutiveLaw::StressVectorType& rStressVector,
     ConstitutiveLaw::Parameters& rValues

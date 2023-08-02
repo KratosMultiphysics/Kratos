@@ -70,7 +70,7 @@
 #include "custom_constitutive/small_strains/linear/multi_linear_elastic_1d_law.h"
 #include "custom_constitutive/small_strains/linear/multi_linear_isotropic_plane_stress_2d.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage_plane_stress.h"
-#include "custom_constitutive/small_strains/fatigue/high_cycle_fatigue_data_container.h"
+#include "custom_constitutive/small_strains/fatigue/high_cycle_fatigue_dummy_cl.h"
 
 // Integrators
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
@@ -281,7 +281,7 @@ private:
     const WrinklingLinear2DLaw mWrinklingLinear2DLaw;
     const MultiLinearElastic1DLaw mMultiLinearElastic1DLaw;
     const MultiLinearIsotropicPlaneStress2D mMultiLinearIsotropicPlaneStress2D;
-    const HighCycleFatigueDataContainer mHighCycleFatigueDataContainer;
+    const HighCycleFatigueDummyCl mHighCycleFatigueDummyCl;
 
     // Damage and plasticity laws
     const SerialParallelRuleOfMixturesLaw mSerialParallelRuleOfMixturesLaw;

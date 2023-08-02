@@ -64,7 +64,7 @@
 #include "custom_constitutive/small_strains/plastic_damage/generic_small_strain_plastic_damage_model.h"
 #include "custom_constitutive/small_strains/damage/generic_small_strain_orthotropic_damage.h"
 #include "custom_constitutive/composites/serial_parallel_rule_of_mixtures_law.h"
-#include "custom_constitutive/small_strains/fatigue/high_cycle_fatigue_data_container.h"
+#include "custom_constitutive/small_strains/fatigue/high_cycle_fatigue_dummy_cl.h"
 
 // Integrators
 #include "custom_constitutive/auxiliary_files/cl_integrators/generic_cl_integrator_damage.h"
@@ -117,8 +117,8 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     (m,"TractionSeparationLaw3D").def(py::init<>())
     ;
 
-    py::class_< HighCycleFatigueDataContainer, typename HighCycleFatigueDataContainer::Pointer,  ConstitutiveLaw  >
-    (m,"HighCycleFatigueDataContainer").def(py::init<>())
+    py::class_< HighCycleFatigueDummyCl, typename HighCycleFatigueDummyCl::Pointer,  ConstitutiveLaw  >
+    (m,"HighCycleFatigueDummyCl").def(py::init<>())
     ;
 
     py::class_< WrinklingLinear2DLaw, typename WrinklingLinear2DLaw::Pointer, ConstitutiveLaw >

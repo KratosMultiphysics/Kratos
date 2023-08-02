@@ -41,22 +41,22 @@ namespace Kratos
 ///@{
 
 /**
- * @class HighCycleFatigueDataContainer
+ * @class HighCycleFatigueDummyCl
  * @ingroup StructuralMechanicsApplication
  * @brief This class defines a small deformation linear elastic constitutive model for plane strain cases
  * @details This class derives from the linear elastic case on 3D
  * @author Riccardo Rossi
  * @author Vicente Mataix Ferrandiz
  */
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) HighCycleFatigueDataContainer
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) HighCycleFatigueDummyCl
     : public ElasticIsotropic3D
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Counted pointer of HighCycleFatigueDataContainer
-    KRATOS_CLASS_POINTER_DEFINITION( HighCycleFatigueDataContainer );
+    /// Counted pointer of HighCycleFatigueDummyCl
+    KRATOS_CLASS_POINTER_DEFINITION( HighCycleFatigueDummyCl );
 
     ///@name Life Cycle
     ///@{
@@ -64,7 +64,7 @@ public:
     /**
      * @brief Default constructor.
      */
-    HighCycleFatigueDataContainer();
+    HighCycleFatigueDummyCl();
 
     /**
      * @brief The clone operation
@@ -74,13 +74,13 @@ public:
     /**
      * Copy constructor.
      */
-    HighCycleFatigueDataContainer (const HighCycleFatigueDataContainer& rOther);
+    HighCycleFatigueDummyCl (const HighCycleFatigueDummyCl& rOther);
 
 
     /**
      * @brief Destructor.
      */
-    ~HighCycleFatigueDataContainer() override;
+    ~HighCycleFatigueDummyCl() override;
 
     /**
      * @brief It calculates the stress vector
@@ -166,5 +166,5 @@ private:
     ///@name Serialization
     ///@{
 
-}; // Class HighCycleFatigueDataContainer
+}; // Class HighCycleFatigueDummyCl
 }  // namespace Kratos.
