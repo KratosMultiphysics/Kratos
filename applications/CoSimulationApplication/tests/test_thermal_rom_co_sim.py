@@ -9,6 +9,7 @@ if kratos_utilities.CheckIfApplicationsAvailable("CoSimulationApplication"):
 
 @KratosUnittest.skipIfApplicationsNotAvailable("ConvectionDiffusionApplication")
 @KratosUnittest.skipIfApplicationsNotAvailable("RomApplication")
+@KratosUnittest.skipIfApplicationsNotAvailable("MappingApplication")
 class TestThermalRomCoSim(KratosUnittest.TestCase):
 
     def testConvDiffStationaryRom2DCoSim(self):
