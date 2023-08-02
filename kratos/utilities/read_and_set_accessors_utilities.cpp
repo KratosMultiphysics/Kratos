@@ -56,8 +56,6 @@ void ReadAndSetAccessorsUtilities::ReadAndSetAccessors(
                 KRATOS_ERROR << "This Accessor type is not available, only TableAccessor is ready for now" << std::endl;
             }
         }
-    } else {
-        KRATOS_INFO("Read materials") << "No accessors defined for material ID: " << rProperty.Id() << std::endl;
     }
 }
 
