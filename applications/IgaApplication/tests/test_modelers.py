@@ -243,7 +243,7 @@ class TestModelers(KratosUnittest.TestCase):
             param[1] -= 0.1
             param[2] = 0.0
 
-    def test_nurbs_geometry_2d_modeler__parameter_space(self):
+    def test_nurbs_geometry_2d_modeler_parameter_space(self):
         current_model = KratosMultiphysics.Model()
         modeler_settings = KratosMultiphysics.Parameters("""
         [{
@@ -484,7 +484,7 @@ class TestModelers(KratosUnittest.TestCase):
             param[0] += 0.1
             param[1] = 0.0
 
-    def test_nurbs_geometry_3d_modeler__parameter_space(self):
+    def test_nurbs_geometry_3d_modeler_parameter_space(self):
         current_model = KratosMultiphysics.Model()
         modeler_settings = KratosMultiphysics.Parameters("""
         [{
