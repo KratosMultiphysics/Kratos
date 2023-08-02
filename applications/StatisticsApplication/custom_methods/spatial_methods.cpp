@@ -136,7 +136,7 @@ public:
 
     SumOperation() { Initialize(); }
 
-    SumOperation(const TDataType& rValue) : mValue(rValue) {}
+    explicit SumOperation(const TDataType& rValue) : mValue(rValue) {}
 
     ///@}
     ///@name Public operations
@@ -180,9 +180,7 @@ private:
     ///@name Private operations
     ///@{
 
-    void Initialize() {
-        OperationTraits::Initialize(mValue, 0.0);
-    }
+    void Initialize() { OperationTraits::Initialize(mValue, 0.0); }
 
     ///@}
 };
@@ -210,7 +208,7 @@ public:
 
     MinMaxOperation() { Initialize(); }
 
-    MinMaxOperation(
+    explicit MinMaxOperation(
         const TDataType& rValue,
         const IndexType rId)
         : mValue(rValue)
@@ -372,7 +370,7 @@ public:
         mResultantIndex.resize(data_size);
     }
 
-    MedianOperation(
+    explicit MedianOperation(
         const TDataType& rValue,
         const IndexType rId)
         : mResultantValue(rValue)
@@ -735,6 +733,16 @@ SpatialMethods::DistributionInfo<typename TNormType::template ResultantValueType
             << Params["max_value"] << " ]\n.";
     }
 
+    const IndexType number_of_components = data_type_traits::Size(max_value);
+
+    for (IndexType i = 0; i < number_of_components; ++i) {
+        const auto min_value_component = data_type_traits::GetComponent(min_value, i);
+        const auto max_value_component = data_type_traits::GetComponent(max_value, i);
+        KRATOS_ERROR_IF(min_value_component > max_value_component)
+            << "The min value should be less than the max value [ min_value = "
+            << min_value_component << ", max_value = " << max_value_component << " ].\n";
+    }
+
     auto& group_limits = distribution_info.mGroupUpperValues;
     const IndexType number_of_groups = Params["number_of_value_groups"].GetInt();
 
@@ -748,8 +756,6 @@ SpatialMethods::DistributionInfo<typename TNormType::template ResultantValueType
     norm_return_type additional_max_value(max_value);
     data_type_traits::Initialize(additional_max_value, std::numeric_limits<typename data_type_traits::RawDataType>::max());
     group_limits.back() = additional_max_value;
-
-    const IndexType number_of_components = data_type_traits::Size(max_value);
 
     const auto& reuduced_values =
         IndexPartition<IndexType>(rDataContainer.Size()).for_each<SpatialMethodHelperUtilities::DistributionReduction<norm_return_type>>(data_type{}, [&rDataContainer, &rNorm, &group_limits, number_of_components](const IndexType Index, data_type& rTLS) {
@@ -824,7 +830,7 @@ TReturnType GenericExpressionNormReduction(
     const DataCommunicator& rDataCommunicator,
     const Norms::AllNormTypes& rNorm)
 {
-    return std::visit([&rDataCommunicator](const auto& rDataContainer, const auto& rNorm) -> TReturnType {
+    return std::visit([&rDataCommunicator, &rExpression](const auto& rDataContainer, const auto& rNorm) -> TReturnType {
         using data_container_type = std::decay_t<decltype(rDataContainer)>;
         using data_type = typename data_container_type::DataType;
         using current_norm_type = std::decay_t<decltype(rNorm)>;
@@ -837,7 +843,8 @@ TReturnType GenericExpressionNormReduction(
         } else {
             KRATOS_ERROR << "The requested norm type \"" << current_norm_type::TypeInfo()
                          << "\" is not supported for data type \""
-                         << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\". Followings are the allowed norm types:"
+                         << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\" [ type deduced by the expression shape = "
+                         << rExpression.GetItemShape() << " ]. Followings are the allowed norm types:"
                          << SpatialMethodHelperUtilities::AllowedNormTypeInfo<allowed_norm_type>::TypeInfo();
             return TReturnType{};
         }
@@ -1369,7 +1376,7 @@ SpatialMethods::ExpressionDistributionReturnType SpatialMethods::Distribution(
     Parameters Params,
     const Norms::AllNormTypes& rNorm)
 {
-    return std::visit([&rDataCommunicator, &Params](const auto& rDataContainer, const auto& rNorm) -> SpatialMethods::ExpressionDistributionReturnType {
+    return std::visit([&rDataCommunicator, &Params, &rExpression](const auto& rDataContainer, const auto& rNorm) -> SpatialMethods::ExpressionDistributionReturnType {
         using data_container_type = std::decay_t<decltype(rDataContainer)>;
         using data_type = typename data_container_type::DataType;
         using current_norm_type = std::decay_t<decltype(rNorm)>;
@@ -1380,7 +1387,8 @@ SpatialMethods::ExpressionDistributionReturnType SpatialMethods::Distribution(
         } else {
             KRATOS_ERROR << "The requested norm type \"" << current_norm_type::TypeInfo()
                          << "\" is not supported for data type \""
-                         << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\". Followings are the allowed norm types:"
+                         << SpatialMethodHelperUtilities::DataTypeInfo<data_type>::TypeInfo() << "\" [ type deduced by the expression shape = "
+                         << rExpression.GetItemShape() << " ]. Followings are the allowed norm types:"
                          << SpatialMethodHelperUtilities::AllowedNormTypeInfo<allowed_norm_type>::TypeInfo();
             return SpatialMethods::ExpressionDistributionReturnType{};
         }

@@ -245,7 +245,7 @@ class SpatialStatisticsProcess(Kratos.OutputProcess):
         header_details: 'dict[str, bool]' = {}
         for info_type, operation_info in operation_info_dict.items():
             header_details[info_type] = True
-            for k, v in operation_info.items():
+            for v in operation_info.values():
                 if v == len(self.list_of_operations):
                     header_details[info_type] = False
 
