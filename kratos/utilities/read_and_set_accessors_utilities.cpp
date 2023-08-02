@@ -45,8 +45,8 @@ void ReadAndSetAccessorsUtilities::ReadAndSetAccessors(
                 std::string output_var_name = accessor_param["properties"]["table_output_variable"].GetString();
                 const auto& r_output_var  = KratosComponents<Variable<double>>().Get(output_var_name);
 
-                // We set the variable type of the input variable (nodal_historical, nodal_non_historical and elemental_non_historical)
-                std::string input_var_type = accessor_param["properties"].Has("table_input_variable_type") ? accessor_param["properties"]["table_input_variable_type"].GetString() : "nodal_historical";
+                // We set the variable type of the input variable (node_historical, node_non_historical and element)
+                std::string input_var_type = accessor_param["properties"].Has("table_input_variable_type") ? accessor_param["properties"]["table_input_variable_type"].GetString() : "node_historical";
 
                 KRATOS_ERROR_IF(rProperty.HasAccessor(r_output_var)) << "You are trying to add an TableAccessor between " << input_var_name << " and " << output_var_name << " which already exists..." << std::endl;
 

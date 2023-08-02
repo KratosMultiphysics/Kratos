@@ -69,11 +69,11 @@ public:
         : mpInputVariable(pInputVariable)
     {
         // We initialize the variable type only once
-        if (rInputVariableType == "nodal_historical") {
+        if (rInputVariableType == "node_historical") {
             mInputVariableType = Globals::DataLocation::NodeHistorical;
-        } else if (rInputVariableType == "nodal_non_historical") {
+        } else if (rInputVariableType == "node_non_historical") {
             mInputVariableType = Globals::DataLocation::NodeNonHistorical;
-        } else if (rInputVariableType == "elemental_non_historical") {
+        } else if (rInputVariableType == "element") {
             mInputVariableType = Globals::DataLocation::Element;
         } else {
             KRATOS_ERROR << "The table_input_variable_type is incorrect or not supported. Types available are : 'nodal_historical', 'nodal_non_historical' and 'elemental_non_historical'" << std::endl;
