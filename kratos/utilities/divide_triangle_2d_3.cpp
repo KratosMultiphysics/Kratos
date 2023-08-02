@@ -158,7 +158,8 @@ namespace Kratos
                 // Generate a pointer to an auxiliar triangular geometry made with the subdivision points
                 IndexedPointGeometryPointerType p_aux_partition = GenerateAuxiliaryPartitionTriangle(i0, i1, i2);
 
-                // Determine if the subdivision is wether in the negative or the positive side
+                // Determine if the subdivision is whether in the negative or the positive side
+                // Note that zero distance nodes are also identified and stored in here 
                 unsigned int neg = 0, pos = 0;
                 if(i0 <= 2) {if(nodal_distances(i0) < 0.0) neg++; else if(nodal_distances(i0) > 0.0) pos++; else this->mNodeIsCut.set(i0);};
                 if(i1 <= 2) {if(nodal_distances(i1) < 0.0) neg++; else if(nodal_distances(i1) > 0.0) pos++; else this->mNodeIsCut.set(i1);};
@@ -217,7 +218,8 @@ namespace Kratos
                     int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
 
                     // Check the nodal keys to state which nodes belong to the interface
-                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
+                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliary interface points
+                    // For the zero distance case, the corresponding node is considered as part of the interface
                     if ((node_i_key >= n_nodes || this->mNodeIsCut[node_i_key]) && (node_j_key >= n_nodes || this->mNodeIsCut[node_j_key])) {
                         // Generate an indexed point line geometry pointer with the two interface nodes
                         IndexedPointGeometryPointerType p_intersection_line = this->GenerateIntersectionLine(node_i_key, node_j_key);
@@ -242,7 +244,8 @@ namespace Kratos
                     int node_j_key = r_subdivision_geom[mEdgeNodeJ[i_face]].Id();
 
                     // Check the nodal keys to state which nodes belong to the interface
-                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliar interface points
+                    // If the indexed keys is larger or equal to the number of nodes means that they are the auxiliary interface points
+                    // For the zero distance case, the corresponding node is considered as part of the interface
                     if ((node_i_key >= n_nodes || this->mNodeIsCut[node_i_key]) && (node_j_key >= n_nodes || this->mNodeIsCut[node_j_key])) {
                         // Generate an indexed point line geometry pointer with the two interface nodes
                         IndexedPointGeometryPointerType p_intersection_line = this->GenerateIntersectionLine(node_i_key ,node_j_key);
