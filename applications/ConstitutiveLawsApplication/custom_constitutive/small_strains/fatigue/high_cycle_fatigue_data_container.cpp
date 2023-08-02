@@ -76,6 +76,24 @@ void HighCycleFatigueDataContainer::CalculatePK2Stress(
     rStressVector[3] = c4 * rStrainVector[3];
     rStressVector[4] = c4 * rStrainVector[4];
     rStressVector[5] = c4 * rStrainVector[5];
+
+    double uniaxial_stress;
+    uniaxial_stress = ConstitutiveLawUtilities<VoigtSize>::CalculateVonMisesEquivalentStress(rStressVector);
+
+    double sign_factor = mFatigueData.CalculateTensionOrCompressionIdentifier(rStressVector);
+    uniaxial_stress *= sign_factor;
+    double max_stress;
+    double min_stress;
+    Vector mPreviousStresses = ZeroVector(2);
+    bool max_indicator;
+    bool min_indicator;
+
+    mFatigueData.CalculateSminAndSmax(uniaxial_stress,
+                                    max_stress,
+                                    min_stress,
+                                    mPreviousStresses,
+                                    max_indicator,
+                                    min_indicator);
 }
 
 /***********************************************************************************/

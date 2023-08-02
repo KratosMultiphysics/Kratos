@@ -37,7 +37,7 @@ namespace Kratos
  * @details Storages the information regarding initial stresses/strains/F
  * @author Alejandro Cornejo
  */
-class KRATOS_API(KRATOS_CORE) HCFDataContainer
+class HCFDataContainer
 {
 
 public:
