@@ -9,7 +9,6 @@ import os
 
 class TestGradualVariableInterpolationProcess(KratosUnittest.TestCase):
 
-    @classmethod
     def _SimulateStep(cls, modelpart, process):
         # Updating the time step by incrementing the DELTA_TIME
         new_t = modelpart.ProcessInfo[TIME] + modelpart.ProcessInfo[DELTA_TIME]
