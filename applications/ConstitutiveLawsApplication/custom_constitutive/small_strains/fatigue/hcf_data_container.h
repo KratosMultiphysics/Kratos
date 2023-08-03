@@ -53,7 +53,7 @@ public:
                             bool& rMaxIndicator,
                             bool& rMinIndicator)
     {
-        HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(CurrentStress,
+        return HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(CurrentStress,
                                                                             rMaximumStress,
                                                                             rMinimumStress,
                                                                             PreviousStresses,
@@ -63,7 +63,7 @@ public:
 
     double CalculateTensionOrCompressionIdentifier(const Vector& rStressVector)
     {
-        HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(rStressVector);
+        return HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(rStressVector);
     }
 
     double CalculateReversionFactor(const double MaxStress, const double MinStress)

@@ -82,17 +82,43 @@ public:
      */
     ~HighCycleFatigueDummyCl() override;
 
-    /**
-     * @brief It calculates the stress vector
-     * @param rStrainVector The strain vector in Voigt notation
-     * @param rStressVector The stress vector in Voigt notation
-     * @param rValues Parameters of the constitutive law
+    // /**
+    //  * @brief It calculates the stress vector
+    //  * @param rStrainVector The strain vector in Voigt notation
+    //  * @param rStressVector The stress vector in Voigt notation
+    //  * @param rValues Parameters of the constitutive law
+    //  */
+    // void CalculatePK2Stress(
+    //     const ConstitutiveLaw::StrainVectorType& rStrainVector,
+    //     ConstitutiveLaw::StressVectorType& rStressVector,
+    //     ConstitutiveLaw::Parameters& rValues
+    //     ) override;
+
+     /**
+     * @brief Computes the material response:
+     * @details PK2 stresses and algorithmic ConstitutiveMatrix
+     * @param rValues The internal values of the law
+     * @see   Parameters
      */
-    void CalculatePK2Stress(
-        const ConstitutiveLaw::StrainVectorType& rStrainVector,
-        ConstitutiveLaw::StressVectorType& rStressVector,
-        ConstitutiveLaw::Parameters& rValues
-        ) override;
+    void CalculateMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
+
+     /**
+     * @brief Updates the material response:
+     * Cauchy stresses and Internal Variables
+     * @param rValues The internal values of the law
+     * @see   Parameters
+     */
+    void FinalizeMaterialResponsePK2 (ConstitutiveLaw::Parameters & rValues) override;
+
+    /**
+     * @brief If the CL requires to finalize the material response, called by the element in FinalizeSolutionStep.
+     */
+    bool RequiresFinalizeMaterialResponse() override
+    {
+        return true;
+    }
+
+
 
     ///@}
     ///@name Operators
@@ -148,6 +174,13 @@ private:
     ///@name Member Variables
     ///@{
     HCFDataContainer mFatigueData = HCFDataContainer();
+    Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
+    double mMaxStress = 0.0;
+    double mMinStress = 0.0;
+    double mPreviousMaxStress = 0.0;
+    double mPreviousMinStress = 0.0;
+    bool mMaxDetected = false;
+    bool mMinDetected = false;
     ///@}
     ///@name Private Operators
     ///@{
