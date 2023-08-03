@@ -18,7 +18,7 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
             super().__init__(response_name)
         def CalculateValue(self) -> float:
             return 0.0
-        def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
+        def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
             pass
         def Check(self) -> None:
             pass
@@ -48,7 +48,7 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
             return None
         def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return []
-        def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
+        def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
             return None
         def Update(self, control_field: ContainerExpressionTypes) -> bool:
             return True

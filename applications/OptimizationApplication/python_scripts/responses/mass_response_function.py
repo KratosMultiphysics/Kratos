@@ -59,7 +59,7 @@ class MassResponseFunction(ResponseFunction):
     def CalculateValue(self) -> float:
         return KratosOA.ResponseUtils.MassResponseUtils.CalculateValue(self.model_part)
 
-    def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
+    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
         # first merge all the model parts
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
 

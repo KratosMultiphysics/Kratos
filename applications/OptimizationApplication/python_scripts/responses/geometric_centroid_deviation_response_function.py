@@ -82,7 +82,7 @@ class GeometricCentroidDeviationResponseFunction(ResponseFunction):
         self.value_array = (average_location / number_of_nodes  - self.model_part_center)
         return self.value_array[0] ** 2 + self.value_array[1] ** 2 + self.value_array[2] ** 2
 
-    def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
+    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
         # first merge all the model parts
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
 
