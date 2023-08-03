@@ -9,7 +9,6 @@ from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kr
 # Importing Rom
 if not CheckIfApplicationsAvailable("RomApplication"):
     raise ImportError("The RomApplication is not available!")
-import KratosMultiphysics.RomApplication.rom_testing_utilities as rom_testing_utilities
 
 def Create(settings, model, solver_name):
     return RomWrapper(settings, model, solver_name)
