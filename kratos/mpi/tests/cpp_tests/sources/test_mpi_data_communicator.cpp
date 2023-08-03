@@ -2961,10 +2961,10 @@ template<typename T> void MPIDataCommunicatorScatterIntegralTypeVectorTest()
         std::vector<T> wrong_recv = {999, 999};
         if (world_rank == 0)
         {
-            recv_buffer.resize(3);
-            recv_buffer = {999, 999, 999};
+            wrong_recv.resize(3);
+            wrong_recv = {999, 999, 999};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, wrong_recv, send_rank),"Error");
     }
     // send rank has wrong size
     std::vector<T> wrong_send(0);
@@ -2972,7 +2972,7 @@ template<typename T> void MPIDataCommunicatorScatterIntegralTypeVectorTest()
     {
         wrong_send = {1};
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(wrong_send, recv_buffer, send_rank),"Error");
     #endif
 }
 }
@@ -3034,10 +3034,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterDoubleVector, Kr
         std::vector<double> wrong_recv = {-1.0, -1.0};
         if (world_rank == 0)
         {
-            recv_buffer.resize(3);
-            recv_buffer = {-1.0,-1.0,-1.0};
+            wrong_recv.resize(3);
+            wrong_recv = {-1.0,-1.0,-1.0};
         }
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+        KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, wrong_recv, send_rank),"Error");
     }
     // send rank has wrong size
     std::vector<double> wrong_send(0);
@@ -3045,7 +3045,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPIDataCommunicatorScatterDoubleVector, Kr
     {
         wrong_send = {1.0};
     }
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(send_buffer, recv_buffer, send_rank),"Error");
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(mpi_world_communicator.Scatter(wrong_send, recv_buffer, send_rank),"Error");
     #endif
 }
 
