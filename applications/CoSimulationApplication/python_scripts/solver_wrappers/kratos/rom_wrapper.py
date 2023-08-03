@@ -1,5 +1,4 @@
 # Importing the Kratos Library
-import KratosMultiphysics as KM
 from KratosMultiphysics.kratos_utilities import CheckIfApplicationsAvailable
 import importlib
 
@@ -9,6 +8,7 @@ from KratosMultiphysics.CoSimulationApplication.solver_wrappers.kratos import kr
 # Importing Rom
 if not CheckIfApplicationsAvailable("RomApplication"):
     raise ImportError("The RomApplication is not available!")
+import KratosMultiphysics.RomApplication.rom_analysis as RomAnalysis
 
 def Create(settings, model, solver_name):
     return RomWrapper(settings, model, solver_name)
@@ -24,7 +24,7 @@ class RomWrapper(kratos_base_wrapper.KratosBaseWrapper):
 
         analysis_stage_module = importlib.import_module(analysis_stage_module_name)
         analysis_stage_class = getattr(analysis_stage_module, analysis_stage_class_name)
-        instance_factory = KM.RomApplication.rom_analysis.CreateRomAnalysisInstance
+        instance_factory = RomAnalysis.CreateRomAnalysisInstance
         return instance_factory(analysis_stage_class, self.model, self.project_parameters)
 
     def _GetDataCommunicator(self):
