@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "constitutiveModel_tests/interface_isotropic_damage_linear/Test_UnixialTension",
+        "problem_name":         "constitutive_law_tests/interface_MC_tension_cutoff/Test_MixedMode3D",
         "start_time":           0.0,
         "end_time":             1.0,
         "echo_level":           1,
@@ -12,13 +12,13 @@
         "model_part_name":    "PorousModelPart",
         "domain_size":    2,
         "start_time":    0.0,
-        "time_step":    0.0999,
+        "time_step":    0.1,
         "model_import_settings":              {
             "input_type":    "mdpa",
-            "input_filename":    "constitutiveModel_tests/interface_isotropic_damage_linear/Test_UnixialTension"
+            "input_filename":    "constitutive_law_tests/interface_MC_tension_cutoff/Test_MixedMode3D"
         },
         "material_import_settings": {
-            "materials_filename":    "constitutiveModel_tests/interface_isotropic_damage_linear/PoroMaterials.json"
+            "materials_filename":    "constitutive_law_tests/interface_MC_tension_cutoff/PoroMaterials.json"
         },
         "buffer_size":    2,
         "echo_level":    1,
@@ -65,38 +65,49 @@
             "tolerance":       1.0e-6,
             "scaling":         false
         },
-        "problem_domain_sub_model_part_list": ["Body_Part-auto-1","Interface_Part-auto-1"],
-        "processes_sub_model_part_list":      ["Solid_Displacement-auto-1","Solid_Displacement-auto-2","Fluid_Pressure-auto-1"],
-        "body_domain_sub_model_part_list":    ["Body_Part-auto-1"]
+        "problem_domain_sub_model_part_list": ["bulk","fault"],
+        "processes_sub_model_part_list":      ["presc_horz_displ","presc_vert_displ","fixed_displ","bulk_pressure"],
+        "body_domain_sub_model_part_list":    ["bulk"]
     },
     "processes": {
         "constraints_process_list": [{
             "python_module": "apply_vector_constraint_table_process",
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
-                "model_part_name": "PorousModelPart.Solid_Displacement-auto-1",
+                "model_part_name": "PorousModelPart.presc_horz_displ",
                 "variable_name":   "DISPLACEMENT",
-                "active":          [true,true,false],
-                "is_fixed":        [true,true,false],
+                "active":          [true,false,false],
+                "is_fixed":        [true,false,false],
                 "value":           [0.0,0.0,0.0],
-                "table":           [0,0,0]
+                "table":           [1,0,0]
             }
         },{
             "python_module": "apply_vector_constraint_table_process",
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
-                "model_part_name": "PorousModelPart.Solid_Displacement-auto-2",
+                "model_part_name": "PorousModelPart.presc_vert_displ",
                 "variable_name":   "DISPLACEMENT",
-                "active":          [true,true,false],
-                "is_fixed":        [true,true,false],
+                "active":          [false,true,false],
+                "is_fixed":        [false,true,false],
                 "value":           [0.0,0.0,0.0],
-                "table":           [0,1,0]
+                "table":           [0,2,0]
+            }
+        },{
+            "python_module": "apply_vector_constraint_table_process",
+            "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
+            "Parameters":    {
+                "model_part_name": "PorousModelPart.fixed_displ",
+                "variable_name":   "DISPLACEMENT",
+                "active":          [true,true,true],
+                "is_fixed":        [true,true,true],
+                "value":           [0.0,0.0,0.0],
+                "table":           [0,0,0]
             }
         },{
             "python_module": "apply_scalar_constraint_table_process",
             "kratos_module": "KratosMultiphysics.PoromechanicsApplication",
             "Parameters":    {
-                "model_part_name":      "PorousModelPart.Fluid_Pressure-auto-1",
+                "model_part_name":      "PorousModelPart.bulk_pressure",
                 "variable_name":        "WATER_PRESSURE",
                 "is_fixed":             true,
                 "value":                0.0,
@@ -112,10 +123,10 @@
             "python_module"   : "from_json_check_result_process",
             "kratos_module"   : "KratosMultiphysics",
             "Parameters"    : {
-                "gauss_points_check_variables"      : ["CONTACT_STRESS_VECTOR","LOCAL_RELATIVE_DISPLACEMENT_VECTOR"],
-                "input_file_name"      : "constitutiveModel_tests/interface_isotropic_damage_linear/Test_UnixialTension_results.json",
-                "model_part_name"      : "PorousModelPart.Interface_Part-auto-1",
-                "time_frequency"       : 0.0999
+                "gauss_points_check_variables"      : ["LOCAL_STRESS_VECTOR","LOCAL_RELATIVE_DISPLACEMENT_VECTOR"],
+                "input_file_name"      : "constitutive_law_tests/interface_MC_tension_cutoff/Test_MixedMode3D_results.json",
+                "model_part_name"      : "PorousModelPart.fault",
+                "time_frequency"       : 0.09999
             }
         }]
     }
