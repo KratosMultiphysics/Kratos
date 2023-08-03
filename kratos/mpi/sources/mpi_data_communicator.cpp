@@ -771,9 +771,10 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDe
     int recv_size;
     SendRecvDetail(send_size, SendDestination, SendTag, recv_size, RecvSource, RecvTag);
 
-    TDataType send_temp{}, recv_temp{};
+    TDataType recv_temp{};
 
     if constexpr(MPIMessage<TDataType>::HasDynamicMemoryAllocation) {
+        TDataType send_temp{};
         if (rSendMessage.size() > 0) {
             send_temp = rSendMessage.front();
         }
@@ -781,7 +782,7 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDe
     }
 
     std::vector<TDataType> recv_values(recv_size, recv_temp);
-    SendRecvDetail(rSendMessage,SendDestination, SendTag ,recv_values, RecvSource, RecvTag);
+    SendRecvDetail(rSendMessage,SendDestination, SendTag, recv_values, RecvSource, RecvTag);
     return recv_values;
 }
 
