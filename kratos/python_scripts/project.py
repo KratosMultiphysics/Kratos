@@ -79,6 +79,8 @@ class Project:
         with open(save_folder_path / checkpoint_file_path, 'wb+') as checkpoint_file:
             # Serialize current model and stages
             serializer = KratosMultiphysics.StreamSerializer()
+            serializer.Set(KratosMultiphysics.Serializer.SHALLOW_GLOBAL_POINTERS_SERIALIZATION)
+            
             serializer.Save("Model", self.__model)
             stage_names_list = []
             stage_instances_list = []
