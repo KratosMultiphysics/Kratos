@@ -1,6 +1,3 @@
-#ifndef GRADUAL_VARIABLE_INTERPOLATION_UTILITY_H
-#define GRADUAL_VARIABLE_INTERPOLATION_UTILITY_H
-
 // KRATOS  __  __ _____ ____  _   _ ___ _   _  ____
 //        |  \/  | ____/ ___|| | | |_ _| \ | |/ ___|
 //        | |\/| |  _| \___ \| |_| || ||  \| | |  _
@@ -11,6 +8,8 @@
 //                       license: MeshingApplication/license.txt
 //
 //  Main authors:    Sebastian Ares de Parga Regalado
+
+#pragma once
 
 // Project includes
 #include "processes/process.h"
@@ -60,6 +59,4 @@ public:
 };
 
 }  // namespace Kratos.
-
-#endif /* GRADUAL_VARIABLE_INTERPOLATION_UTILITY_H defined */
 
