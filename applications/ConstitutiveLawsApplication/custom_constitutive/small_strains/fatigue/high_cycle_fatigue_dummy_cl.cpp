@@ -111,10 +111,10 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     double uniaxial_stress;
     uniaxial_stress = ConstitutiveLawUtilities<VoigtSize>::CalculateVonMisesEquivalentStress(r_stress_vector);
 
-    double max_stress = mMaxStress;
-    double min_stress = mMinStress;
-    bool max_indicator = mMaxDetected;
-    bool min_indicator = mMinDetected;
+    double max_stress = mFatigueData.mMaxStress;
+    double min_stress = mFatigueData.mMinStress;
+    bool max_indicator = mFatigueData.mMaxDetected;
+    bool min_indicator = mFatigueData.mMinDetected;
 
     double sign_factor = mFatigueData.CalculateTensionOrCompressionIdentifier(r_stress_vector);
     uniaxial_stress *= sign_factor;
@@ -122,20 +122,20 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     mFatigueData.CalculateSminAndSmax(uniaxial_stress,
                                     max_stress,
                                     min_stress,
-                                    mPreviousStresses,
+                                    mFatigueData.mPreviousStresses,
                                     max_indicator,
                                     min_indicator);
 
-    mMaxStress = max_stress;
-    mMinStress = min_stress;
-    mMaxDetected = max_indicator;
-    mMinDetected = min_indicator;
+    mFatigueData.mMaxStress = max_stress;
+    mFatigueData.mMinStress = min_stress;
+    mFatigueData.mMaxDetected = max_indicator;
+    mFatigueData.mMinDetected = min_indicator;
 
     Vector previous_stresses = ZeroVector(2);
-    const Vector& r_aux_stresses = mPreviousStresses;
+    const Vector& r_aux_stresses = mFatigueData.mPreviousStresses;
     previous_stresses[1] = uniaxial_stress;
     previous_stresses[0] = r_aux_stresses[1];
-    mPreviousStresses = previous_stresses;
+    mFatigueData.mPreviousStresses = previous_stresses;
 
     KRATOS_WATCH(max_stress);
     KRATOS_WATCH(min_stress);

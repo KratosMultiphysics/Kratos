@@ -113,18 +113,19 @@ public:
 
     ///@name Member Variables
     ///@{
-    double mMaxStress;
-    double mMinStress;
-    bool mMaxDetected;
-    bool mMinDetected;
+    double mMaxStress = 0.0;
+    double mMinStress = 0.0;
+    bool mMaxDetected = false;
+    bool mMinDetected = false;
+    Vector mPreviousStresses = ZeroVector(2);
     double mFatigueReductionFactor;
     double mReversionFactorRelativeError;
     double mMaxStressRelativeError;
     unsigned int mNumberOfCyclesGlobal;
     unsigned int mNumberOfCyclesLocal;
     double mFatigueReductionParameter;
-    double mPreviousMaxStress;
-    double mPreviousMinStress;
+    double mPreviousMaxStress = 0.0;
+    double mPreviousMinStress = 0.0;
     double mWohlerStress;
     double mThresholdStress;
     double mCyclesToFailure;

@@ -174,13 +174,6 @@ private:
     ///@name Member Variables
     ///@{
     HCFDataContainer mFatigueData = HCFDataContainer();
-    Vector mPreviousStresses = ZeroVector(2); // [S_t-2, S_t-1]
-    double mMaxStress = 0.0;
-    double mMinStress = 0.0;
-    double mPreviousMaxStress = 0.0;
-    double mPreviousMinStress = 0.0;
-    bool mMaxDetected = false;
-    bool mMinDetected = false;
     ///@}
     ///@name Private Operators
     ///@{
