@@ -85,46 +85,47 @@ void AddDataCommunicatorMethodForDataType(
     }
 
     const std::string& value_text = arg_text + "_value";
-    const std::string& list_of_values = "list_of_" + arg_text + "_values";
-    const std::string& list_of_v_values = "list_of_" + arg_text + "_per_ranks";
+    const std::string& plural_arg_text = (std::is_same_v<TDataType, Matrix> ? "Matrices" : arg_text + "s");
+    const std::string& list_of_values = "list_of_" + plural_arg_text;
+    const std::string& list_of_v_values = "list_of_" + plural_arg_text + "_per_ranks";
 
     namespace py = pybind11;
 
     rDataCommunicatorModule.def("Sum", py::overload_cast<const TDataType&, const int>(&DataCommunicator::Sum, py::const_), py::arg(value_text.c_str()), py::arg("root"));
-    rDataCommunicatorModule.def(("Sum" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Sum, py::const_), py::arg(list_of_values.c_str()), py::arg("root"));
+    rDataCommunicatorModule.def(("Sum" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Sum, py::const_), py::arg(list_of_values.c_str()), py::arg("root"));
     rDataCommunicatorModule.def("Min", py::overload_cast<const TDataType&, const int>(&DataCommunicator::Min, py::const_), py::arg(value_text.c_str()), py::arg("root"));
-    rDataCommunicatorModule.def(("Min" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Min, py::const_), py::arg(list_of_values.c_str()), py::arg("root"));
+    rDataCommunicatorModule.def(("Min" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Min, py::const_), py::arg(list_of_values.c_str()), py::arg("root"));
     rDataCommunicatorModule.def("Max", py::overload_cast<const TDataType&, const int>(&DataCommunicator::Max, py::const_), py::arg(value_text.c_str()), py::arg("root"));
-    rDataCommunicatorModule.def(("Max" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Max, py::const_), py::arg(list_of_values.c_str()), py::arg("root"));
+    rDataCommunicatorModule.def(("Max" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Max, py::const_), py::arg(list_of_values.c_str()), py::arg("root"));
 
     rDataCommunicatorModule.def("SumAll", py::overload_cast<const TDataType&>(&DataCommunicator::SumAll, py::const_), py::arg(value_text.c_str()));
-    rDataCommunicatorModule.def(("SumAll" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::SumAll, py::const_), py::arg(list_of_values.c_str()));
+    rDataCommunicatorModule.def(("SumAll" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::SumAll, py::const_), py::arg(list_of_values.c_str()));
     rDataCommunicatorModule.def("MinAll", py::overload_cast<const TDataType&>(&DataCommunicator::MinAll, py::const_), py::arg(value_text.c_str()));
-    rDataCommunicatorModule.def(("MinAll" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::MinAll, py::const_), py::arg(list_of_values.c_str()));
+    rDataCommunicatorModule.def(("MinAll" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::MinAll, py::const_), py::arg(list_of_values.c_str()));
     rDataCommunicatorModule.def("MaxAll", py::overload_cast<const TDataType&>(&DataCommunicator::MaxAll, py::const_), py::arg(value_text.c_str()));
-    rDataCommunicatorModule.def(("MaxAll" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::MaxAll, py::const_), py::arg(list_of_values.c_str()));
+    rDataCommunicatorModule.def(("MaxAll" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::MaxAll, py::const_), py::arg(list_of_values.c_str()));
 
     rDataCommunicatorModule.def("ScanSum", py::overload_cast<const TDataType&>(&DataCommunicator::ScanSum, py::const_), py::arg(value_text.c_str()));
-    rDataCommunicatorModule.def(("ScanSum" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::ScanSum, py::const_), py::arg(list_of_values.c_str()));
+    rDataCommunicatorModule.def(("ScanSum" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::ScanSum, py::const_), py::arg(list_of_values.c_str()));
 
-    rDataCommunicatorModule.def(("SendRecv" + arg_text + "s").c_str(), pybind11::overload_cast<const std::vector<TDataType>&, const int, const int>(&DataCommunicator::SendRecv<std::vector<TDataType>>, pybind11::const_), py::arg(list_of_values.c_str()), py::arg("send_destination"), py::arg("recv_source"));
+    rDataCommunicatorModule.def(("SendRecv" + plural_arg_text).c_str(), pybind11::overload_cast<const std::vector<TDataType>&, const int, const int>(&DataCommunicator::SendRecv<std::vector<TDataType>>, pybind11::const_), py::arg(list_of_values.c_str()), py::arg("send_destination"), py::arg("recv_source"));
 
     rDataCommunicatorModule.def("Broadcast", [](const DataCommunicator& rSelf, TDataType& rSourceMessage, const int SourceRank){
         rSelf.Broadcast(rSourceMessage, SourceRank);
         return rSourceMessage;
     }, py::arg(value_text.c_str()), py::arg("source_rank"));
-    rDataCommunicatorModule.def(("Broadcast" + arg_text + "s").c_str(), [](const DataCommunicator& rSelf, std::vector<TDataType>& rSourceMessage, const int SourceRank) {
+    rDataCommunicatorModule.def(("Broadcast" + plural_arg_text).c_str(), [](const DataCommunicator& rSelf, std::vector<TDataType>& rSourceMessage, const int SourceRank) {
         return VectorBroadcastWrapper<TDataType>(rSelf, &DataCommunicator::Broadcast, rSourceMessage, SourceRank);
     }, py::arg(list_of_values.c_str()), py::arg("source_rank"));
 
-    rDataCommunicatorModule.def(("Scatter" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Scatter, py::const_), py::arg(list_of_values.c_str()), py::arg("source_rank"));
-    rDataCommunicatorModule.def(("Scatterv" + arg_text + "s").c_str(), py::overload_cast<const std::vector<std::vector<TDataType>>&, const int>(&DataCommunicator::Scatterv, py::const_), py::arg(list_of_v_values.c_str()), py::arg("source_rank"));
+    rDataCommunicatorModule.def(("Scatter" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Scatter, py::const_), py::arg(list_of_values.c_str()), py::arg("source_rank"));
+    rDataCommunicatorModule.def(("Scatterv" + plural_arg_text).c_str(), py::overload_cast<const std::vector<std::vector<TDataType>>&, const int>(&DataCommunicator::Scatterv, py::const_), py::arg(list_of_v_values.c_str()), py::arg("source_rank"));
 
-    rDataCommunicatorModule.def(("Gather" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Gather, py::const_), py::arg(list_of_values.c_str()), py::arg("destination_rank"));
-    rDataCommunicatorModule.def(("Gatherv" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Gatherv, py::const_), py::arg(list_of_values.c_str()), py::arg("destination_rank"));
+    rDataCommunicatorModule.def(("Gather" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Gather, py::const_), py::arg(list_of_values.c_str()), py::arg("destination_rank"));
+    rDataCommunicatorModule.def(("Gatherv" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&, const int>(&DataCommunicator::Gatherv, py::const_), py::arg(list_of_values.c_str()), py::arg("destination_rank"));
 
-    rDataCommunicatorModule.def(("AllGather" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::AllGather, py::const_), py::arg(list_of_values.c_str()));
-    rDataCommunicatorModule.def(("AllGatherv" + arg_text + "s").c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::AllGatherv, py::const_), py::arg(list_of_values.c_str()));
+    rDataCommunicatorModule.def(("AllGather" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::AllGather, py::const_), py::arg(list_of_values.c_str()));
+    rDataCommunicatorModule.def(("AllGatherv" + plural_arg_text).c_str(), py::overload_cast<const std::vector<TDataType>&>(&DataCommunicator::AllGatherv, py::const_), py::arg(list_of_values.c_str()));
 
     rDataCommunicatorModule.def("SynchronizeShape", [](const DataCommunicator& rSelf, TDataType& rValue) { rSelf.SynchronizeShape(rValue); return rValue; }, py::arg(value_text.c_str()));
 }
