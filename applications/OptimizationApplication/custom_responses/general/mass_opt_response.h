@@ -54,7 +54,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) MassOptResponse : public Response
+class MassOptResponse : public Response
 {
 public:
     ///@name Type Definitions

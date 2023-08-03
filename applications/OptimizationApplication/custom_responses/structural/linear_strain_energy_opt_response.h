@@ -54,7 +54,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) LinearStrainEnergyOptResponse : public Response
+class LinearStrainEnergyOptResponse : public Response
 {
 public:
     ///@name Type Definitions

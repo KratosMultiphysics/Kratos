@@ -16,7 +16,7 @@
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/parallel_utilities.h"
-#include "optimization_application.h"
+#include "optimization_application_variables.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 

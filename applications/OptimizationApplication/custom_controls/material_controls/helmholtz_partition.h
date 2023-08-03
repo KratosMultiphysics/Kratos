@@ -26,6 +26,7 @@
 #include "custom_controls/material_controls/material_control.h"
 #include "custom_elements/helmholtz_bulk_element.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
+#include "optimization_application_variables.h"
 
 
 // ==============================================================================
@@ -56,7 +57,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzPartition : public MaterialControl
+class HelmholtzPartition : public MaterialControl
 {
 public:
     ///@name Type Definitions

@@ -52,7 +52,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) StressOptResponse : public Response
+class StressOptResponse : public Response
 {
 public:
     ///@name Type Definitions

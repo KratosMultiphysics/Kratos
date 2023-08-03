@@ -53,7 +53,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) PartitionInterfaceStressOptResponse : public Response
+class PartitionInterfaceStressOptResponse : public Response
 {
 public:
     ///@name Type Definitions

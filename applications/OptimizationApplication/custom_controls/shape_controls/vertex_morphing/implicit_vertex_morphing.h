@@ -47,6 +47,7 @@
 #include "utilities/reduction_utilities.h"
 #include "utilities/atomic_utilities.h"
 #include "processes/find_conditions_neighbours_process.h"
+#include "optimization_application_variables.h"
 
 
 // ==============================================================================
@@ -77,7 +78,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) ImplicitVertexMorphing : public ShapeControl
+class ImplicitVertexMorphing : public ShapeControl
 {
 public:
     ///@name Type Definitions

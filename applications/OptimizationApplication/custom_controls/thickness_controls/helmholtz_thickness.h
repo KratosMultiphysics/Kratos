@@ -37,6 +37,7 @@
 #include "custom_strategies/strategies/helmholtz_strategy.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
+#include "optimization_application_variables.h"
 
 
 // ==============================================================================
@@ -67,7 +68,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzThickness : public ThicknessControl
+class HelmholtzThickness : public ThicknessControl
 {
 public:
     ///@name Type Definitions
