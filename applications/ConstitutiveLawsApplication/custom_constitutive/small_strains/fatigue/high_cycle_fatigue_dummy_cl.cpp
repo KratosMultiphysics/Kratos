@@ -115,6 +115,9 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     double min_stress = mFatigueData.mMinStress;
     bool max_indicator = mFatigueData.mMaxDetected;
     bool min_indicator = mFatigueData.mMinDetected;
+    unsigned int global_number_of_cycles = mFatigueData.mNumberOfCyclesGlobal;
+    unsigned int local_number_of_cycles = mFatigueData.mNumberOfCyclesLocal;
+    bool new_cycle = false;
 
     double sign_factor = mFatigueData.CalculateTensionOrCompressionIdentifier(r_stress_vector);
     uniaxial_stress *= sign_factor;
@@ -128,8 +131,6 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
 
     mFatigueData.mMaxStress = max_stress;
     mFatigueData.mMinStress = min_stress;
-    mFatigueData.mMaxDetected = max_indicator;
-    mFatigueData.mMinDetected = min_indicator;
 
     Vector previous_stresses = ZeroVector(2);
     const Vector& r_aux_stresses = mFatigueData.mPreviousStresses;
@@ -137,10 +138,25 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     previous_stresses[0] = r_aux_stresses[1];
     mFatigueData.mPreviousStresses = previous_stresses;
 
+    if (max_indicator && min_indicator) {
+        global_number_of_cycles++;
+        local_number_of_cycles++;
+        new_cycle = true;
+        max_indicator = false;
+        min_indicator = false;
+    }
+
+    mFatigueData.mMaxDetected = max_indicator;
+    mFatigueData.mMinDetected = min_indicator;
+    mFatigueData.mNumberOfCyclesGlobal = global_number_of_cycles;
+    mFatigueData.mNumberOfCyclesLocal = local_number_of_cycles;
+    mFatigueData.mNewCycleIndicator = new_cycle;
+
     KRATOS_WATCH(max_stress);
     KRATOS_WATCH(min_stress);
     KRATOS_WATCH(max_indicator);
     KRATOS_WATCH(min_indicator);
+    KRATOS_WATCH(global_number_of_cycles);
 
     KRATOS_CATCH("");
 }

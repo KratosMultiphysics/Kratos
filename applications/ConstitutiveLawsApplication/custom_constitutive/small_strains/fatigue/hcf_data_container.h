@@ -53,7 +53,7 @@ public:
                             bool& rMaxIndicator,
                             bool& rMinIndicator)
     {
-        return HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(CurrentStress,
+        HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(CurrentStress,
                                                                             rMaximumStress,
                                                                             rMinimumStress,
                                                                             PreviousStresses,
@@ -68,7 +68,7 @@ public:
 
     double CalculateReversionFactor(const double MaxStress, const double MinStress)
     {
-        HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(MaxStress, MinStress);
+        return HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(MaxStress, MinStress);
     }
 
     void CalculateFatigueParameters(const double MaxStress,
@@ -121,14 +121,15 @@ public:
     double mFatigueReductionFactor;
     double mReversionFactorRelativeError;
     double mMaxStressRelativeError;
-    unsigned int mNumberOfCyclesGlobal;
-    unsigned int mNumberOfCyclesLocal;
+    unsigned int mNumberOfCyclesGlobal = 1;
+    unsigned int mNumberOfCyclesLocal = 1;
     double mFatigueReductionParameter;
     double mPreviousMaxStress = 0.0;
     double mPreviousMinStress = 0.0;
     double mWohlerStress;
     double mThresholdStress;
     double mCyclesToFailure;
+    bool mNewCycleIndicator = false;
     ///@}
 
 private:
