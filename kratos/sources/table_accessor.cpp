@@ -79,15 +79,20 @@ double TableAccessor::GetValueFromTable(
 
 void TableAccessor::save(Serializer& rSerializer) const
 {
-    rSerializer.save("InputVariable", mpInputVariable->Key());
+    rSerializer.save("InputVariable", mpInputVariable->Name());
     // // we must do the int cast to be able to compile
     rSerializer.save("InputVariableType", static_cast<int>(mInputVariableType)); 
 }
 void TableAccessor::load(Serializer& rSerializer)
 {
-    rSerializer.load("InputVariable", mpInputVariable->Key());
+    std::string variable_name;
+    rSerializer.load("InputVariable", variable_name);
+    mpInputVariable = static_cast<Variable<double> *>(KratosComponents<VariableData>::pGet(variable_name));
+
     // // we must do the int cast to be able to compile
-    rSerializer.load("InputVariableType", static_cast<int>(mInputVariableType));  
+    int enum_value;
+    rSerializer.load("InputVariableType", enum_value);
+    mInputVariableType = static_cast<Globals::DataLocation>(enum_value);
 }
 
 /***********************************************************************************/

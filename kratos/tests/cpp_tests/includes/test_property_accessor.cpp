@@ -183,10 +183,7 @@ KRATOS_TEST_CASE_IN_SUITE(TableTableAccessorSerialization, KratosCoreFastSuite)
 
     auto& d = table_accessor_loaded.GetInputVariable();
 
-    KRATOS_WATCH(d.Key())
-    KRATOS_WATCH(TEMPERATURE.Key())
-
-    // KRATOS_CHECK_EQUAL(TEMPERATURE.Key(), table_accessor_loaded.GetInputVariable().Key());
+    KRATOS_CHECK_EQUAL(TEMPERATURE.Key(), table_accessor_loaded.GetInputVariable().Key());
 }
 
 }  // namespace Kratos::Testing.
