@@ -92,6 +92,24 @@ class TestThermalRomCoSim(KratosUnittest.TestCase):
             simulation = CoSimulationAnalysis(cosim_parameters)
             simulation.Run()
 
+            # After the simulation, clean up the center JSON file
+            with open(parameter_file_name_center,'r') as f:
+                center_parameters = KratosMultiphysics.Parameters(f.read())
+                if center_parameters["processes"].Has("testing_processes"):
+                    center_parameters["processes"].RemoveValue("testing_processes")
+
+            with open(parameter_file_name_center,'w') as f:
+                f.write(center_parameters.PrettyPrintJsonString())
+
+            # After the simulation, clean up the outside JSON file
+            with open(parameter_file_name_outside,'r') as f:
+                outside_parameters = KratosMultiphysics.Parameters(f.read())
+                if outside_parameters["processes"].Has("testing_processes"):
+                    outside_parameters["processes"].RemoveValue("testing_processes")
+
+            with open(parameter_file_name_outside,'w') as f:
+                f.write(outside_parameters.PrettyPrintJsonString())
+
 ##########################################################################################
 
 if __name__ == '__main__':
