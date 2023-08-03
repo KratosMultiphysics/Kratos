@@ -181,8 +181,6 @@ KRATOS_TEST_CASE_IN_SUITE(TableTableAccessorSerialization, KratosCoreFastSuite)
     // Variable<double> *p_var_loaded;
     serializer.load("table_accessor_info", table_accessor_loaded);
 
-    auto& d = table_accessor_loaded.GetInputVariable();
-
     KRATOS_CHECK_EQUAL(TEMPERATURE.Key(), table_accessor_loaded.GetInputVariable().Key());
 }
 
