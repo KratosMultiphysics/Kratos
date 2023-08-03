@@ -50,7 +50,7 @@ void ReadAndSetAccessorsUtilities::ReadAndSetAccessors(
 
                 KRATOS_ERROR_IF(rProperty.HasAccessor(r_output_var)) << "You are trying to add an TableAccessor between " << input_var_name << " and " << output_var_name << " which already exists..." << std::endl;
 
-                rProperty.SetAccessor(r_output_var, (TableAccessor(p_input_var, input_var_type)).Clone());
+                rProperty.SetAccessor(r_output_var, (TableAccessor(*p_input_var, input_var_type)).Clone());
             } else {
                 // No more accessors implemented currently
                 KRATOS_ERROR << "This Accessor type is not available, only TableAccessor is ready for now" << std::endl;

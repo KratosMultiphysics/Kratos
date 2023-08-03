@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
         p_elem_prop->SetTable(TEMPERATURE, YOUNG_MODULUS, T_E_table);
         KRATOS_CHECK_EQUAL(true, (*p_elem_prop).HasTable(TEMPERATURE, YOUNG_MODULUS));
 
-        TableAccessor E_table_accessor = TableAccessor(&TEMPERATURE, "node_historical");
+        TableAccessor E_table_accessor = TableAccessor(TEMPERATURE, "node_historical");
         p_elem_prop->SetAccessor(YOUNG_MODULUS, E_table_accessor.Clone());
         KRATOS_CHECK_EQUAL(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
         KRATOS_CHECK_EQUAL(1.6e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
@@ -160,7 +160,7 @@ KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
         T_NU_table.PushBack(50.0,  0.41);
         T_NU_table.PushBack(200.0, 0.43);
         p_elem_prop->SetTable(TEMPERATURE, POISSON_RATIO, T_NU_table);
-        TableAccessor nu_table_accessor = TableAccessor(&TEMPERATURE); // using the default nodal_historical
+        TableAccessor nu_table_accessor = TableAccessor(TEMPERATURE); // using the default nodal_historical
         p_elem_prop->SetAccessor(POISSON_RATIO, nu_table_accessor.Clone());
 
         KRATOS_CHECK_EQUAL(true, (*p_elem_prop).HasAccessor(POISSON_RATIO));
@@ -172,7 +172,7 @@ KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
 KRATOS_TEST_CASE_IN_SUITE(TableTableAccessorSerialization, KratosCoreFastSuite)
 {
     StreamSerializer serializer;
-    TableAccessor table_accessor = TableAccessor(&TEMPERATURE, "node_historical");
+    TableAccessor table_accessor = TableAccessor(TEMPERATURE, "node_historical");
 
     serializer.save("table_accessor_info", table_accessor);
 
