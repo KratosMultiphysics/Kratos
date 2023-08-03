@@ -276,6 +276,7 @@ public:
 //                                KRATOS_WATCH(dyn_friction_set);
 
                                 // if dynamic friction has not been set, set it -- otherwise zero out current contribution
+                                // [ note: GetValue will retrieve the max tangent forces computed in AssignFrictionState ]
                                 for (unsigned int i = 1; i < domain_size; i++)
                                     rLocalVector[j + i] = dyn_friction_set ? 0.0 : rGeometry[itNode].GetValue(FRICTION_CONTACT_FORCE)[i];
 
@@ -496,13 +497,16 @@ public:
                         tangent_force_dir2 = tangent_force2 / tangent_force_norm;
                     }
 
-                    // SLIDING -> replace current tangent forces with frictional force for sliding friction
-                    itNode->GetValue(FRICTION_CONTACT_FORCE_Y, 0) = tangent_force_dir1 * max_tangent_force_norm;
-                    itNode->GetValue(FRICTION_CONTACT_FORCE_Z, 0) = tangent_force_dir2 * max_tangent_force_norm;
+                    // SLIDING -> sets max tangent forces for use in ConditionApplyCondition
+                    // [ note the use of SetValue instead of FastGetSolutionStepValue ]
+                    itNode->SetValue(FRICTION_CONTACT_FORCE_Y, tangent_force_dir1 * max_tangent_force_norm);
+                    itNode->SetValue(FRICTION_CONTACT_FORCE_Z, tangent_force_dir2 * max_tangent_force_norm);
                 }
             } else {
                 // If friction no longer active OR node contains no material, set FRICTION_STATE to SLIDING
                 itNode->FastGetSolutionStepValue(FRICTION_STATE) = SLIDING;
+                itNode->SetValue(FRICTION_CONTACT_FORCE_Y, 0.0);
+                itNode->SetValue(FRICTION_CONTACT_FORCE_Z, 0.0);
             }
         }
     }
