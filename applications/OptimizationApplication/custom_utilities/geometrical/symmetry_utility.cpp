@@ -83,26 +83,28 @@ void SymmetryUtility::Initialize()
     KDTree search_tree(mListOfNodesInModelPart.begin(), mListOfNodesInModelPart.end(), bucket_size);
 
     if(mAxisSymmetry){
-        mRotationalSymmetryData.Map = block_for_each<AccumReduction<std::pair<NodeTypePointer,NodeVector>>>(mrModelPart.Nodes(), [&](auto& rNode){
+        std::vector<std::pair <NodeTypePointer,NodeVector>>& rMap = mRotationalSymmetryData.Map;
+        rMap = block_for_each<AccumReduction<std::pair<NodeTypePointer,NodeVector>>>(mrModelPart.Nodes(), [&](auto& r_node){
             int num_rotations = mRotationalSymmetryData.NumRot;
             NodeVector p_neighbor_rot_nodes;
             p_neighbor_rot_nodes.resize(num_rotations-1);
             for(int r_i=1;r_i<num_rotations;r_i++){
-               NodeTypePointer p_rot_node = GetRotatedNode(rNode,r_i-1);
+               NodeTypePointer p_rot_node = GetRotatedNode(r_node,r_i-1);
                double distance;
                NodeTypePointer p_neighbor_rot_node = search_tree.SearchNearestPoint(*p_rot_node, distance);
                p_neighbor_rot_nodes[r_i-1] = p_neighbor_rot_node;
             }
-            return std::make_pair(mrModelPart.pGetNode(rNode.Id()),p_neighbor_rot_nodes);
+            return std::make_pair(mrModelPart.pGetNode(r_node.Id()),p_neighbor_rot_nodes);
         });
     }
 
     if(mPlaneSymmetry){
-        mPlaneSymmetryData.Map = block_for_each<AccumReduction<std::pair<NodeTypePointer,NodeTypePointer>>>(mrModelPart.Nodes(), [&](auto& rNode){
-            NodeTypePointer p_ref_node = GetReflectedNode(rNode);
+        std::vector<std::pair <NodeTypePointer,NodeTypePointer>>& rMap = mPlaneSymmetryData.Map;
+        rMap = block_for_each<AccumReduction<std::pair<NodeTypePointer,NodeTypePointer>>>(mrModelPart.Nodes(), [&](auto& r_node){
+            NodeTypePointer p_ref_node = GetReflectedNode(r_node);
             double distance;
             NodeTypePointer p_neighbor_ref_node = search_tree.SearchNearestPoint(*p_ref_node, distance);
-            return std::make_pair(mrModelPart.pGetNode(rNode.Id()),p_neighbor_ref_node);
+            return std::make_pair(mrModelPart.pGetNode(r_node.Id()),p_neighbor_ref_node);
         });
     }
 
@@ -147,34 +149,39 @@ void SymmetryUtility::GetRotationMatrix(double angle, Matrix& rRotMat){
 void SymmetryUtility::ApplyOnVectorField( const Variable<array_3d> &rNodalVariable )
 {
     if(mAxisSymmetry){
-        const auto& aux = block_for_each<AccumReduction<Vector>>(mRotationalSymmetryData.Map, [&](auto& rPair){
-            Vector vec_val = rPair.first->FastGetSolutionStepValue(rNodalVariable);
-            Matrix rot_mat;
-            for(unsigned int n_c = 0; n_c<rPair.second.size();n_c++){
-                GetRotationMatrix((n_c+1)*mRotationalSymmetryData.Angle,rot_mat);
-                vec_val += prod(trans(rot_mat),rPair.second[n_c]->FastGetSolutionStepValue(rNodalVariable));
-            }
-            vec_val /= (rPair.second.size()+1);
-            return vec_val;
+        std::vector<Vector> aux(mRotationalSymmetryData.Map.size());
+        IndexPartition<IndexType>(mRotationalSymmetryData.Map.size()).for_each([&](const auto Index) {
+                auto& r_pair = mRotationalSymmetryData.Map[Index];
+                Vector vec_val = r_pair.first->FastGetSolutionStepValue(rNodalVariable);
+                Matrix rot_mat;
+                for(unsigned int n_c = 0; n_c<r_pair.second.size();n_c++){
+                    GetRotationMatrix((n_c+1)*mRotationalSymmetryData.Angle,rot_mat);
+                    vec_val += prod(trans(rot_mat),r_pair.second[n_c]->FastGetSolutionStepValue(rNodalVariable));
+                }
+
+                vec_val /= (r_pair.second.size()+1);
+                aux[Index] = vec_val;
         });
 
-        IndexPartition<IndexType>(aux.size()).for_each([&](const auto Index){
-            mRotationalSymmetryData.Map[Index].first->FastGetSolutionStepValue(rNodalVariable) = aux[Index];
+        IndexPartition<IndexType>(aux.size()).for_each([&](const auto i) {
+            mRotationalSymmetryData.Map[i].first->FastGetSolutionStepValue(rNodalVariable) = aux[i];
         });
     }
 
     if(mPlaneSymmetry){
-        const auto& aux = block_for_each<AccumReduction<Vector>>(mPlaneSymmetryData.Map, [&](auto& rPair){
-            Vector val = rPair.first->FastGetSolutionStepValue(rNodalVariable);
-            Vector ref_node_val = rPair.second->FastGetSolutionStepValue(rNodalVariable);
-            ref_node_val = prod(trans(mPlaneSymmetryData.ReflectionMatrix),ref_node_val);
-            val += ref_node_val;
-            val /= 2.0;
-            return val;
+        std::vector<Vector> aux(mPlaneSymmetryData.Map.size());
+        IndexPartition<IndexType>(mPlaneSymmetryData.Map.size()).for_each([&](const auto Index) {
+                auto& r_pair = mPlaneSymmetryData.Map[Index];
+                Vector val = r_pair.first->FastGetSolutionStepValue(rNodalVariable);
+                Vector ref_node_val = r_pair.second->FastGetSolutionStepValue(rNodalVariable);
+                ref_node_val = prod(trans(mPlaneSymmetryData.ReflectionMatrix),ref_node_val);
+                val += ref_node_val;
+                val /= 2.0;
+                aux[Index] = val;
         });
 
-        IndexPartition<IndexType>(aux.size()).for_each([&](const auto Index){
-            mPlaneSymmetryData.Map[Index].first->FastGetSolutionStepValue(rNodalVariable) = aux[Index];
+        IndexPartition<IndexType>(aux.size()).for_each([&](const auto i) {
+            mPlaneSymmetryData.Map[i].first->FastGetSolutionStepValue(rNodalVariable) = aux[i];
         });
     }
 }
@@ -183,29 +190,33 @@ void SymmetryUtility::ApplyOnScalarField( const Variable<double> &rNodalVariable
 {
 
     if(mAxisSymmetry){
-        const auto& aux = block_for_each<AccumReduction<double>>(mRotationalSymmetryData.Map, [&](auto& rPair){
-            double val = rPair.first->FastGetSolutionStepValue(rNodalVariable);
-            for(unsigned int n_c = 0; n_c<rPair.second.size();n_c++)
-                val += rPair.second[n_c]->FastGetSolutionStepValue(rNodalVariable);
-            val /= (rPair.second.size()+1);
-            return val;
+        std::vector<double> aux(mRotationalSymmetryData.Map.size());
+        IndexPartition<IndexType>(mRotationalSymmetryData.Map.size()).for_each([&](const auto Index) {
+                auto& r_pair = mRotationalSymmetryData.Map[Index];
+                double val = r_pair.first->FastGetSolutionStepValue(rNodalVariable);
+                for(unsigned int n_c = 0; n_c<r_pair.second.size();n_c++)
+                    val += r_pair.second[n_c]->FastGetSolutionStepValue(rNodalVariable);
+                val /= (r_pair.second.size()+1);
+                aux[Index] = val;
         });
 
-        IndexPartition<IndexType>(aux.size()).for_each([&](const auto Index){
-            mRotationalSymmetryData.Map[Index].first->FastGetSolutionStepValue(rNodalVariable) = aux[Index];
+        IndexPartition<IndexType>(aux.size()).for_each([&](const auto i) {
+            mRotationalSymmetryData.Map[i].first->FastGetSolutionStepValue(rNodalVariable) = aux[i];
         });
     }
 
     if(mPlaneSymmetry){
-        const auto& aux = block_for_each<AccumReduction<double>>(mPlaneSymmetryData.Map, [&](auto& rPair){
-            double val = rPair.first->FastGetSolutionStepValue(rNodalVariable);
-            val += rPair.second->FastGetSolutionStepValue(rNodalVariable);
-            val /= 2.0;
-            return val;
+        std::vector<double> aux(mPlaneSymmetryData.Map.size());
+        IndexPartition<IndexType>(mPlaneSymmetryData.Map.size()).for_each([&](const auto Index) {
+                auto& r_pair = mPlaneSymmetryData.Map[Index];
+                double val = r_pair.first->FastGetSolutionStepValue(rNodalVariable);
+                val += r_pair.second->FastGetSolutionStepValue(rNodalVariable);
+                val /= 2.0;
+                aux[Index] = val;
         });
 
-        IndexPartition<IndexType>(aux.size()).for_each([&](const auto Index){
-            mPlaneSymmetryData.Map[Index].first->FastGetSolutionStepValue(rNodalVariable) = aux[Index];
+        IndexPartition<IndexType>(aux.size()).for_each([&](const auto i) {
+            mPlaneSymmetryData.Map[i].first->FastGetSolutionStepValue(rNodalVariable) = aux[i];
         });
     }
 
