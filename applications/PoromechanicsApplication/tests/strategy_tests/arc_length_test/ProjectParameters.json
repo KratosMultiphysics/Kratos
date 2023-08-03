@@ -1,6 +1,6 @@
 {
     "problem_data": {
-        "problem_name":         "element_tests/arc_length_test/arc_length_test",
+        "problem_name":         "strategy_tests/arc_length_test/arc_length_test",
         "start_time":           0.0,
         "end_time":             2.0,
         "echo_level":           0,
@@ -15,10 +15,10 @@
         "time_step":                          1.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "element_tests/arc_length_test/arc_length_test"
+            "input_filename":   "strategy_tests/arc_length_test/arc_length_test"
         },
         "material_import_settings" :{
-            "materials_filename": "element_tests/arc_length_test/PoroMaterials.json"
+            "materials_filename": "strategy_tests/arc_length_test/PoroMaterials.json"
         },
         "buffer_size":                        2,
         "echo_level":                         0,
@@ -125,7 +125,7 @@
             "kratos_module"   : "KratosMultiphysics",
             "Parameters"      : {
                 "check_variables"      : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-                "input_file_name"      : "element_tests/arc_length_test/arc_length_test_results.json",
+                "input_file_name"      : "strategy_tests/arc_length_test/arc_length_test_results.json",
                 "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
                 "time_frequency"       : 1.0
             }
@@ -136,7 +136,7 @@
         "kratos_module" : "KratosMultiphysics",
         "Parameters"    : {
             "output_variables"     : ["DISPLACEMENT_X","DISPLACEMENT_Y"],
-            "output_file_name"     : "element_tests/arc_length_test/arc_length_test_results.json",
+            "output_file_name"     : "strategy_tests/arc_length_test/arc_length_test_results.json",
             "model_part_name"      : "PorousModelPart.Body_Part-auto-1",
             "time_frequency"       : 1.0
         }

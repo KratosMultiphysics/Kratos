@@ -5,7 +5,7 @@ from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition i
 import numpy as np
 import importlib
 import json
-import os
+from pathlib import Path
 
 
 
@@ -273,6 +273,7 @@ class RomManager(object):
         PetrovGalerkinTrainMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._AddBasisCreationToProjectParameters(parameters)
             parameters = self._StoreNoResults(parameters)
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -294,6 +295,7 @@ class RomManager(object):
         RedidualsSnapshotsMatrix = []
         for mu in mu_train:
             parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._AddBasisCreationToProjectParameters(parameters)
             parameters = self._StoreNoResults(parameters)
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -486,9 +488,16 @@ class RomManager(object):
         for launching the correct part of the ROM workflow
         """
         #other options: "trainHROM", "runHROM"
-        #taken from code by Philipa & Catharina
-        parameters_file_name = './RomParameters.json'
-        with open(parameters_file_name, 'r+') as parameter_file:
+        parameters_file_folder = self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder") else "rom_data"
+        parameters_file_name = self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name") else "RomParameters"
+
+        # Convert to Path objects
+        parameters_file_folder = Path(parameters_file_folder)
+        parameters_file_name = Path(parameters_file_name)
+
+        parameters_file_path = parameters_file_folder / parameters_file_name.with_suffix('.json')
+
+        with parameters_file_path.open('r+') as parameter_file:
             f=json.load(parameter_file)
             f['assembling_strategy'] = self.general_rom_manager_parameters['assembling_strategy'].GetString() if self.general_rom_manager_parameters.Has('assembling_strategy') else 'global'
             if simulation_to_run=='GalerkinROM':
@@ -587,6 +596,8 @@ class RomManager(object):
             defaults["Parameters"]["rom_basis_output_format"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_format"].GetString())
         if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name"):
             defaults["Parameters"]["rom_basis_output_name"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString())
+        if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder"):
+            defaults["Parameters"]["rom_basis_output_folder"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
         if self.general_rom_manager_parameters["ROM"].Has("nodal_unknowns"):
             defaults["Parameters"]["nodal_unknowns"].SetStringArray(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
         if self.general_rom_manager_parameters["ROM"].Has("snapshots_interval"):
@@ -631,6 +642,7 @@ class RomManager(object):
                     "nodal_unknowns":  [],
                     "rom_basis_output_format": "json",
                     "rom_basis_output_name": "RomParameters",
+                    "rom_basis_output_folder": "rom_data",
                     "svd_truncation_tolerance": 1e-3
                 }
             }""")
@@ -652,12 +664,12 @@ class RomManager(object):
     def _StoreSnapshotsMatrix(self, string_numpy_array_name, numpy_array):
 
         # Define the directory and file path
-        directory = './SnapshotsMatrices'
-        file_path = os.path.join(directory, f'{string_numpy_array_name}.npy')
+        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+        directory = Path(rom_output_folder_name) / 'SnapshotsMatrices'
+        file_path = directory / f'{string_numpy_array_name}.npy'
 
         # Create the directory if it doesn't exist
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        directory.mkdir(parents=True, exist_ok=True)
 
         #save the array inside the chosen directory
         np.save(file_path, numpy_array)
