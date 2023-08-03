@@ -30,7 +30,7 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
             return None
         def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
             return None
-        def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+        def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return []
 
     class DummyControl(Control):
@@ -46,7 +46,7 @@ class TestOptimizationProblemAsciiOutputProcess(kratos_unittest.TestCase):
             return None
         def GetEmptyField(self) -> ContainerExpressionTypes:
             return None
-        def GetPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+        def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return []
         def MapGradient(self, physical_gradient_variable_container_expression_map: dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]) -> ContainerExpressionTypes:
             return None

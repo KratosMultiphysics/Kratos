@@ -62,7 +62,7 @@ class MaterialPropertiesControl(Control):
     def Finalize(self) -> None:
         pass
 
-    def GetPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+    def GetPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [self.controlled_physical_variable]
 
     def GetEmptyField(self) -> ContainerExpressionTypes:

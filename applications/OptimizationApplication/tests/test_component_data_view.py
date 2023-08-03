@@ -18,7 +18,7 @@ class TestComponentDataView(kratos_unittest.TestCase):
             pass
         def Finalize(self) -> None:
             pass
-        def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+        def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
             return None
         def GetAnalysisModelPart(self) -> Kratos.ModelPart:
             return None
