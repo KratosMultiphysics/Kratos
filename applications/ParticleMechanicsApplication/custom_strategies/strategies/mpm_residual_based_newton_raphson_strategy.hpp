@@ -253,10 +253,10 @@ public:
         }
 
 
-        // recompute in very first timestep if friction is set [FLAG_VARIABLE == 1.0]
-        if (BaseType::GetModelPart().GetProcessInfo()[FLAG_VARIABLE] == 1.0){
+        // recompute in very first timestep if friction is set [FLAG_VARIABLE > 0]
+        if (BaseType::GetModelPart().GetProcessInfo()[FLAG_VARIABLE] > 0){
 
-            // Indicates that friction is active + pre-computation in 1st timestep is complete
+            // Indicates that friction is active + pre-computation in 1st timestep is complete [FLAG_VARIABLE < 0]
             BaseType::GetModelPart().GetProcessInfo()[FLAG_VARIABLE] = -2.0;
 
             // Transfer FRICTION_CONTACT_FORCE into a 'previous' timestep

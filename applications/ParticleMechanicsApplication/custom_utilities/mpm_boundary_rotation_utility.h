@@ -135,7 +135,7 @@ public:
     // MUST be called before (re-)building the RHS in a given non-linear iteration
     static void ClearFrictionFlag(const ModelPart &rModelPart) {
         KRATOS_TRY
-        // Loop over the grid nodes performed to clear INLET flag for indicating that nodal friction has alr been set
+        // Loop over the grid nodes performed to clear OUTLET flag for indicating that nodal friction has alr been set
         // and remove the accumulated normal forces
         for(NodeType &curr_node : rModelPart.Nodes()){
             curr_node.SetLock();
@@ -252,8 +252,7 @@ public:
 				TLocalMatrixType temp_matrix = ZeroMatrix(rLocalMatrix.size1(),rLocalMatrix.size2());
 				for(unsigned int itNode = 0; itNode < rGeometry.PointsNumber(); ++itNode)
 				{
-                    // if FLAG_VARIABLE set to 1 in rCurrentProcessInfo, treat SLIP nodes as fixed
-					if(this->IsSlip(rGeometry[itNode]) && rCurrentProcessInfo.GetValue(FLAG_VARIABLE) <= 0)
+					if(this->IsSlip(rGeometry[itNode]))
 					{
 						// First displacement dof (normal component) for each rotated block is always constrained
 						unsigned int j = itNode * block_size;
@@ -452,7 +451,7 @@ public:
     void AssignFrictionState(ModelPart& rModelPart){
         ModelPart::NodeIterator it_begin = rModelPart.NodesBegin();
 
-        bool isFirstTimestep = (rModelPart.GetProcessInfo()[FLAG_VARIABLE] == 1.0);
+        bool isInitialLoop = (rModelPart.GetProcessInfo()[FLAG_VARIABLE] > 0);
 
         for(int iii=0; iii<static_cast<int>(rModelPart.Nodes().size()); iii++)
         {
@@ -486,7 +485,16 @@ public:
                 const double tangent_force_norm = sqrt(tangent_force1 * tangent_force1 + tangent_force2 * tangent_force2);
                 const double max_tangent_force_norm = normal_force_norm * mu;
 
-                r_friction_state = (tangent_force_norm >= max_tangent_force_norm) ? SLIDING : STICK;
+                // special treatment for initial loop
+                if (isInitialLoop) {
+                    if(itNode->Is(INLET)){ // used to mark nodes with non-zero momentum in the initial timestep
+                        r_friction_state = SLIDING;
+                    } else {
+                        r_friction_state = STICK;
+                    }
+                } else {
+                    r_friction_state = (tangent_force_norm >= max_tangent_force_norm) ? SLIDING : STICK;
+                }
 
                 if (r_friction_state == SLIDING) {
                     double tangent_force_dir1 = 0.0;
