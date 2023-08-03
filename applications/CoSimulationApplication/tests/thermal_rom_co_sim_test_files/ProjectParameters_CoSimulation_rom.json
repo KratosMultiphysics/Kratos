@@ -11,7 +11,7 @@
     {
         "type" : "coupled_solvers.gauss_seidel_strong",
         "echo_level" : 1,
-        "num_coupling_iterations" : 100,
+        "num_coupling_iterations" : 2,
         "predictors" : [
             {
                 "type" : "average_value_based",
@@ -31,8 +31,8 @@
                 "type"          : "relative_norm_initial_residual",
                 "solver"        : "outside",
                 "data_name"     : "temp",
-                "abs_tolerance" : 1e-6,
-                "rel_tolerance" : 1e-6
+                "abs_tolerance" : 1e-1,
+                "rel_tolerance" : 1e-1
             }
         ],
         "data_transfer_operators" : {
