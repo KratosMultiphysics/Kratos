@@ -760,35 +760,6 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
 /***********************************************************************************/
 
 template<SizeType TVoigtSize>
-double AdvancedConstitutiveLawUtilities<TVoigtSize>::GetValueFromTable(
-    const Variable<double>& rIndependentVariable,
-    const Variable<double>& rDependentVariable,
-    ConstitutiveLaw::Parameters& rParameters
-    )
-{
-    // Get material properties from constitutive law parameters
-    const Properties& r_properties = rParameters.GetMaterialProperties();
-
-    // Get geometry and Gauss points data
-    const auto& r_geometry = rParameters.GetElementGeometry();
-    const auto& r_N        = rParameters.GetShapeFunctionsValues();
-
-    // Compute the independent variable at the Gauss point
-    double independent_at_gauss = 0.0;
-    for (unsigned int i = 0; i < r_N.size(); ++i) {
-        const double val = r_geometry[i].FastGetSolutionStepValue(rIndependentVariable);
-        independent_at_gauss += val * r_N[i];
-    }
-
-    // Retrieve the dependent variable from the table
-    const auto& r_table = r_properties.GetTable(rIndependentVariable, rDependentVariable);
-    return r_table.GetValue(independent_at_gauss);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<SizeType TVoigtSize>
 void AdvancedConstitutiveLawUtilities<TVoigtSize>::SubstractThermalStrain(
     ConstitutiveLaw::StrainVectorType& rStrainVector,
     const double ReferenceTemperature,

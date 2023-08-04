@@ -478,15 +478,6 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         const double Number);
 
     /**
-     * @brief This computes a material property according to a certain
-     * nodal TEMPERATURE table
-     */
-    static double GetValueFromTable(
-        const Variable<double> &rIndependentVariable,
-        const Variable<double> &rDependentVariable,
-        ConstitutiveLaw::Parameters &rParameters);
-
-    /**
      * @brief This substracts the thermal strain contribution to a vector
      */
     static void SubstractThermalStrain(
