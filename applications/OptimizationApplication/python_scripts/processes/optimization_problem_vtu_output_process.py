@@ -188,7 +188,9 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
             list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
 
         global_values_map = self.optimization_problem.GetProblemDataContainer().GetMap()
-        for global_k, global_v in global_values_map.items():
+        sorted_keys = sorted(list(global_values_map.keys()))
+        sorted_global_values_map = {i: global_values_map[i] for i in sorted_keys}
+        for global_k, global_v in sorted_global_values_map.items():
              # first check whether this is part of requested list of components
             found_valid_component = False
             for component in list_of_components:
