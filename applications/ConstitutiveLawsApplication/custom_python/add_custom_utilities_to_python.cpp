@@ -20,7 +20,6 @@
 #include "spaces/ublas_space.h"
 
 //Utilities
-#include "custom_utilities/generic_constitutive_laws_application_utilities.h"
 
 
 namespace Kratos {
@@ -29,10 +28,6 @@ namespace Python {
 void  AddCustomUtilitiesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
-
-    py::class_<GenericConstitutiveLawsApplicationUtilities, GenericConstitutiveLawsApplicationUtilities::Pointer>(m,"GenericConstitutiveLawsApplicationUtilities")
-        .def(py::init<>())
-        ;
 }
 
 }  // namespace Python.
