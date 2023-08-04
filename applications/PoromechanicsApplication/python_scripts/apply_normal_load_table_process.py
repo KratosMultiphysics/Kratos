@@ -12,6 +12,9 @@ class ApplyNormalLoadTableProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
+        self.settings = settings
+        self.interval = KratosMultiphysics.IntervalUtility(self.settings)
+
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         self.components_process_list = []
@@ -50,10 +53,16 @@ class ApplyNormalLoadTableProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        for component in self.components_process_list:
-            component.ExecuteInitialize()
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        if self.interval.IsInInterval(current_time):
+            for component in self.components_process_list:
+                component.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
 
-        for component in self.components_process_list:
-            component.ExecuteInitializeSolutionStep()
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        if self.interval.IsInInterval(current_time):
+            for component in self.components_process_list:
+                component.ExecuteInitializeSolutionStep()

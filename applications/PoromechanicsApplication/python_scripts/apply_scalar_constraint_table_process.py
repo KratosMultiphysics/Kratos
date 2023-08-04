@@ -12,6 +12,9 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
     def __init__(self, Model, settings ):
         KratosMultiphysics.Process.__init__(self)
 
+        self.settings = settings
+        self.interval = KratosMultiphysics.IntervalUtility(self.settings)
+
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         self.params = KratosMultiphysics.Parameters("{}")
@@ -47,8 +50,14 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
 
     def ExecuteInitialize(self):
 
-        self.process.ExecuteInitialize()
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        if self.interval.IsInInterval(current_time):
+            self.process.ExecuteInitialize()
 
     def ExecuteInitializeSolutionStep(self):
 
-        self.process.ExecuteInitializeSolutionStep()
+        current_time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]
+
+        if self.interval.IsInInterval(current_time):
+            self.process.ExecuteInitializeSolutionStep()
