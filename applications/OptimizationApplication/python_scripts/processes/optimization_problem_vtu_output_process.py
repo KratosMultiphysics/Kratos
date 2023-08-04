@@ -191,9 +191,8 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
         # systems, hence sorting is done to have order in the output.
         global_values_map = self.optimization_problem.GetProblemDataContainer().GetMap()
         sorted_keys = sorted(list(global_values_map.keys()))
-        sorted_global_values_map = {i: global_values_map[i] for i in sorted_keys}
-
-        for global_k, global_v in sorted_global_values_map.items():
+        for global_k in sorted_keys:
+            global_v = global_values_map[global_k]
              # first check whether this is part of requested list of components
             found_valid_component = False
             for component in list_of_components:
