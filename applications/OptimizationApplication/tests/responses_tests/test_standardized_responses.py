@@ -93,7 +93,6 @@ class TestStandardizedObjective(TestStandardizedComponent):
         }""")
 
         standardized_objective = StandardizedObjective(parameters, self.master_control, self.optimization_problem)
-        standardized_objective.Initialize()
         self.assertAlmostEqual(standardized_objective.GetStandardizedValue(), self.response_function.CalculateValue() * 2.0)
         self._CheckSensitivity(standardized_objective, 1e-9, 6)
 
@@ -105,7 +104,6 @@ class TestStandardizedObjective(TestStandardizedComponent):
         }""")
 
         standardized_objective = StandardizedObjective(parameters, self.master_control, self.optimization_problem)
-        standardized_objective.Initialize()
         self.assertAlmostEqual(standardized_objective.GetStandardizedValue(), self.response_function.CalculateValue() * -2.0)
         self._CheckSensitivity(standardized_objective, 1e-9, 6)
 
@@ -124,7 +122,6 @@ class TestStandardizedConstraint(TestStandardizedComponent):
         }""")
 
         cls.standardized_constraint = StandardizedConstraint(parameters, cls.master_control, cls.optimization_problem)
-        cls.standardized_constraint.Initialize()
         cls.standardized_constraint.CalculateStandardizedValue(cls.initial_configuration)
 
     def test_ConstraintInitialValueEquality(self):
@@ -135,7 +132,6 @@ class TestStandardizedConstraint(TestStandardizedComponent):
         }""")
 
         standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
-        standardized_constraint.Initialize()
         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), 0.0)
         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
@@ -147,7 +143,6 @@ class TestStandardizedConstraint(TestStandardizedComponent):
         }""")
 
         standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
-        standardized_constraint.Initialize()
         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), 0.0)
         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
@@ -159,7 +154,6 @@ class TestStandardizedConstraint(TestStandardizedComponent):
         }""")
 
         standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
-        standardized_constraint.Initialize()
         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), 0.0)
         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
@@ -171,7 +165,6 @@ class TestStandardizedConstraint(TestStandardizedComponent):
         }""")
 
         standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
-        standardized_constraint.Initialize()
         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), self.response_function.CalculateValue() - 4.0)
         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
@@ -183,7 +176,6 @@ class TestStandardizedConstraint(TestStandardizedComponent):
         }""")
 
         standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
-        standardized_constraint.Initialize()
         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), self.response_function.CalculateValue() - 4.0)
         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
@@ -195,7 +187,6 @@ class TestStandardizedConstraint(TestStandardizedComponent):
         }""")
 
         standardized_constraint = StandardizedConstraint(parameters, self.master_control, self.optimization_problem)
-        standardized_constraint.Initialize()
         self.assertAlmostEqual(standardized_constraint.GetStandardizedValue(), -self.response_function.CalculateValue() + 4.0)
         self._CheckSensitivity(standardized_constraint, 1e-9, 6)
 
