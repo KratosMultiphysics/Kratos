@@ -134,14 +134,7 @@ void LinearPlaneStrain::CalculatePK2Stress(
     const double E = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
-    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
-    const double c1 = (1.00 - NU)*c0;
-    const double c2 = c0 * NU;
-    const double c3 = (0.5 - NU)*c0;
-
-    rStressVector[0] = c1 * rStrainVector[0] + c2 * rStrainVector[1];
-    rStressVector[1] = c2 * rStrainVector[0] + c1 * rStrainVector[1];
-    rStressVector[2] = c3 * rStrainVector[2];
+    ConstitutiveLawUtilities<3>::CalculatePK2StressFromStrainPlaneStrain(rStressVector, rStrainVector, E, NU);
 }
 
 /***********************************************************************************/

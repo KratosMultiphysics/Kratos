@@ -243,7 +243,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         }
     }
 
-        /**
+    /**
     * It calculates the constitutive matrix C in plane stress, strain or in 3D
     * @param C: The constitutive matrix
     * @param rValues Parameters of the constitutive law
@@ -252,7 +252,14 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     static void CalculateElasticMatrixPlaneStrain(MatrixType &C, const double E, const double N);
     static void CalculateElasticMatrix(MatrixType &C, const double E, const double N);
 
-private:
+    /**
+    * It calculates elastic stress from strain and E and NU
+    * @param C: The constitutive matrix
+    * @param rValues Parameters of the constitutive law
+    */
+    static void CalculatePK2StressFromStrain(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double E, const double NU);
+    static void CalculatePK2StressFromStrainPlaneStress(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double E, const double NU);
+    static void CalculatePK2StressFromStrainPlaneStrain(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double E, const double NU);
 
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos
