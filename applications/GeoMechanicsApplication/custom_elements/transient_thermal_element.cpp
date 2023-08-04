@@ -747,9 +747,6 @@ namespace Kratos
             +9.998396e+2 + 6.764771e-2 * temp - 8.993699e-3 * std::pow(temp, 2)
             + 9.143518e-5 * std::pow(temp, 3) - 8.907391e-7 * std::pow(temp, 4)
             + 5.291959e-9 * std::pow(temp, 5) - 1.359813e-11 * std::pow(temp, 6);
-
-        //rVariables.WaterDensity = rVariables.WaterDensity / 1000.0; //The input is normalized? 
-                                                                    // density=1 is in input!!!
     }
 
     // ============================================================================================
