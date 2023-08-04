@@ -20,6 +20,7 @@
 #include "testing/testing.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_elements/small_displacement.h"
+#include "includes/table_accessor.h"
 
 namespace Kratos
 {
@@ -93,14 +94,14 @@ namespace Testing
         p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_process_info);
 
         Vector reference_stress(3);
-        reference_stress(0) = -630.769;
-        reference_stress(1) = -2169.23;
+        reference_stress(0) = -1627.69;
+        reference_stress(1) = -3166.15;
         reference_stress(2) = 0.0;
         Vector reference_strain(3);
-        reference_strain(0) = 0.000136;
-        reference_strain(1) = -0.000864;
+        reference_strain(0) = -0.0001232;
+        reference_strain(1) = -0.0011232;
         reference_strain(2) = 0.0;
-        const double reference_von_mises_pk2 = 1932.650;
+        const double reference_von_mises_pk2 = 2742.33;
 
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_stress[0], reference_stress, 1e-4);
@@ -217,6 +218,9 @@ namespace Testing
         temp_E_table.insert(1.0e6, 2.1e4);
         p_elem_prop->SetTable(TEMPERATURE, YOUNG_MODULUS, temp_E_table);
 
+        TableAccessor table_accessor = TableAccessor(TEMPERATURE, "node_historical");
+        p_elem_prop->SetAccessor(YOUNG_MODULUS, table_accessor.Clone());
+
         const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("ThermalLinearPlaneStrain");
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
 
@@ -242,8 +246,8 @@ namespace Testing
         aux_disp(0) = 0.001;
         noalias(p_node_3->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
         p_node_1->FastGetSolutionStepValue(TEMPERATURE) = 2400.2;
-        p_node_2->FastGetSolutionStepValue(TEMPERATURE) = 2400.2;
-        p_node_3->FastGetSolutionStepValue(TEMPERATURE) = 2400.2;
+        p_node_2->FastGetSolutionStepValue(TEMPERATURE) = 2000.2;
+        p_node_3->FastGetSolutionStepValue(TEMPERATURE) = 1500.2;
         Matrix lhs;
         Vector rhs;
         const auto& const_procinfo_ref = r_model_part.GetProcessInfo();
@@ -263,14 +267,14 @@ namespace Testing
         p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_process_info);
 
         Vector reference_stress(3);
-        reference_stress(0) = -20493.4;
-        reference_stress(1) = -20987.8;
+        reference_stress(0) = -30230.4;
+        reference_stress(1) = -30913.2;
         reference_stress(2) = 0.0;
         Vector reference_strain(3);
-        reference_strain(0) = -0.0162814;
-        reference_strain(1) = -0.0172814;
+        reference_strain(0) = -0.0174099;
+        reference_strain(1) = -0.0184099;
         reference_strain(2) = 0.0;
-        const double reference_von_mises_pk2 = 20745.0;
+        const double reference_von_mises_pk2 = 30577.5;
 
 
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
@@ -305,6 +309,9 @@ namespace Testing
         temp_E_table.insert(3500.0, 2.1e4);
         temp_E_table.insert(1.0e6, 2.1e4);
         p_elem_prop->SetTable(TEMPERATURE, YOUNG_MODULUS, temp_E_table);
+
+        TableAccessor table_accessor = TableAccessor(TEMPERATURE, "node_historical");
+        p_elem_prop->SetAccessor(YOUNG_MODULUS, table_accessor.Clone());
 
         const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("ThermalElasticIsotropic3D");
         p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
