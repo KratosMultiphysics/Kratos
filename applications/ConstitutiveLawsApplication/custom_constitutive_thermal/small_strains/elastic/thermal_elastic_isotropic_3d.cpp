@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive_thermal/thermal_elastic_isotropic_3d.h"
+#include "thermal_elastic_isotropic_3d.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 
 #include "includes/checks.h"

@@ -17,7 +17,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive_thermal/thermal_linear_plane_stress.h"
+#include "thermal_linear_plane_stress.h"
 #include "includes/checks.h"
 #include "structural_mechanics_application_variables.h"
 #include "custom_utilities/constitutive_law_utilities.h"
