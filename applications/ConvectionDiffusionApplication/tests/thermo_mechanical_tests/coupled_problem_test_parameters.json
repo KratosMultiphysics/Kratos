@@ -121,33 +121,33 @@
                 "constrained"     : false
             }
         }],
-		"json_check_process" : [{
-			"python_module"   : "from_json_check_result_process",
-			"kratos_module" : "KratosMultiphysics",
-			"help"                  : "",
-			"process_name"          : "FromJsonCheckResultProcess",
-			"Parameters"            : {
-			    "check_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
-				"gauss_points_check_variables" : [],
-				"input_file_name"              : "thermo_mechanical_tests/thermo_mechanical_test_results.json",
-				"model_part_name"               : "Structure.Parts_Solid_Auto1",
-				"time_frequency"                : 1.0
-			}
-		}]
+        "json_check_process" : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
+                "gauss_points_check_variables" : [],
+                "input_file_name"              : "thermo_mechanical_tests/thermo_mechanical_test_results.json",
+                "model_part_name"               : "Structure.Parts_Solid_Auto1",
+                "time_frequency"                : 1.0
+            }
+        }]
     },
-	"_json_output_process" : [{
-		"python_module"   : "json_output_process",
-		"kratos_module" : "KratosMultiphysics",
-		"help"                  : "",
-		"process_name"          : "JsonOutputProcess",
-		"Parameters"            : {
-			"output_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
-			"gauss_points_output_variables" : [],
-			"output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_tests_results.json",
-			"model_part_name"               : "Structure.Parts_Solid_Auto1",
-			"time_frequency"                : 1.0
-		}
-	}],
+    "_json_output_process" : [{
+        "python_module"   : "json_output_process",
+        "kratos_module" : "KratosMultiphysics",
+        "help"                  : "",
+        "process_name"          : "JsonOutputProcess",
+        "Parameters"            : {
+            "output_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
+            "gauss_points_output_variables" : [],
+            "output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_tests_results.json",
+            "model_part_name"               : "Structure.Parts_Solid_Auto1",
+            "time_frequency"                : 1.0
+        }
+    }],
     "_output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
