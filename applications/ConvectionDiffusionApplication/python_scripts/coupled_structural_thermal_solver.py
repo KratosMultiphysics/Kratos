@@ -146,7 +146,7 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         self.thermal_solver.InitializeSolutionStep()
         self.thermal_solver.Predict()
 
-        KratosMultiphysics.Logger.PrintInfo("\n" + "\t" + "Solving Thermal part..." + "\n")
+        KratosMultiphysics.Logger.PrintInfo("\t" + "Solving THERMAL part...")
         self.thermal_solver.SolveSolutionStep()
 
         self.structural_solver.InitializeSolutionStep()
@@ -155,7 +155,7 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         self.structural_solver.Predict()
 
     def SolveSolutionStep(self):
-        KratosMultiphysics.Logger.PrintInfo("\n" + "\t" + "Solving Structural part..." + "\n")
+        KratosMultiphysics.Logger.PrintInfo("\t" + "Solving STRUCTURAL part...")
         solid_is_converged = self.structural_solver.SolveSolutionStep()
 
         self.RemoveConvectiveVelocity()
@@ -165,6 +165,7 @@ class CoupledThermoMechanicalSolver(PythonSolver):
     def FinalizeSolutionStep(self):
         self.structural_solver.FinalizeSolutionStep()
         self.thermal_solver.FinalizeSolutionStep()
+        KratosMultiphysics.Logger.PrintInfo("\n")
 
     def RemoveConvectiveVelocity(self):
         if self.is_dynamic:
