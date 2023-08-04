@@ -287,15 +287,13 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorVoigt(
 /***********************************************************************************/
 /***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(MatrixType& rC,
+    const double E,
+    const double NU)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
     if (rC.size1() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
-    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
+    rC.clear();
 
     const double c1 = E / (1.0 - NU * NU);
     const double c2 = c1 * NU;
@@ -311,15 +309,13 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(Mat
 /***********************************************************************************/
 /***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(MatrixType& rC,
+    const double E,
+    const double NU)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
     if (rC.size1() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
-    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
+    rC.clear();
 
     const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
     const double c1 = (1.0 - NU) * c0;
@@ -336,15 +332,13 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(Mat
 /***********************************************************************************/
 /***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(MatrixType& rC, ConstitutiveLaw::Parameters& rValues)
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(MatrixType& rC,
+    const double E,
+    const double NU)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E  = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
     if (rC.size1() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
-    noalias(rC) = ZeroMatrix(VoigtSize, VoigtSize);
+    rC.clear();
 
     const double c1 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
     const double c2 = c1 * (1.0 - NU);

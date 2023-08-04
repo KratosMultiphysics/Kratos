@@ -92,7 +92,10 @@ void LinearPlaneStress::GetLawFeatures(Features& rFeatures)
 
 void LinearPlaneStress::CalculateElasticMatrix(VoigtSizeMatrixType& rC, ConstitutiveLaw::Parameters& rValues)
 {
-    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(rC, rValues);
+    const auto &r_props = rValues.GetMaterialProperties();
+    const double E = r_props[YOUNG_MODULUS];
+    const double NU = r_props[POISSON_RATIO];
+    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(rC, E, NU);
 }
 
 //************************************************************************************

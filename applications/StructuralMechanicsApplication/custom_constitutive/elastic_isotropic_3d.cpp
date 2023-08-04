@@ -364,7 +364,10 @@ void ElasticIsotropic3D::CalculateElasticMatrix(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    ConstitutiveLawUtilities<6>::CalculateElasticMatrix(rConstitutiveMatrix, rValues);
+    const auto &r_props = rValues.GetMaterialProperties();
+    const double E = r_props[YOUNG_MODULUS];
+    const double NU = r_props[POISSON_RATIO];
+    ConstitutiveLawUtilities<6>::CalculateElasticMatrix(rConstitutiveMatrix, E, NU);
 }
 
 /***********************************************************************************/

@@ -248,9 +248,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     * @param C: The constitutive matrix
     * @param rValues Parameters of the constitutive law
     */
-    static void CalculateElasticMatrixPlaneStress(MatrixType &C, ConstitutiveLaw::Parameters &rValues);
-    static void CalculateElasticMatrixPlaneStrain(MatrixType &C, ConstitutiveLaw::Parameters &rValues);
-    static void CalculateElasticMatrix(MatrixType &C, ConstitutiveLaw::Parameters &rValues);
+    static void CalculateElasticMatrixPlaneStress(MatrixType &C, const double E, const double NU);
+    static void CalculateElasticMatrixPlaneStrain(MatrixType &C, const double E, const double N);
+    static void CalculateElasticMatrix(MatrixType &C, const double E, const double N);
 
 private:
 
