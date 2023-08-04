@@ -287,7 +287,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorVoigt(
 /***********************************************************************************/
 /***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(MatrixType& rC,
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(
+    MatrixType& rC,
     const double E,
     const double NU)
 {
@@ -309,7 +310,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(Mat
 /***********************************************************************************/
 /***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(MatrixType& rC,
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(
+    MatrixType& rC,
     const double E,
     const double NU)
 {
@@ -332,7 +334,8 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(Mat
 /***********************************************************************************/
 /***********************************************************************************/
 template<SizeType TVoigtSize>
-void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(MatrixType& rC,
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(
+    MatrixType& rC,
     const double E,
     const double NU)
 {
