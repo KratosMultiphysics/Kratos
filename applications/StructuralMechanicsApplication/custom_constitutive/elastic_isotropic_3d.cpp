@@ -34,8 +34,7 @@ ElasticIsotropic3D::ElasticIsotropic3D()
 /***********************************************************************************/
 
 ElasticIsotropic3D::ElasticIsotropic3D(const ElasticIsotropic3D& rOther)
-    : ConstitutiveLaw(rOther),
-      mGetMaterialValueFunction(rOther.mGetMaterialValueFunction)
+    : ConstitutiveLaw(rOther)
 {
 }
 
@@ -377,8 +376,8 @@ void ElasticIsotropic3D::CalculatePK2Stress(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    const double E  = mGetMaterialValueFunction(YOUNG_MODULUS, rValues);
-    const double NU = mGetMaterialValueFunction(POISSON_RATIO, rValues);
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
 
     const double c1 = E / ((1.00 + NU) * (1 - 2 * NU));
     const double c2 = c1 * (1 - NU);

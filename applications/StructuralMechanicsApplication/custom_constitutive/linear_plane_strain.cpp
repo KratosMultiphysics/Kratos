@@ -127,8 +127,8 @@ void LinearPlaneStrain::CalculatePK2Stress(
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    const double E  = mGetMaterialValueFunction(YOUNG_MODULUS, rValues);
-    const double NU = mGetMaterialValueFunction(POISSON_RATIO, rValues);
+    const double E = r_material_properties[YOUNG_MODULUS];
+    const double NU = r_material_properties[POISSON_RATIO];
 
     const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
     const double c1 = (1.00 - NU)*c0;
