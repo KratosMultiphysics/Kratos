@@ -160,7 +160,7 @@ class CoupledThermoMechanicalSolver(PythonSolver):
 
         self.RemoveConvectiveVelocity()
 
-        return (solid_is_converged)
+        return solid_is_converged
 
     def FinalizeSolutionStep(self):
         self.structural_solver.FinalizeSolutionStep()

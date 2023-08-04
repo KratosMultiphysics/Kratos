@@ -257,9 +257,9 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     * @param C: The constitutive matrix
     * @param rValues Parameters of the constitutive law
     */
-    static void CalculatePK2StressFromStrain(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double E, const double NU);
-    static void CalculatePK2StressFromStrainPlaneStress(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double E, const double NU);
-    static void CalculatePK2StressFromStrainPlaneStrain(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double E, const double NU);
+    static void CalculatePK2StressFromStrain(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double YoungModulus, const double PoissonRatio);
+    static void CalculatePK2StressFromStrainPlaneStress(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double YoungModulus, const double PoissonRatio);
+    static void CalculatePK2StressFromStrainPlaneStrain(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double YoungModulus, const double PoissonRatio);
 
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos

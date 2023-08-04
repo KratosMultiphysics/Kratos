@@ -286,19 +286,20 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorVoigt(
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(
     MatrixType& rC,
-    const double E,
-    const double NU)
+    const double YoungModulus,
+    const double PoissonRatio)
 {
     if (rC.size1() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
     rC.clear();
 
-    const double c1 = E / (1.0 - NU * NU);
-    const double c2 = c1 * NU;
-    const double c3 = 0.5 * E / (1.0 + NU);
+    const double c1 = YoungModulus / (1.0 - PoissonRatio * PoissonRatio);
+    const double c2 = c1 * PoissonRatio;
+    const double c3 = 0.5 * YoungModulus / (1.0 + PoissonRatio);
 
     rC(0, 0) = c1;
     rC(0, 1) = c2;
@@ -312,17 +313,17 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(
     MatrixType& rC,
-    const double E,
-    const double NU)
+    const double YoungModulus,
+    const double PoissonRatio)
 {
     if (rC.size1() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
     rC.clear();
 
-    const double c0 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
-    const double c1 = (1.0 - NU) * c0;
-    const double c2 = c0 * NU;
-    const double c3 = (0.5 - NU) * c0;
+    const double c0 = YoungModulus / ((1.0 + PoissonRatio) * (1.0 - 2.0 * PoissonRatio));
+    const double c1 = (1.0 - PoissonRatio) * c0;
+    const double c2 = c0 * PoissonRatio;
+    const double c3 = (0.5 - PoissonRatio) * c0;
 
     rC(0, 0) = c1;
     rC(0, 1) = c2;
@@ -336,17 +337,17 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(
 template<SizeType TVoigtSize>
 void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(
     MatrixType& rC,
-    const double E,
-    const double NU)
+    const double YoungModulus,
+    const double PoissonRatio)
 {
     if (rC.size1() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
     rC.clear();
 
-    const double c1 = E / ((1.0 + NU) * (1.0 - 2.0 * NU));
-    const double c2 = c1 * (1.0 - NU);
-    const double c3 = c1 * NU;
-    const double c4 = c1 * 0.5 * (1.0 - 2.0 * NU);
+    const double c1 = YoungModulus / ((1.0 + PoissonRatio) * (1.0 - 2.0 * PoissonRatio));
+    const double c2 = c1 * (1.0 - PoissonRatio);
+    const double c3 = c1 * PoissonRatio;
+    const double c4 = c1 * 0.5 * (1.0 - 2.0 * PoissonRatio);
 
     rC(0, 0) = c2;
     rC(0, 1) = c3;
