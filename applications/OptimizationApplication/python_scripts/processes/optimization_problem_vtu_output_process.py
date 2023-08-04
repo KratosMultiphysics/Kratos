@@ -187,6 +187,8 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
         for component_name in self.list_of_component_names:
             list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
 
+        # the dict is not guranteed to have the same order between different
+        # systems, hence sorting is done to have order in the output.
         global_values_map = self.optimization_problem.GetProblemDataContainer().GetMap()
         sorted_keys = sorted(list(global_values_map.keys()))
         sorted_global_values_map = {i: global_values_map[i] for i in sorted_keys}
