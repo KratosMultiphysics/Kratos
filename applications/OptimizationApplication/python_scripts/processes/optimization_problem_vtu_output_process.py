@@ -117,9 +117,14 @@ class ExpressionVtuOutput:
         return False
 
     def WriteOutput(self):
+        expression_list: 'list[str, Any]' = []
         for current_expression_name_data_pair in self.dict_of_expression_data.values():
             for expression_data in current_expression_name_data_pair.values():
-                self.vtu_output.AddContainerExpression(expression_data.GetContainerExpressionName(), expression_data.GetContainerExpression(self.optimization_problem))
+                expression_list.append([expression_data.GetContainerExpressionName(), expression_data.GetContainerExpression(self.optimization_problem)])
+
+        sorted_expression_list = sorted(expression_list, key=lambda x:x[0])
+        for expression_info in sorted_expression_list:
+            self.vtu_output.AddContainerExpression(expression_info[0], expression_info[1])
 
         output_file_name = self.output_file_name_prefix
         output_file_name = output_file_name.replace("<model_part_full_name>", self.model_part.FullName())
@@ -187,12 +192,8 @@ class OptimizationProblemVtuOutputProcess(Kratos.OutputProcess):
         for component_name in self.list_of_component_names:
             list_of_components.append(GetComponentHavingDataByFullName(component_name, self.optimization_problem))
 
-        # the dict is not guranteed to have the same order between different
-        # systems, hence sorting is done to have order in the output.
         global_values_map = self.optimization_problem.GetProblemDataContainer().GetMap()
-        sorted_keys = sorted(list(global_values_map.keys()))
-        for global_k in sorted_keys:
-            global_v = global_values_map[global_k]
+        for global_k, global_v in global_values_map.items():
              # first check whether this is part of requested list of components
             found_valid_component = False
             for component in list_of_components:
