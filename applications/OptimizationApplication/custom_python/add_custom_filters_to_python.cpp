@@ -37,7 +37,7 @@ void AddExplicitFilter(
 
     py::class_<ExplicitFilter<TContainerType>, typename ExplicitFilter<TContainerType>::Pointer>(m, rName.c_str())
         .def(py::init<const ModelPart&, const std::string&, const std::size_t>(), py::arg("model_part"), py::arg("kernel_function_type"), py::arg("max_number_of_neighbours"))
-        .def(py::init<const ModelPart&, const ModelPart&, const std::string&, const std::size_t>(), py::arg("model_part"), py::arg("fixed_model_part"), py::arg("kernel_function_type"), py::arg("max_number_of_neighbours"))
+        .def(py::init<const ModelPart&, const ModelPart&, const std::string&, const std::string&, const std::size_t>(), py::arg("model_part"), py::arg("fixed_model_part"), py::arg("kernel_function_type"), py::arg("damping_function_type"), py::arg("max_number_of_neighbours"))
         .def("SetFilterRadius", &ExplicitFilter<TContainerType>::SetFilterRadius, py::arg("filter_radius"))
         .def("FilterField", &ExplicitFilter<TContainerType>::FilterField, py::arg("unfiltered_field"))
         .def("FilterIntegratedField", &ExplicitFilter<TContainerType>::FilterIntegratedField, py::arg("filtered_field"))

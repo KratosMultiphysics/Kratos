@@ -27,6 +27,7 @@
 // Application includes
 #include "entity_point.h"
 #include "filter_function.h"
+#include "damping_function.h"
 
 namespace Kratos {
 
@@ -65,6 +66,7 @@ public:
         const ModelPart& rModelPart,
         const ModelPart& rFixedModelPart,
         const std::string& rKernelFunctionType,
+        const std::string& rDampingFunctionType,
         const IndexType MaxNumberOfNeighbours);
 
     ///@}
@@ -92,6 +94,8 @@ private:
     const ModelPart* mpFixedModelPart = nullptr;
 
     FilterFunction::UniquePointer mpKernelFunction;
+
+    DampingFunction::UniquePointer mpDampingFunction;
 
     typename ContainerExpression<TContainerType>::Pointer mpFilterRadiusContainer;
 
