@@ -798,6 +798,9 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
                 BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
                 const int layer_id = rThisVariable.Name().back() - 48; // we convert from char to int
                 this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, layer_id - 1);
+        if (rThisVariable != DELAMINATION_DAMAGE_VECTOR_MODE_ONE && rThisVariable != DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
+        const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+        const Vector strain_vector = rParameterValues.GetStrainVector();
 
                 const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
                 Properties &r_prop = *(it_prop_begin + layer_id - 1);
@@ -816,6 +819,10 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
                 // Reset the props
                 rParameterValues.SetMaterialProperties(r_material_properties);
                 return rValue;
+        }
+
+        // Reset properties
+        rParameterValues.SetMaterialProperties(r_material_properties);
         }
     }
     return rValue;

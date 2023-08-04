@@ -283,15 +283,6 @@ public:
         }
     }
 
-    /*
-    Method to add Accessors to properties
-    */
-    template<class TVariableType>
-    void SetAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
-    {
-        mAccessors.emplace(rVariable.Key(), std::move(pAccessor));
-    }
-
     template<class TVariableType>
     void SetValue(TVariableType const& rV, typename TVariableType::Type const& rValue)
     {
@@ -301,6 +292,84 @@ public:
     bool HasVariables() const
     {
         return !mData.IsEmpty();
+    }
+
+    /**
+     * @brief Set the Accessor object
+     * This method sets a variable-accessor pair in current properties accessor container
+     * @tparam TVariableType The variable type
+     * @param rVariable Variable to which the accessor will refer to
+     * @param pAccessor Pointer to the accessor instance
+     */
+    template <class TVariableType>
+    void SetAccessor(const TVariableType& rVariable, AccessorPointerType pAccessor)
+    {
+        mAccessors.emplace(rVariable.Key(), std::move(pAccessor));
+    }
+
+    /**
+     * @brief Get the Accessor object
+     * If exists, this method returns a pointer to the requested variable accessor
+     * If doesn't exist, the method throws an error
+     * @tparam TVariableType The variable type
+     * @param rVariable Variable to which the accessor refers to
+     * @return AccessorPointerType& Pointer to the requested variable accessor
+     */
+    template <class TVariableType>
+    Accessor& GetAccessor(const TVariableType& rVariable)
+    {
+        auto it_value = mAccessors.find(rVariable.Key());
+        KRATOS_ERROR_IF(it_value == mAccessors.end())
+            << "Trying to retrieve inexisting accessor for '" << rVariable.Name() << "' in properties " << Id() << "." << std::endl;
+        return *(it_value->second);
+    }
+
+    /**
+     * @brief Get the Accessor object
+     * If exists, this method returns a pointer to the requested variable accessor
+     * If doesn't exist, the method throws an error
+     * @tparam TVariableType The variable type
+     * @param rVariable Variable to which the accessor refers to
+     * @return AccessorPointerType& Pointer to the requested variable accessor
+     */
+    template <class TVariableType>
+    Accessor& GetAccessor(const TVariableType& rVariable) const
+    {
+        const auto it_value = mAccessors.find(rVariable.Key());
+        KRATOS_ERROR_IF(it_value == mAccessors.end())
+            << "Trying to retrieve inexisting accessor for '" << rVariable.Name() << "' in properties " << Id() << "." << std::endl;
+        return *(it_value->second);
+    }
+
+    /**
+     * @brief Get the Accessor object
+     * If exists, this method returns a pointer to the requested variable accessor
+     * If doesn't exist, the method throws an error
+     * @tparam TVariableType The variable type
+     * @param rVariable Variable to which the accessor refers to
+     * @return AccessorPointerType& Pointer to the requested variable accessor
+     */
+    template <class TVariableType>
+    AccessorPointerType& pGetAccessor(const TVariableType& rVariable)
+    {
+        const auto it_value = mAccessors.find(rVariable.Key());
+        KRATOS_ERROR_IF(it_value == mAccessors.end())
+            << "Trying to retrieve inexisting accessor for '" << rVariable.Name() << "' in properties " << Id() << "." << std::endl;
+        return it_value->second;
+    }
+
+    /**
+     * @brief Check if current properties have an accessor
+     * This method checks if current properties have an accessor for the requested variable
+     * @tparam TVariableType The variable type
+     * @param rVariable Variable to which we are checking if an accessor exists
+     * @return true If there is accessor for the requested variable
+     * @return false If there is no accessor for the requested variable
+     */
+    template <class TVariableType>
+    bool HasAccessor(const TVariableType& rVariable) const
+    {
+        return (mAccessors.find(rVariable.Key()) == mAccessors.end()) ? false : true;
     }
 
     template<class TXVariableType, class TYVariableType>

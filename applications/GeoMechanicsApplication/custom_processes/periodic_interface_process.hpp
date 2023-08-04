@@ -11,14 +11,14 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_PERIODIC_INTERFACE_PROCESS )
-#define  KRATOS_GEO_PERIODIC_INTERFACE_PROCESS
+#pragma once
 
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 #include "custom_utilities/math_utilities.hpp"
 #include "utilities/math_utils.h"
+#include "utilities/variable_utils.h"
 
 #include "geo_mechanics_application_variables.h"
 
@@ -32,9 +32,6 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(PeriodicInterfaceProcess);
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Constructor
     PeriodicInterfaceProcess( ModelPart& model_part,
                               Parameters rParameters ) : Process(Flags()) , mrModelPart(model_part)
     {
@@ -55,23 +52,15 @@ public:
         // Now validate agains defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
-        mDimension = rParameters["dimension"].GetInt();
+        mDimension   = rParameters["dimension"].GetInt();
         mStressLimit = rParameters["stress_limit"].GetDouble();
 
         KRATOS_CATCH("");
     }
 
-    ///------------------------------------------------------------------------------------
-
-    /// Destructor
-    ~PeriodicInterfaceProcess() override {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Execute method is used to execute the PeriodicInterfaceProcess algorithms.
-    void Execute() override
-    {
-    }
+    PeriodicInterfaceProcess(const PeriodicInterfaceProcess&) = delete;
+    PeriodicInterfaceProcess& operator=(const PeriodicInterfaceProcess&) = delete;
+    ~PeriodicInterfaceProcess() override = default;
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
@@ -79,22 +68,15 @@ public:
     {
         KRATOS_TRY
 
-        if (mrModelPart.NumberOfConditions() > 0) {
-            block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
-                Condition::GeometryType& rGeom = rCondition.GetGeometry();
+        block_for_each(mrModelPart.Conditions(), [&](Condition& rCondition) {
+            Condition::GeometryType& rGeom = rCondition.GetGeometry();
 
-                rCondition.Set(PERIODIC,true);
+            rCondition.Set(PERIODIC,true);
 
-                rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[1].Id();
-                rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[0].Id();
-            });
-        }
-
-        if (mrModelPart.NumberOfElements() > 0) {
-            block_for_each(mrModelPart.Elements(), [&](Element& rElement) {
-                rElement.Set(ACTIVE,false);
-            });
-        }
+            rGeom[0].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[1].Id();
+            rGeom[1].FastGetSolutionStepValue(PERIODIC_PAIR_INDEX) = rGeom[0].Id();
+        });
+        VariableUtils{}.SetFlag(ACTIVE, false, mrModelPart.Elements());
 
         KRATOS_CATCH("")
     }
@@ -113,7 +95,7 @@ public:
 
                 Matrix NodalStressMatrix(StressTensorSize, StressTensorSize);
                 noalias(NodalStressMatrix) = 0.5 * ( rGeom[0].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR)
-                                                    + rGeom[1].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) );
+                                                   + rGeom[1].FastGetSolutionStepValue(NODAL_CAUCHY_STRESS_TENSOR) );
                 Vector PrincipalStresses(StressTensorSize);
                 noalias(PrincipalStresses) = SolidMechanicsMathUtilities<double>::EigenValuesDirectMethod(NodalStressMatrix);
 
@@ -143,38 +125,12 @@ public:
         return "PeriodicInterfaceProcess";
     }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "PeriodicInterfaceProcess";
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-protected:
-
-    /// Member Variables
-
+private:
     ModelPart& mrModelPart;
     int mDimension;
     double mStressLimit;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-private:
-
-    /// Assignment operator.
-    PeriodicInterfaceProcess& operator=(PeriodicInterfaceProcess const& rOther);
-
-    /// Copy constructor.
-    //PeriodicInterfaceProcess(PeriodicInterfaceProcess const& rOther);
-
-}; // Class PeriodicInterfaceProcess
+}
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -191,6 +147,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-} // namespace Kratos.
-
-#endif /* KRATOS_GEO_PERIODIC_INTERFACE_PROCESS defined */
+}
