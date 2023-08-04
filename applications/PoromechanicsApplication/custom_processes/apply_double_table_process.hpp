@@ -93,6 +93,13 @@ public:
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
+                if(mis_fixed)
+                {
+                    it->Fix(var);
+                } else {
+                    it->Free(var);
+                }
+                
                 it->FastGetSolutionStepValue(var) = value;
             }
         }

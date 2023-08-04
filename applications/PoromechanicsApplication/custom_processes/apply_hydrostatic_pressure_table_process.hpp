@@ -76,6 +76,13 @@ public:
             for(int i = 0; i<nnodes; i++)
             {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
+
+                if(mis_fixed)
+                {
+                    it->Fix(var);
+                } else {
+                    it->Free(var);
+                }
                 
                 noalias(Coordinates) = it->Coordinates();
 
