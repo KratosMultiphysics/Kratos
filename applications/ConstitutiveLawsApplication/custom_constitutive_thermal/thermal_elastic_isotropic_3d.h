@@ -93,7 +93,7 @@ public:
     */
     ThermalElasticIsotropic3D(const ThermalElasticIsotropic3D &rOther)
         : BaseType(rOther),
-          mReferenceTemperature(rOther.mReferenceTemperature)
+        mReferenceTemperature(rOther.mReferenceTemperature)
     {
     }
 
@@ -165,9 +165,30 @@ public:
                             const GeometryType &rElementGeometry,
                             const Vector &rShapeFunctionsValues) override;
 
+
+    /**
+     * @brief It calculates the stress vector
+     * @param rStrainVector The strain vector in Voigt notation
+     * @param rStressVector The stress vector in Voigt notation
+     * @param rValues Parameters of the constitutive law
+     */
+    void CalculatePK2Stress(
+        const ConstitutiveLaw::StrainVectorType &rStrainVector,
+        ConstitutiveLaw::StressVectorType &rStressVector,
+        ConstitutiveLaw::Parameters &rValues) override;
     ///@}
     ///@name Access
     ///@{
+
+    /**
+    * @brief It calculates the constitutive matrix rConstitutiveMatrix
+    * @param rConstitutiveMatrix The constitutive matrix
+    * @param rValues Parameters of the constitutive law
+    */
+    void CalculateElasticMatrix(
+        ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
+        ConstitutiveLaw::Parameters& rValues
+        ) override;
 
     /**
      * @brief Retrieve the reference temperature
