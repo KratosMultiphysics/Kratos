@@ -376,6 +376,7 @@ void ElasticIsotropic3D::CalculatePK2Stress(
     ConstitutiveLaw::Parameters& rValues
     )
 {
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
     const double E = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
