@@ -4,7 +4,6 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import HasContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
-import numpy
 
 class MasterControl:
     """Master control class.
@@ -163,11 +162,11 @@ class MasterControl:
         return mapped_gradients
 
     @time_decorator()
-    def Update(self, updated_control_vars: KratosOA.CollectiveExpression or numpy.ndarray) -> 'dict[Control, bool]':
+    def Update(self, update_collective_expressions: KratosOA.CollectiveExpression) -> 'dict[Control, bool]':
         """Update each control with given collective expression's respective container expression.
 
         Args:
-            updated_control_vars (KratosOA.CollectiveExpression or numpy.ndarray): Update
+            update_collective_expressions (KratosOA.CollectiveExpression): Update
 
         Raises:
             RuntimeError: If number of controls and number of container expressions mismatch.
@@ -175,22 +174,11 @@ class MasterControl:
         Returns:
             dict[Control, bool]: A map with control and a boolean whether the update changed anything in that control.
         """
-
-        if isinstance(updated_control_vars, numpy.ndarray):
-            aux_field = self.GetEmptyField()
-            number_of_entities = []
-            shapes = []
-            for control in self.__list_of_controls:
-                number_of_entities.append(len(control.GetControlField().GetContainer()))
-                shapes.append(control.GetControlField().GetItemShape())
-            KratosOA.CollectiveExpressionIO.Read(aux_field,updated_control_vars,shapes)
-            return self.Update(aux_field)
-
-        if len(self.__list_of_controls) != len(updated_control_vars.GetContainerExpressions()):
+        if len(self.__list_of_controls) != len(update_collective_expressions.GetContainerExpressions()):
             raise RuntimeError(f"Controls size and update size mismatch [ number of controls: {len(self.__list_of_controls)}, number of container expressions: {len(update_collective_expressions.GetContainerExpressions())} ].")
 
         update_map: 'dict[Control, bool]' = {}
-        for control, container_expression in zip(self.__list_of_controls, updated_control_vars.GetContainerExpressions()):
+        for control, container_expression in zip(self.__list_of_controls, update_collective_expressions.GetContainerExpressions()):
             update_map[control] = control.Update(container_expression)
 
         return update_map
