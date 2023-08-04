@@ -78,6 +78,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Initialize(const
 
     // We get the unkown variable
     const std::string r_variable_name = GetProperties().Has(TYING_VARIABLE) ? GetProperties().GetValue(TYING_VARIABLE) : "DISPLACEMENT";
+    mpDoFVariables.clear();
+    mpLMVariables.clear();
     if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
         mpDoFVariables.push_back(&KratosComponents<Variable<double>>::Get(r_variable_name));
         mpLMVariables.push_back(&SCALAR_LAGRANGE_MULTIPLIER);
@@ -379,13 +381,13 @@ void MeshTyingMortarCondition<TDim, TNumNodes, TNumNodesMaster>::CalculateCondit
     // Assemble of the matrix is required
     if ( ComputeLHS ) {
         // Calculate the local contribution
-        this->CalculateLocalLHS(rLeftHandSideMatrix, mMortarConditionMatrices, dof_data);
+        this->CalculateLocalLHS(rLeftHandSideMatrix, mMortarConditionMatrices, dof_data, rCurrentProcessInfo);
     }
 
     // Assemble of the vector is required
     if ( ComputeRHS) {
         // Calculate the local contribution
-        this->CalculateLocalRHS( rRightHandSideVector, mMortarConditionMatrices, dof_data);
+        this->CalculateLocalRHS( rRightHandSideVector, mMortarConditionMatrices, dof_data, rCurrentProcessInfo);
     }
 
     KRATOS_CATCH( "" );
@@ -526,7 +528,8 @@ template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLHS(
     Matrix& rLocalLHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
-    const DofData& rDofData
+    const DofData& rDofData,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // We get the mortar operators
@@ -539,6 +542,9 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLH
     // Get the DoF size
     const SizeType dof_size = mpDoFVariables.size();
 
+    // Get the scale factor
+    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : rCurrentProcessInfo.Has(BUILD_SCALE_FACTOR) ? rCurrentProcessInfo[BUILD_SCALE_FACTOR] : 1.0;
+
     // Initial index 
     IndexType initial_row_index = 0;
     const IndexType initial_column_index = dof_size * (TNumNodes + TNumNodesMaster);
@@ -547,8 +553,9 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLH
     for (IndexType i = 0; i < dof_size; ++i) {
         for (IndexType j = 0; j < TNumNodesMaster; ++j) {
             for (IndexType k = 0; k < TNumNodes; ++k) {
-                rLocalLHS(initial_row_index + j * dof_size + i, initial_column_index + k * dof_size + i) = - r_MOperator(k, j);
-                rLocalLHS(initial_column_index + k * dof_size + i, initial_row_index + j * dof_size + i) = - r_MOperator(k, j);
+                const double value = - scale_factor * r_MOperator(k, j);
+                rLocalLHS(initial_row_index + j * dof_size + i, initial_column_index + k * dof_size + i) = value;
+                rLocalLHS(initial_column_index + k * dof_size + i, initial_row_index + j * dof_size + i) = value;
             }
         }
     }
@@ -560,8 +567,9 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLH
     for (IndexType i = 0; i < dof_size; ++i) {
         for (IndexType j = 0; j < TNumNodes; ++j) {
             for (IndexType k = 0; k < TNumNodes; ++k) {
-                rLocalLHS(initial_row_index + j * dof_size + i, initial_column_index + k * dof_size + i) = r_DOperator(k, j);
-                rLocalLHS(initial_column_index + k * dof_size + i, initial_row_index + j * dof_size + i) = r_DOperator(k, j);
+                const double value = scale_factor * r_DOperator(k, j);
+                rLocalLHS(initial_row_index + j * dof_size + i, initial_column_index + k * dof_size + i) = value;
+                rLocalLHS(initial_column_index + k * dof_size + i, initial_row_index + j * dof_size + i) = value;
             }
         }
     }
@@ -577,7 +585,8 @@ template<SizeType TDim, SizeType TNumNodes, SizeType TNumNodesMaster>
 void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalRHS(
     Vector& rLocalRHS,
     const MortarConditionMatrices& rMortarConditionMatrices,
-    const DofData& rDofData
+    const DofData& rDofData,
+    const ProcessInfo& rCurrentProcessInfo
     )
 {
     // Initialize values
@@ -592,11 +601,14 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalRH
     // Get the DoF size
     const SizeType dof_size = mpDoFVariables.size();
 
+    // Get the scale factor
+    const double scale_factor = rCurrentProcessInfo.Has(SCALE_FACTOR) ? rCurrentProcessInfo[SCALE_FACTOR] : rCurrentProcessInfo.Has(BUILD_SCALE_FACTOR) ? rCurrentProcessInfo[BUILD_SCALE_FACTOR] : 1.0;
+
     // Initial index 
     IndexType initial_index = 0;
 
     // Master side
-    const Matrix Mlm = prod(trans(r_MOperator), r_lm);
+    const Matrix Mlm = scale_factor * prod(trans(r_MOperator), r_lm);
     for (IndexType i = 0; i < TNumNodesMaster; ++i) {
         for (IndexType j = 0; j < dof_size; ++j) {
             rLocalRHS[initial_index + i * dof_size + j] = Mlm(i, j);
@@ -605,7 +617,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalRH
 
     // Slave side
     initial_index = TNumNodesMaster * dof_size;
-    const Matrix Dlm = prod(trans(r_DOperator), r_lm);
+    const Matrix Dlm = scale_factor * prod(trans(r_DOperator), r_lm);
     for (IndexType i = 0; i < TNumNodes; ++i) {
         for (IndexType j = 0; j < dof_size; ++j) {
             rLocalRHS[initial_index + i * dof_size + j] = - Dlm(i, j);
@@ -614,7 +626,7 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalRH
 
     // LM slave side
     initial_index = (TNumNodes + TNumNodesMaster) * dof_size;
-    const Matrix Du1Mu2 = prod(r_DOperator, r_u1) - prod(r_MOperator, r_u2);
+    const Matrix Du1Mu2 = scale_factor * (prod(r_DOperator, r_u1) - prod(r_MOperator, r_u2));
     for (IndexType i = 0; i < TNumNodes; ++i) {
         for (IndexType j = 0; j < dof_size; ++j) {
             rLocalRHS[initial_index + i * dof_size + j] = - Du1Mu2(i, j);

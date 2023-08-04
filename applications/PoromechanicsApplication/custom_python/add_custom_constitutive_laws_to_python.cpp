@@ -16,6 +16,10 @@
 //constitutive laws
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
+#include "custom_constitutive/elastoplastic_mohr_coulomb_cohesive_3D_law.hpp"
+#include "custom_constitutive/elastoplastic_mohr_coulomb_cohesive_2D_law.hpp"
+#include "custom_constitutive/elastoplastic_mod_mohr_coulomb_cohesive_3D_law.hpp"
+#include "custom_constitutive/elastoplastic_mod_mohr_coulomb_cohesive_2D_law.hpp"
 #include "custom_constitutive/isotropic_damage_cohesive_3D_law.hpp"
 #include "custom_constitutive/isotropic_damage_cohesive_2D_law.hpp"
 #include "custom_constitutive/elastic_cohesive_3D_law.hpp"

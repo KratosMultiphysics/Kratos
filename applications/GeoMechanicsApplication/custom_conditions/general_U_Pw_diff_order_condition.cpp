@@ -23,11 +23,6 @@
 namespace Kratos
 {
 
-//Destructor
-GeneralUPwDiffOrderCondition::~GeneralUPwDiffOrderCondition() {}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 Condition::Pointer GeneralUPwDiffOrderCondition::
     Create(IndexType NewId,
            NodesArrayType const& ThisNodes,

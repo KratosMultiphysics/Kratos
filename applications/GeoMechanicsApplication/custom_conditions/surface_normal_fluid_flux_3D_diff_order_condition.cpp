@@ -36,10 +36,6 @@ SurfaceNormalFluidFlux3DDiffOrderCondition::
                                                GeometryType::Pointer pGeometry,
                                                PropertiesType::Pointer pProperties) : SurfaceLoad3DDiffOrderCondition(NewId, pGeometry, pProperties) {}
 
-//----------------------------------------------------------------------------------------
-//Destructor
-SurfaceNormalFluidFlux3DDiffOrderCondition::~SurfaceNormalFluidFlux3DDiffOrderCondition() {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 Condition::Pointer SurfaceNormalFluidFlux3DDiffOrderCondition::
     Create(IndexType NewId,
