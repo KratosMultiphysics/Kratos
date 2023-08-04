@@ -64,7 +64,6 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::
     array_1d<double,TNumNodes> Np;
     array_1d<double,TNumNodes> PVector;
     double NormalFlux;
-    double IntegrationCoefficient;
     
     //Loop over integration points
     for(unsigned int GPoint = 0; GPoint < NumGPoints; GPoint++)
@@ -87,7 +86,7 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::
         }
         
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(IntegrationCoefficient, JContainer[GPoint], IntegrationPoints[GPoint].Weight(), JointWidth );
+        double IntegrationCoefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint], IntegrationPoints[GPoint].Weight(), JointWidth );
                 
         //Contributions to the right hand side
         noalias(PVector) = -NormalFlux * Np * IntegrationCoefficient;

@@ -4,11 +4,18 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
-from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
+
+def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ExecutionPolicy:
+    if not parameters.Has("name"):
+        raise RuntimeError(f"SteppingAnalysisExecutionPolicy instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+    if not parameters.Has("settings"):
+        raise RuntimeError(f"SteppingAnalysisExecutionPolicy instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+
+    return SteppingAnalysisExecutionPolicy(parameters["name"].GetString(), model, parameters["settings"])
 
 class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters, _: OptimizationProblem):
-        super().__init__()
+    def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):
+        super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
             "model_part_names" : [],
@@ -25,20 +32,27 @@ class SteppingAnalysisExecutionPolicy(ExecutionPolicy):
         analysis_settings = parameters["analysis_settings"]
 
         if analysis_module == "KratosMultiphysics":
-            analysis_module = GetClassModuleFromKratos(analysis_type)
+            analysis_full_module, analysis_type = GetClassModuleFromKratos(analysis_type)
+        else:
+            analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
 
         self.model_parts = []
-        analysis_full_module = f"{analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(analysis_type)}"
         self.analysis: AnalysisStage = getattr(import_module(analysis_full_module), analysis_type)(self.model, analysis_settings.Clone())
 
     def GetAnalysisModelPart(self):
         return self.analysis._GetSolver().GetComputingModelPart()
 
-    def ExecuteInitialize(self):
+    def Initialize(self):
         self.analysis.Initialize()
 
         # initialize model parts
         self.model_parts = [self.model[model_part_name] for model_part_name in self.parameters["model_part_names"].GetStringArray()]
+
+    def Check(self) -> None:
+        pass
+
+    def Finalize(self) -> None:
+        pass
 
     def Execute(self):
         time_before_analysis = []

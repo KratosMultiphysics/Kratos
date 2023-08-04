@@ -333,6 +333,22 @@ int ElasticIsotropic3D::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
+std::string ElasticIsotropic3D::Info() const
+{
+    return "ElasticIsotropic3D ConstitutiveLaw instance";
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ElasticIsotropic3D::PrintInfo(std::ostream& rOStream) const
+{
+    rOStream << this->Info() << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void ElasticIsotropic3D::CheckClearElasticMatrix(ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix)
 {
     const SizeType size_system = this->GetStrainSize();
