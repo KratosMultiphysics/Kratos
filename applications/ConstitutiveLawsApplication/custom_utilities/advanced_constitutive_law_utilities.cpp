@@ -792,7 +792,8 @@ template<SizeType TVoigtSize>
 void AdvancedConstitutiveLawUtilities<TVoigtSize>::SubstractThermalStrain(
     ConstitutiveLaw::StrainVectorType& rStrainVector,
     const double ReferenceTemperature,
-    ConstitutiveLaw::Parameters& rParameters
+    ConstitutiveLaw::Parameters& rParameters,
+    const bool IsPlaneStrain
     )
 {
     double alpha = rParameters.GetMaterialProperties()[THERMAL_EXPANSION_COEFFICIENT];
@@ -801,6 +802,10 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::SubstractThermalStrain(
     alpha *= (current_temperature_gp - ReferenceTemperature);
     for (IndexType i = 0; i < Dimension; ++i)
         thermal_strain(i) = 1.0;
+    if (IsPlaneStrain) {
+        const double NU = rParameters.GetMaterialProperties().GetValue(POISSON_RATIO, rParameters.GetElementGeometry(), rParameters.GetShapeFunctionsValues(), rParameters.GetProcessInfo());
+        alpha *= (1.0 + NU);
+    }
     noalias(rStrainVector) -= thermal_strain*alpha;
 }
 

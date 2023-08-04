@@ -492,7 +492,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
     static void SubstractThermalStrain(
         ConstitutiveLaw::StrainVectorType &rStrainVector,
         const double ReferenceTemperature,
-        ConstitutiveLaw::Parameters &rParameters);
+        ConstitutiveLaw::Parameters &rParameters,
+        const bool IsPlaneStrain = false);
 
     /**
      * @brief This retrieves an interpolated nodal variable to a GP

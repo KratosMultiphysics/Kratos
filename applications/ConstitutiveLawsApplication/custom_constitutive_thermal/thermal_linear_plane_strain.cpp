@@ -41,7 +41,7 @@ void ThermalLinearPlaneStrain::CalculateMaterialResponsePK2(ConstitutiveLaw::Par
     }
 
     // We add the thermal contribution
-    AdvancedConstitutiveLawUtilities<3>::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
+    AdvancedConstitutiveLawUtilities<3>::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues, true);
 
     // We add the initial strains
     AddInitialStrainVectorContribution<StrainVectorType>(r_strain_vector);
