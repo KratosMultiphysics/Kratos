@@ -20,6 +20,7 @@
 #include "custom_constitutive_thermal/thermal_linear_plane_strain.h"
 #include "includes/checks.h"
 #include "structural_mechanics_application_variables.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -34,8 +35,6 @@ void ThermalLinearPlaneStrain::CalculateMaterialResponsePK2(ConstitutiveLaw::Par
     Flags& r_constitutive_law_options = rValues.GetOptions();
     ConstitutiveLaw::StrainVectorType& r_strain_vector = rValues.GetStrainVector();
 
-    const bool use_elem_provided_flag_backup = r_constitutive_law_options.Is(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN);
-
     if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         // Since we are in small strains, any strain measure works, e.g. CAUCHY_GREEN
         CalculateCauchyGreenStrain(rValues, r_strain_vector);
@@ -44,13 +43,20 @@ void ThermalLinearPlaneStrain::CalculateMaterialResponsePK2(ConstitutiveLaw::Par
     // We add the thermal contribution
     AdvancedConstitutiveLawUtilities<3>::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
 
-    // We force to use the already computed strain in the base CL
-    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, true);
+    // We add the initial strains
+    AddInitialStrainVectorContribution<StrainVectorType>(r_strain_vector);
 
-    BaseType::CalculateMaterialResponsePK2(rValues);
 
-    // We reset the flag
-    r_constitutive_law_options.Set(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN, use_elem_provided_flag_backup);
+    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        ConstitutiveLaw::StressVectorType &r_stress_vector = rValues.GetStressVector();
+        CalculatePK2Stress(r_strain_vector, r_stress_vector, rValues);
+        AddInitialStressVectorContribution<StressVectorType>(r_stress_vector);
+    }
+
+    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
+        ConstitutiveLaw::VoigtSizeMatrixType &r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        CalculateElasticMatrix(r_constitutive_matrix, rValues);
+    }
 
     KRATOS_CATCH("")
 }
@@ -172,6 +178,41 @@ void ThermalLinearPlaneStrain::InitializeMaterial(
     } else if (rMaterialProperties.Has(REFERENCE_TEMPERATURE)) {
         mReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ThermalLinearPlaneStrain::CalculatePK2Stress(
+    const Vector& rStrainVector,
+    ConstitutiveLaw::StressVectorType& rStressVector,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const auto &r_geom = rValues.GetElementGeometry();
+    const auto &r_N = rValues.GetShapeFunctionsValues();
+    const auto &r_process_info = rValues.GetProcessInfo();
+    const double E  = r_material_properties.GetValue(YOUNG_MODULUS, r_geom, r_N, r_process_info);
+    const double NU = r_material_properties.GetValue(POISSON_RATIO, r_geom, r_N, r_process_info);
+    ConstitutiveLawUtilities<3>::CalculatePK2StressFromStrainPlaneStrain(rStressVector, rStrainVector, E, NU);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ThermalLinearPlaneStrain::CalculateElasticMatrix(
+    ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
+    ConstitutiveLaw::Parameters& rValues
+    )
+{
+    const Properties& r_material_properties = rValues.GetMaterialProperties();
+    const auto &r_geom = rValues.GetElementGeometry();
+    const auto &r_N = rValues.GetShapeFunctionsValues();
+    const auto &r_process_info = rValues.GetProcessInfo();
+    const double E  = r_material_properties.GetValue(YOUNG_MODULUS, r_geom, r_N, r_process_info);
+    const double NU = r_material_properties.GetValue(POISSON_RATIO, r_geom, r_N, r_process_info);
+    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStrain(rConstitutiveMatrix, E, NU);
 }
 
 } // Namespace Kratos
