@@ -117,14 +117,9 @@ class ExpressionVtuOutput:
         return False
 
     def WriteOutput(self):
-        expression_list: 'list[str, Any]' = []
         for current_expression_name_data_pair in self.dict_of_expression_data.values():
             for expression_data in current_expression_name_data_pair.values():
-                expression_list.append([expression_data.GetContainerExpressionName(), expression_data.GetContainerExpression(self.optimization_problem)])
-
-        sorted_expression_list = sorted(expression_list, key=lambda x:x[0])
-        for expression_info in sorted_expression_list:
-            self.vtu_output.AddContainerExpression(expression_info[0], expression_info[1])
+                self.vtu_output.AddContainerExpression(expression_data.GetContainerExpressionName(), expression_data.GetContainerExpression(self.optimization_problem))
 
         output_file_name = self.output_file_name_prefix
         output_file_name = output_file_name.replace("<model_part_full_name>", self.model_part.FullName())
