@@ -22,6 +22,9 @@
 namespace Kratos::Testing {
 
 
+namespace {
+
+
 auto MakeProxyTestModel()
 {
     auto p_model = std::make_unique<Model>();
@@ -54,6 +57,26 @@ auto MakeProxyTestModel()
 }
 
 
+/// Compile-time check whether EntityProxy::GetValue returns a mutable reference
+template <class TEntityProxy,
+          std::enable_if_t<std::is_same_v<decltype(std::declval<TEntityProxy>().GetValue(PRESSURE)),double&>,bool> = true>
+bool IsEntityProxyMutable(TEntityProxy Proxy)
+{
+    return true;
+}
+
+
+/// Compile-time check whether EntityProxy::GetValue returns a mutable reference
+template <class TEntityProxy,
+          std::enable_if_t<
+            std::is_same_v<decltype(std::declval<TEntityProxy>().GetValue(PRESSURE)),double>
+            || std::is_same_v<decltype(std::declval<TEntityProxy>().GetValue(PRESSURE)),const double&>,bool> = true>
+bool IsEntityProxyMutable(TEntityProxy Proxy)
+{
+    return false;
+}
+
+
 template <Globals::DataLocation TLocation, class TContainer>
 void TestEntityProxy(TContainer& rEntities)
 {
@@ -65,6 +88,9 @@ void TestEntityProxy(TContainer& rEntities)
         const auto id = r_entity.Id();
         auto proxy = MakeProxy<TLocation>(r_entity);
 
+        // Check const-correctness
+        KRATOS_CHECK_IS_FALSE(IsEntityProxyMutable(proxy));
+
         // Check EntityProxy::GetValue
         KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
     }
@@ -73,6 +99,9 @@ void TestEntityProxy(TContainer& rEntities)
     for (auto& r_entity : rEntities) {
         const auto id = r_entity.Id();
         auto proxy = MakeProxy<TLocation>(r_entity);
+
+        // Check const-correctness
+        KRATOS_CHECK(IsEntityProxyMutable(proxy));
 
         // Check EntityProxy::GetValue
         KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
@@ -86,6 +115,9 @@ void TestEntityProxy(TContainer& rEntities)
         KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2 * double(2 * double(id)));
     }
 }
+
+
+} // unnamed namespace
 
 
 KRATOS_TEST_CASE_IN_SUITE(HistoricalNodeProxy, KratosCoreFastSuite)
@@ -117,6 +149,91 @@ KRATOS_TEST_CASE_IN_SUITE(ConditionProxy, KratosCoreFastSuite)
     auto p_model = MakeProxyTestModel();
     ModelPart& r_model_part = p_model->GetModelPart("root");
     TestEntityProxy<Globals::DataLocation::Condition>(r_model_part.Conditions());
+}
+
+
+template <class TMutableContainerProxy, class TImmutableContainerProxy>
+void TestContainerProxy(TMutableContainerProxy MutableProxies, TImmutableContainerProxy ImmutableProxies)
+{
+    // Check ContainerProxy::empty
+    KRATOS_CHECK_IS_FALSE(MutableProxies.empty());
+    KRATOS_CHECK_IS_FALSE(ImmutableProxies.empty());
+
+    // Check ContainerProxy::size
+    KRATOS_CHECK_EQUAL(MutableProxies.size(), ImmutableProxies.size());
+
+    // Make sure that the two container proxies point to the same range
+    KRATOS_CHECK_EQUAL(&(*MutableProxies.begin()).GetEntity(), &(*ImmutableProxies.begin()).GetEntity());
+
+    // Check immutable ContainerProxy
+    for (auto proxy : ImmutableProxies) {
+        const auto id = proxy.GetEntity().Id();
+
+        // Check const-correctness
+        KRATOS_CHECK_IS_FALSE(IsEntityProxyMutable(proxy));
+
+        // Check EntityProxy::GetValue
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
+    }
+
+    // Check mutable ContainerProxy
+    for (auto proxy : MutableProxies) {
+        const auto id = proxy.GetEntity().Id();
+
+        // Check const-correctness
+        KRATOS_CHECK(IsEntityProxyMutable(proxy));
+
+        // Check EntityProxy::GetValue
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
+
+        // Check mutable EntityProxy::GetValue
+        proxy.GetValue(PRESSURE) *= 2;
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2 * double(id));
+
+        // Check EntityProxy::SetValue
+        proxy.SetValue(PRESSURE, proxy.GetValue(PRESSURE) * 2);
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2 * double(2 * double(id)));
+    }
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(HistoricalNodeContainerProxy, KratosCoreFastSuite)
+{
+    auto p_model = MakeProxyTestModel();
+    ModelPart& r_model_part = p_model->GetModelPart("root");
+    const ModelPart& r_immutable_model_part = r_model_part;
+    TestContainerProxy(MakeProxy<Globals::DataLocation::NodeHistorical>(r_model_part),
+                       MakeProxy<Globals::DataLocation::NodeHistorical>(r_immutable_model_part));
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(NonHistoricalNodeContainerProxy, KratosCoreFastSuite)
+{
+    auto p_model = MakeProxyTestModel();
+    ModelPart& r_model_part = p_model->GetModelPart("root");
+    const ModelPart& r_immutable_model_part = r_model_part;
+    TestContainerProxy(MakeProxy<Globals::DataLocation::NodeNonHistorical>(r_model_part),
+                       MakeProxy<Globals::DataLocation::NodeNonHistorical>(r_immutable_model_part));
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(ElementContainerProxy, KratosCoreFastSuite)
+{
+    auto p_model = MakeProxyTestModel();
+    ModelPart& r_model_part = p_model->GetModelPart("root");
+    const ModelPart& r_immutable_model_part = r_model_part;
+    TestContainerProxy(MakeProxy<Globals::DataLocation::Element>(r_model_part),
+                       MakeProxy<Globals::DataLocation::Element>(r_immutable_model_part));
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(ConditionContainerProxy, KratosCoreFastSuite)
+{
+    auto p_model = MakeProxyTestModel();
+    ModelPart& r_model_part = p_model->GetModelPart("root");
+    const ModelPart& r_immutable_model_part = r_model_part;
+    TestContainerProxy(MakeProxy<Globals::DataLocation::Condition>(r_model_part),
+                       MakeProxy<Globals::DataLocation::Condition>(r_immutable_model_part));
 }
 
 
