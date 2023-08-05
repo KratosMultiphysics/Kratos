@@ -17,6 +17,7 @@
 #include "includes/node.h" // Node
 #include "includes/element.h" // Element
 #include "includes/condition.h" // Condition
+#include "includes/model_part.h" // Mesh::NodesContainerType, Mesh::ElementsContainerType, Mesh::ConditionsContainerType
 
 // System includes
 #include <type_traits> // remove_reference_t, is_const_v, is_same_v, decay_t
@@ -24,6 +25,11 @@
 
 
 namespace Kratos {
+
+
+template <class TEntityProxy>
+class ContainerProxy;
+
 
 
 template <Globals::DataLocation TLocation, bool TMutable>
@@ -111,6 +117,140 @@ public:
 private:
     std::optional<QualifiedEntity*> mpEntity;
 }; // class EntityProxy
+
+
+
+template <class TEntityProxy>
+class ContainerProxy
+{
+private:
+    using UnqualifiedContainer = std::conditional_t<
+        std::is_same_v<typename TEntityProxy::UnqualifiedEntity,Node>,
+        ModelPart::NodesContainerType,
+        std::conditional_t<
+            std::is_same_v<typename TEntityProxy::UnqualifiedEntity,Element>,
+            ModelPart::ElementsContainerType,
+            std::conditional_t<
+                std::is_same_v<typename TEntityProxy::UnqualifiedEntity,Condition>,
+                ModelPart::ConditionsContainerType,
+                void // <== invalid fallback type; will throw a compile-time error
+            >
+        >
+    >;
+
+    constexpr static bool IsMutable = std::is_const_v<typename TEntityProxy::QualifiedEntity>;
+
+    using QualifiedContainer = std::conditional_t<IsMutable,
+                                                  UnqualifiedContainer,
+                                                  const UnqualifiedContainer>;
+
+    using WrappedIterator = std::conditional_t<IsMutable,
+                                               typename QualifiedContainer::iterator,
+                                               typename QualifiedContainer::const_iterator>;
+
+    template <bool TMutable>
+    class Iterator
+    {
+    private:
+        using Wrapped = std::conditional_t<TMutable,
+                                           typename QualifiedContainer::iterator,
+                                           typename QualifiedContainer::const_iterator>;
+
+    public:
+        using value_type = EntityProxy<TEntityProxy::Location,TMutable>;
+
+        using pointer = std::conditional_t<TMutable,
+                                           value_type*,
+                                           const value_type*>;
+
+        using reference = std::conditional_t<TMutable,
+                                             value_type&,
+                                             const value_type&>;
+
+        using difference_type = std::ptrdiff_t;
+
+        using iterator_category = std::random_access_iterator_tag;
+
+        Iterator() noexcept = default;
+
+        Iterator(Wrapped WrappedIterator) noexcept : mWrapped(WrappedIterator) {}
+
+        value_type operator*() const noexcept {return value_type(*mWrapped);}
+
+        Iterator& operator++() noexcept {++mWrapped; return *this;}
+
+        Iterator operator++(int) noexcept {Iterator copy(mWrapped); ++mWrapped; return copy;}
+
+        Iterator& operator--() noexcept {--mWrapped; return *this;}
+
+        Iterator operator--(int) noexcept {Iterator copy(mWrapped); --mWrapped; return *this;}
+
+        Iterator& operator+=(difference_type Rhs) noexcept {mWrapped += Rhs; return *this;}
+
+        Iterator& operator-=(difference_type Rhs) noexcept {mWrapped -= Rhs; return *this;}
+
+        Iterator operator+(difference_type Rhs) const noexcept {Iterator copy(mWrapped); copy += Rhs; return copy;}
+
+        Iterator operator-(difference_type Rhs) const noexcept {Iterator copy(mWrapped); copy -= Rhs; return copy;}
+
+        difference_type operator-(Iterator Rhs) const noexcept {return mWrapped - Rhs.mWrapped;}
+
+        bool operator==(Iterator Rhs) const noexcept {return mWrapped == Rhs.mWrapped;}
+
+        bool operator!=(Iterator Rhs) const noexcept {return mWrapped != Rhs.mWrapped;}
+
+        bool operator<(Iterator Rhs) const noexcept {return mWrapped < Rhs.mWrapped;}
+
+        bool operator>(Iterator Rhs) const noexcept {return mWrapped > Rhs.mWrapped;}
+
+        bool operator<=(Iterator Rhs) const noexcept {return mWrapped <= Rhs.mWrapped;}
+
+        bool operator>=(Iterator Rhs) const noexcept {return mWrapped >= Rhs.mWrapped;}
+
+    private:
+        Wrapped mWrapped;
+    }; // class Iterator
+public:
+    using iterator = Iterator<IsMutable>;
+
+    using const_iterator = Iterator<false>;
+
+    using size_type = std::size_t;
+
+    using value_type = typename iterator::value_type;
+
+    ContainerProxy() noexcept = default;
+
+    ContainerProxy(WrappedIterator Begin, WrappedIterator End) noexcept
+        : mBegin(Begin),
+          mEnd(End)
+    {}
+
+    typename const_iterator::value_type operator[](size_type Index) const noexcept {return typename const_iterator::value_type(*(mBegin + Index));}
+
+    typename iterator::value_type operator[](size_type Index) noexcept {return typename iterator::value_type(*(mBegin + Index));}
+
+    typename const_iterator::value_type at(size_type Index) const noexcept {return typename const_iterator::value_type(*(mBegin + Index));}
+
+    typename iterator::value_type at(size_type Index) noexcept {return typename iterator::value_type(*(mBegin + Index));}
+
+    size_type size() const noexcept {return std::distance(mBegin, mEnd);}
+
+    const_iterator cbegin() const noexcept {return const_iterator(mBegin);}
+
+    const_iterator begin() const noexcept {return this->cbegin();}
+
+    iterator begin() noexcept {return iterator(mBegin);}
+
+    const_iterator cend() const noexcept {return const_iterator(mEnd);}
+
+    const_iterator end() const noexcept {return this->cend();}
+
+    iterator end() noexcept {return iterator(mEnd);}
+
+private:
+    WrappedIterator mBegin, mEnd;
+}; // class ContainerProxy
 
 
 } // namespace Kratos
