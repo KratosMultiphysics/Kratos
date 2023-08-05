@@ -35,25 +35,25 @@ namespace Kratos {
 
   
 
-    class KRATOS_API(DEMFEM_VOLUME_COUPLING_APPLICATION) DEMFEMVolumeCouplingApplication : public KratosApplication {  // doubt about KRATOS_API(DEMFEM_VOLUME_COUPLING_APPLICATION)
+    class KRATOS_API(DEMFEM_VOLUME_COUPLING_APPLICATION) KratosDEMFEMVolumeCouplingApplication : public KratosApplication { 
 
         public:
 
             // ///@name Type Definitions
             // ///@{
-            KRATOS_CLASS_POINTER_DEFINITION(DEMFEMVolumeCouplingApplication);
+            KRATOS_CLASS_POINTER_DEFINITION(KratosDEMFEMVolumeCouplingApplication);
 
             /// Default constructor.
-            DEMFEMVolumeCouplingApplication();
+            KratosDEMFEMVolumeCouplingApplication();
 
             /// Destructor.
-            virtual ~DEMFEMVolumeCouplingApplication() {}
+            virtual ~KratosDEMFEMVolumeCouplingApplication() {}
 
             virtual void Register() override;
 
             /// Turn back information as a string.
             virtual std::string Info() const override {
-                return "DEMFEMVolumeCouplingApplication";
+                return "KratosDEMFEMVolumeCouplingApplication";
             }
 
             /// Print information about this object.

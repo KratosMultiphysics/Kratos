@@ -933,6 +933,38 @@ void SphericParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericPa
 
 }
 
+
+void SphericParticle::EvaluateBallToRigidFaceForcesForPositiveIndentations(SphericParticle::ParticleDataBuffer &data_buffer,
+                                                                   const int rigid_neighbour_index,
+                                                                   const array_1d<double, 3>& DeltVel,
+                                                                   const ProcessInfo& r_process_info,
+                                                                   double OldLocalElasticContactForce[3],
+                                                                   double LocalElasticContactForce[3],
+                                                                   const double LocalDeltDisp[3],
+                                                                   const double indentation,
+                                                                   const double  previous_indentation,
+                                                                   double ViscoDampingLocalContactForce[3],
+                                                                   double& cohesive_force,
+                                                                   Condition* const wall,
+                                                                   bool& sliding)
+  {
+                GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
+                mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(wall);
+                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,
+                                                                    OldLocalElasticContactForce,
+                                                                    LocalElasticContactForce,
+                                                                    LocalDeltDisp,
+                                                                    data_buffer.mLocalRelVel,
+                                                                    indentation,
+                                                                    previous_indentation,
+                                                                    ViscoDampingLocalContactForce,
+                                                                    cohesive_force,
+                                                                    this,
+                                                                    wall,
+                                                                    sliding);
+  }
+
+
 void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
                                                         array_1d<double, 3>& r_elastic_force,
                                                         array_1d<double, 3>& r_contact_force,
@@ -1037,21 +1069,20 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
             data_buffer.mLocalRelVel[2] = 0.0;
 
             if (indentation > 0.0) {
-
-                GeometryFunctions::VectorGlobal2Local(data_buffer.mLocalCoordSystem, DeltVel, data_buffer.mLocalRelVel);
-                mDiscontinuumConstitutiveLaw = pCloneDiscontinuumConstitutiveLawWithFEMNeighbour(wall);
-                mDiscontinuumConstitutiveLaw->CalculateForcesWithFEM(r_process_info,
+               EvaluateBallToRigidFaceForcesForPositiveIndentations(data_buffer,
+                                                                     i,
+                                                                    DeltVel,
+                                                                    r_process_info,
                                                                     OldLocalElasticContactForce,
                                                                     LocalElasticContactForce,
                                                                     LocalDeltDisp,
-                                                                    data_buffer.mLocalRelVel,
                                                                     indentation,
                                                                     previous_indentation,
                                                                     ViscoDampingLocalContactForce,
                                                                     cohesive_force,
-                                                                    this,
                                                                     wall,
                                                                     sliding);
+
             }
 
             double LocalContactForce[3]  = {0.0};

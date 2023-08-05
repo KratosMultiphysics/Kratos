@@ -10,7 +10,6 @@
 // Project includes
 #include "includes/define_python.h"
 #include "../DEMFEM_volume_coupling_application.h"
-#include "../DEMFEM_volume_coupling_application.h"
 // #include "add_custom_utilities_to_python.h"
 // #include "add_custom_processes_to_python.h"
 
@@ -23,9 +22,9 @@ namespace Python
 
 using namespace pybind11;
 
-PYBIND11_MODULE(DEMFEMVolumeCouplingApplication, m)
+PYBIND11_MODULE(KratosDEMFEMVolumeCouplingApplication, m)
 {
-    class_<DEMFEMVolumeCouplingApplication, DEMFEMVolumeCouplingApplication::Pointer, KratosApplication>(m, "DEMFEMVolumeCouplingApplication")
+    class_<KratosDEMFEMVolumeCouplingApplication, KratosDEMFEMVolumeCouplingApplication::Pointer, KratosApplication>(m, "KratosDEMFEMVolumeCouplingApplication")
         .def(init<>())
         ;
 

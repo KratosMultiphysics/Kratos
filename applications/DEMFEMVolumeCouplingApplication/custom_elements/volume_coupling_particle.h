@@ -38,12 +38,26 @@ virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_for
 
 protected:
 
-virtual void ComputeBallToRigidFaceContactForceAndMoment(ParticleDataBuffer & data_buffer,
-                                                array_1d<double, 3>& rElasticForce,
-                                                array_1d<double, 3>& rContactForce,
-                                                array_1d<double, 3>& rigid_element_force,
-                                                const ProcessInfo& r_process_info) override;
+// virtual void EvaluateBallToRigidFaceForcesForPositiveIndentations(SphericParticle::ParticleDataBuffer &data_buffer,
+//                                                                    const int rigid_neighbour_index,
+//                                                                    const array_1d<double, 3>& DeltVel,
+//                                                                    const ProcessInfo& r_process_info,
+//                                                                    double OldLocalElasticContactForce[3],
+//                                                                    double LocalElasticContactForce[3],
+//                                                                    const double LocalDeltDisp[3],
+//                                                                    const double indentation,
+//                                                                    const double  previous_indentation,
+//                                                                    double ViscoDampingLocalContactForce[3],
+//                                                                    double& cohesive_force,
+//                                                                    Condition* const wall,
+//                                                                    bool& sliding) override;
 
+virtual void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
+    SphericParticle::ParticleDataBuffer & data_buffer,
+    array_1d<double, 3>& r_elastic_force,
+    array_1d<double, 3>& r_contact_force,
+    array_1d<double, 3>& rigid_element_force,
+    const ProcessInfo& r_process_info) override;
 
 
 virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,

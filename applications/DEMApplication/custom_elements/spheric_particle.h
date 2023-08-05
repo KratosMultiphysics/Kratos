@@ -376,7 +376,22 @@ virtual void EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::P
                                                             double OldLocalCoordSystem[3][3],
                                                             array_1d<double, 3>& neighbour_elastic_contact_force);
 
-
+virtual void EvaluateBallToRigidFaceForcesForPositiveIndentations(SphericParticle::ParticleDataBuffer &data_buffer,
+                                                                   const int rigid_neighbour_index,
+                                                                   const array_1d<double, 3>& GlobalVector,
+                                                                   const ProcessInfo& r_process_info,
+                                                                   double OldLocalElasticContactForce[3],
+                                                                   double LocalElasticContactForce[3],
+                                                                   const double LocalDeltDisp[3],
+                                                                   const double indentation,
+                                                                   const double  previous_indentation,
+                                                                   double ViscoDampingLocalContactForce[3],
+                                                                   double& cohesive_force,
+                                                                   Condition* const wall,
+                                                                   bool& sliding);
+                                                                    
+                                                                
+                                                                
 virtual void AddUpForcesAndProject(double OldCoordSystem[3][3],
                                 double LocalCoordSystem[3][3],
                                 double LocalContactForce[3],

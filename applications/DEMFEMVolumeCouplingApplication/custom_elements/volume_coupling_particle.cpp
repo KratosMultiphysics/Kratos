@@ -21,52 +21,24 @@ VolumeCouplingParticle::VolumeCouplingParticle( ) // Default constructor needed 
 {
     
 }
-
 // Function to compute contact forces and moments between ball and rigid face considering coupling weight.
-void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticle::ParticleDataBuffer & data_buffer,
-                                                        array_1d<double, 3>& r_elastic_force,
-                                                        array_1d<double, 3>& r_contact_force,
-                                                        array_1d<double, 3>& rigid_element_force,
-                                                        const ProcessInfo& r_process_info)
+void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
+    SphericParticle::ParticleDataBuffer & data_buffer,
+    array_1d<double, 3>& r_elastic_force,
+    array_1d<double, 3>& r_contact_force,
+    array_1d<double, 3>& rigid_element_force,
+    const ProcessInfo& r_process_info)
 {
     // Call the base class's function.
     SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(data_buffer, r_elastic_force, r_contact_force, rigid_element_force, r_process_info);
-    double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
 
+        double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
          r_elastic_force *= particle_weight; // Scale elastic force by the weight
          r_contact_force *= particle_weight; // Scale contact force by the  weight
          rigid_element_force *= particle_weight; // Scale rigid element force by the  weight
 
-
-    // // Calculate the coordinates of the contact point
-    // Node<3>& central_node = this->GetGeometry()[0];  // Central node of the geometry
-    // double particle_radius = this->GetRadius(); // Radius of the particle
-    // array_1d<double, 3> particle_centre_coordinates = central_node.Coordinates(); // Coordinates of the particle center
-    // array_1d<double, 3> contact_point_coordinates = particle_centre_coordinates - data_buffer.mLocalCoordSystem[2] * particle_radius; // Contact point coordinates
-
-    // // Get the weight at the particle center
-    // double particle_weight = central_node.FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
-
-    // // Check if there are neighbour elements and if yes, use the first one
-    // if (!data_buffer.mpThisParticle->mNeighbourElements.empty()) {
-    //     SphericParticle& neighbor_particle = *data_buffer.mpThisParticle->mNeighbourElements[0]; // First neighbouring element
-
-    //     // Calculate the slope using the particle center and the neighbor
-    //     double neighbor_weight = neighbor_particle.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Neighbour's coupling weight
-    //     double neighbor_y_coordinate = neighbor_particle.GetGeometry()[0].Coordinates()[1]; // Neighbour's y-coordinate
-
-    //     double slope = (neighbor_weight - particle_weight) / (neighbor_y_coordinate - particle_centre_coordinates[1]); // Calculating the slope
-
-    //     // Calculate the weight at the contact point, assuming linear variation with y-coordinate
-    //     double contact_point_weight = particle_weight + slope * (contact_point_coordinates[1] - particle_centre_coordinates[1]); // Weight at the contact point
-
-    //     r_elastic_force *= contact_point_weight; // Scale elastic force by the contact point weight
-    //     r_contact_force *= contact_point_weight; // Scale contact force by the contact point weight
-    //     rigid_element_force *= contact_point_weight; // Scale rigid element force by the contact point weight
-    // }
 }
 
-// Function to compute forces for positive indentations between balls considering coupling weight.
 void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                             const ProcessInfo& r_process_info,
                                                             double LocalElasticContactForce[3],
@@ -133,9 +105,140 @@ void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& extern
         externally_applied_force[i] *= w; // Scale externally applied force
         externally_applied_moment[i] *= w; // Scale externally applied moment
     }
+    externally_applied_force += this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE);  //adding the coupling forces exreted on particles
 }
 
 }  // namespace Kratos.
+
+
+
+
+// void VolumeCouplingParticle::EvaluateBallToRigidFaceForcesForPositiveIndentations(SphericParticle::ParticleDataBuffer &data_buffer,
+//                                                                    const int rigid_neighbour_index,
+//                                                                    const array_1d<double, 3>& DeltVel,
+//                                                                    const ProcessInfo& r_process_info,
+//                                                                    double OldLocalElasticContactForce[3],
+//                                                                    double LocalElasticContactForce[3],
+//                                                                    const double LocalDeltDisp[3],
+//                                                                    const double indentation,
+//                                                                    const double  previous_indentation,
+//                                                                    double ViscoDampingLocalContactForce[3],
+//                                                                    double& cohesive_force,
+//                                                                    Condition* const wall,
+//                                                                    bool& sliding)
+//  {
+
+//      // Call the base class's function.
+//     SphericParticle::EvaluateBallToRigidFaceForcesForPositiveIndentations(data_buffer,
+//                                                                     rigid_neighbour_index,
+//                                                                     DeltVel,
+//                                                                     r_process_info,
+//                                                                     OldLocalElasticContactForce,
+//                                                                     LocalElasticContactForce,
+//                                                                     LocalDeltDisp,
+//                                                                     indentation,
+//                                                                     previous_indentation,
+//                                                                     ViscoDampingLocalContactForce,
+//                                                                     cohesive_force,
+//                                                                     wall,
+//                                                                     sliding);
+
+// double weight_at_contact_point =0;
+// array_1d<double, 4>& Weight = this->mContactConditionWeights[rigid_neighbour_index];
+
+// for (IndexType i = 0; i < wall->GetGeometry().size(); ++i)
+//  {
+//      weight_at_contact_point += Weight[i]*wall->GetGeometry()[i].GetSolutionStepValue(NODAL_COUPLING_WEIGHT);
+//  }
+
+//  for(int i=0; i<3; ++i)
+//  {
+//     LocalElasticContactForce[i] *=  weight_at_contact_point; // Scale elastic contact force
+//     ViscoDampingLocalContactForce[i] *=  weight_at_contact_point; // Scale visco-damping contact force
+//  }                                        
+//  cohesive_force *= weight_at_contact_point; // Scale cohesive force
+//  }
+
+// Function to compute forces for positive indentations between balls considering coupling weight.
+
+
+
+// // Function to compute contact forces and moments between ball and rigid face considering coupling weight.
+// void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
+//     SphericParticle::ParticleDataBuffer & data_buffer,
+//     array_1d<double, 3>& r_elastic_force,
+//     array_1d<double, 3>& r_contact_force,
+//     array_1d<double, 3>& rigid_element_force,
+//     const ProcessInfo& r_process_info)
+// {
+//     // Call the base class's function.
+//     SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(data_buffer, r_elastic_force, r_contact_force, rigid_element_force, r_process_info);
+
+//     // Retrieve the list of point condition pointers
+//     auto& list_of_point_condition_pointers = this->GetValue(WALL_POINT_CONDITION_POINTERS);
+//     auto& neighbour_point_faces_elastic_contact_force = this->GetValue(WALL_POINT_CONDITION_ELASTIC_FORCES);
+//     auto& neighbour_point_faces_total_contact_force = this->GetValue(WALL_POINT_CONDITION_TOTAL_FORCES);
+
+//     for (unsigned int i = 0; i < list_of_point_condition_pointers.size(); i++) {
+//         Condition* wall = list_of_point_condition_pointers[i];
+
+//         // Retrieve the shape functions
+//         const Matrix& r_N = wall->GetGeometry().ShapeFunctionsValues();
+//         //wall->GetGEometry()
+
+//         // Initialize the weight at the contact point
+//         double weight_at_contact_point = 0.0;
+
+//         // Interpolate the weight at the contact point using the shape functions
+//         for (IndexType i = 0; i < wall->GetGeometry().size(); ++i) {
+//             double nodal_weight = wall->GetGeometry()[i].GetValue(NODAL_COUPLING_WEIGHT);
+//             weight_at_contact_point += r_N(0, i) * nodal_weight;
+//         }
+
+//         // Scale the contact forces using the weight at the contact point
+//         array_1d<double, 3>& LocalContactForce = neighbour_point_faces_elastic_contact_force[i];
+//         array_1d<double, 3>& GlobalContactForce = neighbour_point_faces_total_contact_force[i];
+//         LocalContactForce *= weight_at_contact_point;
+//         GlobalContactForce *= weight_at_contact_point;
+//     }
+// }
+
+
+
+
+
+    //double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
+        //  r_elastic_force *= particle_weight; // Scale elastic force by the weight
+        //  r_contact_force *= particle_weight; // Scale contact force by the  weight
+        //  rigid_element_force *= particle_weight; // Scale rigid element force by the  weight
+    // // Calculate the coordinates of the contact point
+    // Node<3>& central_node = this->GetGeometry()[0];  // Central node of the geometry
+    // double particle_radius = this->GetRadius(); // Radius of the particle
+    // array_1d<double, 3> particle_centre_coordinates = central_node.Coordinates(); // Coordinates of the particle center
+    // array_1d<double, 3> contact_point_coordinates = particle_centre_coordinates - data_buffer.mLocalCoordSystem[2] * particle_radius; // Contact point coordinates
+
+    // // Get the weight at the particle center
+    // double particle_weight = central_node.FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
+
+    // // Check if there are neighbour elements and if yes, use the first one
+    // if (!data_buffer.mpThisParticle->mNeighbourElements.empty()) {
+    //     SphericParticle& neighbor_particle = *data_buffer.mpThisParticle->mNeighbourElements[0]; // First neighbouring element
+
+    //     // Calculate the slope using the particle center and the neighbor
+    //     double neighbor_weight = neighbor_particle.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Neighbour's coupling weight
+    //     double neighbor_y_coordinate = neighbor_particle.GetGeometry()[0].Coordinates()[1]; // Neighbour's y-coordinate
+
+    //     double slope = (neighbor_weight - particle_weight) / (neighbor_y_coordinate - particle_centre_coordinates[1]); // Calculating the slope
+
+    //     // Calculate the weight at the contact point, assuming linear variation with y-coordinate
+    //     double contact_point_weight = particle_weight + slope * (contact_point_coordinates[1] - particle_centre_coordinates[1]); // Weight at the contact point
+
+    //     r_elastic_force *= contact_point_weight; // Scale elastic force by the contact point weight
+    //     r_contact_force *= contact_point_weight; // Scale contact force by the contact point weight
+    //     rigid_element_force *= contact_point_weight; // Scale rigid element force by the contact point weight
+    // }
+
+
 
 // System includes
 // #include <string>

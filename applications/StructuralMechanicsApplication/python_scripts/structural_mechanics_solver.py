@@ -16,6 +16,11 @@ from KratosMultiphysics import kratos_utilities
 # Other imports
 from importlib import import_module
 
+
+#for volume coupling ################################################################
+import KratosMultiphysics.DEMFEMVolumeCouplingApplication as VCA
+######################################################################################
+
 class MechanicalSolver(PythonSolver):
     """The base class for structural mechanics solvers.
 
@@ -165,12 +170,15 @@ class MechanicalSolver(PythonSolver):
 
     def AddVariables(self):
 
-        ################################################# for volume coupling
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MAUX)# for nodal mass of dem particles
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LINEAR_MOMENTUM) # for momentum of dem particles
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LAGRANGE_DISPLACEMENT) # for storing the displacement at each timestep
-        self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN)# for velocity of dem particles
-        ################################################
+        ################################################# for volume coupling########################################################################################
+        self.main_model_part.AddNodalSolutionStepVariable(VCA.NODAL_COUPLING_WEIGHT)# for storing the coupling weights at nodes.
+        self.main_model_part.AddNodalSolutionStepVariable(VCA.DEMFEM_VOLUME_COUPLING_FORCE) #For storing coupling forces at nodes.
+        self.main_model_part.AddNodalSolutionStepVariable(VCA.DISPLACEMENT_MULTIPLIED_MASS) #For storing coupling forces at nodes.
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_MAUX)# for nodal mass of dem particles
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LINEAR_MOMENTUM) # for momentum of dem particles
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.LAGRANGE_DISPLACEMENT) # for storing the displacement at each timestep
+        # self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY_LAPLACIAN)# for velocity of dem particles
+        ############################################################################################################################################################
         # this can safely be called also for restarts, it is internally checked if the variables exist already
         # Add displacements.
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)

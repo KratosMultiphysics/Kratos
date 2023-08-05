@@ -10,6 +10,10 @@ from KratosMultiphysics.DEMApplication import *
 import KratosMultiphysics.DEMApplication.DEM_material_test_script as DEM_material_test_script
 import KratosMultiphysics.DEMApplication.triaxial2d_test as triaxial2d_test
 
+
+####################################################################################################################
+import KratosMultiphysics.DEMFEMVolumeCouplingApplication as VCA
+####################################################################################################################
 def Flush(a):
     a.flush()
 
@@ -432,11 +436,10 @@ class Procedures():
         model_part.AddNodalSolutionStepVariable(DELTA_DISPLACEMENT)
         model_part.AddNodalSolutionStepVariable(TOTAL_FORCES)
         model_part.AddNodalSolutionStepVariable(CONTACT_FORCES)
-        ####################################################################################################################
-        model_part.AddNodalSolutionStepVariable(DISPLACEMENT_MULTIPLIED_MASS)        #  programmed for volume coupling 
-        model_part.AddNodalSolutionStepVariable(PARTICLE_COUPLING_WEIGHT)
-        model_part.AddNodalSolutionStepVariable(DEMFEM_VOLUME_COUPLING_FORCE)
-        model_part.AddNodalSolutionStepVariable(DISPLACEMENT_MULTIPLIED_MASS)
+        ####################################################################################################################  #  programmed for volume coupling  
+        model_part.AddNodalSolutionStepVariable(VCA.PARTICLE_COUPLING_WEIGHT) 
+        model_part.AddNodalSolutionStepVariable(VCA.DISPLACEMENT_MULTIPLIED_MASS)
+        model_part.AddNodalSolutionStepVariable(VCA.DEMFEM_VOLUME_COUPLING_FORCE)
         #################################################################################################################
 
     def AddSpheresVariables(self, model_part, DEM_parameters):

@@ -5,7 +5,7 @@ from KratosMultiphysics.DEMApplication import *
 
 # Importing the base class
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
-
+import KratosMultiphysics.DEMFEMVolumeCouplingApplication as VCA
 
 def Create(*args):
     return ComputeDemMomentum(*args)
@@ -21,7 +21,7 @@ class ComputeDemMomentum(CoSimulationCouplingOperation):
 
     def InitializeCouplingIteration(self): # currently total lagrange method , linear momentum contains mass x displacement
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(KM.LINEAR_MOMENTUM, node.GetSolutionStepValue(KM.NODAL_MASS)* node.GetSolutionStepValue(KM.DISPLACEMENT))
+            node.SetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS, node.GetSolutionStepValue(KM.NODAL_MASS)* node.GetSolutionStepValue(KM.DISPLACEMENT))
 
     def FinalizeCouplingIteration(self):
         node_ids = [22,40,47,52] # for assigning loads to the bottom nodes

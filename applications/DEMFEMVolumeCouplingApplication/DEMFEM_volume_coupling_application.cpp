@@ -48,8 +48,8 @@ namespace Kratos {
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DISPLACEMENT_MULTIPLIED_MASS)
   KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(DEMFEM_VOLUME_COUPLING_FORCE)
 
-DEMFEMVolumeCouplingApplication::DEMFEMVolumeCouplingApplication()
-    : KratosApplication("DEMFEMVolumeCouplingApplication"),
+KratosDEMFEMVolumeCouplingApplication::KratosDEMFEMVolumeCouplingApplication()
+    : KratosApplication("KratosDEMFEMVolumeCouplingApplication"),
 
 
       mVolumeCouplingElement2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
@@ -70,7 +70,7 @@ DEMFEMVolumeCouplingApplication::DEMFEMVolumeCouplingApplication()
       mVolumeCouplingElement3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node >(Element::GeometryType::PointsArrayType(27)))),
       mVolumeCouplingParticle3D(0, Element::GeometryType::Pointer(new Sphere3D1<Node >(Element::GeometryType::PointsArrayType(1)))){}
 
-     void DEMFEMVolumeCouplingApplication::Register() {
+     void KratosDEMFEMVolumeCouplingApplication::Register() {
 
 
   KRATOS_REGISTER_VARIABLE(NODAL_COUPLING_WEIGHT )
