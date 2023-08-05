@@ -32,26 +32,12 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
 
     def PrepareModelPart(self) -> None:
 
-        num_cond_nodes = None
-        is_surface_condition = False
-        for cond in self.GetOriginModelPart().Conditions:
-            geom = cond.GetGeometry()
-            if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
-                is_surface_condition = True
-            num_cond_nodes = len(cond.GetNodes())
-            break
-
         if self.bulk_surface_shape_filter:
 
-            num_root_elems_nodes = None
-            is_root_surface = False
-            for elem in self.GetOriginModelPart().GetRootModelPart().Elements:
-                geom = elem.GetGeometry()
-                if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
-                    is_root_surface = True
-                num_root_elems_nodes = len(elem.GetNodes())
-                break
-
+            num_root_elems_nodes = self._GetContainerTypeNumNodes(self.GetOriginModelPart().GetRootModelPart().Elements)
+            is_root_surface = self._IsSurfaceContainer(self.GetOriginModelPart().GetRootModelPart().Elements)
+            num_cond_nodes = self._GetContainerTypeNumNodes(self.GetOriginModelPart().Conditions)
+            is_surface_condition = self._IsSurfaceContainer(self.GetOriginModelPart().Conditions)
 
             if num_root_elems_nodes != 4:
                 raise Exception('::[HelmholtzVectorSolver]:: given model part must have only tetrahedral elemenst')
@@ -104,20 +90,31 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
             KM.TetrahedralMeshOrientationCheck(self.helmholtz_model_part, False, flags).Execute()
 
         else:
-            if is_surface_condition:
-                element_name = f"HelmholtzVectorSurfaceElement3D{num_cond_nodes}N"
+
+            if len(self.GetOriginModelPart().Conditions)>0 and len(self.GetOriginModelPart().Elements)>0:
+                KM.Logger.PrintWarning("::[HelmholtzVectorSolver]:: filter model part ", self.GetOriginModelPart().Name, " has both elements and conditions. Giving precedence to conditions ")            
+
+            if len(self.GetOriginModelPart().Conditions)>0:
+               filter_container = self.GetOriginModelPart().Conditions
+            elif len(self.GetOriginModelPart().Elements)>0:
+               filter_container = self.GetOriginModelPart().Elements
+
+            is_surface_filter = self._IsSurfaceContainer(filter_container)
+            num_nodes = self._GetContainerTypeNumNodes(filter_container)
+
+            if is_surface_filter:
+                element_name = f"HelmholtzVectorSurfaceElement3D{num_nodes}N"
             else:
-                element_name = f"HelmholtzVectorSolidElement3D{num_cond_nodes}N"
+                element_name = f"HelmholtzVectorSolidElement3D{num_nodes}N"
 
             filter_properties = self.helmholtz_model_part.GetRootModelPart().CreateNewProperties(self.helmholtz_model_part.GetRootModelPart().NumberOfProperties()+1)
             for node in self.GetOriginModelPart().Nodes:
                 self.helmholtz_model_part.AddNode(node)
 
             elem_index = len(self.helmholtz_model_part.GetRootModelPart().Elements) + 1
-            for cond in self.GetOriginModelPart().Conditions:
+            for cond in filter_container:
                 element_nodes_ids = []
                 for node in cond.GetNodes():
                     element_nodes_ids.append(node.Id)
                 self.helmholtz_model_part.CreateNewElement(element_name, elem_index, element_nodes_ids, filter_properties)
                 elem_index += 1
-
