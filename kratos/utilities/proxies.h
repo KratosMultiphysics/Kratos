@@ -38,6 +38,8 @@ class EntityProxy
 private:
     constexpr static Globals::DataLocation Location = TLocation;
 
+    constexpr static bool IsMutable = TMutable;
+
     /// @ref Node, @ref Element, or @ref Condition without a const-qualifier, depending on @a TLocation.
     using UnqualifiedEntity = std::conditional_t<
         TLocation == Globals::DataLocation::NodeHistorical || TLocation == Globals::DataLocation::NodeNonHistorical,
@@ -142,23 +144,19 @@ private:
         >
     >;
 
-    constexpr static bool IsMutable = std::is_const_v<typename TEntityProxy::QualifiedEntity>;
-
-    using QualifiedContainer = std::conditional_t<IsMutable,
-                                                  UnqualifiedContainer,
-                                                  const UnqualifiedContainer>;
+    constexpr static bool IsMutable = TEntityProxy::IsMutable;
 
     using WrappedIterator = std::conditional_t<IsMutable,
-                                               typename QualifiedContainer::iterator,
-                                               typename QualifiedContainer::const_iterator>;
+                                               typename UnqualifiedContainer::iterator,
+                                               typename UnqualifiedContainer::const_iterator>;
 
     template <bool TMutable>
     class Iterator
     {
     private:
         using Wrapped = std::conditional_t<TMutable,
-                                           typename QualifiedContainer::iterator,
-                                           typename QualifiedContainer::const_iterator>;
+                                           typename UnqualifiedContainer::iterator,
+                                           typename UnqualifiedContainer::const_iterator>;
 
     public:
         using value_type = EntityProxy<TEntityProxy::Location,TMutable>;
@@ -177,7 +175,7 @@ private:
 
         Iterator() noexcept = default;
 
-        Iterator(Wrapped WrappedIterator) noexcept : mWrapped(WrappedIterator) {}
+        Iterator(Wrapped It) noexcept : mWrapped(It) {}
 
         value_type operator*() const noexcept {return value_type(*mWrapped);}
 
@@ -239,6 +237,8 @@ public:
     typename iterator::value_type at(size_type Index) noexcept {return typename iterator::value_type(*(mBegin + Index));}
 
     size_type size() const noexcept {return std::distance(mBegin, mEnd);}
+
+    bool empty() const noexcept {return this->size() == 0;}
 
     const_iterator cbegin() const noexcept {return const_iterator(mBegin);}
 
