@@ -151,7 +151,7 @@ private:
 
 
 
-/** @brief A view with a uniform interface for @ref ModelPart::NodesContainer, @ref ModelPart::ElementsContainer, or @ref ModelPart::ConditionsContainer.
+/** @brief A view with a uniform interface for @ref ModelPart::NodesContainerType, @ref ModelPart::ElementsContainerType, or @ref ModelPart::ConditionsContainerType.
  *  @details @ref ContainerProxy provides uniform access to the @ref Variable s stored in the entities of a container.
  *           Entities in the container are wrapped by @ref EntityProxy. In this context, an entity can refer to:
  *         - a @ref Node with historical variables (@ref Globals::DataLocation::NodeHistorical)
