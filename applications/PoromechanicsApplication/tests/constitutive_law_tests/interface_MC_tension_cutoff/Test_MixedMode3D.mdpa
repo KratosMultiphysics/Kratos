@@ -1,0 +1,215 @@
+Begin Table 1 TIME DISPLACEMENT_X
+  0.0 0.0
+  1 -0.01
+End Table
+
+Begin Table 2 TIME DISPLACEMENT_Y
+  0.0 0.0
+  1 0.0173
+End Table
+
+
+Begin Properties 0
+End Properties
+Begin Properties 1
+  CONSTITUTIVE_LAW_NAME LinearElasticSolid3DLaw
+  YOUNG_MODULUS 5e15
+  POISSON_RATIO 0.26
+  DENSITY_SOLID 2.0e3
+  DENSITY_WATER 1.0e3
+  POROSITY 0.3
+  BULK_MODULUS_SOLID 1.0e12
+  BULK_MODULUS_FLUID 2.0e9
+  PERMEABILITY_XX 4.5e-13
+  PERMEABILITY_YY 4.5e-13
+  PERMEABILITY_ZZ 4.5e-13
+  PERMEABILITY_XY 0.0
+  PERMEABILITY_YZ 0.0
+  PERMEABILITY_ZX 0.0
+  DYNAMIC_VISCOSITY 1.0e-3
+  THICKNESS 1.0
+  BIOT_COEFFICIENT 0.6
+End Properties
+
+Begin Properties 2
+  CONSTITUTIVE_LAW_NAME ElastoPlasticMohrCoulombCohesive3DLaw
+  NORMAL_STIFFNESS 5e9
+  SHEAR_STIFFNESS 1.98e9
+  PENALTY_STIFFNESS 1
+  YOUNG_MODULUS 3.0e7
+  POISSON_RATIO 0.2
+  DENSITY_SOLID 2.0e3
+  DENSITY_WATER 1.0e3
+  POROSITY 0.3
+  BULK_MODULUS_SOLID 1.0e12
+  BULK_MODULUS_FLUID 2.0e9
+  TRANSVERSAL_PERMEABILITY_COEFFICIENT 1.0e-13
+  DYNAMIC_VISCOSITY 1.0e-3
+  INITIAL_JOINT_WIDTH 0.0
+  YIELD_STRESS 3.5e6
+  FRACTURE_ENERGY 100.0
+  SHEAR_FRACTURE_ENERGY 100.0
+  TENSILE_STRENGTH 1.5e6,
+  FRICTION_ANGLE 1.5e6,
+  DILATANCY_ANGLE 1.5e6,
+  STATE_VARIABLE 0.2617993878
+  BIOT_COEFFICIENT 0.5e6
+End Properties
+
+
+Begin Nodes
+  1  0.0000000000 0.0000000000 0.0000000000
+  2  0.0000000000 58.0000000000 0.0000000000
+  3  30.0000000000 58.0000000000 0.0000000000
+  4  30.0000000000 58.0000000000 0.0000000000
+  5  100.0000000000 0.0000000000 0.0000000000
+  6  100.0000000000 0.0000000000 0.0000000000
+  7  0.0000000000 0.0000000000 -100.0000000000
+  8  0.0000000000 58.0000000000 -100.0000000000
+  9  30.0000000000 58.0000000000 -100.0000000000
+  10  30.0000000000 58.0000000000 -100.0000000000
+  11  130.0000000000 0.0000000000 0.0000000000
+  12  100.0000000000 0.0000000000 -100.0000000000
+  13  100.0000000000 0.0000000000 -100.0000000000
+  14  130.0000000000 58.0000000000 0.0000000000
+  15  130.0000000000 0.0000000000 -100.0000000000
+  16  130.0000000000 58.0000000000 -100.0000000000
+End Nodes
+
+
+Begin Elements UPwSmallStrainElement3D8N
+  1  0  8 10 4 2 7 12 6 1
+  2  0  9 16 14 3 13 15 11 5
+End Elements
+
+Begin Elements UPwSmallStrainInterfaceElement3D8N
+  3  0  4 6 12 10 3 5 13 9
+End Elements
+
+
+
+Begin SubModelPart bulk
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    1
+    2
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart fault
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    3
+    4
+    5
+    6
+    9
+    10
+    12
+    13
+  End SubModelPartNodes
+  Begin SubModelPartElements
+    3
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart presc_horz_displ
+  Begin SubModelPartTables
+    1
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    11
+    14
+    15
+    16
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart presc_vert_displ
+  Begin SubModelPartTables
+    2
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    3
+    9
+    14
+    16
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart fixed_displ
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    6
+    7
+    8
+    12
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart bulk_pressure
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+    1
+    2
+    3
+    4
+    5
+    6
+    7
+    8
+    9
+    10
+    11
+    12
+    13
+    14
+    15
+    16
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
