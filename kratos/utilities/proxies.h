@@ -14,6 +14,7 @@
 
 // Project includes
 #include "includes/global_variables.h" // DataLocation
+#include "includes/kratos_export_api.h"
 #include "includes/node.h" // Node
 #include "includes/element.h" // Element
 #include "includes/condition.h" // Condition
@@ -33,7 +34,7 @@ class ContainerProxy;
 
 
 template <Globals::DataLocation TLocation, bool TMutable>
-class EntityProxy
+class KRATOS_API(KRATOS_CORE) EntityProxy
 {
 private:
     constexpr static Globals::DataLocation Location = TLocation;
@@ -138,7 +139,7 @@ private:
 
 
 template <class TEntityProxy>
-class ContainerProxy
+class KRATOS_API(KRATOS_CORE) ContainerProxy
 {
 private:
     using UnqualifiedContainer = std::conditional_t<
