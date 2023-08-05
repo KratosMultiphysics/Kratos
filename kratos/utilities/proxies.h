@@ -253,4 +253,49 @@ private:
 }; // class ContainerProxy
 
 
+
+#define KRATOS_DEFINE_ENTITY_PROXY_FACTORY(TEntity)                                         \
+    template <Globals::DataLocation TLocation>                                              \
+    auto MakeProxy(const TEntity& rEntity) {return EntityProxy<TLocation,false>(rEntity);}  \
+    template <Globals::DataLocation TLocation>                                              \
+    auto MakeProxy(TEntity& rEntity) {return EntityProxy<TLocation,true>(rEntity);}
+
+KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Node)
+
+KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Element)
+
+KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Condition)
+
+#undef KRATOS_DEFINE_ENTITY_PROXY_FACTORY
+
+
+
+template <Globals::DataLocation TLocation>
+auto MakeProxy(ModelPart& rModelPart)
+{
+    using TEntityProxy = EntityProxy<TLocation,true>;
+    if constexpr (TLocation == Globals::DataLocation::NodeHistorical || TLocation == Globals::DataLocation::NodeNonHistorical) {
+        return ContainerProxy<TEntityProxy>(rModelPart.Nodes().begin(), rModelPart.Nodes().end());
+    } else if constexpr (TLocation == Globals::DataLocation::Element) {
+        return ContainerProxy<TEntityProxy>(rModelPart.Elements().begin(), rModelPart.Elements().end());
+    } else if constexpr (TLocation == Globals::DataLocation::Condition) {
+        return ContainerProxy<TEntityProxy>(rModelPart.Conditions().begin(), rModelPart.Conditions().end());
+    }
+}
+
+
+template <Globals::DataLocation TLocation>
+auto MakeProxy(const ModelPart& rModelPart)
+{
+    using TEntityProxy = EntityProxy<TLocation,false>;
+    if constexpr (TLocation == Globals::DataLocation::NodeHistorical || TLocation == Globals::DataLocation::NodeNonHistorical) {
+        return ContainerProxy<TEntityProxy>(rModelPart.Nodes().begin(), rModelPart.Nodes().end());
+    } else if constexpr (TLocation == Globals::DataLocation::Element) {
+        return ContainerProxy<TEntityProxy>(rModelPart.Elements().begin(), rModelPart.Elements().end());
+    } else if constexpr (TLocation == Globals::DataLocation::Condition) {
+        return ContainerProxy<TEntityProxy>(rModelPart.Conditions().begin(), rModelPart.Conditions().end());
+    }
+}
+
+
 } // namespace Kratos
