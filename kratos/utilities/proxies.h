@@ -33,6 +33,19 @@ class ContainerProxy;
 
 
 
+/** @brief Wrapper class providing a uniform interface for historical/non-historical @ref Node, @ref Element, and @ref Condition.
+ *  @details @ref EntityProxy exposes common functionality related accessing stored @ref Variable s within an entity,
+ *         without additional runtime overhead. In this context, an entity can refer to:
+ *         - a @ref Node with historical variables (@ref Globals::DataLocation::NodeHistorical)
+ *         - a @ref Node with non-historical variables (@ref Globals::DataLocation::NodeNonHistorical)
+ *         - an @ref Element (@ref Globals::DataLocation::Element)
+ *         - a @ref Condition (@ref Globals::DataLocation::Condition)
+ *         The exposed common functionalities include checking, reading and overwriting the values
+ *         related to the provided variables associated with the entity.
+ *  @warning Default constructed @ref EntityProxy instances are in an invalid state,
+ *           and their member functions must not be called.
+ *  @throws if member functions of a default constructed instance are called.
+ */
 template <Globals::DataLocation TLocation, bool TMutable>
 class KRATOS_API(KRATOS_CORE) EntityProxy
 {
@@ -138,6 +151,14 @@ private:
 
 
 
+/** @brief A view with a uniform interface for @ref ModelPart::NodesContainer, @ref ModelPart::ElementsContainer, or @ref ModelPart::ConditionsContainer.
+ *  @details @ref ContainerProxy provides uniform access to the @ref Variable s stored in the entities of a container.
+ *           Entities in the container are wrapped by @ref EntityProxy. In this context, an entity can refer to:
+ *         - a @ref Node with historical variables (@ref Globals::DataLocation::NodeHistorical)
+ *         - a @ref Node with non-historical variables (@ref Globals::DataLocation::NodeNonHistorical)
+ *         - an @ref Element (@ref Globals::DataLocation::Element)
+ *         - a @ref Condition (@ref Globals::DataLocation::Condition)
+ */
 template <class TEntityProxy>
 class KRATOS_API(KRATOS_CORE) ContainerProxy
 {
@@ -270,10 +291,12 @@ private:
 
 
 
-#define KRATOS_DEFINE_ENTITY_PROXY_FACTORY(TEntity)                                         \
-    template <Globals::DataLocation TLocation>                                              \
-    auto MakeProxy(const TEntity& rEntity) {return EntityProxy<TLocation,false>(rEntity);}  \
-    template <Globals::DataLocation TLocation>                                              \
+#define KRATOS_DEFINE_ENTITY_PROXY_FACTORY(TEntity)                                             \
+    /** @brief Convenience function for constructing immutable @ref EntityProxy instances.*/    \
+    template <Globals::DataLocation TLocation>                                                  \
+    auto MakeProxy(const TEntity& rEntity) {return EntityProxy<TLocation,false>(rEntity);}      \
+    /** @brief Convenience function for constructing mutable @ref EntityProxy instances.*/      \
+    template <Globals::DataLocation TLocation>                                                  \
     auto MakeProxy(TEntity& rEntity) {return EntityProxy<TLocation,true>(rEntity);}
 
 KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Node)
@@ -286,10 +309,11 @@ KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Condition)
 
 
 
+/// @brief Convenience function for constructing immutable @ref ContainerProxy instances.
 template <Globals::DataLocation TLocation>
-auto MakeProxy(ModelPart& rModelPart)
+auto MakeProxy(const ModelPart& rModelPart)
 {
-    using TEntityProxy = EntityProxy<TLocation,true>;
+    using TEntityProxy = EntityProxy<TLocation,false>;
     if constexpr (TLocation == Globals::DataLocation::NodeHistorical || TLocation == Globals::DataLocation::NodeNonHistorical) {
         return ContainerProxy<TEntityProxy>(rModelPart.Nodes().begin(), rModelPart.Nodes().end());
     } else if constexpr (TLocation == Globals::DataLocation::Element) {
@@ -300,10 +324,11 @@ auto MakeProxy(ModelPart& rModelPart)
 }
 
 
+/// @brief Convenience function for constructing mutable @ref ContainerProxy instances.
 template <Globals::DataLocation TLocation>
-auto MakeProxy(const ModelPart& rModelPart)
+auto MakeProxy(ModelPart& rModelPart)
 {
-    using TEntityProxy = EntityProxy<TLocation,false>;
+    using TEntityProxy = EntityProxy<TLocation,true>;
     if constexpr (TLocation == Globals::DataLocation::NodeHistorical || TLocation == Globals::DataLocation::NodeNonHistorical) {
         return ContainerProxy<TEntityProxy>(rModelPart.Nodes().begin(), rModelPart.Nodes().end());
     } else if constexpr (TLocation == Globals::DataLocation::Element) {

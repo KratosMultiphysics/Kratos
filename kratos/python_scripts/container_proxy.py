@@ -9,7 +9,18 @@ import KratosMultiphysics
 import typing
 
 
+##! @addtogroup KratosCore
+##! @{
+
+
 class ContainerProxy:
+    """ @brief Wrapper class representing an array of @ref Node, @ref Element, or @ref Condition s.
+        @classname ContainerProxy
+        @details @ref ContainerProxy provides a uniform interface for the historical/non-historical node,
+                 element, and condition containers of a @ref ModelPart. @ref ContainerProxy can be iterated
+                 on and yields @ref DynamicEntityProxy instances that provide a generic interface for each
+                 entity type (historical/non-historical nodes, elements, and conditions).
+    """
 
     def __init__(self,
                  model_part: KratosMultiphysics.ModelPart,
@@ -49,3 +60,6 @@ class ContainerProxy:
 
         def __next__(self) -> KratosMultiphysics.EntityProxy:
             return KratosMultiphysics.EntityProxy(self.__data_location, self.__wrapped.__next__())
+
+
+##! @}
