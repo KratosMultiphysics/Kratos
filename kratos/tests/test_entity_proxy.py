@@ -17,21 +17,18 @@ class TestEntityProxy(KratosMultiphysics.KratosUnittest.TestCase):
         self.model_part.CreateNewNode(3, 0.0, 0.0, 0.0)
         self.model_part.CreateNewNode(4, 0.0, 0.0, 0.0)
         for node in self.model_part.Nodes:
-            id = node.Id
-            node[KratosMultiphysics.PRESSURE] = id
-            node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, id)
+            node[KratosMultiphysics.PRESSURE] = node.Id
+            node.SetSolutionStepValue(KratosMultiphysics.PRESSURE, node.Id)
 
         self.model_part.CreateNewElement("Element2D3N", 1, [1, 2, 3], properties)
         self.model_part.CreateNewElement("Element2D3N", 2, [3, 4, 1], properties)
         for element in self.model_part.Elements:
-            id = element.Id
-            element[KratosMultiphysics.PRESSURE] = id
+            element[KratosMultiphysics.PRESSURE] = element.Id
 
         self.model_part.CreateNewCondition("LineCondition2D2N", 1, [1, 2], properties)
         self.model_part.CreateNewCondition("LineCondition2D2N", 2, [3, 4], properties)
         for condition in self.model_part.Conditions:
-            id = condition.Id
-            condition[KratosMultiphysics.PRESSURE] = id
+            condition[KratosMultiphysics.PRESSURE] = condition.Id
 
     def test_HasValue(self) -> None:
         for entity_type in (KratosMultiphysics.Globals.DataLocation.NodeHistorical,
@@ -48,8 +45,8 @@ class TestEntityProxy(KratosMultiphysics.KratosUnittest.TestCase):
                             KratosMultiphysics.Globals.DataLocation.Element,
                             KratosMultiphysics.Globals.DataLocation.Condition):
             for i_entity, proxy in enumerate(ContainerProxy(entity_type, self.model_part)):
-                id = i_entity + 1
-                self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), id)
+                id_entity = i_entity + 1
+                self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), id_entity)
 
     def test_SetValue(self) -> None:
         for entity_type in (KratosMultiphysics.Globals.DataLocation.NodeHistorical,
@@ -57,12 +54,12 @@ class TestEntityProxy(KratosMultiphysics.KratosUnittest.TestCase):
                             KratosMultiphysics.Globals.DataLocation.Element,
                             KratosMultiphysics.Globals.DataLocation.Condition):
             for i_entity, proxy in enumerate(ContainerProxy(entity_type, self.model_part)):
-                id = i_entity + 1
-                self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), id)
-                proxy.SetValue(KratosMultiphysics.PRESSURE, 2 * id)
-                self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), 2 * id)
-                proxy.SetValue(KratosMultiphysics.PRESSURE, id)
-                self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), id)
+                id_entity = i_entity + 1
+                self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), id_entity)
+                proxy.SetValue(KratosMultiphysics.PRESSURE, 2 * id_entity)
+                self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), 2 * id_entity)
+                proxy.SetValue(KratosMultiphysics.PRESSURE, id_entity)
+                self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), id_entity)
 
 
 if __name__ == "__main__":
