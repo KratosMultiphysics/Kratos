@@ -78,28 +78,32 @@ public:
     const typename TVariable::Type& GetValue(const TVariable& rVariable) const
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
-            return mpEntity.value().GetValue(rVariable);
+            return mpEntity.value()->GetSolutionStepValue(rVariable);
         } else {
-            return mpEntity.value().GetSolutionStepValue(rVariable);
+            return mpEntity.value()->GetValue(rVariable);
         }
     }
 
     /// @brief Fetch the value corresponding to the input variable in the wrapped entity.
-    template <class TVariable, std::enable_if_t<TMutable> = true>
+    template <class TVariable, std::enable_if_t</*this is required for SFINAE*/!std::is_same_v<TVariable,void> && TMutable,bool> = true>
     typename TVariable::Type& GetValue(const TVariable& rVariable)
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
-            return mpEntity.value().GetValue(rVariable);
+            return mpEntity.value()->GetSolutionStepValue(rVariable);
         } else {
-            return mpEntity.value().GetSolutionStepValue(rVariable);
+            return mpEntity.value()->GetValue(rVariable);
         }
     }
 
     /// @brief Overwrite the value corresponding to the input variable in the wrapped entity.
-    template <class TVariable, std::enable_if_t<TMutable,bool> = true>
+    template <class TVariable, std::enable_if_t</*this is required for SFINAE*/!std::is_same_v<TVariable,void> && TMutable,bool> = true>
     void SetValue(const TVariable& rVariable, const typename TVariable::Type& rValue)
     {
-        mpEntity.value().SetValue(rVariable, rValue);
+        if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
+            mpEntity.value()->GetSolutionStepValue(rVariable) = rValue;
+        } else {
+            mpEntity.value()->SetValue(rVariable, rValue);
+        }
     }
 
     /// @brief Immutable access to the wrapped entity.
