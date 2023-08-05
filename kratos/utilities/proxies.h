@@ -14,7 +14,7 @@
 
 // Project includes
 #include "includes/global_variables.h" // DataLocation
-#include "includes/kratos_export_api.h"
+#include "includes/kratos_export_api.h" // KRATOS_API
 #include "includes/node.h" // Node
 #include "includes/element.h" // Element
 #include "includes/condition.h" // Condition
@@ -197,7 +197,7 @@ private:
 
         Iterator& operator--() noexcept {--mWrapped; return *this;}
 
-        Iterator operator--(int) noexcept {Iterator copy(mWrapped); --mWrapped; return *this;}
+        Iterator operator--(int) noexcept {Iterator copy(mWrapped); --mWrapped; return copy;}
 
         Iterator& operator+=(difference_type Rhs) noexcept {mWrapped += Rhs; return *this;}
 
