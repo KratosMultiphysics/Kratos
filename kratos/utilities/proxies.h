@@ -18,7 +18,7 @@
 #include "includes/node.h" // Node
 #include "includes/element.h" // Element
 #include "includes/condition.h" // Condition
-#include "includes/model_part.h" // Mesh::NodesContainerType, Mesh::ElementsContainerType, Mesh::ConditionsContainerType
+#include "includes/model_part.h" // ModelPart::NodesContainerType, ModelPart::ElementsContainerType, ModelPart::ConditionsContainerType
 
 // System includes
 #include <type_traits> // remove_reference_t, is_const_v, is_same_v, decay_t
