@@ -75,6 +75,17 @@ public:
     ///          invalidates its iterators or when @a rEntity is destroyed.
     EntityProxy(QualifiedEntity& rEntity) noexcept : mpEntity(&rEntity) {}
 
+    /// @brief Check whether the entity has a value for the provided variable.
+    template <class TVariable>
+    bool HasValue(const TVariable& rVariable) const noexcept
+    {
+        if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
+            return mpEntity.value()->SolutionStepsDataHas(rVariable);
+        } else {
+            return mpEntity.value()->Has(rVariable);
+        }
+    }
+
     /// @brief Fetch the value corresponding to the input variable in the wrapped entity.
     template <class TVariable>
     const typename TVariable::Type& GetValue(const TVariable& rVariable) const

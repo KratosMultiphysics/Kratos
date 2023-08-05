@@ -91,6 +91,10 @@ void TestEntityProxy(TContainer& rEntities)
         // Check const-correctness
         KRATOS_CHECK_IS_FALSE(IsEntityProxyMutable(proxy));
 
+        // Check EntityProxy::HasValue
+        KRATOS_CHECK(proxy.HasValue(PRESSURE));
+        KRATOS_CHECK_IS_FALSE(proxy.HasValue(VELOCITY));
+
         // Check EntityProxy::GetValue
         KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
     }
@@ -102,6 +106,10 @@ void TestEntityProxy(TContainer& rEntities)
 
         // Check const-correctness
         KRATOS_CHECK(IsEntityProxyMutable(proxy));
+
+        // Check EntityProxy::HasValue
+        KRATOS_CHECK(proxy.HasValue(PRESSURE));
+        KRATOS_CHECK_IS_FALSE(proxy.HasValue(VELOCITY));
 
         // Check EntityProxy::GetValue
         KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
@@ -172,6 +180,10 @@ void TestContainerProxy(TMutableContainerProxy MutableProxies, TImmutableContain
         // Check const-correctness
         KRATOS_CHECK_IS_FALSE(IsEntityProxyMutable(proxy));
 
+        // Check EntityProxy::HasValue
+        KRATOS_CHECK(proxy.HasValue(PRESSURE));
+        KRATOS_CHECK_IS_FALSE(proxy.HasValue(VELOCITY));
+
         // Check EntityProxy::GetValue
         KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
     }
@@ -182,6 +194,10 @@ void TestContainerProxy(TMutableContainerProxy MutableProxies, TImmutableContain
 
         // Check const-correctness
         KRATOS_CHECK(IsEntityProxyMutable(proxy));
+
+        // Check EntityProxy::HasValue
+        KRATOS_CHECK(proxy.HasValue(PRESSURE));
+        KRATOS_CHECK_IS_FALSE(proxy.HasValue(VELOCITY));
 
         // Check EntityProxy::GetValue
         KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
