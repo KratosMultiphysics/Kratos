@@ -53,7 +53,7 @@ public:
     }
 
     template <class TVariable>
-    const typename TVariable::Type& GetValue(const TVariable& rVariable) const
+    typename TVariable::Type GetValue(const TVariable& rVariable) const
     {
         KRATOS_TRY
         return std::visit(

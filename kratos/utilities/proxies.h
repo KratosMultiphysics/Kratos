@@ -102,7 +102,7 @@ public:
 
     /// @brief Fetch the value corresponding to the input variable in the wrapped entity.
     template <class TVariable>
-    const typename TVariable::Type& GetValue(const TVariable& rVariable) const
+    typename TVariable::Type GetValue(const TVariable& rVariable) const
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
             return mpEntity.value()->GetSolutionStepValue(rVariable);
