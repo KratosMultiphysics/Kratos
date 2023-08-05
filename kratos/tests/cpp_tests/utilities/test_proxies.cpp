@@ -42,7 +42,7 @@ auto MakeProxyTestModel()
     }
 
     r_model_part.CreateNewElement("Element2D3N", 1, {1, 2, 3}, p_properties);
-    r_model_part.CreateNewElement("Element2D3N", 2, {2, 3, 1}, p_properties);
+    r_model_part.CreateNewElement("Element2D3N", 2, {3, 4, 1}, p_properties);
     for (auto& r_element : r_model_part.Elements()) {
         r_element.GetValue(PRESSURE) = r_element.Id();
     }
