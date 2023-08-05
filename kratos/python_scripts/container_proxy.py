@@ -23,8 +23,8 @@ class ContainerProxy:
     """
 
     def __init__(self,
-                 model_part: KratosMultiphysics.ModelPart,
-                 data_location: KratosMultiphysics.Globals.DataLocation):
+                 data_location: KratosMultiphysics.Globals.DataLocation,
+                 model_part: KratosMultiphysics.ModelPart):
         self.__data_location = data_location
         self.__container: typing.Union[KratosMultiphysics.Node,KratosMultiphysics.Element,KratosMultiphysics.Condition]
         if data_location in (KratosMultiphysics.Globals.DataLocation.NodeHistorical, KratosMultiphysics.Globals.DataLocation.NodeNonHistorical):

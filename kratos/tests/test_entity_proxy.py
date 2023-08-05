@@ -38,7 +38,7 @@ class TestEntityProxy(KratosMultiphysics.KratosUnittest.TestCase):
                             KratosMultiphysics.Globals.DataLocation.NodeNonHistorical,
                             KratosMultiphysics.Globals.DataLocation.Element,
                             KratosMultiphysics.Globals.DataLocation.Condition):
-            for proxy in ContainerProxy(self.model_part, entity_type):
+            for proxy in ContainerProxy(entity_type, self.model_part):
                 self.assertTrue(proxy.HasValue(KratosMultiphysics.PRESSURE))
                 self.assertFalse(proxy.HasValue(KratosMultiphysics.VELOCITY))
 
@@ -47,7 +47,7 @@ class TestEntityProxy(KratosMultiphysics.KratosUnittest.TestCase):
                             KratosMultiphysics.Globals.DataLocation.NodeNonHistorical,
                             KratosMultiphysics.Globals.DataLocation.Element,
                             KratosMultiphysics.Globals.DataLocation.Condition):
-            for i_entity, proxy in enumerate(ContainerProxy(self.model_part, entity_type)):
+            for i_entity, proxy in enumerate(ContainerProxy(entity_type, self.model_part)):
                 id = i_entity + 1
                 self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), id)
 
@@ -56,7 +56,7 @@ class TestEntityProxy(KratosMultiphysics.KratosUnittest.TestCase):
                             KratosMultiphysics.Globals.DataLocation.NodeNonHistorical,
                             KratosMultiphysics.Globals.DataLocation.Element,
                             KratosMultiphysics.Globals.DataLocation.Condition):
-            for i_entity, proxy in enumerate(ContainerProxy(self.model_part, entity_type)):
+            for i_entity, proxy in enumerate(ContainerProxy(entity_type, self.model_part)):
                 id = i_entity + 1
                 self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), id)
                 proxy.SetValue(KratosMultiphysics.PRESSURE, 2 * id)
