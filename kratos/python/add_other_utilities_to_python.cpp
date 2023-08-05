@@ -34,6 +34,7 @@
 #include "utilities/condition_number_utility.h"
 #include "utilities/mortar_utilities.h"
 #include "utilities/deflation_utils.h"
+#include "utilities/dynamic_proxies.h"
 #include "utilities/timer.h"
 #include "utilities/exact_mortar_segmentation_utility.h"
 #include "utilities/sparse_matrix_multiplication_utility.h"
@@ -187,6 +188,23 @@ void AddSubModelPartEntitiesBooleanOperationToPython(pybind11::module &m, std::s
         ;
 }
 
+template <class TValue, class TClass>
+void DefineDynamicEntityProxyMembers(TClass& rPythonClass)
+{
+    rPythonClass
+        .def("HasValue",
+             &DynamicEntityProxy::HasValue<Variable<TValue>>,
+             pybind11::arg("variable"))
+        .def("GetValue",
+             [](const DynamicEntityProxy Self, const Variable<TValue>& rVariable){return Self.GetValue(rVariable);},
+             pybind11::arg("variable"))
+        .def("SetValue",
+             &DynamicEntityProxy::SetValue<Variable<TValue>>,
+             pybind11::arg("variable"),
+             pybind11::arg("new_value"))
+        ;
+}
+
 void AddOtherUtilitiesToPython(pybind11::module &m)
 {
 
@@ -241,6 +259,28 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<>())
         .def("VisualizeAggregates",&DeflationUtils::VisualizeAggregates)
         ;
+
+    auto dynamic_entity_proxy = py::class_<DynamicEntityProxy>(m, "EntityProxy");
+    dynamic_entity_proxy
+        .def(py::init<Globals::DataLocation,Node&>(),
+             py::arg("data_location"),
+             py::arg("entity"))
+        .def(py::init<Globals::DataLocation,Element&>(),
+             py::arg("data_location"),
+             py::arg("entity"))
+        .def(py::init<Globals::DataLocation,Condition&>(),
+             py::arg("data_location"),
+             py::arg("entity"))
+        ;
+    DefineDynamicEntityProxyMembers<bool>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<int>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<double>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<array_1d<double,3>>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<array_1d<double,4>>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<array_1d<double,6>>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<array_1d<double,9>>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<Vector>(dynamic_entity_proxy);
+    DefineDynamicEntityProxyMembers<DenseMatrix<double>>(dynamic_entity_proxy);
 
     //timer
     py::class_<Timer >(m,"Timer")
