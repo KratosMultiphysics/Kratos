@@ -21,7 +21,7 @@ class ComputeDemMomentum(CoSimulationCouplingOperation):
 
     def InitializeCouplingIteration(self): # currently total lagrange method , linear momentum contains mass x displacement
         for node in self.model_part.Nodes:
-            node.SetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS, node.GetSolutionStepValue(KM.NODAL_MASS)* node.GetSolutionStepValue(KM.VELOCITY))
+            node.SetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS, node.GetSolutionStepValue(KM.NODAL_MASS)* node.GetSolutionStepValue(KM.DISPLACEMENT))
             
     def FinalizeCouplingIteration(self):
         node_ids = [22,40,47,52] # for assigning loads to the bottom nodes
