@@ -76,7 +76,7 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
         const double my_arm_length = this->GetRadius() - indentation * other_young * inverse_of_sum_of_youngs;
         const double other_arm_length  = element2->GetRadius() - indentation * my_young * inverse_of_sum_of_youngs;
         double interpolated_weight = (particle_weight*other_arm_length+element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)*my_arm_length)/(my_arm_length+other_arm_length);
-    }
+    
     // Calculate the interpolated weight based on the current and neighboring particles, w'=w1+((3r1+r2-|y1-y2|)/2|y1-y2|)*(w2-w1) considering some indentation
     // double interpolated_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)+
     // (( 3* this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) + element2->GetGeometry()[0].FastGetSolutionStepValue(RADIUS)-
@@ -90,7 +90,7 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
     }
 
     cohesive_force *=interpolated_weight; // Scale cohesive force
-
+    }
 }
 
 // Function to compute additional forces and moments on the particle considering coupling weight.
@@ -103,15 +103,19 @@ void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& extern
     SphericParticle::ComputeAdditionalForces(externally_applied_force, externally_applied_moment, r_process_info, gravity);
     
     
-    double w = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
-    
-    // Multiply each element of externally_applied_force and externally_applied_moment by w.
-    for (int i = 0; i < 3; ++i)
+
+    double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
+        // to check if particle coupling weight is non zer0,
+    if (particle_weight!=0)
     {
-        externally_applied_force[i] *= w; // Scale externally applied force
-        externally_applied_moment[i] *= w; // Scale externally applied moment
+    // Multiply each element of externally_applied_force and externally_applied_moment by weight.
+        for (int i = 0; i < 3; ++i)
+        {
+            externally_applied_force[i] *= particle_weight; // Scale externally applied force
+            externally_applied_moment[i] *= particle_weight; // Scale externally applied moment
+        }
+        externally_applied_force += this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE);  //adding the coupling forces exreted on particles
     }
-    externally_applied_force += this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE);  //adding the coupling forces exreted on particles
 }
 
 }  // namespace Kratos.
