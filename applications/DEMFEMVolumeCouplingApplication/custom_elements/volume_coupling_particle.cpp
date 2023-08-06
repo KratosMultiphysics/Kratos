@@ -33,10 +33,13 @@ void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
     SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(data_buffer, r_elastic_force, r_contact_force, rigid_element_force, r_process_info);
 
         double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
-         r_elastic_force *= particle_weight; // Scale elastic force by the weight
-         r_contact_force *= particle_weight; // Scale contact force by the  weight
-         rigid_element_force *= particle_weight; // Scale rigid element force by the  weight
-
+        // to check if particle coupling weight is non zer0,
+         if (particle_weight!=0)
+         {
+          r_elastic_force *= particle_weight; // Scale elastic force by the weight
+          r_contact_force *= particle_weight; // Scale contact force by the  weight
+          rigid_element_force *= particle_weight; // Scale rigid element force by the  weight
+         }
 }
 
 void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
@@ -62,15 +65,18 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
                                                                         OldLocalCoordSystem,neighbour_elastic_contact_force);
   
 
+    double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
+        // to check if particle coupling weight is non zer0,
+    if (particle_weight!=0)
+    {
+        const double other_young = element2->GetYoung();
+        const double my_young = this->GetYoung();
 
-    const double other_young = element2->GetYoung();
-    const double my_young = this->GetYoung();
-
-    const double inverse_of_sum_of_youngs = 1.0 / (other_young + my_young);
-    const double my_arm_length = this->GetRadius() - indentation * other_young * inverse_of_sum_of_youngs;
-    const double other_arm_length  = element2->GetRadius() - indentation * my_young * inverse_of_sum_of_youngs;
-    double interpolated_weight = (this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)*other_arm_length+element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)*my_arm_length)/(my_arm_length+other_arm_length);
-
+        const double inverse_of_sum_of_youngs = 1.0 / (other_young + my_young);
+        const double my_arm_length = this->GetRadius() - indentation * other_young * inverse_of_sum_of_youngs;
+        const double other_arm_length  = element2->GetRadius() - indentation * my_young * inverse_of_sum_of_youngs;
+        double interpolated_weight = (particle_weight*other_arm_length+element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)*my_arm_length)/(my_arm_length+other_arm_length);
+    }
     // Calculate the interpolated weight based on the current and neighboring particles, w'=w1+((3r1+r2-|y1-y2|)/2|y1-y2|)*(w2-w1) considering some indentation
     // double interpolated_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)+
     // (( 3* this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) + element2->GetGeometry()[0].FastGetSolutionStepValue(RADIUS)-

@@ -24,8 +24,8 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
         self.tolerance= self.settings["velocity_tolerance"].GetDouble() 
         self.y_fem_boundary= self.settings["y_fem_boundary"].GetDouble() 
         self.y_dem_boundary= self.settings["y_dem_boundary"].GetDouble() 
-        self.weight_fem_boundary = 0.9
-        self.weight_dem_boundary = 0.1
+        self.weight_fem_boundary = 0.01
+        self.weight_dem_boundary = 0.99
         self.step=0
         self.timesteps=self.force_end_time/self.dt
         self.max_force=0.025
@@ -56,7 +56,7 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
                     weight= self.weight_dem_boundary + (self.weight_fem_boundary-self.weight_dem_boundary)*(node.Y-self.y_dem_boundary)/(self.y_fem_boundary-self.y_dem_boundary)
                     node.SetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT, weight)
                 else: 
-                    node.SetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT, 1.0) # assigning weights to the nodes in the non-hybrid region
+                    node.SetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT, 0.0) # assigning weights to the nodes in the non-hybrid region
                
                 total_mass = node.GetSolutionStepValue(KM.NODAL_MAUX)
 
@@ -64,7 +64,7 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
                     node.SetSolutionStepValue(SMA.POINT_LOAD,[0,0,0]) #nodal coupling forces set to zero before every iteration
                     node.SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE,[0,0,0]) # force to map to dem (set to zero before every iteration)
                     Displacement_dem = node.GetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS) / total_mass # total lagrange method-> calculating homogenised displacement
-                    node.SetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT, Displacement_dem - node.GetSolutionStepValue(KM.DISPLACEMENT))# total lagrange method : calcualting displacement difference
+                    node.SetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT, (Displacement_dem - node.GetSolutionStepValue(KM.VELOCITY))*self.dt)# updated lagrange method : calcualting displacement difference
 
         for elem in self.model_part.Elements:
              if(elem.GetNodes()[0].GetSolutionStepValue(KM.NODAL_MAUX))!=0:  

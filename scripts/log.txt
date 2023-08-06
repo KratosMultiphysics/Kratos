@@ -62,8 +62,8 @@ C:\KRATOS\Kratos\scripts>cmake -G"Visual Studio 16 2019" -H"C:\KRATOS\Kratos\scr
 -- clipper : C:/KRATOS/Kratos/external_libraries/clipper
 -- triangle : C:/KRATOS/Kratos/external_libraries/triangle
 -- tinyexpr : C:/KRATOS/Kratos/external_libraries/tinyexpr/tinyexpr/
--- Configuring done (19.8s)
--- Generating done (0.7s)
+-- Configuring done (16.9s)
+-- Generating done (0.5s)
 -- Build files have been written to: C:/KRATOS/Kratos/build/Release
 
 C:\KRATOS\Kratos\scripts>rem Build 
@@ -72,89 +72,19 @@ C:\KRATOS\Kratos\scripts>cmake --build "C:\KRATOS\Kratos\scripts\../build/Releas
 Microsoft (R) Build Engine version 16.11.2+f32259642 for .NET Framework
 Copyright (C) Microsoft Corporation. All rights reserved.
 
+  kratos_version.cpp
   KratosVersion.vcxproj -> C:\KRATOS\Kratos\build\Release\kratos\KratosVersion.dir\Release\KratosVersion.lib
   clipper.vcxproj -> C:\KRATOS\Kratos\build\Release\external_libraries\clipper\Release\clipper.lib
   zlib.vcxproj -> C:\KRATOS\Kratos\build\Release\external_libraries\zlib\Release\zlib.dll
   gidpost.vcxproj -> C:\KRATOS\Kratos\build\Release\external_libraries\gidpost\Release\gidpost.lib
   tinyexpr.vcxproj -> C:\KRATOS\Kratos\build\Release\external_libraries\tinyexpr\Release\tinyexpr.lib
   triangle.vcxproj -> C:\KRATOS\Kratos\build\Release\external_libraries\triangle\Release\triangle.lib
+     Creating library C:/KRATOS/Kratos/build/Release/kratos/Release/KratosCore.lib and object C:/KRATOS/Kratos/build/Release/kratos/Release/KratosCore.exp
   KratosCore.vcxproj -> C:\KRATOS\Kratos\build\Release\kratos\Release\KratosCore.dll
   Kratos.vcxproj -> C:\KRATOS\Kratos\build\Release\kratos\Release\Kratos.cp311-win_amd64.pyd
   co_sim_io.vcxproj -> C:\KRATOS\Kratos\build\Release\applications\CoSimulationApplication\custom_external_libraries\CoSimIO\Release\co_sim_io.dll
   KratosCoSimulationCore.vcxproj -> C:\KRATOS\Kratos\build\Release\applications\CoSimulationApplication\Release\KratosCoSimulationCore.dll
   KratosCoSimulationApplication.vcxproj -> C:\KRATOS\Kratos\build\Release\applications\CoSimulationApplication\Release\KratosCoSimulationApplication.pyd
-  DEM_application.cpp
-  RigidEdge.cpp
-  RigidFace.cpp
-  SolidFace.cpp
-  analytic_RigidFace.cpp
-  dem_wall.cpp
-  DEM_D_Bentonite_Colloid_CL.cpp
-  DEM_D_Conical_damage_CL.cpp
-  DEM_D_DMT_cohesive_law.cpp
-  DEM_D_Hertz_confined_CL.cpp
-  DEM_D_Hertz_viscous_Coulomb_2D_CL.cpp
-  DEM_D_Hertz_viscous_Coulomb_CL.cpp
-  DEM_D_Hertz_viscous_Coulomb_Nestle_CL.cpp
-  DEM_D_JKR_cohesive_law.cpp
-  DEM_D_Linear_HighStiffness_2D_CL.cpp
-  DEM_D_Linear_HighStiffness_CL.cpp
-  DEM_D_Linear_classic_CL.cpp
-  DEM_D_Linear_confined_CL.cpp
-  DEM_D_Linear_viscous_Coulomb_2D_CL.cpp
-  DEM_D_Linear_viscous_Coulomb_CL.cpp
-  Generating Code...
-  Compiling...
-  DEM_D_Quadratic_CL.cpp
-  DEM_D_Stress_dependent_cohesive_CL.cpp
-  DEM_Dempack_CL.cpp
-  DEM_Dempack_dev_CL.cpp
-  DEM_Dempack_torque_CL.cpp
-  DEM_ExponentialHC_CL.cpp
-  DEM_KDEM_CL.cpp
-  DEM_KDEM_CamClay_CL.cpp
-  DEM_KDEM_Mohr_Coulomb_CL.cpp
-  DEM_KDEM_Rankine_CL.cpp
-  DEM_KDEM_fabric_CL.cpp
-  DEM_KDEM_soft_torque_CL.cpp
-  DEM_KDEM_soft_torque_with_noise_CL.cpp
-  DEM_KDEM_with_damage_CL.cpp
-  DEM_KDEM_with_damage_parallel_bond_2D_CL.cpp
-  DEM_KDEM_with_damage_parallel_bond_CL.cpp
-  DEM_KDEM_with_damage_parallel_bond_Hertz_2D_CL.cpp
-  DEM_KDEM_with_damage_parallel_bond_Hertz_CL.cpp
-  DEM_KDEM_with_damage_parallel_bond_capped_CL.cpp
-  DEM_beam_constitutive_law.cpp
-  Generating Code...
-  Compiling...
-  DEM_continuum_constitutive_law.cpp
-  DEM_discontinuum_constitutive_law.cpp
-  DEM_parallel_bond_CL.cpp
-  DEM_parallel_bond_for_membrane_CL.cpp
-  DEM_rolling_friction_model.cpp
-  DEM_rolling_friction_model_bounded.cpp
-  DEM_rolling_friction_model_constant_torque.cpp
-  DEM_rolling_friction_model_viscous_torque.cpp
-  dem_d_linear_custom_constants_cl.cpp
-  dem_kdem_2d_cl.cpp
-  dem_kdem_fabric_2d_cl.cpp
-  dem_kdem_fissured_rock_cl.cpp
-  analytic_spheric_particle.cpp
-  beam_particle.cpp
-  bonding_spheric_continuum_particle.cpp
-  cluster3D.cpp
-  contact_info_spheric_particle.cpp
-  singlespherecluster3D.cpp
-  cylinder_continuum_particle.cpp
-  cylinder_particle.cpp
-  Generating Code...
-  Compiling...
-  ice_continuum_particle.cpp
-  nanoparticle.cpp
-  polyhedron_skin_spheric_particle.cpp
-  rigid_body_element.cpp
-  ship_element.cpp
-  spheric_continuum_particle.cpp
   spheric_particle.cpp
 C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(953,45): error C2664: 'void Kratos::DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(const Kratos::ProcessInfo &,const double [],double [],double [],double [],double,double,double [],double &,Kratos::SphericParticle *const ,Kratos::Condition *const ,bool &)': cannot convert argument 4 from 'const double []' to 'double []' [C:\KRATOS\Kratos\build\Release\applications\DEMApplication\KratosDEMCore.vcxproj]
 C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(956,69): message : Conversion loses qualifiers [C:\KRATOS\Kratos\build\Release\applications\DEMApplication\KratosDEMCore.vcxproj]
@@ -163,23 +93,6 @@ C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cp
 C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(1084,76): message : Reason: cannot convert from 'double [3]' to 'const Kratos::array_1d<double,3>' [C:\KRATOS\Kratos\build\Release\applications\DEMApplication\KratosDEMCore.vcxproj]
 C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(1084,76): message : No constructor could take the source type, or constructor overload resolution was ambiguous [C:\KRATOS\Kratos\build\Release\applications\DEMApplication\KratosDEMCore.vcxproj]
 C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(937,23): message : see declaration of 'Kratos::SphericParticle::EvaluateBallToRigidFaceForcesForPositiveIndentations' [C:\KRATOS\Kratos\build\Release\applications\DEMApplication\KratosDEMCore.vcxproj]
-  automatic_dt_process.cpp
-  bins_dynamic_objects_periodic.cpp
-  dem_integration_scheme.cpp
-  glued_to_wall_scheme.cpp
-  explicit_solver_continuum.cpp
-  explicit_solver_strategy.cpp
-  analytic_model_part_filler.cpp
-  particles_history_watcher.cpp
-  create_and_destroy.cpp
-  dem_fem_utilities.cpp
-  force_based_inlet.cpp
-  inlet.cpp
-  multiaxial_control_module_generalized_2d_utilities.cpp
-  Generating Code...
-  Compiling...
-  stationarity_checker.cpp
-  Generating Code...
   KratosStructuralMechanicsCore.vcxproj -> C:\KRATOS\Kratos\build\Release\applications\StructuralMechanicsApplication\Release\KratosStructuralMechanicsCore.dll
   tetgen.vcxproj -> C:\KRATOS\Kratos\build\Release\applications\DelaunayMeshingApplication\Release\tetgen.lib
   KratosDelaunayMeshingCore.vcxproj -> C:\KRATOS\Kratos\build\Release\applications\DelaunayMeshingApplication\Release\KratosDelaunayMeshingCore.dll
