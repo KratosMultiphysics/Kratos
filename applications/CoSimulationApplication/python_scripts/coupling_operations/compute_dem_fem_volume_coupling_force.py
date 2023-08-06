@@ -68,7 +68,7 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
 
         for elem in self.model_part.Elements:
              if(elem.GetNodes()[0].GetSolutionStepValue(KM.NODAL_MAUX))!=0:  
-                for i in range(elem.GetGeometry().IntegrationPointsNumber()): #gauss quadrature
+                for i in range(elem.GetGeometry().IntegrationPointsNumber()): #gauss quadrature 
                     w = 1 
                     J = (elem.GetGeometry().DeterminantOfJacobian(i))
                     shape_functions = elem.GetGeometry().ShapeFunctionsValues()
