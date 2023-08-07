@@ -21,6 +21,7 @@
 #include "includes/checks.h"
 #include "includes/define.h"
 #include "utilities/math_utils.h"
+#include "optimization_application_variables.h"
 
 namespace Kratos
 {
@@ -72,7 +73,7 @@ void HelmholtzSurfShapeElement::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     KRATOS_TRY
 
     KRATOS_ERROR_IF_NOT(rCurrentProcessInfo.Has(COMPUTE_CONTROL_POINTS_SHAPE))
-      << "COMPUTE_CONTROL_POINTS_SHAPE not defined in the ProcessInfo!" << std::endl;    
+      << "COMPUTE_CONTROL_POINTS_SHAPE not defined in the ProcessInfo!" << std::endl;
 
     auto& r_geometry = this->GetGeometry();
     const SizeType number_of_nodes = r_geometry.size();
@@ -86,7 +87,7 @@ void HelmholtzSurfShapeElement::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 
     noalias( rLeftHandSideMatrix ) = ZeroMatrix( mat_size, mat_size ); //resetting LHS
 
-    // Resizing as needed the RHS 
+    // Resizing as needed the RHS
     if ( rRightHandSideVector.size() != mat_size )
         rRightHandSideVector.resize( mat_size, false );
 
@@ -112,15 +113,15 @@ void HelmholtzSurfShapeElement::CalculateLocalSystem(MatrixType& rLeftHandSideMa
         nodal_vals[3 * node_element + 0] = source[0]/node_weight;
         nodal_vals[3 * node_element + 1] = source[1]/node_weight;
         nodal_vals[3 * node_element + 2] = source[2]/node_weight;
-    } 
+    }
 
     noalias(rLeftHandSideMatrix) += K;
     noalias(rRightHandSideVector) += nodal_vals;
 
     //apply drichlet BC
     Vector temp;
-    GetValuesVector(temp,0);    
-    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);    
+    GetValuesVector(temp,0);
+    noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix,temp);
 
     KRATOS_CATCH("")
 }
@@ -285,7 +286,7 @@ void HelmholtzSurfShapeElement::CalculateSurfaceMassMatrix(
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints( integration_method );
 
     MatrixType Ncontainer;
-    GetPseudoBulkSurfaceShapeFunctionsValues(Ncontainer,integration_method,rCurrentProcessInfo);    
+    GetPseudoBulkSurfaceShapeFunctionsValues(Ncontainer,integration_method,rCurrentProcessInfo);
 
 
     for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
@@ -304,7 +305,7 @@ void HelmholtzSurfShapeElement::CalculateSurfaceMassMatrix(
                     rMassMatrix( index_i + k, index_j + k ) += NiNj_weight;
             }
         }
-    }   
+    }
 
     KRATOS_CATCH("");
 }
@@ -326,7 +327,7 @@ void HelmholtzSurfShapeElement::GetPseudoBulkSurfaceShapeFunctionsValues(
     rNMatrix.resize( mat_size1, mat_size2, false );
     rNMatrix = ZeroMatrix( mat_size1, mat_size2 );
 
-    // create a pseudo bulk element here 
+    // create a pseudo bulk element here
     double height = r_geom.Length();
     Point geom_center = r_geom.Center();
     const auto surf_points = r_geom.Points();
@@ -335,12 +336,12 @@ void HelmholtzSurfShapeElement::GetPseudoBulkSurfaceShapeFunctionsValues(
     PointPtrType p0 = new PointType(surf_points[0].Id(),surf_points[0]);
     PointPtrType p1 = new PointType(surf_points[1].Id(),surf_points[1]);
     PointPtrType p2 = new PointType(surf_points[2].Id(),surf_points[2]);
-    
+
     if(number_of_nodes==3){
         PointPtrType p3 = new PointType(surf_points[0].Id()+3, geom_center.Coordinates() + height * n_surf);
         TetrahedraGeometryType pseudo_tetrahedra(p0,p1,p2,p3);
 
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {    
+        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
             Point gp_local_pt = Point(integration_points[point_number].Coordinates());
             Point gp_global_pt;
             r_geom.GlobalCoordinates(gp_global_pt,gp_local_pt);
@@ -350,14 +351,14 @@ void HelmholtzSurfShapeElement::GetPseudoBulkSurfaceShapeFunctionsValues(
             for(IndexType i = 0; i < number_of_nodes; ++i )
                 rNMatrix(point_number,i) = pseudo_tetrahedra.ShapeFunctionValue(i,elem_gp_local_pt);
 
-        }  
+        }
 
     }else if(number_of_nodes==4) {
         PointPtrType p3 = new PointType(surf_points[3].Id(),surf_points[3]);
         PointPtrType p4 = new PointType(surf_points[0].Id()+4, geom_center.Coordinates() + height * n_surf);
         PyramidGeometryType pseudo_pyramid(p0,p1,p2,p3,p4);
 
-        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {    
+        for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
             Point gp_local_pt = Point(integration_points[point_number].Coordinates());
             Point gp_global_pt;
             r_geom.GlobalCoordinates(gp_global_pt,gp_local_pt);
@@ -366,7 +367,7 @@ void HelmholtzSurfShapeElement::GetPseudoBulkSurfaceShapeFunctionsValues(
 
             for(IndexType i = 0; i < number_of_nodes; ++i )
                 rNMatrix(point_number,i) = pseudo_pyramid.ShapeFunctionValue(i,elem_gp_local_pt);
-        }  
+        }
     }
     else
         KRATOS_ERROR<<"HelmholtzSurfShapeElement: this element only supports 3 and 4 noded surface elements"<<std::endl;
@@ -405,7 +406,7 @@ void HelmholtzSurfShapeElement::CalculateSurfaceStiffnessMatrix(
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(integration_method);
     const unsigned int NumGauss = integration_points.size();
     Vector GaussPtsJDet = ZeroVector(NumGauss);
-    r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);    
+    r_geom.DeterminantOfJacobian(GaussPtsJDet, integration_method);
 
     VectorType n_surf;
     CalculateAvgSurfUnitNormal(n_surf);
@@ -423,7 +424,7 @@ void HelmholtzSurfShapeElement::CalculateSurfaceStiffnessMatrix(
 
         const double r_helmholtz = r_prop[HELMHOLTZ_SURF_RADIUS_SHAPE];
         noalias(A_dirc) += IntToReferenceWeight * r_helmholtz * r_helmholtz * prod(DN_DX_t, trans(DN_DX_t));
-        
+
     }
 
     //contruct the stifness matrix in all dims
@@ -451,14 +452,14 @@ void HelmholtzSurfShapeElement::CalculatePseudoBulkSurfaceDN_DXMatrix(
     SizeType mat_size2 = 3;
 
     rDN_DX.resize( mat_size1, mat_size2, false );
-    rDN_DX = ZeroMatrix( mat_size1, mat_size2 );  
+    rDN_DX = ZeroMatrix( mat_size1, mat_size2 );
 
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geom.IntegrationPoints(rIntegrationMethod);
     Point surf_gp_local_pt = Point(integration_points[PointNumber].Coordinates());
     Point surf_gp_global_pt;
     r_geom.GlobalCoordinates(surf_gp_global_pt,surf_gp_local_pt);
-    Point elem_surf_gp_local_pt;  
-    MatrixType pseudo_elem_DN_DX;    
+    Point elem_surf_gp_local_pt;
+    MatrixType pseudo_elem_DN_DX;
 
     // create a pseudo bulk element here
     double height = r_geom.Length();
@@ -472,31 +473,31 @@ void HelmholtzSurfShapeElement::CalculatePseudoBulkSurfaceDN_DXMatrix(
     if(number_of_nodes==3){
         PointPtrType p3 = new PointType(surf_points[0].Id()+3, geom_center.Coordinates() + height * n_surf);
         TetrahedraGeometryType pseudo_tetrahedra(p0,p1,p2,p3);
-        pseudo_tetrahedra.PointLocalCoordinates(elem_surf_gp_local_pt,surf_gp_global_pt);    
+        pseudo_tetrahedra.PointLocalCoordinates(elem_surf_gp_local_pt,surf_gp_global_pt);
         MatrixType DN_De;
         pseudo_tetrahedra.ShapeFunctionsLocalGradients(DN_De,elem_surf_gp_local_pt);
         MatrixType InvJ0;
         pseudo_tetrahedra.InverseOfJacobian(InvJ0,elem_surf_gp_local_pt);
-        pseudo_elem_DN_DX = prod(DN_De,InvJ0); 
+        pseudo_elem_DN_DX = prod(DN_De,InvJ0);
 
     }else if(number_of_nodes==4) {
         PointPtrType p3 = new PointType(surf_points[3].Id(),surf_points[3]);
         PointPtrType p4 = new PointType(surf_points[0].Id()+4, geom_center.Coordinates() + height * n_surf);
         PyramidGeometryType pseudo_pyramid(p0,p1,p2,p3,p4);
-        pseudo_pyramid.PointLocalCoordinates(elem_surf_gp_local_pt,surf_gp_global_pt);    
+        pseudo_pyramid.PointLocalCoordinates(elem_surf_gp_local_pt,surf_gp_global_pt);
         MatrixType DN_De;
         pseudo_pyramid.ShapeFunctionsLocalGradients(DN_De,elem_surf_gp_local_pt);
         MatrixType InvJ0;
         pseudo_pyramid.InverseOfJacobian(InvJ0,elem_surf_gp_local_pt);
-        pseudo_elem_DN_DX = prod(DN_De,InvJ0); 
+        pseudo_elem_DN_DX = prod(DN_De,InvJ0);
     }
     else
         KRATOS_ERROR<<"HelmholtzSurfShapeElement: this element only supports 3 and 4 noded surface elements"<<std::endl;
 
     for(IndexType i = 0; i<mat_size1; i++)
         for(IndexType j = 0; j<mat_size2; j++)
-            rDN_DX(i,j) = pseudo_elem_DN_DX(i,j);  
-     
+            rDN_DX(i,j) = pseudo_elem_DN_DX(i,j);
+
     KRATOS_CATCH("");
 }
 
@@ -512,10 +513,10 @@ void HelmholtzSurfShapeElement::CalculateAvgSurfUnitNormal(VectorType & rNormal)
         rNormal += r_geom.UnitNormal(point_number,integration_method);
 
     rNormal /= integration_points.size();
-    rNormal /= MathUtils<double>::Norm3(rNormal); 
+    rNormal /= MathUtils<double>::Norm3(rNormal);
 }
 
-void HelmholtzSurfShapeElement::CalculateCMatrix(MatrixType& rCMatrix, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber) const 
+void HelmholtzSurfShapeElement::CalculateCMatrix(MatrixType& rCMatrix, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber) const
 {
   KRATOS_TRY;
 
@@ -548,7 +549,7 @@ void HelmholtzSurfShapeElement::CalculateCMatrix(MatrixType& rCMatrix, const Int
   KRATOS_CATCH("");
 }
 
-void HelmholtzSurfShapeElement::CalculateBMatrix(MatrixType& rBMatrix, const MatrixType& rDN_DX_tMatrix, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber) const 
+void HelmholtzSurfShapeElement::CalculateBMatrix(MatrixType& rBMatrix, const MatrixType& rDN_DX_tMatrix, const IntegrationMethod& rIntegrationMethod, const IndexType PointNumber) const
 {
   KRATOS_TRY;
 
@@ -556,7 +557,7 @@ void HelmholtzSurfShapeElement::CalculateBMatrix(MatrixType& rBMatrix, const Mat
   const SizeType num_nodes = r_geom.PointsNumber();
 
   rBMatrix.resize(6,num_nodes * 3,false);
-  rBMatrix = ZeroMatrix(6, num_nodes * 3);  
+  rBMatrix = ZeroMatrix(6, num_nodes * 3);
 
 
     SizeType index = 0;
@@ -572,7 +573,7 @@ void HelmholtzSurfShapeElement::CalculateBMatrix(MatrixType& rBMatrix, const Mat
         rBMatrix(5, index + 2) = rDN_DX_tMatrix(i_node, 0);
         index += 3;
     }
-  
+
 
   KRATOS_CATCH("");
 }

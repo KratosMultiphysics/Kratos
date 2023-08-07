@@ -11,6 +11,7 @@
 
 // Project includes
 #include "assign_integration_points_to_background_elements_process.h"
+#include "geometries/nurbs_volume_geometry.h"
 
 namespace Kratos
 {
@@ -52,6 +53,14 @@ namespace Kratos
             const CoordinatesArrayType lower_point = p_geometry->begin()->GetInitialPosition();
             const CoordinatesArrayType upper_point = (p_geometry->end()-1)->GetInitialPosition();
 
+            const auto p_nurbs_volume_geo = dynamic_pointer_cast<NurbsVolumeGeometry<PointerVector<Node>>>(p_geometry);
+            const auto knots_u = p_nurbs_volume_geo->KnotsU();
+            const SizeType n_knots_u = p_nurbs_volume_geo->NumberOfKnotsU();
+            const auto knots_v = p_nurbs_volume_geo->KnotsV();
+            const SizeType n_knots_v = p_nurbs_volume_geo->NumberOfKnotsV();
+            const auto knots_w = p_nurbs_volume_geo->KnotsW();
+            const SizeType n_knots_w = p_nurbs_volume_geo->NumberOfKnotsW();
+
             // Create quadrature points in parameter space of nurbs volume
             IntegrationPointsArrayType integration_points(embedded_model_part.NumberOfElements());
             const auto element_itr_begin = embedded_model_part.ElementsBegin();
@@ -65,18 +74,25 @@ namespace Kratos
 
                 // Map point into parameter space
                 CoordinatesArrayType local_point;
-                local_point[0] = (ip_physical_space[0] - lower_point[0]) / std::abs( lower_point[0] - upper_point[0]);
-                local_point[1] = (ip_physical_space[1] - lower_point[1]) / std::abs( lower_point[1] - upper_point[1]);
-                local_point[2] = (ip_physical_space[2] - lower_point[2]) / std::abs( lower_point[2] - upper_point[2]);
+                local_point[0] = ((ip_physical_space[0] - lower_point[0]) / std::abs( lower_point[0] - upper_point[0])
+                                * std::abs(knots_u[n_knots_u-1] - knots_u[0])) + knots_u[0];
+                local_point[1] = ((ip_physical_space[1] - lower_point[1]) / std::abs( lower_point[1] - upper_point[1])
+                                * std::abs(knots_v[n_knots_v-1] - knots_v[0])) + knots_v[0];
+                local_point[2] = ((ip_physical_space[2] - lower_point[2]) / std::abs( lower_point[2] - upper_point[2])
+                                * std::abs(knots_w[n_knots_w-1] - knots_w[0])) + knots_w[0];
 
                 integration_points[i] = IntegrationPoint<3>(local_point, tmp_integration_points[0].Weight());
             }
             IntegrationInfo integration_info = p_geometry->GetDefaultIntegrationInfo();
             GeometriesArrayType geometry_list;
+            // Make sure one qudrature point geometry is created for each integration point.
+            integration_info.SetQuadratureMethod(0, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
+            integration_info.SetQuadratureMethod(1, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
+            integration_info.SetQuadratureMethod(2, IntegrationInfo::QuadratureMethod::EXTENDED_GAUSS);
             p_geometry->CreateQuadraturePointGeometries(geometry_list, 2, integration_points, integration_info);
 
             // Get properties from main model part
-            auto p_properties = main_model_part.pGetProperties(0);
+            auto p_properties = main_model_part.pGetProperties(1);
 
             const auto p_background_element = main_model_part.ElementsBegin();
             const auto& r_proces_info = main_model_part.GetProcessInfo();
