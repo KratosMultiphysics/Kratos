@@ -2,7 +2,6 @@
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.testing.utilities import ReadModelPart
 import KratosMultiphysics.OptimizationApplication as KratosOA
-import KratosMultiphysics.StructuralMechanicsApplication as KratosSMA
 
 # Import KratosUnittest
 import KratosMultiphysics.KratosUnittest as kratos_unittest

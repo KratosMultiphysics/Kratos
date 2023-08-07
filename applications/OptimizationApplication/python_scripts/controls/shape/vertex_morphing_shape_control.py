@@ -202,7 +202,7 @@ class VertexMorphingShapeControl(Control):
         if not self.is_filter_implicit:
             # make sure that explicit filter model part only has conditions
             if len(self.filter_model_part.Elements) > 0:
-                raise RuntimeError(f"VertexMorphingShapeControl with explicit filtering only allows model parts with conditions")
+                raise RuntimeError("VertexMorphingShapeControl with explicit filtering only allows model parts with conditions")
             # now damping and creating the filter
             fixed_model_parts_names = list(self.parameters["fixed_model_parts"].keys())
             if len(fixed_model_parts_names)>0:

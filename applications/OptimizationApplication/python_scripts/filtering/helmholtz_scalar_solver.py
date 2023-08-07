@@ -24,7 +24,7 @@ class HelmholtzScalarSolver(HelmholtzSolverBase):
     def PrepareModelPart(self) -> None:
 
         if len(self.GetOriginModelPart().Conditions)>0 and len(self.GetOriginModelPart().Elements)>0:
-            KM.Logger.PrintWarning("::[HelmholtzScalarSolver]:: filter model part ", self.GetOriginModelPart().Name, " has both elements and conditions. Giving precedence to conditions ")            
+            KM.Logger.PrintWarning("::[HelmholtzScalarSolver]:: filter model part ", self.GetOriginModelPart().Name, " has both elements and conditions. Giving precedence to conditions ")
 
         if len(self.GetOriginModelPart().Conditions)>0:
            filter_container = self.GetOriginModelPart().Conditions
