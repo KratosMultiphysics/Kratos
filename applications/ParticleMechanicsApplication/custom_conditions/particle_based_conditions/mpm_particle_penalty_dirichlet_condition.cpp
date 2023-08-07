@@ -97,6 +97,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
 
 void MPMParticlePenaltyDirichletCondition::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
+    MPMParticleBaseDirichletCondition::InitializeNonLinearIteration(rCurrentProcessInfo);
     AccumulateReactionToNodes(rCurrentProcessInfo);
 }
 
@@ -214,6 +215,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
 
 void MPMParticlePenaltyDirichletCondition::FinalizeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
+    MPMParticleBaseDirichletCondition::FinalizeNonLinearIteration(rCurrentProcessInfo);
     AccumulateReactionToNodes(rCurrentProcessInfo);
 }
 
