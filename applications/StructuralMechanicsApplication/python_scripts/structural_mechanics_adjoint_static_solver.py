@@ -109,6 +109,8 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             self.response_function = StructuralMechanicsApplication.AdjointNodalDisplacementResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_linear_strain_energy":
             self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_linear_strain_energy_2":
+            self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction2(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_nodal_reaction":
             self.response_function = StructuralMechanicsApplication.AdjointNodalReactionResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         else:
@@ -135,6 +137,9 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
         if self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_linear_strain_energy":
             self._SolveSolutionStepSpecialLinearStrainEnergy()
             return True
+        elif self.settings["response_function_settings"]["response_type"].GetString() == "adjoint_linear_strain_energy_2":
+            self._SolveSolutionStepSpecialLinearStrainEnergy2()
+            return True
         else:
             return super().SolveSolutionStep()
 
@@ -144,6 +149,14 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT, adjoint_displacement )
             if self.settings["rotation_dofs"].GetBool():
                 adjoint_rotation = 0.5 * node.GetSolutionStepValue(KratosMultiphysics.ROTATION)
+                node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation )
+                
+    def _SolveSolutionStepSpecialLinearStrainEnergy2(self):
+        for node in self.main_model_part.Nodes:
+            adjoint_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT, adjoint_displacement )
+            if self.settings["rotation_dofs"].GetBool():
+                adjoint_rotation = node.GetSolutionStepValue(KratosMultiphysics.ROTATION)
                 node.SetSolutionStepValue(StructuralMechanicsApplication.ADJOINT_ROTATION, adjoint_rotation )
 
     def _create_mechanical_solution_strategy(self):
