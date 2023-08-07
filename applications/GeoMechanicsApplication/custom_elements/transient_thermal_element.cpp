@@ -13,6 +13,7 @@
 // Application includes
 #include "custom_elements/transient_thermal_element.hpp"
 #include "custom_constitutive/thermal_dispersion_2D_law.hpp"
+#include "custom_utilities/thermal_utilities.hpp"
 
 namespace Kratos
 {
@@ -257,7 +258,8 @@ namespace Kratos
             //
             if (mIsPressureCoupled)
             {
-                this->UpdateWaterProperties(Variables, GPoint);
+                Variables.WaterDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.N, Geom);
+                Variables.DynamicViscosityInverse = ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.N, Geom);
                 this->CalculateDischargeVector(Variables);
             }
 
@@ -613,7 +615,7 @@ namespace Kratos
         rVariables.TransverseDispersivity = rProp[TRANSVERSE_DISPERSIVITY];
         rVariables.SolidCompressibility = rProp[SOLID_COMPRESSIBILITY];
 
-        rVariables.WaterViscosity = rProp[DYNAMIC_VISCOSITY];
+        rVariables.DynamicViscosityInverse = 1.0 / rProp[DYNAMIC_VISCOSITY];
 
         KRATOS_CATCH("")
     }
@@ -656,10 +658,10 @@ namespace Kratos
 
         const PropertiesType& rProp = this->GetProperties();
 
-        C(0, 0) = rProp[PERMEABILITY_XX] / rVariables.WaterViscosity;
-        C(0, 1) = rProp[PERMEABILITY_XY] / rVariables.WaterViscosity;
-        C(1, 0) = rProp[PERMEABILITY_XY] / rVariables.WaterViscosity;
-        C(1, 1) = rProp[PERMEABILITY_YY] / rVariables.WaterViscosity;
+        C(0, 0) = rProp[PERMEABILITY_XX] * rVariables.DynamicViscosityInverse;
+        C(0, 1) = rProp[PERMEABILITY_XY] * rVariables.DynamicViscosityInverse;
+        C(1, 0) = rProp[PERMEABILITY_XY] * rVariables.DynamicViscosityInverse;
+        C(1, 1) = rProp[PERMEABILITY_YY] * rVariables.DynamicViscosityInverse;
 
         KRATOS_CATCH("")
     }
@@ -724,40 +726,6 @@ namespace Kratos
             break;
         }
         return GI_GAUSS;
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
-    void TransientThermalElement<TDim, TNumNodes>::UpdateWaterProperties(
-        ElementVariables& rVariables, unsigned int gPoint)
-    {
-        this->CalculateWaterDensityOnIntegrationPoints(rVariables);
-        this->CalculateWaterViscosityOnIntegrationPoints(rVariables);
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
-    void TransientThermalElement<TDim, TNumNodes>::CalculateWaterDensityOnIntegrationPoints(
-        ElementVariables& rVariables)
-    {
-        double temp = inner_prod(rVariables.N, rVariables.TemperatureVector);
-        rVariables.WaterDensity =
-            +9.998396e+2 + 6.764771e-2 * temp - 8.993699e-3 * std::pow(temp, 2)
-            + 9.143518e-5 * std::pow(temp, 3) - 8.907391e-7 * std::pow(temp, 4)
-            + 5.291959e-9 * std::pow(temp, 5) - 1.359813e-11 * std::pow(temp, 6);
-    }
-
-    // ============================================================================================
-    // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
-    void TransientThermalElement<TDim, TNumNodes>::CalculateWaterViscosityOnIntegrationPoints(
-        ElementVariables& rVariables)
-    {
-        double temp = inner_prod(rVariables.N, rVariables.TemperatureVector);
-        double c1 = 247.8 / (temp + 133.0);
-        rVariables.WaterViscosity = 2.4318e-5 * std::pow(10.0, c1);
     }
 
     // ============================================================================================

@@ -66,7 +66,7 @@ namespace Kratos
             double LongitudinalDispersivity;
             double TransverseDispersivity;
             double SolidCompressibility;
-            double WaterViscosity;
+            double DynamicViscosityInverse;
 
             ///ProcessInfo variables
             double DtTemperatureCoefficient;
@@ -197,10 +197,6 @@ namespace Kratos
         void CalculatePermiabilityMatrix(BoundedMatrix<double, TDim, TDim>& C, ElementVariables& rVariables);
 
         GeometryData::IntegrationMethod GetIntegrationMethod() const override;
-
-        void UpdateWaterProperties(ElementVariables& rVariables, unsigned int gPoint);
-        void CalculateWaterDensityOnIntegrationPoints(ElementVariables& rVariables);
-        void CalculateWaterViscosityOnIntegrationPoints(ElementVariables& rVariables);
 
     private:
 
