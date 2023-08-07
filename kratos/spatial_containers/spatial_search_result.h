@@ -136,18 +136,38 @@ public:
         mIsDistanceCalculated = true;
     }
 
+    /// Getting if the object is found
+    bool GetIsObjectFound() const {
+        return mIsObjectFound;
+    }
+
+    /// Getting if the ibject is found
+    void SetIsObjectFound(const bool IsObjectFound) {
+        mIsObjectFound = IsObjectFound;
+    }
+
+    /// Getting if the distance is calculated
+    bool GetIsDistanceCalculated() const {
+        return mIsDistanceCalculated;
+    }
+
+    /// Setting if the distance is calculated
+    void SetIsDistanceCalculated(const bool IsDistanceCalculated) {
+        mIsDistanceCalculated = IsDistanceCalculated;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
 
-    /// Returns true if the object is set 
-	bool IsObjectFound() const { 
-        return mIsObjectFound; 
+    /// Returns true if the object is set
+    bool IsObjectFound() const {
+        return mIsObjectFound;
     }
 
     /// Returns true if the distance is set
-	bool IsDistanceCalculated() const { 
-        return mIsDistanceCalculated; 
+    bool IsDistanceCalculated() const {
+        return mIsDistanceCalculated;
     }
 
     ///@}

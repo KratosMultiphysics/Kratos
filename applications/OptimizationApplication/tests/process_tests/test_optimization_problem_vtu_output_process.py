@@ -21,7 +21,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             self.model_part = model_part
         def CalculateValue(self) -> float:
             return 0.0
-        def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.ContainerExpression.CollectiveExpressions]) -> None:
+        def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
             pass
         def Check(self) -> None:
             pass
@@ -86,7 +86,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
             node.SetValue(Kratos.VELOCITY, Kratos.Array3([node.Id + 1, node.Id + 2, node.Id + 3]))
 
         for element in cls.model_part1.Elements:
-            element.SetValue(Kratos.ACCELERATION, Kratos.Array3([element.Id + 1, element.Id + 2, element.Id + 3]))
+            element.SetValue(Kratos.ACCELERATION, Kratos.Array3([element.Id + 4, element.Id + 5, element.Id + 6]))
 
         cls.model_part2 = cls.model.CreateModelPart("test_2")
         cls.model_part2.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -122,19 +122,23 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
     def __AddData(self, buffered_dict: BufferedDict, is_buffered_data: bool, component):
         step_v = self.optimization_problem.GetStep() + 1
 
-        nodal_data = Kratos.ContainerExpression.NodalNonHistoricalExpression(component.model_part)
-        nodal_data.Read(Kratos.VELOCITY)
-        buffered_dict[f"{component.GetName()}_data_nodal_{is_buffered_data}"] = nodal_data * step_v * 2.3
+        nodal_data = Kratos.Expression.NodalExpression(component.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(nodal_data, Kratos.VELOCITY, False)
+        buffered_dict[f"{component.GetName()}_data_nodal_vel__{is_buffered_data}"] = nodal_data * step_v * 2.3
 
-        element_data = Kratos.ContainerExpression.ElementNonHistoricalExpression(component.model_part)
-        element_data.Read(Kratos.ACCELERATION)
-        buffered_dict[f"{component.GetName()}_data_element_{is_buffered_data}"] = element_data * step_v * 2.3
+        element_data = Kratos.Expression.ElementExpression(component.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(element_data, Kratos.ACCELERATION)
+        buffered_dict[f"{component.GetName()}_data_element_acc_{is_buffered_data}"] = element_data * step_v * 2.3
+
+        collective_data = KratosOA.CollectiveExpression([nodal_data, element_data])
+        collective_data *= 2.0
+        buffered_dict[f"{component.GetName()}_collective_element_{is_buffered_data}"] = collective_data * step_v * 2.3
 
     def test_OptimizationProblemVtuOutputProcess(self):
         parameters = Kratos.Parameters(
             """
             {
-                "custom_name_prefix"          : "dummy_vtu",
+                "file_name"                   : "<model_part_full_name>",
                 "file_format"                 : "binary",
                 "write_deformed_configuration": false,
                 "list_of_output_components"   : ["all"],
@@ -146,6 +150,7 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
         )
 
         process = OptimizationProblemVtuOutputProcess(parameters, self.optimization_problem)
+        process.ExecuteInitialize()
 
         # initialize unbuffered data
         for component in self.components_list:
@@ -165,16 +170,16 @@ class TestOptimizationProblemVtuOutputProcess(kratos_unittest.TestCase):
 
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
-                "reference_file_name"   : "dummy_vturesp_1_resp_3_control_1_control_3_policy_1_policy_3_orig.vtu",
-                "output_file_name"      : "dummy_vturesp_1_resp_3_control_1_control_3_policy_1_policy_3.vtu",
+                "reference_file_name"   : "test_1_orig.vtu",
+                "output_file_name"      : "Optimization_Results/test_1.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()
 
             CompareTwoFilesCheckProcess(Kratos.Parameters("""
             {
-                "reference_file_name"   : "dummy_vturesp_2_control_2_policy_2_orig.vtu",
-                "output_file_name"      : "dummy_vturesp_2_control_2_policy_2.vtu",
+                "reference_file_name"   : "test_2_orig.vtu",
+                "output_file_name"      : "Optimization_Results/test_2.vtu",
                 "remove_output_file"    : true,
                 "comparison_type"       : "deterministic"
             }""")).Execute()

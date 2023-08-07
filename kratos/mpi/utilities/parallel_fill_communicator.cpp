@@ -4,15 +4,19 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Michael Andre, https://github.com/msandre
 //
 
-#include "parallel_fill_communicator.h"
+// System includes
 
+// External includes
+
+// Project includes
+#include "parallel_fill_communicator.h"
 #include "includes/model_part.h"
 #include "processes/graph_coloring_process.h"
 #include "mpi/includes/mpi_communicator.h"
@@ -26,10 +30,10 @@ ParallelFillCommunicator::ParallelFillCommunicator(ModelPart& rModelPart)
 
 ParallelFillCommunicator::ParallelFillCommunicator(
     ModelPart& rModelPart,
-    const DataCommunicator& rDataComm)
-    : FillCommunicator(rModelPart, rDataComm)
+    const DataCommunicator& rDataCommunicator)
+    : FillCommunicator(rModelPart, rDataCommunicator)
 {
-    KRATOS_ERROR_IF_NOT(rDataComm.IsDistributed()) << "Trying to create an ParallelFillCommunicator with a non-distributed DataCommunicator!" << std::endl;
+    KRATOS_ERROR_IF_NOT(rDataCommunicator.IsDistributed()) << "Trying to create an ParallelFillCommunicator with a non-distributed DataCommunicator!" << std::endl;
 }
 
 void ParallelFillCommunicator::Execute()
@@ -195,7 +199,6 @@ void ParallelFillCommunicator::PrintData(std::ostream& rOStream) const
 {
 }
 
-
 void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
 {
     KRATOS_TRY;
@@ -348,7 +351,8 @@ void ParallelFillCommunicator::ComputeCommunicationPlan(ModelPart& rModelPart)
 void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
     ModelPart& rModelPart,
     const std::vector<int>& rColors,
-    int MyRank)
+    const int MyRank
+    )
 {
     KRATOS_TRY;
     // Allocate space needed in the communicator.
@@ -426,7 +430,12 @@ void ParallelFillCommunicator::InitializeParallelCommunicationMeshes(
     KRATOS_CATCH("");
 }
 
-void ParallelFillCommunicator::GenerateMeshes(int NeighbourPID, int MyPID, unsigned Color, ModelPart& rModelPart)
+void ParallelFillCommunicator::GenerateMeshes(
+    const int NeighbourPID, 
+    const int MyPID, 
+    const unsigned int Color, 
+    ModelPart& rModelPart
+    )
 {
     KRATOS_TRY;
 

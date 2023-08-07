@@ -167,32 +167,25 @@ public:
     /// The base type
     using BaseType = SpatialSearch;
 
-    /// Common Defines
-    using BaseType::PointType;
-
-    using BaseType::ElementsContainerType;
-    using BaseType::ElementType;
-    using BaseType::ElementPointerType;
-    using BaseType::ResultElementsContainerType;
-    using BaseType::VectorResultElementsContainerType;
-
+    /// Nodes classes
     using BaseType::NodesContainerType;
-    using BaseType::NodeType;
-    using BaseType::NodePointerType;
     using BaseType::ResultNodesContainerType;
     using BaseType::VectorResultNodesContainerType;
 
+    /// Elements classes
+    using BaseType::ElementsContainerType;
+    using BaseType::ResultElementsContainerType;
+    using BaseType::VectorResultElementsContainerType;
+
+    /// Conditions classes
     using BaseType::ConditionsContainerType;
-    using BaseType::ConditionType;
-    using BaseType::ConditionPointerType;
     using BaseType::ResultConditionsContainerType;
     using BaseType::VectorResultConditionsContainerType;
 
+    /// Input/output types
     using BaseType::RadiusArrayType;
     using BaseType::DistanceType;
     using BaseType::VectorDistanceType;
-
-    using BaseType::ResultIteratorType;
 
     ///@}
     ///@name Life Cycle

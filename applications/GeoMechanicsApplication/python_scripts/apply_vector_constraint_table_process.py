@@ -3,8 +3,8 @@ import KratosMultiphysics.GeoMechanicsApplication as Geo
 
 
 def Factory(settings, Model):
-    if(type(settings) != Core.Parameters):
-        raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if not isinstance(settings, Core.Parameters):
+        raise TypeError("expected input shall be a Parameters object, encapsulating a json string")
     return ApplyVectorConstraintTableProcess(Model, settings["Parameters"])
 
 

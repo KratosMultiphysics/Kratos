@@ -35,8 +35,6 @@
 // The strategies to test
 #include <custom_processes/apply_component_table_process.hpp>
 #include <custom_processes/apply_constant_hydrostatic_pressure_process.hpp>
-//#include <ghc/filesystem.hpp>
-#include <includes/gid_io.h>
 #include <linear_solvers/skyline_lu_factorization_solver.h>
 
 #include <solving_strategies/convergencecriterias/mixed_generic_criteria.h>
@@ -45,105 +43,6 @@
 
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_erosion_process_strategy.hpp"
 
-class NodeOperation
-{
-public:
-    virtual ~NodeOperation() = default;
-    virtual void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
-};
-class NodeDISPLACEMENT : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeTOTAL_DISPLACEMENT : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeWATER_PRESSURE : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeNORMAL_FLUID_FLUX : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeVOLUME_ACCELERATION : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeHYDRAULIC_DISCHARGE : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class NodeHYDRAULIC_HEAD : public NodeOperation
-{
-public:
-    void write(Kratos::GidIO<>& gid_io, Kratos::ModelPart& model_part) override;
-};
-
-class GaussOperation
-{
-public:
-    virtual ~GaussOperation() = default;
-    virtual void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
-};
-
-class GaussFLUID_FLUX_VECTOR : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussHYDRAULIC_HEAD : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussLOCAL_FLUID_FLUX_VECTOR : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussLOCAL_PERMEABILITY_MATRIX : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussPERMEABILITY_MATRIX : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussDEGREE_OF_SATURATION : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussDERIVATIVE_OF_SATURATION : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussRELATIVE_PERMEABILITY : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussPIPE_ACTIVE : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
-class GaussPIPE_HEIGHT : public GaussOperation
-{
-public:
-    void write(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part) override;
-};
 
 namespace Kratos
 {
@@ -206,7 +105,6 @@ namespace Kratos
 
         Parameters openProjectParamsFile(std::string filepath);
         std::vector<std::shared_ptr<Process>> parseProcess(ModelPart &model_part, Parameters projFile);
-        void outputGiD(Model &model, ModelPart &model_part, Parameters parameters, std::string workingDirectory);
 
     private:
         // Initial Setup
@@ -232,7 +130,5 @@ namespace Kratos
                           std::vector<std::shared_ptr<Process>> processes,
                           KratosExecute::GeoMechanicsNewtonRaphsonErosionProcessStrategyType::Pointer p_solving_strategy,
                           double time, double delta_time, double number_iterations);
-        
-        void calculateNodalHydraulicHead(Kratos::GidIO<> &gid_io, Kratos::ModelPart &model_part);
     };
 }

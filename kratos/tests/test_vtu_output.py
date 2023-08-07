@@ -36,13 +36,13 @@ class TestVtuOutputBase:
         vtu_output.AddHistoricalVariable(Kratos.DISPLACEMENT)
         vtu_output.AddNonHistoricalVariable(Kratos.DETERMINANT, vtu_output.ELEMENTS)
 
-        a = Kratos.ContainerExpression.HistoricalExpression(self.model_part)
-        a.Read(Kratos.PRESSURE)
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(a, Kratos.PRESSURE, True)
         a *= 3
         vtu_output.AddContainerExpression("hist_exp", a)
 
-        a = Kratos.ContainerExpression.ElementNonHistoricalExpression(self.model_part)
-        a.Read(Kratos.DETERMINANT)
+        a = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(a, Kratos.DETERMINANT)
         a *= 3
         vtu_output.AddContainerExpression("elem_exp", a)
 

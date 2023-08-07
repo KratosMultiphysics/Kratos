@@ -806,9 +806,9 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     m.def_submodule("ModelPartOperationUtilities", "Free-floating utility functions for model part operations.")
         .def("CheckValidityOfModelPartsForOperations", &ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations, py::arg("main_model_part"), py::arg("list_of_checking_model_parts"), py::arg("thow_error"))
-        .def("Union", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartUnionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_merge"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
-        .def("Substract", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartSubstractionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_substract"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
-        .def("Intersect", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartIntersectionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
+        .def("Union", &ModelPartOperationUtilities::FillSubModelPart<ModelPartUnionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_merge"), py::arg("add_neighbours"))
+        .def("Substract", &ModelPartOperationUtilities::FillSubModelPart<ModelPartSubstractionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_substract"), py::arg("add_neighbours"))
+        .def("Intersect", &ModelPartOperationUtilities::FillSubModelPart<ModelPartIntersectionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"))
         .def("HasIntersection", &ModelPartOperationUtilities::HasIntersection, py::arg("model_parts_to_intersect"))
     ;
 

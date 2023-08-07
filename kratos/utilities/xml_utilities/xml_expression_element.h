@@ -18,7 +18,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "containers/container_expression/expressions/expression.h"
+#include "expression/expression.h"
 
 namespace Kratos {
 
@@ -51,7 +51,7 @@ public:
      */
     XmlExpressionElement(
         const std::string& rDataName,
-        const std::vector<Expression::Pointer>& rExpressions);
+        const std::vector<Expression::ConstPointer>& rExpressions);
 
     ///@}
     ///@name Public operations
@@ -107,7 +107,7 @@ public:
      */
     void ClearElements();
 
-    const std::vector<Expression::Pointer> GetExpressions() const;
+    const std::vector<Expression::ConstPointer> GetExpressions() const;
 
     ///@}
 
@@ -121,7 +121,7 @@ private:
 
     std::vector<XmlExpressionElement::Pointer> mXmlElements; /// The sub-elements of the XML element.
 
-    const std::vector<Expression::Pointer> mExpressions; /// The expressions to write as data.
+    const std::vector<Expression::ConstPointer> mExpressions; /// The expressions to write as data.
 
     ///@}
 };

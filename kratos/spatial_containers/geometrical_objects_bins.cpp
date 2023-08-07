@@ -111,7 +111,7 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
     array_1d<std::size_t, Dimension> min_position;
     array_1d<std::size_t, Dimension> max_position;
 
-    for(double current_radius = 0 ; current_radius < Radius + radius_increment ; current_radius += radius_increment){
+    for(double current_radius = radius_increment ; current_radius < Radius + radius_increment ; current_radius += radius_increment){
         current_radius = (current_radius > Radius) ? Radius : current_radius;
         for(unsigned int i = 0; i < Dimension; i++ ) {
             min_position[i] = CalculatePosition(rPoint[i] - current_radius, i);
@@ -122,14 +122,15 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchNearestInRadius
             for(std::size_t j = min_position[1] ; j < max_position[1] ; j++){
                 for(std::size_t i = min_position[0] ; i < max_position[0] ; i++){
                     auto& r_cell = GetCell(i,j,k);
-                    SearchNearestInCell(r_cell, rPoint, current_result, current_radius);
+                    SearchNearestInCell(r_cell, rPoint, current_result, Radius);
                 }
             }
         }
         bool all_cells_are_covered = (min_position[0] == 0) && (min_position[1] == 0) && (min_position[2] == 0);
         all_cells_are_covered &= (max_position[0] == mNumberOfCells[0] - 1) && (max_position[1] == mNumberOfCells[1] - 1) && (max_position[2] == mNumberOfCells[2] - 1);
 
-        if(all_cells_are_covered || current_result.IsObjectFound()){
+        const bool object_found_within_current_radius = current_result.IsObjectFound() && (current_result.GetDistance() < current_radius);
+        if (all_cells_are_covered || object_found_within_current_radius) {
             break;
         }
     }
