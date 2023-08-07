@@ -33,16 +33,21 @@ class top_opt_test(OptimizationTestFactory):
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "LinearSolversApplication")
 class mat_opt_test(OptimizationTestFactory):
     execution_directory = "mat_opt_test"
-    execution_file = "run_test"    
-    
+    execution_file = "run_test"
+
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "LinearSolversApplication")
 class shell_shape_opt_test(OptimizationTestFactory):
     execution_directory = "shell-shape-opt-test"
-    execution_file = "run_test"   
+    execution_file = "run_test"
 
 @kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "LinearSolversApplication")
 class shell_thick_opt_test(OptimizationTestFactory):
     execution_directory = "shell-thickness-opt-test"
-    execution_file = "run_test"        
+    execution_file = "run_test"
+
+@kratos_unittest.skipIfApplicationsNotAvailable("StructuralMechanicsApplication", "RomApplication", "LinearSolversApplication")
+class fom_rom_opt_test(OptimizationTestFactory):
+    execution_directory = "fom-rom-opt-test"
+    execution_file = "run_test"
 
 # ==============================================================================

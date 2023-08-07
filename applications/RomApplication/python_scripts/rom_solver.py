@@ -47,11 +47,12 @@ def CreateSolver(cls, model, custom_settings):
                 raise ValueError(err_msg)
 
         def _ValidateAndReturnRomParameters(self):
+            # Note: this check is commented because it is not used !
             # Check that the number of ROM DOFs has been provided
-            n_rom_dofs = self.settings["rom_settings"]["number_of_rom_dofs"].GetInt()
-            if not n_rom_dofs > 0:
-                err_msg = "\'number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
-                raise Exception(err_msg)
+            # n_rom_dofs = self.settings["rom_settings"]["number_of_rom_dofs"].GetInt()
+            # if not n_rom_dofs > 0:
+            #     err_msg = "\'number_of_rom_dofs\' in \'rom_settings\' is {}. Please set a larger than zero value.".format(n_rom_dofs)
+            #     raise Exception(err_msg)
 
             # Check if the nodal unknowns have been provided by the user
             # If not, take the DOFs list from the base solver

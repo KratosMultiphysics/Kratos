@@ -121,6 +121,7 @@ def AssembleTestSuites():
     validationSuite.addTest(optimization_test_factory.mat_opt_test('test_execution'))
     validationSuite.addTest(optimization_test_factory.shell_shape_opt_test('test_execution'))
     validationSuite.addTest(optimization_test_factory.shell_thick_opt_test('test_execution'))
+    validationSuite.addTest(optimization_test_factory.fom_rom_opt_test('test_execution'))
 
     # Creating a test suit that contains all tests:
     allSuite = suites['all']
