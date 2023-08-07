@@ -135,6 +135,14 @@ public:
      */
     bool HasRotDof() const override;
 
+
+    /**
+    * this is called in the beginning of each solution step
+    */
+    void InitializeSolutionStep(const ProcessInfo & rCurrentProcessInfo) override;
+
+    void InitializeNonLinearIteration(const ProcessInfo & rCurrentProcessInfo) override;
+
     ///@}
     ///@name Access
     ///@{
@@ -234,6 +242,20 @@ protected:
     void CalculateExactRotationalShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
 
     /**
+ * \brief Calculates derivatives of exact shape functions for a local load in perpendicular direction
+ * \param rShapeFunctionsVector vector of exact shape functions
+ * \param LocalXCoord local x coordinate within condition element
+ */
+    void CalculateExactShearShapeFunctionsDerivatives(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
+
+    /**
+     * \brief Calculates exact shape functions for a local moment around z-axis.
+     * \param rShapeFunctionsVector vector of exact shape functions
+     * \param LocalXCoord local x coordinate within condition element
+     */
+    void CalculateExactRotationalShapeFunctionsDerivatives(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
+
+    /**
      * \brief Calculates rotation matrix 
      * \param rRotationMatrix rotation matrix for current condition element
      * \param rGeom condition element
@@ -242,7 +264,6 @@ protected:
 
 
     Matrix CalculateGlobalMomentMatrix(const VectorType& RotationalShapeFunctionVector, array_1d<double, TDim> LocalMovingLoad) const;
-
 
     ///@}
     ///@name Protected  Access
@@ -271,17 +292,20 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
+    bool mIsMovingLoad = false;
 
 
     ///@}
     ///@name Private Operators
     ///@{
-
+    void GetRotationsVector(Vector& rRotationsVector, const int Step) const;
     ///@}
     ///@name Private Operations
     ///@{
 
+
+    Vector CalculateLoadPointDisplacementVector();
+    Vector CalculateLoadPointRotationVector();
 
     ///@}
     ///@name Private  Access
