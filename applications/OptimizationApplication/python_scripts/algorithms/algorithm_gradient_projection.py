@@ -159,7 +159,7 @@ class AlgorithmGradientProjection(Algorithm):
         return result
     
     @time_decorator()
-    def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
+    def ComputeControlUpdate(self, alpha: float) -> KratosOA.CollectiveExpression:
         update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha + self.algorithm_data.GetBufferedData()["correction"]
         self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
 
