@@ -154,9 +154,20 @@ void MPIDataCommunicator::SendRecvImpl(                                         
     __VA_ARGS__& rRecvValue, const int RecvSource, const int RecvTag) const {                   \
     SendRecvDetail(SendValue,SendDestination,SendTag,rRecvValue,RecvSource,RecvTag);            \
 }                                                                                               \
+void MPIDataCommunicator::SendImpl(const __VA_ARGS__& rSendValues,                              \
+    const int SendDestination, const int SendTag) const {                                       \
+    std::vector<__VA_ARGS__> send{rSendValues};                                                 \
+    SendDetail(send, SendDestination, SendTag);                                                 \
+}                                                                                               \
 void MPIDataCommunicator::SendImpl(const std::vector<__VA_ARGS__>& rSendValues,                 \
     const int SendDestination, const int SendTag) const {                                       \
     SendDetail(rSendValues, SendDestination, SendTag);                                          \
+}                                                                                               \
+void MPIDataCommunicator::RecvImpl(__VA_ARGS__& rRecvValues,                                    \
+    const int RecvSource, const int RecvTag) const {                                            \
+    std::vector<__VA_ARGS__> recv(1);                                                           \
+    RecvDetail(recv, RecvSource, RecvTag);                                                      \
+    rRecvValues = recv[0];                                                                      \
 }                                                                                               \
 void MPIDataCommunicator::RecvImpl(std::vector<__VA_ARGS__>& rRecvValues,                       \
     const int RecvSource, const int RecvTag) const {                                            \
@@ -771,9 +782,10 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDe
     int recv_size;
     SendRecvDetail(send_size, SendDestination, SendTag, recv_size, RecvSource, RecvTag);
 
-    TDataType send_temp{}, recv_temp{};
+    TDataType recv_temp{};
 
     if constexpr(MPIMessage<TDataType>::HasDynamicMemoryAllocation) {
+        TDataType send_temp{};
         if (rSendMessage.size() > 0) {
             send_temp = rSendMessage.front();
         }
@@ -781,7 +793,7 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDe
     }
 
     std::vector<TDataType> recv_values(recv_size, recv_temp);
-    SendRecvDetail(rSendMessage,SendDestination, SendTag ,recv_values, RecvSource, RecvTag);
+    SendRecvDetail(rSendMessage,SendDestination, SendTag, recv_values, RecvSource, RecvTag);
     return recv_values;
 }
 
@@ -848,7 +860,13 @@ template<class TDataType> void MPIDataCommunicator::RecvDetail(
 
     const unsigned int sub_data_type_size = MPIMessage<sub_data_type>().Size(temp);
     recv_size /= (sub_data_type_size > 0 ? sub_data_type_size : 1);
-    if (rRecvValues.size() != (unsigned int)recv_size) rRecvValues.resize(recv_size, temp);
+    if (rRecvValues.size() != (unsigned int)recv_size) {
+        rRecvValues.resize(recv_size, temp);
+    } else {
+        for (auto& r_sub_item : rRecvValues) {
+            MPIMessage<sub_data_type>().Resize(r_sub_item, MPIMessage<sub_data_type>().Shape(temp));
+        }
+    }
 
     ierr = MPI_Recv(mpi_recv_message.Buffer(rRecvValues), mpi_recv_message.Size(rRecvValues), mpi_recv_message.DataType(),
         RecvSource, RecvTag, mComm, MPI_STATUS_IGNORE);

@@ -22,6 +22,9 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "custom_responses/response.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 // ==============================================================================
 
@@ -51,7 +54,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) MassOptResponse : public Response
+class MassOptResponse : public Response
 {
 public:
     ///@name Type Definitions
@@ -77,7 +80,7 @@ public:
                         mDelta = delta;
                     }
                     else
-                        KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: finite_differencing" << std::endl;                    
+                        KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: finite_differencing" << std::endl;
                 }
             }
         }
@@ -110,7 +113,7 @@ public:
 
             KRATOS_ERROR_IF_NOT(controlled_model_part.Elements().size()>0)
                 <<"MassOptResponse::Initialize: controlled object "<<controlled_obj<<" for "<<control_type<<" sensitivity must have elements !"<<std::endl;
-                   
+
         }
     };
     // --------------------------------------------------------------------------
@@ -119,15 +122,16 @@ public:
         for(auto& eval_obj : mrResponseSettings["evaluated_objects"]){
             ModelPart& r_eval_object = mrModel.GetModelPart(eval_obj.GetString());
             const std::size_t domain_size = r_eval_object.GetProcessInfo()[DOMAIN_SIZE];
-            #pragma omp parallel for reduction(+:total_mass)
-			for (auto& elem_i : r_eval_object.Elements()){
+            total_mass += block_for_each<SumReduction<double>>(r_eval_object.Elements(), [&](auto& elem_i) {
 				const bool element_is_active = elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true;
 				if(element_is_active)
-                    total_mass += CalculateElementMass(elem_i,domain_size);
-			}
+                    return CalculateElementMass(elem_i,domain_size);
+                else
+                    return 0.0;
+			});
         }
         return total_mass;
-    };    
+    };
 
     double CalculateElementMass(Element& elem_i, const std::size_t DomainSize){
         // We get the element geometry
@@ -135,21 +139,21 @@ public:
         const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
 
         double volume_area = 0.0;
-        const IntegrationMethod this_integration_method = r_this_geometry.GetDefaultIntegrationMethod();    
+        const IntegrationMethod this_integration_method = r_this_geometry.GetDefaultIntegrationMethod();
         const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
         for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
         {
             Matrix J0;
-            GeometryUtils::JacobianOnInitialConfiguration(r_this_geometry, integration_points[i_point], J0); 
+            GeometryUtils::JacobianOnInitialConfiguration(r_this_geometry, integration_points[i_point], J0);
             volume_area += integration_points[i_point].Weight() * MathUtils<double>::GeneralizedDet(J0);
-        }           
+        }
 
 
         double element_mass = 0;
         if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS) && elem_i.GetProperties().Has(PT))
             element_mass = volume_area * elem_i.GetProperties().GetValue(PT) * elem_i.GetProperties().GetValue(DENSITY);
         else if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS))
-            element_mass = volume_area * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);            
+            element_mass = volume_area * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);
         else if (local_space_dimension == 3 && DomainSize == 3)
             element_mass = volume_area * elem_i.GetProperties().GetValue(DENSITY);
         else
@@ -176,24 +180,24 @@ public:
             }
             else if(control_type=="material"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_FD, controlled_model_part.Nodes());
-                #pragma omp parallel for
-                for (auto& elem_i : controlled_model_part.Elements())
-                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
-                        CalculateElementMaterialGradients(elem_i,domain_size);              
+                block_for_each(controlled_model_part.Elements(), [&](auto& elem_i) {
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
+                        CalculateElementMaterialGradients(elem_i,domain_size);
+                });
             }
             else if(control_type=="thickness"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_FT, controlled_model_part.Nodes());
-                #pragma omp parallel for
-                for (auto& elem_i : controlled_model_part.Elements())
-                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
-                        CalculateElementThicknessGradients(elem_i,domain_size);              
-            }            
-            
+                block_for_each(controlled_model_part.Elements(), [&](auto& elem_i) {
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
+                        CalculateElementThicknessGradients(elem_i,domain_size);
+                });
+            }
+
         }
 
 		KRATOS_CATCH("");
- 
-    };  
+
+    };
 
     void CalculateElementShapeGradients(Element& elem_i, const std::size_t DomainSize){
 
@@ -210,7 +214,7 @@ public:
         double mass_before_fd = CalculateElementMass(elem_i,DomainSize);
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
-            auto& node_grads = r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_X);	
+            auto& node_grads = r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_X);
 
 			r_this_geometry[i_node].X() += mDelta;
 			r_this_geometry[i_node].X0() += mDelta;
@@ -224,14 +228,14 @@ public:
             mass_after_fd = CalculateElementMass(elem_i,DomainSize);
 			node_grads[1] += (mass_after_fd - mass_before_fd) / mDelta;
 			r_this_geometry[i_node].Y() -= mDelta;
-			r_this_geometry[i_node].Y0() -= mDelta;   
+			r_this_geometry[i_node].Y0() -= mDelta;
 
 			r_this_geometry[i_node].Z() += mDelta;
 			r_this_geometry[i_node].Z0() += mDelta;
             mass_after_fd = CalculateElementMass(elem_i,DomainSize);
 			node_grads[2] += (mass_after_fd - mass_before_fd) / mDelta;
 			r_this_geometry[i_node].Z() -= mDelta;
-			r_this_geometry[i_node].Z0() -= mDelta;                                  
+			r_this_geometry[i_node].Z0() -= mDelta;
         }
 
         // We restore the current configuration
@@ -254,10 +258,9 @@ public:
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
             const auto& d_pd_d_fd = r_this_geometry[i_node].FastGetSolutionStepValue(D_PD_D_FD);
-            #pragma omp atomic
-            r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_FD) += d_pd_d_fd * elem_dens_grad / number_of_nodes;
+            AtomicAdd(r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_FD), d_pd_d_fd * elem_dens_grad / number_of_nodes);
         }
-    };        
+    };
 
     void CalculateElementThicknessGradients(Element& elem_i, const std::size_t DomainSize){
 
@@ -272,15 +275,14 @@ public:
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
             const auto& d_pt_d_ft = r_this_geometry[i_node].FastGetSolutionStepValue(D_PT_D_FT);
-            #pragma omp atomic
-            r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_FT) += d_pt_d_ft * elem_thick_grad / number_of_nodes;
+            AtomicAdd(r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_FT), d_pt_d_ft * elem_thick_grad / number_of_nodes);
         }
 
     };
 
 
     // --------------------------------------------------------------------------
-       
+
     ///@}
     ///@name Access
     ///@{
@@ -331,7 +333,7 @@ protected:
 
     // Initialized by class constructor
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
