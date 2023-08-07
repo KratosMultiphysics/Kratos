@@ -155,7 +155,9 @@ class OpenHDF5File(object):
     """@brief A context responsible for managing the lifetime of HDF5 files."""
 
     def __init__(self, file_parameters: KratosMultiphysics.Parameters, model_part: KratosMultiphysics.ModelPart):
-        self.__parameters = ParametersWrapper(file_parameters)
+        if isinstance(file_parameters, ParametersWrapper):
+            file_parameters = file_parameters.Get()
+        self.__parameters = file_parameters
         self.__model_part = model_part
         self.__file: KratosHDF5.HDF5File = None
 
@@ -165,9 +167,16 @@ class OpenHDF5File(object):
             self.__parameters["io_type"].SetString(distributed)
         else:
             self.__parameters.AddString("io_type", distributed)
-        self.__file = Create(self.__parameters, self.__model_part.GetCommunicator().GetDataCommunicator()).Get(self.__model_part)
+        self.__file = Create(
+            ParametersWrapper(self.__parameters),
+            self.__model_part.GetCommunicator().GetDataCommunicator()
+        ).Get(self.__model_part)
         return self.__file
 
     def __exit__(self, exit_type, exit_value, exit_traceback) -> None:
         self.__file.Close()
         self.__file = None
+
+    @property
+    def file(self) -> KratosHDF5.HDF5File:
+        return self.__file
