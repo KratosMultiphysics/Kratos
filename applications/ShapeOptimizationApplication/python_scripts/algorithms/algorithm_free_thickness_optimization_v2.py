@@ -43,7 +43,7 @@ class AlgorithmFreeThicknessOptimizationv2(OptimizationAlgorithm):
                 "step_size"                  : 1.0
             }
         }""")
-        self.shape_opt = True
+        self.shape_opt = False
 
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
@@ -84,12 +84,14 @@ class AlgorithmFreeThicknessOptimizationv2(OptimizationAlgorithm):
                     "projected_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT_PROJECTED")
                 }
             })
-            self.shape_constraint_gradient_variables.update({
-                constraint["identifier"].GetString() : {
-                    "gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX"),
-                    "mapped_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX_MAPPED")
-                }
-            })
+
+            if self.shape_opt:
+                self.shape_constraint_gradient_variables.update({
+                    constraint["identifier"].GetString() : {
+                        "gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX"),
+                        "mapped_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX_MAPPED")
+                    }
+                })
 
 
         # create initial model and model_controller
@@ -195,15 +197,18 @@ class AlgorithmFreeThicknessOptimizationv2(OptimizationAlgorithm):
 
             self.__initializeNewThickness()
 
-            self.__initializeNewShape()
+            if self.shape_opt:
+                self.__initializeNewShape()
 
             self.__analyzeThickness()
 
-            self.__analyzeShape()
+            if self.shape_opt:
+                self.__analyzeShape()
 
             self.__computeThicknessUpdate()
 
-            self.__computeShapeUpdate()
+            if self.shape_opt:
+                self.__computeShapeUpdate()
 
             self.__logCurrentOptimizationStep()
 
@@ -215,7 +220,8 @@ class AlgorithmFreeThicknessOptimizationv2(OptimizationAlgorithm):
                 break
             else:
                 self.__updateBeta()
-                self.__determineAbsoluteChanges()
+                if self.shape_opt:
+                    self.__determineAbsoluteShapeChanges()
 
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop(self):
@@ -303,13 +309,13 @@ class AlgorithmFreeThicknessOptimizationv2(OptimizationAlgorithm):
     def __analyzeThickness(self):
         self.communicator.initializeCommunication()
         self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
-        self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
+        #self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
         self.communicator.requestThicknessGradientOf(self.objectives[0]["identifier"].GetString())
 
         for constraint in self.constraints:
             con_id =  constraint["identifier"].GetString()
             self.communicator.requestValueOf(con_id)
-            self.communicator.requestGradientOf(con_id)
+            #self.communicator.requestGradientOf(con_id)
             self.communicator.requestThicknessGradientOf(con_id)
 
         self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
@@ -577,7 +583,7 @@ class AlgorithmFreeThicknessOptimizationv2(OptimizationAlgorithm):
             self.beta *= self.q
 
     # --------------------------------------------------------------------------
-    def __determineAbsoluteChanges(self):
+    def __determineAbsoluteShapeChanges(self):
         self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.CONTROL_POINT_UPDATE, KSO.CONTROL_POINT_CHANGE)
         self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.SHAPE_UPDATE, KSO.SHAPE_CHANGE)
 
@@ -750,7 +756,7 @@ class AlgorithmFreeThicknessOptimizationv2(OptimizationAlgorithm):
         return None
 
 
-## Kopie aus gradient projection
+## Kopie aus gradient projection für shape optimization
     # --------------------------------------------------------------------------
     def __initializeNewShape(self):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
