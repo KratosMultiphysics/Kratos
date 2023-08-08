@@ -7,10 +7,10 @@ from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
 from KratosMultiphysics.OptimizationApplication.filtering.helmholtz_analysis import HelmholtzAnalysis
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 
 try:
     from KratosMultiphysics.MeshMovingApplication.mesh_moving_analysis import MeshMovingAnalysis
@@ -153,7 +153,9 @@ class VertexMorphingShapeControl(Control):
             "filter_settings": {
                 "type" : "surface_explicit",
                 "filter_function_type" : "linear",
+                "damping_function_type" : "sigmoidal",
                 "radius": 0.000000000001,
+                "max_nodes_in_filter_radius": 1000,
                 "linear_solver_settings" : {}
             },
             "mesh_motion_settings" : {},
@@ -174,7 +176,7 @@ class VertexMorphingShapeControl(Control):
 
         controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
         if len(controlled_model_names_parts) == 0:
-            raise RuntimeError(f"No model parts were provided for ShellThicknessControl. [ control name = \"{self.GetName()}\"]")
+            raise RuntimeError(f"No model parts are provided for VertexMorphingShapeControl. [ control name = \"{self.GetName()}\"]")
 
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_names_parts, False)
         self.model_part: 'Optional[Kratos.ModelPart]' = None
@@ -191,6 +193,7 @@ class VertexMorphingShapeControl(Control):
 
         self.is_initialized = False
 
+    @time_decorator(methodName="GetName")
     def Initialize(self) -> None:
 
         if self.filter_type == "bulk_surface_implicit":
@@ -208,9 +211,12 @@ class VertexMorphingShapeControl(Control):
             if len(fixed_model_parts_names)>0:
                 self.fixed_model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", fixed_model_parts_names, False)
                 self.fixed_model_part = self.fixed_model_part_operation.GetModelPart()
-                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.fixed_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(), "sigmoidal", 1000)
+                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.fixed_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                           self.parameters["filter_settings"]["damping_function_type"].GetString(),
+                                                           self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
             else:
-                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(), 1000)
+                self.filter = KratosOA.NodalExplicitFilter(self.filter_model_part, self.parameters["filter_settings"]["filter_function_type"].GetString(),
+                                                           self.parameters["filter_settings"]["max_nodes_in_filter_radius"].GetInt())
 
             filter_radius_field = Kratos.Expression.NodalExpression(self.filter_model_part)
             Kratos.Expression.LiteralExpressionIO.SetData(filter_radius_field, self.parameters["filter_settings"]["radius"].GetDouble())
@@ -220,7 +226,7 @@ class VertexMorphingShapeControl(Control):
         else:
             self.filter.Initialize()
             self._SetFixedModelPartValues(False)
-            self.control_field = self.filter.UnFilterField(self.GePhysicalField())
+            self.control_field = self.filter.UnFilterField(self.GetPhysicalField())
             self._SetFixedModelPartValues(True)
 
         # initialize_mesh_motion
@@ -260,42 +266,42 @@ class VertexMorphingShapeControl(Control):
     def GetControlField(self) -> ContainerExpressionTypes:
         return self.control_field
 
-    def GePhysicalField(self) -> ContainerExpressionTypes:
+    def GetPhysicalField(self) -> ContainerExpressionTypes:
         physical_shape_field = Kratos.Expression.NodalExpression(self.filter_model_part)
         Kratos.Expression.NodalPositionExpressionIO.Read(physical_shape_field, Kratos.Configuration.Initial)
         return physical_shape_field
 
+    @time_decorator(methodName="GetName")
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
-        with TimeLogger("VertexMorphingShapeControl::MapGradient", None, "Finished",False):
-            keys = physical_gradient_variable_container_expression_map.keys()
-            if len(keys) != 1:
-                raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
-            if KratosOA.SHAPE not in keys:
-                raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {KratosOA.SHAPE.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
+        keys = physical_gradient_variable_container_expression_map.keys()
+        if len(keys) != 1:
+            raise RuntimeError(f"Provided more than required gradient fields for control \"{self.GetName()}\". Following are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
+        if KratosOA.SHAPE not in keys:
+            raise RuntimeError(f"The required gradient for control \"{self.GetName()}\" w.r.t. {KratosOA.SHAPE.Name()} not found. Followings are the variables:\n\t" + "\n\t".join([k.Name() for k in keys]))
 
-            physical_gradient = physical_gradient_variable_container_expression_map[KratosOA.SHAPE]
-            if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
-                raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.filter_model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
+        physical_gradient = physical_gradient_variable_container_expression_map[KratosOA.SHAPE]
+        if not IsSameContainerExpression(physical_gradient, self.GetEmptyField()):
+            raise RuntimeError(f"Gradients for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.filter_model_part.FullName()}, given model part name: {physical_gradient.GetModelPart().FullName()} ]")
 
-            # now filter the field
-            filtered_gradient = self.filter.FilterIntegratedField(physical_gradient)
+        # now filter the field
+        filtered_gradient = self.filter.FilterIntegratedField(physical_gradient)
 
-            return filtered_gradient
+        return filtered_gradient
 
+    @time_decorator(methodName="GetName")
     def Update(self, new_control_field: ContainerExpressionTypes) -> bool:
         if not IsSameContainerExpression(new_control_field, self.GetEmptyField()):
             raise RuntimeError(f"Updates for the required element container not found for control \"{self.GetName()}\". [ required model part name: {self.filter_model_part.FullName()}, given model part name: {new_control_field.GetModelPart().FullName()} ]")
         if KratosOA.ExpressionUtils.NormL2(self.control_field - new_control_field) > 1e-15:
-            with TimeLogger(self.__class__.__name__, f"Updating {self.GetName()}...", f"Finished updating of {self.GetName()}.",False):
-                # update the control SHAPE field
-                control_update = new_control_field - self.control_field
-                self.control_field = new_control_field
-                # now update the physical field
-                self._UpdateAndOutputFields(control_update)
-                # update explicit filter
-                if not self.is_filter_implicit:
-                    self.filter.Update()
-                return True
+            # update the control SHAPE field
+            control_update = new_control_field - self.control_field
+            self.control_field = new_control_field
+            # now update the physical field
+            self._UpdateAndOutputFields(control_update)
+            # update explicit filter
+            if not self.is_filter_implicit:
+                self.filter.Update()
+            return True
         return False
 
     def _UpdateMesh(self, shape_update) -> None:
@@ -331,8 +337,8 @@ class VertexMorphingShapeControl(Control):
             mm_computing_model_part.ProcessInfo.SetValue(Kratos.TIME, time_before_update)
             mm_computing_model_part.ProcessInfo.SetValue(Kratos.DELTA_TIME, delta_time_before_update)
         else:
-            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + self.GePhysicalField(), Kratos.Configuration.Initial)
-            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + self.GePhysicalField(), Kratos.Configuration.Current)
+            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + self.GetPhysicalField(), Kratos.Configuration.Initial)
+            Kratos.Expression.NodalPositionExpressionIO.Write(shape_update + self.GetPhysicalField(), Kratos.Configuration.Current)
 
     def _UpdateAndOutputFields(self, control_update) -> None:
         # compute the shape update
