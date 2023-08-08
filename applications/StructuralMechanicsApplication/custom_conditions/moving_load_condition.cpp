@@ -446,6 +446,21 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     bounded_matrix<double, TDim, TDim> rotation_matrix = ZeroMatrix(TDim, TDim);
     this->CalculateRotationMatrix(rotation_matrix, this->GetGeometry());
 
+    bounded_matrix<double, 3, 3> full_rotation_matrix = ZeroMatrix(3, 3);
+
+    for (IndexType i = 0; i > TDim; i++)
+    {
+        for (IndexType j = 0; j > TDim; j++)
+        {
+            full_rotation_matrix(i, j) = rotation_matrix(i, j);
+        }
+    }
+
+
+
+    bounded_matrix<double, 3, TNumNodes> aux_local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
+    auto local_nodal_rotation_matrix = prod(aux_local_nodal_rotation_matrix, trans(full_rotation_matrix));
+
     // calculate local displacement matrix
     bounded_matrix<double, TDim, TNumNodes> aux_local_disp_matrix = prod(rotation_matrix, displacement_matrix);
     auto local_disp_matrix = prod(aux_local_disp_matrix, trans(rotation_matrix));
@@ -491,7 +506,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
             if (has_rot_dof)
             {
-                disp_shear_axis += nodal_rotation_matrix(2, ii) * rotational_shape_functions_vector[ii];
+                disp_shear_axis += local_nodal_rotation_matrix(2, ii) * rotational_shape_functions_vector[ii];
             }
         }
 
@@ -515,8 +530,8 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
             if (has_rot_dof)
             {
-                disp_shear_axis_1 += nodal_rotation_matrix(2, ii) * rotational_shape_functions_vector[ii];
-                disp_shear_axis_2 += nodal_rotation_matrix(1, ii) * rotational_shape_functions_vector[ii];
+                disp_shear_axis_1 += local_nodal_rotation_matrix(2, ii) * rotational_shape_functions_vector[ii];
+                disp_shear_axis_2 += local_nodal_rotation_matrix(1, ii) * rotational_shape_functions_vector[ii];
             }
         }
 
@@ -610,6 +625,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     bounded_matrix<double, TDim, TDim> rotation_matrix = ZeroMatrix(TDim, TDim);
     this->CalculateRotationMatrix(rotation_matrix, this->GetGeometry());
 
+
     // define full rotation matrix which is required to back calculate the global rotation at the location of the moving load
     bounded_matrix<double, 3, 3> full_rotation_matrix = ZeroMatrix(3, 3);
 
@@ -620,6 +636,10 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
             full_rotation_matrix(i, j) = rotation_matrix(i, j);
         }
     }
+
+
+    bounded_matrix<double, 3, TNumNodes> aux_local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
+    auto local_nodal_rotation_matrix = prod(aux_local_nodal_rotation_matrix, trans(full_rotation_matrix));
 
     // calculate local displacement matrix
     bounded_matrix<double, TDim, TNumNodes> aux_local_disp_matrix = prod(rotation_matrix, displacement_matrix);
@@ -666,7 +686,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
             if (has_rot_dof)
             {
-                local_rotation += nodal_rotation_matrix(2, ii) * rotational_shape_functions_derivatives_vector[ii];
+                local_rotation += local_nodal_rotation_matrix(2, ii) * rotational_shape_functions_derivatives_vector[ii];
             }
         }
 
@@ -689,8 +709,8 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
             if (has_rot_dof)
             {
-                local_rotation_axis_1 += nodal_rotation_matrix(2, ii) * rotational_shape_functions_derivatives_vector[ii];
-                local_rotation_axis_2 += nodal_rotation_matrix(1, ii) * rotational_shape_functions_derivatives_vector[ii];
+                local_rotation_axis_1 += local_nodal_rotation_matrix(2, ii) * rotational_shape_functions_derivatives_vector[ii];
+                local_rotation_axis_2 += local_nodal_rotation_matrix(1, ii) * rotational_shape_functions_derivatives_vector[ii];
             }
         }
 

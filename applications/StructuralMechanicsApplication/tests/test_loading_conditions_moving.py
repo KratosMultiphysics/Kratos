@@ -1,3 +1,8 @@
+
+import sys
+sys.path.append(r"D:/software_development/Kratos/bin/Debug")
+sys.path.append(r"D:/software_development/Kratos/bin/Debug/libs")
+
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -6,6 +11,54 @@ import math
 
 class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
+    def setup_strategy(self, mp):
+        """
+        Setup strategy for solving the problem
+
+        Parameters
+        ----------
+        mp model part
+
+        Returns default strategy
+        -------
+
+        """
+
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-1, 1e-1)
+        convergence_criterion.SetEchoLevel(0)
+
+        max_iters = 10
+        compute_reactions = False
+        reform_step_dofs = False
+        move_mesh_flag = False
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                         scheme,
+                                                                         convergence_criterion,
+                                                                         builder_and_solver,
+                                                                         max_iters,
+                                                                         compute_reactions,
+                                                                         reform_step_dofs,
+                                                                         move_mesh_flag)
+
+        strategy.SetEchoLevel(0)
+        return strategy
+
+    def initialize_solution_step(self, strategy):
+        """
+        Initialize solution step for the strategy
+
+        Parameters
+        ----------
+        strategy the strategy
+
+        Returns None
+        -------
+
+        """
+        strategy.InitializeSolutionStep()
 
     def __CalculateReaction2n(self, length, angle, load, distance):
         """
@@ -137,6 +190,8 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
 
+        strategy = self.setup_strategy(mp)
+
         # create nodes
         second_coord = [math.sqrt(2), math.sqrt(2.0), 0.0]
         mp.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -177,6 +232,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
             # set load on quarter
             cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, distance)
+            self.initialize_solution_step(strategy)
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
             self.assertAlmostEqual(rhs[0], x_left)
@@ -194,7 +250,9 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         # set load outside condition
         cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, length * 2)
+        self.initialize_solution_step(strategy)
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
+
         self.assertAlmostEqual(rhs[0], 0)
         self.assertAlmostEqual(rhs[1], 0)
         self.assertAlmostEqual(rhs[2], 0)
@@ -220,6 +278,8 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
+
+        strategy = self.setup_strategy(mp)
 
         # create nodes
         second_coord = [math.sqrt(2),  0.0, math.sqrt(2.0)]
@@ -262,6 +322,9 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
             # set load on quarter
             cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, distance)
+
+
+            self.initialize_solution_step(strategy)
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
             self.assertAlmostEqual(rhs[0], x_left)
@@ -282,6 +345,8 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         mp = current_model.CreateModelPart("solid_part")
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+
+        strategy = self.setup_strategy(mp)
 
         # create nodes
         second_coord = [math.sqrt(2), math.sqrt(2.0), 0.0]
@@ -317,6 +382,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
             # set load on node
             cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, distance)
+            self.initialize_solution_step(strategy)
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
             self.assertAlmostEqual(rhs[0], x_left)
@@ -326,6 +392,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         # set load outside condition
         cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, length * 2)
+        self.initialize_solution_step(strategy)
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
         self.assertAlmostEqual(rhs[0], 0)
         self.assertAlmostEqual(rhs[1], 0)
@@ -340,6 +407,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_MOMENT)
 
+        strategy = self.setup_strategy(mp)
         # create nodes
         second_coord = [math.sqrt(2), math.sqrt(2.0), 0.0]
         mp.CreateNewNode(1, 0.0, 0.0, 0.0)
@@ -377,6 +445,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
             # set load on node
             cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, distance)
+            self.initialize_solution_step(strategy)
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
             self.assertAlmostEqual(rhs[0], x_left)
@@ -392,7 +461,9 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 
-        #create nodes
+        strategy = self.setup_strategy(mp)
+
+        # create nodes
         second_coord = [math.sqrt(2), math.sqrt(2.0), 0.0]
         third_coord = [math.sqrt(2)/2, math.sqrt(2.0)/2, 0.0]
         mp.CreateNewNode(1,0.0,0.0,0.0)
@@ -429,6 +500,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
             # set load on node
             cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, distance)
+            self.initialize_solution_step(strategy)
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
             self.assertAlmostEqual(rhs[0], x_left)
@@ -440,6 +512,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         # set load outside condition
         cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, length * 2)
+        self.initialize_solution_step(strategy)
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
         self.assertAlmostEqual(rhs[0], 0)
         self.assertAlmostEqual(rhs[1], 0)
@@ -454,6 +527,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         mp.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
 
+        strategy = self.setup_strategy(mp)
         # create nodes
         second_coord = [math.sqrt(2), 0.0, math.sqrt(2.0)]
         third_coord = [math.sqrt(2)/2, 0.0, math.sqrt(2.0)/2]
@@ -492,6 +566,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
             # set load on node
             cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, distance)
+            self.initialize_solution_step(strategy)
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
             self.assertAlmostEqual(rhs[0], x_left)
@@ -506,6 +581,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         # set load outside condition
         cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, length * 2)
+        self.initialize_solution_step(strategy)
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
         self.assertAlmostEqual(rhs[0], 0)
         self.assertAlmostEqual(rhs[1], 0)
