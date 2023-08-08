@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined (KRATOS_THERMAL_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED)
-#define  KRATOS_THERMAL_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED
+# pragma once
 
 // System includes
 
@@ -286,4 +285,3 @@ private:
 
 }; // Class LinearPlaneStrain
 }  // namespace Kratos.
-#endif // KRATOS_THERMAL_ELASTIC_ISOTROPIC_3D_LAW_H_INCLUDED  defined
