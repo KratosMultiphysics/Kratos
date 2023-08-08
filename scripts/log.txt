@@ -62,7 +62,7 @@ C:\KRATOS\Kratos\scripts>cmake -G"Visual Studio 16 2019" -H"C:\KRATOS\Kratos\scr
 -- clipper : C:/KRATOS/Kratos/external_libraries/clipper
 -- triangle : C:/KRATOS/Kratos/external_libraries/triangle
 -- tinyexpr : C:/KRATOS/Kratos/external_libraries/tinyexpr/tinyexpr/
--- Configuring done (16.9s)
+-- Configuring done (15.5s)
 -- Generating done (0.5s)
 -- Build files have been written to: C:/KRATOS/Kratos/build/Release
 

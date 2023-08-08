@@ -82,11 +82,11 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
                                  elem.GetNodes()[n].SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE,elem.GetNodes()[n].GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE) - 2 * vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT)) #storing force to map to dem   
      
         print("After calculation of point loads")
-        for node in self.model_part.Nodes: 
-                print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD)) 
-                print("For node id:",node.Id,", NODAL_COUPLING_WEIGHT=",node.GetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT)) 
+        #for node in self.model_part.Nodes: 
+                #print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD)) 
+                #print("For node id:",node.Id,", NODAL_COUPLING_WEIGHT=",node.GetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT)) 
 
-        print(self.model_part.NumberOfConditions(0))
+        #print(self.model_part.NumberOfConditions(0))
 
     @classmethod
     def _GetDefaultParameters(cls):

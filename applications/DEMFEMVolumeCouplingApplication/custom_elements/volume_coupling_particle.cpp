@@ -115,6 +115,8 @@ void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& extern
             externally_applied_moment[i] *= particle_weight; // Scale externally applied moment
         }
         externally_applied_force += this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE);  //adding the coupling forces exreted on particles
+        KRATOS_WATCH(this->Id());
+        KRATOS_WATCH(externally_applied_force);
     }
 }
 
