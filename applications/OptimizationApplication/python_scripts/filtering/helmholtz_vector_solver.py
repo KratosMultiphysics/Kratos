@@ -11,7 +11,7 @@ def CreateSolver(model, custom_settings):
     return HelmholtzVectorSolver(model, custom_settings)
 
 class HelmholtzVectorSolver(HelmholtzSolverBase):
-    def __init__(self, model: KM.Model, custom_settings: KM.Parameters):
+    def __init__(self, model: KM.Model, custom_settings: KM.Parameters) -> None:
         super().__init__(model, custom_settings)
         if self.settings["filter_type"].GetString() == "bulk_surface_shape":
             self.bulk_surface_shape_filter = True
@@ -19,23 +19,22 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
             self.bulk_surface_shape_filter = False
         KM.Logger.PrintInfo("::[HelmholtzVectorSolver]:: Construction finished")
 
-    def AddVariables(self):
+    def AddVariables(self) -> None:
         # Add variables required for the helmholtz filtering
-        self.original_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_VECTOR)
-        self.helmholtz_model_part.AddNodalSolutionStepVariable(KOA.HELMHOLTZ_VECTOR)
+        self.GetOriginRootModelPart().AddNodalSolutionStepVariable(KOA.HELMHOLTZ_VECTOR)
+        self.GetComputingModelPart().AddNodalSolutionStepVariable(KOA.HELMHOLTZ_VECTOR)
         KM.Logger.PrintInfo("::[HelmholtzVectorSolver]:: Variables ADDED.")
 
-    def AddDofs(self):
-        KM.VariableUtils().AddDof(KOA.HELMHOLTZ_VECTOR_X, self.helmholtz_model_part)
-        KM.VariableUtils().AddDof(KOA.HELMHOLTZ_VECTOR_Y, self.helmholtz_model_part)
-        KM.VariableUtils().AddDof(KOA.HELMHOLTZ_VECTOR_Z, self.helmholtz_model_part)
+    def AddDofs(self) -> None:
+        KM.VariableUtils().AddDof(KOA.HELMHOLTZ_VECTOR_X, self.GetComputingModelPart())
+        KM.VariableUtils().AddDof(KOA.HELMHOLTZ_VECTOR_Y, self.GetComputingModelPart())
+        KM.VariableUtils().AddDof(KOA.HELMHOLTZ_VECTOR_Z, self.GetComputingModelPart())
         KM.Logger.PrintInfo("::[HelmholtzVectorSolver]:: DOFs ADDED.")
 
-    def PrepareModelPart(self):
-
+    def PrepareModelPart(self) -> None:
         num_elems_nodes = None
         is_surface = False
-        for elem in self.original_model_part.Elements:
+        for elem in self.GetOriginModelPart().Elements:
             geom = elem.GetGeometry()
             if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
                 is_surface = True
@@ -43,13 +42,12 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
             break
 
         num_conds_nodes = None
-        for cond in self.original_model_part.Conditions:
+        for cond in self.GetOriginModelPart().Conditions:
             geom = cond.GetGeometry()
             num_conds_nodes = len(cond.GetNodes())
             break
 
         if self.bulk_surface_shape_filter:
-
             if num_elems_nodes != 4:
                 raise Exception('::[HelmholtzVectorSolver]:: given model part must have only tetrahedral elemenst')
             if num_conds_nodes != 3:
@@ -58,7 +56,7 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
                 raise Exception('::[HelmholtzVectorSolver]:: given model part must have only solid elemenst')
 
             KM.ConnectivityPreserveModeler().GenerateModelPart(
-                self.original_model_part, self.helmholtz_model_part, "HelmholtzSolidShapeElement3D4N","HelmholtzSurfaceShapeCondition3D3N")
+                self.GetOriginModelPart(), self.GetComputingModelPart(), "HelmholtzSolidShapeElement3D4N","HelmholtzSurfaceShapeCondition3D3N")
 
             material_properties = self.settings["material_properties"]
             defaults = KM.Parameters("""{
@@ -77,11 +75,11 @@ class HelmholtzVectorSolver(HelmholtzSolverBase):
 
             tmoc = KM.TetrahedralMeshOrientationCheck
             flags = (tmoc.COMPUTE_NODAL_NORMALS).AsFalse() | (tmoc.COMPUTE_CONDITION_NORMALS).AsFalse() | tmoc.ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS
-            KM.TetrahedralMeshOrientationCheck(self.helmholtz_model_part, False, flags).Execute()
+            KM.TetrahedralMeshOrientationCheck(self.GetComputingModelPart(), False, flags).Execute()
         else:
             if is_surface:
                 element_name = f"HelmholtzVectorSurfaceElement3D{num_elems_nodes}N"
             else:
                 element_name = f"HelmholtzVectorSolidElement3D{num_elems_nodes}N"
 
-            KM.ConnectivityPreserveModeler().GenerateModelPart(self.original_model_part, self.helmholtz_model_part, element_name)
+            KM.ConnectivityPreserveModeler().GenerateModelPart(self.GetOriginModelPart(), self.GetComputingModelPart(), element_name)
