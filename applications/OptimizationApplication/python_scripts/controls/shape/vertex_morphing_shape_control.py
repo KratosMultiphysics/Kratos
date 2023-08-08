@@ -238,8 +238,8 @@ class VertexMorphingShapeControl(Control):
         self.is_initialized = True
 
     def SetupMeshMotion(self):
-        self.has_mesh_motion = True
         if "mesh_motion" in self.filter_type:
+            self.has_mesh_motion = True
             self.mesh_motion_params = GetMeshMotionParameters(self.parameters["mesh_motion_settings"],self.model_part_operation.GetRootModelPart().Name,self.model_part_operation.GetModelPartFullName())
             self._mesh_moving_analysis = MeshMovingAnalysis(self.model, self.mesh_motion_params)
         else:
