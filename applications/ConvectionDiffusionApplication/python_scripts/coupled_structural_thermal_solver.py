@@ -143,6 +143,12 @@ class CoupledThermoMechanicalSolver(PythonSolver):
         return new_time
 
     def InitializeSolutionStep(self):
+        pass
+
+    def Predict(self):
+        pass
+
+    def SolveSolutionStep(self):
         self.thermal_solver.InitializeSolutionStep()
         self.thermal_solver.Predict()
 
@@ -151,10 +157,8 @@ class CoupledThermoMechanicalSolver(PythonSolver):
 
         self.structural_solver.InitializeSolutionStep()
 
-    def Predict(self):
         self.structural_solver.Predict()
 
-    def SolveSolutionStep(self):
         KratosMultiphysics.Logger.PrintInfo("\t" + "Solving STRUCTURAL part...")
         solid_is_converged = self.structural_solver.SolveSolutionStep()
 
