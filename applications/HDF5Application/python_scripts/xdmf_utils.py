@@ -15,6 +15,7 @@ import warnings
 from itertools import chain
 from contextlib import contextmanager
 import re
+import collections
 
 
 import KratosMultiphysics
@@ -595,18 +596,31 @@ def CreateXdmfTemporalGridFromSinglefile(h5_file_name, h5path_pattern_to_mesh, h
         if len(output_results_dict.keys()) == 0:
             raise RuntimeError("No results data is found in the given hdf5 file matching the given pattern [ file_name = {:s}, pattern = {:s} ].".format(h5_file_name, h5path_pattern_to_results))
 
-        for k, v in output_results_dict.items():
-            if k in output_meshes_dict:
-                sgrid = CreateXdmfSpatialGrid(file_[output_meshes_dict[k]])
+        compound_dict = {}
+        for key in output_meshes_dict.keys():
+            compound_dict[key] = (True, False)
+        for key in output_results_dict.keys():
+            if key in compound_dict:
+                compound_dict[key][1] = True
+            else:
+                compound_dict[key] = (False, True)
 
+        sgrid = None
+        for key, (has_mesh, has_results) in compound_dict.items():
             current_sgrid = SpatialGrid()
-            for g in sgrid.grids:
-                current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
+            if has_mesh:
+                sgrid = CreateXdmfSpatialGrid(file_[output_meshes_dict[key]])
+                for g in sgrid.grids:
+                    current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
 
-            for result in XdmfResults(file_[v]):
-                current_sgrid.add_attribute(result)
-
-            tgrid.add_grid(Time(k), current_sgrid)
+            if has_results:
+                if sgrid is None:
+                    raise RuntimeError(f"No mesh found for results at {key}")
+                for g in sgrid.grids:
+                    current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
+                for result in XdmfResults(file_[output_results_dict[key]]):
+                    current_sgrid.add_attribute(result)
+                tgrid.add_grid(Time(key), current_sgrid)
 
     return tgrid
 
