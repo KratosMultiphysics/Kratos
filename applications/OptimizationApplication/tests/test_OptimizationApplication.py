@@ -22,6 +22,7 @@ import responses_tests.test_overhang_response_function
 import responses_tests.test_mass_response_function
 import responses_tests.test_linear_strain_energy_response_function
 import responses_tests.test_standardized_responses
+import responses_tests.test_geometric_centroid_deviation_response_function
 import test_model_part_utils
 import test_model_part_controllers
 import test_container_expression_utils
@@ -83,6 +84,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_mass_response_function.TestMassResponseFunctionSolids]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_linear_strain_energy_response_function.TestLinearStrainEnergyResponseFunction]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_overhang_response_function.TestOverHangResponseFunction]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([responses_tests.test_geometric_centroid_deviation_response_function.TestGeometricCentroidDeviationResponseFunction]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionPropertiesExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementPropertiesExpression]))
@@ -97,7 +99,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([control.thickness.test_shell_thickness_control.TestShellThicknessControl]))
 
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.implicit_filters_tests.HelmholtzAnalysisTest]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.explicit_filters_tests.TestExplicitVertexMorphingFilter]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([filtering.explicit_filters_tests.TestExplicitFilter]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_vtu_output_process.TestOptimizationProblemVtuOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([process_tests.test_optimization_problem_ascii_output_process.TestOptimizationProblemAsciiOutputProcess]))
 

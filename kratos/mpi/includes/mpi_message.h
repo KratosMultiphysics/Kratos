@@ -14,6 +14,7 @@
 
 #include <string>
 #include <vector>
+#include <type_traits>
 #include "mpi.h"
 
 #include "containers/array_1d.h"
@@ -32,7 +33,6 @@ template<> struct MPIDataType<int>
     {
         return MPI_INT;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<unsigned int>
@@ -41,7 +41,6 @@ template<> struct MPIDataType<unsigned int>
     {
         return MPI_UNSIGNED;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<long unsigned int>
@@ -50,7 +49,6 @@ template<> struct MPIDataType<long unsigned int>
     {
         return MPI_UNSIGNED_LONG;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<double>
@@ -59,16 +57,6 @@ template<> struct MPIDataType<double>
     {
         return MPI_DOUBLE;
     }
-    static constexpr int LengthPerObject = 1;
-};
-
-template<> struct MPIDataType<std::string>
-{
-    static inline MPI_Datatype DataType()
-    {
-        return MPI_CHAR;
-    }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<bool>
@@ -77,7 +65,6 @@ template<> struct MPIDataType<bool>
     {
         return MPI_C_BOOL;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
 template<> struct MPIDataType<char>
@@ -86,95 +73,13 @@ template<> struct MPIDataType<char>
     {
         return MPI_CHAR;
     }
-    static constexpr int LengthPerObject = 1;
 };
 
-template<> struct MPIDataType<Flags::BlockType>
+template<> struct MPIDataType<int64_t>
 {
     static inline MPI_Datatype DataType()
     {
         return MPI_INT64_T;
-    }
-    static constexpr int LengthPerObject = 1;
-};
-
-template<class TDataType> class ValueMessage
-{
-public:
-    static inline void* Buffer(TDataType& rValue)
-    {
-        return &rValue;
-    }
-
-    static inline const void* Buffer(const TDataType& rValue)
-    {
-        return &rValue;
-    }
-
-    static inline int Size(const TDataType&)
-    {
-        return 1;
-    }
-};
-
-template<class TDataType> class VectorMessage
-{
-public:
-    static inline void* Buffer(std::vector<TDataType>& rValue)
-    {
-        return rValue.data();
-    }
-
-    static inline const void* Buffer(const std::vector<TDataType>& rValue)
-    {
-        return rValue.data();
-    }
-
-    static inline int Size(const std::vector<TDataType>& rValue)
-    {
-        return rValue.size() * MPIDataType<TDataType>::LengthPerObject;
-    }
-};
-
-template<class TDataType, std::size_t Dimension> class ArrayMessage
-{
-public:
-    static inline void* Buffer(array_1d<TDataType,Dimension>& rValues)
-    {
-        return rValues.data().data();
-    }
-
-    static inline const void* Buffer(const array_1d<TDataType,Dimension>& rValues)
-    {
-        return rValues.data().data();
-    }
-
-    static inline int Size(const array_1d<TDataType,Dimension>& rValues)
-    {
-        return Dimension * MPIDataType<TDataType>::LengthPerObject;
-    }
-};
-
-class StringMessage
-{
-public:
-    static inline void* Buffer(std::string& rValue)
-    {
-        // Note: this uses the fact that the C++11 standard defines std::strings to
-        // be contiguous in memory to perform MPI communication (based on char*) in place.
-        // In older C++, this cannot be expected to be always the case, so a copy of the
-        // string would be required.
-        return rValue.data();
-    }
-
-    static inline const void* Buffer(const std::string& rValue)
-    {
-        return rValue.data();
-    }
-
-    static inline int Size(const std::string& rValues)
-    {
-        return rValues.size();
     }
 };
 
@@ -182,17 +87,395 @@ public:
 
 template<class TDataType> class MPIMessage;
 
-template<> class MPIMessage<int>: public Internals::ValueMessage<int>, public Internals::MPIDataType<int> {};
-template<> class MPIMessage<unsigned int>: public Internals::ValueMessage<unsigned int>, public Internals::MPIDataType<unsigned int> {};
-template<> class MPIMessage<long unsigned int>: public Internals::ValueMessage<long unsigned int>, public Internals::MPIDataType<long unsigned int> {};
-template<> class MPIMessage<double>: public Internals::ValueMessage<double>, public Internals::MPIDataType<double> {};
-template<> class MPIMessage<bool>: public Internals::ValueMessage<bool>, public Internals::MPIDataType<bool> {};
-template<> class MPIMessage<char>: public Internals::ValueMessage<char>, public Internals::MPIDataType<char> {};
-template<> class MPIMessage<Flags::BlockType>: public Internals::ValueMessage<Flags::BlockType>, public Internals::MPIDataType<Flags::BlockType> {};
+template<class TDataType> class MPIMessage
+{
+public:
+    using MessageDataType = TDataType;
 
-template<> class MPIMessage<std::string>: public Internals::StringMessage, public Internals::MPIDataType<std::string> {};
+    using PrimitiveDataType = TDataType;
 
-template<class ValueType> class MPIMessage< std::vector<ValueType> >: public Internals::VectorMessage<ValueType>, public Internals::MPIDataType<ValueType> {};
-template<class ValueType, std::size_t Dimension> class MPIMessage<array_1d<ValueType,Dimension>>: public Internals::ArrayMessage<ValueType,Dimension>, public Internals::MPIDataType<ValueType> {};
+    static constexpr bool HasContiguousPrimitiveData = true;
+
+    static constexpr bool HasDynamicMemoryAllocation = false;
+
+    inline MPI_Datatype DataType()
+    {
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
+    }
+
+    inline void* Buffer(MessageDataType& rValue)
+    {
+        return &rValue;
+    }
+
+    inline const void* Buffer(const MessageDataType& rValue)
+    {
+        return &rValue;
+    }
+
+    inline int Size(const MessageDataType&)
+    {
+        return 1;
+    }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType&)
+    {
+        return {};
+    }
+
+    inline bool Resize(MessageDataType&, const std::vector<unsigned int>&)
+    {
+        return false;
+    }
+
+    inline void Update(MessageDataType&)
+    {
+    }
+};
+
+template<class TDataType, std::size_t Dimension> class MPIMessage<array_1d<TDataType, Dimension>>
+{
+public:
+    using MessageDataType = array_1d<TDataType, Dimension>;
+
+    using SubDataType = TDataType;
+
+    using PrimitiveDataType = TDataType;
+
+    static constexpr bool HasContiguousPrimitiveData = true;
+
+    static constexpr bool HasDynamicMemoryAllocation = false;
+
+    inline MPI_Datatype DataType()
+    {
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
+    }
+
+    inline void* Buffer(MessageDataType& rValues)
+    {
+        return rValues.data().data();
+    }
+
+    inline const void* Buffer(const MessageDataType& rValues)
+    {
+        return rValues.data().data();
+    }
+
+    inline int Size(const MessageDataType& rValues)
+    {
+        return Dimension * MPIMessage<SubDataType>().Size(rValues[0]);
+    }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType&)
+    {
+        return {static_cast<unsigned int>(Dimension)};
+    }
+
+    inline bool Resize(MessageDataType&, const std::vector<unsigned int>&)
+    {
+        return false;
+    }
+
+    inline void Update(MessageDataType&)
+    {
+    }
+};
+
+template<> class MPIMessage<std::string>
+{
+public:
+    using MessageDataType = std::string;
+
+    using SubDataType = char;
+
+    using PrimitiveDataType = char;
+
+    static constexpr bool HasContiguousPrimitiveData = true;
+
+    static constexpr bool HasDynamicMemoryAllocation = true;
+
+    inline MPI_Datatype DataType()
+    {
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
+    }
+
+    inline void* Buffer(MessageDataType& rValue)
+    {
+        return rValue.data();
+    }
+
+    inline const void* Buffer(const MessageDataType& rValue)
+    {
+        return rValue.data();
+    }
+
+    inline int Size(const MessageDataType& rValues)
+    {
+        return rValues.size();
+    }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType& rValues)
+    {
+        return {static_cast<unsigned int>(rValues.size())};
+    }
+
+    inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_ERROR_IF_NOT(rShape.size() == 1) << "Invalid shape provided for std::string.";
+
+        if (rValues.size() != rShape[0]) {
+            rValues.resize(rShape[0]);
+            return true;
+        }
+
+        return false;
+    }
+
+    inline void Update(MessageDataType&)
+    {
+    }
+};
+
+template<> class MPIMessage<Vector>
+{
+public:
+    using MessageDataType = Vector;
+
+    using SubDataType = double;
+
+    using PrimitiveDataType = double;
+
+    static constexpr bool HasContiguousPrimitiveData = true;
+
+    static constexpr bool HasDynamicMemoryAllocation = true;
+
+    inline MPI_Datatype DataType()
+    {
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
+    }
+
+    inline void* Buffer(MessageDataType& rValue)
+    {
+        return rValue.data().begin();
+    }
+
+    inline const void* Buffer(const MessageDataType& rValue)
+    {
+        return rValue.data().begin();
+    }
+
+    inline int Size(const MessageDataType& rValues)
+    {
+        return rValues.size();
+    }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType& rValues)
+    {
+        return {static_cast<unsigned int>(rValues.size())};
+    }
+
+    inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_ERROR_IF_NOT(rShape.size() == 1) << "Invalid shape provided for Vector.";
+
+        if (rValues.size() != rShape[0]) {
+            rValues.resize(rShape[0], false);
+            return true;
+        }
+
+        return false;
+    }
+
+    inline void Update(MessageDataType&)
+    {
+    }
+};
+
+template<> class MPIMessage<Matrix>
+{
+public:
+    using MessageDataType = Matrix;
+
+    using SubDataType = double;
+
+    using PrimitiveDataType = double;
+
+    static constexpr bool HasContiguousPrimitiveData = true;
+
+    static constexpr bool HasDynamicMemoryAllocation = true;
+
+    inline MPI_Datatype DataType()
+    {
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
+    }
+
+    inline void* Buffer(MessageDataType& rValue)
+    {
+        return rValue.data().begin();
+    }
+
+    inline const void* Buffer(const MessageDataType& rValue)
+    {
+        return rValue.data().begin();
+    }
+
+    inline int Size(const MessageDataType& rValues)
+    {
+        return rValues.size1() * rValues.size2();
+    }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType& rValues)
+    {
+        return {static_cast<unsigned int>(rValues.size1()), static_cast<unsigned int>(rValues.size2())};
+    }
+
+    inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_ERROR_IF_NOT(rShape.size() == 2) << "Invalid shape provided for Matrix.";
+
+        if (rValues.size1() != rShape[0] || rValues.size2() != rShape[1]) {
+            rValues.resize(rShape[0], rShape[1], false);
+            return true;
+        }
+
+        return false;
+    }
+
+    inline void Update(MessageDataType&)
+    {
+    }
+};
+
+template<class TDataType> class MPIMessage<std::vector<TDataType>>
+{
+public:
+    using MessageDataType = std::vector<TDataType>;
+
+    using SubDataType = TDataType;
+
+    using PrimitiveDataType = typename MPIMessage<TDataType>::PrimitiveDataType;
+
+    static constexpr bool HasContiguousPrimitiveData = std::is_same_v<TDataType, PrimitiveDataType>;
+
+    static constexpr bool HasDynamicMemoryAllocation = true;
+
+    inline MPI_Datatype DataType()
+    {
+        return Internals::MPIDataType<PrimitiveDataType>::DataType();
+    }
+
+    inline void* Buffer(MessageDataType& rValue)
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return rValue.data();
+        } else {
+            if (rValue.size() > 0) {
+                MPIMessage<TDataType> sub_mpi_message;
+                const auto sub_data_type_size = sub_mpi_message.Size(rValue.front());
+
+                const auto primitive_data_size = Size(rValue);
+                if (mTempValues.size() != static_cast<unsigned int>(primitive_data_size)) {
+                    mTempValues.resize(primitive_data_size);
+                }
+
+                unsigned int local_index = 0;
+                for (unsigned int i = 0; i < rValue.size(); ++i) {
+                    PrimitiveDataType* begin = static_cast<PrimitiveDataType*>(sub_mpi_message.Buffer(rValue[i]));
+                    for (int j = 0; j < sub_data_type_size; ++j) {
+                        mTempValues[local_index++] = *(begin++);
+                    }
+                }
+            } else {
+                mTempValues.resize(0);
+            }
+
+            return mTempValues.data();
+        }
+    }
+
+    inline const void* Buffer(const MessageDataType& rValue)
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return rValue.data();
+        } else {
+            if (rValue.size() > 0) {
+                MPIMessage<TDataType> sub_mpi_message;
+                const auto sub_data_type_size = sub_mpi_message.Size(rValue.front());
+
+                const auto primitive_data_size = Size(rValue);
+                if (mTempValues.size() != static_cast<unsigned int>(primitive_data_size)) {
+                    mTempValues.resize(primitive_data_size);
+                }
+
+                unsigned int local_index = 0;
+                for (unsigned int i = 0; i < rValue.size(); ++i) {
+                    PrimitiveDataType const* begin = static_cast<PrimitiveDataType const*>(sub_mpi_message.Buffer(rValue[i]));
+                    for (int j = 0; j < sub_data_type_size; ++j) {
+                        mTempValues[local_index++] = *(begin++);
+                    }
+                }
+            } else {
+                mTempValues.resize(0);
+            }
+
+            return mTempValues.data();
+        }
+    }
+
+    inline int Size(const MessageDataType& rValue)
+    {
+        return rValue.size() * SubDataTypeSize(rValue);
+    }
+
+    inline int SubDataTypeSize(const MessageDataType& rValue)
+    {
+        return rValue.size() == 0 ? 0 : MPIMessage<SubDataType>().Size(rValue.front());
+    }
+
+    inline std::vector<unsigned int> Shape(const MessageDataType& rValues)
+    {
+        return {static_cast<unsigned int>(rValues.size())};
+    }
+
+    inline bool Resize(MessageDataType& rValues, const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_ERROR_IF_NOT(rShape.size() == 1) << "Invalid shape provided for std::vector.";
+
+        if (rValues.size() != rShape[0]) {
+            rValues.resize(rShape[0]);
+            return true;
+        }
+
+        return false;
+    }
+
+    inline void Update(MessageDataType& rValue)
+    {
+        if constexpr(!HasContiguousPrimitiveData) {
+            KRATOS_ERROR_IF(rValue.size() == 0 && mTempValues.size() != 0)
+                << "Size mismatch. [ rValue.size() = " << rValue.size()
+                << ", mTempValues.size() = " << mTempValues.size() << " ].\n";
+
+            KRATOS_ERROR_IF(rValue.size() != 0 && mTempValues.size() != static_cast<unsigned int>(Size(rValue)))
+                << "Size mismatch. [ rValue.size() = " << rValue.size()
+                << ", mTempValues.size() = " << mTempValues.size() << " ].\n";
+
+            if (rValue.size() > 0) {
+                MPIMessage<TDataType> sub_mpi_message;
+                const auto sub_data_type_size = sub_mpi_message.Size(rValue.front());
+
+                unsigned int local_index = 0;
+                for (unsigned int i = 0; i < rValue.size(); ++i) {
+                    PrimitiveDataType* begin = static_cast<PrimitiveDataType*>(sub_mpi_message.Buffer(rValue[i]));
+                    for (int j = 0; j < sub_data_type_size; ++j) {
+                        *(begin++) = mTempValues[local_index++];
+                    }
+                }
+            }
+        }
+    }
+private:
+    std::vector<PrimitiveDataType> mTempValues;
+};
 
 } // namespace Kratos

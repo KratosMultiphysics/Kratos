@@ -22,6 +22,7 @@ def CreateSolver(cls, model, custom_settings):
             default_settings = KratosMultiphysics.Parameters("""{
                 "projection_strategy" : "galerkin",
                 "assembling_strategy" : "global",
+                "monotonicity_preserving": false,
                 "rom_settings": {
                     "nodal_unknowns": [],
                     "number_of_rom_dofs": 0
@@ -65,6 +66,7 @@ def CreateSolver(cls, model, custom_settings):
                     raise Exception(err_msg)
             projection_strategy = self.settings["projection_strategy"].GetString()
             assembling_strategy = self.settings["assembling_strategy"].GetString()
+            monotonicity_preserving = self.settings["monotonicity_preserving"].GetBool()
             # For now, only Galerkin projection has the elemental or global approach option
             if projection_strategy=="galerkin": #TODO: Possibility of doing elemental lspg and petrov_galerkin
                 available_assembling_strategies = {
@@ -77,6 +79,10 @@ def CreateSolver(cls, model, custom_settings):
                 else:
                     err_msg = f"'Assembling_strategy': '{assembling_strategy}' is not available. Please select one of the following: {list(available_assembling_strategies)}."
                     raise ValueError(err_msg)
+            
+            if projection_strategy=="global_galerkin": #TODO: Do it for all global rom B&Ss.
+                self.settings["rom_settings"].AddBool("monotonicity_preserving",monotonicity_preserving)
+                
             # Return the validated ROM parameters
             return self.settings["rom_settings"], projection_strategy
 
