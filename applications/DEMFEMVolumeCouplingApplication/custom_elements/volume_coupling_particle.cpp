@@ -127,11 +127,11 @@ void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& extern
 
 // void VolumeCouplingParticle::EvaluateBallToRigidFaceForcesForPositiveIndentations(SphericParticle::ParticleDataBuffer &data_buffer,
 //                                                                    const int rigid_neighbour_index,
-//                                                                    const array_1d<double, 3>& DeltVel,
+//                                                                    double DeltVel[3],
 //                                                                    const ProcessInfo& r_process_info,
 //                                                                    double OldLocalElasticContactForce[3],
 //                                                                    double LocalElasticContactForce[3],
-//                                                                    const double LocalDeltDisp[3],
+//                                                                    double LocalDeltDisp[3],
 //                                                                    const double indentation,
 //                                                                    const double  previous_indentation,
 //                                                                    double ViscoDampingLocalContactForce[3],

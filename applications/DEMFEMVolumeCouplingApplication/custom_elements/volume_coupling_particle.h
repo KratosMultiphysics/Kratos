@@ -40,11 +40,11 @@ protected:
 
 // virtual void EvaluateBallToRigidFaceForcesForPositiveIndentations(SphericParticle::ParticleDataBuffer &data_buffer,
 //                                                                    const int rigid_neighbour_index,
-//                                                                    const array_1d<double, 3>& DeltVel,
+//                                                                    double DeltVel[3],
 //                                                                    const ProcessInfo& r_process_info,
 //                                                                    double OldLocalElasticContactForce[3],
 //                                                                    double LocalElasticContactForce[3],
-//                                                                    const double LocalDeltDisp[3],
+//                                                                    double LocalDeltDisp[3],
 //                                                                    const double indentation,
 //                                                                    const double  previous_indentation,
 //                                                                    double ViscoDampingLocalContactForce[3],
@@ -52,7 +52,7 @@ protected:
 //                                                                    Condition* const wall,
 //                                                                    bool& sliding) override;
 
-virtual void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
+virtual void ComputeBallToRigidFaceContactForceAndMoment(
     SphericParticle::ParticleDataBuffer & data_buffer,
     array_1d<double, 3>& r_elastic_force,
     array_1d<double, 3>& r_contact_force,
