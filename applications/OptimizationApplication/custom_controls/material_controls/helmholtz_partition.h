@@ -26,6 +26,7 @@
 #include "custom_controls/material_controls/material_control.h"
 #include "custom_elements/helmholtz_bulk_element.h"
 #include "custom_strategies/strategies/helmholtz_strategy.h"
+#include "optimization_application_variables.h"
 
 
 // ==============================================================================
@@ -56,7 +57,7 @@ namespace Kratos
 /** Detail class definition.
 */
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzPartition : public MaterialControl
+class HelmholtzPartition : public MaterialControl
 {
 public:
     ///@name Type Definitions
@@ -103,25 +104,25 @@ public:
         CreateModelParts();
 
         CalculateNodeNeighbourCount();
-        
+
         for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
-            StrategyType* mpStrategy = new StrategyType (*mpVMModelParts[model_i],rLinearSystemSolvers[model_i]);            
+            StrategyType* mpStrategy = new StrategyType (*mpVMModelParts[model_i],rLinearSystemSolvers[model_i]);
             mpStrategy->Initialize();
             mpStrategies.push_back(mpStrategy);
         }
 
 
         initial_density = mTechniqueSettings["initial_density"].GetDouble();
-        beta = mTechniqueSettings["beta"].GetDouble();        
-        
+        beta = mTechniqueSettings["beta"].GetDouble();
+
         double initial_filtered_density = ProjectBackward(initial_density,beta);
         double initial_control_density = initial_filtered_density;
 
-        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){    
-            SetVariable(mpVMModelParts[model_i],CD,initial_control_density); 
-            SetVariable(mpVMModelParts[model_i],FD,initial_filtered_density); 
+        for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
+            SetVariable(mpVMModelParts[model_i],CD,initial_control_density);
+            SetVariable(mpVMModelParts[model_i],FD,initial_filtered_density);
             SetVariable(mpVMModelParts[model_i],PD,initial_density);
-        }  
+        }
 
 
         for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
@@ -129,7 +130,7 @@ public:
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
             ProcessInfo &rCurrentProcessInfo = (mpVMModePart)->GetProcessInfo();
             rCurrentProcessInfo[COMPUTE_CONTROL_DENSITIES] = false;
-        }        
+        }
 
         KRATOS_INFO("HelmholtzPartition:Initialize") << "Finished initialization of material control "<<mControlName<<" in " << timer.ElapsedSeconds() << " s." << std::endl;
 
@@ -143,13 +144,13 @@ public:
         //     beta *=1.5;
         // if(beta>25.0)
         //     beta = 25.0;
-        
+
         std::cout<<"++++++++++++++++++++++ beta : "<<beta<<" ++++++++++++++++++++++"<<std::endl;
 
         ComputeFilteredDensity();
         ComputePhyiscalDensity();
-        
-    };  
+
+    };
     // --------------------------------------------------------------------------
     void MapControlUpdate(const Variable<double> &rOriginVariable, const Variable<double> &rDestinationVariable) override{};
     // --------------------------------------------------------------------------
@@ -166,12 +167,12 @@ public:
             SetVariable1ToVarible2(mpVMModePart,rDerivativeVariable,HELMHOLTZ_SOURCE_DENSITY);
             SetVariable(mpVMModePart,HELMHOLTZ_VAR_DENSITY,0.0);
 
-            //now solve 
+            //now solve
             mpStrategies[model_i]->Solve();
             SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VAR_DENSITY,rMappedDerivativeVariable);
         }
         KRATOS_INFO("HelmholtzPartition:MapFirstDerivative") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
-    };  
+    };
 
     ///@}
     ///@name Access
@@ -230,7 +231,7 @@ protected:
     double beta;
     int opt_itr = 0;
     double initial_density;
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -306,9 +307,7 @@ private:
             auto& r_elements = mpVMModePart->Elements();
             const int num_elements = r_elements.size();
 
-            #pragma omp parallel for
-            for (int i = 0; i < num_elements; i++)
-            {
+            IndexPartition<IndexType>(num_elements).for_each([&](const auto i) {
                 auto i_elem = r_elements.begin() + i;
                 auto& r_geom = i_elem->GetGeometry();
                 for (unsigned int i = 0; i < r_geom.PointsNumber(); i++)
@@ -321,12 +320,12 @@ private:
                         r_node.UnSetLock();
                     }
                 }
-            }
+            });
 
             mpVMModePart->GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
         }
-    } 
+    }
 
     void CreateModelParts()
     {
@@ -357,7 +356,7 @@ private:
                 p_vm_model_part->AddNode(&node);
 
             // creating elements
-            ModelPart::ElementsContainerType &rmesh_elements = p_vm_model_part->Elements();   
+            ModelPart::ElementsContainerType &rmesh_elements = p_vm_model_part->Elements();
 
             //check if the controlling model part has elements which have desnity value
             if(!(r_controlling_object.Elements().size()>0))
@@ -371,7 +370,7 @@ private:
                 it->SetProperties(elem_i_new_prop);
                 Element::Pointer p_element = new HelmholtzBulkElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
                 rmesh_elements.push_back(p_element);
-            }   
+            }
         }
 
         // now add dofs
@@ -382,36 +381,36 @@ private:
             {
                 node_i.AddDof(HELMHOLTZ_VAR_DENSITY);
             }
-        }     
+        }
 
     }
 
-    void ComputeFilteredDensity(){   
+    void ComputeFilteredDensity(){
 
         for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
 
             //first update control density
             AddVariable1ToVarible2(mpVMModelParts[model_i],D_CD,CD);
 
-            //now filter nodal control desnity 
-            //first we need to multiply with mass matrix 
+            //now filter nodal control desnity
+            //first we need to multiply with mass matrix
             SetVariable(mpVMModelParts[model_i],HELMHOLTZ_VAR_DENSITY,0.0);
             SetVariable(mpVMModelParts[model_i],HELMHOLTZ_SOURCE_DENSITY,0.0);
-            //now we need to multiply with the mass matrix 
+            //now we need to multiply with the mass matrix
             for(auto& elem_i : mpVMModelParts[model_i]->Elements())
             {
                 VectorType origin_values;
                 GetElementVariableValuesVector(elem_i,CD,origin_values);
                 MatrixType mass_matrix;
-                elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModelParts[model_i]->GetProcessInfo());           
+                elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModelParts[model_i]->GetProcessInfo());
                 VectorType int_vals = prod(mass_matrix,origin_values);
                 AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_DENSITY,int_vals);
             }
 
             mpStrategies[model_i]->Solve();
             SetVariable1ToVarible2(mpVMModelParts[model_i],HELMHOLTZ_VAR_DENSITY,FD);
-        }        
-    } 
+        }
+    }
 
     void ComputePhyiscalDensity(){
 
@@ -450,14 +449,14 @@ private:
         if(value>1.0)
            value = 1.0;
         if(value<0.0)
-           value = 0.0;         
+           value = 0.0;
         return value;
     }
 
     double ProjectBackward(double y,double beta){
 
         double y_c = 1.0;
-        double y_f = 0.0; 
+        double y_f = 0.0;
 
         if((y>y_f) && (y<y_c))
             return ((y_f+y_c)/2.0) + (1.0/(-2.0*beta)) * std::log(((y_c-y_f)/(y-y_f))-1);
@@ -470,7 +469,7 @@ private:
         else if(y<y_f)
             return y_f;
         else
-            return 0.0;            
+            return 0.0;
     }
 
     double FirstFilterDerivative(double x, double beta){
@@ -480,7 +479,7 @@ private:
 
         double pow_val = -2.0*beta*(x-(x_c+x_f)/2);
         return (1.0/(1+std::exp(pow_val))) * (1.0/(1+std::exp(pow_val))) * 2.0 * beta * std::exp(pow_val);
-    }    
+    }
 
     void GetElementVariableValuesVector(const Element& rElement,
                                         const Variable<double> &rVariable,
@@ -495,8 +494,8 @@ private:
             rValues.resize(local_size, false);
 
         for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-            const auto& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);    
-            rValues[i_node] = r_nodal_variable; 
+            const auto& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
+            rValues[i_node] = r_nodal_variable;
         }
     }
     void GetConditionVariableValuesVector(const Condition& rCondition,
@@ -512,15 +511,15 @@ private:
 
         SizeType index = 0;
         for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-            const auto& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);    
+            const auto& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
             rValues[index++] = r_nodal_variable;
         }
-    }    
+    }
     void AddElementVariableValuesVector(Element& rElement,
                                         const Variable<double> &rVariable,
                                         const VectorType &rValues,
                                         const double& rWeight = 1.0
-                                        ) 
+                                        )
     {
         GeometryType &rgeom = rElement.GetGeometry();
         const SizeType num_nodes = rgeom.PointsNumber();
@@ -535,7 +534,7 @@ private:
                                         const Variable<double> &rVariable,
                                         const VectorType &rValues,
                                         const double& rWeight = 1.0
-                                        ) 
+                                        )
     {
         GeometryType &rgeom = rCondition.GetGeometry();
         const SizeType num_nodes = rgeom.PointsNumber();
@@ -545,36 +544,36 @@ private:
             auto& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
             r_nodal_variable += rWeight * rValues[index++];
         }
-    }    
-    
-    void SetVariable(ModelPart* mpVMModePart, const Variable<double> &rVariable, const double value) 
+    }
+
+    void SetVariable(ModelPart* mpVMModePart, const Variable<double> &rVariable, const double value)
     {
         for(auto& node_i : mpVMModePart->Nodes())
         {
             auto& r_nodal_variable = node_i.FastGetSolutionStepValue(rVariable);
-            r_nodal_variable = value;                   
+            r_nodal_variable = value;
         }
     }
 
-    void SetVariable1ToVarible2(ModelPart* mpVMModePart,const Variable<double> &rVariable1,const Variable<double> &rVariable2) 
+    void SetVariable1ToVarible2(ModelPart* mpVMModePart,const Variable<double> &rVariable1,const Variable<double> &rVariable2)
     {
         for(auto& node_i : mpVMModePart->Nodes())
         {
             auto& r_nodal_variable1 = node_i.FastGetSolutionStepValue(rVariable1);
             auto& r_nodal_variable2 = node_i.FastGetSolutionStepValue(rVariable2);
-            r_nodal_variable2 = r_nodal_variable1;                  
+            r_nodal_variable2 = r_nodal_variable1;
         }
-    }    
+    }
 
-    void AddVariable1ToVarible2(ModelPart* mpVMModePart,const Variable<double> &rVariable1,const Variable<double> &rVariable2) 
+    void AddVariable1ToVarible2(ModelPart* mpVMModePart,const Variable<double> &rVariable1,const Variable<double> &rVariable2)
     {
         for(auto& node_i : mpVMModePart->Nodes())
         {
             auto& r_nodal_variable1 = node_i.FastGetSolutionStepValue(rVariable1);
             auto& r_nodal_variable2 = node_i.FastGetSolutionStepValue(rVariable2);
-            r_nodal_variable2 += r_nodal_variable1;                  
+            r_nodal_variable2 += r_nodal_variable1;
         }
-    }    
+    }
 
     ///@}
     ///@name Private Inquiry

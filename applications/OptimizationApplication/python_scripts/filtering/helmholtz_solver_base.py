@@ -186,3 +186,19 @@ class HelmholtzSolverBase(PythonSolver):
     def _AssignProperties(self, parameters: KratosMultiphysics.Parameters):
         KOA.ImplicitFilterUtils.AssignProperties(self.GetComputingModelPart(), parameters)
 
+    def _GetContainerTypeNumNodes(self, container) -> int:
+        num_nodes = None
+        for cont_type in container:
+            num_nodes = len(cont_type.GetNodes())
+            break
+        return num_nodes
+
+    def _IsSurfaceContainer(self, container) -> bool:
+        is_surface = False
+        for cont_type in container:
+            geom = cont_type.GetGeometry()
+            if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
+                is_surface = True
+            break
+        return is_surface
+
