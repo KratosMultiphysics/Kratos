@@ -66,7 +66,15 @@ private:
             std::conditional_t<
                 TLocation == Globals::DataLocation::Condition,
                 Condition,
-                void // <== invalid fallback type; will throw a compile-time error
+                std::conditional_t<
+                    TLocation == Globals::DataLocation::ProcessInfo,
+                    ProcessInfo,
+                    std::conditional_t<
+                        TLocation == Globals::DataLocation::ModelPart,
+                        ModelPart,
+                        void // <== invalid fallback type; will throw a compile-time error
+                    >
+                >
             >
         >
     >;
@@ -283,42 +291,90 @@ private:
 
 
 
-#define KRATOS_DEFINE_ENTITY_PROXY_FACTORY(TEntity)                                             \
+/// @brief Invalid template base to be specialized for valid template parameters.
+template <Globals::DataLocation TLocation, class TEntity>
+inline auto MakeProxy(const TEntity& rEntity)
+{
+    static_assert(std::is_same_v<TEntity,void>, "Invalid DataLocation-Entity combination");
+}
+
+
+/// @brief Invalid template base to be specialized for valid template parameters.
+template <Globals::DataLocation TLocation, class TEntity>
+inline auto MakeProxy(TEntity& rEntity)
+{
+    static_assert(std::is_same_v<TEntity,void>, "Invalid DataLocation-Entity combination");
+}
+
+
+#define KRATOS_DEFINE_ENTITY_PROXY_FACTORY(TLocation, TEntity)                                  \
     /** @brief Convenience function for constructing immutable @ref EntityProxy instances.*/    \
-    template <Globals::DataLocation TLocation>                                                  \
-    auto MakeProxy(const TEntity& rEntity) {return EntityProxy<TLocation,false>(rEntity);}      \
+    template <>                                                                                 \
+    inline auto MakeProxy<TLocation,TEntity>(const TEntity& rEntity)    \
+    {return EntityProxy<TLocation,false>(rEntity);}                                             \
     /** @brief Convenience function for constructing mutable @ref EntityProxy instances.*/      \
-    template <Globals::DataLocation TLocation>                                                  \
-    auto MakeProxy(TEntity& rEntity) {return EntityProxy<TLocation,true>(rEntity);}
+    template <>                                                                                 \
+    inline auto MakeProxy<TLocation,TEntity>(TEntity& rEntity)           \
+    {return EntityProxy<TLocation,true>(rEntity);}
 
-KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Node)
+KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Globals::DataLocation::NodeHistorical, Node)
 
-KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Element)
+KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Globals::DataLocation::NodeNonHistorical, Node)
 
-KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Condition)
+KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Globals::DataLocation::Element, Element)
+
+KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Globals::DataLocation::Condition, Condition)
+
+KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Globals::DataLocation::ProcessInfo, ProcessInfo)
+
+KRATOS_DEFINE_ENTITY_PROXY_FACTORY(Globals::DataLocation::ModelPart, ModelPart)
 
 #undef KRATOS_DEFINE_ENTITY_PROXY_FACTORY
 
 
-
-/// @brief Convenience function for constructing immutable @ref ContainerProxy instances.
-template <Globals::DataLocation TLocation>
-auto MakeProxy(const ModelPart& rModelPart)
+/// @brief Convenience function for constructing a mutable @ref ProcessInfo proxy from a @ref ModelPart.
+template <>
+inline auto MakeProxy<Globals::DataLocation::ProcessInfo,ModelPart>(const ModelPart& rModelPart)
 {
-    using TEntityProxy = EntityProxy<TLocation,false>;
-    const auto& r_container = ModelPartUtils::GetContainer<TLocation>(rModelPart);
-    return ContainerProxy<TEntityProxy>(r_container.begin(), r_container.end());
+    return EntityProxy<Globals::DataLocation::ProcessInfo,false>(rModelPart.GetProcessInfo());
 }
 
 
-/// @brief Convenience function for constructing mutable @ref ContainerProxy instances.
-template <Globals::DataLocation TLocation>
-auto MakeProxy(ModelPart& rModelPart)
+/// @brief Convenience function for constructing an immutable @ref ProcessInfo proxy from a @ref ModelPart.
+template <>
+inline auto MakeProxy<Globals::DataLocation::ProcessInfo,ModelPart>(ModelPart& rModelPart)
 {
-    using TEntityProxy = EntityProxy<TLocation,true>;
-    auto& r_container = ModelPartUtils::GetContainer<TLocation>(rModelPart);
-    return ContainerProxy<TEntityProxy>(r_container.begin(), r_container.end());
+    return EntityProxy<Globals::DataLocation::ProcessInfo,true>(rModelPart.GetProcessInfo());
 }
+
+
+#define KRATOS_DEFINE_CONTAINER_PROXY_FACTORY(TLocation)                                        \
+    /** @brief Convenience function for constructing immutable @ref ContainerProxy instances.*/ \
+    template <>                                                                                 \
+    inline auto MakeProxy<TLocation,ModelPart>(const ModelPart& rModelPart)                     \
+    {                                                                                           \
+        const auto& r_container = ModelPartUtils::GetContainer<TLocation>(rModelPart);          \
+        return ContainerProxy<EntityProxy<TLocation,false>>(r_container.begin(),                \
+                                                            r_container.end());                 \
+    }                                                                                           \
+    /** @brief Convenience function for constructing mutable @ref ContainerProxy instances.*/   \
+    template <>                                                                                 \
+    inline auto MakeProxy<TLocation,ModelPart>(ModelPart& rModelPart)                           \
+    {                                                                                           \
+        auto& r_container = ModelPartUtils::GetContainer<TLocation>(rModelPart);                \
+        return ContainerProxy<EntityProxy<TLocation,true>>(r_container.begin(),                 \
+                                                           r_container.end());                  \
+    }
+
+KRATOS_DEFINE_CONTAINER_PROXY_FACTORY(Globals::DataLocation::NodeHistorical)
+
+KRATOS_DEFINE_CONTAINER_PROXY_FACTORY(Globals::DataLocation::NodeNonHistorical)
+
+KRATOS_DEFINE_CONTAINER_PROXY_FACTORY(Globals::DataLocation::Element)
+
+KRATOS_DEFINE_CONTAINER_PROXY_FACTORY(Globals::DataLocation::Condition)
+
+#undef KRATOS_DEFINE_CONTAINER_PROXY_FACTORY
 
 
 } // namespace Kratos
