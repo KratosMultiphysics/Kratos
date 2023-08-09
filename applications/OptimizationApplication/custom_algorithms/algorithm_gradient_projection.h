@@ -35,7 +35,7 @@
 namespace Kratos
 {
 
-class KRATOS_API(OPTIMIZATION_APPLICATION) AlgorithmGradientProjection : public OptimizationAlgorithm
+class AlgorithmGradientProjection : public OptimizationAlgorithm
 {
 public:
 
@@ -107,7 +107,7 @@ public:
                 objetive["controlled_objects_start_index"].Append(objective_control_object_start_index);
                 objetive["controlled_objects_size"].Append(objective_control_object_size);
             }
-        }  
+        }
 
         for(auto& constraint : mrSettings["constraints"]){
             constraint.AddEmptyArray("controlled_objects_start_index");
@@ -137,7 +137,7 @@ public:
                 constraint["controlled_objects_start_index"].Append(constraint_control_object_start_index);
                 constraint["controlled_objects_size"].Append(constraint_control_object_size);
             }
-        }            
+        }
     };
     // --------------------------------------------------------------------------
     void CalculateSolutionStep() override {
@@ -165,17 +165,17 @@ public:
                     if(ratio>1.2)
                         ratio = 1.2;
                     if(ratio<0.8)
-                        ratio = 0.8;                    
+                        ratio = 0.8;
                     scale = ratio;
                 }
                 else
                     scale = 1.2;
-                
+
                 objective_weight *= scale;
                 objetive["weight"].SetDouble(objective_weight);
             }
 
-        
+
             for(long unsigned int objective_control_i = 0; objective_control_i<objetive["controls"].size(); objective_control_i++){
                 auto objective_control_i_name = objetive["controls"][objective_control_i].GetString();
                 double objective_control_weight = 1.0;
@@ -195,7 +195,7 @@ public:
                 for(auto& node : objective_controlled_obj_model_part.Nodes()){
                     if (objective_controlled_object_size==3){
                         const auto & nodal_gradient = node.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(objective_control_gradient_name));
-                        for(int i=0; i<objective_controlled_object_size; i++)                       
+                        for(int i=0; i<objective_controlled_object_size; i++)
                             L2_norm += nodal_gradient(i) * nodal_gradient(i);
                     }
                     else if (objective_controlled_object_size==1) {
@@ -203,8 +203,8 @@ public:
                         L2_norm += nodal_gradient * nodal_gradient;
                     }
                 }
-                L2_norm = std::sqrt(L2_norm); 
-                // L2_norm = 1.0;        
+                L2_norm = std::sqrt(L2_norm);
+                // L2_norm = 1.0;
 
                 int node_index=0;
                 for(auto& node : objective_controlled_obj_model_part.Nodes()){
@@ -216,11 +216,11 @@ public:
                     else if (objective_controlled_object_size==1) {
                         const auto & nodal_gradient = node.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(objective_control_gradient_name));
                         mObjectiveGradients[objective_controlled_object_start_index+node_index] = nodal_gradient * ((objective_weight*objective_control_weight) * (1.0/L2_norm));
-                    } 
+                    }
                     node_index++;
-                }             
+                }
             }
-        }        
+        }
         mObjectiveGradients *= (1.0/norm_2(mObjectiveGradients));
 
         //now fill the active_constraints_gradients matrix
@@ -237,37 +237,37 @@ public:
                 double previous_violation = (constraint["prev_itr_value"].GetDouble()-constraint["ref_value"].GetDouble())/constraint["ref_value"].GetDouble();
                 double relative_change = (constraint["value"].GetDouble()-constraint["prev_itr_value"].GetDouble())/constraint["prev_itr_value"].GetDouble();
                 double weight = constraint["weight"].GetDouble();
-                
+
                 // analysis and set the weight
                 if(opt_itr>1){
-                    
+
                     if((const_type=="equality") || (const_type=="initial_value_equality")){
                         //first check the oscill
                         if((100 * std::abs(previous_violation)>1) && (100 * std::abs(current_violation)>1) && (((current_violation>0.0) && (previous_violation<0)) || ((current_violation<0.0) && (previous_violation>0))))
-                            weight *= 0.95; 
+                            weight *= 0.95;
                         else if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>0.5))
                             weight *= 1.25;
                         else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(current_violation)>0.5) && (100 * std::abs(relative_change)<1.0))
                             weight *= 1.25;
                         else if((100 * std::abs(previous_violation)<0.1) && (100 * std::abs(current_violation)<0.1))
-                            weight *= 0.95;                                                                                
+                            weight *= 0.95;
                     }
                     else{
                         bool prev_itr_is_active = constraint["prev_itr_is_active"].GetBool();
                         if(prev_itr_is_active){
                             if((std::abs(current_violation)>std::abs(previous_violation)) && (100 * std::abs(previous_violation)>1))
-                                weight *= 1.25;                        
+                                weight *= 1.25;
                             else if((std::abs(current_violation)<std::abs(previous_violation)) && (100 * std::abs(relative_change)<1.0))
                                 weight *= 1.25;
                         }
                     }
 
                     if(weight<1.0)
-                        weight = 1.0;                        
-                } 
+                        weight = 1.0;
+                }
                 constraint["weight"].SetDouble(weight);
 
-                active_constraints_violations[constraint_index] = weight * (constraint["value"].GetDouble()-constraint["ref_value"].GetDouble()) / constraint["ref_value"].GetDouble();                
+                active_constraints_violations[constraint_index] = weight * (constraint["value"].GetDouble()-constraint["ref_value"].GetDouble()) / constraint["ref_value"].GetDouble();
                 for(long unsigned int constraint_control_i = 0; constraint_control_i<constraint["controls"].size(); constraint_control_i++){
                     auto constraint_control_i_name = constraint["controls"][constraint_control_i].GetString();
                     double constraint_control_weight = 1.0;
@@ -289,15 +289,15 @@ public:
                         if (constraint_controlled_object_size==3){
                             const auto & nodal_gradient = node.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(constraint_control_gradient_name));
                             for(int i=0; i<constraint_controlled_object_size; i++){
-                                active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+constraint_controlled_object_size*node_index+i) = nodal_gradient(i); 
-                                L2_norm += nodal_gradient(i) * nodal_gradient(i);     
+                                active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+constraint_controlled_object_size*node_index+i) = nodal_gradient(i);
+                                L2_norm += nodal_gradient(i) * nodal_gradient(i);
                             }
                         }
                         else if (constraint_controlled_object_size==1) {
                             const auto & nodal_gradient = node.FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(constraint_control_gradient_name));
                             active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+node_index) = nodal_gradient;
                             L2_norm += nodal_gradient * nodal_gradient;
-                        } 
+                        }
                         node_index++;
                     }
                     // L2_norm = 1.0;
@@ -306,40 +306,40 @@ public:
                     for (long unsigned int i=0;i<constraint_controlled_object_size*constraint_controlled_obj_model_part.Nodes().size();i++)
                         active_constraints_gradients(constraint_index,constraint_controlled_object_start_index+i) *= (constraint_control_weight/L2_norm);
                 }
-                constraint_index++;                
+                constraint_index++;
             }
         }
 
         for(int cons_i=0;cons_i<num_active_constraints;cons_i++)
-            noalias(row(active_constraints_gradients,cons_i)) = row(active_constraints_gradients,cons_i)/norm_2(row(active_constraints_gradients,cons_i));        
+            noalias(row(active_constraints_gradients,cons_i)) = row(active_constraints_gradients,cons_i)/norm_2(row(active_constraints_gradients,cons_i));
 
 
         auto projection_step_size = mrSettings["projection_step_size"].GetDouble();
-        auto correction_step_size = mrSettings["correction_step_size"].GetDouble();        
+        auto correction_step_size = mrSettings["correction_step_size"].GetDouble();
 
         // apply contraction if necessary
         if (opt_itr>2 && current_is_feasible && prev_is_feasible && (sum_objective_value>last_feasible_obj_val))
             mSumObjectivesImprovements *= 0.9;
 
         if (opt_itr>2 && current_is_feasible && prev_is_feasible && (sum_objective_value<last_feasible_obj_val))
-            mSumObjectivesImprovements *= 1.01;            
+            mSumObjectivesImprovements *= 1.01;
 
         KRATOS_INFO("mSumObjectivesImprovements: ")<<mSumObjectivesImprovements<<std::endl;
 
         if(opt_itr>1){
-        
+
             double scale = 1.0;
             double ratio = mSumObjectivesImprovements/abs(sum_obj_improvement);
             if(ratio>1.0 && sum_obj_improvement<0.0 && sum_obj_improvement_prev<0.0 && current_is_feasible && prev_is_feasible)
-                scale = ratio; 
+                scale = ratio;
 
             if(ratio<1.0 && sum_obj_improvement<0.0 && sum_obj_improvement_prev<0.0 && current_is_feasible && prev_is_feasible)
                 scale = ratio;
 
             if(scale>1.2)
-                scale = 1.2; 
-            if(scale<0.8) 
-                scale = 0.8;                  
+                scale = 1.2;
+            if(scale<0.8)
+                scale = 0.8;
 
             if(sum_obj_improvement>0.0 && current_is_feasible && prev_is_feasible)
                 scale = 0.8;
@@ -352,9 +352,9 @@ public:
         }
 
         sum_obj_improvement_prev = sum_obj_improvement;
-        prev_is_feasible = current_is_feasible;         
+        prev_is_feasible = current_is_feasible;
 
-         
+
         if(num_active_constraints>0)
         {
             // compute feasible self.lin_solversearch direction
@@ -368,12 +368,12 @@ public:
             Vector correction = - prod(trans(active_constraints_gradients), Vector(prod(NTN_inv,active_constraints_violations)));
             double current_sin_alpha = norm_2(projection);
             mrSettings["sin_alpha"].SetDouble(current_sin_alpha);
-    
+
             mSearchDirection = (projection_step_size * projection / norm_2(projection)) + (correction_step_size * correction);
         }
         else
             mSearchDirection = - projection_step_size * mObjectiveGradients / norm_2(mObjectiveGradients);
-            
+
         // set the updates
         int index = 0;
         for(auto& control : mrSettings["controls"]){
@@ -404,7 +404,7 @@ public:
     LinearSolver<DenseSpace, DenseSpace>& mrSolver;
     int mTotalNumControlVars;
     double mSumObjectivesImprovements;
-    double sum_obj_improvement;  
+    double sum_obj_improvement;
     double sum_obj_improvement_prev;
     double last_feasible_obj_val;
     bool current_is_feasible;

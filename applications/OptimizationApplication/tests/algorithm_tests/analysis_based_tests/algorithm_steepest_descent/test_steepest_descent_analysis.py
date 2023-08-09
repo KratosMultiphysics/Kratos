@@ -25,7 +25,7 @@ class TestSteepestDescentAnalysis(kratos_unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        with kratos_unittest.WorkFolderScope(".", __file__):        
+        with kratos_unittest.WorkFolderScope(".", __file__):
             DeleteFileIfExisting("Structure.time")
 
 if __name__ == "__main__":

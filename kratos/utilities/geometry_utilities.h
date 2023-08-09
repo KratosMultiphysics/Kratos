@@ -42,11 +42,8 @@ public:
     /// The index type definition
     using IndexType = std::size_t;
 
-    /// Definition of the node
-    using NodeType = Node;
-
     /// Definition of the geometry
-    using GeometryType = Geometry<NodeType>;
+    using GeometryType = Geometry<Node>;
 
     ///@}
     ///@name Operations
@@ -452,6 +449,46 @@ public:
         );
 
     /**
+     * @brief This function calculates the distance of a 3D point to a 3D quadratic triangle
+     * @details The implementation is done by decomposing the quadratic triangle into 3 triangles and calling PointDistanceToTriangle3D
+     * @param rTrianglePoint1 First point of triangle
+     * @param rTrianglePoint2 Second point of triangle
+     * @param rTrianglePoint3 Third point of triangle
+     * @param rTrianglePoint4 Fourth point of triangle
+     * @param rTrianglePoint5 Fifth point of triangle
+     * @param rTrianglePoint6 Sixth point of triangle
+     * @param rPoint The point which distance is required
+     * @return The distance between the point and the triangle
+     */
+    static double PointDistanceToTriangle3D(
+        const Point& rTrianglePoint1,
+        const Point& rTrianglePoint2,
+        const Point& rTrianglePoint3,
+        const Point& rTrianglePoint4,
+        const Point& rTrianglePoint5,
+        const Point& rTrianglePoint6,
+        const Point& rPoint
+        );
+
+    /**
+     * @brief This function calculates the distance of a 3D point to a 3D quadrilateral
+     * @details The implementation is done by decomposing the quadrilateral into 2 triangles and calling PointDistanceToTriangle3D
+     * @param rQuadrilateralPoint1 First point of quadrilateral
+     * @param rQuadrilateralPoint2 Second point of quadrilateral
+     * @param rQuadrilateralPoint3 Third point of quadrilateral
+     * @param rQuadrilateralPoint4 Third point of quadrilateral
+     * @param rPoint The point which distance is required
+     * @return The distance between the point and the quadrilateral
+     */
+    static double PointDistanceToQuadrilateral3D(
+        const Point& rQuadrilateralPoint1,
+        const Point& rQuadrilateralPoint2,
+        const Point& rQuadrilateralPoint3,
+        const Point& rQuadrilateralPoint4,
+        const Point& rPoint
+        );
+
+    /**
      * @brief Calculate the gradients of shape functions.
      * @param rDN_De local gradient of shape functions.
      * @param rInvJ inverse of the element Jacobian.
@@ -651,6 +688,38 @@ public:
         GeometryType::CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         );
+
+    /**
+    * @brief Computes the distance between an point in global coordinates and the closest point of this geometry.
+    * @param rGeometry the geometry to compute the distance to.
+    * @param rPointGlobalCoordinates the point to which the closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    template <class TGeometryType>
+    static double CalculateDistanceFrom3DGeometry(
+        const TGeometryType& rGeometry,
+        const typename TGeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        typename TGeometryType::CoordinatesArrayType aux_coordinates;
+        if (rGeometry.IsInside(rPointGlobalCoordinates, aux_coordinates, Tolerance)) {
+            return 0.0;
+        }
+
+        // Generate faces
+        std::vector<double> distances(rGeometry.FacesNumber());
+        unsigned int i = 0;
+        for (auto& r_face : rGeometry.GenerateFaces()) {
+            distances[i] = r_face.CalculateDistance(rPointGlobalCoordinates, Tolerance);
+            ++i;
+        }
+        const auto min = std::min_element(distances.begin(), distances.end());
+        return *min;
+    }
 };
 
 }  // namespace Kratos.

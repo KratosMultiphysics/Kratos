@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_NEWMARK_QUASISTATIC_PW_SCHEME )
-#define  KRATOS_NEWMARK_QUASISTATIC_PW_SCHEME
+#pragma once
 
 // Project includes
 #include "includes/define.h"
@@ -26,39 +25,24 @@ namespace Kratos
 {
 
 template<class TSparseSpace, class TDenseSpace>
-
 class NewmarkQuasistaticPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION( NewmarkQuasistaticPwScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace> MotherType;
+    using BaseType              = Scheme<TSparseSpace,TDenseSpace>;
+    using TSystemMatrixType     = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType     = typename BaseType::TSystemVectorType;
+    using MotherType = NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>;
     using MotherType::mDeltaTime;
+// mBeta and mGamma are not really used
     using MotherType::mBeta;
     using MotherType::mGamma;
     using MotherType::mTheta;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    ///Constructor
-    NewmarkQuasistaticPwScheme(double theta) : 
+    explicit NewmarkQuasistaticPwScheme(double theta) :
         NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(0.25, 0.5, theta)
-    { }
-
-    //------------------------------------------------------------------------------------
-
-    ///Destructor
-    ~NewmarkQuasistaticPwScheme() override {}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    {}
 
     int Check(const ModelPart& rModelPart) const override
     {
@@ -69,45 +53,42 @@ public:
         //check that variables are correctly allocated
         for (const auto& rNode : rModelPart.Nodes())
         {
-            if (rNode.SolutionStepsDataHas(WATER_PRESSURE) == false)
-                KRATOS_ERROR << "WATER_PRESSURE variable is not allocated for node "
-                             << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(WATER_PRESSURE))
+                << "WATER_PRESSURE variable is not allocated for node "
+                << rNode.Id()
+                << std::endl;
 
-            if (rNode.SolutionStepsDataHas(DT_WATER_PRESSURE) == false)
-                KRATOS_ERROR << "DT_WATER_PRESSURE variable is not allocated for node "
-                             << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF_NOT(rNode.SolutionStepsDataHas(DT_WATER_PRESSURE))
+                << "DT_WATER_PRESSURE variable is not allocated for node "
+                << rNode.Id()
+                << std::endl;
 
-            if (rNode.HasDofFor(WATER_PRESSURE) == false)
-                KRATOS_ERROR << "missing WATER_PRESSURE dof on node "
-                             << rNode.Id()
-                             << std::endl;
+            KRATOS_ERROR_IF_NOT(rNode.HasDofFor(WATER_PRESSURE))
+                << "missing WATER_PRESSURE dof on node "
+                << rNode.Id()
+                << std::endl;
         }
 
         //check for minimum value of the buffer index.
-        if (rModelPart.GetBufferSize() < 2)
-            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is "
-                         << rModelPart.GetBufferSize()
-                         << std::endl;
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2)
+            << "insufficient buffer size. Buffer size should be greater than 2. Current size is "
+            << rModelPart.GetBufferSize()
+            << std::endl;
 
         // Check beta, gamma and theta
-        if (mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
-            KRATOS_ERROR << "Some of the scheme variables: beta, gamma or theta has an invalid value "
-                         << std::endl;
+        KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
+            << "Some of the scheme variables: beta, gamma or theta has an invalid value "
+            << std::endl;
 
         return 0;
 
         KRATOS_CATCH( "" )
     }
 
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+    void FinalizeSolutionStep( ModelPart& rModelPart,
+                               TSystemMatrixType& A,
+                               TSystemVectorType& Dx,
+                               TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -116,14 +97,7 @@ public:
         KRATOS_CATCH("")
     }
 
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
-
-    /// Member Variables
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override
     {
         KRATOS_TRY
@@ -134,13 +108,11 @@ protected:
                                         - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
             const auto &PreviousDtPressure = rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE, 1);
 
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  1.0/(mTheta*mDeltaTime)*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
+            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  (1.0/(mTheta*mDeltaTime))*(DeltaPressure - (1.0-mTheta)*mDeltaTime*PreviousDtPressure);
         });
 
         KRATOS_CATCH( "" )
     }
-
 }; // Class NewmarkQuasistaticPwScheme
-}  // namespace Kratos
 
-#endif // KRATOS_NEWMARK_QUASISTATIC_PW_SCHEME defined
+}
