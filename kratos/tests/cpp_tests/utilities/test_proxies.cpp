@@ -53,6 +53,9 @@ auto MakeProxyTestModel()
         r_condition.GetValue(PRESSURE) = r_condition.Id();
     }
 
+    r_model_part.GetProcessInfo().GetValue(PRESSURE) = 2.0;
+    r_model_part.GetValue(PRESSURE) = 2.0;
+
     return p_model;
 }
 
@@ -157,6 +160,90 @@ KRATOS_TEST_CASE_IN_SUITE(ConditionProxy, KratosCoreFastSuite)
     auto p_model = MakeProxyTestModel();
     ModelPart& r_model_part = p_model->GetModelPart("root");
     TestEntityProxy<Globals::DataLocation::Condition>(r_model_part.Conditions());
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(ProcessInfoProxy, KratosCoreFastSuite)
+{
+    auto p_model = MakeProxyTestModel();
+
+    ModelPart& r_mutable_model_part = p_model->GetModelPart("root");
+    const ModelPart& r_immutable_model_part = r_mutable_model_part;
+
+    {
+        auto proxy = MakeProxy<Globals::DataLocation::ProcessInfo>(r_immutable_model_part.GetProcessInfo());
+
+        // Check immutable EntityProxy::GetValue
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+    }
+
+    {
+        auto proxy = MakeProxy<Globals::DataLocation::ProcessInfo>(r_mutable_model_part.GetProcessInfo());
+
+        // Check immutable EntityProxy::GetValue
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+
+        // Check mutable EntityProxy::GetValue
+        proxy.GetValue(PRESSURE) *= 3.0;
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 3.0 * 2.0);
+
+        // Check EntityProxy::SetValue
+        proxy.SetValue(PRESSURE, 2.0);
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+    }
+
+    {
+        auto proxy = MakeProxy<Globals::DataLocation::ProcessInfo>(r_immutable_model_part);
+
+        // Check immutable EntityProxy::GetValue
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+    }
+
+    {
+        auto proxy = MakeProxy<Globals::DataLocation::ProcessInfo>(r_mutable_model_part);
+
+        // Check immutable EntityProxy::GetValue
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+
+        // Check mutable EntityProxy::GetValue
+        proxy.GetValue(PRESSURE) *= 3.0;
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 3.0 * 2.0);
+
+        // Check EntityProxy::SetValue
+        proxy.SetValue(PRESSURE, 2.0);
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+    }
+}
+
+
+KRATOS_TEST_CASE_IN_SUITE(ModelPartProxy, KratosCoreFastSuite)
+{
+    auto p_model = MakeProxyTestModel();
+
+    ModelPart& r_mutable_model_part = p_model->GetModelPart("root");
+    const ModelPart& r_immutable_model_part = r_mutable_model_part;
+
+    {
+        auto proxy = MakeProxy<Globals::DataLocation::ModelPart>(r_immutable_model_part);
+
+        // Check immutable EntityProxy::GetValue
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+    }
+
+    {
+        auto proxy = MakeProxy<Globals::DataLocation::ModelPart>(r_mutable_model_part);
+
+        // Check immutable EntityProxy::GetValue
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+
+        // Check mutable EntityProxy::GetValue
+        proxy.GetValue(PRESSURE) *= 3.0;
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 3.0 * 2.0);
+
+        // Check EntityProxy::SetValue
+        proxy.SetValue(PRESSURE, 2.0);
+        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+    }
 }
 
 
