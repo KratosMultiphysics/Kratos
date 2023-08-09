@@ -8,7 +8,7 @@ class TestEntityProxy(KratosMultiphysics.KratosUnittest.TestCase):
 
     def setUp(self) -> None:
         self.model = KratosMultiphysics.Model()
-        self.model_part = self.model.CreateModelPart("root")
+        self.model_part: KratosMultiphysics.ModelPart = self.model.CreateModelPart("root")
         self.model_part.AddNodalSolutionStepVariable(KratosMultiphysics.PRESSURE)
         properties = KratosMultiphysics.Properties(1)
 
@@ -38,7 +38,7 @@ class TestEntityProxy(KratosMultiphysics.KratosUnittest.TestCase):
         self.assertTrue(proxy.HasValue(KratosMultiphysics.PRESSURE))
         self.assertFalse(proxy.HasValue(KratosMultiphysics.VELOCITY))
 
-        proxy = KratosMultiphysics.EntityProxy(KratosMultiphysics.Globals.DataLocation.ProcessInfo, self.model_part.ProcessInfo)
+        proxy = KratosMultiphysics.EntityProxy(KratosMultiphysics.Globals.DataLocation.ModelPart, self.model_part)
         self.assertTrue(proxy.HasValue(KratosMultiphysics.PRESSURE))
         self.assertFalse(proxy.HasValue(KratosMultiphysics.VELOCITY))
 
@@ -54,7 +54,7 @@ class TestEntityProxy(KratosMultiphysics.KratosUnittest.TestCase):
         proxy = KratosMultiphysics.EntityProxy(KratosMultiphysics.Globals.DataLocation.ProcessInfo, self.model_part)
         self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), 2.0)
 
-        proxy = KratosMultiphysics.EntityProxy(KratosMultiphysics.Globals.DataLocation.ProcessInfo, self.model_part.ProcessInfo)
+        proxy = KratosMultiphysics.EntityProxy(KratosMultiphysics.Globals.DataLocation.ModelPart, self.model_part)
         self.assertEqual(proxy.GetValue(KratosMultiphysics.PRESSURE), 2.0)
 
         for entity_type in (KratosMultiphysics.Globals.DataLocation.NodeHistorical,
@@ -69,7 +69,7 @@ class TestEntityProxy(KratosMultiphysics.KratosUnittest.TestCase):
         process_info_proxy = KratosMultiphysics.EntityProxy(KratosMultiphysics.Globals.DataLocation.ProcessInfo, self.model_part)
         process_info_proxy.SetValue(KratosMultiphysics.PRESSURE, process_info_proxy.GetValue(KratosMultiphysics.PRESSURE) * 2)
 
-        model_part_proxy = KratosMultiphysics.EntityProxy(KratosMultiphysics.Globals.DataLocation.ProcessInfo, self.model_part)
+        model_part_proxy = KratosMultiphysics.EntityProxy(KratosMultiphysics.Globals.DataLocation.ModelPart, self.model_part)
         model_part_proxy.SetValue(KratosMultiphysics.PRESSURE, model_part_proxy.GetValue(KratosMultiphysics.PRESSURE) * 2)
 
         self.assertAlmostEqual(process_info_proxy.GetValue(KratosMultiphysics.PRESSURE), 4.0)
