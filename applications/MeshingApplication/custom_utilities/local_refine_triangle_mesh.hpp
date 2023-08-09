@@ -145,8 +145,8 @@ public:
 
                 if (geom.size() == 2)
                 {
-                    int index_0 = geom[0].Id() - 1;
-                    int index_1 = geom[1].Id() - 1;
+                    int index_0 = mMapNodeIdToPos[geom[0].Id()];
+                    int index_1 = mMapNodeIdToPos[geom[1].Id()];
                     int new_id;
 
                     if (index_0 > index_1)

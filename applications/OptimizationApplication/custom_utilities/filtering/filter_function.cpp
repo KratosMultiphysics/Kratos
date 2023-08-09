@@ -27,7 +27,7 @@ FilterFunction::FilterFunction(const std::string& rKernelFunctionType)
 
     if (rKernelFunctionType == "gaussian") {
         // Type 1: Gaussian function
-        mFilterFunctional =  [](double radius, double distance) {return std::max(0.0, exp(-(distance*distance) / (2 * radius * radius / 9.0)));};
+        mFilterFunctional =  [](double radius, double distance) {return std::max(0.0, exp(-(distance*distance)));};
     } else if (rKernelFunctionType == "linear") {
         // Type 2: Linear function
         mFilterFunctional =  [](double radius, double distance) {return std::max(0.0, (radius - distance) / radius);};
