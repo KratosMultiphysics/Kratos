@@ -24,10 +24,12 @@ std::string GetDataLocationEnumName(Globals::DataLocation Location)
 {
     std::string output;
     switch (Location) {
-        case Globals::DataLocation::NodeHistorical: output = "NodeHistorical";
-        case Globals::DataLocation::NodeNonHistorical: output = "NodeNonHistorical";
-        case Globals::DataLocation::Element: output = "Element";
-        case Globals::DataLocation::Condition: output = "Condition";
+        case Globals::DataLocation::NodeHistorical: output = "NodeHistorical"; break;
+        case Globals::DataLocation::NodeNonHistorical: output = "NodeNonHistorical"; break;
+        case Globals::DataLocation::Element: output = "Element"; break;
+        case Globals::DataLocation::Condition: output = "Condition"; break;
+        case Globals::DataLocation::ProcessInfo: output = "ProcessInfo"; break;
+        case Globals::DataLocation::ModelPart: output = "ModelPart"; break;
         default: KRATOS_ERROR << "Unsupported DataLocation enum";
     };
     return output;
@@ -57,11 +59,32 @@ DynamicEntityProxy::DynamicEntityProxy(Globals::DataLocation Location, Element& 
 }
 
 
-DynamicEntityProxy::DynamicEntityProxy(Globals::DataLocation Location, Condition& Condition)
-    : mProxy(EntityProxy<Globals::DataLocation::Condition,true>(Condition))
+DynamicEntityProxy::DynamicEntityProxy(Globals::DataLocation Location, Condition& rCondition)
+    : mProxy(EntityProxy<Globals::DataLocation::Condition,true>(rCondition))
 {
     KRATOS_ERROR_IF_NOT(Location == Globals::DataLocation::Condition)
     << "Constructing a condition proxy requires 'Condition' DataLocation, not '" << GetDataLocationEnumName(Location) << "'";
+}
+
+
+DynamicEntityProxy::DynamicEntityProxy(Globals::DataLocation Location, ProcessInfo& rProcessInfo)
+    : mProxy(EntityProxy<Globals::DataLocation::ProcessInfo,true>(rProcessInfo))
+{
+    KRATOS_ERROR_IF_NOT(Location == Globals::DataLocation::ProcessInfo)
+    << "Constructing a process info proxy requires 'ProcessInfo' DataLocation, not '" << GetDataLocationEnumName(Location) << "'";
+}
+
+
+DynamicEntityProxy::DynamicEntityProxy(Globals::DataLocation Location, ModelPart& rModelPart)
+{
+    switch (Location) {
+        case Globals::DataLocation::ProcessInfo: mProxy = MakeProxy<Globals::DataLocation::ProcessInfo>(rModelPart); break;
+        case Globals::DataLocation::ModelPart: mProxy = MakeProxy<Globals::DataLocation::ModelPart>(rModelPart); break;
+        default: {
+            KRATOS_ERROR << "Invalid DataLocation-Entity combination: '"
+            << GetDataLocationEnumName(Location) << "'-ModelPart";
+        }
+    };
 }
 
 

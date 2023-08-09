@@ -37,7 +37,11 @@ public:
 
     DynamicEntityProxy(Globals::DataLocation Location, Element& rElement);
 
-    DynamicEntityProxy(Globals::DataLocation Location, Condition& Condition);
+    DynamicEntityProxy(Globals::DataLocation Location, Condition& rCondition);
+
+    DynamicEntityProxy(Globals::DataLocation Location, ProcessInfo& rProcessInfo);
+
+    DynamicEntityProxy(Globals::DataLocation Location, ModelPart& rModelPart);
 
     template <class TVariable>
     bool HasValue(const TVariable& rVariable) const
@@ -96,7 +100,9 @@ private:
         EntityProxy<Globals::DataLocation::NodeHistorical,true>,
         EntityProxy<Globals::DataLocation::NodeNonHistorical,true>,
         EntityProxy<Globals::DataLocation::Element,true>,
-        EntityProxy<Globals::DataLocation::Condition,true>
+        EntityProxy<Globals::DataLocation::Condition,true>,
+        EntityProxy<Globals::DataLocation::ProcessInfo,true>,
+        EntityProxy<Globals::DataLocation::ModelPart,true>
     > mProxy;
 }; // class DynamicEntityProxy
 

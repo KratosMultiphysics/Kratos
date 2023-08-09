@@ -271,6 +271,12 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<Globals::DataLocation,Condition&>(),
              py::arg("data_location"),
              py::arg("entity"))
+        .def(py::init<Globals::DataLocation,ProcessInfo&>(),
+             py::arg("data_location"),
+             py::arg("entity"))
+        .def(py::init<Globals::DataLocation,ModelPart&>(),
+             py::arg("data_location"),
+             py::arg("entity"))
         ;
     DefineDynamicEntityProxyMembers<bool>(dynamic_entity_proxy);
     DefineDynamicEntityProxyMembers<int>(dynamic_entity_proxy);
