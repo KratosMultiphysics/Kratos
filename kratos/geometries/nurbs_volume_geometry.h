@@ -894,7 +894,8 @@ public:
     * @param rProjectedPointLocalCoordinates the location of the
     *        projection in local coordinates.
     * @param Tolerance not used.
-    * @return 1
+    * @return This functions always returns 1 (successful projection).
+    *         Since no Netwon-Raphson is performed, the projection is always considered as successful.
     */
     int ProjectionPointGlobalToLocalSpace(
         const CoordinatesArrayType& rPointGlobalCoordinates,
@@ -906,18 +907,18 @@ public:
         const CoordinatesArrayType& upper_point = (this->end()-1)->GetInitialPosition();
 
         const Vector& knots_u = this->KnotsU();
-        const SizeType n_knots_u = this->NumberOfKnotsU();
+        const SizeType nb_knots_u = this->NumberOfKnotsU();
         const Vector& knots_v = this->KnotsV();
-        const SizeType n_knots_v = this->NumberOfKnotsV();
+        const SizeType nb_knots_v = this->NumberOfKnotsV();
         const Vector& knots_w = this->KnotsW();
-        const SizeType n_knots_w = this->NumberOfKnotsW();
+        const SizeType nb_knots_w = this->NumberOfKnotsW();
 
         rProjectedPointLocalCoordinates[0] = ((rPointGlobalCoordinates[0] - lower_point[0]) / std::abs( lower_point[0] - upper_point[0])
-                        * std::abs(knots_u[n_knots_u-1] - knots_u[0])) + knots_u[0];
+                        * std::abs(knots_u[nb_knots_u-1] - knots_u[0])) + knots_u[0];
         rProjectedPointLocalCoordinates[1] = ((rPointGlobalCoordinates[1] - lower_point[1]) / std::abs( lower_point[1] - upper_point[1])
-                        * std::abs(knots_v[n_knots_v-1] - knots_v[0])) + knots_v[0];
+                        * std::abs(knots_v[nb_knots_v-1] - knots_v[0])) + knots_v[0];
         rProjectedPointLocalCoordinates[2] = ((rPointGlobalCoordinates[2] - lower_point[2]) / std::abs( lower_point[2] - upper_point[2])
-                        * std::abs(knots_w[n_knots_w-1] - knots_w[0])) + knots_w[0];
+                        * std::abs(knots_w[nb_knots_w-1] - knots_w[0])) + knots_w[0];
         return 1;
     }
 
