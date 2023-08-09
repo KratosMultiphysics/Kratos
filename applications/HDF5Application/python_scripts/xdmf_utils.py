@@ -598,7 +598,7 @@ def CreateXdmfTemporalGridFromSinglefile(h5_file_name, h5path_pattern_to_mesh, h
         compound_dict = {}
         for key in output_meshes_dict:
             compound_dict[key] = (True, False)
-        for key in output_results_dict.keys():
+        for key in output_results_dict:
             if key in compound_dict:
                 compound_dict[key][1] = True
             else:
