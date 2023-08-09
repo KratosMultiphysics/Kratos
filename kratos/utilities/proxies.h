@@ -108,9 +108,9 @@ public:
 
     /// @brief Fetch the value corresponding to the input variable in the wrapped entity.
     template <class TValue>
-    typename std::conditional_t<std::is_integral_v<TValue> || std::is_floating_point_v<TValue>,
-                              TValue,           // <== return by value if scalar type
-                              const TValue&>    // <== return by reference in non-scalar type
+    std::conditional_t<std::is_integral_v<TValue> || std::is_floating_point_v<TValue>,
+                       TValue,           // <== return by value if scalar type
+                       const TValue&>    // <== return by reference in non-scalar type
     GetValue(const Variable<TValue>& rVariable) const
     {
         return VariableUtils::GetValue<TLocation>(*mpEntity.value(), rVariable);
