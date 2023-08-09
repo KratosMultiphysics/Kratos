@@ -65,8 +65,8 @@ class TemporalController(Controller):
                  operation: operations.AggregateOperation,
                  settings: KratosMultiphysics.Parameters):
         super().__init__(model_part, operation)
-        time_frequency: typing.Optional[float] = None
-        step_frequency: typing.Optional[int] = None
+        time_frequency: Optional[float] = None
+        step_frequency: Optional[int] = None
         if settings.Has("time_frequency"):
             time_frequency = settings["time_frequency"].GetDouble()
         if settings.Has("step_frequency"):
@@ -82,12 +82,8 @@ class TemporalController(Controller):
         if time_frequency is None:
             time_frequency = float("inf")
 
-        # Step frequency was not defined => the output won't be triggered by changes in STEP
-        if step_frequency is None:
-            step_frequency = -1
-
-        self.__time_frequency = time_frequency
-        self.__step_frequency = step_frequency
+        self.__time_frequency: float = time_frequency
+        self.__step_frequency: Optional[int] = step_frequency
         self.__last_output_time = self._model_part.ProcessInfo[KratosMultiphysics.TIME]
         self.__last_output_step = self._model_part.ProcessInfo[KratosMultiphysics.STEP]
 
@@ -105,9 +101,10 @@ class TemporalController(Controller):
         # TODO: separately keeping track of steps and time internally is not a good
         # idea. What happens if the solution process involves jumping back and forth
         # in time (restarts, checkpointing)? @matekelemen
-        step_difference = self._model_part.ProcessInfo[KratosMultiphysics.STEP] - self.__last_output_step
-        if self.__step_frequency <= step_difference:
-            return True
+        if self.__step_frequency is not None:
+            step_difference = self._model_part.ProcessInfo[KratosMultiphysics.STEP] - self.__last_output_step
+            if self.__step_frequency <= step_difference:
+                return True
 
         time_difference = self._model_part.ProcessInfo[KratosMultiphysics.TIME] - self.__last_output_time
         if self.__time_frequency <= time_difference:
