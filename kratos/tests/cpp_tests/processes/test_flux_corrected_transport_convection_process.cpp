@@ -24,6 +24,7 @@
 #include "processes/find_global_nodal_neighbours_process.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "testing/testing.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos::Testing {
 
@@ -47,6 +48,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcess2D, KratosCoreF
     r_model_part.AddNodalSolutionStepVariable(DISTANCE);
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
+    VariableUtils().AddDof(DISTANCE, r_model_part);
 
     // Calculate nodal neighbours
     // TODO: Temporary solution until we skip the neighbours calculation
@@ -164,6 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
     r_model_part.AddNodalSolutionStepVariable(DISTANCE);
     r_model_part.AddNodalSolutionStepVariable(VELOCITY);
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
+    VariableUtils().AddDof(DISTANCE, r_model_part);
 
     // Calculate nodal neighbours
     // TODO: Temporary solution until we skip the neighbours calculation
@@ -174,9 +177,9 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
     Parameters fct_parameters(R"({
         "model_part_name" : "ModelPart",
         "echo_level" : 1,
-        "max_CFL" : 0.2,
+        "max_CFL" : 0.1,
         "echo_level" : 2,
-        "time_scheme" : "RK3-TVD"
+        "time_scheme" : "forward_euler"
     })");
 
     // Set nodal values
@@ -213,6 +216,11 @@ KRATOS_TEST_CASE_IN_SUITE(FluxCorrectedTransportConvectionProcessZalesak, Kratos
         r_node.FastGetSolutionStepValue(DISTANCE, 1) = dist_func(r_node);
         r_node.FastGetSolutionStepValue(VELOCITY, 0) = aux_v;
         r_node.FastGetSolutionStepValue(VELOCITY, 1) = aux_v;
+    }
+
+    // Fix DISTANCE in the square boundaries
+    for (auto& r_node : r_model_part.GetSubModelPart("Skin").Nodes()) {
+        r_node.Fix(DISTANCE);
     }
 
     // Set and execute the FCT convection process (time loop)

@@ -1,10 +1,12 @@
+from typing import Optional
+
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import ContainerExpressionTypes
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
-from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem import OptimizationProblem
@@ -18,8 +20,7 @@ def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_pro
 
     return ShellThicknessControl(parameters["name"].GetString(), model, parameters["settings"], optimization_problem)
 
-def GetImplicitFilterParameters(model_part: Kratos.ModelPart, parameters: Kratos.Parameters):
-    model_part_name = model_part.FullName()
+def GetImplicitFilterParameters(model_part_name: str, parameters: Kratos.Parameters) -> Kratos.Parameters:
     filter_radius = parameters["filter_settings"]["radius"].GetDouble()
     linear_solver_settings = parameters["filter_settings"]["linear_solver_settings"]
     shell_scalar_filter_parameters = Kratos.Parameters("""
@@ -115,11 +116,12 @@ class ShellThicknessControl(Control):
         if not self.filter_type in self.supported_filter_types:
             raise RuntimeError(f"The specified filter type \"{self.filter_type}\" is not supported. Followings are the variables:\n\t" + "\n\t".join([k for k in self.supported_filter_types]))
 
-        controlled_model_parts = [model[model_part_name] for model_part_name in parameters["controlled_model_part_names"].GetStringArray()]
-        if len(controlled_model_parts) == 0:
+        controlled_model_names_parts = parameters["controlled_model_part_names"].GetStringArray()
+        if len(controlled_model_names_parts) == 0:
             raise RuntimeError(f"No model parts were provided for ShellThicknessControl. [ control name = \"{self.GetName()}\"]")
 
-        self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", controlled_model_parts, False)
+        self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_names_parts, False)
+        self.model_part: 'Optional[Kratos.ModelPart]' = None
 
         self.fixed_model_parts_and_thicknesses: 'dict[str, float]' = {}
         for model_part_name, thickness_params in self.parameters["fixed_model_parts_and_thicknesses"].items():
@@ -128,7 +130,7 @@ class ShellThicknessControl(Control):
         if not all(entry.GetDouble() in self.physical_thicknesses for entry in self.fixed_model_parts_and_thicknesses.values()):
             raise RuntimeError("fixed_model_parts_thicknesses should exist in physical_thicknesses !")
 
-        helmholtz_settings = GetImplicitFilterParameters(self.model_part, self.parameters)
+        helmholtz_settings = GetImplicitFilterParameters(self.model_part_operation.GetModelPartFullName(), self.parameters)
 
         # create implicit filter using Helmholtz analysis
         self.filter = HelmholtzAnalysis(self.model, helmholtz_settings)
@@ -136,7 +138,7 @@ class ShellThicknessControl(Control):
         self.is_initialized = False
 
     def Initialize(self) -> None:
-        ModelPartUtilities.ExecuteOperationOnModelPart(self.model_part)
+        self.model_part = self.model_part_operation.GetModelPart()
 
         if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
