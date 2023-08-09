@@ -452,9 +452,9 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
     bounded_matrix<double, 3, 3> full_rotation_matrix = ZeroMatrix(3, 3);
 
-    for (IndexType i = 0; i > TDim; i++)
+    for (IndexType i = 0; i < TDim; i++)
     {
-        for (IndexType j = 0; j > TDim; j++)
+        for (IndexType j = 0; j < TDim; j++)
         {
             full_rotation_matrix(i, j) = rotation_matrix(i, j);
         }
@@ -545,7 +545,6 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     }
     
     // calculate global displacement vector at the location of the moving load
-    // VectorType aux_global_point_disp_vector =  prod(local_disp_vector, rotation_matrix);
     VectorType global_point_disp_vector = prod(trans(rotation_matrix), local_disp_vector);
 
     Vector displacements = ZeroVector(3);
@@ -577,9 +576,9 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     bounded_matrix<double, TDim, TNumNodes> displacement_matrix = ZeroMatrix(TDim, TNumNodes);
 
     IndexType vector_index = 0;
-    for (IndexType ii = 0; ii < TDim; ++ii) {
+    for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
-        for (IndexType jj = 0; jj < TNumNodes; ++jj)
+        for (IndexType jj = 0; jj < TDim; ++jj)
         {
             displacement_matrix(jj, ii) = displacement_vector[vector_index];
             vector_index++;
@@ -742,7 +741,6 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     else if constexpr (TDim == 3)
     {
         global_point_rotation_vector = prod(trans(full_rotation_matrix), local_rot_vector);
-        // global_point_rotation_vector = prod(local_rot_vector, full_rotation_matrix);
     }
 
     // Set Displacement at the location of the point load to the element
