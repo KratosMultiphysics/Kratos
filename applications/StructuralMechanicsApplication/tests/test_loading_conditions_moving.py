@@ -590,14 +590,15 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         strategy = self.setup_strategy(mp)
 
         # create nodes
-        coords_node_2 = [math.sqrt(2.0), math.sqrt(2.0), 0.0]
+        coords_node_2 = [math.sqrt(2.0), 0.0, math.sqrt(2.0)]
 
         node_1 = mp.CreateNewNode(1, 0.0, 0.0, 0.0)
         node_2 = mp.CreateNewNode(2, coords_node_2[0], coords_node_2[1], coords_node_2[2])
 
-        rotation = math.atan(coords_node_2[1] / coords_node_2[0])
-        length = math.sqrt(coords_node_2[0] ** 2 + coords_node_2[1] ** 2)
+        rotation = math.atan(coords_node_2[2] / coords_node_2[0])
+        length = math.sqrt(coords_node_2[0] ** 2 + coords_node_2[1] ** 2 + coords_node_2[2] ** 2)
 
+        # add dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, mp)
@@ -610,14 +611,15 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
                                                   mp)
 
         disp_left, disp_right = 2, 0.0
-        node_1.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, disp_left)
-        node_2.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, disp_right)
-        node_1.Fix(KratosMultiphysics.DISPLACEMENT_Y)
-        node_2.Fix(KratosMultiphysics.DISPLACEMENT_Y)
+        node_1.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, disp_left)
+        node_2.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, disp_right)
+        node_1.Fix(KratosMultiphysics.DISPLACEMENT_Z)
+        node_2.Fix(KratosMultiphysics.DISPLACEMENT_Z)
 
         location_load = 0.5
 
-        expected_deflection_x, expected_deflection_y = self.calculate_deflection_of_beam(disp_left, disp_right,
+        # calculate expected deflection and rotation at the location of the load
+        expected_deflection_x, expected_deflection_z = self.calculate_deflection_of_beam(disp_left, disp_right,
                                                                                          0, 0, length,
                                                                                          location_load, rotation)
 
@@ -633,16 +635,19 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         # solve system and calculate displacement and rotation at the location of the load
         strategy.Solve()
 
-        # get calculated displacement at the load
+        # get calculated displacement at the load position
         disp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
 
         self.assertAlmostEqual(disp[0], expected_deflection_x)
-        self.assertAlmostEqual(disp[1], expected_deflection_y)
+        self.assertAlmostEqual(disp[1], 0)
+        self.assertAlmostEqual(disp[2], expected_deflection_z)
 
-        # get calculated rotation at the load
+        # get calculated rotation at the load position
         rot = cond.GetValue(KratosMultiphysics.ROTATION)
 
-        self.assertAlmostEqual(rot[2], expected_rotation)
+        self.assertAlmostEqual(rot[0], 0)
+        self.assertAlmostEqual(rot[1], expected_rotation)
+        self.assertAlmostEqual(rot[2], 0)
 
     def _MovingLoadCondition2D3N(self):
         current_model = KratosMultiphysics.Model()

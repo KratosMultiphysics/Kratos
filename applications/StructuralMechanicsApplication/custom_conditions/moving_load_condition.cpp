@@ -581,7 +581,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
         for (IndexType jj = 0; jj < TNumNodes; ++jj)
         {
-            displacement_matrix(ii, jj) = displacement_vector[vector_index];
+            displacement_matrix(jj, ii) = displacement_vector[vector_index];
             vector_index++;
         }
 
@@ -718,19 +718,19 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
         // calculate inner product local displacement and shape functions
         for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
-            local_rotation_axis_1 += local_disp_matrix(1, ii) * shear_shape_functions_derivatives_vector[ii];
-            local_rotation_axis_2 += local_disp_matrix(2, ii) * shear_shape_functions_derivatives_vector[ii];
+            local_rotation_axis_1 += local_disp_matrix(2, ii) * shear_shape_functions_derivatives_vector[ii];
+            local_rotation_axis_2 += local_disp_matrix(1, ii) * shear_shape_functions_derivatives_vector[ii];
 
             if (has_rot_dof)
             {
-                local_rotation_axis_1 += local_nodal_rotation_matrix(2, ii) * rotational_shape_functions_derivatives_vector[ii];
-                local_rotation_axis_2 += local_nodal_rotation_matrix(1, ii) * rotational_shape_functions_derivatives_vector[ii];
+                local_rotation_axis_1 += local_nodal_rotation_matrix(1, ii) * rotational_shape_functions_derivatives_vector[ii];
+                local_rotation_axis_2 += local_nodal_rotation_matrix(2, ii) * rotational_shape_functions_derivatives_vector[ii];
             }
         }
 
         local_rot_vector(0) = 0;
-        local_rot_vector(1) = local_rotation_axis_2;
-        local_rot_vector(2) = local_rotation_axis_1;
+        local_rot_vector(1) = local_rotation_axis_1;
+        local_rot_vector(2) = local_rotation_axis_2;
     }
 
     // calculate global displacement vector at the location of the moving load
