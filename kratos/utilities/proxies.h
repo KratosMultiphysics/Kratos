@@ -19,6 +19,7 @@
 #include "includes/element.h" // Element
 #include "includes/condition.h" // Condition
 #include "includes/model_part.h" // ModelPart::NodesContainerType, ModelPart::ElementsContainerType, ModelPart::ConditionsContainerType
+#include "utilities/variable_utils.h" // VariableUtils::HasValue, VariableUtils::GetValue, VariableUtils::SetValue
 
 // System includes
 #include <type_traits> // remove_reference_t, is_const_v, is_same_v, decay_t
@@ -93,11 +94,7 @@ public:
     template <class TValue>
     bool HasValue(const Variable<TValue>& rVariable) const noexcept
     {
-        if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
-            return mpEntity.value()->SolutionStepsDataHas(rVariable);
-        } else {
-            return mpEntity.value()->Has(rVariable);
-        }
+        return VariableUtils::HasValue<TLocation>(*mpEntity.value(), rVariable);
     }
 
     /// @brief Fetch the value corresponding to the input variable in the wrapped entity.
@@ -107,22 +104,14 @@ public:
                               const TValue&>    // <== return by reference in non-scalar type
     GetValue(const Variable<TValue>& rVariable) const
     {
-        if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
-            return mpEntity.value()->GetSolutionStepValue(rVariable);
-        } else {
-            return mpEntity.value()->GetValue(rVariable);
-        }
+        return VariableUtils::GetValue<TLocation>(*mpEntity.value(), rVariable);
     }
 
     /// @brief Fetch the value corresponding to the input variable in the wrapped entity.
     template <class TValue, std::enable_if_t</*this is required for SFINAE*/!std::is_same_v<TValue,void> && TMutable,bool> = true>
     TValue& GetValue(const Variable<TValue>& rVariable)
     {
-        if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
-            return mpEntity.value()->GetSolutionStepValue(rVariable);
-        } else {
-            return mpEntity.value()->GetValue(rVariable);
-        }
+        return VariableUtils::GetValue<TLocation>(*mpEntity.value(), rVariable);
     }
 
     /// @brief Overwrite the value corresponding to the input variable in the wrapped entity.
@@ -132,11 +121,7 @@ public:
                                      TValue,         /*pass scalar types by value*/
                                      const TValue&>  /*pass non-scalar types by reference*/ Value)
     {
-        if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
-            mpEntity.value()->GetSolutionStepValue(rVariable) = Value;
-        } else {
-            mpEntity.value()->SetValue(rVariable, Value);
-        }
+        VariableUtils::SetValue<TLocation>(*mpEntity.value(), rVariable, Value);
     }
 
     /// @brief Immutable access to the wrapped entity.
