@@ -90,8 +90,8 @@ public:
     EntityProxy(QualifiedEntity& rEntity) noexcept : mpEntity(&rEntity) {}
 
     /// @brief Check whether the entity has a value for the provided variable.
-    template <class TVariable>
-    bool HasValue(const TVariable& rVariable) const noexcept
+    template <class TValue>
+    bool HasValue(const Variable<TValue>& rVariable) const noexcept
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
             return mpEntity.value()->SolutionStepsDataHas(rVariable);
@@ -101,8 +101,11 @@ public:
     }
 
     /// @brief Fetch the value corresponding to the input variable in the wrapped entity.
-    template <class TVariable>
-    typename TVariable::Type GetValue(const TVariable& rVariable) const
+    template <class TValue>
+    typename std::conditional_t<std::is_integral_v<TValue> || std::is_floating_point_v<TValue>,
+                              TValue,           // <== return by value if scalar type
+                              const TValue&>    // <== return by reference in non-scalar type
+    GetValue(const Variable<TValue>& rVariable) const
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
             return mpEntity.value()->GetSolutionStepValue(rVariable);
@@ -112,8 +115,8 @@ public:
     }
 
     /// @brief Fetch the value corresponding to the input variable in the wrapped entity.
-    template <class TVariable, std::enable_if_t</*this is required for SFINAE*/!std::is_same_v<TVariable,void> && TMutable,bool> = true>
-    typename TVariable::Type& GetValue(const TVariable& rVariable)
+    template <class TValue, std::enable_if_t</*this is required for SFINAE*/!std::is_same_v<TValue,void> && TMutable,bool> = true>
+    TValue& GetValue(const Variable<TValue>& rVariable)
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
             return mpEntity.value()->GetSolutionStepValue(rVariable);
@@ -123,13 +126,16 @@ public:
     }
 
     /// @brief Overwrite the value corresponding to the input variable in the wrapped entity.
-    template <class TVariable, std::enable_if_t</*this is required for SFINAE*/!std::is_same_v<TVariable,void> && TMutable,bool> = true>
-    void SetValue(const TVariable& rVariable, const typename TVariable::Type& rValue)
+    template <class TValue, std::enable_if_t</*this is required for SFINAE*/!std::is_same_v<TValue,void> && TMutable,bool> = true>
+    void SetValue(const Variable<TValue>& rVariable,
+                  std::conditional_t<std::is_integral_v<TValue> || std::is_floating_point_v<TValue>,
+                                     TValue,         /*pass scalar types by value*/
+                                     const TValue&>  /*pass non-scalar types by reference*/ Value)
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
-            mpEntity.value()->GetSolutionStepValue(rVariable) = rValue;
+            mpEntity.value()->GetSolutionStepValue(rVariable) = Value;
         } else {
-            mpEntity.value()->SetValue(rVariable, rValue);
+            mpEntity.value()->SetValue(rVariable, Value);
         }
     }
 
