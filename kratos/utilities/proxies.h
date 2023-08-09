@@ -20,6 +20,7 @@
 #include "includes/condition.h" // Condition
 #include "includes/model_part.h" // ModelPart::NodesContainerType, ModelPart::ElementsContainerType, ModelPart::ConditionsContainerType
 #include "utilities/variable_utils.h" // VariableUtils::HasValue, VariableUtils::GetValue, VariableUtils::SetValue
+#include "utilities/model_part_utils.h" // ModelPartUtils::GetContainer
 
 // System includes
 #include <type_traits> // remove_reference_t, is_const_v, is_same_v, decay_t
@@ -305,13 +306,8 @@ template <Globals::DataLocation TLocation>
 auto MakeProxy(const ModelPart& rModelPart)
 {
     using TEntityProxy = EntityProxy<TLocation,false>;
-    if constexpr (TLocation == Globals::DataLocation::NodeHistorical || TLocation == Globals::DataLocation::NodeNonHistorical) {
-        return ContainerProxy<TEntityProxy>(rModelPart.Nodes().begin(), rModelPart.Nodes().end());
-    } else if constexpr (TLocation == Globals::DataLocation::Element) {
-        return ContainerProxy<TEntityProxy>(rModelPart.Elements().begin(), rModelPart.Elements().end());
-    } else if constexpr (TLocation == Globals::DataLocation::Condition) {
-        return ContainerProxy<TEntityProxy>(rModelPart.Conditions().begin(), rModelPart.Conditions().end());
-    }
+    const auto& r_container = ModelPartUtils::GetContainer<TLocation>(rModelPart);
+    return ContainerProxy<TEntityProxy>(r_container.begin(), r_container.end());
 }
 
 
@@ -320,13 +316,8 @@ template <Globals::DataLocation TLocation>
 auto MakeProxy(ModelPart& rModelPart)
 {
     using TEntityProxy = EntityProxy<TLocation,true>;
-    if constexpr (TLocation == Globals::DataLocation::NodeHistorical || TLocation == Globals::DataLocation::NodeNonHistorical) {
-        return ContainerProxy<TEntityProxy>(rModelPart.Nodes().begin(), rModelPart.Nodes().end());
-    } else if constexpr (TLocation == Globals::DataLocation::Element) {
-        return ContainerProxy<TEntityProxy>(rModelPart.Elements().begin(), rModelPart.Elements().end());
-    } else if constexpr (TLocation == Globals::DataLocation::Condition) {
-        return ContainerProxy<TEntityProxy>(rModelPart.Conditions().begin(), rModelPart.Conditions().end());
-    }
+    auto& r_container = ModelPartUtils::GetContainer<TLocation>(rModelPart);
+    return ContainerProxy<TEntityProxy>(r_container.begin(), r_container.end());
 }
 
 
