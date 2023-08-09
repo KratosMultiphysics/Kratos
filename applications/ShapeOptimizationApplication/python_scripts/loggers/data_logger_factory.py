@@ -81,7 +81,7 @@ class DataLogger():
             return ValueLoggerTrustRegion( self.Communicator, self.OptimizationSettings )
         elif AlgorithmName == "bead_optimization":
             return ValueLoggerBeadOptimization( self.Communicator, self.OptimizationSettings )
-        elif AlgorithmName == "relaxed_gradient_projection":
+        elif AlgorithmName == "relaxed_gradient_projection" or AlgorithmName == "free_thickness_optimization_v2_rgp":
             return ValueLoggerRelaxedGradientProjection(self.Communicator, self.OptimizationSettings)
         elif AlgorithmName == "free_thickness_rgp":
             return ValueLoggerThicknessRelaxedGradientProjection(self.Communicator, self.OptimizationSettings)
