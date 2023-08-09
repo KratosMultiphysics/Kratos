@@ -29,7 +29,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyHydrostaticPressureTableProcess);
 
     /// Defining a table with double argument and result type as table type.
-    typedef Table<double,double> TableType;
+    using TableType = Table<double,double>;
 
     ApplyHydrostaticPressureTableProcess(ModelPart& model_part,
                                          Parameters rParameters
