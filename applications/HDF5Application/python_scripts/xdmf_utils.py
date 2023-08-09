@@ -593,13 +593,13 @@ def CreateXdmfTemporalGridFromSinglefile(h5_file_name, h5path_pattern_to_mesh, h
         output_results_dict = {}
         file_.visit(lambda x : GetMatchingGroupNames(output_results_dict, x, h5path_patterns_to_results, h5path_pattern_to_results_wild_cards))
 
-        if len(output_results_dict.keys()) == 0:
+        if not output_results_dict:
             raise RuntimeError("No results data is found in the given hdf5 file matching the given pattern [ file_name = {:s}, pattern = {:s} ].".format(h5_file_name, h5path_pattern_to_results))
 
         compound_dict = {}
-        for key in output_meshes_dict.keys():
+        for key in output_meshes_dict:
             compound_dict[key] = (True, False)
-        for key in output_results_dict.keys():
+        for key in output_results_dict:
             if key in compound_dict:
                 compound_dict[key][1] = True
             else:
