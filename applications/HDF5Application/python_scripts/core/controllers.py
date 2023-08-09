@@ -26,8 +26,8 @@ class Controller(abc.ABC):
     def __init__(self,
                  model_part: KratosMultiphysics.ModelPart,
                  operation: operations.AggregateOperation):
-        self._model_part = model_part
-        self.__operation = operation
+        self._model_part: KratosMultiphysics.ModelPart = model_part
+        self.__operation: operations.AggregateOperation = operation
 
     @abc.abstractmethod
     def IsExecuteStep(self) -> bool:
