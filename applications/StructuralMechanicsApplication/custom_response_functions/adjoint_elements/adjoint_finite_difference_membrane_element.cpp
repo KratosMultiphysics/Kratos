@@ -117,7 +117,7 @@ void AdjointFiniteDifferencingMembraneElement<TPrimalElement>::CalculateOnIntegr
         if (rVariable == YOUNG_MODULUS_VAR_SENSITIVITY ) {
             this->CalculateOnIntegrationPoints(YOUNG_MODULUS_PSEUDO_NORMAL_FORCE_VECTOR, pseudo_normal_force, rCurrentProcessInfo);
             if (this->Has(YOUNG_MODULUS_PARTIAL_SENSITIVITY)) {
-                part_sensitivity = this->GetValue(YOUNG_MODULUS_PARTIAL_SENSITIVITY);
+                part_sensitivity = 0.0;//this->GetValue(YOUNG_MODULUS_PARTIAL_SENSITIVITY);
             } 
         } else if (rVariable == ISOTROPIC_PRESTRESS_VAR_SENSITIVITY) {
             this->CalculateOnIntegrationPoints(ISOTROPIC_PRESTRESS_PSEUDO_NORMAL_FORCE_VECTOR, pseudo_normal_force, rCurrentProcessInfo);
