@@ -221,11 +221,9 @@ public:
                         BaseType::AssembleLHS(mDampingMatrix, damping_contribution, equation_ids);
                     }
                     
-
                     // Assemble the elemental contribution
                     BaseType::Assemble(rA, rb, lhs_contribution, rhs_contribution, equation_ids);
                 }
-
             }
 
             #pragma omp for  schedule(guided, 512)
@@ -288,7 +286,7 @@ public:
 
         Timer::Stop("Build");
 
-        if(rModelPart.MasterSlaveConstraints().size() != 0) {
+        if(!rModelPart.MasterSlaveConstraints().empty()) {
             const auto timer_constraints = BuiltinTimer();
             Timer::Start("ApplyConstraints");
             BaseType::ApplyConstraints(pScheme, rModelPart, rA, rb);
@@ -302,7 +300,7 @@ public:
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, mMassMatrix, rDx, rb);
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, mDampingMatrix, rDx, rb);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() == 3) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
@@ -312,7 +310,7 @@ public:
         Timer::Stop("Solve");
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() == 3) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -338,7 +336,7 @@ public:
 
         BuildRHS(pScheme, rModelPart, rb);
 
-        if (rModelPart.MasterSlaveConstraints().size() != 0) {
+        if (!rModelPart.MasterSlaveConstraints().empty()) {
             Timer::Start("ApplyRHSConstraints");
             BaseType::ApplyRHSConstraints(pScheme, rModelPart, rb);
             Timer::Stop("ApplyRHSConstraints");
@@ -346,7 +344,7 @@ public:
 
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", (this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() == 3) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         const auto timer = BuiltinTimer();
         Timer::Start("Solve");
@@ -356,7 +354,7 @@ public:
         Timer::Stop("Solve");
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() >= 1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", (this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolverWithMassAndDamping", this->GetEchoLevel() == 3) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -441,18 +439,6 @@ public:
     std::string Info() const override
     {
         return "ResidualBasedBlockBuilderAndSolverWithMassAndDamping";
-    }
-
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-        rOStream << Info();
     }
 
     ///@}

@@ -101,14 +101,13 @@ void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(const std::string
     int tmp;
     mpFile->ReadAttribute(rKratosConnectivitiesPath, "WorkingSpaceDimension", tmp);
     mpFile->WriteAttribute(rXdmfConnectivitiesPath, "WorkingSpaceDimension", tmp);
-    mpFile->ReadAttribute(rKratosConnectivitiesPath, "Dimension", tmp);
     mpFile->WriteAttribute(rXdmfConnectivitiesPath, "Dimension", tmp);
     mpFile->ReadAttribute(rKratosConnectivitiesPath, "NumberOfNodes", tmp);
     mpFile->WriteAttribute(rXdmfConnectivitiesPath, "NumberOfNodes", tmp);
 
     KRATOS_CATCH("");
 }
-    
+
 void XdmfConnectivitiesWriterProcess::CreateXdmfPoints(
     const std::string& rKratosNodeIdsPath,
     const std::string& rXdmfNodeIdsPath) const

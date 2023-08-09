@@ -14,6 +14,7 @@
 // System includes
 #include <sstream>
 #include <type_traits>
+#include <functional>
 
 // Project includes
 #include "expression/variable_expression_io.h"
@@ -92,13 +93,19 @@ double MassResponseUtils::CalculateValue(const ModelPart& rModelPart)
         << rModelPart.FullName()
         << " has elements with properties having both THICKNESS and CROSS_AREA. Please separate the model part such that either one of them is present in elemental properties.\n";
 
-    const auto get_thickness = HasVariableInProperties(rModelPart, THICKNESS)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[THICKNESS]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_thickness;
+    if (HasVariableInProperties(rModelPart, THICKNESS)) {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[THICKNESS]; };
+    } else {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
-    const auto get_cross_area = HasVariableInProperties(rModelPart, CROSS_AREA)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[CROSS_AREA]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_cross_area;
+    if (HasVariableInProperties(rModelPart, CROSS_AREA)) {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[CROSS_AREA]; };
+    } else {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
     const double local_mass = block_for_each<SumReduction<double>>(rModelPart.Elements(), [&](const auto& rElement) {
         return rElement.GetGeometry().DomainSize() * rElement.GetProperties()[DENSITY] * get_thickness(rElement) * get_cross_area(rElement);
@@ -206,13 +213,19 @@ void MassResponseUtils::CalculateMassShapeGradient(
         << rModelPart.FullName()
         << " has elements with properties having both THICKNESS and CROSS_AREA. Please separate the model part such that either one of them is present in elemental properties.\n";
 
-    const auto get_thickness = HasVariableInProperties(rModelPart, THICKNESS)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[THICKNESS]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_thickness;
+    if (HasVariableInProperties(rModelPart, THICKNESS)) {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[THICKNESS]; };
+    } else {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
-    const auto get_cross_area = HasVariableInProperties(rModelPart, CROSS_AREA)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[CROSS_AREA]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_cross_area;
+    if (HasVariableInProperties(rModelPart, CROSS_AREA)) {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[CROSS_AREA]; };
+    } else {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
     using VolumeDerivativeMethodType = std::function<double(IndexType, IndexType, const GeometryType&)>;
 
@@ -315,13 +328,19 @@ void MassResponseUtils::CalculateMassDensityGradient(
         << rModelPart.FullName()
         << " has elements with properties having both THICKNESS and CROSS_AREA. Please separate the model part such that either one of them is present in elemental properties.\n";
 
-    const auto get_thickness = HasVariableInProperties(rModelPart, THICKNESS)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[THICKNESS]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_thickness;
+    if (HasVariableInProperties(rModelPart, THICKNESS)) {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[THICKNESS]; };
+    } else {
+        get_thickness = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
-    const auto get_cross_area = HasVariableInProperties(rModelPart, CROSS_AREA)
-                                    ? [](const ModelPart::ElementType& rElement) { return rElement.GetProperties()[CROSS_AREA]; }
-                                    : [](const ModelPart::ElementType& rElement) { return 1.0; };
+    std::function<double(const ModelPart::ElementType&)> get_cross_area;
+    if (HasVariableInProperties(rModelPart, CROSS_AREA)) {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return rElement.GetProperties()[CROSS_AREA]; };
+    } else {
+        get_cross_area = [](const ModelPart::ElementType& rElement) -> double { return 1.0; };
+    }
 
     block_for_each(rModelPart.Elements(), [&](auto& rElement) {
         rElement.GetProperties().SetValue(rOutputGradientVariable, rElement.GetGeometry().DomainSize() * get_thickness(rElement) * get_cross_area(rElement));
