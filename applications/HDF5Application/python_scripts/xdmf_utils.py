@@ -596,7 +596,7 @@ def CreateXdmfTemporalGridFromSinglefile(h5_file_name, h5path_pattern_to_mesh, h
             raise RuntimeError("No results data is found in the given hdf5 file matching the given pattern [ file_name = {:s}, pattern = {:s} ].".format(h5_file_name, h5path_pattern_to_results))
 
         compound_dict = {}
-        for key in output_meshes_dict.keys():
+        for key in output_meshes_dict:
             compound_dict[key] = (True, False)
         for key in output_results_dict.keys():
             if key in compound_dict:
