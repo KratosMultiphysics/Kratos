@@ -417,16 +417,17 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     // Get global displacement vector
 	Vector displacement_vector;
     this->GetValuesVector(displacement_vector);
+    const bool has_rot_dof = this->HasRotDof();
 
     // Convert displacement vector to a ndim by nnodes matrix
     bounded_matrix<double, TDim, TNumNodes> displacement_matrix = ZeroMatrix(TDim, TNumNodes);
 
     IndexType vector_index = 0;
-    for (IndexType ii = 0; ii < TDim; ++ii) {
+    for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
-        for (IndexType jj = 0; jj < TNumNodes; ++jj)
+        for (IndexType jj = 0; jj < TDim; ++jj)
         {
-            displacement_matrix(ii, jj) = displacement_vector[vector_index];
+            displacement_matrix(jj, ii) = displacement_vector[vector_index];
             vector_index++;
         }
 
@@ -434,12 +435,15 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
     // Get global rotation matrix
     bounded_matrix<double, 3, TNumNodes> nodal_rotation_matrix = ZeroMatrix(3, TNumNodes);
-    for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
-        nodal_rotation_matrix(0, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_X);
-        nodal_rotation_matrix(1, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Y);
-        nodal_rotation_matrix(2, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Z);
+    if (has_rot_dof) {
+        for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
+            nodal_rotation_matrix(0, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_X);
+            nodal_rotation_matrix(1, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Y);
+            nodal_rotation_matrix(2, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Z);
+
+        }
     }
 
     // calculate elemental rotation matrix
@@ -458,12 +462,12 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
 
 
-    bounded_matrix<double, 3, TNumNodes> aux_local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
-    auto local_nodal_rotation_matrix = prod(aux_local_nodal_rotation_matrix, trans(full_rotation_matrix));
+    // bounded_matrix<double, 3, TNumNodes> aux_local_nodal_rotation_matrix = prod(trans(full_rotation_matrix), nodal_rotation_matrix);
+    bounded_matrix<double, 3, TNumNodes> local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
 
     // calculate local displacement matrix
-    bounded_matrix<double, TDim, TNumNodes> aux_local_disp_matrix = prod(rotation_matrix, displacement_matrix);
-    auto local_disp_matrix = prod(aux_local_disp_matrix, trans(rotation_matrix));
+    bounded_matrix<double, TDim, TNumNodes> local_disp_matrix = prod(rotation_matrix, displacement_matrix);
+    // auto local_disp_matrix = prod(aux_local_disp_matrix, trans(rotation_matrix));
 
     // calculate shape functions
     const double local_x_coord = this->GetValue(MOVING_LOAD_LOCAL_DISTANCE);
@@ -475,8 +479,8 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
     VectorType local_disp_vector = ZeroVector(TDim);
 
-    auto r_geom = this->GetGeometry();
-    const bool has_rot_dof = this->HasRotDof();
+    auto& r_geom = this->GetGeometry();
+    
     if (has_rot_dof) {
 
         this->CalculateExactNormalShapeFunctions(normal_shape_functions_vector, local_x_coord);
@@ -541,7 +545,8 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     }
     
     // calculate global displacement vector at the location of the moving load
-    VectorType global_point_disp_vector = prod(local_disp_vector, rotation_matrix);
+    // VectorType aux_global_point_disp_vector =  prod(local_disp_vector, rotation_matrix);
+    VectorType global_point_disp_vector = prod(trans(rotation_matrix), local_disp_vector);
 
     Vector displacements = ZeroVector(3);
 
@@ -566,6 +571,8 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
         Vector displacement_vector;
     this->GetValuesVector(displacement_vector);
 
+    const bool has_rot_dof = this->HasRotDof();
+
     // Convert displacement vector to a ndim by nnodes matrix
     bounded_matrix<double, TDim, TNumNodes> displacement_matrix = ZeroMatrix(TDim, TNumNodes);
 
@@ -582,12 +589,15 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
     // Get global rotation matrix
     bounded_matrix<double, 3, TNumNodes> nodal_rotation_matrix = ZeroMatrix(3, TNumNodes);
-    for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
-        nodal_rotation_matrix(0, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_X);
-        nodal_rotation_matrix(1, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Y);
-        nodal_rotation_matrix(2, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Z);
+    if (has_rot_dof) {
+        for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
+            nodal_rotation_matrix(0, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_X);
+            nodal_rotation_matrix(1, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Y);
+            nodal_rotation_matrix(2, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Z);
+
+        }
     }
 
 
@@ -638,21 +648,25 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     }
 
 
-    bounded_matrix<double, 3, TNumNodes> aux_local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
-    auto local_nodal_rotation_matrix = prod(aux_local_nodal_rotation_matrix, trans(full_rotation_matrix));
+    bounded_matrix<double, 3, TNumNodes> local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
 
     // calculate local displacement matrix
-    bounded_matrix<double, TDim, TNumNodes> aux_local_disp_matrix = prod(rotation_matrix, displacement_matrix);
-    auto local_disp_matrix = prod(aux_local_disp_matrix, trans(rotation_matrix));
+    bounded_matrix<double, TDim, TNumNodes> local_disp_matrix = prod(rotation_matrix, displacement_matrix);
+
+    // bounded_matrix<double, 3, TNumNodes> aux_local_nodal_rotation_matrix = prod(full_rotation_matrix, nodal_rotation_matrix);
+    // auto local_nodal_rotation_matrix = prod(aux_local_nodal_rotation_matrix, trans(full_rotation_matrix));
+    //
+    // // calculate local displacement matrix
+    // bounded_matrix<double, TDim, TNumNodes> aux_local_disp_matrix = prod(rotation_matrix, displacement_matrix);
+    // auto local_disp_matrix = prod(aux_local_disp_matrix, trans(rotation_matrix));
 
     // calculate shape functions
     const double local_x_coord = this->GetValue(MOVING_LOAD_LOCAL_DISTANCE);
     // todo check if exact shape functions are to be used
-    VectorType shear_shape_functions_derivatives_vector;
-    VectorType rotational_shape_functions_derivatives_vector;
+    VectorType shear_shape_functions_derivatives_vector = ZeroVector(TNumNodes);
+    VectorType rotational_shape_functions_derivatives_vector = ZeroVector(TNumNodes);
 
-    auto r_geom = this->GetGeometry();
-    const bool has_rot_dof = this->HasRotDof();
+    auto& r_geom = this->GetGeometry();
 
     if (has_rot_dof) {
 
@@ -715,8 +729,8 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
         }
 
         local_rot_vector(0) = 0;
-        local_rot_vector(1) = local_rotation_axis_1;
-        local_rot_vector(2) = local_rotation_axis_2;
+        local_rot_vector(1) = local_rotation_axis_2;
+        local_rot_vector(2) = local_rotation_axis_1;
     }
 
     // calculate global displacement vector at the location of the moving load
@@ -727,7 +741,8 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     }
     else if constexpr (TDim == 3)
     {
-        global_point_rotation_vector = prod(local_rot_vector, full_rotation_matrix);
+        global_point_rotation_vector = prod(trans(full_rotation_matrix), local_rot_vector);
+        // global_point_rotation_vector = prod(local_rot_vector, full_rotation_matrix);
     }
 
     // Set Displacement at the location of the point load to the element
