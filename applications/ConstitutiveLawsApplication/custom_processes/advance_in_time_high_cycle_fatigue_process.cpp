@@ -42,6 +42,7 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     std::vector<double>  cycles_to_failure_element;
     std::vector<int>  local_number_of_cycles;
 
+    
     process_info[NO_LINEARITY_ACTIVATION] = false;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
     //double increment;
@@ -126,6 +127,10 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclicLoad()
     }
 
     if (has_constraints_list) {
+        
+        const int load_increments_per_cycle = mThisParameters["fatigue"]["load_increments_per_cycle"].GetInt();
+        process_info[LOAD_INCREMENTS_PER_CYCLE] = load_increments_per_cycle;
+              
         std::vector<std::string> constraints_list = mThisParameters["fatigue"]["constraints_process_list"].GetStringArray();
         //Loop on the cyclic constraints list
         for (unsigned int i = 0; i < constraints_list.size(); i++) {
@@ -142,6 +147,8 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclicLoad()
                     double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
                     if (time - delta_time <= model_part_start_time) {
                         new_model_part = true;
+                        double new_model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();;
+                        process_info[NEW_MODEL_PART_START_TIME] = new_model_part_start_time;
                     }
                 }
             }
