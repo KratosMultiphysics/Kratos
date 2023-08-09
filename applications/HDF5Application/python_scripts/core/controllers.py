@@ -15,7 +15,7 @@ from . import operations
 
 # STL imports
 import abc
-import typing
+from typing import Optional
 
 
 ##!@addtogroup HDF5Application
