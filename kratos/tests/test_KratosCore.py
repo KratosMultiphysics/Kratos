@@ -13,7 +13,7 @@ except:
 # Import the tests or test_classes to create the suites
 import test_bounding_box
 import test_calculate_distance_to_skin
-import test_entity_proxy
+import test_proxies
 import test_embedded_skin_mapping
 import test_model_part
 import test_model_part_io
