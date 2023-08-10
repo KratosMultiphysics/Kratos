@@ -115,12 +115,30 @@ public:
 
     inline void* Buffer(MessageDataType& rValue)
     {
-        return mData.GetData(rValue);
+        if constexpr(HasContiguousPrimitiveData) {
+            return MPIMessageDataTypeTraits::GetContiguousData(rValue);
+        } else {
+            const auto size = MPIMessageDataTypeTraits::Size(rValue);
+            if (mData.size() != size) {
+                mData.resize(size);
+            }
+            MPIMessageDataTypeTraits::CopyToContiguousData(mData.data(), rValue);
+            return mData.data();
+        }
     }
 
     inline const void* Buffer(const MessageDataType& rValue)
     {
-        return  mData.GetData(rValue);
+        if constexpr(HasContiguousPrimitiveData) {
+            return MPIMessageDataTypeTraits::GetContiguousData(rValue);
+        } else {
+            const auto size = MPIMessageDataTypeTraits::Size(rValue);
+            if (mData.size() != size) {
+                mData.resize(size);
+            }
+            MPIMessageDataTypeTraits::CopyToContiguousData(mData.data(), rValue);
+            return mData.data();
+        }
     }
 
     inline int Size(const MessageDataType& rValue)
@@ -149,7 +167,12 @@ public:
 
     inline void Update(MessageDataType& rValue)
     {
-        mData.UpdateValues(rValue);
+        if constexpr(!HasContiguousPrimitiveData) {
+            KRATOS_ERROR_IF_NOT(MPIMessageDataTypeTraits::Size(rValue) == static_cast<unsigned int>(mData.size()))
+                << "Size mismatch [ rValue flat size = " << MPIMessageDataTypeTraits::Size(rValue)
+                << ", buffered data size = " << mData.size() << " ].\n";
+            MPIMessageDataTypeTraits::CopyFromContiguousData(rValue, mData.data());
+        }
     }
 
     ///@}
@@ -158,7 +181,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    DataBuffer<TDataType> mData;
+    std::conditional_t<HasContiguousPrimitiveData, void *, std::vector<PrimitiveDataType>> mData;
 
     ///@}
 };
