@@ -97,7 +97,6 @@ def FindSurrogateNodes(model_part,iter):
             count2 = count2 + 1
         # if count_neg > 0 :
             # elem.Set(ACTIVE,False)
-            # print('ciao!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! PERCHE\' NON POSSO DE-ACTIVATE?')
             # model_part.RemoveElement(elem)
     print('Total number of "Fluid" element : ', count2)
     # Count the number of surrogate nodes

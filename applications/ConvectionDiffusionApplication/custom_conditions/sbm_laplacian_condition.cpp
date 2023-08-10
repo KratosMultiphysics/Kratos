@@ -23,7 +23,7 @@ namespace Kratos
 
 SBMLaplacianCondition::SBMLaplacianCondition(
     IndexType NewId,
-    Geometry< Node<3> >::Pointer pGeometry)
+    Geometry< Node >::Pointer pGeometry)
     : Condition(
         NewId,
         pGeometry)
@@ -32,7 +32,7 @@ SBMLaplacianCondition::SBMLaplacianCondition(
 
 SBMLaplacianCondition::SBMLaplacianCondition(
     IndexType NewId,
-    Geometry< Node<3> >::Pointer pGeometry,
+    Geometry< Node >::Pointer pGeometry,
     Properties::Pointer pProperties)
     : Condition(
         NewId,

@@ -1208,7 +1208,7 @@ namespace
                     // Get the neighbours nodes available -> Not BOUNDARY and DISTANCE > 0
                     auto& r_node_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_NODES);
                     // Initializa the pointers for the neighbours that have available elements
-                    Geometry<Node<3>>::PointsArrayType r_node_neighS;
+                    Geometry<Node>::PointsArrayType r_node_neighS;
                     int count_available_neigh_node = 0 ;
                     for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect.size(); ++i_neigh) {
                         auto p_node_neigh = r_node_neigh_vect(i_neigh).get();
@@ -1302,7 +1302,7 @@ namespace
                         // Need to search the neighbours of the neighbours
                         // KRATOS_WATCH("Need to search the neighbours of the neighbours")
                         auto& r_node_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_NODES);
-                        Geometry<Node<3>>::PointsArrayType r_node_neighSS;
+                        Geometry<Node>::PointsArrayType r_node_neighSS;
                         int count_available_neigh_node = 0 ;
                         for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect.size(); ++i_neigh) {
                             // Generico vicino di r_bd_node
@@ -1409,7 +1409,7 @@ namespace
                         } else {
                             KRATOS_WATCH("Need a fourth level neigh nodes  ")
                             auto& r_node_neigh_vect = r_bd_node.GetValue(NEIGHBOUR_NODES);
-                            Geometry<Node<3>>::PointsArrayType r_node_neighSSS;
+                            Geometry<Node>::PointsArrayType r_node_neighSSS;
                             // For each 1 level neigh node
                             int count_available_neigh_node = 0 ;
                             for (std::size_t i_neigh = 0; i_neigh < r_node_neigh_vect.size(); ++i_neigh) {

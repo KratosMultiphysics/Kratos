@@ -109,6 +109,9 @@ public:
 
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
+
+
 
     // New functions NICO
 

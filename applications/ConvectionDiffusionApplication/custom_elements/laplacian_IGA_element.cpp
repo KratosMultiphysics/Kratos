@@ -85,7 +85,6 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
 {
     KRATOS_TRY
 
-    // KRATOS_WATCH('CalculateLocalSystem')
     const ProcessInfo& r_process_info = rCurrentProcessInfo;
     ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
     auto& r_settings = *p_settings;
@@ -97,8 +96,9 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     const auto& r_geometry = GetGeometry();
     const unsigned int number_of_points = r_geometry.size();
     const unsigned int dim = r_geometry.WorkingSpaceDimension();
+    // const unsigned int dim = 2;
+
     // KRATOS_WATCH(number_of_points) // number_of_points = 9
-    // KRATOS_WATCH(dim) // dim = 3, why??
     
     //resizing as needed the LHS
     if(rLeftHandSideMatrix.size1() != number_of_points)
@@ -114,11 +114,12 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
     const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints(this->GetIntegrationMethod());
     const GeometryType::ShapeFunctionsGradientsType& DN_De = r_geometry.ShapeFunctionsLocalGradients(this->GetIntegrationMethod());
     const Matrix& N_gausspoint = r_geometry.ShapeFunctionsValues(this->GetIntegrationMethod());
+
+    // const Matrix& r_DN_De = r_geometry.ShapeFunctionDerivatives(1, 0);
+    // KRATOS_WATCH(r_DN_De)
     
     // KRATOS_WATCH(integration_points)
     // KRATOS_WATCH(DN_De)
-    // KRATOS_WATCH(N_gausspoint)
-    // exit(0); 
     
     Element::GeometryType::JacobiansType J0;
     Matrix DN_DX(number_of_points,dim);
@@ -133,23 +134,22 @@ void LaplacianIGAElement<TDim>::CalculateLocalSystem(MatrixType& rLeftHandSideMa
         nodal_conductivity[node_element] = r_geometry[node_element].FastGetSolutionStepValue(r_diffusivity_var);
     }
 
-    // KRATOS_WATCH(heat_flux_local)
-    // KRATOS_WATCH(nodal_conductivity)
-
     r_geometry.Jacobian(J0,this->GetIntegrationMethod());
     double DetJ0;
-
+    // KRATOS_WATCH(integration_points.size())
+    // exit(0) ;
 
     for(std::size_t i_point = 0; i_point < integration_points.size(); ++i_point)
     {
-        //calculating inverse jacobian and jacobian determinant
+        // Calculating inverse jacobian and jacobian determinant
         MathUtils<double>::InvertMatrix(J0[i_point],InvJ0,DetJ0);
-        // KRATOS_WATCH(J0[i_point])
-        // KRATOS_WATCH(InvJ0)
-        // KRATOS_WATCH(DetJ0)
-        // exit(0);
         // Calculating the cartesian derivatives (it is avoided storing them to minimize storage)
         noalias(DN_DX) = prod(DN_De[i_point],InvJ0);
+
+        // NEW ! - 2D 
+        for (size_t i = 0; i < DN_DX.size1(); ++i) {
+            DN_DX(i, 2) = 0.0;
+        }
 
         auto N = row(N_gausspoint,i_point); //these are the N which correspond to the gauss point "i_point"
         const double IntToReferenceWeight = integration_points[i_point].Weight() * DetJ0;
@@ -186,6 +186,7 @@ void LaplacianIGAElement<TDim>::CalculateLeftHandSide(MatrixType& rLeftHandSideM
     VectorType temp(0);
     CalculateLocalSystem(rLeftHandSideMatrix, temp, rCurrentProcessInfo);
 }
+
 
 
 
@@ -280,25 +281,63 @@ Element::IntegrationMethod LaplacianIGAElement<TDim>::GetIntegrationMethod() con
 
 
 
-// // For the Future...
-// template<std::size_t TDim>
-// std::vector<std::size_t> LaplacianIGAElement<TDim>::GetSurrogateFacesIds()
-// {
-//     const std::size_t n_faces = TDim + 1;
-//     auto& r_neigh_elems = GetValue(NEIGHBOUR_ELEMENTS);
-//     // Check the current element faces
-//     // Note that we relly on the fact that the neighbours are sorted according to the faces
-//     std::vector<std::size_t> surrogate_faces_ids;
-//     for (std::size_t i_face = 0; i_face < n_faces; ++i_face) {
-//         auto p_neigh_elem = r_neigh_elems(i_face).get(); 
-//         if (p_neigh_elem != nullptr && p_neigh_elem->Is(VISITED)) {        // BOUNDARY (if it is cut!)
-//             surrogate_faces_ids.push_back(i_face);
-//         }
-//     }
-//     // KRATOS_WATCH(surrogate_faces_ids)
+template<std::size_t TDim>
+void LaplacianIGAElement<TDim>::FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+    {
+    const auto& r_geometry = GetGeometry();
+    const SizeType nb_nodes = r_geometry.size();
 
-//     return surrogate_faces_ids;
-// }
+    // Integration Points
+    const GeometryType::IntegrationPointsArrayType& integration_points = r_geometry.IntegrationPoints();
+    // Shape function values
+    const Matrix& r_N = r_geometry.ShapeFunctionsValues();
+
+    // KRATOS_WATCH(r_N)  
+    // const auto& integration_method = r_geometry.GetDefaultIntegrationMethod();
+    // KRATOS_WATCH(r_geometry)
+    // KRATOS_WATCH(this->GetIntegrationMethod())
+    // const Matrix& r_N2 = r_geometry.ShapeFunctionsValues(r_geometry[0]) ;
+    // KRATOS_WATCH(r_N2)
+
+    // exit(0) ;
+
+    std::vector<double> rOutput;
+
+    const ProcessInfo& r_process_info = rCurrentProcessInfo;
+    ConvectionDiffusionSettings::Pointer p_settings = r_process_info[CONVECTION_DIFFUSION_SETTINGS];
+    auto& r_settings = *p_settings;
+    const Variable<double>& r_unknown_var = r_settings.GetUnknownVariable(); // Temperature
+
+    if (rOutput.size() != integration_points.size())
+        rOutput.resize(integration_points.size());
+
+    // KRATOS_WATCH(integration_points.size())
+
+    for (IndexType point_number = 0; point_number < integration_points.size(); ++point_number)
+    {
+        rOutput[point_number] = 0.0;
+        for (IndexType i = 0; i < nb_nodes; ++i)
+        {
+            // KRATOS_WATCH(r_geometry[i])
+            double output_solution_step_value = r_geometry[i].FastGetSolutionStepValue(r_unknown_var);
+            rOutput[point_number] += r_N(point_number, i) * output_solution_step_value;
+            // KRATOS_WATCH(r_N(point_number, i))
+            // KRATOS_WATCH(r_geometry.GetPoint(i)) // works
+           
+        }
+        // exit(0) ;
+        // KRATOS_WATCH(rOutput[point_number])
+        
+    }
+    // double output = rOutput[0] ;
+    // KRATOS_WATCH(rOutput)
+    // KRATOS_WATCH(r_geometry.Center())
+    // std::ofstream output_file("output.txt", std::ios::app);
+    // if (output_file.is_open()) {
+    //     output_file << output << " " << r_geometry.Center().X() << " " << r_geometry.Center().Y() << std::endl;
+    //     output_file.close();
+    // }
+    }
 
 
 template class LaplacianIGAElement<2>;

@@ -49,11 +49,11 @@ public:
 
     SBMLaplacianCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry);
+        Geometry< Node >::Pointer pGeometry);
 
     SBMLaplacianCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry,
+        Geometry< Node >::Pointer pGeometry,
         Properties::Pointer pProperties);
 
     SBMLaplacianCondition(
