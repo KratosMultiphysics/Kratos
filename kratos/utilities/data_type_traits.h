@@ -64,6 +64,16 @@ public:
         return false;
     }
 
+    inline static PrimitiveDataType const * GetContiguousData(const ContainerType& rValue)
+    {
+        return &rValue;
+    }
+
+    inline static PrimitiveDataType * GetContiguousData(ContainerType& rValue)
+    {
+        return &rValue;
+    }
+
     ///@}
 };
 
@@ -116,6 +126,24 @@ public:
         }
 
         return is_reshaped;
+    }
+
+    inline static PrimitiveDataType const * GetContiguousData(const ContainerType& rValue)
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return rValue.data();
+        } else {
+            static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+        }
+    }
+
+    inline static PrimitiveDataType * GetContiguousData(ContainerType& rValue)
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return rValue.data();
+        } else {
+            static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+        }
     }
 
     ///@}
@@ -178,6 +206,24 @@ public:
         }
 
         return is_reshaped;
+    }
+
+    inline static PrimitiveDataType const * GetContiguousData(const ContainerType& rValue)
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return rValue.data();
+        } else {
+            static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+        }
+    }
+
+    inline static PrimitiveDataType * GetContiguousData(ContainerType& rValue)
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return rValue.data();
+        } else {
+            static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+        }
     }
 
     ///@}
@@ -243,6 +289,24 @@ public:
         return is_reshaped;
     }
 
+    inline static PrimitiveDataType const * GetContiguousData(const ContainerType& rValue)
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return rValue.data();
+        } else {
+            static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+        }
+    }
+
+    inline static PrimitiveDataType * GetContiguousData(ContainerType& rValue)
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return rValue.data();
+        } else {
+            static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+        }
+    }
+
     ///@}
 };
 
@@ -290,6 +354,16 @@ public:
         }
 
         return is_reshaped;
+    }
+
+    inline static PrimitiveDataType const * GetContiguousData(const ContainerType& rValue)
+    {
+        return rValue.data();
+    }
+
+    inline static PrimitiveDataType * GetContiguousData(ContainerType& rValue)
+    {
+        return rValue.data();
     }
 
     ///@}
@@ -352,6 +426,24 @@ public:
         }
 
         return is_reshaped;
+    }
+
+    inline static PrimitiveDataType const * GetContiguousData(const ContainerType& rValue)
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return rValue.data();
+        } else {
+            static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+        }
+    }
+
+    inline static PrimitiveDataType * GetContiguousData(ContainerType& rValue)
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return rValue.data();
+        } else {
+            static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+        }
     }
 
     ///@}
