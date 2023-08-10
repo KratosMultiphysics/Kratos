@@ -117,7 +117,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
             self.max_delta_time_factor = project_parameters["solver_settings"]["time_stepping"]["max_delta_time_factor"].GetDouble()
         self.max_delta_time      = self.delta_time * self.max_delta_time_factor
         self.number_cycles       = project_parameters["solver_settings"]["number_cycles"].GetInt()
-        
+
         self.max_iterations      = project_parameters["solver_settings"]["max_iterations"].GetInt()
         self.solution_type       = project_parameters["solver_settings"]["solution_type"].GetString()
         self.reset_displacements = project_parameters["solver_settings"]["reset_displacements"].GetBool()
