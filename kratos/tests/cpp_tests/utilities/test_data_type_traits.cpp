@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dDouble, KratosCoreFastSuite)
     static_assert(type_trait::HasContiguousPrimitiveData);
     static_assert(!type_trait::HasDynamicMemoryAllocation);
 
-    array_1d<double, 5> test{};
+    array_1d<double, 5> test{1, 2, 3, 4, 5};
 
     KRATOS_CHECK_EQUAL(type_trait::Size(test), 5);
     KRATOS_CHECK_EQUAL(type_trait::Shape(test), std::vector<unsigned int>{5});
