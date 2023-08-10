@@ -58,7 +58,7 @@ public:
         ContainerType&,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_DEBUG_ERROR_IF(rShape.size() != 0)
+        KRATOS_ERROR_IF(rShape.size() != 0)
             << "Invalid shape given for primitive data type [ Expected shape = [], provided shape = "
             << rShape << " ].\n";
         return false;
@@ -127,7 +127,7 @@ public:
         ContainerType& rContainer,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rShape.size() >= 1 && rShape[0] == static_cast<unsigned int>(Dimension))
+        KRATOS_ERROR_IF_NOT(rShape.size() >= 1 && rShape[0] == static_cast<unsigned int>(Dimension))
             << "Invalid shape given for array_1d data type [ Expected shape = [" << Dimension << "], provided shape = "
             << rShape << " ].\n";
 
@@ -224,7 +224,7 @@ public:
         ContainerType& rContainer,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rShape.size() >= 1) << "Invalid shape given for DenseVector data type.";
+        KRATOS_ERROR_IF_NOT(rShape.size() >= 1) << "Invalid shape given for DenseVector data type.";
 
         bool is_reshaped = false;
 
@@ -329,7 +329,7 @@ public:
         ContainerType& rContainer,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rShape.size() >= 2) << "Invalid shape given for DenseMatrix data type.";
+        KRATOS_ERROR_IF_NOT(rShape.size() >= 2) << "Invalid shape given for DenseMatrix data type.";
 
         bool is_reshaped = false;
 
@@ -426,7 +426,7 @@ public:
         ContainerType& rContainer,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rShape.size() == 1) << "Invalid shape given for std::string data type.";
+        KRATOS_ERROR_IF_NOT(rShape.size() == 1) << "Invalid shape given for std::string data type.";
 
         bool is_reshaped = false;
 
@@ -510,7 +510,7 @@ public:
         ContainerType& rContainer,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_DEBUG_ERROR_IF_NOT(rShape.size() >= 1) << "Invalid shape given for std::vector data type.";
+        KRATOS_ERROR_IF_NOT(rShape.size() >= 1) << "Invalid shape given for std::vector data type.";
 
         bool is_reshaped = false;
 
@@ -569,6 +569,72 @@ public:
             }
         }
     }
+
+    ///@}
+};
+
+template<class TDataType>
+class DataBuffer
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using BufferedDataTypeTrait = DataTypeTraits<TDataType>;
+
+    using PrimitiveType = typename BufferedDataTypeTrait::PrimitiveType;
+
+    static constexpr bool HasContiguousPrimitiveData = BufferedDataTypeTrait::HasContiguousPrimitiveData;
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    inline PrimitiveType const * GetData(const TDataType& rContainer) const
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return BufferedDataTypeTrait::GetContiguousData(rContainer);
+        } else {
+            const auto size = BufferedDataTypeTrait::Size(rContainer);
+            if (mData.size() != size) {
+                mData.resize(size);
+            }
+            BufferedDataTypeTrait::FillToContiguousData(mData.begin(), rContainer);
+            return mData.begin();
+        }
+    }
+
+    inline PrimitiveType * GetData(TDataType& rContainer)
+    {
+        if constexpr(HasContiguousPrimitiveData) {
+            return BufferedDataTypeTrait::GetContiguousData(rContainer);
+        } else {
+            const auto size = BufferedDataTypeTrait::Size(rContainer);
+            if (mData.size() != size) {
+                mData.resize(size);
+            }
+            BufferedDataTypeTrait::FillToContiguousData(mData.data(), rContainer);
+            return mData.data();
+        }
+    }
+
+    void UpdateValues(TDataType& rContainer) const
+    {
+        if constexpr(!HasContiguousPrimitiveData) {
+            KRATOS_ERROR_IF_NOT(BufferedDataTypeTrait::Size(rContainer) == static_cast<unsigned int>(mData.size()))
+                << "Size mismatch [ rContainer flat size = " << BufferedDataTypeTrait::Size(rContainer)
+                << ", buffered data size = " << mData.size() << " ].\n";
+            BufferedDataTypeTrait::FillFromContiguousData(rContainer, mData.data());
+        }
+    }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    std::conditional_t<HasContiguousPrimitiveData, void *, std::vector<PrimitiveType>> mData;
 
     ///@}
 };

@@ -574,4 +574,86 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested2, KratosCoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsDataBufferContiguous, KratosCoreFastSuite)
+{
+    double double_value = 1.0;
+    const double const_double_value = 2.0;
+    DataBuffer<double> double_buffer;
+    KRATOS_CHECK_EQUAL(double_buffer.GetData(double_value), &double_value);
+    KRATOS_CHECK_EQUAL(double_buffer.GetData(const_double_value), &const_double_value);
+
+    double_buffer.UpdateValues(double_value);
+    KRATOS_CHECK_EQUAL(double_value, 1.0);
+    KRATOS_CHECK_EQUAL(const_double_value, 2.0);
+
+    array_1d<double, 3> array_1d_3_value{1, 2, 3};
+    const array_1d<double, 3> const_array_1d_3_value{2, 3, 4}, ref_array_1d3_1{1, 2, 3}, ref_array_1d3_2{2, 3, 4};
+    DataBuffer<array_1d<double, 3>> array_1d_3_buffer;
+    KRATOS_CHECK_EQUAL(array_1d_3_buffer.GetData(array_1d_3_value), &array_1d_3_value[0]);
+    KRATOS_CHECK_EQUAL(array_1d_3_buffer.GetData(const_array_1d_3_value), &const_array_1d_3_value[0]);
+
+    array_1d_3_buffer.UpdateValues(array_1d_3_value);
+    KRATOS_CHECK_VECTOR_EQUAL(array_1d_3_value, ref_array_1d3_1);
+    KRATOS_CHECK_VECTOR_EQUAL(const_array_1d_3_value, ref_array_1d3_2);
+
+    Vector vector_value(array_1d<double, 4>{1, 2, 3, 4});
+    const Vector const_vector_value(array_1d<double, 4>{2, 3, 4, 5}), ref_vec_1(array_1d<double, 4>{1, 2, 3, 4}), ref_vec_2(array_1d<double, 4>{2, 3, 4, 5});
+    DataBuffer<Vector> vector_buffer;
+    KRATOS_CHECK_EQUAL(vector_buffer.GetData(vector_value), &vector_value[0]);
+    KRATOS_CHECK_EQUAL(vector_buffer.GetData(const_vector_value), &const_vector_value[0]);
+
+    vector_buffer.UpdateValues(vector_value);
+    KRATOS_CHECK_VECTOR_EQUAL(vector_value, ref_vec_1);
+    KRATOS_CHECK_VECTOR_EQUAL(const_vector_value, ref_vec_2);
+
+    Matrix matrix_value(2, 2, vector_value.data());
+    const Matrix const_matrix_value(2, 2, const_vector_value.data()), ref_matrix_1(2, 2, vector_value.data()), ref_matrix_2(2, 2, const_vector_value.data());
+    DataBuffer<Matrix> matrix_buffer;
+    KRATOS_CHECK_EQUAL(matrix_buffer.GetData(matrix_value), &matrix_value(0, 0));
+    KRATOS_CHECK_EQUAL(matrix_buffer.GetData(const_matrix_value), &const_matrix_value(0, 0));
+
+    matrix_buffer.UpdateValues(matrix_value);
+    KRATOS_CHECK_MATRIX_EQUAL(matrix_value, ref_matrix_1);
+    KRATOS_CHECK_MATRIX_EQUAL(const_matrix_value, ref_matrix_2);
+
+    std::vector<int> std_vector_value{1, 2, 3, 4};
+    const std::vector<int> const_std_vector_value({2, 3, 4, 5}), ref_std_vec_1({1, 2, 3, 4}), ref_std_vec_2({2, 3, 4, 5});
+    DataBuffer<std::vector<int>> std_vector_buffer;
+    KRATOS_CHECK_EQUAL(std_vector_buffer.GetData(std_vector_value), &std_vector_value[0]);
+    KRATOS_CHECK_EQUAL(std_vector_buffer.GetData(const_std_vector_value), &const_std_vector_value[0]);
+
+    std_vector_buffer.UpdateValues(std_vector_value);
+    KRATOS_CHECK_VECTOR_EQUAL(std_vector_value, ref_std_vec_1);
+    KRATOS_CHECK_VECTOR_EQUAL(const_std_vector_value, ref_std_vec_2);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsDataBufferNonContiguous, KratosCoreFastSuite)
+{
+    unsigned int local_index;
+
+    std::vector<array_1d<double, 3>> vec_array1d_data(3), result(3);
+    for (unsigned int i = 0; i < 3; ++i) {
+        for (unsigned int j = 0; j < 3; ++j) {
+            vec_array1d_data[i][j] = (j+1)*(i+1);
+        }
+    }
+    DataBuffer<std::vector<array_1d<double, 3>>> std_vector_array1d_3_buffer;
+    auto p_begin = std_vector_array1d_3_buffer.GetData(vec_array1d_data);
+    local_index = 0;
+    for (unsigned int i = 0; i < 3; ++i) {
+        for (unsigned int j = 0; j < 3; ++j) {
+            KRATOS_CHECK_EQUAL(*(p_begin + local_index), vec_array1d_data[i][j]);
+            *(p_begin + local_index++) *= 2;
+        }
+    }
+
+    std_vector_array1d_3_buffer.UpdateValues(result);
+    for (unsigned int i = 0; i < 3; ++i) {
+        const array_1d<double, 3> temp = vec_array1d_data[i] * 2;
+        KRATOS_CHECK_VECTOR_EQUAL(result[i], temp);
+    }
+
+
+}
+
 } // namespace Kratos::Testing
