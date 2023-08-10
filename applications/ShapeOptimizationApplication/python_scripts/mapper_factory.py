@@ -12,7 +12,7 @@
 # Kratos Core and Apps
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
-from .mapping import in_plane_vertex_morphing_mapper, sliding_vertex_morphing_mapper
+from .mapping import in_plane_vertex_morphing_mapper, sliding_vertex_morphing_mapper, centerline_mapper
 
 # ==============================================================================
 def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
@@ -58,7 +58,6 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
     mapper_vertex_morphing_improved_integration = KSO.MapperVertexMorphingImprovedIntegration
     mapper_vertex_morphing_symmetric = KSO.MapperVertexMorphingSymmetric
     mapper_vertex_morphing = KSO.MapperVertexMorphing
-    mapper_centerline = KSO.MapperCenterline
     if mapper_settings.Has("filter_radius") and mapper_settings["filter_radius"].IsString():
         if mapper_settings["filter_radius"].GetString() == "adaptive":
             if mapper_settings.Has("adaptive_filter_method") and mapper_settings["adaptive_filter_method"].GetString() != "curvature_based":
@@ -83,7 +82,7 @@ def CreateMapper(origin_model_part, destination_model_part, mapper_settings):
     elif mapper_settings["sliding_morphing"].GetBool():
         return sliding_vertex_morphing_mapper.SlidingVertexMorphingMapper(origin_model_part, destination_model_part, mapper_settings)
     elif mapper_settings["centerline_morphing"].GetBool():
-        return mapper_centerline(origin_model_part, destination_model_part, mapper_settings)
+        return centerline_mapper.CenterlineVertexMorphingMapper(origin_model_part, destination_model_part, mapper_settings)
     elif mapper_settings["matrix_free_filtering"].GetBool():
         if mapper_settings["consistent_mapping"].GetBool():
              raise ValueError ("Matrix free mapper has no option to map consistently yet!")
