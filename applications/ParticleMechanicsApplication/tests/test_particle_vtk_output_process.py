@@ -11,16 +11,16 @@ import pathlib
 
 class TestParticleVtkOutputProcess(KratosUnittest.TestCase):
     def test_ascii_particle_conditions_vtk_output_2D(self):
-        ExecuteBasicParticleVTKOutputProcessCheck("ascii", "conditions")
+        ExecuteBasicParticleVTKOutputProcessCheck("ascii", "condition")
 
     def test_ascii_particle_elements_vtk_output_2D(self):
-        ExecuteBasicParticleVTKOutputProcessCheck("ascii", "elements")
+        ExecuteBasicParticleVTKOutputProcessCheck("ascii", "element")
 
     def test_binary_particle_conditions_vtk_output_2D(self):
-        ExecuteBasicParticleVTKOutputProcessCheck("binary", "conditions")
+        ExecuteBasicParticleVTKOutputProcessCheck("binary", "condition")
 
     def test_binary_particle_elements_vtk_output_2D(self):
-        ExecuteBasicParticleVTKOutputProcessCheck("binary", "elements")
+        ExecuteBasicParticleVTKOutputProcessCheck("binary", "element")
 
     def tearDown(self):
         kratos_utils.DeleteDirectoryIfExisting("test_particle_vtk_output")
@@ -99,10 +99,14 @@ def SetupModel2D(grid_model_part, initial_mesh_model_part, mpm_model_part):
     mpm_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, 2)
 
     # Activate elements of initial mesh model part
+    mpm_model_part.SetNodes(grid_model_part.GetNodes())
     KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mesh_model_part.Elements)
     # Generate Material Point Elements
     KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, mpm_model_part, False)
     KratosParticle.GenerateMaterialPointCondition(grid_model_part, initial_mesh_model_part, mpm_model_part)
+
+    print(mpm_model_part.NumberOfElements())
+    print(mpm_model_part.NumberOfConditions())
 
 def SetSolution(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME] + 0.150
@@ -124,7 +128,9 @@ def SetSolution(model_part):
         area = condition.CalculateOnIntegrationPoints(KratosParticle.MPC_AREA, model_part.ProcessInfo)[0]
         condition.SetValuesOnIntegrationPoints(KratosParticle.MPC_AREA, [area*2], model_part.ProcessInfo)
 
-def Check(output_file,reference_file, file_format):
+def Check(output_path, reference_files_path, file_name, file_format, entity_type):
+    output_file = output_path/file_name
+    reference_file = reference_files_path/f"{file_format}_{entity_type}"/file_name
     params = KratosMultiphysics.Parameters("""{
         "reference_file_name" : "",
         "output_file_name"    : ""
@@ -138,7 +144,7 @@ def Check(output_file,reference_file, file_format):
 def SetupParticleVtkOutputProcess(parameters, model):
     return particle_vtk_output_process.Factory(parameters, model)
 
-def ExecuteBasicParticleVTKOutputProcessCheck(file_format, output_entity):
+def ExecuteBasicParticleVTKOutputProcessCheck(file_format, entity_type):
     model = KratosMultiphysics.Model()
     initial_mesh = model.CreateModelPart("InitialMesh")
     background_grid = model.CreateModelPart("Background_Grid")
@@ -149,24 +155,25 @@ def ExecuteBasicParticleVTKOutputProcessCheck(file_format, output_entity):
         "Parameters" : {
             "model_part_name"                    : "MPMModelPart",
             "file_format"                        : "ascii",
-            "output_entity"                      : "",
-            "output_precision"                   : 8,
+            "entity_type"                        : "",
+            "output_precision"                   : 7,
             "output_interval"                    : 2,
             "output_control_type"                : "step",
             "output_sub_model_parts"             : true,
             "output_path"                        : "test_particle_vtk_output",
             "save_output_files_in_folder"        : true,
-            "particle_data_value_variables"      : [],
-            "particle_flags"                     : ["BOUNDARY"]
+            "gauss_point_variables_in_elements"  : [],
+            "element_flags"                      : ["BOUNDARY"],
+            "condition_flags"                    : ["BOUNDARY"]
         }
     }""")
 
     particle_vtk_output_parameters["Parameters"]["file_format"].SetString(file_format)
-    particle_vtk_output_parameters["Parameters"]["output_entity"].SetString(output_entity)
-    if output_entity == "elements":
-        particle_vtk_output_parameters["Parameters"]["particle_data_value_variables"].SetStringArray(["MP_DISPLACEMENT","MP_DENSITY"])
-    elif output_entity == "conditions":
-        particle_vtk_output_parameters["Parameters"]["particle_data_value_variables"].SetStringArray(["MPC_DISPLACEMENT","MPC_AREA"])
+    particle_vtk_output_parameters["Parameters"]["entity_type"].SetString(entity_type)
+    if entity_type == "element":
+        particle_vtk_output_parameters["Parameters"]["gauss_point_variables_in_elements"].SetStringArray(["MP_DISPLACEMENT","MP_DENSITY"])
+    elif entity_type == "condition":
+        particle_vtk_output_parameters["Parameters"]["gauss_point_variables_in_elements"].SetStringArray(["MPC_DISPLACEMENT","MPC_AREA"])
     particle_vtk_output_process = SetupParticleVtkOutputProcess(particle_vtk_output_parameters, model)
 
     output_path = pathlib.Path(particle_vtk_output_parameters["Parameters"]["output_path"].GetString())
@@ -178,9 +185,12 @@ def ExecuteBasicParticleVTKOutputProcessCheck(file_format, output_entity):
     end_time = 1.0
     particle_vtk_output_process.ExecuteInitialize()
     particle_vtk_output_process.ExecuteBeforeSolutionLoop()
-    Check(output_path/f"MPMModelPart_0_{step}.vtk", reference_files_path/f"{file_format}_{output_entity}"/f"MPMModelPart_0_{step}.vtk", file_format)
-    Check(output_path/f"MPMModelPart_InterfaceConditions_0_{step}.vtk", reference_files_path/f"{file_format}_{output_entity}"/f"MPMModelPart_InterfaceConditions_0_{step}.vtk", file_format)
-    Check(output_path/f"MPMModelPart_SubInitialMesh_0_{step}.vtk", reference_files_path/f"{file_format}_{output_entity}"/f"MPMModelPart_SubInitialMesh_0_{step}.vtk", file_format)
+    Check(output_path, reference_files_path, f"MPMModelPart_0_{step}.vtk", file_format, entity_type)
+    Check(output_path, reference_files_path, f"MPMModelPart_InterfaceConditions_0_{step}.vtk", file_format, entity_type)
+    Check(output_path, reference_files_path, f"MPMModelPart_SubInitialMesh_0_{step}.vtk", file_format, entity_type)
+    Check(output_path, reference_files_path, f"Background_Grid_0_{step}.vtk", file_format, entity_type)
+    Check(output_path, reference_files_path, f"Background_Grid_InterfaceConditions_0_{step}.vtk", file_format, entity_type)
+    Check(output_path, reference_files_path, f"Background_Grid_SubBackgroundGrid_0_{step}.vtk", file_format, entity_type)
 
     while (time < end_time):
         time += dt
@@ -195,9 +205,9 @@ def ExecuteBasicParticleVTKOutputProcessCheck(file_format, output_entity):
             particle_vtk_output_process.PrintOutput()
             particle_vtk_output_process.ExecuteAfterOutputStep()
             # Compare output file with reference file
-            Check(output_path/f"MPMModelPart_0_{step}.vtk", reference_files_path/f"{file_format}_{output_entity}"/f"MPMModelPart_0_{step}.vtk", file_format)
-            Check(output_path/f"MPMModelPart_InterfaceConditions_0_{step}.vtk", reference_files_path/f"{file_format}_{output_entity}"/f"MPMModelPart_InterfaceConditions_0_{step}.vtk", file_format)
-            Check(output_path/f"MPMModelPart_SubInitialMesh_0_{step}.vtk", reference_files_path/f"{file_format}_{output_entity}"/f"MPMModelPart_SubInitialMesh_0_{step}.vtk", file_format)
+            Check(output_path, reference_files_path, f"MPMModelPart_0_{step}.vtk", file_format, entity_type)
+            Check(output_path, reference_files_path, f"MPMModelPart_InterfaceConditions_0_{step}.vtk", file_format, entity_type)
+            Check(output_path, reference_files_path, f"MPMModelPart_SubInitialMesh_0_{step}.vtk", file_format, entity_type)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
