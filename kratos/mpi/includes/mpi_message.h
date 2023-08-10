@@ -100,9 +100,9 @@ public:
 
     using PrimitiveDataType = typename MPIMessageDataTypeTraits::PrimitiveType;
 
-    static constexpr bool HasContiguousPrimitiveData = MPIMessageDataTypeTraits::HasContiguousPrimitiveData;
+    static constexpr bool HasContiguousPrimitiveData = MPIMessageDataTypeTraits::IsContiguous;
 
-    static constexpr bool HasDynamicMemoryAllocation = MPIMessageDataTypeTraits::HasDynamicMemoryAllocation;
+    static constexpr bool HasDynamicMemoryAllocation = MPIMessageDataTypeTraits::IsDynamic;
 
     ///@}
     ///@name Public operations

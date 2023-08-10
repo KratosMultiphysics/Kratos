@@ -25,8 +25,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsInt, KratosCoreFastSuite)
     using type_trait = DataTypeTraits<int>;
 
     static_assert(std::is_same_v<type_trait::PrimitiveType, int>);
-    static_assert(type_trait::HasContiguousPrimitiveData);
-    static_assert(!type_trait::HasDynamicMemoryAllocation);
+    static_assert(type_trait::IsContiguous);
+    static_assert(!type_trait::IsDynamic);
 
     int test = 1;
 
@@ -36,11 +36,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsInt, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test);
 
     int dummy = -1;
-    type_trait::FillToContiguousData(&dummy, test);
+    type_trait::CopyToContiguousData(&dummy, test);
     KRATOS_CHECK_EQUAL(dummy, test);
 
     dummy = -2;
-    type_trait::FillFromContiguousData(dummy, &test);
+    type_trait::CopyFromContiguousData(dummy, &test);
     KRATOS_CHECK_EQUAL(dummy, test);
 
     #ifdef KRATOS_DEBUG
@@ -58,8 +58,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dDouble, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, array_1d<double, 5>>);
     static_assert(std::is_same_v<type_trait::ValueType, double>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
-    static_assert(type_trait::HasContiguousPrimitiveData);
-    static_assert(!type_trait::HasDynamicMemoryAllocation);
+    static_assert(type_trait::IsContiguous);
+    static_assert(!type_trait::IsDynamic);
 
     array_1d<double, 5> test{1, 2, 3, 4, 5};
 
@@ -69,11 +69,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dDouble, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
 
     array_1d<double, 5> dummy;
-    type_trait::FillToContiguousData(dummy.data().data(), test);
+    type_trait::CopyToContiguousData(dummy.data().data(), test);
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     dummy = array_1d<double, 5>(5, -2);
-    type_trait::FillFromContiguousData(dummy, test.data().data());
+    type_trait::CopyFromContiguousData(dummy, test.data().data());
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     #ifdef KRATOS_DEBUG
@@ -91,8 +91,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, Vector>);
     static_assert(std::is_same_v<type_trait::ValueType, double>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
-    static_assert(type_trait::HasContiguousPrimitiveData);
-    static_assert(type_trait::HasDynamicMemoryAllocation);
+    static_assert(type_trait::IsContiguous);
+    static_assert(type_trait::IsDynamic);
 
     Vector test(7, 1);
 
@@ -106,11 +106,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
     test = Vector(9, 2);
 
     Vector dummy(9, -1);
-    type_trait::FillToContiguousData(dummy.data().begin(), test);
+    type_trait::CopyToContiguousData(dummy.data().begin(), test);
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     dummy = Vector(9, -2);
-    type_trait::FillFromContiguousData(dummy, test.data().begin());
+    type_trait::CopyFromContiguousData(dummy, test.data().begin());
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     #ifdef KRATOS_DEBUG
@@ -128,8 +128,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, Matrix>);
     static_assert(std::is_same_v<type_trait::ValueType, double>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
-    static_assert(type_trait::HasContiguousPrimitiveData);
-    static_assert(type_trait::HasDynamicMemoryAllocation);
+    static_assert(type_trait::IsContiguous);
+    static_assert(type_trait::IsDynamic);
 
     Matrix test(3, 4, 1);
 
@@ -149,11 +149,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
     test = Matrix(4, 5, 2);
 
     Matrix dummy(4, 5);
-    type_trait::FillToContiguousData(dummy.data().begin(), test);
+    type_trait::CopyToContiguousData(dummy.data().begin(), test);
     KRATOS_CHECK_MATRIX_EQUAL(dummy, test);
 
     dummy = Matrix(4, 5, -2);
-    type_trait::FillFromContiguousData(dummy, test.data().begin());
+    type_trait::CopyFromContiguousData(dummy, test.data().begin());
     KRATOS_CHECK_MATRIX_EQUAL(dummy, test);
 
     #ifdef KRATOS_DEBUG
@@ -171,8 +171,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsString, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, std::string>);
     static_assert(std::is_same_v<type_trait::ValueType, char>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, char>);
-    static_assert(type_trait::HasContiguousPrimitiveData);
-    static_assert(type_trait::HasDynamicMemoryAllocation);
+    static_assert(type_trait::IsContiguous);
+    static_assert(type_trait::IsDynamic);
 
     std::string test = "test";
 
@@ -186,11 +186,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsString, KratosCoreFastSuite)
     test = "test01";
 
     std::string dummy = "000000";
-    type_trait::FillToContiguousData(dummy.data(), test);
+    type_trait::CopyToContiguousData(dummy.data(), test);
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     dummy = "000000";
-    type_trait::FillFromContiguousData(dummy, test.data());
+    type_trait::CopyFromContiguousData(dummy, test.data());
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     #ifdef KRATOS_DEBUG
@@ -208,8 +208,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorInt, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, std::vector<int>>);
     static_assert(std::is_same_v<type_trait::ValueType, int>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, int>);
-    static_assert(type_trait::HasContiguousPrimitiveData);
-    static_assert(type_trait::HasDynamicMemoryAllocation);
+    static_assert(type_trait::IsContiguous);
+    static_assert(type_trait::IsDynamic);
 
     std::vector<int> test(7, 1);
 
@@ -223,11 +223,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorInt, KratosCoreFastSuite)
     test = std::vector<int>(9, 2);
 
     std::vector<int> dummy(9);
-    type_trait::FillToContiguousData(dummy.data(), test);
+    type_trait::CopyToContiguousData(dummy.data(), test);
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     dummy = std::vector<int>(9, -2);
-    type_trait::FillFromContiguousData(dummy, test.data());
+    type_trait::CopyFromContiguousData(dummy, test.data());
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     #ifdef KRATOS_DEBUG
@@ -245,8 +245,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dNested, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, array_1d<array_1d<array_1d<int, 10>, 3>, 5>>);
     static_assert(std::is_same_v<type_trait::ValueType, array_1d<array_1d<int, 10>, 3>>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, int>);
-    static_assert(!type_trait::HasContiguousPrimitiveData);
-    static_assert(!type_trait::HasDynamicMemoryAllocation);
+    static_assert(!type_trait::IsContiguous);
+    static_assert(!type_trait::IsDynamic);
 
     array_1d<array_1d<array_1d<int, 10>, 3>, 5> test{}, result{};
     std::vector<int> ref_values(150);
@@ -266,10 +266,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dNested, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
 
     std::vector<int> values(150, -1);
-    type_trait::FillToContiguousData(values.data(), test);
+    type_trait::CopyToContiguousData(values.data(), test);
     KRATOS_CHECK_EQUAL(values, ref_values);
 
-    type_trait::FillFromContiguousData(result, values.data());
+    type_trait::CopyFromContiguousData(result, values.data());
     KRATOS_CHECK_EQUAL(test, result);
 }
 
@@ -280,8 +280,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorNested, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, DenseVector<DenseVector<Vector>>>);
     static_assert(std::is_same_v<type_trait::ValueType, DenseVector<Vector>>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
-    static_assert(!type_trait::HasContiguousPrimitiveData);
-    static_assert(type_trait::HasDynamicMemoryAllocation);
+    static_assert(!type_trait::IsContiguous);
+    static_assert(type_trait::IsDynamic);
 
     DenseVector<DenseVector<Vector>> test(2), result(2);
     std::vector<double> ref_values(24);
@@ -318,10 +318,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorNested, KratosCoreFastSuite)
     }
 
     std::vector<double> values(24, -1);
-    type_trait::FillToContiguousData(values.data(), test);
+    type_trait::CopyToContiguousData(values.data(), test);
     KRATOS_CHECK_EQUAL(values, ref_values);
 
-    type_trait::FillFromContiguousData(result, values.data());
+    type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 2; ++i) {
         for (unsigned int j = 0; j < 3; ++j) {
             KRATOS_CHECK_VECTOR_EQUAL(result[i][j], test[i][j]);
@@ -336,8 +336,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixNested, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, DenseMatrix<DenseMatrix<Matrix>>>);
     static_assert(std::is_same_v<type_trait::ValueType, DenseMatrix<Matrix>>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
-    static_assert(!type_trait::HasContiguousPrimitiveData);
-    static_assert(type_trait::HasDynamicMemoryAllocation);
+    static_assert(!type_trait::IsContiguous);
+    static_assert(type_trait::IsDynamic);
 
     DenseMatrix<DenseMatrix<Matrix>> test(2, 3), result(2, 3);
     std::vector<double> ref_values(5040);
@@ -380,10 +380,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixNested, KratosCoreFastSuite)
     }
 
     std::vector<double> values(5040, -1);
-    type_trait::FillToContiguousData(values.data(), test);
+    type_trait::CopyToContiguousData(values.data(), test);
     KRATOS_CHECK_EQUAL(values, ref_values);
 
-    type_trait::FillFromContiguousData(result, values.data());
+    type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 6; ++i) {
         for (unsigned int j = 0; j < 20; ++j) {
             KRATOS_CHECK_MATRIX_EQUAL(result.data()[i].data()[j], test.data()[i].data()[j]);
@@ -398,8 +398,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorNested, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, std::vector<std::vector<int>>>);
     static_assert(std::is_same_v<type_trait::ValueType, std::vector<int>>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, int>);
-    static_assert(!type_trait::HasContiguousPrimitiveData);
-    static_assert(type_trait::HasDynamicMemoryAllocation);
+    static_assert(!type_trait::IsContiguous);
+    static_assert(type_trait::IsDynamic);
 
     std::vector<std::vector<int>> test(2), result(2);
     std::vector<int> ref_values(6);
@@ -428,10 +428,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorNested, KratosCoreFastSuite)
     }
 
     std::vector<int> values(6, -1);
-    type_trait::FillToContiguousData(values.data(), test);
+    type_trait::CopyToContiguousData(values.data(), test);
     KRATOS_CHECK_VECTOR_EQUAL(values, ref_values);
 
-    type_trait::FillFromContiguousData(result, values.data());
+    type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 2; ++i) {
         KRATOS_CHECK_VECTOR_EQUAL(result[i], test[i]);
     }
@@ -444,8 +444,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested1, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, std::vector<DenseVector<DenseMatrix<array_1d<std::string, 6>>>>>);
     static_assert(std::is_same_v<type_trait::ValueType, DenseVector<DenseMatrix<array_1d<std::string, 6>>>>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, char>);
-    static_assert(!type_trait::HasContiguousPrimitiveData);
-    static_assert(type_trait::HasDynamicMemoryAllocation);
+    static_assert(!type_trait::IsContiguous);
+    static_assert(type_trait::IsDynamic);
 
     type_trait::ContainerType test(3), result(3);
     std::vector<char> ref_values(2160);
@@ -495,10 +495,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested1, KratosCoreFastSuite)
     }
 
     std::vector<char> values(2160, 0);
-    type_trait::FillToContiguousData(values.data(), test);
+    type_trait::CopyToContiguousData(values.data(), test);
     KRATOS_CHECK_EQUAL(values, ref_values);
 
-    type_trait::FillFromContiguousData(result, values.data());
+    type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 3; ++i) {
         for (unsigned int j = 0; j < 4; ++j) {
             for (unsigned int k = 0; k < 30; ++k) {
@@ -517,8 +517,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested2, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, std::vector<DenseVector<DenseMatrix<array_1d<double, 6>>>>>);
     static_assert(std::is_same_v<type_trait::ValueType, DenseVector<DenseMatrix<array_1d<double, 6>>>>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
-    static_assert(!type_trait::HasContiguousPrimitiveData);
-    static_assert(type_trait::HasDynamicMemoryAllocation);
+    static_assert(!type_trait::IsContiguous);
+    static_assert(type_trait::IsDynamic);
 
     type_trait::ContainerType test(3), result(3);
     std::vector<double> ref_values(2160);
@@ -567,10 +567,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested2, KratosCoreFastSuite)
     }
 
     std::vector<double> values(2160, 0);
-    type_trait::FillToContiguousData(values.data(), test);
+    type_trait::CopyToContiguousData(values.data(), test);
     KRATOS_CHECK_EQUAL(values, ref_values);
 
-    type_trait::FillFromContiguousData(result, values.data());
+    type_trait::CopyFromContiguousData(result, values.data());
     for (unsigned int i = 0; i < 3; ++i) {
         for (unsigned int j = 0; j < 4; ++j) {
             for (unsigned int k = 0; k < 30; ++k) {

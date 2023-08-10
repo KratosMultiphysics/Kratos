@@ -36,9 +36,9 @@ public:
 
     using PrimitiveType = TDataType;
 
-    static constexpr bool HasContiguousPrimitiveData = true;
+    static constexpr bool IsContiguous = true;
 
-    static constexpr bool HasDynamicMemoryAllocation = false;
+    static constexpr bool IsDynamic = false;
 
     ///@}
     ///@name Public static operations
@@ -74,14 +74,14 @@ public:
         return &rValue;
     }
 
-    inline static void FillToContiguousData(
+    inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rValue)
     {
         *pContiguousDataBegin = rValue;
     }
 
-    inline static void FillFromContiguousData(
+    inline static void CopyFromContiguousData(
         ContainerType& rValue,
         PrimitiveType const * pContiguousDataBegin)
     {
@@ -103,9 +103,9 @@ public:
 
     using PrimitiveType = typename DataTypeTraits<ValueType>::PrimitiveType;
 
-    static constexpr bool HasContiguousPrimitiveData = std::is_same_v<PrimitiveType, ValueType>;
+    static constexpr bool IsContiguous = std::is_same_v<PrimitiveType, ValueType>;
 
-    static constexpr bool HasDynamicMemoryAllocation = DataTypeTraits<ValueType>::HasDynamicMemoryAllocation;
+    static constexpr bool IsDynamic = DataTypeTraits<ValueType>::IsDynamic;
 
     ///@}
     ///@name Public static operations
@@ -113,14 +113,24 @@ public:
 
     static inline unsigned int Size(const ContainerType& rContainer)
     {
-        return Dimension * DataTypeTraits<ValueType>::Size(rContainer[0]);
+        if constexpr(Dimension == 0) {
+            return 0;
+        } else {
+            return Dimension * DataTypeTraits<ValueType>::Size(rContainer[0]);
+        }
     }
 
     static inline std::vector<unsigned int> Shape(const ContainerType& rContainer)
     {
-        auto shape = DataTypeTraits<ValueType>::Shape(rContainer[0]);
+        std::vector<unsigned int> shape;
+        if constexpr(Dimension > 0) {
+            shape = DataTypeTraits<ValueType>::Shape(rContainer[0]);
+        } else {
+            shape = DataTypeTraits<ValueType>::Shape(ValueType{});
+        }
         shape.insert(shape.begin(), Dimension);
         return shape;
+
     }
 
     static inline bool Reshape(
@@ -133,10 +143,12 @@ public:
 
         bool is_reshaped = false;
 
-        if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
+        if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
             std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
             std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped; });
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) {
+                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped;
+            });
         }
 
         return is_reshaped;
@@ -144,7 +156,7 @@ public:
 
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
-        if constexpr(HasContiguousPrimitiveData) {
+        if constexpr(IsContiguous) {
             return rValue.data().data();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
@@ -153,30 +165,30 @@ public:
 
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
-        if constexpr(HasContiguousPrimitiveData) {
+        if constexpr(IsContiguous) {
             return rValue.data().data();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
     }
 
-    inline static void FillToContiguousData(
+    inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
     {
         const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
         for (unsigned int i = 0; i < Dimension; ++i) {
-            DataTypeTraits<ValueType>::FillToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+            DataTypeTraits<ValueType>::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
         }
     }
 
-    inline static void FillFromContiguousData(
+    inline static void CopyFromContiguousData(
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)
     {
         const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
         for (unsigned int i = 0; i < Dimension; ++i) {
-            DataTypeTraits<ValueType>::FillFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+            DataTypeTraits<ValueType>::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
         }
     }
 
@@ -195,9 +207,9 @@ public:
 
     using PrimitiveType = typename DataTypeTraits<ValueType>::PrimitiveType;
 
-    static constexpr bool HasContiguousPrimitiveData = std::is_same_v<PrimitiveType, ValueType>;
+    static constexpr bool IsContiguous = std::is_same_v<PrimitiveType, ValueType>;
 
-    static constexpr bool HasDynamicMemoryAllocation = true;
+    static constexpr bool IsDynamic = true;
 
     ///@}
     ///@name Public static operations
@@ -205,13 +217,13 @@ public:
 
     static inline unsigned int Size(const ContainerType& rValue)
     {
-        return (rValue.size() == 0 ? 0 : rValue.size() * DataTypeTraits<ValueType>::Size(rValue[0]));
+        return (rValue.empty() ? 0 : rValue.size() * DataTypeTraits<ValueType>::Size(rValue[0]));
     }
 
     static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
     {
         std::vector<unsigned int> shape;
-        if (rValue.size() == 0) {
+        if (rValue.empty()) {
             shape = DataTypeTraits<ValueType>::Shape(ValueType{});
         } else {
             shape = DataTypeTraits<ValueType>::Shape(rValue[0]);
@@ -233,10 +245,12 @@ public:
             is_reshaped = true;
         }
 
-        if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
+        if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
             std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
             std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped; });
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) {
+                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped;
+            });
         }
 
         return is_reshaped;
@@ -244,7 +258,7 @@ public:
 
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
-        if constexpr(HasContiguousPrimitiveData) {
+        if constexpr(IsContiguous) {
             return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
@@ -253,33 +267,33 @@ public:
 
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
-        if constexpr(HasContiguousPrimitiveData) {
+        if constexpr(IsContiguous) {
             return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
     }
 
-    inline static void FillToContiguousData(
+    inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
     {
         if (rContainer.size() != 0) {
             const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                DataTypeTraits<ValueType>::FillToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+                DataTypeTraits<ValueType>::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
             }
         }
     }
 
-    inline static void FillFromContiguousData(
+    inline static void CopyFromContiguousData(
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)
     {
         if (rContainer.size() != 0) {
             const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                DataTypeTraits<ValueType>::FillFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+                DataTypeTraits<ValueType>::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
             }
         }
     }
@@ -299,9 +313,9 @@ public:
 
     using PrimitiveType = typename DataTypeTraits<ValueType>::PrimitiveType;
 
-    static constexpr bool HasContiguousPrimitiveData = std::is_same_v<PrimitiveType, ValueType>;
+    static constexpr bool IsContiguous = std::is_same_v<PrimitiveType, ValueType>;
 
-    static constexpr bool HasDynamicMemoryAllocation = true;
+    static constexpr bool IsDynamic = true;
 
     ///@}
     ///@name Public static operations
@@ -338,10 +352,12 @@ public:
             is_reshaped = true;
         }
 
-        if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
+        if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
             std::vector<unsigned int> sub_data_type_shape(rShape.size() - 2);
             std::copy(rShape.begin() + 2, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.data().begin(), rContainer.data().end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped; });
+            std::for_each(rContainer.data().begin(), rContainer.data().end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) {
+                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped;
+            });
         }
 
         return is_reshaped;
@@ -349,7 +365,7 @@ public:
 
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
-        if constexpr(HasContiguousPrimitiveData) {
+        if constexpr(IsContiguous) {
             return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
@@ -358,33 +374,33 @@ public:
 
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
-        if constexpr(HasContiguousPrimitiveData) {
+        if constexpr(IsContiguous) {
             return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
     }
 
-    inline static void FillToContiguousData(
+    inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
     {
         if (rContainer.size1() != 0 && rContainer.size2() != 0) {
             const auto stride = DataTypeTraits<ValueType>::Size(rContainer(0, 0));
             for (unsigned int i = 0; i < rContainer.size1() * rContainer.size2(); ++i) {
-                DataTypeTraits<ValueType>::FillToContiguousData(pContiguousDataBegin + i * stride, rContainer.data()[i]);
+                DataTypeTraits<ValueType>::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer.data()[i]);
             }
         }
     }
 
-    inline static void FillFromContiguousData(
+    inline static void CopyFromContiguousData(
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)
     {
         if (rContainer.size1() != 0 && rContainer.size2() != 0) {
             const auto stride = DataTypeTraits<ValueType>::Size(rContainer(0, 0));
             for (unsigned int i = 0; i < rContainer.size1() * rContainer.size2(); ++i) {
-                DataTypeTraits<ValueType>::FillFromContiguousData(rContainer.data()[i], pContiguousDataBegin + i * stride);
+                DataTypeTraits<ValueType>::CopyFromContiguousData(rContainer.data()[i], pContiguousDataBegin + i * stride);
             }
         }
     }
@@ -404,9 +420,9 @@ public:
 
     using PrimitiveType = char;
 
-    static constexpr bool HasContiguousPrimitiveData = true;
+    static constexpr bool IsContiguous = true;
 
-    static constexpr bool HasDynamicMemoryAllocation = true;
+    static constexpr bool IsDynamic = true;
 
     ///@}
     ///@name Public static operations
@@ -448,22 +464,18 @@ public:
         return rValue.data();
     }
 
-    inline static void FillToContiguousData(
+    inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
     {
-        for (unsigned int i = 0; i < rContainer.size(); ++i) {
-            *(pContiguousDataBegin++) = rContainer[i];
-        }
+        std::copy(rContainer.begin(), rContainer.end(), pContiguousDataBegin);
     }
 
-    inline static void FillFromContiguousData(
+    inline static void CopyFromContiguousData(
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)
     {
-        for (unsigned int i = 0; i < rContainer.size(); ++i) {
-            rContainer[i] = *(pContiguousDataBegin++);
-        }
+        std::copy(pContiguousDataBegin, pContiguousDataBegin + rContainer.size(), rContainer.begin());
     }
 
     ///@}
@@ -481,9 +493,9 @@ public:
 
     using PrimitiveType = typename DataTypeTraits<ValueType>::PrimitiveType;
 
-    static constexpr bool HasContiguousPrimitiveData = std::is_same_v<PrimitiveType, ValueType>;
+    static constexpr bool IsContiguous = std::is_same_v<PrimitiveType, ValueType>;
 
-    static constexpr bool HasDynamicMemoryAllocation = true;
+    static constexpr bool IsDynamic = true;
 
     ///@}
     ///@name Public static operations
@@ -491,13 +503,13 @@ public:
 
     static inline unsigned int Size(const ContainerType& rValue)
     {
-        return (rValue.size() == 0 ? 0 : rValue.size() * DataTypeTraits<ValueType>::Size(rValue[0]));
+        return (rValue.empty() ? 0 : rValue.size() * DataTypeTraits<ValueType>::Size(rValue[0]));
     }
 
     static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
     {
         std::vector<unsigned int> shape;
-        if (rValue.size() == 0) {
+        if (rValue.empty()) {
             shape = DataTypeTraits<ValueType>::Shape(ValueType{});
         } else {
             shape = DataTypeTraits<ValueType>::Shape(rValue[0]);
@@ -519,10 +531,12 @@ public:
             is_reshaped = true;
         }
 
-        if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
+        if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
             std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
             std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped; });
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) {
+                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped;
+            });
         }
 
         return is_reshaped;
@@ -530,7 +544,7 @@ public:
 
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
-        if constexpr(HasContiguousPrimitiveData) {
+        if constexpr(IsContiguous) {
             return rValue.data();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
@@ -539,33 +553,33 @@ public:
 
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
-        if constexpr(HasContiguousPrimitiveData) {
+        if constexpr(IsContiguous) {
             return rValue.data();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
     }
 
-    inline static void FillToContiguousData(
+    inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
     {
         if (rContainer.size() != 0) {
             const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                DataTypeTraits<ValueType>::FillToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+                DataTypeTraits<ValueType>::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
             }
         }
     }
 
-    inline static void FillFromContiguousData(
+    inline static void CopyFromContiguousData(
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)
     {
         if (rContainer.size() != 0) {
             const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                DataTypeTraits<ValueType>::FillFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+                DataTypeTraits<ValueType>::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
             }
         }
     }
@@ -584,7 +598,7 @@ public:
 
     using PrimitiveType = typename BufferedDataTypeTrait::PrimitiveType;
 
-    static constexpr bool HasContiguousPrimitiveData = BufferedDataTypeTrait::HasContiguousPrimitiveData;
+    static constexpr bool IsContiguous = BufferedDataTypeTrait::IsContiguous;
 
     ///@}
     ///@name Public operations
@@ -592,39 +606,39 @@ public:
 
     inline PrimitiveType const * GetData(const TDataType& rContainer)
     {
-        if constexpr(HasContiguousPrimitiveData) {
+        if constexpr(IsContiguous) {
             return BufferedDataTypeTrait::GetContiguousData(rContainer);
         } else {
             const auto size = BufferedDataTypeTrait::Size(rContainer);
             if (mData.size() != size) {
                 mData.resize(size);
             }
-            BufferedDataTypeTrait::FillToContiguousData(mData.data(), rContainer);
+            BufferedDataTypeTrait::CopyToContiguousData(mData.data(), rContainer);
             return mData.data();
         }
     }
 
     inline PrimitiveType * GetData(TDataType& rContainer)
     {
-        if constexpr(HasContiguousPrimitiveData) {
+        if constexpr(IsContiguous) {
             return BufferedDataTypeTrait::GetContiguousData(rContainer);
         } else {
             const auto size = BufferedDataTypeTrait::Size(rContainer);
             if (mData.size() != size) {
                 mData.resize(size);
             }
-            BufferedDataTypeTrait::FillToContiguousData(mData.data(), rContainer);
+            BufferedDataTypeTrait::CopyToContiguousData(mData.data(), rContainer);
             return mData.data();
         }
     }
 
     void UpdateValues(TDataType& rContainer) const
     {
-        if constexpr(!HasContiguousPrimitiveData) {
+        if constexpr(!IsContiguous) {
             KRATOS_ERROR_IF_NOT(BufferedDataTypeTrait::Size(rContainer) == static_cast<unsigned int>(mData.size()))
                 << "Size mismatch [ rContainer flat size = " << BufferedDataTypeTrait::Size(rContainer)
                 << ", buffered data size = " << mData.size() << " ].\n";
-            BufferedDataTypeTrait::FillFromContiguousData(rContainer, mData.data());
+            BufferedDataTypeTrait::CopyFromContiguousData(rContainer, mData.data());
         }
     }
 
@@ -634,7 +648,7 @@ private:
     ///@name Private member variables
     ///@{
 
-    std::conditional_t<HasContiguousPrimitiveData, void *, std::vector<PrimitiveType>> mData;
+    std::conditional_t<IsContiguous, void *, std::vector<PrimitiveType>> mData;
 
     ///@}
 };
