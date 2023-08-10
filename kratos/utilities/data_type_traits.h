@@ -136,7 +136,7 @@ public:
         if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
             std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
             std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = is_reshaped || DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape); });
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped; });
         }
 
         return is_reshaped;
@@ -236,7 +236,7 @@ public:
         if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
             std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
             std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = is_reshaped || DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape); });
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped; });
         }
 
         return is_reshaped;
@@ -257,6 +257,30 @@ public:
             return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+        }
+    }
+
+    inline static void FillToContiguousData(
+        PrimitiveDataType* pContiguousDataBegin,
+        const ContainerType& rContainer)
+    {
+        if (rContainer.size() != 0) {
+            const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
+            for (unsigned int i = 0; i < rContainer.size(); ++i) {
+                DataTypeTraits<ValueType>::FillToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+            }
+        }
+    }
+
+    inline static void FillFromContiguousData(
+        ContainerType& rContainer,
+        PrimitiveDataType const * pContiguousDataBegin)
+    {
+        if (rContainer.size() != 0) {
+            const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
+            for (unsigned int i = 0; i < rContainer.size(); ++i) {
+                DataTypeTraits<ValueType>::FillFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+            }
         }
     }
 
@@ -315,9 +339,9 @@ public:
         }
 
         if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
-            std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
-            std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.data().begin(), rContainer.data().end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = is_reshaped || DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape); });
+            std::vector<unsigned int> sub_data_type_shape(rShape.size() - 2);
+            std::copy(rShape.begin() + 2, rShape.end(), sub_data_type_shape.begin());
+            std::for_each(rContainer.data().begin(), rContainer.data().end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped; });
         }
 
         return is_reshaped;
@@ -338,6 +362,30 @@ public:
             return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+        }
+    }
+
+    inline static void FillToContiguousData(
+        PrimitiveDataType* pContiguousDataBegin,
+        const ContainerType& rContainer)
+    {
+        if (rContainer.size1() != 0 && rContainer.size2() != 0) {
+            const auto stride = DataTypeTraits<ValueType>::Size(rContainer(0, 0));
+            for (unsigned int i = 0; i < rContainer.size1() * rContainer.size2(); ++i) {
+                DataTypeTraits<ValueType>::FillToContiguousData(pContiguousDataBegin + i * stride, rContainer.data()[i]);
+            }
+        }
+    }
+
+    inline static void FillFromContiguousData(
+        ContainerType& rContainer,
+        PrimitiveDataType const * pContiguousDataBegin)
+    {
+        if (rContainer.size1() != 0 && rContainer.size2() != 0) {
+            const auto stride = DataTypeTraits<ValueType>::Size(rContainer(0, 0));
+            for (unsigned int i = 0; i < rContainer.size1() * rContainer.size2(); ++i) {
+                DataTypeTraits<ValueType>::FillFromContiguousData(rContainer.data()[i], pContiguousDataBegin + i * stride);
+            }
         }
     }
 
@@ -456,7 +504,7 @@ public:
         if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
             std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
             std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = is_reshaped || DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape); });
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped; });
         }
 
         return is_reshaped;
