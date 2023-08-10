@@ -429,4 +429,149 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorNested, KratosCoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested1, KratosCoreFastSuite)
+{
+    using type_trait = DataTypeTraits<std::vector<DenseVector<DenseMatrix<array_1d<std::string, 6>>>>>;
+
+    static_assert(std::is_same_v<type_trait::ContainerType, std::vector<DenseVector<DenseMatrix<array_1d<std::string, 6>>>>>);
+    static_assert(std::is_same_v<type_trait::ValueType, DenseVector<DenseMatrix<array_1d<std::string, 6>>>>);
+    static_assert(std::is_same_v<type_trait::PrimitiveDataType, char>);
+    static_assert(!type_trait::HasContiguousPrimitiveData);
+    static_assert(type_trait::HasDynamicMemoryAllocation);
+
+    type_trait::ContainerType test(3), result(3);
+    std::vector<char> ref_values(2160);
+    for (unsigned int i = 0; i < 3; ++i) {
+        // loop of std::vector
+        test[i] = DenseVector<DenseMatrix<array_1d<std::string, 6>>>(4);
+        result[i] = DenseVector<DenseMatrix<array_1d<std::string, 6>>>(4);
+        for (unsigned int j = 0; j < 4; ++j) {
+            // loop of DenseVector
+            test[i][j] = DenseMatrix<array_1d<std::string, 6>>(5, 6);
+            result[i][j] = DenseMatrix<array_1d<std::string, 6>>(5, 6);
+            for (unsigned int k = 0; k < 30; ++k) {
+                test[i][j].data()[k] = array_1d<std::string, 6>(6, std::to_string(k % 10));
+                result[i][j].data()[k] = array_1d<std::string ,6>(6, "a");
+                std::fill(ref_values.begin() + i * 720 + j * 180 + k * 6, ref_values.begin() + i * 720 + j * 180 + k * 6 + 6, test[i][j].data()[k][0][0]);
+            }
+        }
+    }
+
+    KRATOS_CHECK_EQUAL(type_trait::Size(test), 2160);
+
+    std::vector<unsigned int> shape{3, 4, 5, 6, 6, 1};
+    KRATOS_CHECK_EQUAL(type_trait::Shape(test), shape);
+    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
+
+    auto temp = test;
+    shape[0] = 4;
+    shape[1] = 5;
+    shape[2] = 6;
+    shape[3] = 7;
+    shape[4] = 6;
+    shape[5] = 9;
+    KRATOS_CHECK(type_trait::Reshape(temp, shape));
+    KRATOS_CHECK_EQUAL(temp.size(), 4);
+    for (unsigned int i = 0; i < 4; ++i) {
+        KRATOS_CHECK_EQUAL(temp[i].size(), 5);
+        for (unsigned int j = 0; j < 5; ++j) {
+            KRATOS_CHECK_EQUAL(temp[i][j].size1(), 6);
+            KRATOS_CHECK_EQUAL(temp[i][j].size2(), 7);
+            for (unsigned int k = 0; k < 42; ++k) {
+                KRATOS_CHECK_EQUAL(temp[i][j].data()[k].size(), 6);
+                for (unsigned int l = 0; l < 6; ++l) {
+                    KRATOS_CHECK_EQUAL(temp[i][j].data()[k][l].size(), 9);
+                }
+            }
+        }
+    }
+
+    std::vector<char> values(2160, 0);
+    type_trait::FillToContiguousData(values.data(), test);
+    KRATOS_CHECK_EQUAL(values, ref_values);
+
+    type_trait::FillFromContiguousData(result, values.data());
+    for (unsigned int i = 0; i < 3; ++i) {
+        for (unsigned int j = 0; j < 4; ++j) {
+            for (unsigned int k = 0; k < 30; ++k) {
+                for (unsigned int l = 0; l < 6; ++l) {
+                    KRATOS_CHECK_EQUAL(result[i][j].data()[k][l], test[i][j].data()[k][l]);
+                }
+            }
+        }
+    }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested2, KratosCoreFastSuite)
+{
+    using type_trait = DataTypeTraits<std::vector<DenseVector<DenseMatrix<array_1d<double, 6>>>>>;
+
+    static_assert(std::is_same_v<type_trait::ContainerType, std::vector<DenseVector<DenseMatrix<array_1d<double, 6>>>>>);
+    static_assert(std::is_same_v<type_trait::ValueType, DenseVector<DenseMatrix<array_1d<double, 6>>>>);
+    static_assert(std::is_same_v<type_trait::PrimitiveDataType, double>);
+    static_assert(!type_trait::HasContiguousPrimitiveData);
+    static_assert(type_trait::HasDynamicMemoryAllocation);
+
+    type_trait::ContainerType test(3), result(3);
+    std::vector<double> ref_values(2160);
+    for (unsigned int i = 0; i < 3; ++i) {
+        // loop of std::vector
+        test[i] = DenseVector<DenseMatrix<array_1d<double, 6>>>(4);
+        result[i] = DenseVector<DenseMatrix<array_1d<double, 6>>>(4);
+        for (unsigned int j = 0; j < 4; ++j) {
+            // loop of DenseVector
+            test[i][j] = DenseMatrix<array_1d<double, 6>>(5, 6);
+            result[i][j] = DenseMatrix<array_1d<double, 6>>(5, 6);
+            for (unsigned int k = 0; k < 30; ++k) {
+                test[i][j].data()[k] = array_1d<double, 6>(6);
+                result[i][j].data()[k] = array_1d<double ,6>(6, -1);
+                for (unsigned int l = 0; l < 6; ++l) {
+                    test[i][j].data()[k][l] = (i+1) * (j+1) * (k+1) * (l+1);
+                    ref_values[i * 720 + j * 180 + k * 6 + l] = test[i][j].data()[k][l];
+                }
+            }
+        }
+    }
+
+    KRATOS_CHECK_EQUAL(type_trait::Size(test), 2160);
+
+    std::vector<unsigned int> shape{3, 4, 5, 6, 6};
+    KRATOS_CHECK_EQUAL(type_trait::Shape(test), shape);
+    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
+
+    auto temp = test;
+    shape[0] = 4;
+    shape[1] = 5;
+    shape[2] = 6;
+    shape[3] = 7;
+    shape[4] = 6;
+    KRATOS_CHECK(type_trait::Reshape(temp, shape));
+    KRATOS_CHECK_EQUAL(temp.size(), 4);
+    for (unsigned int i = 0; i < 4; ++i) {
+        KRATOS_CHECK_EQUAL(temp[i].size(), 5);
+        for (unsigned int j = 0; j < 5; ++j) {
+            KRATOS_CHECK_EQUAL(temp[i][j].size1(), 6);
+            KRATOS_CHECK_EQUAL(temp[i][j].size2(), 7);
+            for (unsigned int k = 0; k < 42; ++k) {
+                KRATOS_CHECK_EQUAL(temp[i][j].data()[k].size(), 6);
+            }
+        }
+    }
+
+    std::vector<double> values(2160, 0);
+    type_trait::FillToContiguousData(values.data(), test);
+    KRATOS_CHECK_EQUAL(values, ref_values);
+
+    type_trait::FillFromContiguousData(result, values.data());
+    for (unsigned int i = 0; i < 3; ++i) {
+        for (unsigned int j = 0; j < 4; ++j) {
+            for (unsigned int k = 0; k < 30; ++k) {
+                for (unsigned int l = 0; l < 6; ++l) {
+                    KRATOS_CHECK_EQUAL(result[i][j].data()[k][l], test[i][j].data()[k][l]);
+                }
+            }
+        }
+    }
+}
+
 } // namespace Kratos::Testing
