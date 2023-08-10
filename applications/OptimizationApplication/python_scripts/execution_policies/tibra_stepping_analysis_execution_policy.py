@@ -84,14 +84,21 @@ class TibraSteppingAnalysisExecutionPolicy(ExecutionPolicy):
                 "modeler_name": "NurbsGeometryModeler",
                 "Parameters": {
                     "model_part_name" : "NurbsMesh",
-                    "geometry_name"   : "NurbsVolume",
-                    "lower_point": [-0.130, -0.110, -0.110],
-                    "upper_point": [0.020, 0.190, 0.190],
-                    "polynomial_order" : [2, 2, 2],
-                    "number_of_knot_spans" : [50, 100, 100]
+                    "geometry_name"   : "NurbsVolume"
                 }
             }]
             """)
+        tybra_params = self.pytibra.parameters
+        tmp_parameters = modeler_settings[0]["Parameters"]
+        tmp_parameters.AddEmptyValue("lower_point")
+        tmp_parameters["lower_point"].SetVector(tybra_params.LowerBound())
+        tmp_parameters.AddEmptyValue("upper_point")
+        tmp_parameters["upper_point"].SetVector(tybra_params.UpperBound())
+        tmp_parameters.AddEmptyValue("polynomial_order")
+        tmp_parameters["polynomial_order"].SetVector(tybra_params.Order())
+        tmp_parameters.AddEmptyValue("number_of_knot_spans")
+        tmp_parameters["number_of_knot_spans"].SetVector(tybra_params.NumberOfElements())
+        
         run_modelers(self.model, modeler_settings)
         self.pytibra.Clear()
         self.pytibra.Run(self.embedded_model_part)
