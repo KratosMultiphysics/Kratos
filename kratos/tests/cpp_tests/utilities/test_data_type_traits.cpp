@@ -24,7 +24,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsInt, KratosCoreFastSuite)
 {
     using type_trait = DataTypeTraits<int>;
 
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, int>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, int>);
     static_assert(type_trait::HasContiguousPrimitiveData);
     static_assert(!type_trait::HasDynamicMemoryAllocation);
 
@@ -57,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dDouble, KratosCoreFastSuite)
 
     static_assert(std::is_same_v<type_trait::ContainerType, array_1d<double, 5>>);
     static_assert(std::is_same_v<type_trait::ValueType, double>);
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, double>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
     static_assert(type_trait::HasContiguousPrimitiveData);
     static_assert(!type_trait::HasDynamicMemoryAllocation);
 
@@ -90,7 +90,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
 
     static_assert(std::is_same_v<type_trait::ContainerType, Vector>);
     static_assert(std::is_same_v<type_trait::ValueType, double>);
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, double>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
     static_assert(type_trait::HasContiguousPrimitiveData);
     static_assert(type_trait::HasDynamicMemoryAllocation);
 
@@ -125,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
 
     static_assert(std::is_same_v<type_trait::ContainerType, Matrix>);
     static_assert(std::is_same_v<type_trait::ValueType, double>);
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, double>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
     static_assert(type_trait::HasContiguousPrimitiveData);
     static_assert(type_trait::HasDynamicMemoryAllocation);
 
@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsString, KratosCoreFastSuite)
 
     static_assert(std::is_same_v<type_trait::ContainerType, std::string>);
     static_assert(std::is_same_v<type_trait::ValueType, char>);
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, char>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, char>);
     static_assert(type_trait::HasContiguousPrimitiveData);
     static_assert(type_trait::HasDynamicMemoryAllocation);
 
@@ -201,7 +201,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorInt, KratosCoreFastSuite)
 
     static_assert(std::is_same_v<type_trait::ContainerType, std::vector<int>>);
     static_assert(std::is_same_v<type_trait::ValueType, int>);
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, int>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, int>);
     static_assert(type_trait::HasContiguousPrimitiveData);
     static_assert(type_trait::HasDynamicMemoryAllocation);
 
@@ -236,7 +236,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dNested, KratosCoreFastSuite)
 
     static_assert(std::is_same_v<type_trait::ContainerType, array_1d<array_1d<array_1d<int, 10>, 3>, 5>>);
     static_assert(std::is_same_v<type_trait::ValueType, array_1d<array_1d<int, 10>, 3>>);
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, int>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, int>);
     static_assert(!type_trait::HasContiguousPrimitiveData);
     static_assert(!type_trait::HasDynamicMemoryAllocation);
 
@@ -271,7 +271,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorNested, KratosCoreFastSuite)
 
     static_assert(std::is_same_v<type_trait::ContainerType, DenseVector<DenseVector<Vector>>>);
     static_assert(std::is_same_v<type_trait::ValueType, DenseVector<Vector>>);
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, double>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
     static_assert(!type_trait::HasContiguousPrimitiveData);
     static_assert(type_trait::HasDynamicMemoryAllocation);
 
@@ -327,7 +327,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixNested, KratosCoreFastSuite)
 
     static_assert(std::is_same_v<type_trait::ContainerType, DenseMatrix<DenseMatrix<Matrix>>>);
     static_assert(std::is_same_v<type_trait::ValueType, DenseMatrix<Matrix>>);
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, double>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
     static_assert(!type_trait::HasContiguousPrimitiveData);
     static_assert(type_trait::HasDynamicMemoryAllocation);
 
@@ -389,7 +389,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorNested, KratosCoreFastSuite)
 
     static_assert(std::is_same_v<type_trait::ContainerType, std::vector<std::vector<int>>>);
     static_assert(std::is_same_v<type_trait::ValueType, std::vector<int>>);
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, int>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, int>);
     static_assert(!type_trait::HasContiguousPrimitiveData);
     static_assert(type_trait::HasDynamicMemoryAllocation);
 
@@ -435,7 +435,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested1, KratosCoreFastSuite)
 
     static_assert(std::is_same_v<type_trait::ContainerType, std::vector<DenseVector<DenseMatrix<array_1d<std::string, 6>>>>>);
     static_assert(std::is_same_v<type_trait::ValueType, DenseVector<DenseMatrix<array_1d<std::string, 6>>>>);
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, char>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, char>);
     static_assert(!type_trait::HasContiguousPrimitiveData);
     static_assert(type_trait::HasDynamicMemoryAllocation);
 
@@ -508,7 +508,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested2, KratosCoreFastSuite)
 
     static_assert(std::is_same_v<type_trait::ContainerType, std::vector<DenseVector<DenseMatrix<array_1d<double, 6>>>>>);
     static_assert(std::is_same_v<type_trait::ValueType, DenseVector<DenseMatrix<array_1d<double, 6>>>>);
-    static_assert(std::is_same_v<type_trait::PrimitiveDataType, double>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, double>);
     static_assert(!type_trait::HasContiguousPrimitiveData);
     static_assert(type_trait::HasDynamicMemoryAllocation);
 
