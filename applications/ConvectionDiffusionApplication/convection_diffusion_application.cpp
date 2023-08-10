@@ -41,9 +41,6 @@ KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
       mConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
       mConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       mLaplacian2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
-      mLaplacianShiftedBoundary2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
-      mLaplacianIGA2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
-      mSBMLaplacianCondition(0, Element::GeometryType::Pointer(new Geometry<Node >())),
       mLaplacian3D4N(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       mLaplacian3D8N(0, Element::GeometryType::Pointer(new Hexahedra3D8<Node >(Element::GeometryType::PointsArrayType(8)))),
       mLaplacian3D27N(0, Element::GeometryType::Pointer(new Hexahedra3D27<Node >(Element::GeometryType::PointsArrayType(27)))),
@@ -94,7 +91,6 @@ void KratosConvectionDiffusionApplication::Register() {
 
     // Registering elements and conditions here
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff2D", mEulerianConvDiff2D);
-    KRATOS_REGISTER_ELEMENT("ConvDiffShiftedBoundary2D", mConvDiffShiftedBoundary2D);
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff2D4N", mEulerianConvDiff2D4N);
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff3D", mEulerianConvDiff3D);
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff3D8N", mEulerianConvDiff3D8N);
@@ -103,8 +99,6 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_ELEMENT("ConvDiff2D", mConvDiff2D);
     KRATOS_REGISTER_ELEMENT("ConvDiff3D", mConvDiff3D);
     KRATOS_REGISTER_ELEMENT("LaplacianElement2D3N", mLaplacian2D3N);
-    KRATOS_REGISTER_ELEMENT("LaplacianShiftedBoundaryElement2D3N", mLaplacianShiftedBoundary2D3N);
-    KRATOS_REGISTER_ELEMENT("LaplacianIGAElement2D3N", mLaplacianIGA2D3N);
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D4N", mLaplacian3D4N);
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D8N", mLaplacian3D8N);
     KRATOS_REGISTER_ELEMENT("LaplacianElement3D27N", mLaplacian3D27N);
@@ -126,7 +120,6 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_CONDITION("FluxCondition2D2N", mFluxCondition2D2N);
     KRATOS_REGISTER_CONDITION("FluxCondition3D3N", mFluxCondition3D3N);
     KRATOS_REGISTER_CONDITION("FluxCondition3D4N", mFluxCondition3D4N);
-    KRATOS_REGISTER_CONDITION("SBMLaplacianCondition", mSBMLaplacianCondition);
 
     KRATOS_REGISTER_CONDITION("AdjointThermalFace2D2N", mAdjointThermalFace2D2N);
     KRATOS_REGISTER_CONDITION("AdjointThermalFace3D3N", mAdjointThermalFace3D3N);

@@ -150,7 +150,7 @@ def CreateXdmfSpatialGrid(h5_model_part):
         else:
             for name, value in current_h5_item.items():
                 cell_type = TopologyCellType(
-                    value.attrs["Dimension"], value.attrs["NumberOfNodes"])
+                    value.attrs["WorkingSpaceDimension"], value.attrs["NumberOfNodes"])
                 connectivities = HDF5UniformDataItem(value["Connectivities"])
                 topology = UniformMeshTopology(cell_type, connectivities)
                 sgrid.add_grid(UniformGrid(spatial_grid_name + "." + name, geom, topology))
@@ -631,4 +631,4 @@ def WriteSinglefileTemporalAnalysisToXdmf(h5_file_name, h5path_pattern_to_mesh, 
     domain = Domain(temporal_grid)
     xdmf = Xdmf(domain)
     # Write the XML tree containing the XDMF metadata to the file.
-    ET.ElementTree(xdmf.create_xml_element()).write(h5_file_name[:h5_file_name.rfind(".")] + ".xdmf")    
+    ET.ElementTree(xdmf.create_xml_element()).write(h5_file_name[:h5_file_name.rfind(".")] + ".xdmf")

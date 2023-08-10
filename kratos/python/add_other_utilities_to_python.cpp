@@ -66,8 +66,6 @@
 #include "utilities/communication_coloring_utilities.h"
 #include "utilities/model_part_graph_utilities.h"
 #include "utilities/shifted_boundary_meshless_interface_utility.h"
-#include "utilities/shifted_boundary_meshless_interface_utility_copy.h"
-#include "utilities/shifted_boundary_meshless_interface_utility_copy2.h"
 #include "utilities/particles_utilities.h"
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
@@ -805,21 +803,6 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
     py::class_<ShiftedBoundaryMeshlessInterfaceUtility, ShiftedBoundaryMeshlessInterfaceUtility::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtility")
         .def(py::init<Model&, Parameters>())
         .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtility::CalculateExtensionOperator)
-        .def("SetSurrogateBoundaryNodalGradientWeights", &ShiftedBoundaryMeshlessInterfaceUtility::SetSurrogateBoundaryNodalGradientWeights)
-    ;
-
-    py::class_<ShiftedBoundaryMeshlessInterfaceUtilityCopy, ShiftedBoundaryMeshlessInterfaceUtilityCopy::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtilityCopy")
-        .def(py::init<Model&, Parameters>())
-        .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtilityCopy::CalculateExtensionOperator)
-        .def("SetSurrogateBoundaryNodalGradientWeights", &ShiftedBoundaryMeshlessInterfaceUtilityCopy::SetSurrogateBoundaryNodalGradientWeights)
-        .def("NodalGradientWeightsForLonelyNodes", &ShiftedBoundaryMeshlessInterfaceUtilityCopy::NodalGradientWeightsForLonelyNodes)
-    ;
-
-    py::class_<ShiftedBoundaryMeshlessInterfaceUtilityCopy2, ShiftedBoundaryMeshlessInterfaceUtilityCopy2::Pointer>(m,"ShiftedBoundaryMeshlessInterfaceUtilityCopy2")
-        .def(py::init<Model&, Parameters>())
-        .def("CalculateExtensionOperator", &ShiftedBoundaryMeshlessInterfaceUtilityCopy2::CalculateExtensionOperator)
-        .def("SetSurrogateBoundaryNodalGradientWeights", &ShiftedBoundaryMeshlessInterfaceUtilityCopy2::SetSurrogateBoundaryNodalGradientWeights)
-        .def("NodalGradientWeightsForLonelyNodes", &ShiftedBoundaryMeshlessInterfaceUtilityCopy2::NodalGradientWeightsForLonelyNodes)
     ;
 
     m.def_submodule("StringUtilities", "Free-floating utility functions for string manipulation.")

@@ -53,7 +53,6 @@
 #include "processes/assign_scalar_field_to_entities_process.h"
 #include "processes/reorder_and_optimize_modelpart_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
-#include "processes/find_surrogate_nodes_process.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
 #include "processes/apply_ray_casting_process.h"
 #include "processes/apply_ray_casting_interface_recognition_process.h"
@@ -475,16 +474,6 @@ void  AddProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, ModelPart&, Parameters>())
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
         .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
-    ;
-
-    py::class_<FindSurrogateNodesProcess<2>, FindSurrogateNodesProcess<2>::Pointer, Process>(m,"FindSurrogateNodesProcess2D")
-        .def(py::init<ModelPart&, ModelPart&>())
-        .def(py::init<ModelPart&, ModelPart&, double>())
-        .def(py::init<ModelPart&, ModelPart&, Parameters&>())
-        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinArray<2>)
-        .def("CalculateEmbeddedVariableFromSkin", CalculateEmbeddedVariableFromSkinDouble<2>)
-        .def("FindClosestElement", &FindSurrogateNodesProcess<2>::FindClosestElement)
-        // .def("FindSurrogateNodes", &FindSurrogateNodesProcess<2>::FindSurrogateNodes)
     ;
 
     // Continuous distance computation methods

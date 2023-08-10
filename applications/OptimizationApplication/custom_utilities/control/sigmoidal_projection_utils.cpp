@@ -69,7 +69,7 @@ IndexType GetUpperValueRangeIndex(
         }
     }
 
-    return std::clamp(upper_index, 1UL, size - 1);
+    return std::clamp<IndexType>(upper_index, 1UL, size - 1);
 }
 
 double ProjectValueForward(

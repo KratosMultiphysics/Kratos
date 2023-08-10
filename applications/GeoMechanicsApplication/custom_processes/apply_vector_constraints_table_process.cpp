@@ -16,7 +16,6 @@
 #include "apply_component_table_process.hpp"
 #include "processes/apply_constant_scalarvalue_process.h"
 
-
 namespace Kratos
 {
 
@@ -30,7 +29,6 @@ ApplyVectorConstraintsTableProcess::ApplyVectorConstraintsTableProcess(Kratos::M
         mProcesses.emplace_back(MakeProcessFor(parameters));
     }
 }
-
 
 ApplyVectorConstraintsTableProcess::~ApplyVectorConstraintsTableProcess() = default;
 
