@@ -69,11 +69,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dDouble, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
 
     array_1d<double, 5> dummy;
-    type_trait::FillToContiguousData(dummy.data().begin(), test);
+    type_trait::FillToContiguousData(dummy.data().data(), test);
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     dummy = array_1d<double, 5>(5, -2);
-    type_trait::FillFromContiguousData(dummy, test.data().begin());
+    type_trait::FillFromContiguousData(dummy, test.data().data());
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     #ifdef KRATOS_DEBUG
