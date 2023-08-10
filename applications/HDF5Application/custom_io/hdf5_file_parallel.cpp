@@ -1,13 +1,26 @@
-#include "hdf5_file_parallel.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   license: HDF5Application/license.txt
+//
 
+// --- HDF5 Includes ---
+#include "hdf5_file_parallel.h"
+#include "hdf5_types.h"
+
+// --- Core Includes ---
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
 #include "input_output/logger.h"
 
-namespace Kratos
-{
-namespace HDF5
-{
+
+namespace Kratos::HDF5 {
+
+
 FileParallel::FileParallel(Parameters& rSettings) : File(rSettings)
 {
 }
@@ -209,7 +222,7 @@ void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
     constexpr bool is_int_type = std::is_same<int, T>::value;
     constexpr bool is_double_type = std::is_same<double, T>::value;
     constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
-    constexpr unsigned ndims = (!is_array_1d_type) ? 1 : 2;
+    constexpr unsigned ndims = is_array_1d_type ? 2 : 1;
     hsize_t local_dims[ndims], global_dims[ndims];
     // Set first data space dimension.
     local_dims[0] = rData.size();
@@ -217,28 +230,32 @@ void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
     send_buf = local_dims[0];
     MPI_Allreduce(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
     global_dims[0] = recv_buf;
-    if (Mode == DataTransferMode::independent)
-        if (local_dims[0] > 0)
+    if (Mode == DataTransferMode::independent) {
+        if (local_dims[0] > 0) {
             KRATOS_ERROR_IF(local_dims[0] != global_dims[0])
                 << "Can't perform independent write with MPI. Invalid data."
                 << std::endl;
-    if (is_array_1d_type)
+        } // if local_dims[0]
+    } // if DataTransferMode::independent
+    if (is_array_1d_type) {
         local_dims[1] = global_dims[1] = 3; // Set second data space dimension.
+    }
 
     hsize_t local_start[ndims];
-    if (Mode == DataTransferMode::collective)
-    {
+    if (Mode == DataTransferMode::collective) {
         send_buf = local_dims[0];
         // Get global position where local data set ends.
         MPI_Scan(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
         // Set global position where local data set starts.
         local_start[0] = recv_buf - local_dims[0];
     }
-    else
+    else {
         local_start[0] = 0;
+    }
 
-    if (is_array_1d_type)
+    if (is_array_1d_type) {
         local_start[1] = 0;
+    }
 
     // Set the data type.
     hid_t dtype_id;
@@ -317,39 +334,61 @@ void FileParallel::WriteDataSetMatrixImpl(const std::string& rPath,
     }
 
     // Initialize data space dimensions.
-    const unsigned ndims = 2;
+    constexpr unsigned ndims = 2;
     hsize_t local_dims[ndims], global_dims[ndims];
     // Set first data space dimension.
     local_dims[0] = rData.size1();
     unsigned send_buf, recv_buf;
+
+    // Collect the total number of rows to be written
     send_buf = local_dims[0];
     MPI_Allreduce(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
     global_dims[0] = recv_buf;
+
     if (Mode == DataTransferMode::independent)
         if (local_dims[0] > 0)
             KRATOS_ERROR_IF(local_dims[0] != global_dims[0])
                 << "Can't perform independent write with MPI. Invalid data."
                 << std::endl;
-    local_dims[1] = global_dims[1] = rData.size2(); // Set second data space dimension.
+    local_dims[1] = rData.size2(); // Set second data space dimension.
 
-    hsize_t local_start[ndims] = {0};
-    if (Mode == DataTransferMode::collective)
-    {
+    // The number of columns is a bit trickier: If there's data to be written
+    // on the rank, it's a positive integer. If there's no data to write,
+    // the number of columns can either be the same positive integer as on other
+    // ranks, **or** it can be zero. Either way the number of columns should be
+    // max-synced between ranks.
+    send_buf = local_dims[1];
+    MPI_Allreduce(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_MAX, MPI_COMM_WORLD);
+    global_dims[1] = recv_buf;
+
+    KRATOS_ERROR_IF(local_dims[1] != global_dims[1] && local_dims[1] != 0)
+        << "Matrix column size mismatch: "
+        << "local matrix: " << local_dims[1] << ' '
+        << "global matrix: " << global_dims[1];
+
+    hsize_t local_start[ndims] {0, 0};
+    if (Mode == DataTransferMode::collective) {
         send_buf = local_dims[0];
         // Get global position where local data set ends.
         MPI_Scan(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
         // Set global position where local data set starts.
         local_start[0] = recv_buf - local_dims[0];
     }
-    else
+    else {
         local_start[0] = 0;
+    }
 
     // Set the data type.
-    hid_t dtype_id = Internals::GetScalarDataType(rData);
+    hid_t dtype_id = HDF5ScalarTypeID_v<Matrix<T>>;
 
     // Create and write the data set.
     hid_t file_id = GetFileId();
     hid_t fspace_id = H5Screate_simple(ndims, global_dims, nullptr);
+    KRATOS_ERROR_IF(fspace_id == H5I_INVALID_HID)
+        << "HDF5 failed to create a simple dataspace with the following arguments: "
+        << "rank: " << ndims << ' '
+        << "dims: " << global_dims[0] << ", " << global_dims[1] << ' '
+        << "maxdims: nullptr";
     // H5Dcreate() must be called collectively for both collective and
     // independent write.
     hid_t dset_id = H5Dcreate(file_id, rPath.c_str(), dtype_id, fspace_id,
@@ -359,13 +398,22 @@ void FileParallel::WriteDataSetMatrixImpl(const std::string& rPath,
     if (Mode == DataTransferMode::collective || local_dims[0] > 0)
     {
         hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-        if (Mode == DataTransferMode::collective)
+        if (Mode == DataTransferMode::collective) {
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
-        else
+        } else {
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
+        }
         H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
                             local_dims, nullptr);
+        KRATOS_ERROR_IF(H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
+                                            local_dims, nullptr) < 0)
+            << "H5Sselect_hyperslab failed";
         hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
+        KRATOS_ERROR_IF(mspace_id == H5I_INVALID_HID)
+            << "HDF5 failed to create a simple dataspace with the following arguments: "
+            << "rank: " << ndims << ' '
+            << "dims: " << local_dims[0] << ", " << local_dims[1] << ' '
+            << "maxdims: nullptr";
         if (local_dims[0] > 0)
         {
             KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
@@ -610,5 +658,4 @@ template void FileParallel::ReadDataSetMatrixImpl(const std::string& rPath,
                                                   unsigned BlockSize,
                                                   DataTransferMode Mode);
 
-} // namespace HDF5.
-} // namespace Kratos.
+} // namespace Kratos::HDF5
