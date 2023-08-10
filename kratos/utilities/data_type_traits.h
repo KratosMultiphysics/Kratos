@@ -515,7 +515,7 @@ public:
         bool is_reshaped = false;
 
         if (rContainer.size() != rShape[0]) {
-            rContainer.resize(rShape[0], false);
+            rContainer.resize(rShape[0]);
             is_reshaped = true;
         }
 

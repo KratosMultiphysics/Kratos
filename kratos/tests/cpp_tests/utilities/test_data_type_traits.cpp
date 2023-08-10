@@ -383,4 +383,50 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixNested, KratosCoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorNested, KratosCoreFastSuite)
+{
+    using type_trait = DataTypeTraits<std::vector<std::vector<int>>>;
+
+    static_assert(std::is_same_v<type_trait::ContainerType, std::vector<std::vector<int>>>);
+    static_assert(std::is_same_v<type_trait::ValueType, std::vector<int>>);
+    static_assert(std::is_same_v<type_trait::PrimitiveDataType, int>);
+    static_assert(!type_trait::HasContiguousPrimitiveData);
+    static_assert(type_trait::HasDynamicMemoryAllocation);
+
+    std::vector<std::vector<int>> test(2), result(2);
+    std::vector<int> ref_values(6);
+    for (unsigned int i = 0; i < 2; ++i) {
+        test[i] = std::vector<int>(3);
+        result[i] = std::vector<int>(3, -1);
+        for (unsigned int j = 0; j < 3; ++j) {
+            test[i][j] = (i+1)*(j+1);
+            ref_values[i * 3 + j] = test[i][j];
+        }
+    }
+
+    KRATOS_CHECK_EQUAL(type_trait::Size(test), 6);
+
+    std::vector<unsigned int> shape{2, 3};
+    KRATOS_CHECK_EQUAL(type_trait::Shape(test), shape);
+    KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
+
+    auto temp = test;
+    shape[0] = 3;
+    shape[1] = 4;
+    KRATOS_CHECK(type_trait::Reshape(temp, shape));
+    KRATOS_CHECK_EQUAL(temp.size(), 3);
+    for (unsigned int i = 0; i < 3; ++i) {
+        KRATOS_CHECK_EQUAL(temp[i].size(), 4);
+    }
+
+    std::vector<int> values(6, -1);
+    type_trait::FillToContiguousData(values.data(), test);
+    KRATOS_CHECK_VECTOR_EQUAL(values, ref_values);
+
+    type_trait::FillFromContiguousData(result, values.data());
+    for (unsigned int i = 0; i < 2; ++i) {
+        KRATOS_CHECK_VECTOR_EQUAL(result[i], test[i]);
+    }
+}
+
 } // namespace Kratos::Testing
