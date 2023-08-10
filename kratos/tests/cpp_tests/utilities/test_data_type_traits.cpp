@@ -103,7 +103,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(test.size(), 9);
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
 
-    Vector dummy(9);
+    test = Vector(9, 2);
+
+    Vector dummy(9, -1);
     type_trait::FillToContiguousData(dummy.data().begin(), test);
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
@@ -144,6 +146,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(test.size2(), 5);
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test(0, 0));
 
+    test = Matrix(4, 5, 2);
+
     Matrix dummy(4, 5);
     type_trait::FillToContiguousData(dummy.data().begin(), test);
     KRATOS_CHECK_MATRIX_EQUAL(dummy, test);
@@ -179,6 +183,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsString, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(test.size(), 6);
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
 
+    test = "test01";
+
     std::string dummy = "000000";
     type_trait::FillToContiguousData(dummy.data(), test);
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
@@ -213,6 +219,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorInt, KratosCoreFastSuite)
     KRATOS_CHECK(type_trait::Reshape(test, std::vector<unsigned int>{9}));
     KRATOS_CHECK_EQUAL(test.size(), 9);
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
+
+    test = std::vector<int>(9, 2);
 
     std::vector<int> dummy(9);
     type_trait::FillToContiguousData(dummy.data(), test);
