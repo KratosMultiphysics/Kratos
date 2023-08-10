@@ -131,7 +131,7 @@ public:
     inline static PrimitiveDataType const * GetContiguousData(const ContainerType& rValue)
     {
         if constexpr(HasContiguousPrimitiveData) {
-            return rValue.data();
+            return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
@@ -140,7 +140,7 @@ public:
     inline static PrimitiveDataType * GetContiguousData(ContainerType& rValue)
     {
         if constexpr(HasContiguousPrimitiveData) {
-            return rValue.data();
+            return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
@@ -211,7 +211,7 @@ public:
     inline static PrimitiveDataType const * GetContiguousData(const ContainerType& rValue)
     {
         if constexpr(HasContiguousPrimitiveData) {
-            return rValue.data();
+            return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
@@ -220,7 +220,7 @@ public:
     inline static PrimitiveDataType * GetContiguousData(ContainerType& rValue)
     {
         if constexpr(HasContiguousPrimitiveData) {
-            return rValue.data();
+            return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
@@ -292,7 +292,7 @@ public:
     inline static PrimitiveDataType const * GetContiguousData(const ContainerType& rValue)
     {
         if constexpr(HasContiguousPrimitiveData) {
-            return rValue.data();
+            return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
@@ -301,7 +301,7 @@ public:
     inline static PrimitiveDataType * GetContiguousData(ContainerType& rValue)
     {
         if constexpr(HasContiguousPrimitiveData) {
-            return rValue.data();
+            return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
