@@ -192,13 +192,29 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dStaticNested, KratosCoreFastSuite
     static_assert(!type_trait::HasContiguousPrimitiveData);
     static_assert(!type_trait::HasDynamicMemoryAllocation);
 
-    array_1d<array_1d<array_1d<int, 10>, 3>, 5> test{};
+    array_1d<array_1d<array_1d<int, 10>, 3>, 5> test{}, result{};
+    std::vector<int> ref_values(150);
+    for (unsigned int i = 0; i < 5; ++i) {
+        for (unsigned int j = 0; j < 3; ++j) {
+            for (unsigned int k = 0; k < 10; ++k) {
+                test[i][j][k] = (i+1)*(j+1)*(k+1);
+                ref_values[i * 30 + j * 10 + k] = test[i][j][k];
+            }
+        }
+    }
 
     KRATOS_CHECK_EQUAL(type_trait::Size(test), 150);
 
     std::vector<unsigned int> shape{5, 3, 10};
     KRATOS_CHECK_EQUAL(type_trait::Shape(test), shape);
     KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, shape));
+
+    std::vector<int> values(150, -1);
+    type_trait::FillToContiguousData(values.data(), test);
+    KRATOS_CHECK_EQUAL(values, ref_values);
+
+    type_trait::FillFromContiguousData(result, values.data());
+    KRATOS_CHECK_EQUAL(test, result);
 
     #ifdef KRATOS_DEBUG
         KRATOS_CHECK_EXCEPTION_IS_THROWN(

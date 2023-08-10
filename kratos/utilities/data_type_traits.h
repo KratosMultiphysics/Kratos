@@ -74,6 +74,20 @@ public:
         return &rValue;
     }
 
+    inline static void FillToContiguousData(
+        PrimitiveDataType* pContiguousDataBegin,
+        const ContainerType& rValue)
+    {
+        *pContiguousDataBegin = rValue;
+    }
+
+    inline static void FillFromContiguousData(
+        ContainerType& rValue,
+        PrimitiveDataType const * pContiguousDataBegin)
+    {
+        rValue = *pContiguousDataBegin;
+    }
+
     ///@}
 };
 
@@ -143,6 +157,26 @@ public:
             return rValue.data().begin();
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+        }
+    }
+
+    inline static void FillToContiguousData(
+        PrimitiveDataType* pContiguousDataBegin,
+        const ContainerType& rContainer)
+    {
+        const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
+        for (unsigned int i = 0; i < Dimension; ++i) {
+            DataTypeTraits<ValueType>::FillToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+        }
+    }
+
+    inline static void FillFromContiguousData(
+        ContainerType& rContainer,
+        PrimitiveDataType const * pContiguousDataBegin)
+    {
+        const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
+        for (unsigned int i = 0; i < Dimension; ++i) {
+            DataTypeTraits<ValueType>::FillFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
         }
     }
 
