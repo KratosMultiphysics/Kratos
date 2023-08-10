@@ -35,6 +35,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsInt, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{}));
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test);
 
+    int dummy = -1;
+    type_trait::FillToContiguousData(&dummy, test);
+    KRATOS_CHECK_EQUAL(dummy, test);
+
+    dummy = -2;
+    type_trait::FillFromContiguousData(dummy, &test);
+    KRATOS_CHECK_EQUAL(dummy, test);
+
     #ifdef KRATOS_DEBUG
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             type_trait::Reshape(test, std::vector<unsigned int>{1}),
@@ -59,6 +67,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dDouble, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(type_trait::Shape(test), std::vector<unsigned int>{5});
     KRATOS_CHECK_IS_FALSE(type_trait::Reshape(test, std::vector<unsigned int>{5}));
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
+
+    array_1d<double, 5> dummy;
+    type_trait::FillToContiguousData(dummy.data().begin(), test);
+    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+
+    dummy = array_1d<double, 5>(5, -2);
+    type_trait::FillFromContiguousData(dummy, test.data().begin());
+    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     #ifdef KRATOS_DEBUG
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
@@ -86,6 +102,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
     KRATOS_CHECK(type_trait::Reshape(test, std::vector<unsigned int>{9}));
     KRATOS_CHECK_EQUAL(test.size(), 9);
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
+
+    Vector dummy(9);
+    type_trait::FillToContiguousData(dummy.data().begin(), test);
+    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+
+    dummy = Vector(9, -2);
+    type_trait::FillFromContiguousData(dummy, test.data().begin());
+    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     #ifdef KRATOS_DEBUG
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
@@ -120,6 +144,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(test.size2(), 5);
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test(0, 0));
 
+    Matrix dummy(4, 5);
+    type_trait::FillToContiguousData(dummy.data().begin(), test);
+    KRATOS_CHECK_MATRIX_EQUAL(dummy, test);
+
+    dummy = Matrix(4, 5, -2);
+    type_trait::FillFromContiguousData(dummy, test.data().begin());
+    KRATOS_CHECK_MATRIX_EQUAL(dummy, test);
+
     #ifdef KRATOS_DEBUG
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             type_trait::Reshape(test, std::vector<unsigned int>{}),
@@ -147,6 +179,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsString, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(test.size(), 6);
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
 
+    std::string dummy = "000000";
+    type_trait::FillToContiguousData(dummy.data(), test);
+    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+
+    dummy = "000000";
+    type_trait::FillFromContiguousData(dummy, test.data());
+    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+
     #ifdef KRATOS_DEBUG
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             type_trait::Reshape(test, std::vector<unsigned int>{}),
@@ -173,6 +213,14 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorInt, KratosCoreFastSuite)
     KRATOS_CHECK(type_trait::Reshape(test, std::vector<unsigned int>{9}));
     KRATOS_CHECK_EQUAL(test.size(), 9);
     KRATOS_CHECK_EQUAL(type_trait::GetContiguousData(test), &test[0]);
+
+    std::vector<int> dummy(9);
+    type_trait::FillToContiguousData(dummy.data(), test);
+    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
+
+    dummy = std::vector<int>(9, -2);
+    type_trait::FillFromContiguousData(dummy, test.data());
+    KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
     #ifdef KRATOS_DEBUG
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
