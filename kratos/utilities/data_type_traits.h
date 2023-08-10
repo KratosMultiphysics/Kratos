@@ -590,7 +590,7 @@ public:
     ///@name Public operations
     ///@{
 
-    inline PrimitiveType const * GetData(const TDataType& rContainer) const
+    inline PrimitiveType const * GetData(const TDataType& rContainer)
     {
         if constexpr(HasContiguousPrimitiveData) {
             return BufferedDataTypeTrait::GetContiguousData(rContainer);
@@ -599,8 +599,8 @@ public:
             if (mData.size() != size) {
                 mData.resize(size);
             }
-            BufferedDataTypeTrait::FillToContiguousData(mData.begin(), rContainer);
-            return mData.begin();
+            BufferedDataTypeTrait::FillToContiguousData(mData.data(), rContainer);
+            return mData.data();
         }
     }
 
