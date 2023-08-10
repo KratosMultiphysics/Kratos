@@ -1,0 +1,360 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main author:     Suneth Warnakulasuriya
+//
+
+#pragma once
+
+// System includes
+#include <algorithm>
+#include <string>
+#include <type_traits>
+#include <vector>
+
+// Project includes
+#include "containers/array_1d.h"
+#include "includes/ublas_interface.h"
+
+namespace Kratos {
+
+template<class TDataType> class DataTypeTraits
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using ContainerType = TDataType;
+
+    using ValueType = TDataType;
+
+    using PrimitiveDataType = TDataType;
+
+    static constexpr bool HasContiguousPrimitiveData = true;
+
+    static constexpr bool HasDynamicMemoryAllocation = false;
+
+    ///@}
+    ///@name Public static operations
+    ///@{
+
+    static inline unsigned int Size(const ContainerType&)
+    {
+        return 1;
+    }
+
+    static inline std::vector<unsigned int> Shape(const ContainerType&)
+    {
+        return {};
+    }
+
+    static inline bool Reshape(
+        ContainerType&,
+        const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_DEBUG_ERROR_IF(rShape.size() != 0)
+            << "Invalid shape given for primitive data type [ Expected shape = [], provided shape = "
+            << rShape << " ].\n";
+        return false;
+    }
+
+    ///@}
+};
+
+template<class TDataType, std::size_t Dimension> class DataTypeTraits<array_1d<TDataType, Dimension>>
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using ContainerType = array_1d<TDataType, Dimension>;
+
+    using ValueType = TDataType;
+
+    using PrimitiveDataType = typename DataTypeTraits<ValueType>::PrimitiveDataType;
+
+    static constexpr bool HasContiguousPrimitiveData = std::is_same_v<PrimitiveDataType, ValueType>;
+
+    static constexpr bool HasDynamicMemoryAllocation = DataTypeTraits<ValueType>::HasDynamicMemoryAllocation;
+
+    ///@}
+    ///@name Public static operations
+    ///@{
+
+    static inline unsigned int Size(const ContainerType& rContainer)
+    {
+        return Dimension * DataTypeTraits<ValueType>::Size(rContainer[0]);
+    }
+
+    static inline std::vector<unsigned int> Shape(const ContainerType& rContainer)
+    {
+        auto shape = DataTypeTraits<ValueType>::Shape(rContainer[0]);
+        shape.insert(shape.begin(), Dimension);
+        return shape;
+    }
+
+    static inline bool Reshape(
+        ContainerType& rContainer,
+        const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(rShape.size() >= 1 && rShape[0] == static_cast<unsigned int>(Dimension))
+            << "Invalid shape given for array_1d data type [ Expected shape = [" << Dimension << "], provided shape = "
+            << rShape << " ].\n";
+
+        bool is_reshaped = false;
+
+        if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
+            std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
+            std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = is_reshaped || DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape); });
+        }
+
+        return is_reshaped;
+    }
+
+    ///@}
+};
+
+template<class TDataType> class DataTypeTraits<DenseVector<TDataType>>
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using ContainerType = DenseVector<TDataType>;
+
+    using ValueType = TDataType;
+
+    using PrimitiveDataType = typename DataTypeTraits<ValueType>::PrimitiveDataType;
+
+    static constexpr bool HasContiguousPrimitiveData = std::is_same_v<PrimitiveDataType, ValueType>;
+
+    static constexpr bool HasDynamicMemoryAllocation = true;
+
+    ///@}
+    ///@name Public static operations
+    ///@{
+
+    static inline unsigned int Size(const ContainerType& rValue)
+    {
+        return (rValue.size() == 0 ? 0 : rValue.size() * DataTypeTraits<ValueType>::Size(rValue[0]));
+    }
+
+    static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
+    {
+        std::vector<unsigned int> shape;
+        if (rValue.size() == 0) {
+            shape = DataTypeTraits<ValueType>::Shape(ValueType{});
+        } else {
+            shape = DataTypeTraits<ValueType>::Shape(rValue[0]);
+        }
+        shape.insert(shape.begin(), rValue.size());
+        return shape;
+    }
+
+    static inline bool Reshape(
+        ContainerType& rContainer,
+        const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(rShape.size() >= 1) << "Invalid shape given for DenseVector data type.";
+
+        bool is_reshaped = false;
+
+        if (rContainer.size() != rShape[0]) {
+            rContainer.resize(rShape[0], false);
+            is_reshaped = true;
+        }
+
+        if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
+            std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
+            std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = is_reshaped || DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape); });
+        }
+
+        return is_reshaped;
+    }
+
+    ///@}
+};
+
+template<class TDataType> class DataTypeTraits<DenseMatrix<TDataType>>
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using ContainerType = DenseMatrix<TDataType>;
+
+    using ValueType = TDataType;
+
+    using PrimitiveDataType = typename DataTypeTraits<ValueType>::PrimitiveDataType;
+
+    static constexpr bool HasContiguousPrimitiveData = std::is_same_v<PrimitiveDataType, ValueType>;
+
+    static constexpr bool HasDynamicMemoryAllocation = true;
+
+    ///@}
+    ///@name Public static operations
+    ///@{
+
+    static inline unsigned int Size(const ContainerType& rValue)
+    {
+        return (rValue.size1() == 0 || rValue.size2() == 0 ? 0 : rValue.size1() * rValue.size2() * DataTypeTraits<ValueType>::Size(rValue.data()[0]));
+    }
+
+    static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
+    {
+        std::vector<unsigned int> shape;
+        if (rValue.size1() == 0 || rValue.size2() == 0) {
+            shape = DataTypeTraits<ValueType>::Shape(ValueType{});
+        } else {
+            shape = DataTypeTraits<ValueType>::Shape(rValue.data()[0]);
+        }
+        shape.insert(shape.begin(), rValue.size2());
+        shape.insert(shape.begin(), rValue.size1());
+        return shape;
+    }
+
+    static inline bool Reshape(
+        ContainerType& rContainer,
+        const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(rShape.size() >= 2) << "Invalid shape given for DenseMatrix data type.";
+
+        bool is_reshaped = false;
+
+        if (rContainer.size1() != rShape[0] || rContainer.size2() != rShape[1]) {
+            rContainer.resize(rShape[0], rShape[1], false);
+            is_reshaped = true;
+        }
+
+        if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
+            std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
+            std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
+            std::for_each(rContainer.data().begin(), rContainer.data().end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = is_reshaped || DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape); });
+        }
+
+        return is_reshaped;
+    }
+
+    ///@}
+};
+
+template<> class DataTypeTraits<std::string>
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using ContainerType = std::string;
+
+    using ValueType = char;
+
+    using PrimitiveDataType = char;
+
+    static constexpr bool HasContiguousPrimitiveData = true;
+
+    static constexpr bool HasDynamicMemoryAllocation = true;
+
+    ///@}
+    ///@name Public static operations
+    ///@{
+
+    static inline unsigned int Size(const ContainerType& rValue)
+    {
+        return rValue.size();
+    }
+
+    static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
+    {
+        return {static_cast<unsigned int>(rValue.size())};
+    }
+
+    static inline bool Reshape(
+        ContainerType& rContainer,
+        const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(rShape.size() == 1) << "Invalid shape given for std::string data type.";
+
+        bool is_reshaped = false;
+
+        if (rContainer.size() != rShape[0]) {
+            rContainer.resize(rShape[0], false);
+            is_reshaped = true;
+        }
+
+        return is_reshaped;
+    }
+
+    ///@}
+};
+
+template<class TDataType> class DataTypeTraits<std::vector<TDataType>>
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using ContainerType = std::vector<TDataType>;
+
+    using ValueType = TDataType;
+
+    using PrimitiveDataType = typename DataTypeTraits<ValueType>::PrimitiveDataType;
+
+    static constexpr bool HasContiguousPrimitiveData = std::is_same_v<PrimitiveDataType, ValueType>;
+
+    static constexpr bool HasDynamicMemoryAllocation = true;
+
+    ///@}
+    ///@name Public static operations
+    ///@{
+
+    static inline unsigned int Size(const ContainerType& rValue)
+    {
+        return (rValue.size() == 0 ? 0 : rValue.size() * DataTypeTraits<ValueType>::Size(rValue[0]));
+    }
+
+    static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
+    {
+        std::vector<unsigned int> shape;
+        if (rValue.size() == 0) {
+            shape = DataTypeTraits<ValueType>::Shape(ValueType{});
+        } else {
+            shape = DataTypeTraits<ValueType>::Shape(rValue[0]);
+        }
+        shape.insert(shape.begin(), rValue.size());
+        return shape;
+    }
+
+    static inline bool Reshape(
+        ContainerType& rContainer,
+        const std::vector<unsigned int>& rShape)
+    {
+        KRATOS_DEBUG_ERROR_IF_NOT(rShape.size() >= 1) << "Invalid shape given for std::vector data type.";
+
+        bool is_reshaped = false;
+
+        if (rContainer.size() != rShape[0]) {
+            rContainer.resize(rShape[0], false);
+            is_reshaped = true;
+        }
+
+        if constexpr(DataTypeTraits<ValueType>::HasDynamicMemoryAllocation) {
+            std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
+            std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) { is_reshaped = is_reshaped || DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape); });
+        }
+
+        return is_reshaped;
+    }
+
+    ///@}
+};
+
+}; // namespace Kratos
