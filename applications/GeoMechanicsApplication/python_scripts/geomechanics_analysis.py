@@ -146,7 +146,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
             if (self.delta_time > self.max_delta_time):
                 self.delta_time = self.max_delta_time
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "reducing delta_time to max_delta_time: ", self.max_delta_time)
-            
+
             # maximize delta_time to avoid exceeding the end_time
             t               = self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.TIME]
             self.delta_time = min( self.delta_time, self.end_time - t )
@@ -164,7 +164,6 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
                 number_cycle +=1
                 KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "cycle: ", number_cycle)
-
 
                 # set new_time and delta_time in the nonlinear solver
                 new_time = t + self.delta_time
