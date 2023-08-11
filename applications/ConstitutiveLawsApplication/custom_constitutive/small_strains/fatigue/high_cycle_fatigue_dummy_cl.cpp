@@ -54,6 +54,69 @@ HighCycleFatigueDummyCl::~HighCycleFatigueDummyCl()
 
 /***********************************************************************************/
 /***********************************************************************************/
+bool HighCycleFatigueDummyCl::Has(const Variable<double>& rThisVariable)
+{
+    bool has = false;
+
+    if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+        has = true;
+    } else if (rThisVariable == WOHLER_STRESS) {
+        has = true;
+    }
+
+    return has;
+}
+/***********************************************************************************/
+/***********************************************************************************/
+bool HighCycleFatigueDummyCl::Has(const Variable<int>& rThisVariable)
+{
+    bool has = false;
+
+    if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
+        has = true;
+    }
+
+    return has;
+}
+/***********************************************************************************/
+/***********************************************************************************/
+double& HighCycleFatigueDummyCl::GetValue(
+    const Variable<double>& rThisVariable,
+    double& rValue
+    )
+{
+
+    if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
+
+        rValue = mFatigueData.mFatigueReductionFactor;
+        return rValue;
+    } else if (rThisVariable == WOHLER_STRESS) {
+
+        rValue = mFatigueData.mWohlerStress;
+        return rValue;
+    }
+
+    return rValue;
+}
+/***********************************************************************************/
+/***********************************************************************************/
+int& HighCycleFatigueDummyCl::GetValue(
+    const Variable<int>& rThisVariable,
+    int& rValue
+    )
+{
+
+    if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
+
+        rValue = mFatigueData.mNumberOfCyclesLocal;
+        return rValue;
+    }
+
+    return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 void  HighCycleFatigueDummyCl::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY;
