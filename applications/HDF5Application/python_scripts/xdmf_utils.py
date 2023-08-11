@@ -544,7 +544,10 @@ def WriteMultifileTemporalAnalysisToXdmf(ospath, h5path_to_mesh, h5path_to_resul
     ET.ElementTree(xdmf.create_xml_element()).write(pat + ".xdmf")
 
 
-def CreateXdmfTemporalGridFromSinglefile(h5_file_name, h5path_pattern_to_mesh, h5path_pattern_to_results):
+def CreateXdmfTemporalGridFromSinglefile(h5_file_name,
+                                         h5path_pattern_to_mesh,
+                                         h5path_pattern_to_results,
+                                         require_results: bool = False):
     """Return an XDMF Grid object for a list of temporal results in a single HDF5 file.
 
     Keyword arguments:
@@ -619,12 +622,17 @@ def CreateXdmfTemporalGridFromSinglefile(h5_file_name, h5path_pattern_to_mesh, h
                     current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
                 for result in XdmfResults(file_[output_results_dict[key]]):
                     current_sgrid.add_attribute(result)
+
+            if has_results or not (require_results and not has_results):
                 tgrid.add_grid(Time(key), current_sgrid)
 
     return tgrid
 
 
-def WriteSinglefileTemporalAnalysisToXdmf(h5_file_name, h5path_pattern_to_mesh, h5path_pattern_to_results):
+def WriteSinglefileTemporalAnalysisToXdmf(h5_file_name,
+                                          h5path_pattern_to_mesh,
+                                          h5path_pattern_to_results,
+                                          require_results: bool = False):
     """Write XDMF metadata for a temporal analysis from single HDF5 file.
 
     Keyword arguments:
@@ -639,8 +647,10 @@ def WriteSinglefileTemporalAnalysisToXdmf(h5_file_name, h5path_pattern_to_mesh, 
     if (h5path_pattern_to_results.startswith("/")):
         h5path_pattern_to_results = h5path_pattern_to_results[1:]
 
-    temporal_grid = CreateXdmfTemporalGridFromSinglefile(
-        h5_file_name, h5path_pattern_to_mesh, h5path_pattern_to_results)
+    temporal_grid = CreateXdmfTemporalGridFromSinglefile(h5_file_name,
+                                                         h5path_pattern_to_mesh,
+                                                         h5path_pattern_to_results,
+                                                         require_results = require_results)
     domain = Domain(temporal_grid)
     xdmf = Xdmf(domain)
     # Write the XML tree containing the XDMF metadata to the file.
