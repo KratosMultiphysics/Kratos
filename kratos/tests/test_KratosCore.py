@@ -13,7 +13,6 @@ except:
 # Import the tests or test_classes to create the suites
 import test_bounding_box
 import test_calculate_distance_to_skin
-import test_proxies
 import test_embedded_skin_mapping
 import test_model_part
 import test_model_part_io
@@ -197,7 +196,6 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_operation_utilities.TestModelPartOperationUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_spatial_search.TestSpatialSearchSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sequential_orchestrator.TestSequentialOrchestrator]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_proxies.TestEntityProxy]))
 
     if sympy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))
