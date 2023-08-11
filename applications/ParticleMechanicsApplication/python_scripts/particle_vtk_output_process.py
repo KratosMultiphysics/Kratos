@@ -18,6 +18,10 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
 
         self.TranslateLegacyVariablesAccordingToCurrentStandard(settings)
 
+        # Validate settings using default parameters defined in ParticleVtkOutput process
+        default_settings = KratosParticle.ParticleVtkOutput.GetDefaultParameters()
+        settings.ValidateAndAssignDefaults(default_settings)
+
         # Default settings can be found in "custom_io/particle_vtk_output.cpp"
         self.vtk_io = KratosParticle.ParticleVtkOutput(self.model_part, settings)
 
