@@ -61,10 +61,10 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ProcessFactoryUtility );
 
     /// The object type in python
-    typedef pybind11::object ObjectType;
+    using ObjectType = pybind11::object;
     
     /// The list [] of python
-    typedef pybind11::list     ListType;
+    using ListType = pybind11::list;
     
     ///@}
     ///@name Life Cycle
