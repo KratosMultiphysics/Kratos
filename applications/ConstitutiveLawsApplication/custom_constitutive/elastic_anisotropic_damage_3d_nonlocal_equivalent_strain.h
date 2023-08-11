@@ -352,6 +352,15 @@ protected:
                                const BoundedVectorType& DamageVector
                                );
 
+    /**
+     * @brief Get the Transformed Damageeffect Tensor object
+     * @param TransformedDamageEffectTensor
+     * @param DamageEffectTensor
+     */
+    void GetTransformedDamageEffectTensor(BoundedMatrixVoigtType& TransformedDamageEffectTensor,
+                                const BoundedMatrixVoigtType& DamageEffectTensor,
+                                const Vector& StrainVector
+                                );
 
     /**
      * @brief this method scales the nonlocal equivalent strains to principal direction componenets based on principal strains

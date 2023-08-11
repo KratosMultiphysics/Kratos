@@ -202,7 +202,7 @@ void SmallStrainIsotropicDamageAthira3D::CalculateStressResponse(
         Matrix dSprdS = ZeroMatrix(3,6);
         GetDerivatives( r_stress_vector, dI1dS, dJ2ddS,dJ2dS);
         Vector Spr = ZeroVector(3);;
-        double SprMax, SprMin;
+        double SprMax, SprMin, k0t, k0c;
         GetEigenValues(r_stress_vector, Spr, SprMax, SprMin);
 
         //manipulation of zero entries in stress
@@ -241,8 +241,16 @@ void SmallStrainIsotropicDamageAthira3D::CalculateStressResponse(
         const double beta1c = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA1_COMPRESSION];
         const double beta2c = r_material_properties[DAMAGE_MODEL_PARAMETER_BETA2_COMPRESSION];
 
-        const double k0t = fck/E;
-        const double k0c = (10./3.) * ft/E;
+        if(r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true){
+            k0t = r_material_properties[DAMAGE_THRESHOLD_TENSION];
+        }else{
+            k0t = fck/E;
+        }
+        if(r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true){
+            k0c = r_material_properties[DAMAGE_THRESHOLD_COMPRESSION];
+        }else{
+            k0c = (10* ft)/(3*E);
+        }
 
         double k0 = k0t  * H  + (1.-H) * k0c;
         double beta1 = beta1t  * H  + (1.-H) * beta1c;

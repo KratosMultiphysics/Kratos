@@ -239,6 +239,7 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse
 
         BoundedMatrixVoigtType EffStiffnessMatrix = ZeroMatrix(6, 6);
         BoundedMatrixVoigtType damage_effect_tensor = ZeroMatrix(6, 6);
+        BoundedMatrixVoigtType transformed_damage_effect_tensor = ZeroMatrix(6, 6);
         BoundedMatrixVoigtType Inv_M = ZeroMatrix(6, 6);
         BoundedVectorVoigtType H_uNL        = ZeroVector(6);
         BoundedVectorVoigtType H_NLu        = ZeroVector(6);
@@ -265,13 +266,16 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse
         }
         local_equivalent_strain = sqrt(pow(MacaulayBrackets(principal_strains[0]),2) + pow(MacaulayBrackets(principal_strains[1]),2) + pow(MacaulayBrackets(principal_strains[2]),2));
         ScaleNonlocalEquivalentStrain(principal_nonlocal_equivalent_strain, principal_strains, nonlocal_equivalent_strain, local_equivalent_strain);
-        const double k0t = (r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_TENSION] : ft/E;
-        const double k0c = (r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_COMPRESSION] : (10./3.) * ft/E;
+        //const double k0t = (r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_TENSION] : ft/E;
+        //const double k0c = (r_material_properties.Has(DAMAGE_THRESHOLD_COMPRESSION)==true) ? r_material_properties[DAMAGE_THRESHOLD_COMPRESSION] : (10./3.) * ft/E;
 
         for(SizeType i = 0; i < Dimension; ++i) {
-            k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
-            beta1[i] = (principal_strains[i] > eps) ? beta1t : beta1c;
-            beta2[i] = (principal_strains[i] > eps) ? beta2t : beta2c;
+            k0[i]= ft/E;
+            beta1[i] = beta1t;
+            beta2[i] = beta2t;
+            //k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
+            //beta1[i] = (principal_strains[i] > eps) ? beta1t : beta1c;
+            //beta2[i] = (principal_strains[i] > eps) ? beta2t : beta2c;
             kappa[i] = std::max(principal_nonlocal_equivalent_strain[i],k0[i]);
             F[i]     = principal_nonlocal_equivalent_strain[i]-kappa[i];
         }
@@ -290,7 +294,8 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse
         }
         if(damage_vector[0] > 0.0 || damage_vector[1] > 0.0 || damage_vector[2] > 0.0){
             GetDamageEffectTensor(damage_effect_tensor, damage_vector);
-            MathUtils<double>::InvertMatrix(damage_effect_tensor, Inv_M, det_M);
+            GetTransformedDamageEffectTensor(transformed_damage_effect_tensor, damage_effect_tensor, r_strain_vector);
+            MathUtils<double>::InvertMatrix(transformed_damage_effect_tensor, Inv_M, det_M);
             const BoundedMatrixVoigtType temp = prod(r_elastic_tensor,trans(Inv_M));
             noalias(r_elastic_tensor) = prod(Inv_M, temp);
             noalias(r_stress_vector)  = prod(r_elastic_tensor, r_strain_vector);
@@ -299,7 +304,6 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::CalculateStressResponse
         }
         AssembleConstitutiveMatrix(r_constitutive_matrix, r_elastic_tensor, H_NLu, H_uNL, H_NLNL);
         rDamageVector = damage_vector;
-        KRATOS_WATCH(damage_vector)
         rEquivalentStrain = local_equivalent_strain;
         }
     KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME])
@@ -390,6 +394,111 @@ void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetDamageEffectTensor(
     DamageEffectTensor(3,3) = pow((1-((D2+D3)*0.5)),(-1));
     DamageEffectTensor(4,4) = pow((1-((D3+D1)*0.5)),(-1));
     DamageEffectTensor(5,5) = pow((1-((D1+D2)*0.5)),(-1));
+    KRATOS_CATCH("")
+}
+
+//************************************************************************************
+//************************************************************************************
+
+void ElasticAnisotropicDamage3DNonLocalEquivalentStrain::GetTransformedDamageEffectTensor(
+    BoundedMatrixVoigtType& TransformedDamageEffectTensor,
+    const BoundedMatrixVoigtType& DamageEffectTensor,
+    const Vector& StrainVector
+)
+{
+    KRATOS_TRY
+
+    BoundedVectorVoigtType W = ZeroVector(6);
+    BoundedVectorType l = ZeroVector(3);
+    BoundedVectorType m = ZeroVector(3);
+    BoundedVectorType n = ZeroVector(3);
+    BoundedMatrixType MatrixForm = ZeroMatrix(3,3);
+    BoundedMatrixType EigenVectors;
+    BoundedMatrixType EigenValues = ZeroMatrix(3,3);
+    for(SizeType i = 0; i < VoigtSize; ++i){
+        W[i] = 1.0/DamageEffectTensor(i,i);
+    }
+    VectorToTensor(MatrixForm, StrainVector, STRAIN);
+    MathUtils<double>::GaussSeidelEigenSystem(MatrixForm, EigenVectors, EigenValues);
+    for(SizeType i = 0; i < Dimension; ++i){
+        l[i] = EigenVectors(i,0);
+        m[i] = EigenVectors(i,1);
+        n[i] = EigenVectors(i,2);
+    }
+    for(SizeType i = 0; i < Dimension; ++i) {
+        for(SizeType j = 0; j < Dimension; ++j) {
+            TransformedDamageEffectTensor(i,j)  = ( (l[i] * l[i]) * (l[j] * l[j]) ) / W[0];
+            TransformedDamageEffectTensor(i,j) += ( (m[i] * m[i]) * (m[j] * m[j]) ) / W[1] ;
+            TransformedDamageEffectTensor(i,j) += ( (n[i] * n[i]) * (n[j] * n[j]) ) / W[2] ;
+            TransformedDamageEffectTensor(i,j) += ( 2 * m[i] * n[i] * m[j] * n[j] ) / W[3] ;
+            TransformedDamageEffectTensor(i,j) += ( 2 * n[i] * l[i] * n[j] * l[j] ) / W[4] ;
+            TransformedDamageEffectTensor(i,j) += ( 2 * l[i] * m[i] * l[j] * m[j] ) / W[5] ;
+        }
+    }
+
+    for(SizeType i = 3; i < 5; ++i ){
+        TransformedDamageEffectTensor(i,i)  = ( 2.0 * l[2] * l[2] * l[4-i] * l[4-i] ) / W[0] ;
+        TransformedDamageEffectTensor(i,i) += ( 2.0 * m[2] * m[2] * m[4-i] * m[4-i] ) / W[1] ;
+        TransformedDamageEffectTensor(i,i) += ( 2.0 * n[2] * n[2] * n[4-i] * n[4-i] ) / W[2] ;
+        TransformedDamageEffectTensor(i,i) += std::pow(( m[2] * n[4-i] + n[2] * m[4-i] ), 2.0) / W[3] ;
+        TransformedDamageEffectTensor(i,i) += std::pow(( n[2] * l[4-i] + l[2] * n[4-i] ), 2.0) / W[4] ;
+        TransformedDamageEffectTensor(i,i) += std::pow(( l[2] * m[4-i] + m[2] * l[4-i] ), 2.0) / W[5] ;
+    }
+
+    TransformedDamageEffectTensor(5,5)  =  ( 2.0 * l[0] * l[0] * l[1] * l[1] ) / W[0] ;
+    TransformedDamageEffectTensor(5,5) +=  ( 2.0 * m[0] * m[0] * m[1] * m[1] ) / W[1] ;
+    TransformedDamageEffectTensor(5,5) +=  ( 2.0 * n[0] * n[0] * n[1] * n[1] ) / W[2] ;
+    TransformedDamageEffectTensor(5,5) +=  std::pow(( m[0] * n[1] + n[0] * m[1] ), 2.0) / W[3] ;
+    TransformedDamageEffectTensor(5,5) +=  std::pow(( n[0] * l[1] + l[0] * n[1] ), 2.0) / W[4] ;
+    TransformedDamageEffectTensor(5,5) +=  std::pow(( l[0] * m[1] + m[0] * l[1] ), 2.0) / W[5] ;
+
+    for(SizeType i = 3; i < 5; ++i) {
+        for(SizeType j = 0; j < Dimension; ++j) {
+            TransformedDamageEffectTensor(i,j)  = ( l[2] * l[4-i] * l[j] * l[j] ) / W[0] ;
+            TransformedDamageEffectTensor(i,j) += ( m[2] * m[4-i] * m[j] * m[j] ) / W[1] ;
+            TransformedDamageEffectTensor(i,j) += ( n[2] * n[4-i] * n[j] * n[j] ) / W[2] ;
+            TransformedDamageEffectTensor(i,j) += ( m[j] * n[j] * ( m[2] * n[4-i] +  n[2] * m[4-i] ) ) / W[3] ;
+            TransformedDamageEffectTensor(i,j) += ( n[j] * l[j] * ( n[2] * l[4-i] +  l[2] * n[4-i] ) ) / W[4] ;
+            TransformedDamageEffectTensor(i,j) += ( l[j] * m[j] * ( l[2] * m[4-i] +  m[2] * l[4-i] ) ) / W[5] ;
+        }
+    }
+
+    TransformedDamageEffectTensor(4,3)  = ( 2 * l[0] * l[1] * l[2] * l[2] ) / W[0] ;
+    TransformedDamageEffectTensor(4,3) += ( 2 * m[0] * m[1] * m[2] * m[2] ) / W[1] ;
+    TransformedDamageEffectTensor(4,3) += ( 2 * n[0] * n[1] * n[2] * n[2] ) / W[2] ;
+    TransformedDamageEffectTensor(4,3) += ( ( m[1] * n[2] + m[2] * n[1] ) * ( m[0] * n[2] + m[2] * n[0]) ) / W[3] ;
+    TransformedDamageEffectTensor(4,3) += ( ( n[1] * l[2] + n[2] * l[1] ) * ( n[2] * l[0] + l[2] * n[0]) ) / W[4] ;
+    TransformedDamageEffectTensor(4,3) += ( ( l[1] * m[2] + l[2] * m[1] ) * ( l[2] * m[0] + m[2] * l[0]) ) / W[5] ;
+
+    for(SizeType j = 0; j < Dimension; ++j){
+       TransformedDamageEffectTensor(5,j) =  ( l[0] * l[1] * l[j] * l[j] ) / W[0] ;
+       TransformedDamageEffectTensor(5,j) += ( m[0] * m[1] * m[j] * m[j] ) / W[1] ;
+       TransformedDamageEffectTensor(5,j) += ( n[0] * n[1] * n[j] * n[j] ) / W[2] ;
+       TransformedDamageEffectTensor(5,j) += ( m[j] * n[j] * ( m[0] * n[1] + m[1] * n[0] ) ) / W[3] ;
+       TransformedDamageEffectTensor(5,j) += ( n[j] * l[j] * ( n[0] * l[1] + l[0] * n[1] ) ) / W[4] ;
+       TransformedDamageEffectTensor(5,j) += ( l[j] * m[j] * ( l[0] * m[1] + m[0] * l[1] ) ) / W[5] ;
+    }
+
+    for(SizeType j = 3; j < 5; ++j){
+       TransformedDamageEffectTensor(5,j) =  ( 2 * l[0] * l[1] * l[2] * l[4-j] ) / W[0] ;
+       TransformedDamageEffectTensor(5,j) += ( 2 * m[0] * m[1] * m[2] * m[4-j] ) / W[1] ;
+       TransformedDamageEffectTensor(5,j) += ( 2 * n[0] * n[1] * n[2] * n[4-j] ) / W[2] ;
+       TransformedDamageEffectTensor(5,j) += ( ( m[2] * n[4-j] + m[4-j] * n[2] ) * ( m[0] * n[1] + n[1] * m[0] ) ) / W[3] ;
+       TransformedDamageEffectTensor(5,j) += ( ( n[2] * l[4-j] + n[4-j] * l[2])  * ( n[0] * l[1] + l[0] * n[1] ) ) / W[4] ;
+       TransformedDamageEffectTensor(5,j) += ( ( l[2] * m[4-j] + l[4-j] * m[2] ) * ( l[0] * m[1] + m[0] * l[1] ) ) / W[5] ;
+    }
+
+    for(SizeType i = 3; i < VoigtSize; ++i){
+        for(SizeType j = 0; i < Dimension; ++j){
+            TransformedDamageEffectTensor(j,i) = 2 * TransformedDamageEffectTensor(i,j);
+        }
+    }
+
+    for(SizeType i = 4; i < VoigtSize; ++i){
+        for(SizeType j = 3; j < 5; ++j){
+            TransformedDamageEffectTensor(j,i) = TransformedDamageEffectTensor(i,j);
+        }
+    }
     KRATOS_CATCH("")
 }
 
