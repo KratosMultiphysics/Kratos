@@ -1621,7 +1621,7 @@ public:
     template <Globals::DataLocation TLocation, class TEntity, class TValue>
     static void SetValue(TEntity& rEntity,
                          const Variable<TValue>& rVariable,
-                         std::conditional_t<std::is_integral_v<TValue> || std::is_floating_point_v<TValue>,
+                         std::conditional_t<std::is_arithmetic_v<TValue>,
                                             TValue,         /*pass scalar types by value*/
                                             const TValue&>  /*pass non-scalar types by reference*/ Value)
     {
