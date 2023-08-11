@@ -9,6 +9,7 @@
 #include "utilities/builtin_timer.h"
 #include "input_output/logger.h"
 #include "utilities/string_utilities.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
@@ -94,6 +95,14 @@ std::vector<hsize_t> GetDataDimensions(const File& rFile, const std::string& rPa
 } // namespace Internals.
 
 File::File(Parameters Settings)
+    : File(ParallelEnvironment::GetDefaultDataCommunicator(), Settings)
+{
+}
+
+File::File(
+    const DataCommunicator& rDataCommunicator,
+    Parameters Settings)
+    : mpDataCommunicator(&rDataCommunicator)
 {
     KRATOS_TRY;
 
@@ -662,14 +671,19 @@ void File::SetEchoLevel(int Level)
     m_echo_level = Level;
 }
 
+const DataCommunicator& File::GetDataCommunicator() const
+{
+    return *mpDataCommunicator;
+}
+
 unsigned File::GetPID() const
 {
-    return 0;
+    return mpDataCommunicator->Rank();
 }
 
 unsigned File::GetTotalProcesses() const
 {
-    return 1;
+    return mpDataCommunicator->MaxAll(GetPID()) + 1;
 }
 
 template <class TScalar>

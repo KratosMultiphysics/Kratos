@@ -21,6 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/data_communicator.h"
 #include "containers/array_1d.h"
 
 // Application includes
@@ -72,7 +73,12 @@ public:
     ///@name Life Cycle
     ///@{
 
+    KRATOS_DEPRECATED_MESSAGE("Please use the constructor with DataCommunicator and Parameters")
     explicit File(Parameters Settings);
+
+    explicit File(
+        const DataCommunicator& rDataCommunicator,
+        Parameters Settings);
 
     File(const File& rOther) = delete;
 
@@ -181,6 +187,8 @@ public:
 
     void SetEchoLevel(int Level);
 
+    const DataCommunicator& GetDataCommunicator() const;
+
     // Return this process Id with file access.
     virtual unsigned GetPID() const;
 
@@ -270,9 +278,15 @@ protected:
 private:
     ///@name Member Variables
     ///@{
+
+    DataCommunicator const * mpDataCommunicator;
+
     std::string m_file_name;
+
     hid_t m_file_id = -1; // Default invalid file id.
+
     int m_echo_level = 0;
+
     ///@}
 
     ///@name Private Operations
