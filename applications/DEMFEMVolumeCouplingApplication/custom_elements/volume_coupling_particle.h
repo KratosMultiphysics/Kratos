@@ -32,6 +32,8 @@ public:
    
 VolumeCouplingParticle(IndexType NewId, GeometryType::Pointer pGeometry);
 VolumeCouplingParticle();// Default constructor needed for serialization
+VolumeCouplingParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity) override;
 

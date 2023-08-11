@@ -45,7 +45,7 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
                 if node.Id in node_ids:   # assigning point loads
 
                     node.SetSolutionStepValue(SMA.POINT_LOAD,[0,-pointload,0])
-                    print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD))
+                    #print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD))
 
 
                 tolerance = 0.0001 # tolerance on the boundary limits

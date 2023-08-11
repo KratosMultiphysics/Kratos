@@ -62,7 +62,7 @@ C:\KRATOS\Kratos\scripts>cmake -G"Visual Studio 16 2019" -H"C:\KRATOS\Kratos\scr
 -- clipper : C:/KRATOS/Kratos/external_libraries/clipper
 -- triangle : C:/KRATOS/Kratos/external_libraries/triangle
 -- tinyexpr : C:/KRATOS/Kratos/external_libraries/tinyexpr/tinyexpr/
--- Configuring done (14.8s)
+-- Configuring done (26.8s)
 -- Generating done (0.4s)
 -- Build files have been written to: C:/KRATOS/Kratos/build/FullDebug
 
@@ -772,15 +772,15 @@ cl : command line warning D9002: ignoring unknown option '-O0' [C:\KRATOS\Kratos
 cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
 cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
 cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
+cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
   delaunay_meshing_application.cpp
-cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
-cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
-cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
-cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
   delaunay_meshing_application_variables.cpp
 cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
 cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
+cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
+cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
   mesher_utilities.cpp
+cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\KratosDelaunayMeshingCore.vcxproj]
   mesh_data_transfer_utilities.cpp
   composite_condition.cpp
   mesher.cpp

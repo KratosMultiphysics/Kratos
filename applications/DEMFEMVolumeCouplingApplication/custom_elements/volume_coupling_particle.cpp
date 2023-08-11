@@ -21,6 +21,17 @@ VolumeCouplingParticle::VolumeCouplingParticle( ) // Default constructor needed 
 {
     
 }
+VolumeCouplingParticle::VolumeCouplingParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+    : SphericParticle(NewId, pGeometry, pProperties)
+{
+
+}
+
+Element::Pointer VolumeCouplingParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+{
+    return Element::Pointer(new VolumeCouplingParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
+}
+
 // Function to compute contact forces and moments between ball and rigid face considering coupling weight.
 void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
     SphericParticle::ParticleDataBuffer & data_buffer,
@@ -115,8 +126,8 @@ void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& extern
             externally_applied_moment[i] *= particle_weight; // Scale externally applied moment
         }
         externally_applied_force += this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE);  //adding the coupling forces exreted on particles
-        KRATOS_WATCH(this->Id());
-        KRATOS_WATCH(externally_applied_force);
+        //KRATOS_WATCH(this->Id());
+        //KRATOS_WATCH(externally_applied_force);
     }
 }
 
