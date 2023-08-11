@@ -1,7 +1,7 @@
 try:
-    from TIBRA_PythonApplication.PyTIBRA import PyTIBRA
+    from QuESo_PythonApplication.PyQuESo import PyQuESo
 except ImportError:
-    raise Exception("TIBRA python library is not available")
+    raise Exception("QuESo python library is not available")
 
 from importlib import import_module
 import KratosMultiphysics as Kratos
@@ -27,13 +27,13 @@ def run_modelers(current_model, modelers_list):
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, _) -> ExecutionPolicy:
     if not parameters.Has("name"):
-        raise RuntimeError(f"TibraSteppingAnalysisExecutionPolicy instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"QuESoSteppingAnalysisExecutionPolicy instantiation requires a \"name\" in parameters [ parameters = {parameters}].")
     if not parameters.Has("settings"):
-        raise RuntimeError(f"TibraSteppingAnalysisExecutionPolicy instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
+        raise RuntimeError(f"QuESoSteppingAnalysisExecutionPolicy instantiation requires a \"settings\" in parameters [ parameters = {parameters}].")
 
-    return TibraSteppingAnalysisExecutionPolicy(parameters["name"].GetString(), model, parameters["settings"])
+    return QuESoSteppingAnalysisExecutionPolicy(parameters["name"].GetString(), model, parameters["settings"])
 
-class TibraSteppingAnalysisExecutionPolicy(ExecutionPolicy):
+class QuESoSteppingAnalysisExecutionPolicy(ExecutionPolicy):
     def __init__(self, name: str, model: Kratos.Model, parameters: Kratos.Parameters):
         super().__init__(name)
 
@@ -60,7 +60,7 @@ class TibraSteppingAnalysisExecutionPolicy(ExecutionPolicy):
         else:
             self.analysis_full_module = f"{self.analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(self.analysis_type)}"
 
-        self.pytibra = PyTIBRA("TIBRAParameters.json")
+        self.pyqueso = PyQuESo("QuESoParameters.json")
 
         self.CreateAnalysis()
 
@@ -88,21 +88,26 @@ class TibraSteppingAnalysisExecutionPolicy(ExecutionPolicy):
                 }
             }]
             """)
-        tybra_params = self.pytibra.parameters
+        queso_params = self.pyqueso.parameters
         tmp_parameters = modeler_settings[0]["Parameters"]
-        tmp_parameters.AddEmptyValue("lower_point")
-        tmp_parameters["lower_point"].SetVector(tybra_params.LowerBound())
-        tmp_parameters.AddEmptyValue("upper_point")
-        tmp_parameters["upper_point"].SetVector(tybra_params.UpperBound())
+
+        tmp_parameters.AddEmptyValue("lower_point_uvw")
+        tmp_parameters["lower_point_uvw"].SetVector(queso_params.LowerBoundUVW())
+        tmp_parameters.AddEmptyValue("upper_point_uvw")
+        tmp_parameters["upper_point_uvw"].SetVector(queso_params.UpperBoundUVW())
+        tmp_parameters.AddEmptyValue("lower_point_xyz")
+        tmp_parameters["lower_point_xyz"].SetVector(queso_params.LowerBoundXYZ())
+        tmp_parameters.AddEmptyValue("upper_point_xyz")
+        tmp_parameters["upper_point_xyz"].SetVector(queso_params.UpperBoundXYZ())
         tmp_parameters.AddEmptyValue("polynomial_order")
-        tmp_parameters["polynomial_order"].SetVector(tybra_params.Order())
+        tmp_parameters["polynomial_order"].SetVector(queso_params.Order())
         tmp_parameters.AddEmptyValue("number_of_knot_spans")
-        tmp_parameters["number_of_knot_spans"].SetVector(tybra_params.NumberOfElements())
-        
+        tmp_parameters["number_of_knot_spans"].SetVector(queso_params.NumberOfElements())
+
         run_modelers(self.model, modeler_settings)
-        self.pytibra.Clear()
-        self.pytibra.Run(self.embedded_model_part)
-        self.pytibra.UpdateKratosNurbsVolumeModelPart(self.model_part)
+        self.pyqueso.Clear()
+        self.pyqueso.Run(self.embedded_model_part)
+        self.pyqueso.UpdateKratosNurbsVolumeModelPart(self.model_part)
 
     def Check(self) -> None:
         pass

@@ -8,6 +8,12 @@
 #
 # ==============================================================================
 
+try:
+    import QuESo_PythonApplication as QuESoApp
+    from QuESo_PythonApplication.PyQuESo import PyQuESo
+except ImportError:
+    raise Exception("QuESo python library is not available")
+
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 import KratosMultiphysics.OptimizationApplication as KOA
@@ -15,7 +21,7 @@ from KratosMultiphysics.OptimizationApplication.controls.shape.shape_control imp
 
 class ImplicitVertexMorphing(ShapeControl):
     def __init__(self, name, model, settings):
-        self.technique_settings = settings["technique_settings"] 
+        self.technique_settings = settings["technique_settings"]
         self.default_technique_settings = KM.Parameters("""{
                     "fixed_model_parts"  : [],
                     "fixed_model_parts_X"  : [],
@@ -29,7 +35,7 @@ class ImplicitVertexMorphing(ShapeControl):
                     "surface_bulk_ratio" : 2,
                     "project_to_normal" : false,
                     "poisson_ratio" : 0.3,
-                    "utilities":[],           
+                    "utilities":[],
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",
                         "smoother_type":"ilu0",
@@ -68,12 +74,12 @@ class ImplicitVertexMorphing(ShapeControl):
             if not fixed_model_parts_Y[i].IsBool():
                 raise RuntimeError("ImplicitVertexMorphing:__init__: entry {} of 'fixed_model_parts_Y' of control '{}' should be a bool .".format(i+1,self.name))
             if not fixed_model_parts_Z[i].IsBool():
-                raise RuntimeError("ImplicitVertexMorphing:__init__: entry {} of 'fixed_model_parts_Z' of control '{}' should be a bool .".format(i+1,self.name))   
+                raise RuntimeError("ImplicitVertexMorphing:__init__: entry {} of 'fixed_model_parts_Z' of control '{}' should be a bool .".format(i+1,self.name))
             fixed_model_part = fixed_model_parts[i].GetString()
             root_fixed_model_part = fixed_model_part.split(".")[0]
             if not self.model.HasModelPart(root_fixed_model_part):
                 raise RuntimeError("ImplicitVertexMorphing:__init__: model_part {} in fixed_model_parts of control '{}' does not exist .".format(fixed_model_part,self.name))
-                                         
+
 
         # add vars
         for model_part_name in self.controlling_objects:
@@ -90,7 +96,7 @@ class ImplicitVertexMorphing(ShapeControl):
             if not extracted_root_model_part_name in root_model_parts:
                 root_model_parts.append(extracted_root_model_part_name)
                 self.linear_solvers.append(python_linear_solver_factory.ConstructSolver(self.technique_settings["linear_solver_settings"]))
-                    
+
 
         self.implicit_vertex_morphing = KOA.ImplicitVertexMorphing(self.name,self.model,self.linear_solvers,self.settings)
 
@@ -109,16 +115,39 @@ class ImplicitVertexMorphing(ShapeControl):
         self.implicit_vertex_morphing.Initialize()
         for util in self.utils:
             util.Initialize()
-    
+
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
         for util in self.utils:
             util.ApplyOnVectorField(derivative_variable_name)
         self.implicit_vertex_morphing.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
 
     def Compute(self):
-        self.implicit_vertex_morphing.MapControlUpdate(KOA.D_CX,KOA.D_X) 
+        self.implicit_vertex_morphing.MapControlUpdate(KOA.D_CX,KOA.D_X)
 
-    def Update(self):        
+    def Update(self):
+
+        pyqueso = PyQuESo("QuESoParameters.json")
+
+        print("Update. stage 0")
+
+        nodes = QuESoApp.PointVector()
+        directions = QuESoApp.PointVector()
+        for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
+            shape_update = node.GetSolutionStepValue(KOA.D_X)
+            nodes.append( QuESoApp.Point(node.X0, node.Y0, node.Z0) )
+            directions.append( QuESoApp.Point(shape_update[0], shape_update[1], shape_update[2]) ) #This should be the direction of the shape update.
+
+        print("Update. stage 1")
+
+        distances = pyqueso.ClosestDistances(nodes, directions)
+        print("Update. stage 2")
+        # Distance holds vector of doubles. Same size as number of nodes.
+        for dist in distances:
+            # So the shape update should be less than 0.5*dist. I suggest to start with something like 0.3.
+            print(dist)
+
+        
+
         self.implicit_vertex_morphing.Update()
 
     def GetControllingObjects(self):
@@ -131,7 +160,7 @@ class ImplicitVertexMorphing(ShapeControl):
                 root_controlling_names.append(root_model)
             return root_controlling_names
 
-            
-            
+
+
 
 
