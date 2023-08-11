@@ -158,7 +158,7 @@ private:
  *         - a @ref Condition (@ref Globals::DataLocation::Condition)
  */
 template <class TEntityProxy>
-class KRATOS_API(KRATOS_CORE) ContainerProxy
+class ContainerProxy
 {
 private:
     using UnqualifiedContainer = std::conditional_t<
