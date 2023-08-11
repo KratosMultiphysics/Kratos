@@ -22,6 +22,31 @@
 namespace Kratos
 {
 
+Parameters VtkOutput::GetDefaultParameters()
+{
+    // IMPORTANT: when "output_control_type" is "time", then paraview will not be able to group them
+    Parameters default_parameters = Parameters(R"(
+    {
+        "model_part_name"                             : "PLEASE_SPECIFY_MODEL_PART_NAME",
+        "file_format"                                 : "binary",
+        "output_precision"                            : 7,
+        "output_control_type"                         : "step",
+        "output_interval"                             : 1.0,
+        "output_sub_model_parts"                      : false,
+        "output_path"                                 : "VTK_Output",
+        "custom_name_prefix"                          : "",
+        "custom_name_postfix"                         : "",
+        "save_output_files_in_folder"                 : true,
+        "entity_type"                                 : "automatic",
+        "write_ids"                                   : false,
+        "element_flags"                               : [],
+        "condition_flags"                             : [],
+        "gauss_point_variables_in_elements"           : []
+    })" );
+
+    return default_parameters;
+}
+
 ///***********************************************************************************/
 ///***********************************************************************************/
 
