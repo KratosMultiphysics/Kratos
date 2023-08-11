@@ -1557,7 +1557,7 @@ public:
     /// @param rEntity @ref Node, @ref Element, @ref Condition, @ref ProcessInfo, or @ref ModelPart to fetch data from.
     /// @param rVariable @ref Variable to fetch the value of.
     template <Globals::DataLocation TLocation, class TEntity, class TValue>
-    static std::conditional_t<std::is_integral_v<TValue> || std::is_floating_point_v<TValue>,
+    static std::conditional_t<std::is_arithmetic_v<TValue>,
                               TValue,             // <== return by value if scalar type
                               const TValue&>      // <== return by reference if non-scalar type
     GetValue(const TEntity& rEntity, const Variable<TValue>& rVariable)
