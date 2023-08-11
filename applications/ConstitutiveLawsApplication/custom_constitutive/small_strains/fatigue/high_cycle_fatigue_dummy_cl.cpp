@@ -115,9 +115,18 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     double min_stress = mFatigueData.mMinStress;
     bool max_indicator = mFatigueData.mMaxDetected;
     bool min_indicator = mFatigueData.mMinDetected;
+    double fatigue_reduction_factor = mFatigueData.mFatigueReductionFactor;
+    double reversion_factor_relative_error = mFatigueData.mReversionFactorRelativeError;
+    double max_stress_relative_error = mFatigueData.mMaxStressRelativeError;
     unsigned int global_number_of_cycles = mFatigueData.mNumberOfCyclesGlobal;
     unsigned int local_number_of_cycles = mFatigueData.mNumberOfCyclesLocal;
+    double B0 = mFatigueData.mFatigueReductionParameter;
+    double previous_max_stress = mFatigueData.mPreviousMaxStress;
+    double previous_min_stress = mFatigueData.mPreviousMinStress;
+    double wohler_stress = mFatigueData.mWohlerStress;
     bool new_cycle = false;
+    double s_th = mFatigueData.mThresholdStress;
+    double cycles_to_failure = mFatigueData.mCyclesToFailure;
 
     double sign_factor = mFatigueData.CalculateTensionOrCompressionIdentifier(r_stress_vector);
     uniaxial_stress *= sign_factor;
@@ -139,11 +148,37 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     mFatigueData.mPreviousStresses = previous_stresses;
 
     if (max_indicator && min_indicator) {
+        const double previous_reversion_factor = mFatigueData.CalculateReversionFactor(previous_max_stress, previous_min_stress);
+        const double reversion_factor = mFatigueData.CalculateReversionFactor(max_stress, min_stress);
+        double alphat;
+        mFatigueData.CalculateFatigueParameters(
+                                            max_stress,
+                                            reversion_factor,
+                                            rValues.GetMaterialProperties(),
+                                            B0,
+                                            s_th,
+                                            alphat,
+                                            cycles_to_failure);
+
+        double betaf = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
         global_number_of_cycles++;
         local_number_of_cycles++;
         new_cycle = true;
         max_indicator = false;
         min_indicator = false;
+        previous_max_stress = max_stress;
+        previous_min_stress = min_stress;
+        mFatigueData.mCyclesToFailure = cycles_to_failure;
+
+        mFatigueData.CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(),
+                                                                    max_stress,
+                                                                    local_number_of_cycles,
+                                                                    global_number_of_cycles,
+                                                                    B0,
+                                                                    s_th,
+                                                                    alphat,
+                                                                    fatigue_reduction_factor,
+                                                                    wohler_stress);
     }
 
     mFatigueData.mMaxDetected = max_indicator;
@@ -151,12 +186,24 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     mFatigueData.mNumberOfCyclesGlobal = global_number_of_cycles;
     mFatigueData.mNumberOfCyclesLocal = local_number_of_cycles;
     mFatigueData.mNewCycleIndicator = new_cycle;
+    mFatigueData.mFatigueReductionParameter = B0;
+    mFatigueData.mPreviousMaxStress = previous_max_stress;
+    mFatigueData.mPreviousMinStress = previous_min_stress;
+    mFatigueData.mFatigueReductionFactor = fatigue_reduction_factor;
+    mFatigueData.mWohlerStress = wohler_stress;
+    mFatigueData.mThresholdStress = s_th;
 
     KRATOS_WATCH(max_stress);
     KRATOS_WATCH(min_stress);
     KRATOS_WATCH(max_indicator);
     KRATOS_WATCH(min_indicator);
     KRATOS_WATCH(global_number_of_cycles);
+    KRATOS_WATCH(fatigue_reduction_factor);
+    KRATOS_WATCH(wohler_stress);
+    KRATOS_WATCH(s_th);
+    KRATOS_WATCH(B0);
+    KRATOS_WATCH(cycles_to_failure);
+
 
     KRATOS_CATCH("");
 }

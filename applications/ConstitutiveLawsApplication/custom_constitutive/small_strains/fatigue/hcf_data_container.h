@@ -118,17 +118,17 @@ public:
     bool mMaxDetected = false;
     bool mMinDetected = false;
     Vector mPreviousStresses = ZeroVector(2);
-    double mFatigueReductionFactor;
-    double mReversionFactorRelativeError;
-    double mMaxStressRelativeError;
+    double mFatigueReductionFactor = 1.0;
+    double mReversionFactorRelativeError = 0.0;
+    double mMaxStressRelativeError = 0.0;
     unsigned int mNumberOfCyclesGlobal = 1;
     unsigned int mNumberOfCyclesLocal = 1;
-    double mFatigueReductionParameter;
+    double mFatigueReductionParameter = 0.0;
     double mPreviousMaxStress = 0.0;
     double mPreviousMinStress = 0.0;
-    double mWohlerStress;
-    double mThresholdStress;
-    double mCyclesToFailure;
+    double mWohlerStress = 1.0;
+    double mThresholdStress = 0.0;
+    double mCyclesToFailure = 0.0;
     bool mNewCycleIndicator = false;
     ///@}
 
