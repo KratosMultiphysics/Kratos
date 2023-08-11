@@ -1627,7 +1627,7 @@ public:
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
             static_assert(std::is_same_v<TEntity,Node>);
-            rEntity.GetSolutionStepValue(rVariable) = Value;
+            rEntity.FastGetSolutionStepValue(rVariable) = Value;
         } else if constexpr (TLocation == Globals::DataLocation::NodeNonHistorical) {
             static_assert(std::is_same_v<TEntity,Node>);
             rEntity.SetValue(rVariable, Value);
