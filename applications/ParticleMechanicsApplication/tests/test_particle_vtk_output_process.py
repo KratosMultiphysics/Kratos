@@ -105,9 +105,6 @@ def SetupModel2D(grid_model_part, initial_mesh_model_part, mpm_model_part):
     KratosParticle.GenerateMaterialPointElement(grid_model_part, initial_mesh_model_part, mpm_model_part, False)
     KratosParticle.GenerateMaterialPointCondition(grid_model_part, initial_mesh_model_part, mpm_model_part)
 
-    print(mpm_model_part.NumberOfElements())
-    print(mpm_model_part.NumberOfConditions())
-
 def SetSolution(model_part):
     time = model_part.ProcessInfo[KratosMultiphysics.TIME] + 0.150
     step = model_part.ProcessInfo[KratosMultiphysics.STEP]
