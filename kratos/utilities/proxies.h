@@ -49,7 +49,7 @@ class ContainerProxy;
  *  @throws if member functions of a default constructed instance are called.
  */
 template <Globals::DataLocation TLocation, bool TMutable>
-class KRATOS_API(KRATOS_CORE) EntityProxy
+class EntityProxy
 {
 private:
     constexpr static Globals::DataLocation Location = TLocation;
