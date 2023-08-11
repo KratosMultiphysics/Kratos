@@ -24,6 +24,11 @@
 
 namespace Kratos {
 
+/**
+ * @brief Generic data type traits class for arithmetic types.
+ *
+ * @tparam TDataType        Arithmetic data type
+ */
 template<class TDataType> class DataTypeTraits
 {
 public:
@@ -44,36 +49,102 @@ public:
     ///@name Public static operations
     ///@{
 
+    /**
+     * @brief Returns the size of the value.
+     *
+     * @return unsigned int Size of the value.
+     */
     static inline unsigned int Size(const ContainerType&)
     {
         return 1;
     }
 
+    /**
+     * @brief Returns a vector with the shape of the value.
+     *
+     * Scalars have the shape of [] (an empty vector).
+     *
+     * @return std::vector<unsigned int>    Returns an empty vector as the shape.
+     */
     static inline std::vector<unsigned int> Shape(const ContainerType&)
     {
         return {};
     }
 
+    /**
+     * @brief Reshapes the value.
+     *
+     * Scalar values are not reshaped. Hence, always returns false.
+     * Return value is true if a change has been made to the passed value
+     * due to prescribed shape.
+     *
+     * @param rShape        Required shape.
+     * @return true         If the passed value is changed due to the required shape.
+     * @return false        If the passed value is same as the given shape.
+     */
     static inline bool Reshape(
-        ContainerType&,
+        ContainerType& rValue,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_ERROR_IF(rShape.size() != 0)
-            << "Invalid shape given for primitive data type [ Expected shape = [], provided shape = "
-            << rShape << " ].\n";
+        return Reshape(rValue, rShape.data(), rShape.data() + rShape.size());
+    }
+
+    /**
+     * @brief Reshapes the value.
+     *
+     * Scalar values are not reshaped. Hence, always returns false.
+     * Return value is true if a change has been made to the passed value
+     * due to prescribed shape.
+     *
+     * @param rShape        Required shape.
+     * @return true         If the passed value is changed due to the required shape.
+     * @return false        If the passed value is same as the given shape.
+     */
+    static inline bool Reshape(
+        ContainerType&,
+        unsigned int const * pShapeBegin,
+        unsigned int const * pShapeEnd)
+    {
+        KRATOS_ERROR_IF(std::distance(pShapeBegin, pShapeEnd) != 0)
+            << "Invalid shape/dimension given for primitive data type [ Expected shape = [], provided shape = "
+            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
         return false;
     }
 
+    /**
+     * @brief Get the contiguous data pointer.
+     *
+     * @param rValue                    Value for which the contiguous data pointer is returned.
+     * @return PrimitiveType const*     Contiguous data array pointer.
+     */
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
         return &rValue;
     }
 
+    /**
+     * @brief Get the contiguous data pointer.
+     *
+     * @param rValue                    Value for which the contiguous data pointer is returned.
+     * @return PrimitiveType const*     Contiguous data array pointer.
+     */
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
         return &rValue;
     }
 
+    /**
+     * @brief Copies the given Value to contiguous array.
+     *
+     * This method copies content of the @ref rValue to a contiguous array
+     * at @ref pContiguousDataBegin. The array pointed by @ref pContiguousDataBegin
+     * should be sized correctly.
+     *
+     * @warning This may seg fault if the @ref pContiguousDataBegin is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Starting value pointer of the contiguous array.
+     * @param rValue                    Value to be copied to contiguous array.
+     */
     inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rValue)
@@ -81,6 +152,17 @@ public:
         *pContiguousDataBegin = rValue;
     }
 
+    /**
+     * @brief Copies data from contiguous array to rValue.
+     *
+     * This method copies data from contiguous array to the passed @ref rValue.
+     * The contiguous array is given by the @refpContiguousDataBegin.
+     *
+     * @warning This may seg fault if the @ref pContiguousDataBegin is not correctly sized.
+     *
+     * @param rValue                Output value which contains copied values.
+     * @param pContiguousDataBegin  Array to copy data from.
+     */
     inline static void CopyFromContiguousData(
         ContainerType& rValue,
         PrimitiveType const * pContiguousDataBegin)
@@ -91,6 +173,12 @@ public:
     ///@}
 };
 
+/**
+ * @brief Data type traits for array_1d data types
+ *
+ * @tparam TDataType    Data type of array_1d
+ * @tparam Dimension    Size of array_1d
+ */
 template<class TDataType, std::size_t Dimension> class DataTypeTraits<array_1d<TDataType, Dimension>>
 {
 public:
@@ -111,6 +199,15 @@ public:
     ///@name Public static operations
     ///@{
 
+    /**
+     * @brief Gets the size of underlying rContainer.
+     *
+     * This method returns number of @ref PrimitiveType values contained in
+     * the @ref rContainer recursively.
+     *
+     * @param rContainer        The container to calculate the size.
+     * @return unsigned int     Number of primitive type values in rContainer.
+     */
     static inline unsigned int Size(const ContainerType& rContainer)
     {
         if constexpr(Dimension == 0) {
@@ -120,6 +217,15 @@ public:
         }
     }
 
+    /**
+     * @brief Get the shape of the rContainer.
+     *
+     * This method returns the shape of the rContainer. Shape is calculated
+     * in a recursive manner.
+     *
+     * @param rContainer                    Value to compute the shape.
+     * @return std::vector<unsigned int>    Shape of the @ref rContainer.
+     */
     static inline std::vector<unsigned int> Shape(const ContainerType& rContainer)
     {
         std::vector<unsigned int> shape;
@@ -130,30 +236,78 @@ public:
         }
         shape.insert(shape.begin(), Dimension);
         return shape;
-
     }
 
+    /**
+     * @brief Reshapes the given value to given shape.
+     *
+     * This method reshapes the given @ref rContainer to the @ref rShape
+     * recursively.
+     *
+     * If this method has changed size of @ref rContainer or any of the elements
+     * of the container, then true is returned. False is returned if no
+     * change is required in @ref rContainer to comply with the given
+     * @ref rShape.
+     *
+     * @param rContainer    Container to be resized recursively.
+     * @param rShape        Shape to be used in resizing.
+     * @return true         If the rContainer or its elements has changed due to resizing.
+     * @return false        If the rContaienr has not changed.
+     */
     static inline bool Reshape(
         ContainerType& rContainer,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_ERROR_IF_NOT(rShape.size() >= 1 && rShape[0] == static_cast<unsigned int>(Dimension))
-            << "Invalid shape given for array_1d data type [ Expected shape = [" << Dimension << "], provided shape = "
-            << rShape << " ].\n";
+        return Reshape(rContainer, rShape.data(), rShape.data() + rShape.size());
+    }
+
+    /**
+     * @brief Reshapes the given value to given shape.
+     *
+     * This method reshapes the given @ref rContainer to the shape given by @ref pShapeBegin
+     * and @ref pShapeEnd recursively.
+     *
+     * If this method has changed size of @ref rContainer or any of the elements
+     * of the container, then true is returned. False is returned if no
+     * change is required in @ref rContainer to comply with the given shape
+     * represented by @ref pShapeBegin and @ref pShapeEnd.
+     *
+     * @param rContainer    Container to be resized recursively.
+     * @param pShapeBegin   Begin of the shape vector.
+     * @param pShapeEnd     End of the shape vector.
+     * @return true         If the rContainer or its elements has changed due to resizing.
+     * @return false        If the rContaienr has not changed.
+     */
+    static inline bool Reshape(
+        ContainerType& rContainer,
+        unsigned int const * pShapeBegin,
+        unsigned int const * pShapeEnd)
+    {
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1 && *pShapeBegin == static_cast<unsigned int>(Dimension))
+            << "Invalid shape/dimension given for array_1d data type [ Expected shape = " << Shape(rContainer) << ", provided shape = "
+            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
 
         bool is_reshaped = false;
 
         if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
-            std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
-            std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) {
-                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped;
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
+                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
             });
         }
 
         return is_reshaped;
     }
 
+    /**
+     * @brief Get the Contiguous data pointer of the given container.
+     *
+     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
+     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * throw a compiler time error.
+     *
+     * @param rValue                    Container to retireve the contiguous array pointer.
+     * @return PrimitiveType const*     Contiguous array pointer.
+     */
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
@@ -163,6 +317,16 @@ public:
         }
     }
 
+    /**
+     * @brief Get the Contiguous data pointer of the given container.
+     *
+     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
+     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * throw a compiler time error.
+     *
+     * @param rValue                    Container to retireve the contiguous array pointer.
+     * @return PrimitiveType const*     Contiguous array pointer.
+     */
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
@@ -172,6 +336,18 @@ public:
         }
     }
 
+    /**
+     * @brief Copies the given container element value to contiguous array.
+     *
+     * This method copies all the elements of @ref rContainer recursively to the
+     * provided @ref pContiguousDataBegin.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Contiguous array pointer.
+     * @param rContainer                Contaienr to copy data to the contiguous array.
+     */
     inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
@@ -182,6 +358,18 @@ public:
         }
     }
 
+    /**
+     * @brief Copies contiguous values to the container.
+     *
+     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
+     * to the @ref rContainer.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param rContainer            Container to copy values to.
+     * @param pContiguousDataBegin  Contiguous data container from which values are copied from.
+     */
     inline static void CopyFromContiguousData(
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)
@@ -195,6 +383,12 @@ public:
     ///@}
 };
 
+/**
+ * @brief Data type traits for DenseVector data types
+ *
+ * @tparam TDataType    Data type of DenseVector
+ * @tparam Dimension    Size of DenseVector
+ */
 template<class TDataType> class DataTypeTraits<DenseVector<TDataType>>
 {
 public:
@@ -215,11 +409,29 @@ public:
     ///@name Public static operations
     ///@{
 
+    /**
+     * @brief Gets the size of underlying rContainer.
+     *
+     * This method returns number of @ref PrimitiveType values contained in
+     * the @ref rContainer recursively.
+     *
+     * @param rContainer        The container to calculate the size.
+     * @return unsigned int     Number of primitive type values in rContainer.
+     */
     static inline unsigned int Size(const ContainerType& rValue)
     {
         return (rValue.empty() ? 0 : rValue.size() * DataTypeTraits<ValueType>::Size(rValue[0]));
     }
 
+    /**
+     * @brief Get the shape of the rContainer.
+     *
+     * This method returns the shape of the rContainer. Shape is calculated
+     * in a recursive manner.
+     *
+     * @param rContainer                    Value to compute the shape.
+     * @return std::vector<unsigned int>    Shape of the @ref rContainer.
+     */
     static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
     {
         std::vector<unsigned int> shape;
@@ -232,30 +444,81 @@ public:
         return shape;
     }
 
+    /**
+     * @brief Reshapes the given value to given shape.
+     *
+     * This method reshapes the given @ref rContainer to the @ref rShape
+     * recursively.
+     *
+     * If this method has changed size of @ref rContainer or any of the elements
+     * of the container, then true is returned. False is returned if no
+     * change is required in @ref rContainer to comply with the given
+     * @ref rShape.
+     *
+     * @param rContainer    Container to be resized recursively.
+     * @param rShape        Shape to be used in resizing.
+     * @return true         If the rContainer or its elements has changed due to resizing.
+     * @return false        If the rContaienr has not changed.
+     */
     static inline bool Reshape(
         ContainerType& rContainer,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_ERROR_IF_NOT(rShape.size() >= 1) << "Invalid shape given for DenseVector data type.";
+        return Reshape(rContainer, rShape.data(), rShape.data() + rShape.size());
+    }
+
+    /**
+     * @brief Reshapes the given value to given shape.
+     *
+     * This method reshapes the given @ref rContainer to the shape given by @ref pShapeBegin
+     * and @ref pShapeEnd recursively.
+     *
+     * If this method has changed size of @ref rContainer or any of the elements
+     * of the container, then true is returned. False is returned if no
+     * change is required in @ref rContainer to comply with the given shape
+     * represented by @ref pShapeBegin and @ref pShapeEnd.
+     *
+     * @param rContainer    Container to be resized recursively.
+     * @param pShapeBegin   Begin of the shape vector.
+     * @param pShapeEnd     End of the shape vector.
+     * @return true         If the rContainer or its elements has changed due to resizing.
+     * @return false        If the rContaienr has not changed.
+     */
+    static inline bool Reshape(
+        ContainerType& rContainer,
+        unsigned int const * pShapeBegin,
+        unsigned int const * pShapeEnd)
+    {
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1)
+            << "Invalid shape/dimension given for DenseVector data type [ Expected = " << Shape(rContainer) << ", provided = "
+            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
 
         bool is_reshaped = false;
 
-        if (rContainer.size() != rShape[0]) {
-            rContainer.resize(rShape[0], false);
+        if (rContainer.size() != *pShapeBegin) {
+            rContainer.resize(*pShapeBegin, false);
             is_reshaped = true;
         }
 
         if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
-            std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
-            std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) {
-                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped;
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
+                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
             });
         }
 
         return is_reshaped;
     }
 
+    /**
+     * @brief Get the Contiguous data pointer of the given container.
+     *
+     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
+     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * throw a compiler time error.
+     *
+     * @param rValue                    Container to retireve the contiguous array pointer.
+     * @return PrimitiveType const*     Contiguous array pointer.
+     */
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
@@ -265,6 +528,16 @@ public:
         }
     }
 
+    /**
+     * @brief Get the Contiguous data pointer of the given container.
+     *
+     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
+     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * throw a compiler time error.
+     *
+     * @param rValue                    Container to retireve the contiguous array pointer.
+     * @return PrimitiveType const*     Contiguous array pointer.
+     */
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
@@ -274,6 +547,18 @@ public:
         }
     }
 
+    /**
+     * @brief Copies the given container element value to contiguous array.
+     *
+     * This method copies all the elements of @ref rContainer recursively to the
+     * provided @ref pContiguousDataBegin.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Contiguous array pointer.
+     * @param rContainer                Contaienr to copy data to the contiguous array.
+     */
     inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
@@ -286,6 +571,18 @@ public:
         }
     }
 
+    /**
+     * @brief Copies contiguous values to the container.
+     *
+     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
+     * to the @ref rContainer.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param rContainer            Container to copy values to.
+     * @param pContiguousDataBegin  Contiguous data container from which values are copied from.
+     */
     inline static void CopyFromContiguousData(
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)
@@ -321,11 +618,29 @@ public:
     ///@name Public static operations
     ///@{
 
+    /**
+     * @brief Gets the size of underlying rContainer.
+     *
+     * This method returns number of @ref PrimitiveType values contained in
+     * the @ref rContainer recursively.
+     *
+     * @param rContainer        The container to calculate the size.
+     * @return unsigned int     Number of primitive type values in rContainer.
+     */
     static inline unsigned int Size(const ContainerType& rValue)
     {
         return (rValue.size1() == 0 || rValue.size2() == 0 ? 0 : rValue.size1() * rValue.size2() * DataTypeTraits<ValueType>::Size(rValue.data()[0]));
     }
 
+    /**
+     * @brief Get the shape of the rContainer.
+     *
+     * This method returns the shape of the rContainer. Shape is calculated
+     * in a recursive manner.
+     *
+     * @param rContainer                    Value to compute the shape.
+     * @return std::vector<unsigned int>    Shape of the @ref rContainer.
+     */
     static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
     {
         std::vector<unsigned int> shape;
@@ -339,30 +654,81 @@ public:
         return shape;
     }
 
+    /**
+     * @brief Reshapes the given value to given shape.
+     *
+     * This method reshapes the given @ref rContainer to the @ref rShape
+     * recursively.
+     *
+     * If this method has changed size of @ref rContainer or any of the elements
+     * of the container, then true is returned. False is returned if no
+     * change is required in @ref rContainer to comply with the given
+     * @ref rShape.
+     *
+     * @param rContainer    Container to be resized recursively.
+     * @param rShape        Shape to be used in resizing.
+     * @return true         If the rContainer or its elements has changed due to resizing.
+     * @return false        If the rContaienr has not changed.
+     */
     static inline bool Reshape(
         ContainerType& rContainer,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_ERROR_IF_NOT(rShape.size() >= 2) << "Invalid shape given for DenseMatrix data type.";
+        return Reshape(rContainer, rShape.data(), rShape.data() + rShape.size());
+    }
+
+    /**
+     * @brief Reshapes the given value to given shape.
+     *
+     * This method reshapes the given @ref rContainer to the shape given by @ref pShapeBegin
+     * and @ref pShapeEnd recursively.
+     *
+     * If this method has changed size of @ref rContainer or any of the elements
+     * of the container, then true is returned. False is returned if no
+     * change is required in @ref rContainer to comply with the given shape
+     * represented by @ref pShapeBegin and @ref pShapeEnd.
+     *
+     * @param rContainer    Container to be resized recursively.
+     * @param pShapeBegin   Begin of the shape vector.
+     * @param pShapeEnd     End of the shape vector.
+     * @return true         If the rContainer or its elements has changed due to resizing.
+     * @return false        If the rContaienr has not changed.
+     */
+    static inline bool Reshape(
+        ContainerType& rContainer,
+        unsigned int const * pShapeBegin,
+        unsigned int const * pShapeEnd)
+    {
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 2)
+            << "Invalid shape/dimension given for DenseMatrix data type [ Expected = " << Shape(rContainer) << ", provided = "
+            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
 
         bool is_reshaped = false;
 
-        if (rContainer.size1() != rShape[0] || rContainer.size2() != rShape[1]) {
-            rContainer.resize(rShape[0], rShape[1], false);
+        if (rContainer.size1() != pShapeBegin[0] || rContainer.size2() != pShapeBegin[1]) {
+            rContainer.resize(pShapeBegin[0], pShapeBegin[1], false);
             is_reshaped = true;
         }
 
         if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
-            std::vector<unsigned int> sub_data_type_shape(rShape.size() - 2);
-            std::copy(rShape.begin() + 2, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.data().begin(), rContainer.data().end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) {
-                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped;
+            std::for_each(rContainer.data().begin(), rContainer.data().end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
+                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, pShapeBegin + 2, pShapeEnd) || is_reshaped;
             });
         }
 
         return is_reshaped;
     }
 
+    /**
+     * @brief Get the Contiguous data pointer of the given container.
+     *
+     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
+     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * throw a compiler time error.
+     *
+     * @param rValue                    Container to retireve the contiguous array pointer.
+     * @return PrimitiveType const*     Contiguous array pointer.
+     */
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
@@ -372,6 +738,16 @@ public:
         }
     }
 
+    /**
+     * @brief Get the Contiguous data pointer of the given container.
+     *
+     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
+     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * throw a compiler time error.
+     *
+     * @param rValue                    Container to retireve the contiguous array pointer.
+     * @return PrimitiveType const*     Contiguous array pointer.
+     */
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
@@ -381,6 +757,18 @@ public:
         }
     }
 
+    /**
+     * @brief Copies the given container element value to contiguous array.
+     *
+     * This method copies all the elements of @ref rContainer recursively to the
+     * provided @ref pContiguousDataBegin.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Contiguous array pointer.
+     * @param rContainer                Contaienr to copy data to the contiguous array.
+     */
     inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
@@ -393,6 +781,18 @@ public:
         }
     }
 
+    /**
+     * @brief Copies contiguous values to the container.
+     *
+     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
+     * to the @ref rContainer.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param rContainer            Container to copy values to.
+     * @param pContiguousDataBegin  Contiguous data container from which values are copied from.
+     */
     inline static void CopyFromContiguousData(
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)
@@ -428,42 +828,136 @@ public:
     ///@name Public static operations
     ///@{
 
+    /**
+     * @brief Gets the size of underlying rContainer.
+     *
+     * This method returns number of @ref PrimitiveType values contained in
+     * the @ref rContainer recursively.
+     *
+     * @param rContainer        The container to calculate the size.
+     * @return unsigned int     Number of primitive type values in rContainer.
+     */
     static inline unsigned int Size(const ContainerType& rValue)
     {
         return rValue.size();
     }
 
+    /**
+     * @brief Get the shape of the rContainer.
+     *
+     * This method returns the shape of the rContainer. Shape is calculated
+     * in a recursive manner.
+     *
+     * @param rContainer                    Value to compute the shape.
+     * @return std::vector<unsigned int>    Shape of the @ref rContainer.
+     */
     static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
     {
         return {static_cast<unsigned int>(rValue.size())};
     }
 
+    /**
+     * @brief Reshapes the given value to given shape.
+     *
+     * This method reshapes the given @ref rContainer to the @ref rShape
+     * recursively.
+     *
+     * If this method has changed size of @ref rContainer or any of the elements
+     * of the container, then true is returned. False is returned if no
+     * change is required in @ref rContainer to comply with the given
+     * @ref rShape.
+     *
+     * @param rContainer    Container to be resized recursively.
+     * @param rShape        Shape to be used in resizing.
+     * @return true         If the rContainer or its elements has changed due to resizing.
+     * @return false        If the rContaienr has not changed.
+     */
     static inline bool Reshape(
         ContainerType& rContainer,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_ERROR_IF_NOT(rShape.size() == 1) << "Invalid shape given for std::string data type.";
+        return Reshape(rContainer, rShape.data(), rShape.data() + rShape.size());
+    }
+
+    /**
+     * @brief Reshapes the given value to given shape.
+     *
+     * This method reshapes the given @ref rContainer to the shape given by @ref pShapeBegin
+     * and @ref pShapeEnd recursively.
+     *
+     * If this method has changed size of @ref rContainer or any of the elements
+     * of the container, then true is returned. False is returned if no
+     * change is required in @ref rContainer to comply with the given shape
+     * represented by @ref pShapeBegin and @ref pShapeEnd.
+     *
+     * @param rContainer    Container to be resized recursively.
+     * @param pShapeBegin   Begin of the shape vector.
+     * @param pShapeEnd     End of the shape vector.
+     * @return true         If the rContainer or its elements has changed due to resizing.
+     * @return false        If the rContaienr has not changed.
+     */
+    static inline bool Reshape(
+        ContainerType& rContainer,
+        unsigned int const * pShapeBegin,
+        unsigned int const * pShapeEnd)
+    {
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) == 1)
+            << "Invalid shape/dimension given for std::string data type [ Expected = "
+            << Shape(rContainer) << ", provided = "
+            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
 
         bool is_reshaped = false;
 
-        if (rContainer.size() != rShape[0]) {
-            rContainer.resize(rShape[0], false);
+        if (rContainer.size() != pShapeBegin[0]) {
+            rContainer.resize(pShapeBegin[0], false);
             is_reshaped = true;
         }
 
         return is_reshaped;
     }
 
+    /**
+     * @brief Get the Contiguous data pointer of the given container.
+     *
+     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
+     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * throw a compiler time error.
+     *
+     * @param rValue                    Container to retireve the contiguous array pointer.
+     * @return PrimitiveType const*     Contiguous array pointer.
+     */
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
         return rValue.data();
     }
 
+    /**
+     * @brief Get the Contiguous data pointer of the given container.
+     *
+     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
+     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * throw a compiler time error.
+     *
+     * @param rValue                    Container to retireve the contiguous array pointer.
+     * @return PrimitiveType const*     Contiguous array pointer.
+     */
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
         return rValue.data();
     }
 
+    /**
+     * @brief Copies the given container element value to contiguous array.
+     *
+     * This method copies all the elements of @ref rContainer recursively to the
+     * provided @ref pContiguousDataBegin.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Contiguous array pointer.
+     * @param rContainer                Contaienr to copy data to the contiguous array.
+     */
     inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
@@ -471,6 +965,18 @@ public:
         std::copy(rContainer.begin(), rContainer.end(), pContiguousDataBegin);
     }
 
+    /**
+     * @brief Copies contiguous values to the container.
+     *
+     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
+     * to the @ref rContainer.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param rContainer            Container to copy values to.
+     * @param pContiguousDataBegin  Contiguous data container from which values are copied from.
+     */
     inline static void CopyFromContiguousData(
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)
@@ -501,11 +1007,29 @@ public:
     ///@name Public static operations
     ///@{
 
+    /**
+     * @brief Gets the size of underlying rContainer.
+     *
+     * This method returns number of @ref PrimitiveType values contained in
+     * the @ref rContainer recursively.
+     *
+     * @param rContainer        The container to calculate the size.
+     * @return unsigned int     Number of primitive type values in rContainer.
+     */
     static inline unsigned int Size(const ContainerType& rValue)
     {
         return (rValue.empty() ? 0 : rValue.size() * DataTypeTraits<ValueType>::Size(rValue[0]));
     }
 
+    /**
+     * @brief Get the shape of the rContainer.
+     *
+     * This method returns the shape of the rContainer. Shape is calculated
+     * in a recursive manner.
+     *
+     * @param rContainer                    Value to compute the shape.
+     * @return std::vector<unsigned int>    Shape of the @ref rContainer.
+     */
     static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
     {
         std::vector<unsigned int> shape;
@@ -518,30 +1042,81 @@ public:
         return shape;
     }
 
+    /**
+     * @brief Reshapes the given value to given shape.
+     *
+     * This method reshapes the given @ref rContainer to the @ref rShape
+     * recursively.
+     *
+     * If this method has changed size of @ref rContainer or any of the elements
+     * of the container, then true is returned. False is returned if no
+     * change is required in @ref rContainer to comply with the given
+     * @ref rShape.
+     *
+     * @param rContainer    Container to be resized recursively.
+     * @param rShape        Shape to be used in resizing.
+     * @return true         If the rContainer or its elements has changed due to resizing.
+     * @return false        If the rContaienr has not changed.
+     */
     static inline bool Reshape(
         ContainerType& rContainer,
         const std::vector<unsigned int>& rShape)
     {
-        KRATOS_ERROR_IF_NOT(rShape.size() >= 1) << "Invalid shape given for std::vector data type.";
+        return Reshape(rContainer, rShape.data(), rShape.data() + rShape.size());
+    }
+
+    /**
+     * @brief Reshapes the given value to given shape.
+     *
+     * This method reshapes the given @ref rContainer to the shape given by @ref pShapeBegin
+     * and @ref pShapeEnd recursively.
+     *
+     * If this method has changed size of @ref rContainer or any of the elements
+     * of the container, then true is returned. False is returned if no
+     * change is required in @ref rContainer to comply with the given shape
+     * represented by @ref pShapeBegin and @ref pShapeEnd.
+     *
+     * @param rContainer    Container to be resized recursively.
+     * @param pShapeBegin   Begin of the shape vector.
+     * @param pShapeEnd     End of the shape vector.
+     * @return true         If the rContainer or its elements has changed due to resizing.
+     * @return false        If the rContaienr has not changed.
+     */
+    static inline bool Reshape(
+        ContainerType& rContainer,
+        unsigned int const * pShapeBegin,
+        unsigned int const * pShapeEnd)
+    {
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1)
+            << "Invalid shape/dimension given for std::vector data type [ Expected = " << Shape(rContainer) << ", provided = "
+            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
 
         bool is_reshaped = false;
 
-        if (rContainer.size() != rShape[0]) {
-            rContainer.resize(rShape[0]);
+        if (rContainer.size() != pShapeBegin[0]) {
+            rContainer.resize(pShapeBegin[0]);
             is_reshaped = true;
         }
 
         if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
-            std::vector<unsigned int> sub_data_type_shape(rShape.size() - 1);
-            std::copy(rShape.begin() + 1, rShape.end(), sub_data_type_shape.begin());
-            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, &sub_data_type_shape](auto& rValue) {
-                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, sub_data_type_shape) || is_reshaped;
+            std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
+                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
             });
         }
 
         return is_reshaped;
     }
 
+    /**
+     * @brief Get the Contiguous data pointer of the given container.
+     *
+     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
+     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * throw a compiler time error.
+     *
+     * @param rValue                    Container to retireve the contiguous array pointer.
+     * @return PrimitiveType const*     Contiguous array pointer.
+     */
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
@@ -551,6 +1126,16 @@ public:
         }
     }
 
+    /**
+     * @brief Get the Contiguous data pointer of the given container.
+     *
+     * This method returns the underlying contiguous data ppinter of the given @ref rContainer.
+     * If the underlying data structure of @ref rContainer is not contiguous, this will
+     * throw a compiler time error.
+     *
+     * @param rValue                    Container to retireve the contiguous array pointer.
+     * @return PrimitiveType const*     Contiguous array pointer.
+     */
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
@@ -560,6 +1145,18 @@ public:
         }
     }
 
+    /**
+     * @brief Copies the given container element value to contiguous array.
+     *
+     * This method copies all the elements of @ref rContainer recursively to the
+     * provided @ref pContiguousDataBegin.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param pContiguousDataBegin      Contiguous array pointer.
+     * @param rContainer                Contaienr to copy data to the contiguous array.
+     */
     inline static void CopyToContiguousData(
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
@@ -572,6 +1169,18 @@ public:
         }
     }
 
+    /**
+     * @brief Copies contiguous values to the container.
+     *
+     * This method copies all the contiguous values in the given @ref pContiguousDataBegin pointer
+     * to the @ref rContainer.
+     *
+     * @warning This may seg-fault if the the contiguous array given by @ref pContiguousDataBegin
+     *          is not correctly sized.
+     *
+     * @param rContainer            Container to copy values to.
+     * @param pContiguousDataBegin  Contiguous data container from which values are copied from.
+     */
     inline static void CopyFromContiguousData(
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)

@@ -43,12 +43,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsInt, KratosCoreFastSuite)
     type_trait::CopyFromContiguousData(dummy, &test);
     KRATOS_CHECK_EQUAL(dummy, test);
 
-    #ifdef KRATOS_DEBUG
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            type_trait::Reshape(test, std::vector<unsigned int>{1}),
-            "Invalid shape given for primitive data type [ Expected shape = [], provided shape = [1] ]."
-        );
-    #endif
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        type_trait::Reshape(test, std::vector<unsigned int>{1}),
+        "Invalid shape/dimension given for primitive data type [ Expected shape = [], provided shape = [1] ]."
+    );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dDouble, KratosCoreFastSuite)
@@ -76,12 +74,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dDouble, KratosCoreFastSuite)
     type_trait::CopyFromContiguousData(dummy, test.data().data());
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
-    #ifdef KRATOS_DEBUG
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            type_trait::Reshape(test, std::vector<unsigned int>{}),
-            "Invalid shape given for array_1d data type [ Expected shape = [5], provided shape = [] ]."
-        );
-    #endif
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        type_trait::Reshape(test, std::vector<unsigned int>{}),
+        "Invalid shape/dimension given for array_1d data type [ Expected shape = [5], provided shape = [] ]."
+    );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
@@ -113,12 +109,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
     type_trait::CopyFromContiguousData(dummy, test.data().begin());
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
-    #ifdef KRATOS_DEBUG
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            type_trait::Reshape(test, std::vector<unsigned int>{}),
-            "Invalid shape given for DenseVector data type."
-        );
-    #endif
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        type_trait::Reshape(test, std::vector<unsigned int>{}),
+        "Invalid shape/dimension given for DenseVector data type [ Expected = [9], provided = [] ]"
+    );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
@@ -156,12 +150,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
     type_trait::CopyFromContiguousData(dummy, test.data().begin());
     KRATOS_CHECK_MATRIX_EQUAL(dummy, test);
 
-    #ifdef KRATOS_DEBUG
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            type_trait::Reshape(test, std::vector<unsigned int>{}),
-            "Invalid shape given for DenseMatrix data type."
-        );
-    #endif
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        type_trait::Reshape(test, std::vector<unsigned int>{}),
+        "Invalid shape/dimension given for DenseMatrix data type [ Expected = [4, 5], provided = [] ]."
+    );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsString, KratosCoreFastSuite)
@@ -193,12 +185,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsString, KratosCoreFastSuite)
     type_trait::CopyFromContiguousData(dummy, test.data());
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
-    #ifdef KRATOS_DEBUG
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            type_trait::Reshape(test, std::vector<unsigned int>{}),
-            "Invalid shape given for std::string data type."
-        );
-    #endif
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        type_trait::Reshape(test, std::vector<unsigned int>{}),
+        "Invalid shape/dimension given for std::string data type [ Expected = [6], provided = [] ]."
+    );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorInt, KratosCoreFastSuite)
@@ -230,12 +220,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorInt, KratosCoreFastSuite)
     type_trait::CopyFromContiguousData(dummy, test.data());
     KRATOS_CHECK_VECTOR_EQUAL(dummy, test);
 
-    #ifdef KRATOS_DEBUG
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            type_trait::Reshape(test, std::vector<unsigned int>{}),
-            "Invalid shape given for std::vector data type."
-        );
-    #endif
+    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+        type_trait::Reshape(test, std::vector<unsigned int>{}),
+        "Invalid shape/dimension given for std::vector data type [ Expected = [9], provided = [] ]."
+    );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dNested, KratosCoreFastSuite)
