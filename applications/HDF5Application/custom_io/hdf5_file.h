@@ -121,6 +121,9 @@ public:
     void WriteAttribute(const std::string& rObjectPath, const std::string& rName, TScalar Value);
 
     template<class TScalar>
+    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::vector<TScalar>& rValue);
+
+    template<class TScalar>
     void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<TScalar>& rValue);
 
     template<class TScalar>
@@ -197,6 +200,9 @@ public:
 
     template<class TScalar>
     void ReadAttribute(const std::string& rObjectPath, const std::string& rName, TScalar& rValue);
+
+    template<class TScalar>
+    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, std::vector<TScalar>& rValue);
 
     template<class TScalar>
     void ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<TScalar>& rValue);

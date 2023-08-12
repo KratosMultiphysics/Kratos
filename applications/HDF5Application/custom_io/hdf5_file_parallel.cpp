@@ -311,6 +311,12 @@ void FileParallel::WriteDataSetVectorImpl(
     KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
 
+    // writing shape information
+    WriteAttribute(rPath, "Dimension", static_cast<int>(max_local_shape.size()));
+    if (max_local_shape.size() > 0) {
+        WriteAttribute(rPath, "Shape", max_local_shape);
+    }
+
     // Set the write info.
     rInfo.StartIndex = local_shape_start[0];
     rInfo.BlockSize = local_reduced_shape[0];
