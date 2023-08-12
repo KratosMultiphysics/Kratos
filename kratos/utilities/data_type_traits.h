@@ -652,7 +652,7 @@ public:
                 }
             }
         } else {
-            static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
+            static_assert(!std::is_same_v<TDataType, TDataType>, "GetContiguousData should only be called if rValue is contiguous.");
         }
     }
 
