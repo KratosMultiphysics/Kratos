@@ -155,17 +155,10 @@ private:
 
     ///@name Private Operations
     ///@{
-    template <class T>
-    void WriteDataSetVectorImpl(
+    template <class TDataSetType>
+    void WriteDataSetImpl(
         const std::string& rPath,
-        const Vector<T>& rData,
-        DataTransferMode Mode,
-        WriteInfo& rInfo);
-
-    template <class T>
-    KRATOS_DEPRECATED void WriteDataSetMatrixImpl(
-        const std::string& rPath,
-        const Matrix<T>& rData,
+        const TDataSetType& rData,
         DataTransferMode Mode,
         WriteInfo& rInfo);
 
@@ -186,22 +179,6 @@ private:
     ///@}
 };
 
-extern template void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
-                                                        const Vector<int>& rData,
-                                                        DataTransferMode Mode,
-                                                        WriteInfo& rInfo);
-extern template void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
-                                                        const Vector<double>& rData,
-                                                        DataTransferMode Mode,
-                                                        WriteInfo& rInfo);
-extern template void FileParallel::WriteDataSetMatrixImpl(const std::string& rPath,
-                                                        const Matrix<int>& rData,
-                                                        DataTransferMode Mode,
-                                                        WriteInfo& rInfo);
-extern template void FileParallel::WriteDataSetMatrixImpl(const std::string& rPath,
-                                                        const Matrix<double>& rData,
-                                                        DataTransferMode Mode,
-                                                        WriteInfo& rInfo);
 extern template void FileParallel::ReadDataSetVectorImpl(const std::string& rPath,
                                                        Vector<int>& rData,
                                                        unsigned StartIndex,
