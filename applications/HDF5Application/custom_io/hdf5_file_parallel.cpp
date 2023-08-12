@@ -209,7 +209,12 @@ void FileParallel::WriteDataSetVectorImpl(
 
     using type_trait = DataTypeTraits<Vector<T>>;
 
+    constexpr auto local_dimension = type_trait::Dimension;
+
+    constexpr auto global_dimension = (local_dimension == 1 ? 1 : 2);
+
     BuiltinTimer timer;
+
     // Expects a valid free path.
     KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
 
@@ -221,68 +226,38 @@ void FileParallel::WriteDataSetVectorImpl(
     }
 
     // Initialize data space dimensions.
-    const auto& local_shape = type_trait::template Shape<hsize_t>(rData);
+    std::vector<hsize_t> local_shape(local_dimension);
+    type_trait::Shape(rData, local_shape.data(), local_shape.data() + local_dimension);
 
     const auto& r_data_communicator = GetDataCommunicator();
     // get the maximized dimensions of the underlying data. Max is taken because,
     // there can be empty ranks which will give wrong sizes in the case of dynamic
     // data types.
     std::vector<hsize_t> max_local_shape(local_shape.begin() + 1, local_shape.end());
-    max_local_shape = r_data_communicator.MaxAll(max_local_shape);
+    if constexpr(DataTypeTraits<T>::IsDynamic) {
+        max_local_shape = r_data_communicator.MaxAll(max_local_shape);
+    }
 
     // local_reduced_shape holds the max 2d flattened shape if the local_shape dimensions
     // are higher than 2.
-    std::vector<hsize_t> global_shape, local_reduced_shape;
-    if (local_shape.size() > 1) {
-        global_shape.resize(2);
-        local_reduced_shape.resize(2);
-        // flattens higher dimensions into one since we write matrices which is highest dimension
-        // supported by paraview for visualization
-        global_shape[1] = std::accumulate(max_local_shape.begin(), max_local_shape.end(), hsize_t{1}, std::multiplies<hsize_t>());
-        local_reduced_shape[1] = global_shape[1];
-    } else {
-        global_shape.resize(1);
-        local_reduced_shape.resize(1);
-    }
-    // local_reduced_shape[0] = local_shape[0];
-    // get total number of items to be written in the data set.
+    std::vector<hsize_t> global_shape(global_dimension, 0), local_reduced_shape(global_dimension, 0), local_shape_start(global_dimension, 0);
+
+    // get total number of items to be written in the data set to the first dimension.
     global_shape[0] = r_data_communicator.SumAll(local_shape[0]);
     local_reduced_shape[0] = local_shape[0];
 
-    constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
-    constexpr unsigned ndims = (!is_array_1d_type) ? 1 : 2;
+    if constexpr(global_dimension > 1) {
+        // flattens higher dimensions into one since we write matrices which is the highest dimension
+        // supported by paraview for visualization
+        global_shape[1] = std::accumulate(max_local_shape.begin(), max_local_shape.end(), hsize_t{1}, std::multiplies<hsize_t>());
+        local_reduced_shape[1] = global_shape[1];
+    }
 
-    hsize_t local_dims[ndims], global_dims[ndims];
-    // Set first data space dimension.
-    local_dims[0] = rData.size();
-    unsigned send_buf, recv_buf;
-    send_buf = local_dims[0];
-    MPI_Allreduce(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-    global_dims[0] = recv_buf;
-    if (Mode == DataTransferMode::independent)
-        if (local_dims[0] > 0)
-            KRATOS_ERROR_IF(local_dims[0] != global_dims[0])
-                << "Can't perform independent write with MPI. Invalid data."
-                << std::endl;
-    if (is_array_1d_type)
-        local_dims[1] = global_dims[1] = 3; // Set second data space dimension.
+    const hsize_t number_of_local_primitive_data_values = std::accumulate(local_reduced_shape.begin(), local_reduced_shape.end(), hsize_t{1}, std::multiplies<hsize_t>());
 
-    hsize_t local_start[ndims];
-    std::vector<hsize_t> local_shape_start(global_shape.size(), 0);
     if (Mode == DataTransferMode::collective) {
         local_shape_start[0] = r_data_communicator.ScanSum(local_reduced_shape[0]) - local_reduced_shape[0];
-
-        send_buf = local_dims[0];
-        // Get global position where local data set ends.
-        MPI_Scan(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-        // Set global position where local data set starts.
-        local_start[0] = recv_buf - local_dims[0];
     }
-    else
-        local_start[0] = 0;
-
-    if (is_array_1d_type)
-        local_start[1] = 0;
 
     // Set the data type.
     hid_t dtype_id;
@@ -296,14 +271,13 @@ void FileParallel::WriteDataSetVectorImpl(
 
     // Create and write the data set.
     hid_t file_id = GetFileId();
-    hid_t fspace_id = H5Screate_simple(ndims, global_dims, nullptr);
+    hid_t fspace_id = H5Screate_simple(global_dimension, global_shape.data(), nullptr);
     // H5Dcreate() must be called collectively for both collective and
     // independent write.
-    hid_t dset_id = H5Dcreate(file_id, rPath.c_str(), dtype_id, fspace_id,
-                              H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    hid_t dset_id = H5Dcreate(file_id, rPath.c_str(), dtype_id, fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
 
-    if (Mode == DataTransferMode::collective || local_dims[0] > 0) {
+    if (Mode == DataTransferMode::collective || number_of_local_primitive_data_values > 0) {
         hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
         if (Mode == DataTransferMode::collective) {
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
@@ -313,14 +287,18 @@ void FileParallel::WriteDataSetVectorImpl(
 
         // select the local hyperslab
         H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_shape_start.data(), nullptr, local_reduced_shape.data(), nullptr);
-        hid_t mspace_id = H5Screate_simple(ndims, local_reduced_shape.data(), nullptr);
-        if (local_dims[0] > 0)
-        {
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, &rData[0]) < 0)
-                << "H5Dwrite failed." << std::endl;
-        }
-        else
-        {
+        hid_t mspace_id = H5Screate_simple(global_dimension, local_reduced_shape.data(), nullptr);
+        if (number_of_local_primitive_data_values > 0) {
+            if constexpr(type_trait::IsContiguous) {
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, type_trait::GetContiguousData(rData)) < 0)
+                    << "H5Dwrite failed." << std::endl;
+            } else {
+                std::vector<typename type_trait::PrimitiveType> contiguous_data(type_trait::Size(rData));
+                type_trait::CopyToContiguousData(contiguous_data.data(), rData);
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, contiguous_data.data()) < 0)
+                    << "H5Dwrite failed." << std::endl;
+            }
+        } else {
             KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr) < 0) << "H5Dwrite failed. Please ensure global data set is non-empty."
                                                                                                      << std::endl;
         }
@@ -331,9 +309,9 @@ void FileParallel::WriteDataSetVectorImpl(
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
 
     // Set the write info.
-    rInfo.StartIndex = local_start[0];
-    rInfo.BlockSize = local_dims[0];
-    rInfo.TotalSize = global_dims[0];
+    rInfo.StartIndex = local_shape_start[0];
+    rInfo.BlockSize = local_reduced_shape[0];
+    rInfo.TotalSize = global_shape[0];
 
     KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
@@ -616,14 +594,29 @@ void FileParallel::ReadDataSetMatrixImpl(const std::string& rPath,
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
-template void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
-                                                   const Vector<int>& rData,
-                                                   DataTransferMode Mode,
-                                                   WriteInfo& rInfo);
-template void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
-                                                   const Vector<double>& rData,
-                                                   DataTransferMode Mode,
-                                                   WriteInfo& rInfo);
+// template instantiations
+#ifndef KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS
+#define KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(...)                                                                                      \
+template void FileParallel::WriteDataSetVectorImpl(const std::string&, const Vector<__VA_ARGS__>&, DataTransferMode, WriteInfo& rInfo);
+#endif
+
+KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(int);
+KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(double);
+KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(array_1d<double, 3>);
+KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(array_1d<double, 4>);
+KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(array_1d<double, 6>);
+KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(array_1d<double, 9>);
+KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(Kratos::Vector);
+KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(Kratos::Matrix);
+
+// template void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
+//                                                    const Vector<int>& rData,
+//                                                    DataTransferMode Mode,
+//                                                    WriteInfo& rInfo);
+// template void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
+//                                                    const Vector<double>& rData,
+//                                                    DataTransferMode Mode,
+//                                                    WriteInfo& rInfo);
 template void FileParallel::WriteDataSetMatrixImpl(const std::string& rPath,
                                                    const Matrix<int>& rData,
                                                    DataTransferMode Mode,
@@ -652,6 +645,8 @@ template void FileParallel::ReadDataSetMatrixImpl(const std::string& rPath,
                                                   unsigned StartIndex,
                                                   unsigned BlockSize,
                                                   DataTransferMode Mode);
+
+#undef KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS
 
 } // namespace HDF5.
 } // namespace Kratos.
