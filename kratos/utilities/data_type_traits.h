@@ -189,9 +189,11 @@ public:
 
     using ValueType = TDataType;
 
-    using PrimitiveType = typename DataTypeTraits<ValueType>::PrimitiveType;
+    using ValueTrait = DataTypeTraits<ValueType>;
 
-    static constexpr bool IsDynamic = DataTypeTraits<ValueType>::IsDynamic;
+    using PrimitiveType = typename ValueTrait::PrimitiveType;
+
+    static constexpr bool IsDynamic = ValueTrait::IsDynamic;
 
     // boost ublas makes the underlying data structure contiguous for
     // any ValueType which are not dynamic recursively.
@@ -215,7 +217,7 @@ public:
         if constexpr(Dimension == 0) {
             return 0;
         } else {
-            return Dimension * DataTypeTraits<ValueType>::Size(rContainer[0]);
+            return Dimension * ValueTrait::Size(rContainer[0]);
         }
     }
 
@@ -232,9 +234,9 @@ public:
     {
         std::vector<unsigned int> shape;
         if constexpr(Dimension > 0) {
-            shape = DataTypeTraits<ValueType>::Shape(rContainer[0]);
+            shape = ValueTrait::Shape(rContainer[0]);
         } else {
-            shape = DataTypeTraits<ValueType>::Shape(ValueType{});
+            shape = ValueTrait::Shape(ValueType{});
         }
         shape.insert(shape.begin(), Dimension);
         return shape;
@@ -291,9 +293,9 @@ public:
 
         bool is_reshaped = false;
 
-        if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
+        if constexpr(ValueTrait::IsDynamic) {
             std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
-                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
+                is_reshaped = ValueTrait::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
             });
         }
 
@@ -380,9 +382,9 @@ public:
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
     {
-        const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
+        const auto stride = ValueTrait::Size(rContainer[0]);
         for (unsigned int i = 0; i < Dimension; ++i) {
-            DataTypeTraits<ValueType>::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+            ValueTrait::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
         }
     }
 
@@ -402,9 +404,9 @@ public:
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)
     {
-        const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
+        const auto stride = ValueTrait::Size(rContainer[0]);
         for (unsigned int i = 0; i < Dimension; ++i) {
-            DataTypeTraits<ValueType>::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+            ValueTrait::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
         }
     }
 
@@ -427,13 +429,15 @@ public:
 
     using ValueType = TDataType;
 
-    using PrimitiveType = typename DataTypeTraits<ValueType>::PrimitiveType;
+    using ValueTrait = DataTypeTraits<ValueType>;
+
+    using PrimitiveType = typename ValueTrait::PrimitiveType;
 
     static constexpr bool IsDynamic = true;
 
     // boost ublas makes the underlying data structure contiguous for
     // any ValueType which are not dynamic recursively.
-    static constexpr bool IsContiguous = !DataTypeTraits<ValueType>::IsDynamic;
+    static constexpr bool IsContiguous = !ValueTrait::IsDynamic;
 
     ///@}
     ///@name Public static operations
@@ -450,7 +454,7 @@ public:
      */
     static inline unsigned int Size(const ContainerType& rValue)
     {
-        return (rValue.empty() ? 0 : rValue.size() * DataTypeTraits<ValueType>::Size(rValue[0]));
+        return (rValue.empty() ? 0 : rValue.size() * ValueTrait::Size(rValue[0]));
     }
 
     /**
@@ -466,9 +470,9 @@ public:
     {
         std::vector<unsigned int> shape;
         if (rValue.empty()) {
-            shape = DataTypeTraits<ValueType>::Shape(ValueType{});
+            shape = ValueTrait::Shape(ValueType{});
         } else {
-            shape = DataTypeTraits<ValueType>::Shape(rValue[0]);
+            shape = ValueTrait::Shape(rValue[0]);
         }
         shape.insert(shape.begin(), rValue.size());
         return shape;
@@ -530,9 +534,9 @@ public:
             is_reshaped = true;
         }
 
-        if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
+        if constexpr(ValueTrait::IsDynamic) {
             std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
-                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
+                is_reshaped = ValueTrait::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
             });
         }
 
@@ -620,9 +624,9 @@ public:
         const ContainerType& rContainer)
     {
         if (rContainer.size() != 0) {
-            const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
+            const auto stride = ValueTrait::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                DataTypeTraits<ValueType>::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+                ValueTrait::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
             }
         }
     }
@@ -644,9 +648,9 @@ public:
         PrimitiveType const * pContiguousDataBegin)
     {
         if (rContainer.size() != 0) {
-            const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
+            const auto stride = ValueTrait::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                DataTypeTraits<ValueType>::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+                ValueTrait::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
             }
         }
     }
@@ -664,13 +668,15 @@ public:
 
     using ValueType = TDataType;
 
-    using PrimitiveType = typename DataTypeTraits<ValueType>::PrimitiveType;
+    using ValueTrait = DataTypeTraits<ValueType>;
+
+    using PrimitiveType = typename ValueTrait::PrimitiveType;
 
     static constexpr bool IsDynamic = true;
 
     // boost ublas makes the underlying data structure contiguous for
     // any ValueType which are not dynamic recursively.
-    static constexpr bool IsContiguous = !DataTypeTraits<ValueType>::IsDynamic;
+    static constexpr bool IsContiguous = !ValueTrait::IsDynamic;
 
     ///@}
     ///@name Public static operations
@@ -687,7 +693,7 @@ public:
      */
     static inline unsigned int Size(const ContainerType& rValue)
     {
-        return (rValue.size1() == 0 || rValue.size2() == 0 ? 0 : rValue.size1() * rValue.size2() * DataTypeTraits<ValueType>::Size(rValue.data()[0]));
+        return (rValue.size1() == 0 || rValue.size2() == 0 ? 0 : rValue.size1() * rValue.size2() * ValueTrait::Size(rValue.data()[0]));
     }
 
     /**
@@ -703,9 +709,9 @@ public:
     {
         std::vector<unsigned int> shape;
         if (rValue.size1() == 0 || rValue.size2() == 0) {
-            shape = DataTypeTraits<ValueType>::Shape(ValueType{});
+            shape = ValueTrait::Shape(ValueType{});
         } else {
-            shape = DataTypeTraits<ValueType>::Shape(rValue.data()[0]);
+            shape = ValueTrait::Shape(rValue.data()[0]);
         }
         shape.insert(shape.begin(), rValue.size2());
         shape.insert(shape.begin(), rValue.size1());
@@ -768,9 +774,9 @@ public:
             is_reshaped = true;
         }
 
-        if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
+        if constexpr(ValueTrait::IsDynamic) {
             std::for_each(rContainer.data().begin(), rContainer.data().end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
-                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, pShapeBegin + 2, pShapeEnd) || is_reshaped;
+                is_reshaped = ValueTrait::Reshape(rValue, pShapeBegin + 2, pShapeEnd) || is_reshaped;
             });
         }
 
@@ -858,9 +864,9 @@ public:
         const ContainerType& rContainer)
     {
         if (rContainer.size1() != 0 && rContainer.size2() != 0) {
-            const auto stride = DataTypeTraits<ValueType>::Size(rContainer(0, 0));
+            const auto stride = ValueTrait::Size(rContainer(0, 0));
             for (unsigned int i = 0; i < rContainer.size1() * rContainer.size2(); ++i) {
-                DataTypeTraits<ValueType>::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer.data()[i]);
+                ValueTrait::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer.data()[i]);
             }
         }
     }
@@ -882,9 +888,9 @@ public:
         PrimitiveType const * pContiguousDataBegin)
     {
         if (rContainer.size1() != 0 && rContainer.size2() != 0) {
-            const auto stride = DataTypeTraits<ValueType>::Size(rContainer(0, 0));
+            const auto stride = ValueTrait::Size(rContainer(0, 0));
             for (unsigned int i = 0; i < rContainer.size1() * rContainer.size2(); ++i) {
-                DataTypeTraits<ValueType>::CopyFromContiguousData(rContainer.data()[i], pContiguousDataBegin + i * stride);
+                ValueTrait::CopyFromContiguousData(rContainer.data()[i], pContiguousDataBegin + i * stride);
             }
         }
     }
@@ -1081,7 +1087,9 @@ public:
 
     using ValueType = TDataType;
 
-    using PrimitiveType = typename DataTypeTraits<ValueType>::PrimitiveType;
+    using ValueTrait = DataTypeTraits<ValueType>;
+
+    using PrimitiveType = typename ValueTrait::PrimitiveType;
 
     static constexpr bool IsContiguous = std::is_same_v<PrimitiveType, ValueType>;
 
@@ -1102,7 +1110,7 @@ public:
      */
     static inline unsigned int Size(const ContainerType& rValue)
     {
-        return (rValue.empty() ? 0 : rValue.size() * DataTypeTraits<ValueType>::Size(rValue[0]));
+        return (rValue.empty() ? 0 : rValue.size() * ValueTrait::Size(rValue[0]));
     }
 
     /**
@@ -1118,9 +1126,9 @@ public:
     {
         std::vector<unsigned int> shape;
         if (rValue.empty()) {
-            shape = DataTypeTraits<ValueType>::Shape(ValueType{});
+            shape = ValueTrait::Shape(ValueType{});
         } else {
-            shape = DataTypeTraits<ValueType>::Shape(rValue[0]);
+            shape = ValueTrait::Shape(rValue[0]);
         }
         shape.insert(shape.begin(), rValue.size());
         return shape;
@@ -1182,9 +1190,9 @@ public:
             is_reshaped = true;
         }
 
-        if constexpr(DataTypeTraits<ValueType>::IsDynamic) {
+        if constexpr(ValueTrait::IsDynamic) {
             std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
-                is_reshaped = DataTypeTraits<ValueType>::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
+                is_reshaped = ValueTrait::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
             });
         }
 
@@ -1246,9 +1254,9 @@ public:
         const ContainerType& rContainer)
     {
         if (rContainer.size() != 0) {
-            const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
+            const auto stride = ValueTrait::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                DataTypeTraits<ValueType>::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+                ValueTrait::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
             }
         }
     }
@@ -1270,9 +1278,9 @@ public:
         PrimitiveType const * pContiguousDataBegin)
     {
         if (rContainer.size() != 0) {
-            const auto stride = DataTypeTraits<ValueType>::Size(rContainer[0]);
+            const auto stride = ValueTrait::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                DataTypeTraits<ValueType>::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+                ValueTrait::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
             }
         }
     }
