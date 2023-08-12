@@ -162,7 +162,7 @@ private:
                                 WriteInfo& rInfo);
 
     template <class T>
-    void WriteDataSetMatrixImpl(const std::string& rPath,
+    KRATOS_DEPRECATED void WriteDataSetMatrixImpl(const std::string& rPath,
                                 const Matrix<T>& rData,
                                 DataTransferMode Mode,
                                 WriteInfo& rInfo);

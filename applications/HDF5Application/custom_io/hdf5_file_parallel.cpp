@@ -319,100 +319,38 @@ void FileParallel::WriteDataSetVectorImpl(
 }
 
 template <class T>
-void FileParallel::WriteDataSetMatrixImpl(const std::string& rPath,
-                                          const Matrix<T>& rData,
-                                          DataTransferMode Mode,
-                                          WriteInfo& rInfo)
+void FileParallel::WriteDataSetMatrixImpl(
+    const std::string& rPath,
+    const Matrix<T>& rData,
+    DataTransferMode Mode,
+    WriteInfo& rInfo)
 {
     KRATOS_TRY;
-    BuiltinTimer timer;
-    // Check that full path does not exist before trying to write data.
-    KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
 
-    // Create any missing subpaths.
-    auto pos = rPath.find_last_of('/');
-    if (pos != 0) // Skip if last '/' is root.
-    {
-        std::string sub_path = rPath.substr(0, pos);
-        AddPath(sub_path);
-    }
+    // TODO: Matrix version is no longer required since, the vector version
+    //       Can write both matrices and vectors.
+    using matrix_type_trait = DataTypeTraits<Matrix<T>>;
+    const auto shape = matrix_type_trait::Shape(rData);
 
-    // Initialize data space dimensions.
-    const unsigned ndims = 2;
-    hsize_t local_dims[ndims], global_dims[ndims];
-    // Set first data space dimension.
-    local_dims[0] = rData.size1();
-    unsigned send_buf, recv_buf;
-    send_buf = local_dims[0];
-    MPI_Allreduce(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-    global_dims[0] = recv_buf;
-    if (Mode == DataTransferMode::independent)
-        if (local_dims[0] > 0)
-            KRATOS_ERROR_IF(local_dims[0] != global_dims[0])
-                << "Can't perform independent write with MPI. Invalid data."
-                << std::endl;
-    local_dims[1] = global_dims[1] = rData.size2(); // Set second data space dimension.
+    using vector_type_trais = DataTypeTraits<Vector<Vector<T>>>;
+    Vector<Vector<T>> vector_data;
+    vector_type_trais::Reshape(vector_data, shape);
 
-    hsize_t local_start[ndims] = {0};
-    if (Mode == DataTransferMode::collective)
-    {
-        send_buf = local_dims[0];
-        // Get global position where local data set ends.
-        MPI_Scan(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
-        // Set global position where local data set starts.
-        local_start[0] = recv_buf - local_dims[0];
-    }
-    else
-        local_start[0] = 0;
+    const auto number_of_primitive_values = matrix_type_trait::Size(rData);
 
-    // Set the data type.
-    hid_t dtype_id = Internals::GetScalarDataType(rData);
-
-    // Create and write the data set.
-    hid_t file_id = GetFileId();
-    hid_t fspace_id = H5Screate_simple(ndims, global_dims, nullptr);
-    // H5Dcreate() must be called collectively for both collective and
-    // independent write.
-    hid_t dset_id = H5Dcreate(file_id, rPath.c_str(), dtype_id, fspace_id,
-                              H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
-
-    if (Mode == DataTransferMode::collective || local_dims[0] > 0)
-    {
-        hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-        if (Mode == DataTransferMode::collective)
-            H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
-        else
-            H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
-        H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
-                            local_dims, nullptr);
-        hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
-        if (local_dims[0] > 0)
-        {
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id,
-                                     dxpl_id, &rData(0, 0)) < 0)
-                << "H5Dwrite failed." << std::endl;
+    if (number_of_primitive_values > 0) {
+        if constexpr(matrix_type_trait::IsContiguous) {
+            vector_type_trais::CopyFromContiguousData(vector_data, matrix_type_trait::GetContiguousData(rData));
+        } else {
+            std::vector<typename matrix_type_trait::PrimitiveType> contiguous_data(number_of_primitive_values);
+            matrix_type_trait::CopyToContiguousData(contiguous_data.data(), rData);
+            vector_type_trais::CopyFromContiguousData(vector_data, contiguous_data.data());
         }
-        else
-        {
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr) < 0) << "H5Dwrite failed. Please ensure global data set is non-empty"
-                                                                                                     << " and the second matrix dimension is consistent across all processes."
-                                                                                                     << std::endl;
-        }
-        KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
-        KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
     }
-    KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
 
-    // Set the write info.
-    rInfo.StartIndex = local_start[0];
-    rInfo.BlockSize = local_dims[0];
-    rInfo.TotalSize = global_dims[0];
+    WriteDataSetVectorImpl(rPath, vector_data, Mode, rInfo);
 
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
-        << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rPath + "\".");
+    KRATOS_CATCH("");
 }
 
 template <class T>
