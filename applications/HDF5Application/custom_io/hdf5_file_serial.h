@@ -51,6 +51,10 @@ public:
 
     explicit FileSerial(Parameters& rSettings);
 
+    explicit FileSerial(
+        const DataCommunicator& rDataCommunicator,
+        Parameters Settings);
+
     FileSerial(const FileSerial& rOther) = delete;
 
     FileSerial(FileSerial&& rOther);

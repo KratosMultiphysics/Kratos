@@ -76,6 +76,12 @@ FileSerial::FileSerial(Parameters& rSettings) : File(rSettings)
 {
 }
 
+FileSerial::FileSerial(
+    const DataCommunicator& rDataCommunicator,
+    Parameters Settings) : File(rDataCommunicator, Settings)
+{
+}
+
 FileSerial::FileSerial(FileSerial&& rOther) : File(std::move(rOther))
 {
 }
