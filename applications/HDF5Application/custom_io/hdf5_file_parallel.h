@@ -170,11 +170,12 @@ private:
         WriteInfo& rInfo);
 
     template <class T>
-    void ReadDataSetVectorImpl(const std::string& rPath,
-                               Vector<T>& rData,
-                               unsigned StartIndex,
-                               unsigned BlockSize,
-                               DataTransferMode Mode);
+    void ReadDataSetVectorImpl(
+        const std::string& rPath,
+        Vector<T>& rData,
+        unsigned StartIndex,
+        unsigned BlockSize,
+        DataTransferMode Mode);
 
     template <class T>
     void ReadDataSetMatrixImpl(const std::string& rPath,

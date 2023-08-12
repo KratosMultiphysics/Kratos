@@ -288,7 +288,7 @@ void FileParallel::WriteDataSetVectorImpl(
         // select the local hyperslab
         H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_shape_start.data(), nullptr, local_reduced_shape.data(), nullptr);
         hid_t mspace_id = H5Screate_simple(global_dimension, local_reduced_shape.data(), nullptr);
-        if (number_of_local_primitive_data_values > 0) {
+        if (type_trait::Size(rData) > 0) {
             if constexpr(type_trait::IsContiguous) {
                 KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, type_trait::GetContiguousData(rData)) < 0)
                     << "H5Dwrite failed." << std::endl;
@@ -299,12 +299,15 @@ void FileParallel::WriteDataSetVectorImpl(
                     << "H5Dwrite failed." << std::endl;
             }
         } else {
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr) < 0) << "H5Dwrite failed. Please ensure global data set is non-empty."
-                                                                                                     << std::endl;
+            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr) < 0)
+                << "H5Dwrite failed. Please ensure global data set is non-empty."
+                << std::endl;
         }
+
         KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
         KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
     }
+
     KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
 
@@ -315,6 +318,7 @@ void FileParallel::WriteDataSetVectorImpl(
 
     KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Write time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
+
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
@@ -354,11 +358,12 @@ void FileParallel::WriteDataSetMatrixImpl(
 }
 
 template <class T>
-void FileParallel::ReadDataSetVectorImpl(const std::string& rPath,
-                                         Vector<T>& rData,
-                                         unsigned StartIndex,
-                                         unsigned BlockSize,
-                                         DataTransferMode Mode)
+void FileParallel::ReadDataSetVectorImpl(
+    const std::string& rPath,
+    Vector<T>& rData,
+    unsigned StartIndex,
+    unsigned BlockSize,
+    DataTransferMode Mode)
 {
     KRATOS_TRY;
     BuiltinTimer timer;
