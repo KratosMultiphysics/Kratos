@@ -191,9 +191,11 @@ public:
 
     using PrimitiveType = typename DataTypeTraits<ValueType>::PrimitiveType;
 
-    static constexpr bool IsContiguous = std::is_same_v<PrimitiveType, ValueType>;
-
     static constexpr bool IsDynamic = DataTypeTraits<ValueType>::IsDynamic;
+
+    // boost ublas makes the underlying data structure contiguous for
+    // any ValueType which are not dynamic recursively.
+    static constexpr bool IsContiguous = !IsDynamic;
 
     ///@}
     ///@name Public static operations
@@ -311,7 +313,20 @@ public:
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
-            return rValue.data().data();
+            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+                return rValue.data().data();
+            } else {
+                // since the underlying data structure for recusive static data types
+                // is contiguous in ublas types, we can do the following to get the
+                // contiguous array.
+                if constexpr(Dimension > 0) {
+                    return reinterpret_cast<PrimitiveType const *>(&rValue[0]);
+                } else {
+                    // not returning nullptr so, the return value can be subjected to
+                    // arithmetic operations
+                    return 0;
+                }
+            }
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
@@ -330,7 +345,20 @@ public:
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
-            return rValue.data().data();
+            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+                return rValue.data().data();
+            } else {
+                // since the underlying data structure for recusive static data types
+                // is contiguous in ublas types, we can do the following to get the
+                // contiguous array.
+                if constexpr(Dimension > 0) {
+                    return reinterpret_cast<PrimitiveType*>(&rValue[0]);
+                } else {
+                    // not returning nullptr so, the return value can be subjected to
+                    // arithmetic operations
+                    return 0;
+                }
+            }
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
@@ -401,9 +429,11 @@ public:
 
     using PrimitiveType = typename DataTypeTraits<ValueType>::PrimitiveType;
 
-    static constexpr bool IsContiguous = std::is_same_v<PrimitiveType, ValueType>;
-
     static constexpr bool IsDynamic = true;
+
+    // boost ublas makes the underlying data structure contiguous for
+    // any ValueType which are not dynamic recursively.
+    static constexpr bool IsContiguous = !DataTypeTraits<ValueType>::IsDynamic;
 
     ///@}
     ///@name Public static operations
@@ -522,7 +552,20 @@ public:
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
-            return rValue.data().begin();
+            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+                return rValue.data().begin();
+            } else {
+                // since the underlying data structure for recusive static data types
+                // is contiguous in ublas types, we can do the following to get the
+                // contiguous array.
+                if (rValue.size() > 0) {
+                    return reinterpret_cast<PrimitiveType const *>(&rValue[0]);
+                } else {
+                    // not returning nullptr so, the return value can be subjected to
+                    // arithmetic operations
+                    return 0;
+                }
+            }
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
@@ -541,7 +584,20 @@ public:
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
-            return rValue.data().begin();
+            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+                return rValue.data().begin();
+            } else {
+                // since the underlying data structure for recusive static data types
+                // is contiguous in ublas types, we can do the following to get the
+                // contiguous array.
+                if (rValue.size() > 0) {
+                    return reinterpret_cast<PrimitiveType*>(&rValue[0]);
+                } else {
+                    // not returning nullptr so, the return value can be subjected to
+                    // arithmetic operations
+                    return 0;
+                }
+            }
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
@@ -610,9 +666,11 @@ public:
 
     using PrimitiveType = typename DataTypeTraits<ValueType>::PrimitiveType;
 
-    static constexpr bool IsContiguous = std::is_same_v<PrimitiveType, ValueType>;
-
     static constexpr bool IsDynamic = true;
+
+    // boost ublas makes the underlying data structure contiguous for
+    // any ValueType which are not dynamic recursively.
+    static constexpr bool IsContiguous = !DataTypeTraits<ValueType>::IsDynamic;
 
     ///@}
     ///@name Public static operations
@@ -732,7 +790,20 @@ public:
     inline static PrimitiveType const * GetContiguousData(const ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
-            return rValue.data().begin();
+            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+                return rValue.data().begin();
+            } else {
+                // since the underlying data structure for recusive static data types
+                // is contiguous in ublas types, we can do the following to get the
+                // contiguous array.
+                if (rValue.size1() > 0 && rValue.size2() > 0) {
+                    return reinterpret_cast<PrimitiveType const*>(&rValue(0, 0));
+                } else {
+                    // not returning nullptr so, the return value can be subjected to
+                    // arithmetic operations
+                    return 0;
+                }
+            }
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
@@ -751,7 +822,20 @@ public:
     inline static PrimitiveType * GetContiguousData(ContainerType& rValue)
     {
         if constexpr(IsContiguous) {
-            return rValue.data().begin();
+            if constexpr(std::is_same_v<PrimitiveType, ValueType>) {
+                return rValue.data().begin();
+            } else {
+                // since the underlying data structure for recusive static data types
+                // is contiguous in ublas types, we can do the following to get the
+                // contiguous array.
+                if (rValue.size1() > 0 && rValue.size2() > 0) {
+                    return reinterpret_cast<PrimitiveType*>(&rValue(0, 0));
+                } else {
+                    // not returning nullptr so, the return value can be subjected to
+                    // arithmetic operations
+                    return 0;
+                }
+            }
         } else {
             static_assert(!std::is_same_v<TDataType, TDataType>, "This should be only called if the rValue is contiguous only.");
         }
