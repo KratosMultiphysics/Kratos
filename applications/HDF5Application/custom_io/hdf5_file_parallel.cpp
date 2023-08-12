@@ -215,6 +215,8 @@ void FileParallel::WriteDataSetImpl(
 
     constexpr auto local_dimension = dataset_type_trait::Dimension;
 
+    static_assert(dataset_type_trait::IsContiguous, "HDF5File can only write contiguous data sets.");
+
     static_assert(local_dimension <= 2 && local_dimension > 0, "HDF5File can only write data sets with dimension in range [1, 2].");
 
     constexpr auto global_dimension = (local_dimension == 1 ? 1 : 2);
@@ -329,6 +331,8 @@ void FileParallel::ReadDataSetImpl(
     using type_trait = DataTypeTraits<TDataSetType>;
 
     constexpr auto local_dimension = type_trait::Dimension;
+
+    static_assert(type_trait::IsContiguous, "HDF5File can only write contiguous data sets.");
 
     static_assert(local_dimension <= 2 && local_dimension > 0, "HDF5File can only read data sets with dimension in range [1, 2].");
 
