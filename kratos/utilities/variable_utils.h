@@ -1593,7 +1593,7 @@ public:
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
             static_assert(std::is_same_v<TEntity,Node>);
-            return rEntity.GetSolutionStepValue(rVariable);
+            return rEntity.FastGetSolutionStepValue(rVariable);
         } else if constexpr (TLocation == Globals::DataLocation::NodeNonHistorical) {
             static_assert(std::is_same_v<TEntity,Node>);
             return rEntity.GetValue(rVariable);
