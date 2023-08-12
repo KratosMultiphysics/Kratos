@@ -88,10 +88,6 @@ public:
 
     void WriteDataSetIndependent(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo) override;
 
-    unsigned GetPID() const override;
-
-    unsigned GetTotalProcesses() const override;
-
     void ReadDataSet(const std::string& rPath,
                      Vector<int>& rData,
                      unsigned StartIndex,

@@ -12,6 +12,13 @@ FileParallel::FileParallel(Parameters& rSettings) : File(rSettings)
 {
 }
 
+FileParallel::FileParallel(
+    const DataCommunicator& rDataCommunicator,
+    Parameters Settings)
+    : File(rDataCommunicator, Settings)
+{
+}
+
 void FileParallel::WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo)
 {
     KRATOS_TRY;
@@ -80,22 +87,6 @@ void FileParallel::WriteDataSetIndependent(const std::string& rPath, const Matri
     KRATOS_TRY;
     WriteDataSetMatrixImpl(rPath, rData, DataTransferMode::independent, rInfo);
     KRATOS_CATCH("");
-}
-
-unsigned FileParallel::GetPID() const
-{
-    int rank, ierr;
-    ierr = MPI_Comm_rank(MPI_COMM_WORLD, &rank);
-    KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_rank failed." << std::endl;
-    return static_cast<unsigned>(rank);
-}
-
-unsigned FileParallel::GetTotalProcesses() const
-{
-    int num_proc, ierr;
-    ierr = MPI_Comm_size(MPI_COMM_WORLD, &num_proc);
-    KRATOS_ERROR_IF(ierr != MPI_SUCCESS) << "MPI_Comm_size failed." << std::endl;
-    return static_cast<unsigned>(num_proc);
 }
 
 void FileParallel::ReadDataSet(const std::string& rPath, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)

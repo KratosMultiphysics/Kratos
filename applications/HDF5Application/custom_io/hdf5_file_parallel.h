@@ -56,6 +56,10 @@ public:
     /// Constructor.
     explicit FileParallel(Parameters& rSettings);
 
+    explicit FileParallel(
+        const DataCommunicator& rDataCommunicator,
+        Parameters Settings);
+
     // Copy constructor.
     FileParallel(const FileParallel& rOther) = delete;
 
@@ -75,25 +79,21 @@ public:
     void WriteDataSet(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo) override;
 
     void WriteDataSet(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo) override;
-    
+
     void WriteDataSetIndependent(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo) override;
-    
+
     void WriteDataSetIndependent(const std::string& rPath, const Vector<double>& rData, WriteInfo& rInfo) override;
 
     void WriteDataSetIndependent(const std::string& rPath,
                                 const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo) override;
 
     void WriteDataSetIndependent(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo) override;
-    
-    void WriteDataSetIndependent(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo) override;
-    
-    unsigned GetPID() const override;
 
-    unsigned GetTotalProcesses() const override;
+    void WriteDataSetIndependent(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo) override;
 
     void ReadDataSet(const std::string& rPath,
                      Vector<int>& rData,
-                     unsigned StartIndex, 
+                     unsigned StartIndex,
                      unsigned BlockSize) override;
 
     void ReadDataSet(const std::string& rPath,

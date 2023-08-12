@@ -190,10 +190,10 @@ public:
     const DataCommunicator& GetDataCommunicator() const;
 
     // Return this process Id with file access.
-    virtual unsigned GetPID() const;
+    unsigned GetPID() const;
 
     // Return the total number of processes with file access.
-    virtual unsigned GetTotalProcesses() const;
+    unsigned GetTotalProcesses() const;
 
     template<class TScalar>
     void ReadAttribute(const std::string& rObjectPath, const std::string& rName, TScalar& rValue);

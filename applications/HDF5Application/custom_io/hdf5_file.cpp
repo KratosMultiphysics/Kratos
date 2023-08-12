@@ -683,7 +683,7 @@ unsigned File::GetPID() const
 
 unsigned File::GetTotalProcesses() const
 {
-    return mpDataCommunicator->MaxAll(GetPID()) + 1;
+    return mpDataCommunicator->Size();
 }
 
 template <class TScalar>

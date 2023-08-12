@@ -78,7 +78,8 @@ FileSerial::FileSerial(Parameters& rSettings) : File(rSettings)
 
 FileSerial::FileSerial(
     const DataCommunicator& rDataCommunicator,
-    Parameters Settings) : File(rDataCommunicator, Settings)
+    Parameters Settings)
+    : File(rDataCommunicator, Settings)
 {
 }
 
@@ -160,16 +161,6 @@ void FileSerial::WriteDataSetIndependent(const std::string& rPath, const Matrix<
     KRATOS_TRY;
     WriteDataSetMatrixImpl(rPath, rData, rInfo);
     KRATOS_CATCH("");
-}
-
-unsigned FileSerial::GetPID() const
-{
-    return 0;
-}
-
-unsigned FileSerial::GetTotalProcesses() const
-{
-    return 1;
 }
 
 void FileSerial::ReadDataSet(const std::string& rPath, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
