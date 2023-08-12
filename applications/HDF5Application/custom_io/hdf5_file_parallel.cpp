@@ -221,32 +221,33 @@ void FileParallel::WriteDataSetVectorImpl(
     }
 
     // Initialize data space dimensions.
-    const auto& local_shape = type_trait::Shape(rData);
+    const auto& local_shape = type_trait::template Shape<hsize_t>(rData);
 
     const auto& r_data_communicator = GetDataCommunicator();
     // get the maximized dimensions of the underlying data. Max is taken because,
     // there can be empty ranks which will give wrong sizes in the case of dynamic
     // data types.
-    std::vector<unsigned int> max_local_shape(local_shape.begin() + 1, local_shape.end());
+    std::vector<hsize_t> max_local_shape(local_shape.begin() + 1, local_shape.end());
     max_local_shape = r_data_communicator.MaxAll(max_local_shape);
 
     // local_reduced_shape holds the max 2d flattened shape if the local_shape dimensions
     // are higher than 2.
-    std::vector<unsigned int> global_shape, local_reduced_shape;
+    std::vector<hsize_t> global_shape, local_reduced_shape;
     if (local_shape.size() > 1) {
         global_shape.resize(2);
         local_reduced_shape.resize(2);
         // flattens higher dimensions into one since we write matrices which is highest dimension
         // supported by paraview for visualization
-        global_shape[1] = std::accumulate(max_local_shape.begin(), max_local_shape.end(), 1U, std::multiplies<unsigned int>());
+        global_shape[1] = std::accumulate(max_local_shape.begin(), max_local_shape.end(), hsize_t{1}, std::multiplies<hsize_t>());
         local_reduced_shape[1] = global_shape[1];
     } else {
         global_shape.resize(1);
+        local_reduced_shape.resize(1);
     }
-
-    local_reduced_shape[0] = local_shape[0];
+    // local_reduced_shape[0] = local_shape[0];
     // get total number of items to be written in the data set.
     global_shape[0] = r_data_communicator.SumAll(local_shape[0]);
+    local_reduced_shape[0] = local_shape[0];
 
     constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
     constexpr unsigned ndims = (!is_array_1d_type) ? 1 : 2;
@@ -267,7 +268,7 @@ void FileParallel::WriteDataSetVectorImpl(
         local_dims[1] = global_dims[1] = 3; // Set second data space dimension.
 
     hsize_t local_start[ndims];
-    std::vector<unsigned int> local_shape_start(global_shape.size(), 0);
+    std::vector<hsize_t> local_shape_start(global_shape.size(), 0);
     if (Mode == DataTransferMode::collective) {
         local_shape_start[0] = r_data_communicator.ScanSum(local_reduced_shape[0]) - local_reduced_shape[0];
 
@@ -302,8 +303,7 @@ void FileParallel::WriteDataSetVectorImpl(
                               H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
 
-    if (Mode == DataTransferMode::collective || local_dims[0] > 0)
-    {
+    if (Mode == DataTransferMode::collective || local_dims[0] > 0) {
         hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
         if (Mode == DataTransferMode::collective) {
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
@@ -312,9 +312,8 @@ void FileParallel::WriteDataSetVectorImpl(
         }
 
         // select the local hyperslab
-        H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
-                            local_dims, nullptr);
-        hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
+        H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_shape_start.data(), nullptr, local_reduced_shape.data(), nullptr);
+        hid_t mspace_id = H5Screate_simple(ndims, local_reduced_shape.data(), nullptr);
         if (local_dims[0] > 0)
         {
             KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, &rData[0]) < 0)
