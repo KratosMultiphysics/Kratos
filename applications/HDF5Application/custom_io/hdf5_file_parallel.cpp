@@ -209,15 +209,11 @@ void FileParallel::WriteDataSetImpl(
 {
     KRATOS_TRY
 
-    using dataset_type_trait = DataTypeTraits<TDataSetType>;
+    using type_trait = DataTypeTraits<TDataSetType>;
 
-    using value_type_trait = DataTypeTraits<typename dataset_type_trait::ValueType>;
+    static_assert(type_trait::IsContiguous, "HDF5File can only write contiguous data sets.");
 
-    constexpr auto local_dimension = dataset_type_trait::Dimension;
-
-    static_assert(dataset_type_trait::IsContiguous, "HDF5File can only write contiguous data sets.");
-
-    static_assert(local_dimension <= 2 && local_dimension > 0, "HDF5File can only write data sets with dimension in range [1, 2].");
+    constexpr auto local_dimension = type_trait::Dimension;
 
     constexpr auto global_dimension = (local_dimension == 1 ? 1 : 2);
 
@@ -235,17 +231,18 @@ void FileParallel::WriteDataSetImpl(
 
     // Initialize data space dimensions.
     std::vector<hsize_t> local_shape(local_dimension);
-    dataset_type_trait::Shape(rData, local_shape.data(), local_shape.data() + local_dimension);
+    type_trait::Shape(rData, local_shape.data(), local_shape.data() + local_dimension);
 
     const auto& r_data_communicator = GetDataCommunicator();
     // get the maximized dimensions of the underlying data. Max is taken because,
     // there can be empty ranks which will give wrong sizes in the case of dynamic
     // data types.
-    std::vector<hsize_t> max_local_shape(local_shape.begin() + 1, local_shape.end());
-    if constexpr(local_dimension == 2 && value_type_trait::Dimension == 0) {
-        // this is the matrix version. Hence it is better to get the max size
-        // from all ranks.
-        max_local_shape[0] = r_data_communicator.MaxAll(max_local_shape[0]);
+    if constexpr(local_dimension >= 2) {
+        if constexpr(type_trait::template IsDimensionDynamic<1>()) {
+            // this is the matrix version. Hence it is better to get the max size
+            // from all ranks.
+            local_shape[1] = r_data_communicator.MaxAll(local_shape[1]);
+        }
     }
 
     // local_reduced_shape holds the max 2d flattened shape if the local_shape dimensions
@@ -259,18 +256,18 @@ void FileParallel::WriteDataSetImpl(
     if constexpr(global_dimension > 1) {
         // flattens higher dimensions into one since we write matrices which is the highest dimension
         // supported by paraview for visualization
-        global_shape[1] = max_local_shape[0];
+        global_shape[1] = std::accumulate(local_shape.begin() + 1, local_shape.end(), hsize_t{1}, std::multiplies<hsize_t>());
         local_reduced_shape[1] = global_shape[1];
     }
 
-    const hsize_t number_of_local_primitive_data_values = std::accumulate(local_reduced_shape.begin(), local_reduced_shape.end(), hsize_t{1}, std::multiplies<hsize_t>());
+    const hsize_t number_of_local_primitive_data_values = type_trait::Size(rData);
 
     if (Mode == DataTransferMode::collective) {
         local_shape_start[0] = r_data_communicator.ScanSum(local_reduced_shape[0]) - local_reduced_shape[0];
     }
 
     // Set the data type.
-    hid_t dtype_id = Internals::GetH5DataType<typename dataset_type_trait::PrimitiveType>();
+    hid_t dtype_id = Internals::GetH5DataType<typename type_trait::PrimitiveType>();
 
     // Create and write the data set.
     hid_t file_id = GetFileId();
@@ -291,8 +288,8 @@ void FileParallel::WriteDataSetImpl(
         // select the local hyperslab
         H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_shape_start.data(), nullptr, local_reduced_shape.data(), nullptr);
         hid_t mspace_id = H5Screate_simple(global_dimension, local_reduced_shape.data(), nullptr);
-        if (dataset_type_trait::Size(rData) > 0) {
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, dataset_type_trait::GetContiguousData(rData)) < 0)
+        if (number_of_local_primitive_data_values > 0) {
+            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, type_trait::GetContiguousData(rData)) < 0)
                 << "H5Dwrite failed." << std::endl;
         } else {
             KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr) < 0)
