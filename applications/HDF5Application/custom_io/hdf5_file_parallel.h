@@ -156,16 +156,18 @@ private:
     ///@name Private Operations
     ///@{
     template <class T>
-    void WriteDataSetVectorImpl(const std::string& rPath,
-                                const Vector<T>& rData,
-                                DataTransferMode Mode,
-                                WriteInfo& rInfo);
+    void WriteDataSetVectorImpl(
+        const std::string& rPath,
+        const Vector<T>& rData,
+        DataTransferMode Mode,
+        WriteInfo& rInfo);
 
     template <class T>
-    KRATOS_DEPRECATED void WriteDataSetMatrixImpl(const std::string& rPath,
-                                const Matrix<T>& rData,
-                                DataTransferMode Mode,
-                                WriteInfo& rInfo);
+    KRATOS_DEPRECATED void WriteDataSetMatrixImpl(
+        const std::string& rPath,
+        const Matrix<T>& rData,
+        DataTransferMode Mode,
+        WriteInfo& rInfo);
 
     template <class T>
     void ReadDataSetVectorImpl(const std::string& rPath,
