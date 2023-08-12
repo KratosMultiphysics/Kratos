@@ -233,7 +233,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dNested, KratosCoreFastSuite)
     static_assert(std::is_same_v<type_trait::ContainerType, array_1d<array_1d<array_1d<int, 10>, 3>, 5>>);
     static_assert(std::is_same_v<type_trait::ValueType, array_1d<array_1d<int, 10>, 3>>);
     static_assert(std::is_same_v<type_trait::PrimitiveType, int>);
-    static_assert(!type_trait::IsContiguous);
+    static_assert(type_trait::IsContiguous);
     static_assert(!type_trait::IsDynamic);
 
     array_1d<array_1d<array_1d<int, 10>, 3>, 5> test{}, result{};
