@@ -326,13 +326,11 @@ void FileParallel::ReadDataSetVectorImpl(
 {
     KRATOS_TRY;
 
-    using dataset_type_trait = DataTypeTraits<Vector<T>>;
+    using type_trait = DataTypeTraits<Vector<T>>;
 
-    using value_type_trait = DataTypeTraits<typename dataset_type_trait::ValueType>;
+    constexpr auto local_dimension = type_trait::Dimension;
 
-    constexpr auto local_dimension = dataset_type_trait::Dimension;
-
-    static_assert(local_dimension <= 2 && local_dimension > 0, "HDF5File can only write data sets with dimension in range [1, 2].");
+    static_assert(local_dimension <= 2 && local_dimension > 0, "HDF5File can only read data sets with dimension in range [1, 2].");
 
     constexpr auto global_dimension = (local_dimension == 1 ? 1 : 2);
 
@@ -341,12 +339,7 @@ void FileParallel::ReadDataSetVectorImpl(
     KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
         << "Path is not a data set: " << rPath << std::endl;
 
-    constexpr bool is_int_type = std::is_same<int, T>::value;
-    constexpr bool is_double_type = std::is_same<double, T>::value;
-    constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
-    constexpr unsigned ndims = (!is_array_1d_type) ? 1 : 2;
-
-    auto file_space_dims = GetDataDimensions(rPath);
+    const auto& file_space_dims = GetDataDimensions(rPath);
 
     // Check consistency of file's data set dimensions.
     KRATOS_ERROR_IF(file_space_dims.size() != global_dimension)
@@ -360,12 +353,12 @@ void FileParallel::ReadDataSetVectorImpl(
     local_space_start[0] = StartIndex;
 
     // now reshape the memory space data
-    dataset_type_trait::Reshape(rData, local_space_dims.data(), local_space_dims.data() + local_dimension);
+    type_trait::Reshape(rData, local_space_dims.data(), local_space_dims.data() + local_dimension);
 
-    if constexpr(std::is_same_v<typename dataset_type_trait::PrimitiveType, int>) {
+    if constexpr(std::is_same_v<typename type_trait::PrimitiveType, int>) {
         KRATOS_ERROR_IF_NOT(HasIntDataType(rPath))
             << "Data type is not int: " << rPath << std::endl;
-    } else if constexpr(std::is_same_v<typename dataset_type_trait::PrimitiveType, double>) {
+    } else if constexpr(std::is_same_v<typename type_trait::PrimitiveType, double>) {
         KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
             << "Data type is not float: " << rPath << std::endl;
     } else {
@@ -373,7 +366,7 @@ void FileParallel::ReadDataSetVectorImpl(
     }
 
     // Set the data type.
-    hid_t dtype_id = Internals::GetH5DataType<typename dataset_type_trait::PrimitiveType>();
+    hid_t dtype_id = Internals::GetH5DataType<typename type_trait::PrimitiveType>();
 
     hid_t file_id = GetFileId();
     hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
@@ -390,8 +383,8 @@ void FileParallel::ReadDataSetVectorImpl(
     KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, local_space_start.data(),
                                         nullptr, local_space_dims.data(), nullptr) < 0)
         << "H5Sselect_hyperslab failed." << std::endl;
-    if (dataset_type_trait::Size(rData) > 0) {
-        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, dataset_type_trait::GetContiguousData(rData)) < 0)
+    if (type_trait::Size(rData) > 0) {
+        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, type_trait::GetContiguousData(rData)) < 0)
             << "H5Dread failed." << std::endl;
     } else {
         KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, nullptr) < 0)
