@@ -233,6 +233,8 @@ void FileParallel::WriteDataSetImpl(
     std::vector<hsize_t> local_shape(local_dimension);
     type_trait::Shape(rData, local_shape.data(), local_shape.data() + local_dimension);
 
+    const hsize_t number_of_local_primitive_data_values = type_trait::Size(rData);
+
     const auto& r_data_communicator = GetDataCommunicator();
     // get the maximized dimensions of the underlying data. Max is taken because,
     // there can be empty ranks which will give wrong sizes in the case of dynamic
@@ -241,7 +243,14 @@ void FileParallel::WriteDataSetImpl(
         if constexpr(type_trait::template IsDimensionDynamic<1>()) {
             // this is the matrix version. Hence it is better to get the max size
             // from all ranks.
-            local_shape[1] = r_data_communicator.MaxAll(local_shape[1]);
+            const auto max_size = r_data_communicator.MaxAll(local_shape[1]);
+
+            // now check every non-empty ranks have the same sizes since this dimension
+            // is a dynamic dimension.
+            KRATOS_ERROR_IF(number_of_local_primitive_data_values > 0 && max_size != local_shape[1])
+                << "Mismatching shapes found in different ranks. All ranks should have the same shapes in data sets.";
+
+            local_shape[1] = max_size;
         }
     }
 
@@ -259,8 +268,6 @@ void FileParallel::WriteDataSetImpl(
         global_shape[1] = std::accumulate(local_shape.begin() + 1, local_shape.end(), hsize_t{1}, std::multiplies<hsize_t>());
         local_reduced_shape[1] = global_shape[1];
     }
-
-    const hsize_t number_of_local_primitive_data_values = type_trait::Size(rData);
 
     if (Mode == DataTransferMode::collective) {
         local_shape_start[0] = r_data_communicator.ScanSum(local_reduced_shape[0]) - local_reduced_shape[0];
@@ -327,11 +334,9 @@ void FileParallel::ReadDataSetImpl(
 
     using type_trait = DataTypeTraits<TDataSetType>;
 
-    constexpr auto local_dimension = type_trait::Dimension;
-
     static_assert(type_trait::IsContiguous, "HDF5File can only write contiguous data sets.");
 
-    static_assert(local_dimension <= 2 && local_dimension > 0, "HDF5File can only read data sets with dimension in range [1, 2].");
+    constexpr auto local_dimension = type_trait::Dimension;
 
     constexpr auto global_dimension = (local_dimension == 1 ? 1 : 2);
 
@@ -349,12 +354,24 @@ void FileParallel::ReadDataSetImpl(
         << "StartIndex (" << StartIndex << ") + BlockSize (" << BlockSize
         << ") > size of data set (" << file_space_dims[0] << ")." << std::endl;
 
-    std::vector<hsize_t> local_space_dims(file_space_dims.begin(), file_space_dims.end()), local_space_start(global_dimension, 0);
-    local_space_dims[0] = BlockSize;
-    local_space_start[0] = StartIndex;
+    std::vector<hsize_t> memory_space_dims(local_dimension);
+    type_trait::Shape(rData, memory_space_dims.data(), memory_space_dims.data() + local_dimension);
+
+    if constexpr(local_dimension >= 2) {
+        if constexpr(type_trait::template IsDimensionDynamic<1>()) {
+            const auto v = std::accumulate(memory_space_dims.begin() + 2, memory_space_dims.end(), hsize_t{1}, std::multiplies<hsize_t>());
+            KRATOS_ERROR_IF_NOT(file_space_dims[1] % v == 0) << "Size mismatch with memory space and file space.";
+            memory_space_dims[1] = file_space_dims[1] / v;
+        }
+    }
+    memory_space_dims[0] = BlockSize;
 
     // now reshape the memory space data
-    type_trait::Reshape(rData, local_space_dims.data(), local_space_dims.data() + local_dimension);
+    type_trait::Reshape(rData, memory_space_dims.data(), memory_space_dims.data() + local_dimension);
+
+    std::vector<hsize_t> local_reduced_space_dims(file_space_dims.begin(), file_space_dims.end()), local_space_start(global_dimension, 0);
+    local_reduced_space_dims[0] = BlockSize;
+    local_space_start[0] = StartIndex;
 
     if constexpr(std::is_same_v<typename type_trait::PrimitiveType, int>) {
         KRATOS_ERROR_IF_NOT(HasIntDataType(rPath))
@@ -380,9 +397,9 @@ void FileParallel::ReadDataSetImpl(
     hid_t dset_id = H5Dopen(file_id, rPath.c_str(), H5P_DEFAULT);
     KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
     hid_t file_space_id = H5Dget_space(dset_id);
-    hid_t mem_space_id = H5Screate_simple(global_dimension, local_space_dims.data(), nullptr);
+    hid_t mem_space_id = H5Screate_simple(global_dimension, local_reduced_space_dims.data(), nullptr);
     KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, local_space_start.data(),
-                                        nullptr, local_space_dims.data(), nullptr) < 0)
+                                        nullptr, local_reduced_space_dims.data(), nullptr) < 0)
         << "H5Sselect_hyperslab failed." << std::endl;
     if (type_trait::Size(rData) > 0) {
         KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, type_trait::GetContiguousData(rData)) < 0)
