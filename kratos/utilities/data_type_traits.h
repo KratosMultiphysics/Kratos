@@ -52,6 +52,27 @@ public:
     ///@{
 
     /**
+     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     *
+     * This method returns true if the @ref TCheckIndex of the dimension
+     * corresponds to a dynamic type. If not, this returns false.
+     *
+     * @tparam TCheckIndex          User input dimension index.
+     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
+     * @return true                 If the input dimension index corresponds to dynamic data type.
+     * @return false                If the input dimension index corresponds to static data type.
+     */
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
+    static constexpr inline bool IsDimensionDynamic()
+    {
+        if constexpr(TCheckIndex == 0) {
+            return false;
+        } else {
+            static_assert(TCheckIndex != TCheckIndex, "Invalid dimension index.");
+        }
+    }
+
+    /**
      * @brief Returns the size of the value.
      *
      * @return TIndexType Size of the value.
@@ -230,6 +251,27 @@ public:
     ///@}
     ///@name Public static operations
     ///@{
+
+    /**
+     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     *
+     * This method returns true if the @ref TCheckIndex of the dimension
+     * corresponds to a dynamic type. If not, this returns false.
+     *
+     * @tparam TCheckIndex          User input dimension index.
+     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
+     * @return true                 If the input dimension index corresponds to dynamic data type.
+     * @return false                If the input dimension index corresponds to static data type.
+     */
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
+    static constexpr inline bool IsDimensionDynamic()
+    {
+        if constexpr(TCheckIndex == TCurrentIndex) {
+            return false;
+        } else {
+            return ValueTrait::template IsDimensionDynamic<TCheckIndex, TCurrentIndex + 1>();
+        }
+    }
 
     /**
      * @brief Gets the size of underlying rContainer.
@@ -499,6 +541,27 @@ public:
     ///@{
 
     /**
+     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     *
+     * This method returns true if the @ref TCheckIndex of the dimension
+     * corresponds to a dynamic type. If not, this returns false.
+     *
+     * @tparam TCheckIndex          User input dimension index.
+     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
+     * @return true                 If the input dimension index corresponds to dynamic data type.
+     * @return false                If the input dimension index corresponds to static data type.
+     */
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
+    static constexpr inline bool IsDimensionDynamic()
+    {
+        if constexpr(TCheckIndex == TCurrentIndex) {
+            return true;
+        } else {
+            return ValueTrait::template IsDimensionDynamic<TCheckIndex, TCurrentIndex + 1>();
+        }
+    }
+
+    /**
      * @brief Gets the size of underlying rContainer.
      *
      * This method returns number of @ref PrimitiveType values contained in
@@ -766,6 +829,27 @@ public:
     ///@{
 
     /**
+     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     *
+     * This method returns true if the @ref TCheckIndex of the dimension
+     * corresponds to a dynamic type. If not, this returns false.
+     *
+     * @tparam TCheckIndex          User input dimension index.
+     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
+     * @return true                 If the input dimension index corresponds to dynamic data type.
+     * @return false                If the input dimension index corresponds to static data type.
+     */
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
+    static constexpr inline bool IsDimensionDynamic()
+    {
+        if constexpr(TCheckIndex == TCurrentIndex || TCheckIndex == TCurrentIndex + 1) {
+            return true;
+        } else {
+            return ValueTrait::template IsDimensionDynamic<TCheckIndex, TCurrentIndex + 2>();
+        }
+    }
+
+    /**
      * @brief Gets the size of underlying rContainer.
      *
      * This method returns number of @ref PrimitiveType values contained in
@@ -1030,6 +1114,27 @@ public:
     ///@{
 
     /**
+     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     *
+     * This method returns true if the @ref TCheckIndex of the dimension
+     * corresponds to a dynamic type. If not, this returns false.
+     *
+     * @tparam TCheckIndex          User input dimension index.
+     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
+     * @return true                 If the input dimension index corresponds to dynamic data type.
+     * @return false                If the input dimension index corresponds to static data type.
+     */
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
+    static constexpr inline bool IsDimensionDynamic()
+    {
+        if constexpr(TCheckIndex == TCurrentIndex) {
+            return true;
+        } else {
+            static_assert(TCheckIndex != TCheckIndex, "Invalid dimension index.");
+        }
+    }
+
+    /**
      * @brief Gets the size of underlying rContainer.
      *
      * This method returns number of @ref PrimitiveType values contained in
@@ -1238,6 +1343,27 @@ public:
     ///@}
     ///@name Public static operations
     ///@{
+
+    /**
+     * @brief Returns whther the given @ref TCheckIndex is dynamic.
+     *
+     * This method returns true if the @ref TCheckIndex of the dimension
+     * corresponds to a dynamic type. If not, this returns false.
+     *
+     * @tparam TCheckIndex          User input dimension index.
+     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
+     * @return true                 If the input dimension index corresponds to dynamic data type.
+     * @return false                If the input dimension index corresponds to static data type.
+     */
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
+    static constexpr inline bool IsDimensionDynamic()
+    {
+        if constexpr(TCheckIndex == TCurrentIndex) {
+            return true;
+        } else {
+            return ValueTrait::template IsDimensionDynamic<TCheckIndex, TCurrentIndex + 1>();
+        }
+    }
 
     /**
      * @brief Gets the size of underlying rContainer.
