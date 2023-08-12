@@ -215,7 +215,7 @@ void FileParallel::WriteDataSetImpl(
 
     constexpr auto local_dimension = dataset_type_trait::Dimension;
 
-    static_assert(local_dimension <= 2 && local_dimension > 0, "HDF5File can only write data sets with dimension in [1, 2].");
+    static_assert(local_dimension <= 2 && local_dimension > 0, "HDF5File can only write data sets with dimension in range [1, 2].");
 
     constexpr auto global_dimension = (local_dimension == 1 ? 1 : 2);
 
