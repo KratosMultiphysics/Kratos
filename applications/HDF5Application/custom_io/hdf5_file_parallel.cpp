@@ -325,6 +325,17 @@ void FileParallel::ReadDataSetVectorImpl(
     DataTransferMode Mode)
 {
     KRATOS_TRY;
+
+    using dataset_type_trait = DataTypeTraits<Vector<T>>;
+
+    using value_type_trait = DataTypeTraits<typename dataset_type_trait::ValueType>;
+
+    constexpr auto local_dimension = dataset_type_trait::Dimension;
+
+    static_assert(local_dimension <= 2 && local_dimension > 0, "HDF5File can only write data sets with dimension in range [1, 2].");
+
+    constexpr auto global_dimension = (local_dimension == 1 ? 1 : 2);
+
     BuiltinTimer timer;
     // Check that full path exists.
     KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
@@ -335,84 +346,66 @@ void FileParallel::ReadDataSetVectorImpl(
     constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
     constexpr unsigned ndims = (!is_array_1d_type) ? 1 : 2;
 
+    auto file_space_dims = GetDataDimensions(rPath);
+
     // Check consistency of file's data set dimensions.
-    std::vector<unsigned> file_space_dims = GetDataDimensions(rPath);
-    KRATOS_ERROR_IF(file_space_dims.size() != ndims)
+    KRATOS_ERROR_IF(file_space_dims.size() != global_dimension)
         << "Invalid data set dimension." << std::endl;
     KRATOS_ERROR_IF(StartIndex + BlockSize > file_space_dims[0])
         << "StartIndex (" << StartIndex << ") + BlockSize (" << BlockSize
         << ") > size of data set (" << file_space_dims[0] << ")." << std::endl;
-    hsize_t local_mem_dims[ndims];
-    // Set first memory space dimension.
-    local_mem_dims[0] = BlockSize;
-    if (is_array_1d_type)
-        local_mem_dims[1] = 3; // Set second dimension.
-    if (is_array_1d_type)
-        KRATOS_ERROR_IF(file_space_dims[1] != 3)
-            << "Invalid data set dimension." << std::endl;
 
-    if (rData.size() != BlockSize)
-        rData.resize(BlockSize, false);
+    std::vector<hsize_t> local_space_dims(file_space_dims.begin(), file_space_dims.end()), local_space_start(global_dimension, 0);
+    local_space_dims[0] = BlockSize;
+    local_space_start[0] = StartIndex;
 
-    // Set global position where local data set starts.
-    hsize_t local_start[ndims];
-    local_start[0] = StartIndex;
-    if (is_array_1d_type)
-        local_start[1] = 0;
+    // now reshape the memory space data
+    dataset_type_trait::Reshape(rData, local_space_dims.data(), local_space_dims.data() + local_dimension);
 
-    // Set the data type.
-    hid_t dtype_id;
-    if (is_int_type)
-    {
+    if constexpr(std::is_same_v<typename dataset_type_trait::PrimitiveType, int>) {
         KRATOS_ERROR_IF_NOT(HasIntDataType(rPath))
             << "Data type is not int: " << rPath << std::endl;
-        dtype_id = H5T_NATIVE_INT;
-    }
-    else if (is_double_type)
-    {
+    } else if constexpr(std::is_same_v<typename dataset_type_trait::PrimitiveType, double>) {
         KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
             << "Data type is not float: " << rPath << std::endl;
-        dtype_id = H5T_NATIVE_DOUBLE;
+    } else {
+        static_assert(!std::is_same_v<T, T>, "Unsupported data type.");
     }
-    else if (is_array_1d_type)
-    {
-        KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
-            << "Data type is not float: " << rPath << std::endl;
-        dtype_id = H5T_NATIVE_DOUBLE;
-    }
-    else
-        static_assert(is_int_type || is_double_type || is_array_1d_type,
-                      "Unsupported data type.");
+
+    // Set the data type.
+    hid_t dtype_id = Internals::GetH5DataType<typename dataset_type_trait::PrimitiveType>();
 
     hid_t file_id = GetFileId();
     hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-    if (Mode == DataTransferMode::collective)
+    if (Mode == DataTransferMode::collective) {
         H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
-    else
+    } else {
         H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
+    }
+
     hid_t dset_id = H5Dopen(file_id, rPath.c_str(), H5P_DEFAULT);
     KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
     hid_t file_space_id = H5Dget_space(dset_id);
-    hid_t mem_space_id = H5Screate_simple(ndims, local_mem_dims, nullptr);
-    KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, local_start,
-                                        nullptr, local_mem_dims, nullptr) < 0)
+    hid_t mem_space_id = H5Screate_simple(global_dimension, local_space_dims.data(), nullptr);
+    KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, local_space_start.data(),
+                                        nullptr, local_space_dims.data(), nullptr) < 0)
         << "H5Sselect_hyperslab failed." << std::endl;
-    if (local_mem_dims[0] > 0)
-    {
-        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, &rData[0]) < 0)
+    if (dataset_type_trait::Size(rData) > 0) {
+        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, dataset_type_trait::GetContiguousData(rData)) < 0)
             << "H5Dread failed." << std::endl;
-    }
-    else
-    {
+    } else {
         KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, nullptr) < 0)
             << "H5Dread failed." << std::endl;
     }
+
     KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
+
     KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
+
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
