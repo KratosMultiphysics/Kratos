@@ -4,10 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
 //
 //  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneth Warnakulasuriya
 //
 
 #if !defined(KRATOS_HDF5_FILE_PARALLEL_H_INCLUDED)

@@ -1,8 +1,29 @@
-#include "hdf5_file_parallel.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
+//
+//  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneth Warnakulasuriya
+//
 
+// System includes
+#include <numeric>
+
+// Project includes
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
 #include "input_output/logger.h"
+#include "utilities/data_type_traits.h"
+
+// Application includes
+
+// Include base h
+#include "hdf5_file_parallel.h"
 
 namespace Kratos
 {
@@ -178,29 +199,52 @@ void FileParallel::ReadDataSetIndependent(const std::string& rPath,
 }
 
 template <class T>
-void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
-                                          const Vector<T>& rData,
-                                          DataTransferMode Mode,
-                                          WriteInfo& rInfo)
+void FileParallel::WriteDataSetVectorImpl(
+    const std::string& rPath,
+    const Vector<T>& rData,
+    DataTransferMode Mode,
+    WriteInfo& rInfo)
 {
     KRATOS_TRY;
+
     BuiltinTimer timer;
     // Expects a valid free path.
     KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
 
     // Create any missing subpaths.
     auto pos = rPath.find_last_of('/');
-    if (pos != 0) // Skip if last '/' is root.
-    {
+    if (pos != 0) {// Skip if last '/' is root.
         std::string sub_path = rPath.substr(0, pos);
         AddPath(sub_path);
     }
 
     // Initialize data space dimensions.
+    const auto& local_shape = DataTypeTraits<Vector<T>>::Shape(rData);
+
+    const auto& r_data_communicator = GetDataCommunicator();
+    // get the maximized dimensions of the underlying data. Max is taken because,
+    // there can be empty ranks which will give wrong sizes in the case of dynamic
+    // data types.
+    std::vector<unsigned int> max_local_shape(local_shape.begin() + 1, local_shape.end());
+    max_local_shape = r_data_communicator.MaxAll(max_local_shape);
+
+    std::vector<unsigned int> global_shape;
+    if (local_shape.size() > 1) {
+        global_shape.resize(2);
+        // flattens higher dimensions into one since we write matrices which is highest dimension
+        // supported by paraview for visualization
+        global_shape[1] = std::accumulate(max_local_shape.begin(), max_local_shape.end(), 1U, std::multiplies<unsigned int>());
+    } else {
+        global_shape.resize(1);
+    }
+    // get total number of items to be written in the data set.
+    global_shape[0] = r_data_communicator.SumAll(local_shape[0]);
+
     constexpr bool is_int_type = std::is_same<int, T>::value;
     constexpr bool is_double_type = std::is_same<double, T>::value;
     constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
     constexpr unsigned ndims = (!is_array_1d_type) ? 1 : 2;
+
     hsize_t local_dims[ndims], global_dims[ndims];
     // Set first data space dimension.
     local_dims[0] = rData.size();
@@ -217,8 +261,7 @@ void FileParallel::WriteDataSetVectorImpl(const std::string& rPath,
         local_dims[1] = global_dims[1] = 3; // Set second data space dimension.
 
     hsize_t local_start[ndims];
-    if (Mode == DataTransferMode::collective)
-    {
+    if (Mode == DataTransferMode::collective) {
         send_buf = local_dims[0];
         // Get global position where local data set ends.
         MPI_Scan(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
