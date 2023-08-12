@@ -45,6 +45,8 @@ public:
 
     static constexpr bool IsDynamic = false;
 
+    static constexpr unsigned int Dimension = 0;
+
     ///@}
     ///@name Public static operations
     ///@{
@@ -181,15 +183,15 @@ public:
  * @brief Data type traits for array_1d data types
  *
  * @tparam TDataType    Data type of array_1d
- * @tparam Dimension    Size of array_1d
+ * @tparam TSize    Size of array_1d
  */
-template<class TDataType, std::size_t Dimension> class DataTypeTraits<array_1d<TDataType, Dimension>>
+template<class TDataType, std::size_t TSize> class DataTypeTraits<array_1d<TDataType, TSize>>
 {
 public:
     ///@name Type definitions
     ///@{
 
-    using ContainerType = array_1d<TDataType, Dimension>;
+    using ContainerType = array_1d<TDataType, TSize>;
 
     using ValueType = TDataType;
 
@@ -202,6 +204,8 @@ public:
     // boost ublas makes the underlying data structure contiguous for
     // any ValueType which are not dynamic recursively.
     static constexpr bool IsContiguous = !IsDynamic;
+
+    static constexpr unsigned int Dimension = ValueTrait::Dimension + 1;
 
     ///@}
     ///@name Public static operations
@@ -219,10 +223,10 @@ public:
     template<class TIndexType = unsigned int>
     static inline TIndexType Size(const ContainerType& rContainer)
     {
-        if constexpr(Dimension == 0) {
+        if constexpr(TSize == 0) {
             return 0;
         } else {
-            return Dimension * ValueTrait::template Size<TIndexType>(rContainer[0]);
+            return TSize * ValueTrait::template Size<TIndexType>(rContainer[0]);
         }
     }
 
@@ -239,12 +243,12 @@ public:
     static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
     {
         std::vector<TIndexType> shape;
-        if constexpr(Dimension > 0) {
+        if constexpr(TSize > 0) {
             shape = ValueTrait::template Shape<TIndexType>(rContainer[0]);
         } else {
             shape = ValueTrait::template Shape<TIndexType>(ValueType{});
         }
-        shape.insert(shape.begin(), Dimension);
+        shape.insert(shape.begin(), TSize);
         return shape;
     }
 
@@ -295,7 +299,7 @@ public:
         TIndexType const * pShapeBegin,
         TIndexType const * pShapeEnd)
     {
-        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1 && *pShapeBegin == static_cast<TIndexType>(Dimension))
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1 && *pShapeBegin == static_cast<TIndexType>(TSize))
             << "Invalid shape/dimension given for array_1d data type [ Expected shape = " << Shape(rContainer) << ", provided shape = "
             << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
 
@@ -329,7 +333,7 @@ public:
                 // since the underlying data structure for recusive static data types
                 // is contiguous in ublas types, we can do the following to get the
                 // contiguous array.
-                if constexpr(Dimension > 0) {
+                if constexpr(TSize > 0) {
                     return reinterpret_cast<PrimitiveType const *>(&rValue[0]);
                 } else {
                     // not returning nullptr so, the return value can be subjected to
@@ -361,7 +365,7 @@ public:
                 // since the underlying data structure for recusive static data types
                 // is contiguous in ublas types, we can do the following to get the
                 // contiguous array.
-                if constexpr(Dimension > 0) {
+                if constexpr(TSize > 0) {
                     return reinterpret_cast<PrimitiveType*>(&rValue[0]);
                 } else {
                     // not returning nullptr so, the return value can be subjected to
@@ -391,7 +395,7 @@ public:
         const ContainerType& rContainer)
     {
         const auto stride = ValueTrait::Size(rContainer[0]);
-        for (unsigned int i = 0; i < Dimension; ++i) {
+        for (unsigned int i = 0; i < TSize; ++i) {
             ValueTrait::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
         }
     }
@@ -413,7 +417,7 @@ public:
         PrimitiveType const * pContiguousDataBegin)
     {
         const auto stride = ValueTrait::Size(rContainer[0]);
-        for (unsigned int i = 0; i < Dimension; ++i) {
+        for (unsigned int i = 0; i < TSize; ++i) {
             ValueTrait::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
         }
     }
@@ -425,7 +429,6 @@ public:
  * @brief Data type traits for DenseVector data types
  *
  * @tparam TDataType    Data type of DenseVector
- * @tparam Dimension    Size of DenseVector
  */
 template<class TDataType> class DataTypeTraits<DenseVector<TDataType>>
 {
@@ -446,6 +449,8 @@ public:
     // boost ublas makes the underlying data structure contiguous for
     // any ValueType which are not dynamic recursively.
     static constexpr bool IsContiguous = !ValueTrait::IsDynamic;
+
+    static constexpr unsigned int Dimension = ValueTrait::Dimension + 1;
 
     ///@}
     ///@name Public static operations
@@ -690,6 +695,8 @@ public:
     // any ValueType which are not dynamic recursively.
     static constexpr bool IsContiguous = !ValueTrait::IsDynamic;
 
+    static constexpr unsigned int Dimension = ValueTrait::Dimension + 2;
+
     ///@}
     ///@name Public static operations
     ///@{
@@ -930,6 +937,8 @@ public:
 
     static constexpr bool IsDynamic = true;
 
+    static constexpr unsigned int Dimension = 1;
+
     ///@}
     ///@name Public static operations
     ///@{
@@ -1114,6 +1123,8 @@ public:
     static constexpr bool IsContiguous = std::is_same_v<PrimitiveType, ValueType>;
 
     static constexpr bool IsDynamic = true;
+
+    static constexpr unsigned int Dimension = ValueTrait::Dimension + 1;
 
     ///@}
     ///@name Public static operations
