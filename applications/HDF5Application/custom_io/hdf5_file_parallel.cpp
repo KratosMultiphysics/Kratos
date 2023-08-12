@@ -269,10 +269,6 @@ void FileParallel::WriteDataSetImpl(
         local_reduced_shape[1] = global_shape[1];
     }
 
-    if (Mode == DataTransferMode::collective) {
-        local_shape_start[0] = r_data_communicator.ScanSum(local_reduced_shape[0]) - local_reduced_shape[0];
-    }
-
     // Set the data type.
     hid_t dtype_id = Internals::GetH5DataType<typename type_trait::PrimitiveType>();
 
@@ -284,28 +280,43 @@ void FileParallel::WriteDataSetImpl(
     hid_t dset_id = H5Dcreate(file_id, rPath.c_str(), dtype_id, fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
 
-    if (Mode == DataTransferMode::collective || number_of_local_primitive_data_values > 0) {
-        hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
+    if (r_data_communicator.IsDistributed()) {
         if (Mode == DataTransferMode::collective) {
-            H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
-        } else {
-            H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
+            local_shape_start[0] = r_data_communicator.ScanSum(local_reduced_shape[0]) - local_reduced_shape[0];
         }
 
-        // select the local hyperslab
-        H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_shape_start.data(), nullptr, local_reduced_shape.data(), nullptr);
-        hid_t mspace_id = H5Screate_simple(global_dimension, local_reduced_shape.data(), nullptr);
+        if (Mode == DataTransferMode::collective || number_of_local_primitive_data_values > 0) {
+            hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
+            if (Mode == DataTransferMode::collective) {
+                H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
+            } else {
+                H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
+            }
+
+            // select the local hyperslab
+            H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_shape_start.data(), nullptr, local_reduced_shape.data(), nullptr);
+            hid_t mspace_id = H5Screate_simple(global_dimension, local_reduced_shape.data(), nullptr);
+            if (number_of_local_primitive_data_values > 0) {
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, type_trait::GetContiguousData(rData)) < 0)
+                    << "H5Dwrite failed." << std::endl;
+            } else {
+                KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr) < 0)
+                    << "H5Dwrite failed. Please ensure global data set is non-empty."
+                    << std::endl;
+            }
+
+            KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
+            KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
+        }
+    } else {
         if (number_of_local_primitive_data_values > 0) {
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, type_trait::GetContiguousData(rData)) < 0)
+            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, type_trait::GetContiguousData(rData)) < 0)
                 << "H5Dwrite failed." << std::endl;
         } else {
-            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, mspace_id, fspace_id, dxpl_id, nullptr) < 0)
+            KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, nullptr) < 0)
                 << "H5Dwrite failed. Please ensure global data set is non-empty."
                 << std::endl;
         }
-
-        KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
-        KRATOS_ERROR_IF(H5Sclose(mspace_id) < 0) << "H5Sclose failed." << std::endl;
     }
 
     KRATOS_ERROR_IF(H5Sclose(fspace_id) < 0) << "H5Sclose failed." << std::endl;
