@@ -207,6 +207,8 @@ void FileParallel::WriteDataSetVectorImpl(
 {
     KRATOS_TRY;
 
+    using type_trait = DataTypeTraits<Vector<T>>;
+
     BuiltinTimer timer;
     // Expects a valid free path.
     KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
@@ -219,7 +221,7 @@ void FileParallel::WriteDataSetVectorImpl(
     }
 
     // Initialize data space dimensions.
-    const auto& local_shape = DataTypeTraits<Vector<T>>::Shape(rData);
+    const auto& local_shape = type_trait::Shape(rData);
 
     const auto& r_data_communicator = GetDataCommunicator();
     // get the maximized dimensions of the underlying data. Max is taken because,
@@ -228,20 +230,24 @@ void FileParallel::WriteDataSetVectorImpl(
     std::vector<unsigned int> max_local_shape(local_shape.begin() + 1, local_shape.end());
     max_local_shape = r_data_communicator.MaxAll(max_local_shape);
 
-    std::vector<unsigned int> global_shape;
+    // local_reduced_shape holds the max 2d flattened shape if the local_shape dimensions
+    // are higher than 2.
+    std::vector<unsigned int> global_shape, local_reduced_shape;
     if (local_shape.size() > 1) {
         global_shape.resize(2);
+        local_reduced_shape.resize(2);
         // flattens higher dimensions into one since we write matrices which is highest dimension
         // supported by paraview for visualization
         global_shape[1] = std::accumulate(max_local_shape.begin(), max_local_shape.end(), 1U, std::multiplies<unsigned int>());
+        local_reduced_shape[1] = global_shape[1];
     } else {
         global_shape.resize(1);
     }
+
+    local_reduced_shape[0] = local_shape[0];
     // get total number of items to be written in the data set.
     global_shape[0] = r_data_communicator.SumAll(local_shape[0]);
 
-    constexpr bool is_int_type = std::is_same<int, T>::value;
-    constexpr bool is_double_type = std::is_same<double, T>::value;
     constexpr bool is_array_1d_type = std::is_same<array_1d<double, 3>, T>::value;
     constexpr unsigned ndims = (!is_array_1d_type) ? 1 : 2;
 
@@ -261,7 +267,10 @@ void FileParallel::WriteDataSetVectorImpl(
         local_dims[1] = global_dims[1] = 3; // Set second data space dimension.
 
     hsize_t local_start[ndims];
+    std::vector<unsigned int> local_shape_start(global_shape.size(), 0);
     if (Mode == DataTransferMode::collective) {
+        local_shape_start[0] = r_data_communicator.ScanSum(local_reduced_shape[0]) - local_reduced_shape[0];
+
         send_buf = local_dims[0];
         // Get global position where local data set ends.
         MPI_Scan(&send_buf, &recv_buf, 1, MPI_UNSIGNED, MPI_SUM, MPI_COMM_WORLD);
@@ -276,15 +285,13 @@ void FileParallel::WriteDataSetVectorImpl(
 
     // Set the data type.
     hid_t dtype_id;
-    if (is_int_type)
+    if constexpr(std::is_same_v<typename type_trait::PrimitiveType, int>) {
         dtype_id = H5T_NATIVE_INT;
-    else if (is_double_type)
+    } else if constexpr(std::is_same_v<typename type_trait::PrimitiveType, double>) {
         dtype_id = H5T_NATIVE_DOUBLE;
-    else if (is_array_1d_type)
-        dtype_id = H5T_NATIVE_DOUBLE;
-    else
-        static_assert(is_int_type || is_double_type || is_array_1d_type,
-                      "Unsupported data type.");
+    } else {
+        static_assert(!std::is_same_v<T, T>, "Unsupported data type.");
+    }
 
     // Create and write the data set.
     hid_t file_id = GetFileId();
@@ -298,10 +305,13 @@ void FileParallel::WriteDataSetVectorImpl(
     if (Mode == DataTransferMode::collective || local_dims[0] > 0)
     {
         hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-        if (Mode == DataTransferMode::collective)
+        if (Mode == DataTransferMode::collective) {
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
-        else
+        } else {
             H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
+        }
+
+        // select the local hyperslab
         H5Sselect_hyperslab(fspace_id, H5S_SELECT_SET, local_start, nullptr,
                             local_dims, nullptr);
         hid_t mspace_id = H5Screate_simple(ndims, local_dims, nullptr);
