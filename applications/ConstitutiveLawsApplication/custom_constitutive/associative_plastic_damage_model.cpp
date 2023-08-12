@@ -292,7 +292,7 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialSofteningImplicitFu
 {
     ResidualFunctionType implicit_function = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters &rValues, PlasticDamageParameters &rPDParameters)
     {
-        const auto &r_mat_properties = rValues.GetMaterialProperties();
+        const auto& r_mat_properties = rValues.GetMaterialProperties();
         const double chi = rPDParameters.PlasticDamageProportion;
         // const double chi = 0.5;
         const double E = r_mat_properties[YOUNG_MODULUS];
@@ -314,7 +314,7 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialSofteningImplicitFu
     )
 {
     ResidualFunctionType function_derivative = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters& rValues, PlasticDamageParameters &rPDParameters) {
-        const auto &r_mat_properties = rValues.GetMaterialProperties();
+        const auto& r_mat_properties = rValues.GetMaterialProperties();
         const double chi = rPDParameters.PlasticDamageProportion;
         // const double chi = 0.5;
         const double E = r_mat_properties[YOUNG_MODULUS];
@@ -418,6 +418,83 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
 /***********************************************************************************/
 /***********************************************************************************/
 template<class TYieldSurfaceType>
+typename AssociativePlasticDamageModel<TYieldSurfaceType>::ResidualFunctionType
+AssociativePlasticDamageModel<TYieldSurfaceType>::CurveByPointsHardeningImplicitFunction(
+    )
+{
+    ResidualFunctionType implicit_function = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters &rValues, PlasticDamageParameters &rPDParameters)
+    {
+        const auto& r_mat_properties = rValues.GetMaterialProperties();
+        const double chi = rPDParameters.PlasticDamageProportion;
+        // const double chi = 0.5;
+        const double C0 = r_mat_properties[YOUNG_MODULUS];
+        const double g = AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
+        double K0;
+        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+        const double E0 = K0 / C0; // Yield strain
+        const Vector& s_by_points = r_mat_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
+        const Vector& e_by_points = r_mat_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
+        const SizeType size_curve = s_by_points.size();
+
+        // Compute volumetric fracture energy in the transition by-points -> exponential
+        double g_by_points = 0.5 * K0 * E0;
+        IndexType i = 1;
+        for (i; i < size_curve; ++i) {
+            g_by_points += 0.5 * (s_by_points(i - 1) + s_by_points(i)) * (e_by_points(i) - e_by_points(i - 1));
+        }
+        g_by_points = g_by_points - (0.5 * chi * s_by_points(i-1) * e_by_points(i-1) + 0.5 * (1.0 - chi) * s_by_points(i-1) * s_by_points(i-1) / C0);
+        const double pd_dissipation_threshold = (g_by_points) / g;
+        const double A = s_by_points(size_curve - 1) / (0.5 * (1.0 - chi) * s_by_points(size_curve - 1) * s_by_points(size_curve - 1) / C0 + 0.5 * chi * s_by_points(size_curve - 1)
+                        * e_by_points(size_curve - 1) - (1.0 - pd_dissipation_threshold) * g);
+        return (1.0 - chi) * (s_by_points(size_curve - 1) * s_by_points(size_curve - 1) - Threshold * Threshold) / (2.0 * g * C0) + (s_by_points(size_curve - 1) - Threshold) / g
+                * (0.5 * chi * e_by_points(size_curve - 1) - 1.0 / A) - chi * Threshold / (2.0 * g * A) * std::log(Threshold / s_by_points(size_curve - 1))
+                + pd_dissipation_threshold - Dissipation;
+    };
+    return implicit_function;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<class TYieldSurfaceType>
+typename AssociativePlasticDamageModel<TYieldSurfaceType>::ResidualFunctionType
+AssociativePlasticDamageModel<TYieldSurfaceType>::CurveByPointsHardeningImplicitFunctionDerivative(
+    )
+{
+    ResidualFunctionType function_derivative = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters &rValues, PlasticDamageParameters &rPDParameters)
+    {
+        const auto& r_mat_properties = rValues.GetMaterialProperties();
+        // we first need a plastic-damage indicator
+        const double chi = rPDParameters.PlasticDamageProportion;
+        // const double chi = 0.5;
+        const double C0 = r_mat_properties[YOUNG_MODULUS];
+        const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
+        double K0;
+        GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
+        const double E0 = K0 / C0; // Yield strain
+        const Vector& s_by_points = r_mat_properties[EQUIVALENT_STRESS_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Stress vector
+        const Vector& e_by_points = r_mat_properties[TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE]; // By-Points region. Strain vector
+        const SizeType size_curve = s_by_points.size();
+
+        // Compute volumetric fracture energy in the transition by-points -> exponential
+        double g_by_points = 0.5 * K0 * E0;
+        IndexType i = 1;
+        for (i; i < size_curve; ++i) {
+            g_by_points += 0.5 * (s_by_points(i - 1) + s_by_points(i)) * (e_by_points(i) - e_by_points(i - 1));
+        }
+        g_by_points = g_by_points - (0.5 * chi * s_by_points(i-1) * e_by_points(i-1) + 0.5 * (1.0 - chi) * s_by_points(i-1) * s_by_points(i-1) / C0);
+        const double pd_dissipation_threshold = (g_by_points) / g;
+
+        const double A = s_by_points(size_curve - 1) / (0.5 * (1.0 - chi) * s_by_points(size_curve - 1) * s_by_points(size_curve - 1) / C0 + 0.5 * chi * s_by_points(size_curve - 1)
+                        * e_by_points(size_curve - 1) - (1.0 - pd_dissipation_threshold) * g);
+
+        return (1.0 / A - (1.0 - chi) * Threshold * E0 / K0 - 0.5 * chi * (e_by_points(size_curve - 1) + (1.0 + std::log(Threshold / s_by_points(size_curve - 1))) / A)) / g;
+    };
+    return function_derivative;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+template<class TYieldSurfaceType>
 void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlope(
     ConstitutiveLaw::Parameters& rValues,
     PlasticDamageParameters &rPDParameters
@@ -490,14 +567,12 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                 for (i; i < size_curve; ++i) {
                     g_by_points += 0.5 * (s_by_points(i - 1) + s_by_points(i)) * (e_by_points(i) - e_by_points(i - 1));
                 }
-                g_by_points -= 0.5 * chi * s_by_points(i) * e_by_points(i) - 0.5 * (1.0 - chi) * s_by_points(i) * s_by_points(i) / C0;
+                g_by_points = g_by_points - (0.5 * chi * s_by_points(i-1) * e_by_points(i-1) + 0.5 * (1.0 - chi) * s_by_points(i-1) * s_by_points(i-1) / C0);
                 const double g_exponential = g - g_by_points;
 
                 KRATOS_ERROR_IF(g_exponential < 0.0) << "Fracture energy too low in CurveDefinedByPoints of plasticity..."  << std::endl;
 
                 // Compute plastic-damage threshold (pd_dissipation) between by-points and exponential parts
-
-                KRATOS_WATCH(rPDParameters.TotalDissipation)
                 const double pd_dissipation_threshold = (g_by_points) / g;
                 if (rPDParameters.TotalDissipation < pd_dissipation_threshold) {
                     IndexType i = 0;
@@ -510,10 +585,7 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                         pd_dissipation_next_point += 0.5 / g * ((s_by_points(i) + s_by_points(i-1)) * (e_by_points(i) - e_by_points(i-1))
                                                     - chi * (s_by_points(i) * e_by_points(i) - s_by_points(i-1) * e_by_points(i-1))
                                                     - (1.0 - chi) * (s_by_points(i) * s_by_points(i) - s_by_points(i-1) * s_by_points(i-1)) * E0 / K0);
-                        KRATOS_WATCH(pd_dissipation_previous_point)
                     }
-                    KRATOS_WATCH(pd_dissipation_next_point)
-
                     if (s_by_points(i) == s_by_points(i-1)) {
                         rPDParameters.Threshold = s_by_points(i);
                         rPDParameters.Slope = 0.0;
@@ -535,12 +607,11 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                             }
                         }
                     }
-                    KRATOS_WATCH(rPDParameters.Threshold)
-                    KRATOS_WATCH(rPDParameters.Slope)
-                    KRATOS_WATCH(g)
-
                 } else { //Exponential branch included to achieve consistent results after full plasticity scenarios
-                    KRATOS_WATCH("AQUI????")
+                    ResidualFunctionType implicit_function   = CurveByPointsHardeningImplicitFunction();
+                    ResidualFunctionType function_derivative = CurveByPointsHardeningImplicitFunctionDerivative();
+                    rPDParameters.Threshold = CalculateThresholdImplicitExpression(implicit_function, function_derivative, rValues, rPDParameters);
+                    rPDParameters.Slope     = CalculateSlopeFiniteDifferences(implicit_function, function_derivative, rValues, rPDParameters);
                 }
                 break;
             }
