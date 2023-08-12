@@ -570,4 +570,133 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested2, KratosCoreFastSuite)
     }
 }
 
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedArray1d, KratosCoreFastSuite)
+{
+    using data_static_type = array_1d<array_1d<array_1d<int, 4>, 5>, 6>;
+
+    using static_type_trait = DataTypeTraits<data_static_type>;
+
+    static_assert(std::is_same_v<static_type_trait::ContainerType, data_static_type>);
+    static_assert(std::is_same_v<static_type_trait::ValueType, array_1d<array_1d<int, 4>, 5>>);
+    static_assert(std::is_same_v<static_type_trait::PrimitiveType, int>);
+    static_assert(static_type_trait::IsContiguous);
+    static_assert(!static_type_trait::IsDynamic);
+
+    data_static_type static_test;
+    std::vector<int> ref_values(120, -1);
+    unsigned int local_index = 0;
+    for (unsigned int i = 0; i < 6; ++i) {
+        for (unsigned int j = 0; j < 5; ++j) {
+            for (unsigned int k = 0; k < 4; ++k) {
+                static_test[i][j][k] = (i+1)*(j+1)*(k+1);
+                ref_values[local_index++] = static_test[i][j][k];
+            }
+        }
+    }
+
+    KRATOS_CHECK_EQUAL(static_type_trait::Size(static_test), 120);
+    const auto const_static_test = static_test;
+    int* p_static_start = static_type_trait::GetContiguousData(static_test);
+    int const* p_const_static_start =  static_type_trait::GetContiguousData(const_static_test);
+    for (unsigned int i = 0; i < 120; ++i) {
+        KRATOS_CHECK_EQUAL(ref_values[i], *(p_static_start++));
+        KRATOS_CHECK_EQUAL(ref_values[i], *(p_const_static_start++));
+    }
+
+    // now check for non static data type combinations
+    static_assert(!DataTypeTraits<array_1d<array_1d<Vector, 3>, 4>>::IsContiguous);
+    static_assert(DataTypeTraits<array_1d<array_1d<Vector, 3>, 4>>::IsDynamic);
+    static_assert(std::is_same_v<DataTypeTraits<array_1d<array_1d<Vector, 3>, 4>>::PrimitiveType, double>);
+
+    static_assert(!DataTypeTraits<array_1d<array_1d<DenseVector<array_1d<int, 2>>, 3>, 4>>::IsContiguous);
+    static_assert(DataTypeTraits<array_1d<array_1d<DenseVector<array_1d<int, 2>>, 3>, 4>>::IsDynamic);
+    static_assert(std::is_same_v<DataTypeTraits<array_1d<array_1d<DenseVector<array_1d<int, 2>>, 3>, 4>>::PrimitiveType, int>);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseVector, KratosCoreFastSuite)
+{
+    using data_type = DenseVector<array_1d<array_1d<int, 4>, 5>>;
+
+    using type_trait = DataTypeTraits<data_type>;
+
+    static_assert(std::is_same_v<type_trait::ContainerType, data_type>);
+    static_assert(std::is_same_v<type_trait::ValueType, array_1d<array_1d<int, 4>, 5>>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, int>);
+    static_assert(type_trait::IsContiguous);
+    static_assert(type_trait::IsDynamic);
+
+    data_type static_test(6);
+    std::vector<int> ref_values(120, -1);
+    unsigned int local_index = 0;
+    for (unsigned int i = 0; i < 6; ++i) {
+        for (unsigned int j = 0; j < 5; ++j) {
+            for (unsigned int k = 0; k < 4; ++k) {
+                static_test[i][j][k] = (i+1)*(j+1)*(k+1);
+                ref_values[local_index++] = static_test[i][j][k];
+            }
+        }
+    }
+
+    KRATOS_CHECK_EQUAL(type_trait::Size(static_test), 120);
+    const auto const_static_test = static_test;
+    int* p_static_start = type_trait::GetContiguousData(static_test);
+    int const* p_const_static_start =  type_trait::GetContiguousData(const_static_test);
+    for (unsigned int i = 0; i < 120; ++i) {
+        KRATOS_CHECK_EQUAL(ref_values[i], *(p_static_start++));
+        KRATOS_CHECK_EQUAL(ref_values[i], *(p_const_static_start++));
+    }
+
+    // now check for non static data type combinations
+    static_assert(!DataTypeTraits<DenseVector<array_1d<Vector, 3>>>::IsContiguous);
+    static_assert(DataTypeTraits<DenseVector<array_1d<Vector, 3>>>::IsDynamic);
+    static_assert(std::is_same_v<DataTypeTraits<DenseVector<array_1d<Vector, 3>>>::PrimitiveType, double>);
+
+    static_assert(!DataTypeTraits<DenseVector<array_1d<DenseVector<array_1d<int, 2>>, 3>>>::IsContiguous);
+    static_assert(DataTypeTraits<DenseVector<array_1d<DenseVector<array_1d<int, 2>>, 3>>>::IsDynamic);
+    static_assert(std::is_same_v<DataTypeTraits<DenseVector<array_1d<DenseVector<array_1d<int, 2>>, 3>>>::PrimitiveType, int>);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrix, KratosCoreFastSuite)
+{
+    using data_type = DenseMatrix<array_1d<array_1d<int, 4>, 5>>;
+
+    using type_trait = DataTypeTraits<data_type>;
+
+    static_assert(std::is_same_v<type_trait::ContainerType, data_type>);
+    static_assert(std::is_same_v<type_trait::ValueType, array_1d<array_1d<int, 4>, 5>>);
+    static_assert(std::is_same_v<type_trait::PrimitiveType, int>);
+    static_assert(type_trait::IsContiguous);
+    static_assert(type_trait::IsDynamic);
+
+    data_type static_test(2, 3);
+    std::vector<int> ref_values(120, -1);
+    unsigned int local_index = 0;
+    for (unsigned int i = 0; i < 6; ++i) {
+        for (unsigned int j = 0; j < 5; ++j) {
+            for (unsigned int k = 0; k < 4; ++k) {
+                static_test.data()[i][j][k] = (i+1)*(j+1)*(k+1);
+                ref_values[local_index++] = static_test.data()[i][j][k];
+            }
+        }
+    }
+
+    KRATOS_CHECK_EQUAL(type_trait::Size(static_test), 120);
+    const auto const_static_test = static_test;
+    int* p_static_start = type_trait::GetContiguousData(static_test);
+    int const* p_const_static_start =  type_trait::GetContiguousData(const_static_test);
+    for (unsigned int i = 0; i < 120; ++i) {
+        KRATOS_CHECK_EQUAL(ref_values[i], *(p_static_start++));
+        KRATOS_CHECK_EQUAL(ref_values[i], *(p_const_static_start++));
+    }
+
+    // now check for non static data type combinations
+    static_assert(!DataTypeTraits<DenseMatrix<array_1d<Vector, 3>>>::IsContiguous);
+    static_assert(DataTypeTraits<DenseMatrix<array_1d<Vector, 3>>>::IsDynamic);
+    static_assert(std::is_same_v<DataTypeTraits<DenseMatrix<array_1d<Vector, 3>>>::PrimitiveType, double>);
+
+    static_assert(!DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::IsContiguous);
+    static_assert(DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::IsDynamic);
+    static_assert(std::is_same_v<DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::PrimitiveType, int>);
+}
+
 } // namespace Kratos::Testing
