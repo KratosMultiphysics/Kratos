@@ -52,9 +52,10 @@ public:
     /**
      * @brief Returns the size of the value.
      *
-     * @return unsigned int Size of the value.
+     * @return TIndexType Size of the value.
      */
-    static inline unsigned int Size(const ContainerType&)
+    template<class TIndexType = unsigned int>
+    static inline TIndexType Size(const ContainerType&)
     {
         return 1;
     }
@@ -64,9 +65,10 @@ public:
      *
      * Scalars have the shape of [] (an empty vector).
      *
-     * @return std::vector<unsigned int>    Returns an empty vector as the shape.
+     * @return std::vector<TIndexType>    Returns an empty vector as the shape.
      */
-    static inline std::vector<unsigned int> Shape(const ContainerType&)
+    template<class TIndexType = unsigned int>
+    static inline std::vector<TIndexType> Shape(const ContainerType&)
     {
         return {};
     }
@@ -82,9 +84,10 @@ public:
      * @return true         If the passed value is changed due to the required shape.
      * @return false        If the passed value is same as the given shape.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType& rValue,
-        const std::vector<unsigned int>& rShape)
+        const std::vector<TIndexType>& rShape)
     {
         return Reshape(rValue, rShape.data(), rShape.data() + rShape.size());
     }
@@ -100,14 +103,15 @@ public:
      * @return true         If the passed value is changed due to the required shape.
      * @return false        If the passed value is same as the given shape.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType&,
-        unsigned int const * pShapeBegin,
-        unsigned int const * pShapeEnd)
+        TIndexType const * pShapeBegin,
+        TIndexType const * pShapeEnd)
     {
         KRATOS_ERROR_IF(std::distance(pShapeBegin, pShapeEnd) != 0)
             << "Invalid shape/dimension given for primitive data type [ Expected shape = [], provided shape = "
-            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
         return false;
     }
 
@@ -210,14 +214,15 @@ public:
      * the @ref rContainer recursively.
      *
      * @param rContainer        The container to calculate the size.
-     * @return unsigned int     Number of primitive type values in rContainer.
+     * @return TIndexType       Number of primitive type values in rContainer.
      */
-    static inline unsigned int Size(const ContainerType& rContainer)
+    template<class TIndexType = unsigned int>
+    static inline TIndexType Size(const ContainerType& rContainer)
     {
         if constexpr(Dimension == 0) {
             return 0;
         } else {
-            return Dimension * ValueTrait::Size(rContainer[0]);
+            return Dimension * ValueTrait::template Size<TIndexType>(rContainer[0]);
         }
     }
 
@@ -228,15 +233,16 @@ public:
      * in a recursive manner.
      *
      * @param rContainer                    Value to compute the shape.
-     * @return std::vector<unsigned int>    Shape of the @ref rContainer.
+     * @return std::vector<TIndexType>    Shape of the @ref rContainer.
      */
-    static inline std::vector<unsigned int> Shape(const ContainerType& rContainer)
+    template<class TIndexType = unsigned int>
+    static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
     {
-        std::vector<unsigned int> shape;
+        std::vector<TIndexType> shape;
         if constexpr(Dimension > 0) {
-            shape = ValueTrait::Shape(rContainer[0]);
+            shape = ValueTrait::template Shape<TIndexType>(rContainer[0]);
         } else {
-            shape = ValueTrait::Shape(ValueType{});
+            shape = ValueTrait::template Shape<TIndexType>(ValueType{});
         }
         shape.insert(shape.begin(), Dimension);
         return shape;
@@ -258,9 +264,10 @@ public:
      * @return true         If the rContainer or its elements has changed due to resizing.
      * @return false        If the rContaienr has not changed.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType& rContainer,
-        const std::vector<unsigned int>& rShape)
+        const std::vector<TIndexType>& rShape)
     {
         return Reshape(rContainer, rShape.data(), rShape.data() + rShape.size());
     }
@@ -282,14 +289,15 @@ public:
      * @return true         If the rContainer or its elements has changed due to resizing.
      * @return false        If the rContaienr has not changed.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType& rContainer,
-        unsigned int const * pShapeBegin,
-        unsigned int const * pShapeEnd)
+        TIndexType const * pShapeBegin,
+        TIndexType const * pShapeEnd)
     {
-        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1 && *pShapeBegin == static_cast<unsigned int>(Dimension))
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1 && *pShapeBegin == static_cast<TIndexType>(Dimension))
             << "Invalid shape/dimension given for array_1d data type [ Expected shape = " << Shape(rContainer) << ", provided shape = "
-            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
 
         bool is_reshaped = false;
 
@@ -450,11 +458,12 @@ public:
      * the @ref rContainer recursively.
      *
      * @param rContainer        The container to calculate the size.
-     * @return unsigned int     Number of primitive type values in rContainer.
+     * @return TIndexType       Number of primitive type values in rContainer.
      */
-    static inline unsigned int Size(const ContainerType& rValue)
+    template<class TIndexType = unsigned int>
+    static inline TIndexType Size(const ContainerType& rValue)
     {
-        return (rValue.empty() ? 0 : rValue.size() * ValueTrait::Size(rValue[0]));
+        return (rValue.empty() ? 0 : rValue.size() * ValueTrait::template Size<TIndexType>(rValue[0]));
     }
 
     /**
@@ -464,15 +473,16 @@ public:
      * in a recursive manner.
      *
      * @param rContainer                    Value to compute the shape.
-     * @return std::vector<unsigned int>    Shape of the @ref rContainer.
+     * @return std::vector<TIndexType>    Shape of the @ref rContainer.
      */
-    static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
+    template<class TIndexType = unsigned int>
+    static inline std::vector<TIndexType> Shape(const ContainerType& rValue)
     {
-        std::vector<unsigned int> shape;
+        std::vector<TIndexType> shape;
         if (rValue.empty()) {
-            shape = ValueTrait::Shape(ValueType{});
+            shape = ValueTrait::template Shape<TIndexType>(ValueType{});
         } else {
-            shape = ValueTrait::Shape(rValue[0]);
+            shape = ValueTrait::template Shape<TIndexType>(rValue[0]);
         }
         shape.insert(shape.begin(), rValue.size());
         return shape;
@@ -494,9 +504,10 @@ public:
      * @return true         If the rContainer or its elements has changed due to resizing.
      * @return false        If the rContaienr has not changed.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType& rContainer,
-        const std::vector<unsigned int>& rShape)
+        const std::vector<TIndexType>& rShape)
     {
         return Reshape(rContainer, rShape.data(), rShape.data() + rShape.size());
     }
@@ -518,14 +529,15 @@ public:
      * @return true         If the rContainer or its elements has changed due to resizing.
      * @return false        If the rContaienr has not changed.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType& rContainer,
-        unsigned int const * pShapeBegin,
-        unsigned int const * pShapeEnd)
+        TIndexType const * pShapeBegin,
+        TIndexType const * pShapeEnd)
     {
         KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1)
             << "Invalid shape/dimension given for DenseVector data type [ Expected = " << Shape(rContainer) << ", provided = "
-            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
 
         bool is_reshaped = false;
 
@@ -689,11 +701,12 @@ public:
      * the @ref rContainer recursively.
      *
      * @param rContainer        The container to calculate the size.
-     * @return unsigned int     Number of primitive type values in rContainer.
+     * @return TIndexType       Number of primitive type values in rContainer.
      */
-    static inline unsigned int Size(const ContainerType& rValue)
+    template<class TIndexType = unsigned int>
+    static inline TIndexType Size(const ContainerType& rValue)
     {
-        return (rValue.size1() == 0 || rValue.size2() == 0 ? 0 : rValue.size1() * rValue.size2() * ValueTrait::Size(rValue.data()[0]));
+        return (rValue.size1() == 0 || rValue.size2() == 0 ? 0 : rValue.size1() * rValue.size2() * ValueTrait::template Size<TIndexType>(rValue.data()[0]));
     }
 
     /**
@@ -703,15 +716,16 @@ public:
      * in a recursive manner.
      *
      * @param rContainer                    Value to compute the shape.
-     * @return std::vector<unsigned int>    Shape of the @ref rContainer.
+     * @return std::vector<TIndexType>    Shape of the @ref rContainer.
      */
-    static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
+    template<class TIndexType = unsigned int>
+    static inline std::vector<TIndexType> Shape(const ContainerType& rValue)
     {
-        std::vector<unsigned int> shape;
+        std::vector<TIndexType> shape;
         if (rValue.size1() == 0 || rValue.size2() == 0) {
-            shape = ValueTrait::Shape(ValueType{});
+            shape = ValueTrait::template Shape<TIndexType>(ValueType{});
         } else {
-            shape = ValueTrait::Shape(rValue.data()[0]);
+            shape = ValueTrait::template Shape<TIndexType>(rValue.data()[0]);
         }
         shape.insert(shape.begin(), rValue.size2());
         shape.insert(shape.begin(), rValue.size1());
@@ -734,9 +748,10 @@ public:
      * @return true         If the rContainer or its elements has changed due to resizing.
      * @return false        If the rContaienr has not changed.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType& rContainer,
-        const std::vector<unsigned int>& rShape)
+        const std::vector<TIndexType>& rShape)
     {
         return Reshape(rContainer, rShape.data(), rShape.data() + rShape.size());
     }
@@ -758,14 +773,15 @@ public:
      * @return true         If the rContainer or its elements has changed due to resizing.
      * @return false        If the rContaienr has not changed.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType& rContainer,
-        unsigned int const * pShapeBegin,
-        unsigned int const * pShapeEnd)
+        TIndexType const * pShapeBegin,
+        TIndexType const * pShapeEnd)
     {
         KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 2)
             << "Invalid shape/dimension given for DenseMatrix data type [ Expected = " << Shape(rContainer) << ", provided = "
-            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
 
         bool is_reshaped = false;
 
@@ -925,9 +941,10 @@ public:
      * the @ref rContainer recursively.
      *
      * @param rContainer        The container to calculate the size.
-     * @return unsigned int     Number of primitive type values in rContainer.
+     * @return TIndexType       Number of primitive type values in rContainer.
      */
-    static inline unsigned int Size(const ContainerType& rValue)
+    template<class TIndexType = unsigned int>
+    static inline TIndexType Size(const ContainerType& rValue)
     {
         return rValue.size();
     }
@@ -939,11 +956,12 @@ public:
      * in a recursive manner.
      *
      * @param rContainer                    Value to compute the shape.
-     * @return std::vector<unsigned int>    Shape of the @ref rContainer.
+     * @return std::vector<TIndexType>    Shape of the @ref rContainer.
      */
-    static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
+    template<class TIndexType = unsigned int>
+    static inline std::vector<TIndexType> Shape(const ContainerType& rValue)
     {
-        return {static_cast<unsigned int>(rValue.size())};
+        return {static_cast<TIndexType>(rValue.size())};
     }
 
     /**
@@ -962,9 +980,10 @@ public:
      * @return true         If the rContainer or its elements has changed due to resizing.
      * @return false        If the rContaienr has not changed.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType& rContainer,
-        const std::vector<unsigned int>& rShape)
+        const std::vector<TIndexType>& rShape)
     {
         return Reshape(rContainer, rShape.data(), rShape.data() + rShape.size());
     }
@@ -986,15 +1005,16 @@ public:
      * @return true         If the rContainer or its elements has changed due to resizing.
      * @return false        If the rContaienr has not changed.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType& rContainer,
-        unsigned int const * pShapeBegin,
-        unsigned int const * pShapeEnd)
+        TIndexType const * pShapeBegin,
+        TIndexType const * pShapeEnd)
     {
         KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) == 1)
             << "Invalid shape/dimension given for std::string data type [ Expected = "
             << Shape(rContainer) << ", provided = "
-            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
 
         bool is_reshaped = false;
 
@@ -1106,11 +1126,12 @@ public:
      * the @ref rContainer recursively.
      *
      * @param rContainer        The container to calculate the size.
-     * @return unsigned int     Number of primitive type values in rContainer.
+     * @return TIndexType       Number of primitive type values in rContainer.
      */
-    static inline unsigned int Size(const ContainerType& rValue)
+    template<class TIndexType = unsigned int>
+    static inline TIndexType Size(const ContainerType& rValue)
     {
-        return (rValue.empty() ? 0 : rValue.size() * ValueTrait::Size(rValue[0]));
+        return (rValue.empty() ? 0 : rValue.size() * ValueTrait::template Size<TIndexType>(rValue[0]));
     }
 
     /**
@@ -1120,15 +1141,16 @@ public:
      * in a recursive manner.
      *
      * @param rContainer                    Value to compute the shape.
-     * @return std::vector<unsigned int>    Shape of the @ref rContainer.
+     * @return std::vector<TIndexType>    Shape of the @ref rContainer.
      */
-    static inline std::vector<unsigned int> Shape(const ContainerType& rValue)
+    template<class TIndexType = unsigned int>
+    static inline std::vector<TIndexType> Shape(const ContainerType& rValue)
     {
-        std::vector<unsigned int> shape;
+        std::vector<TIndexType> shape;
         if (rValue.empty()) {
-            shape = ValueTrait::Shape(ValueType{});
+            shape = ValueTrait::template Shape<TIndexType>(ValueType{});
         } else {
-            shape = ValueTrait::Shape(rValue[0]);
+            shape = ValueTrait::template Shape<TIndexType>(rValue[0]);
         }
         shape.insert(shape.begin(), rValue.size());
         return shape;
@@ -1150,9 +1172,10 @@ public:
      * @return true         If the rContainer or its elements has changed due to resizing.
      * @return false        If the rContaienr has not changed.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType& rContainer,
-        const std::vector<unsigned int>& rShape)
+        const std::vector<TIndexType>& rShape)
     {
         return Reshape(rContainer, rShape.data(), rShape.data() + rShape.size());
     }
@@ -1174,14 +1197,15 @@ public:
      * @return true         If the rContainer or its elements has changed due to resizing.
      * @return false        If the rContaienr has not changed.
      */
+    template<class TIndexType = unsigned int>
     static inline bool Reshape(
         ContainerType& rContainer,
-        unsigned int const * pShapeBegin,
-        unsigned int const * pShapeEnd)
+        TIndexType const * pShapeBegin,
+        TIndexType const * pShapeEnd)
     {
         KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1)
             << "Invalid shape/dimension given for std::vector data type [ Expected = " << Shape(rContainer) << ", provided = "
-            << std::vector<unsigned int>(pShapeBegin, pShapeEnd) << " ].\n";
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
 
         bool is_reshaped = false;
 
