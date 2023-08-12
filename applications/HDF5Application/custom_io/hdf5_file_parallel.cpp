@@ -21,6 +21,7 @@
 #include "utilities/data_type_traits.h"
 
 // Application includes
+#include "custom_utilities/h5_data_type_traits.h"
 
 // Include base h
 #include "hdf5_file_parallel.h"
@@ -260,14 +261,7 @@ void FileParallel::WriteDataSetVectorImpl(
     }
 
     // Set the data type.
-    hid_t dtype_id;
-    if constexpr(std::is_same_v<typename type_trait::PrimitiveType, int>) {
-        dtype_id = H5T_NATIVE_INT;
-    } else if constexpr(std::is_same_v<typename type_trait::PrimitiveType, double>) {
-        dtype_id = H5T_NATIVE_DOUBLE;
-    } else {
-        static_assert(!std::is_same_v<T, T>, "Unsupported data type.");
-    }
+    hid_t dtype_id = Internals::GetH5DataType<typename type_trait::PrimitiveType>();
 
     // Create and write the data set.
     hid_t file_id = GetFileId();
