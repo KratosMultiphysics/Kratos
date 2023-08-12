@@ -28,6 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsInt, KratosCoreFastSuite)
     static_assert(type_trait::Dimension == 0);
     static_assert(type_trait::IsContiguous);
     static_assert(!type_trait::IsDynamic);
+    static_assert(!type_trait::IsDimensionDynamic<0>());
 
     int test = 1;
 
@@ -61,6 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dDouble, KratosCoreFastSuite)
     static_assert(type_trait::Dimension == 1);
     static_assert(type_trait::IsContiguous);
     static_assert(!type_trait::IsDynamic);
+    static_assert(!type_trait::IsDimensionDynamic<0>());
 
     array_1d<double, 5> test{1, 2, 3, 4, 5};
 
@@ -94,6 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorDouble, KratosCoreFastSuite)
     static_assert(type_trait::Dimension == 1);
     static_assert(type_trait::IsContiguous);
     static_assert(type_trait::IsDynamic);
+    static_assert(type_trait::IsDimensionDynamic<0>());
 
     Vector test(7, 1);
 
@@ -131,6 +134,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixDouble, KratosCoreFastSuite)
     static_assert(type_trait::IsContiguous);
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::Dimension == 2);
+    static_assert(type_trait::IsDimensionDynamic<0>());
+    static_assert(type_trait::IsDimensionDynamic<1>());
 
     Matrix test(3, 4, 1);
 
@@ -174,6 +179,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsString, KratosCoreFastSuite)
     static_assert(type_trait::IsContiguous);
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::Dimension == 1);
+    static_assert(type_trait::IsDimensionDynamic<0>());
 
     std::string test = "test";
 
@@ -211,6 +217,7 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorInt, KratosCoreFastSuite)
     static_assert(type_trait::IsContiguous);
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::Dimension == 1);
+    static_assert(type_trait::IsDimensionDynamic<0>());
 
     std::vector<int> test(7, 1);
 
@@ -248,6 +255,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsArray1dNested, KratosCoreFastSuite)
     static_assert(type_trait::IsContiguous);
     static_assert(!type_trait::IsDynamic);
     static_assert(type_trait::Dimension == 3);
+    static_assert(!type_trait::IsDimensionDynamic<0>());
+    static_assert(!type_trait::IsDimensionDynamic<1>());
+    static_assert(!type_trait::IsDimensionDynamic<2>());
 
     array_1d<array_1d<array_1d<int, 10>, 3>, 5> test{}, result{};
     std::vector<int> ref_values(150);
@@ -285,6 +295,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsVectorNested, KratosCoreFastSuite)
     static_assert(!type_trait::IsContiguous);
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::Dimension == 3);
+    static_assert(type_trait::IsDimensionDynamic<0>());
+    static_assert(type_trait::IsDimensionDynamic<1>());
+    static_assert(type_trait::IsDimensionDynamic<2>());
 
     DenseVector<DenseVector<Vector>> test(2), result(2);
     std::vector<double> ref_values(24);
@@ -343,6 +356,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMatrixNested, KratosCoreFastSuite)
     static_assert(!type_trait::IsContiguous);
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::Dimension == 6);
+    static_assert(type_trait::IsDimensionDynamic<0>());
+    static_assert(type_trait::IsDimensionDynamic<1>());
+    static_assert(type_trait::IsDimensionDynamic<2>());
+    static_assert(type_trait::IsDimensionDynamic<3>());
+    static_assert(type_trait::IsDimensionDynamic<4>());
+    static_assert(type_trait::IsDimensionDynamic<5>());
 
     DenseMatrix<DenseMatrix<Matrix>> test(2, 3), result(2, 3);
     std::vector<double> ref_values(5040);
@@ -407,6 +426,8 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsStdVectorNested, KratosCoreFastSuite)
     static_assert(!type_trait::IsContiguous);
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::Dimension == 2);
+    static_assert(type_trait::IsDimensionDynamic<0>());
+    static_assert(type_trait::IsDimensionDynamic<1>());
 
     std::vector<std::vector<int>> test(2), result(2);
     std::vector<int> ref_values(6);
@@ -455,6 +476,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested1, KratosCoreFastSuite)
     static_assert(!type_trait::IsContiguous);
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::Dimension == 6);
+    static_assert(type_trait::IsDimensionDynamic<0>());
+    static_assert(type_trait::IsDimensionDynamic<1>());
+    static_assert(type_trait::IsDimensionDynamic<2>());
+    static_assert(type_trait::IsDimensionDynamic<3>());
+    static_assert(!type_trait::IsDimensionDynamic<4>());
+    static_assert(type_trait::IsDimensionDynamic<5>());
 
     type_trait::ContainerType test(3), result(3);
     std::vector<char> ref_values(2160);
@@ -530,6 +557,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsMixedNested2, KratosCoreFastSuite)
     static_assert(!type_trait::IsContiguous);
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::Dimension == 5);
+    static_assert(type_trait::IsDimensionDynamic<0>());
+    static_assert(type_trait::IsDimensionDynamic<1>());
+    static_assert(type_trait::IsDimensionDynamic<2>());
+    static_assert(type_trait::IsDimensionDynamic<3>());
+    static_assert(!type_trait::IsDimensionDynamic<4>());
 
     type_trait::ContainerType test(3), result(3);
     std::vector<double> ref_values(2160);
@@ -606,6 +638,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedArray1d, KratosCoreFastSuite)
     static_assert(static_type_trait::IsContiguous);
     static_assert(!static_type_trait::IsDynamic);
     static_assert(static_type_trait::Dimension == 3);
+    static_assert(!static_type_trait::IsDimensionDynamic<0>());
+    static_assert(!static_type_trait::IsDimensionDynamic<1>());
+    static_assert(!static_type_trait::IsDimensionDynamic<2>());
 
     data_static_type static_test;
     std::vector<int> ref_values(120, -1);
@@ -632,10 +667,17 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedArray1d, KratosCoreFastSuite)
     static_assert(!DataTypeTraits<array_1d<array_1d<Vector, 3>, 4>>::IsContiguous);
     static_assert(DataTypeTraits<array_1d<array_1d<Vector, 3>, 4>>::IsDynamic);
     static_assert(std::is_same_v<DataTypeTraits<array_1d<array_1d<Vector, 3>, 4>>::PrimitiveType, double>);
+    static_assert(!DataTypeTraits<array_1d<array_1d<Vector, 3>, 4>>::IsDimensionDynamic<0>());
+    static_assert(!DataTypeTraits<array_1d<array_1d<Vector, 3>, 4>>::IsDimensionDynamic<1>());
+    static_assert(DataTypeTraits<array_1d<array_1d<Vector, 3>, 4>>::IsDimensionDynamic<2>());
 
     static_assert(!DataTypeTraits<array_1d<array_1d<DenseVector<array_1d<int, 2>>, 3>, 4>>::IsContiguous);
     static_assert(DataTypeTraits<array_1d<array_1d<DenseVector<array_1d<int, 2>>, 3>, 4>>::IsDynamic);
     static_assert(std::is_same_v<DataTypeTraits<array_1d<array_1d<DenseVector<array_1d<int, 2>>, 3>, 4>>::PrimitiveType, int>);
+    static_assert(!DataTypeTraits<array_1d<array_1d<DenseVector<array_1d<int, 2>>, 3>, 4>>::IsDimensionDynamic<0>());
+    static_assert(!DataTypeTraits<array_1d<array_1d<DenseVector<array_1d<int, 2>>, 3>, 4>>::IsDimensionDynamic<1>());
+    static_assert(DataTypeTraits<array_1d<array_1d<DenseVector<array_1d<int, 2>>, 3>, 4>>::IsDimensionDynamic<2>());
+    static_assert(!DataTypeTraits<array_1d<array_1d<DenseVector<array_1d<int, 2>>, 3>, 4>>::IsDimensionDynamic<3>());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseVector, KratosCoreFastSuite)
@@ -650,6 +692,9 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseVector, KratosCoreFastSuite)
     static_assert(type_trait::IsContiguous);
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::Dimension == 3);
+    static_assert(type_trait::IsDimensionDynamic<0>());
+    static_assert(!type_trait::IsDimensionDynamic<1>());
+    static_assert(!type_trait::IsDimensionDynamic<2>());
 
     data_type static_test(6);
     std::vector<int> ref_values(120, -1);
@@ -676,10 +721,17 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseVector, KratosCoreFastSuite)
     static_assert(!DataTypeTraits<DenseVector<array_1d<Vector, 3>>>::IsContiguous);
     static_assert(DataTypeTraits<DenseVector<array_1d<Vector, 3>>>::IsDynamic);
     static_assert(std::is_same_v<DataTypeTraits<DenseVector<array_1d<Vector, 3>>>::PrimitiveType, double>);
+    static_assert(DataTypeTraits<DenseVector<array_1d<Vector, 3>>>::IsDimensionDynamic<0>());
+    static_assert(!DataTypeTraits<DenseVector<array_1d<Vector, 3>>>::IsDimensionDynamic<1>());
+    static_assert(DataTypeTraits<DenseVector<array_1d<Vector, 3>>>::IsDimensionDynamic<2>());
 
     static_assert(!DataTypeTraits<DenseVector<array_1d<DenseVector<array_1d<int, 2>>, 3>>>::IsContiguous);
     static_assert(DataTypeTraits<DenseVector<array_1d<DenseVector<array_1d<int, 2>>, 3>>>::IsDynamic);
     static_assert(std::is_same_v<DataTypeTraits<DenseVector<array_1d<DenseVector<array_1d<int, 2>>, 3>>>::PrimitiveType, int>);
+    static_assert(DataTypeTraits<DenseVector<array_1d<DenseVector<array_1d<int, 2>>, 3>>>::IsDimensionDynamic<0>());
+    static_assert(!DataTypeTraits<DenseVector<array_1d<DenseVector<array_1d<int, 2>>, 3>>>::IsDimensionDynamic<1>());
+    static_assert(DataTypeTraits<DenseVector<array_1d<DenseVector<array_1d<int, 2>>, 3>>>::IsDimensionDynamic<2>());
+    static_assert(!DataTypeTraits<DenseVector<array_1d<DenseVector<array_1d<int, 2>>, 3>>>::IsDimensionDynamic<3>());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrix, KratosCoreFastSuite)
@@ -694,6 +746,10 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrix, KratosCoreFastSuite)
     static_assert(type_trait::IsContiguous);
     static_assert(type_trait::IsDynamic);
     static_assert(type_trait::Dimension == 4);
+    static_assert(type_trait::IsDimensionDynamic<0>());
+    static_assert(type_trait::IsDimensionDynamic<1>());
+    static_assert(!type_trait::IsDimensionDynamic<2>());
+    static_assert(!type_trait::IsDimensionDynamic<3>());
 
     data_type static_test(2, 3);
     std::vector<int> ref_values(120, -1);
@@ -720,10 +776,20 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedDenseMatrix, KratosCoreFastSuite)
     static_assert(!DataTypeTraits<DenseMatrix<array_1d<Vector, 3>>>::IsContiguous);
     static_assert(DataTypeTraits<DenseMatrix<array_1d<Vector, 3>>>::IsDynamic);
     static_assert(std::is_same_v<DataTypeTraits<DenseMatrix<array_1d<Vector, 3>>>::PrimitiveType, double>);
+    static_assert(DataTypeTraits<DenseMatrix<array_1d<Vector, 3>>>::IsDimensionDynamic<0>());
+    static_assert(DataTypeTraits<DenseMatrix<array_1d<Vector, 3>>>::IsDimensionDynamic<1>());
+    static_assert(!DataTypeTraits<DenseMatrix<array_1d<Vector, 3>>>::IsDimensionDynamic<2>());
+    static_assert(DataTypeTraits<DenseMatrix<array_1d<Vector, 3>>>::IsDimensionDynamic<3>());
 
     static_assert(!DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::IsContiguous);
     static_assert(DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::IsDynamic);
     static_assert(std::is_same_v<DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::PrimitiveType, int>);
+    static_assert(DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::IsDimensionDynamic<0>());
+    static_assert(DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::IsDimensionDynamic<1>());
+    static_assert(!DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::IsDimensionDynamic<2>());
+    static_assert(DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::IsDimensionDynamic<3>());
+    static_assert(DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::IsDimensionDynamic<4>());
+    static_assert(!DataTypeTraits<DenseMatrix<array_1d<DenseMatrix<array_1d<int, 2>>, 3>>>::IsDimensionDynamic<5>());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
@@ -733,6 +799,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_1_trait::IsContiguous);
     static_assert(data_type_1_trait::IsDynamic);
     static_assert(data_type_1_trait::Dimension == 6);
+    static_assert(data_type_1_trait::IsDimensionDynamic<0>());
+    static_assert(data_type_1_trait::IsDimensionDynamic<1>());
+    static_assert(data_type_1_trait::IsDimensionDynamic<2>());
+    static_assert(data_type_1_trait::IsDimensionDynamic<3>());
+    static_assert(!data_type_1_trait::IsDimensionDynamic<4>());
+    static_assert(data_type_1_trait::IsDimensionDynamic<5>());
     data_type_1 test_data_type_1;
     KRATOS_CHECK_EQUAL(data_type_1_trait::Size(test_data_type_1), 0);
     std::vector<unsigned int> data_type_1_shape{0, 0, 0, 0, 0, 0};
@@ -743,6 +815,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_2_trait::IsContiguous);
     static_assert(data_type_2_trait::IsDynamic);
     static_assert(data_type_2_trait::Dimension == 6);
+    static_assert(data_type_2_trait::IsDimensionDynamic<0>());
+    static_assert(data_type_2_trait::IsDimensionDynamic<1>());
+    static_assert(data_type_2_trait::IsDimensionDynamic<2>());
+    static_assert(data_type_2_trait::IsDimensionDynamic<3>());
+    static_assert(!data_type_2_trait::IsDimensionDynamic<4>());
+    static_assert(data_type_2_trait::IsDimensionDynamic<5>());
     data_type_2 test_data_type_2;
     KRATOS_CHECK_EQUAL(data_type_2_trait::Size(test_data_type_2), 0);
     std::vector<unsigned int> data_type_2_shape{0, 0, 0, 0, 3, 0};
@@ -753,6 +831,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_3_trait::IsContiguous);
     static_assert(data_type_3_trait::IsDynamic);
     static_assert(data_type_3_trait::Dimension == 5);
+    static_assert(data_type_3_trait::IsDimensionDynamic<0>());
+    static_assert(!data_type_3_trait::IsDimensionDynamic<1>());
+    static_assert(!data_type_3_trait::IsDimensionDynamic<2>());
+    static_assert(!data_type_3_trait::IsDimensionDynamic<3>());
+    static_assert(!data_type_3_trait::IsDimensionDynamic<4>());
     data_type_3 test_data_type_3;
     KRATOS_CHECK_EQUAL(data_type_3_trait::Size(test_data_type_3), 0);
     std::vector<unsigned int> data_type_3_shape{0, 0, 4, 0, 4};
@@ -763,6 +846,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(data_type_4_trait::IsContiguous);
     static_assert(data_type_4_trait::IsDynamic);
     static_assert(data_type_4_trait::Dimension == 5);
+    static_assert(data_type_4_trait::IsDimensionDynamic<0>());
+    static_assert(!data_type_4_trait::IsDimensionDynamic<1>());
+    static_assert(!data_type_4_trait::IsDimensionDynamic<2>());
+    static_assert(!data_type_4_trait::IsDimensionDynamic<3>());
+    static_assert(!data_type_4_trait::IsDimensionDynamic<4>());
     data_type_4 test_data_type_4;
     KRATOS_CHECK_EQUAL(data_type_4_trait::Size(test_data_type_4), 0);
     std::vector<unsigned int> data_type_4_shape{0, 0, 4, 0, 4};
@@ -774,6 +862,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(data_type_5_trait::IsContiguous);
     static_assert(data_type_5_trait::IsDynamic);
     static_assert(data_type_5_trait::Dimension == 6);
+    static_assert(data_type_5_trait::IsDimensionDynamic<0>());
+    static_assert(data_type_5_trait::IsDimensionDynamic<1>());
+    static_assert(!data_type_5_trait::IsDimensionDynamic<2>());
+    static_assert(!data_type_5_trait::IsDimensionDynamic<3>());
+    static_assert(!data_type_5_trait::IsDimensionDynamic<4>());
+    static_assert(!data_type_5_trait::IsDimensionDynamic<5>());
     data_type_5 test_data_type_5;
     KRATOS_CHECK_EQUAL(data_type_5_trait::Size(test_data_type_5), 0);
     std::vector<unsigned int> data_type_5_shape{0, 0, 0, 4, 0, 4};
@@ -785,6 +879,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(data_type_6_trait::IsContiguous);
     static_assert(!data_type_6_trait::IsDynamic);
     static_assert(data_type_6_trait::Dimension == 5);
+    static_assert(!data_type_6_trait::IsDimensionDynamic<0>());
+    static_assert(!data_type_6_trait::IsDimensionDynamic<1>());
+    static_assert(!data_type_6_trait::IsDimensionDynamic<2>());
+    static_assert(!data_type_6_trait::IsDimensionDynamic<3>());
+    static_assert(!data_type_6_trait::IsDimensionDynamic<4>());
     data_type_6 test_data_type_6;
     KRATOS_CHECK_EQUAL(data_type_6_trait::Size(test_data_type_6), 0);
     std::vector<unsigned int> data_type_6_shape{2, 0, 4, 0, 4};
@@ -795,6 +894,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_7_trait::IsContiguous);
     static_assert(data_type_7_trait::IsDynamic);
     static_assert(data_type_7_trait::Dimension == 5);
+    static_assert(!data_type_7_trait::IsDimensionDynamic<0>());
+    static_assert(!data_type_7_trait::IsDimensionDynamic<1>());
+    static_assert(data_type_7_trait::IsDimensionDynamic<2>());
+    static_assert(!data_type_7_trait::IsDimensionDynamic<3>());
+    static_assert(!data_type_7_trait::IsDimensionDynamic<4>());
     data_type_7 test_data_type_7;
     KRATOS_CHECK_EQUAL(data_type_7_trait::Size(test_data_type_7), 0);
     std::vector<unsigned int> data_type_7_shape{2, 0, 0, 0, 4};
@@ -805,6 +909,12 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_8_trait::IsContiguous);
     static_assert(data_type_8_trait::IsDynamic);
     static_assert(data_type_8_trait::Dimension == 6);
+    static_assert(!data_type_8_trait::IsDimensionDynamic<0>());
+    static_assert(!data_type_8_trait::IsDimensionDynamic<1>());
+    static_assert(data_type_8_trait::IsDimensionDynamic<2>());
+    static_assert(data_type_8_trait::IsDimensionDynamic<3>());
+    static_assert(!data_type_8_trait::IsDimensionDynamic<4>());
+    static_assert(!data_type_8_trait::IsDimensionDynamic<5>());
     data_type_8 test_data_type_8;
     KRATOS_CHECK_EQUAL(data_type_8_trait::Size(test_data_type_8), 0);
     std::vector<unsigned int> data_type_8_shape{2, 0, 0, 0, 0, 4};
@@ -815,6 +925,11 @@ KRATOS_TEST_CASE_IN_SUITE(DataTypeTraitsNestedZeroSize, KratosCoreFastSuite)
     static_assert(!data_type_9_trait::IsContiguous);
     static_assert(data_type_9_trait::IsDynamic);
     static_assert(data_type_9_trait::Dimension == 5);
+    static_assert(!data_type_9_trait::IsDimensionDynamic<0>());
+    static_assert(!data_type_9_trait::IsDimensionDynamic<1>());
+    static_assert(data_type_9_trait::IsDimensionDynamic<2>());
+    static_assert(!data_type_9_trait::IsDimensionDynamic<3>());
+    static_assert(!data_type_9_trait::IsDimensionDynamic<4>());
     data_type_9 test_data_type_9;
     KRATOS_CHECK_EQUAL(data_type_9_trait::Size(test_data_type_9), 0);
     std::vector<unsigned int> data_type_9_shape{2, 0, 0, 0, 4};
