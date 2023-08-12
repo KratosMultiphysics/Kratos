@@ -162,43 +162,16 @@ private:
         DataTransferMode Mode,
         WriteInfo& rInfo);
 
-    template <class T>
-    void ReadDataSetVectorImpl(
+    template <class TDataSetType>
+    void ReadDataSetImpl(
         const std::string& rPath,
-        Vector<T>& rData,
+        TDataSetType& rData,
         unsigned StartIndex,
         unsigned BlockSize,
         DataTransferMode Mode);
 
-    template <class T>
-    void ReadDataSetMatrixImpl(const std::string& rPath,
-                               Matrix<T>& rData,
-                               unsigned StartIndex,
-                               unsigned BlockSize,
-                               DataTransferMode Mode);
     ///@}
 };
-
-extern template void FileParallel::ReadDataSetVectorImpl(const std::string& rPath,
-                                                       Vector<int>& rData,
-                                                       unsigned StartIndex,
-                                                       unsigned BlockSize,
-                                                       DataTransferMode Mode);
-extern template void FileParallel::ReadDataSetVectorImpl(const std::string& rPath,
-                                                       Vector<double>& rData,
-                                                       unsigned StartIndex,
-                                                       unsigned BlockSize,
-                                                       DataTransferMode Mode);
-extern template void FileParallel::ReadDataSetMatrixImpl(const std::string& rPath,
-                                                       Matrix<int>& rData,
-                                                       unsigned StartIndex,
-                                                       unsigned BlockSize,
-                                                       DataTransferMode Mode);
-extern template void FileParallel::ReadDataSetMatrixImpl(const std::string& rPath,
-                                                       Matrix<double>& rData,
-                                                       unsigned StartIndex,
-                                                       unsigned BlockSize,
-                                                       DataTransferMode Mode);
 
 ///@} // Kratos Classes
 ///@} addtogroup

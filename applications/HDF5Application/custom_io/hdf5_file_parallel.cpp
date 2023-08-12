@@ -115,14 +115,14 @@ void FileParallel::WriteDataSetIndependent(const std::string& rPath, const Matri
 void FileParallel::ReadDataSet(const std::string& rPath, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetVectorImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::collective);
+    ReadDataSetImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::collective);
     KRATOS_CATCH("");
 }
 
 void FileParallel::ReadDataSet(const std::string& rPath, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetVectorImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::collective);
+    ReadDataSetImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::collective);
     KRATOS_CATCH("");
 }
 
@@ -132,21 +132,21 @@ void FileParallel::ReadDataSet(const std::string& rPath,
                               unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetVectorImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::collective);
+    ReadDataSetImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::collective);
     KRATOS_CATCH("");
 }
 
 void FileParallel::ReadDataSet(const std::string& rPath, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetMatrixImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::collective);
+    ReadDataSetImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::collective);
     KRATOS_CATCH("");
 }
 
 void FileParallel::ReadDataSet(const std::string& rPath, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetMatrixImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::collective);
+    ReadDataSetImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::collective);
     KRATOS_CATCH("");
 }
 
@@ -156,7 +156,7 @@ void FileParallel::ReadDataSetIndependent(const std::string& rPath,
                                         unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetVectorImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::independent);
+    ReadDataSetImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
@@ -166,7 +166,7 @@ void FileParallel::ReadDataSetIndependent(const std::string& rPath,
                                         unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetVectorImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::independent);
+    ReadDataSetImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
@@ -176,7 +176,7 @@ void FileParallel::ReadDataSetIndependent(const std::string& rPath,
                                         unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetVectorImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::independent);
+    ReadDataSetImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
@@ -186,7 +186,7 @@ void FileParallel::ReadDataSetIndependent(const std::string& rPath,
                                               unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetMatrixImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::independent);
+    ReadDataSetImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
@@ -196,7 +196,7 @@ void FileParallel::ReadDataSetIndependent(const std::string& rPath,
                                               unsigned BlockSize)
 {
     KRATOS_TRY;
-    ReadDataSetMatrixImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::independent);
+    ReadDataSetImpl(rPath, rData, StartIndex, BlockSize, DataTransferMode::independent);
     KRATOS_CATCH("");
 }
 
@@ -316,17 +316,17 @@ void FileParallel::WriteDataSetImpl(
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
-template <class T>
-void FileParallel::ReadDataSetVectorImpl(
+template <class TDataSetType>
+void FileParallel::ReadDataSetImpl(
     const std::string& rPath,
-    Vector<T>& rData,
+    TDataSetType& rData,
     unsigned StartIndex,
     unsigned BlockSize,
     DataTransferMode Mode)
 {
     KRATOS_TRY;
 
-    using type_trait = DataTypeTraits<Vector<T>>;
+    using type_trait = DataTypeTraits<TDataSetType>;
 
     constexpr auto local_dimension = type_trait::Dimension;
 
@@ -362,7 +362,7 @@ void FileParallel::ReadDataSetVectorImpl(
         KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
             << "Data type is not float: " << rPath << std::endl;
     } else {
-        static_assert(!std::is_same_v<T, T>, "Unsupported data type.");
+        static_assert(!std::is_same_v<TDataSetType, TDataSetType>, "Unsupported data type.");
     }
 
     // Set the data type.
@@ -402,90 +402,11 @@ void FileParallel::ReadDataSetVectorImpl(
     KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
-template <class T>
-void FileParallel::ReadDataSetMatrixImpl(const std::string& rPath,
-                                         Matrix<T>& rData,
-                                         unsigned StartIndex,
-                                         unsigned BlockSize,
-                                         DataTransferMode Mode)
-{
-    KRATOS_TRY;
-    BuiltinTimer timer;
-    // Check that full path exists.
-    KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
-        << "Path is not a data set: " << rPath << std::endl;
-
-    const unsigned ndims = 2;
-
-    // Check consistency of file's data set dimensions.
-    std::vector<unsigned> file_space_dims = GetDataDimensions(rPath);
-    KRATOS_ERROR_IF(file_space_dims.size() != ndims)
-        << "Invalid data set dimension." << std::endl;
-    KRATOS_ERROR_IF(StartIndex + BlockSize > file_space_dims[0])
-        << "StartIndex (" << StartIndex << ") + BlockSize (" << BlockSize
-        << ") > size of data set (" << file_space_dims[0] << ")." << std::endl;
-
-    if (rData.size1() != BlockSize || rData.size2() != file_space_dims[1])
-        rData.resize(BlockSize, file_space_dims[1], false);
-
-    hsize_t local_mem_dims[ndims];
-    local_mem_dims[0] = rData.size1();
-    local_mem_dims[1] = rData.size2();
-
-    // Set global position where local data set starts.
-    hsize_t local_start[ndims] = {0};
-    local_start[0] = StartIndex;
-
-    // Set the data type.
-    hid_t dtype_id = Internals::GetScalarDataType(rData);
-    if (dtype_id == H5T_NATIVE_INT)
-    {
-        KRATOS_ERROR_IF_NOT(HasIntDataType(rPath))
-            << "Data type is not int: " << rPath << std::endl;
-    }
-    else if (dtype_id == H5T_NATIVE_DOUBLE)
-    {
-        KRATOS_ERROR_IF_NOT(HasFloatDataType(rPath))
-            << "Data type is not float: " << rPath << std::endl;
-    }
-
-    hid_t file_id = GetFileId();
-    hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-    if (Mode == DataTransferMode::collective)
-        H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
-    else
-        H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
-    hid_t dset_id = H5Dopen(file_id, rPath.c_str(), H5P_DEFAULT);
-    KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
-    hid_t file_space_id = H5Dget_space(dset_id);
-    hid_t mem_space_id = H5Screate_simple(ndims, local_mem_dims, nullptr);
-    KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, local_start,
-                                        nullptr, local_mem_dims, nullptr) < 0)
-        << "H5Sselect_hyperslab failed." << std::endl;
-    if (local_mem_dims[0] > 0)
-    {
-        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
-                                dxpl_id, &rData(0, 0)) < 0)
-            << "H5Dread failed." << std::endl;
-    }
-    else
-    {
-        KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, nullptr) < 0)
-            << "H5Dread failed." << std::endl;
-    }
-    KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
-        << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rPath + "\".");
-}
-
 // template instantiations
 #ifndef KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS
-#define KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(...)                                                                                      \
-template void FileParallel::WriteDataSetImpl(const std::string&, const __VA_ARGS__&, DataTransferMode, WriteInfo& rInfo);
+#define KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(...)                                                                      \
+template void FileParallel::WriteDataSetImpl(const std::string&, const __VA_ARGS__&, DataTransferMode, WriteInfo& rInfo);   \
+template void FileParallel::ReadDataSetImpl(const std::string&, __VA_ARGS__&, unsigned, unsigned, DataTransferMode);
 #endif
 
 KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(Vector<int>);
@@ -496,27 +417,6 @@ KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(Vector<array_1d<double, 6>>);
 KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(Vector<array_1d<double, 9>>);
 KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(Matrix<int>);
 KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS(Matrix<double>);
-
-template void FileParallel::ReadDataSetVectorImpl(const std::string& rPath,
-                                                  Vector<int>& rData,
-                                                  unsigned StartIndex,
-                                                  unsigned BlockSize,
-                                                  DataTransferMode Mode);
-template void FileParallel::ReadDataSetVectorImpl(const std::string& rPath,
-                                                  Vector<double>& rData,
-                                                  unsigned StartIndex,
-                                                  unsigned BlockSize,
-                                                  DataTransferMode Mode);
-template void FileParallel::ReadDataSetMatrixImpl(const std::string& rPath,
-                                                  Matrix<int>& rData,
-                                                  unsigned StartIndex,
-                                                  unsigned BlockSize,
-                                                  DataTransferMode Mode);
-template void FileParallel::ReadDataSetMatrixImpl(const std::string& rPath,
-                                                  Matrix<double>& rData,
-                                                  unsigned StartIndex,
-                                                  unsigned BlockSize,
-                                                  DataTransferMode Mode);
 
 #undef KRATOS_HDF5_FILE_PARRALLEL_INSTANTIATIONS
 
