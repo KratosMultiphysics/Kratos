@@ -1077,7 +1077,7 @@ public:
         TIndexType* pShapeEnd)
     {
         KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) == 1)
-            << "Invalid dimensions given to fill for primitive data type [ Expected dimension == 1, provided shape = "
+            << "Invalid dimensions given to fill for std::string data type [ Expected dimension == 1, provided shape = "
             << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
         pShapeBegin[0] = rContainer.size();
     }
