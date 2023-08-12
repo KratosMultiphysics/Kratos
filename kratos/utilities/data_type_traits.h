@@ -76,6 +76,26 @@ public:
     }
 
     /**
+     * @brief Fills the given array with the shape values in each dimension.
+     *
+     * @throws If the array is not of the required size.
+     *
+     * @tparam int              Type of the shape values.
+     * @param pShapeBegin       Begin of the shape array.
+     * @param pShapeEnd         End of the shape array.
+     */
+    template<class TIndexType = unsigned int>
+    static inline void Shape(
+        const ContainerType&,
+        TIndexType* pShapeBegin,
+        TIndexType* pShapeEnd)
+    {
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) == 0)
+            << "Invalid dimensions given to fill for primitive data type [ Expected dimension == 0, provided shape = "
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
+    }
+
+    /**
      * @brief Reshapes the value.
      *
      * Scalar values are not reshaped. Hence, always returns false.
@@ -111,7 +131,7 @@ public:
         TIndexType const * pShapeBegin,
         TIndexType const * pShapeEnd)
     {
-        KRATOS_ERROR_IF(std::distance(pShapeBegin, pShapeEnd) != 0)
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) == 0)
             << "Invalid shape/dimension given for primitive data type [ Expected shape = [], provided shape = "
             << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
         return false;
@@ -242,14 +262,36 @@ public:
     template<class TIndexType = unsigned int>
     static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
     {
-        std::vector<TIndexType> shape;
-        if constexpr(TSize > 0) {
-            shape = ValueTrait::template Shape<TIndexType>(rContainer[0]);
-        } else {
-            shape = ValueTrait::template Shape<TIndexType>(ValueType{});
-        }
-        shape.insert(shape.begin(), TSize);
+        std::vector<TIndexType> shape(Dimension);
+        Shape(rContainer, shape.data(), shape.data() + Dimension);
         return shape;
+    }
+
+    /**
+     * @brief Fills the given array with the shape values in each dimension.
+     *
+     * @throws If the array is not of the required size.
+     *
+     * @tparam int              Type of the shape values.
+     * @param pShapeBegin       Begin of the shape array.
+     * @param pShapeEnd         End of the shape array.
+     */
+    template<class TIndexType = unsigned int>
+    static inline void Shape(
+        const ContainerType& rContainer,
+        TIndexType* pShapeBegin,
+        TIndexType* pShapeEnd)
+    {
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1)
+            << "Invalid dimensions given to fill for primitive data type [ Expected dimension >= 1, provided shape = "
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
+
+        if constexpr(TSize > 0) {
+            ValueTrait::Shape(rContainer[0], pShapeBegin + 1, pShapeEnd);
+        } else {
+            ValueTrait::Shape(ValueType{}, pShapeBegin + 1, pShapeEnd);
+        }
+        pShapeBegin[0] = TSize;
     }
 
     /**
@@ -481,16 +523,38 @@ public:
      * @return std::vector<TIndexType>    Shape of the @ref rContainer.
      */
     template<class TIndexType = unsigned int>
-    static inline std::vector<TIndexType> Shape(const ContainerType& rValue)
+    static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
     {
-        std::vector<TIndexType> shape;
-        if (rValue.empty()) {
-            shape = ValueTrait::template Shape<TIndexType>(ValueType{});
-        } else {
-            shape = ValueTrait::template Shape<TIndexType>(rValue[0]);
-        }
-        shape.insert(shape.begin(), rValue.size());
+        std::vector<TIndexType> shape(Dimension);
+        Shape(rContainer, shape.data(), shape.data() + Dimension);
         return shape;
+    }
+
+    /**
+     * @brief Fills the given array with the shape values in each dimension.
+     *
+     * @throws If the array is not of the required size.
+     *
+     * @tparam int              Type of the shape values.
+     * @param pShapeBegin       Begin of the shape array.
+     * @param pShapeEnd         End of the shape array.
+     */
+    template<class TIndexType = unsigned int>
+    static inline void Shape(
+        const ContainerType& rContainer,
+        TIndexType* pShapeBegin,
+        TIndexType* pShapeEnd)
+    {
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1)
+            << "Invalid dimensions given to fill for primitive data type [ Expected dimension >= 1, provided shape = "
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
+
+        if (rContainer.empty()) {
+            ValueTrait::Shape(ValueType{}, pShapeBegin + 1, pShapeEnd);
+        } else {
+            ValueTrait::Shape(rContainer[0], pShapeBegin + 1, pShapeEnd);
+        }
+        pShapeBegin[0] = rContainer.size();
     }
 
     /**
@@ -726,17 +790,39 @@ public:
      * @return std::vector<TIndexType>    Shape of the @ref rContainer.
      */
     template<class TIndexType = unsigned int>
-    static inline std::vector<TIndexType> Shape(const ContainerType& rValue)
+    static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
     {
-        std::vector<TIndexType> shape;
-        if (rValue.size1() == 0 || rValue.size2() == 0) {
-            shape = ValueTrait::template Shape<TIndexType>(ValueType{});
-        } else {
-            shape = ValueTrait::template Shape<TIndexType>(rValue.data()[0]);
-        }
-        shape.insert(shape.begin(), rValue.size2());
-        shape.insert(shape.begin(), rValue.size1());
+        std::vector<TIndexType> shape(Dimension);
+        Shape(rContainer, shape.data(), shape.data() + Dimension);
         return shape;
+    }
+
+    /**
+     * @brief Fills the given array with the shape values in each dimension.
+     *
+     * @throws If the array is not of the required size.
+     *
+     * @tparam int              Type of the shape values.
+     * @param pShapeBegin       Begin of the shape array.
+     * @param pShapeEnd         End of the shape array.
+     */
+    template<class TIndexType = unsigned int>
+    static inline void Shape(
+        const ContainerType& rContainer,
+        TIndexType* pShapeBegin,
+        TIndexType* pShapeEnd)
+    {
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 2)
+            << "Invalid dimensions given to fill for primitive data type [ Expected dimension >= 2, provided shape = "
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
+
+        if (rContainer.size1() > 0 && rContainer.size2() > 0) {
+            ValueTrait::Shape(rContainer(0, 0), pShapeBegin + 2, pShapeEnd);
+        } else {
+            ValueTrait::Shape(ValueType{}, pShapeBegin + 2, pShapeEnd);
+        }
+        pShapeBegin[0] = rContainer.size1();
+        pShapeBegin[1] = rContainer.size2();
     }
 
     /**
@@ -968,9 +1054,32 @@ public:
      * @return std::vector<TIndexType>    Shape of the @ref rContainer.
      */
     template<class TIndexType = unsigned int>
-    static inline std::vector<TIndexType> Shape(const ContainerType& rValue)
+    static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
     {
-        return {static_cast<TIndexType>(rValue.size())};
+        std::vector<TIndexType> shape(Dimension);
+        Shape(rContainer, shape.data(), shape.data() + Dimension);
+        return shape;
+    }
+
+    /**
+     * @brief Fills the given array with the shape values in each dimension.
+     *
+     * @throws If the array is not of the required size.
+     *
+     * @tparam int              Type of the shape values.
+     * @param pShapeBegin       Begin of the shape array.
+     * @param pShapeEnd         End of the shape array.
+     */
+    template<class TIndexType = unsigned int>
+    static inline void Shape(
+        const ContainerType& rContainer,
+        TIndexType* pShapeBegin,
+        TIndexType* pShapeEnd)
+    {
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) == 1)
+            << "Invalid dimensions given to fill for primitive data type [ Expected dimension == 1, provided shape = "
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
+        pShapeBegin[0] = rContainer.size();
     }
 
     /**
@@ -1155,16 +1264,38 @@ public:
      * @return std::vector<TIndexType>    Shape of the @ref rContainer.
      */
     template<class TIndexType = unsigned int>
-    static inline std::vector<TIndexType> Shape(const ContainerType& rValue)
+    static inline std::vector<TIndexType> Shape(const ContainerType& rContainer)
     {
-        std::vector<TIndexType> shape;
-        if (rValue.empty()) {
-            shape = ValueTrait::template Shape<TIndexType>(ValueType{});
-        } else {
-            shape = ValueTrait::template Shape<TIndexType>(rValue[0]);
-        }
-        shape.insert(shape.begin(), rValue.size());
+        std::vector<TIndexType> shape(Dimension);
+        Shape(rContainer, shape.data(), shape.data() + Dimension);
         return shape;
+    }
+
+    /**
+     * @brief Fills the given array with the shape values in each dimension.
+     *
+     * @throws If the array is not of the required size.
+     *
+     * @tparam int              Type of the shape values.
+     * @param pShapeBegin       Begin of the shape array.
+     * @param pShapeEnd         End of the shape array.
+     */
+    template<class TIndexType = unsigned int>
+    static inline void Shape(
+        const ContainerType& rContainer,
+        TIndexType* pShapeBegin,
+        TIndexType* pShapeEnd)
+    {
+        KRATOS_ERROR_IF_NOT(std::distance(pShapeBegin, pShapeEnd) >= 1)
+            << "Invalid dimensions given to fill for primitive data type [ Expected dimension >= 1, provided shape = "
+            << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
+
+        if (rContainer.empty()) {
+            ValueTrait::Shape(ValueType{}, pShapeBegin + 1, pShapeEnd);
+        } else {
+            ValueTrait::Shape(rContainer[0], pShapeBegin + 1, pShapeEnd);
+        }
+        pShapeBegin[0] = rContainer.size();
     }
 
     /**
