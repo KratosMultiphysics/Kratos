@@ -278,7 +278,6 @@ void FileSerial::WriteDataSetMatrixImpl(const std::string& rPath,
     // Create and write the data set.
     const hid_t dtype_id = Internals::GetScalarDataType(rData);
     const std::vector<hsize_t> dims = Internals::GetDataDimensions(rData);
-    const hid_t file_id = GetFileId();
     hid_t dset_id{}, dspace_id{};
     if (!HasPath(rPath)) {
         CreateNewDataSet(dset_id, dspace_id, dtype_id, dims, rPath);
