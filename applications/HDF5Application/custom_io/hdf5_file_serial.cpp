@@ -233,7 +233,7 @@ void FileSerial::WriteDataSetVectorImpl(const std::string& rPath,
 
     // Create and write the data set.
     const hid_t dtype_id = Internals::GetH5DataType<typename DataTypeTraits<T>::PrimitiveType>();
-    const std::vector<hsize_t> dims = Internals::GetDataDimensions(rData);
+    const std::vector<hsize_t>& dims = DataTypeTraits<Vector<T>>::template Shape<hsize_t>(rData);
     hid_t dset_id{}, dspace_id{};
 
     GetDataSet<typename DataTypeTraits<T>::PrimitiveType>(dset_id, dspace_id, dims, rPath);
@@ -271,7 +271,7 @@ void FileSerial::WriteDataSetMatrixImpl(const std::string& rPath,
 
     // Create and write the data set.
     const hid_t dtype_id = Internals::GetH5DataType<typename DataTypeTraits<T>::PrimitiveType>();
-    const std::vector<hsize_t> dims = Internals::GetDataDimensions(rData);
+    const std::vector<hsize_t>& dims = DataTypeTraits<Matrix<T>>::template Shape<hsize_t>(rData);
 
     hid_t dset_id{}, dspace_id{};
     GetDataSet<typename DataTypeTraits<T>::PrimitiveType>(dset_id, dspace_id, dims, rPath);

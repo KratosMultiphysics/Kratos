@@ -25,31 +25,6 @@ bool IsPath(const std::string& rPath)
     return regex_match(rPath, std::regex("(/[\\w\\(\\)]+)+"));
 }
 
-std::vector<hsize_t> GetDataDimensions(const Vector<int>& rData)
-{
-    return std::vector<hsize_t>{rData.size()};
-}
-
-std::vector<hsize_t> GetDataDimensions(const Vector<double>& rData)
-{
-    return std::vector<hsize_t>{rData.size()};
-}
-
-std::vector<hsize_t> GetDataDimensions(const Vector<array_1d<double, 3>>& rData)
-{
-    return std::vector<hsize_t>{rData.size(), 3};
-}
-
-std::vector<hsize_t> GetDataDimensions(const Matrix<int>& rData)
-{
-    return std::vector<hsize_t>{rData.size1(), rData.size2()};
-}
-
-std::vector<hsize_t> GetDataDimensions(const Matrix<double>& rData)
-{
-    return std::vector<hsize_t>{rData.size1(), rData.size2()};
-}
-
 std::vector<hsize_t> GetDataDimensions(const File& rFile, const std::string& rPath)
 {
     const std::vector<unsigned> dims = rFile.GetDataDimensions(rPath);
