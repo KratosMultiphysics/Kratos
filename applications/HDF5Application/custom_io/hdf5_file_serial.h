@@ -67,27 +67,6 @@ public:
     ///@name Operations
     ///@{
 
-    void WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo) override;
-
-    void WriteDataSet(const std::string& rPath, const Vector<double>& rData, WriteInfo& rInfo) override;
-
-    void WriteDataSet(const std::string& rPath, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo) override;
-
-    void WriteDataSet(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo) override;
-
-    void WriteDataSet(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo) override;
-
-    void WriteDataSetIndependent(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo) override;
-
-    void WriteDataSetIndependent(const std::string& rPath, const Vector<double>& rData, WriteInfo& rInfo) override;
-
-    void WriteDataSetIndependent(const std::string& rPath,
-                                 const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo) override;
-
-    void WriteDataSetIndependent(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo) override;
-
-    void WriteDataSetIndependent(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo) override;
-
     void ReadDataSet(const std::string& rPath,
                      Vector<int>& rData,
                      unsigned StartIndex,

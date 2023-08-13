@@ -4,10 +4,11 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
 //
 //  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneth Warnakulasuriya
 //
 
 #pragma once
@@ -55,6 +56,9 @@ struct WriteInfo
  */
 class KRATOS_API(HDF5_APPLICATION) File
 {
+private:
+    enum class DataTransferMode { independent, collective };
+
 public:
     ///@name Type Definitions
     ///@{
@@ -129,15 +133,12 @@ public:
      *
      * @param[out] rInfo Information about the written data set.
      */
-    virtual void WriteDataSet(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo);
 
-    virtual void WriteDataSet(const std::string& rPath, const Vector<double>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSet(const std::string& rPath, const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSet(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSet(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo);
+    template<class TDataType>
+    void WriteDataSet(
+        const std::string& rPath,
+        const TDataType& rData,
+        WriteInfo& rInfo);
 
     /// Independently write data set to the HDF5 file.
     /**
@@ -146,16 +147,11 @@ public:
      *
      * @param[out] rInfo Information about the written data set.
      */
-    virtual void WriteDataSetIndependent(const std::string& rPath, const Vector<int>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSetIndependent(const std::string& rPath, const Vector<double>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSetIndependent(const std::string& rPath,
-                                         const Vector<array_1d<double, 3>>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSetIndependent(const std::string& rPath, const Matrix<int>& rData, WriteInfo& rInfo);
-
-    virtual void WriteDataSetIndependent(const std::string& rPath, const Matrix<double>& rData, WriteInfo& rInfo);
+    template<class TDataType>
+    void WriteDataSetIndependent(
+        const std::string& rPath,
+        const TDataType& rData,
+        WriteInfo& rInfo);
 
     std::vector<unsigned> GetDataDimensions(const std::string& rPath) const;
 
@@ -299,6 +295,12 @@ private:
     ///@{
 
     void SetFileDriver(const std::string& rDriver, hid_t FileAccessPropertyListId) const;
+
+    template<class TDataType, DataTransferMode TDataTransferMode>
+    void WriteDataSetImpl(
+        const std::string& rPath,
+        const TDataType& rData,
+        WriteInfo& rInfo);
 
     ///@}
 };
