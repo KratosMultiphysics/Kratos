@@ -264,7 +264,7 @@ public:
      * @return false                If the input dimension index corresponds to static data type.
      */
     template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
-    static constexpr inline bool IsDimensionDynamic()
+    static constexpr bool IsDimensionDynamic()
     {
         if constexpr(TCheckIndex == TCurrentIndex) {
             return false;
