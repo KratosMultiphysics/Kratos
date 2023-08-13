@@ -10,221 +10,262 @@
 //  Main author:     Jordi Cotela
 //
 
+#include <algorithm>
 #include "includes/parallel_environment.h"
 
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/includes/mpi_manager.h"
 #include "mpi/includes/mpi_message.h"
 
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(...)       \
+    bool MPIDataCommunicator::SynchronizeShape(__VA_ARGS__& rValue) const {          \
+        return SynchronizeShapeDetail(rValue);                                       \
+    }                                                                                \
+    bool MPIDataCommunicator::SynchronizeShape(                                      \
+        const __VA_ARGS__& rSendValue, const int SendDestination, const int SendTag, \
+        __VA_ARGS__& rRecvValue, const int RecvSource, const int RecvTag) const {    \
+        return SynchronizeShapeDetail(rSendValue, SendDestination, SendTag,          \
+                                      rRecvValue, RecvSource, RecvTag);              \
+    }
+
+#endif
+
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(type)                                 \
-type MPIDataCommunicator::Sum(const type rLocalValue, const int Root) const {                               \
-    return ReduceDetail(rLocalValue, MPI_SUM, Root);                                                        \
-}                                                                                                           \
-std::vector<type> MPIDataCommunicator::Sum(const std::vector<type>& rLocalValues, const int Root) const {   \
-    return ReduceDetailVector(rLocalValues, MPI_SUM, Root);                                                 \
-}                                                                                                           \
-void MPIDataCommunicator::Sum(                                                                              \
-    const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const {        \
-    ReduceDetail(rLocalValues, rGlobalValues, MPI_SUM, Root);                                               \
-}                                                                                                           \
-type MPIDataCommunicator::Min(const type rLocalValue, const int Root) const {                               \
-    return ReduceDetail(rLocalValue, MPI_MIN, Root);                                                        \
-}                                                                                                           \
-std::vector<type> MPIDataCommunicator::Min(const std::vector<type>& rLocalValues, const int Root) const {   \
-    return ReduceDetailVector(rLocalValues, MPI_MIN, Root);                                                 \
-}                                                                                                           \
-void MPIDataCommunicator::Min(                                                                              \
-    const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const {        \
-    ReduceDetail(rLocalValues, rGlobalValues, MPI_MIN, Root);                                               \
-}                                                                                                           \
-type MPIDataCommunicator::Max(const type rLocalValue, const int Root) const {                               \
-    return ReduceDetail(rLocalValue, MPI_MAX, Root);                                                        \
-}                                                                                                           \
-std::vector<type> MPIDataCommunicator::Max(const std::vector<type>& rLocalValues, const int Root) const {   \
-    return ReduceDetailVector(rLocalValues, MPI_MAX, Root);                                                 \
-}                                                                                                           \
-void MPIDataCommunicator::Max(                                                                              \
-    const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues, const int Root) const {        \
-    ReduceDetail(rLocalValues, rGlobalValues, MPI_MAX, Root);                                               \
-}                                                                                                           \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(...)                                              \
+__VA_ARGS__ MPIDataCommunicator::Sum(const __VA_ARGS__& rLocalValue, const int Root) const {                            \
+    __VA_ARGS__ global_values(rLocalValue);                                                                             \
+    ReduceDetail(rLocalValue, global_values, MPI_SUM, Root);                                                            \
+    return global_values;                                                                                               \
+}                                                                                                                       \
+std::vector<__VA_ARGS__> MPIDataCommunicator::Sum(const std::vector<__VA_ARGS__>& rLocalValues, const int Root) const { \
+    return ReduceDetailVector(rLocalValues, MPI_SUM, Root);                                                             \
+}                                                                                                                       \
+void MPIDataCommunicator::Sum(                                                                                          \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues, const int Root) const {      \
+    ReduceDetail(rLocalValues, rGlobalValues, MPI_SUM, Root);                                                           \
+}                                                                                                                       \
+__VA_ARGS__ MPIDataCommunicator::Min(const __VA_ARGS__& rLocalValue, const int Root) const {                            \
+    __VA_ARGS__ global_values(rLocalValue);                                                                             \
+    ReduceDetail(rLocalValue, global_values, MPI_MIN, Root);                                                            \
+    return global_values;                                                                                               \
+}                                                                                                                       \
+std::vector<__VA_ARGS__> MPIDataCommunicator::Min(const std::vector<__VA_ARGS__>& rLocalValues, const int Root) const { \
+    return ReduceDetailVector(rLocalValues, MPI_MIN, Root);                                                             \
+}                                                                                                                       \
+void MPIDataCommunicator::Min(                                                                                          \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues, const int Root) const {      \
+    ReduceDetail(rLocalValues, rGlobalValues, MPI_MIN, Root);                                                           \
+}                                                                                                                       \
+__VA_ARGS__ MPIDataCommunicator::Max(const __VA_ARGS__& rLocalValue, const int Root) const {                            \
+    __VA_ARGS__ global_values(rLocalValue);                                                                             \
+    ReduceDetail(rLocalValue, global_values, MPI_MAX, Root);                                                            \
+    return global_values;                                                                                               \
+}                                                                                                                       \
+std::vector<__VA_ARGS__> MPIDataCommunicator::Max(const std::vector<__VA_ARGS__>& rLocalValues, const int Root) const { \
+    return ReduceDetailVector(rLocalValues, MPI_MAX, Root);                                                             \
+}                                                                                                                       \
+void MPIDataCommunicator::Max(                                                                                          \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues, const int Root) const {      \
+    ReduceDetail(rLocalValues, rGlobalValues, MPI_MAX, Root);                                                           \
+}                                                                                                                       \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(type)               \
-type MPIDataCommunicator::SumAll(const type rLocalValue) const {                             \
-    return AllReduceDetail(rLocalValue, MPI_SUM);                                            \
-}                                                                                            \
-std::vector<type> MPIDataCommunicator::SumAll(const std::vector<type>& rLocalValues) const { \
-    return AllReduceDetailVector(rLocalValues, MPI_SUM);                                     \
-}                                                                                            \
-void MPIDataCommunicator::SumAll(                                                            \
-    const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {         \
-    AllReduceDetail(rLocalValues, rGlobalValues, MPI_SUM);                                   \
-}                                                                                            \
-type MPIDataCommunicator::MinAll(const type rLocalValue) const {                             \
-    return AllReduceDetail(rLocalValue, MPI_MIN);                                            \
-}                                                                                            \
-std::vector<type> MPIDataCommunicator::MinAll(const std::vector<type>& rLocalValues) const { \
-    return AllReduceDetailVector(rLocalValues, MPI_MIN);                                     \
-}                                                                                            \
-void MPIDataCommunicator::MinAll(                                                            \
-    const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {         \
-    AllReduceDetail(rLocalValues, rGlobalValues, MPI_MIN);                                   \
-}                                                                                            \
-type MPIDataCommunicator::MaxAll(const type rLocalValue) const {                             \
-    return AllReduceDetail(rLocalValue, MPI_MAX);                                            \
-}                                                                                            \
-std::vector<type> MPIDataCommunicator::MaxAll(const std::vector<type>& rLocalValues) const { \
-    return AllReduceDetailVector(rLocalValues, MPI_MAX);                                     \
-}                                                                                            \
-void MPIDataCommunicator::MaxAll(                                                            \
-    const std::vector<type>& rLocalValues, std::vector<type>& rGlobalValues) const {         \
-    AllReduceDetail(rLocalValues, rGlobalValues, MPI_MAX);                                   \
-}                                                                                            \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(...)                               \
+__VA_ARGS__ MPIDataCommunicator::SumAll(const __VA_ARGS__& rLocalValue) const {                             \
+    __VA_ARGS__ global_values(rLocalValue);                                                                 \
+    AllReduceDetail(rLocalValue, global_values, MPI_SUM);                                                   \
+    return global_values;                                                                                   \
+}                                                                                                           \
+std::vector<__VA_ARGS__> MPIDataCommunicator::SumAll(const std::vector<__VA_ARGS__>& rLocalValues) const {  \
+    return AllReduceDetailVector(rLocalValues, MPI_SUM);                                                    \
+}                                                                                                           \
+void MPIDataCommunicator::SumAll(                                                                           \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {          \
+    AllReduceDetail(rLocalValues, rGlobalValues, MPI_SUM);                                                  \
+}                                                                                                           \
+__VA_ARGS__ MPIDataCommunicator::MinAll(const __VA_ARGS__& rLocalValue) const {                             \
+    __VA_ARGS__ global_values(rLocalValue);                                                                 \
+    AllReduceDetail(rLocalValue, global_values, MPI_MIN);                                                   \
+    return global_values;                                                                                   \
+}                                                                                                           \
+std::vector<__VA_ARGS__> MPIDataCommunicator::MinAll(const std::vector<__VA_ARGS__>& rLocalValues) const {  \
+    return AllReduceDetailVector(rLocalValues, MPI_MIN);                                                    \
+}                                                                                                           \
+void MPIDataCommunicator::MinAll(                                                                           \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {          \
+    AllReduceDetail(rLocalValues, rGlobalValues, MPI_MIN);                                                  \
+}                                                                                                           \
+__VA_ARGS__ MPIDataCommunicator::MaxAll(const __VA_ARGS__& rLocalValue) const {                             \
+    __VA_ARGS__ global_values(rLocalValue);                                                                 \
+    AllReduceDetail(rLocalValue, global_values, MPI_MAX);                                                   \
+    return global_values;                                                                                   \
+}                                                                                                           \
+std::vector<__VA_ARGS__> MPIDataCommunicator::MaxAll(const std::vector<__VA_ARGS__>& rLocalValues) const {  \
+    return AllReduceDetailVector(rLocalValues, MPI_MAX);                                                    \
+}                                                                                                           \
+void MPIDataCommunicator::MaxAll(                                                                           \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {          \
+    AllReduceDetail(rLocalValues, rGlobalValues, MPI_MAX);                                                  \
+}                                                                                                           \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(type)                  \
-type MPIDataCommunicator::ScanSum(const type LocalValue) const {                              \
-    return ScanDetail(LocalValue, MPI_SUM);                                                   \
-}                                                                                             \
-std::vector<type> MPIDataCommunicator::ScanSum(const std::vector<type>& rLocalValues) const { \
-    return ScanDetail(rLocalValues, MPI_SUM);                                                 \
-}                                                                                             \
-void MPIDataCommunicator::ScanSum(                                                            \
-    const std::vector<type>& rLocalValues, std::vector<type>& rPartialSums) const {           \
-    ScanDetail(rLocalValues,rPartialSums,MPI_SUM);                                            \
-}                                                                                             \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(...)                                 \
+__VA_ARGS__ MPIDataCommunicator::ScanSum(const __VA_ARGS__& LocalValue) const {                             \
+    __VA_ARGS__ partial_sums(LocalValue);                                                                   \
+    ScanDetail(LocalValue, partial_sums, MPI_SUM);                                                          \
+    return partial_sums;                                                                                    \
+}                                                                                                           \
+std::vector<__VA_ARGS__> MPIDataCommunicator::ScanSum(const std::vector<__VA_ARGS__>& rLocalValues) const { \
+    return ScanDetail(rLocalValues, MPI_SUM);                                                               \
+}                                                                                                           \
+void MPIDataCommunicator::ScanSum(                                                                          \
+    const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rPartialSums) const {           \
+    ScanDetail(rLocalValues,rPartialSums,MPI_SUM);                                                          \
+}                                                                                                           \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(type)           \
-type MPIDataCommunicator::SendRecvImpl(                                                 \
-    const type SendValue,                                                               \
-    const int SendDestination, const int SendTag,                                       \
-    const int RecvSource, const int RecvTag) const {                                    \
-    return SendRecvDetail(SendValue, SendDestination, SendTag, RecvSource, RecvTag);    \
-}                                                                                       \
-std::vector<type> MPIDataCommunicator::SendRecvImpl(                                    \
-    const std::vector<type>& rSendValues,                                               \
-    const int SendDestination, const int SendTag,                                       \
-    const int RecvSource, const int RecvTag) const {                                    \
-    return SendRecvDetail(rSendValues, SendDestination, SendTag, RecvSource, RecvTag);  \
-}                                                                                       \
-void MPIDataCommunicator::SendRecvImpl(                                                 \
-    const std::vector<type>& rSendValues, const int SendDestination, const int SendTag, \
-    std::vector<type>& rRecvValues, const int RecvSource, const int RecvTag) const {    \
-    SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag); \
-}                                                                                       \
-void MPIDataCommunicator::SendRecvImpl(                                                 \
-    const type SendValue, const int SendDestination, const int SendTag,                 \
-    type& rRecvValue, const int RecvSource, const int RecvTag) const {                  \
-    SendRecvDetail(SendValue,SendDestination,SendTag,rRecvValue,RecvSource,RecvTag);    \
-}                                                                                       \
-void MPIDataCommunicator::SendImpl(const std::vector<type>& rSendValues,                \
-    const int SendDestination, const int SendTag) const {                               \
-    SendDetail(rSendValues, SendDestination, SendTag);                                  \
-}                                                                                       \
-void MPIDataCommunicator::RecvImpl(std::vector<type>& rRecvValues,                      \
-    const int RecvSource, const int RecvTag) const {                                    \
-    RecvDetail(rRecvValues, RecvSource, RecvTag);                                       \
-}                                                                                       \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(...)                    \
+__VA_ARGS__ MPIDataCommunicator::SendRecvImpl(                                                  \
+    const __VA_ARGS__& SendValue,                                                               \
+    const int SendDestination, const int SendTag,                                               \
+    const int RecvSource, const int RecvTag) const {                                            \
+    return SendRecvDetail(SendValue, SendDestination, SendTag, RecvSource, RecvTag);            \
+}                                                                                               \
+std::vector<__VA_ARGS__> MPIDataCommunicator::SendRecvImpl(                                     \
+    const std::vector<__VA_ARGS__>& rSendValues,                                                \
+    const int SendDestination, const int SendTag,                                               \
+    const int RecvSource, const int RecvTag) const {                                            \
+    return SendRecvDetail(rSendValues, SendDestination, SendTag, RecvSource, RecvTag);          \
+}                                                                                               \
+void MPIDataCommunicator::SendRecvImpl(                                                         \
+    const std::vector<__VA_ARGS__>& rSendValues, const int SendDestination, const int SendTag,  \
+    std::vector<__VA_ARGS__>& rRecvValues, const int RecvSource, const int RecvTag) const {     \
+    SendRecvDetail(rSendValues,SendDestination,SendTag,rRecvValues,RecvSource,RecvTag);         \
+}                                                                                               \
+void MPIDataCommunicator::SendRecvImpl(                                                         \
+    const __VA_ARGS__& SendValue, const int SendDestination, const int SendTag,                 \
+    __VA_ARGS__& rRecvValue, const int RecvSource, const int RecvTag) const {                   \
+    SendRecvDetail(SendValue,SendDestination,SendTag,rRecvValue,RecvSource,RecvTag);            \
+}                                                                                               \
+void MPIDataCommunicator::SendImpl(const __VA_ARGS__& rSendValues,                              \
+    const int SendDestination, const int SendTag) const {                                       \
+    std::vector<__VA_ARGS__> send{rSendValues};                                                 \
+    SendDetail(send, SendDestination, SendTag);                                                 \
+}                                                                                               \
+void MPIDataCommunicator::SendImpl(const std::vector<__VA_ARGS__>& rSendValues,                 \
+    const int SendDestination, const int SendTag) const {                                       \
+    SendDetail(rSendValues, SendDestination, SendTag);                                          \
+}                                                                                               \
+void MPIDataCommunicator::RecvImpl(__VA_ARGS__& rRecvValues,                                    \
+    const int RecvSource, const int RecvTag) const {                                            \
+    std::vector<__VA_ARGS__> recv(1);                                                           \
+    RecvDetail(recv, RecvSource, RecvTag);                                                      \
+    rRecvValues = recv[0];                                                                      \
+}                                                                                               \
+void MPIDataCommunicator::RecvImpl(std::vector<__VA_ARGS__>& rRecvValues,                       \
+    const int RecvSource, const int RecvTag) const {                                            \
+    RecvDetail(rRecvValues, RecvSource, RecvTag);                                               \
+}                                                                                               \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(type)                      \
-void MPIDataCommunicator::BroadcastImpl(type& rBuffer, const int SourceRank) const {                \
-    BroadcastDetail(rBuffer,SourceRank);                                                            \
-}                                                                                                   \
-void MPIDataCommunicator::BroadcastImpl(std::vector<type>& rBuffer, const int SourceRank) const {   \
-    BroadcastDetail(rBuffer,SourceRank);                                                            \
-}                                                                                                   \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(...)                               \
+void MPIDataCommunicator::BroadcastImpl(__VA_ARGS__& rBuffer, const int SourceRank) const {                 \
+    BroadcastDetail(rBuffer,SourceRank);                                                                    \
+}                                                                                                           \
+void MPIDataCommunicator::BroadcastImpl(std::vector<__VA_ARGS__>& rBuffer, const int SourceRank) const {    \
+    BroadcastDetail(rBuffer,SourceRank);                                                                    \
+}                                                                                                           \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(type)            \
-std::vector<type> MPIDataCommunicator::Scatter(                                         \
-    const std::vector<type>& rSendValues, const int SourceRank) const {                 \
-    return ScatterDetail(rSendValues, SourceRank);                                      \
-}                                                                                       \
-void MPIDataCommunicator::Scatter(                                                      \
-    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,               \
-    const int SourceRank) const {                                                       \
-    ScatterDetail(rSendValues,rRecvValues,SourceRank);                                  \
-}                                                                                       \
-std::vector<type> MPIDataCommunicator::Scatterv(                                        \
-    const std::vector<std::vector<type>>& rSendValues, const int SourceRank) const {    \
-    return ScattervDetail(rSendValues, SourceRank);                                     \
-}                                                                                       \
-void MPIDataCommunicator::Scatterv(                                                     \
-    const std::vector<type>& rSendValues, const std::vector<int>& rSendCounts,          \
-    const std::vector<int>& rSendOffsets, std::vector<type>& rRecvValues,               \
-    const int SourceRank) const {                                                       \
-    ScattervDetail(rSendValues,rSendCounts,rSendOffsets,rRecvValues,SourceRank);        \
-}                                                                                       \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(...)                 \
+std::vector<__VA_ARGS__> MPIDataCommunicator::Scatter(                                      \
+    const std::vector<__VA_ARGS__>& rSendValues, const int SourceRank) const {              \
+    return ScatterDetail(rSendValues, SourceRank);                                          \
+}                                                                                           \
+void MPIDataCommunicator::Scatter(                                                          \
+    const std::vector<__VA_ARGS__>& rSendValues, std::vector<__VA_ARGS__>& rRecvValues,     \
+    const int SourceRank) const {                                                           \
+    ScatterDetail(rSendValues,rRecvValues,SourceRank);                                      \
+}                                                                                           \
+std::vector<__VA_ARGS__> MPIDataCommunicator::Scatterv(                                     \
+    const std::vector<std::vector<__VA_ARGS__>>& rSendValues, const int SourceRank) const { \
+    return ScattervDetail(rSendValues, SourceRank);                                         \
+}                                                                                           \
+void MPIDataCommunicator::Scatterv(                                                         \
+    const std::vector<__VA_ARGS__>& rSendValues, const std::vector<int>& rSendCounts,       \
+    const std::vector<int>& rSendOffsets, std::vector<__VA_ARGS__>& rRecvValues,            \
+    const int SourceRank) const {                                                           \
+    ScattervDetail(rSendValues,rSendCounts,rSendOffsets,rRecvValues,SourceRank);            \
+}                                                                                           \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(type)         \
-std::vector<type> MPIDataCommunicator::Gather(                                      \
-    const std::vector<type>& rSendValues, const int DestinationRank) const {        \
-    return GatherDetail(rSendValues, DestinationRank);                              \
-}                                                                                   \
-void MPIDataCommunicator::Gather(                                                   \
-    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,           \
-    const int DestinationRank) const {                                              \
-    GatherDetail(rSendValues, rRecvValues, DestinationRank);                        \
-}                                                                                   \
-std::vector<std::vector<type>> MPIDataCommunicator::Gatherv(                        \
-    const std::vector<type>& rSendValues, const int DestinationRank) const {        \
-    return GathervDetail(rSendValues, DestinationRank);                             \
-}                                                                                   \
-void MPIDataCommunicator::Gatherv(                                                  \
-    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues,           \
-    const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,      \
-    const int DestinationRank) const {                                              \
-    GathervDetail(rSendValues,rRecvValues,rRecvCounts,rRecvOffsets,DestinationRank);\
-}                                                                                   \
-std::vector<type> MPIDataCommunicator::AllGather(                                   \
-    const std::vector<type>& rSendValues) const {                                   \
-    return AllGatherDetail(rSendValues);                                            \
-}                                                                                   \
-void MPIDataCommunicator::AllGather(                                                \
-    const std::vector<type>& rSendValues, std::vector<type>& rRecvValues) const {   \
-    AllGatherDetail(rSendValues,rRecvValues);                                       \
-}                                                                                   \
-std::vector<std::vector<type>> MPIDataCommunicator::AllGatherv(                     \
-    const std::vector<type>& rSendValues) const {                                   \
-    return AllGathervDetail(rSendValues);                                           \
-}                                                                                   \
-void MPIDataCommunicator::AllGatherv(const std::vector<type>& rSendValues,          \
-    std::vector<type>& rRecvValues, const std::vector<int>& rRecvCounts,            \
-    const std::vector<int>& rRecvOffsets) const {                                   \
-    AllGathervDetail(rSendValues,rRecvValues,rRecvCounts,rRecvOffsets);             \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(...)                      \
+std::vector<__VA_ARGS__> MPIDataCommunicator::Gather(                                           \
+    const std::vector<__VA_ARGS__>& rSendValues, const int DestinationRank) const {             \
+    return GatherDetail(rSendValues, DestinationRank);                                          \
+}                                                                                               \
+void MPIDataCommunicator::Gather(                                                               \
+    const std::vector<__VA_ARGS__>& rSendValues, std::vector<__VA_ARGS__>& rRecvValues,         \
+    const int DestinationRank) const {                                                          \
+    GatherDetail(rSendValues, rRecvValues, DestinationRank);                                    \
+}                                                                                               \
+std::vector<std::vector<__VA_ARGS__>> MPIDataCommunicator::Gatherv(                             \
+    const std::vector<__VA_ARGS__>& rSendValues, const int DestinationRank) const {             \
+    return GathervDetail(rSendValues, DestinationRank);                                         \
+}                                                                                               \
+void MPIDataCommunicator::Gatherv(                                                              \
+    const std::vector<__VA_ARGS__>& rSendValues, std::vector<__VA_ARGS__>& rRecvValues,         \
+    const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,                  \
+    const int DestinationRank) const {                                                          \
+    GathervDetail(rSendValues,rRecvValues,rRecvCounts,rRecvOffsets,DestinationRank);            \
+}                                                                                               \
+std::vector<__VA_ARGS__> MPIDataCommunicator::AllGather(                                        \
+    const std::vector<__VA_ARGS__>& rSendValues) const {                                        \
+    return AllGatherDetail(rSendValues);                                                        \
+}                                                                                               \
+void MPIDataCommunicator::AllGather(                                                            \
+    const std::vector<__VA_ARGS__>& rSendValues, std::vector<__VA_ARGS__>& rRecvValues) const { \
+    AllGatherDetail(rSendValues,rRecvValues);                                                   \
+}                                                                                               \
+std::vector<std::vector<__VA_ARGS__>> MPIDataCommunicator::AllGatherv(                          \
+    const std::vector<__VA_ARGS__>& rSendValues) const {                                        \
+    return AllGathervDetail(rSendValues);                                                       \
+}                                                                                               \
+void MPIDataCommunicator::AllGatherv(const std::vector<__VA_ARGS__>& rSendValues,               \
+    std::vector<__VA_ARGS__>& rRecvValues, const std::vector<int>& rRecvCounts,                 \
+    const std::vector<int>& rRecvOffsets) const {                                               \
+    AllGathervDetail(rSendValues,rRecvValues,rRecvCounts,rRecvOffsets);                         \
 }
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(type)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(type)    \
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(type) \
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(type)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(type)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(type)    \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(...)      \
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_REDUCE_INTERFACE_FOR_TYPE(__VA_ARGS__)      \
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_INTERFACE_FOR_TYPE(__VA_ARGS__)   \
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCANSUM_INTERFACE_FOR_TYPE(__VA_ARGS__)     \
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(__VA_ARGS__)     \
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_GATHER_INTERFACE_FOR_TYPE(__VA_ARGS__)      \
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SYNC_SHAPE_INTERFACE_FOR_TYPE(__VA_ARGS__)  \
 
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE
-#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(type)   \
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(type)  \
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(type) \
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(...)        \
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SENDRECV_INTERFACE_FOR_TYPE(__VA_ARGS__)    \
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_BROADCAST_INTERFACE_FOR_TYPE(__VA_ARGS__)   \
 
 #endif
 
@@ -269,32 +310,19 @@ void MPIDataCommunicator::Barrier() const
 
 // Complete interface for basic types
 
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(char)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(long unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(double)
-KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_SCATTER_INTERFACE_FOR_TYPE(char)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(array_1d<double, 3>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(array_1d<double, 4>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(array_1d<double, 6>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(array_1d<double, 9>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(Vector)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_PUBLIC_INTERFACE_FOR_TYPE(Matrix)
 
 // Reduce operations
-
-array_1d<double,3> MPIDataCommunicator::Sum(const array_1d<double,3>& rLocalValue, const int Root) const
-{
-    return ReduceDetail(rLocalValue, MPI_SUM, Root);
-}
-
-array_1d<double,3> MPIDataCommunicator::Min(const array_1d<double,3>& rLocalValue, const int Root) const
-{
-    array_1d<double,3> global_value(rLocalValue);
-    ReduceDetail(rLocalValue, global_value, MPI_MIN, Root);
-    return global_value;
-}
-
-array_1d<double,3> MPIDataCommunicator::Max(const array_1d<double,3>& rLocalValue, const int Root) const
-{
-    array_1d<double,3> global_value(rLocalValue);
-    ReduceDetail(rLocalValue,global_value,MPI_MAX,Root);
-    return global_value;
-}
 
 bool MPIDataCommunicator::AndReduce(const bool Value, const int Root) const
 {
@@ -339,27 +367,6 @@ Kratos::Flags MPIDataCommunicator::OrReduce(const Kratos::Flags Values, const Kr
 }
 
 // Allreduce operations
-
-array_1d<double,3> MPIDataCommunicator::SumAll(const array_1d<double,3>& rLocalValue) const
-{
-    array_1d<double,3> global_value(rLocalValue);
-    AllReduceDetail(rLocalValue,global_value,MPI_SUM);
-    return global_value;
-}
-
-array_1d<double,3> MPIDataCommunicator::MinAll(const array_1d<double,3>& rLocalValue) const
-{
-    array_1d<double,3> global_value(rLocalValue);
-    AllReduceDetail(rLocalValue,global_value,MPI_MIN);
-    return global_value;
-}
-
-array_1d<double,3> MPIDataCommunicator::MaxAll(const array_1d<double,3>& rLocalValue) const
-{
-    array_1d<double,3> global_value(rLocalValue);
-    AllReduceDetail(rLocalValue,global_value,MPI_MAX);
-    return global_value;
-}
 
 bool MPIDataCommunicator::AndReduceAll(const bool Value) const
 {
@@ -479,10 +486,17 @@ void MPIDataCommunicator::CheckMPIErrorCode(const int ierr, const std::string& M
 
 // Protected interface reimplementing DataCommunicator calls
 
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(char)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(long unsigned int)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(double)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 3>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 4>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 6>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 9>)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(Vector)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(Matrix)
 
 // Broadcast operations
 
@@ -526,15 +540,57 @@ void MPIDataCommunicator::RecvImpl(std::string& rRecvValues, const int RecvSourc
 
 // Implementation details of MPI calls
 
+template<class TDataType> bool MPIDataCommunicator::SynchronizeShapeDetail(TDataType& rValue) const
+{
+    if constexpr(MPIMessage<TDataType>::HasDynamicMemoryAllocation) {
+        MPIMessage<TDataType> mpi_message;
+        const auto& shape = mpi_message.Shape(rValue);
+        const auto& reduced_shape = MaxAll(shape);
+        return mpi_message.Resize(rValue, reduced_shape);
+    } else {
+        return false;
+    }
+}
+
+template<class TDataType> bool MPIDataCommunicator::SynchronizeShapeDetail(
+    const TDataType& rSendValue,
+    const int SendDestination,
+    const int SendTag,
+    TDataType& rRecvValue,
+    const int RecvSource,
+    const int RecvTag) const
+{
+    if constexpr(MPIMessage<TDataType>::HasDynamicMemoryAllocation) {
+        // first shapes needs to be communicated.
+        const std::vector<unsigned int>& send_shape = MPIMessage<TDataType>().Shape(rSendValue);
+
+        // first communicate the number of dimensions.
+        const unsigned int send_dims = send_shape.size();
+        unsigned int recv_dims = 0;
+        int ierr = MPI_Sendrecv(&send_dims, 1, MPI_UNSIGNED, SendDestination, SendTag, &recv_dims, 1, MPI_UNSIGNED, RecvSource, RecvTag, mComm, MPI_STATUS_IGNORE);
+        CheckMPIErrorCode(ierr, "MPI_Sendrecv");
+
+        // // now communicate the shapes
+        std::vector<unsigned int> recv_shape(recv_dims);
+        MPI_Sendrecv(send_shape.data(), send_shape.size(), MPI_UNSIGNED, SendDestination, SendTag, recv_shape.data(), recv_dims, MPI_UNSIGNED, RecvSource, RecvTag, mComm, MPI_STATUS_IGNORE);
+
+        return MPIMessage<TDataType>().Resize(rRecvValue, recv_shape);
+    } else {
+        return false;
+    }
+}
+
 template<class TDataType> void MPIDataCommunicator::ReduceDetail(
     const TDataType& rLocalValues, TDataType& rReducedValues,
     MPI_Op Operation, const int Root) const
 {
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(Root)))
     << "In call to MPI_Reduce: " << Root << " is not a valid rank." << std::endl;
-    const int local_size = MPIMessageSize(rLocalValues);
-    const int reduced_size = MPIMessageSize(rReducedValues);
+    const int local_size = mpi_send_msg.Size(rLocalValues);
+    const int reduced_size = mpi_recv_msg.Size(rReducedValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Reduce: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -544,10 +600,15 @@ template<class TDataType> void MPIDataCommunicator::ReduceDetail(
     #endif // KRATOS_DEBUG
 
     const int ierr = MPI_Reduce(
-        MPIBuffer(rLocalValues), MPIBuffer(rReducedValues),
-        MPIMessageSize(rLocalValues), MPIDatatype(rLocalValues),
+        mpi_send_msg.Buffer(rLocalValues), mpi_recv_msg.Buffer(rReducedValues),
+        mpi_send_msg.Size(rLocalValues), mpi_send_msg.DataType(),
         Operation, Root, mComm);
+
     CheckMPIErrorCode(ierr, "MPI_Reduce");
+
+    if (Rank() == Root) {
+        mpi_recv_msg.Update(rReducedValues);
+    }
 }
 
 template<class TDataType> TDataType MPIDataCommunicator::ReduceDetail(
@@ -565,10 +626,18 @@ std::vector<TDataType> MPIDataCommunicator::ReduceDetailVector(
     const int Root) const
 {
     std::vector<TDataType> reduced_values;
-    if (Rank() == Root)
-    {
-        reduced_values.resize(rLocalValues.size());
+
+    TDataType temp{};
+    if (rLocalValues.size() > 0) {
+        temp = rLocalValues.front();
     }
+
+    SynchronizeShape(temp);
+
+    if (Rank() == Root) {
+        reduced_values.resize(rLocalValues.size(), temp);
+    }
+
     ReduceDetail(rLocalValues, reduced_values, Operation, Root);
     return reduced_values;
 }
@@ -578,9 +647,11 @@ template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
     const TDataType& rLocalValues, TDataType& rReducedValues,
     MPI_Op Operation) const
 {
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
     #ifdef KRATOS_DEBUG
-    const int local_size = MPIMessageSize(rLocalValues);
-    const int reduced_size = MPIMessageSize(rReducedValues);
+    const int local_size = mpi_send_msg.Size(rLocalValues);
+    const int reduced_size = mpi_recv_msg.Size(rReducedValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Allreduce: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -590,10 +661,12 @@ template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
     #endif // KRATOS_DEBUG
 
     const int ierr = MPI_Allreduce(
-        MPIBuffer(rLocalValues), MPIBuffer(rReducedValues),
-        MPIMessageSize(rLocalValues), MPIDatatype(rLocalValues),
+        mpi_send_msg.Buffer(rLocalValues), mpi_recv_msg.Buffer(rReducedValues),
+        mpi_send_msg.Size(rLocalValues), mpi_send_msg.DataType(),
         Operation, mComm);
     CheckMPIErrorCode(ierr, "MPI_Allreduce");
+
+    mpi_recv_msg.Update(rReducedValues);
 }
 
 template<class TDataType> TDataType MPIDataCommunicator::AllReduceDetail(
@@ -609,7 +682,14 @@ std::vector<TDataType> MPIDataCommunicator::AllReduceDetailVector(
     const std::vector<TDataType>& rLocalValues,
     MPI_Op Operation) const
 {
-    std::vector<TDataType> reduced_values(rLocalValues.size());
+    TDataType temp{};
+    if (rLocalValues.size() > 0) {
+        temp = rLocalValues.front();
+    }
+
+    SynchronizeShape(temp);
+
+    std::vector<TDataType> reduced_values(rLocalValues.size(), temp);
     AllReduceDetail(rLocalValues, reduced_values, Operation);
     return reduced_values;
 }
@@ -618,9 +698,11 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
     const TDataType& rLocalValues, TDataType& rReducedValues,
     MPI_Op Operation) const
 {
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
     #ifdef KRATOS_DEBUG
-    const int local_size = MPIMessageSize(rLocalValues);
-    const int reduced_size = MPIMessageSize(rReducedValues);
+    const int local_size = mpi_send_msg.Size(rLocalValues);
+    const int reduced_size = mpi_recv_msg.Size(rReducedValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
     << "Input error in call to MPI_Scan: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -630,10 +712,12 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
     #endif // KRATOS_DEBUG
 
     const int ierr = MPI_Scan(
-        MPIBuffer(rLocalValues), MPIBuffer(rReducedValues),
-        MPIMessageSize(rLocalValues), MPIDatatype(rLocalValues),
+        mpi_send_msg.Buffer(rLocalValues), mpi_recv_msg.Buffer(rReducedValues),
+        mpi_send_msg.Size(rLocalValues), mpi_send_msg.DataType(),
         Operation, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scan");
+
+    mpi_recv_msg.Update(rReducedValues);
 }
 
 template<class TDataType> TDataType MPIDataCommunicator::ScanDetail(
@@ -647,7 +731,14 @@ template<class TDataType> TDataType MPIDataCommunicator::ScanDetail(
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScanDetail(
     const std::vector<TDataType>& rLocalValues, MPI_Op Operation) const
 {
-    std::vector<TDataType> global_values(rLocalValues.size());
+    TDataType temp{};
+    if (rLocalValues.size() > 0) {
+        temp = rLocalValues.front();
+    }
+
+    SynchronizeShape(temp);
+
+    std::vector<TDataType> global_values(rLocalValues.size(), temp);
     ScanDetail(rLocalValues, global_values, MPI_SUM);
     return global_values;
 }
@@ -656,13 +747,15 @@ template<class TDataType> void MPIDataCommunicator::SendRecvDetail(
     const TDataType& rSendMessage, const int SendDestination, const int SendTag,
     TDataType& rRecvMessage, const int RecvSource, const int RecvTag) const
 {
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
     const int ierr = MPI_Sendrecv(
-        MPIBuffer(rSendMessage), MPIMessageSize(rSendMessage),
-        MPIDatatype(rSendMessage), SendDestination, SendTag,
-        MPIBuffer(rRecvMessage), MPIMessageSize(rRecvMessage),
-        MPIDatatype(rRecvMessage), RecvSource, RecvTag,
+        mpi_send_msg.Buffer(rSendMessage), mpi_send_msg.Size(rSendMessage), mpi_send_msg.DataType(), SendDestination, SendTag,
+        mpi_recv_msg.Buffer(rRecvMessage), mpi_recv_msg.Size(rRecvMessage), mpi_recv_msg.DataType(), RecvSource, RecvTag,
         mComm, MPI_STATUS_IGNORE);
     CheckMPIErrorCode(ierr, "MPI_Sendrecv");
+
+    mpi_recv_msg.Update(rRecvMessage);
 }
 
 template<class TDataType> TDataType MPIDataCommunicator::SendRecvDetail(
@@ -670,9 +763,14 @@ template<class TDataType> TDataType MPIDataCommunicator::SendRecvDetail(
     const int SendDestination, const int SendTag,
     const int RecvSource, const int RecvTag) const
 {
-    TDataType recv_values;
-    SendRecvDetail(rSendMessage,SendDestination, SendTag ,recv_values,RecvSource, RecvTag);
-    return recv_values;
+    TDataType recv_message;
+
+    if constexpr(MPIMessage<TDataType>::HasDynamicMemoryAllocation) {
+        SynchronizeShape(rSendMessage, SendDestination, SendTag, recv_message, RecvSource,RecvTag);
+    }
+
+    SendRecvDetail(rSendMessage,SendDestination, SendTag, recv_message, RecvSource, RecvTag);
+    return recv_message;
 }
 
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDetail(
@@ -684,61 +782,132 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::SendRecvDe
     int recv_size;
     SendRecvDetail(send_size, SendDestination, SendTag, recv_size, RecvSource, RecvTag);
 
-    std::vector<TDataType> recv_values(recv_size);
-    SendRecvDetail(rSendMessage,SendDestination, SendTag ,recv_values,RecvSource, RecvTag);
+    TDataType recv_temp{};
+
+    if constexpr(MPIMessage<TDataType>::HasDynamicMemoryAllocation) {
+        TDataType send_temp{};
+        if (rSendMessage.size() > 0) {
+            send_temp = rSendMessage.front();
+        }
+        SynchronizeShape(send_temp, SendDestination, SendTag, recv_temp, RecvSource,RecvTag);
+    }
+
+    std::vector<TDataType> recv_values(recv_size, recv_temp);
+    SendRecvDetail(rSendMessage,SendDestination, SendTag, recv_values, RecvSource, RecvTag);
     return recv_values;
 }
 
 template<class TDataType> void MPIDataCommunicator::SendDetail(
     const TDataType& rSendValues, const int SendDestination, const int SendTag) const
 {
-    const int ierr = MPI_Send(MPIBuffer(rSendValues), MPIMessageSize(rSendValues),
-        MPIDatatype(rSendValues), SendDestination, SendTag, mComm);
+    using sub_data_type = typename MPIMessage<TDataType>::SubDataType;
+
+    MPIMessage<TDataType> mpi_send_message;
+
+    if constexpr(MPIMessage<sub_data_type>::HasDynamicMemoryAllocation) {
+        // first send the shape
+        std::vector<unsigned int> shape;
+        if (rSendValues.size() > 0) {
+            shape = MPIMessage<sub_data_type>().Shape(rSendValues.front());
+        } else {
+            shape = MPIMessage<sub_data_type>().Shape(sub_data_type{});
+        }
+
+        // increases the SendTag by one to ensure the communicated data
+        // is received by the shape recieve.
+        const int ierr = MPI_Send(shape.data(), shape.size(), MPI_UNSIGNED, SendDestination, SendTag + 1, mComm);
+        CheckMPIErrorCode(ierr, "MPI_Send");
+    }
+
+    const int ierr = MPI_Send(mpi_send_message.Buffer(rSendValues), mpi_send_message.Size(rSendValues),
+        mpi_send_message.DataType(), SendDestination, SendTag, mComm);
     CheckMPIErrorCode(ierr, "MPI_Send");
 }
 
 template<class TDataType> void MPIDataCommunicator::RecvDetail(
     TDataType& rRecvValues, const int RecvSource, const int RecvTag) const
 {
+    using sub_data_type = typename MPIMessage<TDataType>::SubDataType;
+
+    MPIMessage<TDataType> mpi_recv_message;
     MPI_Status status;
-    int ierr = MPI_Probe(RecvSource,RecvTag,mComm,&status);
+
+    sub_data_type temp{};
+
+    if constexpr(MPIMessage<sub_data_type>::HasDynamicMemoryAllocation) {
+        // first receive the shape dims of sub data type
+        // recieves with RecvTag + 1, becaues shape information is sent
+        // with this mdofied tag.
+        int ierr = MPI_Probe(RecvSource, RecvTag + 1, mComm,&status);
+        CheckMPIErrorCode(ierr, "MPI_Probe");
+        int recv_dims;
+        ierr = MPI_Get_count(&status, MPI_UNSIGNED, &recv_dims);
+        CheckMPIErrorCode(ierr, "MPI_Get_count");
+
+        // now recieve the shape of the sub data type
+        std::vector<unsigned int> recv_shape(recv_dims);
+        ierr = MPI_Recv(recv_shape.data(), recv_dims, MPI_UNSIGNED, RecvSource, RecvTag + 1, mComm, MPI_STATUS_IGNORE);
+        CheckMPIErrorCode(ierr, "MPI_Recv");
+        MPIMessage<sub_data_type>().Resize(temp, recv_shape);
+    }
+
+    int ierr = MPI_Probe(RecvSource, RecvTag, mComm, &status);
     CheckMPIErrorCode(ierr, "MPI_Probe");
 
     int recv_size;
-    ierr = MPI_Get_count(&status, MPIDatatype(rRecvValues), &recv_size);
+    ierr = MPI_Get_count(&status, mpi_recv_message.DataType(), &recv_size);
+    CheckMPIErrorCode(ierr, "MPI_Get_count");
 
-    if (rRecvValues.size() != (unsigned int)recv_size) rRecvValues.resize(recv_size);
+    const unsigned int sub_data_type_size = MPIMessage<sub_data_type>().Size(temp);
+    recv_size /= (sub_data_type_size > 0 ? sub_data_type_size : 1);
+    if (rRecvValues.size() != (unsigned int)recv_size) {
+        rRecvValues.resize(recv_size, temp);
+    } else {
+        for (auto& r_sub_item : rRecvValues) {
+            MPIMessage<sub_data_type>().Resize(r_sub_item, MPIMessage<sub_data_type>().Shape(temp));
+        }
+    }
 
-    ierr = MPI_Recv(MPIBuffer(rRecvValues), recv_size, MPIDatatype(rRecvValues),
+    ierr = MPI_Recv(mpi_recv_message.Buffer(rRecvValues), mpi_recv_message.Size(rRecvValues), mpi_recv_message.DataType(),
         RecvSource, RecvTag, mComm, MPI_STATUS_IGNORE);
     CheckMPIErrorCode(ierr, "MPI_Recv");
+
+    mpi_recv_message.Update(rRecvValues);
 }
 
 template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
     TDataType& rBuffer, const int SourceRank) const
 {
+    MPIMessage<TDataType> mpi_message;
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
     << "In call to MPI_Bcast: " << SourceRank << " is not a valid rank." << std::endl;
-    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(MPIMessageSize(rBuffer)))
+    KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(mpi_message.Size(rBuffer)))
     << "Input error in call to MPI_Bcast: "
     << "The buffer does not have the same size on all ranks." << std::endl;
     #endif
 
     const int ierr = MPI_Bcast(
-        MPIBuffer(rBuffer), MPIMessageSize(rBuffer),
-        MPIDatatype(rBuffer), SourceRank, mComm);
+        mpi_message.Buffer(rBuffer), mpi_message.Size(rBuffer),
+        mpi_message.DataType(), SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Bcast");
+
+    if (Rank() != SourceRank) {
+        mpi_message.Update(rBuffer);
+    }
 }
 
 template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::ScatterDetail(
     const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int SourceRank) const
 {
+    MPIMessage<TSendDataType> mpi_send_msg;
+    MPIMessage<TRecvDataType> mpi_recv_msg;
+
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
     << "In call to MPI_Scatter: " << SourceRank << " is not a valid rank." << std::endl;
-    const int send_size = MPIMessageSize(rSendValues);
-    const int recv_size = MPIMessageSize(rRecvValues);
+    const int send_size = mpi_send_msg.Size(rSendValues);
+    const int recv_size = mpi_recv_msg.Size(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(recv_size))
     << "Input error in call to MPI_Scatter: "
     << "The destination buffer does not have the same size on all ranks." << std::endl;
@@ -748,12 +917,14 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Sca
     << recv_size * Size() << " values to send expected)." << std::endl;
     #endif // KRATOS_DEBUG
 
-    const int sends_per_rank = MPIMessageSize(rRecvValues);
+    const int sends_per_rank = mpi_recv_msg.Size(rRecvValues);
     const int ierr = MPI_Scatter(
-        MPIBuffer(rSendValues), sends_per_rank, MPIDatatype(rSendValues),
-        MPIBuffer(rRecvValues), sends_per_rank, MPIDatatype(rRecvValues),
+        mpi_send_msg.Buffer(rSendValues), sends_per_rank, mpi_send_msg.DataType(),
+        mpi_recv_msg.Buffer(rRecvValues), sends_per_rank, mpi_recv_msg.DataType(),
         SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatter");
+
+    mpi_recv_msg.Update(rRecvValues);
 }
 
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScatterDetail(
@@ -768,8 +939,17 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScatterDet
 
     Broadcast(message_size, SourceRank);
 
-    std::vector<TDataType> message(message_size);
-    ScatterDetail(rSendValues, message, SourceRank);
+    std::vector<TDataType> message;
+    if (message_size > 0) {
+        TDataType temp{};
+        if (Rank() == SourceRank) {
+            temp = rSendValues.front();
+        }
+        SynchronizeShape(temp);
+        message.resize(message_size, temp);
+        ScatterDetail(rSendValues, message, SourceRank);
+    }
+
     return message;
 }
 
@@ -781,11 +961,33 @@ template<class TDataType> void MPIDataCommunicator::ScattervDetail(
     ValidateScattervInput(rSendValues, rSendCounts, rSendOffsets, rRecvValues, SourceRank);
     #endif
 
-    const int ierr = MPI_Scatterv(
-        MPIBuffer(rSendValues), rSendCounts.data(), rSendOffsets.data(), MPIDatatype(rSendValues),
-        MPIBuffer(rRecvValues), MPIMessageSize(rRecvValues), MPIDatatype(rRecvValues),
-        SourceRank, mComm);
-    CheckMPIErrorCode(ierr, "MPI_Scatterv");
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
+    if constexpr(MPIMessage<TDataType>::HasContiguousPrimitiveData) {
+        const int ierr = MPI_Scatterv(
+            mpi_send_msg.Buffer(rSendValues), rSendCounts.data(), rSendOffsets.data(), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), mpi_recv_msg.Size(rRecvValues), mpi_recv_msg.DataType(),
+            SourceRank, mComm);
+        CheckMPIErrorCode(ierr, "MPI_Scatterv");
+    } else {
+        // now we have update the rSendCounts and rSendOffsets properly for primitive data type sizes
+        // because the TDataType is not contiguous
+        int sub_data_type_length = mpi_send_msg.SubDataTypeSize(rSendValues);
+
+        std::vector<int> primitive_send_counts(rSendCounts.size());
+        std::vector<int> primitive_send_offsets(rSendOffsets.size());
+
+        std::transform(rSendCounts.begin(), rSendCounts.end(), primitive_send_counts.begin(), [sub_data_type_length](const auto SendCount) { return SendCount * sub_data_type_length; });
+        std::transform(rSendOffsets.begin(), rSendOffsets.end(), primitive_send_offsets.begin(), [sub_data_type_length](const auto SendOffset) { return SendOffset * sub_data_type_length; });
+
+        const int ierr = MPI_Scatterv(
+            mpi_send_msg.Buffer(rSendValues), primitive_send_counts.data(), primitive_send_offsets.data(), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), mpi_recv_msg.Size(rRecvValues), mpi_recv_msg.DataType(),
+            SourceRank, mComm);
+        CheckMPIErrorCode(ierr, "MPI_Scatterv");
+    }
+
+    mpi_recv_msg.Update(rRecvValues);
 }
 
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScattervDetail(
@@ -805,11 +1007,14 @@ template<class TDataType> std::vector<TDataType> MPIDataCommunicator::ScattervDe
 template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::GatherDetail(
     const TSendDataType& rSendValues, TRecvDataType& rRecvValues, const int RecvRank) const
 {
+    MPIMessage<TSendDataType> mpi_send_msg;
+    MPIMessage<TRecvDataType> mpi_recv_msg;
+
     #ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(RecvRank)))
     << "In call to MPI_Gather: " << RecvRank << " is not a valid rank." << std::endl;
-    const int send_size = MPIMessageSize(rSendValues);
-    const int recv_size = MPIMessageSize(rRecvValues);
+    const int send_size = mpi_send_msg.Size(rSendValues);
+    const int recv_size = mpi_recv_msg.Size(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
     << "Input error in call to MPI_Gather: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -819,22 +1024,32 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Gat
     << send_size * Size() << " values to receive expected)." << std::endl;
     #endif // KRATOS_DEBUG
 
-    const int sends_per_rank = MPIMessageSize(rSendValues);
+    const int sends_per_rank = mpi_send_msg.Size(rSendValues);
     const int ierr = MPI_Gather(
-        MPIBuffer(rSendValues), sends_per_rank, MPIDatatype(rSendValues),
-        MPIBuffer(rRecvValues), sends_per_rank, MPIDatatype(rRecvValues),
+        mpi_send_msg.Buffer(rSendValues), sends_per_rank, mpi_send_msg.DataType(),
+        mpi_recv_msg.Buffer(rRecvValues), sends_per_rank, mpi_recv_msg.DataType(),
         RecvRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Gather");
+
+    if (Rank() == RecvRank) {
+        mpi_recv_msg.Update(rRecvValues);
+    }
 }
 
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::GatherDetail(
     const std::vector<TDataType>& rSendValues, const int DestinationRank) const
 {
     int message_size = rSendValues.size();
+
+    TDataType temp{};
+    if (rSendValues.size() > 0) {
+        temp = rSendValues.front();
+    }
+    SynchronizeShape(temp);
+
     std::vector<TDataType> gathered_values;
-    if (Rank() == DestinationRank)
-    {
-        gathered_values.resize(message_size*Size());
+    if (Rank() == DestinationRank) {
+        gathered_values.resize(message_size*Size(), temp);
     }
     GatherDetail(rSendValues, gathered_values, DestinationRank);
     return gathered_values;
@@ -849,11 +1064,36 @@ template<class TDataType> void MPIDataCommunicator::GathervDetail(
     ValidateGathervInput(rSendValues, rRecvValues, rRecvCounts, rRecvOffsets, RecvRank);
     #endif
 
-    const int ierr = MPI_Gatherv(
-        MPIBuffer(rSendValues), MPIMessageSize(rSendValues), MPIDatatype(rSendValues),
-        MPIBuffer(rRecvValues), rRecvCounts.data(), rRecvOffsets.data(), MPIDatatype(rRecvValues),
-        RecvRank, mComm);
-    CheckMPIErrorCode(ierr, "MPI_Gatherv");
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
+    if constexpr(MPIMessage<TDataType>::HasContiguousPrimitiveData) {
+        const int ierr = MPI_Gatherv(
+            mpi_send_msg.Buffer(rSendValues), mpi_send_msg.Size(rSendValues), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), rRecvCounts.data(), rRecvOffsets.data(), mpi_recv_msg.DataType(),
+            RecvRank, mComm);
+        CheckMPIErrorCode(ierr, "MPI_Gatherv");
+    } else {
+        // now we have update the rRecvCounts and rRecvOffsets properly for primitive data type sizes
+        // because the TDataType is not contiguous
+
+        int sub_data_type_length = mpi_recv_msg.SubDataTypeSize(rRecvValues);
+
+        std::vector<int> primitive_recv_counts(rRecvCounts.size());
+        std::vector<int> primitive_recv_offsets(rRecvOffsets.size());
+
+        std::transform(rRecvCounts.begin(), rRecvCounts.end(), primitive_recv_counts.begin(), [sub_data_type_length](const auto RecvCount) { return RecvCount * sub_data_type_length; });
+        std::transform(rRecvOffsets.begin(), rRecvOffsets.end(), primitive_recv_offsets.begin(), [sub_data_type_length](const auto RecvOffset) { return RecvOffset * sub_data_type_length; });
+
+        const int ierr = MPI_Gatherv(
+            mpi_send_msg.Buffer(rSendValues), mpi_send_msg.Size(rSendValues), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), primitive_recv_counts.data(), primitive_recv_offsets.data(), mpi_recv_msg.DataType(),
+            RecvRank, mComm);
+        CheckMPIErrorCode(ierr, "MPI_Scatterv");
+    }
+
+    if (Rank() == RecvRank) {
+        mpi_recv_msg.Update(rRecvValues);
+    }
 }
 
 template<class TDataType> std::vector<std::vector<TDataType>>
@@ -874,9 +1114,11 @@ MPIDataCommunicator::GathervDetail(const std::vector<TDataType>& rSendValues, co
 template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
     const TDataType& rSendValues, TDataType& rRecvValues) const
 {
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
     #ifdef KRATOS_DEBUG
-    const int send_size = MPIMessageSize(rSendValues);
-    const int recv_size = MPIMessageSize(rRecvValues);
+    const int send_size = mpi_send_msg.Size(rSendValues);
+    const int recv_size = mpi_recv_msg.Size(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
     << "Input error in call to MPI_Allgather: "
     << "There should be the same amount of local values to send from each rank." << std::endl;
@@ -886,18 +1128,25 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
     << send_size * Size() << " values to receive expected)." << std::endl;
     #endif // KRATOS_DEBUG
 
-    const int sends_per_rank = MPIMessageSize(rSendValues);
+    const int sends_per_rank = mpi_send_msg.Size(rSendValues);
     const int ierr = MPI_Allgather(
-        MPIBuffer(rSendValues), sends_per_rank, MPIDatatype(rSendValues),
-        MPIBuffer(rRecvValues), sends_per_rank, MPIDatatype(rRecvValues),
+        mpi_send_msg.Buffer(rSendValues), sends_per_rank, mpi_send_msg.DataType(),
+        mpi_recv_msg.Buffer(rRecvValues), sends_per_rank, mpi_recv_msg.DataType(),
         mComm);
     CheckMPIErrorCode(ierr, "MPI_Allgather");
+
+    mpi_recv_msg.Update(rRecvValues);
 }
 
 template<class TDataType> std::vector<TDataType> MPIDataCommunicator::AllGatherDetail(
     const std::vector<TDataType>& rSendValues) const
 {
-    std::vector<TDataType> output(rSendValues.size()*Size());
+    TDataType temp{};
+    if (rSendValues.size() > 0) {
+        temp = rSendValues.front();
+    }
+    SynchronizeShape(temp);
+    std::vector<TDataType> output(rSendValues.size()*Size(), temp);
     AllGatherDetail(rSendValues, output);
     return output;
 }
@@ -911,12 +1160,34 @@ void MPIDataCommunicator::AllGathervDetail(
     ValidateAllGathervInput(rSendValues, rRecvValues, rRecvCounts, rRecvOffsets);
     #endif // KRATOS_DEBUG
 
-    const int sends_per_rank = MPIMessageSize(rSendValues);
-    const int ierr = MPI_Allgatherv(
-        MPIBuffer(rSendValues), sends_per_rank, MPIDatatype(rSendValues), MPIBuffer(rRecvValues),
-        rRecvCounts.data(), rRecvOffsets.data(), MPIDatatype(rRecvValues),
-        mComm);
-    CheckMPIErrorCode(ierr, "MPI_Allgatherv");
+    MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
+
+    if constexpr(MPIMessage<TDataType>::HasContiguousPrimitiveData) {
+        const int ierr = MPI_Allgatherv(
+            mpi_send_msg.Buffer(rSendValues), mpi_send_msg.Size(rSendValues), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), rRecvCounts.data(), rRecvOffsets.data(), mpi_recv_msg.DataType(),
+            mComm);
+        CheckMPIErrorCode(ierr, "MPI_Allgatherv");
+    } else {
+        // now we have update the rRecvCounts and rRecvOffsets properly for primitive data type sizes
+        // because the TDataType is not contiguous
+
+        int sub_data_type_length = mpi_recv_msg.SubDataTypeSize(rRecvValues);
+
+        std::vector<int> primitive_recv_counts(rRecvCounts.size());
+        std::vector<int> primitive_recv_offsets(rRecvOffsets.size());
+
+        std::transform(rRecvCounts.begin(), rRecvCounts.end(), primitive_recv_counts.begin(), [sub_data_type_length](const auto RecvCount) { return RecvCount * sub_data_type_length; });
+        std::transform(rRecvOffsets.begin(), rRecvOffsets.end(), primitive_recv_offsets.begin(), [sub_data_type_length](const auto RecvOffset) { return RecvOffset * sub_data_type_length; });
+
+        const int ierr = MPI_Allgatherv(
+            mpi_send_msg.Buffer(rSendValues), mpi_send_msg.Size(rSendValues), mpi_send_msg.DataType(),
+            mpi_recv_msg.Buffer(rRecvValues), primitive_recv_counts.data(), primitive_recv_offsets.data(), mpi_recv_msg.DataType(),
+            mComm);
+        CheckMPIErrorCode(ierr, "MPI_Allgatherv");
+    }
+
+    mpi_recv_msg.Update(rRecvValues);
 }
 
 template<class TDataType>
@@ -1003,7 +1274,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(
 
     // All ranks expect a message of the correct size
     int expected_size = 0;
-    const int available_recv_size = MPIMessageSize(rRecvValues);
+    const int available_recv_size = rRecvValues.size();
     int ierr = MPI_Scatter(rSendCounts.data(), 1, MPI_INT, &expected_size, 1, MPI_INT, SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatter");
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(expected_size != available_recv_size))
@@ -1013,7 +1284,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateScattervInput(
 
     // Message size is not smaller than total expected size (can only check for too small, since the source message may be padded).
     int total_size = 0;
-    const int message_size = MPIMessageSize(rSendValues);
+    const int message_size = rSendValues.size();
     ierr = MPI_Reduce(&available_recv_size, &total_size, 1, MPI_INT, MPI_SUM, SourceRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
     KRATOS_ERROR_IF(BroadcastErrorIfTrue(total_size > message_size, SourceRank))
@@ -1050,7 +1321,7 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
 
     // All ranks send a message of the correct size
     int expected_recv_size = 0;
-    const int send_size = MPIMessageSize(rSendValues);
+    const int send_size = rSendValues.size();
     int ierr = MPI_Scatter(rRecvCounts.data(), 1, MPI_INT, &expected_recv_size, 1, MPI_INT, RecvRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Scatter");
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(send_size != expected_recv_size))
@@ -1060,8 +1331,8 @@ template<class TDataType> void MPIDataCommunicator::ValidateGathervInput(
 
     // Message size is not larger than total expected size (can only check for too large, since the recv message may be padded).
     int total_size = 0;
-    const int message_size = MPIMessageSize(rSendValues);
-    const int expected_message_size = MPIMessageSize(rRecvValues);
+    const int message_size = rSendValues.size();
+    const int expected_message_size = rRecvValues.size();
     ierr = MPI_Reduce(&message_size, &total_size, 1, MPI_INT, MPI_SUM, RecvRank, mComm);
     CheckMPIErrorCode(ierr, "MPI_Reduce");
     KRATOS_ERROR_IF(BroadcastErrorIfTrue(total_size > expected_message_size, RecvRank))
@@ -1094,7 +1365,7 @@ void MPIDataCommunicator::ValidateAllGathervInput(
     const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const
 {
     // All ranks send a message of the expected size
-    const int send_size = MPIMessageSize(rSendValues);
+    const int send_size = rSendValues.size();
     const int comm_size = Size();
     std::vector<int> effective_recv_sizes(comm_size);
     const int ierr = MPI_Allgather(&send_size, 1, MPI_INT, effective_recv_sizes.data(), 1, MPI_INT, mComm);
@@ -1107,8 +1378,8 @@ void MPIDataCommunicator::ValidateAllGathervInput(
     }
 
     // Message size is not larger than total expected size (can only check for too large, since the recv message may be padded).
-    const int message_size = MPIMessageSize(rSendValues);
-    const int expected_message_size = MPIMessageSize(rRecvValues);
+    const int message_size = rSendValues.size();
+    const int expected_message_size = rRecvValues.size();
     const int total_size = this->SumAll(message_size);
     KRATOS_ERROR_IF(total_size > expected_message_size)
     << "Input error in call to MPI_Allgatherv for rank " << Rank() << ": "
@@ -1165,9 +1436,15 @@ template <class TDataType> void MPIDataCommunicator::PrepareScattervBuffers(
         }
     }
 
+    TDataType temp{};
+    if (rScattervMessage.size() > 0) {
+        temp = rScattervMessage.front();
+    }
+    SynchronizeShape(temp);
+
     int result_size;
     ScatterDetail(rMessageLengths, result_size, SourceRank);
-    rResult.resize(result_size);
+    rResult.resize(result_size, temp);
 }
 
 
@@ -1187,6 +1464,13 @@ template<class TDataType> void MPIDataCommunicator::PrepareGathervBuffers(
     }
     GatherDetail(message_size_send, rMessageLengths, DestinationRank);
 
+    TDataType temp{};
+    if (rGathervInput.size() > 0) {
+        temp = rGathervInput.front();
+    }
+
+    SynchronizeShape(temp);
+
     if (rank == DestinationRank)
     {
         rMessageDistances.resize(size);
@@ -1196,7 +1480,7 @@ template<class TDataType> void MPIDataCommunicator::PrepareGathervBuffers(
             rMessageDistances[i] = message_size;
             message_size += rMessageLengths[i];
         }
-        rGathervMessage.resize(message_size);
+        rGathervMessage.resize(message_size, temp);
     }
 }
 
@@ -1217,7 +1501,14 @@ void MPIDataCommunicator::PrepareAllGathervBuffers(
         rMessageDistances[i] = message_size;
         message_size += rMessageLengths[i];
     }
-    rGathervMessage.resize(message_size);
+
+    TDataType temp{};
+    if (rGathervInput.size() > 0) {
+        temp = rGathervInput.front();
+    }
+
+    SynchronizeShape(temp);
+    rGathervMessage.resize(message_size, temp);
 }
 
 template<class TDataType> void MPIDataCommunicator::PrepareGathervReturn(
@@ -1263,24 +1554,24 @@ void MPIDataCommunicator::PrepareAllGathervReturn(
 // MPI_Datatype wrapper
 template<class TValue> inline MPI_Datatype MPIDataCommunicator::MPIDatatype(const TValue&) const
 {
-    return MPIMessage<TValue>::DataType();
+    return MPIMessage<TValue>().DataType();
 }
 
 // Buffer argument deduction
 template<class TContainer> inline void* MPIDataCommunicator::MPIBuffer(TContainer& rValues) const
 {
-    return MPIMessage<TContainer>::Buffer(rValues);
+    return MPIMessage<TContainer>().Buffer(rValues);
 }
 
 template<class TContainer> inline const void* MPIDataCommunicator::MPIBuffer(const TContainer& rValues) const
 {
-    return MPIMessage<TContainer>::Buffer(rValues);
+    return MPIMessage<TContainer>().Buffer(rValues);
 }
 
 // MPI message size deduction
 template<class TContainer> inline int MPIDataCommunicator::MPIMessageSize(const TContainer& rValues) const
 {
-    return MPIMessage<TContainer>::Size(rValues);
+    return MPIMessage<TContainer>().Size(rValues);
 }
 
 }

@@ -108,6 +108,34 @@ public:
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
     /**
+     * @brief Identifies condition IDs from a given ModelPart that are not in the HROM weights
+     * This function iterates through the conditions in the provided ModelPart, checks if their IDs exist in the HROM weights,
+     * and includes them in a list if they are missing. The IDs of the absent conditions are returned.
+     * @param rModelPart Complete hrom model part (all elements and conditions)
+     * @param rModelPartWithConditionsToInclude ModelPart with conditions that should be checked against HROM weights
+     * @param rHRomWeights Map containing the original HROM conditions and elements weights
+     * @return std::vector<IndexType> List containing the IDs of the conditions absent in HROM weights
+     */
+    static std::vector<IndexType> GetConditionIdsNotInHRomModelPart(
+        const ModelPart& rModelPart,
+        const ModelPart& rModelPartWithConditionsToInclude,
+        std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
+    /**
+     * @brief Identifies element IDs from a given ModelPart that are not in the HROM weights
+     * This function iterates through the elements in the provided ModelPart, checks if their IDs exist in the HROM weights,
+     * and includes them in a list if they are missing. The IDs of the absent elements are returned.
+     * @param rModelPart Complete hrom model part (all elements and conditions)
+     * @param rModelPartWithElementsToInclude ModelPart with elements that should be checked against HROM weights
+     * @param rHRomWeights Map containing the original HROM elements and conditions weights
+     * @return std::vector<IndexType> List containing the IDs of the elements absent in HROM weights
+     */
+    static std::vector<IndexType> GetElementIdsNotInHRomModelPart(
+        const ModelPart& rModelPart,
+        const ModelPart& rModelPartWithElementsToInclude,
+        std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
+    /**
      * @brief Return the a minimum condition for each HROM submodelpart
      * This function loops the HROM mesh submodelparts and checks if there is at least a minimum condition
      * for each submodelpart in the HROM condition weights. If there are no conditions it adds a null weight

@@ -10,12 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED)
-#define  KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
@@ -78,25 +73,9 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor.
-     */
-    LinearPlaneStrainK0Law();
-
-    /**
      * @brief The clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    LinearPlaneStrainK0Law (const LinearPlaneStrainK0Law& rOther);
-
-
-    /**
-     * @brief Destructor.
-     */
-    ~LinearPlaneStrainK0Law() override;
 
     ///@}
     ///@name Operators
@@ -237,5 +216,5 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ElasticIsotropicK03DLaw)
     }
 }; // Class LinearPlaneStrainK0Law
-}  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED  defined
+
+}

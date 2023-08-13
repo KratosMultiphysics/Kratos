@@ -10,12 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_LINEAR_PLANE_STRAIN_2D_LAW_GEO_H_INCLUDED)
-#define  KRATOS_LINEAR_PLANE_STRAIN_2D_LAW_GEO_H_INCLUDED
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
 #include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
@@ -78,25 +73,9 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor.
-     */
-    GeoLinearElasticPlaneStrain2DLaw();
-
-    /**
      * @brief The clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    GeoLinearElasticPlaneStrain2DLaw (const GeoLinearElasticPlaneStrain2DLaw& rOther);
-
-
-    /**
-     * @brief Destructor.
-     */
-    ~GeoLinearElasticPlaneStrain2DLaw() override;
 
     ///@}
     ///@name Operators
@@ -236,6 +215,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearPlaneStrainK0Law)
     }
-}; // Class LinearPlaneStrainK0Law
-}  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED  defined
+}; // Class GeoLinearElasticPlaneStrain2DLaw
+
+}

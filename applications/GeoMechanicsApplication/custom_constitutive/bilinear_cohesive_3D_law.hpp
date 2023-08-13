@@ -12,10 +12,7 @@
 //                   Vahid Galavi
 //
 
-
-
-#if !defined (KRATOS_BILINEAR_COHESIVE_3D_LAW_H_INCLUDED)
-#define  KRATOS_BILINEAR_COHESIVE_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -37,18 +34,7 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(BilinearCohesive3DLaw);
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    // Default Constructor
     BilinearCohesive3DLaw();
-
-    // Copy Constructor
-    BilinearCohesive3DLaw (const BilinearCohesive3DLaw& rOther);
-
-    // Destructor
-    virtual ~BilinearCohesive3DLaw();
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void GetLawFeatures(Features& rFeatures) override;
 
@@ -60,24 +46,19 @@ public:
 
     void InitializeMaterial( const Properties& rMaterialProperties,const GeometryType& rElementGeometry,const Vector& rShapeFunctionsValues ) override;
 
-    virtual SizeType GetStrainSize() const override
+    SizeType GetStrainSize() const override
     {
         return 3;
     }
 
-
-    virtual SizeType WorkingSpaceDimension() override
+    SizeType WorkingSpaceDimension() override
     {
         return 3;
     }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateMaterialResponseCauchy(Parameters & rValues) override;
 
     void FinalizeMaterialResponseCauchy(Parameters & rValues) override;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     double& GetValue( const Variable<double>& rThisVariable, double& rValue ) override;
 
@@ -89,15 +70,9 @@ public:
                    const Vector& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
-
     // Member Variables
-
     double mStateVariable;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     virtual void ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement);
 
@@ -105,31 +80,27 @@ protected:
 
 
     virtual void ComputeConstitutiveMatrixLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& JointStrength,
-                                                        const double& DamageThreshold,const double& CriticalDisplacement);
+                                                  const double& DamageThreshold,const double& CriticalDisplacement);
 
     virtual void ComputeConstitutiveMatrixContactLoading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                            const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
+                                                         const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
 
 
     virtual void ComputeConstitutiveMatrixUnloading(Matrix& rConstitutiveMatrix,const double& JointStrength,
-                                                        const double& DamageThreshold,const double& CriticalDisplacement);
+                                                    const double& DamageThreshold,const double& CriticalDisplacement);
 
     virtual void ComputeConstitutiveMatrixContactUnloading(Matrix& rConstitutiveMatrix,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                            const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
+                                                           const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
 
 
     virtual void ComputeStressVector(Vector& rStressVector,const Vector& StrainVector,const double& JointStrength,
-                                                const double& DamageThreshold,const double& CriticalDisplacement);
+                                     const double& DamageThreshold,const double& CriticalDisplacement);
 
     virtual void ComputeStressVectorContact(Vector& rStressVector,const Vector& StrainVector,const double& YoungModulus,const double& FrictionCoefficient,
-                                                        const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+                                            const double& JointStrength,const double& DamageThreshold,const double& CriticalDisplacement);
 
 private:
-
     // Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -143,5 +114,5 @@ private:
     }
 
 }; // Class BilinearCohesive3DLaw
-}  // namespace Kratos.
-#endif // KRATOS_BILINEAR_COHESIVE_3D_LAW_H_INCLUDED  defined
+
+}
