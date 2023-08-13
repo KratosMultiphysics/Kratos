@@ -71,55 +71,6 @@ public:
     ///@name Operations
     ///@{
 
-    void ReadDataSet(const std::string& rPath,
-                     Vector<int>& rData,
-                     unsigned StartIndex,
-                     unsigned BlockSize) override;
-
-    void ReadDataSet(const std::string& rPath,
-                     Vector<double>& rData,
-                     unsigned StartIndex,
-                     unsigned BlockSize) override;
-
-    void ReadDataSet(const std::string& rPath,
-                     Vector<array_1d<double, 3>>& rData,
-                     unsigned StartIndex,
-                     unsigned BlockSize) override;
-
-    void ReadDataSet(const std::string& rPath,
-                     Matrix<int>& rData,
-                     unsigned StartIndex,
-                     unsigned BlockSize) override;
-
-    void ReadDataSet(const std::string& rPath,
-                     Matrix<double>& rData,
-                     unsigned StartIndex,
-                     unsigned BlockSize) override;
-
-    void ReadDataSetIndependent(const std::string& rPath,
-                                Vector<int>& rData,
-                                unsigned StartIndex,
-                                unsigned BlockSize) override;
-
-    void ReadDataSetIndependent(const std::string& rPath,
-                                Vector<double>& rData,
-                                unsigned StartIndex,
-                                unsigned BlockSize) override;
-
-    void ReadDataSetIndependent(const std::string& rPath,
-                                Vector<array_1d<double, 3>>& rData,
-                                unsigned StartIndex,
-                                unsigned BlockSize) override;
-
-    void ReadDataSetIndependent(const std::string& rPath,
-                                Matrix<int>& rData,
-                                unsigned StartIndex,
-                                unsigned BlockSize) override;
-
-    void ReadDataSetIndependent(const std::string& rPath,
-                                Matrix<double>& rData,
-                                unsigned StartIndex,
-                                unsigned BlockSize) override;
     ///@}
 
 protected:

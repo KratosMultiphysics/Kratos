@@ -706,74 +706,128 @@ void File::ReadAttribute(
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
 }
 
-void File::ReadDataSet(const std::string& rPath, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
+template<class TDataType, File::DataTransferMode TDataTransferMode>
+void File::ReadDataSetImpl(
+    const std::string& rPath,
+    TDataType& rData,
+    const unsigned StartIndex,
+    const unsigned BlockSize)
 {
     KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
+
+    using type_trait = DataTypeTraits<TDataType>;
+
+    static_assert(type_trait::IsContiguous, "HDF5File can only write contiguous data sets.");
+
+    constexpr auto local_dimension = type_trait::Dimension;
+
+    constexpr auto global_dimension = (local_dimension == 1 ? 1 : 2);
+
+    BuiltinTimer timer;
+    // Check that full path exists.
+    KRATOS_ERROR_IF_NOT(IsDataSet(rPath))
+        << "Path is not a data set: " << rPath << std::endl;
+
+    const auto& file_space_dims = GetDataDimensions(rPath);
+
+    // Check consistency of file's data set dimensions.
+    KRATOS_ERROR_IF(file_space_dims.size() != global_dimension)
+        << "Invalid data set dimension." << std::endl;
+    KRATOS_ERROR_IF(StartIndex + BlockSize > file_space_dims[0])
+        << "StartIndex (" << StartIndex << ") + BlockSize (" << BlockSize
+        << ") > size of data set (" << file_space_dims[0] << ")." << std::endl;
+
+    std::vector<hsize_t> memory_space_dims(local_dimension);
+    type_trait::Shape(rData, memory_space_dims.data(), memory_space_dims.data() + local_dimension);
+
+    if constexpr(local_dimension >= 2) {
+        if constexpr(type_trait::template IsDimensionDynamic<1>()) {
+            const auto v = std::accumulate(memory_space_dims.begin() + 2, memory_space_dims.end(), hsize_t{1}, std::multiplies<hsize_t>());
+            KRATOS_ERROR_IF_NOT(file_space_dims[1] % v == 0) << "Size mismatch with memory space and file space.";
+            memory_space_dims[1] = file_space_dims[1] / v;
+        }
+    }
+    memory_space_dims[0] = BlockSize;
+
+    // now reshape the memory space data
+    type_trait::Reshape(rData, memory_space_dims.data(), memory_space_dims.data() + local_dimension);
+
+    std::vector<hsize_t> local_reduced_space_dims(file_space_dims.begin(), file_space_dims.end()), local_space_start(global_dimension, 0);
+    local_reduced_space_dims[0] = BlockSize;
+    local_space_start[0] = StartIndex;
+
+    KRATOS_ERROR_IF_NOT(HasDataType<typename type_trait::PrimitiveType>(rPath))
+        << "Data type mismatch at " << rPath << std::endl;
+
+    // Set the data type.
+    hid_t dtype_id = Internals::GetPrimitiveH5Type<TDataType>();
+
+    hid_t file_id = GetFileId();
+
+    hid_t dset_id = H5Dopen(file_id, rPath.c_str(), H5P_DEFAULT);
+    KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
+    hid_t file_space_id = H5Dget_space(dset_id);
+    hid_t mem_space_id = H5Screate_simple(global_dimension, local_reduced_space_dims.data(), nullptr);
+    KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, local_space_start.data(), nullptr, local_reduced_space_dims.data(), nullptr) < 0)
+        << "H5Sselect_hyperslab failed." << std::endl;
+
+    if (!GetDataCommunicator().IsDistributed()) {
+        if (type_trait::Size(rData) > 0) {
+            KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, type_trait::GetContiguousData(rData)) < 0)
+                << "H5Dread failed." << std::endl;
+        } else {
+            KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, nullptr) < 0)
+                << "H5Dread failed." << std::endl;
+        }
+    } else {
+        #ifdef KRATOS_USING_MPI
+            hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
+            if constexpr(TDataTransferMode == DataTransferMode::collective) {
+                H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
+            } else {
+                H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
+            }
+            if (type_trait::Size(rData) > 0) {
+                KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, type_trait::GetContiguousData(rData)) < 0)
+                    << "H5Dread failed." << std::endl;
+            } else {
+                KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, dxpl_id, nullptr) < 0)
+                    << "H5Dread failed." << std::endl;
+            }
+            KRATOS_ERROR_IF(H5Pclose(dxpl_id) < 0) << "H5Pclose failed." << std::endl;
+        #else
+            KRATOS_ERROR << "HDF5Application is not compiled with MPI.";
+        #endif
+    }
+
+    KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Sclose(file_space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Sclose(mem_space_id) < 0) << "H5Sclose failed." << std::endl;
+
+    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
+        << "Read time \"" << rPath << "\": " << timer.ElapsedSeconds() << std::endl;
+
+    KRATOS_CATCH("Path: \"" + rPath + "\".");
 }
 
-void File::ReadDataSet(const std::string& rPath, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
+template<class TDataType>
+void File::ReadDataSet(
+    const std::string& rPath,
+    TDataType& rData,
+    const unsigned StartIndex,
+    const unsigned BlockSize)
 {
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
+    ReadDataSetImpl<TDataType, DataTransferMode::collective>(rPath, rData, StartIndex, BlockSize);
 }
 
-void File::ReadDataSet(const std::string& rPath, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
+template<class TDataType>
+void File::ReadDataSetIndependent(
+    const std::string& rPath,
+    TDataType& rData,
+    const unsigned StartIndex,
+    const unsigned BlockSize)
 {
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-void File::ReadDataSet(const std::string& rPath, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-void File::ReadDataSet(const std::string& rPath, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-void File::ReadDataSetIndependent(const std::string& rPath, Vector<int>& rData, unsigned StartIndex, unsigned BlockSize)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-void File::ReadDataSetIndependent(const std::string& rPath, Vector<double>& rData, unsigned StartIndex, unsigned BlockSize)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-void File::ReadDataSetIndependent(const std::string& rPath, Vector<array_1d<double, 3>>& rData, unsigned StartIndex, unsigned BlockSize)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-void File::ReadDataSetIndependent(const std::string& rPath, Matrix<int>& rData, unsigned StartIndex, unsigned BlockSize)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
-}
-
-void File::ReadDataSetIndependent(const std::string& rPath, Matrix<double>& rData, unsigned StartIndex, unsigned BlockSize)
-{
-    KRATOS_TRY;
-    KRATOS_ERROR << "Calling the base class method. Please override in the derived class." << std::endl;
-    KRATOS_CATCH("");
+    ReadDataSetImpl<TDataType, DataTransferMode::independent>(rPath, rData, StartIndex, BlockSize);
 }
 
 unsigned File::GetOpenObjectsCount() const
@@ -903,6 +957,15 @@ void File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
     KRATOS_CATCH("");
 }
 
+#ifndef KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION
+#define KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(...)                                                                        \
+    template void File::WriteDataSet(const std::string&, const __VA_ARGS__&, WriteInfo&);                                   \
+    template void File::WriteDataSetIndependent(const std::string&, const __VA_ARGS__&, WriteInfo&);                        \
+    template void File::ReadDataSet(const std::string&, __VA_ARGS__&, const unsigned, const unsigned BlockSize);            \
+    template void File::ReadDataSetIndependent(const std::string&, __VA_ARGS__&, const unsigned, const unsigned BlockSize); \
+
+#endif
+
 template void File::GetDataSet<int>(hid_t&, hid_t&, const std::vector<hsize_t>&, const std::string&);
 template void File::GetDataSet<double>(hid_t&, hid_t&, const std::vector<hsize_t>&, const std::string&);
 
@@ -930,23 +993,16 @@ template void File::ReadAttribute(const std::string&, const std::string&, array_
 template void File::ReadAttribute(const std::string&, const std::string&, array_1d<double, 6>&);
 template void File::ReadAttribute(const std::string&, const std::string&, array_1d<double, 9>&);
 
-template void File::WriteDataSet(const std::string&, const Vector<int>&, WriteInfo&);
-template void File::WriteDataSet(const std::string&, const Vector<double>&, WriteInfo&);
-template void File::WriteDataSet(const std::string&, const Vector<array_1d<double, 3>>&, WriteInfo&);
-template void File::WriteDataSet(const std::string&, const Vector<array_1d<double, 4>>&, WriteInfo&);
-template void File::WriteDataSet(const std::string&, const Vector<array_1d<double, 6>>&, WriteInfo&);
-template void File::WriteDataSet(const std::string&, const Vector<array_1d<double, 9>>&, WriteInfo&);
-template void File::WriteDataSet(const std::string&, const Matrix<int>&, WriteInfo&);
-template void File::WriteDataSet(const std::string&, const Matrix<double>&, WriteInfo&);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<int>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<double>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 3>>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 4>>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 6>>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 9>>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<int>);
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Matrix<double>);
 
-template void File::WriteDataSetIndependent(const std::string&, const Vector<int>&, WriteInfo&);
-template void File::WriteDataSetIndependent(const std::string&, const Vector<double>&, WriteInfo&);
-template void File::WriteDataSetIndependent(const std::string&, const Vector<array_1d<double, 3>>&, WriteInfo&);
-template void File::WriteDataSetIndependent(const std::string&, const Vector<array_1d<double, 4>>&, WriteInfo&);
-template void File::WriteDataSetIndependent(const std::string&, const Vector<array_1d<double, 6>>&, WriteInfo&);
-template void File::WriteDataSetIndependent(const std::string&, const Vector<array_1d<double, 9>>&, WriteInfo&);
-template void File::WriteDataSetIndependent(const std::string&, const Matrix<int>&, WriteInfo&);
-template void File::WriteDataSetIndependent(const std::string&, const Matrix<double>&, WriteInfo&);
+#undef KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION
 
 } // namespace HDF5.
 } // namespace Kratos.

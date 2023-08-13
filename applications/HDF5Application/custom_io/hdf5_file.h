@@ -196,59 +196,23 @@ public:
     /**
      * Performs collective read in MPI. Throws if out of range.
      */
-    virtual void ReadDataSet(const std::string& rPath,
-                             Vector<int>& rData,
-                             unsigned StartIndex,
-                             unsigned BlockSize);
-
-    virtual void ReadDataSet(const std::string& rPath,
-                             Vector<double>& rData,
-                             unsigned StartIndex,
-                             unsigned BlockSize);
-
-    virtual void ReadDataSet(const std::string& rPath,
-                             Vector<array_1d<double, 3>>& rData,
-                             unsigned StartIndex,
-                             unsigned BlockSize);
-
-    virtual void ReadDataSet(const std::string& rPath,
-                             Matrix<int>& rData,
-                             unsigned StartIndex,
-                             unsigned BlockSize);
-
-    virtual void ReadDataSet(const std::string& rPath,
-                             Matrix<double>& rData,
-                             unsigned StartIndex,
-                             unsigned BlockSize);
+    template<class TDataType>
+    void ReadDataSet(
+        const std::string& rPath,
+        TDataType& rData,
+        const unsigned StartIndex,
+        const unsigned BlockSize);
 
     // Independently read data set from the HDF5 file.
     /**
      *  Performs independent read in MPI. Throws if out of range.
      */
-    virtual void ReadDataSetIndependent(const std::string& rPath,
-                                       Vector<int>& rData,
-                                       unsigned StartIndex,
-                                       unsigned BlockSize);
-
-    virtual void ReadDataSetIndependent(const std::string& rPath,
-                                       Vector<double>& rData,
-                                       unsigned StartIndex,
-                                       unsigned BlockSize);
-
-    virtual void ReadDataSetIndependent(const std::string& rPath,
-                                       Vector<array_1d<double, 3>>& rData,
-                                       unsigned StartIndex,
-                                       unsigned BlockSize);
-
-    virtual void ReadDataSetIndependent(const std::string& rPath,
-                                       Matrix<int>& rData,
-                                       unsigned StartIndex,
-                                       unsigned BlockSize);
-
-    virtual void ReadDataSetIndependent(const std::string& rPath,
-                                       Matrix<double>& rData,
-                                       unsigned StartIndex,
-                                       unsigned BlockSize);
+    template<class TDataType>
+    void ReadDataSetIndependent(
+        const std::string& rPath,
+        TDataType& rData,
+        const unsigned StartIndex,
+        const unsigned BlockSize);
 
     unsigned GetOpenObjectsCount() const;
     ///@}
@@ -301,6 +265,13 @@ private:
         const std::string& rPath,
         const TDataType& rData,
         WriteInfo& rInfo);
+
+    template<class TDataType, DataTransferMode TDataTransferMode>
+    void ReadDataSetImpl(
+        const std::string& rPath,
+        TDataType& rData,
+        const unsigned StartIndex,
+        const unsigned BlockSize);
 
     ///@}
 };
