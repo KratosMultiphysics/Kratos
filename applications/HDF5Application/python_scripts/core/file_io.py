@@ -34,7 +34,7 @@ class _HDF5SerialFileIO(_FileIO):
 class _HDF5ParallelFileIO(_FileIO):
 
     def Get(self, model_part=None):
-        return KratosHDF5.HDF5FileParallel(self._FileSettings(model_part).Get())
+        return KratosHDF5.HDF5File(self._FileSettings(model_part).Get())
 
 
 class _HDF5MockFileIO(_FileIO):

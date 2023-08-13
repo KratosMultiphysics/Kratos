@@ -42,7 +42,6 @@
 #include "custom_io/hdf5_condition_gauss_point_output.h"
 #include "custom_io/hdf5_vertex_container_io.h"
 #ifdef KRATOS_USING_MPI
-#include "custom_io/hdf5_file_parallel.h"
 #include "custom_io/hdf5_partitioned_model_part_io.h"
 #endif
 
@@ -78,6 +77,8 @@ void AddCustomIOToPython(pybind11::module& m)
     m.def("ReadDataValueContainer", &HDF5::Internals::ReadDataValueContainer, "");
 
     py::class_<HDF5::File, HDF5::File::Pointer >(m,"HDF5File")
+        .def(py::init<Parameters>())
+        .def(py::init<const DataCommunicator&, Parameters>())
         .def("HasPath",&HDF5::File::HasPath)
         .def("IsGroup",&HDF5::File::IsGroup)
         .def("IsDataSet",&HDF5::File::IsDataSet)
@@ -185,10 +186,6 @@ void AddCustomIOToPython(pybind11::module& m)
         ;
 
 #ifdef KRATOS_USING_MPI
-    py::class_<HDF5::FileParallel, HDF5::FileParallel::Pointer, HDF5::File>(m,"HDF5FileParallel")
-        .def(py::init<Parameters&>())
-        ;
-
     py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
         (m,"HDF5PartitionedModelPartIO")
         .def(py::init<HDF5::File::Pointer, std::string const&>())
