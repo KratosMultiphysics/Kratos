@@ -3,6 +3,7 @@
 #include "custom_io/hdf5_file.h"
 #include "utilities/openmp_utils.h"
 #include "includes/kratos_parameters.h"
+#include "includes/parallel_environment.h"
 
 namespace Kratos
 {
@@ -18,7 +19,7 @@ XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::stri
                 "file_access_mode": "read_write"
             })");
     file_params["file_name"].SetString(rFileName);
-    mpFile = File::Pointer(new File(file_params));
+    mpFile = File::Pointer(new File(ParallelEnvironment::GetDefaultDataCommunicator(), file_params));
     mPrefix = rPrefix;
     std::string node_ids_path = mPrefix + "/Nodes/Local/Ids";
 

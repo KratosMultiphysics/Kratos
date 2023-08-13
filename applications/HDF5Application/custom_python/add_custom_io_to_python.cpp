@@ -24,6 +24,7 @@
 #include "includes/io.h"
 #include "includes/kratos_parameters.h"
 #include "includes/communicator.h"
+#include "includes/parallel_environment.h"
 
 // Application includes
 #include "custom_io/hdf5_file.h"
@@ -76,7 +77,10 @@ void AddCustomIOToPython(pybind11::module& m)
     m.def("ReadDataValueContainer", &HDF5::Internals::ReadDataValueContainer, "");
 
     py::class_<HDF5::File, HDF5::File::Pointer >(m,"HDF5File")
-        .def(py::init<Parameters>())
+        .def(py::init([](Parameters Settings) {
+            KRATOS_WARNING("HDF5File") << "Using deprecated constructor. Please use constructor with DataCommunicator.";
+            return Kratos::make_shared<HDF5::File>(ParallelEnvironment::GetDefaultDataCommunicator(), Settings);
+        }))
         .def(py::init<const DataCommunicator&, Parameters>())
         .def("HasPath",&HDF5::File::HasPath)
         .def("IsGroup",&HDF5::File::IsGroup)

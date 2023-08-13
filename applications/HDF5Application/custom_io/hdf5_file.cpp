@@ -23,7 +23,6 @@
 
 // Project includes
 #include "includes/kratos_parameters.h"
-#include "includes/parallel_environment.h"
 #include "input_output/logger.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/data_type_traits.h"
@@ -59,11 +58,6 @@ std::vector<hsize_t> GetDataDimensions(
     return h5_dims;
 }
 } // namespace Internals.
-
-File::File(Parameters Settings)
-    : File(ParallelEnvironment::GetDefaultDataCommunicator(), Settings)
-{
-}
 
 File::File(
     const DataCommunicator& rDataCommunicator,

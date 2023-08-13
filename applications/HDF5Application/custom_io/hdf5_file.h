@@ -84,9 +84,6 @@ public:
     ///@name Life Cycle
     ///@{
 
-    KRATOS_DEPRECATED_MESSAGE("Please use the constructor with DataCommunicator and Parameters")
-    explicit File(Parameters Settings);
-
     explicit File(
         const DataCommunicator& rDataCommunicator,
         Parameters Settings);

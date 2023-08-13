@@ -37,11 +37,12 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionFlags, KratosHDF5TestSuite
             "file_access_mode": "exclusive",
             "file_driver": "core"
         })");
-    auto p_test_file = Kratos::make_shared<HDF5::File>(file_params);
-
     Model this_model;
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
+
+    auto p_test_file = Kratos::make_shared<HDF5::File>(r_read_model_part.GetCommunicator().GetDataCommunicator(), file_params);
+
     TestModelPartFactory::CreateModelPart(r_write_model_part, {{"Element2D3N"}},
                                           {{"LineCondition2D2N"}});
     TestModelPartFactory::CreateModelPart(r_read_model_part, {{"Element2D3N"}},

@@ -56,7 +56,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults2, KratosHDF5TestSuite)
             "file_access_mode": "exclusive",
             "file_driver": "core"
         })");
-    auto p_test_file = Kratos::make_shared<HDF5::File>(file_params);
+    auto p_test_file = Kratos::make_shared<HDF5::File>(r_read_model_part.GetCommunicator().GetDataCommunicator(), file_params);
 
     r_read_model_part.AddNodalSolutionStepVariable(DISPLACEMENT); // array_1d
     r_read_model_part.AddNodalSolutionStepVariable(PRESSURE); // double
@@ -113,11 +113,13 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults, KratosHDF5TestSuite)
             "file_access_mode": "exclusive",
             "file_driver": "core"
         })");
-    auto p_test_file = Kratos::make_shared<HDF5::File>(file_params);
 
     Model this_model;
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
     ModelPart& r_write_model_part = this_model.CreateModelPart("test_write");
+
+    auto p_test_file = Kratos::make_shared<HDF5::File>(r_read_model_part.GetCommunicator().GetDataCommunicator(), file_params);
+
     r_read_model_part.AddNodalSolutionStepVariable(DISPLACEMENT); // array_1d
     r_read_model_part.AddNodalSolutionStepVariable(PRESSURE); // double
     r_read_model_part.AddNodalSolutionStepVariable(REFINEMENT_LEVEL); // int
