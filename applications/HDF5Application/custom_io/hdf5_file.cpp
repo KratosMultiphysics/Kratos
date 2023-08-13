@@ -169,80 +169,101 @@ File::~File()
 bool File::HasPath(const std::string& rPath) const
 {
     KRATOS_TRY;
+
     // Expects a valid path.
-    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath)) << "Invalid path: \"" << rPath << "\". Path should start with \"/\" and should only have characters A-Z, a-z, 0-9, \"/\", and \"_\"." << std::endl;
+    KRATOS_ERROR_IF_NOT(Internals::IsPath(rPath))
+        << "Invalid path: \"" << rPath
+        << "\". Path should start with \"/\" and should only have characters A-Z, a-z, 0-9, \"/\", and \"_\"."
+        << std::endl;
 
     std::vector<std::string> splitted_path = StringUtilities::SplitStringByDelimiter(rPath, '/');
     splitted_path.erase(std::remove_if(splitted_path.begin(), splitted_path.end(), [](const std::string& s) {return (s.size() == 0);}));
     std::string sub_path;
-    for (const auto& r_link: splitted_path)
-    {
+
+    for (const auto& r_link: splitted_path) {
         sub_path += '/' + r_link;
 
         htri_t link_found = H5Lexists(m_file_id, sub_path.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(link_found < 0) << "H5Lexists failed." << std::endl;
-        if (!link_found)
+        if (!link_found) {
             return false;
+        }
 
         htri_t object_found = H5Oexists_by_name(m_file_id, sub_path.c_str(), H5P_DEFAULT);
         KRATOS_ERROR_IF(object_found < 0) << "H5Oexists_by_name failed." << std::endl;
-        if (!object_found)
+        if (!object_found) {
             return false;
+        }
     }
 
     return true;
+
     KRATOS_CATCH("");
 }
 
 bool File::IsGroup(const std::string& rPath) const
 {
     KRATOS_TRY;
-    if (HasPath(rPath) == false) // Expects a valid path.
+
+    if (HasPath(rPath) == false) {// Expects a valid path.
         return false;
+    }
 
     H5O_info_t object_info;
     KRATOS_ERROR_IF(H5Oget_info_by_name(m_file_id, rPath.c_str(), &object_info, H5P_DEFAULT) < 0)
         << "H5Oget_info_by_name failed." << std::endl;
 
     return (object_info.type == H5O_TYPE_GROUP);
+
     KRATOS_CATCH("");
 }
 
 bool File::IsDataSet(const std::string& rPath) const
 {
     KRATOS_TRY;
-    if (HasPath(rPath) == false) // Expects a valid path.
+
+    if (HasPath(rPath) == false) {// Expects a valid path.
         return false;
+    }
 
     H5O_info_t object_info;
     KRATOS_ERROR_IF(H5Oget_info_by_name(m_file_id, rPath.c_str(), &object_info, H5P_DEFAULT) < 0)
         << "H5Oget_info_by_name failed." << std::endl;
 
     return (object_info.type == H5O_TYPE_DATASET);
+
     KRATOS_CATCH("");
 }
 
-bool File::HasAttribute(const std::string& rObjectPath, const std::string& rName) const
+bool File::HasAttribute(
+    const std::string& rObjectPath,
+    const std::string& rName) const
 {
     KRATOS_TRY;
-    htri_t status =
-        H5Aexists_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT);
+
+    htri_t status = H5Aexists_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT);
     KRATOS_ERROR_IF(status < 0) << "H5Aexists_by_name failed." << std::endl;
     return (status > 0);
+
     KRATOS_CATCH("");
 }
 
-void File::DeleteAttribute(const std::string& rObjectPath, const std::string& rName)
+void File::DeleteAttribute(
+    const std::string& rObjectPath,
+    const std::string& rName)
 {
     KRATOS_TRY;
+
     KRATOS_ERROR_IF(H5Adelete_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT) < 0)
         << "H5Adelete_by_name failed.";
+
     KRATOS_CATCH("");
 }
 
 std::vector<std::string> File::GetAttributeNames(const std::string& rObjectPath) const
 {
     KRATOS_TRY;
+
     constexpr unsigned max_ssize = 100;
     char buffer[max_ssize];
     // Get number of attributes.
@@ -254,36 +275,40 @@ std::vector<std::string> File::GetAttributeNames(const std::string& rObjectPath)
     hsize_t num_attrs = object_info.num_attrs;
     std::vector<std::string> names(num_attrs);
 
-    for (hsize_t i = 0; i < num_attrs; ++i)
-    {
+    for (hsize_t i = 0; i < num_attrs; ++i) {
         // Get size of name.
         ssize_t ssize;
-        ssize = H5Aget_name_by_idx(m_file_id, rObjectPath.c_str(), H5_INDEX_CRT_ORDER,
-                                   H5_ITER_INC, i, buffer, max_ssize, H5P_DEFAULT);
+        ssize = H5Aget_name_by_idx(m_file_id, rObjectPath.c_str(), H5_INDEX_CRT_ORDER, H5_ITER_INC, i, buffer, max_ssize, H5P_DEFAULT);
         KRATOS_ERROR_IF(ssize < 0) << "H5Aget_name_by_idx failed." << std::endl;
-        KRATOS_ERROR_IF(ssize > max_ssize) << "Attribute name size exceeds "
-                                           << max_ssize << std::endl;
+        KRATOS_ERROR_IF(ssize > max_ssize)
+            << "Attribute name size exceeds "
+            << max_ssize << std::endl;
+
         names[i].resize(ssize);
         std::copy_n(buffer, ssize, names[i].begin());
     }
+
     KRATOS_ERROR_IF(H5Oclose(object_id) < 0) << "H5Oclose failed." << std::endl;
     return names;
+
     KRATOS_CATCH("");
 }
 
 void File::CreateGroup(const std::string& rPath)
 {
     KRATOS_TRY;
-    hid_t group_id =
-        H5Gcreate(m_file_id,rPath.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    hid_t group_id = H5Gcreate(m_file_id,rPath.c_str(), H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(group_id < 0) << "H5Gcreate failed." << std::endl;
     KRATOS_ERROR_IF(H5Gclose(group_id) < 0) << "H5Gclose failed." << std::endl;
+
     KRATOS_CATCH("");
 }
 
 std::vector<std::string> File::GetLinkNames(const std::string& rGroupPath) const
 {
     KRATOS_TRY;
+
     constexpr unsigned max_ssize = 100;
     char buffer[max_ssize];
     // Get number of links.
@@ -296,8 +321,7 @@ std::vector<std::string> File::GetLinkNames(const std::string& rGroupPath) const
     hsize_t num_links = group_info.nlinks;
     std::vector<std::string> names(num_links);
 
-    for (hsize_t i=0; i < num_links; ++i)
-    {
+    for (hsize_t i=0; i < num_links; ++i) {
         // Get size of name.
         ssize_t ssize;
         ssize = H5Lget_name_by_idx(m_file_id, rGroupPath.c_str(), H5_INDEX_NAME,
@@ -310,32 +334,42 @@ std::vector<std::string> File::GetLinkNames(const std::string& rGroupPath) const
     }
     KRATOS_ERROR_IF(H5Gclose(group_id) < 0) << "H5Gclose failed." << std::endl;
     return names;
+
     KRATOS_CATCH("");
 }
 
 std::vector<std::string> File::GetGroupNames(const std::string& rGroupPath) const
 {
     KRATOS_TRY;
+
     std::vector<std::string> names;
     std::vector<std::string> link_names = GetLinkNames(rGroupPath);
     names.reserve(link_names.size());
-    for (const auto& r_name : link_names)
-        if (IsGroup(rGroupPath + '/' + r_name))
+    for (const auto& r_name : link_names) {
+        if (IsGroup(rGroupPath + '/' + r_name)) {
             names.push_back(r_name);
+        }
+    }
+
     return names;
+
     KRATOS_CATCH("");
 }
 
 std::vector<std::string> File::GetDataSetNames(const std::string& rGroupPath) const
 {
     KRATOS_TRY;
+
     std::vector<std::string> names;
     std::vector<std::string> link_names = GetLinkNames(rGroupPath);
     names.reserve(link_names.size());
-    for (const auto& r_name : link_names)
-        if (IsDataSet(rGroupPath + '/' + r_name))
+    for (const auto& r_name : link_names) {
+        if (IsDataSet(rGroupPath + '/' + r_name)) {
             names.push_back(r_name);
+        }
+    }
     return names;
+
     KRATOS_CATCH("");
 }
 
@@ -346,14 +380,14 @@ void File::AddPath(const std::string& rPath)
     std::vector<std::string> splitted_path = StringUtilities::SplitStringByDelimiter(rPath, '/');
     splitted_path.erase(std::remove_if(splitted_path.begin(), splitted_path.end(), [](const std::string& s) {return (s.size() == 0);}));
     std::string sub_path;
-    for (const auto& r_link: splitted_path)
-    {
+    for (const auto& r_link: splitted_path) {
         sub_path += '/' + r_link;
-        if (HasPath(sub_path) == false)
+        if (!HasPath(sub_path)) {
             CreateGroup(sub_path); // Add missing link.
-        else
+        } else {
             KRATOS_ERROR_IF_NOT(IsGroup(sub_path))
                 << "Path exists and is not a group: " << sub_path << std::endl;
+        }
     }
 }
 
@@ -491,13 +525,13 @@ void File::WriteDataSetImpl(
         }
     } else {
         #ifdef KRATOS_USING_MPI
-            if constexpr(TDataTransferMode == DataTransferMode::collective) {
+            if constexpr(TDataTransferMode == DataTransferMode::Collective) {
                 local_shape_start[0] = r_data_communicator.ScanSum(local_reduced_shape[0]) - local_reduced_shape[0];
             }
 
-            if (TDataTransferMode == DataTransferMode::collective || number_of_local_primitive_data_values > 0) {
+            if (TDataTransferMode == DataTransferMode::Collective || number_of_local_primitive_data_values > 0) {
                 hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-                if constexpr(TDataTransferMode == DataTransferMode::collective) {
+                if constexpr(TDataTransferMode == DataTransferMode::Collective) {
                     H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
                 } else {
                     H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
@@ -543,7 +577,7 @@ void File::WriteDataSet(
     const TDataType& rData,
     WriteInfo& rInfo)
 {
-    WriteDataSetImpl<TDataType, DataTransferMode::collective>(rPath, rData, rInfo);
+    WriteDataSetImpl<TDataType, DataTransferMode::Collective>(rPath, rData, rInfo);
 }
 
 template<class TDataType>
@@ -552,15 +586,14 @@ void File::WriteDataSetIndependent(
     const TDataType& rData,
     WriteInfo& rInfo)
 {
-    WriteDataSetImpl<TDataType, DataTransferMode::independent>(rPath, rData, rInfo);
+    WriteDataSetImpl<TDataType, DataTransferMode::Independent>(rPath, rData, rInfo);
 }
 
 std::vector<unsigned> File::GetDataDimensions(const std::string& rPath) const
 {
     KRATOS_TRY;
-    constexpr int max_ndims = 5;
+
     int ndims;
-    hsize_t dims[max_ndims];
     hid_t dset_id, dspace_id;
     KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT)) < 0)
         << "H5Dopen failed." << std::endl;
@@ -568,14 +601,15 @@ std::vector<unsigned> File::GetDataDimensions(const std::string& rPath) const
         << "H5Dget_space failed." << std::endl;
     KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(dspace_id)) < 0)
         << "H5Sget_simple_extent_ndims failed." << std::endl;
-    KRATOS_ERROR_IF(max_ndims < ndims) << "Maximum dimension: " << max_ndims
-                                       << ", dimension: " << ndims << std::endl;
-    KRATOS_ERROR_IF(H5Sget_simple_extent_dims(dspace_id, dims, nullptr) < 0)
+
+    std::vector<hsize_t> dims(ndims);
+    KRATOS_ERROR_IF(H5Sget_simple_extent_dims(dspace_id, dims.data(), nullptr) < 0)
         << "H5Sget_simple_extent_dims failed" << std::endl;
     KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
 
-    return std::vector<unsigned>(dims, dims + ndims);
+    return std::vector<unsigned>(dims.begin(), dims.end());
+
     KRATOS_CATCH("");
 }
 
@@ -782,7 +816,7 @@ void File::ReadDataSetImpl(
     } else {
         #ifdef KRATOS_USING_MPI
             hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);
-            if constexpr(TDataTransferMode == DataTransferMode::collective) {
+            if constexpr(TDataTransferMode == DataTransferMode::Collective) {
                 H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_COLLECTIVE);
             } else {
                 H5Pset_dxpl_mpio(dxpl_id, H5FD_MPIO_INDEPENDENT);
@@ -817,7 +851,7 @@ void File::ReadDataSet(
     const unsigned StartIndex,
     const unsigned BlockSize)
 {
-    ReadDataSetImpl<TDataType, DataTransferMode::collective>(rPath, rData, StartIndex, BlockSize);
+    ReadDataSetImpl<TDataType, DataTransferMode::Collective>(rPath, rData, StartIndex, BlockSize);
 }
 
 template<class TDataType>
@@ -827,7 +861,7 @@ void File::ReadDataSetIndependent(
     const unsigned StartIndex,
     const unsigned BlockSize)
 {
-    ReadDataSetImpl<TDataType, DataTransferMode::independent>(rPath, rData, StartIndex, BlockSize);
+    ReadDataSetImpl<TDataType, DataTransferMode::Independent>(rPath, rData, StartIndex, BlockSize);
 }
 
 unsigned File::GetOpenObjectsCount() const
