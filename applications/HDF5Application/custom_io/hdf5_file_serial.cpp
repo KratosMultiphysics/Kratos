@@ -13,19 +13,6 @@ namespace hdf5_file_serial_cpp
 using namespace Kratos;
 using namespace HDF5;
 
-void CreateNewDataSet(
-    hid_t& rDataSetId,
-    hid_t& rDataSpaceId,
-    const hid_t DataTypeId,
-    const std::vector<hsize_t>& rDims,
-    const hid_t FileId,
-    const std::string& rPath)
-{
-    rDataSpaceId = H5Screate_simple(rDims.size(), rDims.data(), nullptr);
-    rDataSetId = H5Dcreate(FileId, rPath.c_str(), DataTypeId, rDataSpaceId, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(rDataSetId < 0) << "H5Dcreate failed." << std::endl;
-}
-
 hid_t OpenExistingDataSet(const hid_t FileId,
                           const std::string& rPath)
 {
@@ -256,7 +243,7 @@ void FileSerial::WriteDataSetVectorImpl(const std::string& rPath,
     const hid_t file_id = GetFileId();
     hid_t dset_id{}, dspace_id{};
     if (!HasPath(rPath)) {
-        CreateNewDataSet(dset_id, dspace_id, dtype_id, dims, file_id, rPath);
+        CreateNewDataSet(dset_id, dspace_id, dtype_id, dims, rPath);
         KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
     } else {
         KRATOS_ERROR_IF_NOT(HasMatchingScalarDataType(rData, *this, rPath))
@@ -302,7 +289,7 @@ void FileSerial::WriteDataSetMatrixImpl(const std::string& rPath,
     const hid_t file_id = GetFileId();
     hid_t dset_id{}, dspace_id{};
     if (!HasPath(rPath)) {
-        CreateNewDataSet(dset_id, dspace_id, dtype_id, dims, file_id, rPath);
+        CreateNewDataSet(dset_id, dspace_id, dtype_id, dims, rPath);
         KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
     } else {
         KRATOS_ERROR_IF_NOT(HasMatchingScalarDataType(rData, *this, rPath))

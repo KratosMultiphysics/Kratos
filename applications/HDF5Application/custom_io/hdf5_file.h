@@ -278,7 +278,16 @@ public:
 protected:
     ///@name Protected Operations
     ///@{
+
     hid_t GetFileId() const;
+
+    void CreateNewDataSet(
+        hid_t& rDataSetId,
+        hid_t& rDataSpaceId,
+        const hid_t DataTypeId,
+        const std::vector<hsize_t>& rDims,
+        const std::string& rPath);
+
     ///@}
 
 private:

@@ -273,12 +273,8 @@ void FileParallel::WriteDataSetImpl(
     hid_t dtype_id = Internals::GetH5DataType<typename type_trait::PrimitiveType>();
 
     // Create and write the data set.
-    hid_t file_id = GetFileId();
-    hid_t fspace_id = H5Screate_simple(global_dimension, global_shape.data(), nullptr);
-    // H5Dcreate() must be called collectively for both collective and
-    // independent write.
-    hid_t dset_id = H5Dcreate(file_id, rPath.c_str(), dtype_id, fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(dset_id < 0) << "H5Dcreate failed." << std::endl;
+    hid_t dset_id{}, fspace_id{};
+    CreateNewDataSet(dset_id, fspace_id, dtype_id, global_shape, rPath);
 
     if (r_data_communicator.IsDistributed()) {
         if (Mode == DataTransferMode::collective) {

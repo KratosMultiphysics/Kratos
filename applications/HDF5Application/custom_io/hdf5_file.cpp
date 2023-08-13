@@ -1016,6 +1016,18 @@ hid_t File::GetFileId() const
     return m_file_id;
 }
 
+void File::CreateNewDataSet(
+    hid_t& rDataSetId,
+    hid_t& rDataSpaceId,
+    const hid_t DataTypeId,
+    const std::vector<hsize_t>& rDims,
+    const std::string& rPath)
+{
+    rDataSpaceId = H5Screate_simple(rDims.size(), rDims.data(), nullptr);
+    rDataSetId = H5Dcreate(GetFileId(), rPath.c_str(), DataTypeId, rDataSpaceId, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(rDataSetId < 0) << "H5Dcreate failed." << std::endl;
+}
+
 void File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
 {
     KRATOS_TRY;
