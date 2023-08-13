@@ -232,7 +232,7 @@ void FileSerial::WriteDataSetVectorImpl(const std::string& rPath,
     }
 
     // Create and write the data set.
-    const hid_t dtype_id = Internals::GetH5DataType<typename DataTypeTraits<T>::PrimitiveType>();
+    const hid_t dtype_id = Internals::GetPrimitiveH5Type<T>();
     const std::vector<hsize_t>& dims = DataTypeTraits<Vector<T>>::template Shape<hsize_t>(rData);
     hid_t dset_id{}, dspace_id{};
 
@@ -270,7 +270,7 @@ void FileSerial::WriteDataSetMatrixImpl(const std::string& rPath,
     }
 
     // Create and write the data set.
-    const hid_t dtype_id = Internals::GetH5DataType<typename DataTypeTraits<T>::PrimitiveType>();
+    const hid_t dtype_id = Internals::GetPrimitiveH5Type<T>();
     const std::vector<hsize_t>& dims = DataTypeTraits<Matrix<T>>::template Shape<hsize_t>(rData);
 
     hid_t dset_id{}, dspace_id{};
@@ -336,7 +336,7 @@ void FileSerial::ReadDataSetVectorImpl(const std::string& rPath,
     hid_t mem_space_id = H5Screate_simple(ndims, mem_dims, nullptr);
     KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, start, nullptr, mem_dims, nullptr) < 0)
         << "H5Sselect_hyperslab failed." << std::endl;
-    hid_t dtype_id = Internals::GetH5DataType<typename DataTypeTraits<T>::PrimitiveType>();
+    hid_t dtype_id = Internals::GetPrimitiveH5Type<T>();
     KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id, H5P_DEFAULT, &rData[0]) < 0)
         << "H5Dread failed." << std::endl;
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
@@ -389,7 +389,7 @@ void FileSerial::ReadDataSetMatrixImpl(const std::string& rPath,
     hid_t mem_space_id = H5Screate_simple(ndims, mem_dims, nullptr);
     KRATOS_ERROR_IF(H5Sselect_hyperslab(file_space_id, H5S_SELECT_SET, start, nullptr, mem_dims, nullptr) < 0)
         << "H5Sselect_hyperslab failed." << std::endl;
-    hid_t dtype_id = Internals::GetH5DataType<typename DataTypeTraits<T>::PrimitiveType>();
+    hid_t dtype_id = Internals::GetPrimitiveH5Type<T>();
     KRATOS_ERROR_IF(H5Dread(dset_id, dtype_id, mem_space_id, file_space_id,
                             H5P_DEFAULT, &rData(0, 0)) < 0)
         << "H5Dread failed." << std::endl;

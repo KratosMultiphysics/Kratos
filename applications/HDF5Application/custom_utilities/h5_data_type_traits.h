@@ -28,7 +28,7 @@ namespace Internals
 {
 
 // H5 data types
-template <class TDataType> hid_t inline GetH5DataType()
+template <class TDataType> hid_t inline GetPrimitiveH5Type()
 {
     using primitive_type = typename DataTypeTraits<TDataType>::PrimitiveType;
 
@@ -40,7 +40,6 @@ template <class TDataType> hid_t inline GetH5DataType()
         return H5T_NATIVE_HSIZE;
     } else {
         static_assert(true, "Unsupported data type.");
-        return H5T_NATIVE_INT;
     }
 }
 

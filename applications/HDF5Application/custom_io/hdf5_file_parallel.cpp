@@ -267,7 +267,7 @@ void FileParallel::WriteDataSetImpl(
     }
 
     // Set the data type.
-    hid_t dtype_id = Internals::GetH5DataType<typename type_trait::PrimitiveType>();
+    hid_t dtype_id = Internals::GetPrimitiveH5Type<TDataSetType>();
 
     // Create and write the data set.
     hid_t dset_id{}, fspace_id{};
@@ -388,7 +388,7 @@ void FileParallel::ReadDataSetImpl(
     }
 
     // Set the data type.
-    hid_t dtype_id = Internals::GetH5DataType<typename type_trait::PrimitiveType>();
+    hid_t dtype_id = Internals::GetPrimitiveH5Type<TDataSetType>();
 
     hid_t file_id = GetFileId();
     hid_t dxpl_id = H5Pcreate(H5P_DATASET_XFER);

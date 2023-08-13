@@ -344,7 +344,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     {
         DeleteAttribute(rObjectPath, rName);
     }
-    type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
+    type_id = Internals::GetPrimitiveH5Type<TScalar>();
     space_id = H5Screate(H5S_SCALAR);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
     attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
@@ -369,7 +369,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     {
         DeleteAttribute(rObjectPath, rName);
     }
-    type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
+    type_id = Internals::GetPrimitiveH5Type<TScalar>();
     const hsize_t dim = rValue.size();
     space_id = H5Screate_simple(1, &dim, nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
@@ -395,7 +395,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     {
         DeleteAttribute(rObjectPath, rName);
     }
-    type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
+    type_id = Internals::GetPrimitiveH5Type<TScalar>();
     const hsize_t dim = rValue.size();
     space_id = H5Screate_simple(1, &dim, nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
@@ -421,7 +421,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     {
         DeleteAttribute(rObjectPath, rName);
     }
-    type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
+    type_id = Internals::GetPrimitiveH5Type<TScalar>();
     const std::array<hsize_t, 2> dims = {rValue.size1(), rValue.size2()};
     space_id = H5Screate_simple(dims.size(), dims.data(), nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
@@ -638,7 +638,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
 
-    mem_type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
+    mem_type_id = Internals::GetPrimitiveH5Type<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -677,7 +677,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     int ndims;
     hsize_t dims[1];
 
-    mem_type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
+    mem_type_id = Internals::GetPrimitiveH5Type<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -718,7 +718,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     int ndims;
     hsize_t dims[1];
 
-    mem_type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
+    mem_type_id = Internals::GetPrimitiveH5Type<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -759,7 +759,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     int ndims;
     hsize_t dims[2];
 
-    mem_type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
+    mem_type_id = Internals::GetPrimitiveH5Type<TScalar>();
     attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -967,7 +967,7 @@ void File::GetDataSet(
     KRATOS_TRY
 
     if (!HasPath(rPath)) {
-        CreateNewDataSet(rDataSetId, rDataSpaceId, Internals::GetH5DataType<TDataType>(), rDims, rPath);
+        CreateNewDataSet(rDataSetId, rDataSpaceId, Internals::GetPrimitiveH5Type<TDataType>(), rDims, rPath);
     } else {
         KRATOS_ERROR_IF_NOT(HasDataType<TDataType>(rPath))
             << "Wrong scalar data type: " << rPath << std::endl;
