@@ -81,54 +81,9 @@ private:
 
     ///@name Private Operations
     ///@{
-    template <class T>
-    void WriteDataSetVectorImpl(const std::string& rPath, const Vector<T>& rData, WriteInfo& rInfo);
 
-    template <class T>
-    void WriteDataSetMatrixImpl(const std::string& rPath, const Matrix<T>& rData, WriteInfo& rInfo);
-
-    template <class T>
-    void ReadDataSetVectorImpl(const std::string& rPath,
-                               Vector<T>& rData,
-                               unsigned StartIndex,
-                               unsigned BlockSize);
-
-    template <class T>
-    void ReadDataSetMatrixImpl(const std::string& rPath,
-                               Matrix<T>& rData,
-                               unsigned StartIndex,
-                               unsigned BlockSize);
     ///@}
 };
-
-extern template void FileSerial::WriteDataSetVectorImpl(const std::string& rPath,
-                                                        const Vector<int>& rData,
-                                                        WriteInfo& rInfo);
-extern template void FileSerial::WriteDataSetVectorImpl(const std::string& rPath,
-                                                        const Vector<double>& rData,
-                                                        WriteInfo& rInfo);
-extern template void FileSerial::WriteDataSetMatrixImpl(const std::string& rPath,
-                                                        const Matrix<int>& rData,
-                                                        WriteInfo& rInfo);
-extern template void FileSerial::WriteDataSetMatrixImpl(const std::string& rPath,
-                                                        const Matrix<double>& rData,
-                                                        WriteInfo& rInfo);
-extern template void FileSerial::ReadDataSetVectorImpl(const std::string& rPath,
-                                                       Vector<int>& rData,
-                                                       unsigned StartIndex,
-                                                       unsigned BlockSize);
-extern template void FileSerial::ReadDataSetVectorImpl(const std::string& rPath,
-                                                       Vector<double>& rData,
-                                                       unsigned StartIndex,
-                                                       unsigned BlockSize);
-extern template void FileSerial::ReadDataSetMatrixImpl(const std::string& rPath,
-                                                       Matrix<int>& rData,
-                                                       unsigned StartIndex,
-                                                       unsigned BlockSize);
-extern template void FileSerial::ReadDataSetMatrixImpl(const std::string& rPath,
-                                                       Matrix<double>& rData,
-                                                       unsigned StartIndex,
-                                                       unsigned BlockSize);
 
 ///@} // Kratos Classes
 ///@} addtogroup

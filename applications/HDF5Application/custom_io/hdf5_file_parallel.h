@@ -85,20 +85,6 @@ private:
 
     ///@name Private Operations
     ///@{
-    template <class TDataSetType>
-    void WriteDataSetImpl(
-        const std::string& rPath,
-        const TDataSetType& rData,
-        DataTransferMode Mode,
-        WriteInfo& rInfo);
-
-    template <class TDataSetType>
-    void ReadDataSetImpl(
-        const std::string& rPath,
-        TDataSetType& rData,
-        unsigned StartIndex,
-        unsigned BlockSize,
-        DataTransferMode Mode);
 
     ///@}
 };
