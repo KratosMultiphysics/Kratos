@@ -190,21 +190,11 @@ public:
     // Return the total number of processes with file access.
     unsigned GetTotalProcesses() const;
 
-    template<class TScalar>
-    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, TScalar& rValue);
-
-    template<class TScalar>
-    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, std::vector<TScalar>& rValue);
-
-    template<class TScalar>
-    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<TScalar>& rValue);
-
-    template<class TScalar>
-    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<TScalar>& rValue);
-
-    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, std::string& rValue);
-
-    void ReadAttribute(const std::string& rObjectPath, const std::string& rName, array_1d<double, 3>& rValue);
+    template<class TDataType>
+    void ReadAttribute(
+        const std::string& rObjectPath,
+        const std::string& rName,
+        TDataType& rValue);
 
     /// Read a data set from the HDF5 file.
     /**
@@ -313,13 +303,6 @@ private:
     ///@}
 };
 
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, int& rValue);
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, double& rValue);
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<int>& rValue);
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<double>& rValue);
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<int>& rValue);
-extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Matrix<double>& rValue);
-
 ///@} // Kratos Classes
 
 namespace Internals
@@ -333,14 +316,6 @@ bool IsPath(const std::string& rPath);
 
 /// Return vector of non-empty substrings separated by a delimiter.
 std::vector<std::string> Split(const std::string& rPath, char Delimiter);
-
-hid_t GetScalarDataType(const Vector<int>&);
-hid_t GetScalarDataType(const Vector<double>&);
-hid_t GetScalarDataType(const Vector<array_1d<double, 3>>&);
-hid_t GetScalarDataType(const Matrix<int>&);
-hid_t GetScalarDataType(const Matrix<double>&);
-hid_t GetScalarDataType(int);
-hid_t GetScalarDataType(double);
 
 std::vector<hsize_t> GetDataDimensions(const Vector<int>& rData);
 std::vector<hsize_t> GetDataDimensions(const Vector<double>& rData);
