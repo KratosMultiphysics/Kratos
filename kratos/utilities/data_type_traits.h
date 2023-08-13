@@ -58,18 +58,13 @@ public:
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
-     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
      * @return true                 If the input dimension index corresponds to dynamic data type.
      * @return false                If the input dimension index corresponds to static data type.
      */
-    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
-    static constexpr inline bool IsDimensionDynamic()
+    template<unsigned int TCheckIndex>
+    static constexpr bool IsDimensionDynamic()
     {
-        if constexpr(TCheckIndex == 0) {
-            return false;
-        } else {
-            static_assert(TCheckIndex != TCheckIndex, "Invalid dimension index.");
-        }
+        return IsDimensionDynamicImpl<TCheckIndex, 0>();
     }
 
     /**
@@ -218,6 +213,29 @@ public:
     }
 
     ///@}
+
+private:
+    ///@name Private static operations
+    ///@{
+
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
+    static constexpr bool IsDimensionDynamicImpl()
+    {
+        if constexpr(TCheckIndex == 0) {
+            return false;
+        } else {
+            static_assert(TCheckIndex != TCheckIndex, "Invalid dimension index.");
+        }
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    template<class T>
+    friend class DataTypeTraits;
+
+    ///@}
 };
 
 /**
@@ -236,17 +254,17 @@ public:
 
     using ValueType = TDataType;
 
-    using ValueTrait = DataTypeTraits<ValueType>;
+    using ValueTraits = DataTypeTraits<ValueType>;
 
-    using PrimitiveType = typename ValueTrait::PrimitiveType;
+    using PrimitiveType = typename ValueTraits::PrimitiveType;
 
-    static constexpr bool IsDynamic = ValueTrait::IsDynamic;
+    static constexpr bool IsDynamic = ValueTraits::IsDynamic;
 
     // boost ublas makes the underlying data structure contiguous for
     // any ValueType which are not dynamic recursively.
     static constexpr bool IsContiguous = !IsDynamic;
 
-    static constexpr unsigned int Dimension = ValueTrait::Dimension + 1;
+    static constexpr unsigned int Dimension = ValueTraits::Dimension + 1;
 
     ///@}
     ///@name Public static operations
@@ -259,18 +277,13 @@ public:
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
-     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
      * @return true                 If the input dimension index corresponds to dynamic data type.
      * @return false                If the input dimension index corresponds to static data type.
      */
-    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
-    static constexpr inline bool IsDimensionDynamic()
+    template<unsigned int TCheckIndex>
+    static constexpr bool IsDimensionDynamic()
     {
-        if constexpr(TCheckIndex == TCurrentIndex) {
-            return false;
-        } else {
-            return ValueTrait::template IsDimensionDynamic<TCheckIndex, TCurrentIndex + 1>();
-        }
+        return IsDimensionDynamicImpl<TCheckIndex, 0>();
     }
 
     /**
@@ -288,7 +301,7 @@ public:
         if constexpr(TSize == 0) {
             return 0;
         } else {
-            return TSize * ValueTrait::template Size<TIndexType>(rContainer[0]);
+            return TSize * ValueTraits::template Size<TIndexType>(rContainer[0]);
         }
     }
 
@@ -329,9 +342,9 @@ public:
             << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
 
         if constexpr(TSize > 0) {
-            ValueTrait::Shape(rContainer[0], pShapeBegin + 1, pShapeEnd);
+            ValueTraits::Shape(rContainer[0], pShapeBegin + 1, pShapeEnd);
         } else {
-            ValueTrait::Shape(ValueType{}, pShapeBegin + 1, pShapeEnd);
+            ValueTraits::Shape(ValueType{}, pShapeBegin + 1, pShapeEnd);
         }
         pShapeBegin[0] = TSize;
     }
@@ -389,9 +402,9 @@ public:
 
         bool is_reshaped = false;
 
-        if constexpr(ValueTrait::IsDynamic) {
+        if constexpr(ValueTraits::IsDynamic) {
             std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
-                is_reshaped = ValueTrait::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
+                is_reshaped = ValueTraits::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
             });
         }
 
@@ -478,9 +491,9 @@ public:
         PrimitiveType* pContiguousDataBegin,
         const ContainerType& rContainer)
     {
-        const auto stride = ValueTrait::Size(rContainer[0]);
+        const auto stride = ValueTraits::Size(rContainer[0]);
         for (unsigned int i = 0; i < TSize; ++i) {
-            ValueTrait::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+            ValueTraits::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
         }
     }
 
@@ -500,11 +513,34 @@ public:
         ContainerType& rContainer,
         PrimitiveType const * pContiguousDataBegin)
     {
-        const auto stride = ValueTrait::Size(rContainer[0]);
+        const auto stride = ValueTraits::Size(rContainer[0]);
         for (unsigned int i = 0; i < TSize; ++i) {
-            ValueTrait::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+            ValueTraits::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
         }
     }
+
+    ///@}
+
+private:
+    ///@name Private static operations
+    ///@{
+
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
+    static constexpr bool IsDimensionDynamicImpl()
+    {
+        if constexpr(TCheckIndex == TCurrentIndex) {
+            return false;
+        } else {
+            return ValueTraits::template IsDimensionDynamicImpl<TCheckIndex, TCurrentIndex + 1>();
+        }
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    template<class T>
+    friend class DataTypeTraits;
 
     ///@}
 };
@@ -524,17 +560,17 @@ public:
 
     using ValueType = TDataType;
 
-    using ValueTrait = DataTypeTraits<ValueType>;
+    using ValueTraits = DataTypeTraits<ValueType>;
 
-    using PrimitiveType = typename ValueTrait::PrimitiveType;
+    using PrimitiveType = typename ValueTraits::PrimitiveType;
 
     static constexpr bool IsDynamic = true;
 
     // boost ublas makes the underlying data structure contiguous for
     // any ValueType which are not dynamic recursively.
-    static constexpr bool IsContiguous = !ValueTrait::IsDynamic;
+    static constexpr bool IsContiguous = !ValueTraits::IsDynamic;
 
-    static constexpr unsigned int Dimension = ValueTrait::Dimension + 1;
+    static constexpr unsigned int Dimension = ValueTraits::Dimension + 1;
 
     ///@}
     ///@name Public static operations
@@ -547,18 +583,13 @@ public:
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
-     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
      * @return true                 If the input dimension index corresponds to dynamic data type.
      * @return false                If the input dimension index corresponds to static data type.
      */
-    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
-    static constexpr inline bool IsDimensionDynamic()
+    template<unsigned int TCheckIndex>
+    static constexpr bool IsDimensionDynamic()
     {
-        if constexpr(TCheckIndex == TCurrentIndex) {
-            return true;
-        } else {
-            return ValueTrait::template IsDimensionDynamic<TCheckIndex, TCurrentIndex + 1>();
-        }
+        return IsDimensionDynamicImpl<TCheckIndex, 0>();
     }
 
     /**
@@ -573,7 +604,7 @@ public:
     template<class TIndexType = unsigned int>
     static inline TIndexType Size(const ContainerType& rValue)
     {
-        return (rValue.empty() ? 0 : rValue.size() * ValueTrait::template Size<TIndexType>(rValue[0]));
+        return (rValue.empty() ? 0 : rValue.size() * ValueTraits::template Size<TIndexType>(rValue[0]));
     }
 
     /**
@@ -613,9 +644,9 @@ public:
             << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
 
         if (rContainer.empty()) {
-            ValueTrait::Shape(ValueType{}, pShapeBegin + 1, pShapeEnd);
+            ValueTraits::Shape(ValueType{}, pShapeBegin + 1, pShapeEnd);
         } else {
-            ValueTrait::Shape(rContainer[0], pShapeBegin + 1, pShapeEnd);
+            ValueTraits::Shape(rContainer[0], pShapeBegin + 1, pShapeEnd);
         }
         pShapeBegin[0] = rContainer.size();
     }
@@ -678,9 +709,9 @@ public:
             is_reshaped = true;
         }
 
-        if constexpr(ValueTrait::IsDynamic) {
+        if constexpr(ValueTraits::IsDynamic) {
             std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
-                is_reshaped = ValueTrait::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
+                is_reshaped = ValueTraits::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
             });
         }
 
@@ -768,9 +799,9 @@ public:
         const ContainerType& rContainer)
     {
         if (rContainer.size() != 0) {
-            const auto stride = ValueTrait::Size(rContainer[0]);
+            const auto stride = ValueTraits::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                ValueTrait::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+                ValueTraits::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
             }
         }
     }
@@ -792,12 +823,35 @@ public:
         PrimitiveType const * pContiguousDataBegin)
     {
         if (rContainer.size() != 0) {
-            const auto stride = ValueTrait::Size(rContainer[0]);
+            const auto stride = ValueTraits::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                ValueTrait::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+                ValueTraits::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
             }
         }
     }
+
+    ///@}
+
+private:
+    ///@name Private static operations
+    ///@{
+
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
+    static constexpr bool IsDimensionDynamicImpl()
+    {
+        if constexpr(TCheckIndex == TCurrentIndex) {
+            return true;
+        } else {
+            return ValueTraits::template IsDimensionDynamicImpl<TCheckIndex, TCurrentIndex + 1>();
+        }
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    template<class T>
+    friend class DataTypeTraits;
 
     ///@}
 };
@@ -812,17 +866,17 @@ public:
 
     using ValueType = TDataType;
 
-    using ValueTrait = DataTypeTraits<ValueType>;
+    using ValueTraits = DataTypeTraits<ValueType>;
 
-    using PrimitiveType = typename ValueTrait::PrimitiveType;
+    using PrimitiveType = typename ValueTraits::PrimitiveType;
 
     static constexpr bool IsDynamic = true;
 
     // boost ublas makes the underlying data structure contiguous for
     // any ValueType which are not dynamic recursively.
-    static constexpr bool IsContiguous = !ValueTrait::IsDynamic;
+    static constexpr bool IsContiguous = !ValueTraits::IsDynamic;
 
-    static constexpr unsigned int Dimension = ValueTrait::Dimension + 2;
+    static constexpr unsigned int Dimension = ValueTraits::Dimension + 2;
 
     ///@}
     ///@name Public static operations
@@ -835,18 +889,13 @@ public:
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
-     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
      * @return true                 If the input dimension index corresponds to dynamic data type.
      * @return false                If the input dimension index corresponds to static data type.
      */
-    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
-    static constexpr inline bool IsDimensionDynamic()
+    template<unsigned int TCheckIndex>
+    static constexpr bool IsDimensionDynamic()
     {
-        if constexpr(TCheckIndex == TCurrentIndex || TCheckIndex == TCurrentIndex + 1) {
-            return true;
-        } else {
-            return ValueTrait::template IsDimensionDynamic<TCheckIndex, TCurrentIndex + 2>();
-        }
+        return IsDimensionDynamicImpl<TCheckIndex, 0>();
     }
 
     /**
@@ -861,7 +910,7 @@ public:
     template<class TIndexType = unsigned int>
     static inline TIndexType Size(const ContainerType& rValue)
     {
-        return (rValue.size1() == 0 || rValue.size2() == 0 ? 0 : rValue.size1() * rValue.size2() * ValueTrait::template Size<TIndexType>(rValue.data()[0]));
+        return (rValue.size1() == 0 || rValue.size2() == 0 ? 0 : rValue.size1() * rValue.size2() * ValueTraits::template Size<TIndexType>(rValue.data()[0]));
     }
 
     /**
@@ -901,9 +950,9 @@ public:
             << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
 
         if (rContainer.size1() > 0 && rContainer.size2() > 0) {
-            ValueTrait::Shape(rContainer(0, 0), pShapeBegin + 2, pShapeEnd);
+            ValueTraits::Shape(rContainer(0, 0), pShapeBegin + 2, pShapeEnd);
         } else {
-            ValueTrait::Shape(ValueType{}, pShapeBegin + 2, pShapeEnd);
+            ValueTraits::Shape(ValueType{}, pShapeBegin + 2, pShapeEnd);
         }
         pShapeBegin[0] = rContainer.size1();
         pShapeBegin[1] = rContainer.size2();
@@ -967,9 +1016,9 @@ public:
             is_reshaped = true;
         }
 
-        if constexpr(ValueTrait::IsDynamic) {
+        if constexpr(ValueTraits::IsDynamic) {
             std::for_each(rContainer.data().begin(), rContainer.data().end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
-                is_reshaped = ValueTrait::Reshape(rValue, pShapeBegin + 2, pShapeEnd) || is_reshaped;
+                is_reshaped = ValueTraits::Reshape(rValue, pShapeBegin + 2, pShapeEnd) || is_reshaped;
             });
         }
 
@@ -1057,9 +1106,9 @@ public:
         const ContainerType& rContainer)
     {
         if (rContainer.size1() != 0 && rContainer.size2() != 0) {
-            const auto stride = ValueTrait::Size(rContainer(0, 0));
+            const auto stride = ValueTraits::Size(rContainer(0, 0));
             for (unsigned int i = 0; i < rContainer.size1() * rContainer.size2(); ++i) {
-                ValueTrait::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer.data()[i]);
+                ValueTraits::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer.data()[i]);
             }
         }
     }
@@ -1081,12 +1130,35 @@ public:
         PrimitiveType const * pContiguousDataBegin)
     {
         if (rContainer.size1() != 0 && rContainer.size2() != 0) {
-            const auto stride = ValueTrait::Size(rContainer(0, 0));
+            const auto stride = ValueTraits::Size(rContainer(0, 0));
             for (unsigned int i = 0; i < rContainer.size1() * rContainer.size2(); ++i) {
-                ValueTrait::CopyFromContiguousData(rContainer.data()[i], pContiguousDataBegin + i * stride);
+                ValueTraits::CopyFromContiguousData(rContainer.data()[i], pContiguousDataBegin + i * stride);
             }
         }
     }
+
+    ///@}
+
+private:
+    ///@name Private static operations
+    ///@{
+
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
+    static constexpr bool IsDimensionDynamicImpl()
+    {
+        if constexpr(TCheckIndex == TCurrentIndex || TCheckIndex == TCurrentIndex + 1) {
+            return true;
+        } else {
+            return ValueTraits::template IsDimensionDynamicImpl<TCheckIndex, TCurrentIndex + 2>();
+        }
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    template<class T>
+    friend class DataTypeTraits;
 
     ///@}
 };
@@ -1120,18 +1192,13 @@ public:
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
-     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
      * @return true                 If the input dimension index corresponds to dynamic data type.
      * @return false                If the input dimension index corresponds to static data type.
      */
-    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
-    static constexpr inline bool IsDimensionDynamic()
+    template<unsigned int TCheckIndex>
+    static constexpr bool IsDimensionDynamic()
     {
-        if constexpr(TCheckIndex == TCurrentIndex) {
-            return true;
-        } else {
-            static_assert(TCheckIndex != TCheckIndex, "Invalid dimension index.");
-        }
+        return IsDimensionDynamicImpl<TCheckIndex, 0>();
     }
 
     /**
@@ -1318,6 +1385,29 @@ public:
     }
 
     ///@}
+
+private:
+    ///@name Private static operations
+    ///@{
+
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
+    static constexpr bool IsDimensionDynamicImpl()
+    {
+        if constexpr(TCheckIndex == TCurrentIndex) {
+            return true;
+        } else {
+            static_assert(TCheckIndex != TCheckIndex, "Invalid dimension index.");
+        }
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    template<class T>
+    friend class DataTypeTraits;
+
+    ///@}
 };
 
 template<class TDataType> class DataTypeTraits<std::vector<TDataType>>
@@ -1330,15 +1420,15 @@ public:
 
     using ValueType = TDataType;
 
-    using ValueTrait = DataTypeTraits<ValueType>;
+    using ValueTraits = DataTypeTraits<ValueType>;
 
-    using PrimitiveType = typename ValueTrait::PrimitiveType;
+    using PrimitiveType = typename ValueTraits::PrimitiveType;
 
     static constexpr bool IsContiguous = std::is_same_v<PrimitiveType, ValueType>;
 
     static constexpr bool IsDynamic = true;
 
-    static constexpr unsigned int Dimension = ValueTrait::Dimension + 1;
+    static constexpr unsigned int Dimension = ValueTraits::Dimension + 1;
 
     ///@}
     ///@name Public static operations
@@ -1351,18 +1441,13 @@ public:
      * corresponds to a dynamic type. If not, this returns false.
      *
      * @tparam TCheckIndex          User input dimension index.
-     * @tparam TCurrentIndex        Used for the recursion only. Do not specify this.
      * @return true                 If the input dimension index corresponds to dynamic data type.
      * @return false                If the input dimension index corresponds to static data type.
      */
-    template<unsigned int TCheckIndex, unsigned int TCurrentIndex = 0>
-    static constexpr inline bool IsDimensionDynamic()
+    template<unsigned int TCheckIndex>
+    static constexpr bool IsDimensionDynamic()
     {
-        if constexpr(TCheckIndex == TCurrentIndex) {
-            return true;
-        } else {
-            return ValueTrait::template IsDimensionDynamic<TCheckIndex, TCurrentIndex + 1>();
-        }
+        return IsDimensionDynamicImpl<TCheckIndex, 0>();
     }
 
     /**
@@ -1377,7 +1462,7 @@ public:
     template<class TIndexType = unsigned int>
     static inline TIndexType Size(const ContainerType& rValue)
     {
-        return (rValue.empty() ? 0 : rValue.size() * ValueTrait::template Size<TIndexType>(rValue[0]));
+        return (rValue.empty() ? 0 : rValue.size() * ValueTraits::template Size<TIndexType>(rValue[0]));
     }
 
     /**
@@ -1417,9 +1502,9 @@ public:
             << std::vector<TIndexType>(pShapeBegin, pShapeEnd) << " ].\n";
 
         if (rContainer.empty()) {
-            ValueTrait::Shape(ValueType{}, pShapeBegin + 1, pShapeEnd);
+            ValueTraits::Shape(ValueType{}, pShapeBegin + 1, pShapeEnd);
         } else {
-            ValueTrait::Shape(rContainer[0], pShapeBegin + 1, pShapeEnd);
+            ValueTraits::Shape(rContainer[0], pShapeBegin + 1, pShapeEnd);
         }
         pShapeBegin[0] = rContainer.size();
     }
@@ -1482,9 +1567,9 @@ public:
             is_reshaped = true;
         }
 
-        if constexpr(ValueTrait::IsDynamic) {
+        if constexpr(ValueTraits::IsDynamic) {
             std::for_each(rContainer.begin(), rContainer.end(), [&is_reshaped, pShapeBegin, pShapeEnd](auto& rValue) {
-                is_reshaped = ValueTrait::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
+                is_reshaped = ValueTraits::Reshape(rValue, pShapeBegin + 1, pShapeEnd) || is_reshaped;
             });
         }
 
@@ -1546,9 +1631,9 @@ public:
         const ContainerType& rContainer)
     {
         if (rContainer.size() != 0) {
-            const auto stride = ValueTrait::Size(rContainer[0]);
+            const auto stride = ValueTraits::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                ValueTrait::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
+                ValueTraits::CopyToContiguousData(pContiguousDataBegin + i * stride, rContainer[i]);
             }
         }
     }
@@ -1570,12 +1655,35 @@ public:
         PrimitiveType const * pContiguousDataBegin)
     {
         if (rContainer.size() != 0) {
-            const auto stride = ValueTrait::Size(rContainer[0]);
+            const auto stride = ValueTraits::Size(rContainer[0]);
             for (unsigned int i = 0; i < rContainer.size(); ++i) {
-                ValueTrait::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
+                ValueTraits::CopyFromContiguousData(rContainer[i], pContiguousDataBegin + i * stride);
             }
         }
     }
+
+    ///@}
+
+private:
+    ///@name Private static operations
+    ///@{
+
+    template<unsigned int TCheckIndex, unsigned int TCurrentIndex>
+    static constexpr bool IsDimensionDynamicImpl()
+    {
+        if constexpr(TCheckIndex == TCurrentIndex) {
+            return true;
+        } else {
+            return ValueTraits::template IsDimensionDynamicImpl<TCheckIndex, TCurrentIndex + 1>();
+        }
+    }
+
+    ///@}
+    ///@name Friends
+    ///@{
+
+    template<class T>
+    friend class DataTypeTraits;
 
     ///@}
 };
