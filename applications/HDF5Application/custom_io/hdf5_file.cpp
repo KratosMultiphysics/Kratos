@@ -11,6 +11,7 @@
 #include "utilities/string_utilities.h"
 #include "includes/parallel_environment.h"
 #include "custom_utilities/h5_data_type_traits.h"
+#include "utilities/data_type_traits.h"
 
 namespace Kratos
 {
@@ -22,46 +23,6 @@ namespace Internals
 bool IsPath(const std::string& rPath)
 {
     return regex_match(rPath, std::regex("(/[\\w\\(\\)]+)+"));
-}
-
-hid_t GetScalarDataType(const std::vector<hsize_t>&)
-{
-    return H5T_NATIVE_HSIZE;
-}
-
-hid_t GetScalarDataType(const Vector<int>&)
-{
-    return H5T_NATIVE_INT;
-}
-
-hid_t GetScalarDataType(const Vector<double>&)
-{
-    return H5T_NATIVE_DOUBLE;
-}
-
-hid_t GetScalarDataType(const Vector<array_1d<double, 3>>&)
-{
-    return H5T_NATIVE_DOUBLE;
-}
-
-hid_t GetScalarDataType(const Matrix<int>&)
-{
-    return H5T_NATIVE_INT;
-}
-
-hid_t GetScalarDataType(const Matrix<double>&)
-{
-    return H5T_NATIVE_DOUBLE;
-}
-
-hid_t GetScalarDataType(int)
-{
-    return H5T_NATIVE_INT;
-}
-
-hid_t GetScalarDataType(double)
-{
-    return H5T_NATIVE_DOUBLE;
 }
 
 std::vector<hsize_t> GetDataDimensions(const Vector<int>& rData)
@@ -408,7 +369,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     {
         DeleteAttribute(rObjectPath, rName);
     }
-    type_id = Internals::GetScalarDataType(Value);
+    type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
     space_id = H5Screate(H5S_SCALAR);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
     attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
@@ -433,7 +394,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     {
         DeleteAttribute(rObjectPath, rName);
     }
-    type_id = Internals::GetScalarDataType(rValue);
+    type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
     const hsize_t dim = rValue.size();
     space_id = H5Screate_simple(1, &dim, nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
@@ -459,7 +420,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     {
         DeleteAttribute(rObjectPath, rName);
     }
-    type_id = Internals::GetScalarDataType(rValue);
+    type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
     const hsize_t dim = rValue.size();
     space_id = H5Screate_simple(1, &dim, nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
@@ -485,7 +446,7 @@ void File::WriteAttribute(const std::string& rObjectPath, const std::string& rNa
     {
         DeleteAttribute(rObjectPath, rName);
     }
-    type_id = Internals::GetScalarDataType(rValue);
+    type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
     const std::array<hsize_t, 2> dims = {rValue.size1(), rValue.size2()};
     space_id = H5Screate_simple(dims.size(), dims.data(), nullptr);
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
@@ -702,7 +663,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     hid_t mem_type_id, attr_type_id, space_id, attr_id;
     int ndims;
 
-    mem_type_id = Internals::GetScalarDataType(rValue);
+    mem_type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
     attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -741,7 +702,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     int ndims;
     hsize_t dims[1];
 
-    mem_type_id = Internals::GetScalarDataType(rValue);
+    mem_type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
     attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -782,7 +743,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     int ndims;
     hsize_t dims[1];
 
-    mem_type_id = Internals::GetScalarDataType(rValue);
+    mem_type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
     attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
@@ -823,7 +784,7 @@ void File::ReadAttribute(const std::string& rObjectPath, const std::string& rNam
     int ndims;
     hsize_t dims[2];
 
-    mem_type_id = Internals::GetScalarDataType(rValue);
+    mem_type_id = Internals::GetH5DataType<typename DataTypeTraits<TScalar>::PrimitiveType>();
     attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(),
                                     H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;

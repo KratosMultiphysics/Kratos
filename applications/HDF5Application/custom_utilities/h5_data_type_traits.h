@@ -12,8 +12,10 @@
 
 // System includes
 #include "hdf5.h"
+#include <type_traits>
 
 // Project includes
+#include "utilities/data_type_traits.h"
 
 // Application includes
 
@@ -26,10 +28,21 @@ namespace Internals
 {
 
 // H5 data types
-template <class TDataType> hid_t inline GetH5DataType() { static_assert(true, "Unsupported data type."); return H5T_NATIVE_INT; }
-template <> hid_t inline GetH5DataType<hsize_t>() { return H5T_NATIVE_HSIZE; }
-template <> hid_t inline GetH5DataType<int>() { return H5T_NATIVE_INT; }
-template <> hid_t inline GetH5DataType<double>() { return H5T_NATIVE_DOUBLE; }
+template <class TDataType> hid_t inline GetH5DataType()
+{
+    using primitive_type = typename DataTypeTraits<TDataType>::PrimitiveType;
+
+    if constexpr(std::is_same_v<primitive_type, int>) {
+        return H5T_NATIVE_INT;
+    } else if constexpr(std::is_same_v<primitive_type, double>) {
+        return H5T_NATIVE_DOUBLE;
+    } else if constexpr(std::is_same_v<primitive_type, hsize_t>) {
+        return H5T_NATIVE_HSIZE;
+    } else {
+        static_assert(true, "Unsupported data type.");
+        return H5T_NATIVE_INT;
+    }
+}
 
 } // namespace Internals
 } // namespace HDF5
