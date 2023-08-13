@@ -27,7 +27,6 @@
 
 // Application includes
 #include "custom_io/hdf5_file.h"
-#include "custom_io/hdf5_file_serial.h"
 #include "custom_io/hdf5_model_part_io.h"
 #include "custom_io/hdf5_nodal_solution_step_data_io.h"
 #include "custom_io/hdf5_element_data_value_io.h"
@@ -91,10 +90,6 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("Close", &HDF5::File::Close)
         .def("GetFileSize",&HDF5::File::GetFileSize)
         .def("GetFileName",&HDF5::File::GetFileName)
-        ;
-
-    py::class_<HDF5::FileSerial, HDF5::FileSerial::Pointer, HDF5::File>(m,"HDF5FileSerial")
-        .def(py::init<Parameters&>())
         ;
 
     py::class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")

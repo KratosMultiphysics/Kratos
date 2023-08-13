@@ -19,7 +19,7 @@
 
 // Application includes
 #include "tests/test_utils.h"
-#include "custom_io/hdf5_file_serial.h"
+#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {

@@ -9,7 +9,6 @@ set( KRATOS_HDF5_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/hdf5_application.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/hdf5_application_variables.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_file_serial.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_model_part_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_properties_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_data_value_container_io.cpp

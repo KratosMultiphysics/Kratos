@@ -1,6 +1,6 @@
 #include "custom_processes/hdf5_xdmf_connectivities_writer_process.h"
 
-#include "custom_io/hdf5_file_serial.h"
+#include "custom_io/hdf5_file.h"
 #include "utilities/openmp_utils.h"
 #include "includes/kratos_parameters.h"
 
@@ -18,7 +18,7 @@ XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::stri
                 "file_access_mode": "read_write"
             })");
     file_params["file_name"].SetString(rFileName);
-    mpFile = FileSerial::Pointer(new FileSerial(file_params));
+    mpFile = File::Pointer(new File(file_params));
     mPrefix = rPrefix;
     std::string node_ids_path = mPrefix + "/Nodes/Local/Ids";
 

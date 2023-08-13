@@ -22,7 +22,7 @@
 
 // Application includes
 #include "custom_io/hdf5_condition_data_value_io.h"
-#include "custom_io/hdf5_file_serial.h"
+#include "custom_io/hdf5_file.h"
 #include "tests/test_utils.h"
 
 namespace Kratos
@@ -36,7 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionResults, KratosHDF5TestSui
         "file_access_mode": "exclusive",
         "file_driver": "core"
     })");
-    auto p_test_file = Kratos::make_shared<HDF5::FileSerial>(file_params);
+    auto p_test_file = Kratos::make_shared<HDF5::File>(file_params);
 
     Model this_model;
     ModelPart& r_read_model_part = this_model.CreateModelPart("test_read");
