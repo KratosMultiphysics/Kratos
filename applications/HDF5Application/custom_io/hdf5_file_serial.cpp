@@ -5,6 +5,7 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/builtin_timer.h"
 #include "input_output/logger.h"
+#include "utilities/data_type_traits.h"
 
 namespace
 {
@@ -232,18 +233,10 @@ void FileSerial::WriteDataSetVectorImpl(const std::string& rPath,
     // Create and write the data set.
     const hid_t dtype_id = Internals::GetScalarDataType(rData);
     const std::vector<hsize_t> dims = Internals::GetDataDimensions(rData);
-    const hid_t file_id = GetFileId();
     hid_t dset_id{}, dspace_id{};
-    if (!HasPath(rPath)) {
-        CreateNewDataSet(dset_id, dspace_id, dtype_id, dims, rPath);
-        KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(HasMatchingScalarDataType(rData, *this, rPath))
-            << "Wrong scalar data type: " << rPath << std::endl;
-        KRATOS_ERROR_IF(Internals::GetDataDimensions(*this, rPath) != dims)
-            << "Wrong dimensions: " << rPath << std::endl;
-        dset_id = OpenExistingDataSet(rPath);
-    }
+
+    GetDataSet<typename DataTypeTraits<T>::PrimitiveType>(dset_id, dspace_id, dims, rPath);
+    KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
 
     KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, &rData[0]) < 0)
         << "H5Dwrite failed." << std::endl;
@@ -278,17 +271,11 @@ void FileSerial::WriteDataSetMatrixImpl(const std::string& rPath,
     // Create and write the data set.
     const hid_t dtype_id = Internals::GetScalarDataType(rData);
     const std::vector<hsize_t> dims = Internals::GetDataDimensions(rData);
+
     hid_t dset_id{}, dspace_id{};
-    if (!HasPath(rPath)) {
-        CreateNewDataSet(dset_id, dspace_id, dtype_id, dims, rPath);
-        KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
-    } else {
-        KRATOS_ERROR_IF_NOT(HasMatchingScalarDataType(rData, *this, rPath))
-            << "Wrong scalar data type: " << rPath << std::endl;
-        KRATOS_ERROR_IF(Internals::GetDataDimensions(*this, rPath) != dims)
-            << "Wrong dimensions: " << rPath << std::endl;
-        dset_id = OpenExistingDataSet(rPath);
-    }
+    GetDataSet<typename DataTypeTraits<T>::PrimitiveType>(dset_id, dspace_id, dims, rPath);
+    KRATOS_ERROR_IF(H5Sclose(dspace_id) < 0) << "H5Sclose failed." << std::endl;
+
     KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, &rData(0, 0)) < 0)
         << "H5Dwrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;

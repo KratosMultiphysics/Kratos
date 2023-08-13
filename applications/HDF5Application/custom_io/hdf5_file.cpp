@@ -10,6 +10,7 @@
 #include "input_output/logger.h"
 #include "utilities/string_utilities.h"
 #include "includes/parallel_environment.h"
+#include "custom_utilities/h5_data_type_traits.h"
 
 namespace Kratos
 {
@@ -629,36 +630,12 @@ std::vector<unsigned> File::GetDataDimensions(const std::string& rPath) const
 
 bool File::HasIntDataType(const std::string& rPath) const
 {
-    KRATOS_TRY;
-    hid_t dset_id, dtype_id;
-    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT)) < 0)
-        << "H5Dopen failed." << std::endl;
-    KRATOS_ERROR_IF((dtype_id = H5Dget_type(dset_id)) < 0)
-        << "H5Dget_type failed." << std::endl;
-    H5T_class_t type = H5Tget_class(dtype_id);
-    KRATOS_ERROR_IF(type == H5T_NO_CLASS) << "Invalid data type." << std::endl;
-    KRATOS_ERROR_IF(H5Tclose(dtype_id) < 0) << "H5Tclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
-
-    return (type == H5T_INTEGER);
-    KRATOS_CATCH("");
+    return HasDataType<int>(rPath);
 }
 
 bool File::HasFloatDataType(const std::string& rPath) const
 {
-    KRATOS_TRY;
-    hid_t dset_id, dtype_id;
-    KRATOS_ERROR_IF((dset_id = H5Dopen(m_file_id, rPath.c_str(), H5P_DEFAULT)) < 0)
-        << "H5Dopen failed." << std::endl;
-    KRATOS_ERROR_IF((dtype_id = H5Dget_type(dset_id)) < 0)
-        << "H5Dget_type failed." << std::endl;
-    H5T_class_t type = H5Tget_class(dtype_id);
-    KRATOS_ERROR_IF(type == H5T_NO_CLASS) << "Invalid data type." << std::endl;
-    KRATOS_ERROR_IF(H5Tclose(dtype_id) < 0) << "H5Tclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
-
-    return (type == H5T_FLOAT);
-    KRATOS_CATCH("");
+    return HasDataType<double>(rPath);
 }
 
 void File::Flush()
@@ -1016,6 +993,59 @@ hid_t File::GetFileId() const
     return m_file_id;
 }
 
+template<class TDataType>
+bool File::HasDataType(const std::string& rPath) const
+{
+    KRATOS_TRY;
+
+    hid_t dset_id, dtype_id;
+
+    KRATOS_ERROR_IF((dset_id = H5Dopen(GetFileId(), rPath.c_str(), H5P_DEFAULT)) < 0)
+        << "H5Dopen failed." << std::endl;
+    KRATOS_ERROR_IF((dtype_id = H5Dget_type(dset_id)) < 0)
+        << "H5Dget_type failed." << std::endl;
+    H5T_class_t type = H5Tget_class(dtype_id);
+
+    KRATOS_ERROR_IF(type == H5T_NO_CLASS) << "Invalid data type." << std::endl;
+    KRATOS_ERROR_IF(H5Tclose(dtype_id) < 0) << "H5Tclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Dclose(dset_id) < 0) << "H5Dclose failed." << std::endl;
+
+    if constexpr(std::is_same_v<TDataType, int>) {
+        return (type == H5T_INTEGER);
+    } else if constexpr(std::is_same_v<TDataType, double>) {
+        return (type == H5T_FLOAT);
+    } else {
+        static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
+    }
+
+    KRATOS_CATCH("");
+}
+
+template<class TDataType>
+void File::GetDataSet(
+    hid_t& rDataSetId,
+    hid_t& rDataSpaceId,
+    const std::vector<hsize_t>& rDims,
+    const std::string& rPath)
+{
+    KRATOS_TRY
+
+    if (!HasPath(rPath)) {
+        CreateNewDataSet(rDataSetId, rDataSpaceId, Internals::GetH5DataType<TDataType>(), rDims, rPath);
+    } else {
+        KRATOS_ERROR_IF_NOT(HasDataType<TDataType>(rPath))
+            << "Wrong scalar data type: " << rPath << std::endl;
+        KRATOS_ERROR_IF(Internals::GetDataDimensions(*this, rPath) != rDims)
+            << "Wrong dimensions: " << rPath << std::endl;
+
+        rDataSetId = OpenExistingDataSet(rPath);
+        KRATOS_ERROR_IF(rDataSetId < 0) << "H5Dopen failed." << std::endl;
+        rDataSpaceId = H5Dget_space(rDataSetId);
+    }
+
+    KRATOS_CATCH("");
+}
+
 void File::CreateNewDataSet(
     hid_t& rDataSetId,
     hid_t& rDataSpaceId,
@@ -1075,6 +1105,9 @@ void File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
 #endif
     KRATOS_CATCH("");
 }
+
+template void File::GetDataSet<int>(hid_t&, hid_t&, const std::vector<hsize_t>&, const std::string&);
+template void File::GetDataSet<double>(hid_t&, hid_t&, const std::vector<hsize_t>&, const std::string&);
 
 template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, int Value);
 template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, double Value);

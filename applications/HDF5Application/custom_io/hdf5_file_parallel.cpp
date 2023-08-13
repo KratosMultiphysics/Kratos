@@ -219,9 +219,6 @@ void FileParallel::WriteDataSetImpl(
 
     BuiltinTimer timer;
 
-    // Expects a valid free path.
-    KRATOS_ERROR_IF(HasPath(rPath)) << "Path already exists: " << rPath << std::endl;
-
     // Create any missing subpaths.
     auto pos = rPath.find_last_of('/');
     if (pos != 0) {// Skip if last '/' is root.
@@ -274,7 +271,7 @@ void FileParallel::WriteDataSetImpl(
 
     // Create and write the data set.
     hid_t dset_id{}, fspace_id{};
-    CreateNewDataSet(dset_id, fspace_id, dtype_id, global_shape, rPath);
+    GetDataSet<typename type_trait::PrimitiveType>(dset_id, fspace_id, global_shape, rPath);
 
     if (r_data_communicator.IsDistributed()) {
         if (Mode == DataTransferMode::collective) {

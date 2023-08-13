@@ -174,6 +174,9 @@ public:
 
     bool HasFloatDataType(const std::string& rPath) const;
 
+    template<class TDataType>
+    bool HasDataType(const std::string& rPath) const;
+
     void Flush();
 
     /// Terminate access to the HDF5 file.
@@ -281,6 +284,13 @@ protected:
 
     hid_t GetFileId() const;
 
+    template<class TDataType>
+    void GetDataSet(
+        hid_t& rDataSetId,
+        hid_t& rDataSpaceId,
+        const std::vector<hsize_t>& rDims,
+        const std::string& rPath);
+
     void CreateNewDataSet(
         hid_t& rDataSetId,
         hid_t& rDataSpaceId,
@@ -308,9 +318,10 @@ private:
 
     ///@name Private Operations
     ///@{
-    void SetFileDriver(const std::string& rDriver, hid_t FileAccessPropertyListId) const;
-    ///@}
 
+    void SetFileDriver(const std::string& rDriver, hid_t FileAccessPropertyListId) const;
+
+    ///@}
 };
 
 extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, int Value);
