@@ -249,13 +249,13 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.model_part.CloneTimeStep(time)
             self.model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             process.ExecuteFinalizeSolutionStep()
-        self.assertEqual(self.HDF5FileSerial.call_count, 2)
+        self.assertEqual(self.HDF5File.call_count, 2)
         self.assertEqual(
             self.HDF5File.call_args[0][0]['file_name'].GetString(), 'kratos-0.2000.h5')
         self.assertEqual(
             self.HDF5File.call_args[0][0]['file_access_mode'].GetString(), 'exclusive')
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]['echo_level'].GetInt(), 0)
+            self.HDF5File.call_args[0][0]['echo_level'].GetInt(), 0)
         self.assertEqual(self.HDF5ModelPartIO.call_count, 2)
         self.HDF5ModelPartIO.assert_called_with(
             self.HDF5File.return_value, '/ModelData')
