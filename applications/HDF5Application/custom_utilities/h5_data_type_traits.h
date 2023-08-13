@@ -39,7 +39,7 @@ template <class TDataType> hid_t inline GetPrimitiveH5Type()
     } else if constexpr(std::is_same_v<primitive_type, hsize_t>) {
         return H5T_NATIVE_HSIZE;
     } else {
-        static_assert(true, "Unsupported data type.");
+        static_assert(!std::is_same_v<primitive_type, primitive_type>, "Unsupported data type.");
     }
 }
 
