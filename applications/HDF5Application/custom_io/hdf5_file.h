@@ -20,17 +20,16 @@
 // External includes
 
 // Project includes
-#include "includes/define.h"
-#include "includes/data_communicator.h"
 #include "containers/array_1d.h"
+#include "includes/data_communicator.h"
+#include "includes/define.h"
+#include "includes/kratos_parameters.h"
 
 // Application includes
 #include "hdf5_application_define.h"
 
 namespace Kratos
 {
-
-class Parameters;
 
 namespace HDF5
 {

@@ -42,7 +42,6 @@ namespace HDF5
  */
 class KRATOS_API(HDF5_APPLICATION) FileParallel : public File
 {
-    enum class DataTransferMode { independent, collective };
 public:
     ///@name Type Definitions
     ///@{
