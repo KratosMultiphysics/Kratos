@@ -334,139 +334,48 @@ void File::AddPath(const std::string& rPath)
     }
 }
 
-template <class TScalar>
-void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, TScalar Value)
+template<class TDataType>
+void File::WriteAttribute(
+    const std::string& rObjectPath,
+    const std::string& rName,
+    const TDataType& rValue)
 {
     KRATOS_TRY;
+
+    using type_traits = DataTypeTraits<TDataType>;
+
+    static_assert(type_traits::IsContiguous, "Attributes needs to have data contiguous in memory.");
+
+    constexpr auto local_dimension = type_traits::Dimension;
+
     BuiltinTimer timer;
     hid_t type_id, space_id, attr_id;
-    if (HasAttribute(rObjectPath, rName))
-    {
+
+    if (HasAttribute(rObjectPath, rName)) {
         DeleteAttribute(rObjectPath, rName);
     }
-    type_id = Internals::GetPrimitiveH5Type<TScalar>();
-    space_id = H5Screate(H5S_SCALAR);
+
+    if constexpr(local_dimension == 0) {
+        space_id = H5Screate(H5S_SCALAR);
+    } else {
+        std::vector<hsize_t> shape(local_dimension);
+        type_traits::Shape(rValue, shape.data(), shape.data() + local_dimension);
+        space_id = H5Screate_simple(local_dimension, shape.data(), nullptr);
+    }
+
     KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
-    attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
-                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
+
+    type_id = Internals::GetPrimitiveH5Type<TDataType>();
+    attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id, space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
-    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &Value) < 0) << "H5Awrite failed." << std::endl;
+    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, type_traits::GetContiguousData(rValue)) < 0) << "H5Awrite failed." << std::endl;
     KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+
     KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
         << "Write time \"" << rObjectPath << '/' << rName
         << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
-}
 
-template <class TScalar>
-void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::vector<TScalar>& rValue)
-{
-    KRATOS_TRY;
-    BuiltinTimer timer;
-    hid_t type_id, space_id, attr_id;
-    if (HasAttribute(rObjectPath, rName))
-    {
-        DeleteAttribute(rObjectPath, rName);
-    }
-    type_id = Internals::GetPrimitiveH5Type<TScalar>();
-    const hsize_t dim = rValue.size();
-    space_id = H5Screate_simple(1, &dim, nullptr);
-    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
-    attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
-                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
-    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue[0]) < 0) << "H5Awrite failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
-        << "Write time \"" << rObjectPath << '/' << rName
-        << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
-}
-
-template <class TScalar>
-void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<TScalar>& rValue)
-{
-    KRATOS_TRY;
-    BuiltinTimer timer;
-    hid_t type_id, space_id, attr_id;
-    if (HasAttribute(rObjectPath, rName))
-    {
-        DeleteAttribute(rObjectPath, rName);
-    }
-    type_id = Internals::GetPrimitiveH5Type<TScalar>();
-    const hsize_t dim = rValue.size();
-    space_id = H5Screate_simple(1, &dim, nullptr);
-    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
-    attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
-                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
-    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue[0]) < 0) << "H5Awrite failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
-        << "Write time \"" << rObjectPath << '/' << rName
-        << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
-}
-
-template <class TScalar>
-void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<TScalar>& rValue)
-{
-    KRATOS_TRY;
-    BuiltinTimer timer;
-    hid_t type_id, space_id, attr_id;
-    if (HasAttribute(rObjectPath, rName))
-    {
-        DeleteAttribute(rObjectPath, rName);
-    }
-    type_id = Internals::GetPrimitiveH5Type<TScalar>();
-    const std::array<hsize_t, 2> dims = {rValue.size1(), rValue.size2()};
-    space_id = H5Screate_simple(dims.size(), dims.data(), nullptr);
-    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
-    attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
-                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
-    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, &rValue(0,0)) < 0) << "H5Awrite failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
-        << "Write time \"" << rObjectPath << '/' << rName
-        << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
-}
-
-void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::string& rValue)
-{
-    KRATOS_TRY;
-    BuiltinTimer timer;
-    hid_t type_id, space_id, attr_id;
-    if (HasAttribute(rObjectPath, rName))
-    {
-        DeleteAttribute(rObjectPath, rName);
-    }
-    type_id = H5T_NATIVE_CHAR;
-    const std::array<hsize_t, 1> dims = {rValue.size()};
-    space_id = H5Screate_simple(dims.size(), dims.data(), nullptr);
-    KRATOS_ERROR_IF(space_id < 0) << "H5Screate failed." << std::endl;
-    attr_id = H5Acreate_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), type_id,
-                                space_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT);
-    KRATOS_ERROR_IF(attr_id < 0) << "H5Acreate_by_name failed." << std::endl;
-    KRATOS_ERROR_IF(H5Awrite(attr_id, type_id, rValue.c_str()) < 0) << "H5Awrite failed." << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
-    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
-    KRATOS_INFO_IF("HDF5Application", GetEchoLevel() == 2)
-        << "Write time \"" << rObjectPath << '/' << rName
-        << "\": " << timer.ElapsedSeconds() << std::endl;
-    KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
-}
-
-void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const array_1d<double, 3>& rValue)
-{
-    KRATOS_TRY;
-    Vector<double> vector_value = rValue;
-    WriteAttribute(rObjectPath, rName, vector_value);
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
 }
 
@@ -1045,13 +954,18 @@ void File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
 template void File::GetDataSet<int>(hid_t&, hid_t&, const std::vector<hsize_t>&, const std::string&);
 template void File::GetDataSet<double>(hid_t&, hid_t&, const std::vector<hsize_t>&, const std::string&);
 
-template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, int Value);
-template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, double Value);
-template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::vector<hsize_t>& rValue);
-template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<int>& rValue);
-template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<double>& rValue);
-template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<int>& rValue);
-template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<double>& rValue);
+template void File::WriteAttribute(const std::string&, const std::string&, const int&);
+template void File::WriteAttribute(const std::string&, const std::string&, const double&);
+template void File::WriteAttribute(const std::string&, const std::string&, const std::string&);
+template void File::WriteAttribute(const std::string&, const std::string&, const std::vector<hsize_t>&);
+template void File::WriteAttribute(const std::string&, const std::string&, const Vector<int>&);
+template void File::WriteAttribute(const std::string&, const std::string&, const Vector<double>&);
+template void File::WriteAttribute(const std::string&, const std::string&, const Matrix<int>&);
+template void File::WriteAttribute(const std::string&, const std::string&, const Matrix<double>&);
+template void File::WriteAttribute(const std::string&, const std::string&, const array_1d<double, 3>&);
+template void File::WriteAttribute(const std::string&, const std::string&, const array_1d<double, 4>&);
+template void File::WriteAttribute(const std::string&, const std::string&, const array_1d<double, 6>&);
+template void File::WriteAttribute(const std::string&, const std::string&, const array_1d<double, 9>&);
 
 template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, int& rValue);
 template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, double& rValue);

@@ -10,8 +10,7 @@
 //  Main author:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_HDF5_FILE_H_INCLUDED)
-#define KRATOS_HDF5_FILE_H_INCLUDED
+#pragma once
 
 // System includes
 #include <vector>
@@ -117,21 +116,11 @@ public:
 
     void AddPath(const std::string& rPath);
 
-    template<class TScalar>
-    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, TScalar Value);
-
-    template<class TScalar>
-    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::vector<TScalar>& rValue);
-
-    template<class TScalar>
-    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<TScalar>& rValue);
-
-    template<class TScalar>
-    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<TScalar>& rValue);
-
-    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const std::string& rValue);
-
-    void WriteAttribute(const std::string& rObjectPath, const std::string& rName, const array_1d<double, 3>& rValue);
+    template<class TDataType>
+    void WriteAttribute(
+        const std::string& rObjectPath,
+        const std::string& rName,
+        const TDataType& rValue);
 
     /// Write a data set to the HDF5 file.
     /**
@@ -324,13 +313,6 @@ private:
     ///@}
 };
 
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, int Value);
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, double Value);
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<int>& rValue);
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Vector<double>& rValue);
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<int>& rValue);
-extern template void File::WriteAttribute(const std::string& rObjectPath, const std::string& rName, const Matrix<double>& rValue);
-
 extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, int& rValue);
 extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, double& rValue);
 extern template void File::ReadAttribute(const std::string& rObjectPath, const std::string& rName, Vector<int>& rValue);
@@ -371,5 +353,3 @@ std::vector<hsize_t> GetDataDimensions(const File& rFile, const std::string& rPa
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.
-
-#endif // KRATOS_HDF5_FILE_H_INCLUDED defined
