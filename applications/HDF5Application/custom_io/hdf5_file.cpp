@@ -1028,6 +1028,13 @@ void File::CreateNewDataSet(
     KRATOS_ERROR_IF(rDataSetId < 0) << "H5Dcreate failed." << std::endl;
 }
 
+hid_t File::OpenExistingDataSet(const std::string& rPath)
+{
+    const hid_t dset_id = H5Dopen(GetFileId(), rPath.c_str(), H5P_DEFAULT);
+    KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
+    return dset_id;
+}
+
 void File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
 {
     KRATOS_TRY;

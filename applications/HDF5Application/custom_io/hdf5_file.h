@@ -288,6 +288,8 @@ protected:
         const std::vector<hsize_t>& rDims,
         const std::string& rPath);
 
+    hid_t OpenExistingDataSet(const std::string& rPath);
+
     ///@}
 
 private:

@@ -13,14 +13,6 @@ namespace hdf5_file_serial_cpp
 using namespace Kratos;
 using namespace HDF5;
 
-hid_t OpenExistingDataSet(const hid_t FileId,
-                          const std::string& rPath)
-{
-    const hid_t dset_id = H5Dopen(FileId, rPath.c_str(), H5P_DEFAULT);
-    KRATOS_ERROR_IF(dset_id < 0) << "H5Dopen failed." << std::endl;
-    return dset_id;
-}
-
 bool HasMatchingScalarDataType(const HDF5::Vector<int>&, const File& rFile, const std::string& rPath)
 {
     return rFile.HasIntDataType(rPath);
@@ -250,7 +242,7 @@ void FileSerial::WriteDataSetVectorImpl(const std::string& rPath,
             << "Wrong scalar data type: " << rPath << std::endl;
         KRATOS_ERROR_IF(Internals::GetDataDimensions(*this, rPath) != dims)
             << "Wrong dimensions: " << rPath << std::endl;
-        dset_id = OpenExistingDataSet(file_id, rPath);
+        dset_id = OpenExistingDataSet(rPath);
     }
 
     KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, &rData[0]) < 0)
@@ -296,7 +288,7 @@ void FileSerial::WriteDataSetMatrixImpl(const std::string& rPath,
             << "Wrong scalar data type: " << rPath << std::endl;
         KRATOS_ERROR_IF(Internals::GetDataDimensions(*this, rPath) != dims)
             << "Wrong dimensions: " << rPath << std::endl;
-        dset_id = OpenExistingDataSet(file_id, rPath);
+        dset_id = OpenExistingDataSet(rPath);
     }
     KRATOS_ERROR_IF(H5Dwrite(dset_id, dtype_id, H5S_ALL, H5S_ALL, H5P_DEFAULT, &rData(0, 0)) < 0)
         << "H5Dwrite failed." << std::endl;
