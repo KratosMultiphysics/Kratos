@@ -12,6 +12,14 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
     This class contains tests which check if custom parameter fields are correctly added to the model
     """
 
+    def test_variable_exists_in_python(self):
+        """
+        Test to check if the variable exists in python
+
+        """
+        variable_name = "UMAT_PARAMETERS"
+        self.assertTrue(hasattr(KratosGeo, variable_name))
+
     def test_parameter_field_with_function(self):
         """
         Test to check if values from a function defined parameter field are correctly added to each individual element
