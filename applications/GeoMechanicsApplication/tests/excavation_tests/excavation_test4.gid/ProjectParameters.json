@@ -120,24 +120,6 @@
             "deactivate_soil_part":             true
         }
     }],
-        "python_module": "apply_excavation_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyExcavationProcess",
-        "Parameters":    {
-            "model_part_name":      "PorousDomain.Excavation-auto-1",
-            "variable_name":        "EXCAVATION",
-            "deactivate_soil_part":             true
-        }
-    }],
-        "python_module": "apply_excavation_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyExcavationProcess",
-        "Parameters":    {
-            "model_part_name":      "PorousDomain.Excavation-auto-1",
-            "variable_name":        "EXCAVATION",
-            "deactivate_soil_part":             true
-        }
-    }],
     "loads_process_list": [{
         "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
