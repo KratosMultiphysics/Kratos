@@ -485,6 +485,8 @@ void File::WriteAttribute(
     const std::string& rObjectPath,
     const Parameters Attributes)
 {
+    KRATOS_TRY
+
     for (auto itr = Attributes.begin(); itr != Attributes.end(); ++itr) {
         const auto attrib_name = itr.name();
 
@@ -526,6 +528,8 @@ void File::WriteAttribute(
             KRATOS_ERROR << "Only supports following data types:\n\tint\n\tdouble\n\tstring\n\tVector\n\tMatrix\n\tIntArray\n\tDoubleArray";
         }
     }
+
+    KRATOS_CATCH("");
 }
 
 template<class TDataType>
@@ -677,6 +681,66 @@ void File::ReadAttribute(
         << "\": " << timer.ElapsedSeconds() << std::endl;
 
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
+}
+
+Parameters File::ReadAttribute(const std::string& rObjectPath)
+{
+    KRATOS_TRY
+
+    Parameters result;
+
+    const auto& attribute_names = GetAttributeNames(rObjectPath);
+
+    for (const auto& attribute_name : attribute_names) {
+        const auto& shape = GetAttributeDimensions(rObjectPath, attribute_name);
+
+        if (HasAttributeType<int>(rObjectPath, attribute_name)) {
+            if (shape.size() == 0) {
+                int value{};
+                ReadAttribute(rObjectPath, attribute_name, value);
+                result.AddInt(attribute_name, value);
+            } else if (shape.size() == 1) {
+                Vector<int> values;
+                ReadAttribute(rObjectPath, attribute_name, values);
+                result.AddEmptyArray(attribute_name);
+                for (const auto v : values) {
+                    result["attribute_name"].Append(v);
+                }
+            } else {
+                KRATOS_ERROR << "Unsupported dimension for int data type.";
+            }
+        } else if (HasAttributeType<double>(rObjectPath, attribute_name)) {
+            if (shape.size() == 0) {
+                double value{};
+                ReadAttribute(rObjectPath, attribute_name, value);
+                result.AddDouble(attribute_name, value);
+            } else if (shape.size() == 1) {
+                Vector<double> values;
+                ReadAttribute(rObjectPath, attribute_name, values);
+                result.AddVector(attribute_name, values);
+            } else if (shape.size() == 2) {
+                Matrix<double> values;
+                ReadAttribute(rObjectPath, attribute_name, values);
+                result.AddMatrix(attribute_name, values);
+            } else {
+                KRATOS_ERROR << "Unsupported dimension for double data type.";
+            }
+        } else if (HasAttributeType<char>(rObjectPath, attribute_name)) {
+            if (shape.size() != 0) {
+                std::string values;
+                ReadAttribute(rObjectPath, attribute_name, values);
+                result.AddString(attribute_name, values);
+            } else {
+                KRATOS_ERROR << "Unsupported std::string type.";
+            }
+        } else {
+            KRATOS_ERROR << "Unsupported data type.";
+        }
+    }
+
+    return result;
+
+    KRATOS_CATCH("");
 }
 
 template<class TDataType>

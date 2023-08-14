@@ -402,6 +402,14 @@ public:
         TDataType& rValue);
 
     /**
+     * @brief Read attributes to Parameters object from dataset or group.
+     *
+     * @param rObjectPath           Dataset or group path.
+     * @return Parameters           Parameters object containing attribute name, value pairs.
+     */
+    Parameters ReadAttribute(const std::string& rObjectPath);
+
+    /**
      * @brief Read a data set from the HDF5 file.
      *
      * Performs collective read in MPI. Throws if out of range.
