@@ -481,6 +481,53 @@ void File::WriteAttribute(
     KRATOS_CATCH("Path: \"" + rObjectPath + '/' + rName + "\".");
 }
 
+void File::WriteAttribute(
+    const std::string& rObjectPath,
+    const Parameters Attributes)
+{
+    for (auto itr = Attributes.begin(); itr != Attributes.end(); ++itr) {
+        const auto attrib_name = itr.name();
+
+        if (itr->IsInt()) {
+            WriteAttribute(rObjectPath, attrib_name, itr->GetInt());
+        } else if (itr->IsDouble()) {
+            WriteAttribute(rObjectPath, attrib_name, itr->GetDouble());
+        } else if (itr->IsString()) {
+            WriteAttribute(rObjectPath, attrib_name, itr->GetString());
+        } else if (itr->IsVector()) {
+            WriteAttribute(rObjectPath, attrib_name, itr->GetVector());
+        } else if (itr->IsMatrix()) {
+            WriteAttribute(rObjectPath, attrib_name, itr->GetMatrix());
+        } else if (itr->IsArray()) {
+            bool is_int_array = true;
+            bool is_double_array = true;
+
+            for (const auto& v : *itr) {
+                is_int_array = is_int_array && v.IsInt();
+                is_double_array = is_double_array && v.IsDouble();
+            }
+
+            if (is_int_array) {
+                Vector<int> values(itr->size());
+                for (unsigned int i = 0; i < values.size(); ++i) {
+                    values[i] = itr->GetArrayItem(i).GetInt();
+                }
+                WriteAttribute(rObjectPath, attrib_name, values);
+            } else if (is_double_array) {
+                Vector<double> values(itr->size());
+                for (unsigned int i = 0; i < values.size(); ++i) {
+                    values[i] = itr->GetArrayItem(i).GetDouble();
+                }
+                WriteAttribute(rObjectPath, attrib_name, values);
+            } else {
+                KRATOS_ERROR << "Only supports int or double arrays.";
+            }
+        } else {
+            KRATOS_ERROR << "Only supports following data types:\n\tint\n\tdouble\n\tstring\n\tVector\n\tMatrix\n\tIntArray\n\tDoubleArray";
+        }
+    }
+}
+
 template<class TDataType>
 void File::WriteDataSet(
     const std::string& rPath,
@@ -834,7 +881,7 @@ void File::WriteDataSetImpl(
     std::vector<hsize_t> global_shape(global_dimension, 0), local_reduced_shape(global_dimension, 0), local_shape_start(global_dimension, 0);
 
     // get total number of items to be written in the data set to the first dimension.
-    global_shape[0] = r_data_communicator.SumAll(local_shape[0]);
+    global_shape[0] = r_data_communicator.SumAll(static_cast<unsigned int>(local_shape[0]));
     local_reduced_shape[0] = local_shape[0];
 
     if constexpr(global_dimension > 1) {
@@ -869,7 +916,7 @@ void File::WriteDataSetImpl(
     } else {
         #ifdef KRATOS_USING_MPI
             if constexpr(TDataTransferMode == DataTransferMode::Collective) {
-                local_shape_start[0] = r_data_communicator.ScanSum(local_reduced_shape[0]) - local_reduced_shape[0];
+                local_shape_start[0] = r_data_communicator.ScanSum(static_cast<unsigned int>(local_reduced_shape[0])) - local_reduced_shape[0];
             }
 
             if (TDataTransferMode == DataTransferMode::Collective || number_of_local_primitive_data_values > 0) {

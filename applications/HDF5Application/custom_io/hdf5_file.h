@@ -243,6 +243,16 @@ public:
         const TDataType& rValue);
 
     /**
+     * @brief Write attributes in Parameters object to dataset or group.
+     *
+     * @param rObjectPath           Dataset or group path.
+     * @param Attributes            Attributes to be written to.
+     */
+    void WriteAttribute(
+        const std::string& rObjectPath,
+        const Parameters Attributes);
+
+    /**
      * @brief Write data set to the hDF5 file.
      *
      * Performs collective write in MPI. The data is written blockwise according to
