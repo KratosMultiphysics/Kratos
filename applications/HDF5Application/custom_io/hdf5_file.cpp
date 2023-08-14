@@ -796,6 +796,8 @@ bool File::HasDataType(const std::string& rPath) const
         return (type == H5T_INTEGER);
     } else if constexpr(std::is_same_v<TDataType, double>) {
         return (type == H5T_FLOAT);
+    } else if constexpr(std::is_same_v<TDataType, char>) {
+        return (type == H5T_INTEGER);
     } else {
         static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
     }
@@ -1165,6 +1167,7 @@ KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 4>);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 6>);
 KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(array_1d<double, 9>);
 
+KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<char>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<int>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<double>);
 KRATOS_HDF5_FILE_DATA_SET_METHOD_INSTANTIATION(Vector<array_1d<double, 3>>);
