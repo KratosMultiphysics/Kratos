@@ -788,7 +788,7 @@ void File::WriteDataSetImpl(
         if constexpr(type_trait::template IsDimensionDynamic<1>()) {
             // this is the matrix version. Hence it is better to get the max size
             // from all ranks.
-            const auto max_size = r_data_communicator.MaxAll(local_shape[1]);
+            const auto max_size = r_data_communicator.MaxAll(static_cast<unsigned int>(local_shape[1]));
 
             // now check every non-empty ranks have the same sizes since this dimension
             // is a dynamic dimension.
