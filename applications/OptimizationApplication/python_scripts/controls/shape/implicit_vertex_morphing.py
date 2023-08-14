@@ -141,10 +141,16 @@ class ImplicitVertexMorphing(ShapeControl):
         for node, distance in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, distances):
             shape_update = node.GetSolutionStepValue(KOA.D_X)
             norm = np.sqrt(shape_update[0]* shape_update[0] + shape_update[1]* shape_update[1] + shape_update[2]* shape_update[2])
-            if norm > 0.0:
-                shape_update /= norm
-            shape_update *= distance
-            node.SetSolutionStepValue(KOA.AUXILIARY_FIELD,shape_update)
+            if norm > 0.4 * distance:
+                shape_update = 0.4 * distance * shape_update / norm
+            # if norm > 0.0:
+            #     shape_update /= norm
+            # shape_update *= distance
+            node.SetSolutionStepValue(KOA.D_X,shape_update)
+
+
+
+            # node.SetSolutionStepValue(KOA.AUXILIARY_FIELD,shape_update)
 
         self.implicit_vertex_morphing.Update()
 
