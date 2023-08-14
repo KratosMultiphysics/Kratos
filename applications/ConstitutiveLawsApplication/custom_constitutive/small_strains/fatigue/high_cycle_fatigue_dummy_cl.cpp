@@ -256,16 +256,16 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
     mFatigueData.mWohlerStress = wohler_stress;
     mFatigueData.mThresholdStress = s_th;
 
-    KRATOS_WATCH(max_stress);
-    KRATOS_WATCH(min_stress);
-    KRATOS_WATCH(max_indicator);
-    KRATOS_WATCH(min_indicator);
-    KRATOS_WATCH(global_number_of_cycles);
-    KRATOS_WATCH(fatigue_reduction_factor);
-    KRATOS_WATCH(wohler_stress);
-    KRATOS_WATCH(s_th);
-    KRATOS_WATCH(B0);
-    KRATOS_WATCH(cycles_to_failure);
+    // KRATOS_WATCH(max_stress);
+    // KRATOS_WATCH(min_stress);
+    // KRATOS_WATCH(max_indicator);
+    // KRATOS_WATCH(min_indicator);
+    // KRATOS_WATCH(global_number_of_cycles);
+    // KRATOS_WATCH(fatigue_reduction_factor);
+    // KRATOS_WATCH(wohler_stress);
+    // KRATOS_WATCH(s_th);
+    // KRATOS_WATCH(B0);
+    // KRATOS_WATCH(cycles_to_failure);
 
 
     KRATOS_CATCH("");
