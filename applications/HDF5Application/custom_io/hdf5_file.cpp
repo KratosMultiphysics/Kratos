@@ -27,6 +27,9 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/data_type_traits.h"
 #include "utilities/string_utilities.h"
+#ifdef KRATOS_USING_MPI
+#include "mpi/includes/mpi_data_communicator.h"
+#endif
 
 // Application includes
 #include "custom_utilities/h5_data_type_traits.h"
@@ -732,7 +735,7 @@ void File::SetFileDriver(const std::string& rDriver, hid_t FaplId) const
     else if (rDriver == "mpio")
     {
 #if defined(KRATOS_USING_MPI)
-        KRATOS_ERROR_IF(H5Pset_fapl_mpio(FaplId, MPI_COMM_WORLD, MPI_INFO_NULL) < 0)
+        KRATOS_ERROR_IF(H5Pset_fapl_mpio(FaplId, MPIDataCommunicator::GetMPICommunicator(GetDataCommunicator()), MPI_INFO_NULL) < 0)
             << "H5Pset_fapl_mpio failed." << std::endl;
 #else
         KRATOS_ERROR
