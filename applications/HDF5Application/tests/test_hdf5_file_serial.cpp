@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet8, KratosHDF5TestSuite)
         HDF5::File::Vector<int> data_in;
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.ReadDataSet("/data", data_in, 0, data_out.size());
-            , "Wrong scalar data type: /data");
+            , "Data type mismatch at /data");
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
@@ -250,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet13, KratosHDF5TestSuite)
         HDF5::File::Matrix<int> data_in;
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.ReadDataSet("/data", data_in, 0, data_out.size1());
-            , "Wrong scalar data type: /data");
+            , "Data type mismatch at /data");
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.

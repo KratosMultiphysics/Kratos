@@ -807,7 +807,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute8, KratosHDF5TestSuite)
         double attr_in;
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.ReadAttribute("/foo", "ATTRIBUTE", attr_in);
-            , "Attribute \"ATTRIBUTE\" is not scalar.")
+            , "Attribute \"ATTRIBUTE\" has dimension mismatch [ memory dimension = 0, file dimension = 1 ].")
     }
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -824,7 +824,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute9, KratosHDF5TestSuite)
         HDF5::File::Vector<double> attr_in;
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.ReadAttribute("/foo", "ATTRIBUTE", attr_in);
-            , "Attribute \"ATTRIBUTE\" is not vector.")
+            , "Attribute \"ATTRIBUTE\" has dimension mismatch [ memory dimension = 1, file dimension = 0 ].")
     }
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -841,7 +841,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute10, KratosHDF5TestSuite)
         HDF5::File::Matrix<double> attr_in;
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.ReadAttribute("/foo", "ATTRIBUTE", attr_in);
-            , "Attribute \"ATTRIBUTE\" is not matrix.")
+            , "Attribute \"ATTRIBUTE\" has dimension mismatch [ memory dimension = 2, file dimension = 0 ]")
     }
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -858,7 +858,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute11, KratosHDF5TestSuite)
         std::string attr_in;
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.ReadAttribute("/foo", "ATTRIBUTE", attr_in);
-            , "Attribute \"ATTRIBUTE\" is not a string.")
+            , "Memory and file data types are different.")
     }
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -915,18 +915,44 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute14, KratosHDF5TestSuite)
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
 
-KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute15, KratosHDF5TestSuite)
+KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadWriteParameterAttribute1, KratosHDF5TestSuite)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     {
+        Parameters attr_out = Parameters(R"(
+        {
+            "int"      : 2,
+            "double"   : 3.0,
+            "string"   : "this is a string",
+            "vector"   : [1.0, 2.0, 3.0, 4.0, 5.0],
+            "matrix"   : [[1.0, 2.0], [2.0, 3.0]],
+            "int_array": [1, 2, 3, 4]
+        })" );
+
         auto test_file = GetTestFile();
-        std::string attr_out(101, 'a');
         test_file.CreateGroup("/foo");
-        test_file.WriteAttribute("/foo", "ATTRIBUTE", attr_out);
-        std::string attr_in;
-        KRATOS_CHECK_EXCEPTION_IS_THROWN(
-            test_file.ReadAttribute("/foo", "ATTRIBUTE", attr_in);
-            , "Error: String size is greater than 100.")
+        test_file.WriteAttribute("/foo", attr_out);
+
+        const auto attr_in = test_file.ReadAttribute("/foo");
+
+        KRATOS_CHECK(attr_in["int"].IsInt() && attr_in["int"].GetInt() == 2);
+        KRATOS_CHECK(attr_in["double"].IsDouble() && attr_in["double"].GetDouble() == 3.0);
+        KRATOS_CHECK(attr_in["string"].IsString() && attr_in["string"].GetString() == "this is a string");
+        array_1d<double, 5> vec_values{1, 2, 3, 4, 5};
+        KRATOS_CHECK(attr_in["vector"].IsVector());
+        KRATOS_CHECK_VECTOR_EQUAL(attr_in["vector"].GetVector(), vec_values);
+        Matrix mat_values(2, 2);
+        mat_values.data()[0] = 1;
+        mat_values.data()[1] = 2;
+        mat_values.data()[2] = 2;
+        mat_values.data()[3] = 3;
+        KRATOS_CHECK(attr_in["matrix"].IsMatrix());
+        KRATOS_CHECK_MATRIX_EQUAL(attr_in["matrix"].GetMatrix(), mat_values);
+        KRATOS_CHECK(attr_in["int_array"].IsArray());
+        int local_index = 1;
+        for (const auto& v : attr_in["int_array"]) {
+            KRATOS_CHECK(v.IsInt() && v.GetInt() == (local_index++));
+        }
     }
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););

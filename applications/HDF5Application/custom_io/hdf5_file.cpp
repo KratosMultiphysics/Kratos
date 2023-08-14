@@ -255,6 +255,7 @@ bool File::HasAttributeType(
     auto mem_type_id = Internals::GetPrimitiveH5Type<TDataType>();
 
     auto attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
 
     auto attr_type_id = H5Aget_type(attr_id);
     KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
@@ -277,6 +278,7 @@ std::vector<hsize_t> File::GetAttributeDimensions(
     KRATOS_TRY
 
     auto attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT, H5P_DEFAULT);
+    KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
 
     auto space_id = H5Aget_space(attr_id);
     KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
@@ -496,11 +498,10 @@ void File::WriteAttribute(
             WriteAttribute(rObjectPath, attrib_name, itr->GetDouble());
         } else if (itr->IsString()) {
             WriteAttribute(rObjectPath, attrib_name, itr->GetString());
-        } else if (itr->IsVector()) {
-            WriteAttribute(rObjectPath, attrib_name, itr->GetVector());
         } else if (itr->IsMatrix()) {
             WriteAttribute(rObjectPath, attrib_name, itr->GetMatrix());
-        } else if (itr->IsArray()) {
+        } else if (itr->IsVector()) {
+            WriteAttribute(rObjectPath, attrib_name, itr->GetVector());
             bool is_int_array = true;
             bool is_double_array = true;
 
@@ -516,16 +517,12 @@ void File::WriteAttribute(
                 }
                 WriteAttribute(rObjectPath, attrib_name, values);
             } else if (is_double_array) {
-                Vector<double> values(itr->size());
-                for (unsigned int i = 0; i < values.size(); ++i) {
-                    values[i] = itr->GetArrayItem(i).GetDouble();
-                }
-                WriteAttribute(rObjectPath, attrib_name, values);
+                WriteAttribute(rObjectPath, attrib_name, itr->GetVector());
             } else {
                 KRATOS_ERROR << "Only supports int or double arrays.";
             }
         } else {
-            KRATOS_ERROR << "Only supports following data types:\n\tint\n\tdouble\n\tstring\n\tVector\n\tMatrix\n\tIntArray\n\tDoubleArray";
+            KRATOS_ERROR << "Only supports following data types:\n\tint\n\tdouble\n\tstring\n\tVector\n\tMatrix\n\tIntArray";
         }
     }
 
@@ -658,6 +655,7 @@ void File::ReadAttribute(
 
     KRATOS_ERROR_IF_NOT(HasAttributeType<TDataType>(rObjectPath, rName))
         << "Memory and file data types are different." << std::endl;
+
     const auto& shape = GetAttributeDimensions(rObjectPath, rName);
     KRATOS_ERROR_IF(shape.size() != local_dimension)
         << "Attribute \"" << rName << "\" has dimension mismatch [ memory dimension = "
@@ -704,7 +702,7 @@ Parameters File::ReadAttribute(const std::string& rObjectPath)
                 ReadAttribute(rObjectPath, attribute_name, values);
                 result.AddEmptyArray(attribute_name);
                 for (const auto v : values) {
-                    result["attribute_name"].Append(v);
+                    result[attribute_name].Append(v);
                 }
             } else {
                 KRATOS_ERROR << "Unsupported dimension for int data type.";
