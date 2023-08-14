@@ -76,7 +76,7 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                 if settings["table"].GetInt() == 0:
                     self.process = KratosGeo.ApplyConstantInterpolateLinePressureProcess(self.model_part, self.params)
                 else:
-                    self.process = KratosGeo.ApplyTimeDependentInterpolateLinePressureProcess(self.model_part, self.params)
+                    raise RuntimeError("No time dependent interpolate line pressure process available")
             elif settings["fluid_pressure_type"].GetString() == "Phreatic_Surface":
                 self.params.AddValue("gravity_direction",settings["gravity_direction"])
                 self.params.AddValue("first_reference_coordinate",settings["first_reference_coordinate"])
@@ -97,7 +97,6 @@ class ApplyScalarConstraintTableProcess(KratosMultiphysics.Process):
                     self.process = KratosGeo.ApplyPhreaticSurfacePressureTableProcess(self.model_part, self.params)
             else:
                 raise Exception("unkown fluid_pressure_type!")
-
 
         else:
             self.params.AddValue("value",settings["value"])

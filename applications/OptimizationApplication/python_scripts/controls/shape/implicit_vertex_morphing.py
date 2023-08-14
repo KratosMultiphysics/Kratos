@@ -7,11 +7,17 @@
 #  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 #
 # ==============================================================================
-
+try:
+    import QuESo_PythonApplication as QuESoApp
+    from QuESo_PythonApplication.PyQuESo import PyQuESo
+except ImportError:
+    raise Exception("QuESo python library is not available")
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 import KratosMultiphysics.OptimizationApplication as KOA
 from KratosMultiphysics.OptimizationApplication.controls.shape.shape_control import ShapeControl
+
+import numpy as np
 
 class ImplicitVertexMorphing(ShapeControl):
     def __init__(self, name, model, settings):
@@ -119,6 +125,27 @@ class ImplicitVertexMorphing(ShapeControl):
         self.implicit_vertex_morphing.MapControlUpdate(KOA.D_CX,KOA.D_X) 
 
     def Update(self):        
+
+        pyqueso = PyQuESo("QUESOParameters.json")
+
+        nodes = QuESoApp.PointVector()
+        directions = QuESoApp.PointVector()
+        for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
+            shape_update = node.GetSolutionStepValue(KOA.D_X)
+            nodes.append( QuESoApp.Point(node.X0, node.Y0, node.Z0) )
+            directions.append( QuESoApp.Point(shape_update[0], shape_update[1], shape_update[2]) ) #This should be the direction of the shape
+
+        pyqueso.Run()
+
+        distances = pyqueso.ClosestDistances(nodes, directions)
+        for node, distance in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, distances):
+            shape_update = node.GetSolutionStepValue(KOA.D_X)
+            norm = np.sqrt(shape_update[0]* shape_update[0] + shape_update[1]* shape_update[1] + shape_update[2]* shape_update[2])
+            if norm > 0.0:
+                shape_update /= norm
+            shape_update *= distance
+            node.SetSolutionStepValue(KOA.AUXILIARY_FIELD,shape_update)
+
         self.implicit_vertex_morphing.Update()
 
     def GetControllingObjects(self):

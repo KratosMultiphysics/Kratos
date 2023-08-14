@@ -30,8 +30,8 @@ class ShapeControl():
             self.vector_fields.append("NORMAL")
             self.scalar_fields.append("NODAL_AREA")
 
-        if self.auxiliary_field:
-            self.vector_fields.append("AUXILIARY_FIELD")
+        # if self.auxiliary_field:
+        self.vector_fields.append("AUXILIARY_FIELD")
         
 
         self.vector_fields.append("ADJOINT_DISPLACEMENT")

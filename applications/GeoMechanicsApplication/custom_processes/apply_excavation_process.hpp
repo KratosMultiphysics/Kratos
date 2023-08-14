@@ -23,7 +23,6 @@
 #include "includes/kratos_parameters.h"
 #include "processes/process.h"
 
-
 namespace Kratos
 {
 
