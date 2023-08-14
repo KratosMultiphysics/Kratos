@@ -64,7 +64,7 @@
             "type": "thickness.shell_thickness_control",
             "settings": {
                 "controlled_model_part_names": [
-                    "Structure"
+                    "Structure.structure"
                 ],
                 "filter_settings": {
                     "type": "implicit",
