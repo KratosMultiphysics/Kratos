@@ -293,14 +293,15 @@ public:
                             } // Else, do nothing -- max tangent force not exceeded, node is fixed
                         }
                         else {
-                            // Friction off -- remove all other value in RHS & LHS than the normal component
-                            for (unsigned int i = j; i < (j + block_size); ++i) {
-                                if (i != j)
-                                    rLocalVector[i] = 0.0;
+                            // Friction off -- zero out tangential entries in RHS & LHS
+                            for (unsigned int i = j + 1; i < (j + block_size); ++i) {
+                                rLocalVector[i] = 0.0;
 
-                                for (unsigned int k = 0; k < rLocalMatrix.size1(); ++k) {
-                                    rLocalMatrix(i, k) = 0.0;
-                                    rLocalMatrix(k, i) = 0.0;
+                                for (unsigned int k = 1; k < rLocalMatrix.size1(); ++k) {
+                                    if (k%block_size != 0) { // not normal entry, zero out
+                                        rLocalMatrix(i, k) = 0.0;
+                                        rLocalMatrix(k, i) = 0.0;
+                                    }
                                 }
                             }
                         }
