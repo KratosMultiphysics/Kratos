@@ -245,6 +245,54 @@ bool File::HasAttribute(
     KRATOS_CATCH("");
 }
 
+template<class TDataType>
+bool File::HasAttributeType(
+    const std::string& rObjectPath,
+    const std::string& rName) const
+{
+    KRATOS_TRY
+
+    auto mem_type_id = Internals::GetPrimitiveH5Type<TDataType>();
+
+    auto attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT, H5P_DEFAULT);
+
+    auto attr_type_id = H5Aget_type(attr_id);
+    KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
+
+    auto is_valid_type = H5Tequal(mem_type_id, attr_type_id);
+
+    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl;
+    KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+
+    return is_valid_type != 0;
+
+    KRATOS_CATCH("");
+}
+
+std::vector<hsize_t> File::GetAttributeDimensions(
+    const std::string& rObjectPath,
+    const std::string& rName) const
+{
+    KRATOS_TRY
+
+    auto attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT, H5P_DEFAULT);
+
+    auto space_id = H5Aget_space(attr_id);
+    KRATOS_ERROR_IF(space_id < 0) << "H5Aget_space failed." << std::endl;
+    auto ndims = H5Sget_simple_extent_ndims(space_id);
+    KRATOS_ERROR_IF(ndims < 0) << "H5Sget_simple_extent_ndims failed." << std::endl;
+    std::vector<hsize_t> shape(ndims);
+    KRATOS_ERROR_IF(H5Sget_simple_extent_dims(space_id, shape.data(), nullptr) < 0)
+        << "H5Sget_simple_extent_dims failed" << std::endl;
+    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
+    KRATOS_ERROR_IF(H5Aclose(attr_id) < 0) << "H5Aclose failed." << std::endl;
+
+    return shape;
+
+    KRATOS_CATCH("");
+}
+
 void File::DeleteAttribute(
     const std::string& rObjectPath,
     const std::string& rName)
@@ -557,36 +605,18 @@ void File::ReadAttribute(
 
     BuiltinTimer timer;
 
-    hid_t mem_type_id, attr_type_id, space_id, attr_id;
-    std::vector<hsize_t> shape(local_dimension);
+    KRATOS_ERROR_IF_NOT(HasAttributeType<TDataType>(rObjectPath, rName))
+        << "Memory and file data types are different." << std::endl;
+    const auto& shape = GetAttributeDimensions(rObjectPath, rName);
+    KRATOS_ERROR_IF(shape.size() != local_dimension)
+        << "Attribute \"" << rName << "\" has dimension mismatch [ memory dimension = "
+        << local_dimension << ", file dimension = " << shape.size()  << " ].\n";
 
-    int ndims;
+    auto mem_type_id = Internals::GetPrimitiveH5Type<TDataType>();
 
-    mem_type_id = Internals::GetPrimitiveH5Type<TDataType>();
-
-    attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT, H5P_DEFAULT);
+    auto attr_id = H5Aopen_by_name(m_file_id, rObjectPath.c_str(), rName.c_str(), H5P_DEFAULT, H5P_DEFAULT);
     KRATOS_ERROR_IF(attr_id < 0) << "H5Aopen_by_name failed." << std::endl;
 
-    // Check data type.
-    attr_type_id = H5Aget_type(attr_id);
-    KRATOS_ERROR_IF(attr_type_id < 0) << "H5Aget_type failed." << std::endl;
-    htri_t is_valid_type = H5Tequal(mem_type_id, attr_type_id);
-    KRATOS_ERROR_IF(H5Tclose(attr_type_id) < 0) << "H5Tclose failed." << std::endl;
-    KRATOS_ERROR_IF(is_valid_type < 0) << "H5Tequal failed." << std::endl;
-    KRATOS_ERROR_IF(is_valid_type == 0) << "Memory and file data types are different." << std::endl;
-
-    // Check dimensions.
-    space_id = H5Aget_space(attr_id);
-    KRATOS_ERROR_IF(space_id < 0)
-        << "H5Aget_space failed." << std::endl;
-    KRATOS_ERROR_IF((ndims = H5Sget_simple_extent_ndims(space_id)) < 0)
-        << "H5Sget_simple_extent_ndims failed." << std::endl;
-    KRATOS_ERROR_IF(ndims != local_dimension)
-        << "Attribute \"" << rName << "\" has dimension mismatch [ memory dimension = "
-        << local_dimension << ", file dimension = " << ndims  << " ].\n";
-    KRATOS_ERROR_IF(H5Sget_simple_extent_dims(space_id, shape.data(), nullptr) < 0)
-        << "H5Sget_simple_extent_dims failed" << std::endl;
-    KRATOS_ERROR_IF(H5Sclose(space_id) < 0) << "H5Sclose failed." << std::endl;
     type_traits::Reshape(rValue, shape);
 
     // Read attribute.
@@ -1008,6 +1038,7 @@ template void File::GetDataSet<double>(hid_t&, hid_t&, const std::vector<hsize_t
 
 #ifndef KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION
 #define KRATOS_HDF5_FILE_ATTRIBUTE_METHOD_INSTANTIATION(...)                                                                        \
+    template KRATOS_API(HDF5_APPLICATION) bool File::HasAttributeType<__VA_ARGS__>(const std::string&, const std::string&) const;   \
     template KRATOS_API(HDF5_APPLICATION) void File::WriteAttribute(const std::string&, const std::string&, const __VA_ARGS__&);    \
     template KRATOS_API(HDF5_APPLICATION) void File::ReadAttribute(const std::string&, const std::string&, __VA_ARGS__&);           \
 

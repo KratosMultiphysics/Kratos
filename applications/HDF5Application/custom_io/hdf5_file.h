@@ -144,6 +144,31 @@ public:
         const std::string& rName) const;
 
     /**
+     * @brief Checks if the attribute is of the specified type.
+     *
+     * @tparam TDataType        Data type to check against.
+     * @param rObjectPath       Dataset or group path.
+     * @param rName             Attribute name.
+     * @return true             If the attribute has data of type @ref TDataType.
+     * @return false            If the attribute does not has the data of type @ref TDataType.
+     */
+    template<class TDataType>
+    bool HasAttributeType(
+        const std::string& rObjectPath,
+        const std::string& rName) const;
+
+    /**
+     * @brief Get the Attribute Dimensions.
+     *
+     * @param rObjectPath               Dataset or group path.
+     * @param rName                     Attribute name.
+     * @return std::vector<hsize_t>     Size in each dimension.
+     */
+    std::vector<hsize_t> GetAttributeDimensions(
+        const std::string& rObjectPath,
+        const std::string& rName) const;
+
+    /**
      * @brief Deletes the specified attribute from the dataset or group.
      *
      * @param rObjectPath       Path of a dataset or group.
