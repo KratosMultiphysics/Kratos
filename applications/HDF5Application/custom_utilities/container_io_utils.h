@@ -10,6 +10,8 @@
 //  Main author:    Suneth Warnakulasuriya
 //
 
+#pragma once
+
 // System includes
 
 // Project includes
@@ -18,6 +20,7 @@
 
 // Application includes
 #include "custom_utilities/data_type_utilities.h"
+#include "custom_utilities/vertex.h"
 
 namespace Kratos
 {
@@ -162,6 +165,32 @@ private:
     ///@}
 };
 
+class VertexValueIO
+{
+public:
+    ///@name Public operations
+    ///@{
+
+    template<class TDataType>
+    inline TDataType GetValue(
+        const Detail::Vertex& rVertex,
+        const Variable<TDataType>& rVariable) const
+    {
+        return rVertex.GetValue(rVariable);
+    }
+
+    template<class TDataType>
+    inline void SetValue(
+        Detail::Vertex& rEntity,
+        const Variable<TDataType>& rVariable,
+        const TDataType& rValue) const
+    {
+        KRATOS_ERROR << "VertexIO does not support setting values from vertices";
+    }
+
+    ///@}
+};
+
 template<class TContainerIOType>
 std::string GetContainerIOType()
 {
@@ -173,6 +202,8 @@ std::string GetContainerIOType()
         return "FLAGS";
     } else if constexpr(std::is_same_v<TContainerIOType, BossakIO>) {
         return "HISTORICAL_BOSSAK";
+    } else if constexpr(std::is_same_v<TContainerIOType, VertexValueIO>) {
+        return "INTERPOLATED";
     } else {
         static_assert(!std::is_same_v<TContainerIOType, TContainerIOType>, "Unsupported container io type.");
     }
@@ -187,6 +218,8 @@ std::string GetContainerType()
         return "CONDITIONS";
     } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
         return "ELEMENTS";
+    } else if constexpr(std::is_same_v<TContainerType, Detail::VertexContainerType>) {
+        return "VERTICES";
     } else {
         static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported container type.");
     }
