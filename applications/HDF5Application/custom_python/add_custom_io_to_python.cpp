@@ -30,8 +30,6 @@
 // Application includes
 #include "custom_io/hdf5_file.h"
 #include "custom_io/hdf5_model_part_io.h"
-#include "custom_io/hdf5_nodal_solution_step_data_io.h"
-#include "custom_io/hdf5_nodal_solution_step_bossak_io.h"
 #include "custom_io/hdf5_data_value_container_io.h"
 #include "custom_io/hdf5_element_gauss_point_output.h"
 #include "custom_io/hdf5_condition_gauss_point_output.h"
@@ -159,6 +157,55 @@ void AddContainerComponentIOToPython(
         ;
 }
 
+class PythonNodalSolutionStepBossakIO : public HDF5::NewContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::BossakIO, Variable<int>, Variable<double>, Variable<array_1d<double, 3>>, Variable<array_1d<double, 4>>, Variable<array_1d<double, 6>>, Variable<array_1d<double, 9>>, Variable<Kratos::Vector>, Variable<Kratos::Matrix>>
+{
+public:
+    ///@name Type Definitions
+    ///@{
+
+    using IndexType = std::size_t;
+
+    using BaseType = HDF5::NewContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::BossakIO, Variable<int>, Variable<double>, Variable<array_1d<double, 3>>, Variable<array_1d<double, 4>>, Variable<array_1d<double, 6>>, Variable<array_1d<double, 9>>, Variable<Kratos::Vector>, Variable<Kratos::Matrix>>;
+
+    /// Pointer definition
+    KRATOS_CLASS_POINTER_DEFINITION(PythonNodalSolutionStepBossakIO);
+
+    ///@}
+    ///@name Life Cycle
+    ///@{
+
+    /// Constructor.
+    PythonNodalSolutionStepBossakIO(
+        Parameters Settings,
+        HDF5::File::Pointer pFile) : BaseType(Settings, pFile) {}
+
+    ///@}
+    ///@name Operations
+    ///@{
+
+    void SetAlphaBossak(const double AlphaBossak) { mAlphaBossak = AlphaBossak; }
+
+    void Write(const ModelPart& rModelPart)
+    {
+        BaseType::Write(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak), Parameters("""{}"""));
+    }
+
+    void Read(ModelPart& rModelPart) {
+        BaseType::Read(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak));
+    }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    double mAlphaBossak;
+
+    ///@}
+
+};
+
 void AddCustomIOToPython(pybind11::module& m)
 {
     namespace py = pybind11;
@@ -219,12 +266,11 @@ void AddCustomIOToPython(pybind11::module& m)
             py::arg("step_index") = 0)
         ;
 
-    py::class_<HDF5::NodalSolutionStepBossakIO, HDF5::NodalSolutionStepBossakIO::Pointer>(
-        m,"HDF5NodalSolutionStepBossakIO")
+    py::class_<PythonNodalSolutionStepBossakIO, PythonNodalSolutionStepBossakIO::Pointer>(m,"HDF5NodalSolutionStepBossakIO")
         .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteNodalResults", &HDF5::NodalSolutionStepBossakIO::WriteNodalResults)
-        .def("ReadNodalResults", &HDF5::NodalSolutionStepBossakIO::ReadNodalResults)
-        .def("SetAlphaBossak", &HDF5::NodalSolutionStepBossakIO::SetAlphaBossak)
+        .def("WriteNodalResults", &PythonNodalSolutionStepBossakIO::Write)
+        .def("ReadNodalResults", &PythonNodalSolutionStepBossakIO::Read)
+        .def("SetAlphaBossak", &PythonNodalSolutionStepBossakIO::SetAlphaBossak)
         ;
 
     AddContainerComponentIOToPython<FlagContainerComponentIOWrapper<ModelPart::ElementsContainerType>>(m, "HDF5ElementFlagValueIO");

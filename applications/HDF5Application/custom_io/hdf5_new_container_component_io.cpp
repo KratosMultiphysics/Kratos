@@ -52,7 +52,7 @@ struct SynchronizeComponent<ModelPart::NodesContainerType>
     {
         if constexpr(std::is_same_v<TContainerDataIO, Internals::FlagIO>) {
             rCommunicator.SynchronizeOrNodalFlags(rComponent);
-        } else if constexpr(std::is_same_v<TContainerDataIO, Internals::HistoricalIO>) {
+        } else if constexpr(std::is_same_v<TContainerDataIO, Internals::HistoricalIO> || std::is_same_v<TContainerDataIO, Internals::BossakIO>) {
             rCommunicator.SynchronizeVariable(rComponent);
         } else if constexpr(std::is_same_v<TContainerDataIO, Internals::NonHistoricalIO>) {
             rCommunicator.SynchronizeNonHistoricalVariable(rComponent);
@@ -361,6 +361,7 @@ KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, Internal
 #endif
 
 KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType, Internals::HistoricalIO);
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType, Internals::BossakIO);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::ConditionsContainerType);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::ElementsContainerType);

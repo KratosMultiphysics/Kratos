@@ -118,6 +118,50 @@ public:
     ///@}
 };
 
+class BossakIO
+{
+public:
+    ///@name Life cycle
+    ///@{
+
+    BossakIO(const double AlphaBossak) : mAlphaBossak(AlphaBossak) {}
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    template<class TDataType>
+    inline TDataType GetValue(
+        const ModelPart::NodeType& rNode,
+        const Variable<TDataType>& rVariable) const
+    {
+        if (rVariable == ACCELERATION) {
+            return (1.0 - mAlphaBossak) * rNode.FastGetSolutionStepValue(rVariable, 0) + mAlphaBossak * rNode.FastGetSolutionStepValue(rVariable, 1);
+        } else {
+            return rNode.FastGetSolutionStepValue(rVariable);
+        }
+    }
+
+    template<class TDataType>
+    inline void SetValue(
+        ModelPart::NodeType& rNode,
+        const Variable<TDataType>& rVariable,
+        const TDataType& rValue) const
+    {
+        rNode.FastGetSolutionStepValue(rVariable) =  rValue;
+    }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    const double mAlphaBossak;
+
+    ///@}
+};
+
 template<class TContainerIOType>
 std::string GetContainerIOType()
 {
@@ -127,6 +171,8 @@ std::string GetContainerIOType()
         return "NONHISTORICAL";
     } else if constexpr(std::is_same_v<TContainerIOType, FlagIO>) {
         return "FLAGS";
+    } else if constexpr(std::is_same_v<TContainerIOType, BossakIO>) {
+        return "HISTORICAL_BOSSAK";
     } else {
         static_assert(!std::is_same_v<TContainerIOType, TContainerIOType>, "Unsupported container io type.");
     }
