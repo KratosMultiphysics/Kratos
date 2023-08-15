@@ -77,7 +77,7 @@ NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::NewCo
             "list_of_variables": []
         })");
 
-    Settings.ValidateAndAssignDefaults(default_params);
+    Settings.AddMissingParameters(default_params);
 
     mComponentPath = Settings["prefix"].GetString();
     mComponentNames = Settings["list_of_variables"].GetStringArray();
