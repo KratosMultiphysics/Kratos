@@ -146,6 +146,34 @@ std::string GetContainerType()
     }
 }
 
+template<class TContainerType>
+auto& GetLocalContainer(ModelPart& rModelPart)
+{
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        return rModelPart.GetCommunicator().LocalMesh().Nodes();
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        return rModelPart.GetCommunicator().LocalMesh().Conditions();
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+        return rModelPart.GetCommunicator().LocalMesh().Elements();
+    } else {
+        static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported container type.");
+    }
+}
+
+template<class TContainerType>
+const auto& GetLocalContainer(const ModelPart& rModelPart)
+{
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        return rModelPart.GetCommunicator().LocalMesh().Nodes();
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        return rModelPart.GetCommunicator().LocalMesh().Conditions();
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+        return rModelPart.GetCommunicator().LocalMesh().Elements();
+    } else {
+        static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported container type.");
+    }
+}
+
 template<class TContainerType, class TComponentType, class TContainerDataIO, class TDataType>
 void CopyToContiguousDataArray(
     const TContainerType& rContainer,
