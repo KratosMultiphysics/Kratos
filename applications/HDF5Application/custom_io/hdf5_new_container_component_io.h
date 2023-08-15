@@ -79,8 +79,8 @@ public:
 
     ///@}
 
-private:
-    ///@name Private memeber variables
+protected:
+    ///@name Protected member variables
     ///@{
 
     File::Pointer mpFile;
@@ -90,6 +90,8 @@ private:
     std::string mComponentPath;
 
     ///@}
+
+private:
     ///@name Private Operations
     ///@{
 
