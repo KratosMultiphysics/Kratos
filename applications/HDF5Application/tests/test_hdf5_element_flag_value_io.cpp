@@ -77,8 +77,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadElementFlags, KratosHDF5TestSuite)
     io_params["list_of_variables"].SetStringArray(variables_list);
 
     HDF5::NewContainerComponentIO<ModelPart::ElementsContainerType, HDF5::Internals::FlagIO, Flags> data_io(io_params, p_test_file);
-    data_io.Write(r_write_model_part, HDF5::Internals::FlagIO{}, Parameters("""{}"""));
-    data_io.Read(r_read_model_part, HDF5::Internals::FlagIO{});
+    data_io.Write(r_write_model_part.Elements(), HDF5::Internals::FlagIO{}, Parameters("""{}"""));
+    data_io.Read(r_read_model_part.Elements(), HDF5::Internals::FlagIO{}, r_read_model_part.GetCommunicator());
 
     for (auto& r_write_element : r_write_model_part.Elements()) {
         HDF5::ElementType& r_read_element =

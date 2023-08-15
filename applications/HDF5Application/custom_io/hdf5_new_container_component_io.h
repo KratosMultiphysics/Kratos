@@ -66,18 +66,9 @@ public:
     ///@{
 
     void Write(
-        const ModelPart& rModelPart,
-        const TContainerDataIO& rContainerDataIO,
-        const Parameters Attributes);
-
-    void Write(
         const TContainerType& rLocalContainer,
         const TContainerDataIO& rContainerDataIO,
         const Parameters Attributes);
-
-    std::map<std::string, Parameters> Read(
-        ModelPart& rModelPart,
-        const TContainerDataIO& rContainerDataIO);
 
     std::map<std::string, Parameters> Read(
         TContainerType& rLocalContainer,

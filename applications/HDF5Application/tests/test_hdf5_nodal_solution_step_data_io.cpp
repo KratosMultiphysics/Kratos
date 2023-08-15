@@ -87,8 +87,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults2, KratosHDF5TestSuite)
     io_params["list_of_variables"].SetStringArray(variables_list);
 
     HDF5::NewContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::HistoricalIO, Variable<int>, Variable<double>, Variable<array_1d<double, 3>>, Variable<array_1d<double, 4>>, Variable<array_1d<double, 6>>, Variable<array_1d<double, 9>>, Variable<Kratos::Vector>, Variable<Kratos::Matrix>> data_io(io_params, p_test_file);
-    data_io.Write(r_write_model_part, HDF5::Internals::HistoricalIO(0), Parameters("""{}"""));
-    data_io.Read(r_read_model_part, HDF5::Internals::HistoricalIO(0));
+    data_io.Write(r_write_model_part.Nodes(), HDF5::Internals::HistoricalIO(0), Parameters("""{}"""));
+    data_io.Read(r_read_model_part.Nodes(), HDF5::Internals::HistoricalIO(0), r_read_model_part.GetCommunicator());
 
     for (unsigned i = 0; i < 15; ++i)
     {
@@ -149,8 +149,8 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults, KratosHDF5TestSuite)
             "list_of_variables": ["DISPLACEMENT", "PRESSURE", "REFINEMENT_LEVEL"]
         })");
     HDF5::NewContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::HistoricalIO, Variable<int>, Variable<double>, Variable<array_1d<double, 3>>, Variable<array_1d<double, 4>>, Variable<array_1d<double, 6>>, Variable<array_1d<double, 9>>, Variable<Kratos::Vector>, Variable<Kratos::Matrix>> data_io(io_params, p_test_file);
-    data_io.Write(r_write_model_part, HDF5::Internals::HistoricalIO(0), Parameters("""{}"""));
-    data_io.Read(r_read_model_part, HDF5::Internals::HistoricalIO(0));
+    data_io.Write(r_write_model_part.Nodes(), HDF5::Internals::HistoricalIO(0), Parameters("""{}"""));
+    data_io.Read(r_read_model_part.Nodes(), HDF5::Internals::HistoricalIO(0), r_read_model_part.GetCommunicator());
     for (unsigned i = 0; i < 15; ++i)
     {
         HDF5::NodeType& r_read_node = r_read_model_part.Nodes()[i + 1];

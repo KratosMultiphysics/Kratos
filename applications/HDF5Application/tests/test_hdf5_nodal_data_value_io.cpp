@@ -66,9 +66,9 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5NodalDataValueIO_WriteNodalResults1, KratosHDF5Tes
     HDF5::ModelPartIO model_part_io(p_file, "/ModelData");
     model_part_io.WriteNodes(r_write_model_part.Nodes());
     HDF5::NewContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::NonHistoricalIO, Variable<int>, Variable<double>, Variable<array_1d<double, 3>>, Variable<array_1d<double, 4>>, Variable<array_1d<double, 6>>, Variable<array_1d<double, 9>>, Variable<Kratos::Vector>, Variable<Kratos::Matrix>> nodal_value_io(settings, p_file);
-    nodal_value_io.Write(r_write_model_part, HDF5::Internals::NonHistoricalIO{}, Parameters("""{}"""));
+    nodal_value_io.Write(r_write_model_part.Nodes(), HDF5::Internals::NonHistoricalIO{}, Parameters("""{}"""));
     model_part_io.ReadNodes(r_read_model_part.Nodes());
-    nodal_value_io.Read(r_read_model_part, HDF5::Internals::NonHistoricalIO{});
+    nodal_value_io.Read(r_read_model_part.Nodes(), HDF5::Internals::NonHistoricalIO{}, r_read_model_part.GetCommunicator());
     CompareNonHistoricalNodalData(r_read_model_part.Nodes(), r_write_model_part.Nodes());
 }
 
