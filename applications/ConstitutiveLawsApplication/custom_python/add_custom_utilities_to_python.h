@@ -26,14 +26,9 @@
 #include "includes/define_python.h"
 
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void  AddCustomUtilitiesToPython(pybind11::module& m);
-
-}  // namespace Python.
 
 }  // namespace Kratos.
