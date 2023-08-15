@@ -127,19 +127,6 @@ public:
         ) const override;
 
     /**
-     * @brief It calculates the value of a specified variable (Vector case)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Vector& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
-        ) override;
-
-    /**
      * @brief It calculates the value of a specified variable (double case)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned
