@@ -19,8 +19,9 @@
 #include "expression/container_data_io.h"
 
 // Application includes
-#include "custom_utilities/hdf5_data_set_partition_utility.h"
+#include "custom_utilities/container_io_utils.h"
 #include "custom_utilities/data_type_utilities.h"
+#include "custom_utilities/hdf5_data_set_partition_utility.h"
 
 // Include base h
 #include "custom_io/hdf5_new_container_component_io.h"
@@ -51,9 +52,9 @@ struct SynchronizeComponent<ModelPart::NodesContainerType>
     {
         if constexpr(std::is_same_v<TContainerDataIO, Internals::FlagIO>) {
             rCommunicator.SynchronizeOrNodalFlags(rComponent);
-        } else if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::Historical>>) {
+        } else if constexpr(std::is_same_v<TContainerDataIO, Internals::HistoricalIO>) {
             rCommunicator.SynchronizeVariable(rComponent);
-        } else if constexpr(std::is_same_v<TContainerDataIO, ContainerDataIO<ContainerDataIOTags::NonHistorical>>) {
+        } else if constexpr(std::is_same_v<TContainerDataIO, Internals::NonHistoricalIO>) {
             rCommunicator.SynchronizeNonHistoricalVariable(rComponent);
         } else {
             static_assert(!std::is_same_v<TContainerDataIO, TContainerDataIO>, "Unsupported TContainerDataIO.");
@@ -94,7 +95,8 @@ NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::NewCo
 template <class TContainerType, class TContainerDataIO, class... TComponents>
 void NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Write(
     TContainerType const& rLocalContainer,
-    Parameters Attributes)
+    const TContainerDataIO& rContainerDataIO,
+    const Parameters Attributes)
 {
     KRATOS_TRY;
 
@@ -107,7 +109,7 @@ void NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::
     // Write each variable.
     for (const auto& r_component_name : mComponentNames) {
         const bool is_component_written = (... || (WriteComponentData<TComponents>(
-                        r_component_name, rLocalContainer, Attributes.Clone(), info)));
+                        r_component_name, rContainerDataIO, rLocalContainer, Attributes.Clone(), info)));
         KRATOS_ERROR_IF_NOT(is_component_written)
             << "Component \"" << r_component_name << "\" is not found in registered components.";
     }
@@ -121,6 +123,7 @@ void NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::
 template <class TContainerType, class TContainerDataIO, class... TComponents>
 std::map<std::string, Parameters> NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Read(
     TContainerType& rLocalContainer,
+    const TContainerDataIO& rContainerDataIO,
     Communicator& rCommunicator)
 {
     KRATOS_TRY;
@@ -138,7 +141,7 @@ std::map<std::string, Parameters> NewContainerComponentIO<TContainerType, TConta
     for (const auto& r_component_name : mComponentNames) {
         const bool is_component_written =
             (... || (ReadComponentData<TComponents>(
-                        r_component_name, rLocalContainer, rCommunicator, attributes, start_index, block_size)));
+                        r_component_name, rContainerDataIO, rLocalContainer, rCommunicator, attributes, start_index, block_size)));
         KRATOS_ERROR_IF_NOT(is_component_written)
             << "Component \"" << r_component_name << "\" is not found in registered components.";
     }
@@ -152,6 +155,7 @@ template <class TContainerType, class TContainerDataIO, class... TComponents>
 template <class TComponentType>
 bool NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::WriteComponentData(
     const std::string& rComponentName,
+    const TContainerDataIO& rContainerDataIO,
     const TContainerType& rLocalContainer,
     Parameters Attributes,
     WriteInfo& rInfo)
@@ -170,7 +174,7 @@ bool NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::
             // dynamic shape writing
             value_type value_prototype;
             if (!rLocalContainer.empty()) {
-                value_prototype = TContainerDataIO::GetValue(rLocalContainer.front(), r_component);
+                value_prototype = rContainerDataIO.GetValue(rLocalContainer.front(), r_component);
             }
             mpFile->GetDataCommunicator().SynchronizeShape(value_prototype);
 
@@ -186,12 +190,12 @@ bool NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::
 
             Matrix<value_primitive_type> values;
             values.resize(rLocalContainer.size(), value_type_traits::Size(value_prototype));
-            Internals::CopyToContiguousDataArray<TContainerDataIO>(rLocalContainer, r_component, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values));
+            Internals::CopyToContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values));
             mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         } else {
             Vector<value_type> values;
             values.resize(rLocalContainer.size());
-            Internals::CopyToContiguousDataArray<TContainerDataIO>(rLocalContainer, r_component, DataTypeTraits<Vector<value_type>>::GetContiguousData(values));
+            Internals::CopyToContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values));
             mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         }
 
@@ -220,6 +224,7 @@ template <class TContainerType, class TContainerDataIO, class... TComponents>
 template <class TComponentType>
 bool NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ReadComponentData(
     const std::string& rComponentName,
+    const TContainerDataIO& rContainerDataIO,
     TContainerType& rLocalContainer,
     Communicator& rCommunicator,
     std::map<std::string, Parameters>& rAttributesMap,
@@ -256,19 +261,20 @@ bool NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::
             Matrix<value_primitive_type> values;
             values.resize(BlockSize, std::accumulate(shape.begin(), shape.end(), 1U, std::multiplies<unsigned int>{}));
             mpFile->ReadDataSet(r_data_set_path, values, StartIndex, BlockSize);
-            Internals::CopyFromContiguousDataArray<TContainerDataIO>(rLocalContainer, r_component, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), shape);
+            Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values), shape);
         } else {
             Vector<value_type> values;
             values.resize(BlockSize);
             mpFile->ReadDataSet(r_data_set_path, values, StartIndex, BlockSize);
-            Internals::CopyFromContiguousDataArray<TContainerDataIO>(rLocalContainer, r_component, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), value_type_traits::Shape(value_type{}));
+            Internals::CopyFromContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values), value_type_traits::Shape(value_type{}));
         }
 
         NewContainerComponentIOUtilities::SynchronizeComponent<TContainerType>::template Execute<TContainerDataIO>(rCommunicator, r_component);
 
-        if (attributes.Has("__shape")) {
-            attributes.RemoveValue("__shape");
-        }
+        if (attributes.Has("__shape")) attributes.RemoveValue("__shape");
+        if (attributes.Has("__container_type")) attributes.RemoveValue("__container_type");
+        if (attributes.Has("__component_name")) attributes.RemoveValue("__component_name");
+        if (attributes.Has("__data_location")) attributes.RemoveValue("__data_location");
 
         rAttributesMap[rComponentName] = attributes;
 
@@ -277,6 +283,32 @@ bool NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::
         // if the component is not a match.
         return false;
     }
+}
+
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+std::map<std::string, Parameters> NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ReadAttributes()
+{
+    KRATOS_TRY
+
+    std::map<std::string, Parameters> attributes_map;
+
+    for (const auto& r_component_name : mComponentNames) {
+        KRATOS_ERROR_IF(attributes_map.find(r_component_name) != attributes_map.end())
+            << "The attributes for component \"" << r_component_name << "\" already exists.";
+
+        const auto& r_data_set_path = mComponentPath + "/" + r_component_name;
+        auto attributes = mpFile->ReadAttribute(r_data_set_path);
+        if (attributes.Has("__shape")) attributes.RemoveValue("__shape");
+        if (attributes.Has("__container_type")) attributes.RemoveValue("__container_type");
+        if (attributes.Has("__component_name")) attributes.RemoveValue("__component_name");
+        if (attributes.Has("__data_location")) attributes.RemoveValue("__data_location");
+
+        attributes_map[r_component_name] = attributes;
+    }
+
+    return attributes_map;
+
+    KRATOS_CATCH("")
 }
 
 
@@ -307,10 +339,10 @@ KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, CONTAINER_DATA_IO
 #ifndef KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO
 #define KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(CONTAINER_TYPE)                                              \
 KRATOS_HDF5_INSTANTIATE_FLAGS_CONTAINER_COMPONENT_IO(CONTAINER_TYPE)                                                        \
-KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, ContainerDataIO<ContainerDataIOTags::NonHistorical>)
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, Internals::NonHistoricalIO)
 #endif
 
-KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::Historical>);
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType, Internals::HistoricalIO);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::ConditionsContainerType);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::ElementsContainerType);

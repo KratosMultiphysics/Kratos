@@ -67,11 +67,15 @@ public:
 
     void Write(
         const TContainerType& rLocalContainer,
-        Parameters Attributes);
+        const TContainerDataIO& rContainerDataIO,
+        const Parameters Attributes);
 
     std::map<std::string, Parameters> Read(
         TContainerType& rLocalContainer,
+        const TContainerDataIO& rContainerDataIO,
         Communicator& rCommunicator);
+
+    std::map<std::string, Parameters> ReadAttributes();
 
     ///@}
 
@@ -92,6 +96,7 @@ private:
     template<class TComponentType>
     bool WriteComponentData(
         const std::string& rComponentName,
+        const TContainerDataIO& rContainerDataIO,
         const TContainerType& rLocalContainer,
         Parameters Attributes,
         WriteInfo& rInfo);
@@ -99,6 +104,7 @@ private:
     template<class TComponentType>
     bool ReadComponentData(
         const std::string& rComponentName,
+        const TContainerDataIO& rContainerDataIO,
         TContainerType& rLocalContainer,
         Communicator& rCommunicator,
         std::map<std::string, Parameters>& rAttributesMap,

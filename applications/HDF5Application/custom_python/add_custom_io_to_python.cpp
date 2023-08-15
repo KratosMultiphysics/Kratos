@@ -44,7 +44,7 @@
 #include "custom_io/hdf5_vertex_container_io.h"
 #include "custom_io/hdf5_new_container_component_io.h"
 
-#include "expression/container_data_io.h"
+#include "custom_utilities/container_io_utils.h"
 
 #ifdef KRATOS_USING_MPI
 #include "custom_io/hdf5_partitioned_model_part_io.h"
@@ -86,7 +86,12 @@ struct VariableContainerComponentIOWrapper
                                         Variable<array_1d<double, 9>>,
                                         Variable<Kratos::Vector>,
                                         Variable<Kratos::Matrix>>;
+
 };
+
+#ifndef KRATOS_HDF5_PYTHON_ADD_READ_WRITE_METHOD
+#define KRATOS_HDF5_PYTHON_ADD_READ_WRITE_METHOD
+#endif
 
 void AddCustomIOToPython(pybind11::module& m)
 {
@@ -203,11 +208,11 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("Write", &HDF5::VertexContainerVariableIO::Write)
         ;
 
-    using new_type = VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>::ContainerIOType;
+    using new_type = VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, HDF5::Internals::NonHistoricalIO>::ContainerIOType;
     py::class_<new_type, new_type::Pointer>(m,"TestIO")
         .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("Write", &new_type::Write)
-        .def("Read", &new_type::Read)
+        .def("Write", [](new_type& rSelf, const ModelPart::NodesContainerType& rContainer, const Parameters Attributes) { rSelf.Write(rContainer, HDF5::Internals::NonHistoricalIO{}, Attributes); })
+        .def("Read", [](new_type& rSelf, ModelPart::NodesContainerType& rContainer, Communicator& rCommunicator) { return rSelf.Read(rContainer, HDF5::Internals::NonHistoricalIO{}, rCommunicator); })
         ;
 
 
