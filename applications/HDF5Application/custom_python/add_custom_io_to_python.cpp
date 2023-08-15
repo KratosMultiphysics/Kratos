@@ -15,6 +15,7 @@
 // System includes
 
 // External includes
+#include "pybind11/stl.h"
 #include "pybind11/pybind11.h"
 
 
@@ -41,6 +42,10 @@
 #include "custom_io/hdf5_element_gauss_point_output.h"
 #include "custom_io/hdf5_condition_gauss_point_output.h"
 #include "custom_io/hdf5_vertex_container_io.h"
+#include "custom_io/hdf5_new_container_component_io.h"
+
+#include "expression/container_data_io.h"
+
 #ifdef KRATOS_USING_MPI
 #include "custom_io/hdf5_partitioned_model_part_io.h"
 #endif
@@ -183,6 +188,14 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("Write", &HDF5::VertexContainerVariableIO::Write)
         ;
+
+    using new_type = HDF5::NewContainerComponentIO<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, Variable<double>, Variable<array_1d<double, 3>>, Variable<Vector>, Variable<Matrix>>;
+    py::class_<new_type, new_type::Pointer>(m,"TestIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def("Write", &new_type::Write)
+        .def("Read", &new_type::Read)
+        ;
+
 
 #ifdef KRATOS_USING_MPI
     py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
