@@ -72,12 +72,16 @@ public:
     }
 }; // class VertexContainerIOTrampoline
 
-template<class TContainerType, class TContainerDataIO>
+template<class TContainerType, class TContainerDataIOType>
 struct VariableContainerComponentIOWrapper
 {
+    using ContainerType = TContainerType;
+
+    using ContainerDataIOType = TContainerDataIOType;
+
     using ContainerIOType = typename HDF5::NewContainerComponentIO<
                                         TContainerType,
-                                        TContainerDataIO,
+                                        TContainerDataIOType,
                                         Variable<int>,
                                         Variable<double>,
                                         Variable<array_1d<double, 3>>,
@@ -89,9 +93,77 @@ struct VariableContainerComponentIOWrapper
 
 };
 
-#ifndef KRATOS_HDF5_PYTHON_ADD_READ_WRITE_METHOD
-#define KRATOS_HDF5_PYTHON_ADD_READ_WRITE_METHOD
-#endif
+template<class TContainerType>
+struct FlagContainerComponentIOWrapper
+{
+    using ContainerType = TContainerType;
+
+    using ContainerDataIOType = HDF5::Internals::FlagIO;
+
+    using ContainerIOType = typename HDF5::NewContainerComponentIO<
+                                        TContainerType,
+                                        ContainerDataIOType,
+                                        Flags>;
+
+};
+
+template<class TContainerComponentIOWrapper>
+void AddContainerComponentIOToPython(
+    pybind11::module& m,
+    const std::string& rName)
+{
+    namespace py = pybind11;
+
+    using data_io = typename TContainerComponentIOWrapper::ContainerIOType;
+
+    using container_type = typename TContainerComponentIOWrapper::ContainerType;
+
+    using container_data_io_type = typename TContainerComponentIOWrapper::ContainerDataIOType;
+
+    std::string container_name, arg_name;
+    if constexpr(std::is_same_v<container_type, ModelPart::NodesContainerType>) {
+        container_name = "Nodal";
+        arg_name = "nodes_container";
+    } else if constexpr(std::is_same_v<container_type, ModelPart::ConditionsContainerType>) {
+        container_name = "Condition";
+        arg_name = "conditions_container";
+    } else if constexpr(std::is_same_v<container_type, ModelPart::ElementsContainerType>) {
+        container_name = "Element";
+        arg_name = "elements_container";
+    } else {
+        static_assert(!std::is_same_v<TContainerComponentIOWrapper, TContainerComponentIOWrapper>, "Unsupported container component io wrapper type.");
+    }
+
+    std::string results_type = "Results";
+    if constexpr(std::is_same_v<container_data_io_type, HDF5::Internals::FlagIO>) {
+        results_type = "Flags";
+    }
+
+    py::class_<data_io, typename data_io::Pointer>(m, rName.c_str())
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def("Write", [](data_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
+                    rSelf.Write(rModelPart, container_data_io_type{}, Attributes);
+                },
+                py::arg("model_part"),
+                py::arg("attributes") = Parameters("""{}"""))
+        .def("Read", [](data_io& rSelf, ModelPart& rModelPart) {
+                    return rSelf.Read(rModelPart, container_data_io_type{});
+                },
+                py::arg("model_part"))
+        .def("ReadAttributes", &data_io::ReadAttributes)
+        .def(("Write" + container_name + results_type).c_str(), [rName, container_name, results_type](data_io& rSelf, const container_type& rContainer) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"Write" << container_name << results_type << "\" method in \"" << rName << "\". Please use \"Write\" method instead.\n";
+                rSelf.Write(rContainer, container_data_io_type{}, Parameters("""{}"""));
+            }
+            , py::arg(arg_name.c_str()))
+        .def(("Read" + container_name + results_type).c_str(), [rName, container_name, results_type](data_io& rSelf, container_type& rContainer, Communicator& rCommunicator) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"Read" << container_name << results_type << "\" method in \"" << rName << "\". Please use \"Read\" method instead.\n";
+                return rSelf.Read(rContainer, container_data_io_type{}, rCommunicator);
+            },
+            py::arg(arg_name.c_str()),
+            py::arg("communicator"))
+        ;
+}
 
 void AddCustomIOToPython(pybind11::module& m)
 {
@@ -102,7 +174,7 @@ void AddCustomIOToPython(pybind11::module& m)
 
     py::class_<HDF5::File, HDF5::File::Pointer >(m,"HDF5File")
         .def(py::init([](Parameters Settings) {
-            KRATOS_WARNING("HDF5File") << "Using deprecated constructor. Please use constructor with DataCommunicator.";
+            KRATOS_WARNING("DEPRECATION") << "Using deprecated constructor in \"HDF5File\". Please use constructor with DataCommunicator.\n";
             return Kratos::make_shared<HDF5::File>(ParallelEnvironment::GetDefaultDataCommunicator(), Settings);
         }))
         .def(py::init<const DataCommunicator&, Parameters>())
@@ -124,11 +196,33 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(py::init<HDF5::File::Pointer, std::string const&>())
         ;
 
-    py::class_<HDF5::NodalSolutionStepDataIO, HDF5::NodalSolutionStepDataIO::Pointer>(
-        m,"HDF5NodalSolutionStepDataIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteNodalResults", &HDF5::NodalSolutionStepDataIO::WriteNodalResults)
-        .def("ReadNodalResults", &HDF5::NodalSolutionStepDataIO::ReadNodalResults)
+    using nodal_solution_step_data_io = VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, HDF5::Internals::HistoricalIO>::ContainerIOType;
+    py::class_<nodal_solution_step_data_io, nodal_solution_step_data_io::Pointer>(m,"HDF5NodalSolutionStepDataIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def("Write", [](nodal_solution_step_data_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes, const IndexType StepIndex) {
+                rSelf.Write(rModelPart, HDF5::Internals::HistoricalIO(StepIndex), Attributes);
+            },
+            py::arg("model_part"),
+            py::arg("attributes") = Parameters("""{}"""),
+            py::arg("step_index") = 0)
+        .def("Read", [](nodal_solution_step_data_io& rSelf, ModelPart& rModelPart, const IndexType StepIndex) {
+                return rSelf.Read(rModelPart, HDF5::Internals::HistoricalIO(StepIndex));
+            },
+            py::arg("model_part"),
+            py::arg("step_index") = 0)
+        .def("ReadAttributes", &nodal_solution_step_data_io::ReadAttributes)
+        .def("WriteNodalResults", [](nodal_solution_step_data_io& rSelf, const ModelPart& rModelPart, const IndexType StepIndex) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteNodalResults\" method in \"HDF5NodalSolutionStepDataIO\". Please use \"Write\" method instead.\n";
+                rSelf.Write(rModelPart, HDF5::Internals::HistoricalIO(StepIndex), Parameters("""{}"""));
+            },
+            py::arg("model_part"),
+            py::arg("step_index") = 0)
+        .def("ReadNodalResults", [](nodal_solution_step_data_io& rSelf, ModelPart& rModelPart, const IndexType StepIndex) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"ReadNodalResults\" method in \"HDF5NodalSolutionStepDataIO\". Please use \"Read\" method instead.\n";
+                return rSelf.Read(rModelPart, HDF5::Internals::HistoricalIO(StepIndex));
+            },
+            py::arg("model_part"),
+            py::arg("step_index") = 0)
         ;
 
     py::class_<HDF5::NodalSolutionStepBossakIO, HDF5::NodalSolutionStepBossakIO::Pointer>(
@@ -139,47 +233,12 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("SetAlphaBossak", &HDF5::NodalSolutionStepBossakIO::SetAlphaBossak)
         ;
 
-    py::class_<HDF5::ElementFlagValueIO, HDF5::ElementFlagValueIO::Pointer>(
-        m,"HDF5ElementFlagValueIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteElementFlags", &HDF5::ElementFlagValueIO::WriteElementFlags)
-        .def("ReadElementFlags", &HDF5::ElementFlagValueIO::ReadElementFlags)
-        ;
-
-    py::class_<HDF5::ElementDataValueIO, HDF5::ElementDataValueIO::Pointer>(
-        m,"HDF5ElementDataValueIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteElementResults", &HDF5::ElementDataValueIO::WriteElementResults)
-        .def("ReadElementResults", &HDF5::ElementDataValueIO::ReadElementResults)
-        ;
-
-    py::class_<HDF5::ConditionFlagValueIO, HDF5::ConditionFlagValueIO::Pointer>(
-        m,"HDF5ConditionFlagValueIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteConditionFlags", &HDF5::ConditionFlagValueIO::WriteConditionFlags)
-        .def("ReadConditionFlags", &HDF5::ConditionFlagValueIO::ReadConditionFlags)
-        ;
-
-    py::class_<HDF5::ConditionDataValueIO, HDF5::ConditionDataValueIO::Pointer>(
-        m,"HDF5ConditionDataValueIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteConditionResults", &HDF5::ConditionDataValueIO::WriteConditionResults)
-        .def("ReadConditionResults", &HDF5::ConditionDataValueIO::ReadConditionResults)
-        ;
-
-    py::class_<HDF5::NodalFlagValueIO, HDF5::NodalFlagValueIO::Pointer>(
-        m,"HDF5NodalFlagValueIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteNodalFlags", &HDF5::NodalFlagValueIO::WriteNodalFlags)
-        .def("ReadNodalFlags", &HDF5::NodalFlagValueIO::ReadNodalFlags)
-        ;
-
-    py::class_<HDF5::NodalDataValueIO, HDF5::NodalDataValueIO::Pointer>(
-        m,"HDF5NodalDataValueIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteNodalResults", &HDF5::NodalDataValueIO::WriteNodalResults)
-        .def("ReadNodalResults", &HDF5::NodalDataValueIO::ReadNodalResults)
-        ;
+    AddContainerComponentIOToPython<FlagContainerComponentIOWrapper<ModelPart::ElementsContainerType>>(m, "HDF5ElementFlagValueIO");
+    AddContainerComponentIOToPython<VariableContainerComponentIOWrapper<ModelPart::ElementsContainerType, HDF5::Internals::NonHistoricalIO>>(m, "HDF5ElementDataValueIO");
+    AddContainerComponentIOToPython<FlagContainerComponentIOWrapper<ModelPart::ConditionsContainerType>>(m, "HDF5ConditionFlagValueIO");
+    AddContainerComponentIOToPython<VariableContainerComponentIOWrapper<ModelPart::ConditionsContainerType, HDF5::Internals::NonHistoricalIO>>(m, "HDF5ConditionDataValueIO");
+    AddContainerComponentIOToPython<FlagContainerComponentIOWrapper<ModelPart::NodesContainerType>>(m, "HDF5NodalFlagValueIO");
+    AddContainerComponentIOToPython<VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, HDF5::Internals::NonHistoricalIO>>(m, "HDF5NodalDataValueIO");
 
     py::class_<HDF5::ElementGaussPointOutput, HDF5::ElementGaussPointOutput::Pointer>(
         m,"HDF5ElementGaussPointOutput")
@@ -207,14 +266,6 @@ void AddCustomIOToPython(pybind11::module& m)
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("Write", &HDF5::VertexContainerVariableIO::Write)
         ;
-
-    using new_type = VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, HDF5::Internals::NonHistoricalIO>::ContainerIOType;
-    py::class_<new_type, new_type::Pointer>(m,"TestIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("Write", [](new_type& rSelf, const ModelPart::NodesContainerType& rContainer, const Parameters Attributes) { rSelf.Write(rContainer, HDF5::Internals::NonHistoricalIO{}, Attributes); })
-        .def("Read", [](new_type& rSelf, ModelPart::NodesContainerType& rContainer, Communicator& rCommunicator) { return rSelf.Read(rContainer, HDF5::Internals::NonHistoricalIO{}, rCommunicator); })
-        ;
-
 
 #ifdef KRATOS_USING_MPI
     py::class_<HDF5::PartitionedModelPartIO, HDF5::PartitionedModelPartIO::Pointer, HDF5::ModelPartIO>
