@@ -22,7 +22,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/communicator.h"
+#include "includes/model_part.h"
 
 // Application includes
 #include "custom_io/hdf5_file.h"
@@ -66,9 +66,18 @@ public:
     ///@{
 
     void Write(
+        const ModelPart& rModelPart,
+        const TContainerDataIO& rContainerDataIO,
+        const Parameters Attributes);
+
+    void Write(
         const TContainerType& rLocalContainer,
         const TContainerDataIO& rContainerDataIO,
         const Parameters Attributes);
+
+    std::map<std::string, Parameters> Read(
+        ModelPart& rModelPart,
+        const TContainerDataIO& rContainerDataIO);
 
     std::map<std::string, Parameters> Read(
         TContainerType& rLocalContainer,

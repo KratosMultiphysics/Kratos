@@ -94,7 +94,16 @@ NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::NewCo
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
 void NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Write(
-    TContainerType const& rLocalContainer,
+    const ModelPart& rModelPart,
+    const TContainerDataIO& rContainerDataIO,
+    const Parameters Attributes)
+{
+    Write(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, Attributes);
+}
+
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+void NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Write(
+    const TContainerType& rLocalContainer,
     const TContainerDataIO& rContainerDataIO,
     const Parameters Attributes)
 {
@@ -118,6 +127,14 @@ void NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::
     WritePartitionTable(*mpFile, mComponentPath, info);
 
     KRATOS_CATCH("");
+}
+
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+std::map<std::string, Parameters> NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Read(
+    ModelPart& rModelPart,
+    const TContainerDataIO& rContainerDataIO)
+{
+    return Read(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, rModelPart.GetCommunicator());
 }
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
@@ -165,6 +182,7 @@ bool NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::
     using value_type_traits = DataTypeTraits<value_type>;
 
     using value_primitive_type = typename value_type_traits::PrimitiveType;
+
 
     if (KratosComponents<TComponentType>::Has(rComponentName)) {
         const auto& r_data_set_path = mComponentPath + "/" + rComponentName;
