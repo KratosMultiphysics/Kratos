@@ -656,7 +656,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.demio = DEM_procedures.DEMIo(self.model, self.DEM_parameters, self.post_path, self.all_model_parts)
         if self.DEM_parameters["post_vtk_option"].GetBool():
             import KratosMultiphysics.DEMApplication.dem_vtk_output as dem_vtk_output
-            self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part)
+            self.vtk_output = dem_vtk_output.VtkOutput(self.main_path, self.problem_name, self.spheres_model_part, self.rigid_face_model_part, self.DEM_parameters)
 
     def GraphicalOutputInitialize(self):
         if self.do_print_results_option:
@@ -670,16 +670,19 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["PostEulerAngles"].GetBool():
             self.post_utils.PrintEulerAngles(self.spheres_model_part, self.cluster_model_part)
 
-        self.demio.ShowPrintingResultsOnScreen(self.all_model_parts)
-
         self.demio.PrintMultifileLists(time, self.post_path)
         self._GetSolver().PrepareElementsForPrinting()
         if self.DEM_parameters["ContactMeshOption"].GetBool():
             self._GetSolver().PrepareContactElementsForPrinting()
 
-        self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
+        if "post_gid_option" in self.DEM_parameters.keys():
+            if self.DEM_parameters["post_gid_option"].GetBool() != False:
+                self.demio.ShowPrintingResultsOnScreen(self.all_model_parts, 'GID')
+                self.demio.PrintResults(self.all_model_parts, self.creator_destructor, self.dem_fem_search, time, self.bounding_box_time_limits)
+
         if "post_vtk_option" in self.DEM_parameters.keys():
             if self.DEM_parameters["post_vtk_option"].GetBool():
+                self.demio.ShowPrintingResultsOnScreen(self.all_model_parts, 'VTK')
                 self.vtk_output.WriteResults(self.time)
 
         self.file_msh = self.demio.GetMultiFileListName(self.problem_name + "_" + "%.12g"%time + ".post.msh")

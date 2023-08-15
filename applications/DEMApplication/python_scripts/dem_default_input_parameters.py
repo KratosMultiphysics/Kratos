@@ -175,10 +175,11 @@ def GetDefaultInputParameters():
             "PostControlModule"                : false,
             "PostDeltaDisplacement"            : false,
             "print_CN_graph"                   : false,
-            "PostBrokenRatio"                  : false,
+            "PostDamageRatio"                  : false,
             "output_configuration" : {
                 "print_number_of_neighbours_histogram" : false
             },
+            "post_gid_option"                  : true,
             "post_vtk_option"                  : false,
             "IntegrationScheme"                : "deprecated_key_since_6_december_2017",
             "LoadingVelocityTop"               : 0.0,

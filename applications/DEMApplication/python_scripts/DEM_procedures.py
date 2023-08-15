@@ -1306,7 +1306,7 @@ class DEMIo():
         self.PostShearStress = self.DEM_parameters["PostShearStress"].GetBool()
         self.PostNodalArea = self.DEM_parameters["PostNodalArea"].GetBool()
         self.PostNeighbourSize = GetBoolParameterIfItExists(self.DEM_parameters, "PostNeighbourSize")
-        self.PostBrokenRatio = GetBoolParameterIfItExists(self.DEM_parameters, "PostBrokenRatio")
+        self.PostDamageRatio = GetBoolParameterIfItExists(self.DEM_parameters, "PostDamageRatio")
         self.PostNormalImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostNormalImpactVelocity")
         self.PostTangentialImpactVelocity = GetBoolParameterIfItExists(self.DEM_parameters, "PostTangentialImpactVelocity")
         self.PostControlModule = GetBoolParameterIfItExists(self.DEM_parameters, "PostControlModule")
@@ -1394,8 +1394,8 @@ class DEMIo():
     def Flush(self, a):
         a.flush()
 
-    def ShowPrintingResultsOnScreen(self, all_model_parts):
-        self.KratosPrintInfo("*******************  PRINTING RESULTS FOR GID  ***************************")
+    def ShowPrintingResultsOnScreen(self, all_model_parts, format_name):
+        self.KratosPrintInfo("*******************  PRINTING RESULTS FOR {}  ***************************".format(format_name))
         self.KratosPrintInfo("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfElements(0)) + " elements)")
         self.KratosPrintInfo("                        (" + str(all_model_parts.Get("SpheresPart").NumberOfNodes(0)) + " nodes)")
         self.KratosPrintInfo("")
@@ -1471,9 +1471,9 @@ class DEMIo():
             if self.DEM_parameters["PostNeighbourSize"].GetBool():
                 self.PushPrintVar(self.PostNeighbourSize, NEIGHBOUR_SIZE, self.spheres_variables)
 
-        if "PostBrokenRatio" in self.DEM_parameters.keys():
-            if self.DEM_parameters["PostBrokenRatio"].GetBool():
-                self.PushPrintVar(self.PostBrokenRatio, DAMAGE_RATIO, self.spheres_variables)
+        if "PostDamageRatio" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostDamageRatio"].GetBool():
+                self.PushPrintVar(self.PostDamageRatio, DAMAGE_RATIO, self.spheres_variables)
 
         if self.PostGluedSphere:
             self.PushPrintVar(self.PostGluedSphere, IS_STICKY, self.spheres_variables)
