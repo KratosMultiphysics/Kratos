@@ -160,26 +160,24 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
     Parameters Attributes,
     WriteInfo& rInfo)
 {
-    using value_type = typename Internals::ComponentTraits<TComponentType>::ValueType;
+    using value_type = typename TContainerDataIO::ComponentDataType<typename Internals::ComponentTraits<TComponentType>::ValueType>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
     using value_primitive_type = typename value_type_traits::PrimitiveType;
-
 
     if (KratosComponents<TComponentType>::Has(rComponentName)) {
         const auto& r_data_set_path = mComponentPath + "/" + rComponentName;
         const auto& r_component = KratosComponents<TComponentType>::Get(rComponentName);
 
         if constexpr(value_type_traits::IsDynamic) {
-            // dynamic shape writing
-            value_type value_prototype;
+            // retrieving dynamic shape
+            std::vector<int> shape(value_type_traits::Dimension);
             if (!rLocalContainer.empty()) {
-                value_prototype = rContainerDataIO.GetValue(rLocalContainer.front(), r_component);
+                const auto& value_prototype = rContainerDataIO.GetValue(rLocalContainer.front(), r_component);
+                value_type_traits::Shape(value_prototype, shape.data(), shape.data() + value_type_traits::Dimension);
             }
-            mpFile->GetDataCommunicator().SynchronizeShape(value_prototype);
-
-            const auto& shape = value_type_traits::template Shape<int>(value_prototype);
+            shape = mpFile->GetDataCommunicator().MaxAll(shape);
 
             // add the shape to attributes.
             KRATOS_ERROR_IF(Attributes.Has("__shape"))
@@ -190,7 +188,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             }
 
             Matrix<value_primitive_type> values;
-            values.resize(rLocalContainer.size(), value_type_traits::Size(value_prototype));
+            values.resize(rLocalContainer.size(), std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>{}));
             Internals::CopyToContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values));
             mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         } else {
@@ -232,7 +230,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
     const IndexType StartIndex,
     const IndexType BlockSize)
 {
-    using value_type = typename Internals::ComponentTraits<TComponentType>::ValueType;
+    using value_type = typename TContainerDataIO::ComponentDataType<typename Internals::ComponentTraits<TComponentType>::ValueType>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -346,6 +344,8 @@ KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, Internal
 KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType, Internals::HistoricalIO);
 KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType, Internals::BossakIO);
 KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(Detail::VertexContainerType, Internals::VertexValueIO);
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::ConditionsContainerType, Internals::GaussPointValueIO);
+KRATOS_HDF5_INSTANTIATE_VARIABLE_CONTAINER_COMPONENT_IO(ModelPart::ElementsContainerType, Internals::GaussPointValueIO);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::NodesContainerType);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::ConditionsContainerType);
 KRATOS_HDF5_INSTANTIATE_GENERIC_CONTAINER_COMPONENT_IO(ModelPart::ElementsContainerType);

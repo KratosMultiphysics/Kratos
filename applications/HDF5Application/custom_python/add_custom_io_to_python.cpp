@@ -29,8 +29,6 @@
 #include "custom_io/hdf5_file.h"
 #include "custom_io/hdf5_model_part_io.h"
 #include "custom_io/hdf5_data_value_container_io.h"
-#include "custom_io/hdf5_element_gauss_point_output.h"
-#include "custom_io/hdf5_condition_gauss_point_output.h"
 #include "custom_io/hdf5_vertex_container_io.h"
 #include "custom_io/hdf5_container_component_io.h"
 
@@ -284,16 +282,38 @@ void AddCustomIOToPython(pybind11::module& m)
     AddContainerComponentIOToPython<FlagContainerComponentIOWrapper<ModelPart::NodesContainerType>>(m, "HDF5NodalFlagValueIO");
     AddContainerComponentIOToPython<VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, HDF5::Internals::NonHistoricalIO>>(m, "HDF5NodalDataValueIO");
 
-    py::class_<HDF5::ElementGaussPointOutput, HDF5::ElementGaussPointOutput::Pointer>(
-        m,"HDF5ElementGaussPointOutput")
+    using element_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ElementsContainerType, HDF5::Internals::GaussPointValueIO>::ContainerIOType;
+    py::class_<element_gauss_io, element_gauss_io::Pointer>(m,"HDF5ElementGaussPointOutput")
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
-        .def("WriteElementGaussPointValues", &HDF5::ElementGaussPointOutput::WriteElementGaussPointValues)
+        .def("Write", [](element_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
+                rSelf.Write(HDF5::Internals::GetLocalContainer<ModelPart::ElementsContainerType>(rModelPart), HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
+            },
+            py::arg("model_part"),
+            py::arg("attributes") = Parameters("""{}"""))
+        .def("WriteElementGaussPointValues", [](element_gauss_io& rSelf, const ModelPart::ElementsContainerType& rContainer, const DataCommunicator& rDataCommunicator, const ProcessInfo& rProcessInfo) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteElementGaussPointValues\" method in \"HDF5ElementGaussPointOutput\". Please use \"Write\" method instead.\n";
+                rSelf.Write(rContainer, HDF5::Internals::GaussPointValueIO(rProcessInfo), Parameters("""{}"""));
+            },
+            py::arg("elements"),
+            py::arg("data_communicator"),
+            py::arg("process_info"))
         ;
 
-    py::class_<HDF5::ConditionGaussPointOutput, HDF5::ConditionGaussPointOutput::Pointer>(
-        m,"HDF5ConditionGaussPointOutput")
+    using condition_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ConditionsContainerType, HDF5::Internals::GaussPointValueIO>::ContainerIOType;
+    py::class_<condition_gauss_io, condition_gauss_io::Pointer>(m,"HDF5ConditionGaussPointOutput")
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
-        .def("WriteConditionGaussPointValues", &HDF5::ConditionGaussPointOutput::WriteConditionGaussPointValues)
+        .def("Write", [](condition_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
+                rSelf.Write(HDF5::Internals::GetLocalContainer<ModelPart::ConditionsContainerType>(rModelPart), HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
+            },
+            py::arg("model_part"),
+            py::arg("attributes") = Parameters("""{}"""))
+        .def("WriteConditionGaussPointValues", [](condition_gauss_io& rSelf, const ModelPart::ConditionsContainerType& rContainer, const DataCommunicator& rDataCommunicator, const ProcessInfo& rProcessInfo) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteConditionGaussPointValues\" method in \"HDF5ConditionGaussPointOutput\". Please use \"Write\" method instead.\n";
+                rSelf.Write(rContainer, HDF5::Internals::GaussPointValueIO(rProcessInfo), Parameters("""{}"""));
+            },
+            py::arg("elements"),
+            py::arg("data_communicator"),
+            py::arg("process_info"))
         ;
 
     py::class_<HDF5::VertexContainerCoordinateIO, HDF5::VertexContainerCoordinateIO::Pointer>(m, "VertexContainerCoordinateIO")

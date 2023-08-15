@@ -13,10 +13,14 @@
 #pragma once
 
 // System includes
+#include <vector>
+#include <variant>
+#include <type_traits>
 
 // Project includes
 #include "containers/flags.h"
 #include "includes/model_part.h"
+#include "utilities/data_type_traits.h"
 
 // Application includes
 #include "custom_utilities/data_type_utilities.h"
@@ -32,6 +36,13 @@ namespace Internals
 class FlagIO
 {
 public:
+    ///@name Type definitions
+    ///@{
+
+    template<class TDataType>
+    using ComponentDataType = char;
+
+    ///@}
     ///@name Public operations
     ///@{
 
@@ -58,6 +69,13 @@ public:
 class HistoricalIO
 {
 public:
+    ///@name Type definitions
+    ///@{
+
+    template<class TDataType>
+    using ComponentDataType = TDataType;
+
+    ///@}
     ///@name Life cycle
     ///@{
 
@@ -98,6 +116,13 @@ private:
 class NonHistoricalIO
 {
 public:
+    ///@name Type definitions
+    ///@{
+
+    template<class TDataType>
+    using ComponentDataType = TDataType;
+
+    ///@}
     ///@name Public operations
     ///@{
 
@@ -124,6 +149,13 @@ public:
 class BossakIO
 {
 public:
+    ///@name Type definitions
+    ///@{
+
+    template<class TDataType>
+    using ComponentDataType = TDataType;
+
+    ///@}
     ///@name Life cycle
     ///@{
 
@@ -168,6 +200,13 @@ private:
 class VertexValueIO
 {
 public:
+    ///@name Type definitions
+    ///@{
+
+    template<class TDataType>
+    using ComponentDataType = TDataType;
+
+    ///@}
     ///@name Public operations
     ///@{
 
@@ -185,8 +224,75 @@ public:
         const Variable<TDataType>& rVariable,
         const TDataType& rValue) const
     {
-        KRATOS_ERROR << "VertexIO does not support setting values from vertices";
+        KRATOS_ERROR << "VertexValueIO does not support setting values from vertices";
     }
+
+    ///@}
+};
+
+class GaussPointValueIO
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    template<class TDataType>
+    using ComponentDataType = Vector<typename DataTypeTraits<TDataType>::PrimitiveType>;
+
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    GaussPointValueIO(const ProcessInfo& rProcessInfo) : mrProcessInfo(rProcessInfo) {}
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    template<class TEntityType, class TDataType>
+    inline ComponentDataType<TDataType> GetValue(
+        const TEntityType& rEntity,
+        const Variable<TDataType>& rVariable) const
+    {
+        // Since the array_1d<double, 4> and array_1d<double 9> interfaces are not present in
+        // elements and conditions.
+        if constexpr(!std::is_same_v<TDataType, array_1d<double, 4>> && !std::is_same_v<TDataType, array_1d<double, 9>>) {
+
+            using list_traits = DataTypeTraits<std::vector<TDataType>>;
+
+            using vector_traits = DataTypeTraits<Vector<typename list_traits::PrimitiveType>>;
+
+            std::vector<TDataType> values;
+            const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(rVariable, values, mrProcessInfo);
+
+            typename vector_traits::ContainerType contiguous_data;
+            contiguous_data.resize(list_traits::Size(values), false);
+
+            list_traits::CopyToContiguousData(vector_traits::GetContiguousData(contiguous_data), values);
+
+            return contiguous_data;
+        } else {
+            KRATOS_ERROR << "The gauss point interface in elements/conditions for Variable<array_1d<double, 4>> and Variable<array_1d<double, 9>> are not defined.";
+            return ComponentDataType<TDataType>{};
+        }
+    }
+
+    template<class TEntityType, class TDataType>
+    inline void SetValue(
+        TEntityType& rEntity,
+        const Variable<TDataType>& rVariable,
+        const ComponentDataType<TDataType>& rValue) const
+    {
+        KRATOS_ERROR << "GaussPointValueIO does not support setting values from vertices";
+    }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    const ProcessInfo& mrProcessInfo;
 
     ///@}
 };
@@ -204,6 +310,8 @@ std::string GetContainerIOType()
         return "HISTORICAL_BOSSAK";
     } else if constexpr(std::is_same_v<TContainerIOType, VertexValueIO>) {
         return "INTERPOLATED";
+    } else if constexpr(std::is_same_v<TContainerIOType, GaussPointValueIO>) {
+        return "GAUSS_POINT";
     } else {
         static_assert(!std::is_same_v<TContainerIOType, TContainerIOType>, "Unsupported container io type.");
     }
@@ -262,7 +370,9 @@ void CopyToContiguousDataArray(
 {
     KRATOS_TRY
 
-    using value_type_traits = DataTypeTraits<typename ComponentTraits<TComponentType>::ValueType>;
+    using value_type = typename TContainerDataIO::ComponentDataType<typename Internals::ComponentTraits<TComponentType>::ValueType>;
+
+    using value_type_traits = DataTypeTraits<value_type>;
 
     static_assert(value_type_traits::IsContiguous, "Only contiguous data types are supported.");
 
@@ -297,11 +407,11 @@ void CopyFromContiguousDataArray(
 {
     KRATOS_TRY
 
-    using value_type_traits = DataTypeTraits<typename ComponentTraits<TComponentType>::ValueType>;
+    using value_type = typename TContainerDataIO::ComponentDataType<typename Internals::ComponentTraits<TComponentType>::ValueType>;
+
+    using value_type_traits = DataTypeTraits<value_type>;
 
     static_assert(value_type_traits::IsContiguous, "Only contiguous data types are supported.");
-
-    using value_type = typename value_type_traits::ContainerType;
 
     if (rContainer.empty()) {
         // do nothing if the container is empty.
