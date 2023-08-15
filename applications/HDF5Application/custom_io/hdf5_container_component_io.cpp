@@ -160,7 +160,9 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
     Parameters Attributes,
     WriteInfo& rInfo)
 {
-    using value_type = typename TContainerDataIO::ComponentDataType<typename Internals::ComponentTraits<TComponentType>::ValueType>;
+    using component_data_type = typename Internals::ComponentTraits<TComponentType>::ValueType;
+
+    using value_type = typename TContainerDataIO::ComponentDataType<component_data_type>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -174,7 +176,8 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             // retrieving dynamic shape
             std::vector<int> shape(value_type_traits::Dimension);
             if (!rLocalContainer.empty()) {
-                const auto& value_prototype = rContainerDataIO.GetValue(rLocalContainer.front(), r_component);
+                typename TContainerDataIO::template TLSType<component_data_type> tls;
+                const auto& value_prototype = rContainerDataIO.GetValue(rLocalContainer.front(), r_component, tls);
                 value_type_traits::Shape(value_prototype, shape.data(), shape.data() + value_type_traits::Dimension);
             }
             shape = mpFile->GetDataCommunicator().MaxAll(shape);

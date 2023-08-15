@@ -40,6 +40,9 @@ public:
     ///@{
 
     template<class TDataType>
+    using TLSType = char;
+
+    template<class TDataType>
     using ComponentDataType = char;
 
     ///@}
@@ -49,7 +52,8 @@ public:
     template<class TEntityType>
     inline char GetValue(
         const TEntityType& rEntity,
-        const Flags& rFlag) const
+        const Flags& rFlag,
+        char& rTLS) const
     {
         return rEntity.Is(rFlag);
     }
@@ -73,6 +77,9 @@ public:
     ///@{
 
     template<class TDataType>
+    using TLSType = char;
+
+    template<class TDataType>
     using ComponentDataType = TDataType;
 
     ///@}
@@ -88,7 +95,8 @@ public:
     template<class TDataType>
     inline const TDataType& GetValue(
         const ModelPart::NodeType& rNode,
-        const Variable<TDataType>& rVariable) const
+        const Variable<TDataType>& rVariable,
+        char& rTLS) const
     {
         return rNode.FastGetSolutionStepValue(rVariable, mStepIndex);
     }
@@ -120,6 +128,9 @@ public:
     ///@{
 
     template<class TDataType>
+    using TLSType = char;
+
+    template<class TDataType>
     using ComponentDataType = TDataType;
 
     ///@}
@@ -129,7 +140,8 @@ public:
     template<class TEntityType, class TDataType>
     inline const TDataType& GetValue(
         const TEntityType& rEntity,
-        const Variable<TDataType>& rVariable) const
+        const Variable<TDataType>& rVariable,
+        char& rTLS) const
     {
         return rEntity.GetValue(rVariable);
     }
@@ -153,6 +165,9 @@ public:
     ///@{
 
     template<class TDataType>
+    using TLSType = char;
+
+    template<class TDataType>
     using ComponentDataType = TDataType;
 
     ///@}
@@ -168,7 +183,8 @@ public:
     template<class TDataType>
     inline TDataType GetValue(
         const ModelPart::NodeType& rNode,
-        const Variable<TDataType>& rVariable) const
+        const Variable<TDataType>& rVariable,
+        char& rTLS) const
     {
         if (rVariable == ACCELERATION) {
             return (1.0 - mAlphaBossak) * rNode.FastGetSolutionStepValue(rVariable, 0) + mAlphaBossak * rNode.FastGetSolutionStepValue(rVariable, 1);
@@ -204,6 +220,9 @@ public:
     ///@{
 
     template<class TDataType>
+    using TLSType = char;
+
+    template<class TDataType>
     using ComponentDataType = TDataType;
 
     ///@}
@@ -213,7 +232,8 @@ public:
     template<class TDataType>
     inline TDataType GetValue(
         const Detail::Vertex& rVertex,
-        const Variable<TDataType>& rVariable) const
+        const Variable<TDataType>& rVariable,
+        char& rTLS) const
     {
         return rVertex.GetValue(rVariable);
     }
@@ -233,8 +253,22 @@ public:
 class GaussPointValueIO
 {
 public:
+    ///@name Calss definitions
+    ///@{
+
+    template<class TDataType>
+    struct TLSStruct {
+        std::vector<TDataType> mList;
+        Vector<typename DataTypeTraits<TDataType>::PrimitiveType> mVector;
+    };
+
+    ///@}
     ///@name Type definitions
     ///@{
+
+
+    template<class TDataType>
+    using TLSType = TLSStruct<TDataType>;
 
     template<class TDataType>
     using ComponentDataType = Vector<typename DataTypeTraits<TDataType>::PrimitiveType>;
@@ -250,9 +284,10 @@ public:
     ///@{
 
     template<class TEntityType, class TDataType>
-    inline ComponentDataType<TDataType> GetValue(
+    inline const ComponentDataType<TDataType>& GetValue(
         const TEntityType& rEntity,
-        const Variable<TDataType>& rVariable) const
+        const Variable<TDataType>& rVariable,
+        TLSType<TDataType>& rTLS) const
     {
         // Since the array_1d<double, 4> and array_1d<double 9> interfaces are not present in
         // elements and conditions.
@@ -262,18 +297,19 @@ public:
 
             using vector_traits = DataTypeTraits<Vector<typename list_traits::PrimitiveType>>;
 
-            std::vector<TDataType> values;
-            const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(rVariable, values, mrProcessInfo);
+            const_cast<TEntityType&>(rEntity).CalculateOnIntegrationPoints(rVariable, rTLS.mList, mrProcessInfo);
 
-            typename vector_traits::ContainerType contiguous_data;
-            contiguous_data.resize(list_traits::Size(values), false);
+            const auto size = list_traits::Size(rTLS.mList);
+            if (rTLS.mVector.size() != size) {
+                rTLS.mVector.resize(size, false);
+            }
 
-            list_traits::CopyToContiguousData(vector_traits::GetContiguousData(contiguous_data), values);
+            list_traits::CopyToContiguousData(vector_traits::GetContiguousData(rTLS.mVector), rTLS.mList);
 
-            return contiguous_data;
+            return rTLS.mVector;
         } else {
             KRATOS_ERROR << "The gauss point interface in elements/conditions for Variable<array_1d<double, 4>> and Variable<array_1d<double, 9>> are not defined.";
-            return ComponentDataType<TDataType>{};
+            return rTLS.mVector;
         }
     }
 
@@ -370,7 +406,9 @@ void CopyToContiguousDataArray(
 {
     KRATOS_TRY
 
-    using value_type = typename TContainerDataIO::ComponentDataType<typename Internals::ComponentTraits<TComponentType>::ValueType>;
+    using component_data_type = typename Internals::ComponentTraits<TComponentType>::ValueType;
+
+    using value_type = typename TContainerDataIO::ComponentDataType<component_data_type>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -382,13 +420,14 @@ void CopyToContiguousDataArray(
     }
 
     // get the first item for sizing.
-    const auto& initial_value = rContainerDataIO.GetValue(rContainer.front(), rComponent);
+    typename TContainerDataIO::template TLSType<component_data_type> tls;
+    const auto& initial_value = rContainerDataIO.GetValue(rContainer.front(), rComponent, tls);
 
     // get the stride from the first element to support dynamic types.
     const auto stride = value_type_traits::Size(initial_value);
 
-    IndexPartition<unsigned int>(rContainer.size()).for_each([&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index) {
-        const auto& value = rContainerDataIO.GetValue(*(rContainer.begin() + Index), rComponent);
+    IndexPartition<unsigned int>(rContainer.size()).for_each(tls, [&rContainer, &rComponent, &rContainerDataIO, pBegin, stride](const auto Index, auto& rTLS) {
+        const auto& value = rContainerDataIO.GetValue(*(rContainer.begin() + Index), rComponent, rTLS);
         TDataType const* p_value_begin = value_type_traits::GetContiguousData(value);
         auto p_array_start = pBegin + Index * stride;
         std::copy(p_value_begin, p_value_begin + stride, p_array_start);
