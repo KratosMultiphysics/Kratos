@@ -32,7 +32,7 @@
 #endif
 
 // Application includes
-#include "custom_utilities/h5_data_type_traits.h"
+#include "custom_utilities/data_type_utilities.h"
 
 // Include base h
 #include "hdf5_file.h"
