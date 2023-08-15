@@ -41,7 +41,7 @@ namespace HDF5
 
 /// A class for IO of element data in HDF5.
 template <class TContainerType, class TContainerDataIO, class... TComponents>
-class KRATOS_API(HDF5_APPLICATION) NewContainerComponentIO
+class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO
 {
 public:
     ///@name Type Definitions
@@ -50,14 +50,14 @@ public:
     using IndexType = std::size_t;
 
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(NewContainerComponentIO);
+    KRATOS_CLASS_POINTER_DEFINITION(ContainerComponentIO);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Constructor.
-    NewContainerComponentIO(
+    ContainerComponentIO(
         Parameters Settings,
         File::Pointer pFile);
 
@@ -115,7 +115,7 @@ private:
 
     ///@}
 
-}; // class NewContainerComponentIO.
+}; // class ContainerComponentIO.
 
 
 ///@} // Kratos Classes

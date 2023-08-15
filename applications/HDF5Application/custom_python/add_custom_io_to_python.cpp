@@ -32,7 +32,7 @@
 #include "custom_io/hdf5_element_gauss_point_output.h"
 #include "custom_io/hdf5_condition_gauss_point_output.h"
 #include "custom_io/hdf5_vertex_container_io.h"
-#include "custom_io/hdf5_new_container_component_io.h"
+#include "custom_io/hdf5_container_component_io.h"
 
 #include "custom_utilities/container_io_utils.h"
 
@@ -50,7 +50,7 @@ struct VariableContainerComponentIOWrapper
 
     using ContainerDataIOType = TContainerDataIOType;
 
-    using ContainerIOType = typename HDF5::NewContainerComponentIO<
+    using ContainerIOType = typename HDF5::ContainerComponentIO<
                                         TContainerType,
                                         TContainerDataIOType,
                                         Variable<int>,
@@ -71,7 +71,7 @@ struct FlagContainerComponentIOWrapper
 
     using ContainerDataIOType = HDF5::Internals::FlagIO;
 
-    using ContainerIOType = typename HDF5::NewContainerComponentIO<
+    using ContainerIOType = typename HDF5::ContainerComponentIO<
                                         TContainerType,
                                         ContainerDataIOType,
                                         Flags>;
@@ -136,7 +136,7 @@ void AddContainerComponentIOToPython(
         ;
 }
 
-class PythonNodalSolutionStepBossakIO : public HDF5::NewContainerComponentIO<
+class PythonNodalSolutionStepBossakIO : public HDF5::ContainerComponentIO<
                                                                 ModelPart::NodesContainerType,
                                                                 HDF5::Internals::BossakIO,
                                                                 Variable<int>,
@@ -152,7 +152,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = HDF5::NewContainerComponentIO<
+    using BaseType = HDF5::ContainerComponentIO<
                             ModelPart::NodesContainerType,
                             HDF5::Internals::BossakIO,
                             Variable<int>,

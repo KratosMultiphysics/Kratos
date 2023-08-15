@@ -21,7 +21,7 @@
 
 // Application includes
 #include "custom_io/hdf5_model_part_io.h"
-#include "custom_io/hdf5_new_container_component_io.h"
+#include "custom_io/hdf5_container_component_io.h"
 #include "custom_utilities/container_io_utils.h"
 #include "tests/test_utils.h"
 
@@ -61,7 +61,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5NodalFlagValueIO_WriteNodalFlags1, KratosHDF5TestS
     auto p_file = pGetTestSerialFile();
     HDF5::ModelPartIO model_part_io(p_file, "/ModelData");
     model_part_io.WriteNodes(r_write_model_part.Nodes());
-    HDF5::NewContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::FlagIO, Flags> nodal_value_io(settings, p_file);
+    HDF5::ContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::FlagIO, Flags> nodal_value_io(settings, p_file);
     nodal_value_io.Write(r_write_model_part.Nodes(), HDF5::Internals::FlagIO{}, Parameters("""{}"""));
     model_part_io.ReadNodes(r_read_model_part.Nodes());
     nodal_value_io.Read(r_read_model_part.Nodes(), HDF5::Internals::FlagIO{}, r_read_model_part.GetCommunicator());

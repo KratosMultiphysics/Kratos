@@ -24,7 +24,7 @@
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
 
 // Include base h
-#include "custom_io/hdf5_new_container_component_io.h"
+#include "custom_io/hdf5_container_component_io.h"
 
 namespace Kratos
 {
@@ -64,7 +64,7 @@ struct SynchronizeComponent<ModelPart::NodesContainerType>
 } // namespace NewContainerComponentIOUtilities
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
-NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::NewContainerComponentIO(
+ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ContainerComponentIO(
     Parameters Settings,
     File::Pointer pFile)
     : mpFile(pFile)
@@ -93,7 +93,7 @@ NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::NewCo
 }
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
-void NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Write(
+void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Write(
     const TContainerType& rLocalContainer,
     const TContainerDataIO& rContainerDataIO,
     const Parameters Attributes)
@@ -121,7 +121,7 @@ void NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::
 }
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
-std::map<std::string, Parameters> NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Read(
+std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Read(
     TContainerType& rLocalContainer,
     const TContainerDataIO& rContainerDataIO,
     Communicator& rCommunicator)
@@ -153,7 +153,7 @@ std::map<std::string, Parameters> NewContainerComponentIO<TContainerType, TConta
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
 template <class TComponentType>
-bool NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::WriteComponentData(
+bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::WriteComponentData(
     const std::string& rComponentName,
     const TContainerDataIO& rContainerDataIO,
     const TContainerType& rLocalContainer,
@@ -223,7 +223,7 @@ bool NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
 template <class TComponentType>
-bool NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ReadComponentData(
+bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ReadComponentData(
     const std::string& rComponentName,
     const TContainerDataIO& rContainerDataIO,
     TContainerType& rLocalContainer,
@@ -287,7 +287,7 @@ bool NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::
 }
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
-std::map<std::string, Parameters> NewContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ReadAttributes()
+std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::ReadAttributes()
 {
     KRATOS_TRY
 
@@ -316,7 +316,7 @@ std::map<std::string, Parameters> NewContainerComponentIO<TContainerType, TConta
 // template instantiations
 #ifndef KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO
 #define KRATOS_HDF5_INSTANTIATE_CONTAINER_COMPONENT_IO(CONTAINER_TYPE, CONTAINER_DATA_IO, ...)                      \
-template class KRATOS_API(HDF5_APPLICATION) NewContainerComponentIO<CONTAINER_TYPE, CONTAINER_DATA_IO, __VA_ARGS__>;
+template class KRATOS_API(HDF5_APPLICATION) ContainerComponentIO<CONTAINER_TYPE, CONTAINER_DATA_IO, __VA_ARGS__>;
 #endif
 
 #ifndef KRATOS_HDF5_INSTANTIATE_FLAGS_CONTAINER_COMPONENT_IO

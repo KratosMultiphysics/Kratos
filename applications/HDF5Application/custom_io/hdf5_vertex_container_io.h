@@ -13,7 +13,7 @@
 #pragma once
 
 // Application includes
-#include "custom_io/hdf5_new_container_component_io.h"
+#include "custom_io/hdf5_container_component_io.h"
 #include "custom_utilities/container_io_utils.h"
 #include "custom_utilities/vertex.h"
 
@@ -100,7 +100,7 @@ private:
  *      "list_of_variables" : []
  *  }
  */
-class KRATOS_API(HDF5_APPLICATION) VertexContainerVariableIO: protected NewContainerComponentIO<
+class KRATOS_API(HDF5_APPLICATION) VertexContainerVariableIO: protected ContainerComponentIO<
                                                                                 Detail::VertexContainerType,
                                                                                 Internals::VertexValueIO,
                                                                                 Variable<int>,
@@ -116,7 +116,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using BaseType = NewContainerComponentIO<
+    using BaseType = ContainerComponentIO<
                                 Detail::VertexContainerType,
                                 Internals::VertexValueIO,
                                 Variable<int>,
