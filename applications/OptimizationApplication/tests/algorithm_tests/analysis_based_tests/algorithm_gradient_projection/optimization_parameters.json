@@ -70,7 +70,7 @@
                     "type": "implicit",
                     "radius": 0.2,
                     "linear_solver_settings": {
-                        "solver_type": "LinearSolversApplication.pardiso_lu"
+                        "solver_type": "LinearSolversApplication.amgcl"
                     }
                 },
                 "output_all_fields": false,
