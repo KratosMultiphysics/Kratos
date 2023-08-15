@@ -66,11 +66,11 @@ public:
     ///@{
 
     void Write(
-        const TContainerType& rContainer,
+        const TContainerType& rLocalContainer,
         Parameters Attributes);
 
     std::map<std::string, Parameters> Read(
-        TContainerType& rContainer,
+        TContainerType& rLocalContainer,
         Communicator& rCommunicator);
 
     ///@}
@@ -92,14 +92,14 @@ private:
     template<class TComponentType>
     bool WriteComponentData(
         const std::string& rComponentName,
-        const TContainerType& rContainer,
+        const TContainerType& rLocalContainer,
         Parameters Attributes,
         WriteInfo& rInfo);
 
     template<class TComponentType>
     bool ReadComponentData(
         const std::string& rComponentName,
-        TContainerType& rContainer,
+        TContainerType& rLocalContainer,
         Communicator& rCommunicator,
         std::map<std::string, Parameters>& rAttributesMap,
         const IndexType StartIndex,

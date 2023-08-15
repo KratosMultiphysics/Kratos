@@ -72,7 +72,21 @@ public:
     }
 }; // class VertexContainerIOTrampoline
 
-
+template<class TContainerType, class TContainerDataIO>
+struct VariableContainerComponentIOWrapper
+{
+    using ContainerIOType = typename HDF5::NewContainerComponentIO<
+                                        TContainerType,
+                                        TContainerDataIO,
+                                        Variable<int>,
+                                        Variable<double>,
+                                        Variable<array_1d<double, 3>>,
+                                        Variable<array_1d<double, 4>>,
+                                        Variable<array_1d<double, 6>>,
+                                        Variable<array_1d<double, 9>>,
+                                        Variable<Kratos::Vector>,
+                                        Variable<Kratos::Matrix>>;
+};
 
 void AddCustomIOToPython(pybind11::module& m)
 {
@@ -189,7 +203,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("Write", &HDF5::VertexContainerVariableIO::Write)
         ;
 
-    using new_type = HDF5::NewContainerComponentIO<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>, Variable<double>, Variable<array_1d<double, 3>>, Variable<Vector>, Variable<Matrix>>;
+    using new_type = VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>::ContainerIOType;
     py::class_<new_type, new_type::Pointer>(m,"TestIO")
         .def(py::init<Parameters, HDF5::File::Pointer>())
         .def("Write", &new_type::Write)

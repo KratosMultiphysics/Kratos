@@ -18,9 +18,11 @@
 // Project includes
 #include "containers/flags.h"
 #include "containers/variable.h"
+#include "expression/container_data_io.h"
 #include "includes/kratos_parameters.h"
-#include "utilities/parallel_utilities.h"
+#include "includes/model_part.h"
 #include "utilities/data_type_traits.h"
+#include "utilities/parallel_utilities.h"
 
 // Application includes
 
@@ -82,6 +84,20 @@ void GetShapeFromAttributes(
     }
 }
 
+template<class TContainerType>
+std::string GetContainerType()
+{
+    if constexpr(std::is_same_v<TContainerType, ModelPart::NodesContainerType>) {
+        return "NODES";
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ConditionsContainerType>) {
+        return "CONDITIONS";
+    } else if constexpr(std::is_same_v<TContainerType, ModelPart::ElementsContainerType>) {
+        return "ELEMENTS";
+    } else {
+        static_assert(!std::is_same_v<TContainerType, TContainerType>, "Unsupported container type.");
+    }
+}
+
 struct FlagIO
 {
     static constexpr std::string_view mInfo = "Flag";
@@ -103,6 +119,20 @@ struct FlagIO
         rEntity.Set(rVariable, static_cast<bool>(rValue));
     }
 };
+
+template<class TContainerIOType>
+std::string GetContainerIOType()
+{
+    if constexpr(std::is_same_v<TContainerIOType, ContainerDataIO<ContainerDataIOTags::Historical>>) {
+        return "HISTORICAL";
+    } else if constexpr(std::is_same_v<TContainerIOType, ContainerDataIO<ContainerDataIOTags::NonHistorical>>) {
+        return "NONHISTORICAL";
+    } else if constexpr(std::is_same_v<TContainerIOType, FlagIO>) {
+        return "FLAGS";
+    } else {
+        static_assert(!std::is_same_v<TContainerIOType, TContainerIOType>, "Unsupported container io type.");
+    }
+}
 
 template<class TDataType>
 struct ComponentTraits {};
