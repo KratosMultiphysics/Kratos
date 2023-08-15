@@ -4,20 +4,18 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
+//                   Suneth Warnakulasuriya
 //
-//
-
 
 // System includes
 
 // External includes
 #include "pybind11/stl.h"
 #include "pybind11/pybind11.h"
-
 
 // Project includes
 #include "includes/define.h"
@@ -44,8 +42,6 @@
 
 namespace Kratos {
 namespace Python {
-
-
 
 class VertexContainerIOTrampoline : public HDF5::VertexContainerIO
 {
@@ -157,15 +153,33 @@ void AddContainerComponentIOToPython(
         ;
 }
 
-class PythonNodalSolutionStepBossakIO : public HDF5::NewContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::BossakIO, Variable<int>, Variable<double>, Variable<array_1d<double, 3>>, Variable<array_1d<double, 4>>, Variable<array_1d<double, 6>>, Variable<array_1d<double, 9>>, Variable<Kratos::Vector>, Variable<Kratos::Matrix>>
+class PythonNodalSolutionStepBossakIO : public HDF5::NewContainerComponentIO<
+                                                                ModelPart::NodesContainerType,
+                                                                HDF5::Internals::BossakIO,
+                                                                Variable<int>,
+                                                                Variable<double>,
+                                                                Variable<array_1d<double, 3>>,
+                                                                Variable<array_1d<double, 4>>,
+                                                                Variable<array_1d<double, 6>>,
+                                                                Variable<array_1d<double, 9>>,
+                                                                Variable<Kratos::Vector>,
+                                                                Variable<Kratos::Matrix>>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    using IndexType = std::size_t;
-
-    using BaseType = HDF5::NewContainerComponentIO<ModelPart::NodesContainerType, HDF5::Internals::BossakIO, Variable<int>, Variable<double>, Variable<array_1d<double, 3>>, Variable<array_1d<double, 4>>, Variable<array_1d<double, 6>>, Variable<array_1d<double, 9>>, Variable<Kratos::Vector>, Variable<Kratos::Matrix>>;
+    using BaseType = HDF5::NewContainerComponentIO<
+                            ModelPart::NodesContainerType,
+                            HDF5::Internals::BossakIO,
+                            Variable<int>,
+                            Variable<double>,
+                            Variable<array_1d<double, 3>>,
+                            Variable<array_1d<double, 4>>,
+                            Variable<array_1d<double, 6>>,
+                            Variable<array_1d<double, 9>>,
+                            Variable<Kratos::Vector>,
+                            Variable<Kratos::Matrix>>;
 
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(PythonNodalSolutionStepBossakIO);
@@ -177,20 +191,27 @@ public:
     /// Constructor.
     PythonNodalSolutionStepBossakIO(
         Parameters Settings,
-        HDF5::File::Pointer pFile) : BaseType(Settings, pFile) {}
+        HDF5::File::Pointer pFile)
+        : BaseType(Settings, pFile)
+    {
+    }
 
     ///@}
     ///@name Operations
     ///@{
 
-    void SetAlphaBossak(const double AlphaBossak) { mAlphaBossak = AlphaBossak; }
+    void SetAlphaBossak(const double AlphaBossak)
+    {
+        mAlphaBossak = AlphaBossak;
+    }
 
     void Write(const ModelPart& rModelPart)
     {
         BaseType::Write(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak), Parameters("""{}"""));
     }
 
-    void Read(ModelPart& rModelPart) {
+    void Read(ModelPart& rModelPart)
+    {
         BaseType::Read(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak));
     }
 
