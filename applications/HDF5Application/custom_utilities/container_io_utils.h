@@ -333,6 +333,75 @@ private:
     ///@}
 };
 
+class NodesIO
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using IndexType = int;
+
+    using ContainerType = ModelPart::NodesContainerType;
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    inline void GetData(
+        IndexType& rId,
+        array_1d<double, 3>& rCoordinates,
+        const ModelPart::NodeType& rNode) const
+    {
+        rId = rNode.Id();
+        noalias(rCoordinates) = rNode.GetInitialPosition().Coordinates();
+    }
+
+    inline void AddPoint(
+        ModelPart::NodesContainerType& rNodes,
+        const IndexType Id,
+        const array_1d<double, 3>& rCoordinates) const
+    {
+        auto p_node = Kratos::make_intrusive<ModelPart::NodeType>(Id, rCoordinates[0], rCoordinates[1], rCoordinates[2]);
+        rNodes.push_back(p_node);
+    }
+
+    ///@}
+};
+
+class VerticesIO
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using IndexType = int;
+
+    using ContainerType = Detail::VertexContainerType;
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    inline void GetData(
+        IndexType& rId,
+        array_1d<double, 3>& rCoordinates,
+        const Detail::Vertex& rVertex) const
+    {
+        rId = rVertex.GetID();
+        noalias(rCoordinates) = rVertex.Coordinates();
+    }
+
+    inline void AddPoint(
+        Detail::VertexContainerType& rVertices,
+        const IndexType Id,
+        const array_1d<double, 3>& rCoordinates) const
+    {
+        KRATOS_ERROR << "Reading vertices are not allowed.";
+    }
+
+    ///@}
+};
+
 template<class TContainerIOType>
 std::string GetContainerIOType()
 {
