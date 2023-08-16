@@ -23,94 +23,33 @@ namespace Kratos
 namespace HDF5
 {
 
-VertexContainerCoordinateIO::VertexContainerCoordinateIO(
-    Parameters Settings,
-    File::Pointer pFile)
-    : mpFile(pFile)
+namespace Internals
 {
-    KRATOS_TRY
-
+std::string AddMissingAndGetPrefix(Parameters Settings)
+{
     Parameters default_params(R"(
         {
-            "prefix"           : "",
-            "write_vertex_ids" : false
+            "prefix": ""
         })");
 
     Settings.AddMissingParameters(default_params);
-    mWriteIDs = Settings["write_vertex_ids"].GetBool();
-    mPathPrefix = Settings["prefix"].GetString();
+    return Settings["prefix"].GetString();
+}
+}
 
-    KRATOS_CATCH("");
+VertexContainerCoordinateIO::VertexContainerCoordinateIO(
+    Parameters Settings,
+    File::Pointer pFile)
+    : BaseType(Internals::AddMissingAndGetPrefix(Settings), pFile)
+{
 }
 
 void VertexContainerCoordinateIO::Write(
     const Detail::VertexContainerType& rVertices,
     Parameters Attributes)
 {
-    if (mWriteIDs) {
-        WriteWithIDs(rVertices, Attributes);
-    } else {
-        WriteWithoutIDs(rVertices, Attributes);
-    }
-}
-
-
-void VertexContainerCoordinateIO::WriteWithIDs(
-    const Detail::VertexContainerType& rVertices,
-    Parameters Attributes)
-{
-    KRATOS_TRY
-
-    const std::string path = mPathPrefix + "/POSITION";
-
-    // Collect vertex coordinates into a buffer
-    Matrix<double> buffer;
-    buffer.resize(rVertices.size(), 4,  false);
-
-    IndexPartition<IndexType>(rVertices.size()).for_each([&rVertices, &buffer](const auto Index) {
-        const auto& rVertex = *(rVertices.begin() + Index);
-
-        for (std::size_t i_component=0; i_component < 3; ++i_component) {
-            buffer(Index, i_component) = rVertex[i_component];
-        }
-
-        buffer(Index, 3) = rVertex.GetID();
-    });
-
-    // Write buffer to the requested path
-    WriteInfo write_info;
-    mpFile->WriteDataSet(path, buffer, write_info);
-    mpFile->WriteAttribute(path, Attributes);
-
-    KRATOS_CATCH("");
-}
-
-void VertexContainerCoordinateIO::WriteWithoutIDs(
-    const Detail::VertexContainerType& rVertices,
-    Parameters Attributes)
-{
-    KRATOS_TRY
-
-    const std::string path = mPathPrefix + "/POSITION";
-
-    // Collect vertex coordinates into a buffer
-    Matrix<double> buffer;
-    buffer.resize(rVertices.size(), 3,  false);
-
-    IndexPartition<IndexType>(rVertices.size()).for_each([&rVertices, &buffer](const auto Index) {
-        const auto& rVertex = *(rVertices.begin() + Index);
-
-        for (std::size_t i_component=0; i_component < 3; ++i_component) {
-            buffer(Index, i_component) = rVertex[i_component];
-        }
-    });
-
-    // Write buffer to the requested path
-    WriteInfo write_info;
-    mpFile->WriteDataSet(path, buffer, write_info);
-    mpFile->WriteAttribute(path, Attributes);
-
-    KRATOS_CATCH("");
+    BaseType::Write(rVertices, Internals::VerticesIO{});
+    mpFile->WriteAttribute(mPrefix, Attributes);
 }
 
 VertexContainerVariableIO::VertexContainerVariableIO(
