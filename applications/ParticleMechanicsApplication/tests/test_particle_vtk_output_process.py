@@ -6,7 +6,6 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 import KratosMultiphysics.ParticleMechanicsApplication.particle_vtk_output_process as particle_vtk_output_process
 from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCheckProcess
 
-import os
 import pathlib
 
 class TestParticleVtkOutputProcess(KratosUnittest.TestCase):
