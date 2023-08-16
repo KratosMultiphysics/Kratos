@@ -53,9 +53,6 @@ public:
         Parameters ThisParameters = Parameters(R"({})" )
         );
 
-    /// Destructor.
-    virtual ~ParticleVtkOutput() = default;
-
     ///@}
     ///@name Operations
     ///@{
