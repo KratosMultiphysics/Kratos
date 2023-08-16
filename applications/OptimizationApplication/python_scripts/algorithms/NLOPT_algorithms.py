@@ -33,13 +33,17 @@ class NLOPTAlgorithms(Algorithm):
             "echo_level"        : 0,
             "NLOPT_settings"          : {
                 "algorithm_name"      : "MMA",
+                "verbosity"           : 0,
+                "controls_lower_bound": "",
+                "controls_upper_bound": "",
                 "stopping_criteria"   : {
-                    "objective_rel_tol": 0,
-                    "objective_abs_tol": 0,
-                    "controls_rel_tol": 0,
-                    "controls_abs_tol": 0,
-                    "maximum_function_evalualtion": 10
-                }
+                   "objective_rel_tol": 1e-6,
+                   "objective_abs_tol": 1e-6,
+                   "controls_rel_tol": 1e-6,
+                   "controls_abs_tol": 1e-6,
+                   "maximum_function_evalualtion": 10
+                },
+                "algorithm_specific_settings"   : {}
             }
         }""")
 
@@ -67,6 +71,13 @@ class NLOPTAlgorithms(Algorithm):
         NLOPT_settings = parameters["NLOPT_settings"]
         NLOPT_settings.ValidateAndAssignDefaults(self.GetDefaultParameters()["NLOPT_settings"])
 
+        # nlopt verbosity
+        self.nlopt_verbosity = NLOPT_settings["verbosity"].GetInt()
+
+        # upper and lower bounds
+        self.nlopt_controls_lower_bound = NLOPT_settings["controls_lower_bound"].GetString()
+        self.nlopt_controls_upper_bound = NLOPT_settings["controls_upper_bound"].GetString()
+
         # nlopt algorithm
         self.algorithm_name = NLOPT_settings["algorithm_name"].GetString()
         if(len(self.__constraints)==0):
@@ -81,6 +92,9 @@ class NLOPTAlgorithms(Algorithm):
         # stopping
         self.stopping_criteria = NLOPT_settings["stopping_criteria"]
         self.stopping_criteria.ValidateAndAssignDefaults(self.GetDefaultParameters()["NLOPT_settings"]["stopping_criteria"])
+
+        # alg specific settings
+        self.opt_algorithm_specific_settings = NLOPT_settings["algorithm_specific_settings"]
 
     def GetMinimumBufferSize(self) -> int:
         return 2
@@ -101,7 +115,11 @@ class NLOPTAlgorithms(Algorithm):
 
         # create nlopt optimizer
         self.x0 = self.__control_field.Evaluate()
+        self.x0 = self.x0.reshape(-1)
         self.nlopt_optimizer = nlopt.opt(self.GetOptimizer(self.algorithm_name), self.x0.size)
+
+        # set nlopt verbosity
+        self.nlopt_optimizer.set_param("verbosity",self.nlopt_verbosity)
 
         # assign objectives and constarints
         self.nlopt_optimizer.set_min_objective(self.__objective.CalculateStandardizedValueAndGradients)
@@ -110,12 +128,31 @@ class NLOPTAlgorithms(Algorithm):
                 self.nlopt_optimizer.add_equality_constraint(lambda x,grad: constraint.CalculateStandardizedValueAndGradients(x,grad),1e-8)
             else:
                 self.nlopt_optimizer.add_inequality_constraint(lambda x,grad: constraint.CalculateStandardizedValueAndGradients(x,grad),1e-8)
+
         # now set stopping criteria
         self.nlopt_optimizer.set_ftol_rel(self.stopping_criteria["objective_rel_tol"].GetDouble())
         self.nlopt_optimizer.set_ftol_abs(self.stopping_criteria["objective_abs_tol"].GetDouble())
         self.nlopt_optimizer.set_xtol_rel(self.stopping_criteria["controls_rel_tol"].GetDouble())
         self.nlopt_optimizer.set_xtol_abs(self.stopping_criteria["controls_abs_tol"].GetDouble())
         self.nlopt_optimizer.set_maxeval(self.stopping_criteria["maximum_function_evalualtion"].GetInt())
+
+        # set bounds if exist
+        if self.nlopt_controls_lower_bound != "":
+            self.nlopt_optimizer.set_lower_bounds(float(self.nlopt_controls_lower_bound))
+        if self.nlopt_controls_upper_bound != "":
+            self.nlopt_optimizer.set_upper_bounds(float(self.nlopt_controls_upper_bound))
+
+        # now add algorithm specific settings
+        if self.opt_algorithm_specific_settings.Has("inner_maxeval"):
+            self.nlopt_optimizer.set_param("inner_maxeval",self.opt_algorithm_specific_settings["inner_maxeval"].GetInt())
+        if self.opt_algorithm_specific_settings.Has("dual_ftol_rel"):
+            self.nlopt_optimizer.set_param("dual_ftol_rel",self.opt_algorithm_specific_settings["dual_ftol_rel"].GetDouble())
+        if self.opt_algorithm_specific_settings.Has("initial_step"):
+            self.nlopt_optimizer.set_initial_step(self.opt_algorithm_specific_settings["initial_step"].GetDouble())
+        if self.opt_algorithm_specific_settings.Has("population"):
+            self.nlopt_optimizer.set_population(self.opt_algorithm_specific_settings["population"].GetInt())
+        if self.opt_algorithm_specific_settings.Has("number_of_stored_vectors"):
+            self.nlopt_optimizer.set_vector_storage(self.opt_algorithm_specific_settings["number_of_stored_vectors"].GetInt())
 
     def Finalize(self):
         self.__objective.Finalize()
@@ -149,36 +186,33 @@ class NLOPTAlgorithms(Algorithm):
 
     def CheckOptimizerSupport(self, algorithm_name, constraint_type):
         # Unconstrained gradient-based optimizers
-        unconstrained_optimizers = {
-            "LBFGS": nlopt.LD_LBFGS
-        }
+        unconstrained_optimizers = {"LBFGS","MMA","CCSAQ","TNEWTON_PRECOND_RESTART","TNEWTON_PRECOND","TNEWTON_RESTART"}
 
         # Constrained gradient-based optimizers with equality constraints
-        equality_constrained_optimizers = {
-            "SLSQP": nlopt.LD_SLSQP
-        }
+        equality_constrained_optimizers = {"SLSQP"}
 
         # Constrained gradient-based optimizers with inequality constraints
-        inequality_constrained_optimizers = {
-            "MMA": nlopt.LD_MMA,
-            "SLSQP": nlopt.LD_SLSQP
-        }
+        inequality_constrained_optimizers = {"MMA","SLSQP","CCSAQ"}
 
         if constraint_type == "equality":
-            if algorithm_name not in equality_constrained_optimizers.keys():
-                raise ValueError(f"The algorithm {algorithm_name} does not support equality constraints, support {equality_constrained_optimizers.keys()}.")
+            if algorithm_name not in equality_constrained_optimizers:
+                raise ValueError(f"The algorithm {algorithm_name} does not support equality constraints, support {equality_constrained_optimizers}.")
         elif constraint_type == "inequality":
-            if algorithm_name not in inequality_constrained_optimizers.keys():
-                raise ValueError(f"The algorithm {algorithm_name} does not support inequality constraints, support {inequality_constrained_optimizers.keys()}.")
+            if algorithm_name not in inequality_constrained_optimizers:
+                raise ValueError(f"The algorithm {algorithm_name} does not support inequality constraints, support {inequality_constrained_optimizers}.")
         else:
-            if algorithm_name not in unconstrained_optimizers.keys():
-                raise ValueError(f"The algorithm {algorithm_name} does not support unconstrained optimization, support {unconstrained_optimizers.keys()}.")
+            if algorithm_name not in unconstrained_optimizers:
+                raise ValueError(f"The algorithm {algorithm_name} does not support unconstrained optimization, support {unconstrained_optimizers}.")
         return True
 
     def GetOptimizer(self,name):
         nlopt_algorithm_mapping = {
             "MMA": nlopt.LD_MMA,
             "SLSQP": nlopt.LD_SLSQP,
-            "LBFGS": nlopt.LD_LBFGS
+            "LBFGS": nlopt.LD_LBFGS,
+            "CCSAQ": nlopt.LD_CCSAQ,
+            "TNEWTON_PRECOND_RESTART": nlopt.LD_TNEWTON_PRECOND_RESTART,
+            "TNEWTON_PRECOND": nlopt.LD_TNEWTON_PRECOND,
+            "TNEWTON_RESTART": nlopt.LD_TNEWTON_RESTART
         }
         return nlopt_algorithm_mapping[name]
