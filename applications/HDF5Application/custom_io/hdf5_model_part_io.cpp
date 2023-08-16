@@ -113,14 +113,15 @@ void ModelPartIO::ReadElements(NodesContainerType& rNodes,
     KRATOS_TRY;
 
     rElements.clear();
-    for (const auto& r_name : mpFile->GetGroupNames(mPrefix + "/Elements"))
-    {
-        unsigned start_index, block_size;
-        std::tie(start_index, block_size) = StartIndexAndBlockSize(mPrefix + "/Elements/" + r_name);
-        Internals::ConnectivitiesData connectivities;
-        connectivities.ReadData(*mpFile, mPrefix + "/Elements/" + r_name, start_index, block_size);
-        connectivities.CreateEntities(rNodes, rProperties, rElements);
+
+    const auto& element_path = mPrefix + "/Elements";
+
+    for (const auto& r_name : mpFile->GetGroupNames(element_path)) {
+        Internals::ConnectivitiesData<ElementsContainerType> connectivities(element_path, mpFile);
+        connectivities.Read(r_name, rNodes, rProperties, rElements);
     }
+
+    rElements.Unique();
 
     KRATOS_CATCH("");
 }
@@ -132,16 +133,13 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
     std::vector<std::string> names;
     std::vector<ElementsContainerType> factored_elements;
     FactorElements(rElements, names, factored_elements);
-    mpFile->AddPath(mPrefix + "/Elements");
-    for (unsigned int i = 0; i < names.size(); ++i)
-    {
-        Internals::ConnectivitiesData connectivities;
-        // For partitioned elements, the local container may be empty. Therefore,
-        // we explicitly provide the element name here.
-        connectivities.SetData(names[i], factored_elements[i]);
-        WriteInfo info;
-        connectivities.WriteData(*mpFile, mPrefix + "/Elements/" + connectivities.Name(), info);
-        StoreWriteInfo(mPrefix + "/Elements/" + connectivities.Name(), info);
+
+    const auto& element_path = mPrefix + "/Elements";
+
+    mpFile->AddPath(element_path);
+    for (unsigned int i = 0; i < names.size(); ++i) {
+        Internals::ConnectivitiesData<ElementsContainerType> connectivities(element_path, mpFile);
+        connectivities.Write(factored_elements[i]);
     }
 
     KRATOS_CATCH("");
@@ -154,14 +152,15 @@ void ModelPartIO::ReadConditions(NodesContainerType& rNodes,
     KRATOS_TRY;
 
     rConditions.clear();
-    for (const auto& r_name : mpFile->GetGroupNames(mPrefix + "/Conditions"))
-    {
-        unsigned start_index, block_size;
-        std::tie(start_index, block_size) = StartIndexAndBlockSize(mPrefix + "/Conditions/" + r_name);
-        Internals::ConnectivitiesData connectivities;
-        connectivities.ReadData(*mpFile, mPrefix + "/Conditions/" + r_name, start_index, block_size);
-        connectivities.CreateEntities(rNodes, rProperties, rConditions);
+
+    const auto& condition_path = mPrefix + "/Conditions";
+
+    for (const auto& r_name : mpFile->GetGroupNames(condition_path)) {
+        Internals::ConnectivitiesData<ConditionsContainerType> connectivities(condition_path, mpFile);
+        connectivities.Read(r_name, rNodes, rProperties, rConditions);
     }
+
+    rConditions.Unique();
 
     KRATOS_CATCH("");
 }
@@ -173,16 +172,12 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
     std::vector<std::string> names;
     std::vector<ConditionsContainerType> factored_conditions;
     FactorConditions(rConditions, names, factored_conditions);
-    mpFile->AddPath(mPrefix + "/Conditions");
-    for (unsigned i = 0; i < names.size(); ++i)
-    {
-        Internals::ConnectivitiesData connectivities;
-        // For partitioned conditions, the local container may be empty. Therefore,
-        // we explicitly provide the condition name here.
-        connectivities.SetData(names[i], factored_conditions[i]);
-        WriteInfo info;
-        connectivities.WriteData(*mpFile, mPrefix + "/Conditions/" + connectivities.Name(), info);
-        StoreWriteInfo(mPrefix + "/Conditions/" + connectivities.Name(), info);
+    const auto& condition_path = mPrefix + "/Conditions";
+
+    mpFile->AddPath(condition_path);
+    for (unsigned int i = 0; i < names.size(); ++i) {
+        Internals::ConnectivitiesData<ConditionsContainerType> connectivities(condition_path, mpFile);
+        connectivities.Write(factored_conditions[i]);
     }
 
     KRATOS_CATCH("");
