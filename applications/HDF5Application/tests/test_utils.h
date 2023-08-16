@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Michael Andre, https://github.com/msandre
 //
 
-#if !defined(KRATOS_HDF5_TEST_UTILS_H_INCLUDED)
-#define KRATOS_HDF5_TEST_UTILS_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -140,5 +139,3 @@ public:
 
 } // namespace Testing
 } // namespace Kratos.
-
-#endif

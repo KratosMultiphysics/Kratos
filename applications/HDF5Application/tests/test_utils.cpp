@@ -1,15 +1,33 @@
-#include "tests/test_utils.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Michael Andre, https://github.com/msandre
+//                   Suneth Warnakulasruiya
+//
 
+// System includes
 #include <algorithm>
 #include <type_traits>
 
+// Project includes
 #include "containers/array_1d.h"
+#include "includes/kratos_components.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
-#include "includes/kratos_components.h"
-#include "testing/testing.h"
-#include "custom_io/hdf5_file.h"
 #include "includes/parallel_environment.h"
+#include "testing/testing.h"
+
+// Application includes
+#include "custom_io/hdf5_file.h"
+
+// Include base h
+#include "tests/test_utils.h"
 
 namespace Kratos
 {
@@ -21,24 +39,24 @@ namespace TestModelPartFactoryHelperUtilities
 {
 
 template<class TDataType>
-void AssignValue(TDataType& d)
+void AssignValue(TDataType& rValue)
 {
     if constexpr(std::is_same_v<TDataType, int>) {
-        d = 12345;
+        rValue = 12345;
     } else if constexpr(std::is_same_v<TDataType, double>) {
-        d = 1.2345;
+        rValue = 1.2345;
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
-        d = array_1d<double, 3>(3, 1.2345);
+        rValue = array_1d<double, 3>(3, 1.2345);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 4>>) {
-        d = array_1d<double, 3>(3, 1.2345);
+        rValue = array_1d<double, 3>(3, 1.2345);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 6>>) {
-        d = array_1d<double, 3>(3, 1.2345);
+        rValue = array_1d<double, 3>(3, 1.2345);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 9>>) {
-        d = array_1d<double, 3>(3, 1.2345);
+        rValue = array_1d<double, 3>(3, 1.2345);
     } else if constexpr(std::is_same_v<TDataType, Kratos::Vector>) {
-        d = Kratos::Vector(2, 1.2345);
+        rValue = Kratos::Vector(2, 1.2345);
     } else if constexpr(std::is_same_v<TDataType, Kratos::Matrix>) {
-        d = Kratos::Matrix(2, 2, 1.2345);
+        rValue = Kratos::Matrix(2, 2, 1.2345);
     } else {
         static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
     }
@@ -46,25 +64,25 @@ void AssignValue(TDataType& d)
 
 template<class TDataType>
 void CompareValues(
-    const TDataType& i1,
-    const TDataType& i2)
+    const TDataType& rValue1,
+    const TDataType& rValue2)
 {
     if constexpr(std::is_same_v<TDataType, int>) {
-        KRATOS_CHECK_EQUAL(i1, i2);
+        KRATOS_CHECK_EQUAL(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, double>) {
-        KRATOS_CHECK_EQUAL(i1, i2);
+        KRATOS_CHECK_EQUAL(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
-        KRATOS_CHECK_VECTOR_EQUAL(i1, i2);
+        KRATOS_CHECK_VECTOR_EQUAL(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 4>>) {
-        KRATOS_CHECK_VECTOR_EQUAL(i1, i2);
+        KRATOS_CHECK_VECTOR_EQUAL(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 6>>) {
-        KRATOS_CHECK_VECTOR_EQUAL(i1, i2);
+        KRATOS_CHECK_VECTOR_EQUAL(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 9>>) {
-        KRATOS_CHECK_VECTOR_EQUAL(i1, i2);
+        KRATOS_CHECK_VECTOR_EQUAL(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, Kratos::Vector>) {
-        KRATOS_CHECK_VECTOR_EQUAL(i1, i2);
+        KRATOS_CHECK_VECTOR_EQUAL(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, Kratos::Matrix>) {
-        KRATOS_CHECK_MATRIX_EQUAL(i1, i2);
+        KRATOS_CHECK_MATRIX_EQUAL(rValue1, rValue2);
     } else {
         static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
     }
