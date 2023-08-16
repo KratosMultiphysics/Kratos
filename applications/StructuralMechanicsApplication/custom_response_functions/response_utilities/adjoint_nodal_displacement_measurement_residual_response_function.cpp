@@ -32,10 +32,22 @@ namespace Kratos
         mResponsePartName = ResponseSettings["response_part_name"].GetString();
         mResponseDirection = ResponseSettings["direction"].GetVector();
         mTracedDofLabel = ResponseSettings["traced_dof"].GetString();
-        std::string measurementFileName = ResponseSettings["measurement_file_name"].GetString();
 
-        std::ifstream t(measurementFileName);
-        KRATOS_ERROR_IF_NOT(t.good() == 1) << "\n\nAdjointNodalDisplacementMeasurementResidualResponseFunction: The file " << measurementFileName << " which contains the measurement data was not found. Please use the parameter option 'measurement_file_name' to specify the path.\n\n"
+        std::string mMeasurementFileName = "";
+        int mMeasurementLoadCaseToUse = -1;
+
+        try
+        {
+            mMeasurementFileName = ResponseSettings["measurement_file_name"].GetString();
+            mMeasurementLoadCaseToUse = ResponseSettings["measurement_load_case_to_use"].GetInt();
+        }
+        catch (const std::exception &e)
+        {
+            KRATOS_ERROR_IF_NOT(false) << "\n\nAdjointNodalDisplacementMeasurementResidualResponseFunction: Properties specific to AdjointNodalDisplacementMeasurementResidualResponseFunction are not completely specified. Please provide 'measurement_file_name' (as str) and 'measurement_load_case_to_use' (as int)." << ResponseSettings << std::endl;
+        }
+
+        std::ifstream t(mMeasurementFileName);
+        KRATOS_ERROR_IF_NOT(t.good() == 1) << "\n\nAdjointNodalDisplacementMeasurementResidualResponseFunction: The file " << mMeasurementFileName << " which contains the measurement data was not found. Please use the parameter option 'measurement_file_name' to specify the path.\n\n"
                                            << std::endl;
 
         std::stringstream buffer;
@@ -43,11 +55,11 @@ namespace Kratos
         auto json_string = buffer.str();
         std::cout << "::[AdjointNodalDisplacementMeasurementResidualResponseFunction]:: Start reading measurement json ..." << std::endl;
 
-        mMeasurementData = Parameters(json_string);
+        mMeasurementData = Parameters(json_string)["load_cases"][mMeasurementLoadCaseToUse];
         // std::cout << "::[AdjointNodalDisplacementMeasurementResidualResponseFunction]:: Measurements:" << std::endl
         //           << mMeasurementData << std::endl;
 
-        KRATOS_ERROR_IF_NOT(mMeasurementData["load_cases"].size() == 1) << "AdjointNodalDisplacementMeasurementResidualResponseFunction: More then one load case in measurement data available. Currently only one load is supported.\nSize is: " << mMeasurementData["load_cases"].size() << std::endl;
+        // KRATOS_ERROR_IF_NOT(mMeasurementData["load_cases"].size() == 1) << "AdjointNodalDisplacementMeasurementResidualResponseFunction: More then one load case in measurement data available. Currently only one load is supported.\nSize is: " << mMeasurementData["load_cases"].size() << std::endl;
 
         if (norm_2(mResponseDirection) > 1.0e-7)
         {
@@ -120,7 +132,7 @@ namespace Kratos
                 if (dofs_of_element[i]->Id() == node_id &&
                     dofs_of_element[i]->GetVariable() == *adjoint_solution_variable)
                 {
-                    for (auto &sensor_data : mMeasurementData["load_cases"][0]["sensors_infos"])
+                    for (auto &sensor_data : mMeasurementData["sensors_infos"])
                     {
 
                         const long unsigned int sensor_node_id = sensor_data["mesh_node_id"].GetInt();
@@ -129,7 +141,10 @@ namespace Kratos
                         {
                             measurement_value = sensor_data["measured_value"].GetDouble();
                             measurement_normal = sensor_data["measurement_direction_normal"].GetVector();
-                            simulated_displacement = response_part.GetNode(node_id).FastGetSolutionStepValue(r_traced_dof);
+
+                            const ArrayVariableType &measurement_type = KratosComponents<ArrayVariableType>::Get(sensor_data["type_of_sensor"].GetString());
+
+                            simulated_displacement = response_part.GetNode(node_id).FastGetSolutionStepValue(measurement_type);
 
                             simulated_displacement_projected_on_measurement = inner_prod(simulated_displacement, measurement_normal);
 
