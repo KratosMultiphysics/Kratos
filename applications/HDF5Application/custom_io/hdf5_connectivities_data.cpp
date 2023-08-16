@@ -19,8 +19,8 @@
 #include "utilities/parallel_utilities.h"
 
 // Application includes
-#include "custom_utilities/hdf5_data_set_partition_utility.h"
 #include "custom_io/hdf5_file.h"
+#include "custom_utilities/hdf5_data_set_partition_utility.h"
 
 // Include base h
 #include "custom_io/hdf5_connectivities_data.h"
@@ -111,6 +111,10 @@ void ConnectivitiesData<TContainerType>::Write(const TContainerType& rEntities)
     unsigned int geometry_size = 0;
     if (!rEntities.empty()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(rEntities.front(), entity_name);
+        // no need of doing communication to get the correct geometry size
+        // for all ranks, because the connectivity matrix will be correctly
+        // sized in the HDF5File write call by MPI Communication.
+        // Otherwise, this will be done twice which is redundant.
         geometry_size = rEntities.front().GetGeometry().size();
     }
 
@@ -133,7 +137,6 @@ void ConnectivitiesData<TContainerType>::Write(const TContainerType& rEntities)
     for (const auto& rank_char_entity_name : global_char_entity_names) {
         std::string rank_name(rank_char_entity_name.begin(), rank_char_entity_name.end());
         KRATOS_ERROR_IF(entity_name != rank_name) << "All the ranks should have the same entities.";
-
     }
 
     const auto& entity_group_path = mPrefix + "/" + entity_name;
@@ -184,7 +187,7 @@ void ConnectivitiesData<TContainerType>::Write(const TContainerType& rEntities)
     mpFile->WriteAttribute(entity_group_path, "Name", entity_name);
     mpFile->WriteAttribute(entity_group_path, "WorkingSpaceDimension", ws_dim);
     mpFile->WriteAttribute(entity_group_path, "NumberOfNodes", num_nodes);
-    mpFile->WriteAttribute(entity_group_path, "Size",  static_cast<int>(r_data_communicator.SumAll(num_entities)));
+    mpFile->WriteAttribute(entity_group_path, "Size", static_cast<int>(info.TotalSize));
 
     WritePartitionTable(*mpFile, entity_group_path, info);
 
