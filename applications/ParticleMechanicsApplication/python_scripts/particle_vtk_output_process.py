@@ -73,9 +73,9 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
         if settings.Has("gauss_point_results"):
-            KratosMultiphysics.Logger.PrintWarning("VtkOutputProcess", "Setting `gauss_point_results` is deprecated, use `particle_data_value_variables` instead!")
-            if not settings.Has("particle_data_value_variables"):
-                settings.AddEmptyValue("particle_data_value_variables").SetStringArray(settings["gauss_point_results"].GetStringArray())
+            KratosMultiphysics.Logger.PrintWarning("VtkOutputProcess", "Setting `gauss_point_results` is deprecated, use `gauss_point_variables_in_elements` instead!")
+            if not settings.Has("gauss_point_variables_in_elements"):
+                settings.AddEmptyValue("gauss_point_variables_in_elements").SetStringArray(settings["gauss_point_results"].GetStringArray())
             settings.RemoveValue("gauss_point_results")
 
     def ExecuteBeforeSolutionLoop(self):
