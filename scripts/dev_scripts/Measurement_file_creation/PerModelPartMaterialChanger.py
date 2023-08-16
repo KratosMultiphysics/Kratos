@@ -9,6 +9,11 @@ import KratosMultiphysics.OptimizationApplication as KratosOA
 
 class PerModelPartMaterialChanger(MaterialChanger):
 
+    """_summary_
+    Inherits MaterialChanger interface
+    Changes the materials of a model based on a user provided dictionary of model part names (str) and a dictionary of the property to change (str, same as Kratos variable) and a new value.
+    """
+
     def __init__(self, model_part_value_dict: "dict[str,dict[str,float]]"):
         self.model_part_value_dict = model_part_value_dict
 

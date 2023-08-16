@@ -103,5 +103,32 @@
       }
     ]
   },
-  "output_processes": {}
+  "output_processes": {
+    "vtk_output": [
+      {
+        "Parameters": {
+          "condition_data_value_variables": [],
+          "element_data_value_variables": [],
+          "file_format": "binary",
+          "model_part_name": "Structure",
+          "nodal_data_value_variables": [],
+          "nodal_solution_step_data_variables": [
+            "DISPLACEMENT",
+            "REACTION",
+            "ROTATION"
+          ],
+          "output_control_type": "step",
+          "output_interval": 1,
+          "output_path": "primal_vtk_output",
+          "output_precision": 7,
+          "output_sub_model_parts": false,
+          "save_output_files_in_folder": true
+        },
+        "help": "This process writes postprocessing files for Paraview",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "VtkOutputProcess",
+        "python_module": "vtk_output_process"
+      }
+    ]
+  }
 }
