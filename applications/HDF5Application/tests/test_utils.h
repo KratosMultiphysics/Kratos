@@ -107,10 +107,12 @@ void CompareConditions(HDF5::ConditionsContainerType& rConditions1, HDF5::Condit
 
 void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2);
 
-void CompareDataValueContainers(DataValueContainer const& rData1, Flags const& rFlags1, DataValueContainer const& rData2, Flags const& rFlags2);
+void CompareDataValueContainers(const std::vector<std::string>& rFlagNames, DataValueContainer const& rData1, Flags const& rFlags1, DataValueContainer const& rData2, Flags const& rFlags2);
 
-void CompareNonHistoricalNodalData(HDF5::NodesContainerType& rNodes1,
-                                   HDF5::NodesContainerType& rNodes2);
+void CompareNonHistoricalNodalData(
+    const std::vector<std::string>& rFlagNames,
+    HDF5::NodesContainerType& rNodes1,
+    HDF5::NodesContainerType& rNodes2);
 
 HDF5::File::Pointer pGetTestSerialFile();
 

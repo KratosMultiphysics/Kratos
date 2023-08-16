@@ -1,6 +1,7 @@
 #include "tests/test_utils.h"
 
 #include <algorithm>
+#include <type_traits>
 
 #include "containers/array_1d.h"
 #include "includes/kratos_parameters.h"
@@ -8,13 +9,195 @@
 #include "includes/kratos_components.h"
 #include "testing/testing.h"
 #include "custom_io/hdf5_file.h"
-#include "custom_utilities/registered_component_lookup.h"
 #include "includes/parallel_environment.h"
 
 namespace Kratos
 {
 namespace Testing
 {
+
+
+namespace TestModelPartFactoryHelperUtilities
+{
+
+template<class TDataType>
+void AssignValue(TDataType& d)
+{
+    if constexpr(std::is_same_v<TDataType, int>) {
+        d = 12345;
+    } else if constexpr(std::is_same_v<TDataType, double>) {
+        d = 1.2345;
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
+        d = array_1d<double, 3>(3, 1.2345);
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 4>>) {
+        d = array_1d<double, 3>(3, 1.2345);
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 6>>) {
+        d = array_1d<double, 3>(3, 1.2345);
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 9>>) {
+        d = array_1d<double, 3>(3, 1.2345);
+    } else if constexpr(std::is_same_v<TDataType, Kratos::Vector>) {
+        d = Kratos::Vector(2, 1.2345);
+    } else if constexpr(std::is_same_v<TDataType, Kratos::Matrix>) {
+        d = Kratos::Matrix(2, 2, 1.2345);
+    } else {
+        static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
+    }
+}
+
+template<class TDataType>
+void CompareValues(
+    const TDataType& i1,
+    const TDataType& i2)
+{
+    if constexpr(std::is_same_v<TDataType, int>) {
+        KRATOS_CHECK_EQUAL(i1, i2);
+    } else if constexpr(std::is_same_v<TDataType, double>) {
+        KRATOS_CHECK_EQUAL(i1, i2);
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
+        KRATOS_CHECK_VECTOR_EQUAL(i1, i2);
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 4>>) {
+        KRATOS_CHECK_VECTOR_EQUAL(i1, i2);
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 6>>) {
+        KRATOS_CHECK_VECTOR_EQUAL(i1, i2);
+    } else if constexpr(std::is_same_v<TDataType, array_1d<double, 9>>) {
+        KRATOS_CHECK_VECTOR_EQUAL(i1, i2);
+    } else if constexpr(std::is_same_v<TDataType, Kratos::Vector>) {
+        KRATOS_CHECK_VECTOR_EQUAL(i1, i2);
+    } else if constexpr(std::is_same_v<TDataType, Kratos::Matrix>) {
+        KRATOS_CHECK_MATRIX_EQUAL(i1, i2);
+    } else {
+        static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
+    }
+}
+
+template<typename TVariable>
+bool AddNodalVariable(
+    const std::string& rVariableName,
+    ModelPart& rModelPart)
+{
+    if (KratosComponents<TVariable>::Has(rVariableName)) {
+        const auto& r_variable = KratosComponents<TVariable>::Get(rVariableName);
+        rModelPart.AddNodalSolutionStepVariable(r_variable);
+        return true;
+    } else {
+        return false;
+    }
+}
+
+template<class... TVariableType>
+void AddNodalVariablesWrapper(
+    const std::string& rNodalVariableName,
+    ModelPart& rModelPart)
+{
+    KRATOS_TRY
+
+    const bool is_added = (... || AddNodalVariable<TVariableType>(rNodalVariableName, rModelPart));
+
+    KRATOS_ERROR_IF_NOT(is_added)
+        << "Variable \"" << rNodalVariableName
+        << "\" is not found in registered variables list.";
+
+    KRATOS_CATCH("");
+}
+
+template<class TVariableType>
+bool AddNodalTestData(
+    const std::string& rVariableName,
+    HDF5::NodesContainerType& rNodes)
+{
+    if (KratosComponents<TVariableType>::Has(rVariableName)) {
+        const auto& r_variable = KratosComponents<TVariableType>::Get(rVariableName);
+        for (auto& r_node : rNodes) {
+            AssignValue(r_node.FastGetSolutionStepValue(r_variable));
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+template<class... TVariableType>
+void AddNodalTestDataWrapper(
+    const std::string& rNodalVariableName,
+    HDF5::NodesContainerType& rNodes)
+{
+    const bool is_added = (... || AddNodalTestData<TVariableType>(rNodalVariableName, rNodes));
+
+    KRATOS_ERROR_IF_NOT(is_added)
+        << "Variable \"" << rNodalVariableName
+        << "\" is not found in registered variables list.";
+}
+
+template<class TComponentType>
+bool AssignDataValueContainer(
+    const std::string& rComponentName,
+    DataValueContainer& rData,
+    Flags& rFlags)
+{
+    if (KratosComponents<TComponentType>::Has(rComponentName)) {
+        const auto& r_component = KratosComponents<TComponentType>::Get(rComponentName);
+        if constexpr(std::is_same_v<TComponentType, Flags>) {
+            rFlags.Set(r_component);
+        } else {
+            AssignValue(rData[r_component]);
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+template<class... TComponentType>
+void AssignDataValueContainerWrapper(
+    const std::string& rComponentName,
+    DataValueContainer& rData,
+    Flags& rFlags)
+{
+    const bool is_added = (... || AssignDataValueContainer<TComponentType>(rComponentName, rData, rFlags));
+
+    KRATOS_ERROR_IF_NOT(is_added)
+        << "Component \"" << rComponentName
+        << "\" is not found in registered variables list.";
+}
+
+template<class TComponentType>
+bool CompareComponent(
+    const std::string& rComponentName,
+    const DataValueContainer& rData1,
+    const Flags& rFlags1,
+    const DataValueContainer& rData2,
+    const Flags& rFlags2)
+{
+    if (KratosComponents<TComponentType>::Has(rComponentName)) {
+        const auto& r_component = KratosComponents<TComponentType>::Get(rComponentName);
+        if constexpr(std::is_same_v<TComponentType, Flags>) {
+            KRATOS_CHECK(rFlags1.Is(r_component) == rFlags2.Is(r_component));
+        } else {
+            KRATOS_CHECK(rData1.Has(r_component) && rData2.Has(r_component));
+            CompareValues(rData1[r_component], rData2[r_component]);
+        }
+        return true;
+    } else {
+        return false;
+    }
+}
+
+template<class... TComponentType>
+void CompareComponentWrapper(
+    const std::string& rComponentName,
+    const DataValueContainer& rData1,
+    const Flags& rFlags1,
+    const DataValueContainer& rData2,
+    const Flags& rFlags2)
+{
+    const bool is_added = (... || CompareComponent<TComponentType>(rComponentName, rData1, rFlags1, rData2, rFlags2));
+
+    KRATOS_ERROR_IF_NOT(is_added)
+        << "Component \"" << rComponentName
+        << "\" is not found in registered variables list.";
+}
+
+} // namespace TestModelPartFactoryHelperUtilities
 
 template<>
 HDF5::File::Vector<array_1d<double,3>> TestVector(std::size_t n)
@@ -59,28 +242,19 @@ TestModelPartFactory::TestModelPartFactory(ModelPart& rTestModelPart)
 {
 }
 
-namespace {
-template <typename TVariable>
-class AddNodalVariableFunctor;
-}
-
 void TestModelPartFactory::AddNodalVariables(std::vector<std::string> const& rNodalVariables)
 {
-    for (const auto& r_name : rNodalVariables)
-        RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
-            .Execute<AddNodalVariableFunctor>(mrTestModelPart);
-}
-
-namespace{
-template <typename TVariable>
-class AddNodalVariableFunctor
-{
-public:
-    void operator()(TVariable const& rVariable, ModelPart& rModelPart)
-    {
-        rModelPart.AddNodalSolutionStepVariable(rVariable);
+    for (const auto& r_variable_name : rNodalVariables) {
+        TestModelPartFactoryHelperUtilities::AddNodalVariablesWrapper<
+                                                Variable<int>,
+                                                Variable<double>,
+                                                Variable<array_1d<double, 3>>,
+                                                Variable<array_1d<double, 4>>,
+                                                Variable<array_1d<double, 6>>,
+                                                Variable<array_1d<double, 9>>,
+                                                Variable<Kratos::Vector>,
+                                                Variable<Kratos::Matrix>>(r_variable_name, mrTestModelPart);
     }
-};
 }
 
 std::size_t TestModelPartFactory::AddNodes(std::size_t NumNodes)
@@ -98,55 +272,22 @@ void TestModelPartFactory::SetBufferSize(std::size_t BufferSize)
     mrTestModelPart.SetBufferSize(BufferSize);
 }
 
-namespace {
-template <typename TVariable>
-class AssignNodalSolutionStepValueFunctor;
-}
-
 void TestModelPartFactory::AssignNodalTestData(std::vector<std::string> const& rNodalVariables)
 {
     if (rNodalVariables.size() == 0)
         return;
 
-    for (auto& r_name : rNodalVariables)
-    {
-        RegisteredComponentLookup<Variable<array_1d<double, 3>>, Variable<double>, Variable<int>>(r_name)
-            .Execute<AssignNodalSolutionStepValueFunctor>(mrTestModelPart.Nodes());
+    for (auto& r_name : rNodalVariables) {
+        TestModelPartFactoryHelperUtilities::AddNodalTestDataWrapper<
+                                                Variable<int>,
+                                                Variable<double>,
+                                                Variable<array_1d<double, 3>>,
+                                                Variable<array_1d<double, 4>>,
+                                                Variable<array_1d<double, 6>>,
+                                                Variable<array_1d<double, 9>>,
+                                                Variable<Kratos::Vector>,
+                                                Variable<Kratos::Matrix>>(r_name, mrTestModelPart.Nodes());
     }
-}
-
-namespace {
-void AssignValue(double&);
-void AssignValue(int&);
-void AssignValue(array_1d<double, 3>&);
-
-template <typename TVariable>
-class AssignNodalSolutionStepValueFunctor
-{
-public:
-    void operator()(TVariable const& rVariable,
-                    HDF5::NodesContainerType& rNodes)
-    {
-        for (auto& r_node : rNodes)
-            AssignValue(r_node.FastGetSolutionStepValue(rVariable));
-    }
-};
-
-
-void AssignValue(double& d)
-{
-    d = 1.2345;
-}
-
-void AssignValue(int& i)
-{
-    i = 12345;
-}
-
-void AssignValue(array_1d<double, 3>& v)
-{
-    v = array_1d<double, 3>(3, 1.2345);
-}
 }
 
 void TestModelPartFactory::AssignNonHistoricalNodalTestData(ModelPart& rTestModelPart,
@@ -159,62 +300,20 @@ void TestModelPartFactory::AssignNonHistoricalNodalTestData(ModelPart& rTestMode
         AssignDataValueContainer(r_node.GetData(), r_node, rNodalVariables);
 }
 
-namespace {
-template <typename TVariable>
-class AssignDataValueContainerFunctor;
-}
-
 void TestModelPartFactory::AssignDataValueContainer(DataValueContainer& rData, Flags& rFlags, std::vector<std::string> const& rVariables)
 {
-    for (auto& r_name : rVariables)
-        RegisteredComponentLookup<Flags, Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                                 Variable<HDF5::Vector<double>>, Variable<HDF5::Matrix<double>>>(r_name)
-            .Execute<AssignDataValueContainerFunctor>(rData, rFlags);
-}
-
-namespace {
-void AssignValue(HDF5::Vector<double>&);
-void AssignValue(HDF5::Matrix<double>&);
-
-template <typename TVariable>
-class AssignDataValueContainerFunctor
-{
-public:
-    void operator()(TVariable const& rVariable,
-                    DataValueContainer& rData,
-                    Flags&)
-    {
-        AssignValue(rData[rVariable]);
+    for (auto& r_name : rVariables) {
+        TestModelPartFactoryHelperUtilities::AssignDataValueContainerWrapper<
+                                                    Flags,
+                                                    Variable<int>,
+                                                    Variable<double>,
+                                                    Variable<array_1d<double, 3>>,
+                                                    Variable<array_1d<double, 4>>,
+                                                    Variable<array_1d<double, 6>>,
+                                                    Variable<array_1d<double, 9>>,
+                                                    Variable<Kratos::Vector>,
+                                                    Variable<Kratos::Matrix>>(r_name, rData, rFlags);
     }
-};
-
-template <>
-class AssignDataValueContainerFunctor<Flags>
-{
-public:
-    void operator()(Flags const& rVariable,
-                    DataValueContainer& rData,
-                    Flags& rFlags)
-    {
-        rFlags.Set(rVariable, static_cast<bool>((counter++) % 2));
-    }
-private:
-    int counter = 0;
-};
-
-void AssignValue(HDF5::Vector<double>& v)
-{
-    const std::size_t dim = 2;
-    v.resize(dim);
-    std::fill(v.begin(), v.end(), 1.2345);
-}
-
-void AssignValue(HDF5::Matrix<double>& m)
-{
-    const std::size_t dim = 2;
-    m.resize(dim, dim, false);
-    std::fill(m.data().begin(), m.data().end(), 1.2345);
-}
 }
 
 std::size_t TestModelPartFactory::AddElements(std::string const& rElement, std::size_t NumElems)
@@ -376,91 +475,41 @@ void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2)
     }
 }
 
-void CompareNonHistoricalNodalData(HDF5::NodesContainerType& rNodes1,
-                                   HDF5::NodesContainerType& rNodes2)
+void CompareNonHistoricalNodalData(
+    const std::vector<std::string>& rFlagNames,
+    HDF5::NodesContainerType& rNodes1,
+    HDF5::NodesContainerType& rNodes2)
 {
     KRATOS_CHECK(rNodes1.size() == rNodes2.size());
-    for (auto& r_node1 : rNodes1)
-    {
+    for (auto& r_node1 : rNodes1) {
         auto& r_node2 = rNodes2[r_node1.Id()];
-        CompareDataValueContainers(r_node1.GetData(), r_node1, r_node2.GetData(), r_node2);
+        CompareDataValueContainers(rFlagNames, r_node1.GetData(), r_node1, r_node2.GetData(), r_node2);
     }
 }
 
-namespace {
-template <typename TVariable>
-class CompareVariableFunctor;
-}
-
-void CompareDataValueContainers(DataValueContainer const& rData1, Flags const& rFlags1, DataValueContainer const& rData2, Flags const& rFlags2)
+void CompareDataValueContainers(
+    const std::vector<std::string>& rFlagNames,
+    DataValueContainer const& rData1,
+    Flags const& rFlags1,
+    DataValueContainer const& rData2,
+    Flags const& rFlags2)
 {
-    for (const auto& r_value1 : rData1)
-        RegisteredComponentLookup<Flags, Variable<array_1d<double, 3>>, Variable<double>, Variable<int>,
-                                 Variable<HDF5::Vector<double>>, Variable<HDF5::Matrix<double>>>(
-            r_value1.first->Name())
-            .Execute<CompareVariableFunctor>(rData1, rFlags1, rData2, rFlags2);
-}
-
-namespace {
-void CompareValues(int, int);
-void CompareValues(double, double);
-void CompareValues(HDF5::Vector<double> const&, HDF5::Vector<double> const&);
-void CompareValues(HDF5::Matrix<double> const&, HDF5::Matrix<double> const&);
-
-template <typename TVariable>
-class CompareVariableFunctor
-{
-public:
-    void operator()(TVariable const& rVariable,
-                    DataValueContainer const& rData1,
-                    Flags const&,
-                    DataValueContainer const& rData2,
-                    Flags const&)
-    {
-        KRATOS_CHECK(rData1.Has(rVariable) && rData2.Has(rVariable));
-        CompareValues(rData1[rVariable], rData2[rVariable]);
+    for (const auto& r_value1 : rData1) {
+        TestModelPartFactoryHelperUtilities::CompareComponentWrapper<
+                                                Variable<int>,
+                                                Variable<double>,
+                                                Variable<array_1d<double, 3>>,
+                                                Variable<array_1d<double, 4>>,
+                                                Variable<array_1d<double, 6>>,
+                                                Variable<array_1d<double, 9>>,
+                                                Variable<Kratos::Vector>,
+                                                Variable<Kratos::Matrix>>(r_value1.first->Name(), rData1, rFlags1, rData2, rFlags2);
     }
-};
 
-template <>
-class CompareVariableFunctor<Flags>
-{
-public:
-    void operator()(Flags const& rVariable,
-                    DataValueContainer const&,
-                    Flags const& rFlags1,
-                    DataValueContainer const&,
-                    Flags const& rFlags2)
-    {
-        KRATOS_CHECK(rFlags1.Is(rVariable) == rFlags2.Is(rVariable));
+    for (const auto& r_flag_name : rFlagNames) {
+        TestModelPartFactoryHelperUtilities::CompareComponentWrapper<
+                                                Flags>(r_flag_name, rData1, rFlags1, rData2, rFlags2);
     }
-};
-
-void CompareValues(int i1, int i2)
-{
-    KRATOS_CHECK(i1 == i2);
-}
-
-void CompareValues(double d1, double d2)
-{
-    KRATOS_CHECK(d1 == d2);
-}
-
-void CompareValues(HDF5::Vector<double> const& v1, HDF5::Vector<double> const& v2)
-{
-    KRATOS_CHECK(v1.size() == v2.size());
-    for (std::size_t i = 0; i < v1.size(); ++i)
-        KRATOS_CHECK(v1(i) == v2(i));
-}
-
-void CompareValues(HDF5::Matrix<double> const& m1, HDF5::Matrix<double> const& m2)
-{
-    KRATOS_CHECK(m1.size1() == m2.size1());
-    KRATOS_CHECK(m1.size2() == m2.size2());
-    for (std::size_t i = 0; i < m1.size1(); ++i)
-        for (std::size_t j = 0; j < m1.size2(); ++j)
-            KRATOS_CHECK(m1(i,j) == m2(i,j));
-}
 }
 
 HDF5::File::Pointer pGetTestSerialFile()

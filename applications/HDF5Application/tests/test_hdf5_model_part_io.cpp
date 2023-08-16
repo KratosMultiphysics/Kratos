@@ -147,11 +147,11 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_ModelPartIO_Properties1, KratosHDF5TestSuite)
     HDF5::PropertiesContainerType& r_read_properties = r_read_model_part.rProperties();
     model_part_io.ReadProperties(r_read_properties);
     KRATOS_CHECK(r_read_model_part.NumberOfProperties() == r_write_model_part.NumberOfProperties());
-    CompareDataValueContainers(r_read_properties[1].Data(), dummy_flags,
+    CompareDataValueContainers({}, r_read_properties[1].Data(), dummy_flags,
                                r_write_properties[1].Data(), dummy_flags);
-    CompareDataValueContainers(r_read_properties[3].Data(), dummy_flags,
+    CompareDataValueContainers({}, r_read_properties[3].Data(), dummy_flags,
                                r_write_properties[3].Data(), dummy_flags);
-    CompareDataValueContainers(r_read_properties[4].Data(), dummy_flags,
+    CompareDataValueContainers({}, r_read_properties[4].Data(), dummy_flags,
                                r_write_properties[4].Data(), dummy_flags);
 }
 

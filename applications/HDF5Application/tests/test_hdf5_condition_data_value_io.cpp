@@ -87,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadConditionResults, KratosHDF5TestSui
     {
         HDF5::ConditionType& r_read_condition =
             r_read_model_part.Conditions()[r_write_condition.Id()];
-        CompareDataValueContainers(r_read_condition.GetData(), r_read_condition,
+        CompareDataValueContainers({}, r_read_condition.GetData(), r_read_condition,
                                    r_write_condition.GetData(), r_write_condition);
     }
 }
