@@ -59,6 +59,11 @@ public:
 
     ///@}
 
+    /**
+     * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
+     */
+    static Parameters GetDefaultParameters();
+
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -135,8 +140,6 @@ protected:
         const ModelPart& rModelPart,
         std::ofstream& rFileStream
         ) override;
-
-private:
 
 };
 
