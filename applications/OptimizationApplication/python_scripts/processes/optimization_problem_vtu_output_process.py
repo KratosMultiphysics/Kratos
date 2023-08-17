@@ -113,7 +113,8 @@ class ExpressionVtuOutput:
 
             dict_of_current_expression_type = self.dict_of_expression_data[current_expression_type]
 
-            current_expression_name = expression_data.GetContainerExpressionName()
+
+            current_expression_name = expression_data.GetContainerExpressionName() + expression_data.GetExpressionPath()
             if current_expression_name not in dict_of_current_expression_type.keys():
                 dict_of_current_expression_type[current_expression_name] = expression_data
             else:
