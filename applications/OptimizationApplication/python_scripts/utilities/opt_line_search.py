@@ -4,9 +4,8 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
-import numpy
-
 import math
+
 
 def CreateLineSearch(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     type = parameters["type"].GetString()
