@@ -30,7 +30,7 @@ GenerateInitialSkinDEMProcess::GenerateInitialSkinDEMProcess(
 
 void GenerateInitialSkinDEMProcess::Execute()
 {
-    FindNodalNeighboursProcess nodal_neigh_process (mrModelPart);
+    FindGlobalNodalNeighboursProcess nodal_neigh_process(mrModelPart);
     nodal_neigh_process.Execute();
     auto p_DEM_properties = mrDEMModelPart.pGetProperties(1);
 
