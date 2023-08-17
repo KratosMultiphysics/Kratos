@@ -83,6 +83,8 @@ void ParticleVtkOutput::WriteNodesToFile(
             WriteVectorDataToFile(mpc_coord[0], rFileStream);
             if (mFileFormat == ParticleVtkOutput::FileFormat::VTK_ASCII) rFileStream << "\n";
         }
+    } else if (GetEntityType(rModelPart) == EntityType::NONE) {
+        rFileStream << "POINTS 0 float\n";
     }
 }
 
