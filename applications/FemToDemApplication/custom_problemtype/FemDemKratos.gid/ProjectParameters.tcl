@@ -10,16 +10,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 
     puts $FileVar "\{"
 
-    ## AMR data
-    puts $FileVar "   \"AMR_data\": \{"
-	puts $FileVar "        \"activate_AMR\":                    [GiD_AccessValue get gendata Activate_MMG_Remeshing_Technique],"
-    puts $FileVar "           \"hessian_variable_parameters\":  \{"
-    puts $FileVar "              \"normalized_free_energy\":           false,"
-    puts $FileVar "              \"correct_with_displacements\":       true,"
-    puts $FileVar "              \"correction_factor\":                1.0"
-    puts $FileVar "         \}"
-    puts $FileVar "    \},"
-
     ## problem_data
     puts $FileVar "   \"problem_data\": \{"
     puts $FileVar "        \"problem_name\":         \"$basename\","
@@ -201,20 +191,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \"gauss_point_results\": $PutStrings"
     puts $FileVar "        \},"
     puts $FileVar "        \"point_data_configuration\":  \[\]"
-    puts $FileVar "    \},"
-
-    # restart options
-    puts $FileVar "    \"restart_options\":     \{"
-    puts $FileVar "        \"SaveRestart\":        false,"
-    puts $FileVar "        \"RestartFrequency\":   0,"
-    puts $FileVar "        \"LoadRestart\":        false,"
-    puts $FileVar "        \"Restart_Step\":       0"
-    puts $FileVar "    \},"
-
-    # constraint data
-    puts $FileVar "    \"constraints_data\":     \{"
-    puts $FileVar "        \"incremental_load\":                false,"
-    puts $FileVar "        \"incremental_displacement\":        false"
     puts $FileVar "    \},"
 
     #print the two lists to plot the displ-reaction

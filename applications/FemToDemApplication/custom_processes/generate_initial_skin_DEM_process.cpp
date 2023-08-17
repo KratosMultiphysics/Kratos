@@ -35,6 +35,8 @@ void GenerateInitialSkinDEMProcess::Execute()
     auto p_DEM_properties = mrDEMModelPart.pGetProperties(1);
 
     auto &r_submodel_part = mrModelPart.GetSubModelPart("SkinDEMModelPart");
+    auto &body1 = mrModelPart.GetSubModelPart("Body_Part-auto-1");
+
     const auto it_node_begin = r_submodel_part.NodesBegin();
     double num_DEM = 0;
     const int max_id_FEM_nodes = this->GetMaximumFEMId();
@@ -42,7 +44,8 @@ void GenerateInitialSkinDEMProcess::Execute()
     for (int i = 0; i < static_cast<int>(r_submodel_part.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
 
-        if (!it_node->GetValue(IS_DEM)) { // we have to generate its DEM
+        if ((!it_node->GetValue(IS_DEM) && body1.HasNode(it_node->Id()))
+        ) { // we have to generate its DEM
             auto& r_neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
             Vector potential_radii(r_neigh_nodes.size());
             Vector distances(r_neigh_nodes.size());
