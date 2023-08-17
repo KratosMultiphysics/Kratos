@@ -35,10 +35,6 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetAutomatedInitialVariablePr
 
 public:
 
-<<<<<<< HEAD:applications/StructuralMechanicsApplication/custom_processes/set_automated_initial_variable_process.h
-    static constexpr double tolerance         = 4.0e-6;
-=======
->>>>>>> custompr-automated-initial-variable-cartesian:applications/StructuralMechanicsApplication/custom_processes/set_automated_initial_variable_process_cartesian.h
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
     KRATOS_CLASS_POINTER_DEFINITION(SetAutomatedInitialVariableProcessCartesian);
