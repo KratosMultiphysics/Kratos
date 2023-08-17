@@ -797,7 +797,7 @@ class MainCoupledFemDem_Solution:
 
         gp_list = self.FEM_Solution.ProjectParameters["output_configuration"]["result_file_configuration"]["gauss_point_results"]
         gauss_points_results = []
-        for i in gp_list:
+        for i in gp_list.values():
             gauss_points_results.append(i.GetString())
 
         self.gid_output.initialize_dem_fem_results(solid_nodal_results,
