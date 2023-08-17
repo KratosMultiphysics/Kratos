@@ -45,7 +45,7 @@ class CustomOptimizerCompilerProcess(NeuralNetworkProcess):
         self.decay = parameters["decay"].GetDouble()
         optimizer_module = import_module(self.module)
         if self.module == "keras":
-            self.optimizer = getattr(tensorflow.keras.optimizers,self.optimizer_name)(learning_rate = self.learning_rate, decay = self.decay)
+            self.optimizer = getattr(tensorflow.keras.optimizers.legacy,self.optimizer_name)(learning_rate = self.learning_rate, decay = self.decay)
         else:
             self.optimizer = getattr(optimizer_module,self.optimizer_name)(learning_rate = self.learning_rate)
 

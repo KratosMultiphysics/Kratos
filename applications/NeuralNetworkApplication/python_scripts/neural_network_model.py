@@ -11,7 +11,7 @@ class MachineLearningModel():
 
         self.paramaters = param        
         self.library_name = self.paramaters["library_name"].GetString()    
-        self.net_arch_filename = self.paramaters["net_arch_filename"].GetString()    
+        # self.net_arch_filename = self.paramaters["net_arch_filename"].GetString()    
         self.model = None 
         
     def load_model(self, file_name):
