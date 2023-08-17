@@ -188,13 +188,13 @@ public:
         double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
         const double yield_stress = ultimate_stress;
         const double E = rMaterialParameters[YOUNG_MODULUS];
-        const Vector& strain_damage_curve = rMaterialParameters[STRAIN_DAMAGE_CURVE];
-        const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE];
+
 
         const int softening_type = rMaterialParameters[SOFTENING_TYPE];
 
         const int curve_by_points = static_cast<int>(SofteningType::CurveFittingDamage);
         if (softening_type == curve_by_points) {
+            const Vector& strain_damage_curve = rMaterialParameters[STRAIN_DAMAGE_CURVE];
             const Vector& stress_damage_curve = rMaterialParameters[STRESS_DAMAGE_CURVE]; //Integrated_stress points of the fitting curve
             const SizeType curve_points = stress_damage_curve.size() - 1;
 
@@ -296,7 +296,7 @@ public:
 
         if (MaxStress > rSth) {
           if(std::abs(ReversionFactor) < 1.0){
-                rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (UltimateStress - rSth))/rAlphat,(1.0/BETAF)));
+                rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
                 rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
 
                 const double stress_relative_error = std::abs(MaxStress - UltimateStress) / UltimateStress;         

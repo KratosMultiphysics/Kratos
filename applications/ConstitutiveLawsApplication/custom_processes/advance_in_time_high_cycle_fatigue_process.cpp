@@ -119,7 +119,7 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclicLoad()
     //Monotonic (false) or cyclic (true) load. If a monotonic and a cyclic load coexist, cyclic type will be considered
     // bool current_load_type = false;
     bool new_model_part = false;
-    bool break_condition = false;
+    // bool break_condition = false;
 
     const bool has_constraints_list = mThisParameters["fatigue"].Has("constraints_process_list");
     if (!has_constraints_list) {
@@ -213,9 +213,13 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
     std::vector<double> s_th;
     std::vector<double> max_stress;
 
-    double acumulated_max_stress_rel_error = 0.0;
-    double acumulated_rev_factor_rel_error = 0.0;
+    double accumulated_max_stress_rel_error = 0.0;
+    double accumulated_rev_factor_rel_error = 0.0;
     // bool fatigue_in_course = false;
+    const double max_stress_relative_tolerance = mThisParameters["fatigue"]["max_stress_relative_tolerance"].GetDouble();
+    const double rev_factor_relative_tolerance = mThisParameters["fatigue"]["rev_factor_relative_tolerance"].GetDouble();
+    const double max_stress_relative_tolerance_damage = mThisParameters["fatigue"]["max_stress_relative_tolerance_damage"].GetDouble();
+    const double rev_factor_relative_tolerance_damage = mThisParameters["fatigue"]["rev_factor_relative_tolerance_damage"].GetDouble();
 
     KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
@@ -235,16 +239,13 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
             
         if (is_fatigue) {  
             for (unsigned int i = 0; i < number_of_ip; i++) {
-                // if (max_stress[i] > s_th[i]) {
-                //     fatigue_in_course = true;
-                // }
-                acumulated_max_stress_rel_error += max_stress_rel_error[i];
-                acumulated_rev_factor_rel_error += rev_factor_rel_error[i];
+                accumulated_max_stress_rel_error += max_stress_rel_error[i];
+                accumulated_rev_factor_rel_error += rev_factor_rel_error[i];
             }
         }
     }
 
-    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4) || (DamageIndicator && acumulated_max_stress_rel_error < 3e-3 && acumulated_rev_factor_rel_error < 3e-3)) {
+    if ((accumulated_max_stress_rel_error < max_stress_relative_tolerance && accumulated_rev_factor_rel_error < rev_factor_relative_tolerance) || (DamageIndicator && accumulated_max_stress_rel_error < max_stress_relative_tolerance_damage && accumulated_rev_factor_rel_error < rev_factor_relative_tolerance_damage)) {
         rAdvancingStrategy = true;
     }
 }
