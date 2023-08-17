@@ -119,6 +119,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
         self.reset_displacements = project_parameters["solver_settings"]["reset_displacements"].GetBool()
         self.start_time          = project_parameters["solver_settings"]["start_time"].GetDouble()
         self.end_time            = project_parameters["problem_data"]["end_time"].GetDouble()
+        self.rebuild_level       = project_parameters["solver_settings"]["rebuild_level"].GetInt()
 
     def FinalizeSolutionStep(self):
         super().FinalizeSolutionStep()
@@ -133,6 +134,8 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
         if self._GetSolver().settings["reset_displacements"].GetBool():
             old_total_displacements = [node.GetSolutionStepValue(KratosGeo.TOTAL_DISPLACEMENT)
                                        for node in self._GetSolver().GetComputingModelPart().Nodes]
+
+        self._GetSolver().solver.SetRebuildLevel(self.rebuild_level)
 
         while self.KeepAdvancingSolutionLoop():
             if (self.delta_time > self.max_delta_time):
@@ -162,6 +165,7 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                 self.InitializeSolutionStep()
                 self._GetSolver().Predict()
                 converged = self._GetSolver().SolveSolutionStep()
+                self._GetSolver().solver.SetStiffnessMatrixIsBuilt(True)
 
                 if (self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.NL_ITERATION_NUMBER] >= self.max_iterations or not converged):
                     KratosMultiphysics.Logger.PrintInfo(self._GetSimulationName(), "Down-scaling with factor: ", self.reduction_factor)
@@ -184,16 +188,15 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
                         new_time = self.end_time
                         self.delta_time = new_time - t
 
-            if (not converged):
+            if not converged:
                 raise Exception('The maximum number of cycles is reached without convergence!')
 
-            if self._GetSolver().settings["reset_displacements"].GetBool() and converged:
+            if self._GetSolver().settings["reset_displacements"].GetBool():
                 for idx, node in enumerate(self._GetSolver().GetComputingModelPart().Nodes):
                     self._CalculateTotalDisplacement(node, old_total_displacements[idx])
 
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
-
 
 
 if __name__ == '__main__':

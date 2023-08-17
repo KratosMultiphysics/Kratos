@@ -49,6 +49,9 @@ void ParticleContactElement::Initialize(const ProcessInfo& r_process_info) {
     mLocalContactForce[0] = 0.0;
     mLocalContactForce[1] = 0.0;
     mLocalContactForce[2] = 0.0;
+    mElasticLocalRotationalMoment[0] = 0.0;
+    mElasticLocalRotationalMoment[1] = 0.0;
+    mElasticLocalRotationalMoment[2] = 0.0;
     mUnidimendionalDamage = 0.0;
     mContactFailure = 0.0;
     mContactSigma = 0.0;
@@ -56,6 +59,7 @@ void ParticleContactElement::Initialize(const ProcessInfo& r_process_info) {
 
     array_1d<double, 3> vector_of_zeros(3,0.0);
     this->SetValue(LOCAL_CONTACT_FORCE, vector_of_zeros);
+    this->SetValue(ELASTIC_LOCAL_ROTATIONAL_MOMENT, vector_of_zeros);
     this->SetValue(CONTACT_SIGMA, 0.0);
     this->SetValue(CONTACT_TAU, 0.0);
     this->SetValue(CONTACT_FAILURE, 0.0);
@@ -71,6 +75,9 @@ void ParticleContactElement::PrepareForPrinting() {
     this->GetValue(LOCAL_CONTACT_FORCE)[0] = mLocalContactForce[0];
     this->GetValue(LOCAL_CONTACT_FORCE)[1] = mLocalContactForce[1];
     this->GetValue(LOCAL_CONTACT_FORCE)[2] = mLocalContactForce[2];
+    this->GetValue(ELASTIC_LOCAL_ROTATIONAL_MOMENT)[0] = mElasticLocalRotationalMoment[0];
+    this->GetValue(ELASTIC_LOCAL_ROTATIONAL_MOMENT)[1] = mElasticLocalRotationalMoment[1];
+    this->GetValue(ELASTIC_LOCAL_ROTATIONAL_MOMENT)[2] = mElasticLocalRotationalMoment[2];
     this->GetValue(CONTACT_SIGMA)          = mContactSigma;
     this->GetValue(CONTACT_TAU)            = mContactTau;
     this->GetValue(CONTACT_FAILURE)        = mContactFailure;
@@ -104,6 +111,9 @@ void ParticleContactElement::InitializeSolutionStep(const ProcessInfo& r_process
     mLocalContactForce[0] = 0.0;
     mLocalContactForce[1] = 0.0;
     mLocalContactForce[2] = 0.0;
+    mElasticLocalRotationalMoment[0] = 0.0;
+    mElasticLocalRotationalMoment[1] = 0.0;
+    mElasticLocalRotationalMoment[2] = 0.0;
     if (mFailureCriterionState<1.0) {
         mFailureCriterionState = 0.0;
     } // else we keep it at 1.0.

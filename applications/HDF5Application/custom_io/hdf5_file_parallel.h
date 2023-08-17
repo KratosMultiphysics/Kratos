@@ -39,7 +39,7 @@ namespace HDF5
  * This class is responsible for reading and writing data sets from all MPI
  * processes.
  */
-class FileParallel : public File
+class KRATOS_API(HDF5_APPLICATION) FileParallel : public File
 {
     enum class DataTransferMode { independent, collective };
 public:

@@ -140,7 +140,7 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::ComputeViscoElasticity(Cons
         const IndexType number_sub_increments = 10;
         const double dt = time_step / number_sub_increments;
 
-        // Auxiliar terms
+        // Auxiliary terms
         Vector aux_stress_vector(r_previous_stress);
         Vector aux(VoigtSize);
         Vector elastic_strain(VoigtSize);
@@ -227,7 +227,7 @@ void ViscousGeneralizedKelvin<TElasticBehaviourLaw>::FinalizeMaterialResponseCau
     const IndexType number_sub_increments = 10;
     const double dt = time_step / number_sub_increments;
 
-    // Auxiliar terms
+    // Auxiliary terms
     Vector aux_stress_vector(r_previous_stress);
     Vector aux(VoigtSize);
     Vector elastic_strain(VoigtSize);

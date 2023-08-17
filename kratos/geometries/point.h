@@ -14,14 +14,9 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_POINT_H_INCLUDED)
-#define KRATOS_POINT_H_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-#include <sstream>
-#include <cstddef>
 
 // External includes
 
@@ -62,7 +57,7 @@ namespace Kratos
 */
 class Point : public array_1d<double, 3>
 {
-    static constexpr int mDimension = 3;
+    static constexpr std::size_t mDimension = 3;
 
 public:
     ///@name Constants
@@ -150,13 +145,36 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief This method computes the distance between this point and another one (squared)
+     * @details In order to avoid square root operation if faster computation is needed
+     * @param rOtherPoint The other point to compute the distance
+     * @return The squared distance between this and another point     
+     */
+    double SquaredDistance(const Point& rOtherPoint) const
+    {
+        const array_1d<double, 3> diff_vector = this->Coordinates() - rOtherPoint.Coordinates();
+        return (std::pow(diff_vector[0], 2) + std::pow(diff_vector[1], 2) + std::pow(diff_vector[2], 2));
+    }
+
+    /**
+     * @brief This method computes the distance between this point and another one
+     * @details Using norm_2 to take benefic of the SIMD optimization of the library
+     * @param rOtherPoint The other point to compute the distance
+     * @return The distance between this and another point     
+     */
+    double Distance(const Point& rOtherPoint) const
+    {
+        return norm_2(this->Coordinates() - rOtherPoint.Coordinates());
+    }
+
     ///@}
     ///@name Access
     ///@{
 
     static constexpr IndexType Dimension()
     {
-        return 3;
+        return mDimension;
     }
 
     /** Returns X coordinate */
@@ -288,5 +306,3 @@ inline std::ostream &operator<<(std::ostream &rOStream,
 ///@}
 
 } // namespace Kratos.
-
-#endif // KRATOS_POINT_H_INCLUDED  defined

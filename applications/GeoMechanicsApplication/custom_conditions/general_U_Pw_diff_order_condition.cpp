@@ -13,6 +13,7 @@
 //
 
 #include "geometries/line_2d_2.h"
+#include "geometries/line_2d_4.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/quadrilateral_3d_4.h"
 
@@ -21,36 +22,6 @@
 
 namespace Kratos
 {
-
-// Default Constructor
-GeneralUPwDiffOrderCondition::GeneralUPwDiffOrderCondition() : Condition() {}
-
-//----------------------------------------------------------------------------------------
-
-//Constructor 1
-GeneralUPwDiffOrderCondition::
-    GeneralUPwDiffOrderCondition(IndexType NewId,
-                                 GeometryType::Pointer pGeometry) :
-                                 Condition(NewId, pGeometry) {}
-
-//----------------------------------------------------------------------------------------
-
-//Constructor 2
-GeneralUPwDiffOrderCondition::
-    GeneralUPwDiffOrderCondition(IndexType NewId,
-                                 GeometryType::Pointer pGeometry,
-                                 PropertiesType::Pointer pProperties) :
-                                 Condition(NewId, pGeometry, pProperties)
-{
-    mThisIntegrationMethod = this->GetIntegrationMethod();
-}
-
-//----------------------------------------------------------------------------------------
-
-//Destructor
-GeneralUPwDiffOrderCondition::~GeneralUPwDiffOrderCondition() {}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 Condition::Pointer GeneralUPwDiffOrderCondition::
     Create(IndexType NewId,
@@ -73,16 +44,22 @@ void GeneralUPwDiffOrderCondition::Initialize(const ProcessInfo& rCurrentProcess
 
     switch(NumUNodes) {
         case 3: //2D L3P2
-            mpPressureGeometry = GeometryType::Pointer( new Line2D2< Node<3> >(rGeom(0), rGeom(1)) );
+            mpPressureGeometry = make_shared<Line2D2<Node>>(rGeom(0), rGeom(1));
+            break;
+        case 4: //2D L4P3
+            mpPressureGeometry = make_shared<Line2D3<Node>>(rGeom(0), rGeom(1), rGeom(2));
+            break;
+        case 5: //2D L5P4
+            mpPressureGeometry = make_shared<Line2D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
             break;
         case 6: //3D T6P3
-            mpPressureGeometry = GeometryType::Pointer( new Triangle3D3< Node<3> >(rGeom(0), rGeom(1), rGeom(2)) );
+            mpPressureGeometry = make_shared<Triangle3D3<Node>>(rGeom(0), rGeom(1), rGeom(2));
             break;
         case 8: //3D Q8P4
-            mpPressureGeometry = GeometryType::Pointer( new Quadrilateral3D4< Node<3> >(rGeom(0), rGeom(1), rGeom(2), rGeom(3)) );
+            mpPressureGeometry = make_shared<Quadrilateral3D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
             break;
         case 9: //3D Q9P4
-            mpPressureGeometry = GeometryType::Pointer( new Quadrilateral3D4< Node<3> >(rGeom(0), rGeom(1), rGeom(2), rGeom(3)) );
+            mpPressureGeometry = make_shared<Quadrilateral3D4<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3));
             break;
         default:
             KRATOS_ERROR << "Unexpected geometry type for different order interpolation element" << std::endl;
@@ -248,7 +225,7 @@ void GeneralUPwDiffOrderCondition::
     this->InitializeConditionVariables(Variables,rCurrentProcessInfo);
 
     //Loop over integration points
-    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints( mThisIntegrationMethod );
+    const GeometryType::IntegrationPointsArrayType& IntegrationPoints = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
 
     for ( unsigned int PointNumber = 0; PointNumber < IntegrationPoints.size(); PointNumber++ )
     {
@@ -284,15 +261,15 @@ void GeneralUPwDiffOrderCondition::
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
     const SizeType NumPNodes = mpPressureGeometry->PointsNumber();
-    const SizeType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const SizeType NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
     const SizeType WorkingDim = rGeom.WorkingSpaceDimension();
     const SizeType LocalDim = rGeom.LocalSpaceDimension();
 
     (rVariables.NuContainer).resize(NumGPoints,NumUNodes,false);
-    rVariables.NuContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
+    rVariables.NuContainer = rGeom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
     (rVariables.NpContainer).resize(NumGPoints,NumPNodes,false);
-    rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues( mThisIntegrationMethod );
+    rVariables.NpContainer = mpPressureGeometry->ShapeFunctionsValues(this->GetIntegrationMethod());
 
     (rVariables.Nu).resize(NumUNodes,false);
     (rVariables.Np).resize(NumPNodes,false);
@@ -300,7 +277,7 @@ void GeneralUPwDiffOrderCondition::
     (rVariables.JContainer).resize(NumGPoints,false);
     for(SizeType i = 0; i<NumGPoints; ++i)
         ((rVariables.JContainer)[i]).resize(WorkingDim,LocalDim,false);
-    rGeom.Jacobian( rVariables.JContainer, mThisIntegrationMethod );
+    rGeom.Jacobian(rVariables.JContainer, this->GetIntegrationMethod());
 }
 
 //----------------------------------------------------------------------------------------

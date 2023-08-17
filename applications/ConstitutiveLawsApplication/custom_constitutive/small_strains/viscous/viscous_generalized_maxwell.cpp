@@ -144,9 +144,9 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ComputeViscoElasticity(Con
         const Vector& r_strain_increment = r_strain_vector - r_previous_strain;
 
         const double coef = viscous_parameter * time_step / ((1.0 + viscous_parameter) * 2.0 * delay_time);
-        const Vector& r_auxiliar_strain = -(r_strain_vector - r_strain_increment) * std::exp(-time_step / delay_time) * (1.0 + coef) + r_strain_vector * (1.0 - coef);
+        const Vector& r_auxiliary_strain = -(r_strain_vector - r_strain_increment) * std::exp(-time_step / delay_time) * (1.0 + coef) + r_strain_vector * (1.0 - coef);
 
-        noalias(integrated_stress_vector) = r_previous_stress * std::exp(-time_step / delay_time) + prod(constitutive_matrix, r_auxiliar_strain);
+        noalias(integrated_stress_vector) = r_previous_stress * std::exp(-time_step / delay_time) + prod(constitutive_matrix, r_auxiliary_strain);
 
         if (r_flags.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
             rValues.SetConstitutiveMatrix(constitutive_matrix);
@@ -222,9 +222,9 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseCa
     const Vector& r_strain_increment = r_strain_vector - r_previous_strain;
 
     const double coef = viscous_parameter * time_step / ((1.0 + viscous_parameter) * 2.0 * delay_time);
-    const Vector& r_auxiliar_strain = -(r_strain_vector - r_strain_increment) * std::exp(-time_step / delay_time) * (1.0 + coef) + r_strain_vector * (1.0 - coef);
+    const Vector& r_auxiliary_strain = -(r_strain_vector - r_strain_increment) * std::exp(-time_step / delay_time) * (1.0 + coef) + r_strain_vector * (1.0 - coef);
 
-    noalias(integrated_stress_vector) = r_previous_stress * std::exp(-time_step / delay_time) + prod(constitutive_matrix, r_auxiliar_strain);
+    noalias(integrated_stress_vector) = r_previous_stress * std::exp(-time_step / delay_time) + prod(constitutive_matrix, r_auxiliary_strain);
 
     mPrevStressVector = integrated_stress_vector;
     mPrevStrainVector = r_strain_vector;

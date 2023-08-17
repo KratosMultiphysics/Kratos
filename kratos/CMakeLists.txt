@@ -7,7 +7,7 @@ else(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 endif(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
 include_directories( ${KRATOS_SOURCE_DIR}/external_libraries/tinyexpr )
 
-SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions processes response_functions solving_strategies spaces spatial_containers utilities)
+SET(ListFolders sources conditions constraints containers elements factories geometries includes integration linear_solvers mappers modeler modified_shape_functions operations processes controllers response_functions solving_strategies spaces spatial_containers utilities)
 
 ## Kratos main source code
 SET(LIST_OF_SOURCE_EXCEPTIONS
@@ -58,6 +58,7 @@ file(GLOB_RECURSE KRATOS_CORE_TESTING_ENGINE_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}
 
 ## Kratos I/o sources
 file(GLOB_RECURSE KRATOS_CORE_INPUT_OUTPUT_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/input_output/*.cpp)
+file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp)
 
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
@@ -72,14 +73,15 @@ target_compile_definitions(KratosVersion PRIVATE
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
     KRATOS_PATCH_VERSION="${KratosMultiphysics_PATCH_VERSION}"
     KRATOS_SHA1_NUMBER="${KratosMultiphysics_SHA1_NUMBER}"
+    KRATOS_BRANCH_NAME="${KratosMultiphysics_BRANCH_NAME}"
     KRATOS_BUILD_TYPE="${CMAKE_BUILD_TYPE}"
 )
 
 ## Define library KratosCore to be included in all of the others
-add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_TEST_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
+add_library(KratosCore SHARED ${KRATOS_CORE_SOURCES} ${KRATOS_CORE_TESTING_ENGINE_SOURCES} ${KRATOS_CORE_INPUT_OUTPUT_SOURCES} ${KRATOS_EXPRESSION_SOURCES} ${KRATOS_TEST_SOURCES} ${KRATOS_TPL_SOURCES} $<TARGET_OBJECTS:KratosVersion>)
 
 # Set the shared external libraries for kratos (gidpost, tyniexpr, json, etc...)
-set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr)
+set(KRATOS_EXTERNAL_LIBRARIES gidpost tinyexpr clipper)
 
 # Set the TPL libraries if enabled (triangle, tetgen, etc...)
 if(${USE_TRIANGLE_NONFREE_TPL} MATCHES ON )
@@ -97,10 +99,12 @@ endif()
 
 target_link_libraries(KratosCore PUBLIC ${KRATOS_EXTERNAL_LIBRARIES})
 set_target_properties(KratosCore PROPERTIES COMPILE_DEFINITIONS "KRATOS_CORE=IMPORT,API")
+
 # Set batch size in the unity build
-IF(CMAKE_UNITY_BUILD MATCHES ON)
+if(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
-ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+endif(CMAKE_UNITY_BUILD MATCHES ON)
+
 target_compile_definitions(KratosCore PRIVATE
     KRATOS_MAJOR_VERSION=${KratosMultiphysics_MAJOR_VERSION}
     KRATOS_MINOR_VERSION=${KratosMultiphysics_MINOR_VERSION}
@@ -125,6 +129,18 @@ endif()
 ## Define library Kratos which defines the basic python interface
 pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
+
+# Precompile most demanding / widely included headers
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosCore PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/includes/model_part.h>")
+endif(KRATOS_USE_PCH MATCHES ON)
+
+# Pass python version flags ONLY TO THE INTERFACE
+target_compile_definitions(Kratos PRIVATE
+    PYTHON_VERSION_MAJOR=${PYTHON_VERSION_MAJOR}
+    PYTHON_VERSION_MINOR=${PYTHON_VERSION_MINOR}
+    PYTHON_VERSION_PATCH=${PYTHON_VERSION_PATCH}
+)
 
 if(CMAKE_UNITY_BUILD MATCHES ON)
     ## Kratos cannot be compiled with just one unity build as it takes way too much ram

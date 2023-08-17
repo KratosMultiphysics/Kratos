@@ -48,7 +48,6 @@
         "number_cycles":                      10,
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
-        "realised_factor":                    0.9999,
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,
@@ -112,24 +111,6 @@
             "table":           [0,0,0]
         }
     },{
-        "python_module": "apply_excavation_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyExcavationProcess",
-        "Parameters":    {
-            "model_part_name":      "PorousDomain.Excavation-auto-1",
-            "variable_name":        "EXCAVATION",
-            "deactivate_soil_part":             true
-        }
-    }],
-        "python_module": "apply_excavation_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyExcavationProcess",
-        "Parameters":    {
-            "model_part_name":      "PorousDomain.Excavation-auto-1",
-            "variable_name":        "EXCAVATION",
-            "deactivate_soil_part":             true
-        }
-    }],
         "python_module": "apply_excavation_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyExcavationProcess",

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Philipp Bucher, Jordi Cotela
 //
@@ -13,8 +13,7 @@
 // "Development and Implementation of a Parallel
 //  Framework for Non-Matching Grid Mapping"
 
-#if !defined(KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED )
-#define  KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -24,28 +23,34 @@
 #include "interpolative_mapper_base.h"
 #include "custom_utilities/projection_utilities.h"
 
-
 namespace Kratos
 {
 ///@name Kratos Classes
 ///@{
+
+/// @brief Options for configuring the behavior of the Mapper
+struct NearestElementOptions
+{
+    bool UseApproximation = true; // Whether or not an approximation should be computed, if the full projection fails
+    double LocalCoordTol = 0.25; // tolerance for the local coordinates, until which the projection is considered
+};
 
 class KRATOS_API(MAPPING_APPLICATION) NearestElementInterfaceInfo : public MapperInterfaceInfo
 {
 public:
 
     /// Default constructor.
-    explicit NearestElementInterfaceInfo(const double LocalCoordTol=0.0) : mLocalCoordTol(LocalCoordTol) {}
+    explicit NearestElementInterfaceInfo(const NearestElementOptions Options={}) : mOptions(Options) {}
 
     explicit NearestElementInterfaceInfo(const CoordinatesArrayType& rCoordinates,
                                 const IndexType SourceLocalSystemIndex,
                                 const IndexType SourceRank,
-                                         const double LocalCoordTol=0.0)
-        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank), mLocalCoordTol(LocalCoordTol) {}
+                                         const NearestElementOptions Options={})
+        : MapperInterfaceInfo(rCoordinates, SourceLocalSystemIndex, SourceRank), mOptions(Options) {}
 
     MapperInterfaceInfo::Pointer Create() const override
     {
-        return Kratos::make_shared<NearestElementInterfaceInfo>(mLocalCoordTol);
+        return Kratos::make_shared<NearestElementInterfaceInfo>(mOptions);
     }
 
     MapperInterfaceInfo::Pointer Create(const CoordinatesArrayType& rCoordinates,
@@ -56,7 +61,7 @@ public:
             rCoordinates,
             SourceLocalSystemIndex,
             SourceRank,
-            mLocalCoordTol);
+            mOptions);
     }
 
     InterfaceObject::ConstructionType GetInterfaceObjectType() const override
@@ -100,7 +105,7 @@ private:
     std::vector<double> mShapeFunctionValues;
     double mClosestProjectionDistance = std::numeric_limits<double>::max();
     ProjectionUtilities::PairingIndex mPairingIndex = ProjectionUtilities::PairingIndex::Unspecified;
-    double mLocalCoordTol; // this is not needed after searching, hence no need to serialize it
+    NearestElementOptions mOptions; // this is not needed after searching, hence no need to serialize it
     std::size_t mNumSearchResults = 0;
 
     void SaveSearchResult(const InterfaceObject& rInterfaceObject,
@@ -145,6 +150,7 @@ public:
 
     CoordinatesArrayType& Coordinates() const override
     {
+        KRATOS_DEBUG_ERROR_IF_NOT(mpNode) << "Members are not intitialized!" << std::endl;
         return mpNode->Coordinates();
     }
 
@@ -209,8 +215,11 @@ public:
 
         this->ValidateInput();
 
-        mLocalCoordTol = JsonParameters["local_coord_tolerance"].GetDouble();
-        KRATOS_ERROR_IF(mLocalCoordTol < 0.0) << "The local-coord-tolerance cannot be negative" << std::endl;
+        const bool use_approximation = JsonParameters["use_approximation"].GetBool();
+        const double local_coord_tol = JsonParameters["local_coord_tolerance"].GetDouble();
+        KRATOS_ERROR_IF(local_coord_tol < 0.0) << "The local-coord-tolerance cannot be negative" << std::endl;
+
+        mOptions = NearestElementOptions{use_approximation, local_coord_tol};
 
         this->Initialize();
 
@@ -268,7 +277,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mLocalCoordTol;
+    NearestElementOptions mOptions;;
 
     ///@}
 
@@ -287,7 +296,7 @@ private:
 
     MapperInterfaceInfoUniquePointerType GetMapperInterfaceInfo() const override
     {
-        return Kratos::make_unique<NearestElementInterfaceInfo>(mLocalCoordTol);
+        return Kratos::make_unique<NearestElementInterfaceInfo>(mOptions);
     }
 
     Parameters GetMapperDefaultSettings() const override
@@ -295,6 +304,7 @@ private:
         return Parameters( R"({
             "search_settings"              : {},
             "local_coord_tolerance"        : 0.25,
+            "use_approximation"            : true,
             "use_initial_configuration"    : false,
             "echo_level"                   : 0,
             "print_pairing_status_to_file" : false,
@@ -307,5 +317,3 @@ private:
 }; // Class NearestElementMapper
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NEAREST_ELEMENT_MAPPER_H_INCLUDED  defined

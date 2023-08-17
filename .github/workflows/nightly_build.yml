@@ -1,6 +1,13 @@
 name: Nightly Build
 
 on:
+  pull_request:
+    paths:
+    - '.github/workflows/nightly_build.yml'
+    - '.github/workflows/configure.sh'
+    - '.github/workflows/configure.cmd'
+    - '.github/workflows/centos_configure.sh'
+
   schedule:
     - cron:  '0 1 * * *'
 
@@ -28,23 +35,28 @@ jobs:
       OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
 
     container:
-      image: kratosmultiphysics/kratos-image-ci-ubuntu-20-04:latest
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
       options: --user 1001
 
     steps:
     - uses: actions/checkout@v3
 
+    - name: Installing dependencies
+      shell: bash
+      run: |
+        python3 -m pip install parameterized
+
     - name: Build
       shell: bash
       run: |
         if [ ${{ matrix.compiler }} = gcc ]; then
-          export CC=/usr/bin/gcc
-          export CXX=/usr/bin/g++
+          export CC=/usr/bin/gcc-12
+          export CXX=/usr/bin/g++-12
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DUSE_EIGEN_MKL=ON -DUSE_EIGEN_FEAST=ON -DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/ -DPMMG_ROOT=/external_libraries/ParMmg_5ffc6ad -DINCLUDE_PMMG=ON"
           export KRATOS_CMAKE_CXX_FLAGS="-Wignored-qualifiers"
         elif [ ${{ matrix.compiler }} = clang ]; then
-          export CC=/usr/bin/clang
-          export CXX=/usr/bin/clang++
+          export CC=/usr/bin/clang-14
+          export CXX=/usr/bin/clang++-14
           export KRATOS_CMAKE_OPTIONS_FLAGS="-DTRILINOS_EXCLUDE_AMESOS2_SOLVER=OFF -DMMG_ROOT=/external_libraries/mmg/mmg_5_5_1/"
         else
           echo 'Unsupported compiler: ${{ matrix.compiler }}'
@@ -66,25 +78,28 @@ jobs:
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
+        export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 2
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
 
     - name: Running Python MPI tests (3 Cores)
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
+        export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 3
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
 
     - name: Running Python MPI tests (4 Cores)
       shell: bash
       run: |
         source /opt/intel/oneapi/setvars.sh
+        export OMP_NUM_THREADS=1
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
-        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l nightly -n 4
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
 
 
   windows-nightly:
@@ -112,6 +127,8 @@ jobs:
         pip install numpy
         pip install h5py
         pip install sympy
+        pip install scipy
+        pip install parameterized
 
     - name: Build
       shell: cmd
@@ -137,6 +154,11 @@ jobs:
 
     steps:
     - uses: actions/checkout@v3
+
+    - name: Installing dependencies
+      shell: bash
+      run: |
+        python3.8 -m pip install parameterized
 
     - name: Build
       run: |

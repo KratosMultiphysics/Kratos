@@ -15,7 +15,6 @@
 // Project includes
 #include "testing/testing.h"
 #include "utilities/stl_vector_io.h"
-#include "includes/shared_pointers.h"
 
 namespace Kratos {
 namespace Testing {

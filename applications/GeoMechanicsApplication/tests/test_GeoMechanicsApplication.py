@@ -1,13 +1,12 @@
 # import Kratos
 
-import os
-import sys
-
 from KratosMultiphysics import *
 from KratosMultiphysics.GeoMechanicsApplication import *
 
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+
+import run_cpp_unit_tests
 
 # Import the tests o test_classes to create the suits
 from generalTests import KratosGeoMechanicsGeneralTests
@@ -23,14 +22,26 @@ from test_elements import KratosGeoMechanicsElementTypeTests
 from test_steady_state_groundwater_flow import KratosGeoMechanicsSteadyStateGroundWaterFlowTests
 from test_transient_groundwater_flow import KratosGeoMechanicsTransientGroundWaterFlowTests
 from test_soil_weight import KratosGeoMechanicsSoilWeightTests
+from test_settlement import KratosGeoMechanicsSettlementTests
 from test_curved_beam_elements import KratosGeoMechanicsCurvedBeamElementTests
 from test_absorbing_boundary import KratosGeoMechanicsAbsorbingBoundaryColumnTests
+from test_absorbing_boundary_validation import KratosGeoMechanicsAbsorbingBoundaryColumnValidationTests
+from test_elementary_groundwater_flow import TestElementaryGroundWaterFlow
+from test_sellmeijers_rule import TestSellmeijersRule
+from test_sellmeijers_rule_validation import TestSellmeijersRuleValidation
+from test_consecutive_pipe_lines import TestConsecutivePipeLines
+from test_line_loads import KratosGeoMechanicsLineLoadTests
+from test_element_lab import KratosGeoMechanicsLabElementTests
+from test_parameter_field import KratosGeoMechanicsParameterFieldTests
+from test_normal_load_on_1d_element import KratosGeoMechanicsNormalLoad1DTests
+from test_k0_procedure_process import KratosGeoMechanicsK0ProcedureProcessTests
+from test_geomechanics_solver import KratosGeoMechanicsSolverTests
 
-def AssambleTestSuites(is_team_city):
+def AssembleTestSuites():
     ''' Populates the test suites to run.
 
-    Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    Populates the test suites to run. At least, it should populate the suites:
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -44,20 +55,23 @@ def AssambleTestSuites(is_team_city):
     # - testSmallExample
 
     small_test_cases = [
-        KratosGeoMechanicsGeneralTests,
-        KratosGeoMechanicsExcavationTests,
-        KratosGeoMechanicsInterfaceTests,
-        KratosGeoMechanicsResetDisplacementTests,
-        KratosGeoMechanicsSoilStructureInteractionTests,
-        KratosGeoMechanicsWaterPressureTests,
-        KratosGeoMechanicsBenchmarkSet1,
-        KratosGeoMechanicsBenchmarkSet2,
-        KratosGeoMechanicsElementTypeTests,
-        KratosGeoMechanicsSteadyStateGroundWaterFlowTests,
-        KratosGeoMechanicsTransientGroundWaterFlowTests,
-        KratosGeoMechanicsSoilWeightTests,
-        KratosGeoMechanicsCurvedBeamElementTests
-        ]
+                        KratosGeoMechanicsGeneralTests,
+                        KratosGeoMechanicsExcavationTests,
+                        KratosGeoMechanicsResetDisplacementTests,
+                        KratosGeoMechanicsSoilStructureInteractionTests,
+                        KratosGeoMechanicsWaterPressureTests,
+                        KratosGeoMechanicsElementTypeTests,
+                        KratosGeoMechanicsSteadyStateGroundWaterFlowTests,
+                        KratosGeoMechanicsSoilWeightTests,
+                        KratosGeoMechanicsSettlementTests,
+                        KratosGeoMechanicsLineLoadTests,
+                        KratosGeoMechanicsCurvedBeamElementTests,
+                        KratosGeoMechanicsLabElementTests,
+                        KratosGeoMechanicsParameterFieldTests,
+                        KratosGeoMechanicsNormalLoad1DTests,
+                        KratosGeoMechanicsK0ProcedureProcessTests,
+                        KratosGeoMechanicsSolverTests
+                        ]
 
     # Create an array with the selected tests
     # nightSuite will contain the following tests:
@@ -65,64 +79,53 @@ def AssambleTestSuites(is_team_city):
     # - testNightlyFirstExample
     # - testNightlySecondExample
 
-    night_test_cases = [KratosGeoMechanicsDynamicsTests,
-                        KratosGeoMechanicsAbsorbingBoundaryColumnTests]
+    night_test_cases = [
+                        KratosGeoMechanicsInterfaceTests,
+                        KratosGeoMechanicsDynamicsTests,
+                        KratosGeoMechanicsAbsorbingBoundaryColumnTests,
+                        TestSellmeijersRule,
+                        TestElementaryGroundWaterFlow
+                        ]
     night_test_cases.extend(small_test_cases)
+
+    # Create an array with all long tests only for validations
+    valid_test_cases = [
+                        TestConsecutivePipeLines,
+                        KratosGeoMechanicsAbsorbingBoundaryColumnValidationTests,
+                        KratosGeoMechanicsBenchmarkSet1,
+                        KratosGeoMechanicsBenchmarkSet2,
+                        KratosGeoMechanicsTransientGroundWaterFlowTests,
+                        TestSellmeijersRuleValidation
+                        ]
 
     # Create an array that contains all the tests from every testCase
     # in the list:
 
     all_test_cases = []
     all_test_cases.extend(night_test_cases)
+    all_test_cases.extend(small_test_cases)
+    all_test_cases.extend(valid_test_cases)
+    suites = KratosUnittest.KratosSuites
 
     # add the tests to the corresponding suite,
-    if is_team_city:
+    smallSuite = suites['small']
+    nightSuite = suites['nightly']
+    validSuite = suites['validation']
+    allSuite = suites['all']
 
-        smallSuite = unittest.TestSuite()
-        nightSuite = unittest.TestSuite()
-        allSuite = unittest.TestSuite()
-
-        for test in small_test_cases:
-            smallSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
-                test))
-
-        for test in night_test_cases:
-            nightSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
-                test))
-
-        for test in all_test_cases:
-            allSuite.addTests(unittest.TestLoader().loadTestsFromTestCase(
-                test))
-
-        suites = allSuite
-    else:
-        suites = KratosUnittest.KratosSuites
-        smallSuite = suites['small']
-        nightSuite = suites['nightly']
-        allSuite = suites['all']
-
-        smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
-        nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
-        allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(small_test_cases))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(night_test_cases))
+    validSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(valid_test_cases))
+    allSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases(all_test_cases))
 
     return suites
 
 
 if __name__ == '__main__':
-    is_team_city = False
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning python tests ...")
+    KratosUnittest.runTests(AssembleTestSuites())
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished python tests!")
 
-    try:
-        from teamcity import is_running_under_teamcity
-        from teamcity.unittestpy import TeamcityTestRunner
-
-        is_team_city = is_running_under_teamcity()
-    except ImportError:
-        pass
-
-    if is_team_city:
-        import unittest
-        runner = TeamcityTestRunner()
-        runner.run(AssambleTestSuites(is_team_city))
-    else:
-        KratosUnittest.runTests(AssambleTestSuites(is_team_city))
-
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "\nRunning cpp unit tests ...")
+    run_cpp_unit_tests.run()
+    KratosMultiphysics.Logger.PrintInfo("Unittests", "Finished running cpp unit tests!")

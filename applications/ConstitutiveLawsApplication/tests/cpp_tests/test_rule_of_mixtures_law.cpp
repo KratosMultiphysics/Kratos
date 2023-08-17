@@ -30,7 +30,7 @@ namespace Kratos
 namespace Testing
 {
 /// Nodetype definition
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 // void GiDIODebugRuleMixtures(ModelPart& ThisModelPart)
 // {
@@ -159,7 +159,7 @@ Parameters GetThreeLayersParameters()
     return three_layers;
 }
 
-void Create3DGeometryHexahedraRuleOfMixtures(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string ElementName = "SmallDisplacementElement3D8N")
+void Create3DGeometryHexahedraRuleOfMixtures(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string& ElementName = "SmallDisplacementElement3D8N")
 {
     rThisModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 
@@ -199,7 +199,7 @@ void Create3DGeometryHexahedraRuleOfMixtures(ModelPart& rThisModelPart, std::siz
     }
 }
 
-void Create3DGeometryTetrahedraRuleOfMixtures(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string ElementName = "SmallDisplacementElement3D4N")
+void Create3DGeometryTetrahedraRuleOfMixtures(ModelPart& rThisModelPart, std::size_t NumberOfLayers = 2, const std::string& ElementName = "SmallDisplacementElement3D4N")
 {
     rThisModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
 

@@ -29,7 +29,7 @@ namespace Testing
 {
 
 /// Node definition
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /**
  * @brief This sets the basic case
@@ -72,8 +72,9 @@ void SettingBasicCase(
         rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
         rMaterialProperties.SetValue(FRACTURE_ENERGY, 1000.0);
         rMaterialProperties.SetValue(HARDENING_CURVE, 0);
+        rMaterialProperties.SetValue(SOFTENING_TYPE, 1);
 
-        rStrainVector[1] = 1.0e-5;
+        rStrainVector[1] = 1.0e-4;
     }
 
     // Compute equivalent F
@@ -107,7 +108,7 @@ void SettingBasicCase(
  */
 void Create3DGeometryHexahedra(
     ModelPart& rThisModelPart,
-    const std::string ElementName = "SmallDisplacementElement3D8N"
+    const std::string& ElementName = "SmallDisplacementElement3D8N"
     )
 {
     auto& process_info = rThisModelPart.GetProcessInfo();
@@ -144,7 +145,7 @@ void Create3DGeometryHexahedra(
  */
 void Create3DGeometryTetrahedra(
     ModelPart& rThisModelPart,
-    const std::string ElementName = "SmallDisplacementElement3D4N"
+    const std::string& ElementName = "SmallDisplacementElement3D4N"
     )
 {
     rThisModelPart.GetProcessInfo()[STEP] = 2;
@@ -490,6 +491,46 @@ KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicPlasticity3DVonMisesVonMi
     // Initializing law
     p_constitutive_law->InitializeMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
     p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+
+    // Computing convergence rate
+    ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false, false, false, 1.0, 4);
+}
+
+/**
+ * @brief This test tests that the perturbation utility is valid for computing the ehyper lastic tensor
+ */
+KRATOS_TEST_CASE_IN_SUITE(QuadraticSmallStrainIsotropicDamage3DsVonMisesCaseAutomaticDiffTensorUtility, KratosConstitutiveLawsFastSuite)
+{
+    Model this_model;
+    ModelPart& r_model_part = this_model.CreateModelPart("Main", 2);
+
+    r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+
+    ConstitutiveLaw::Parameters cl_configuration_values;
+    Properties::Pointer p_material_properties = r_model_part.CreateNewProperties(1);
+    Vector stress_vector, strain_vector;
+    Matrix tangent_moduli, deformation_gradient_F;
+    double det_deformation_gradient_F;
+    SettingBasicCase(r_model_part, cl_configuration_values, *p_material_properties, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, true, 2);
+
+    // Creating constitutive law
+    auto p_constitutive_law = KratosComponents<ConstitutiveLaw>().Get("SmallStrainIsotropicDamage3DVonMises").Clone();
+    p_material_properties->SetValue(CONSTITUTIVE_LAW, p_constitutive_law);
+
+    // Here we asses the convergence rate of the autom. diff. tangent
+    p_material_properties->SetValue(TANGENT_OPERATOR_ESTIMATION, 0);
+
+    // Creating geometry
+    Create3DGeometryHexahedra(r_model_part);
+
+    // Assigning geometry
+    auto& r_geom = r_model_part.Elements().begin()->GetGeometry();
+    cl_configuration_values.SetElementGeometry(r_geom);
+
+    // Initializing law
+    p_constitutive_law->InitializeMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+    p_constitutive_law->CalculateMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
+    p_constitutive_law->FinalizeMaterialResponse(cl_configuration_values, ConstitutiveLaw::StressMeasure::StressMeasure_PK2);
 
     // Computing convergence rate
     ComputingConvergenceRate(p_constitutive_law, cl_configuration_values, stress_vector, strain_vector, tangent_moduli, deformation_gradient_F, det_deformation_gradient_F, false, false, false, 1.0, 4);

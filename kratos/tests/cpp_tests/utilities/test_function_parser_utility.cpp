@@ -107,5 +107,20 @@ KRATOS_TEST_CASE_IN_SUITE(FunctionParser, KratosCoreFastSuite)
     KRATOS_CHECK_DOUBLE_EQUAL(function4(0.25,0.15,0.0,1.5), 1.5*(std::cos(0.25*Globals::Pi) + std::sin(0.15*Globals::Pi)));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(FunctionParserHexNumbers, KratosCoreFastSuite)
+{
+    auto fun_0 = GenericFunctionUtility("2 + 0xB0B0");
+    KRATOS_CHECK_IS_FALSE(fun_0.DependsOnSpace());
+
+    auto fun_1 = GenericFunctionUtility("3*y");
+    KRATOS_CHECK(fun_1.DependsOnSpace());
+
+    auto fun_2 = GenericFunctionUtility("Z");
+    KRATOS_CHECK(fun_2.DependsOnSpace());
+
+    auto fun_3 = GenericFunctionUtility("x + 0x34321");
+    KRATOS_CHECK(fun_3.DependsOnSpace());
+}
+
 }   // namespace Testing
 }  // namespace Kratos.

@@ -3,14 +3,13 @@
 //        | |__| (_) |__) | | | | | | | |_| | | (_| | |_| | (_) | | | |
 //         \____\___/____/|_|_| |_| |_|\__,_|_|\__,_|\__|_|\___/|_| |_|
 //
-//  License:		 BSD License
-//					 license: CoSimulationApplication/license.txt
+//  License:         BSD License
+//                   license: CoSimulationApplication/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
-#if !defined(KRATOS_CO_SIM_IO_PYTHON_H_INCLUDED)
-#define  KRATOS_CO_SIM_IO_PYTHON_H_INCLUDED
+#pragma once
 
 // System includes
 #include <pybind11/pybind11.h>
@@ -20,14 +19,8 @@
 // Project includes
 #include "includes/define_python.h"
 
-
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void  AddCoSimIOToPython(pybind11::module& m);
 
-}  // namespace Python.
-
-}  // namespace Kratos.
-
-#endif // KRATOS_CO_SIM_IO_PYTHON_H_INCLUDED  defined
+}  // namespace Kratos::Python.

@@ -11,11 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_COMPARISON_UTILITIES )
-#define  KRATOS_GEO_COMPARISON_UTILITIES
-
-
-/* System includes */
+#pragma once
 
 /* Project includes */
 #include "custom_utilities/math_utilities.hpp"
@@ -61,55 +57,27 @@ public:
      */
     /*@{ */
 
-    /** Constructor.
-     */
-    StressStrainUtilities() {};
-
-    /** Destructor.
-     */
-    ~StressStrainUtilities() {};
-
     /** Operators.
      */
 
-    //**************************************************************************
-    //**************************************************************************
-
-
-    //**************************************************************************
-    //**************************************************************************
-
-    double CalculateStressNorm(const Vector& StressVector)
+    static double CalculateStressNorm(const Vector& StressVector)
     {
         KRATOS_TRY
 
-        Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
+        Matrix LocalStressTensor = MathUtils<>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
-        Matrix StressTensor(3,3); //3D stress tensor
-        noalias(StressTensor) = ZeroMatrix(3,3);
-        for(unsigned int i=0; i<LocalStressTensor.size1(); ++i)
-        {
-            for(unsigned int j=0; j<LocalStressTensor.size2(); ++j)
-            {
-                StressTensor(i,j) = LocalStressTensor(i,j);
+        double StressNorm = 0.;
+        for(unsigned int i = 0; i < LocalStressTensor.size1(); ++i) {
+            for(unsigned int j = 0; j < LocalStressTensor.size2(); ++j) {
+                StressNorm += LocalStressTensor(i,j)*LocalStressTensor(i,j);
             }
         }
-
-        double StressNorm = ((StressTensor(0,0)*StressTensor(0,0))+(StressTensor(1,1)*StressTensor(1,1))+(StressTensor(2,2)*StressTensor(2,2))+
-                             (StressTensor(0,1)*StressTensor(0,1))+(StressTensor(0,2)*StressTensor(0,2))+(StressTensor(1,2)*StressTensor(1,2))+
-                             (StressTensor(1,0)*StressTensor(1,0))+(StressTensor(2,0)*StressTensor(2,0))+(StressTensor(2,1)*StressTensor(2,1)));
-
-        StressNorm = sqrt(StressNorm);
-
-        return StressNorm;
+        return std::sqrt(StressNorm);
 
         KRATOS_CATCH( "" )
     }
 
-    //**************************************************************************
-    //**************************************************************************
-
-    double CalculateVonMisesStress(const Vector& StressVector)
+    static double CalculateVonMisesStress(const Vector& StressVector)
     {
         KRATOS_TRY
 
@@ -123,30 +91,26 @@ public:
             }
         }
 
-        //in general coordinates:
-        double SigmaEquivalent =  (0.5)*((StressTensor(0,0)-StressTensor(1,1))*((StressTensor(0,0)-StressTensor(1,1)))+
-                                         (StressTensor(1,1)-StressTensor(2,2))*((StressTensor(1,1)-StressTensor(2,2)))+
-                                         (StressTensor(2,2)-StressTensor(0,0))*((StressTensor(2,2)-StressTensor(0,0)))+
-                                       6*(StressTensor(0,1)*StressTensor(1,0)+StressTensor(1,2)*StressTensor(2,1)+StressTensor(2,0)*StressTensor(0,2)));
+        double SigmaEquivalent = 0.5*((StressTensor(0,0)-StressTensor(1,1))*(StressTensor(0,0)-StressTensor(1,1))+
+                                      (StressTensor(1,1)-StressTensor(2,2))*(StressTensor(1,1)-StressTensor(2,2))+
+                                      (StressTensor(2,2)-StressTensor(0,0))*(StressTensor(2,2)-StressTensor(0,0))+
+                                      6.0*(StressTensor(0,1)*StressTensor(1,0)+
+                                           StressTensor(1,2)*StressTensor(2,1)+
+                                           StressTensor(2,0)*StressTensor(0,2) ));
 
-        if ( SigmaEquivalent < 0 )
-             SigmaEquivalent = 0;
-
-        SigmaEquivalent = sqrt(SigmaEquivalent);
-
-        return SigmaEquivalent;
+        return std::sqrt(std::max(SigmaEquivalent, 0.));
 
         KRATOS_CATCH( "" )
     }
 
-    double CalculateTrace(const Vector& StressVector)
+    static double CalculateTrace(const Vector& StressVector)
     {
         KRATOS_TRY
 
         Matrix StressTensor = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
         double trace = 0.0;
-        for (std::size_t i=0; i < StressTensor.size1(); ++i) {
+        for (std::size_t i = 0; i < StressTensor.size1(); ++i) {
             trace += StressTensor(i,i);
         }
 
@@ -155,24 +119,16 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    double CalculateMeanStress(const Vector& StressVector)
+    static double CalculateMeanStress(const Vector& StressVector)
     {
         KRATOS_TRY
 
-        Matrix StressTensor = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
-
-        double trace = 0.0;
-        for (std::size_t i=0; i < StressTensor.size1(); ++i) {
-            trace += StressTensor(i,i);
-        }
-
-        return (trace / StressTensor.size1());
+        return CalculateTrace(StressVector) / (StressVector.size() == 3 ? 2.0 : 3.0);
 
         KRATOS_CATCH( "" )
     }
 
-
-    double CalculateVonMisesStrain(const Vector& StrainVector)
+    static double CalculateVonMisesStrain(const Vector& StrainVector)
     {
         KRATOS_TRY
 
@@ -287,7 +243,4 @@ private:
 
 /*@} */
 
-} /* namespace Kratos.*/
-
-#endif /* KRATOS_GEO_COMPARISON_UTILITIES defined */
-
+}

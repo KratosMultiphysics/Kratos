@@ -243,7 +243,7 @@ private:
 		zc=OutPointList[base+2];
 
 	      //create a new node
-	      pNode = Kratos::make_intrusive<Node<3>>( id, xc, yc, zc );
+	      pNode = Kratos::make_intrusive<Node>( id, xc, yc, zc );
 
 	      //set new id
 	      if(mrRemesh.InputInitializedFlag){
@@ -260,7 +260,7 @@ private:
 	      pNode->SetBufferSize(rModelPart.GetBufferSize());
 
 	      //generating the dofs
-	      for(Node<3>::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); ++i_dof)
+	      for(Node::DofsContainerType::iterator i_dof = ReferenceDofs.begin(); i_dof != ReferenceDofs.end(); ++i_dof)
 		{
 		  NodeType::DofType& rDof = **i_dof;
 		  NodeType::DofType::Pointer pNewDof = pNode->pAddDof( rDof );
@@ -293,8 +293,8 @@ private:
       KRATOS_TRY
 
       //defintions for spatial search
-      typedef Node<3>                                  PointType;
-      typedef Node<3>::Pointer                  PointPointerType;
+      typedef Node                                  PointType;
+      typedef Node::Pointer                  PointPointerType;
       typedef std::vector<PointPointerType>          PointVector;
       typedef PointVector::iterator                PointIterator;
       //typedef std::vector<double>                 DistanceVector;
@@ -316,10 +316,10 @@ private:
 
       //find the center and "radius" of the element
       double  radius = 0;
-      Node<3> center(0,0.0,0.0,0.0);
+      Node center(0,0.0,0.0,0.0);
 
       unsigned int MaximumNumberOfPointsInRadius = list_of_new_nodes.size();
-      std::vector<Node<3>::Pointer> PointsInRadius (MaximumNumberOfPointsInRadius);
+      std::vector<Node::Pointer> PointsInRadius (MaximumNumberOfPointsInRadius);
       std::vector<double>  PointsInRadiusDistances (MaximumNumberOfPointsInRadius);
 
       //geometry
@@ -359,7 +359,7 @@ private:
 
 
 	  //check if inside and eventually interpolate
-	  for(std::vector<Node<3>::Pointer>::iterator it_found = PointsInRadius.begin(); it_found != (PointsInRadius.begin() + NumberOfPointsInRadius) ; ++it_found)
+	  for(std::vector<Node::Pointer>::iterator it_found = PointsInRadius.begin(); it_found != (PointsInRadius.begin() + NumberOfPointsInRadius) ; ++it_found)
 	    {
 
 	      PointCoordinates[0] = (*it_found)->X();

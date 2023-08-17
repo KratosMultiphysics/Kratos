@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division
 
 # Importing the Kratos Library
 import KratosMultiphysics as KM
@@ -60,7 +59,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                 "compute_contact_forces": false,
                 "block_builder": false,
                 "component_wise": false,
-                "predictor_corrector": true,         
+                "predictor_corrector": true,
                 "time_order": 2,
                 "maximum_velocity_iterations": 1,
                 "maximum_pressure_iterations": 7,
@@ -238,10 +237,10 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                 KM.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were successfully imported.")
             else:
                 KM.Logger.PrintInfo("::[ConvectionDiffusionSolver]:: ", "Materials were not imported.")
-				
+
             KM.ReplaceElementsAndConditionsProcess(self.thermal_solver.main_model_part,self.thermal_solver._get_element_condition_replace_settings()).Execute()
             self.thermal_solver._set_and_fill_buffer()
-			
+
         if (self.thermal_solver.settings["echo_level"].GetInt() > 0):
             KM.Logger.PrintInfo(self.thermal_solver.model)
 
@@ -259,7 +258,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.BULK_MODULUS)
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.DYNAMIC_VISCOSITY):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.DYNAMIC_VISCOSITY)
-        
+
         for i in range(self.constitutive_laws_names.size()):
             if (self.constitutive_laws_names[i].GetString()=="FrictionalViscoplasticTemperatureDependent2DLaw" or self.constitutive_laws_names[i].GetString()=="FrictionalViscoplasticTemperatureDependent3DLaw"):
                 if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.INTERNAL_FRICTION_ANGLE):
@@ -284,9 +283,7 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                     self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.YIELDED)
                 if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT):
                     self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ADAPTIVE_EXPONENT)
-            elif (self.constitutive_laws_names[i].GetString()=="PapanastasiouTemperatureDependentMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="PapanastasiouTemperatureDependentMuIRheology3DLaw" or
-            self.constitutive_laws_names[i].GetString()=="BarkerBercovierTemperatureDependentMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="BarkerBercovierTemperatureDependentMuIRheology3DLaw" or
-            self.constitutive_laws_names[i].GetString()=="BarkerTemperatureDependentMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="BarkerTemperatureDependentMuIRheology3DLaw"):
+            elif (self.constitutive_laws_names[i].GetString()=="TemperatureDependentMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="TemperatureDependentMuIRheology3DLaw"):
                 if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION):
                     self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.STATIC_FRICTION)
                 if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.DYNAMIC_FRICTION):
@@ -299,17 +296,9 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
                     self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.GRAIN_DENSITY)
                 if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT):
                     self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.REGULARIZATION_COEFFICIENT)
-                if (self.constitutive_laws_names[i].GetString()=="BarkerBercovierTemperatureDependentMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="BarkerBercovierTemperatureDependentMuIRheology3DLaw" or
-                self.constitutive_laws_names[i].GetString()=="BarkerTemperatureDependentMuIRheology2DLaw" or self.constitutive_laws_names[i].GetString()=="BarkerTemperatureDependentMuIRheology3DLaw"):
-                    if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.INFINITE_FRICTION):
-                        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INFINITE_FRICTION)
-                    if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ONE):
-                        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.INERTIAL_NUMBER_ONE)
-                    if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER):
-                        self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ALPHA_PARAMETER)
             elif (self.constitutive_laws_names[i].GetString()!="None" and self.constitutive_laws_names[i].GetString()!="NewtonianTemperatureDependent2DLaw" and self.constitutive_laws_names[i].GetString()!="NewtonianTemperatureDependent3DLaw"):
                 print("ERROR: THE CONSTITUTIVE LAW PROVIDED FOR THIS SUBMODEL PART IS NOT IN THE PFEM FLUID DATABASE")
-        
+
 
     def AddPfemVariables(self):
         print("Add Pfem Variables in pfem_fluid_thermally_coupled_analysis")
@@ -331,20 +320,17 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.VOLUME_ACCELERATION):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.VOLUME_ACCELERATION)
 
-        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE):
-            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.FREESURFACE)
-
-        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.PREVIOUS_FREESURFACE):
-            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PREVIOUS_FREESURFACE)
-
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_VELOCITY)
 
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION):
-             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
+            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.PRESSURE_ACCELERATION)
 
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.ISOLATED_NODE)
+
+        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosPfemFluid.NODAL_H_WALL):
+            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosPfemFluid.NODAL_H_WALL)
 
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.NODAL_H):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.NODAL_H)
@@ -354,5 +340,8 @@ class CoupledPfemFluidThermalSolver(PythonSolver):
 
         if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID):
             self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KratosDelaunay.PROPERTY_ID)
+
+        if not self.fluid_solver.main_model_part.HasNodalSolutionStepVariable(KM.HEAT_FLUX):
+            self.fluid_solver.main_model_part.AddNodalSolutionStepVariable(KM.HEAT_FLUX)
 
 

@@ -9,6 +9,9 @@ on:
       - 'scripts/docker_files/docker_file_wheelbuilder_linux/*'
       - '.github/workflows/build_docker_image_wheelbuilder_linux.yml'
 
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest

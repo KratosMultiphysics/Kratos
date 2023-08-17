@@ -6,7 +6,6 @@ from KratosMultiphysics import restart_utility
 from KratosMultiphysics import save_restart_process as save_rest_proc
 
 import os
-import sys
 
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)

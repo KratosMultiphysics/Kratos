@@ -47,7 +47,8 @@ class AssignGravityToParticleProcess(KratosMultiphysics.Process):
         self.gravity_acceleration = self.modulus * self.gravity_direction
 
     def ExecuteBeforeSolutionLoop(self):
-        # Assign gravity to MP after solver.Initialize() - only apply once at the beginning!
-        for element in self.model_part.Elements:
-            element.SetValuesOnIntegrationPoints(KratosParticle.MP_VOLUME_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)
-            element.SetValuesOnIntegrationPoints(KratosParticle.MP_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)
+        if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
+            # Assign gravity to MP after solver.Initialize() - only apply once at the beginning!
+            for element in self.model_part.Elements:
+                element.SetValuesOnIntegrationPoints(KratosParticle.MP_VOLUME_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)
+                element.SetValuesOnIntegrationPoints(KratosParticle.MP_ACCELERATION,[self.gravity_acceleration],self.model_part.ProcessInfo)

@@ -231,12 +231,11 @@ class SwimmingDEMAnalysis(AnalysisStage):
         # Moving to the recently created folder
         os.chdir(self.main_path)
         if self.do_print_results:
-            [self.post_path, data_and_results, self.graphs_path, MPI_results] = \
+            [self.post_path, self.graphs_path] = \
             self.procedures.CreateDirectories(str(self.main_path),
                                             str(self.project_parameters["problem_data"]["problem_name"].GetString()),
                                             self.run_code)
             SDP.CopyInputFilesIntoFolder(self.main_path, self.post_path)
-            self.MPI_results = MPI_results
 
         self.FluidInitialize()
 

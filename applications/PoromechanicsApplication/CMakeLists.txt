@@ -2,6 +2,10 @@ set(CMAKE_INCLUDE_CURRENT_DIR ON)
 
 message("**** configuring KratosPoromechanicsApplication ****")
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication)
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/FluidDynamicsApplication)
+
 ################### PYBIND11
 include(pybind11Tools)
 
@@ -23,6 +27,14 @@ set( KRATOS_POROMECHANICS_APPLICATION_CORE_SOURCES
     # Constitutive Laws
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/local_damage_flow_rule.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/custom_flow_rules/nonlocal_damage_flow_rule.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastoplastic_mohr_coulomb_cohesive_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastoplastic_mohr_coulomb_cohesive_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastoplastic_mod_mohr_coulomb_cohesive_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastoplastic_mod_mohr_coulomb_cohesive_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_cohesive_3D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/isotropic_damage_cohesive_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastic_cohesive_2D_law.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/elastic_cohesive_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bilinear_cohesive_3D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/bilinear_cohesive_2D_law.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/exponential_cohesive_3D_law.cpp

@@ -62,10 +62,10 @@ class ExplicitStrategy(BaseStrategy):
         # Set standard properties
         BaseStrategy.ModifyProperties(self, properties, param)
 
-        # Set pointers: time integration scheme / numerical integration method / constitutive laws (heat transfer models)
+        # Set pointers: constitutive laws (heat transfer models) / time integration scheme / numerical integration method / heat map utilities
+        self.SetConstitutiveLaw(properties)
         self.SetThermalIntegrationScheme(properties)
         self.SetNumericalIntegrationMethod(properties)
-        self.SetConstitutiveLaw(properties)
     
     #----------------------------------------------------------------------------------------------
     def Initialize(self):
@@ -111,6 +111,10 @@ class ExplicitStrategy(BaseStrategy):
         if (self.write_graph):
             self.graph_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
 
+        # Merge particle heat maps to global heat maps
+        if (self.PostMapHeatGeneration):
+            self.heat_map_utils.ExecuteFinalizeSolutionStep(self.spheres_model_part)
+
     #----------------------------------------------------------------------------------------------
     def Finalize(self):
         BaseStrategy.Finalize(self)
@@ -118,6 +122,10 @@ class ExplicitStrategy(BaseStrategy):
         # Close graph files
         if (self.write_graph):
             self.graph_utils.ExecuteFinalize()
+
+        # Write global heat maps
+        if (self.PostMapHeatGeneration):
+            self.heat_map_utils.ExecuteFinalize(self.spheres_model_part)
 
     ####################################### PARTICULAR METHODS #######################################
     #----------------------------------------------------------------------------------------------
@@ -190,14 +198,29 @@ class ExplicitStrategy(BaseStrategy):
         self.fluid_velocity[1]          = self.fluid_props["fluid_velocity_Y"].GetDouble()
         self.fluid_velocity[2]          = self.fluid_props["fluid_velocity_Z"].GetDouble()
         
-        # Graph writing
-        self.PostGraphParticleTempMin   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
-        self.PostGraphParticleTempMax   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
-        self.PostGraphParticleTempAvg   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
-        self.PostGraphParticleTempDev   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
-        self.PostGraphModelTempAvg      = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
-        self.PostGraphFluxContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatFluxContributions")
-        self.PostGraphGenContributions  = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenContributions")
+        # Post options
+        self.PostGraphParticleTempMin     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMin")
+        self.PostGraphParticleTempMax     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempMax")
+        self.PostGraphParticleTempAvg     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempAvg")
+        self.PostGraphParticleTempDev     = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphParticleTempDev")
+        self.PostGraphModelTempAvg        = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphModelTempAvg")
+        self.PostGraphFluxContributions   = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatFluxContributions")
+        self.PostGraphGenContributions    = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphHeatGenContributions")
+        self.PostGraphEnergyContributions = GetBoolParameterIfItExists(self.DEM_parameters, "PostGraphEnergyContributions")
+        self.PostMapHeatGeneration        = GetBoolParameterIfItExists(self.DEM_parameters, "PostMapHeatGeneration")
+
+        self.heat_map_corner1         = Vector(3)
+        self.heat_map_corner1[0]      = min(self.thermal_settings["heat_map_corners"][0][0].GetDouble(),self.thermal_settings["heat_map_corners"][1][0].GetDouble())
+        self.heat_map_corner1[1]      = min(self.thermal_settings["heat_map_corners"][0][1].GetDouble(),self.thermal_settings["heat_map_corners"][1][1].GetDouble())
+        self.heat_map_corner1[2]      = min(self.thermal_settings["heat_map_corners"][0][2].GetDouble(),self.thermal_settings["heat_map_corners"][1][2].GetDouble())
+        self.heat_map_corner2         = Vector(3)
+        self.heat_map_corner2[0]      = max(self.thermal_settings["heat_map_corners"][0][0].GetDouble(),self.thermal_settings["heat_map_corners"][1][0].GetDouble())
+        self.heat_map_corner2[1]      = max(self.thermal_settings["heat_map_corners"][0][1].GetDouble(),self.thermal_settings["heat_map_corners"][1][1].GetDouble())
+        self.heat_map_corner2[2]      = max(self.thermal_settings["heat_map_corners"][0][2].GetDouble(),self.thermal_settings["heat_map_corners"][1][2].GetDouble())
+        self.heat_map_subdivisions    = Vector(3)
+        self.heat_map_subdivisions[0] = self.thermal_settings["heat_map_subdivisions"][0].GetInt()
+        self.heat_map_subdivisions[1] = self.thermal_settings["heat_map_subdivisions"][1].GetInt()
+        self.heat_map_subdivisions[2] = self.thermal_settings["heat_map_subdivisions"][2].GetInt()
 
     #----------------------------------------------------------------------------------------------
     def CheckProjectParameters(self):
@@ -275,8 +298,6 @@ class ExplicitStrategy(BaseStrategy):
             self.isothermal_core_radius = 1
         if (self.max_radiation_distance < 0 ):
             self.max_radiation_distance = 0
-        if (self.heat_generation_ratio < 0 or self.heat_generation_ratio > 1):
-            raise Exception('ThermalDEM', '"heat_generation_ratio" must be between zero and one.')
         if (self.global_porosity < 0 or self.global_porosity >= 1):
             raise Exception('ThermalDEM', '"global_porosity" must be between zero and one.')
         if (self.alpha_parameter < 0):
@@ -290,6 +311,17 @@ class ExplicitStrategy(BaseStrategy):
             self.fluid_thermal_conductivity <= 0 or
             self.fluid_heat_capacity        <= 0):
             raise Exception('ThermalDEM', '"global_fluid_properties" must contain positive values for material properties.')
+        
+        # Post options
+        if (self.heat_map_corner1[0] == self.heat_map_corner2[0] or
+            self.heat_map_corner1[1] == self.heat_map_corner2[1] or
+            self.heat_map_corner1[2] == self.heat_map_corner2[2]):
+            raise Exception('ThermalDEM', '"heat_map_corners" must contain two vectors with the X,Y,Z coordinates of points that define opposite corners of a cuboid.')
+        
+        if (self.heat_map_subdivisions[0] < 1 or
+            self.heat_map_subdivisions[1] < 1 or
+            self.heat_map_subdivisions[2] < 1):
+            raise Exception('ThermalDEM', '"heat_map_subdivisions" must contain a vector with 3 positive values for the number of subdivisions in X,Y,Z directions.')
 
     #----------------------------------------------------------------------------------------------
     def SetVoronoiPorosityFlags(self):
@@ -323,13 +355,14 @@ class ExplicitStrategy(BaseStrategy):
     
     #----------------------------------------------------------------------------------------------
     def SetGraphFlags(self):
-        if (self.PostGraphParticleTempMin   or
-            self.PostGraphParticleTempMax   or
-            self.PostGraphParticleTempAvg   or 
-            self.PostGraphParticleTempDev   or
-            self.PostGraphModelTempAvg      or
-            self.PostGraphFluxContributions or
-            self.PostGraphGenContributions):
+        if (self.PostGraphParticleTempMin     or
+            self.PostGraphParticleTempMax     or
+            self.PostGraphParticleTempAvg     or 
+            self.PostGraphParticleTempDev     or
+            self.PostGraphModelTempAvg        or
+            self.PostGraphFluxContributions   or
+            self.PostGraphGenContributions    or
+            self.PostGraphEnergyContributions):
             self.write_graph = True
         else:
             self.write_graph = False
@@ -346,6 +379,9 @@ class ExplicitStrategy(BaseStrategy):
             
         if (self.write_graph):
             self.graph_utils = GraphUtilities()
+
+        if (self.PostMapHeatGeneration):
+            self.heat_map_utils = HeatMapUtilities()
     
     #----------------------------------------------------------------------------------------------
     def AddThermalVariables(self):
@@ -359,44 +395,6 @@ class ExplicitStrategy(BaseStrategy):
         self.inlet_model_part.AddNodalSolutionStepVariable(HEATFLUX)
         self.fem_model_part.AddNodalSolutionStepVariable(HEATFLUX)
 
-    #----------------------------------------------------------------------------------------------
-    def SetThermalIntegrationScheme(self, properties):
-        if properties.Has(THERMAL_INTEGRATION_SCHEME_NAME):
-            input_name = properties[THERMAL_INTEGRATION_SCHEME_NAME]
-        else:
-            input_name = self.thermal_integration_scheme
-
-        if input_name == "forward_euler":
-            class_name = "ThermalForwardEulerScheme"
-        else:
-            raise Exception('ThermalDEM', 'Time integration scheme \'' + input_name + '\' is not implemented.')
-
-        try:
-            object = eval(class_name)()
-        except:
-            raise Exception('The class corresponding to the time integration scheme named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
-        
-        object.SetThermalIntegrationSchemeInProperties(properties, True)
-
-    #----------------------------------------------------------------------------------------------
-    def SetNumericalIntegrationMethod(self, properties):
-        if properties.Has(NUMERICAL_INTEGRATION_METHOD_NAME):
-            input_name = properties[NUMERICAL_INTEGRATION_METHOD_NAME]
-        else:
-            input_name = self.numerical_integration_method
-
-        if input_name == "adaptive_simpson":
-            class_name = "AdaptiveSimpsonQuadrature"
-        else:
-            raise Exception('ThermalDEM', 'Numerical integration method \'' + input_name + '\' is not implemented.')
-
-        try:
-            object = eval(class_name)()
-        except:
-            raise Exception('The class corresponding to the numerical integration method named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
-        
-        object.SetNumericalIntegrationMethodInProperties(properties, True)
-    
     #----------------------------------------------------------------------------------------------
     def SetConstitutiveLaw(self, properties):
         # Direct conduction
@@ -489,6 +487,44 @@ class ExplicitStrategy(BaseStrategy):
         object.SetRealContactModelInProperties(properties, True)
 
     #----------------------------------------------------------------------------------------------
+    def SetThermalIntegrationScheme(self, properties):
+        if properties.Has(THERMAL_INTEGRATION_SCHEME_NAME):
+            input_name = properties[THERMAL_INTEGRATION_SCHEME_NAME]
+        else:
+            input_name = self.thermal_integration_scheme
+
+        if input_name == "forward_euler":
+            class_name = "ThermalForwardEulerScheme"
+        else:
+            raise Exception('ThermalDEM', 'Time integration scheme \'' + input_name + '\' is not implemented.')
+
+        try:
+            object = eval(class_name)()
+        except:
+            raise Exception('The class corresponding to the time integration scheme named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
+        
+        object.SetThermalIntegrationSchemeInProperties(properties, True)
+
+    #----------------------------------------------------------------------------------------------
+    def SetNumericalIntegrationMethod(self, properties):
+        if properties.Has(NUMERICAL_INTEGRATION_METHOD_NAME):
+            input_name = properties[NUMERICAL_INTEGRATION_METHOD_NAME]
+        else:
+            input_name = self.numerical_integration_method
+
+        if input_name == "adaptive_simpson":
+            class_name = "AdaptiveSimpsonQuadrature"
+        else:
+            raise Exception('ThermalDEM', 'Numerical integration method \'' + input_name + '\' is not implemented.')
+
+        try:
+            object = eval(class_name)()
+        except:
+            raise Exception('The class corresponding to the numerical integration method named ' + class_name + ' has not been added to python. Please, select a different name or add the required class.')
+        
+        object.SetNumericalIntegrationMethodInProperties(properties, True)
+
+    #----------------------------------------------------------------------------------------------
     def SetThermalVariablesAndOptions(self):
         # General options
         self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, MOTION_OPTION,               self.compute_motion_option)
@@ -535,6 +571,12 @@ class ExplicitStrategy(BaseStrategy):
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_TEMPERATURE,          self.fluid_temperature)
         self.spheres_model_part.ProcessInfo.SetValue(FLUID_VELOCITY,             self.fluid_velocity)
 
+        # Post options
+        self.SetOneOrZeroInProcessInfoAccordingToBoolValue(self.spheres_model_part, HEAT_MAP_GENERATION_OPTION, self.PostMapHeatGeneration)
+        self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_COORDINATES_1, self.heat_map_corner1)
+        self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_COORDINATES_2, self.heat_map_corner2)
+        self.spheres_model_part.ProcessInfo.SetValue(HEAT_MAP_SUBDIVISIONS,  self.heat_map_subdivisions)
+
     #----------------------------------------------------------------------------------------------
     def CreateCPlusPlusThermalStrategy(self):
         translational_integration_scheme = self.DEM_parameters["TranslationalIntegrationScheme"].GetString()
@@ -566,7 +608,11 @@ class ExplicitStrategy(BaseStrategy):
                                                self.PostGraphParticleTempDev,
                                                self.PostGraphModelTempAvg,
                                                self.PostGraphFluxContributions,
-                                               self.PostGraphGenContributions)
+                                               self.PostGraphGenContributions,
+                                               self.PostGraphEnergyContributions)
+
+        if (self.PostMapHeatGeneration):
+            self.heat_map_utils.ExecuteInitialize(self.spheres_model_part)
 
     #----------------------------------------------------------------------------------------------
     def IsTimeToUpdateVoronoi(self):

@@ -53,7 +53,7 @@ struct WriteInfo
  * meta data. Reading and writing data sets is the responsibility of the derived
  * class.
  */
-class File
+class KRATOS_API(HDF5_APPLICATION) File
 {
 public:
     ///@name Type Definitions

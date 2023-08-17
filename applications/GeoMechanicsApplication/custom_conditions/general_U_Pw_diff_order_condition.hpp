@@ -35,31 +35,30 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeneralUPwDiffOrderCondition : publi
 
 public:
 
-    typedef std::size_t IndexType;
-	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( GeneralUPwDiffOrderCondition );
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Default constructor
-    GeneralUPwDiffOrderCondition();
+    GeneralUPwDiffOrderCondition() : GeneralUPwDiffOrderCondition(0, nullptr, nullptr) {};
 
-    // Constructor 1
-    GeneralUPwDiffOrderCondition( IndexType NewId, GeometryType::Pointer pGeometry );
+    GeneralUPwDiffOrderCondition( IndexType               NewId,
+                                  GeometryType::Pointer   pGeometry )
+        : GeneralUPwDiffOrderCondition(NewId, pGeometry, nullptr)
+    {}
 
-    // Constructor 2
-    GeneralUPwDiffOrderCondition( IndexType NewId,
-                                  GeometryType::Pointer pGeometry,
-                                  PropertiesType::Pointer pProperties );
-
-    // Destructor
-    virtual ~GeneralUPwDiffOrderCondition();
+    GeneralUPwDiffOrderCondition( IndexType               NewId,
+                                  GeometryType::Pointer   pGeometry,
+                                  PropertiesType::Pointer pProperties )
+        : Condition(NewId, pGeometry, pProperties)
+    {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -108,10 +107,7 @@ protected:
     };
 
     // Member Variables
-
-    IntegrationMethod mThisIntegrationMethod;
-
-    Geometry< Node<3> >::Pointer mpPressureGeometry;
+    Geometry< Node >::Pointer mpPressureGeometry;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

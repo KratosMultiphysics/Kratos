@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_APPLY_WRITE_SCALAR_PROCESS )
-#define  KRATOS_GEO_APPLY_WRITE_SCALAR_PROCESS
+#pragma once
 
 #include "includes/table.h"
 #include "includes/kratos_flags.h"
@@ -31,11 +30,9 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyWriteScalarProcess);
 
     /// Defining a table with double argument and result type as table type.
-    typedef Table<double,double> TableType;
-    
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    using TableType = Table<double,double>;
+    using IndexType = std::size_t;
 
-    /// Constructor
     ApplyWriteScalarProcess(ModelPart& model_part,
                             Parameters rParameters
                             ) : Process(Flags()) , mrModelPart(model_part)
@@ -64,15 +61,14 @@ public:
         mAppendFile   = rParameters["append_file"].GetBool();
         mTimeUnitConverter = model_part.GetProcessInfo()[TIME_UNIT_CONVERTER];
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
-    ///------------------------------------------------------------------------------------
-
-    /// Destructor
-    ~ApplyWriteScalarProcess() override {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ~ApplyWriteScalarProcess() override = default;
+    ApplyWriteScalarProcess(const ApplyWriteScalarProcess&) = delete;
+    ApplyWriteScalarProcess& operator=(const ApplyWriteScalarProcess&) = delete;
+    ApplyWriteScalarProcess(ApplyWriteScalarProcess&&) = delete;
+    ApplyWriteScalarProcess& operator=(ApplyWriteScalarProcess&&) = delete;
 
     /// Execute method is used to execute the ApplyWriteScalarProcess algorithms.
     void Execute() override
@@ -85,7 +81,7 @@ public:
     {
         KRATOS_TRY
 
-        const std::size_t nNodes = mrModelPart.NumberOfNodes();
+        const SizeType nNodes = mrModelPart.NumberOfNodes();
 
         if (nNodes > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
@@ -94,10 +90,10 @@ public:
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
             mOutFile.resize(nNodes);
 
-            for (std::size_t i = 0; i<nNodes; ++i) {
+            for (IndexType i = 0; i<nNodes; ++i) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
-                const int nodeId = it->Id();
+                const IndexType nodeId = it->Id();
                 std::string fileName = mModelPartName + "_" + std::to_string(nodeId) + "_" + mVariableName + ".res";
 
                 if (mAppendFile) {
@@ -123,14 +119,14 @@ public:
     {
         KRATOS_TRY
 
-        const std::size_t nNodes = mrModelPart.NumberOfNodes();
+        const IndexType nNodes = mrModelPart.NumberOfNodes();
 
         if (nNodes > 0) {
             const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
             const double Time = mrModelPart.GetProcessInfo()[TIME]/mTimeUnitConverter;
             ModelPart::NodesContainerType::iterator it_begin = mrModelPart.NodesBegin();
 
-            for (std::size_t i = 0; i<nNodes; ++i) {
+            for (IndexType i = 0; i<nNodes; ++i) {
                 ModelPart::NodesContainerType::iterator it = it_begin + i;
 
                 const double value = it->FastGetSolutionStepValue(var);
@@ -148,8 +144,8 @@ public:
     {
         KRATOS_TRY
 
-        for (std::size_t i = 0; i < mOutFile.size(); ++i) {
-            mOutFile[i].close();
+        for (auto& outFile : mOutFile) {
+            outFile.close();
         }
 
         KRATOS_CATCH("")
@@ -161,23 +157,8 @@ public:
         return "ApplyWriteScalarProcess";
     }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ApplyWriteScalarProcess";
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-protected:
-
+private:
     /// Member Variables
-
     ModelPart& mrModelPart;
     std::string mVariableName;
     std::string mModelPartName;
@@ -185,16 +166,6 @@ protected:
     double mTimeUnitConverter;
     std::vector<std::ofstream> mOutFile;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-private:
-
-    /// Assignment operator.
-    ApplyWriteScalarProcess& operator=(ApplyWriteScalarProcess const& rOther);
-
-    /// Copy constructor.
-    //ApplyWriteScalarProcess(ApplyWriteScalarProcess const& rOther);
-    
 }; // Class ApplyWriteScalarProcess
 
 /// input stream function
@@ -212,6 +183,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-} // namespace Kratos.
-
-#endif /* KRATOS_GEO_APPLY_WRITE_SCALAR_PROCESS defined */
+}

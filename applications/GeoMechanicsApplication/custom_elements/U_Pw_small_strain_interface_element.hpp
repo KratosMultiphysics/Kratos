@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_U_PW_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -34,21 +33,19 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainInterfaceElement );
 
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
     using UPwBaseElement<TDim,TNumNodes>::mStateVariablesFinalized;
     using UPwBaseElement<TDim,TNumNodes>::CalculateDerivativesOnInitialConfiguration;
     using UPwBaseElement<TDim,TNumNodes>::mThisIntegrationMethod;
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
     UPwSmallStrainInterfaceElement(IndexType NewId = 0) : UPwBaseElement<TDim,TNumNodes>( NewId ) {}
@@ -71,10 +68,11 @@ public:
         mThisIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_1;
     }
 
-    /// Destructor
-    ~UPwSmallStrainInterfaceElement() override {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ~UPwSmallStrainInterfaceElement() override = default;
+    UPwSmallStrainInterfaceElement(const UPwSmallStrainInterfaceElement&) = delete;
+    UPwSmallStrainInterfaceElement& operator=(const UPwSmallStrainInterfaceElement&) = delete;
+    UPwSmallStrainInterfaceElement(UPwSmallStrainInterfaceElement&&) = delete;
+    UPwSmallStrainInterfaceElement& operator=(UPwSmallStrainInterfaceElement&&) = delete;
 
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
@@ -88,14 +86,11 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void CalculateMassMatrix(MatrixType& rMassMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
@@ -107,8 +102,6 @@ public:
     void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                       std::vector<array_1d<double,3>>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
 
@@ -188,11 +181,9 @@ protected:
     };
 
     /// Member Variables
-
     std::vector<double> mInitialGap;
     std::vector<bool> mIsOpen;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void ModifyInactiveElementStress(const double &JointWidth, Vector &StressVector);
 
     virtual void CalculateOnLobattoIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
@@ -201,6 +192,10 @@ protected:
 
     virtual void CalculateOnLobattoIntegrationPoints(const Variable<Matrix>& rVariable,
                                                      std::vector<Matrix>& rOutput,
+                                                     const ProcessInfo& rCurrentProcessInfo);
+
+    virtual void CalculateOnLobattoIntegrationPoints(const Variable<Vector>& rVariable,
+                                                     std::vector<Vector>& rOutput,
                                                      const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateInitialGap(const GeometryType& Geom);
@@ -311,16 +306,10 @@ protected:
     void SetConstitutiveParameters(InterfaceElementVariables& rVariables,
                                    ConstitutiveLaw::Parameters& rConstitutiveParameters);
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    Vector SetFullStressVector(const Vector& rStressVector);
 
 private:
-
-    /// Member Variables
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -333,14 +322,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
 
-    /// Assignment operator.
-    UPwSmallStrainInterfaceElement & operator=(UPwSmallStrainInterfaceElement const& rOther);
-
-    /// Copy constructor.
-    UPwSmallStrainInterfaceElement(UPwSmallStrainInterfaceElement const& rOther);
-
 }; // Class UPwSmallStrainInterfaceElement
 
-} // namespace Kratos
-
-#endif // KRATOS_GEO_U_PW_SMALL_STRAIN_INTERFACE_ELEMENT_H_INCLUDED  defined
+}

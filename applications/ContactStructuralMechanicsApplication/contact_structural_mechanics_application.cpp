@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix
 //
@@ -27,13 +27,12 @@ KratosContactStructuralMechanicsApplication::KratosContactStructuralMechanicsApp
     /* CONDITIONS */
     // Mesh tying mortar conditions
     // 2D
-    mMeshTyingMortarCondition2D2NTriangle( 0, GeometryPointerType(new LineType(PointsArrayType(2))), nullptr, GeometryPointerType(new LineType(PointsArrayType(2)))),
-    mMeshTyingMortarCondition2D2NQuadrilateral( 0, GeometryPointerType(new LineType(PointsArrayType(2))), nullptr, GeometryPointerType(new LineType(PointsArrayType(2)))),
+    mMeshTyingMortarCondition2D2N( 0, GeometryPointerType(new LineType(PointsArrayType(2))), nullptr, GeometryPointerType(new LineType(PointsArrayType(2)))),
     // 3D
-    mMeshTyingMortarCondition3D3NTetrahedron( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
-    mMeshTyingMortarCondition3D4NHexahedron( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
-    mMeshTyingMortarCondition3D3NTetrahedron4NHexahedron( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
-    mMeshTyingMortarCondition3D4NHexahedron3NTetrahedron( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
+    mMeshTyingMortarCondition3D3N( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
+    mMeshTyingMortarCondition3D4N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
+    mMeshTyingMortarCondition3D3N4N( 0, GeometryPointerType(new TriangleType(PointsArrayType(3))), nullptr, GeometryPointerType(new TriangleType(PointsArrayType(3)))),
+    mMeshTyingMortarCondition3D4N3N( 0, GeometryPointerType(new QuadrilateralType(PointsArrayType(4))), nullptr, GeometryPointerType(new QuadrilateralType(PointsArrayType(4)))),
 
     // ALM Contact mortar conditions
     // Frictionless
@@ -141,9 +140,9 @@ void KratosContactStructuralMechanicsApplication::Register()
     KRATOS_REGISTER_VARIABLE( INTEGRATION_ORDER_CONTACT )                             // The integration order computed in the contact
     KRATOS_REGISTER_VARIABLE( DISTANCE_THRESHOLD )                                    // The distance threshold considered
     KRATOS_REGISTER_VARIABLE( ZERO_TOLERANCE_FACTOR )                                 // The epsilon factor considered
-    KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                                   // The factor employed to serach an active/inactive node
+    KRATOS_REGISTER_VARIABLE( ACTIVE_CHECK_FACTOR )                                   // The factor employed to search an active/inactive node
     KRATOS_REGISTER_VARIABLE( SLIP_THRESHOLD )                                        // The threshold employed to search an slip/stick node
-    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )               // Auxiliar coordinates used to map
+    KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( AUXILIAR_COORDINATES )               // Auxiliary coordinates used to map
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS( DELTA_COORDINATES )                  // Delta coordinates used to map
 
     /* Weighted values */
@@ -170,6 +169,7 @@ void KratosContactStructuralMechanicsApplication::Register()
 
     /* For mesh tying mortar condition */
     KRATOS_REGISTER_VARIABLE( TYING_VARIABLE )                                        // The variable name for the mesh tying
+    KRATOS_REGISTER_VARIABLE( PARENT_ELEMENT )                                        // The parent element considered in the mesh tying with static condensation
 
     /* For mesh tying mortar condition */
     KRATOS_REGISTER_VARIABLE( MAX_GAP_THRESHOLD )                                     // The gap considered as threshold to rescale penalty
@@ -180,12 +180,11 @@ void KratosContactStructuralMechanicsApplication::Register()
 
     // CONDITIONS
     // Mesh tying mortar condition
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NTriangle", mMeshTyingMortarCondition2D2NTriangle );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2NQuadrilateral", mMeshTyingMortarCondition2D2NQuadrilateral );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D3NTetrahedron", mMeshTyingMortarCondition3D3NTetrahedron );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D4NHexahedron", mMeshTyingMortarCondition3D4NHexahedron );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D3NTetrahedron4NHexahedron", mMeshTyingMortarCondition3D3NTetrahedron4NHexahedron );
-    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D4NHexahedron3NTetrahedron", mMeshTyingMortarCondition3D4NHexahedron3NTetrahedron );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition2D2N", mMeshTyingMortarCondition2D2N );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D3N", mMeshTyingMortarCondition3D3N );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D4N", mMeshTyingMortarCondition3D4N );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D3N4N", mMeshTyingMortarCondition3D3N4N );
+    KRATOS_REGISTER_CONDITION( "MeshTyingMortarCondition3D4N3N", mMeshTyingMortarCondition3D4N3N );
 
     // Mortar contact condition
     // Frictionless cases

@@ -53,9 +53,6 @@ public:
     /// Default constructor.
     OutputProcess() : Process() {}
 
-    /// Copy constructor.
-    OutputProcess(OutputProcess const& rOther) = delete;
-
     ///@}
     ///@name Operators
     ///@{
@@ -97,6 +94,14 @@ public:
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override {}
+
+    ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", OutputProcess)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", OutputProcess)
 
     ///@}
 

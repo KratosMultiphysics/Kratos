@@ -10,7 +10,6 @@
 //
 //  Main authors:    Alejandro Cornejo
 //
-//
 
 // System includes
 
@@ -24,110 +23,81 @@
 namespace Kratos
 {
 
-template<>
-void AdvancedConstitutiveLawUtilities<6>::CalculateI2Invariant(
+template<SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateI2Invariant(
     const BoundedVectorType& rStressVector,
     double& rI2
     )
 {
-    rI2 = (rStressVector[0] + rStressVector[2]) * rStressVector[1] + rStressVector[0] * rStressVector[2] +
+    if constexpr (Dimension == 2) {
+        rI2 = rStressVector[0] * rStressVector[1] - std::pow(rStressVector[2], 2);
+    } else {
+        rI2 = (rStressVector[0] + rStressVector[2]) * rStressVector[1] + rStressVector[0] * rStressVector[2] +
             -rStressVector[3] * rStressVector[3] - rStressVector[4] * rStressVector[4] - rStressVector[5] * rStressVector[5];
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void AdvancedConstitutiveLawUtilities<3>::CalculateI2Invariant(
-    const BoundedVectorType& rStressVector,
-    double& rI2
-    )
-{
-    rI2 = rStressVector[0] * rStressVector[1] - std::pow(rStressVector[2], 2);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void AdvancedConstitutiveLawUtilities<6>::CalculateI3Invariant(
+template<SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateI3Invariant(
     const BoundedVectorType& rStressVector,
     double& rI3
     )
 {
-    rI3 = (rStressVector[1] * rStressVector[2] - rStressVector[4] * rStressVector[4]) * rStressVector[0] -
+    if constexpr (Dimension == 2) {
+        rI3 = rStressVector[0] * rStressVector[1] - std::pow(rStressVector[2], 2);
+    } else {
+        rI3 = (rStressVector[1] * rStressVector[2] - rStressVector[4] * rStressVector[4]) * rStressVector[0] -
             rStressVector[1] * rStressVector[5] * rStressVector[5] - rStressVector[2] * rStressVector[3] * rStressVector[3] +
             2.0 * rStressVector[3] * rStressVector[4] * rStressVector[5];
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void AdvancedConstitutiveLawUtilities<3>::CalculateI3Invariant(
-    const BoundedVectorType& rStressVector,
-    double& rI3
-    )
-{
-    rI3 = rStressVector[0] * rStressVector[1] - std::pow(rStressVector[2], 2);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void AdvancedConstitutiveLawUtilities<6>::CalculateJ3Invariant(
+template<SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateJ3Invariant(
     const BoundedVectorType& rDeviator,
     double& rJ3
     )
 {
-    rJ3 = rDeviator[0] * (rDeviator[1] * rDeviator[2] - rDeviator[4] * rDeviator[4]) +
-            rDeviator[3] * (-rDeviator[3] * rDeviator[2] + rDeviator[5] * rDeviator[4]) +
-            rDeviator[5] * (rDeviator[3] * rDeviator[4] - rDeviator[5] * rDeviator[1]);
+    if constexpr (Dimension == 2) {
+        rJ3 = rDeviator[0] * rDeviator[1] - std::pow(rDeviator[2], 2);
+    } else {
+        rJ3 = rDeviator[0] * (rDeviator[1] * rDeviator[2] - rDeviator[4] * rDeviator[4]) +
+              rDeviator[3] * (-rDeviator[3] * rDeviator[2] + rDeviator[5] * rDeviator[4]) +
+              rDeviator[5] * (rDeviator[3] * rDeviator[4] - rDeviator[5] * rDeviator[1]);
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void AdvancedConstitutiveLawUtilities<3>::CalculateJ3Invariant(
-    const BoundedVectorType& rDeviator,
-    double& rJ3
-    )
+template<SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateFirstVector(BoundedVectorType& rFirstVector)
 {
-    rJ3 = rDeviator[0] * rDeviator[1] - std::pow(rDeviator[2], 2);
+    if constexpr (Dimension == 2) {
+        rFirstVector[0] = 1.0;
+        rFirstVector[1] = 1.0;
+        rFirstVector[2] = 0.0;
+    } else {
+        rFirstVector[0] = 1.0;
+        rFirstVector[1] = 1.0;
+        rFirstVector[2] = 1.0;
+        rFirstVector[3] = 0.0;
+        rFirstVector[4] = 0.0;
+        rFirstVector[5] = 0.0;
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void AdvancedConstitutiveLawUtilities<6>::CalculateFirstVector(BoundedVectorType& rFirstVector)
-{
-    rFirstVector[0] = 1.0;
-    rFirstVector[1] = 1.0;
-    rFirstVector[2] = 1.0;
-    rFirstVector[3] = 0.0;
-    rFirstVector[4] = 0.0;
-    rFirstVector[5] = 0.0;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void AdvancedConstitutiveLawUtilities<3>::CalculateFirstVector(BoundedVectorType& rFirstVector)
-{
-    rFirstVector[0] = 1.0;
-    rFirstVector[1] = 1.0;
-    rFirstVector[2] = 0.0;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void AdvancedConstitutiveLawUtilities<6>::CalculateSecondVector(
+template<SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateSecondVector(
     const BoundedVectorType& rDeviator,
     const double J2,
     BoundedVectorType& rSecondVector
@@ -135,41 +105,30 @@ void AdvancedConstitutiveLawUtilities<6>::CalculateSecondVector(
 {
     const double twosqrtJ2 = 2.0 * std::sqrt(J2);
 
-    if (twosqrtJ2 > tolerance) {
-        for (IndexType i = 0; i < 6; ++i) {
+    if constexpr (Dimension == 2) {
+        for (IndexType i = 0; i < 3; ++i) {
             rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
         }
-
-        for (IndexType i = Dimension; i < 6; ++i)
-            rSecondVector[i] *= 2.0;
+        rSecondVector[2] *= 2.0;
     } else {
-        noalias(rSecondVector) = ZeroVector(VoigtSize);
-    }
+        if (twosqrtJ2 > tolerance) {
+            for (IndexType i = 0; i < 6; ++i) {
+                rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
+            }
 
+            for (IndexType i = Dimension; i < 6; ++i)
+                rSecondVector[i] *= 2.0;
+        } else {
+            noalias(rSecondVector) = ZeroVector(VoigtSize);
+        }
+    }
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void AdvancedConstitutiveLawUtilities<3>::CalculateSecondVector(
-    const BoundedVectorType& rDeviator,
-    const double J2,
-    BoundedVectorType& rSecondVector
-    )
-{
-    const double twosqrtJ2 = 2.0 * std::sqrt(J2);
-    for (IndexType i = 0; i < 3; ++i) {
-        rSecondVector[i] = rDeviator[i] / (twosqrtJ2);
-    }
-    rSecondVector[2] *= 2.0;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void AdvancedConstitutiveLawUtilities<6>::CalculateThirdVector(
+template<SizeType TVoigtSize>
+void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateThirdVector(
     const BoundedVectorType& rDeviator,
     const double J2,
     BoundedVectorType& rThirdVector
@@ -177,30 +136,19 @@ void AdvancedConstitutiveLawUtilities<6>::CalculateThirdVector(
 {
     const double J2thirds = J2 / 3.0;
 
-    rThirdVector[0] = rDeviator[1] * rDeviator[2] - rDeviator[4] * rDeviator[4] + J2thirds;
-    rThirdVector[1] = rDeviator[0] * rDeviator[2] - rDeviator[5] * rDeviator[5] + J2thirds;
-    rThirdVector[2] = rDeviator[0] * rDeviator[1] - rDeviator[3] * rDeviator[3] + J2thirds;
-    rThirdVector[3] = 2.0 * (rDeviator[4] * rDeviator[5] - rDeviator[3] * rDeviator[2]);
-    rThirdVector[4] = 2.0 * (rDeviator[3] * rDeviator[4] - rDeviator[1] * rDeviator[5]);
-    rThirdVector[5] = 2.0 * (rDeviator[5] * rDeviator[3] - rDeviator[0] * rDeviator[4]);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void AdvancedConstitutiveLawUtilities<3>::CalculateThirdVector(
-    const BoundedVectorType& rDeviator,
-    const double J2,
-    BoundedVectorType& rThirdVector
-    )
-{
-    const double J2thirds = J2 / 3.0;
-
-    rThirdVector[0] = rDeviator[1] * rDeviator[2] + J2thirds;
-    rThirdVector[1] = rDeviator[0] * rDeviator[2] + J2thirds;
-    rThirdVector[2] = rDeviator[0] * rDeviator[1] - std::pow(rDeviator[3], 2) + J2thirds;
-    rThirdVector[3] = -2.0 * rDeviator[3] * rDeviator[2];
+    if constexpr (Dimension == 2) {
+        rThirdVector[0] = rDeviator[1] * rDeviator[2] + J2thirds;
+        rThirdVector[1] = rDeviator[0] * rDeviator[2] + J2thirds;
+        rThirdVector[2] = rDeviator[0] * rDeviator[1] - std::pow(rDeviator[3], 2) + J2thirds;
+        rThirdVector[3] = -2.0 * rDeviator[3] * rDeviator[2];
+    } else {
+        rThirdVector[0] = rDeviator[1] * rDeviator[2] - rDeviator[4] * rDeviator[4] + J2thirds;
+        rThirdVector[1] = rDeviator[0] * rDeviator[2] - rDeviator[5] * rDeviator[5] + J2thirds;
+        rThirdVector[2] = rDeviator[0] * rDeviator[1] - rDeviator[3] * rDeviator[3] + J2thirds;
+        rThirdVector[3] = 2.0 * (rDeviator[4] * rDeviator[5] - rDeviator[3] * rDeviator[2]);
+        rThirdVector[4] = 2.0 * (rDeviator[3] * rDeviator[4] - rDeviator[1] * rDeviator[5]);
+        rThirdVector[5] = 2.0 * (rDeviator[5] * rDeviator[3] - rDeviator[0] * rDeviator[4]);
+    }
 }
 
 /***********************************************************************************/
@@ -252,7 +200,7 @@ double AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateCharacteristicLeng
     double radius = 0.0;
 
     const SizeType points_number = rGeometry.size();
-	array_1d<double, 3> center = rGeometry[0].GetInitialPosition().Coordinates();
+    array_1d<double, 3> center = rGeometry[0].GetInitialPosition().Coordinates();
     for ( IndexType i_node = 1 ; i_node < points_number ; ++i_node ) {
         center += rGeometry[i_node].GetInitialPosition().Coordinates();
     }
@@ -274,9 +222,9 @@ template<SizeType TVoigtSize>
 Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::ComputeEquivalentSmallDeformationDeformationGradient(const Vector& rStrainVector)
 {
     // We update the deformation gradient
-    Matrix equivalent_F(Dimension, Dimension);
+    Matrix equivalent_F(Dimension, Dimension); /// NOTE: Could be bounded matrix
 
-    if(Dimension == 2) {
+    if constexpr (Dimension == 2) {
         equivalent_F(0,0) = 1.0 + rStrainVector[0];
         equivalent_F(0,1) = 0.5 * rStrainVector[2];
         equivalent_F(1,0) = 0.5 * rStrainVector[2];
@@ -513,12 +461,12 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::SpectralDecomposition(
     MathUtils<double>::GaussSeidelEigenSystem(stress_tensor, eigen_vectors_matrix, eigen_values_matrix, 1.0e-16, 20);
 
     std::vector<Vector> eigen_vectors_container;
-    Vector auxiliar_vector = ZeroVector(Dimension);
+    Vector auxiliary_vector = ZeroVector(Dimension);
     for (IndexType i = 0; i < Dimension; ++i) {
         for (IndexType j = 0; j < Dimension; ++j) {
-            auxiliar_vector[j] = eigen_vectors_matrix(j, i);
+            auxiliary_vector[j] = eigen_vectors_matrix(j, i);
         }
-        eigen_vectors_container.push_back(auxiliar_vector);
+        eigen_vectors_container.push_back(auxiliary_vector);
     }
 
     Vector sigma_tension_vector;
@@ -635,20 +583,20 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateDirectElasticDefor
 {
     // Define elastic deformation gradient
     MatrixType elastic_deformation_gradient(Dimension, Dimension);
-    MatrixType auxiliar_deformation_gradient_increment(Dimension, Dimension);
+    MatrixType auxiliary_deformation_gradient_increment(Dimension, Dimension);
     MatrixType inverse_plastic_deformation_gradient_increment(Dimension, Dimension);
 
     // Define plastic flow
     const BoundedMatrixType inverse_plastic_flow = - PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
 
     // Pre and post multiply by Re
-    noalias(auxiliar_deformation_gradient_increment) = prod(inverse_plastic_flow, rRe);
-    noalias(auxiliar_deformation_gradient_increment) = prod(trans(rRe), inverse_plastic_flow);
+    noalias(auxiliary_deformation_gradient_increment) = prod(inverse_plastic_flow, rRe);
+    noalias(auxiliary_deformation_gradient_increment) = prod(trans(rRe), inverse_plastic_flow);
 
-    auxiliar_deformation_gradient_increment = IdentityMatrix(Dimension) - auxiliar_deformation_gradient_increment;
+    auxiliary_deformation_gradient_increment = IdentityMatrix(Dimension) - auxiliary_deformation_gradient_increment;
 
     double aux_det;
-    MathUtils<double>::InvertMatrix(auxiliar_deformation_gradient_increment, inverse_plastic_deformation_gradient_increment, aux_det);
+    MathUtils<double>::InvertMatrix(auxiliary_deformation_gradient_increment, inverse_plastic_deformation_gradient_increment, aux_det);
 
     // Pre and post multiply by Re
     noalias(elastic_deformation_gradient) = prod(rElasticTrial, inverse_plastic_deformation_gradient_increment);
@@ -705,20 +653,20 @@ Matrix AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateDirectPlasticDefor
     )
 {
     // Define DeltaFp
-    MatrixType auxiliar_deformation_gradient_increment(Dimension, Dimension);
+    MatrixType auxiliary_deformation_gradient_increment(Dimension, Dimension);
     MatrixType plastic_deformation_gradient_increment(Dimension, Dimension);
 
     // Define plastic flow
     const BoundedMatrixType plastic_flow = PlasticConsistencyFactorIncrement * MathUtils<double>::StrainVectorToTensor<BoundedVectorType, MatrixType>(rPlasticPotentialDerivative);
 
     // Pre and post multiply by Re
-    auxiliar_deformation_gradient_increment = prod(plastic_flow, rRe);
-    auxiliar_deformation_gradient_increment = prod(trans(rRe), plastic_flow);
+    auxiliary_deformation_gradient_increment = prod(plastic_flow, rRe);
+    auxiliary_deformation_gradient_increment = prod(trans(rRe), plastic_flow);
 
-    auxiliar_deformation_gradient_increment = IdentityMatrix(Dimension) - auxiliar_deformation_gradient_increment;
+    auxiliary_deformation_gradient_increment = IdentityMatrix(Dimension) - auxiliary_deformation_gradient_increment;
 
     double aux_det;
-    MathUtils<double>::InvertMatrix(auxiliar_deformation_gradient_increment, plastic_deformation_gradient_increment, aux_det);
+    MathUtils<double>::InvertMatrix(auxiliary_deformation_gradient_increment, plastic_deformation_gradient_increment, aux_det);
 
     return plastic_deformation_gradient_increment;
 }
@@ -731,7 +679,7 @@ template<SizeType TVoigtSize>
 void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(
     const double EulerAngle1,
     BoundedMatrix<double, 3, 3>& rRotationOperator
-)
+    )
 {
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
 
@@ -752,7 +700,7 @@ template<SizeType TVoigtSize>
 void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler2(
     const double EulerAngle2,
     BoundedMatrix<double, 3, 3>& rRotationOperator
-)
+    )
 {
     noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
 
@@ -773,7 +721,7 @@ template<SizeType TVoigtSize>
 void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler3(
     const double EulerAngle3,
     BoundedMatrix<double, 3, 3>& rRotationOperator
-)
+    )
 {
     AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperatorEuler1(EulerAngle3, rRotationOperator);
 }
@@ -787,10 +735,8 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
     const double EulerAngle2, // theta
     const double EulerAngle3, // hi
     BoundedMatrix<double, 3, 3>& rRotationOperator // global to local coordinates
-)
+    )
 {
-    noalias(rRotationOperator) = ZeroMatrix(Dimension, Dimension);
-
     const double pi_over_180 = Globals::Pi / 180.0;
     const double cos1 = std::cos(EulerAngle1 * pi_over_180);
     const double sin1 = std::sin(EulerAngle1 * pi_over_180);
@@ -813,90 +759,11 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void AdvancedConstitutiveLawUtilities<6>::CalculateRotationOperatorVoigt(
-    const BoundedMatrixType& rEulerOperator,
-    BoundedMatrixVoigtType& rVoigtOperator
-    )
+template<SizeType TVoigtSize>
+double AdvancedConstitutiveLawUtilities<TVoigtSize>::MacaullyBrackets(const double Number)
+    
 {
-    rVoigtOperator.clear();
-
-    const double l1 = rEulerOperator(0, 0);
-    const double l2 = rEulerOperator(1, 0);
-    const double l3 = rEulerOperator(2, 0);
-    const double m1 = rEulerOperator(0, 1);
-    const double m2 = rEulerOperator(1, 1);
-    const double m3 = rEulerOperator(2, 1);
-    const double n1 = rEulerOperator(0, 2);
-    const double n2 = rEulerOperator(1, 2);
-    const double n3 = rEulerOperator(2, 2);
-
-    rVoigtOperator(0, 0) = std::pow(l1, 2);
-    rVoigtOperator(0, 1) = std::pow(m1, 2);
-    rVoigtOperator(0, 2) = std::pow(n1, 2);
-    rVoigtOperator(0, 3) = l1 * m1;
-    rVoigtOperator(0, 4) = m1 * n1;
-    rVoigtOperator(0, 5) = n1 * l1;
-
-    rVoigtOperator(1, 0) = std::pow(l2, 2);
-    rVoigtOperator(1, 1) = std::pow(m2, 2);
-    rVoigtOperator(1, 2) = std::pow(n2, 2);
-    rVoigtOperator(1, 3) = l2 * m2;
-    rVoigtOperator(1, 4) = m2 * n2;
-    rVoigtOperator(1, 5) = n2 * l2;
-
-    rVoigtOperator(2, 0) = std::pow(l3, 2);
-    rVoigtOperator(2, 1) = std::pow(m3, 2);
-    rVoigtOperator(2, 2) = std::pow(n3, 2);
-    rVoigtOperator(2, 3) = l3 * m3;
-    rVoigtOperator(2, 4) = m3 * n3;
-    rVoigtOperator(2, 5) = n3 * l3;
-
-    rVoigtOperator(3, 0) = 2.0 * l1 * l2;
-    rVoigtOperator(3, 1) = 2.0 * m1 * m2;
-    rVoigtOperator(3, 2) = 2.0 * n1 * n2;
-    rVoigtOperator(3, 3) = l1 * m2 + l2 * m1;
-    rVoigtOperator(3, 4) = m1 * n2 + m2 * n1;
-    rVoigtOperator(3, 5) = n1 * l2 + n2 * l1;
-
-    rVoigtOperator(4, 0) = 2.0 * l2 * l3;
-    rVoigtOperator(4, 1) = 2.0 * m2 * m3;
-    rVoigtOperator(4, 2) = 2.0 * n2 * n3;
-    rVoigtOperator(4, 3) = l2 * m3 + l3 * m2;
-    rVoigtOperator(4, 4) = m2 * n3 + m3 * n2;
-    rVoigtOperator(4, 5) = n2 * l3 + n3 * l2;
-
-    rVoigtOperator(5, 0) = 2.0 * l3 * l1;
-    rVoigtOperator(5, 1) = 2.0 * m3 * m1;
-    rVoigtOperator(5, 2) = 2.0 * n3 * n1;
-    rVoigtOperator(5, 3) = l3 * m1 + l1 * m3;
-    rVoigtOperator(5, 4) = m3 * n1 + m1 * n3;
-    rVoigtOperator(5, 5) = n3 * l1 + n1 * l3;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void AdvancedConstitutiveLawUtilities<3>::CalculateRotationOperatorVoigt(
-    const BoundedMatrixType& rEulerOperator,
-    BoundedMatrixVoigtType& rVoigtOperator
-    )
-{
-    const double c = rEulerOperator(0, 0);
-    const double s = rEulerOperator(0, 1);
-
-    rVoigtOperator(0, 0) = std::pow(c, 2);
-    rVoigtOperator(0, 1) = std::pow(s, 2);
-    rVoigtOperator(0, 2) = c * s;
-
-    rVoigtOperator(1, 0) = std::pow(s, 2);
-    rVoigtOperator(1, 1) = std::pow(c, 2);
-    rVoigtOperator(1, 2) = -c * s;
-
-    rVoigtOperator(2, 0) = -2.0 * c * s;
-    rVoigtOperator(2, 1) = 2.0 * c * s;
-    rVoigtOperator(2, 2) = std::pow(c, 2) - std::pow(s, 2);
+    return (Number > 0.0) ? Number : 0.0;
 }
 
 /***********************************************************************************/

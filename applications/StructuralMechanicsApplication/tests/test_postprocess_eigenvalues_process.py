@@ -85,8 +85,8 @@ def ExecuteTestPostprocessEigenvaluesProcess(eigen_post_parameters, test_model):
 
 class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
     def tearDown(self):
-        kratos_utils.DeleteFileIfExisting("Structure_EigenResults_15_0.post.msh")
-        kratos_utils.DeleteFileIfExisting("Structure_EigenResults_15_0.post.res") # usually this is deleted by the check process but not if it fails
+        kratos_utils.DeleteFileIfExisting("Structure_EigenResults_15.post.msh")
+        kratos_utils.DeleteFileIfExisting("Structure_EigenResults_15.post.res") # usually this is deleted by the check process but not if it fails
 
     @KratosUnittest.skipIf(os.name=="nt", "Due to problems with the ASCI output for GiD, this test is skipped under Windows")
     def test_PostprocessEigenvaluesProcess_GiD(self):
@@ -105,7 +105,7 @@ class TestPostprocessEigenvaluesProcess(KratosUnittest.TestCase):
             "remove_output_file"    : true,
             "comparison_type"       : "post_res_file"
         }
-        """ % (GetFilePath("eigen_postprocess_ref_files/test_postprocess_eigenvalues_process.post.res.ref").replace("\\", "\\\\"), "EigenResults/Structure_EigenResults_15_0.post.res"))
+        """ % (GetFilePath("eigen_postprocess_ref_files/test_postprocess_eigenvalues_process.post.res.ref").replace("\\", "\\\\"), "EigenResults/Structure_EigenResults_15.post.res"))
 
         test_model = KratosMultiphysics.Model()
         ExecuteTestPostprocessEigenvaluesProcess(settings_eigen_process, test_model)

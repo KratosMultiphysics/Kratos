@@ -34,7 +34,7 @@ RUN make altinstall
 RUN rm Python-3.8.10.tgz
 
 # Installing Python packages
-RUN python3.8 -m pip install numpy sympy
+RUN python3.8 -m pip install numpy sympy parameterized
 
 # Setting the needed environment variables for being able to run/compile
 ENV PYTHON_EXECUTABLE /usr/local/bin/python3.8

@@ -22,145 +22,141 @@
 // Project includes
 #include "solid_constitutive_law.h"
 
-namespace Kratos {
-/**
- * Defines an Hypoelastic constitutive law for 2D
- * This material law is defined by the parameters:
- * 1) YOUNG MODULUS
- * 2) POISSON RATIO
- */
-class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Hypoelastic2DLaw : public PfemSolidConstitutiveLaw {
-   public:
+namespace Kratos
+{
     /**
-     * Type Definitions
+     * Defines an Hypoelastic constitutive law for 2D
+     * This material law is defined by the parameters:
+     * 1) YOUNG MODULUS
+     * 2) POISSON RATIO
      */
-    typedef ProcessInfo ProcessInfoType;
-    typedef ConstitutiveLaw BaseType;
-    typedef std::size_t SizeType;
+    class KRATOS_API(PFEM_FLUID_DYNAMICS_APPLICATION) Hypoelastic2DLaw : public PfemSolidConstitutiveLaw
+    {
+    public:
+        /**
+         * Type Definitions
+         */
+        typedef ProcessInfo ProcessInfoType;
+        typedef ConstitutiveLaw BaseType;
+        typedef std::size_t SizeType;
 
-    /**
-     * Counted pointer of Hypoelastic2DLaw
-     */
-    KRATOS_CLASS_POINTER_DEFINITION(Hypoelastic2DLaw);
+        /**
+         * Counted pointer of Hypoelastic2DLaw
+         */
+        KRATOS_CLASS_POINTER_DEFINITION(Hypoelastic2DLaw);
 
-    /**
-     * Life Cycle
-     */
+        /**
+         * Life Cycle
+         */
 
-    /**
-     * Default constructor.
-     */
-    Hypoelastic2DLaw();
+        /**
+         * Default constructor.
+         */
+        Hypoelastic2DLaw();
 
-    /**
-     * Clone function (has to be implemented by any derived class)
-     * @return a pointer to a new instance of this constitutive law
-     */
-    ConstitutiveLaw::Pointer Clone() const override;
+        /**
+         * Clone function (has to be implemented by any derived class)
+         * @return a pointer to a new instance of this constitutive law
+         */
+        ConstitutiveLaw::Pointer Clone() const override;
 
-    /**
-     * Copy constructor.
-     */
-    Hypoelastic2DLaw(const Hypoelastic2DLaw& rOther);
+        /**
+         * Copy constructor.
+         */
+        Hypoelastic2DLaw(const Hypoelastic2DLaw &rOther);
 
-    /**
-     * Destructor.
-     */
-    ~Hypoelastic2DLaw() override;
+        /**
+         * Destructor.
+         */
+        ~Hypoelastic2DLaw() override;
 
-    /**
-     * Operations needed by the base class:
-     */
+        /**
+         * Operations needed by the base class:
+         */
 
-    /**
-     * @return Working space dimension constitutive law
-     */
-    SizeType WorkingSpaceDimension() override;
+        /**
+         * @return Working space dimension constitutive law
+         */
+        SizeType WorkingSpaceDimension() override;
 
-    /**
-     * @return Size of the strain vector (in Voigt notation) for the constitutive law
-     */
-    SizeType GetStrainSize() const override;
+        /**
+         * @return Size of the strain vector (in Voigt notation) for the constitutive law
+         */
+        SizeType GetStrainSize() const override;
 
-    void CalculateMaterialResponseCauchy(Parameters& rValues) override;
+        void CalculateMaterialResponseCauchy(Parameters &rValues) override;
 
-    /**
-     * This function is designed to be called once to perform all the checks needed
-     * on the input provided. Checks can be "expensive" as the function is designed
-     * to catch user's errors.
-     * @param rMaterialProperties
-     * @param rElementGeometry
-     * @param rCurrentProcessInfo
-     * @return
-     */
-    int Check(const Properties& rMaterialProperties, const GeometryType& rElementGeometry,
-              const ProcessInfo& rCurrentProcessInfo) const override;
+        /**
+         * This function is designed to be called once to perform all the checks needed
+         * on the input provided. Checks can be "expensive" as the function is designed
+         * to catch user's errors.
+         * @param rMaterialProperties
+         * @param rElementGeometry
+         * @param rCurrentProcessInfo
+         * @return
+         */
+        int Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
+                  const ProcessInfo &rCurrentProcessInfo) const override;
 
-    /**
-     * Input and output
-     */
+        /**
+         * Input and output
+         */
 
-    /**
-     * Turn back information as a string.
-     */
-    std::string Info() const override;
+        /**
+         * Turn back information as a string.
+         */
+        std::string Info() const override;
 
-   protected:
-    ///@name Protected static Member Variables
-    ///@{
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-    ///@}
-    ///@name Protected Operators
-    ///@{
-    ///@}
-    ///@name Protected Operations
-    ///@{
+    protected:
+        ///@name Protected static Member Variables
+        ///@{
+        ///@}
+        ///@name Protected member Variables
+        ///@{
+        ///@}
+        ///@name Protected Operators
+        ///@{
+        ///@}
+        ///@name Protected Operations
+        ///@{
 
-    /// Get the effective Young Modulus for the solid.
-    double GetEffectiveYoungModulus(ConstitutiveLaw::Parameters& rParameters) const override;
+        /// Get the effective density for the solid.
+        double GetEffectiveMaterialParameter(ConstitutiveLaw::Parameters &rParameters, const Variable<double> &rVariable) const override;
 
-    /// Get the effective Poisson ratio for the solid.
-    double GetEffectivePoissonRatio(ConstitutiveLaw::Parameters& rParameters) const override;
+        ///@}
 
-    /// Get the effective density for the solid.
-    double GetEffectiveDensity(ConstitutiveLaw::Parameters& rParameters) const override;
+    private:
+        ///@name Static Member Variables
+        ///@{
 
-    ///@}
+        ///@}
+        ///@name Member Variables
+        ///@{
 
-   private:
-    ///@name Static Member Variables
-    ///@{
+        ///@}
+        ///@name Private Operators
+        ///@{
 
-    ///@}
-    ///@name Member Variables
-    ///@{
+        ///@}
+        ///@name Private Operations
+        ///@{
 
-    ///@}
-    ///@name Private Operators
-    ///@{
+        ///@}
+        ///@name Private  Access
+        ///@{
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+        ///@}
+        ///@name Serialization
+        ///@{
+        friend class Serializer;
 
-    ///@}
-    ///@name Private  Access
-    ///@{
+        void save(Serializer &rSerializer) const override;
 
-    ///@}
-    ///@name Serialization
-    ///@{
-    friend class Serializer;
+        void load(Serializer &rSerializer) override;
+        ///@}
 
-    void save(Serializer& rSerializer) const override;
+    }; // Class Hypoelastic2DLaw
 
-    void load(Serializer& rSerializer) override;
-    ///@}
+} // namespace Kratos.
 
-};  // Class Hypoelastic2DLaw
-
-}  // namespace Kratos.
-
-#endif  // KRATOS_HYPOELASTIC_LAW_2D_H_INCLUDED  defined
+#endif // KRATOS_HYPOELASTIC_LAW_2D_H_INCLUDED  defined

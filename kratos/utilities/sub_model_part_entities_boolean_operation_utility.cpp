@@ -24,7 +24,7 @@ namespace Kratos
 
 template<>
 ModelPart::NodesContainerType& SubModelPartEntitiesBooleanOperationUtility<
-    Node<3>,ModelPart::NodesContainerType>::GetContainer(ModelPart& rModelPart)
+    Node,ModelPart::NodesContainerType>::GetContainer(ModelPart& rModelPart)
 {
     return rModelPart.Nodes();
 }
@@ -52,7 +52,7 @@ ModelPart::MasterSlaveConstraintContainerType& SubModelPartEntitiesBooleanOperat
 
 template<>
 void SubModelPartEntitiesBooleanOperationUtility<
-    Node<3>,ModelPart::NodesContainerType>::AddEntities(
+    Node,ModelPart::NodesContainerType>::AddEntities(
         const std::vector<IndexType>& rIds,ModelPart& rModelPart)
 {
     rModelPart.AddNodes(rIds);
@@ -138,7 +138,7 @@ void SubModelPartEntitiesBooleanOperationUtility<
     AddEntities(ids_destination, rDestination);
 }
 
-template class SubModelPartEntitiesBooleanOperationUtility<Node<3>,ModelPart::NodesContainerType>;
+template class SubModelPartEntitiesBooleanOperationUtility<Node,ModelPart::NodesContainerType>;
 template class SubModelPartEntitiesBooleanOperationUtility<Element,ModelPart::ElementsContainerType>;
 template class SubModelPartEntitiesBooleanOperationUtility<Condition,ModelPart::ConditionsContainerType>;
 template class SubModelPartEntitiesBooleanOperationUtility<MasterSlaveConstraint,ModelPart::MasterSlaveConstraintContainerType>;

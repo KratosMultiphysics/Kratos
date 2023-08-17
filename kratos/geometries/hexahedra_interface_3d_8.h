@@ -1837,8 +1837,7 @@ GeometryData HexahedraInterface3D8<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension HexahedraInterface3D8<TPointType>::msGeometryDimension(
-    3, 3, 3);
+const GeometryDimension HexahedraInterface3D8<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.
 

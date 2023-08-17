@@ -30,23 +30,23 @@ namespace Kratos
 {
  	KratosPFEM2Application::KratosPFEM2Application():
         KratosApplication("PFEM2Application"),
-        mFractionalStepPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
-        mFractionalStepPFEM23D ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
-        mMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
-        mMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
-        mNoNewtonianMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
-        mNoNewtonianMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
-        mMonolithicAutoSlipPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
-        mMonolithicAutoSlipPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node<3> >(  Element::GeometryType::PointsArrayType (4) ) ) ),
-        //mVelocityEnrichedPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
-        //mVelocityEnrichedPFEM22DNoPressure    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
-        mQFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node<3> >(Element::GeometryType::PointsArrayType(3)))),
-        mQFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node<3> >(Element::GeometryType::PointsArrayType(4)))),
-        mFixedVelocity2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
-        mFixedVelocity3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
-        mFixedPressure2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
-        mFixedPressure3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node<3> >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
-        mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node<3> >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
+        mFractionalStepPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+        mFractionalStepPFEM23D ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
+        mMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+        mMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
+        mNoNewtonianMonolithicPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+        mNoNewtonianMonolithicPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node >(  Element::GeometryType::PointsArrayType (4 ) ) ) ),
+        mMonolithicAutoSlipPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+        mMonolithicAutoSlipPFEM23D    ( 0, Element::GeometryType::Pointer( new Tetrahedra3D4<Node >(  Element::GeometryType::PointsArrayType (4) ) ) ),
+        //mVelocityEnrichedPFEM22D    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+        //mVelocityEnrichedPFEM22DNoPressure    ( 0, Element::GeometryType::Pointer( new Triangle2D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) ),
+        mQFluid2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+        mQFluid3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
+        mFixedVelocity2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
+        mFixedVelocity3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
+        mFixedPressure2D    ( 0, Condition::GeometryType::Pointer( new Point2D<Node >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
+        mFixedPressure3D    ( 0, Condition::GeometryType::Pointer( new Point3D<Node >(  Element::GeometryType::PointsArrayType (1 ) ) ) ),
+        mMonolithicAutoSlipInlet3D    ( 0, Element::GeometryType::Pointer( new Triangle3D3<Node >(  Element::GeometryType::PointsArrayType (3 ) ) ) )
 
  	{}
 

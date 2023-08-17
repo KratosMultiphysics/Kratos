@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_TRIANGLE_3D_6_H_INCLUDED )
-#define  KRATOS_TRIANGLE_3D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -24,6 +23,7 @@
 // Project includes
 #include "geometries/line_3d_3.h"
 #include "integration/triangle_gauss_legendre_integration_points.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -441,77 +441,54 @@ public:
      * length otherwise.
      * In the current geometry this function returns the determinant of
      * jacobian
-     *
+     * @todo Could be replaced by something more suitable
      * @return double value contains length or Characteristic
      * length
      * @see Area()
      * @see Volume()
      * @see DomainSize()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
     double Length() const override
     {
-        // return sqrt( fabs( DeterminantOfJacobian( PointType() ) ) );
-        // Approximation to avoid errors. Can be improved.
-
-		array_1d<double, 3> p0 = BaseType::GetPoint( 0 );
-		array_1d<double, 3> p1 = BaseType::GetPoint( 1 );
-
-		array_1d<double, 3> vx( p1 - p0 );
-
-		return MathUtils<double>::Norm3(vx);
+        return std::sqrt(std::abs(this->DeterminantOfJacobian( PointType() ) ) );
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
+    /**
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surface
-     * area.
+     * @return double value contains area or surface area
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
     double Area() const override
     {
-        //return fabs( DeterminantOfJacobian( PointType() ) ) * 0.5;
-        // Approximation to avoid errors. Can be improved.
-
-        array_1d<double, 3> p0 = BaseType::GetPoint( 0 );
-		array_1d<double, 3> p1 = BaseType::GetPoint( 1 );
-		array_1d<double, 3> p2 = BaseType::GetPoint( 2 );
-		array_1d<double, 3> p3 = BaseType::GetPoint( 3 );
-
-		array_1d<double, 3> vx( p1 - p0 );
-		array_1d<double, 3> vy( p2 - p3 );
-
-		double base = MathUtils<double>::Norm3(vx);
-        double length = MathUtils<double>::Norm3(vy);
-
-        return base*length*0.5;
+        const IntegrationMethod integration_method = msGeometryData.DefaultIntegrationMethod();
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    // TODO: Code activated in June 2023
+    // /**
+    //  * @brief This method calculates and returns the volume of this geometry.
+    //  * @return Error, the volume of a 2D geometry is not defined
+    //  * @see Length()
+    //  * @see Area()
+    //  * @see Volume()
+    //  */
+    // double Volume() const override
+    // {
+    //     KRATOS_ERROR << "Triangle3D6:: Method not well defined. Replace with DomainSize() instead" << std::endl;
+    //     return 0.0;
+    // }
+
+    /**
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
      * @see Volume()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
      */
     double DomainSize() const override
     {
@@ -546,287 +523,6 @@ public:
         }
 
         return false;
-    }
-
-    ///@}
-    ///@name Jacobian
-    ///@{
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Jacobians for given method.
-     * This method calculates jacobians matrices in all
-     * integrations points of given integration method.
-     *
-     * @param ThisMethod integration method which jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return JacobiansType a Vector of jacobian
-     * matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
-     * point index of given integration method.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
-    {
-        ShapeFunctionsGradientsType shape_functions_gradients =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        //getting values of shape functions
-        Matrix shape_functions_values =
-            CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
-        //workaround by riccardo...
-
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
-        }
-
-        //loop over all integration points
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
-            //defining single jacobian matrix
-            Matrix jacobian = ZeroMatrix( 3, 2 );
-            //loop over all nodes
-
-            for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-            {
-                jacobian( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients[pnt]( i, 1 ) );
-                jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients[pnt]( i, 1 ) );
-                jacobian( 2, 0 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 2, 1 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients[pnt]( i, 1 ) );
-            }
-
-            rResult[pnt] = jacobian;
-        }//end of loop over all integration points
-
-        return rResult;
-
-    }
-
-
-    /**
-     * Jacobians for given method.
-     * This method calculates jacobians matrices in all
-     * integrations points of given integration method.
-     *
-     * @param ThisMethod integration method which jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return JacobiansType a Vector of jacobian
-     * matrices \f$ J_i \f$ where \f$ i=1,2,...,n \f$ is the integration
-     * point index of given integration method.
-     *
-     * @param DeltaPosition Matrix with the nodes position increment which describes
-     * the configuration where the jacobian has to be calculated.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix & DeltaPosition ) const override
-    {
-        ShapeFunctionsGradientsType shape_functions_gradients =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        //getting values of shape functions
-        Matrix shape_functions_values =
-            CalculateShapeFunctionsIntegrationPointsValues( ThisMethod );
-        //workaround by riccardo...
-
-        if ( rResult.size() != this->IntegrationPointsNumber( ThisMethod ) )
-        {
-            // KLUDGE: While there is a bug in ublas
-            // vector resize, I have to put this beside resizing!!
-            JacobiansType temp( this->IntegrationPointsNumber( ThisMethod ) );
-            rResult.swap( temp );
-        }
-
-        //loop over all integration points
-        for ( unsigned int pnt = 0; pnt < this->IntegrationPointsNumber( ThisMethod ); pnt++ )
-        {
-            //defining single jacobian matrix
-            Matrix jacobian = ZeroMatrix( 3, 2 );
-            //loop over all nodes
-
-            for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-            {
-                jacobian( 0, 0 ) += ( this->GetPoint( i ).X() - DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 0, 1 ) += ( this->GetPoint( i ).X() - DeltaPosition(i,0) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
-                jacobian( 1, 0 ) += ( this->GetPoint( i ).Y() - DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 1, 1 ) += ( this->GetPoint( i ).Y() - DeltaPosition(i,1) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
-                jacobian( 2, 0 ) += ( this->GetPoint( i ).Z() - DeltaPosition(i,2) ) * ( shape_functions_gradients[pnt]( i, 0 ) );
-                jacobian( 2, 1 ) += ( this->GetPoint( i ).Z() - DeltaPosition(i,2) ) * ( shape_functions_gradients[pnt]( i, 1 ) );
-            }
-
-            rResult[pnt] = jacobian;
-        }//end of loop over all integration points
-
-        return rResult;
-
-    }
-
-
-    /*        virtual JacobiansType& Jacobian( JacobiansType& rResult,
-                                             IntegrationMethod ThisMethod) const
-            {
-                //getting derivatives of shape functions
-                ShapeFunctionsGradientsType shape_functions_gradients =
-                        CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
-                //getting values of shape functions
-                Matrix shape_functions_values =
-                        CalculateShapeFunctionsIntegrationPointsValues(ThisMethod);
-                //workaround by riccardo...
-                if(rResult.size() != this->IntegrationPointsNumber(ThisMethod))
-                {
-                    // KLUDGE: While there is a bug in ublas
-                    // vector resize, I have to put this beside resizing!!
-                    JacobiansType temp(this->IntegrationPointsNumber(ThisMethod));
-                    rResult.swap(temp);
-                }
-                //loop over all integration points
-                for( int pnt=0; pnt < this->IntegrationPointsNumber(ThisMethod); pnt++ )
-                {
-                    //defining single jacobian matrix
-                    Matrix jacobian = ZeroMatrix(2,2);
-                    //loop over all nodes
-                    for( int i=0; i<this->PointsNumber(); i++ )
-                    {
-                        jacobian(0,0) +=
-                                (this->GetPoint(i).X())*(shape_functions_gradients[pnt](i,0));
-                        jacobian(0,1) +=
-                                (this->GetPoint(i).Y())*(shape_functions_gradients[pnt](i,0));
-                        jacobian(1,0) +=
-                                (this->GetPoint(i).X())*(shape_functions_gradients[pnt](i,1));
-                        jacobian(1,1) +=
-                                (this->GetPoint(i).Y())*(shape_functions_gradients[pnt](i,1));
-                    }
-                    rResult[pnt] = jacobian;
-                }//end of loop over all integration points
-                return rResult;
-            }*/
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-     * Jacobian in specific integration point of given integration
-     * method. This method calculate jacobian matrix in given
-     * integration point of given integration method.
-     *
-     * @param IntegrationPointIndex index of integration point which jacobians has to
-     * be calculated in it.
-     *
-     * @param ThisMethod integration method which jacobians has to
-     * be calculated in its integration points.
-     *
-     * @return Matrix<double> Jacobian matrix \f$ J_i \f$ where \f$
-     * i \f$ is the given integration point index of given
-     * integration method.
-     *
-     * @see DeterminantOfJacobian
-     * @see InverseOfJacobian
-     */
-    Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
-    {
-        //setting up size of jacobian matrix
-        rResult.resize( 3, 2 ,false);
-        //derivatives of shape functions
-        const ShapeFunctionsGradientsType& shape_functions_gradients =
-            CalculateShapeFunctionsIntegrationPointsLocalGradients( ThisMethod );
-        const Matrix& ShapeFunctionsGradientInIntegrationPoint =
-            shape_functions_gradients( IntegrationPointIndex );
-
-        //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
-        //loop over all nodes
-
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-            rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
-            rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-            rResult( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
-            rResult( 2, 0 ) += ( this->GetPoint( i ).Z() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 0 ) );
-            rResult( 2, 1 ) += ( this->GetPoint( i ).Z() ) * ( ShapeFunctionsGradientInIntegrationPoint( i, 1 ) );
-        }
-
-        return rResult;
-
-    }
-
-    /*virtual Matrix& Jacobian( Matrix& rResult,
-                              IndexType IntegrationPointIndex,
-                              IntegrationMethod ThisMethod) const
-    {
-        //setting up size of jacobian matrix
-        rResult.resize(2,2);
-        //derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients =
-                CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
-        Matrix ShapeFunctionsGradientInIntegrationPoint =
-                shape_functions_gradients(IntegrationPointIndex);
-        //values of shape functions in integration points
-        vector<double> ShapeFunctionsValuesInIntegrationPoint = row(
-                CalculateShapeFunctionsIntegrationPointsValues(
-                ThisMethod ), IntegrationPointIndex);
-
-        //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
-        //loop over all nodes
-        for( int i=0; i<this->PointsNumber(); i++ )
-        {
-            rResult(0,0) +=
-                    (this->GetPoint(i).X())*(ShapeFunctionsGradientInIntegrationPoint(i,0));
-            rResult(0,1) +=
-                    (this->GetPoint(i).Y())*(ShapeFunctionsGradientInIntegrationPoint(i,0));
-            rResult(1,0) +=
-                    (this->GetPoint(i).X())*(ShapeFunctionsGradientInIntegrationPoint(i,1));
-            rResult(1,1) +=
-                    (this->GetPoint(i).Y())*(ShapeFunctionsGradientInIntegrationPoint(i,1));
-        }
-        return rResult;
-    }*/
-
-    /**
-     * TODO: implemented but not yet tested
-     */
-    /**
-       * Jacobian in given point. This method calculate jacobian
-       * matrix in given point.
-       *
-       * @param rPoint point which jacobians has to
-    * be calculated in it.
-    *
-    * @return Matrix of double which is jacobian matrix \f$ J \f$ in given point.
-    *
-    * @see DeterminantOfJacobian
-    * @see InverseOfJacobian
-     */
-    Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
-    {
-        //setting up size of jacobian matrix
-        rResult.resize( 3, 2 ,false);
-        //derivatives of shape functions
-        Matrix shape_functions_gradients;
-        shape_functions_gradients = ShapeFunctionsLocalGradients(
-                                        shape_functions_gradients, rPoint );
-        //Elements of jacobian matrix (e.g. J(1,1) = dX1/dXi1)
-        //loop over all nodes
-
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 2, 0 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 2, 1 ) += ( this->GetPoint( i ).Z() ) * ( shape_functions_gradients( i, 1 ) );
-        }
-
-        return rResult;
     }
 
     ///@}
@@ -874,22 +570,28 @@ public:
     }
 
     ///@}
-    ///@name Shape Function Integration Points Gradient
+    ///@name Spatial Operations
     ///@{
 
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType& rResult,
-        IntegrationMethod ThisMethod) const override
+    /**
+    * @brief Computes the distance between an point in
+    *        global coordinates and the closest point
+    *        of this geometry.
+    *        If projection fails, double::max will be returned.
+    * @param rPointGlobalCoordinates the point to which the
+    *        closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    double CalculateDistance(
+        const CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        ) const override
     {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
+        const Point point(rPointGlobalCoordinates);
+        return GeometryUtils::PointDistanceToTriangle3D(this->GetPoint(0), this->GetPoint(1), this->GetPoint(2), this->GetPoint(3), this->GetPoint(4), this->GetPoint(5), point);
     }
 
     ///@}
@@ -939,7 +641,7 @@ public:
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
         Matrix jacobian;
-        Jacobian( jacobian, PointType() );
+        this->Jacobian( jacobian, PointType() );
         rOStream << "    Jacobian in the origin\t : " << jacobian;
     }
 
@@ -975,9 +677,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 3 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 4 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 5 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 3 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 4 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ), this->pGetPoint( 5 ) ) );
         return edges;
     }
 
@@ -1447,9 +1149,6 @@ GeometryData Triangle3D6<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(
-    2, 3, 2);
+GeometryDimension Triangle3D6<TPointType>::msGeometryDimension(3, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_TRIANGLE_3D_6_H_INCLUDED defined

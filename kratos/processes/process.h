@@ -4,19 +4,16 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_PROCESS_H_INCLUDED )
-#define  KRATOS_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
 
 // External includes
 
@@ -24,6 +21,7 @@
 #include "includes/define.h"
 #include "includes/kratos_flags.h"
 #include "includes/kratos_parameters.h"
+#include "includes/define_registry.h"
 
 namespace Kratos
 {
@@ -62,11 +60,10 @@ public:
 
     /// Default constructor.
     Process() : Flags() {}
-    explicit Process(Flags options) : Flags( options ) {}
+    explicit Process(const Flags options) : Flags( options ) {}
 
     /// Destructor.
     ~Process() override {}
-
 
     ///@}
     ///@name Operators
@@ -78,14 +75,13 @@ public:
         Execute();
     }
 
-
     ///@}
     ///@name Operations
     ///@{
 
     /**
      * @brief This method creates an pointer of the process
-     * @details We consider as input a Mmodel and a set of Parameters for the sake of generality
+     * @details We consider as input a Model and a set of Parameters for the sake of generality
      * @warning Must be overrided in each process implementation
      * @param rModel The model to be consider
      * @param ThisParameters The configuration parameters
@@ -167,7 +163,7 @@ public:
     {
         return 0;
     }
-    
+
     /**
      * @brief This method clears the assignation of the conditions
      */
@@ -190,11 +186,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -209,7 +203,7 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "Process";
+        rOStream << Info();
     }
 
     /// Print object's data.
@@ -217,21 +211,17 @@ public:
     {
     }
 
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
-
 private:
     ///@name Static Member Variables
     ///@{
 
-
-
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", Process)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process)
 
     ///@}
     ///@name Un accessible methods
@@ -243,7 +233,6 @@ private:
     /// Copy constructor.
     //Process(Process const& rOther);
 
-
     ///@}
 
 }; // Class Process
@@ -253,11 +242,9 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 inline std::istream& operator >> (std::istream& rIStream,
@@ -275,7 +262,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-
 }  // namespace Kratos.
-
-#endif // KRATOS_PROCESS_H_INCLUDED  defined

@@ -12,30 +12,21 @@
 //
 //
 
-#if !defined(KRATOS_UBLAS_SPACE_H_INCLUDED )
-#define  KRATOS_UBLAS_SPACE_H_INCLUDED
-
-
+#pragma once
 
 // System includes
-#include <string>
-#include <iostream>
-#include <cstddef>
 #include <numeric>
-
-#ifdef _OPENMP
-#include "omp.h"
-#endif
-
 
 // External includes
 
-
 // Project includes
 #include "includes/define.h"
+#include "includes/process_info.h"
 #include "includes/ublas_interface.h"
 #include "includes/matrix_market_interface.h"
 #include "utilities/dof_updater.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 namespace Kratos
 {
@@ -104,6 +95,9 @@ using TUblasDenseSpace =
 ///@name  Enum's
 ///@{
 
+// Scaling enum
+enum class SCALING_DIAGONAL {NO_SCALING = 0, CONSIDER_NORM_DIAGONAL = 1, CONSIDER_MAX_DIAGONAL = 2, CONSIDER_PRESCRIBED_DIAGONAL = 3};
+
 ///@}
 ///@name  Functions
 ///@{
@@ -139,10 +133,6 @@ public:
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    template<typename T> using compressed_matrix = boost::numeric::ublas::compressed_matrix<T>;
-#endif // ifdef KRATOS_USE_AMATRIX
-
     typedef DofUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
     typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
 
@@ -151,22 +141,18 @@ public:
     ///@{
 
     /// Default constructor.
-
     UblasSpace()
     {
     }
 
     /// Destructor.
-
     virtual ~UblasSpace()
     {
     }
 
-
     ///@}
     ///@name Operators
     ///@{
-
 
     ///@}
     ///@name Operations
@@ -689,24 +675,173 @@ public:
         }
     }
 
+    /**
+     * @brief This method checks and corrects the zero diagonal values
+     * @details This method returns the scale norm considering for scaling the diagonal
+     * @param rProcessInfo The problem process info
+     * @param rA The LHS matrix
+     * @param rb The RHS vector
+     * @param ScalingDiagonal The type of caling diagonal considered
+     * @return The scale norm
+     */
+    static double CheckAndCorrectZeroDiagonalValues(
+        const ProcessInfo& rProcessInfo,
+        MatrixType& rA,
+        VectorType& rb,
+        const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
+        )
+    {
+        const std::size_t system_size = rA.size1();
 
-    //        static void GatherLocalValues(Vector& global_indices, )
-    //		{
-    //		axpy_prod(rA, rX, rY, true);
-    //		}
+        const double* Avalues = rA.value_data().begin();
+        const std::size_t* Arow_indices = rA.index1_data().begin();
 
+        // Define  zero value tolerance
+        const double zero_tolerance = std::numeric_limits<double>::epsilon();
 
+        // The diagonal considered
+        const double scale_factor = GetScaleNorm(rProcessInfo, rA, ScalingDiagonal);
 
+        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
+        IndexPartition(system_size).for_each([&](std::size_t Index){
+            bool empty = true;
+
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index + 1];
+
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if(std::abs(Avalues[j]) > zero_tolerance) {
+                    empty = false;
+                    break;
+                }
+            }
+
+            if(empty) {
+                rA(Index, Index) = scale_factor;
+                rb[Index] = 0.0;
+            }
+        });
+
+        return scale_factor;
+    }
+
+    /**
+     * @brief This method returns the scale norm considering for scaling the diagonal
+     * @param rProcessInfo The problem process info
+     * @param rA The LHS matrix
+     * @param ScalingDiagonal The type of caling diagonal considered
+     * @return The scale norm
+     */
+    static double GetScaleNorm(
+        const ProcessInfo& rProcessInfo,
+        const MatrixType& rA,
+        const SCALING_DIAGONAL ScalingDiagonal = SCALING_DIAGONAL::NO_SCALING
+        )
+    {
+        switch (ScalingDiagonal) {
+            case SCALING_DIAGONAL::NO_SCALING:
+                return 1.0;
+            case SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL: {
+                KRATOS_ERROR_IF_NOT(rProcessInfo.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined at process info" << std::endl;
+                return rProcessInfo.GetValue(BUILD_SCALE_FACTOR);
+            }
+            case SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL:
+                return GetDiagonalNorm(rA)/static_cast<double>(rA.size1());
+            case SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL:
+                return GetMaxDiagonal(rA);
+            default:
+                return GetMaxDiagonal(rA);
+        }
+    }
+
+    /**
+     * @brief This method returns the diagonal norm considering for scaling the diagonal
+     * @param rA The LHS matrix
+     * @return The diagonal norm
+     */
+    static double GetDiagonalNorm(const MatrixType& rA)
+    {
+        const double* Avalues = rA.value_data().begin();
+        const std::size_t* Arow_indices = rA.index1_data().begin();
+        const std::size_t* Acol_indices = rA.index2_data().begin();
+
+        const double diagonal_norm = IndexPartition<std::size_t>(Size1(rA)).for_each<SumReduction<double>>([&](std::size_t Index){
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if (Acol_indices[j] == Index ) {
+                    return std::pow(Avalues[j], 2);
+                }
+            }
+            return 0.0;
+        });
+
+        return std::sqrt(diagonal_norm);
+    }
+
+    /**
+     * @brief This method returns the diagonal max value
+     * @param rA The LHS matrix
+     * @return The diagonal  max value
+     */
+    static double GetAveragevalueDiagonal(const MatrixType& rA)
+    {
+        return 0.5 * (GetMaxDiagonal(rA) + GetMinDiagonal(rA));
+    }
+
+    /**
+     * @brief This method returns the diagonal max value
+     * @param rA The LHS matrix
+     * @return The diagonal  max value
+     */
+    static double GetMaxDiagonal(const MatrixType& rA)
+    {
+        const double* Avalues = rA.value_data().begin();
+        const std::size_t* Arow_indices = rA.index1_data().begin();
+        const std::size_t* Acol_indices = rA.index2_data().begin();
+
+        return IndexPartition<std::size_t>(Size1(rA)).for_each<MaxReduction<double>>([&](std::size_t Index){
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if (Acol_indices[j] == Index ) {
+                    return std::abs(Avalues[j]);
+                }
+            }
+            return std::numeric_limits<double>::lowest();
+        });
+    }
+
+    /**
+     * @brief This method returns the diagonal min value
+     * @param rA The LHS matrix
+     * @return The diagonal min value
+     */
+    static double GetMinDiagonal(const MatrixType& rA)
+    {
+        const double* Avalues = rA.value_data().begin();
+        const std::size_t* Arow_indices = rA.index1_data().begin();
+        const std::size_t* Acol_indices = rA.index2_data().begin();
+
+        return IndexPartition<std::size_t>(Size1(rA)).for_each<MinReduction<double>>([&](std::size_t Index){
+            const std::size_t col_begin = Arow_indices[Index];
+            const std::size_t col_end = Arow_indices[Index+1];
+            for (std::size_t j = col_begin; j < col_end; ++j) {
+                if (Acol_indices[j] == Index ) {
+                    return std::abs(Avalues[j]);
+                }
+            }
+            return std::numeric_limits<double>::max();
+        });
+    }
 
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -781,55 +916,43 @@ public:
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-
 
     ///@}
     ///@name Private Operators
@@ -911,21 +1034,17 @@ private:
     }
 #endif
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
-
 
     ///@}
     ///@name Un accessible methods
@@ -937,23 +1056,16 @@ private:
     /// Copy constructor.
     UblasSpace(UblasSpace const& rOther);
 
-
     ///@}
-
 }; // Class UblasSpace
 
-
-
 ///@}
-
 ///@name Type Definitions
 ///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
-
 
 /// input stream function
 //   inline std::istream& operator >> (std::istream& rIStream,
@@ -973,5 +1085,3 @@ private:
 
 
 } // namespace Kratos.
-
-#endif // KRATOS_UBLAS_SPACE_H_INCLUDED  defined

@@ -21,7 +21,7 @@
 namespace Kratos {
     namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /**
      *  Here the assigment operator is test
@@ -91,7 +91,7 @@ namespace Kratos {
         r_model_part.AddNodalSolutionStepVariable(REACTION);
 
         auto p_node_to_be_saved = r_model_part.CreateNewNode(1, 1., 0, 0);
-        auto p_node_to_be_loaded = Node<3>::Pointer(nullptr);
+        auto p_node_to_be_loaded = Node::Pointer(nullptr);
 
         p_node_to_be_saved->Fix(DISTANCE);
         p_node_to_be_saved->AddDof(DISPLACEMENT_X, REACTION_X);

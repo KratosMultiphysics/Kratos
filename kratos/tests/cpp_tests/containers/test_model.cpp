@@ -35,7 +35,7 @@ KRATOS_TEST_CASE_IN_SUITE(ModelGetModelPart, KratosCoreFastSuite)
     KRATOS_CHECK_EQUAL(model.GetModelPart("Main.Inlet1").Name(), smp.Name());
 
     KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Main.Random"),
-        "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe the following sub model parts are available:");
+        "Error: There is no sub model part with name \"Random\" in model part \"Main\"\nThe following sub model parts are available:");
 
     // TODO this should throw in the future
     // KRATOS_CHECK_EXCEPTION_IS_THROWN(model.GetModelPart("Inlet1"),
@@ -86,6 +86,22 @@ KRATOS_TEST_CASE_IN_SUITE(ModelDeleteModelPart, KratosCoreFastSuite)
     KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main"));
     KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main.Inlet1"));
     KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main.Inlet1.SubSub"));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ModelDeleteSubModelPart, KratosCoreFastSuite)
+{
+    Model model;
+
+    auto& model_part = model.CreateModelPart("Main");
+    model_part.CreateSubModelPart("Inlet1");
+
+    KRATOS_CHECK(model.HasModelPart("Main"));
+    KRATOS_CHECK(model.HasModelPart("Main.Inlet1"));
+
+    model.DeleteModelPart("Main.Inlet1");
+
+    KRATOS_CHECK(model.HasModelPart("Main"));
+    KRATOS_CHECK_IS_FALSE(model.HasModelPart("Main.Inlet1"));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ModelRenameModelPart, KratosCoreFastSuite)

@@ -40,18 +40,18 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoCableElement
 public:
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(GeoCableElement);
 
-    typedef GeoTrussElement<TDim,TNumNodes> BaseType;
+    using BaseType = GeoTrussElement<TDim, TNumNodes>;
 
-    typedef Element::GeometryType GeometryType;
-    typedef Element::NodesArrayType NodesArrayType;
-    typedef Element::PropertiesType PropertiesType;
-    typedef Element::IndexType IndexType;
-    typedef Element::SizeType SizeType;
-    typedef Element::MatrixType MatrixType;
-    typedef Element::VectorType VectorType;
+    using GeometryType = Element::GeometryType;
+    using NodesArrayType = Element::NodesArrayType;
+    using PropertiesType = Element::PropertiesType;
+    using IndexType = Element::IndexType;
+    using SizeType = Element::SizeType;
+    using MatrixType = Element::MatrixType;
+    using VectorType = Element::VectorType;
 
-    typedef typename GeoTrussElementBase<TDim,TNumNodes>::FullDofMatrixType FullDofMatrixType;
-    typedef typename GeoTrussElementBase<TDim,TNumNodes>::FullDofVectorType FullDofVectorType;
+    using FullDofMatrixType  = typename GeoTrussElementBase<TDim,TNumNodes>::FullDofMatrixType ;
+    using FullDofVectorType  = typename GeoTrussElementBase<TDim,TNumNodes>::FullDofVectorType ;
 
     using GeoTrussElementBase<TDim,TNumNodes>::mpConstitutiveLaw;
     using GeoTrussElement<TDim,TNumNodes>::mInternalStressesFinalizedPrevious;

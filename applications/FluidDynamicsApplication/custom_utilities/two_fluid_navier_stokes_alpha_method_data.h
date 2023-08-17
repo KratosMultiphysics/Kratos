@@ -42,7 +42,7 @@ using NodalVectorData = typename FluidElementData<TDim,TNumNodes, true>::NodalVe
 using ShapeFunctionsType = typename FluidElementData<TDim, TNumNodes, true>::ShapeFunctionsType;
 using ShapeDerivativesType = typename FluidElementData<TDim, TNumNodes, true>::ShapeDerivativesType;
 using MatrixRowType = typename FluidElementData<TDim, TNumNodes, true>::MatrixRowType;
-typedef Geometry<Node<3>> GeometryType;
+typedef Geometry<Node> GeometryType;
 typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 
 ///@}
@@ -52,7 +52,6 @@ typedef GeometryType::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 NodalVectorData Velocity;
 NodalVectorData Velocity_OldStep1;
 NodalScalarData Pressure;
-NodalScalarData Pressure_OldStep1;
 NodalVectorData AccelerationAlphaMethod;
 
 NodalVectorData MeshVelocity;
@@ -74,8 +73,9 @@ double Density;
 double DynamicViscosity;
 double DeltaTime;		   // Time increment
 double DynamicTau;         // Dynamic tau considered in ASGS stabilization coefficients
-double VolumeError; //TODO: RENAME TO VolumeErrorTimeRatio
-double MaxSprectraRadius;
+double VolumeErrorRate;    // Mass loss time rate (m^3/s) to be used as source term in the mass conservation equation
+double MaxSpectralRadius;
+double ArtificialDynamicViscosity;
 
 // Auxiliary containers for the symbolically-generated matrices
 BoundedMatrix<double,TNumNodes*(TDim+1),TNumNodes*(TDim+1)> lhs;
@@ -115,12 +115,11 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     // Base class Initialize manages constitutive law parameters
     FluidElementData<TDim,TNumNodes, true>::Initialize(rElement,rProcessInfo);
 
-    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const Geometry< Node >& r_geometry = rElement.GetGeometry();
 
     this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
-    this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
 
     this->FillFromHistoricalNodalData(Distance, DISTANCE, r_geometry);
 
@@ -137,7 +136,7 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     this->FillFromNonHistoricalNodalData(AccelerationAlphaMethod,ACCELERATION,r_geometry);
     this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
     this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
-    this->FillFromProcessInfo(MaxSprectraRadius,SPECTRAL_RADIUS_LIMIT,rProcessInfo);
+    this->FillFromProcessInfo(MaxSpectralRadius,SPECTRAL_RADIUS_LIMIT,rProcessInfo);
 
 
     noalias(lhs) = ZeroMatrix(TNumNodes*(TDim+1),TNumNodes*(TDim+1));
@@ -157,16 +156,22 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
             NumNegativeNodes++;
     }
 
+    ArtificialDynamicViscosity = r_geometry.Has(ARTIFICIAL_DYNAMIC_VISCOSITY) ? r_geometry.GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY) : 0.0;
+
     // In here we calculate the volume error temporary ratio (note that the input value is a relative measure of the volume loss)
     // Also note that we do consider time varying time step but a constant theta (we incur in a small error when switching from BE to CN)
     // Note as well that there is a minus sign (this comes from the divergence sign)
     if (IsCut()) {
+        // Get the previous time increment. Note that we check its value in case the previous ProcessInfo is empty (e.g. first step)
         double previous_dt = rProcessInfo.GetPreviousTimeStepInfo()[DELTA_TIME];
-        this->FillFromProcessInfo(VolumeError,VOLUME_ERROR,rProcessInfo);
-        // double ratio_dt = (1.0-theta)*previous_dt + theta*DeltaTime;
-        VolumeError /= -previous_dt;
+        if (previous_dt < 1.0e-12) {
+            previous_dt = rProcessInfo[DELTA_TIME];
+        }
+        // Get the absolute volume error from the ProcessInfo and calculate the time rate
+        this->FillFromProcessInfo(VolumeErrorRate,VOLUME_ERROR,rProcessInfo);
+        VolumeErrorRate /= -previous_dt;
     } else {
-        VolumeError = 0.0;
+        VolumeErrorRate = 0.0;
     }
 
 }
@@ -199,7 +204,7 @@ void UpdateGeometryValues(
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const Geometry< Node >& r_geometry = rElement.GetGeometry();
 
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
@@ -270,7 +275,7 @@ void CalculateAirMaterialResponse() {
 
 void ComputeStrain()
 {
-    const double rho_inf=this->MaxSprectraRadius;
+    const double rho_inf=this->MaxSpectralRadius;
     const double alpha_f= 1/(rho_inf+1);
     const BoundedMatrix<double, TNumNodes, TDim>& v = Velocity_OldStep1+alpha_f*(Velocity-Velocity_OldStep1);
     const BoundedMatrix<double, TNumNodes, TDim>& DN = this->DN_DX;
@@ -350,7 +355,7 @@ void CalculateEffectiveViscosityAtGaussPoint()
     }
 
     DynamicViscosity = dynamic_viscosity / navg;
-    this->EffectiveViscosity = DynamicViscosity;
+    this->EffectiveViscosity = DynamicViscosity + ArtificialDynamicViscosity;
 }
 
 void ComputeDarcyTerm()

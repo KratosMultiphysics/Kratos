@@ -37,7 +37,7 @@ inline void validatewithtolerance(
     const std::vector<double>& rCoordinates,
     const double Tolerance,
     const double HullArea = 0.0,
-    const std::string Debug = ""
+    const std::string& Debug = ""
     )
 {
     // Defining model for debug
@@ -100,7 +100,7 @@ inline void validatewithtolerance(
 inline void validate(
     const std::vector<double>& rCoordinates,
     const double HullArea = 0.0,
-    const std::string Debug = ""
+    const std::string& Debug = ""
     )
 {
     validatewithtolerance(rCoordinates, DELAUNATOR_TOLERANCE, HullArea, Debug);
