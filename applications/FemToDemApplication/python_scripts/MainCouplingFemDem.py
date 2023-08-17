@@ -305,7 +305,7 @@ class MainCoupledFemDem_Solution:
 
         if self.domain_size == 3:
             data_communicator = self.FEM_Solution.main_model_part.GetCommunicator().GetDataCommunicator()
-            self.nodal_neighbour_finder = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(data_communicator, self.FEM_Solution.main_model_part)
+            self.nodal_neighbour_finder = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.FEM_Solution.main_model_part)
             self.nodal_neighbour_finder.Execute()
         else: # 2D
             neighbour_elemental_finder =  KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part)
