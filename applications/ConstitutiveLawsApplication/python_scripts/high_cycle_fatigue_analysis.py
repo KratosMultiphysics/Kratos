@@ -27,44 +27,63 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
             self._GetSolver().Predict()
             self._GetSolver().SolveSolutionStep()
             self.FinalizeSolutionStep()
-            plot_output = self.project_parameters["fatigue"]["plot_output"].GetBool()
-            if plot_output:
-               self.OutputSolutionStep()
+            self.OutputSolutionStep()
 
 
     def OutputSolutionStep(self):
+
         super(HighCycleFatigueAnalysis, self).OutputSolutionStep()
         interval = 0
-        if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 1:
-            self.TimePreviousPlotting=0
-        if self.time - self.TimePreviousPlotting >= interval:
-            if self.TimePreviousPlotting == 0:
-                first_code_line = True
-                open("PlotElement.txt","w")
-            else:
-                first_code_line = False
+        plot_output = self.project_parameters["fatigue"]["plot_output"].GetBool()
+        if plot_output:
+            if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 1:
+                self.TimePreviousPlotting=0
+            if self.time - self.TimePreviousPlotting >= interval:
+                if self.TimePreviousPlotting == 0:
+                    first_code_line = True
+                    open("PlotElement.txt","w")
+                else:
+                    first_code_line = False
 
-            self.TimePreviousPlotting = self.time
-            id_for_print = self.project_parameters["fatigue"]["element_gausspoint_print"][0].GetInt()
-            id_gauss_point = self.project_parameters["fatigue"]["element_gausspoint_print"][1].GetInt()
-            self.main_model_part = self.model.GetModelPart(self.project_parameters["solver_settings"]["model_part_name"].GetString())
-            
-            output_interval_by_cycle = self.project_parameters["fatigue"]["output_interval_by_cycle"].GetBool()
+                self.TimePreviousPlotting = self.time
+                id_for_print = self.project_parameters["fatigue"]["element_gausspoint_print"][0].GetInt()
+                id_gauss_point = self.project_parameters["fatigue"]["element_gausspoint_print"][1].GetInt()
+                self.main_model_part = self.model.GetModelPart(self.project_parameters["solver_settings"]["model_part_name"].GetString())
+                
+                output_interval_by_cycle = self.project_parameters["fatigue"]["output_interval_by_cycle"].GetBool()
 
-            if output_interval_by_cycle:
-                plot_file = open("PlotElement.txt","a")
-                for elem in self.main_model_part.Elements:
-                    if elem.Id == id_for_print:
-                        if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 1:
-                            previous_number_of_cycles = 1
-                            first_step = True
-                        else:                        
-                            previous_number_of_cycles = self.project_parameters["fatigue"]["previous_cycle"].GetInt()
-                            first_step = False
-                        
-                        number_of_cycles = elem.CalculateOnIntegrationPoints(KratosMultiphysics.NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
-                        if number_of_cycles[id_gauss_point] > previous_number_of_cycles or first_step == True:
-                        
+                if output_interval_by_cycle:
+                    plot_file = open("PlotElement.txt","a")
+                    for elem in self.main_model_part.Elements:
+                        if elem.Id == id_for_print:
+                            if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 1:
+                                previous_number_of_cycles = 1
+                                first_step = True
+                            else:                        
+                                previous_number_of_cycles = self.project_parameters["fatigue"]["previous_cycle"].GetInt()
+                                first_step = False
+                            
+                            number_of_cycles = elem.CalculateOnIntegrationPoints(KratosMultiphysics.NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
+                            if number_of_cycles[id_gauss_point] > previous_number_of_cycles or first_step == True:
+                            
+                                local_number_of_cycles = elem.CalculateOnIntegrationPoints(CLA.LOCAL_NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
+                                damage = elem.CalculateOnIntegrationPoints(CLA.DAMAGE,self.main_model_part.ProcessInfo)
+                                f_red = elem.CalculateOnIntegrationPoints(CLA.FATIGUE_REDUCTION_FACTOR, self.main_model_part.ProcessInfo)
+                                reversion_factor = elem.CalculateOnIntegrationPoints(CLA.INFINITY_YIELD_STRESS,self.main_model_part.ProcessInfo)
+
+                                if first_code_line == True:
+                                    plot_file.write("    " + "Element Id".rjust(20) + "    " + "{0:6d}".format(id_for_print).rjust(20) + "    " + "Gauss Point Id".rjust(20) + "    " + "{0:6d}".format(id_gauss_point).rjust(20) +  "\n")
+                                    plot_file.write("    " + "Time".rjust(20) + "    " + "Nc Global".rjust(20) + "    " + "Nc Local".rjust(20) + "    " + "Damage".rjust(20) + "    " + "Fred".rjust(20) + "    " + "Reversion Factor".rjust(20) + "\n")
+                                plot_file.write("    " + "{0:.11e}".format(self.time).rjust(20) + "    " + "{0:.11e}".format(number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.11e}".format(local_number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(damage[id_gauss_point]).rjust(20) + "    " + "{0:.8e}".format(f_red[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(reversion_factor[id_gauss_point]).rjust(20) + "\n")
+                                plot_file.close()
+                                self.project_parameters["fatigue"].AddEmptyValue("previous_cycle").SetInt(number_of_cycles[id_gauss_point])
+                            break
+
+                else:
+                    plot_file = open("PlotElement.txt","a")
+                    for elem in self.main_model_part.Elements:
+                        if elem.Id == id_for_print:  
+                            number_of_cycles = elem.CalculateOnIntegrationPoints(KratosMultiphysics.NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
                             local_number_of_cycles = elem.CalculateOnIntegrationPoints(CLA.LOCAL_NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
                             uniaxial_stresses = elem.CalculateOnIntegrationPoints(CLA.UNIAXIAL_STRESS,self.main_model_part.ProcessInfo)
                             damage = elem.CalculateOnIntegrationPoints(CLA.DAMAGE,self.main_model_part.ProcessInfo)
@@ -72,37 +91,17 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
                             reversion_factor = elem.CalculateOnIntegrationPoints(CLA.INFINITY_YIELD_STRESS,self.main_model_part.ProcessInfo)
 
                             if first_code_line == True:
-                                plot_file.write("    " + "Element Id".rjust(20) + "    " + "{0:6d}".format(id_for_print).rjust(20) +  "\n")
-                                plot_file.write("    " + "Time".rjust(20) + "    " + "Nc Global".rjust(20) + "    " + "Nc Local".rjust(20) + "    " + "Damage".rjust(20) + "    " + "Fred".rjust(20) + "    " + "Reversion Factor".rjust(20) + "\n")
-                            plot_file.write("    " + "{0:.11e}".format(self.time).rjust(20) + "    " + "{0:.11e}".format(number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.11e}".format(local_number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(damage[id_gauss_point]).rjust(20) + "    " + "{0:.8e}".format(f_red[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(reversion_factor[id_gauss_point]).rjust(20) + "\n")
+                                plot_file.write("    " + "Element Id".rjust(20) + "    " + "{0:6d}".format(id_for_print).rjust(20) + "    " + "Gauss Point Id".rjust(20) + "    " + "{0:6d}".format(id_gauss_point).rjust(20) +  "\n")
+                                plot_file.write("    " + "Time".rjust(20) + "    " + "Nc Global".rjust(20) + "    " + "Nc Local".rjust(20) + "    " + "Uniaxial Stresses".rjust(20) + "    " + "Damage".rjust(20) + "    " + "Fred".rjust(20) + "    " + "Reversion Factor".rjust(20) + "\n")
+                            plot_file.write("    " + "{0:.11e}".format(self.time).rjust(20) + "    " + "{0:.11e}".format(number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.11e}".format(local_number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.14e}".format(uniaxial_stresses[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(damage[id_gauss_point]).rjust(20) + "    " + "{0:.8e}".format(f_red[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(reversion_factor[id_gauss_point]).rjust(20) + "\n")
                             plot_file.close()
-                            self.project_parameters["fatigue"].AddEmptyValue("previous_cycle").SetInt(number_of_cycles[id_gauss_point])
-                        break
+                            break
 
-            else:
-                i=0
-                plot_file = open("PlotElement.txt","a")
-                for elem in self.main_model_part.Elements:
-                    if elem.Id == id_for_print:  
-                        number_of_cycles = elem.CalculateOnIntegrationPoints(KratosMultiphysics.NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
-                        local_number_of_cycles = elem.CalculateOnIntegrationPoints(CLA.LOCAL_NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
-                        uniaxial_stresses = elem.CalculateOnIntegrationPoints(CLA.UNIAXIAL_STRESS,self.main_model_part.ProcessInfo)
-                        damage = elem.CalculateOnIntegrationPoints(CLA.DAMAGE,self.main_model_part.ProcessInfo)
-                        f_red = elem.CalculateOnIntegrationPoints(CLA.FATIGUE_REDUCTION_FACTOR, self.main_model_part.ProcessInfo)
-                        reversion_factor = elem.CalculateOnIntegrationPoints(CLA.INFINITY_YIELD_STRESS,self.main_model_part.ProcessInfo)
-
-                        if first_code_line == True:
-                            plot_file.write("    " + "Element Id".rjust(20) + "    " + "{0:6d}".format(id_for_print).rjust(20) +  "\n")
-                            plot_file.write("    " + "Time".rjust(20) + "    " + "Nc Global".rjust(20) + "    " + "Nc Local".rjust(20) + "    " + "Uniaxial Stresses".rjust(20) + "    " + "Damage".rjust(20) + "    " + "Fred".rjust(20) + "    " + "Reversion Factor".rjust(20) + "\n")
-                        plot_file.write("    " + "{0:.11e}".format(self.time).rjust(20) + "    " + "{0:.11e}".format(number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.11e}".format(local_number_of_cycles[id_gauss_point]).rjust(20) + "    " + "{0:.14e}".format(uniaxial_stresses[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(damage[id_gauss_point]).rjust(20) + "    " + "{0:.8e}".format(f_red[id_gauss_point]).rjust(20) + "    " + "{0:.4e}".format(reversion_factor[id_gauss_point]).rjust(20) + "\n")
-                        plot_file.close()
-                        break
-
-                id_for_print = self.project_parameters["fatigue"]["node_print"].GetInt()
-                plot_file = open("PlotNode.txt","a")   
-                for node in self.main_model_part.Nodes:
-                    if node.Id == id_for_print:
-                        displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
-                        plot_file.write("    " + "{0:.4e}".format(self.time).rjust(11) + "    " + "{0:.4e}".format(displacement[0]).rjust(11) + "\n")
-                        plot_file.close()
-                        break
+                    id_for_print = self.project_parameters["fatigue"]["node_print"].GetInt()
+                    plot_file = open("PlotNode.txt","a")   
+                    for node in self.main_model_part.Nodes:
+                        if node.Id == id_for_print:
+                            displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+                            plot_file.write("    " + "{0:.4e}".format(self.time).rjust(11) + "    " + "{0:.4e}".format(displacement[0]).rjust(11) + "\n")
+                            plot_file.close()
+                            break

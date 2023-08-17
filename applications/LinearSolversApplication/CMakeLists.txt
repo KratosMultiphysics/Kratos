@@ -28,7 +28,9 @@ if( USE_EIGEN_MKL MATCHES ON )
 
         set(KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC ${KRATOS_LINEAR_SOLVERS_APPLICATION_LIB_INC} $ENV{MKLROOT}/include)
 
-        link_directories("$ENV{MKLROOT}/lib")
+        include_directories( SYSTEM ${MKLROOT_STRIPPED}/include )
+
+        link_directories("${MKLROOT_STRIPPED}/lib")
 
         if( NOT MSVC )
             set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -m64 -L$ENV{MKLROOT}/lib/intel64 -Wl,--no-as-needed -lpthread -lm -ldl" )

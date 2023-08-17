@@ -35,7 +35,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SetAutomatedInitialVariablePr
 
 public:
 
-    static constexpr double tolerance         = 2.0e-6;
+    static constexpr double tolerance         = 4.0e-6;
     static constexpr double machine_tolerance = std::numeric_limits<double>::epsilon();
 
     KRATOS_CLASS_POINTER_DEFINITION(SetAutomatedInitialVariableProcess);

@@ -38,35 +38,56 @@ void AdvanceInTimeHighCycleFatigueProcess::Execute()
     auto& process_info = mrModelPart.GetProcessInfo();
     bool cycle_found = false;
     std::vector<double> damage;
+    std::vector<double> previous_cycle_damage;
+    std::vector<double>  cycles_to_failure_element;
+    std::vector<int>  local_number_of_cycles;
+
+    
+    process_info[NO_LINEARITY_ACTIVATION] = false;
     process_info[ADVANCE_STRATEGY_APPLIED] = false;
     //double increment;
 
     this->CyclicLoad();  //This method checks if a cyclic load is being applied.
 
-    if (!process_info[DAMAGE_ACTIVATION]) {
+    // if (!process_info[DAMAGE_ACTIVATION]) {
 
 
-        KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
+    KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
-        for (auto& r_elem : mrModelPart.Elements()) {
-            unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
-            r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
+    for (auto& r_elem : mrModelPart.Elements()) {
+        unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
+        r_elem.CalculateOnIntegrationPoints(DAMAGE, damage, process_info);
+        r_elem.CalculateOnIntegrationPoints(PREVIOUS_CYCLE_DAMAGE, previous_cycle_damage, process_info);
+        r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
+        r_elem.CalculateOnIntegrationPoints(LOCAL_NUMBER_OF_CYCLES, local_number_of_cycles, process_info);
+        
+        std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+        r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+
+        const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
+
+        if (is_fatigue) {    
             for (unsigned int i = 0; i < number_of_ip; i++) {
-                    if (damage[i] > 0.0) {
-                        process_info[DAMAGE_ACTIVATION] = true;
-                        break;
-                    }
+                if ((damage[i] - previous_cycle_damage[i] > 1.0e-6) || (cycles_to_failure_element[i] - local_number_of_cycles[i] <= 1.0)) {
+                    process_info[NO_LINEARITY_ACTIVATION] = true;
+                    break;
+                }
             }
         }
+
+        if (process_info[NO_LINEARITY_ACTIVATION]){
+            break;
+        }         
     }
+ 
 
     this->CyclePeriodPerIntegrationPoint(cycle_found);  //This method detects if a cycle has finished somewhere in the model and
                                                         //computes the time period of the cycle that has just finished.
 
     if (cycle_found) {  //If a cycle has finished then it is possible to apply the advancing strategy
+        
         bool advancing_strategy = false;
-        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[DAMAGE_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in
-                                                                        //terms of max stress and reversion factor variation.                                                                                                                              
+        this->StableConditionForAdvancingStrategy(advancing_strategy, process_info[NO_LINEARITY_ACTIVATION]);  //Check if the conditions are optimal to apply the advancing strategy in                                                                                                                    
         double increment = 0.0;
         if (advancing_strategy) {
             this->TimeIncrement(increment);
@@ -98,7 +119,7 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclicLoad()
     //Monotonic (false) or cyclic (true) load. If a monotonic and a cyclic load coexist, cyclic type will be considered
     // bool current_load_type = false;
     bool new_model_part = false;
-    bool break_condition = false;
+    // bool break_condition = false;
 
     const bool has_constraints_list = mThisParameters["fatigue"].Has("constraints_process_list");
     if (!has_constraints_list) {
@@ -106,6 +127,10 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclicLoad()
     }
 
     if (has_constraints_list) {
+        
+        const int load_increments_per_cycle = mThisParameters["fatigue"]["load_increments_per_cycle"].GetInt();
+        process_info[LOAD_INCREMENTS_PER_CYCLE] = load_increments_per_cycle;
+              
         std::vector<std::string> constraints_list = mThisParameters["fatigue"]["constraints_process_list"].GetStringArray();
         //Loop on the cyclic constraints list
         for (unsigned int i = 0; i < constraints_list.size(); i++) {
@@ -122,6 +147,8 @@ void AdvanceInTimeHighCycleFatigueProcess::CyclicLoad()
                     double model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();
                     if (time - delta_time <= model_part_start_time) {
                         new_model_part = true;
+                        double new_model_part_start_time = mThisParameters["processes"]["constraints_process_list"][j]["Parameters"]["interval"][0].GetDouble();;
+                        process_info[NEW_MODEL_PART_START_TIME] = new_model_part_start_time;
                     }
                 }
             }
@@ -186,9 +213,13 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
     std::vector<double> s_th;
     std::vector<double> max_stress;
 
-    double acumulated_max_stress_rel_error = 0.0;
-    double acumulated_rev_factor_rel_error = 0.0;
-    bool fatigue_in_course = false;
+    double accumulated_max_stress_rel_error = 0.0;
+    double accumulated_rev_factor_rel_error = 0.0;
+    // bool fatigue_in_course = false;
+    const double max_stress_relative_tolerance = mThisParameters["fatigue"]["max_stress_relative_tolerance"].GetDouble();
+    const double rev_factor_relative_tolerance = mThisParameters["fatigue"]["rev_factor_relative_tolerance"].GetDouble();
+    const double max_stress_relative_tolerance_damage = mThisParameters["fatigue"]["max_stress_relative_tolerance_damage"].GetDouble();
+    const double rev_factor_relative_tolerance_damage = mThisParameters["fatigue"]["rev_factor_relative_tolerance_damage"].GetDouble();
 
     KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
@@ -201,15 +232,20 @@ void AdvanceInTimeHighCycleFatigueProcess::StableConditionForAdvancingStrategy(b
         r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
         r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
 
-        for (unsigned int i = 0; i < number_of_ip; i++) {
-            if (max_stress[i] > s_th[i]) {
-                fatigue_in_course = true;
-                acumulated_max_stress_rel_error += max_stress_rel_error[i];
-                acumulated_rev_factor_rel_error += rev_factor_rel_error[i];
+        std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+        r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+                
+        const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
+            
+        if (is_fatigue) {  
+            for (unsigned int i = 0; i < number_of_ip; i++) {
+                accumulated_max_stress_rel_error += max_stress_rel_error[i];
+                accumulated_rev_factor_rel_error += rev_factor_rel_error[i];
             }
         }
     }
-    if ((acumulated_max_stress_rel_error < 1e-4 && acumulated_rev_factor_rel_error < 1e-4 && fatigue_in_course) || (DamageIndicator && acumulated_max_stress_rel_error < 1e-3 && acumulated_rev_factor_rel_error < 1e-3 && fatigue_in_course)) {
+
+    if ((accumulated_max_stress_rel_error < max_stress_relative_tolerance && accumulated_rev_factor_rel_error < rev_factor_relative_tolerance) || (DamageIndicator && accumulated_max_stress_rel_error < max_stress_relative_tolerance_damage && accumulated_rev_factor_rel_error < rev_factor_relative_tolerance_damage)) {
         rAdvancingStrategy = true;
     }
 }
@@ -250,7 +286,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
     }
 
     double model_part_advancing_time = model_part_final_time - time;
-    if (!process_info[DAMAGE_ACTIVATION]) {
+    if (!process_info[NO_LINEARITY_ACTIVATION]) {
         min_time_increment = std::min(user_advancing_time, model_part_advancing_time);
     }else{
         min_time_increment = std::min(user_advancing_time_damage, model_part_advancing_time);
@@ -259,7 +295,7 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
 
     // KRATOS_ERROR_IF(mrModelPart.NumberOfElements() == 0) << "The number of elements in the domain is zero. The process can not be applied."<< std::endl;
 
-        if (!process_info[DAMAGE_ACTIVATION]) {
+        if (!process_info[NO_LINEARITY_ACTIVATION]) {
             for (auto &r_elem : mrModelPart.Elements()){
                 unsigned int number_of_ip = r_elem.GetGeometry().IntegrationPoints(r_elem.GetIntegrationMethod()).size();
                 r_elem.CalculateOnIntegrationPoints(CYCLES_TO_FAILURE, cycles_to_failure_element, process_info);
@@ -267,18 +303,25 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
                 r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
                 r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
                 r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
-                for (unsigned int i = 0; i < number_of_ip; i++)
-                {
-                    if (max_stress[i] > s_th[i])
-                    { // This is used to guarantee that only IP in fatigue conditions are taken into account
+
+                std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+                r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+                        
+                const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
+
+                if(is_fatigue){
+                    for (unsigned int i = 0; i < number_of_ip; i++)
+                    {
+                        // if (max_stress[i] > s_th[i])
+                        // { // This is used to guarantee that only IP in fatigue conditions are taken into account
                         double Nf_conversion_to_time = (cycles_to_failure_element[i] - local_number_of_cycles[i]) * period[i];
                         double user_advancing_cycles_conversion_to_time = user_advancing_cycles * period[i];
                         if (Nf_conversion_to_time < min_time_increment)
-                        {
+                        {   
                             min_time_increment = Nf_conversion_to_time;
                         }
                         if (user_advancing_cycles_conversion_to_time < min_time_increment)
-                        {
+                        {   
                             min_time_increment = user_advancing_cycles_conversion_to_time;
                         }
                     }
@@ -290,10 +333,17 @@ void AdvanceInTimeHighCycleFatigueProcess::TimeIncrement(double& rIncrement)
                 r_elem.CalculateOnIntegrationPoints(CYCLE_PERIOD, period, process_info);
                 r_elem.CalculateOnIntegrationPoints(THRESHOLD_STRESS, s_th, process_info);
                 r_elem.CalculateOnIntegrationPoints(MAX_STRESS, max_stress, process_info);
-                for (unsigned int i = 0; i < number_of_ip; i++)
-                {
-                    if (max_stress[i] > s_th[i])
-                    { // This is used to guarantee that only IP in fatigue conditions are taken into account
+
+                std::vector<ConstitutiveLaw::Pointer> constitutive_law_vector(number_of_ip);
+                r_elem.CalculateOnIntegrationPoints(CONSTITUTIVE_LAW,constitutive_law_vector,process_info);
+                        
+                const bool is_fatigue = constitutive_law_vector[0]->Has(CYCLE_INDICATOR);
+
+                if(is_fatigue){
+                    for (unsigned int i = 0; i < number_of_ip; i++)
+                    {
+                        // if (max_stress[i] > s_th[i])
+                        // { // This is used to guarantee that only IP in fatigue conditions are taken into account
                         double user_advancing_cycles_conversion_to_time = user_advancing_cycles_damage * period[i];
                         if (user_advancing_cycles_conversion_to_time < min_time_increment)
                         {
