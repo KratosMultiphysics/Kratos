@@ -26,7 +26,7 @@ import typing
 ##!@{
 def CreateController(parameters: KratosMultiphysics.Parameters,
                      model: KratosMultiphysics.Model,
-                     operation: operations.AggregateOperation):
+                     operation: operations.AggregateOperation) -> controllers.Controller:
     parameters.AddMissingParameters(KratosMultiphysics.Parameters("""{
         "model_part_name" : "PLEASE_SPECIFY_MODEL_PART_NAME",
         "process_step" : "initialize",
