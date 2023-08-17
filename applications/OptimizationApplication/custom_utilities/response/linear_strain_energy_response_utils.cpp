@@ -27,6 +27,8 @@
 #include "utilities/model_part_operation_utilities.h"
 
 // Application includes
+#include "expression/variable_expression_io.h"
+#include "custom_utilities/properties_variable_expression_io.h"
 #include "optimization_application_variables.h"
 
 // Include base h
@@ -80,45 +82,70 @@ double LinearStrainEnergyResponseUtils::CalculateValue(ModelPart& rEvaluatedMode
 }
 
 void LinearStrainEnergyResponseUtils::CalculateGradient(
-    const std::vector<GradientFieldVariableTypes>& rListOfGradientVariables,
-    const std::vector<ModelPart*>& rListOfGradientRequiredModelParts,
-    const std::vector<ModelPart*>& rListOfGradientComputedModelParts,
+    const PhysicalFieldVariableTypes& rPhysicalVariable,
+    ModelPart& rGradientRequiredModelPart,
+    ModelPart& rGradientComputedModelPart,
+    std::vector<ContainerExpressionType>& rListOfContainerExpressions,
     const double PerturbationSize)
 {
     KRATOS_TRY
 
-    KRATOS_ERROR_IF(rListOfGradientVariables.size() !=
-                    rListOfGradientRequiredModelParts.size())
-        << "Number of gradient variables and required model parts mismatch.";
-    KRATOS_ERROR_IF(rListOfGradientVariables.size() !=
-                    rListOfGradientComputedModelParts.size())
-        << "Number of gradient variables and computed model parts mismatch.";
+    std::visit([&](auto pVariable) {
+        if (*pVariable == YOUNG_MODULUS) {
+            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(YOUNG_MODULUS_SENSITIVITY, 0.0); });
+            CalculateStrainEnergyLinearlyDependentPropertyGradient(rGradientComputedModelPart, YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
+        } else if (*pVariable == THICKNESS) {
+            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
+            CalculateStrainEnergyLinearlyDependentPropertyGradient(rGradientComputedModelPart, THICKNESS, THICKNESS_SENSITIVITY);
+        } else if (*pVariable == POISSON_RATIO) {
+            block_for_each(rGradientRequiredModelPart.Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(POISSON_RATIO_SENSITIVITY, 0.0); });
+            CalculateStrainEnergySemiAnalyticPropertyGradient(rGradientComputedModelPart, PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
+        } else if (*pVariable == SHAPE) {
+            VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, rGradientRequiredModelPart.Nodes());
+            CalculateStrainEnergySemiAnalyticShapeGradient(rGradientComputedModelPart, PerturbationSize, SHAPE_SENSITIVITY);
+        } else {
+            KRATOS_ERROR
+                << "Unsupported sensitivity w.r.t. " << pVariable->Name()
+                << " requested. Followings are supported sensitivity variables:"
+                << "\n\t" << YOUNG_MODULUS.Name()
+                << "\n\t" << THICKNESS.Name()
+                << "\n\t" << POISSON_RATIO.Name()
+                << "\n\t" << SHAPE.Name();
+        }
 
-    for (IndexType i = 0; i < rListOfGradientVariables.size(); ++i) {
-        std::visit([&](auto p_variable) {
-            if (*p_variable == YOUNG_MODULUS) {
-                block_for_each(rListOfGradientRequiredModelParts[i]->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(YOUNG_MODULUS_SENSITIVITY, 0.0); });
-                CalculateStrainEnergyLinearlyDependentPropertyGradient(*rListOfGradientComputedModelParts[i], YOUNG_MODULUS, YOUNG_MODULUS_SENSITIVITY);
-            } else if (*p_variable == THICKNESS) {
-                block_for_each(rListOfGradientRequiredModelParts[i]->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0); });
-                CalculateStrainEnergyLinearlyDependentPropertyGradient(*rListOfGradientComputedModelParts[i], THICKNESS, THICKNESS_SENSITIVITY);
-            } else if (*p_variable == POISSON_RATIO) {
-                block_for_each(rListOfGradientRequiredModelParts[i]->Elements(), [](auto& rElement) { rElement.GetProperties().SetValue(POISSON_RATIO_SENSITIVITY, 0.0); });
-                CalculateStrainEnergySemiAnalyticPropertyGradient(*rListOfGradientComputedModelParts[i], PerturbationSize, POISSON_RATIO, POISSON_RATIO_SENSITIVITY);
-            } else if (*p_variable == SHAPE) {
-                VariableUtils().SetNonHistoricalVariableToZero(SHAPE_SENSITIVITY, rListOfGradientRequiredModelParts[i]->Nodes());
-                CalculateStrainEnergySemiAnalyticShapeGradient(*rListOfGradientComputedModelParts[i], PerturbationSize, SHAPE_SENSITIVITY);
-            } else {
-                KRATOS_ERROR
-                    << "Unsupported sensitivity w.r.t. " << p_variable->Name()
-                    << " requested. Followings are supported sensitivity variables:"
-                    << "\n\t" << YOUNG_MODULUS.Name()
-                    << "\n\t" << THICKNESS.Name()
-                    << "\n\t" << POISSON_RATIO.Name()
-                    << "\n\t" << SHAPE.Name();
-            }
-        }, rListOfGradientVariables[i]);
-    }
+        // now fill the container expressions
+        for (auto& p_container_expression : rListOfContainerExpressions) {
+            std::visit([pVariable](auto& pContainerExpression){
+                using container_type = std::decay_t<decltype(*pContainerExpression)>;
+
+                if (*pVariable == SHAPE) {
+                    if constexpr(std::is_same_v<container_type, ContainerExpression<ModelPart::NodesContainerType>>) {
+                        VariableExpressionIO::Read(*pContainerExpression, &SHAPE_SENSITIVITY, false);
+                    } else {
+                        KRATOS_ERROR << "Requesting sensitivity w.r.t. "
+                                        "SHAPE for a Container expression "
+                                        "which is not a NodalExpression. [ "
+                                        "Requested container expression = "
+                                        << *pContainerExpression << " ].\n";
+                    }
+                } else {
+                    if constexpr(std::is_same_v<container_type, ContainerExpression<ModelPart::ElementsContainerType>>) {
+                        const auto& sensitivity_variable = KratosComponents<Variable<double>>::Get(pVariable->Name() + "_SENSITIVITY");
+                        PropertiesVariableExpressionIO::Read(*pContainerExpression, &sensitivity_variable);
+                    } else {
+                        KRATOS_ERROR << "Requesting sensitivity w.r.t. "
+                                     << pVariable->Name()
+                                     << " for a Container expression "
+                                        "which is not an ElementExpression. [ "
+                                        "Requested container expression = "
+                                     << *pContainerExpression << " ].\n";
+                    }
+                }
+
+
+            }, p_container_expression);
+        }
+    }, rPhysicalVariable);
 
     KRATOS_CATCH("");
 }
@@ -131,9 +158,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
     Vector& rPerturbedRHS,
     typename TEntityType::Pointer& pThreadLocalEntity,
     ModelPart& rModelPart,
-    std::vector<std::string>& rModelPartNames,
     const double Delta,
-    const IndexType MaxNodeId,
     const Variable<array_1d<double, 3>>& rOutputGradientVariable)
 {
     KRATOS_TRY
@@ -151,25 +176,14 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergyEntitySemiAnalyticSha
         // initialize dummy element for parallelized perturbation based sensitivity calculation
         // in each thread seperately
         if (!pThreadLocalEntity) {
-
-            std::stringstream name;
-            const int thread_id = OpenMPUtils::ThisThread();
-            name << rModelPart.Name() << "_temp_" << thread_id;
-            if constexpr(std::is_same_v<TEntityType, ModelPart::ConditionType>) {
-                name << "_condition";
-            } else if constexpr(std::is_same_v<TEntityType, ModelPart::ElementType>) {
-                name << "_element";
-            }
             GeometryType::PointsArrayType nodes;
-            {
-                KRATOS_CRITICAL_SECTION
 
-                rModelPartNames.push_back(name.str());
-                auto& tls_model_part = rModelPart.CreateSubModelPart(name.str());
-
-                for (IndexType i = 0; i < r_geometry.size(); ++i) {
-                    nodes.push_back(tls_model_part.CreateNewNode((thread_id + 1) * MaxNodeId + i + 1, r_geometry[i]));
-                }
+            for (IndexType i = 0; i < r_geometry.size(); ++i) {
+                const auto& r_coordinates = r_geometry[i].Coordinates();
+                auto p_new_node = Kratos::make_intrusive<Node>(i+1, r_coordinates[0], r_coordinates[1], r_coordinates[2]);
+                p_new_node->SetSolutionStepVariablesList(rModelPart.pGetNodalSolutionStepVariablesList());
+                p_new_node->SetBufferSize(rModelPart.GetBufferSize());
+                nodes.push_back(p_new_node);
             }
 
             pThreadLocalEntity = rEntity.Create(1, nodes, rEntity.pGetProperties());
@@ -238,11 +252,6 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeGrad
 
     using tls_condition_type = std::tuple<Vector, Vector, Vector, Condition::Pointer>;
 
-    const int max_id = block_for_each<MaxReduction<int>>(rModelPart.GetRootModelPart().Nodes(), [](const auto& rNode) {
-        return rNode.Id();
-    });
-
-    std::vector<std::string> model_part_names;
     VariableUtils().SetNonHistoricalVariableToZero(rOutputGradientVariable, rModelPart.Nodes());
 
     block_for_each(rModelPart.Elements(), tls_element_type(), [&](auto& rElement, tls_element_type& rTLS) {
@@ -253,9 +262,7 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeGrad
             std::get<2>(rTLS),
             std::get<3>(rTLS),
             rModelPart,
-            model_part_names,
             Delta,
-            max_id,
             rOutputGradientVariable);
     });
 
@@ -267,28 +274,9 @@ void LinearStrainEnergyResponseUtils::CalculateStrainEnergySemiAnalyticShapeGrad
             std::get<2>(rTLS),
             std::get<3>(rTLS),
             rModelPart,
-            model_part_names,
             Delta,
-            max_id + ParallelUtilities::GetNumThreads() * 1000, // no element or condition is not suppose to have 1000 nodes per element or condition. This is done to avoid re-calculating the max id for conditions
             rOutputGradientVariable);
     });
-
-    // now clear the temp model part
-    VariableUtils().SetFlag(TO_ERASE, false, rModelPart.Nodes());
-    for (const auto& r_model_part_name : model_part_names) {
-        auto& tls_model_part = rModelPart.GetSubModelPart(r_model_part_name);
-        for (auto& r_node : tls_model_part.Nodes()) {
-            r_node.Set(TO_ERASE, true);
-        }
-    }
-
-    // remove temporary nodes
-    rModelPart.RemoveNodesFromAllLevels(TO_ERASE);
-
-    // remove temporary model parts
-    for (const auto& r_model_part_name : model_part_names) {
-        rModelPart.RemoveSubModelPart(r_model_part_name);
-    }
 
     // Assemble nodal result
     rModelPart.GetCommunicator().AssembleNonHistoricalData(rOutputGradientVariable);

@@ -15,7 +15,6 @@
 
 // External includes
 
-
 // Project includes
 #include "custom_python/add_custom_processes_to_python.h"
 #include "constitutive_laws_application_variables.h"
@@ -24,6 +23,7 @@
 //Processes
 #include "custom_processes/advance_in_time_high_cycle_fatigue_process.h"
 #include "custom_processes/set_automated_initial_damage_process.h"
+#include "custom_processes/element_deactivation_process.h"
 
 namespace Kratos {
     namespace Python {
@@ -36,6 +36,9 @@ namespace Kratos {
                 .def(py::init< ModelPart&, Parameters >());
 
             py::class_<SetAutomatedInitialDamageProcess, SetAutomatedInitialDamageProcess::Pointer, Process>(m, "SetAutomatedInitialDamageProcess")
+                .def(py::init<ModelPart&, Parameters>());
+
+            py::class_<ElementDeactivationProcess, ElementDeactivationProcess::Pointer, Process>(m, "ElementDeactivationProcess")
                 .def(py::init<ModelPart&, Parameters>());
         }
     } // namespace Python.

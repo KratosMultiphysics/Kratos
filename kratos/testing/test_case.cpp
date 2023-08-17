@@ -165,6 +165,11 @@ bool TestCase::IsSelected() const
     return mIsSelected;
 }
 
+bool TestCase::IsDistributedTest() const
+{
+    return false;
+}
+
 std::string TestCase::Info() const
 {
     return "Test case " + mName;

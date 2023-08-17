@@ -98,9 +98,9 @@ namespace Testing {
                 knot_vector_u, knot_vector_v, knot_vector_w);
     }
 
-    NurbsVolumeGeometry<PointerVector<Point>> GenerateDistortedCube() {
+    NurbsVolumeGeometry<PointerVector<NodeType>> GenerateDistortedCube() {
         // Construct a distroted cube.
-        PointerVector<Point> points(100);
+        PointerVector<NodeType> points(100);
         std::vector<double> y_direction = {-1.0, -1.0/3.0, 1.0/3.0, 1.0};
         int index = 0;
         for( int i = 0; i <=4; ++i){
@@ -113,7 +113,7 @@ namespace Testing {
                         y = j*std::max(i,2);
                     if( j == 0)
                         x = k*std::max(i,2);
-                    points(index) = Kratos::make_shared<Point>(x, y, z);
+                    points(index) = Kratos::make_intrusive<NodeType>(index, x, y, z);
                     index++;
                 }
             }
@@ -161,7 +161,7 @@ namespace Testing {
         knot_vector_w[8] = 1.0;
         knot_vector_w[9] = 1.0;
 
-        return NurbsVolumeGeometry<PointerVector<Point>>(
+        return NurbsVolumeGeometry<PointerVector<NodeType>>(
             points, polynomial_degree_u, polynomial_degree_v, polynomial_degree_w,
                 knot_vector_u, knot_vector_v, knot_vector_w);
     }
@@ -339,7 +339,7 @@ namespace Testing {
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryIntegrationPoints2, KratosCoreNurbsGeometriesFastSuite) {
-        NurbsVolumeGeometry<PointerVector<Point>> DistortedCube = GenerateDistortedCube();
+        NurbsVolumeGeometry<PointerVector<NodeType>> DistortedCube = GenerateDistortedCube();
 
         typename Geometry<Point>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = DistortedCube.GetDefaultIntegrationInfo();
@@ -363,7 +363,7 @@ namespace Testing {
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryEvaluation2, KratosCoreNurbsGeometriesFastSuite) {
-        NurbsVolumeGeometry<PointerVector<Point>> DistortedCube = GenerateDistortedCube();
+        NurbsVolumeGeometry<PointerVector<NodeType>> DistortedCube = GenerateDistortedCube();
 
         // Check the local to global space mapping.
         array_1d<double, 3> parameter(0.0);
@@ -443,10 +443,9 @@ namespace Testing {
         // Check general information, input to ouput
         typename Geometry<NodeType>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = pyramid.GetDefaultIntegrationInfo();
-        pyramid.CreateIntegrationPoints(integration_points, integration_info);
 
         typename Geometry<NodeType>::GeometriesArrayType quadrature_points;
-        pyramid.CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
+        pyramid.CreateQuadraturePointGeometries(quadrature_points, 3, integration_info);
 
         KRATOS_CHECK_EQUAL(quadrature_points.size(), 1440);
         double sum = 0;
