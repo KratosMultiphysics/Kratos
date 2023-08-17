@@ -1,15 +1,35 @@
-#include "custom_io/hdf5_model_part_io.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
+//
+//  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneth Warnakulasuriya
+//
 
-#include "custom_io/hdf5_properties_io.h"
-#include "custom_io/hdf5_nodal_solution_step_variables_io.h"
-#include "custom_io/hdf5_data_value_container_io.h"
-#include "custom_io/hdf5_points_data.h"
-#include "custom_io/hdf5_connectivities_data.h"
-#include "custom_utilities/factor_elements_and_conditions_utility.h"
-#include "utilities/builtin_timer.h"
-#include "utilities/openmp_utils.h"
+// System includes
+
+// Project includes
 #include "input_output/logger.h"
+#include "utilities/builtin_timer.h"
+#include "utilities/parallel_utilities.h"
+
+// Application includes
+#include "custom_io/hdf5_connectivities_data.h"
+#include "custom_io/hdf5_data_value_container_io.h"
+#include "custom_io/hdf5_nodal_solution_step_variables_io.h"
+#include "custom_io/hdf5_points_data.h"
+#include "custom_io/hdf5_properties_io.h"
 #include "custom_utilities/container_io_utils.h"
+#include "custom_utilities/factor_elements_and_conditions_utility.h"
+#include "custom_utilities/hdf5_data_set_partition_utility.h"
+
+// Include base h
+#include "custom_io/hdf5_model_part_io.h"
 
 namespace Kratos
 {
@@ -18,42 +38,49 @@ namespace HDF5
 namespace
 {
 template <typename TContainer>
-void WriteContainerIds(File& rFile, std::string const& rPath, TContainer const& rContainer, WriteInfo& rInfo)
+void WriteContainerIds(
+    File& rFile,
+    const std::string& rPath,
+    const TContainer & rContainer)
 {
     KRATOS_TRY;
+
     Vector<int> ids;
     ids.resize(rContainer.size());
-    #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rContainer.size()); ++i)
-    {
-        const auto it = rContainer.begin() + i;
-        ids[i] = it->Id();
-    }
-    rFile.WriteDataSet(rPath, ids, rInfo);
+
+    IndexPartition<IndexType>(rContainer.size()).for_each([&rContainer, &ids](const auto Index) {
+        ids[Index] = (rContainer.begin() + Index)->Id();
+    });
+
+    WriteInfo info;
+    rFile.WriteDataSet(rPath, ids, info);
+    rFile.WriteAttribute(rPath, "Size", info.TotalSize);
+    WritePartitionTable(rFile, rPath, info);
+
     KRATOS_CATCH("");
 }
 
-int GlobalNumberOfNodes(ModelPart const& rModelPart)
-{
-    int number_of_nodes = rModelPart.NumberOfNodes();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(number_of_nodes);
 }
 
-int GlobalNumberOfElements(ModelPart const& rModelPart)
+ModelPartIO::ModelPartIO(
+    Parameters Settings,
+    File::Pointer pFile)
+    : mpFile(pFile)
 {
-    int number_of_elems = rModelPart.NumberOfElements();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(number_of_elems);
+    Parameters default_params(R"(
+        {
+            "prefix"           : ""
+        })");
+
+    Settings.AddMissingParameters(default_params);
+    mPrefix = Settings["prefix"].GetString();
 }
 
-int GlobalNumberOfConditions(ModelPart const& rModelPart)
-{
-    int number_of_conds = rModelPart.NumberOfConditions();
-    return rModelPart.GetCommunicator().GetDataCommunicator().SumAll(number_of_conds);
-}
-}
-
-ModelPartIO::ModelPartIO(File::Pointer pFile, std::string const& rPrefix)
-: mpFile(pFile), mPrefix(rPrefix)
+ModelPartIO::ModelPartIO(
+    const std::string& rPrefix,
+    File::Pointer pFile)
+    : mpFile(pFile),
+      mPrefix(rPrefix)
 {
 }
 
@@ -102,9 +129,10 @@ void ModelPartIO::WriteProperties(PropertiesContainerType const& rProperties)
     Internals::WriteProperties(*mpFile, mPrefix, rProperties);
 }
 
-void ModelPartIO::ReadElements(NodesContainerType& rNodes,
-                               PropertiesContainerType& rProperties,
-                               ElementsContainerType& rElements)
+void ModelPartIO::ReadElements(
+    NodesContainerType& rNodes,
+    PropertiesContainerType& rProperties,
+    ElementsContainerType& rElements)
 {
     KRATOS_TRY;
 
@@ -141,9 +169,10 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
     KRATOS_CATCH("");
 }
 
-void ModelPartIO::ReadConditions(NodesContainerType& rNodes,
-                                 PropertiesContainerType& rProperties,
-                                 ConditionsContainerType& rConditions)
+void ModelPartIO::ReadConditions(
+    NodesContainerType& rNodes,
+    PropertiesContainerType& rProperties,
+    ConditionsContainerType& rConditions)
 {
     KRATOS_TRY;
 
@@ -184,15 +213,23 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     KRATOS_TRY;
 
     BuiltinTimer timer;
+
     Internals::WriteVariablesList(*mpFile, mPrefix, rModelPart);
     Internals::WriteBufferSize(*mpFile, mPrefix, rModelPart.GetBufferSize());
     WriteProperties(rModelPart.rProperties());
     Internals::WriteDataValueContainer(*mpFile, mPrefix + "/ProcessInfo", rModelPart.GetProcessInfo());
-    rModelPart.Nodes().Sort(); // Avoid inadvertently reordering partway through
-                               // the writing process.
+
+    // Avoid inadvertently reordering partway through
+    // the writing process.
+    rModelPart.Nodes().Unique();
+    rModelPart.Conditions().Unique();
+    rModelPart.Elements().Unique();
+
     WriteNodes(rModelPart.Nodes());
     WriteElements(rModelPart.Elements());
     WriteConditions(rModelPart.Conditions());
+
+    // writing submodel parts
     mpFile->AddPath(mPrefix + "/SubModelParts");
     WriteSubModelParts(rModelPart.SubModelParts(), mPrefix + "/SubModelParts");
 
@@ -208,13 +245,16 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
     KRATOS_TRY;
 
     BuiltinTimer timer;
+
     ReadProperties(rModelPart.rProperties());
     Internals::ReadDataValueContainer(*mpFile, mPrefix + "/ProcessInfo", rModelPart.GetProcessInfo());
+
     ReadNodes(rModelPart.Nodes());
     ReadElements(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Elements());
     ReadConditions(rModelPart.Nodes(), rModelPart.rProperties(), rModelPart.Conditions());
     Internals::ReadAndAssignVariablesList(*mpFile, mPrefix, rModelPart);
     Internals::ReadAndAssignBufferSize(*mpFile, mPrefix, rModelPart);
+
     for (const auto& r_sub_model_part_name : mpFile->GetGroupNames(mPrefix + "/SubModelParts")) {
         ReadSubModelParts(rModelPart, mPrefix + "/SubModelParts/" + r_sub_model_part_name);
     }
@@ -272,22 +312,23 @@ std::vector<std::size_t> ModelPartIO::ReadEntityIds(std::string const& rPath) co
 void ModelPartIO::WriteSubModelParts(ModelPart::SubModelPartsContainerType const& rSubModelPartsContainer, const std::string& GroupName)
 {
     for (const auto& r_sub_model_part : rSubModelPartsContainer) {
-        WriteInfo info;
         const std::string sub_model_part_path = GroupName + "/" + r_sub_model_part.Name();
+
+        const auto& r_communicator = r_sub_model_part.GetCommunicator();
+
         mpFile->AddPath(sub_model_part_path);
-        if (GlobalNumberOfNodes(r_sub_model_part) > 0)
-        {
-            WriteContainerIds(*mpFile, sub_model_part_path + "/NodeIds", r_sub_model_part.Nodes(), info);
-            StoreWriteInfo(sub_model_part_path + "/NodeIds", info);
+
+        if (r_communicator.GlobalNumberOfNodes() > 0) {
+            WriteContainerIds(*mpFile, sub_model_part_path + "/NodeIds", r_sub_model_part.Nodes());
         }
-        if (GlobalNumberOfElements(r_sub_model_part) > 0)
-        {
-            ModelPartIO current_model_part_io(mpFile, sub_model_part_path);
+
+        if (r_communicator.GlobalNumberOfElements() > 0) {
+            ModelPartIO current_model_part_io(sub_model_part_path, mpFile);
             current_model_part_io.WriteElements(r_sub_model_part.Elements());
         }
-        if (GlobalNumberOfConditions(r_sub_model_part) > 0)
-        {
-            ModelPartIO current_model_part_io(mpFile, sub_model_part_path);
+
+        if (r_communicator.GlobalNumberOfConditions() > 0) {
+            ModelPartIO current_model_part_io(sub_model_part_path, mpFile);
             current_model_part_io.WriteConditions(r_sub_model_part.Conditions());
         }
 
