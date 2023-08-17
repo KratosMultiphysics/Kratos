@@ -16,14 +16,14 @@
 
 // Project includes
 #include "includes/model_part.h"
-#include "custom_processes/set_automated_initial_variable_process.h"
+#include "custom_processes/set_automated_initial_variable_process_cylindrical.h"
 #include "utilities/parallel_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
 namespace Kratos
 {
-SetAutomatedInitialVariableProcess::SetAutomatedInitialVariableProcess(
+SetAutomatedInitialVariableProcessCylindrical::SetAutomatedInitialVariableProcessCylindrical(
     ModelPart& rThisModelPart,
     Parameters ThisParameters
     ):mrThisModelPart(rThisModelPart),
@@ -35,7 +35,7 @@ SetAutomatedInitialVariableProcess::SetAutomatedInitialVariableProcess(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void SetAutomatedInitialVariableProcess::ExecuteInitialize()
+void SetAutomatedInitialVariableProcessCylindrical::ExecuteInitialize()
 {
     
     KRATOS_TRY
@@ -114,7 +114,7 @@ void SetAutomatedInitialVariableProcess::ExecuteInitialize()
 /***********************************************************************************/
 /***********************************************************************************/
 
-const Parameters SetAutomatedInitialVariableProcess::GetDefaultParameters() const
+const Parameters SetAutomatedInitialVariableProcessCylindrical::GetDefaultParameters() const
 {
     const Parameters default_parameters = Parameters(R"(
     {
