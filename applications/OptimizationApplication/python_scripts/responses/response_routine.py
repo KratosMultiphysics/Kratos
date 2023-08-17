@@ -92,7 +92,7 @@ class ResponseRoutine:
         if self.__response_value is None:
             self.my_current_control_field = control_field.Clone()
         diff = self.my_current_control_field - control_field
-        norm = KratosOA.ExpressionUtils.NormInf(diff) 
+        norm = KratosOA.ExpressionUtils.NormInf(diff)
         if norm > 1e-12:
             compute_response_value_flag = True
         compute_response_value_flag = compute_response_value_flag or self.__response_value is None

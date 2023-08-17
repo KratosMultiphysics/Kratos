@@ -62,7 +62,7 @@ class StandardizedConstraint(ResponseRoutine):
         else:
             raise RuntimeError(f"Provided \"reference_type\" = {self.__ref_type} is not supported for constraint response functions. Followings are supported options: \n\tinitial_value\n\tfloat value")
 
-        self.__violation_scaling = parameters["violation_scaling"].GetDouble() 
+        self.__violation_scaling = parameters["violation_scaling"].GetDouble()
         self.__constraint_type = parameters["type"].GetString()
         if self.__constraint_type in ["<=", "="]:
             self.__scaling = scaling
@@ -131,7 +131,7 @@ class StandardizedConstraint(ResponseRoutine):
 
     def GetStandardizedValue(self, step_index: int = 0) -> float:
         return self.GetValue(step_index) * self.__scaling - self.GetStandardizedReferenceValue()
-    
+
     def GetScaledViolationValue(self, step_index: int = 0) -> float:
         value = self.GetStandardizedValue(step_index)
         if value < 0.0:

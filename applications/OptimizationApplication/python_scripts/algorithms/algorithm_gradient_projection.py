@@ -118,7 +118,7 @@ class AlgorithmGradientProjection(Algorithm):
             for i in range(number_of_active_constraints):
                 for j in range(i, number_of_active_constraints):
                     ntn[i, j] = KratosOA.ExpressionUtils.InnerProduct(constr_grad[i], constr_grad[j])
-                    ntn[j, i] = ntn[i, j]        
+                    ntn[j, i] = ntn[i, j]
 
                 # get the inverse of ntn
                 ntn_inverse = Kratos.Matrix(number_of_active_constraints, number_of_active_constraints)
@@ -150,7 +150,7 @@ class AlgorithmGradientProjection(Algorithm):
         if len(collective_list) != vector.Size():
             raise RuntimeError(f"Collective list size and vector size mismatch. [ Collective list size = {len(collective_list)}, vector size = {vector.Size()}]")
         if len(collective_list) == 0:
-            raise RuntimeError(f"Collective lists cannot be empty.")
+            raise RuntimeError("Collective lists cannot be empty.")
 
         result = collective_list[0].Clone() * 0.0
         for i, collective_list_item in enumerate(collective_list):
@@ -188,9 +188,9 @@ class AlgorithmGradientProjection(Algorithm):
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
                 obj_info = self.__objective.GetInfo()
                 self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
-                self.algorithm_data.GetBufferedData()["rel_obj[%]"] = obj_info["rel_change [%]"]
+                self.algorithm_data.GetBufferedData()["rel_change[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
-                    self.algorithm_data.GetBufferedData()["abs_obj[%]"] = obj_info["abs_change [%]"]
+                    self.algorithm_data.GetBufferedData()["abs_change[%]"] = obj_info["abs_change [%]"]
 
                 obj_grad = self.__objective.CalculateStandardizedGradient()
 
