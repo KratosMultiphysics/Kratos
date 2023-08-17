@@ -43,9 +43,6 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Short class definition.
-/** Detail class definition.
-*/
 class KRATOS_API(MED_APPLICATION) KratosMedApplication : public KratosApplication {
 public:
     ///@name Type Definitions
