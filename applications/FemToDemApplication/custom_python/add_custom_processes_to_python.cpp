@@ -21,7 +21,6 @@
 #include "custom_processes/compute_normalized_free_energy_on_nodes_process.h"
 #include "custom_processes/damage_to_nodes_process.hpp"
 #include "custom_processes/dem_after_remesh_identificator_process.hpp"
-#include "custom_processes/initial_dem_skin_process.hpp"
 #include "custom_processes/extend_pressure_condition_process.h"
 #include "custom_processes/assign_pressure_id_process.h"
 #include "custom_processes/expand_wet_nodes_process.h"
@@ -111,10 +110,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
     class_<DemAfterRemeshIdentificatorProcess, DemAfterRemeshIdentificatorProcess::Pointer, Process>(m, "DemAfterRemeshIdentificatorProcess")
         .def(init<ModelPart &, const double >())
         .def("Execute", &DemAfterRemeshIdentificatorProcess::Execute);
-
-    class_<InitialDemSkinProcess, InitialDemSkinProcess::Pointer, Process>(m, "InitialDemSkinProcess")
-        .def(init<ModelPart &>())
-        .def("Execute", &InitialDemSkinProcess::Execute);
 
     class_<ExtendPressureConditionProcess<2>, ExtendPressureConditionProcess<2>::Pointer, Process>(m, "ExtendPressureConditionProcess2D")
         .def(init<ModelPart &>())
