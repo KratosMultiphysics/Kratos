@@ -7,14 +7,13 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Alejandro Cornejo
+//  Main authors:    Alireza Taherzadeh-Fard
 //
 //
 
 # pragma once
 
 // System includes
-#include <atomic>
 
 // External includes
 
@@ -32,10 +31,10 @@ namespace Kratos
 
 /**
  * @class HCFDataContainer
- * @ingroup StructuralMechanicsApplication
- * @brief Define the initial state of the material in terms of initial stress/strain/F
- * @details Storages the information regarding initial stresses/strains/F
- * @author Alejandro Cornejo
+ * @ingroup ConstitutiveLawsApplication
+ * @brief Defining all the methods and variables required in fatigue simulations
+ * @details Give access to methods and restores all member variables in fatigue simulations
+ * @author Alireza Taherzadeh-Fard
  */
 class HCFDataContainer
 {
