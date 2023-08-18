@@ -3,7 +3,7 @@
         "problem_name"  : "coupled_problem",
         "parallel_type" : "OpenMP",
         "start_time"    : 0.0,
-        "end_time"      : 50,
+        "end_time"      : 5.0,
         "echo_level"    : 0
     },
     "solver_settings"  : {
@@ -132,7 +132,7 @@
                 "gauss_points_check_variables" : ["VON_MISES_STRESS"],
                 "input_file_name"              : "thermo_mechanical_tests/thermo_mechanical_accessor/coupled_accessor_test_results.json",
                 "model_part_name"               : "Structure.Parts_Solid_Solid_Auto1",
-                "time_frequency"                : 2.0
+                "time_frequency"                : 1.0
             }
         }]
 	//"_json_output_process" : [{
@@ -145,7 +145,7 @@
 	//		"gauss_points_output_variables" : ["VON_MISES_STRESS"],
 	//		"output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_accessor/coupled_accessor_test_results.json",
 	//		"model_part_name"               : "Structure.Parts_Solid_Solid_Auto1",
-	//		"time_frequency"                : 2.0
+	//		"time_frequency"                : 1.0
 	//	}
 	//}]
     },
