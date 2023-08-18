@@ -31,6 +31,7 @@
 #include "custom_io/hdf5_data_value_container_io.h"
 #include "custom_io/hdf5_vertex_container_io.h"
 #include "custom_io/hdf5_container_component_io.h"
+#include "custom_io/hdf5_expression_io.h"
 
 #include "custom_utilities/container_io_utils.h"
 
@@ -328,6 +329,21 @@ void AddCustomIOToPython(pybind11::module& m)
     py::class_<HDF5::VertexContainerVariableIO, HDF5::VertexContainerVariableIO::Pointer>(m, "VertexContainerVariableIO")
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", &HDF5::VertexContainerVariableIO::Write, py::arg("vertices"), py::arg("attributes") = Parameters("""{}"""))
+        ;
+
+    py::class_<HDF5::ExpressionIO, HDF5::ExpressionIO::Pointer>(m, "ExpressionIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def("Write",  [](HDF5::ExpressionIO& rSelf, const std::string& rExpressionName, const Expression& rExpression, Parameters Attributes){ rSelf.Write(rExpressionName, rExpression, Attributes); } , py::arg("expression_name"), py::arg("expression"), py::arg("attributes") = Parameters("""{}"""))
+        .def("Write",  [](HDF5::ExpressionIO& rSelf, const std::string& rContainerExpressionName, const ContainerExpression<HDF5::NodesContainerType>& rContainerExpression, Parameters Attributes){ rSelf.Write(rContainerExpressionName, rContainerExpression, Attributes); } , py::arg("container_expression_name"), py::arg("nodal_container_expression"), py::arg("attributes") = Parameters("""{}"""))
+        .def("Write",  [](HDF5::ExpressionIO& rSelf, const std::string& rContainerExpressionName, const ContainerExpression<HDF5::ConditionsContainerType>& rContainerExpression, Parameters Attributes){ rSelf.Write(rContainerExpressionName, rContainerExpression, Attributes); } , py::arg("container_expression_name"), py::arg("condition_container_expression"), py::arg("attributes") = Parameters("""{}"""))
+        .def("Write",  [](HDF5::ExpressionIO& rSelf, const std::string& rContainerExpressionName, const ContainerExpression<HDF5::ElementsContainerType>& rContainerExpression, Parameters Attributes){ rSelf.Write(rContainerExpressionName, rContainerExpression, Attributes); } , py::arg("container_expression_name"), py::arg("elemen_container_expression"), py::arg("attributes") = Parameters("""{}"""))
+        // this need to be thought through since, in core the trampoline class is exposed.
+        // .def("Read",  [](HDF5::ExpressionIO& rSelf, const std::string& rExpressionName) { auto data = rSelf.Read(rExpressionName); }, py::arg("expression_name"); return std::)
+        .def("Read",  [](HDF5::ExpressionIO& rSelf, const std::string& rContainerExpressionName, ContainerExpression<HDF5::NodesContainerType>& rContainerExpression){ return rSelf.Read(rContainerExpressionName, rContainerExpression); } , py::arg("container_expression_name"), py::arg("nodal_container_expression"))
+        .def("Read",  [](HDF5::ExpressionIO& rSelf, const std::string& rContainerExpressionName, ContainerExpression<HDF5::ConditionsContainerType>& rContainerExpression){ return rSelf.Read(rContainerExpressionName, rContainerExpression); } , py::arg("container_expression_name"), py::arg("condition_container_expression"))
+        .def("Read",  [](HDF5::ExpressionIO& rSelf, const std::string& rContainerExpressionName, ContainerExpression<HDF5::ElementsContainerType>& rContainerExpression){ return rSelf.Read(rContainerExpressionName, rContainerExpression); } , py::arg("container_expression_name"), py::arg("elemen_container_expression"))
+        .def("GetExpressionNames", &HDF5::ExpressionIO::GetExpressionNames)
+        .def("GetExpressionNames", &HDF5::ExpressionIO::GetContainerExpressionNames)
         ;
 
 #ifdef KRATOS_USING_MPI
