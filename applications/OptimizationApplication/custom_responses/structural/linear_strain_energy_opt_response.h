@@ -22,7 +22,7 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "custom_responses/response.h"
-
+#include "geometries/geometry.h"
 // ==============================================================================
 
 namespace Kratos
@@ -77,7 +77,7 @@ public:
                         mDelta = delta;
                     }
                     else
-                        KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;                    
+                        KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: semi_analytic" << std::endl;
                 }
             }
         }
@@ -110,7 +110,7 @@ public:
 
             KRATOS_ERROR_IF_NOT(controlled_model_part.Elements().size()>0)
                 <<"LinearStrainEnergyOptResponse::Initialize: controlled object "<<controlled_obj<<" for "<<control_type<<" sensitivity must have elements !"<<std::endl;
-                   
+
         }
     };
     // --------------------------------------------------------------------------
@@ -142,7 +142,7 @@ public:
             }
         }
         return total_strain_energy;
-    };    
+    };
 
 
     // --------------------------------------------------------------------------
@@ -159,50 +159,66 @@ public:
             if(control_type=="shape"){
                 grad_field_name = mrResponseSettings["gradient_settings"]["shape_gradient_field_name"].GetString();
                 VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<array_1d<double,3>>>::Get(grad_field_name), controlled_model_part.Nodes());
-                #pragma omp parallel for
-                for (auto& elem_i : controlled_model_part.Elements())
-                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
-                        CalculateElementShapeGradients(elem_i,grad_field_name,CurrentProcessInfo);
+
+                #pragma omp parallel
+                {
+                    Element::NodesArrayType node_array;
+                    const auto& r_geometry_orig = controlled_model_part.ElementsBegin()->GetGeometry().GetGeometryParent(0);
+                    for (auto& node_i : r_geometry_orig){
+                        Element::NodeType::Pointer node_p = node_i.Clone();
+                        node_array.push_back(node_p);
+                    }
+                    auto p_new_parent = r_geometry_orig.Create(node_array);
+
+                    const auto el_it_begin = controlled_model_part.ElementsBegin();
+                    #pragma omp for
+                    for (int i = 0; i < static_cast<int>(controlled_model_part.NumberOfElements()); ++i) {
+                        auto el_it = (el_it_begin+i);
+                        if(el_it->IsDefined(ACTIVE) ? el_it->Is(ACTIVE) : true) {
+                            CalculateElementShapeGradients(*el_it, p_new_parent.get(), grad_field_name,CurrentProcessInfo);
+                        }
+                    }
+                }
 
                 // for (auto& cond_i : controlled_model_part.Conditions())
                 //     if(cond_i.IsDefined(ACTIVE) ? cond_i.Is(ACTIVE) : true)
                 //         CalculateConditionShapeGradients(cond_i,grad_field_name,CurrentProcessInfo);
-            }                
+            }
             else if(control_type=="material"){
                 grad_field_name = mrResponseSettings["gradient_settings"]["material_gradient_field_name"].GetString();
-                VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());  
+                VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());
                 #pragma omp parallel for
                 for (auto& elem_i : controlled_model_part.Elements())
-                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
                         CalculateElementMaterialGradients(elem_i,grad_field_name,CurrentProcessInfo);
             }
             else if(control_type=="thickness"){
                 grad_field_name = mrResponseSettings["gradient_settings"]["thickness_gradient_field_name"].GetString();
-                VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());  
+                VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<double>>::Get(grad_field_name), controlled_model_part.Nodes());
                 #pragma omp parallel for
                 for (auto& elem_i : controlled_model_part.Elements())
-                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
                         CalculateElementThicknessGradients(elem_i,grad_field_name,CurrentProcessInfo);
-            }            
+            }
 
         }
 
 		KRATOS_CATCH("");
- 
-    };  
 
-    void CalculateElementShapeGradients(Element& elem_i, std::string shape_gradien_name, const ProcessInfo &rCurrentProcessInfo){
+    };
 
-        Element::NodesArrayType node_array;
-        for (auto& node_i : elem_i.GetGeometry()){
-            Element::NodeType::Pointer node_p = node_i.Clone();
-            node_array.push_back(node_p);
-        }
+    void CalculateElementShapeGradients(Element& elem_i, Geometry<Element::NodeType>* rParentGeometry, std::string shape_gradien_name, const ProcessInfo &rCurrentProcessInfo){
 
-        Element::Pointer p_elem = elem_i.Create(elem_i.Id(),elem_i.pGetGeometry(), elem_i.pGetProperties());
-        p_elem->SetData(elem_i.GetData());
+        GeometryType::GeometriesArrayType geometry_list;
+        const IntegrationMethod this_integration_method = elem_i.GetGeometry().GetDefaultIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points = elem_i.GetGeometry().IntegrationPoints(this_integration_method);
+        IntegrationInfo integration_info = rParentGeometry->GetDefaultIntegrationInfo();
+        rParentGeometry->CreateQuadraturePointGeometries(geometry_list, 2, integration_points, integration_info);
+
+        Element::Pointer p_elem = elem_i.Create(elem_i.Id(), geometry_list(0), elem_i.pGetProperties());
+        //p_elem->SetData(elem_i.GetData());
         p_elem->Set(Flags(elem_i));
-        p_elem->Initialize(rCurrentProcessInfo); 
+        p_elem->Initialize(rCurrentProcessInfo);
 
         Vector u;
         Vector lambda;
@@ -222,7 +238,7 @@ public:
             array_3d gradient_contribution(3, 0.0);
             Vector RHS_perturbed = Vector(RHS.size());
             Vector derived_RHS = Vector(RHS.size());
-            
+
             // x-direction
             node_i.GetInitialPosition()[0] += mDelta;
             node_i.Coordinates()[0] += mDelta;
@@ -258,11 +274,10 @@ public:
             #pragma omp atomic
             r_nodal_variable[1] += gradient_contribution[1];
             #pragma omp atomic
-            r_nodal_variable[2] += gradient_contribution[2];                        
+            r_nodal_variable[2] += gradient_contribution[2];
             // node_i.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(shape_gradien_name)) += gradient_contribution;
             node_iter++;
         }
-
     };
 
     void CalculateConditionShapeGradients(Condition& cond_i, std::string shape_gradien_name, const ProcessInfo &rCurrentProcessInfo){
@@ -276,13 +291,13 @@ public:
         Condition::Pointer p_cond = cond_i.Create(cond_i.Id(),node_array, cond_i.pGetProperties());
         p_cond->SetData(cond_i.GetData());
         p_cond->Set(Flags(cond_i));
-        p_cond->Initialize(rCurrentProcessInfo);         
+        p_cond->Initialize(rCurrentProcessInfo);
 
         Vector u;
         Vector lambda;
         Vector RHS;
 
-        // Get state solution        
+        // Get state solution
         p_cond->GetValuesVector(u,0);
 
         // Get adjoint variables (Corresponds to 1/2*u)
@@ -296,7 +311,7 @@ public:
             array_3d gradient_contribution(3, 0.0);
             Vector RHS_perturbed = Vector(RHS.size());
             Vector derived_RHS = Vector(RHS.size());
-            
+
             // x-direction
             node_i.GetInitialPosition()[0] += mDelta;
             node_i.Coordinates()[0] += mDelta;
@@ -332,7 +347,7 @@ public:
             #pragma omp atomic
             r_nodal_variable[1] += gradient_contribution[1];
             #pragma omp atomic
-            r_nodal_variable[2] += gradient_contribution[2];                        
+            r_nodal_variable[2] += gradient_contribution[2];
             // node_i.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(shape_gradien_name)) += gradient_contribution;
             node_iter++;
         }
@@ -347,7 +362,7 @@ public:
 
         Vector u;
         Vector lambda;
-        
+
         // Get state solution
         const auto& rConstElemRef = elem_i;
         rConstElemRef.GetValuesVector(u,0);
@@ -368,7 +383,7 @@ public:
             r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(material_gradien_name)) += d_pe_d_fd * inner_prod(d_RHS_d_E,lambda) / number_of_nodes;
         }
 
-    };        
+    };
 
 
     void CalculateElementThicknessGradients(Element& elem_i, std::string thickness_gradien_name, const ProcessInfo &rCurrentProcessInfo){
@@ -378,7 +393,7 @@ public:
 
         Vector u;
         Vector lambda;
-        
+
         // Get state solution
         const auto& rConstElemRef = elem_i;
         rConstElemRef.GetValuesVector(u,0);
@@ -397,11 +412,11 @@ public:
             const auto& d_ppt_d_ft = r_this_geometry[i_node].FastGetSolutionStepValue(D_PPT_D_FT);
             #pragma omp atomic
             r_this_geometry[i_node].FastGetSolutionStepValue(KratosComponents<Variable<double>>::Get(thickness_gradien_name)) += d_ppt_d_ft * inner_prod(d_RHS_d_T,lambda) / number_of_nodes;
-        }    
+        }
     };
 
     // --------------------------------------------------------------------------
-       
+
     ///@}
     ///@name Access
     ///@{
@@ -452,7 +467,7 @@ protected:
 
     // Initialized by class constructor
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{

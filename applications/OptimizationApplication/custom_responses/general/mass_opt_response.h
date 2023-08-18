@@ -22,6 +22,7 @@
 // Project includes
 // ------------------------------------------------------------------------------
 #include "custom_responses/response.h"
+#include "utilities/geometry_utilities.h"
 
 // ==============================================================================
 
@@ -77,7 +78,7 @@ public:
                         mDelta = delta;
                     }
                     else
-                        KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: finite_differencing" << std::endl;                    
+                        KRATOS_ERROR << "Specified gradient_mode '" << gradient_mode << "' not recognized. The only option is: finite_differencing" << std::endl;
                 }
             }
         }
@@ -110,7 +111,7 @@ public:
 
             KRATOS_ERROR_IF_NOT(controlled_model_part.Elements().size()>0)
                 <<"MassOptResponse::Initialize: controlled object "<<controlled_obj<<" for "<<control_type<<" sensitivity must have elements !"<<std::endl;
-                   
+
         }
     };
     // --------------------------------------------------------------------------
@@ -127,7 +128,7 @@ public:
 			}
         }
         return total_mass;
-    };    
+    };
 
     double CalculateElementMass(Element& elem_i, const std::size_t DomainSize){
         // We get the element geometry
@@ -135,21 +136,21 @@ public:
         const std::size_t local_space_dimension = r_this_geometry.LocalSpaceDimension();
 
         double volume_area = 0.0;
-        const IntegrationMethod this_integration_method = r_this_geometry.GetDefaultIntegrationMethod();    
+        const IntegrationMethod this_integration_method = r_this_geometry.GetDefaultIntegrationMethod();
         const GeometryType::IntegrationPointsArrayType& integration_points = r_this_geometry.IntegrationPoints(this_integration_method);
         for(std::size_t i_point = 0; i_point<integration_points.size(); ++i_point)
         {
             Matrix J0;
-            GeometryUtils::JacobianOnInitialConfiguration(r_this_geometry, integration_points[i_point], J0); 
+            GeometryUtils::JacobianOnInitialConfiguration(r_this_geometry, integration_points[i_point], J0);
             volume_area += integration_points[i_point].Weight() * MathUtils<double>::GeneralizedDet(J0);
-        }           
+        }
 
 
         double element_mass = 0;
         if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS) && elem_i.GetProperties().Has(PT))
             element_mass = volume_area * elem_i.GetProperties().GetValue(PT) * elem_i.GetProperties().GetValue(DENSITY);
         else if (local_space_dimension == 2 && DomainSize == 3 && elem_i.GetProperties().Has(THICKNESS))
-            element_mass = volume_area * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);            
+            element_mass = volume_area * elem_i.GetProperties().GetValue(THICKNESS) * elem_i.GetProperties().GetValue(DENSITY);
         else if (local_space_dimension == 3 && DomainSize == 3)
             element_mass = volume_area * elem_i.GetProperties().GetValue(DENSITY);
         else
@@ -171,44 +172,58 @@ public:
             auto control_type = mrResponseSettings["control_types"][i].GetString();
             if(control_type=="shape"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_X, controlled_model_part.Nodes());
-                #pragma omp parallel for
-                for (auto& elem_i : controlled_model_part.Elements())
-                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
-                        CalculateElementShapeGradients(elem_i,domain_size,CurrentProcessInfo);
+                #pragma omp parallel
+                {
+                    Element::NodesArrayType node_array;
+                    const auto& r_geometry_orig = controlled_model_part.ElementsBegin()->GetGeometry().GetGeometryParent(0);
+                    for (auto& node_i : r_geometry_orig){
+                        Element::NodeType::Pointer node_p = node_i.Clone();
+                        node_array.push_back(node_p);
+                    }
+                    auto p_new_parent = r_geometry_orig.Create(node_array);
+                    const auto el_it_begin = controlled_model_part.ElementsBegin();
+                    #pragma omp for
+                    for (int i = 0; i < static_cast<int>(controlled_model_part.NumberOfElements()); ++i) {
+                        auto el_it = (el_it_begin+i);
+                        if(el_it->IsDefined(ACTIVE) ? el_it->Is(ACTIVE) : true) {
+                            CalculateElementShapeGradients(*el_it,(p_new_parent.get()), domain_size,CurrentProcessInfo);
+                        }
+                    }
+                }
             }
             else if(control_type=="material"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_FD, controlled_model_part.Nodes());
                 #pragma omp parallel for
                 for (auto& elem_i : controlled_model_part.Elements())
-                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
-                        CalculateElementMaterialGradients(elem_i,domain_size);              
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
+                        CalculateElementMaterialGradients(elem_i,domain_size);
             }
             else if(control_type=="thickness"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_FT, controlled_model_part.Nodes());
                 #pragma omp parallel for
                 for (auto& elem_i : controlled_model_part.Elements())
-                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)  
-                        CalculateElementThicknessGradients(elem_i,domain_size);              
-            }            
-            
+                    if(elem_i.IsDefined(ACTIVE) ? elem_i.Is(ACTIVE) : true)
+                        CalculateElementThicknessGradients(elem_i,domain_size);
+            }
+
         }
 
 		KRATOS_CATCH("");
- 
-    };  
 
-    void CalculateElementShapeGradients(Element& elem_ii, const std::size_t DomainSize, const ProcessInfo &rCurrentProcessInfo){
+    };
 
-        Element::NodesArrayType node_array;
-        for (auto& node_i : elem_ii.GetGeometry()){
-            Element::NodeType::Pointer node_p = node_i.Clone();
-            node_array.push_back(node_p);
-        }
+    void CalculateElementShapeGradients(Element& elem_i, Geometry<Element::NodeType>* rParentGeometry, const std::size_t DomainSize, const ProcessInfo &rCurrentProcessInfo){
 
-        Element::Pointer p_elem = elem_ii.Create(elem_ii.Id(),elem_ii.pGetGeometry(), elem_ii.pGetProperties());
-        p_elem->SetData(elem_ii.GetData());
-        p_elem->Set(Flags(elem_ii));
-        p_elem->Initialize(rCurrentProcessInfo); 
+        GeometryType::GeometriesArrayType geometry_list;
+        const IntegrationMethod this_integration_method = elem_i.GetGeometry().GetDefaultIntegrationMethod();
+        const GeometryType::IntegrationPointsArrayType& integration_points = elem_i.GetGeometry().IntegrationPoints(this_integration_method);
+        IntegrationInfo integration_info = rParentGeometry->GetDefaultIntegrationInfo();
+        rParentGeometry->CreateQuadraturePointGeometries(geometry_list, 2, integration_points, integration_info);
+
+        Element::Pointer p_elem = elem_i.Create(elem_i.Id(), geometry_list(0), elem_i.pGetProperties());
+        //p_elem->SetData(elem_i.GetData());
+        p_elem->Set(Flags(elem_i));
+        p_elem->Initialize(rCurrentProcessInfo);
 
         // We get the element geometry
         auto& r_this_geometry = p_elem->GetGeometry();
@@ -224,7 +239,7 @@ public:
 
         for (SizeType i_node = 0; i_node < number_of_nodes; ++i_node){
 
-            array_3d gradient_contribution(3, 0.0);	
+            array_3d gradient_contribution(3, 0.0);
 
 			r_this_geometry[i_node].X() += mDelta;
 			r_this_geometry[i_node].X0() += mDelta;
@@ -238,23 +253,23 @@ public:
             mass_after_fd = CalculateElementMass(*p_elem,DomainSize);
 			gradient_contribution[1] = (mass_after_fd - mass_before_fd) / mDelta;
 			r_this_geometry[i_node].Y() -= mDelta;
-			r_this_geometry[i_node].Y0() -= mDelta;   
+			r_this_geometry[i_node].Y0() -= mDelta;
 
 			r_this_geometry[i_node].Z() += mDelta;
 			r_this_geometry[i_node].Z0() += mDelta;
             mass_after_fd = CalculateElementMass(*p_elem,DomainSize);
 			gradient_contribution[2] = (mass_after_fd - mass_before_fd) / mDelta;
 			r_this_geometry[i_node].Z() -= mDelta;
-			r_this_geometry[i_node].Z0() -= mDelta;                                  
+			r_this_geometry[i_node].Z0() -= mDelta;
 
             // Assemble sensitivity to node
-            array_3d& r_nodal_variable = elem_ii.GetGeometry()[i_node].FastGetSolutionStepValue(D_MASS_D_X);
+            array_3d& r_nodal_variable = elem_i.GetGeometry()[i_node].FastGetSolutionStepValue(D_MASS_D_X);
             #pragma omp atomic
             r_nodal_variable[0] += gradient_contribution[0];
             #pragma omp atomic
             r_nodal_variable[1] += gradient_contribution[1];
             #pragma omp atomic
-            r_nodal_variable[2] += gradient_contribution[2]; 
+            r_nodal_variable[2] += gradient_contribution[2];
 
         }
 
@@ -281,7 +296,7 @@ public:
             #pragma omp atomic
             r_this_geometry[i_node].FastGetSolutionStepValue(D_MASS_D_FD) += d_pd_d_fd * elem_dens_grad / number_of_nodes;
         }
-    };        
+    };
 
     void CalculateElementThicknessGradients(Element& elem_i, const std::size_t DomainSize){
 
@@ -304,7 +319,7 @@ public:
 
 
     // --------------------------------------------------------------------------
-       
+
     ///@}
     ///@name Access
     ///@{
@@ -355,7 +370,7 @@ protected:
 
     // Initialized by class constructor
 
-    
+
     ///@}
     ///@name Protected Operators
     ///@{
