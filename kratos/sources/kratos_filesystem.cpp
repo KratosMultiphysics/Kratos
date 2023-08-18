@@ -13,7 +13,6 @@
 // System includes
 #include <algorithm>
 #include <chrono>
-#include <filesystem>
 #include <set>
 #include <thread>
 

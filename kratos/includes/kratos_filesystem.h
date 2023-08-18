@@ -13,6 +13,7 @@
 #pragma once
 
 // System includes
+#include <filesystem>
 #include <string>
 #include <vector>
 
