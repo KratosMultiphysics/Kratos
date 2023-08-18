@@ -40,5 +40,5 @@ namespace Kratos::Python {
         py::class_<ElementDeactivationProcess, ElementDeactivationProcess::Pointer, Process>(m, "ElementDeactivationProcess")
             .def(py::init<ModelPart&, Parameters>());
     }
-} // namespace Python.
+} // namespace Kratos::Python..
 

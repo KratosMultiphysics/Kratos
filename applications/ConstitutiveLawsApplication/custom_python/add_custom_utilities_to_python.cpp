@@ -29,5 +29,5 @@ namespace Kratos::Python {
         namespace py = pybind11;
     }
 
-}  // namespace Python.
+}  // namespace Kratos::Python..
 

@@ -790,7 +790,7 @@ double AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateInGaussPoint(
     unsigned int step
     )
 {
-    const GeometryType& r_geometry = rParameters.GetElementGeometry();
+    const auto& r_geometry = rParameters.GetElementGeometry();
     const unsigned int number_of_nodes = r_geometry.size();
     const auto& r_shape_function = rParameters.GetShapeFunctionsValues();
     double result = 0.0;

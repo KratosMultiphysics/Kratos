@@ -474,8 +474,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      /**
      * @brief This computes the MacaullyBrackets of a double
      */
-    static double MacaullyBrackets(
-        const double Number);
+    static double MacaullyBrackets(const double Number);
 
     /**
      * @brief This substracts the thermal strain contribution to a vector
