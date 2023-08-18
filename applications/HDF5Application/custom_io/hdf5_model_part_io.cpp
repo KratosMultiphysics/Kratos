@@ -35,41 +35,15 @@ namespace Kratos
 {
 namespace HDF5
 {
-namespace
-{
-template <typename TContainer>
-void WriteContainerIds(
-    File& rFile,
-    const std::string& rPath,
-    const TContainer & rContainer)
-{
-    KRATOS_TRY;
-
-    Vector<int> ids;
-    ids.resize(rContainer.size());
-
-    IndexPartition<IndexType>(rContainer.size()).for_each([&rContainer, &ids](const auto Index) {
-        ids[Index] = (rContainer.begin() + Index)->Id();
-    });
-
-    WriteInfo info;
-    rFile.WriteDataSet(rPath, ids, info);
-    rFile.WriteAttribute(rPath, "Size", info.TotalSize);
-    WritePartitionTable(rFile, rPath, info);
-
-    KRATOS_CATCH("");
-}
-
-}
-
 ModelPartIO::ModelPartIO(
     Parameters Settings,
     File::Pointer pFile)
-    : mpFile(pFile)
+    : mpFile(pFile),
+      mWriteEntityProperyIds(true)
 {
     Parameters default_params(R"(
         {
-            "prefix"           : ""
+            "prefix": ""
         })");
 
     Settings.AddMissingParameters(default_params);
@@ -80,7 +54,18 @@ ModelPartIO::ModelPartIO(
     const std::string& rPrefix,
     File::Pointer pFile)
     : mpFile(pFile),
-      mPrefix(rPrefix)
+      mPrefix(rPrefix),
+      mWriteEntityProperyIds(true)
+{
+}
+
+ModelPartIO::ModelPartIO(
+    const std::string& rPrefix,
+    const bool WriteEntityPropertyIds,
+    File::Pointer pFile)
+    : mpFile(pFile),
+      mPrefix(rPrefix),
+      mWriteEntityProperyIds(WriteEntityPropertyIds)
 {
 }
 
@@ -163,7 +148,7 @@ void ModelPartIO::WriteElements(ElementsContainerType const& rElements)
     mpFile->AddPath(element_path);
     for (unsigned int i = 0; i < names.size(); ++i) {
         Internals::ConnectivitiesData<ElementsContainerType> connectivities(element_path, mpFile);
-        connectivities.Write(factored_elements[i]);
+        connectivities.Write(factored_elements[i], mWriteEntityProperyIds);
     }
 
     KRATOS_CATCH("");
@@ -202,7 +187,7 @@ void ModelPartIO::WriteConditions(ConditionsContainerType const& rConditions)
     mpFile->AddPath(condition_path);
     for (unsigned int i = 0; i < names.size(); ++i) {
         Internals::ConnectivitiesData<ConditionsContainerType> connectivities(condition_path, mpFile);
-        connectivities.Write(factored_conditions[i]);
+        connectivities.Write(factored_conditions[i], mWriteEntityProperyIds);
     }
 
     KRATOS_CATCH("");
@@ -263,53 +248,80 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
         << "Time to read model part \"" << rModelPart.Name()
         << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 
+    this->SetCommunicator(rModelPart);
+
     KRATOS_CATCH("");
 }
 
-std::tuple<unsigned, unsigned> ModelPartIO::StartIndexAndBlockSize(std::string const& rPath) const
+void ModelPartIO::SetCommunicator(ModelPart& rModelPart) const
 {
-    KRATOS_TRY;
-    int size;
-    mpFile->ReadAttribute(rPath, "Size", size);
-    return std::make_tuple(0, size);
-    KRATOS_CATCH("");
-}
+    KRATOS_TRY
 
-void ModelPartIO::StoreWriteInfo(std::string const& rPath, WriteInfo const& rInfo)
-{
-    KRATOS_TRY;
-    const int size = rInfo.TotalSize;
-    mpFile->WriteAttribute(rPath, "Size", size);
+    KRATOS_ERROR_IF(mpFile->GetDataCommunicator().IsDistributed()) << "Using ModelPartIO with an HDF5File which is MPI based.";
+
+    // set the serial communicator
+    if (rModelPart.GetCommunicator().IsDistributed()) {
+        rModelPart.SetCommunicator(Communicator().Create(mpFile->GetDataCommunicator()));
+    }
+
+    // now set local meshes and ghost meshes
+    auto& r_local_mesh = rModelPart.GetCommunicator().LocalMesh();
+    r_local_mesh.Nodes() = rModelPart.Nodes();
+    r_local_mesh.Conditions() = rModelPart.Conditions();
+    r_local_mesh.Elements() = rModelPart.Elements();
+
+    // set the sub model part communicators recursively.
+    for (auto& r_sub_model_part : rModelPart.SubModelParts()) {
+        this->SetCommunicator(r_sub_model_part);
+    }
+
     KRATOS_CATCH("");
 }
 
 std::vector<std::size_t> ModelPartIO::ReadContainerIds(std::string const& rPath) const
 {
-    unsigned start_index, block_size;
-    std::tie(start_index, block_size) = StartIndexAndBlockSize(rPath);
-    Vector<int> id_buf;
-    mpFile->ReadDataSet(rPath, id_buf, start_index, block_size);
-    std::vector<std::size_t> ids(id_buf.size());
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(ids.size()); ++i)
-        ids[i] = id_buf[i];
-    return ids;
-}
+    KRATOS_TRY
 
-std::vector<std::size_t> ModelPartIO::ReadEntityIds(std::string const& rPath) const
-{
     unsigned start_index, block_size;
-    std::tie(start_index, block_size) = StartIndexAndBlockSize(rPath);
+    std::tie(start_index, block_size) = HDF5::StartIndexAndBlockSize(*mpFile, rPath);
+
     Vector<int> id_buf;
     mpFile->ReadDataSet(rPath + "/Ids", id_buf, start_index, block_size);
     std::vector<std::size_t> ids(id_buf.size());
-#pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(ids.size()); ++i)
-        ids[i] = id_buf[i];
+
+    IndexPartition<IndexType>(id_buf.size()).for_each([&id_buf, &ids](const auto Index) {
+        ids[Index] = id_buf[Index];
+    });
+
     return ids;
+
+    KRATOS_CATCH("");
 }
 
-void ModelPartIO::WriteSubModelParts(ModelPart::SubModelPartsContainerType const& rSubModelPartsContainer, const std::string& GroupName)
+void ModelPartIO::WriteNodeIds(
+    const std::string& rPath,
+    const NodesContainerType & rNodes)
+{
+    KRATOS_TRY;
+
+    Vector<int> ids;
+    ids.resize(rNodes.size());
+
+    IndexPartition<IndexType>(rNodes.size()).for_each([&rNodes, &ids](const auto Index) {
+        ids[Index] = (rNodes.begin() + Index)->Id();
+    });
+
+    WriteInfo info;
+    mpFile->AddPath(rPath);
+    mpFile->WriteDataSet(rPath + "/Ids", ids, info);
+    WritePartitionTable(*mpFile, rPath, info);
+
+    KRATOS_CATCH("");
+}
+
+void ModelPartIO::WriteSubModelParts(
+    const ModelPart::SubModelPartsContainerType& rSubModelPartsContainer,
+    const std::string& GroupName)
 {
     for (const auto& r_sub_model_part : rSubModelPartsContainer) {
         const std::string sub_model_part_path = GroupName + "/" + r_sub_model_part.Name();
@@ -319,16 +331,16 @@ void ModelPartIO::WriteSubModelParts(ModelPart::SubModelPartsContainerType const
         mpFile->AddPath(sub_model_part_path);
 
         if (r_communicator.GlobalNumberOfNodes() > 0) {
-            WriteContainerIds(*mpFile, sub_model_part_path + "/NodeIds", r_sub_model_part.Nodes());
+            WriteNodeIds(sub_model_part_path + "/Nodes", r_sub_model_part.Nodes());
         }
 
         if (r_communicator.GlobalNumberOfElements() > 0) {
-            ModelPartIO current_model_part_io(sub_model_part_path, mpFile);
+            ModelPartIO current_model_part_io(sub_model_part_path, false,  mpFile);
             current_model_part_io.WriteElements(r_sub_model_part.Elements());
         }
 
         if (r_communicator.GlobalNumberOfConditions() > 0) {
-            ModelPartIO current_model_part_io(sub_model_part_path, mpFile);
+            ModelPartIO current_model_part_io(sub_model_part_path, false, mpFile);
             current_model_part_io.WriteConditions(r_sub_model_part.Conditions());
         }
 
@@ -339,22 +351,21 @@ void ModelPartIO::WriteSubModelParts(ModelPart::SubModelPartsContainerType const
 void ModelPartIO::ReadSubModelParts(ModelPart& rModelPart, const std::string& rPath)
 {
     auto& r_sub_model_part = rModelPart.CreateSubModelPart(rPath.substr(rPath.rfind("/") + 1));
-    if (mpFile->HasPath(rPath + "/NodeIds")) {
-        r_sub_model_part.AddNodes(ReadContainerIds(rPath + "/NodeIds"));
-    }
 
     const auto &group_names = mpFile->GetGroupNames(rPath);
     for (const auto &group_name : group_names) {
         const auto &current_path = rPath + "/" + group_name;
-        if (group_name == "Elements") {
+        if (group_name == "Nodes") {
+            r_sub_model_part.AddNodes(ReadContainerIds(current_path));
+        } else if (group_name == "Elements") {
             // iterate over all types of elements
             for (const auto &element_name : mpFile->GetGroupNames(current_path)) {
-                r_sub_model_part.AddElements(ReadEntityIds(current_path + "/" + element_name));
+                r_sub_model_part.AddElements(ReadContainerIds(current_path + "/" + element_name));
             }
         } else if (group_name == "Conditions") {
             // iterate over all types of conditions
             for (const auto &condition_name : mpFile->GetGroupNames(current_path)) {
-                r_sub_model_part.AddConditions(ReadEntityIds(current_path + "/" + condition_name));
+                r_sub_model_part.AddConditions(ReadContainerIds(current_path + "/" + condition_name));
             }
         } else {
             ReadSubModelParts(r_sub_model_part, current_path);

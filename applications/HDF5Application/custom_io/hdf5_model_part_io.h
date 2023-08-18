@@ -100,9 +100,7 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    virtual std::tuple<unsigned, unsigned> StartIndexAndBlockSize(std::string const& rPath) const;
-
-    virtual void StoreWriteInfo(std::string const& rPath, WriteInfo const& rInfo);
+    virtual void SetCommunicator(ModelPart& rModelPart) const;
 
     ///@}
     ///@name Member Variables
@@ -115,12 +113,29 @@ protected:
     ///@}
 
 private:
+    ///@name Private member variables
+    ///@{
+
+    const bool mWriteEntityProperyIds;
+
+    ///@}
+    ///@name Private life cycle
+    ///@{
+
+    ModelPartIO(
+        const std::string& rPrefix,
+        const bool WriteEntityPropertyIds,
+        File::Pointer pFile);
+
+    ///@}
     ///@name Private Operations
     ///@{
 
     std::vector<std::size_t> ReadContainerIds(std::string const& rPath) const;
 
-    std::vector<std::size_t> ReadEntityIds(std::string const& rPath) const;
+    void WriteNodeIds(
+        const std::string& rPath,
+        const NodesContainerType& rNodes);
 
     void WriteSubModelParts(
         const ModelPart::SubModelPartsContainerType& rSubModelPartsContainer,
