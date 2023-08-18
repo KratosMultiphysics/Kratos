@@ -59,7 +59,6 @@ std::tuple<unsigned, unsigned> StartIndexAndBlockSize(File& rFile, std::string c
         int size;
         rFile.ReadAttribute(partition_path, "Size", size);
         return std::make_tuple(0, size);
-
     }
 
     KRATOS_CATCH("");
