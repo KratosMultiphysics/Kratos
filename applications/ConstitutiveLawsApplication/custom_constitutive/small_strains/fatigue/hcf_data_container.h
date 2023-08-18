@@ -42,26 +42,26 @@ class HCFDataContainer
 public:
 
     struct FatigueVariables {
-        double max_stress = 0.0;
-        double min_stress = 0.0;
-        bool max_indicator = false;
-        bool min_indicator = false;
-        Vector previous_stresses = ZeroVector(2);
-        double fatigue_reduction_factor = 1.0;
-        double reversion_factor_relative_error = 0.0;
-        double max_stress_relative_error = 0.0;
-        unsigned int global_number_of_cycles = 1;
-        unsigned int local_number_of_cycles = 1;
+        double MaxStress = 0.0;
+        double MinStress = 0.0;
+        bool MaxIndicator = false;
+        bool MinIndicator = false;
+        Vector PreviousStresses = ZeroVector(2);
+        double FatigueReductionFactor = 1.0;
+        double ReversionFactorRelativeError = 0.0;
+        double MaxStressRelativeError = 0.0;
+        unsigned int GlobalNumberOfCycles = 1;
+        unsigned int LocalNumberOfCycles = 1;
         double B0 = 0.0;
-        double previous_max_stress = 0.0;
-        double previous_min_stress = 0.0;
-        double wohler_stress = 1.0;
-        double s_th = 0.0;
-        double cycles_to_failure = 0.0;
-        bool new_cycle = false;
-        double alphat = 0.0;
-        double previous_reversion_factor = 0.0;
-        double reversion_factor = 0.0;
+        double PreviousMaxStress = 0.0;
+        double PreviousMinStress = 0.0;
+        double WohlerStress = 1.0;
+        double Sth = 0.0;
+        double CyclesToFailure = 0.0;
+        bool NewCycle = false;
+        double Alphat = 0.0;
+        double PreviousReversionFactor = 0.0;
+        double ReversionFactor = 0.0;
     };
 
 	HCFDataContainer()
@@ -74,15 +74,15 @@ public:
                             )
     {
         HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(CurrentStress,
-                                                                            rFatigueVariables.max_stress,
-                                                                            rFatigueVariables.min_stress,
-                                                                            rFatigueVariables.previous_stresses,
-                                                                            rFatigueVariables.max_indicator,
-                                                                            rFatigueVariables.min_indicator);
+                                                                            rFatigueVariables.MaxStress,
+                                                                            rFatigueVariables.MinStress,
+                                                                            rFatigueVariables.PreviousStresses,
+                                                                            rFatigueVariables.MaxIndicator,
+                                                                            rFatigueVariables.MinIndicator);
         const Vector& r_aux_stresses = mPreviousStresses;
-        rFatigueVariables.previous_stresses[1] = CurrentStress;
-        rFatigueVariables.previous_stresses[0] = r_aux_stresses[1];
-        // mPreviousStresses = rFatigueVariables.previous_stresses;
+        rFatigueVariables.PreviousStresses[1] = CurrentStress;
+        rFatigueVariables.PreviousStresses[0] = r_aux_stresses[1];
+        // mPreviousStresses = rFatigueVariables.PreviousStresses;
     }
 
     double CalculateTensionOrCompressionIdentifier(const Vector& rStressVector)
@@ -97,26 +97,26 @@ public:
 
     void CalculateFatigueParameters(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables)
     {
-        HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(rFatigueVariables.max_stress,
-                                                                    rFatigueVariables.reversion_factor,
+        HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(rFatigueVariables.MaxStress,
+                                                                    rFatigueVariables.ReversionFactor,
                                                                     rMaterialParameters,
                                                                     rFatigueVariables.B0,
-                                                                    rFatigueVariables.s_th,
-                                                                    rFatigueVariables.alphat,
-                                                                    rFatigueVariables.cycles_to_failure);
+                                                                    rFatigueVariables.Sth,
+                                                                    rFatigueVariables.Alphat,
+                                                                    rFatigueVariables.CyclesToFailure);
     }
 
     void CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables)
     {
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rMaterialParameters,
-                                                                                        rFatigueVariables.max_stress,
-                                                                                        rFatigueVariables.local_number_of_cycles,
-                                                                                        rFatigueVariables.global_number_of_cycles,
+                                                                                        rFatigueVariables.MaxStress,
+                                                                                        rFatigueVariables.LocalNumberOfCycles,
+                                                                                        rFatigueVariables.GlobalNumberOfCycles,
                                                                                         rFatigueVariables.B0,
-                                                                                        rFatigueVariables.s_th,
-                                                                                        rFatigueVariables.alphat,
-                                                                                        rFatigueVariables.fatigue_reduction_factor,
-                                                                                        rFatigueVariables.wohler_stress);
+                                                                                        rFatigueVariables.Sth,
+                                                                                        rFatigueVariables.Alphat,
+                                                                                        rFatigueVariables.FatigueReductionFactor,
+                                                                                        rFatigueVariables.WohlerStress);
     }
 
     /**
@@ -125,23 +125,23 @@ public:
      */
     void InitializeFatigueVariables(HCFDataContainer::FatigueVariables &rFatigueVariables)
     {
-        rFatigueVariables.max_stress = mMaxStress;
-        rFatigueVariables.min_stress = mMinStress;
-        rFatigueVariables.max_indicator = mMaxDetected;
-        rFatigueVariables.min_indicator = mMinDetected;
-        rFatigueVariables.previous_stresses = mPreviousStresses;
-        rFatigueVariables.fatigue_reduction_factor = mFatigueReductionFactor;
-        rFatigueVariables.reversion_factor_relative_error = mReversionFactorRelativeError;
-        rFatigueVariables.max_stress_relative_error = mMaxStressRelativeError;
-        rFatigueVariables.global_number_of_cycles = mNumberOfCyclesGlobal;
-        rFatigueVariables.local_number_of_cycles = mNumberOfCyclesLocal;
+        rFatigueVariables.MaxStress = mMaxStress;
+        rFatigueVariables.MinStress = mMinStress;
+        rFatigueVariables.MaxIndicator = mMaxDetected;
+        rFatigueVariables.MinIndicator = mMinDetected;
+        rFatigueVariables.PreviousStresses = mPreviousStresses;
+        rFatigueVariables.FatigueReductionFactor = mFatigueReductionFactor;
+        rFatigueVariables.ReversionFactorRelativeError = mReversionFactorRelativeError;
+        rFatigueVariables.MaxStressRelativeError = mMaxStressRelativeError;
+        rFatigueVariables.GlobalNumberOfCycles = mNumberOfCyclesGlobal;
+        rFatigueVariables.LocalNumberOfCycles = mNumberOfCyclesLocal;
         rFatigueVariables.B0 = mFatigueReductionParameter;
-        rFatigueVariables.previous_max_stress = mPreviousMaxStress;
-        rFatigueVariables.previous_min_stress = mPreviousMinStress;
-        rFatigueVariables.wohler_stress = mWohlerStress;
-        rFatigueVariables.new_cycle = false;
-        rFatigueVariables.s_th = mThresholdStress;
-        rFatigueVariables.cycles_to_failure = mCyclesToFailure;
+        rFatigueVariables.PreviousMaxStress = mPreviousMaxStress;
+        rFatigueVariables.PreviousMinStress = mPreviousMinStress;
+        rFatigueVariables.WohlerStress = mWohlerStress;
+        rFatigueVariables.NewCycle = false;
+        rFatigueVariables.Sth = mThresholdStress;
+        rFatigueVariables.CyclesToFailure = mCyclesToFailure;
     }
 
     /**
@@ -149,21 +149,21 @@ public:
      */
     void UpdateFatigueVariables(HCFDataContainer::FatigueVariables &rFatigueVariables)
     {
-        mMaxStress = rFatigueVariables.max_stress;
-        mMinStress = rFatigueVariables.min_stress;
-        mMaxDetected = rFatigueVariables.max_indicator;
-        mMinDetected = rFatigueVariables.min_indicator;
-        mNumberOfCyclesGlobal = rFatigueVariables.global_number_of_cycles;
-        mNumberOfCyclesLocal = rFatigueVariables.local_number_of_cycles;
-        mNewCycleIndicator = rFatigueVariables.new_cycle;
+        mMaxStress = rFatigueVariables.MaxStress;
+        mMinStress = rFatigueVariables.MinStress;
+        mMaxDetected = rFatigueVariables.MaxIndicator;
+        mMinDetected = rFatigueVariables.MinIndicator;
+        mNumberOfCyclesGlobal = rFatigueVariables.GlobalNumberOfCycles;
+        mNumberOfCyclesLocal = rFatigueVariables.LocalNumberOfCycles;
+        mNewCycleIndicator = rFatigueVariables.NewCycle;
         mFatigueReductionParameter = rFatigueVariables.B0;
-        mPreviousMaxStress = rFatigueVariables.previous_max_stress;
-        mPreviousMinStress = rFatigueVariables.previous_min_stress;
-        mPreviousStresses = rFatigueVariables.previous_stresses;
-        mFatigueReductionFactor = rFatigueVariables.fatigue_reduction_factor;
-        mWohlerStress = rFatigueVariables.wohler_stress;
-        mThresholdStress = rFatigueVariables.s_th;
-        mCyclesToFailure = rFatigueVariables.cycles_to_failure;
+        mPreviousMaxStress = rFatigueVariables.PreviousMaxStress;
+        mPreviousMinStress = rFatigueVariables.PreviousMinStress;
+        mPreviousStresses = rFatigueVariables.PreviousStresses;
+        mFatigueReductionFactor = rFatigueVariables.FatigueReductionFactor;
+        mWohlerStress = rFatigueVariables.WohlerStress;
+        mThresholdStress = rFatigueVariables.Sth;
+        mCyclesToFailure = rFatigueVariables.CyclesToFailure;
     }
 
     // Defining fatigue variables

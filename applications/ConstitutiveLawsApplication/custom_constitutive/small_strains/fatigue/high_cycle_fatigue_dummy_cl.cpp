@@ -182,20 +182,20 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
 
     mFatigueData.CalculateSminAndSmax(uniaxial_stress, HCFVariables);
 
-    if (HCFVariables.max_indicator && HCFVariables.min_indicator) {
-        HCFVariables.previous_reversion_factor = mFatigueData.CalculateReversionFactor(HCFVariables.previous_max_stress, HCFVariables.previous_min_stress);
-        HCFVariables.reversion_factor = mFatigueData.CalculateReversionFactor(HCFVariables.max_stress, HCFVariables.min_stress);
+    if (HCFVariables.MaxIndicator && HCFVariables.MinIndicator) {
+        HCFVariables.PreviousReversionFactor = mFatigueData.CalculateReversionFactor(HCFVariables.PreviousMaxStress, HCFVariables.PreviousMinStress);
+        HCFVariables.ReversionFactor = mFatigueData.CalculateReversionFactor(HCFVariables.MaxStress, HCFVariables.MinStress);
 
         mFatigueData.CalculateFatigueParameters(rValues.GetMaterialProperties(), HCFVariables);
 
         double betaf = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
-        HCFVariables.global_number_of_cycles++;
-        HCFVariables.local_number_of_cycles++;
-        HCFVariables.new_cycle = true;
-        HCFVariables.max_indicator = false;
-        HCFVariables.min_indicator = false;
-        HCFVariables.previous_max_stress = HCFVariables.max_stress;
-        HCFVariables.previous_min_stress = HCFVariables.min_stress;
+        HCFVariables.GlobalNumberOfCycles++;
+        HCFVariables.LocalNumberOfCycles++;
+        HCFVariables.NewCycle = true;
+        HCFVariables.MaxIndicator = false;
+        HCFVariables.MinIndicator = false;
+        HCFVariables.PreviousMaxStress = HCFVariables.MaxStress;
+        HCFVariables.PreviousMinStress = HCFVariables.MinStress;
 
         mFatigueData.CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(), HCFVariables);
     }
