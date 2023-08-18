@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_File1, KratosHDF5TestSuite)
     KRATOS_TRY;
     Parameters test_params;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        HDF5::File test_file(ParallelEnvironment::GetDefaultDataCommunicator(), test_params);
+        HDF5::File test_file(Testing::GetDefaultDataCommunicator(), test_params);
         , "Invalid file name: PLEASE_SPECIFY_HDF5_FILENAME");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -79,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_File2, KratosHDF5TestSuite)
             "file_driver": "abcd"
         })");
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        HDF5::File test_file(ParallelEnvironment::GetDefaultDataCommunicator(), test_params);
+        HDF5::File test_file(Testing::GetDefaultDataCommunicator(), test_params);
         , "Unsupported \"file_driver\": abcd");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_File3, KratosHDF5TestSuite)
             "file_driver" : "core"
         })");
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        HDF5::File test_file(ParallelEnvironment::GetDefaultDataCommunicator(), test_params);
+        HDF5::File test_file(Testing::GetDefaultDataCommunicator(), test_params);
         , "Invalid \"file_access_mode\": abcd");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_File4, KratosHDF5TestSuite)
             "file_access_mode": "read_only"
         })");
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        HDF5::File test_file(ParallelEnvironment::GetDefaultDataCommunicator(), test_params);
+        HDF5::File test_file(Testing::GetDefaultDataCommunicator(), test_params);
         , "Invalid HDF5 file: test.h5");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
