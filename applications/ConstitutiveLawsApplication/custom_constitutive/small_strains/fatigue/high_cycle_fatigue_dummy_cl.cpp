@@ -177,28 +177,12 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
 
     mFatigueData.InitializeFatigueVariables(HCFVariables);
 
-    double sign_factor = mFatigueData.CalculateTensionOrCompressionIdentifier(r_stress_vector);
-    uniaxial_stress *= sign_factor;
+    mFatigueData.FinalizeSolutionStep(HCFVariables,
+                                    rValues.GetMaterialProperties(),
+                                    rValues.GetProcessInfo(),
+                                    r_stress_vector,
+                                    uniaxial_stress);
 
-    mFatigueData.CalculateSminAndSmax(uniaxial_stress, HCFVariables);
-
-    if (HCFVariables.MaxIndicator && HCFVariables.MinIndicator) {
-        HCFVariables.PreviousReversionFactor = mFatigueData.CalculateReversionFactor(HCFVariables.PreviousMaxStress, HCFVariables.PreviousMinStress);
-        HCFVariables.ReversionFactor = mFatigueData.CalculateReversionFactor(HCFVariables.MaxStress, HCFVariables.MinStress);
-
-        mFatigueData.CalculateFatigueParameters(rValues.GetMaterialProperties(), HCFVariables);
-
-        double betaf = rValues.GetMaterialProperties()[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
-        HCFVariables.GlobalNumberOfCycles++;
-        HCFVariables.LocalNumberOfCycles++;
-        HCFVariables.NewCycle = true;
-        HCFVariables.MaxIndicator = false;
-        HCFVariables.MinIndicator = false;
-        HCFVariables.PreviousMaxStress = HCFVariables.MaxStress;
-        HCFVariables.PreviousMinStress = HCFVariables.MinStress;
-
-        mFatigueData.CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(), HCFVariables);
-    }
 
     mFatigueData.UpdateFatigueVariables(HCFVariables);
 
