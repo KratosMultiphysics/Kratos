@@ -254,13 +254,17 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             << "The reserved keyword \"__container_type\" is found. Please remove it from attributes.";
         Attributes.AddString("__container_type", Internals::GetContainerType<TContainerType>());
 
-        KRATOS_ERROR_IF(Attributes.Has("__component_name"))
-            << "The reserved keyword \"__component_name\" is found. Please remove it from attributes.";
-        Attributes.AddString("__component_name", rComponentName);
-
         KRATOS_ERROR_IF(Attributes.Has("__data_location"))
             << "The reserved keyword \"__data_location\" is found. Please remove it from attributes.";
         Attributes.AddString("__data_location", Internals::GetContainerIOType<TContainerDataIO>());
+
+        KRATOS_ERROR_IF(Attributes.Has("__data_name"))
+            << "The reserved keyword \"__data_name\" is found. Please remove it from attributes.";
+        Attributes.AddString("__data_name", rComponentName);
+
+        KRATOS_ERROR_IF(Attributes.Has("__data_type"))
+            << "The reserved keyword \"__data_type\" is found. Please remove it from attributes.";
+        Attributes.AddString("__data_type", "Variable");
 
         // now write the attributes
         mpFile->WriteAttribute(r_data_set_path, Attributes);
@@ -324,8 +328,13 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
 
         if (attributes.Has("__shape")) attributes.RemoveValue("__shape");
         if (attributes.Has("__container_type")) attributes.RemoveValue("__container_type");
-        if (attributes.Has("__component_name")) attributes.RemoveValue("__component_name");
+        if (attributes.Has("__data_name")) attributes.RemoveValue("__data_name");
         if (attributes.Has("__data_location")) attributes.RemoveValue("__data_location");
+        if (attributes.Has("__data_type")) {
+            KRATOS_ERROR_IF_NOT(attributes["__data_type"].GetString() == "Variable")
+                << "The dataset at \"" << r_data_set_path << "\" is not of a variable.\n";
+            attributes.RemoveValue("__data_type");
+        }
 
         rAttributesMap[rComponentName] = attributes;
 
@@ -351,8 +360,9 @@ std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContaine
         auto attributes = mpFile->ReadAttribute(r_data_set_path);
         if (attributes.Has("__shape")) attributes.RemoveValue("__shape");
         if (attributes.Has("__container_type")) attributes.RemoveValue("__container_type");
-        if (attributes.Has("__component_name")) attributes.RemoveValue("__component_name");
+        if (attributes.Has("__data_name")) attributes.RemoveValue("__data_name");
         if (attributes.Has("__data_location")) attributes.RemoveValue("__data_location");
+        if (attributes.Has("__data_type")) attributes.RemoveValue("__data_type");
 
         attributes_map[r_component_name] = attributes;
     }
