@@ -62,6 +62,8 @@ public:
         double Alphat = 0.0;
         double PreviousReversionFactor = 0.0;
         double ReversionFactor = 0.0;
+        bool AdnvanceStrategyApplied;
+        bool DamageActivation;
     };
 
 	HCFDataContainer()
@@ -164,6 +166,8 @@ public:
         mWohlerStress = rFatigueVariables.WohlerStress;
         mThresholdStress = rFatigueVariables.Sth;
         mCyclesToFailure = rFatigueVariables.CyclesToFailure;
+        mReversionFactorRelativeError = rFatigueVariables.ReversionFactorRelativeError;
+        mMaxStressRelativeError = rFatigueVariables.MaxStressRelativeError;
     }
 
     // Defining fatigue variables
