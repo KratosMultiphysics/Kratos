@@ -79,6 +79,10 @@ public:
                                                                             rFatigueVariables.previous_stresses,
                                                                             rFatigueVariables.max_indicator,
                                                                             rFatigueVariables.min_indicator);
+        const Vector& r_aux_stresses = mPreviousStresses;
+        rFatigueVariables.previous_stresses[1] = CurrentStress;
+        rFatigueVariables.previous_stresses[0] = r_aux_stresses[1];
+        // mPreviousStresses = rFatigueVariables.previous_stresses;
     }
 
     double CalculateTensionOrCompressionIdentifier(const Vector& rStressVector)
@@ -155,6 +159,7 @@ public:
         mFatigueReductionParameter = rFatigueVariables.B0;
         mPreviousMaxStress = rFatigueVariables.previous_max_stress;
         mPreviousMinStress = rFatigueVariables.previous_min_stress;
+        mPreviousStresses = rFatigueVariables.previous_stresses;
         mFatigueReductionFactor = rFatigueVariables.fatigue_reduction_factor;
         mWohlerStress = rFatigueVariables.wohler_stress;
         mThresholdStress = rFatigueVariables.s_th;

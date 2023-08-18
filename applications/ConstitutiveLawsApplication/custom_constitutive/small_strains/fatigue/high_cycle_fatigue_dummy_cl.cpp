@@ -182,11 +182,6 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
 
     mFatigueData.CalculateSminAndSmax(uniaxial_stress, HCFVariables);
 
-    const Vector& r_aux_stresses = mFatigueData.mPreviousStresses;
-    HCFVariables.previous_stresses[1] = uniaxial_stress;
-    HCFVariables.previous_stresses[0] = r_aux_stresses[1];
-    mFatigueData.mPreviousStresses = HCFVariables.previous_stresses;
-
     if (HCFVariables.max_indicator && HCFVariables.min_indicator) {
         HCFVariables.previous_reversion_factor = mFatigueData.CalculateReversionFactor(HCFVariables.previous_max_stress, HCFVariables.previous_min_stress);
         HCFVariables.reversion_factor = mFatigueData.CalculateReversionFactor(HCFVariables.max_stress, HCFVariables.min_stress);
