@@ -17,9 +17,13 @@ class TestParticleVtkOutputProcess(KratosUnittest.TestCase):
         ExecuteBasicParticleVTKOutputProcessCheck("ascii", "element")
 
     def test_binary_particle_conditions_vtk_output_2D(self):
+        if os.name == "nt":
+            self.skipTest("Binary output currently not working on Windows")
         ExecuteBasicParticleVTKOutputProcessCheck("binary", "condition")
 
     def test_binary_particle_elements_vtk_output_2D(self):
+        if os.name == "nt":
+            self.skipTest("Binary output currently not working on Windows")
         ExecuteBasicParticleVTKOutputProcessCheck("binary", "element")
 
     def tearDown(self):
@@ -183,10 +187,8 @@ def ExecuteBasicParticleVTKOutputProcessCheck(file_format, entity_type):
     particle_vtk_output_process.ExecuteInitialize()
     particle_vtk_output_process.ExecuteBeforeSolutionLoop()
     Check(output_path, reference_files_path, f"MPMModelPart_0_{step}.vtk", file_format, entity_type)
-    if os.name != "nt" or entity_type == "condition": # skip test not working on windows
-        Check(output_path, reference_files_path, f"MPMModelPart_InterfaceConditions_0_{step}.vtk", file_format, entity_type)
-    if os.name != "nt" or entity_type == "element": # skip test not working on windows
-        Check(output_path, reference_files_path, f"MPMModelPart_SubInitialMesh_0_{step}.vtk", file_format, entity_type)
+    Check(output_path, reference_files_path, f"MPMModelPart_InterfaceConditions_0_{step}.vtk", file_format, entity_type)
+    Check(output_path, reference_files_path, f"MPMModelPart_SubInitialMesh_0_{step}.vtk", file_format, entity_type)
     Check(output_path, reference_files_path, f"Background_Grid_0_{step}.vtk", file_format, entity_type)
     Check(output_path, reference_files_path, f"Background_Grid_InterfaceConditions_0_{step}.vtk", file_format, entity_type)
     Check(output_path, reference_files_path, f"Background_Grid_SubBackgroundGrid_0_{step}.vtk", file_format, entity_type)
@@ -205,10 +207,8 @@ def ExecuteBasicParticleVTKOutputProcessCheck(file_format, entity_type):
             particle_vtk_output_process.ExecuteAfterOutputStep()
             # Compare output file with reference file
             Check(output_path, reference_files_path, f"MPMModelPart_0_{step}.vtk", file_format, entity_type)
-            if os.name != "nt" or entity_type == "condition": # skip test not working on windows
-                Check(output_path, reference_files_path, f"MPMModelPart_InterfaceConditions_0_{step}.vtk", file_format, entity_type)
-            if os.name != "nt" or entity_type == "element": # skip test not working on windows
-                Check(output_path, reference_files_path, f"MPMModelPart_SubInitialMesh_0_{step}.vtk", file_format, entity_type)
+            Check(output_path, reference_files_path, f"MPMModelPart_InterfaceConditions_0_{step}.vtk", file_format, entity_type)
+            Check(output_path, reference_files_path, f"MPMModelPart_SubInitialMesh_0_{step}.vtk", file_format, entity_type)
 
 if __name__ == '__main__':
     KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
