@@ -100,6 +100,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    virtual void ReadParitionIndices(ModelPart& rModelPart);
+
     virtual void SetCommunicator(ModelPart& rModelPart) const;
 
     ///@}

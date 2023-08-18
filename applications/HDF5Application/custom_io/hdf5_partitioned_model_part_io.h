@@ -74,6 +74,8 @@ protected:
 
     void Check();
 
+    void ReadParitionIndices(ModelPart& rModelPart) override;
+
     void SetCommunicator(ModelPart& rModelPart) const override;
 
     ///@}

@@ -244,13 +244,20 @@ void ModelPartIO::ReadModelPart(ModelPart& rModelPart)
         ReadSubModelParts(rModelPart, mPrefix + "/SubModelParts/" + r_sub_model_part_name);
     }
 
+    this->ReadParitionIndices(rModelPart);
+
+    this->SetCommunicator(rModelPart);
+
     KRATOS_INFO_IF("HDF5Application", mpFile->GetEchoLevel() == 1)
         << "Time to read model part \"" << rModelPart.Name()
         << "\": " << timer.ElapsedSeconds() << " seconds." << std::endl;
 
-    this->SetCommunicator(rModelPart);
-
     KRATOS_CATCH("");
+}
+
+void ModelPartIO::ReadParitionIndices(ModelPart& rModelPart)
+{
+    // Do nothing in serial IO.
 }
 
 void ModelPartIO::SetCommunicator(ModelPart& rModelPart) const
