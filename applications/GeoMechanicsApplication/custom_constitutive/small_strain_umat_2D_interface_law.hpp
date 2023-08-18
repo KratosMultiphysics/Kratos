@@ -10,13 +10,10 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_SMALL_STRAIN_UMAT_2D_INTERFACE_LAW_H_INCLUDED )
-#define  KRATOS_SMALL_STRAIN_UMAT_2D_INTERFACE_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 #include "includes/define.h"
-
-// External includes
 
 // Project includes
 #include "small_strain_umat_3D_law.hpp"
@@ -71,37 +68,17 @@ namespace Kratos
       //@name Life Cycle
       //@{
 
-      //----------------------------------------------------------------------------------------
-      /**
-       * @brief Default constructor.
-       */
-      SmallStrainUMAT2DInterfaceLaw();
-
       /**
        * @brief Clone method
        */
       ConstitutiveLaw::Pointer Clone() const override;
 
-      /**
-       * Copy constructor.
-       */
-      SmallStrainUMAT2DInterfaceLaw(SmallStrainUMAT2DInterfaceLaw const& rOther);
-
-      /**
-       * @brief Destructor.
-       */
-      virtual ~SmallStrainUMAT2DInterfaceLaw();
-
-      // Assignment operator:
-      SmallStrainUMAT2DInterfaceLaw& operator=(SmallStrainUMAT2DInterfaceLaw const& rOther);
-
       Vector& GetValue( const Variable<Vector> &rThisVariable, Vector &rValue ) override;
 
-      void SetValue( const Variable<Vector>& rVariable,
-                     const Vector& rValue,
-                     const ProcessInfo& rCurrentProcessInfo ) override;
+      void SetValue(const Variable<Vector>& rVariable,
+                    const Vector& rValue,
+                    const ProcessInfo& rCurrentProcessInfo ) override;
 
-      //----------------------------------------------------------------------------------------
       /**
        * @brief Dimension of the law:
        */
@@ -131,7 +108,7 @@ namespace Kratos
        * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
        * @return the expected stress measure
        */
-      virtual StressMeasure GetStressMeasure() override
+      StressMeasure GetStressMeasure() override
       {
          return StressMeasure_Cauchy;
       }
@@ -154,30 +131,26 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override
+      std::string Info() const override
       {
-         std::stringstream buffer;
-         buffer << "SmallStrainUMAT2DInterfaceLaw";
-         return buffer.str();
+         return "SmallStrainUMAT2DInterfaceLaw";
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override
+      void PrintInfo(std::ostream& rOStream) const override
       {
-         rOStream << "SmallStrainUMAT2DInterfaceLaw";
+         rOStream << Info();
       }
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override
+      void PrintData(std::ostream& rOStream) const override
       {
          rOStream << "SmallStrainUMAT2DInterfaceLaw Data";
       }
 
-
       ///@}
       ///@name Friends
       ///@{
-
 
       ///@}
 
@@ -207,16 +180,13 @@ namespace Kratos
       void SetInternalStrainVector(const Vector& rStrainVector) override;
       void CopyConstitutiveMatrix(ConstitutiveLaw::Parameters &rValues, Matrix& rConstitutiveMatrix) override;
 
-
       ///@}
       ///@name Protected Inquiry
       ///@{
 
-
       ///@}
       ///@name Protected LifeCycle
       ///@{
-
 
       ///@}
 
@@ -244,19 +214,17 @@ namespace Kratos
       ///@name Private  Access
       ///@{
 
-
-
       ///@}
       ///@name Serialization
       ///@{
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override
+      void save(Serializer& rSerializer) const override
       {
          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
       }
 
-      virtual void load(Serializer& rSerializer) override
+      void load(Serializer& rSerializer) override
       {
          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
       }
@@ -264,7 +232,6 @@ namespace Kratos
       ///@}
       ///@name Private Inquiry
       ///@{
-
 
       ///@}
       ///@name Un accessible methods
@@ -279,7 +246,6 @@ namespace Kratos
    ///@name Type Definitions
    ///@{
 
-
    ///@}
    ///@name Input and output
    ///@{
@@ -288,8 +254,4 @@ namespace Kratos
 
    ///@} addtogroup block
 
-}  // namespace Kratos.
-
-#endif // KRATOS_SMALL_STRAIN_UMAT_2D_INTERFACE_LAW_H_INCLUDED  defined
-
-
+}
