@@ -103,7 +103,9 @@ void ConnectivitiesData<TContainerType>::Read(
 }
 
 template<class TContainerType>
-void ConnectivitiesData<TContainerType>::Write(const TContainerType& rEntities)
+void ConnectivitiesData<TContainerType>::Write(
+    const TContainerType& rEntities,
+    const bool WriteProperties)
 {
     KRATOS_TRY;
 
@@ -181,13 +183,14 @@ void ConnectivitiesData<TContainerType>::Write(const TContainerType& rEntities)
     WriteInfo info;
 
     mpFile->WriteDataSet(entity_group_path + "/Ids", entity_ids, info);
-    mpFile->WriteDataSet(entity_group_path + "/PropertiesIds", entitiy_property_ids, info);
     mpFile->WriteDataSet(entity_group_path + "/Connectivities", connectivities, info);
+    if (WriteProperties) {
+        mpFile->WriteDataSet(entity_group_path + "/PropertiesIds", entitiy_property_ids, info);
+    }
 
     mpFile->WriteAttribute(entity_group_path, "Name", entity_name);
     mpFile->WriteAttribute(entity_group_path, "WorkingSpaceDimension", ws_dim);
     mpFile->WriteAttribute(entity_group_path, "NumberOfNodes", num_nodes);
-    mpFile->WriteAttribute(entity_group_path, "Size", static_cast<int>(info.TotalSize));
 
     WritePartitionTable(*mpFile, entity_group_path, info);
 
