@@ -169,7 +169,6 @@ class CoupledThermoMechanicalSolver(PythonSolver):
     def FinalizeSolutionStep(self):
         self.structural_solver.FinalizeSolutionStep()
         self.thermal_solver.FinalizeSolutionStep()
-        KratosMultiphysics.Logger.PrintInfo("\n")
 
     def RemoveConvectiveVelocity(self):
         if self.is_dynamic:
