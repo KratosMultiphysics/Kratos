@@ -22,11 +22,53 @@
 #include "custom_elements/small_displacement.h"
 #include "includes/table_accessor.h"
 
-namespace Kratos
+namespace Kratos::Testing
 {
 
-namespace Testing
-{
+    namespace
+    {
+        void Fill2D3NModelpart(
+            ModelPart &rModelPart,
+            const std::string& rConstitutiveLawName)
+        {
+            rModelPart.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+            rModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
+            rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
+            rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
+
+            // Set the element properties
+            auto p_elem_prop = rModelPart.CreateNewProperties(0);
+            p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
+            p_elem_prop->SetValue(POISSON_RATIO, 0.3);
+            p_elem_prop->SetValue(THERMAL_EXPANSION_COEFFICIENT, 7.2e-6);
+            p_elem_prop->SetValue(REFERENCE_TEMPERATURE, 0.0);
+            const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get(rConstitutiveLawName);
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
+
+            // Create the test element
+            auto p_node_1 = rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+            auto p_node_3 = rModelPart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+            auto p_node_2 = rModelPart.CreateNewNode(3, 0.0 , 1.0 , 0.0);
+
+            for (auto& r_node : rModelPart.Nodes()){
+                r_node.AddDof(DISPLACEMENT_X);
+                r_node.AddDof(DISPLACEMENT_Y);
+                r_node.AddDof(DISPLACEMENT_Z);
+            }
+
+            std::vector<ModelPart::IndexType> element_nodes {1,2,3};
+            auto p_element = rModelPart.CreateNewElement("SmallDisplacementElement2D3N", 1, element_nodes, p_elem_prop);
+            p_element->Initialize(rModelPart.GetProcessInfo());
+
+            // Set a displacement and temperature
+            array_1d<double, 3> aux_disp = ZeroVector(3);
+            noalias(p_node_1->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
+            noalias(p_node_2->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
+            aux_disp(0) = 0.001;
+            noalias(p_node_3->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
+        }
+    }
+
     /**
     * Checks the ThermalLinearPlaneStrain
     */
@@ -34,50 +76,16 @@ namespace Testing
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
-        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+        Fill2D3NModelpart(r_model_part, "ThermalLinearPlaneStrain");
 
-        const auto& r_process_info = r_model_part.GetProcessInfo();
+        r_model_part.pGetNode(1)->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
+        r_model_part.pGetNode(2)->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
+        r_model_part.pGetNode(3)->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
 
-        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-        r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-
-        // Set the element properties
-        auto p_elem_prop = r_model_part.CreateNewProperties(0);
-        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
-        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
-        p_elem_prop->SetValue(THERMAL_EXPANSION_COEFFICIENT, 7.2e-6);
-        p_elem_prop->SetValue(REFERENCE_TEMPERATURE, 0.0);
-        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("ThermalLinearPlaneStrain");
-        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
-
-        // Create the test element
-        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-        auto p_node_3 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-        auto p_node_2 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
-
-        for (auto& r_node : r_model_part.Nodes()){
-            r_node.AddDof(DISPLACEMENT_X);
-            r_node.AddDof(DISPLACEMENT_Y);
-            r_node.AddDof(DISPLACEMENT_Z);
-        }
-
-        std::vector<ModelPart::IndexType> element_nodes {1,2,3};
-        auto p_element = r_model_part.CreateNewElement("SmallDisplacementElement2D3N", 1, element_nodes, p_elem_prop);
-        p_element->Initialize(r_model_part.GetProcessInfo());
-
-        // Set a displacement and temperature
-        array_1d<double, 3> aux_disp = ZeroVector(3);
-        noalias(p_node_1->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
-        noalias(p_node_2->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
-        aux_disp(0) = 0.001;
-        noalias(p_node_3->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
-        p_node_1->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
-        p_node_2->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
-        p_node_3->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
         Matrix lhs;
         Vector rhs;
         const auto& const_procinfo_ref = r_model_part.GetProcessInfo();
+        auto p_element = r_model_part.pGetElement(1);
         p_element->InitializeSolutionStep(const_procinfo_ref);
         p_element->InitializeNonLinearIteration(const_procinfo_ref);
         p_element->CalculateLocalSystem(lhs,rhs,const_procinfo_ref);
@@ -85,13 +93,13 @@ namespace Testing
         p_element->FinalizeSolutionStep(const_procinfo_ref);
 
         std::vector<Vector> output_strains(1);
-        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_process_info);
+        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, const_procinfo_ref);
 
         std::vector<Vector> output_stress(1);
-        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_process_info);
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, const_procinfo_ref);
 
         std::vector<double> output_von_mises(1);
-        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_process_info);
+        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, const_procinfo_ref);
 
         Vector reference_stress(3);
         reference_stress(0) = -1627.69;
@@ -115,51 +123,15 @@ namespace Testing
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
-        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
+        Fill2D3NModelpart(r_model_part, "ThermalLinearPlaneStress");
 
-        const auto& r_process_info = r_model_part.GetProcessInfo();
-
-        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-        r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-
-        // Set the element properties
-        auto p_elem_prop = r_model_part.CreateNewProperties(0);
-        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
-        p_elem_prop->SetValue(THICKNESS, 0.3);
-        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
-        p_elem_prop->SetValue(THERMAL_EXPANSION_COEFFICIENT, 7.2e-6);
-        p_elem_prop->SetValue(REFERENCE_TEMPERATURE, 0.0);
-        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("ThermalLinearPlaneStress");
-        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
-
-        // Create the test element
-        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-        auto p_node_3 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-        auto p_node_2 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
-
-        for (auto& r_node : r_model_part.Nodes()){
-            r_node.AddDof(DISPLACEMENT_X);
-            r_node.AddDof(DISPLACEMENT_Y);
-            r_node.AddDof(DISPLACEMENT_Z);
-        }
-
-        std::vector<ModelPart::IndexType> element_nodes {1,2,3};
-        auto p_element = r_model_part.CreateNewElement("SmallDisplacementElement2D3N", 1, element_nodes, p_elem_prop);
-        p_element->Initialize(r_model_part.GetProcessInfo());
-
-        // Set a displacement and temperature
-        array_1d<double, 3> aux_disp = ZeroVector(3);
-        noalias(p_node_1->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
-        noalias(p_node_2->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
-        aux_disp(0) = 0.001;
-        noalias(p_node_3->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
-        p_node_1->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
-        p_node_2->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
-        p_node_3->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
+        r_model_part.pGetNode(1)->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
+        r_model_part.pGetNode(2)->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
+        r_model_part.pGetNode(3)->FastGetSolutionStepValue(TEMPERATURE) = 120.0;
         Matrix lhs;
         Vector rhs;
         const auto& const_procinfo_ref = r_model_part.GetProcessInfo();
+        auto p_element = r_model_part.pGetElement(1);
         p_element->InitializeSolutionStep(const_procinfo_ref);
         p_element->InitializeNonLinearIteration(const_procinfo_ref);
         p_element->CalculateLocalSystem(lhs,rhs,const_procinfo_ref);
@@ -167,13 +139,13 @@ namespace Testing
         p_element->FinalizeSolutionStep(const_procinfo_ref);
 
         std::vector<Vector> output_strains(1);
-        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_process_info);
+        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, const_procinfo_ref);
 
         std::vector<Vector> output_stress(1);
-        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_process_info);
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, const_procinfo_ref);
 
         std::vector<double> output_von_mises(1);
-        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_process_info);
+        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, const_procinfo_ref);
 
         Vector reference_stress(3);
         reference_stress(0) = -270.769;
@@ -197,60 +169,26 @@ namespace Testing
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
-        r_model_part.GetProcessInfo().SetValue(DOMAIN_SIZE, 2);
-
-        const auto& r_process_info = r_model_part.GetProcessInfo();
-
-        r_model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
-        r_model_part.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
-        r_model_part.AddNodalSolutionStepVariable(TEMPERATURE);
-
-        // Set the element properties
-        auto p_elem_prop = r_model_part.CreateNewProperties(0);
-        p_elem_prop->SetValue(YOUNG_MODULUS, 2.0e+06);
-        p_elem_prop->SetValue(POISSON_RATIO, 0.3);
-        p_elem_prop->SetValue(THERMAL_EXPANSION_COEFFICIENT, 7.2e-6);
-        p_elem_prop->SetValue(REFERENCE_TEMPERATURE, 0.0);
+        Fill2D3NModelpart(r_model_part, "ThermalLinearPlaneStrain");
 
         Table<double> temp_E_table;
         temp_E_table.insert(-1.0, 2.0e6);
         temp_E_table.insert(3500.0, 2.1e4);
         temp_E_table.insert(1.0e6, 2.1e4);
+
+        auto p_elem_prop = r_model_part.pGetProperties(0);
         p_elem_prop->SetTable(TEMPERATURE, YOUNG_MODULUS, temp_E_table);
 
         TableAccessor table_accessor = TableAccessor(TEMPERATURE, "node_historical");
         p_elem_prop->SetAccessor(YOUNG_MODULUS, table_accessor.Clone());
 
-        const auto &r_clone_cl = KratosComponents<ConstitutiveLaw>::Get("ThermalLinearPlaneStrain");
-        p_elem_prop->SetValue(CONSTITUTIVE_LAW, r_clone_cl.Clone());
-
-        // Create the test element
-        auto p_node_1 = r_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.0);
-        auto p_node_3 = r_model_part.CreateNewNode(2, 1.0 , 0.0 , 0.0);
-        auto p_node_2 = r_model_part.CreateNewNode(3, 0.0 , 1.0 , 0.0);
-
-        for (auto& r_node : r_model_part.Nodes()){
-            r_node.AddDof(DISPLACEMENT_X);
-            r_node.AddDof(DISPLACEMENT_Y);
-            r_node.AddDof(DISPLACEMENT_Z);
-        }
-
-        std::vector<ModelPart::IndexType> element_nodes {1,2,3};
-        auto p_element = r_model_part.CreateNewElement("SmallDisplacementElement2D3N", 1, element_nodes, p_elem_prop);
-        p_element->Initialize(r_model_part.GetProcessInfo());
-
-        // Set a displacement and temperature
-        array_1d<double, 3> aux_disp = ZeroVector(3);
-        noalias(p_node_1->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
-        noalias(p_node_2->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
-        aux_disp(0) = 0.001;
-        noalias(p_node_3->FastGetSolutionStepValue(DISPLACEMENT)) = aux_disp;
-        p_node_1->FastGetSolutionStepValue(TEMPERATURE) = 2400.2;
-        p_node_2->FastGetSolutionStepValue(TEMPERATURE) = 2000.2;
-        p_node_3->FastGetSolutionStepValue(TEMPERATURE) = 1500.2;
+        r_model_part.pGetNode(1)->FastGetSolutionStepValue(TEMPERATURE) = 2400.2;
+        r_model_part.pGetNode(2)->FastGetSolutionStepValue(TEMPERATURE) = 2000.2;
+        r_model_part.pGetNode(3)->FastGetSolutionStepValue(TEMPERATURE) = 1500.2;
         Matrix lhs;
         Vector rhs;
         const auto& const_procinfo_ref = r_model_part.GetProcessInfo();
+        auto p_element = r_model_part.pGetElement(1);
         p_element->InitializeSolutionStep(const_procinfo_ref);
         p_element->InitializeNonLinearIteration(const_procinfo_ref);
         p_element->CalculateLocalSystem(lhs,rhs,const_procinfo_ref);
@@ -258,13 +196,13 @@ namespace Testing
         p_element->FinalizeSolutionStep(const_procinfo_ref);
 
         std::vector<Vector> output_strains(1);
-        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, r_process_info);
+        p_element->CalculateOnIntegrationPoints(GREEN_LAGRANGE_STRAIN_VECTOR,output_strains, const_procinfo_ref);
 
         std::vector<Vector> output_stress(1);
-        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, r_process_info);
+        p_element->CalculateOnIntegrationPoints(PK2_STRESS_VECTOR,output_stress, const_procinfo_ref);
 
         std::vector<double> output_von_mises(1);
-        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, r_process_info);
+        p_element->CalculateOnIntegrationPoints(VON_MISES_STRESS,output_von_mises, const_procinfo_ref);
 
         Vector reference_stress(3);
         reference_stress(0) = -30230.4;
@@ -276,7 +214,6 @@ namespace Testing
         reference_strain(2) = 0.0;
         const double reference_von_mises_pk2 = 30577.5;
 
-
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
         KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_stress[0], reference_stress, 1e-4);
         KRATOS_CHECK_RELATIVE_NEAR(output_von_mises[0],reference_von_mises_pk2, 1.0e-4);
@@ -285,7 +222,7 @@ namespace Testing
     /**
     * Checks the ThermalLinearIsotropic3DWithTable
     */
-    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementElement2D3NThermalLinearIsotropic3DWithTable, KratosConstitutiveLawsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(SmallDisplacementElement3D4NThermalLinearIsotropic3DWithTable, KratosConstitutiveLawsFastSuite)
     {
         Model current_model;
         auto &r_model_part = current_model.CreateModelPart("ModelPart",1);
@@ -383,5 +320,4 @@ namespace Testing
         KRATOS_CHECK_RELATIVE_NEAR(output_von_mises[0],reference_von_mises_pk2, 1.0e-4);
     }
 
-} // namespace Testing
-} // namespace Kratos.
+} // namespace Kratos::Testing
