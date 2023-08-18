@@ -19,7 +19,6 @@
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_3d.h"
-#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 namespace Kratos
 {

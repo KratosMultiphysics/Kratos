@@ -19,6 +19,7 @@
 // Project includes
 #include "thermal_elastic_isotropic_3d.h"
 #include "custom_utilities/constitutive_law_utilities.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
 
 #include "includes/checks.h"
 #include "structural_mechanics_application_variables.h"
