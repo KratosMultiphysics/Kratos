@@ -29,11 +29,14 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         super().__init__(name)
 
         default_settings = Kratos.Parameters("""{
-            "primal_analysis_name"           : "",
             "measurement_data_file"          : "MeasurementData.json",
             "measurement_standard_deviation"  : 1.0,
             "perturbation_size"              : 1e-8,
-            "adjoint_analysis_settings_file_name": "adjoint_parameters.json",
+            "analysis_sets": [{
+                "primal_analysis_name": "",
+                "adjoint_analysis_settings_file_name": "",
+                "load_case_in_measurement_file": -1
+            }],
             "evaluated_model_part_names"     : [
                 "PLEASE_PROVIDE_A_MODEL_PART_NAME"
             ]
@@ -53,9 +56,14 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         self.measurement_data_file = parameters["measurement_data_file"].GetString()
         self.measurement_std = parameters["measurement_standard_deviation"].GetDouble()
 
-        self.adjoint_analysis_file_name = parameters["adjoint_analysis_settings_file_name"].GetString()
+        self.analysis_sets = parameters["analysis_sets"]
 
-        self.primal_analysis_execution_policy_decorator: ExecutionPolicyDecorator = optimization_problem.GetExecutionPolicy(parameters["primal_analysis_name"].GetString())
+        if self.analysis_sets.size() == 0:
+            raise RuntimeError("MeasurementResidualResponseFunction:: Please provide analysis sets for the response function.")
+
+        self.primal_analysis_execution_policy_decorators: "List(ExecutionPolicyDecorator)" = []
+        for analysis_set in self.analysis_sets:
+            self.primal_analysis_execution_policy_decorators.append(optimization_problem.GetExecutionPolicy(analysis_set["primal_analysis_name"].GetString()))
 
     def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
         return [Kratos.YOUNG_MODULUS]
@@ -65,35 +73,10 @@ class MeasurementResidualResponseFunction(ResponseFunction):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.primal_model_part, self.primal_model_part.Elements)
             KratosOA.ModelPartUtils.LogModelPartStatus(self.primal_model_part, "element_specific_properties_created")
 
-        with open(self.adjoint_analysis_file_name, 'r') as parameter_file:
-            self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
-
         file = open(self.measurement_data_file)
         self.measurement_data = json.load(file)
 
         ModelPartUtilities.ExecuteOperationOnModelPart(self.primal_model_part)
-
-        # self.sensor_positions_model_part = self.model.CreateModelPart("sensor_positions")
-
-        # for sensor in self.measurement_data["load_cases"][0]["sensors_infos"]:
-
-        #     point = Kratos.Point(sensor["position_of_mesh_node"])
-        #     search_configuration = Kratos.Configuration.Initial
-        #     search_tolerance = 1e-6
-
-        #     point_locator = Kratos.BruteForcePointLocator(self.model_part)
-
-        #     found_node_id = point_locator.FindNode(
-        #         point, search_configuration, search_tolerance
-        #     )
-
-        #     sensor["mesh_node_id"] = found_node_id
-        #     # Add node to sensor_positions_model_part
-        #     self.sensor_positions_model_part.AddNode(self.model_part.GetNode(found_node_id))
-
-        # Update measurement data file with newly added infos
-        # with open(self.measurement_data_file, "w") as outfile:
-        #     json.dump(self.measurement_data, outfile)
 
     def Check(self) -> None:
         KratosOA.PropertiesVariableExpressionIO.Check(Kratos.Expression.ElementExpression(self.primal_model_part), Kratos.YOUNG_MODULUS)
@@ -107,36 +90,53 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         return self.primal_model_part
 
     def GetAnalysisModelPart(self) -> Kratos.ModelPart:
-        return self.primal_analysis_execution_policy_decorator.GetAnalysisModelPart()
+        return self.primal_analysis_execution_policy_decorators[0].GetAnalysisModelPart()
 
     def CalculateValue(self) -> float:
-        self.primal_analysis_execution_policy_decorator.Execute()
 
         objective_value = 0
-        for sensor in self.measurement_data["load_cases"][0]["sensors_infos"]:
-            measured_displacement = sensor["measured_value"]
-            measured_direction = Kratos.Array3(sensor["measurement_direction_normal"])
 
-            mesh_node = self.primal_model_part.GetNode(sensor["mesh_node_id"])
+        for i, execution_policy in enumerate(self.primal_analysis_execution_policy_decorators):
+            execution_policy.Execute()
 
-            node_displacement = mesh_node.GetSolutionStepValue(Kratos.KratosGlobals.GetVariable(sensor["type_of_sensor"]))
-            in_measurement_direction_projected_vector = (measured_direction[0]*node_displacement[0])+(measured_direction[1]*node_displacement[1])+(measured_direction[2]*node_displacement[2])
+            load_case = self.analysis_sets[i]["load_case_in_measurement_file"].GetInt()
 
-            objective_value += (measured_displacement-in_measurement_direction_projected_vector)**2
+            for sensor in self.measurement_data["load_cases"][load_case]["sensors_infos"]:
+                measured_displacement = sensor["measured_value"]
+                measured_direction = Kratos.Array3(sensor["measurement_direction_normal"])
+
+                mesh_node = self.primal_model_part.GetNode(sensor["mesh_node_id"])
+
+                node_displacement = mesh_node.GetSolutionStepValue(Kratos.KratosGlobals.GetVariable(sensor["type_of_sensor"]))
+                in_measurement_direction_projected_vector = (measured_direction[0]*node_displacement[0])+(measured_direction[1]*node_displacement[1])+(measured_direction[2]*node_displacement[2])
+
+                objective_value += (measured_displacement-in_measurement_direction_projected_vector)**2
 
         objective_value *= 0.5 * 1/self.measurement_std
 
         return objective_value
 
-    def normalize_sensitivities_to_element_area(self, expression: Kratos.Expression) -> None:
+    def transform_sensitivities_to_continuous_space(self, expression: Kratos.Expression) -> None:
         sensitivities = expression.Evaluate()
 
         for i, element in enumerate(expression.GetModelPart().GetElements()):
-            nodes = element.GetNodes()
-            if not (len(nodes) == 3):
-                raise ValueError("MeasurementResidualResponseFunction:: Normalization of gradients is only implemented for triangles (3D3N) at the moment.")
-            area = Kratos.Triangle3D3(nodes[0], nodes[1], nodes[2]).Area()
-            sensitivities[i] /= area
+            occupied_space = -1
+            geometry = element.GetGeometry()
+            try:
+                occupied_space = geometry.Area()
+            except:
+                pass
+
+            try:
+                occupied_space = geometry.Volume()
+            except:
+                pass
+
+            if occupied_space == -1:
+                raise RuntimeError(
+                    f"MeasurementResidualResponseFunction:: Error in normalize_sensitivities_to_element_area. The Geometry object {geometry} of the provided element {element} can not calculate an area or volume.")
+
+            sensitivities[i] /= occupied_space
 
         Kratos.Expression.CArrayExpressionIO.Read(expression, sensitivities)
 
@@ -150,41 +150,55 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         print("MeasurementResidualResponseFunction:: Start gradient calculation")
         for variable, collective_expression in physical_variable_collective_expressions.items():
 
-            self.adjoint_parameters["solver_settings"]["sensitivity_settings"]["element_data_value_sensitivity_variables"].SetStringArray([variable.Name()])
+            if variable.Name() != "YOUNG_MODULUS":
+                raise RuntimeError("MeasurementResidualResponseFunction:: CalculateGradient currently only supports 'YOUNG_MODULUS' as property")
 
-            adjoint_analysis = Kratos.Model()
-            adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(adjoint_analysis, self.adjoint_parameters)
-            adjoint_model_part: Kratos.ModelPart = adjoint_analysis._GetSolver().GetComputingModelPart()
+            summed_gradients: np.ndarray = np.ndarray([])
+            current_sensitivities: np.ndarray = np.ndarray([])
 
-            adjoint_analysis.Initialize()
+            for analysis_set in self.analysis_sets:
 
-            # create element specific properties in adjoint model part
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(adjoint_model_part, adjoint_model_part.Elements)
+                with open(analysis_set["adjoint_analysis_settings_file_name"].GetString(), 'r') as parameter_file:
+                    self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
 
-            # read primal E
-            primal_youngs_modulus = Kratos.Expression.ElementExpression(self.primal_model_part)
-            KratosOA.PropertiesVariableExpressionIO.Read(primal_youngs_modulus, Kratos.YOUNG_MODULUS)
+                self.adjoint_parameters["solver_settings"]["sensitivity_settings"]["element_data_value_sensitivity_variables"].SetStringArray([variable.Name()])
+                self.adjoint_parameters["solver_settings"]["response_function_settings"]["measurement_load_case_to_use"].SetInt(analysis_set["load_case_in_measurement_file"].GetInt())
 
-            # assign primal E to adjoint
-            adjoint_young_modulus = Kratos.Expression.ElementExpression(adjoint_model_part)
-            adjoint_young_modulus.SetExpression(primal_youngs_modulus.GetExpression())
-            KratosOA.PropertiesVariableExpressionIO.Write(adjoint_young_modulus, Kratos.YOUNG_MODULUS)
+                adjoint_analysis = Kratos.Model()
+                adjoint_analysis = structural_mechanics_analysis.StructuralMechanicsAnalysis(adjoint_analysis, self.adjoint_parameters)
+                adjoint_model_part: Kratos.ModelPart = adjoint_analysis._GetSolver().GetComputingModelPart()
 
-            adjoint_analysis.RunSolutionLoop()
-            adjoint_analysis.Finalize()
+                adjoint_analysis.Initialize()
+
+                # create element specific properties in adjoint model part
+                KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(adjoint_model_part, adjoint_model_part.Elements)
+
+                # read primal E
+                primal_youngs_modulus = Kratos.Expression.ElementExpression(self.primal_model_part)
+                KratosOA.PropertiesVariableExpressionIO.Read(primal_youngs_modulus, Kratos.YOUNG_MODULUS)
+
+                # assign primal E to adjoint
+                adjoint_young_modulus = Kratos.Expression.ElementExpression(adjoint_model_part)
+                adjoint_young_modulus.SetExpression(primal_youngs_modulus.GetExpression())
+                KratosOA.PropertiesVariableExpressionIO.Write(adjoint_young_modulus, Kratos.YOUNG_MODULUS)
+
+                adjoint_analysis.RunSolutionLoop()
+                adjoint_analysis.Finalize()
+
+                adjoint_young_modulus_sensitivity = Kratos.Expression.ElementExpression(adjoint_model_part)
+                Kratos.Expression.VariableExpressionIO.Read(adjoint_young_modulus_sensitivity, KratosOA.YOUNG_MODULUS_SENSITIVITY)
+
+                current_sensitivities = adjoint_young_modulus_sensitivity.Evaluate()
+                if summed_gradients.size == 1:
+                    summed_gradients = current_sensitivities
+                else:
+                    summed_gradients += current_sensitivities
 
             # now fill the collective expressions
-            adjoint_young_modulus_sensitivity = Kratos.Expression.ElementExpression(adjoint_model_part)
+            summed_gradients /= self.analysis_sets.size()
             for expression in collective_expression.GetContainerExpressions():
-                if isinstance(expression, Kratos.Expression.ElementExpression):
-                    Kratos.Expression.VariableExpressionIO.Read(adjoint_young_modulus_sensitivity, KratosOA.YOUNG_MODULUS_SENSITIVITY)
-
-                    Kratos.Expression.CArrayExpressionIO.Read(expression, adjoint_young_modulus_sensitivity.Evaluate())
-                else:
-                    KratosOA.PropertiesVariableExpressionIO.Read(expression, Kratos.KratosGlobals.GetVariable(variable.Name() + "_SENSITIVITY"))
-
-                self.normalize_sensitivities_to_element_area(expression)
-            print("MeasurementResidualResponseFunction:: Finished writing sensitivities to expression")
+                Kratos.Expression.CArrayExpressionIO.Read(expression, summed_gradients)
+                self.transform_sensitivities_to_continuous_space(expression)
 
             # Calculate via finite differencing
             # for expression in collective_expression.GetContainerExpressions():
@@ -214,7 +228,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         # now get the intersected model parts
         intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.primal_model_part, merged_model_part_map, True)
 
-        model_part = self.primal_analysis_execution_policy_decorator.GetAnalysisModelPart()
+        model_part = self.GetAnalysisModelPart()
 
         if not KratosOA.ModelPartUtils.CheckModelPartStatus(model_part, "element_specific_properties_created"):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(model_part, model_part.Elements)

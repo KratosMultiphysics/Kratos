@@ -56,10 +56,6 @@ namespace Kratos
         std::cout << "::[AdjointNodalDisplacementMeasurementResidualResponseFunction]:: Start reading measurement json ..." << std::endl;
 
         mMeasurementData = Parameters(json_string)["load_cases"][mMeasurementLoadCaseToUse];
-        // std::cout << "::[AdjointNodalDisplacementMeasurementResidualResponseFunction]:: Measurements:" << std::endl
-        //           << mMeasurementData << std::endl;
-
-        // KRATOS_ERROR_IF_NOT(mMeasurementData["load_cases"].size() == 1) << "AdjointNodalDisplacementMeasurementResidualResponseFunction: More then one load case in measurement data available. Currently only one load is supported.\nSize is: " << mMeasurementData["load_cases"].size() << std::endl;
 
         if (norm_2(mResponseDirection) > 1.0e-7)
         {
