@@ -260,6 +260,50 @@ private:
 
     ///@}
 
+friend class Serializer;
+
+void save(Serializer& rSerializer) const
+{
+    rSerializer.save("MaxStress",mMaxStress);
+    rSerializer.save("MinStress",mMinStress);
+    rSerializer.save("MaxDetected",mMaxDetected);
+    rSerializer.save("MinDetected",mMinDetected);
+    rSerializer.save("PreviousStresses",mPreviousStresses);
+    rSerializer.save("FatigueReductionFactor",mFatigueReductionFactor);
+    rSerializer.save("ReversionFactorRelativeError",mReversionFactorRelativeError);
+    rSerializer.save("MaxStressRelativeError",mMaxStressRelativeError);
+    rSerializer.save("NumberOfCyclesGlobal",mNumberOfCyclesGlobal);
+    rSerializer.save("NumberOfCyclesLocal",mNumberOfCyclesLocal);
+    rSerializer.save("FatigueReductionParameter",mFatigueReductionParameter);
+    rSerializer.save("PreviousMaxStress",mPreviousMaxStress);
+    rSerializer.save("PreviousMinStress",mPreviousMinStress);
+    rSerializer.save("WohlerStress",mWohlerStress);
+    rSerializer.save("ThresholdStress",mThresholdStress);
+    rSerializer.save("CyclesToFailure",mCyclesToFailure);
+    rSerializer.save("NewCycleIndicator",mNewCycleIndicator);
+}
+
+void load(Serializer& rSerializer)
+{
+    rSerializer.load("MaxStress",mMaxStress);
+    rSerializer.load("MinStress",mMinStress);
+    rSerializer.load("MaxDetected",mMaxDetected);
+    rSerializer.load("MinDetected",mMinDetected);
+    rSerializer.load("PreviousStresses",mPreviousStresses);
+    rSerializer.load("FatigueReductionFactor",mFatigueReductionFactor);
+    rSerializer.load("ReversionFactorRelativeError",mReversionFactorRelativeError);
+    rSerializer.load("MaxStressRelativeError",mMaxStressRelativeError);
+    rSerializer.load("NumberOfCyclesGlobal",mNumberOfCyclesGlobal);
+    rSerializer.load("NumberOfCyclesLocal",mNumberOfCyclesLocal);
+    rSerializer.load("FatigueReductionParameter",mFatigueReductionParameter);
+    rSerializer.load("PreviousMaxStress",mPreviousMaxStress);
+    rSerializer.load("PreviousMinStress",mPreviousMinStress);
+    rSerializer.load("WohlerStress",mWohlerStress);
+    rSerializer.load("ThresholdStress",mThresholdStress);
+    rSerializer.load("CyclesToFailure",mCyclesToFailure);
+    rSerializer.load("NewCycleIndicator",mNewCycleIndicator);
+}
+
 }; // class
 ///@}
 
