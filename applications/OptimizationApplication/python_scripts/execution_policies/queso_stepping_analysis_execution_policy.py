@@ -49,6 +49,7 @@ class QuesoSteppingAnalysisExecutionPolicy(ExecutionPolicy):
         self.parameters.ValidateAndAssignDefaults(default_settings)
 
         self.embedded_model_part = self.model.GetModelPart(parameters["embedded_model_part_name"].GetString())
+        self.embedded_model_part.AddNodalSolutionStepVariable(Kratos.DISPLACEMENT)
         self.nurbs_model_part_name = parameters["nurbs_model_part_name"].GetString()
 
         self.analysis_module = parameters["analysis_module"].GetString()
@@ -102,9 +103,7 @@ class QuesoSteppingAnalysisExecutionPolicy(ExecutionPolicy):
         tmp_parameters["polynomial_order"].SetVector(queso_params.Order())
         tmp_parameters.AddEmptyValue("number_of_knot_spans")
         tmp_parameters["number_of_knot_spans"].SetVector(queso_params.NumberOfElements())
-        
         run_modelers(self.model, modeler_settings)
-        self.pyqueso.Clear()
         self.pyqueso.Run(self.embedded_model_part)
         self.pyqueso.UpdateKratosNurbsVolumeModelPart(self.model_part)
 
