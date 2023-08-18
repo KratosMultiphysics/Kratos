@@ -22,6 +22,7 @@
 #include "custom_utilities/container_io_utils.h"
 #include "custom_utilities/data_type_utilities.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
+#include "hdf5_application_variables.h"
 
 // Include base h
 #include "custom_io/hdf5_container_component_io.h"
@@ -82,12 +83,60 @@ ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Containe
     mComponentPath = Settings["prefix"].GetString();
     mComponentNames = Settings["list_of_variables"].GetStringArray();
 
+    KRATOS_ERROR_IF(mComponentPath == "" || mComponentPath == "/")
+        << "The prefix should not be blank or \"/\" [ prefix = " << mComponentPath << " ].\n";
+
     // Sort component names to make sure they're in the same order on each rank.
     // The basic assumption is that the set of components is identical on every
     // rank, but they may not be in the same order (which would lead to ranks
     // trying to write different variables at the same time, resulting in
     // a deadlock), hence the sorting.
     std::sort(mComponentNames.begin(), mComponentNames.end());
+
+    KRATOS_CATCH("");
+}
+
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Write(
+    const ModelPart& rModelPart,
+    const TContainerDataIO& rContainerDataIO,
+    const Parameters Attributes)
+{
+    KRATOS_TRY
+
+    if constexpr(
+        std::is_same_v<TContainerType, NodesContainerType> ||
+        std::is_same_v<TContainerType, ConditionsContainerType> ||
+        std::is_same_v<TContainerType, ElementsContainerType>) {
+        if (rModelPart.Has(HDF5_MESH_LOCATION_INFO)) {
+            mpFile->AddPath(mComponentPath);
+            mpFile->WriteAttribute(mComponentPath, "__mesh_location", rModelPart.GetValue(HDF5_MESH_LOCATION_INFO));
+        }
+
+        Write(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, Attributes);
+    } else {
+        KRATOS_ERROR << "Unsupported container type.";
+    }
+
+    KRATOS_CATCH("");
+}
+
+template <class TContainerType, class TContainerDataIO, class... TComponents>
+std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Read(
+    ModelPart& rModelPart,
+    const TContainerDataIO& rContainerDataIO)
+{
+    KRATOS_TRY
+
+    if constexpr(
+        std::is_same_v<TContainerType, NodesContainerType> ||
+        std::is_same_v<TContainerType, ConditionsContainerType> ||
+        std::is_same_v<TContainerType, ElementsContainerType>) {
+        return Read(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, rModelPart.GetCommunicator());
+    } else {
+        KRATOS_ERROR << "Unsupported container type.";
+        return std::map<std::string, Parameters>{};
+    }
 
     KRATOS_CATCH("");
 }
