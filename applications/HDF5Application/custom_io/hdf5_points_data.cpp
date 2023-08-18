@@ -85,7 +85,6 @@ void PointsData<TContainerDataIO>::Write(
     WriteInfo info;
     mpFile->WriteDataSet(mPrefix + "/Ids", ids, info);
     mpFile->WriteDataSet(mPrefix + "/Coordinates", coords, info);
-    mpFile->WriteAttribute(mPrefix, "Size", static_cast<int>(info.TotalSize));
 
     WritePartitionTable(*mpFile, mPrefix, info);
 
