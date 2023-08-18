@@ -359,7 +359,7 @@ public:
     void ReadAttribute(
         const std::string& rObjectPath,
         const std::string& rName,
-        TDataType& rValue);
+        TDataType& rValue) const;
 
     /**
      * @brief Read attributes from a dataset or group to a @ref Parameters object.
@@ -367,7 +367,7 @@ public:
      * @param rObjectPath           Dataset or group path.
      * @return Parameters           Parameters object containing attribute name, value pairs.
      */
-    Parameters ReadAttribute(const std::string& rObjectPath);
+    Parameters ReadAttribute(const std::string& rObjectPath) const;
 
     /**
      * @brief Read a dataset from the HDF5 file.
@@ -387,7 +387,7 @@ public:
         const std::string& rPath,
         TDataType& rData,
         const unsigned StartIndex,
-        const unsigned BlockSize);
+        const unsigned BlockSize) const;
 
     /**
      * @brief Independently read a dataset from the HDF5 file.
@@ -405,7 +405,7 @@ public:
         const std::string& rPath,
         TDataType& rData,
         const unsigned StartIndex,
-        const unsigned BlockSize);
+        const unsigned BlockSize) const;
 
     unsigned GetOpenObjectsCount() const;
     ///@}
@@ -433,13 +433,6 @@ private:
 
     hid_t GetFileId() const;
 
-    template<class TDataType>
-    void GetDataSet(
-        hid_t& rDataSetId,
-        hid_t& rDataSpaceId,
-        const std::vector<hsize_t>& rDims,
-        const std::string& rPath);
-
     void CreateNewDataSet(
         hid_t& rDataSetId,
         hid_t& rDataSpaceId,
@@ -460,7 +453,7 @@ private:
         const std::string& rPath,
         TDataType& rData,
         const unsigned StartIndex,
-        const unsigned BlockSize);
+        const unsigned BlockSize) const;
 
     ///@}
 };
