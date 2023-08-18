@@ -18,10 +18,10 @@
             "analysis_type"                   : "non_linear",
             "model_import_settings"           : {
                 "input_type"     : "mdpa",
-                "input_filename" : "thermo_mechanical_tests/thermo_mech_accessor/coupled_accessor_test"
+                "input_filename" : "thermo_mechanical_tests/thermo_mechanical_accessor/coupled_accessor_test"
             },
             "material_import_settings"        : {
-                "materials_filename" : "thermo_mechanical_tests/thermo_mech_accessor/StructuralMaterials.json"
+                "materials_filename" : "thermo_mechanical_tests/thermo_mechanical_accessor/StructuralMaterials.json"
             },
             "time_stepping"                   : {
                 "time_step" : 1.0
@@ -42,10 +42,10 @@
             "domain_size"                        : 2,
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
-                "input_filename" : "thermo_mechanical_tests/thermo_mech_accessor/coupled_accessor_test"
+                "input_filename" : "thermo_mechanical_tests/thermo_mechanical_accessor/coupled_accessor_test"
             },
             "material_import_settings"           : {
-                "materials_filename" : "thermo_mechanical_tests/thermo_mech_accessor/ConvectionDiffusionMaterials.json"
+                "materials_filename" : "thermo_mechanical_tests/thermo_mechanical_accessor/ConvectionDiffusionMaterials.json"
             },
             "line_search"                        : false,
             "echo_level"                         : 1,
@@ -130,7 +130,7 @@
             "Parameters"            : {
                 "check_variables"              : ["DISPLACEMENT"],
                 "gauss_points_check_variables" : ["VON_MISES_STRESS"],
-                "input_file_name"              : "thermo_mechanical_tests/thermo_mech_accessor/coupled_accessor_test_results.json",
+                "input_file_name"              : "thermo_mechanical_tests/thermo_mechanical_accessor/coupled_accessor_test_results.json",
                 "model_part_name"               : "Structure.Parts_Solid_Solid_Auto1",
                 "time_frequency"                : 2.0
             }
@@ -143,7 +143,7 @@
 	//	"Parameters"            : {
 	//		"output_variables"              : ["DISPLACEMENT"],
 	//		"gauss_points_output_variables" : ["VON_MISES_STRESS"],
-	//		"output_file_name"              : "thermo_mechanical_tests/thermo_mech_accessor/coupled_accessor_test_results.json",
+	//		"output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_accessor/coupled_accessor_test_results.json",
 	//		"model_part_name"               : "Structure.Parts_Solid_Solid_Auto1",
 	//		"time_frequency"                : 2.0
 	//	}
