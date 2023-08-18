@@ -343,7 +343,7 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("Read",  [](HDF5::ExpressionIO& rSelf, const std::string& rContainerExpressionName, ContainerExpression<HDF5::ConditionsContainerType>& rContainerExpression){ return rSelf.Read(rContainerExpressionName, rContainerExpression); } , py::arg("container_expression_name"), py::arg("condition_container_expression"))
         .def("Read",  [](HDF5::ExpressionIO& rSelf, const std::string& rContainerExpressionName, ContainerExpression<HDF5::ElementsContainerType>& rContainerExpression){ return rSelf.Read(rContainerExpressionName, rContainerExpression); } , py::arg("container_expression_name"), py::arg("elemen_container_expression"))
         .def("GetExpressionNames", &HDF5::ExpressionIO::GetExpressionNames)
-        .def("GetExpressionNames", &HDF5::ExpressionIO::GetContainerExpressionNames)
+        .def("GetContainerExpressionNames", &HDF5::ExpressionIO::GetContainerExpressionNames)
         ;
 
 #ifdef KRATOS_USING_MPI
