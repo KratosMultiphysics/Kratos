@@ -56,7 +56,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef LinearPlaneStrain BaseType;
+    using BaseType = LinearPlaneStrain;
 
     /// Counted pointer of LinearPlaneStrain
     KRATOS_CLASS_POINTER_DEFINITION(ThermalLinearPlaneStrain);
