@@ -293,7 +293,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStress(
     const double YoungModulus,
     const double PoissonRatio)
 {
-    if (rC.size1() != VoigtSize)
+    if (rC.size1() != VoigtSize || rC.size2() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
     rC.clear();
 
@@ -316,7 +316,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrixPlaneStrain(
     const double YoungModulus,
     const double PoissonRatio)
 {
-    if (rC.size1() != VoigtSize)
+    if (rC.size1() != VoigtSize || rC.size2() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
     rC.clear();
 
@@ -340,7 +340,7 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(
     const double YoungModulus,
     const double PoissonRatio)
 {
-    if (rC.size1() != VoigtSize)
+    if (rC.size1() != VoigtSize || rC.size2() != VoigtSize)
         rC.resize(VoigtSize, VoigtSize, false);
     rC.clear();
 
