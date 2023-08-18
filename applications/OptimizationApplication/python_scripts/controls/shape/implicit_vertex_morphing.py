@@ -7,11 +7,6 @@
 #  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 #
 # ==============================================================================
-try:
-    import QuESo_PythonApplication as QuESoApp
-    from QuESo_PythonApplication.PyQuESo import PyQuESo
-except ImportError:
-    raise Exception("QuESo python library is not available")
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 import KratosMultiphysics.OptimizationApplication as KOA
@@ -21,7 +16,7 @@ import numpy as np
 
 class ImplicitVertexMorphing(ShapeControl):
     def __init__(self, name, model, settings):
-        self.technique_settings = settings["technique_settings"] 
+        self.technique_settings = settings["technique_settings"]
         self.default_technique_settings = KM.Parameters("""{
                     "fixed_model_parts"  : [],
                     "fixed_model_parts_X"  : [],
@@ -35,7 +30,7 @@ class ImplicitVertexMorphing(ShapeControl):
                     "surface_bulk_ratio" : 2,
                     "project_to_normal" : false,
                     "poisson_ratio" : 0.3,
-                    "utilities":[],           
+                    "utilities":[],
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",
                         "smoother_type":"ilu0",
@@ -74,13 +69,11 @@ class ImplicitVertexMorphing(ShapeControl):
             if not fixed_model_parts_Y[i].IsBool():
                 raise RuntimeError("ImplicitVertexMorphing:__init__: entry {} of 'fixed_model_parts_Y' of control '{}' should be a bool .".format(i+1,self.name))
             if not fixed_model_parts_Z[i].IsBool():
-                raise RuntimeError("ImplicitVertexMorphing:__init__: entry {} of 'fixed_model_parts_Z' of control '{}' should be a bool .".format(i+1,self.name))   
+                raise RuntimeError("ImplicitVertexMorphing:__init__: entry {} of 'fixed_model_parts_Z' of control '{}' should be a bool .".format(i+1,self.name))
             fixed_model_part = fixed_model_parts[i].GetString()
             root_fixed_model_part = fixed_model_part.split(".")[0]
             if not self.model.HasModelPart(root_fixed_model_part):
                 raise RuntimeError("ImplicitVertexMorphing:__init__: model_part {} in fixed_model_parts of control '{}' does not exist .".format(fixed_model_part,self.name))
-                                         
-
         # add vars
         for model_part_name in self.controlling_objects:
             root_model = model_part_name.split(".")[0]
@@ -96,7 +89,7 @@ class ImplicitVertexMorphing(ShapeControl):
             if not extracted_root_model_part_name in root_model_parts:
                 root_model_parts.append(extracted_root_model_part_name)
                 self.linear_solvers.append(python_linear_solver_factory.ConstructSolver(self.technique_settings["linear_solver_settings"]))
-                    
+
 
         self.implicit_vertex_morphing = KOA.ImplicitVertexMorphing(self.name,self.model,self.linear_solvers,self.settings)
 
@@ -115,16 +108,20 @@ class ImplicitVertexMorphing(ShapeControl):
         self.implicit_vertex_morphing.Initialize()
         for util in self.utils:
             util.Initialize()
-    
+
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
         for util in self.utils:
             util.ApplyOnVectorField(derivative_variable_name)
         self.implicit_vertex_morphing.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
 
     def Compute(self):
-        self.implicit_vertex_morphing.MapControlUpdate(KOA.D_CX,KOA.D_X) 
+        self.implicit_vertex_morphing.MapControlUpdate(KOA.D_CX,KOA.D_X)
 
-    def Update(self):        
+        try:
+            import QuESo_PythonApplication as QuESoApp
+            from QuESo_PythonApplication.PyQuESo import PyQuESo
+        except ImportError:
+            raise Exception("QuESo python library is not available")
 
         pyqueso = PyQuESo("QUESOParameters.json")
 
@@ -132,26 +129,34 @@ class ImplicitVertexMorphing(ShapeControl):
         directions = QuESoApp.PointVector()
         for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
             shape_update = node.GetSolutionStepValue(KOA.D_X)
-            nodes.append( QuESoApp.Point(node.X0, node.Y0, node.Z0) )
-            directions.append( QuESoApp.Point(shape_update[0], shape_update[1], shape_update[2]) ) #This should be the direction of the shape
+            nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
+
+            projection = nodal_normal[0]*shape_update[0] + nodal_normal[1]*shape_update[1] + nodal_normal[2]*shape_update[2]
+            direction = projection*nodal_normal
+            nodes.append( QuESoApp.Point(node.X, node.Y, node.Z) )
+            directions.append( QuESoApp.Point(direction[0], direction[1], direction[2]) ) #This should be the direction of the shape
 
         pyqueso.Run()
 
         distances = pyqueso.ClosestDistances(nodes, directions)
         for node, distance in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, distances):
-            shape_update = node.GetSolutionStepValue(KOA.D_X)
-            norm = np.sqrt(shape_update[0]* shape_update[0] + shape_update[1]* shape_update[1] + shape_update[2]* shape_update[2])
-            if norm > 0.4 * distance:
-                shape_update = 0.4 * distance * shape_update / norm
-            # if norm > 0.0:
-            #     shape_update /= norm
-            # shape_update *= distance
-            node.SetSolutionStepValue(KOA.D_X,shape_update)
 
+            if abs(distance) < 10:
+                nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
+                control_update = node.GetSolutionStepValue(KOA.D_CX)
+                projected_control_update = nodal_normal[0]*control_update[0] + nodal_normal[1]*control_update[1] + nodal_normal[2]*control_update[2]
+                control_update_normal = projected_control_update*nodal_normal
+                control_update_tangent = control_update-control_update_normal
+                node.SetSolutionStepValue(KOA.D_CX, control_update_tangent)
 
+            if distance > 100000:
+                node.SetSolutionStepValue(KOA.AUXILIARY_FIELD, [-10.0, 0.0, 0.0])
+            else:
+                node.SetSolutionStepValue(KOA.AUXILIARY_FIELD, [distance, 0.0, 0.0])
 
-            # node.SetSolutionStepValue(KOA.AUXILIARY_FIELD,shape_update)
+        self.implicit_vertex_morphing.MapControlUpdate(KOA.D_CX ,KOA.D_X)
 
+    def Update(self):
         self.implicit_vertex_morphing.Update()
 
     def GetControllingObjects(self):
@@ -164,7 +169,5 @@ class ImplicitVertexMorphing(ShapeControl):
                 root_controlling_names.append(root_model)
             return root_controlling_names
 
-            
-            
 
 

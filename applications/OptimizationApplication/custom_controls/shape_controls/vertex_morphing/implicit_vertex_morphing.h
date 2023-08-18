@@ -87,13 +87,13 @@ public:
     typedef BaseType::NodesArrayType NodesArrayType;
     typedef BaseType::PropertiesType PropertiesType;
     typedef BaseType::IndexType IndexType;
-    typedef BaseType::SizeType SizeType;    
+    typedef BaseType::SizeType SizeType;
     typedef BaseType::MatrixType MatrixType;
-    typedef BaseType::VectorType VectorType;    
+    typedef BaseType::VectorType VectorType;
     typedef GeometryData::IntegrationMethod IntegrationMethod;
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;  
+    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     typedef HelmholtzStrategy<SparseSpaceType, LocalSpaceType,LinearSolverType> StrategyType;
 
     // Type definitions for better reading later
@@ -106,7 +106,7 @@ public:
 
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > KDTree;    
+    typedef Tree< KDTreePartition<BucketType> > KDTree;
 
     /// Pointer definition of ImplicitVertexMorphing
     KRATOS_CLASS_POINTER_DEFINITION(ImplicitVertexMorphing);
@@ -146,9 +146,9 @@ public:
         CreateModelParts();
 
         CalculateNodeNeighbourCount();
-        
+
         for(long unsigned int model_i=0;model_i<mpVMModelParts.size();model_i++){
-            StrategyType* mpStrategy = new StrategyType (*mpVMModelParts[model_i],rLinearSystemSolvers[model_i]);            
+            StrategyType* mpStrategy = new StrategyType (*mpVMModelParts[model_i],rLinearSystemSolvers[model_i]);
             mpStrategy->Initialize();
             mpStrategies.push_back(mpStrategy);
         }
@@ -182,19 +182,19 @@ public:
                 node_i.Y() = node_i.Y0();
 
                 node_i.Z0() += r_nodal_D_X(2);
-                node_i.Z() = node_i.Z0();                                
+                node_i.Z() = node_i.Z0();
 
             }
             TetrahedralMeshOrientationCheck tetrahedralMeshOrientationCheck(*mpVMModePart,true);
-            tetrahedralMeshOrientationCheck.Execute();            
-        }        
+            tetrahedralMeshOrientationCheck.Execute();
+        }
         AdjustFilterSizes();
 
         if(mTechniqueSettings["project_to_normal"].GetBool())
             ComputeSurfaceNormals();
 
         KRATOS_INFO("ImplicitVertexMorphing:MapControlUpdate:") << "Finished updating in " << timer.ElapsedSeconds() << " s." << std::endl;
-    };  
+    };
     // --------------------------------------------------------------------------
     void MapControlUpdate(const Variable<array_3d> &rOriginVariable, const Variable<array_3d> &rDestinationVariable) override{
 
@@ -206,17 +206,17 @@ public:
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
 
-            //first we need to multiply with mass matrix 
+            //first we need to multiply with mass matrix
             SetVariableZero(mpVMModePart,HELMHOLTZ_VARS_SHAPE);
             SetVariableZero(mpVMModePart,HELMHOLTZ_SOURCE_SHAPE);
-            //now we need to multiply with the mass matrix 
+            //now we need to multiply with the mass matrix
             #pragma omp parallel for
             for(auto& elem_i : mpVMModePart->Elements())
             {
                 VectorType origin_values;
                 GetElementVariableValuesVector(elem_i,rOriginVariable,origin_values);
                 MatrixType mass_matrix;
-                elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());            
+                elem_i.Calculate(HELMHOLTZ_MASS_MATRIX,mass_matrix,mpVMModePart->GetProcessInfo());
                 VectorType int_vals = prod(mass_matrix,origin_values);
                 AddElementVariableValuesVector(elem_i,HELMHOLTZ_SOURCE_SHAPE,int_vals);
             }
@@ -224,7 +224,7 @@ public:
             mpStrategies[model_i]->Solve();
 
             //filling the solution
-            SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VARS_SHAPE,rDestinationVariable); 
+            SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VARS_SHAPE,rDestinationVariable);
 
         }
 
@@ -239,17 +239,17 @@ public:
         KRATOS_INFO("ImplicitVertexMorphing:MapFirstDerivative") << "Starting mapping of " << rDerivativeVariable.Name() << "..." << std::endl;
 
         if(mTechniqueSettings["project_to_normal"].GetBool())
-            ProjectToNormal(rDerivativeVariable);       
+            ProjectToNormal(rDerivativeVariable);
 
         for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
-            ModelPart* mpVMModePart = mpVMModelParts[model_i];    
+            ModelPart* mpVMModePart = mpVMModelParts[model_i];
 
             //filling the source
             SetVariableZero(mpVMModePart,HELMHOLTZ_VARS_SHAPE);
             SetVariable1ToVarible2(mpVMModePart,rDerivativeVariable,HELMHOLTZ_SOURCE_SHAPE);
 
-            //now solve 
+            //now solve
             mpStrategies[model_i]->Solve();
 
             SetVariable1ToVarible2(mpVMModePart,HELMHOLTZ_VARS_SHAPE,rMappedDerivativeVariable);
@@ -257,7 +257,7 @@ public:
 
         KRATOS_INFO("ImplicitVertexMorphing:MapFirstDerivative") << "Finished mapping in " << timer.ElapsedSeconds() << " s." << std::endl;
 
-    };  
+    };
 
     ///@}
     ///@name Access
@@ -317,8 +317,8 @@ protected:
 
     std::vector<StrategyType*>mpSMStrategies;
     std::vector<ModelPart*> mpSMVMModelParts;
-    std::vector<Properties::Pointer> mpSMVMModelPartsProperties;              
-    
+    std::vector<Properties::Pointer> mpSMVMModelPartsProperties;
+
     ///@}
     ///@name Protected Operators
     ///@{
@@ -414,7 +414,7 @@ private:
             mpVMModePart->GetCommunicator().AssembleNonHistoricalData(NUMBER_OF_NEIGHBOUR_ELEMENTS);
 
         }
-    } 
+    }
 
     void CreateModelParts()
     {
@@ -441,13 +441,13 @@ private:
 
             if(is_shell){
                 only_suf_param = true;
-                mpVMModelPartsTypes.push_back("shell");                
+                mpVMModelPartsTypes.push_back("shell");
             }
             else if(only_suf_param)
                 mpVMModelPartsTypes.push_back("shell");
             else
                 mpVMModelPartsTypes.push_back("solid");
-                
+
 
             std::string vm_model_part_name =  root_model_part.Name()+"_Implicit_VM_Part";
             ModelPart* p_vm_model_part;
@@ -471,42 +471,42 @@ private:
                 for(auto& cond_i : r_controlling_object.Conditions())
                         max_length = cond_i.GetGeometry().Length();
 
-                p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,5 * max_length); 
-                KRATOS_INFO("ImplicitVertexMorphing:CreateModelParts:") << " surface filter of "<<control_obj.GetString() <<" is adjusted to " << 3 * max_length << std::endl;               
+                p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,5 * max_length);
+                KRATOS_INFO("ImplicitVertexMorphing:CreateModelParts:") << " surface filter of "<<control_obj.GetString() <<" is adjusted to " << 3 * max_length << std::endl;
 
             }
             else
                 p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE,mTechniqueSettings["surface_filter_radius"].GetDouble());
 
 
-            p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_POISSON_RATIO_SHAPE,mTechniqueSettings["poisson_ratio"].GetDouble()); 
+            p_vm_model_part_property->SetValue(HELMHOLTZ_SURF_POISSON_RATIO_SHAPE,mTechniqueSettings["poisson_ratio"].GetDouble());
             p_vm_model_part_property->SetValue(HELMHOLTZ_BULK_POISSON_RATIO_SHAPE,mTechniqueSettings["poisson_ratio"].GetDouble());
-            
+
             if(only_suf_param)
                 for(auto& node : r_controlling_object.Nodes())
                     p_vm_model_part->AddNode(&node);
             else
                 for(auto& node : root_model_part.Nodes())
-                    p_vm_model_part->AddNode(&node);  
+                    p_vm_model_part->AddNode(&node);
 
 
             // creating vm elements
-            ModelPart::ElementsContainerType &rmesh_elements = p_vm_model_part->Elements();  
+            ModelPart::ElementsContainerType &rmesh_elements = p_vm_model_part->Elements();
 
             // creating vm conditions
-            ModelPart::ConditionsContainerType &rmesh_conditions = p_vm_model_part->Conditions(); 
+            ModelPart::ConditionsContainerType &rmesh_conditions = p_vm_model_part->Conditions();
 
-            
+
             if(only_suf_param){
                 // for (int i = 0; i < (int)r_controlling_object.Conditions().size(); i++) {
                 //     ModelPart::ConditionsContainerType::iterator it = r_controlling_object.ConditionsBegin() + i;
                 //     Element::Pointer p_element = new HelmholtzSurfShapeElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
                 //     rmesh_elements.push_back(p_element);
-                // }  
+                // }
 
                 for (int i = 0; i < (int)root_model_part.Elements().size(); i++) {
                     ModelPart::ElementsContainerType::iterator it = root_model_part.ElementsBegin() + i;
-                    Element::Pointer p_element = new HelmholtzSurfShapeElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);                
+                    Element::Pointer p_element = new HelmholtzSurfShapeElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
                     rmesh_elements.push_back(p_element);
                 }
 
@@ -514,16 +514,16 @@ private:
             else{
                 for (int i = 0; i < (int)root_model_part.Elements().size(); i++) {
                     ModelPart::ElementsContainerType::iterator it = root_model_part.ElementsBegin() + i;
-                    Element::Pointer p_element = new HelmholtzBulkShapeElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);                
+                    Element::Pointer p_element = new HelmholtzBulkShapeElement(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
                     rmesh_elements.push_back(p_element);
-                }            
+                }
                 for (int i = 0; i < (int)r_controlling_object.Conditions().size(); i++) {
                     ModelPart::ConditionsContainerType::iterator it = r_controlling_object.ConditionsBegin() + i;
-                    Condition::Pointer p_condition = new HelmholtzSurfShapeCondition(it->Id(), it->pGetGeometry(), p_vm_model_part_property);               
+                    Condition::Pointer p_condition = new HelmholtzSurfShapeCondition(it->Id(), it->pGetGeometry(), p_vm_model_part_property);
                     rmesh_conditions.push_back(p_condition);
-                }    
+                }
                 TetrahedralMeshOrientationCheck tetrahedralMeshOrientationCheck(*p_vm_model_part,false,TetrahedralMeshOrientationCheck::ASSIGN_NEIGHBOUR_ELEMENTS_TO_CONDITIONS);
-                tetrahedralMeshOrientationCheck.Execute();                  
+                tetrahedralMeshOrientationCheck.Execute();
             }
         }
 
@@ -581,7 +581,7 @@ private:
             ModelPart& r_controlling_object = mrModel.GetModelPart(control_obj.GetString());
             VariableUtils().SetHistoricalVariableToZero(NORMAL, r_controlling_object.Nodes());
             const array_1d<double,3> local_coords = ZeroVector(3);
-            for(auto& cond_i : r_controlling_object.Conditions()){
+            for(auto& cond_i : r_controlling_object.Elements()){
                 const auto& r_geom = cond_i.GetGeometry();
 
                 const array_1d<double,3> normal = r_geom.Normal(local_coords);
@@ -635,27 +635,27 @@ private:
                 }
                 double bulk_surface_ratio = mTechniqueSettings["surface_bulk_ratio"].GetDouble();
                 double bulk_filter_size = (total_surface_strain_energy)/(bulk_surface_ratio * total_volume_strain_energy);
-                bulk_filter_size = std::pow(bulk_filter_size,0.1/0.1);                                                    
+                bulk_filter_size = std::pow(bulk_filter_size,0.1/0.1);
                 p_vm_model_part_property->SetValue(HELMHOLTZ_BULK_RADIUS_SHAPE,bulk_filter_size);
 
                 KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " ++++ total_volume_strain_energy: "<<total_volume_strain_energy<<" ++++ "<<std::endl;
                 KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " ++++ total_surface_strain_energy: "<<total_surface_strain_energy<<" ++++ "<<std::endl;
                 KRATOS_INFO("ImplicitVertexMorphing:AdjustFilterSizes") << " ++++ bulk_filter_size: "<<bulk_filter_size<<" ++++ "<<std::endl;
             }
-    }  
+    }
 
     void ComputeInitialControlPoints()
     {
         for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
             ModelPart* mpVMModePart = mpVMModelParts[model_i];
-            
+
             ProcessInfo &rCurrentProcessInfo = (mpVMModePart)->GetProcessInfo();
-            
+
             SetVariableZero(mpVMModePart,HELMHOLTZ_SOURCE_SHAPE);
             SetVariableZero(mpVMModePart,CX);
 
-            // // calculate (K+M) * X element wise, here we treat CX as an auxilary 
+            // // calculate (K+M) * X element wise, here we treat CX as an auxilary
             rCurrentProcessInfo[COMPUTE_CONTROL_POINTS_SHAPE] = false;
             #pragma omp parallel for
             for(auto& node_i : mpVMModePart->Nodes())
@@ -665,7 +665,7 @@ private:
                 r_nodal_variable_hl_vars(1) = node_i.Y0();
                 r_nodal_variable_hl_vars(2) = node_i.Z0();
             }
-            
+
             #pragma omp parallel for
             for(auto& elem_i : mpVMModePart->Elements())
             {
@@ -674,7 +674,7 @@ private:
                 elem_i.Initialize(mpVMModePart->GetProcessInfo());
                 elem_i.CalculateLocalSystem(lhs,rhs,mpVMModePart->GetProcessInfo());
                 AddElementVariableValuesVector(elem_i,CX,rhs,-1.0);
-            }        
+            }
 
             #pragma omp parallel for
             for(auto& cond_i : mpVMModePart->Conditions())
@@ -686,7 +686,7 @@ private:
                 AddConditionVariableValuesVector(cond_i,CX,rhs,-1.0);
             }
 
-            
+
             // here we fill the RHS of M * S = (K+M) * X
             SetVariable1ToVarible2(mpVMModePart,CX,HELMHOLTZ_SOURCE_SHAPE);
             SetVariableZero(mpVMModePart,HELMHOLTZ_VARS_SHAPE);
@@ -704,11 +704,11 @@ private:
                     r_nodal_variable_hl_vars(1) = node_i.Y0();
 
                 if(node_i.IsFixed(HELMHOLTZ_VARS_SHAPE_Z))
-                    r_nodal_variable_hl_vars(2) = node_i.Z0();                
+                    r_nodal_variable_hl_vars(2) = node_i.Z0();
             }
-            
+
             // here we compute S = M-1 * (K+M) * X
-            rCurrentProcessInfo[COMPUTE_CONTROL_POINTS_SHAPE] = true;   
+            rCurrentProcessInfo[COMPUTE_CONTROL_POINTS_SHAPE] = true;
             mpStrategies[model_i]->Solve();
             // here we clear/reset the problem for the clearaty's sake
             mpStrategies[model_i]->GetStrategy()->Clear();
@@ -732,16 +732,16 @@ private:
             rValues.resize(local_size, false);
 
         for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-            const array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);    
+            const array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
             rValues[dofs_per_node*i_node+0] = r_nodal_variable[0];
             rValues[dofs_per_node*i_node+1] = r_nodal_variable[1];
             rValues[dofs_per_node*i_node+2] = r_nodal_variable[2];
             if(dofs_per_node==6){
                 rValues[dofs_per_node*i_node+3] = 0;
                 rValues[dofs_per_node*i_node+4] = 0;
-                rValues[dofs_per_node*i_node+5] = 0;                  
+                rValues[dofs_per_node*i_node+5] = 0;
             }
-          
+
         }
     }
 
@@ -758,10 +758,10 @@ private:
             rValues.resize(local_size, false);
 
         for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-            const array_3d& r_nodal_variable = rgeom[i_node].Coordinates();    
+            const array_3d& r_nodal_variable = rgeom[i_node].Coordinates();
             rValues[dofs_per_node*i_node+0] = r_nodal_variable[0];
             rValues[dofs_per_node*i_node+1] = r_nodal_variable[1];
-            rValues[dofs_per_node*i_node+2] = r_nodal_variable[2];          
+            rValues[dofs_per_node*i_node+2] = r_nodal_variable[2];
         }
     }
 
@@ -780,25 +780,25 @@ private:
         if (dimension == 2) {
             SizeType index = 0;
             for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-                const array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);    
+                const array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
                 rValues[index++] = r_nodal_variable[0];
                 rValues[index++] = r_nodal_variable[1];
             }
         } else if (dimension == 3) {
             SizeType index = 0;
             for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-                const array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);    
+                const array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
                 rValues[index++] = r_nodal_variable[0];
                 rValues[index++] = r_nodal_variable[1];
                 rValues[index++] = r_nodal_variable[2];
             }
         }
-    }    
+    }
     void AddElementVariableValuesVector(Element& rElement,
                                         const Variable<array_3d> &rVariable,
                                         const VectorType &rValues,
                                         const double& rWeight = 1.0
-                                        ) 
+                                        )
     {
         GeometryType &rgeom = rElement.GetGeometry();
         const SizeType num_nodes = rgeom.PointsNumber();
@@ -820,7 +820,7 @@ private:
                                         const Variable<array_3d> &rVariable,
                                         const VectorType &rValues,
                                         const double& rWeight = 1.0
-                                        ) 
+                                        )
     {
         GeometryType &rgeom = rCondition.GetGeometry();
         const SizeType num_nodes = rgeom.PointsNumber();
@@ -829,7 +829,7 @@ private:
         if (dimension == 2) {
             SizeType index = 0;
             for (SizeType i_node = 0; i_node < num_nodes; ++i_node) {
-                array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable); 
+                array_3d& r_nodal_variable = rgeom[i_node].FastGetSolutionStepValue(rVariable);
                 #pragma omp atomic
                 r_nodal_variable[0] += rWeight * rValues[index++];
                 #pragma omp atomic
@@ -847,9 +847,9 @@ private:
                 r_nodal_variable[2] += rWeight * rValues[index++];
             }
         }
-    }    
-    
-    void SetVariableZero(ModelPart* mpVMModePart, const Variable<array_3d> &rVariable) 
+    }
+
+    void SetVariableZero(ModelPart* mpVMModePart, const Variable<array_3d> &rVariable)
     {
         #pragma omp parallel for
         for(auto& node_i : mpVMModePart->Nodes())
@@ -857,11 +857,11 @@ private:
             array_3d& r_nodal_variable = node_i.FastGetSolutionStepValue(rVariable);
             r_nodal_variable[0] = 0.0;
             r_nodal_variable[1] = 0.0;
-            r_nodal_variable[2] = 0.0;                    
+            r_nodal_variable[2] = 0.0;
         }
     }
 
-    void SetVariable1ToVarible2(ModelPart* mpVMModePart,const Variable<array_3d> &rVariable1,const Variable<array_3d> &rVariable2) 
+    void SetVariable1ToVarible2(ModelPart* mpVMModePart,const Variable<array_3d> &rVariable1,const Variable<array_3d> &rVariable2)
     {
         #pragma omp parallel for
         for(auto& node_i : mpVMModePart->Nodes())
@@ -870,9 +870,9 @@ private:
             array_3d& r_nodal_variable2 = node_i.FastGetSolutionStepValue(rVariable2);
             r_nodal_variable2[0] = r_nodal_variable1[0];
             r_nodal_variable2[1] = r_nodal_variable1[1];
-            r_nodal_variable2[2] = r_nodal_variable1[2];                    
+            r_nodal_variable2[2] = r_nodal_variable1[2];
         }
-    }    
+    }
 
     ///@}
     ///@name Private Inquiry
