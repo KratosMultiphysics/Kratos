@@ -36,7 +36,7 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
         interval = 0
         plot_output = self.project_parameters["fatigue"]["plot_output"].GetBool()
         if plot_output:
-            if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 1:
+            if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 1 or self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
                 self.TimePreviousPlotting=0
             if self.time - self.TimePreviousPlotting >= interval:
                 if self.TimePreviousPlotting == 0:
@@ -56,7 +56,7 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
                     plot_file = open("PlotElement.txt","a")
                     for elem in self.main_model_part.Elements:
                         if elem.Id == id_for_print:
-                            if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 1:
+                            if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 1 or self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
                                 previous_number_of_cycles = 1
                                 first_step = True
                             else:                        
