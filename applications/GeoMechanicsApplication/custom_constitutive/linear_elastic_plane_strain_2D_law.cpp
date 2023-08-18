@@ -13,8 +13,6 @@
 // System includes
 #include <iostream>
 
-// External includes
-
 // Project includes
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
 

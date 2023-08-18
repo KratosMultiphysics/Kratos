@@ -10,13 +10,10 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_SMALL_STRAIN_UDSM_3D_INTERFACE_LAW_H_INCLUDED )
-#define  KRATOS_SMALL_STRAIN_UDSM_3D_INTERFACE_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 #include "includes/define.h"
-
-// External includes
 
 // Project includes
 #include "custom_constitutive/small_strain_udsm_3D_law.hpp"
@@ -71,29 +68,10 @@ namespace Kratos
       //@name Life Cycle
       //@{
 
-      //----------------------------------------------------------------------------------------
-      /**
-       * @brief Default constructor.
-       */
-      SmallStrainUDSM3DInterfaceLaw();
-
       /**
        * @brief Clone method
        */
       ConstitutiveLaw::Pointer Clone() const override;
-
-      /**
-       * Copy constructor.
-       */
-      SmallStrainUDSM3DInterfaceLaw(SmallStrainUDSM3DInterfaceLaw const& rOther);
-
-      /**
-       * @brief Destructor.
-       */
-      virtual ~SmallStrainUDSM3DInterfaceLaw();
-
-      // Assignment operator:
-      SmallStrainUDSM3DInterfaceLaw& operator=(SmallStrainUDSM3DInterfaceLaw const& rOther);
 
       Vector& GetValue( const Variable<Vector> &rThisVariable, Vector &rValue ) override;
 
@@ -131,7 +109,7 @@ namespace Kratos
        * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
        * @return the expected stress measure
        */
-      virtual StressMeasure GetStressMeasure() override
+      StressMeasure GetStressMeasure() override
       {
          return StressMeasure_Cauchy;
       }
@@ -153,21 +131,19 @@ namespace Kratos
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override
+      std::string Info() const override
       {
-         std::stringstream buffer;
-         buffer << "SmallStrainUDSM3DInterfaceLaw";
-         return buffer.str();
+         return "SmallStrainUDSM3DInterfaceLaw";
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override
+      void PrintInfo(std::ostream& rOStream) const override
       {
-         rOStream << "SmallStrainUDSM3DInterfaceLaw";
+         rOStream << Info();
       }
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override
+      void PrintData(std::ostream& rOStream) const override
       {
          rOStream << "SmallStrainUDSM3DInterfaceLaw Data";
       }
@@ -205,7 +181,6 @@ namespace Kratos
       void SetInternalStressVector(const Vector& rStressVector) override;
       void SetInternalStrainVector(const Vector& rStrainVector) override;
       void CopyConstitutiveMatrix(ConstitutiveLaw::Parameters &rValues, Matrix& rConstitutiveMatrix) override;
-
 
       ///@}
       ///@name Protected Inquiry
@@ -250,12 +225,12 @@ namespace Kratos
       ///@{
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override
+      void save(Serializer& rSerializer) const override
       {
          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
       }
 
-      virtual void load(Serializer& rSerializer) override
+      void load(Serializer& rSerializer) override
       {
          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
       }
@@ -287,8 +262,4 @@ namespace Kratos
 
    ///@} addtogroup block
 
-}  // namespace Kratos.
-
-#endif // KRATOS_SMALL_STRAIN_UDSM_3D_INTERFACE_LAW_H_INCLUDED  defined
-
-
+}
