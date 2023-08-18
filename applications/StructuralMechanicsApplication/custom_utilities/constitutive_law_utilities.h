@@ -244,22 +244,76 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
     }
 
     /**
-    * It calculates the constitutive matrix C in plane stress, strain or in 3D
-    * @param C: The constitutive matrix
-    * @param rValues Parameters of the constitutive law
+    * It calculates the constitutive matrix C in 2D plane stress
+    * @param rC: The constitutive matrix
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
     */
-    static void CalculateElasticMatrixPlaneStress(MatrixType &C, const double E, const double NU);
-    static void CalculateElasticMatrixPlaneStrain(MatrixType &C, const double E, const double N);
-    static void CalculateElasticMatrix(MatrixType &C, const double E, const double N);
+    static void CalculateElasticMatrixPlaneStress(
+        MatrixType& rC,
+        const double E,
+        const double NU);
 
     /**
-    * It calculates elastic stress from strain and E and NU
-    * @param C: The constitutive matrix
-    * @param rValues Parameters of the constitutive law
+    * It calculates the constitutive matrix C in 2D plane strain
+    * @param rC: The constitutive matrix
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
     */
-    static void CalculatePK2StressFromStrain(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double YoungModulus, const double PoissonRatio);
-    static void CalculatePK2StressFromStrainPlaneStress(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double YoungModulus, const double PoissonRatio);
-    static void CalculatePK2StressFromStrainPlaneStrain(ConstitutiveLaw::StressVectorType& rStressVector, const ConstitutiveLaw::StrainVectorType &rStrainVector, const double YoungModulus, const double PoissonRatio);
+    static void CalculateElasticMatrixPlaneStrain(
+        MatrixType& rC,
+        const double E,
+        const double N);
+
+    /**
+    * It calculates the constitutive matrix C in 3D
+    * @param rC: The constitutive matrix
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
+    */
+    static void CalculateElasticMatrix(
+        MatrixType& rC,
+        const double E,
+        const double N);
+
+    /**
+    * It calculates elastic stress from strain and E and NU for 3D elasticity
+    * @param rStressVector: The stress vector
+    * @param rStrainVector: The strain vector
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
+    */
+    static void CalculatePK2StressFromStrain(
+        ConstitutiveLaw::StressVectorType& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        const double YoungModulus,
+        const double PoissonRatio);
+
+    /**
+    * It calculates elastic stress from strain and E and NU in plane stress elasticity
+    * @param rStressVector: The stress vector
+    * @param rStrainVector: The strain vector
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
+    */
+    static void CalculatePK2StressFromStrainPlaneStress(
+        ConstitutiveLaw::StressVectorType& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        const double YoungModulus,
+        const double PoissonRatio);
+
+    /**
+    * It calculates elastic stress from strain and E and NU for plane strain elasticity
+    * @param rStressVector: The stress vector
+    * @param rStrainVector: The strain vector
+    * @param YoungModulus: The elasticity modulus
+    * @param PoissonRatio: The poisson ratio
+    */
+    static void CalculatePK2StressFromStrainPlaneStrain(
+        ConstitutiveLaw::StressVectorType& rStressVector,
+        const ConstitutiveLaw::StrainVectorType& rStrainVector,
+        const double YoungModulus,
+        const double PoissonRatio);
 
 }; // class ConstitutiveLawUtilities
 } // namespace Kratos
