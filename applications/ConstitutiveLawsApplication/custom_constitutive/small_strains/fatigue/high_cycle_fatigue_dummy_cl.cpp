@@ -177,34 +177,11 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
 
     mFatigueData.InitializeFatigueVariables(HCFVariables);
 
-    // double max_stress = mFatigueData.mMaxStress;
-    // double min_stress = mFatigueData.mMinStress;
-    // bool max_indicator = mFatigueData.mMaxDetected;
-    // bool min_indicator = mFatigueData.mMinDetected;
-    // double fatigue_reduction_factor = mFatigueData.mFatigueReductionFactor;
-    // double reversion_factor_relative_error = mFatigueData.mReversionFactorRelativeError;
-    // double max_stress_relative_error = mFatigueData.mMaxStressRelativeError;
-    // unsigned int global_number_of_cycles = mFatigueData.mNumberOfCyclesGlobal;
-    // unsigned int local_number_of_cycles = mFatigueData.mNumberOfCyclesLocal;
-    // double B0 = mFatigueData.mFatigueReductionParameter;
-    // double previous_max_stress = mFatigueData.mPreviousMaxStress;
-    // double previous_min_stress = mFatigueData.mPreviousMinStress;
-    // double wohler_stress = mFatigueData.mWohlerStress;
-    // bool new_cycle = false;
-    // double s_th = mFatigueData.mThresholdStress;
-    // double cycles_to_failure = mFatigueData.mCyclesToFailure;
-
     double sign_factor = mFatigueData.CalculateTensionOrCompressionIdentifier(r_stress_vector);
     uniaxial_stress *= sign_factor;
 
     mFatigueData.CalculateSminAndSmax(uniaxial_stress, HCFVariables);
-    // KRATOS_WATCH(HCFVariables.max_stress);
 
-    // mFatigueData.mMaxStress = HCFVariables.max_stress;
-    // mFatigueData.mMinStress = HCFVariables.min_stress;
-    // KRATOS_WATCH(HCFVariables.max_stress);
-
-    // Vector previous_stresses = ZeroVector(2);
     const Vector& r_aux_stresses = mFatigueData.mPreviousStresses;
     HCFVariables.previous_stresses[1] = uniaxial_stress;
     HCFVariables.previous_stresses[0] = r_aux_stresses[1];
@@ -224,23 +201,11 @@ void HighCycleFatigueDummyCl::FinalizeMaterialResponsePK2(ConstitutiveLaw::Param
         HCFVariables.min_indicator = false;
         HCFVariables.previous_max_stress = HCFVariables.max_stress;
         HCFVariables.previous_min_stress = HCFVariables.min_stress;
-        // mFatigueData.mCyclesToFailure = HCFVariables.cycles_to_failure;
 
         mFatigueData.CalculateFatigueReductionFactorAndWohlerStress(rValues.GetMaterialProperties(), HCFVariables);
     }
 
     mFatigueData.UpdateFatigueVariables(HCFVariables);
-    // mFatigueData.mMaxDetected = HCFVariables.max_indicator;
-    // mFatigueData.mMinDetected = HCFVariables.min_indicator;
-    // mFatigueData.mNumberOfCyclesGlobal = HCFVariables.global_number_of_cycles;
-    // mFatigueData.mNumberOfCyclesLocal = HCFVariables.local_number_of_cycles;
-    // mFatigueData.mNewCycleIndicator = HCFVariables.new_cycle;
-    // mFatigueData.mFatigueReductionParameter = HCFVariables.B0;
-    // mFatigueData.mPreviousMaxStress = HCFVariables.previous_max_stress;
-    // mFatigueData.mPreviousMinStress = HCFVariables.previous_min_stress;
-    // mFatigueData.mFatigueReductionFactor = HCFVariables.fatigue_reduction_factor;
-    // mFatigueData.mWohlerStress = HCFVariables.wohler_stress;
-    // mFatigueData.mThresholdStress = HCFVariables.s_th;
 
     // KRATOS_WATCH(HCFVariables.max_stress);
     // KRATOS_WATCH(HCFVariables.min_stress);
