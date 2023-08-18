@@ -69,9 +69,7 @@ public:
      * @brief Default constructor.
      */
     ThermalLinearPlaneStrain() 
-    {
-
-    }
+    {}
 
     /**
      * @brief Clone method
@@ -94,15 +92,6 @@ public:
         : BaseType(rOther),
           mReferenceTemperature(rOther.mReferenceTemperature)
     {
-    }
-
-    double& GetReferenceTemperature()
-    {
-        return mReferenceTemperature;
-    }
-    void SetReferenceTemperature(const double ToRefTemperature)
-    {
-        mReferenceTemperature = ToRefTemperature;
     }
 
     ///@}
@@ -245,6 +234,24 @@ private:
     ///@name Private  Access
     ///@{
     ///@}
+
+    /**
+     * @brief Retrieves the reference temperature
+     * @return The reference temperature
+     */
+    double& GetReferenceTemperature()
+    {
+        return mReferenceTemperature;
+    }
+
+    /**
+     * @brief Sets the reference temperature
+     * @param ToRefTemperature The reference temperature
+     */
+    void SetReferenceTemperature(const double ToRefTemperature)
+    {
+        mReferenceTemperature = ToRefTemperature;
+    }
 
     ///@}
     ///@name Serialization
