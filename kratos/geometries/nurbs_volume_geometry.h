@@ -193,7 +193,8 @@ public:
     typename BaseType::Pointer Create(
         PointsArrayType const& ThisPoints) const override
     {
-        return Kratos::make_shared<NurbsVolumeGeometry>(ThisPoints);
+        return Kratos::make_shared<NurbsVolumeGeometry>(ThisPoints,
+            mPolynomialDegreeU, mPolynomialDegreeV, mPolynomialDegreeW, mKnotsU, mKnotsV, mKnotsW );
     }
 
     ///@}

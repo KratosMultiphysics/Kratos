@@ -54,8 +54,8 @@ StlIO::StlIO(std::filesystem::path const& Filename, Parameters ThisParameters):
 
 StlIO::StlIO(
     Kratos::shared_ptr<std::iostream> pInputStream,
-    Parameters ThisParameters) 
-    : IO(), 
+    Parameters ThisParameters)
+    : IO(),
       mParameters(ThisParameters),
       mpInputStream(pInputStream)
 {
@@ -138,7 +138,7 @@ void StlIO::WriteEntityBlock(const TContainerType& rThisEntities)
             WriteFacet(r_geometry);
         }
     }
-    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
+    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0)
         << "Model part contained " << num_degenerate_geometries
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 }
@@ -151,13 +151,13 @@ void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
             WriteFacet(r_geometry);
         }
     }
-    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
+    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0)
         << "Model part contained " << num_degenerate_geometries
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 }
 
 
-void StlIO::WriteFacet(const GeometryType& rGeom) 
+void StlIO::WriteFacet(const GeometryType& rGeom)
 {
     const auto & rUnitNormal = rGeom.UnitNormal(rGeom.Center());
     (*mpInputStream) << "    facet normal " << rUnitNormal[0] << " " << rUnitNormal[1] << " " << rUnitNormal[2] << "\n";
@@ -165,7 +165,7 @@ void StlIO::WriteFacet(const GeometryType& rGeom)
 
     for (int i = 0; i < 3; i++) {
         const auto& r_node = rGeom[i];
-        (*mpInputStream) << "           vertex " << r_node.X() << " " << r_node.Y() << " " << r_node.Z() << "\n";
+        (*mpInputStream) << std::setprecision(16) << "           vertex " << r_node.X() << " " << r_node.Y() << " " << r_node.Z() << "\n";
     }
 
     (*mpInputStream) << "        endloop\n";
@@ -191,7 +191,7 @@ void StlIO::PrintData(std::ostream& rOStream) const{
 
 bool StlIO::IsValidGeometry(
     const Geometry<Node>& rGeometry,
-    std::size_t& rNumDegenerateGeos) const 
+    std::size_t& rNumDegenerateGeos) const
 {
     // restrict to triangles only for now
     const bool is_triangle = (
@@ -245,7 +245,7 @@ void StlIO::ReadSolid(
     }
 
     KRATOS_ERROR_IF(word != "endsolid") << "Invalid stl file. Solid block should be closed with \"endsolid\" keyword but \"" << word << "\" was found" << std::endl;
-    std::getline(*mpInputStream, word); // Reading solid name 
+    std::getline(*mpInputStream, word); // Reading solid name
 }
 
 void StlIO::ReadFacet(
