@@ -118,7 +118,8 @@ class MeasurementResidualResponseFunction(ResponseFunction):
             measured_direction = Kratos.Array3(sensor["measurement_direction_normal"])
 
             mesh_node = self.primal_model_part.GetNode(sensor["mesh_node_id"])
-            node_displacement = mesh_node.GetSolutionStepValue(Kratos.DISPLACEMENT)
+
+            node_displacement = mesh_node.GetSolutionStepValue(Kratos.KratosGlobals.GetVariable(sensor["type_of_sensor"]))
             in_measurement_direction_projected_vector = (measured_direction[0]*node_displacement[0])+(measured_direction[1]*node_displacement[1])+(measured_direction[2]*node_displacement[2])
 
             objective_value += (measured_displacement-in_measurement_direction_projected_vector)**2

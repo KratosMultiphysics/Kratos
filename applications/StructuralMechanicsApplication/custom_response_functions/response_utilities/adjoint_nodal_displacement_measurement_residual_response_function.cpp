@@ -143,7 +143,6 @@ namespace Kratos
                             measurement_normal = sensor_data["measurement_direction_normal"].GetVector();
 
                             const ArrayVariableType &measurement_type = KratosComponents<ArrayVariableType>::Get(sensor_data["type_of_sensor"].GetString());
-
                             simulated_displacement = response_part.GetNode(node_id).FastGetSolutionStepValue(measurement_type);
 
                             simulated_displacement_projected_on_measurement = inner_prod(simulated_displacement, measurement_normal);
@@ -265,13 +264,16 @@ namespace Kratos
         double measurement_difference;
         ModelPart &response_part = rModelPart.GetSubModelPart(mResponsePartName);
 
-        for (auto &sensor_data : mMeasurementData["load_cases"][0]["sensors_infos"])
+        for (auto &sensor_data : mMeasurementData["sensors_infos"])
         {
             measurement_value = sensor_data["measured_value"].GetDouble();
             measurement_normal = sensor_data["measurement_direction_normal"].GetVector();
 
             sensor_node_id = sensor_data["mesh_node_id"].GetInt();
-            simulated_response_vector = response_part.GetNode(sensor_node_id).FastGetSolutionStepValue(r_traced_dof);
+
+            const ArrayVariableType &measurement_type = KratosComponents<ArrayVariableType>::Get(sensor_data["type_of_sensor"].GetString());
+            simulated_response_vector = response_part.GetNode(sensor_node_id).FastGetSolutionStepValue(measurement_type);
+
             projected_simulated_response = inner_prod(measurement_normal, simulated_response_vector);
 
             measurement_difference = measurement_value - projected_simulated_response;
