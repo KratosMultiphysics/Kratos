@@ -51,7 +51,7 @@ public:
     /**
      * @param rModelPart The model part to check.
      */
-    DeactivateConditionsOnInactiveElements( ModelPart& rModelPart ):  Process(),
+    explicit DeactivateConditionsOnInactiveElements( ModelPart& rModelPart ):  Process(),
             mrModelPart(rModelPart)
     {
     }

@@ -177,7 +177,7 @@ class ShellThicknessControl(Control):
     def GetControlField(self) -> ContainerExpressionTypes:
         return self.control_field
 
-    def GePhysicalField(self) -> ContainerExpressionTypes:
+    def GetPhysicalField(self) -> ContainerExpressionTypes:
         physical_thickness_field = Kratos.Expression.ElementExpression(self.model_part)
         KratosOA.PropertiesVariableExpressionIO.Read(physical_thickness_field, Kratos.THICKNESS)
         return physical_thickness_field

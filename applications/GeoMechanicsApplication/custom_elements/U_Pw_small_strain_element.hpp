@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_U_PW_SMALL_STRAIN_ELEMENT_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_SMALL_STRAIN_ELEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -55,7 +54,7 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement<TDim,TNumNodes>( NewId ) {}
+    explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement<TDim,TNumNodes>( NewId ) {}
 
     /// Constructor using an array of nodes
     UPwSmallStrainElement(IndexType NewId,
@@ -70,8 +69,11 @@ public:
                           GeometryType::Pointer pGeometry,
                           PropertiesType::Pointer pProperties) : UPwBaseElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
-    /// Destructor
-    ~UPwSmallStrainElement() override {}
+    ~UPwSmallStrainElement() override = default;
+    UPwSmallStrainElement(const UPwSmallStrainElement&) = delete;
+    UPwSmallStrainElement& operator=(const UPwSmallStrainElement&) = delete;
+    UPwSmallStrainElement(UPwSmallStrainElement&&) = delete;
+    UPwSmallStrainElement& operator=(UPwSmallStrainElement&&) = delete;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -131,8 +133,8 @@ public:
 
 protected:
 
-    static constexpr SizeType VoigtSize  = ( TDim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-    static constexpr SizeType StressTensorSize = (TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
+    static constexpr SizeType VoigtSize        = ( TDim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    static constexpr SizeType StressTensorSize = ( TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
 
     struct ElementVariables
     {
@@ -210,10 +212,6 @@ protected:
         array_1d<double,TNumNodes> PVector;
 
     };
-
-    /// Member Variables
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void SaveGPStress( Matrix &rStressContainer,
                        const Vector &StressVector,
@@ -343,11 +341,6 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-
-    /// Member Variables
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Serialization
 
     friend class Serializer;
@@ -362,12 +355,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
 
-    // Assignment operator.
-    UPwSmallStrainElement & operator=(UPwSmallStrainElement const& rOther);
-
-    // Copy constructor.
-    UPwSmallStrainElement(UPwSmallStrainElement const& rOther);
-
     // Private Operations
 
     template < class TValueType >
@@ -381,6 +368,4 @@ private:
 
 }; // Class UPwSmallStrainElement
 
-} // namespace Kratos
-
-#endif // KRATOS_GEO_U_PW_SMALL_STRAIN_ELEMENT_H_INCLUDED  defined
+}

@@ -135,7 +135,7 @@ virtual void ScanSum(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<_
 #ifndef KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE
 #define KRATOS_BASE_DATA_COMMUNICATOR_DECLARE_SENDRECV_INTERFACE_FOR_TYPE(...)                                      \
 virtual __VA_ARGS__ SendRecvImpl(                                                                                   \
-    const __VA_ARGS__& rSendValues, const int SendDestination, const int SendTag,                                    \
+    const __VA_ARGS__& rSendValues, const int SendDestination, const int SendTag,                                   \
     const int RecvSource, const int RecvTag) const {                                                                \
     KRATOS_ERROR_IF( (Rank() != SendDestination) || (Rank() != RecvSource))                                         \
     << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;        \
@@ -149,7 +149,7 @@ virtual std::vector<__VA_ARGS__> SendRecvImpl(                                  
     return rSendValues;                                                                                             \
 }                                                                                                                   \
 virtual void SendRecvImpl(                                                                                          \
-    const __VA_ARGS__& rSendValues, const int SendDestination, const int SendTag,                                    \
+    const __VA_ARGS__& rSendValues, const int SendDestination, const int SendTag,                                   \
     __VA_ARGS__& rRecvValues, const int RecvSource, const int RecvTag) const {                                      \
     rRecvValues = SendRecvImpl(rSendValues, SendDestination, SendTag, RecvSource, RecvTag);                         \
 }                                                                                                                   \
@@ -160,9 +160,17 @@ virtual void SendRecvImpl(                                                      
     rRecvValues = SendRecvImpl(rSendValues, SendDestination, SendTag, RecvSource, RecvTag);                         \
 }                                                                                                                   \
 virtual void SendImpl(                                                                                              \
+    const __VA_ARGS__& rSendValues, const int SendDestination, const int SendTag = 0) const {                       \
+    KRATOS_ERROR_IF(Rank() != SendDestination)                                                                      \
+    << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;        \
+}                                                                                                                   \
+virtual void SendImpl(                                                                                              \
     const std::vector<__VA_ARGS__>& rSendValues, const int SendDestination, const int SendTag = 0) const {          \
     KRATOS_ERROR_IF(Rank() != SendDestination)                                                                      \
     << "Communication between different ranks is not possible with a serial DataCommunicator." << std::endl;        \
+}                                                                                                                   \
+virtual void RecvImpl(__VA_ARGS__& rRecvValues, const int RecvSource, const int RecvTag = 0) const {                \
+    KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;          \
 }                                                                                                                   \
 virtual void RecvImpl(std::vector<__VA_ARGS__>& rRecvValues, const int RecvSource, const int RecvTag = 0) const {   \
     KRATOS_ERROR << "Calling serial DataCommunicator::Recv, which has no meaningful return." << std::endl;          \
