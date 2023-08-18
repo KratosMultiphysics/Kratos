@@ -90,7 +90,7 @@ public:
     */
     ThermalLinearPlaneStrain(const ThermalLinearPlaneStrain &rOther)
         : BaseType(rOther),
-          mReferenceTemperature(rOther.mReferenceTemperature)
+        mReferenceTemperature(rOther.mReferenceTemperature)
     {
     }
 
@@ -145,9 +145,10 @@ public:
      * @param rElementGeometry the geometry of the current element
      * @param rShapeFunctionsValues the shape functions values in the current integration point
      */
-    void InitializeMaterial(const Properties &rMaterialProperties,
-                            const GeometryType &rElementGeometry,
-                            const Vector &rShapeFunctionsValues) override;
+    void InitializeMaterial(
+        const Properties &rMaterialProperties,
+        const GeometryType &rElementGeometry,
+        const Vector &rShapeFunctionsValues) override;
 
     /**
      * @brief It calculates the stress vector
