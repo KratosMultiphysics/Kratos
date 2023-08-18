@@ -27,6 +27,7 @@
 #include "custom_utilities/container_io_utils.h"
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
+#include "hdf5_application_variables.h"
 
 // Include base h
 #include "custom_io/hdf5_model_part_io.h"
@@ -198,6 +199,8 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     KRATOS_TRY;
 
     BuiltinTimer timer;
+
+    rModelPart.SetValue(HDF5_MESH_LOCATION_INFO, mpFile->GetFileName() + ":" + mPrefix);
 
     Internals::WriteVariablesList(*mpFile, mPrefix, rModelPart);
     Internals::WriteBufferSize(*mpFile, mPrefix, rModelPart.GetBufferSize());
