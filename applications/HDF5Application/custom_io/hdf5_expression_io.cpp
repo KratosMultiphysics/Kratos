@@ -70,15 +70,6 @@ void ExpressionIO::Write(
 
     auto appended_attribs = Attributes.Clone();
 
-    KRATOS_ERROR_IF(appended_attribs.Has("__data_name"))
-        << "The reserved keyword \"__data_name\" is found. Please remove it from attributes.";
-    appended_attribs.AddString("__data_name", "S");
-
-
-    KRATOS_ERROR_IF(appended_attribs.Has("__data_type"))
-        << "The reserved keyword \"__data_type\" is found. Please remove it from attributes.";
-    appended_attribs.AddString("__data_type", "Expression");
-
     const auto& shape = rExpression.GetItemShape();
 
     KRATOS_ERROR_IF(appended_attribs.Has("__data_dimension"))
@@ -104,11 +95,6 @@ void ExpressionIO::Write(
     KRATOS_CATCH("");
 }
 
-std::vector<std::string> ExpressionIO::GetExpressionNames()
-{
-    return GetValidNames({{"__data_type", {"Expression"}}});
-}
-
 std::pair<Expression::Pointer, Parameters> ExpressionIO::Read(const std::string& rExpressionName)
 {
     KRATOS_TRY
@@ -122,12 +108,6 @@ std::pair<Expression::Pointer, Parameters> ExpressionIO::Read(const std::string&
         << "Data at \"" << dataset_path << "\" is not of double type.";
 
     auto attributes = mpFile->ReadAttribute(dataset_path);
-
-    KRATOS_ERROR_IF_NOT(attributes.Has("__data_type"))
-        << "Invalid dataset at \"" << dataset_path << "\".";
-
-    KRATOS_ERROR_IF_NOT(attributes["__data_type"].GetString() == "Expression")
-        << "Dataset at \"" << dataset_path << "\" is not of Expression type.";
 
     KRATOS_ERROR_IF_NOT(attributes.Has("__data_dimension"))
         << "Dataset dimension not found for expression at \"" << dataset_path << "\".";
@@ -163,9 +143,7 @@ std::pair<Expression::Pointer, Parameters> ExpressionIO::Read(const std::string&
         *(p_expression->begin() + Index) = values[Index];
     });
 
-    attributes.RemoveValue("__data_type");
     attributes.RemoveValue("__data_dimension");
-    attributes.RemoveValue("__data_name");
 
     return std::make_pair(p_expression, attributes);
 
@@ -182,10 +160,6 @@ void ExpressionIO::Write(
 
     auto appended_attribs = Attributes.Clone();
 
-    KRATOS_ERROR_IF(appended_attribs.Has("__container_type"))
-        << "The reserved keyword \"__container_type\" is found. Please remove it from attributes.";
-    appended_attribs.AddString("__container_type", Internals::GetContainerType<TContainerType>());
-
     KRATOS_ERROR_IF(appended_attribs.Has("__mesh_location"))
         << "The reserved keyword \"__mesh_location\" is found. Please remove it from attributes.";
 
@@ -198,13 +172,6 @@ void ExpressionIO::Write(
     KRATOS_CATCH("");
 }
 
-std::vector<std::string> ExpressionIO::GetContainerExpressionNames()
-{
-    return GetValidNames({
-        {"__data_type"     , {"Expression"}},
-        {"__container_type", {"NODES", "CONDITIONS", "ELEMENTS"}}});
-}
-
 template<class TContainerType>
 Parameters ExpressionIO::Read(
     const std::string& rExpressionName,
@@ -214,65 +181,12 @@ Parameters ExpressionIO::Read(
 
     auto attribs = expression_attr_pair.second;
 
-    KRATOS_ERROR_IF_NOT(attribs.Has("__container_type"))
-        << "The \"__container_type\" is not found at \"" << (mPrefix + "/" + rExpressionName) << "\".";
-    const auto& container_type = attribs["__container_type"].GetString();
-    KRATOS_ERROR_IF_NOT(Internals::GetContainerType<TContainerType>() ==  attribs["__container_type"].GetString())
-        << "The dataset at \"" << (mPrefix + "/" + rExpressionName)
-        << "\" is not of required type. [ required type = "
-        << Internals::GetContainerType<TContainerType>()
-        << ", type found in file = "
-        << attribs["__container_type"].GetString() << " ].\n";
-
     attribs.RemoveValue("__container_type");
     if (attribs.Has("__mesh_location")) attribs.RemoveValue("__mesh_location");
 
     rContainerExpression.SetExpression(expression_attr_pair.first);
     return attribs;
 }
-
-std::vector<std::string> ExpressionIO::GetValidNames(const std::unordered_map<std::string, std::vector<std::string>>& ValidKeyValuePairs)
-{
-    KRATOS_TRY
-
-    KRATOS_ERROR_IF_NOT(mpFile->HasPath(mPrefix))
-        << "Path \"" << mPrefix << "\" does not exist.";
-
-    KRATOS_ERROR_IF_NOT(mpFile->IsGroup(mPrefix))
-        << "Path \"" << mPrefix << "\" is not a group.";
-
-    const auto& r_names = mpFile->GetDataSetNames(mPrefix);
-
-    std::vector<std::string> result;
-    for (const auto& r_name : r_names) {
-        const auto& r_dataset_name = mPrefix + "/" + r_name;
-
-        const auto attributes = mpFile->ReadAttribute(r_dataset_name);
-
-        bool is_valid_result = true;
-        for (const auto& check_pair : ValidKeyValuePairs) {
-            is_valid_result = is_valid_result && attributes.Has(check_pair.first);
-            if (is_valid_result) {
-                const auto& attrib_value = attributes[check_pair.first].GetString();
-                bool is_current_key_valid = false;
-                for (const auto& value : check_pair.second){
-                    is_current_key_valid = is_current_key_valid || attrib_value == value;
-                }
-                is_valid_result = is_valid_result && is_current_key_valid;
-            } else {
-                break;
-            }
-        }
-        if (is_valid_result) {
-            result.push_back(r_name);
-        }
-    }
-
-    return result;
-
-    KRATOS_CATCH("");
-}
-
 // template instantiations
 #ifndef Parameters
 #define KRATOS_HDF5_EXPRESSION_IO_INSTANTIATION(CONTAINER_TYPE)                                                                                 \

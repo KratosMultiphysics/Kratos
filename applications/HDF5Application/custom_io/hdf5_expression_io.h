@@ -69,8 +69,6 @@ public:
         const Expression& rExpression,
         const Parameters Attributes);
 
-    std::vector<std::string> GetExpressionNames();
-
     std::pair<Expression::Pointer, Parameters> Read(const std::string& rExpressionName);
 
     template<class TContainerType>
@@ -78,8 +76,6 @@ public:
         const std::string& rContainerExpressionName,
         const ContainerExpression<TContainerType>& rContainerExpression,
         const Parameters Attributes);
-
-    std::vector<std::string> GetContainerExpressionNames();
 
     template<class TContainerType>
     Parameters Read(
@@ -95,12 +91,6 @@ private:
     File::Pointer mpFile;
 
     std::string mPrefix;
-
-    ///@}
-    ///@name Private operations
-    ///@{
-
-    std::vector<std::string> GetValidNames(const std::unordered_map<std::string, std::vector<std::string>>& ValidKeyValuePairs);
 
     ///@}
 

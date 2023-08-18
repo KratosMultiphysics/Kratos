@@ -105,19 +105,6 @@ class TestExpressionIO(UnitTest.TestCase):
     def test_ReadWriteExpressionMatrix(self):
         self.__TestContainerExpressions(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
 
-    def test_ExpressionNames(self):
-        expression_io = KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/expressions"}"""), self.h5_file)
-        attribs_in = Kratos.Parameters("""{"custom_attrib": "custom_value"}""")
-        nodal_expression = Kratos.Expression.NodalExpression(self.model_part)
-        Kratos.Expression.VariableExpressionIO.Read(nodal_expression, Kratos.PRESSURE, False)
-        expression_io.Write("h1", nodal_expression.GetExpression(), attribs_in)
-        expression_io.Write("h2", nodal_expression.GetExpression(), attribs_in)
-        expression_io.Write("h3", nodal_expression, attribs_in)
-        expression_io.Write("h4", nodal_expression, attribs_in)
-
-        self.assertEqual(expression_io.GetExpressionNames(), ["h1", "h2", "h3", "h4"])
-        self.assertEqual(expression_io.GetContainerExpressionNames(), ["h3", "h4"])
-
     @staticmethod
     def GetInputMDPAPath() -> Path:
         script_directory      = Path(__file__).absolute().parent
