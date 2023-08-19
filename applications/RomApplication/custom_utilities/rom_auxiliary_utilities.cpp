@@ -349,11 +349,11 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotI
     for (const auto& r_node : rGivenModelPart.Nodes()) {
         const auto& r_neigh = r_node.GetValue(NEIGHBOUR_ELEMENTS);
 
-        // Add the parents to the HROM weights
+        // Add the neighbour elements to the HROM weights
         for (size_t i = 0; i < r_neigh.size(); ++i) {
             const auto& r_elem = r_neigh[i];
 
-            // Note that we check if the condition parent has been already added by the HROM element selection strategy
+            // Note that we check if the element has been already added by the HROM element selection strategy
             if (r_elem_weights.find(r_elem.Id() - 1) == r_elem_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
                 new_element_ids.push_back(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
             }
