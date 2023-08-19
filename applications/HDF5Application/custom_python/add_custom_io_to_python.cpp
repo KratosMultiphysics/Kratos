@@ -173,7 +173,8 @@ public:
     PythonNodalSolutionStepBossakIO(
         Parameters Settings,
         HDF5::File::Pointer pFile)
-        : BaseType(Settings, pFile)
+        : BaseType(Settings, pFile),
+          mAlphaBossak(0.0)
     {
     }
 
