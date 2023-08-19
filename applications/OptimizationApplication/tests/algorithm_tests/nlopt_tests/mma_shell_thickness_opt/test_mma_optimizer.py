@@ -12,15 +12,7 @@ except ImportError:
     nlopt_available = False
 
 @kratos_unittest.skipIf(not nlopt_available, "Missing nlopt python libraries ")
-class TestNLOPTOptimizers(kratos_unittest.TestCase):
-    # @classmethod
-    # def setUpClass(cls):
-    #     with kratos_unittest.WorkFolderScope(".", __file__):
-    #         with open("optimization_parameters.json", "r") as file_input:
-    #             cls.parameters = Kratos.Parameters(file_input.read())
-    #         cls.model = Kratos.Model()
-    #         cls.analysis = OptimizationAnalysis(cls.model, cls.parameters)
-
+class TestNLOPTOptimizer(kratos_unittest.TestCase):
     def test_MMA_optimizer(self):
         pass
         with kratos_unittest.WorkFolderScope(".", __file__):
@@ -38,11 +30,11 @@ class TestNLOPTOptimizers(kratos_unittest.TestCase):
                     if i == 15:
                         last_line = row
 
-                resulting_strain_energy = float(last_line[1].strip())
-                resulting_mass = float(last_line[2].strip())
+                resulting_mass = float(last_line[1].strip())
+                resulting_strain_energy = float(last_line[4].strip())
 
-                self.assertAlmostEqual(resulting_mass, 7642.774084393494,2)
-                self.assertAlmostEqual(resulting_strain_energy, 5.209266637299775e-05,2)
+                self.assertAlmostEqual(resulting_mass, 7278.149435,2)
+                self.assertAlmostEqual(resulting_strain_energy, 5.572267523e-5,2)
 
             os.remove(optimization_log_filename)
 

@@ -60,64 +60,40 @@ class StandardizedNLOPTObjective(ResponseRoutine):
         else:
             raise RuntimeError(f"Response value for {self.GetReponse().GetName()} is not calculated yet.")
 
-    def Initialize(self):
-        super().Initialize()
-
     def CalculateStandardizedValueAndGradients(self, control_field: numpy.ndarray, gradient_field: numpy.ndarray, save_value: bool = True) -> float:
+        if self.UpdateMasterControlAndLogFields(control_field) or self.__optimization_problem.GetStep()==0:
+            with TimeLogger(f"CalculateStandardizedValueAndGradients {self.GetReponse().GetName()} value", None, "Finished"):
 
-        # update the master control
-        update_status = self.GetMasterControl().Update(control_field)
-        master_control_updated = False
-        for is_updated in update_status.values():
-            if is_updated:
-                master_control_updated = True
-                break
-        # output
-        if master_control_updated:
-            CallOnAll(self.__optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)
-            self.LogOptimizationStep()
-            self.__optimization_problem.AdvanceStep()
+                response_value = self.GetReponse().CalculateValue()
 
-        with TimeLogger(f"CalculateStandardizedValueAndGradients {self.GetReponse().GetName()} value", None, "Finished"):
-            response_value = self.CalculateValue()
+                if not self.__unbuffered_data.HasValue("initial_value"):
+                    self.__unbuffered_data["initial_value"] = response_value
 
-            if not self.__unbuffered_data.HasValue("initial_value"):
-                self.__unbuffered_data["initial_value"] = response_value
-
-            if save_value:
                 if self.__buffered_data.HasValue("value"): del self.__buffered_data["value"]
                 self.__buffered_data["value"] = response_value
 
-            # print the info
-            DictLogger("Objective info",self.GetInfo())
-
-            # compute standardization factor
-            standardization_factor = self.__scaling / abs(self.__unbuffered_data["initial_value"])
-            standardized_response_value = standardization_factor * response_value
-
-            if gradient_field.size > 0:
-                gradient_collective_expression = self.CalculateGradient()
-                gradient_field[:] = standardization_factor * gradient_collective_expression.Evaluate()
-
+                # log values
                 if save_value:
-                    # save the physical gradients for post processing in unbuffered data container.
-                    for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
-                        variable_name = f"d{self.GetReponse().GetName()}_d{physical_var.Name()}"
-                        for physical_gradient_expression in physical_gradient.GetContainerExpressions():
-                            if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-                            # cloning is a cheap operation, it only moves underlying pointers
-                            # does not create additional memory.
-                            self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
+                    self.LogValues()
 
-                    # save the filtered gradients for post processing in unbuffered data container.
-                    for gradient_container_expression, control in zip(gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
-                        variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
-                        if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
-                        # cloning is a cheap operation, it only moves underlying pointers
-                        # does not create additional memory.
-                        self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
+                # print the info
+                DictLogger("Objective info",self.GetInfo())
 
-        return standardized_response_value
+                # compute standardization factor
+                self.standardization_factor = self.__scaling / abs(self.__unbuffered_data["initial_value"])
+                self.standardized_response_value = self.standardization_factor * response_value
+
+                # compute gradients
+                if gradient_field.size > 0:
+                    self.gradient_collective_expression = self.CalculateGradient()
+                    # save gradients
+                    if save_value:
+                        self.LogGradientFields()
+
+        if gradient_field.size > 0:
+            gradient_field[:] = self.standardization_factor * self.gradient_collective_expression.Evaluate().reshape(-1)
+
+        return self.standardized_response_value
 
     def GetValue(self, step_index: int = 0) -> float:
         return self.__buffered_data.GetValue("value", step_index)
@@ -132,31 +108,73 @@ class StandardizedNLOPTObjective(ResponseRoutine):
             return 0.0
 
     def GetAbsoluteChange(self) -> float:
-        return self.GetValue() - self.GetInitialValue()
+        if self.__optimization_problem.GetStep() > 0:
+            return self.GetStandardizedValue() / self.GetInitialValue() - 1.0 if abs(self.GetInitialValue()) > 1e-12 else self.GetStandardizedValue()
+        else:
+            return 0.0
 
     def GetInfo(self) -> dict:
         info = {
             "name": self.GetReponse().GetName(),
             "type": self.__objective_type,
             "value": self.GetValue(),
-            "abs_change": self.GetAbsoluteChange(),
+            "abs_change [%]": self.GetAbsoluteChange() * 100.0,
             "rel_change [%]": self.GetRelativeChange() * 100.0
         }
-        init_value = self.GetInitialValue()
-        if init_value:
-            info["abs_change [%]"] = self.GetAbsoluteChange()/init_value * 100
-
         return info
 
-    def LogOptimizationStep(self):
+    def LogValues(self) -> None:
+        values_info = self.GetInfo()
+        if self.__buffered_data.HasValue("rel_change [%]"): del self.__buffered_data["rel_change [%]"]
+        self.__buffered_data["rel_change [%]"] = values_info["rel_change [%]"]
+        if self.__buffered_data.HasValue("abs_change [%]"): del self.__buffered_data["abs_change [%]"]
+        self.__buffered_data["abs_change [%]"] = values_info["abs_change [%]"]
 
+    def LogGradientFields(self) -> None:
+        # save the physical gradients for post processing in unbuffered data container.
+        for physical_var, physical_gradient in self.GetRequiredPhysicalGradients().items():
+            variable_name = f"d{self.GetReponse().GetName()}_d{physical_var.Name()}"
+            for physical_gradient_expression in physical_gradient.GetContainerExpressions():
+                if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+                # cloning is a cheap operation, it only moves underlying pointers
+                # does not create additional memory.
+                self.__unbuffered_data[variable_name] = physical_gradient_expression.Clone()
+
+        # save the filtered gradients for post processing in unbuffered data container.
+        for gradient_container_expression, control in zip(self.gradient_collective_expression.GetContainerExpressions(), self.GetMasterControl().GetListOfControls()):
+            variable_name = f"d{self.GetReponse().GetName()}_d{control.GetName()}"
+            if self.__unbuffered_data.HasValue(variable_name): del self.__unbuffered_data[variable_name]
+            # cloning is a cheap operation, it only moves underlying pointers
+            # does not create additional memory.
+            self.__unbuffered_data[variable_name] = gradient_container_expression.Clone()
+
+    def LogOptimizationStep(self) -> None:
         now = datetime.datetime.now()
         now_str = now.strftime("%Y-%m-%d %H:%M:%S")
         iteration_text = f" EoF Iteration {self.__optimization_problem.GetStep()}"
         iteration_output = f"{'#'}  {iteration_text} [Time: {now_str}]  {'#'}"
-
         divided_line = len(iteration_output) * '#'
-
         to_print = f"{divided_line}\n{iteration_output}\n{divided_line}\n"
-
         Kratos.Logger.PrintInfo(to_print)
+
+    def UpdateMasterControlAndLogFields(self, new_control_field: numpy.ndarray) -> bool:
+        master_control_updated = False
+        master_control = self.GetMasterControl()
+        control_change_norm = numpy.linalg.norm(master_control.GetControlField().Evaluate().reshape(-1)-new_control_field)
+        if control_change_norm > 1e-15:
+            # first out put the fields and update step
+            CallOnAll(self.__optimization_problem.GetListOfProcesses("output_processes"), Kratos.OutputProcess.PrintOutput)
+            self.LogOptimizationStep()
+            self.__optimization_problem.AdvanceStep()
+            # convert numpy arry to expression
+            new_control_field_exp = master_control.GetEmptyField()
+            number_of_entities = []
+            shapes = []
+            for control in master_control.GetListOfControls():
+                number_of_entities.append(len(control.GetControlField().GetContainer()))
+                shapes.append(control.GetControlField().GetItemShape())
+            KratosOA.CollectiveExpressionIO.Read(new_control_field_exp,new_control_field,shapes)
+            # now update the master control
+            master_control.Update(new_control_field_exp)
+            master_control_updated = True
+        return master_control_updated

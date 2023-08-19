@@ -32,15 +32,16 @@ class NLOPTAlgorithms(Algorithm):
             "controls"          : [],
             "echo_level"        : 0,
             "NLOPT_settings"          : {
-                "algorithm_name"      : "MMA",
+                "algorithm_name"      : "mma",
+                "subsidiary_algorithm_name" : "",
                 "verbosity"           : 0,
                 "controls_lower_bound": "",
                 "controls_upper_bound": "",
                 "stopping_criteria"   : {
-                   "objective_rel_tol": 1e-6,
-                   "objective_abs_tol": 1e-6,
-                   "controls_rel_tol": 1e-6,
-                   "controls_abs_tol": 1e-6,
+                   "rel_obj_tol": 1e-3,
+                   "abs_obj_tol": 1e-3,
+                   "rel_contr_tol": 1e-3,
+                   "abs_contr_tol": 1e-3,
                    "maximum_function_evalualtion": 10
                 },
                 "algorithm_specific_settings"   : {}
@@ -80,7 +81,7 @@ class NLOPTAlgorithms(Algorithm):
 
         # nlopt algorithm
         self.algorithm_name = NLOPT_settings["algorithm_name"].GetString()
-        if(len(self.__constraints)==0):
+        if self.__constraints:
             self.CheckOptimizerSupport(self.algorithm_name,None)
         else:
             for constraint in self.__constraints:
@@ -88,6 +89,14 @@ class NLOPTAlgorithms(Algorithm):
                     self.CheckOptimizerSupport(self.algorithm_name,"equality")
                 else:
                     self.CheckOptimizerSupport(self.algorithm_name,"inequality")
+
+        # nlopt subsidiary algorithm
+        self.subsidiary_algorithm_name = NLOPT_settings["subsidiary_algorithm_name"].GetString()
+        if self.algorithm_name == "augmented_lagrangian":
+            if self.subsidiary_algorithm_name == "":
+                raise ValueError(f"The algorithm {self.algorithm_name} requires a subsidiary optimizer to be provided.")
+            else:
+                self.CheckOptimizerSupport(self.subsidiary_algorithm_name,None)
 
         # stopping
         self.stopping_criteria = NLOPT_settings["stopping_criteria"]
@@ -118,6 +127,13 @@ class NLOPTAlgorithms(Algorithm):
         self.x0 = self.x0.reshape(-1)
         self.nlopt_optimizer = nlopt.opt(self.GetOptimizer(self.algorithm_name), self.x0.size)
 
+        # add subsidiary optimization algorithm
+        if self.subsidiary_algorithm_name != "":
+            self.nlopt_subsidiary_optimizer = nlopt.opt(self.GetOptimizer(self.subsidiary_algorithm_name), self.x0.size)
+            self.nlopt_optimizer.set_local_optimizer(self.nlopt_subsidiary_optimizer)
+        else:
+            self.nlopt_subsidiary_optimizer = None
+
         # set nlopt verbosity
         self.nlopt_optimizer.set_param("verbosity",self.nlopt_verbosity)
 
@@ -130,11 +146,9 @@ class NLOPTAlgorithms(Algorithm):
                 self.nlopt_optimizer.add_inequality_constraint(lambda x,grad: constraint.CalculateStandardizedValueAndGradients(x,grad),1e-8)
 
         # now set stopping criteria
-        self.nlopt_optimizer.set_ftol_rel(self.stopping_criteria["objective_rel_tol"].GetDouble())
-        self.nlopt_optimizer.set_ftol_abs(self.stopping_criteria["objective_abs_tol"].GetDouble())
-        self.nlopt_optimizer.set_xtol_rel(self.stopping_criteria["controls_rel_tol"].GetDouble())
-        self.nlopt_optimizer.set_xtol_abs(self.stopping_criteria["controls_abs_tol"].GetDouble())
-        self.nlopt_optimizer.set_maxeval(self.stopping_criteria["maximum_function_evalualtion"].GetInt())
+        self.SetOptimizerStoppingCriteria(self.nlopt_optimizer)
+        if self.nlopt_subsidiary_optimizer is not None:
+            self.SetOptimizerStoppingCriteria(self.nlopt_subsidiary_optimizer)
 
         # set bounds if exist
         if self.nlopt_controls_lower_bound != "":
@@ -143,16 +157,9 @@ class NLOPTAlgorithms(Algorithm):
             self.nlopt_optimizer.set_upper_bounds(float(self.nlopt_controls_upper_bound))
 
         # now add algorithm specific settings
-        if self.opt_algorithm_specific_settings.Has("inner_maxeval"):
-            self.nlopt_optimizer.set_param("inner_maxeval",self.opt_algorithm_specific_settings["inner_maxeval"].GetInt())
-        if self.opt_algorithm_specific_settings.Has("dual_ftol_rel"):
-            self.nlopt_optimizer.set_param("dual_ftol_rel",self.opt_algorithm_specific_settings["dual_ftol_rel"].GetDouble())
-        if self.opt_algorithm_specific_settings.Has("initial_step"):
-            self.nlopt_optimizer.set_initial_step(self.opt_algorithm_specific_settings["initial_step"].GetDouble())
-        if self.opt_algorithm_specific_settings.Has("population"):
-            self.nlopt_optimizer.set_population(self.opt_algorithm_specific_settings["population"].GetInt())
-        if self.opt_algorithm_specific_settings.Has("number_of_stored_vectors"):
-            self.nlopt_optimizer.set_vector_storage(self.opt_algorithm_specific_settings["number_of_stored_vectors"].GetInt())
+        self.SetOptimizerSepcificSettings(self.nlopt_optimizer)
+        if self.nlopt_subsidiary_optimizer is not None:
+            self.SetOptimizerSepcificSettings(self.nlopt_subsidiary_optimizer)
 
     def Finalize(self):
         self.__objective.Finalize()
@@ -171,8 +178,8 @@ class NLOPTAlgorithms(Algorithm):
         nlopt_result_map = {
             nlopt.SUCCESS: 'Generic success return value.',
             nlopt.STOPVAL_REACHED: f'Optimization stopped because stopval ({stopval}) was reached.',
-            nlopt.FTOL_REACHED: f'Optimization stopped because ftol_rel ({self.stopping_criteria["objective_rel_tol"].GetDouble()}) or ftol_abs ({self.stopping_criteria["objective_abs_tol"].GetDouble()}) was reached.',
-            nlopt.XTOL_REACHED: f'Optimization stopped because xtol_rel ({self.stopping_criteria["controls_rel_tol"].GetDouble()}) or xtol_abs ({self.stopping_criteria["controls_abs_tol"].GetDouble()}) was reached.',
+            nlopt.FTOL_REACHED: f'Optimization stopped because ftol_rel ({self.stopping_criteria["rel_obj_tol"].GetDouble()}) or ftol_abs ({self.stopping_criteria["abs_obj_tol"].GetDouble()}) was reached.',
+            nlopt.XTOL_REACHED: f'Optimization stopped because xtol_rel ({self.stopping_criteria["rel_contr_tol"].GetDouble()}) or xtol_abs ({self.stopping_criteria["abs_contr_tol"].GetDouble()}) was reached.',
             nlopt.MAXEVAL_REACHED: f'Optimization stopped because maxeval ({self.stopping_criteria["maximum_function_evalualtion"].GetInt()}) was reached.',
             nlopt.MAXTIME_REACHED: f'Optimization stopped because maxtime ({maxtime}) was reached.',
             nlopt.FAILURE: 'Generic failure return value.',
@@ -186,13 +193,15 @@ class NLOPTAlgorithms(Algorithm):
 
     def CheckOptimizerSupport(self, algorithm_name, constraint_type):
         # Unconstrained gradient-based optimizers
-        unconstrained_optimizers = {"LBFGS","MMA","CCSAQ","TNEWTON_PRECOND_RESTART","TNEWTON_PRECOND","TNEWTON_RESTART"}
+        unconstrained_optimizers = {"lbfgs","mma","ccsaq","tnewton_precond_restart",
+                                    "tnewton_precond","tnewton_restart","augmented_lagrangian",
+                                    "neldermead","evolutionary"}
 
         # Constrained gradient-based optimizers with equality constraints
-        equality_constrained_optimizers = {"SLSQP"}
+        equality_constrained_optimizers = {"slsqp","augmented_lagrangian"}
 
         # Constrained gradient-based optimizers with inequality constraints
-        inequality_constrained_optimizers = {"MMA","SLSQP","CCSAQ"}
+        inequality_constrained_optimizers = {"mma","slsqp","ccsaq","augmented_lagrangian"}
 
         if constraint_type == "equality":
             if algorithm_name not in equality_constrained_optimizers:
@@ -206,13 +215,35 @@ class NLOPTAlgorithms(Algorithm):
         return True
 
     def GetOptimizer(self,name):
-        nlopt_algorithm_mapping = {
-            "MMA": nlopt.LD_MMA,
-            "SLSQP": nlopt.LD_SLSQP,
-            "LBFGS": nlopt.LD_LBFGS,
-            "CCSAQ": nlopt.LD_CCSAQ,
-            "TNEWTON_PRECOND_RESTART": nlopt.LD_TNEWTON_PRECOND_RESTART,
-            "TNEWTON_PRECOND": nlopt.LD_TNEWTON_PRECOND,
-            "TNEWTON_RESTART": nlopt.LD_TNEWTON_RESTART
+        nlopt_algorithm_dict = {
+            "mma": nlopt.LD_MMA,
+            "slsqp": nlopt.LD_SLSQP,
+            "lbfgs": nlopt.LD_LBFGS,
+            "ccsaq": nlopt.LD_CCSAQ,
+            "tnewton_precond_restart": nlopt.LD_TNEWTON_PRECOND_RESTART,
+            "tnewton_precond": nlopt.LD_TNEWTON_PRECOND,
+            "tnewton_restart": nlopt.LD_TNEWTON_RESTART,
+            "augmented_lagrangian": nlopt.AUGLAG,
+            "neldermead": nlopt.LN_NELDERMEAD,
+            "evolutionary": nlopt.GN_ESCH
         }
-        return nlopt_algorithm_mapping[name]
+        return nlopt_algorithm_dict[name]
+
+    def SetOptimizerStoppingCriteria(self,nlopt_optimizer):
+        nlopt_optimizer.set_ftol_rel(self.stopping_criteria["rel_obj_tol"].GetDouble())
+        nlopt_optimizer.set_ftol_abs(self.stopping_criteria["abs_obj_tol"].GetDouble())
+        nlopt_optimizer.set_xtol_rel(self.stopping_criteria["rel_contr_tol"].GetDouble())
+        nlopt_optimizer.set_xtol_abs(self.stopping_criteria["abs_contr_tol"].GetDouble())
+        nlopt_optimizer.set_maxeval(self.stopping_criteria["maximum_function_evalualtion"].GetInt())
+
+    def SetOptimizerSepcificSettings(self,nlopt_optimizer):
+        if self.opt_algorithm_specific_settings.Has("inner_maxeval"):
+            nlopt_optimizer.set_param("inner_maxeval",self.opt_algorithm_specific_settings["inner_maxeval"].GetInt())
+        if self.opt_algorithm_specific_settings.Has("dual_ftol_rel"):
+            nlopt_optimizer.set_param("dual_ftol_rel",self.opt_algorithm_specific_settings["dual_ftol_rel"].GetDouble())
+        if self.opt_algorithm_specific_settings.Has("initial_step"):
+            nlopt_optimizer.set_initial_step(self.opt_algorithm_specific_settings["initial_step"].GetDouble())
+        if self.opt_algorithm_specific_settings.Has("population"):
+            nlopt_optimizer.set_population(self.opt_algorithm_specific_settings["population"].GetInt())
+        if self.opt_algorithm_specific_settings.Has("number_of_stored_vectors"):
+            nlopt_optimizer.set_vector_storage(self.opt_algorithm_specific_settings["number_of_stored_vectors"].GetInt())

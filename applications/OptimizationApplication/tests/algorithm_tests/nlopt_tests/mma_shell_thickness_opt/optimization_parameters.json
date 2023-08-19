@@ -77,23 +77,27 @@
     "algorithm_settings": {
         "type": "NLOPT_algorithms",
         "NLOPT_settings"          : {
-                "algorithm_name"      : "MMA",
+                "algorithm_name"      : "mma",
+                "controls_lower_bound" : "0",
+                "controls_upper_bound" : "1",
                 "stopping_criteria"   : {
                     "maximum_function_evalualtion": 2
-                }
+                },
+                "algorithm_specific_settings"   : {
+                "inner_maxeval" : 20}
         },
         "controls": [
             "thickness_control"
         ],
         "objective": {
-            "response_name": "strain_energy_shell",
+            "response_name": "mass_shell",
             "type": "minimization",
             "scaling": 1.0
         },
         "constraints": [
             {
-                "response_name"   : "mass_shell",
-                "type"            : "<",
+                "response_name": "strain_energy_shell",
+                "type": "<",
                 "ref_value": "initial_value"
             }
         ]
