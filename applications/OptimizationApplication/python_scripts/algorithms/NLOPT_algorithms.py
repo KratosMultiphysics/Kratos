@@ -81,7 +81,7 @@ class NLOPTAlgorithms(Algorithm):
 
         # nlopt algorithm
         self.algorithm_name = NLOPT_settings["algorithm_name"].GetString()
-        if self.__constraints:
+        if len(self.__constraints)==0:
             self.CheckOptimizerSupport(self.algorithm_name,None)
         else:
             for constraint in self.__constraints:
