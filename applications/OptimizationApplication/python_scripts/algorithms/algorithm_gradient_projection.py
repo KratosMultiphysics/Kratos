@@ -27,7 +27,6 @@ class AlgorithmGradientProjection(Algorithm):
         return Kratos.Parameters("""{
             "module"            : "KratosMultiphysics.OptimizationApplication.algorithms",
             "type"              : "PLEASE_PROVIDE_AN_ALGORITHM_CLASS_NAME",
-            "model_part_name"   : "OptimizationModelPart",
             "objective"         : {},
             "constraints"       : [],
             "controls"          : [],
