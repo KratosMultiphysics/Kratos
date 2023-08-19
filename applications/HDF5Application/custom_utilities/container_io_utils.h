@@ -408,7 +408,7 @@ void CopyToContiguousDataArray(
 
     using component_data_type = typename Internals::ComponentTraits<TComponentType>::ValueType;
 
-    using value_type = typename TContainerDataIO::ComponentDataType<component_data_type>;
+    using value_type = typename TContainerDataIO::template ComponentDataType<component_data_type>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
