@@ -28,7 +28,7 @@ namespace Internals
 {
 
 // H5 data types
-template <class TDataType> hid_t inline GetPrimitiveH5Type()
+template <class TDataType> hid_t GetPrimitiveH5Type()
 {
     using primitive_type = typename DataTypeTraits<TDataType>::PrimitiveType;
 
