@@ -11,7 +11,7 @@
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
 from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_factory
-
+import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 class CenterlineVertexMorphingMapper():
     """
@@ -50,8 +50,12 @@ class CenterlineVertexMorphingMapper():
 
         # create linear solver
         # TODO: decide which linear solver type works best
-        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_llt" }')
-        self.linear_solver = dense_linear_solver_factory.ConstructSolver(settings)
+
+        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.sparse_cg" }')
+        self.linear_solver = linear_solver_factory.ConstructSolver(settings)
+
+        #settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_llt" }')
+        #self.linear_solver = dense_linear_solver_factory.ConstructSolver(settings)
 
         self.vm_mapper.Initialize()
 

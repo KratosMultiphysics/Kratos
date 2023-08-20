@@ -256,8 +256,9 @@ void HeatMethodUtilities::ConstructLaplacian(Matrix& laplacian_matrix, Matrix V,
 	}
 }
 
-void HeatMethodUtilities::ConstructK (Matrix& K, Matrix laplacian_matrix, Vector_int heat_equation_mapping, Vector_int heat_equation_inverse_mapping, Vector_int nodes_label) {
-    K = ZeroMatrix(heat_equation_mapping.size());
+void HeatMethodUtilities::ConstructK (CompressedMatrix& K, Matrix laplacian_matrix, Vector_int heat_equation_mapping, Vector_int heat_equation_inverse_mapping, Vector_int nodes_label) {
+    CompressedMatrix K_hehe(heat_equation_mapping.size(), heat_equation_mapping.size());
+    K = K_hehe;
     for (SizeType i = 0; i < K.size1(); ++i) {
 		for (SizeType j = 0; j < laplacian_matrix.size1(); ++j) {
 			unsigned int m = heat_equation_inverse_mapping(j);
@@ -268,8 +269,9 @@ void HeatMethodUtilities::ConstructK (Matrix& K, Matrix laplacian_matrix, Vector
     }
 }
 
-void HeatMethodUtilities::ConstructM (Matrix& M, Vector elements_area, Vector_int heat_equation_mapping, std::vector<std::vector<unsigned int>> VF) {
-    M = ZeroMatrix(heat_equation_mapping.size());
+void HeatMethodUtilities::ConstructM (CompressedMatrix& M, Vector elements_area, Vector_int heat_equation_mapping, std::vector<std::vector<unsigned int>> VF) {
+    CompressedMatrix M_hehe(heat_equation_mapping.size(), heat_equation_mapping.size());
+    M = M_hehe;
     for (unsigned int i = 0; i < heat_equation_mapping.size(); ++i) {
 		unsigned int m = heat_equation_mapping(i);
 		for (unsigned int j = 0; j < VF[m].size(); ++j) {
@@ -287,7 +289,7 @@ void HeatMethodUtilities::ConstructU0 (Vector& U0, Vector_int heat_equation_mapp
     }
 }
 
-void HeatMethodUtilities::ComputeLaplacian(LinearSolver<DenseSpace, DenseSpace>& rSolver) {
+void HeatMethodUtilities::ComputeLaplacian(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver) {
     KRATOS_TRY
 
     // checks if object is constructed
@@ -320,28 +322,22 @@ void HeatMethodUtilities::ComputeLaplacian(LinearSolver<DenseSpace, DenseSpace>&
     Matrix laplacian_matrix;
     HeatMethodUtilities::ConstructLaplacian(laplacian_matrix, V, F, VV, VF);
 
-    Matrix K0;
+    CompressedMatrix K0;
     HeatMethodUtilities::ConstructK(K0, laplacian_matrix, heat_equation_mapping, heat_equation_inverse_mapping, nodes_label);
 
-    Matrix M;
+    CompressedMatrix M;
     HeatMethodUtilities::ConstructM(M, elements_area, heat_equation_mapping, VF);
     
     Vector U0;
     HeatMethodUtilities::ConstructU0(U0, heat_equation_mapping, nodes_label);
 
     double t = 1000;
-    Matrix K = M - t * K0;
+    CompressedMatrix K = M - t * K0;
 
     Vector U(U0.size());
 
-    std::cout << "K: " << K.size1() << ", " << K.size2() << std::endl;
-    std::cout << "U: " << U.size() << std::endl;
-    std::cout << "U0: " << U0.size() << std::endl; 
-
-    Matrix A = ZeroMatrix(3);
-
     std::cout << "SOLVER INFO:  " <<rSolver.Info() << std::endl;
-    rSolver.Solve(K, U,U0);
+    rSolver.Solve(K, U, U0);
     std::cout << "U:\n";
     for (SizeType i = 0; i < 100; ++i)
     {

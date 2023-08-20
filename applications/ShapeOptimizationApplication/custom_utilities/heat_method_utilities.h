@@ -26,8 +26,6 @@
 #include "utilities/reduction_utilities.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
-//#include "linear_solvers_application.h"
-//#include "custom_solvers/eigen_dense_llt_solver.h"
 
 // ==============================================================================
 
@@ -74,12 +72,15 @@ public:
     typedef zero_vector<unsigned int> ZeroVector_int;
     typedef matrix<unsigned int> Matrix_int;
     typedef zero_matrix<unsigned int> ZeroMatrix_int;
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef UblasSpace<double, Matrix, Vector> DenseSpace;
+    typedef UblasSpace<double, SparseMatrix, Vector> SparseSpace;
     using NodeType = Node;
 
     /// Pointer definition of HeatMethodUtilities
     KRATOS_CLASS_POINTER_DEFINITION(HeatMethodUtilities);
-
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -120,12 +121,12 @@ public:
     void VerticesToFaces(std::vector<std::vector<unsigned int>>& VF, Matrix_int F);
     void VerticesToVertices(std::vector<std::vector<unsigned int>>& VV, std::vector<std::vector<unsigned int>> VF, Matrix_int F);
     void ConstructLaplacian(Matrix& laplacian_matrix, Matrix V, Matrix_int F, std::vector<std::vector<unsigned int>> VV, std::vector<std::vector<unsigned int>> VF);
-    void ConstructK (Matrix& K, Matrix laplacian_matrix, Vector_int heat_equation_mapping, Vector_int heat_equation_inverse_mapping, Vector_int nodes_label);
-    void ConstructM (Matrix& M, Vector elements_area, Vector_int heat_equation_mapping, std::vector<std::vector<unsigned int>> VF);
+    void ConstructK (CompressedMatrix& K, Matrix laplacian_matrix, Vector_int heat_equation_mapping, Vector_int heat_equation_inverse_mapping, Vector_int nodes_label);
+    void ConstructM (CompressedMatrix& M, Vector elements_area, Vector_int heat_equation_mapping, std::vector<std::vector<unsigned int>> VF);
     void ConstructU0 (Vector& U0, Vector_int heat_equation_mapping, Vector_int nodes_label);
     // virtual void ComputeDistanceField();
 
-    virtual void ComputeLaplacian(LinearSolver<DenseSpace, DenseSpace>& rSolver);
+    virtual void ComputeLaplacian(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver);
 
 
     // etc....

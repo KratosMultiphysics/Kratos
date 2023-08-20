@@ -73,9 +73,11 @@ public:
 
     // Type definitions for linear algebra including sparse systems
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef SparseSpaceType::MatrixType SparseMatrixType;
     typedef SparseSpaceType::VectorType VectorType;
     typedef UblasSpace<double, Matrix, Vector> DenseSpace;
+    typedef UblasSpace<double, SparseMatrix, Vector> SparseSpace;
 
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
@@ -129,7 +131,7 @@ public:
     void InverseMap( const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable ) override;
 
     // --------------------------------------------------------------------------
-    void Update(LinearSolver<DenseSpace, DenseSpace>& rSolver);
+    void Update(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver);
 
     // --------------------------------------------------------------------------
 

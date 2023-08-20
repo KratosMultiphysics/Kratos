@@ -311,7 +311,7 @@ void MapperCenterline::InverseMap( const Variable<double> &rDestinationVariable,
     KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
 }
 
-void MapperCenterline::Update(LinearSolver<DenseSpace, DenseSpace>& rSolver)
+void MapperCenterline::Update(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver)
 {
     if (mIsMappingInitialized == false)
         KRATOS_ERROR << "Mapping has to be initialized before calling the Update-function!";
