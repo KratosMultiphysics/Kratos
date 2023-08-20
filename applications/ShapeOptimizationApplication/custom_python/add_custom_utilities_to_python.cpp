@@ -38,11 +38,15 @@
 #include "custom_utilities/input_output/universal_file_io.h"
 #include "custom_utilities/search_based_functions.h"
 #include "custom_utilities/response_functions/face_angle_response_function_utility.h"
+#include "linear_solvers/linear_solver.h"
+#include "spaces/ublas_space.h"
 
 // ==============================================================================
 
 namespace Kratos {
 namespace Python {
+
+typedef UblasSpace<double, Matrix, Vector> DenseSpace;
 
 // Overloaded functions
 template<typename TMapper>

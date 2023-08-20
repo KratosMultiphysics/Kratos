@@ -45,7 +45,6 @@ void MapperCenterline::Initialize()
 
     mpHeatMethod = Kratos::make_unique<HeatMethodUtilities>(mrDestinationModelPart);
 
-
     // Update();
 
     KRATOS_INFO("ShapeOpt") << "Finished initialization of centerline mapper in " << timer.ElapsedSeconds() << " s." << std::endl;
@@ -60,7 +59,7 @@ void MapperCenterline::Map( const Variable<array_3d> &rOriginVariable, const Var
     KRATOS_INFO("") << std::endl;
     KRATOS_INFO("ShapeOpt") << "Starting mapping of " << rOriginVariable.Name() << "..." << std::endl;
 
-    // // Prepare vectors for mapping
+    // Prepare vectors for mapping
     // mValuesDestination[0].clear();
     // mValuesDestination[1].clear();
     // mValuesDestination[2].clear();
@@ -312,13 +311,15 @@ void MapperCenterline::InverseMap( const Variable<double> &rDestinationVariable,
     KRATOS_INFO("ShapeOpt") << "Finished mapping in " << mapping_time.ElapsedSeconds() << " s." << std::endl;
 }
 
-void MapperCenterline::Update()
+void MapperCenterline::Update(LinearSolver<DenseSpace, DenseSpace>& rSolver)
 {
     if (mIsMappingInitialized == false)
         KRATOS_ERROR << "Mapping has to be initialized before calling the Update-function!";
 
     BuiltinTimer timer;
     KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
+
+    mpHeatMethod -> ComputeLaplacian(rSolver);
 
     // CreateListOfNodesInOriginModelPart();
     // InitializeMappingVariables();

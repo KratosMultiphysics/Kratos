@@ -25,6 +25,7 @@
 #include "mapper_base.h"
 #include "custom_utilities/filter_function.h"
 #include "custom_utilities/heat_method_utilities.h"
+#include "linear_solvers/linear_solver.h"
 
 // ==============================================================================
 
@@ -69,6 +70,13 @@ public:
     typedef std::vector<double>::iterator DoubleVectorIterator;
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
 
+
+    // Type definitions for linear algebra including sparse systems
+    typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
+    typedef SparseSpaceType::MatrixType SparseMatrixType;
+    typedef SparseSpaceType::VectorType VectorType;
+    typedef UblasSpace<double, Matrix, Vector> DenseSpace;
+
     // Type definitions for tree-search
     typedef Bucket< 3, NodeType, NodeVector, NodeTypePointer, NodeIterator, DoubleVectorIterator > BucketType;
     typedef Tree< KDTreePartition<BucketType> > KDTree;
@@ -81,7 +89,7 @@ public:
     ///@{
 
     /// Default constructor.
-    MapperCenterline( ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters MapperSettings )
+    MapperCenterline( ModelPart& rOriginModelPart, ModelPart& rDestinationModelPart, Parameters MapperSettings)
         : mrOriginModelPart( rOriginModelPart ),
           mrDestinationModelPart( rDestinationModelPart ),
           mMapperSettings( MapperSettings ),
@@ -121,7 +129,7 @@ public:
     void InverseMap( const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable ) override;
 
     // --------------------------------------------------------------------------
-    void Update() override;
+    void Update(LinearSolver<DenseSpace, DenseSpace>& rSolver);
 
     // --------------------------------------------------------------------------
 
@@ -224,6 +232,7 @@ private:
     KDTree::Pointer mpSearchTree;
 
     // Variables for mapping
+    SparseMatrixType mMappingMatrix;
     std::vector<Vector> mValuesOrigin;
     std::vector<Vector> mValuesDestination;
     bool mIsMappingInitialized = false;

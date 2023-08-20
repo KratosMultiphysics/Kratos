@@ -24,6 +24,10 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
+#include "spaces/ublas_space.h"
+#include "linear_solvers/linear_solver.h"
+//#include "linear_solvers_application.h"
+//#include "custom_solvers/eigen_dense_llt_solver.h"
 
 // ==============================================================================
 
@@ -66,6 +70,11 @@ public:
     typedef ModelPart::ConditionsContainerType ConditionsArrayType;
     typedef ModelPart::ElementType::GeometryType GeometryType;
     typedef std::size_t SizeType;
+    typedef boost::numeric::ublas::vector<unsigned int> Vector_int;
+    typedef zero_vector<unsigned int> ZeroVector_int;
+    typedef matrix<unsigned int> Matrix_int;
+    typedef zero_matrix<unsigned int> ZeroMatrix_int;
+    typedef UblasSpace<double, Matrix, Vector> DenseSpace;
     using NodeType = Node;
 
     /// Pointer definition of HeatMethodUtilities
@@ -79,17 +88,6 @@ public:
     HeatMethodUtilities( ModelPart& modelPart )
         : mrModelPart( modelPart )
     {
-
-        // checks if object is constructed
-        KRATOS_INFO("ShapeOpt") << "Heat method created for centerline mapper..." << std::endl;
-        block_for_each(mrModelPart.Nodes(), [&](NodeType &rNode) {
-            double& r_heat_distance = rNode.FastGetSolutionStepValue(HEAT_DISTANCE);
-            r_heat_distance = 1;
-            array_3d& r_heat_gradient = rNode.FastGetSolutionStepValue(HEAT_GRADIENT);
-            r_heat_gradient(0) = 2;
-            r_heat_gradient(1) = 3;
-            r_heat_gradient(2) = 4;
-        });
     }
 
     /// Destructor.
@@ -106,9 +104,29 @@ public:
     ///@{
 
     // TODO: structure algorithm
+
+    Vector row(Matrix M, unsigned int i);
+    Vector col(Matrix M, unsigned int i);
+    double ComputeAngle(Vector v1, Vector v2);
+    double TriangleArea(array_1d<array_3d, 3> vertices);
+    void ElementsArea(Vector& elements_area, Matrix V, Matrix F);
+    void VerticesMatrix(Matrix& V);
+    void FacesMatrix(Matrix_int& F);
+    void SourceNodes(Vector_int& source_nodes);
+    void BoundaryNodes(Vector_int& boundary_nodes);
+    void NodesLabel(Vector_int& nodes_label, Vector_int source_nodes, Vector_int boundary_nodes);
+    void HeatEquationMapping(Vector_int& heat_equation_mapping, Vector_int nodes_label, Vector_int boundary_nodes);
+    void HeatEquationInverseMapping(Vector_int& heat_equation_inverse_mapping, Vector_int nodes_label);
+    void VerticesToFaces(std::vector<std::vector<unsigned int>>& VF, Matrix_int F);
+    void VerticesToVertices(std::vector<std::vector<unsigned int>>& VV, std::vector<std::vector<unsigned int>> VF, Matrix_int F);
+    void ConstructLaplacian(Matrix& laplacian_matrix, Matrix V, Matrix_int F, std::vector<std::vector<unsigned int>> VV, std::vector<std::vector<unsigned int>> VF);
+    void ConstructK (Matrix& K, Matrix laplacian_matrix, Vector_int heat_equation_mapping, Vector_int heat_equation_inverse_mapping, Vector_int nodes_label);
+    void ConstructM (Matrix& M, Vector elements_area, Vector_int heat_equation_mapping, std::vector<std::vector<unsigned int>> VF);
+    void ConstructU0 (Vector& U0, Vector_int heat_equation_mapping, Vector_int nodes_label);
     // virtual void ComputeDistanceField();
 
-    virtual void ComputeLaplacian();
+    virtual void ComputeLaplacian(LinearSolver<DenseSpace, DenseSpace>& rSolver);
+
 
     // etc....
 
@@ -200,7 +218,7 @@ private:
     ///@{
 
     ModelPart& mrModelPart;
-
+    
     ///@}
     ///@name Private Operators
     ///@{
