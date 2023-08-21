@@ -16,24 +16,29 @@ class HelmholtzSolverBase(PythonSolver):
         super().__init__(model, custom_settings)
 
         # Either retrieve the model part from the model or create a new one
-        model_part_name = self.settings["model_part_name"].GetString()
+        self.filtering_model_part_name = self.settings["model_part_name"].GetString()
 
-        if model_part_name == "":
+        if self.filtering_model_part_name == "":
             raise Exception('Please provide the model part name as the "model_part_name" (string) parameter!')
 
-        if self.model.HasModelPart(model_part_name):
-            self.original_model_part = self.model.GetModelPart(model_part_name)
+        # the filtering_model_part_name can be a sub model part. Hence we need the main model part
+        # for variable and dof addition.
+        root_model_part_name = self.filtering_model_part_name.split(".")[0]
+        if self.model.HasModelPart(root_model_part_name):
+            self.origin_root_model_part = self.model.GetModelPart(root_model_part_name)
         else:
-            self.original_model_part = model.CreateModelPart(model_part_name)
+            self.origin_root_model_part = model.CreateModelPart(root_model_part_name)
 
         domain_size = self.settings["domain_size"].GetInt()
         if domain_size == -1:
             raise Exception('Please provide the domain size as the "domain_size" (int) parameter!')
-
-        self.original_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
+        self.origin_root_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
         # Create Helmholtz model part
-        self.helmholtz_model_part = self.model.CreateModelPart(self.original_model_part.Name+"_helmholtz_filter_mdp")
+        # replacing "." with "_" if the filtering model part is a sub model part since model part names
+        # cannot have ".", and helmholtz_model_part needs to be a root model part
+        helmholtz_model_part_name = self.filtering_model_part_name.replace(".", "_") + "_helmholtz_filter_mdp"
+        self.helmholtz_model_part = self.model.CreateModelPart(helmholtz_model_part_name)
 
         # Get the filter radius
         self.filter_radius = self.settings["filter_radius"].GetDouble()
@@ -78,7 +83,7 @@ class HelmholtzSolverBase(PythonSolver):
 
     #### Public user interface functions ####
 
-    def AdvanceInTime(self, current_time) -> float:
+    def AdvanceInTime(self, current_time: float) -> float:
         dt = self.settings["time_stepping"]["time_step"].GetDouble()
         new_time = current_time + dt
         self.helmholtz_model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
@@ -86,39 +91,44 @@ class HelmholtzSolverBase(PythonSolver):
 
         return new_time
 
-    def Initialize(self):
+    def Initialize(self) -> None:
         self._GetSolutionStrategy().Initialize()
         KOA.ImplicitFilterUtils.CalculateNodeNeighbourCount(self.helmholtz_model_part)
         KratosMultiphysics.Logger.PrintInfo("::[HelmholtzSolverBase]:: Finished initialization.")
 
-    def InitializeSolutionStep(self):
+    def InitializeSolutionStep(self) -> None:
         self._GetSolutionStrategy().InitializeSolutionStep()
 
-    def FinalizeSolutionStep(self):
+    def FinalizeSolutionStep(self) -> None:
         self._GetSolutionStrategy().FinalizeSolutionStep()
 
-    def Predict(self):
+    def Predict(self) -> None:
         self._GetSolutionStrategy().Predict()
 
-    def SolveSolutionStep(self):
+    def SolveSolutionStep(self) -> None:
         is_converged = bool(self._GetSolutionStrategy().Solve())
         return is_converged
 
-    def SetEchoLevel(self, level):
+    def SetEchoLevel(self, level: int) -> None:
         self._GetSolutionStrategy().SetEchoLevel(level)
 
-    def GetEchoLevel(self):
+    def GetEchoLevel(self) -> int:
         self._GetSolutionStrategy().GetEchoLevel()
 
-    def Clear(self):
+    def Clear(self) -> None:
         self._GetSolutionStrategy().Clear()
 
-    def ImportModelPart(self):
-        # we can use the default implementation in the base class
-        self._ImportModelPart(self.original_model_part, self.settings["model_import_settings"])
+    def ImportModelPart(self) -> None:
+        self._ImportModelPart(self.origin_root_model_part, self.settings["model_import_settings"])
 
-    def GetComputingModelPart(self):
+    def GetComputingModelPart(self) -> KratosMultiphysics.ModelPart:
         return self.helmholtz_model_part
+
+    def GetOriginRootModelPart(self) -> KratosMultiphysics.ModelPart:
+        return self.origin_root_model_part
+
+    def GetOriginModelPart(self) -> KratosMultiphysics.ModelPart:
+        return self.model[self.filtering_model_part_name]
 
     def GetFilterType(self) -> str:
         return self.filter_type
@@ -175,4 +185,20 @@ class HelmholtzSolverBase(PythonSolver):
 
     def _AssignProperties(self, parameters: KratosMultiphysics.Parameters):
         KOA.ImplicitFilterUtils.AssignProperties(self.GetComputingModelPart(), parameters)
+
+    def _GetContainerTypeNumNodes(self, container) -> int:
+        num_nodes = None
+        for cont_type in container:
+            num_nodes = len(cont_type.GetNodes())
+            break
+        return num_nodes
+
+    def _IsSurfaceContainer(self, container) -> bool:
+        is_surface = False
+        for cont_type in container:
+            geom = cont_type.GetGeometry()
+            if geom.WorkingSpaceDimension() != geom.LocalSpaceDimension():
+                is_surface = True
+            break
+        return is_surface
 

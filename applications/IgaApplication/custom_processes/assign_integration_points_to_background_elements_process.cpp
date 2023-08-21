@@ -11,6 +11,7 @@
 
 // Project includes
 #include "assign_integration_points_to_background_elements_process.h"
+#include "geometries/nurbs_volume_geometry.h"
 
 namespace Kratos
 {
@@ -48,10 +49,6 @@ namespace Kratos
             // Get Nurbs Volume Geometry
             GeometryPointerType p_geometry = main_model_part.pGetGeometry(mThisParameters["nurbs_volume_name"].GetString());
 
-            // Get min/max coordinates of bounding box spanned by nurbs volume
-            const CoordinatesArrayType lower_point = p_geometry->begin()->GetInitialPosition();
-            const CoordinatesArrayType upper_point = (p_geometry->end()-1)->GetInitialPosition();
-
             // Create quadrature points in parameter space of nurbs volume
             IntegrationPointsArrayType integration_points(embedded_model_part.NumberOfElements());
             const auto element_itr_begin = embedded_model_part.ElementsBegin();
@@ -65,9 +62,7 @@ namespace Kratos
 
                 // Map point into parameter space
                 CoordinatesArrayType local_point;
-                local_point[0] = (ip_physical_space[0] - lower_point[0]) / std::abs( lower_point[0] - upper_point[0]);
-                local_point[1] = (ip_physical_space[1] - lower_point[1]) / std::abs( lower_point[1] - upper_point[1]);
-                local_point[2] = (ip_physical_space[2] - lower_point[2]) / std::abs( lower_point[2] - upper_point[2]);
+                p_geometry->ProjectionPointGlobalToLocalSpace(ip_physical_space, local_point);
 
                 integration_points[i] = IntegrationPoint<3>(local_point, tmp_integration_points[0].Weight());
             }

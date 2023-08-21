@@ -77,17 +77,13 @@ namespace Kratos
         const SizeType number_nodes_embedded = embedded_model_part.NumberOfNodes();
         IntegrationPointsArrayType integration_points(number_nodes_embedded);
 
-        const CoordinatesArrayType lower_point = p_geometry->begin()->GetInitialPosition();
-        const CoordinatesArrayType upper_point = (p_geometry->end()-1)->GetInitialPosition();
-
         const auto node_itr_begin = embedded_model_part.NodesBegin();
         IndexPartition<IndexType>(embedded_model_part.NumberOfNodes()).for_each([&](IndexType i) {
             auto node_itr = node_itr_begin + i;
             // Map point into parameter space
             CoordinatesArrayType local_point;
-            local_point[0] = (node_itr->X() - lower_point[0]) / std::abs( lower_point[0] - upper_point[0]);
-            local_point[1] = (node_itr->Y() - lower_point[1]) / std::abs( lower_point[1] - upper_point[1]);
-            local_point[2] = (node_itr->Z() - lower_point[2]) / std::abs( lower_point[2] - upper_point[2]);
+            p_geometry->ProjectionPointGlobalToLocalSpace(node_itr->Coordinates(), local_point);
+
             integration_points[i] = IntegrationPoint<3>(local_point, 1.0);
         });
 
