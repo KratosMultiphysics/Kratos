@@ -188,8 +188,8 @@ void TestLaplacianElement::CalculateLocalSystem( MatrixType& rLeftHandSideMatrix
 
     // Reading properties and conditions
     const double conductivity = GetProperties()[CONDUCTIVITY];
-    for (unsigned int i_point = 0; i_point < number_of_nodes; ++i_point) {
-        D(i_point, i_point) = conductivity;
+    for (unsigned int i_dim = 0; i_dim < dimension; ++i_dim) {
+        D(i_dim, i_dim) = conductivity;
     }
 
     // Gauss point loop

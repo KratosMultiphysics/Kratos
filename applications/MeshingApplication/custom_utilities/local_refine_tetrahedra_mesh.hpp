@@ -473,12 +473,6 @@ public:
                 this_model_part.Conditions().push_back( *iCond );
             }
 
-            /* Renumber id */
-            unsigned int my_index = 1;
-            for(ModelPart::ConditionsContainerType::iterator it = this_model_part.ConditionsBegin(); it != this_model_part.ConditionsEnd(); it++)
-            {
-                it->SetId(my_index++);
-            }
 
 
             // Now update the conditions in SubModelParts
@@ -550,10 +544,10 @@ public:
     {
       aux.resize(11, false);
 
-      int index_0 = geom[0].Id() - 1;
-      int index_1 = geom[1].Id() - 1;
-      int index_2 = geom[2].Id() - 1;
-      int index_3 = geom[3].Id() - 1;
+      int index_0 = mMapNodeIdToPos[geom[0].Id()];
+      int index_1 = mMapNodeIdToPos[geom[1].Id()];
+      int index_2 = mMapNodeIdToPos[geom[2].Id()];
+      int index_3 = mMapNodeIdToPos[geom[3].Id()];
 
       // Put the global ids in aux
       aux[0] = geom[0].Id();
@@ -638,9 +632,9 @@ public:
 		      array_1d<int, 6>& aux
 		      )
     {
-        int index_0 = geom[0].Id() - 1;
-        int index_1 = geom[1].Id() - 1;
-        int index_2 = geom[2].Id() - 1;
+        int index_0 = mMapNodeIdToPos[geom[0].Id()];
+        int index_1 = mMapNodeIdToPos[geom[1].Id()];
+        int index_2 = mMapNodeIdToPos[geom[2].Id()];
 
         aux[0] = geom[0].Id();
         aux[1] = geom[1].Id();

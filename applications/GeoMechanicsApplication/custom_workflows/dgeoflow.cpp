@@ -16,18 +16,24 @@
 #include <iomanip>
 #include "dgeoflow.h"
 #include "processes/apply_constant_scalarvalue_process.h"
-#include "utilities/read_materials_utility.h"
 #include "input_output/logger.h"
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
 #include "includes/model_part_io.h"
 #include "write_output.h"
+#include "custom_utilities/input_utilities.h"
 
 
 class GeoFlowApplyConstantScalarValueProcess : public Kratos::ApplyConstantScalarValueProcess
 {
 public:
-    using ApplyConstantScalarValueProcess ::ApplyConstantScalarValueProcess;
+    GeoFlowApplyConstantScalarValueProcess(Kratos::ModelPart&              rModelPart,
+                                           const Kratos::Variable<double>& rVariable,
+                                           double                          DoubleValue,
+                                           std::size_t                     MeshId,
+                                           const Flags                     Options)
+        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, Options)
+    {}
 
     bool hasWaterPressure()
     {
@@ -42,9 +48,12 @@ public:
 
 class GeoFlowApplyConstantHydrostaticPressureProcess : public Kratos::ApplyConstantHydrostaticPressureProcess
 {
-    using ApplyConstantHydrostaticPressureProcess::ApplyConstantHydrostaticPressureProcess;
-
 public:
+    GeoFlowApplyConstantHydrostaticPressureProcess(Kratos::ModelPart& rModelPart,
+                                                   Kratos::Parameters Settings)
+        : Kratos::ApplyConstantHydrostaticPressureProcess(rModelPart, Settings)
+    {}
+
     Kratos::ModelPart &GetModelPart()
     {
         return mrModelPart;
@@ -138,7 +147,6 @@ namespace Kratos
         "number_cycles":    100,
         "increase_factor":  2.0,
         "reduction_factor": 0.5,
-        "end_time": 1.0,
 		"max_piping_iterations": 500,
         "desired_iterations": 4,
         "max_radius_factor": 10.0,
@@ -167,22 +175,6 @@ namespace Kratos
         return p_solving_strategy;
     }
 
-    void KratosExecute::parseMaterial(Model &model, const std::string& rMaterialFilePath)
-    {
-        std::string parameters = R"({ "Parameters" : { "materials_filename" :")" + rMaterialFilePath + R"("}})";
-        Parameters material_file{parameters};
-        ReadMaterialsUtility(material_file, model);
-    }
-
-    Parameters KratosExecute::openProjectParamsFile(const std::string& rProjectParamsFilePath)
-    {
-        std::ifstream t(rProjectParamsFilePath);
-        std::stringstream buffer;
-        buffer << t.rdbuf();
-        Parameters projFile{buffer.str()};
-        return projFile;
-    }
-
     std::vector<std::shared_ptr<Process>> KratosExecute::parseProcess(ModelPart &model_part, Parameters projFile)
     {
         // Currently: In DGeoflow only fixed hydrostatic head has been , also need load of gravity.
@@ -204,14 +196,13 @@ namespace Kratos
             if (pressure_type == "Uniform")
             {
                 auto value = process["Parameters"]["value"].GetDouble();
-                processes.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(GeoFlowApplyConstantScalarValueProcess(part, WATER_PRESSURE,
-                                                                                                                               value, 0, GeoFlowApplyConstantScalarValueProcess::VARIABLE_IS_FIXED)));
+                processes.push_back(make_shared<GeoFlowApplyConstantScalarValueProcess>(part, WATER_PRESSURE, value, 0, ApplyConstantScalarValueProcess::VARIABLE_IS_FIXED));
             }
             else if (pressure_type == "Hydrostatic")
             {
                 auto cProcesses = process.Clone();
                 cProcesses["Parameters"].RemoveValue("fluid_pressure_type");
-                processes.push_back(make_shared<GeoFlowApplyConstantHydrostaticPressureProcess>(GeoFlowApplyConstantHydrostaticPressureProcess(part, cProcesses["Parameters"])));
+                processes.push_back(make_shared<GeoFlowApplyConstantHydrostaticPressureProcess>(part, cProcesses["Parameters"]));
             }
             else
             {
@@ -309,7 +300,7 @@ namespace Kratos
             rReportProgress(0.0);
 
             std::string projectpath = rWorkingDirectory + "/" + rProjectParamsFileName;
-            auto projectfile = openProjectParamsFile(projectpath);
+            auto projectfile = InputUtilities::ProjectParametersFrom(projectpath);
 
             auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
             std::string materialpath = rWorkingDirectory + "/" + materialname;
@@ -367,7 +358,7 @@ namespace Kratos
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Mesh" << std::endl;
 
-            parseMaterial(current_model, materialpath);
+            InputUtilities::AddMaterialsFrom(materialpath, current_model);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Material" << std::endl;
 
