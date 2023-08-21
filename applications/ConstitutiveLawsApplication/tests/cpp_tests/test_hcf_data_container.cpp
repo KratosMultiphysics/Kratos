@@ -18,6 +18,7 @@
 #include "testing/testing.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_constitutive/auxiliary_files/hcf_data_container.h"
+#include "constitutive_laws_application_variables.h"
 
 namespace Kratos::Testing
 {
@@ -65,5 +66,5 @@ KRATOS_TEST_CASE_IN_SUITE(HCFDataContainerFatigueTest, KratosConstitutiveLawsFas
 
     KRATOS_CHECK_NEAR(HCFVariables.FatigueReductionFactor, 0.999655, 1.0e-6);
     KRATOS_CHECK_NEAR(HCFVariables.WohlerStress, 0.975555, 1.0e-6);
-} // namespace Testing
-} // namespace Kratos
+}
+} // namespace Kratos::Testing
