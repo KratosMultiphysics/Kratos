@@ -64,7 +64,7 @@ public:
         double Alphat = 0.0;
         double PreviousReversionFactor = 0.0;
         double ReversionFactor = 0.0;
-        bool AdnvanceStrategyApplied;
+        bool AdvanceStrategyApplied;
         bool DamageActivation;
     };
 
@@ -86,7 +86,6 @@ public:
         const Vector& r_aux_stresses = mPreviousStresses;
         rFatigueVariables.PreviousStresses[1] = CurrentStress;
         rFatigueVariables.PreviousStresses[0] = r_aux_stresses[1];
-        // mPreviousStresses = rFatigueVariables.PreviousStresses;
     }
 
     double CalculateTensionOrCompressionIdentifier(const Vector& rStressVector)
@@ -139,7 +138,6 @@ public:
         rFatigueVariables.MaxStressRelativeError = mMaxStressRelativeError;
         rFatigueVariables.GlobalNumberOfCycles = mNumberOfCyclesGlobal;
         rFatigueVariables.LocalNumberOfCycles = mNumberOfCyclesLocal;
-        rFatigueVariables.B0 = mFatigueReductionParameter;
         rFatigueVariables.PreviousMaxStress = mPreviousMaxStress;
         rFatigueVariables.PreviousMinStress = mPreviousMinStress;
         rFatigueVariables.WohlerStress = mWohlerStress;
@@ -160,7 +158,6 @@ public:
         mNumberOfCyclesGlobal = rFatigueVariables.GlobalNumberOfCycles;
         mNumberOfCyclesLocal = rFatigueVariables.LocalNumberOfCycles;
         mNewCycleIndicator = rFatigueVariables.NewCycle;
-        mFatigueReductionParameter = rFatigueVariables.B0;
         mPreviousMaxStress = rFatigueVariables.PreviousMaxStress;
         mPreviousMinStress = rFatigueVariables.PreviousMinStress;
         mPreviousStresses = rFatigueVariables.PreviousStresses;
@@ -185,7 +182,7 @@ public:
 
         CalculateSminAndSmax(uniaxial_stress, rFatigueVariables);
 
-        rFatigueVariables.AdnvanceStrategyApplied = rCurrentProcessInfo[ADVANCE_STRATEGY_APPLIED];
+        rFatigueVariables.AdvanceStrategyApplied = rCurrentProcessInfo[ADVANCE_STRATEGY_APPLIED];
         rFatigueVariables.DamageActivation = rCurrentProcessInfo[DAMAGE_ACTIVATION];
 
         if (rFatigueVariables.MaxIndicator && rFatigueVariables.MinIndicator) {
@@ -194,16 +191,17 @@ public:
 
             CalculateFatigueParameters(rMaterialProperties, rFatigueVariables);
 
-            double betaf = rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
+            const double betaf = rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
+            static constexpr double tolerance = 1.0e-3;
 
-            if (std::abs(rFatigueVariables.MinStress) < 0.001) {
+            if (std::abs(rFatigueVariables.MinStress) < tolerance) {
                 rFatigueVariables.ReversionFactorRelativeError = std::abs(rFatigueVariables.ReversionFactor - rFatigueVariables.PreviousReversionFactor);
             } else {
                 rFatigueVariables.ReversionFactorRelativeError = std::abs((rFatigueVariables.ReversionFactor - rFatigueVariables.PreviousReversionFactor) / rFatigueVariables.ReversionFactor);
             }
             rFatigueVariables.MaxStressRelativeError = std::abs((rFatigueVariables.MaxStress - rFatigueVariables.PreviousMaxStress) / rFatigueVariables.MaxStress);
 
-            if (!rFatigueVariables.DamageActivation && rFatigueVariables.GlobalNumberOfCycles > 2 && !rFatigueVariables.AdnvanceStrategyApplied && (rFatigueVariables.ReversionFactorRelativeError > 0.001 || rFatigueVariables.MaxStressRelativeError > 0.001)) {
+            if (!rFatigueVariables.DamageActivation && rFatigueVariables.GlobalNumberOfCycles > 2 && !rFatigueVariables.AdvanceStrategyApplied && (rFatigueVariables.ReversionFactorRelativeError > 0.001 || rFatigueVariables.MaxStressRelativeError > 0.001)) {
                 rFatigueVariables.LocalNumberOfCycles = std::trunc(std::pow(10, std::pow(-(std::log(rFatigueVariables.FatigueReductionFactor) / rFatigueVariables.B0), 1.0 / (betaf * betaf)))) + 1;
             }
 
@@ -218,7 +216,7 @@ public:
 
             CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables);
         }
-        if (rFatigueVariables.AdnvanceStrategyApplied) {
+        if (rFatigueVariables.AdvanceStrategyApplied) {
         rFatigueVariables.ReversionFactor = CalculateReversionFactor(rFatigueVariables.MaxStress, rFatigueVariables.MinStress);
 
         CalculateFatigueParameters(rMaterialProperties, rFatigueVariables);
@@ -241,7 +239,6 @@ public:
     double mMaxStressRelativeError = 0.0;
     unsigned int mNumberOfCyclesGlobal = 1;
     unsigned int mNumberOfCyclesLocal = 1;
-    double mFatigueReductionParameter = 0.0;
     double mPreviousMaxStress = 0.0;
     double mPreviousMinStress = 0.0;
     double mWohlerStress = 1.0;
@@ -275,7 +272,6 @@ void save(Serializer& rSerializer) const
     rSerializer.save("MaxStressRelativeError",mMaxStressRelativeError);
     rSerializer.save("NumberOfCyclesGlobal",mNumberOfCyclesGlobal);
     rSerializer.save("NumberOfCyclesLocal",mNumberOfCyclesLocal);
-    rSerializer.save("FatigueReductionParameter",mFatigueReductionParameter);
     rSerializer.save("PreviousMaxStress",mPreviousMaxStress);
     rSerializer.save("PreviousMinStress",mPreviousMinStress);
     rSerializer.save("WohlerStress",mWohlerStress);
@@ -296,7 +292,6 @@ void load(Serializer& rSerializer)
     rSerializer.load("MaxStressRelativeError",mMaxStressRelativeError);
     rSerializer.load("NumberOfCyclesGlobal",mNumberOfCyclesGlobal);
     rSerializer.load("NumberOfCyclesLocal",mNumberOfCyclesLocal);
-    rSerializer.load("FatigueReductionParameter",mFatigueReductionParameter);
     rSerializer.load("PreviousMaxStress",mPreviousMaxStress);
     rSerializer.load("PreviousMinStress",mPreviousMinStress);
     rSerializer.load("WohlerStress",mWohlerStress);
