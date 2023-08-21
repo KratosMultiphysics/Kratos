@@ -33,7 +33,7 @@ namespace Kratos
  * FilterFunction implementations.
 */
 
-class KRATOS_API(SHAPE_OPTIMIZATION_APPLICATION) FilterFunction
+class KRATOS_API(OPTIMIZATION_APPLICATION) FilterFunction
 {
   public:
     ///@name Type Definitions

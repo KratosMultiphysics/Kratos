@@ -11,18 +11,11 @@
 //
 
 
-#ifndef KRATOS_FIND_NEIGHBOUR_ELEMENTS_OF_CONDITIONS_PROCESS
-#define KRATOS_FIND_NEIGHBOUR_ELEMENTS_OF_CONDITIONS_PROCESS
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
-// #include "includes/define.h"
 #include "includes/model_part.h"
 #include "processes/process.h"
-
 
 namespace Kratos
 {
@@ -51,13 +44,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(FindNeighbourElementsOfConditionsProcess);
 
     /// The definition of the index type
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Definition of the node type
-    typedef Node NodeType;
+    using NodeType = Node;
 
     // Definition of the geometry
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
 
     ///@}
@@ -68,13 +61,14 @@ public:
     /**
      * @param rModelPart The model part to check.
      */
-    FindNeighbourElementsOfConditionsProcess( ModelPart& rModelPart ): Process(),
+    explicit FindNeighbourElementsOfConditionsProcess( ModelPart& rModelPart ): Process(),
             mrModelPart(rModelPart)
     {
     }
 
-    /// Destructor.
-    ~FindNeighbourElementsOfConditionsProcess() override {}
+    FindNeighbourElementsOfConditionsProcess& operator=(const FindNeighbourElementsOfConditionsProcess&) = delete;
+    FindNeighbourElementsOfConditionsProcess(const FindNeighbourElementsOfConditionsProcess&) = delete;
+    ~FindNeighbourElementsOfConditionsProcess() override = default;
 
     ///@}
     ///@name Operators
@@ -114,12 +108,6 @@ public:
         return "FindNeighbourElementsOfConditionsProcess";
     }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "FindNeighbourElementsOfConditionsProcess";
-    }
-
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const override
     {
@@ -128,13 +116,6 @@ public:
 
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -162,17 +143,6 @@ private:
         PointerVector<Element>::iterator pItElem);
 
     ///@}
-    ///@name Un accessible methods
-    ///@{
-
-    /// Assignment operator.
-    FindNeighbourElementsOfConditionsProcess& operator=(FindNeighbourElementsOfConditionsProcess const& rOther);
-
-    /// Copy constructor.
-    FindNeighbourElementsOfConditionsProcess(FindNeighbourElementsOfConditionsProcess const& rOther);
-
-    ///@}
-
 }; // Class Process
 
 ///@}
@@ -201,7 +171,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 }
 ///@}
 
-} // namespace Kratos
-
-
-#endif // KRATOS_FIND_NEIGHBOUR_ELEMENTS_OF_CONDITIONS_PROCESS
+}

@@ -89,7 +89,7 @@ ModelPart& CreateCubeModelPart(Model& rCurrentModel)
 
 /** Checks bins bounding box
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsBoundingBox, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsBoundingBox, KratosCoreFastSuite) 
 {
     constexpr double tolerance = 1e-12;
 
@@ -116,7 +116,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsBoundingBox, KratosFastSuite)
 
 /** Checks bins number of cells
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsCellSizes, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsCellSizes, KratosCoreFastSuite) 
 {
     constexpr double tolerance = 1e-12;
 
@@ -145,7 +145,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsCellSizes, KratosFastSuite)
 
 /** Checks bins AddObjectsToCells
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsAddObjectsToCells, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsAddObjectsToCells, KratosCoreFastSuite) 
 {
     Model current_model;
 
@@ -171,7 +171,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsAddObjectsToCells, KratosFastSui
 
 /** Checks bins search in radius
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadius, KratosFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadius, KratosCoreFastSuite)
 {
     Model current_model;
 
@@ -204,7 +204,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadius, KratosFastSuite)
 
 /** Checks bins search in radius
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadiusContainer, KratosFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadiusContainer, KratosCoreFastSuite)
 {
     Model current_model;
 
@@ -260,7 +260,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadiusContainer, KratosF
 
 /** Checks bins search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosCoreFastSuite) 
 {
     constexpr double tolerance = 1e-12;
 
@@ -289,7 +289,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosFas
 
 /** Checks bins search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadiusContainer, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadiusContainer, KratosCoreFastSuite) 
 {
     constexpr double tolerance = 1e-12;
 
@@ -335,7 +335,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadiusContainer, 
 
 /** Checks bins search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, KratosCoreFastSuite) 
 {
     constexpr double tolerance = 1e-12;
 
@@ -361,7 +361,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, KratosFastSuite)
 
 /** Checks bins search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestContainer, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestContainer, KratosCoreFastSuite) 
 {
     constexpr double tolerance = 1e-12;
 
@@ -402,7 +402,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestContainer, KratosFa
 
 /** Checks bins empty search nearest 
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearest, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearest, KratosCoreFastSuite) 
 {
     Model current_model;
 
@@ -419,7 +419,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearest, KratosFastSu
 
 /** Checks bins empty search nearest 
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearestContainer, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearestContainer, KratosCoreFastSuite) 
 {
     Model current_model;
 
@@ -444,7 +444,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearestContainer, Kra
 
 /** Checks bins search is inside 
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsInside, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsInside, KratosCoreFastSuite) 
 {
     constexpr double tolerance = 1e-12;
 
@@ -470,7 +470,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsInside, KratosFastSuite)
 
 /** Checks bins search is inside 
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsInsideContainer, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsInsideContainer, KratosCoreFastSuite) 
 {
     Model current_model;
 
@@ -496,7 +496,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsInsideContainer, KratosF
 
 /** Checks bins search is inside = not found
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInside, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInside, KratosCoreFastSuite) 
 {
     Model current_model;
 
@@ -519,7 +519,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInside, KratosFastSui
 
 /** Checks bins search is inside = not found
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInsideContainer, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInsideContainer, KratosCoreFastSuite) 
 {
     Model current_model;
 

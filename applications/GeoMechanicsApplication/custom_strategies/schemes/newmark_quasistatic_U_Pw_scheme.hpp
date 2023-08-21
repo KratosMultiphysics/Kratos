@@ -24,38 +24,24 @@ namespace Kratos
 {
 
 template<class TSparseSpace, class TDenseSpace>
-
 class NewmarkQuasistaticUPwScheme : public Scheme<TSparseSpace,TDenseSpace>
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION( NewmarkQuasistaticUPwScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    using BaseType              = Scheme<TSparseSpace,TDenseSpace>;
+    using DofsArrayType         = typename BaseType::DofsArrayType;
+    using TSystemMatrixType     = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType     = typename BaseType::TSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    ///Constructor
     NewmarkQuasistaticUPwScheme(double beta, double gamma, double theta)
         : Scheme<TSparseSpace,TDenseSpace>()
         , mBeta(beta)
         , mGamma(gamma)
         , mTheta(theta)
-    {
-    }
-
-    //------------------------------------------------------------------------------------
-
-    ///Destructor
-    ~NewmarkQuasistaticUPwScheme() override {}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    {}
 
     int Check(const ModelPart& rModelPart) const override
     {
@@ -112,23 +98,21 @@ public:
         }
 
         //check for minimum value of the buffer index.
-        if (rModelPart.GetBufferSize() < 2)
-            KRATOS_ERROR << "insufficient buffer size. Buffer size should be greater than 2. Current size is"
-                         << rModelPart.GetBufferSize()
-                         << std::endl;
+        KRATOS_ERROR_IF(rModelPart.GetBufferSize() < 2)
+            << "insufficient buffer size. Buffer size should be greater than 2. Current size is"
+            << rModelPart.GetBufferSize()
+            << std::endl;
 
         // Check beta, gamma and theta
-        if (mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
-            KRATOS_ERROR << "Some of the scheme variables: beta, gamma or theta has an invalid value"
-                         << std::endl;
+        KRATOS_ERROR_IF(mBeta <= 0.0 || mGamma<= 0.0 || mTheta <= 0.0)
+            << "Some of the scheme variables: beta, gamma or theta has an invalid value"
+            << std::endl;
 
         return 0;
 
         KRATOS_CATCH( "" )
     }
 
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void Initialize(ModelPart& rModelPart) override
     {
         KRATOS_TRY
@@ -140,12 +124,10 @@ public:
         KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void InitializeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+    void InitializeSolutionStep( ModelPart& rModelPart,
+                                 TSystemMatrixType& A,
+                                 TSystemVectorType& Dx,
+                                 TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -166,24 +148,19 @@ public:
         KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    void Predict(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+    void Predict( ModelPart& rModelPart,
+                  DofsArrayType& rDofSet,
+                  TSystemMatrixType& A,
+                  TSystemVectorType& Dx,
+                  TSystemVectorType& b) override
     {
         this->UpdateVariablesDerivatives(rModelPart);
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void InitializeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+    void InitializeNonLinIteration( ModelPart& rModelPart,
+                                    TSystemMatrixType& A,
+                                    TSystemVectorType& Dx,
+                                    TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -202,13 +179,10 @@ public:
         KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void FinalizeNonLinIteration(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+    void FinalizeNonLinIteration( ModelPart& rModelPart,
+                                  TSystemMatrixType& A,
+                                  TSystemVectorType& Dx,
+                                  TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -227,8 +201,6 @@ public:
         KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void GetDofList( const Element& rElement,
                      Element::DofsVectorType& rDofList,
                      const ProcessInfo& rCurrentProcessInfo ) override
@@ -237,8 +209,6 @@ public:
         if (isActive) rElement.GetDofList(rDofList, rCurrentProcessInfo);
 
     }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void GetDofList( const Condition& rCondition,
                      Element::DofsVectorType& rDofList,
@@ -249,39 +219,26 @@ public:
 
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void EquationId(
-        const Element& rElement,
-        Element::EquationIdVectorType& rEquationId,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override
+    void EquationId( const Element& rElement,
+                     Element::EquationIdVectorType& rEquationId,
+                     const ProcessInfo& rCurrentProcessInfo ) override
     {
         const bool isActive = (rElement.IsDefined(ACTIVE)) ? rElement.Is(ACTIVE) : true;
         if (isActive) rElement.EquationIdVector(rEquationId, rCurrentProcessInfo);
-        
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void EquationId(
-        const Condition& rCondition,
-        Element::EquationIdVectorType& rEquationId,
-        const ProcessInfo& rCurrentProcessInfo
-        ) override
+    void EquationId( const Condition& rCondition,
+                     Element::EquationIdVectorType& rEquationId,
+                     const ProcessInfo& rCurrentProcessInfo ) override
     {
         const bool isActive = (rCondition.IsDefined(ACTIVE)) ? rCondition.Is(ACTIVE) : true;
         if (isActive) rCondition.EquationIdVector(rEquationId, rCurrentProcessInfo);
     }
 
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+    void FinalizeSolutionStep( ModelPart& rModelPart,
+                               TSystemMatrixType& A,
+                               TSystemVectorType& Dx,
+                               TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -299,9 +256,9 @@ public:
                     rNodalStress.resize(StressTensorSize,StressTensorSize,false);
                 noalias(rNodalStress) = ZeroMatrix(StressTensorSize, StressTensorSize);
                 rNode.FastGetSolutionStepValue(NODAL_DAMAGE_VARIABLE) = 0.0;
-                rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA) = 0.0;
-                rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH) = 0.0;
-                rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE) = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_AREA)      = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_WIDTH)     = 0.0;
+                rNode.FastGetSolutionStepValue(NODAL_JOINT_DAMAGE)    = 0.0;
             });
 
             FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
@@ -335,12 +292,10 @@ public:
         KRATOS_CATCH("")
     }
 
-    //------------------------------------------------------------------------------------------
-    void FinalizeSolutionStepActiveEntities(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b)
+    void FinalizeSolutionStepActiveEntities( ModelPart& rModelPart,
+                                             TSystemMatrixType& A,
+                                             TSystemVectorType& Dx,
+                                             TSystemVectorType& b)
     {
         KRATOS_TRY
 
@@ -359,129 +314,97 @@ public:
         KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Note: this is in a parallel loop
-    void CalculateSystemContributions(
-        Element& rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+    void CalculateSystemContributions( Element& rCurrentElement,
+                                       LocalSystemMatrixType& LHS_Contribution,
+                                       LocalSystemVectorType& RHS_Contribution,
+                                       Element::EquationIdVectorType& EquationId,
+                                       const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentElement).CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement).EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Note: this is in a parallel loop
-
-    void CalculateSystemContributions(
-        Condition& rCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+    void CalculateSystemContributions( Condition& rCurrentCondition,
+                                       LocalSystemMatrixType& LHS_Contribution,
+                                       LocalSystemVectorType& RHS_Contribution,
+                                       Element::EquationIdVectorType& EquationId,
+                                       const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition).CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentCondition).EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Note: this is in a parallel loop
-
-    void CalculateRHSContribution(
-        Element &rCurrentElement,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+    void CalculateRHSContribution( Element &rCurrentElement,
+                                   LocalSystemVectorType& RHS_Contribution,
+                                   Element::EquationIdVectorType& EquationId,
+                                   const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentElement).CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement).EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Note: this is in a parallel loop
-
-    void CalculateRHSContribution(
-        Condition &rCurrentCondition,
-        LocalSystemVectorType& RHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+    void CalculateRHSContribution( Condition &rCurrentCondition,
+                                   LocalSystemVectorType& RHS_Contribution,
+                                   Element::EquationIdVectorType& EquationId,
+                                   const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition).CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentCondition).EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Note: this is in a parallel loop
-
-    void CalculateLHSContribution(
-        Element &rCurrentElement,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+    void CalculateLHSContribution( Element &rCurrentElement,
+                                   LocalSystemMatrixType& LHS_Contribution,
+                                   Element::EquationIdVectorType& EquationId,
+                                   const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentElement).CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement).EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Note: this is in a parallel loop
-
-    void CalculateLHSContribution(
-        Condition &rCurrentCondition,
-        LocalSystemMatrixType& LHS_Contribution,
-        Element::EquationIdVectorType& EquationId,
-        const ProcessInfo& CurrentProcessInfo) override
+    void CalculateLHSContribution( Condition &rCurrentCondition,
+                                   LocalSystemMatrixType& LHS_Contribution,
+                                   Element::EquationIdVectorType& EquationId,
+                                   const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition).CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentCondition).EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    void Update(
-        ModelPart& rModelPart,
-        DofsArrayType& rDofSet,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
+    void Update( ModelPart& rModelPart,
+                 DofsArrayType& rDofSet,
+                 TSystemMatrixType& A,
+                 TSystemVectorType& Dx,
+                 TSystemVectorType& b) override
     {
         KRATOS_TRY
 
@@ -498,8 +421,7 @@ public:
 
             //Update Displacement and Pressure (DOFs)
             for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof) {
-                if (itDof->IsFree())
-                    itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
+                if (itDof->IsFree()) itDof->GetSolutionStepValue() += TSparseSpace::GetValue(Dx, itDof->EquationId());
             }
         }
 
@@ -508,28 +430,23 @@ public:
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
-
-    double mBeta = 0.25;
+    double mBeta  = 0.25;
     double mGamma = 0.5;
     double mTheta = 0.5;
     double mDeltaTime = 0.0;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual inline void SetTimeFactors(ModelPart& rModelPart)
     {
         KRATOS_TRY
 
         mDeltaTime = rModelPart.GetProcessInfo()[DELTA_TIME];
-        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT] = mGamma/(mBeta*mDeltaTime);
+        rModelPart.GetProcessInfo()[VELOCITY_COEFFICIENT]    = mGamma/(mBeta*mDeltaTime);
         rModelPart.GetProcessInfo()[DT_PRESSURE_COEFFICIENT] = 1.0/(mTheta*mDeltaTime);
 
         KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual inline void UpdateVariablesDerivatives(ModelPart& rModelPart)
     {
         KRATOS_TRY
@@ -560,6 +477,6 @@ protected:
 
         KRATOS_CATCH( "" )
     }
-
 }; // Class NewmarkQuasistaticUPwScheme
-}  // namespace Kratos
+
+}
