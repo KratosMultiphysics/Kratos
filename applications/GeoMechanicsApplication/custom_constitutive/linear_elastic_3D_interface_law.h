@@ -74,25 +74,9 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor.
-     */
-    LinearElastic3DInterfaceLaw();
-
-    /**
      * @brief The clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    LinearElastic3DInterfaceLaw (const LinearElastic3DInterfaceLaw& rOther);
-
-
-    /**
-     * @brief Destructor.
-     */
-    ~LinearElastic3DInterfaceLaw() override;
 
     ///@}
     ///@name Operators
