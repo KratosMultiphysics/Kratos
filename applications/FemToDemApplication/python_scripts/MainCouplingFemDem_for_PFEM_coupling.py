@@ -64,7 +64,7 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
                                                                            self.DEMProperties,
                                                                            self.DEMParameters)
         if self.domain_size == 3:
-            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+            KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
 
         if self.FEM_Solution.ProjectParameters.Has("transfer_dem_contact_forces") == False:
             self.TransferDEMContactForcesToFEM = True
