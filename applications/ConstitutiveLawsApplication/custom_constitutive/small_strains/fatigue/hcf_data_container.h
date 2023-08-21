@@ -36,7 +36,7 @@ namespace Kratos
  * @ingroup ConstitutiveLawsApplication
  * @brief Defining all the methods and variables required in fatigue simulations
  * @details Give access to methods and restores all member variables in fatigue simulations
- * @author Alireza Taherzadeh-Fard
+ * @author Alireza Taherzadeh-Fard, Alejandro Cornejo
  */
 class HCFDataContainer
 {
