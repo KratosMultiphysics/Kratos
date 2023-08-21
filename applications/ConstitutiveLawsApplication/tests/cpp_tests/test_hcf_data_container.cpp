@@ -16,25 +16,14 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "utilities/math_utils.h"
-#include "includes/node.h"
-#include "containers/model.h"
-#include "geometries/triangle_2d_3.h"
-#include "custom_utilities/advanced_constitutive_law_utilities.h"
 #include "custom_utilities/constitutive_law_utilities.h"
 #include "custom_constitutive/small_strains/fatigue/hcf_data_container.h"
 
 namespace Kratos::Testing
 {
 
-    // Tolerance
-    static constexpr double tolerance = 1.0e-6;
-
-    // NodeType
-    typedef Node NodeType;
-
 /**
-* Check the correct the fatigue parameters
+* Check the fatigue parameters
 */
 KRATOS_TEST_CASE_IN_SUITE(HCFDataContainerFatigueTest, KratosConstitutiveLawsFastSuite)
 {
