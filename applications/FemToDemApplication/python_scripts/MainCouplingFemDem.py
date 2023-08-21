@@ -74,7 +74,7 @@ class MainCoupledFemDem_Solution:
                                                                            self.DEMProperties,
                                                                            self.DEMParameters)
         if self.domain_size == 3:
-            self.nodal_neighbour_finder = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.FEM_Solution.main_model_part)
+            KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
 
         if self.FEM_Solution.ProjectParameters.Has("transfer_dem_contact_forces") == False:
             self.TransferDEMContactForcesToFEM = True
@@ -304,12 +304,9 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNeighboursIfNecessary")
 
         if self.domain_size == 3:
-            data_communicator = self.FEM_Solution.main_model_part.GetCommunicator().GetDataCommunicator()
-            self.nodal_neighbour_finder = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.FEM_Solution.main_model_part)
-            self.nodal_neighbour_finder.Execute()
+            KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
         else: # 2D
-            neighbour_elemental_finder =  KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part)
-            neighbour_elemental_finder.Execute()
+            KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
 
 
 #ComputeSkinSubModelPart============================================================================================================================
