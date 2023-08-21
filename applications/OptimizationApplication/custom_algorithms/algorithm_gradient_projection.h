@@ -321,8 +321,8 @@ public:
         if (opt_itr>2 && current_is_feasible && prev_is_feasible && (sum_objective_value>last_feasible_obj_val))
             mSumObjectivesImprovements *= 0.9;
 
-        if (opt_itr>2 && current_is_feasible && prev_is_feasible && (sum_objective_value<last_feasible_obj_val))
-            mSumObjectivesImprovements *= 1.01;            
+        // if (opt_itr>2 && current_is_feasible && prev_is_feasible && (sum_objective_value<last_feasible_obj_val))
+        //     mSumObjectivesImprovements *= 1.01;            
 
         KRATOS_INFO("mSumObjectivesImprovements: ")<<mSumObjectivesImprovements<<std::endl;
 

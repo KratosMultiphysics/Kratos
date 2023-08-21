@@ -64,7 +64,7 @@ class StressResponseFunction(BaseResponseFunction):
                         "coarsening_type": "aggregation",
                         "max_iteration": 200,
                         "provide_coordinates": false,
-                        "gmres_krylov_space_dimension": 100,
+                        "gmres_krylov_space_dimension": 200,
                         "verbosity" : 0,
                         "tolerance": 1e-7,
                         "scaling": false,
@@ -577,3 +577,122 @@ class EmbeddedMassResponseFunction(BaseResponseFunction):
         process = MapNurbsVolumeResultsToEmbeddedGeometryProcess(self.model, map_params)
         process.ExecuteBeforeOutputStep()
         Logger.PrintInfo("EmbeddedMassResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
+
+class SelfIntersectionResponseFunction(BaseResponseFunction):
+
+    def __init__(self,response_name, response_settings,model):
+
+        self.type = "self_penetration"
+        self.variable = "SELF_INTERSECT"
+        super().__init__(response_name, response_settings, model)
+
+        if not self.response_settings.Has("gradient_settings"):
+            self.gradient_settings = KM.Parameters()
+            self.gradient_settings.AddString("gradient_mode","semi_analytic")
+            self.gradient_settings.AddDouble("step_size",1e-6)
+        else:
+            self.gradient_settings = self.response_settings["gradient_settings"]
+
+        self.supported_control_types = ["shape"]
+        self.gradients_variables = {"shape":"D_SELF_INTERSECT_D_X"}
+
+        if len(self.evaluated_model_parts) != 1:
+            raise RuntimeError("SelfIntersectionResponseFunction: 'evaluated_objects' of response '{}' must have only one entry !".format(self.name))
+
+        for control_type in self.control_types:
+            if not control_type in self.supported_control_types:
+                raise RuntimeError("SelfIntersectionResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
+
+
+        root_model_part_name = self.evaluated_model_parts[0].split(".")[0]
+        for evaluated_model_part in self.evaluated_model_parts:
+            if evaluated_model_part.split(".")[0] != root_model_part_name:
+                raise RuntimeError("SelfIntersectionResponseFunction: evaluated_model_parts of mass response must have the same root model part !")
+
+        self.root_model_part = self.model.GetModelPart(root_model_part_name)
+
+        # add vars
+        for control_type in self.control_types:
+            self.root_model_part.AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(self.gradients_variables[control_type]))
+
+
+    def GetVariableName(self):
+        return  self.variable
+
+    def GetGradientsVariablesName(self):
+        return self.gradients_variables
+
+    def GetGradientVariableNameForType(self,control_type, raise_error=True):
+        if raise_error:
+            if not control_type in self.supported_control_types:
+                raise RuntimeError("SelfIntersectionResponseFunction: type {} in 'control_types' of response '{}' is not supported, supported types are {}  !".format(control_type,self.name,self.supported_control_types))
+
+        return self.gradients_variables[control_type]
+
+    def Initialize(self):
+        super().Initialize()
+
+    def CalculateValue(self):
+        Logger.PrintInfo("SelfIntersectionResponseFunction:CalculateValue: Starting value calculation for response ", self.name)
+        startTime = timer.time()
+        
+        # run PyQuESo
+        try:
+            import QuESo_PythonApplication as QuESoApp
+            from QuESo_PythonApplication.PyQuESo import PyQuESo
+        except ImportError:
+            raise Exception("QuESo python library is not available")
+
+        pyqueso = PyQuESo("QUESOParameters.json")
+
+        nodes = QuESoApp.PointVector()
+        directions = QuESoApp.PointVector()
+        for node in self.model.GetModelPart(self.evaluated_model_parts[0]).Nodes:
+            nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
+            nodes.append( QuESoApp.Point(node.X0, node.Y0, node.Z0) )
+            directions.append( QuESoApp.Point(-nodal_normal[0], -nodal_normal[1], -nodal_normal[2]) ) #This should be the direction of the shape
+
+        pyqueso.Run()
+
+        self.value = 0
+        area = 0.0
+        self.distances = pyqueso.ClosestDistances(nodes, directions)
+        for node, distance in zip(self.model.GetModelPart(self.evaluated_model_parts[0]).Nodes, self.distances):
+            nodal_area = node.GetSolutionStepValue(KM.NODAL_AREA)
+            if abs(distance) < 20:
+                self.value += (20-distance) * (20-distance) * nodal_area
+            node.SetSolutionStepValue(KOA.AUXILIARY_FIELD, [distance, 0.0, 0.0])
+            area += nodal_area
+
+        Logger.PrintInfo("SelfIntersectionResponseFunction:CalculateValue: Time needed for calculating value ",round(timer.time() - startTime,2),"s")
+        return self.value/area
+
+    def CalculateGradientsForTypesAndObjects(self,control_types,controlled_objects,raise_error=True):
+
+        if raise_error:
+            for itr in range(len(controlled_objects)):
+                controlled_object = controlled_objects[itr]
+                control_type = control_types[itr]
+                found = False
+                for itr_2 in range(len(self.controlled_model_parts)):
+                    controlled_model_part = self.controlled_model_parts[itr_2]
+                    controlled_type = self.control_types[itr_2]
+                    if controlled_type==control_type and controlled_model_part==controlled_object:
+                        found = True
+                        break
+                if not found:
+                    raise RuntimeError("SelfIntersectionResponseFunction:CalculateGradientsForTypesAndObjects: control type {} of control object {} is not in the control_types of response {}".format(control_types[itr],controlled_object,self.name))
+
+        Logger.PrintInfo("SelfIntersectionResponseFunction", "Starting ", control_types," gradients calculation of response ", self.name," for ",controlled_objects)
+        startTime = timer.time()
+
+        for node, distance in zip(self.model.GetModelPart(self.evaluated_model_parts[0]).Nodes, self.distances):
+            nodal_area = node.GetSolutionStepValue(KM.NODAL_AREA)
+            nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
+            if abs(distance) < 20:
+                sens = -1 * nodal_normal * (20-distance) * nodal_area
+                node.SetSolutionStepValue(KOA.D_SELF_INTERSECT_D_X, sens)
+            else:
+                node.SetSolutionStepValue(KOA.D_SELF_INTERSECT_D_X, [0.0000,0.0000,0.0000])
+
+        Logger.PrintInfo("SelfIntersectionResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")

@@ -109,10 +109,34 @@ class ImplicitVertexMorphing(ShapeControl):
         for util in self.utils:
             util.Initialize()
 
+        self.distances = None
+
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
         for util in self.utils:
             util.ApplyOnVectorField(derivative_variable_name)
+
+        if self.distances != None:
+            for node, distance in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, self.distances):
+                if abs(distance) < 10:
+                    nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
+                    control_update = node.GetSolutionStepValue(derivative_variable_name)
+                    projected_control_update = nodal_normal[0]*control_update[0] + nodal_normal[1]*control_update[1] + nodal_normal[2]*control_update[2]
+                    control_update_normal = projected_control_update*nodal_normal
+                    control_update_tangent = control_update-control_update_normal
+                    node.SetSolutionStepValue(derivative_variable_name, control_update_tangent)
+
         self.implicit_vertex_morphing.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
+
+        if self.distances != None:
+            for node, distance in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, self.distances):
+                if abs(distance) < 10:
+                    nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
+                    control_update = node.GetSolutionStepValue(mapped_derivative_variable_name)
+                    projected_control_update = nodal_normal[0]*control_update[0] + nodal_normal[1]*control_update[1] + nodal_normal[2]*control_update[2]
+                    control_update_normal = projected_control_update*nodal_normal
+                    control_update_tangent = control_update-control_update_normal
+                    node.SetSolutionStepValue(mapped_derivative_variable_name, control_update_tangent)
+
 
     def Compute(self):
         self.implicit_vertex_morphing.MapControlUpdate(KOA.D_CX,KOA.D_X)
@@ -133,13 +157,13 @@ class ImplicitVertexMorphing(ShapeControl):
 
             projection = nodal_normal[0]*shape_update[0] + nodal_normal[1]*shape_update[1] + nodal_normal[2]*shape_update[2]
             direction = projection*nodal_normal
-            nodes.append( QuESoApp.Point(node.X, node.Y, node.Z) )
+            nodes.append( QuESoApp.Point(node.X0, node.Y0, node.Z0) )
             directions.append( QuESoApp.Point(direction[0], direction[1], direction[2]) ) #This should be the direction of the shape
 
         pyqueso.Run()
 
-        distances = pyqueso.ClosestDistances(nodes, directions)
-        for node, distance in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, distances):
+        self.distances = pyqueso.ClosestDistances(nodes, directions)
+        for node, distance in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, self.distances):
 
             if abs(distance) < 10:
                 nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
