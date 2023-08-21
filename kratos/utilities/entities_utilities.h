@@ -59,7 +59,7 @@ namespace EntitiesUtilities
         ///@{
 
         /**
-         * @brief Default constructor 
+         * @brief Default constructor
          */
         EntitityIdentifier() = default;
 
@@ -101,14 +101,21 @@ namespace EntitiesUtilities
          * @brief Checks if the object is initialized.
          * @return true if the object is initialized, false otherwise.
          */
-        bool IsInitialized();
+        bool IsInitialized() const;
 
         /**
          * @brief Get the prototype entity.
          * @param pGeometry The pointer to the geometry.
          * @return const TEntity& The prototype entity.
          */
-        const TEntity& GetPrototypeEntity(typename GeometryType::Pointer pGeometry);
+        const TEntity& GetPrototypeEntity(typename GeometryType::Pointer pGeometry) const;
+
+        /**
+         * @brief Get the prototype entity.
+         * @param rGeometry The reference to the geometry.
+         * @return const TEntity& The prototype entity.
+         */
+        const TEntity& GetPrototypeEntity(const GeometryType& rGeometry) const;
 
         ///@}
         ///@name Input and output

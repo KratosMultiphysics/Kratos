@@ -35,20 +35,12 @@ class ApplyK0ProcedureProcess : public Process
 
     KRATOS_CLASS_POINTER_DEFINITION(ApplyK0ProcedureProcess);
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Constructor
     ApplyK0ProcedureProcess(ModelPart&  model_part,
                            const Parameters& ) : Process(Flags()), mrModelPart(model_part)
     {
     }
 
-    ///------------------------------------------------------------------------------------
-
-    /// Destructor
     ~ApplyK0ProcedureProcess() override = default;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void ExecuteFinalizeSolutionStep() override
     {
@@ -62,8 +54,6 @@ class ApplyK0ProcedureProcess : public Process
         KRATOS_CATCH("")
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-   
   private:
       ModelPart& mrModelPart;
 
