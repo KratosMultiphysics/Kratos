@@ -394,19 +394,7 @@ void ElasticIsotropic3D::CalculateCauchyGreenStrain(
     ConstitutiveLaw::StrainVectorType& rStrainVector
     )
 {
-    const SizeType space_dimension = this->WorkingSpaceDimension();
-
-    //1.-Compute total deformation gradient
-    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
-    KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension)
-        << "expected size of F " << space_dimension << "x" << space_dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
-
-    ConstitutiveLaw::DeformationGradientMatrixType E_tensor = prod(trans(F),F);
-    for(unsigned int i=0; i<space_dimension; ++i)
-      E_tensor(i,i) -= 1.0;
-    E_tensor *= 0.5;
-
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    ConstitutiveLawUtilities<6>::CalculateCauchyGreenStrain(rValues, rStrainVector);
 }
 
 } // Namespace Kratos

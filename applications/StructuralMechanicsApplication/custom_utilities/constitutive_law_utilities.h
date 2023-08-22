@@ -275,6 +275,15 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) ConstitutiveLawUtilities
         MatrixType& rC,
         const double E,
         const double N);
+    
+    /**
+     * @brief It calculates the strain vector
+     * @param rValues The internal values of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    static void CalculateCauchyGreenStrain(
+        ConstitutiveLaw::Parameters &rValues,
+        ConstitutiveLaw::StrainVectorType &rStrainVector);
 
     /**
     * It calculates elastic stress from strain and E and NU for 3D elasticity
