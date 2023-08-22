@@ -12,7 +12,6 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/fluid_dynamics_application_variables.cpp
 
   # utilities (compiled first because they are used within the element cpps)
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/rotating_frame_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/estimate_dt_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_auxiliary_utilities.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_calculation_utilities.cpp
