@@ -141,12 +141,6 @@ Additionaly, Visual Studio is required to compile in *Windows*.
       pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn
       ```
 
-      If using UCRT64 (newer implementation):
-
-      ```Shell
-      pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn
-      ```
-
   - Python 
       You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
@@ -163,11 +157,18 @@ Additionaly, Visual Studio is required to compile in *Windows*.
       pacman -S mingw64/mingw-w64-x86_64-boost
       ```
 
-      If using UCRT64 (newer implementation):
+  ##### Using UCRT64
 
-      ```Shell
-      pacman -S ucrt64/mingw-w64-ucrt-x86_64-boost
-      ```
+  UCRT (Universal C Runtime) is a newer version which is also used by Microsoft Visual Studio by default, see https://www.msys2.org/docs/environments/. It should work and behave as if the code was compiled with MSVC.
+
+  - Better compatibility with MSVC, both at build time and at run time.
+  - It only ships by default on Windows 10 and for older versions you have to provide it yourself or depend on the user having it installed.
+
+  If using UCRT64 the dependencies will be like:
+
+  ```Shell
+  pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost
+  ```
 
 ### Specific Application Dependencies
 
