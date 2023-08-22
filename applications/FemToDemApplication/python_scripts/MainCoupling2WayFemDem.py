@@ -38,14 +38,8 @@ class MainCoupled2WayFemDem_Solution(MainCouplingFemDem.MainCoupledFemDem_Soluti
 
 #============================================================================================================================
     def Initialize(self):
-        if self.domain_size == 2:
-            self.number_of_nodes_element = 3
-        else: # 3D
-            self.number_of_nodes_element = 4
-            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
 
         self.FEM_Solution.Initialize()
-
 
         nodes = self.FEM_Solution.main_model_part.Nodes
         utils = KratosMultiphysics.VariableUtils()

@@ -45,10 +45,6 @@ class MainCoupledFemDem_Solution:
 
 #============================================================================================================================
     def Initialize(self):
-        if self.domain_size == 2:
-            self.number_of_nodes_element = 3
-        else: # 3D
-            self.number_of_nodes_element = 4
 
         self.FEM_Solution.Initialize()
         self.DEM_Solution.Initialize()
