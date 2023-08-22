@@ -137,6 +137,16 @@ public:
         ConstitutiveLaw::Parameters &rParameters,
         const bool IsPlaneStrain = false) override;
 
+    /**
+     * @brief It calculates the strain vector
+     * @param rValues The internal values of the law
+     * @param rStrainVector The strain vector in Voigt notation
+     */
+    void CalculateCauchyGreenStrain(
+        ConstitutiveLaw::Parameters& rValues,
+        ConstitutiveLaw::StrainVectorType& rStrainVector
+        ) override;
+
     ///@}
     ///@name Access
     ///@{

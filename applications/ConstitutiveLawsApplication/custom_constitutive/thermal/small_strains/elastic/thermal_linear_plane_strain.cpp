@@ -77,4 +77,12 @@ void ThermalLinearPlaneStrain::SubstractThermalStrain(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void ThermalLinearPlaneStrain::CalculateCauchyGreenStrain(
+    Parameters& rValues,
+    ConstitutiveLaw::StrainVectorType& rStrainVector
+    )
+{
+    ConstitutiveLawUtilities<3>::CalculateCauchyGreenStrain(rValues, rStrainVector);
+}
+
 } // Namespace Kratos
