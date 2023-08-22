@@ -95,6 +95,7 @@ class Optimizer:
         if self.optimization_settings["design_variables"]["filter"].Has("centerline_morphing") and \
             self.optimization_settings["design_variables"]["filter"]["centerline_morphing"].GetBool():
                 model_part = self.model_part_controller.GetOptimizationModelPart()
+                model_part.AddNodalSolutionStepVariable(KSO.HEAT_FIELD)
                 model_part.AddNodalSolutionStepVariable(KSO.HEAT_GRADIENT)
                 model_part.AddNodalSolutionStepVariable(KSO.HEAT_DISTANCE)
 

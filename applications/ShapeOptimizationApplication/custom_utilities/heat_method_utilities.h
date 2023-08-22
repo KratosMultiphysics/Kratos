@@ -120,14 +120,26 @@ public:
     void HeatEquationInverseMapping(Vector_int& heat_equation_inverse_mapping, Vector_int nodes_label);
     void VerticesToFaces(std::vector<std::vector<unsigned int>>& VF, Matrix_int F);
     void VerticesToVertices(std::vector<std::vector<unsigned int>>& VV, std::vector<std::vector<unsigned int>> VF, Matrix_int F);
-    void ConstructLaplacian(Matrix& laplacian_matrix, Matrix V, Matrix_int F, std::vector<std::vector<unsigned int>> VV, std::vector<std::vector<unsigned int>> VF);
-    void ConstructK (CompressedMatrix& K, Matrix laplacian_matrix, Vector_int heat_equation_mapping, Vector_int heat_equation_inverse_mapping, Vector_int nodes_label);
+    void ConstructLaplacian(CompressedMatrix& laplacian_matrix, Matrix V, Matrix_int F, std::vector<std::vector<unsigned int>> VV, std::vector<std::vector<unsigned int>> VF);
+    void ConstructK (CompressedMatrix& K, CompressedMatrix laplacian_matrix, Vector_int heat_equation_mapping, Vector_int heat_equation_inverse_mapping, Vector_int nodes_label);
     void ConstructM (CompressedMatrix& M, Vector elements_area, Vector_int heat_equation_mapping, std::vector<std::vector<unsigned int>> VF);
     void ConstructU0 (Vector& U0, Vector_int heat_equation_mapping, Vector_int nodes_label);
+    void ComputeHeatGradient (Matrix& heat_gradient, Matrix V, Matrix F, Vector HeatField);
+    void ComputeHeatDivergence (Vector& heat_divergence, Matrix heat_gradient, Matrix V, Matrix F, std::vector<std::vector<unsigned int>> VF);
+    
     // virtual void ComputeDistanceField();
 
-    virtual void ComputeLaplacian(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver);
+    virtual void ComputeHeatField(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver);
 
+    double cotan(const double& alfa) {
+        return cos(alfa)/sin(alfa);
+    }
+
+    double dot(const Vector& a, const Vector& b) {
+        return MathUtils<double>::Dot3(a, b);
+    }
+
+    void hmt();
 
     // etc....
 

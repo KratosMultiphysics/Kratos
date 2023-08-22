@@ -319,7 +319,7 @@ void MapperCenterline::Update(LinearSolver<SparseSpaceType, LocalSpaceType>& rSo
     BuiltinTimer timer;
     KRATOS_INFO("ShapeOpt") << "Starting to update mapper..." << std::endl;
 
-    mpHeatMethod -> ComputeLaplacian(rSolver);
+    mpHeatMethod -> ComputeHeatField(rSolver);
 
     // CreateListOfNodesInOriginModelPart();
     // InitializeMappingVariables();

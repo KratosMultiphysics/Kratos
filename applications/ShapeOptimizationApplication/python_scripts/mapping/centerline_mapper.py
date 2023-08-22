@@ -51,10 +51,10 @@ class CenterlineVertexMorphingMapper():
         # create linear solver
         # TODO: decide which linear solver type works best
 
-        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.sparse_cg" }')
+        settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.sparse_lu", "scaling" : false }')
         self.linear_solver = linear_solver_factory.ConstructSolver(settings)
 
-        #settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_llt" }')
+        #settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         #self.linear_solver = dense_linear_solver_factory.ConstructSolver(settings)
 
         self.vm_mapper.Initialize()
