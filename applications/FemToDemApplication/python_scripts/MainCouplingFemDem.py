@@ -49,7 +49,6 @@ class MainCoupledFemDem_Solution:
             self.number_of_nodes_element = 3
         else: # 3D
             self.number_of_nodes_element = 4
-            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
 
         self.FEM_Solution.Initialize()
         self.DEM_Solution.Initialize()
@@ -75,6 +74,7 @@ class MainCoupledFemDem_Solution:
                                                                            self.DEMParameters)
         if self.domain_size == 3:
             KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
+            KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
 
         if self.FEM_Solution.ProjectParameters.Has("transfer_dem_contact_forces") == False:
             self.TransferDEMContactForcesToFEM = True
@@ -136,9 +136,6 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM Solution initialized")
 
         if self.domain_size == 3: # only in 3D
-            # We assign the flag to recompute neighbours inside the 3D elements the 1st time
-            utils = KratosMultiphysics.VariableUtils()
-            utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
             # We assign the flag to recompute neighbours inside the 3D elements the 1st time
             utils = KratosMultiphysics.VariableUtils()
             utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
@@ -305,6 +302,7 @@ class MainCoupledFemDem_Solution:
 
         if self.domain_size == 3:
             KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
+            KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
         else: # 2D
             KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
 
