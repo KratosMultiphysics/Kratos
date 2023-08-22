@@ -89,6 +89,7 @@ void RotatingFrameUtility::ApplyRotationAndMeshDisplacement(
     rot_matrix(2, 2) = a*a+d*d-b*b-c*c;
     
     thread_local array_1d<double, 3> rotated_point;
+    thread_local array_1d<double, 3> mesh_displacement;
 
     // Apply the rotation and mesh displacement calculations to each node in parallel
     block_for_each(rRotatingFrameModelPart.Nodes(), [&](Node& rNode) {
@@ -103,9 +104,14 @@ void RotatingFrameUtility::ApplyRotationAndMeshDisplacement(
 
         // Shifting the point back and updating the node coordinates
         rotated_point += rCenterOfRotation;
-        rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_X) = rotated_point[0] - rNode.X0();
-        rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_Y) = rotated_point[1] - rNode.Y0();
-        rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_Z) = rotated_point[2] - rNode.Z0();
+        mesh_displacement[0] = rotated_point[0] - rNode.X0();
+        mesh_displacement[1] = rotated_point[1] - rNode.Y0();
+        mesh_displacement[2] = rotated_point[2] - rNode.Z0();
+
+        rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT) = mesh_displacement;
+        // rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_X) = rotated_point[0] - rNode.X0();
+        // rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_Y) = rotated_point[1] - rNode.Y0();
+        // rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_Z) = rotated_point[2] - rNode.Z0();
         rNode.Fix(MESH_DISPLACEMENT_X);
         rNode.Fix(MESH_DISPLACEMENT_Y);
         rNode.Fix(MESH_DISPLACEMENT_Z);
