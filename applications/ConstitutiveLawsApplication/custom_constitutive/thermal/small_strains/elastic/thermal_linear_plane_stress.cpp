@@ -29,91 +29,6 @@ namespace Kratos
 /***********************************************************************************/
 /***********************************************************************************/
 
-void ThermalLinearPlaneStress::CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues)
-{
-    KRATOS_TRY
-
-    Flags& r_constitutive_law_options = rValues.GetOptions();
-    ConstitutiveLaw::StrainVectorType& r_strain_vector = rValues.GetStrainVector();
-
-    if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        // Since we are in small strains, any strain measure works, e.g. CAUCHY_GREEN
-        CalculateCauchyGreenStrain(rValues, r_strain_vector);
-    }
-
-    // We add the thermal contribution
-    AdvancedConstitutiveLawUtilities<3>::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
-
-    // We add the initial strains
-    AddInitialStrainVectorContribution<StrainVectorType>(r_strain_vector);
-
-
-    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        ConstitutiveLaw::StressVectorType &r_stress_vector = rValues.GetStressVector();
-        CalculatePK2Stress(r_strain_vector, r_stress_vector, rValues);
-        AddInitialStressVectorContribution<StressVectorType>(r_stress_vector);
-    }
-
-    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        ConstitutiveLaw::VoigtSizeMatrixType &r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        CalculateElasticMatrix(r_constitutive_matrix, rValues);
-    }
-
-    KRATOS_CATCH("")
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-int ThermalLinearPlaneStress::Check(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const ProcessInfo& rCurrentProcessInfo
-    ) const
-{
-    KRATOS_ERROR_IF_NOT(rElementGeometry[0].SolutionStepsDataHas(TEMPERATURE))  << "The TEMPERATURE variable is not available at the nodes." << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT)) << "The THERMAL_EXPANSION_COEFFICIENT is not set in the material properties." << std::endl;
-    KRATOS_ERROR_IF(rMaterialProperties[THERMAL_EXPANSION_COEFFICIENT] < 0.0)   << "The THERMAL_EXPANSION_COEFFICIENT is negative..." << std::endl;
-    KRATOS_ERROR_IF_NOT(rElementGeometry.Has(REFERENCE_TEMPERATURE) || rMaterialProperties.Has(REFERENCE_TEMPERATURE)) << "The REFERENCE_TEMPERATURE is not given in the material properties nor via SetValue()" << std::endl;
-    BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-    return 0;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-double& ThermalLinearPlaneStress::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<double>& rThisVariable, double& rValue
-    )
-{
-    if (rThisVariable == REFERENCE_TEMPERATURE) {
-        rValue = mReferenceTemperature;
-    } else {
-        BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
-    }
-    return (rValue);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-void ThermalLinearPlaneStress::InitializeMaterial(
-    const Properties& rMaterialProperties,
-    const GeometryType& rElementGeometry,
-    const Vector& rShapeFunctionsValues
-    )
-{
-    if (rElementGeometry.Has(REFERENCE_TEMPERATURE)) {
-        mReferenceTemperature = rElementGeometry.GetValue(REFERENCE_TEMPERATURE);
-    } else if (rMaterialProperties.Has(REFERENCE_TEMPERATURE)) {
-        mReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
-    }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 void ThermalLinearPlaneStress::CalculatePK2Stress(
     const Vector& rStrainVector,
     ConstitutiveLaw::StressVectorType& rStressVector,
@@ -144,6 +59,19 @@ void ThermalLinearPlaneStress::CalculateElasticMatrix(
     const double E  = r_material_properties.GetValue(YOUNG_MODULUS, r_geom, r_N, r_process_info);
     const double NU = r_material_properties.GetValue(POISSON_RATIO, r_geom, r_N, r_process_info);
     ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStress(rConstitutiveMatrix, E, NU);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ThermalLinearPlaneStress::SubstractThermalStrain(
+    ConstitutiveLaw::StrainVectorType &rStrainVector,
+    const double ReferenceTemperature,
+    ConstitutiveLaw::Parameters &rParameters,
+    const bool IsPlaneStrain
+    )
+{
+    AdvancedConstitutiveLawUtilities<3>::SubstractThermalStrain(rStrainVector, ReferenceTemperature, rParameters, false);
 }
 
 /***********************************************************************************/
