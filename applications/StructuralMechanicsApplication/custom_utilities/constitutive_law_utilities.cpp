@@ -366,53 +366,46 @@ void ConstitutiveLawUtilities<TVoigtSize>::CalculateElasticMatrix(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<>
-void ConstitutiveLawUtilities<3>::CalculateCauchyGreenStrain(
+template<SizeType TVoigtSize>
+void ConstitutiveLawUtilities<TVoigtSize>::CalculateCauchyGreenStrain(
     ConstitutiveLaw::Parameters& rValues,
     Vector& rStrainVector
     )
 {
-    //1.-Compute total deformation gradient
-    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
+    if constexpr (Dimension == 2) {
+        //1.-Compute total deformation gradient
+        const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
 
-    // for shells/membranes in case the DeformationGradient is of size 3x3
-    BoundedMatrix<double,2,2> F2x2;
-    for (unsigned int i = 0; i<2; ++i)
-        for (unsigned int j = 0; j<2; ++j)
-            F2x2(i, j) = F(i, j);
+        // for shells/membranes in case the DeformationGradient is of size 3x3
+        BoundedMatrix<double,2,2> F2x2;
+        for (unsigned int i = 0; i<2; ++i)
+            for (unsigned int j = 0; j<2; ++j)
+                F2x2(i, j) = F(i, j);
 
-    BoundedMatrix<double,2,2> E_tensor = prod(trans(F2x2), F2x2);
+        BoundedMatrix<double,2,2> E_tensor = prod(trans(F2x2), F2x2);
 
-    for (unsigned int i = 0; i<2; ++i)
-        E_tensor(i, i) -= 1.0;
+        for (unsigned int i = 0; i<2; ++i)
+            E_tensor(i, i) -= 1.0;
 
-    E_tensor *= 0.5;
+        E_tensor *= 0.5;
 
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
-}
+        noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    } else {
+        const SizeType space_dimension = this->WorkingSpaceDimension();
 
-/***********************************************************************************/
-/***********************************************************************************/
+        //1.-Compute total deformation gradient
+        const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
+        KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension)
+            << "expected size of F " << space_dimension << "x" << space_dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
 
-template<>
-void ConstitutiveLawUtilities<6>::CalculateCauchyGreenStrain(
-    ConstitutiveLaw::Parameters& rValues,
-    Vector& rStrainVector
-    )
-{
-    const SizeType space_dimension = this->WorkingSpaceDimension();
+        ConstitutiveLaw::DeformationGradientMatrixType E_tensor = prod(trans(F),F);
+        for(unsigned int i = 0; i < space_dimension; ++i)
+            E_tensor(i,i) -= 1.0;
+        E_tensor *= 0.5;
 
-    //1.-Compute total deformation gradient
-    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
-    KRATOS_DEBUG_ERROR_IF(F.size1()!= space_dimension || F.size2() != space_dimension)
-        << "expected size of F " << space_dimension << "x" << space_dimension << ", got " << F.size1() << "x" << F.size2() << std::endl;
+        noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    }
 
-    ConstitutiveLaw::DeformationGradientMatrixType E_tensor = prod(trans(F),F);
-    for(unsigned int i = 0; i < space_dimension; ++i)
-        E_tensor(i,i) -= 1.0;
-    E_tensor *= 0.5;
-
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
 }
 
 /***********************************************************************************/
