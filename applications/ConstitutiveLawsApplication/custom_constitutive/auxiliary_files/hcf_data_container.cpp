@@ -166,7 +166,7 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
         }
         rFatigueVariables.MaxStressRelativeError = std::abs((rFatigueVariables.MaxStress - rFatigueVariables.PreviousMaxStress) / rFatigueVariables.MaxStress);
 
-        if (!rFatigueVariables.DamageActivation && rFatigueVariables.GlobalNumberOfCycles > 2 && !rFatigueVariables.AdvanceStrategyApplied && (rFatigueVariables.ReversionFactorRelativeError > tolerance || rFatigueVariables.MaxStressRelativeError > 0.001)) {
+        if (!rFatigueVariables.DamageActivation && rFatigueVariables.GlobalNumberOfCycles > 2 && !rFatigueVariables.AdvanceStrategyApplied && (rFatigueVariables.ReversionFactorRelativeError > tolerance || rFatigueVariables.MaxStressRelativeError > tolerance)) {
             rFatigueVariables.LocalNumberOfCycles = std::trunc(std::pow(10, std::pow(-(std::log(rFatigueVariables.FatigueReductionFactor) / rFatigueVariables.B0), 1.0 / (betaf * betaf)))) + 1;
         }
 
