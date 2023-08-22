@@ -26,7 +26,6 @@ class UPwSolver(GeoSolver):
             "solver_type": "geomechanics_U_Pw_solver",
             "model_part_name": "PorousDomain",
             "domain_size": 2,
-            "start_time": 0.0,
             "model_import_settings":{
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -35,7 +34,6 @@ class UPwSolver(GeoSolver):
                 "materials_filename": ""
             },
             "time_stepping": {
-                "end_time" : 1.0,
                 "time_step": 0.1
             },
             "buffer_size": 2,
@@ -173,17 +171,17 @@ class UPwSolver(GeoSolver):
 
     def _ConstructScheme(self, scheme_type, solution_type):
 
-        self.main_model_part.ProcessInfo.SetValue(KratosGeo.VELOCITY_COEFFICIENT, 1.0)
+        self.main_model_part.ProcessInfo.SetValue(KratosGeo.VELOCITY_COEFFICIENT,    1.0)
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.DT_PRESSURE_COEFFICIENT, 1.0)
 
         if (scheme_type.lower() == "newmark"):
-            beta = self.settings["newmark_beta"].GetDouble()
+            beta  = self.settings["newmark_beta"].GetDouble()
             gamma = self.settings["newmark_gamma"].GetDouble()
             theta = self.settings["newmark_theta"].GetDouble()
             rayleigh_m = self.settings["rayleigh_m"].GetDouble()
             rayleigh_k = self.settings["rayleigh_k"].GetDouble()
             self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_ALPHA, rayleigh_m)
-            self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_BETA, rayleigh_k)
+            self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_BETA,  rayleigh_k)
             KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, solution_type", solution_type)
             if (solution_type.lower() == "quasi-static" or solution_type.lower() == "quasi_static"):
                 if (rayleigh_m < 1.0e-20 and rayleigh_k < 1.0e-20):
@@ -212,7 +210,7 @@ class UPwSolver(GeoSolver):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_U_Pw_Solver, scheme", "Backward Euler.")
                 scheme = KratosGeo.BackwardEulerQuasistaticUPwScheme()
             else:
-              raise Exception("Undefined/uncompatible solution type with Backward Euler", solution_type)
+              raise Exception("Undefined/incompatible solution type with Backward Euler", solution_type)
         else:
             raise Exception("Apart from Newmark, other scheme_type are not available.")
 
@@ -226,15 +224,15 @@ class UPwSolver(GeoSolver):
         R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
         echo_level = self.settings["echo_level"].GetInt()
 
-        if(convergence_criterion.lower() == "displacement_criterion"):
+        if (convergence_criterion.lower() == "displacement_criterion"):
             convergence_criterion = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             convergence_criterion.SetEchoLevel(echo_level)
-        elif(convergence_criterion.lower() == "residual_criterion"):
+        elif (convergence_criterion.lower() == "residual_criterion"):
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             # other_dof_name = "WATER_PRESSURE"
             # convergence_criterion = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
             convergence_criterion.SetEchoLevel(echo_level)
-        elif(convergence_criterion.lower() == "and_criterion"):
+        elif (convergence_criterion.lower() == "and_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
@@ -242,7 +240,7 @@ class UPwSolver(GeoSolver):
             # Residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.AndCriteria(Residual, Displacement)
-        elif(convergence_criterion.lower() == "or_criterion"):
+        elif (convergence_criterion.lower() == "or_criterion"):
             Displacement = KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)
             Displacement.SetEchoLevel(echo_level)
             # Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
@@ -250,10 +248,10 @@ class UPwSolver(GeoSolver):
             Residual = KratosStructure.ResidualDisplacementAndOtherDoFCriteria(R_RT, R_AT, other_dof_name)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.OrCriteria(Residual, Displacement)
-        elif(convergence_criterion.lower() == "water_pressure_criterion"):
+        elif (convergence_criterion.lower() == "water_pressure_criterion"):
             convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
             convergence_criterion.SetEchoLevel(echo_level)
-        elif(convergence_criterion.lower() == "displacement_and_water_pressure_criterion"):
+        elif (convergence_criterion.lower() == "displacement_and_water_pressure_criterion"):
             convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.DisplacementCriteria(D_RT, D_AT)),(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
             convergence_criterion.SetEchoLevel(echo_level)
         else:
