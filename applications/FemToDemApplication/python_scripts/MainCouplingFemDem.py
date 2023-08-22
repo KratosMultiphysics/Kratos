@@ -44,11 +44,7 @@ class MainCoupledFemDem_Solution:
         self.Finalize()
 
 #============================================================================================================================
-    def Initialize(self):
-
-        self.FEM_Solution.Initialize()
-        self.DEM_Solution.Initialize()
-
+    def SetNonHistoricalVariables(self):
         nodes = self.FEM_Solution.main_model_part.Nodes
         utils = KratosMultiphysics.VariableUtils()
         # Initialize the "flag" IS_DEM in all the nodes
@@ -61,6 +57,11 @@ class MainCoupledFemDem_Solution:
         # Initialize the var to track volume erased for each pressure
         utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_VOLUME, 0.0, nodes)
         utils.SetNonHistoricalVariable(KratosFemDem.PRESSURE_INITIAL_VOLUME, 0.0, nodes)
+
+#============================================================================================================================
+
+    def InitializeProcessesAndVariables(self):
+        self.SetNonHistoricalVariables()
 
         self.SpheresModelPart = self.DEM_Solution.spheres_model_part
         self.DEMParameters = self.DEM_Solution.DEM_parameters
@@ -119,15 +120,6 @@ class MainCoupledFemDem_Solution:
         if self.domain_size == 3:
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECOMPUTE_NEIGHBOURS] = True
 
-        self.FEM_Solution.KratosPrintInfo("")
-        self.FEM_Solution.KratosPrintInfo("    ______                 ___    ____                 ")
-        self.FEM_Solution.KratosPrintInfo("   / ____/___   ____ ___  |__ \  / __ \ ___   ____ ___ ")
-        self.FEM_Solution.KratosPrintInfo("  / /_   / _ \ / __ `__ \ __/ / / / / // _ \ / __ `__ \ ")
-        self.FEM_Solution.KratosPrintInfo(" / __/  /  __// / / / / // __/ / /_/ //  __// / / / / /")
-        self.FEM_Solution.KratosPrintInfo("/_/     \___//_/ /_/ /_//____//_____/ \___//_/ /_/ /_/ Application")
-        self.FEM_Solution.KratosPrintInfo("                           Developed by Alejandro Cornejo")
-        self.FEM_Solution.KratosPrintInfo("")
-
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM Solution initialized")
 
@@ -157,6 +149,22 @@ class MainCoupledFemDem_Solution:
             self.InitializePostProcess()
 
         self.FindNeighboursIfNecessary()
+#============================================================================================================================
+    def Initialize(self):
+
+        self.FEM_Solution.Initialize()
+        self.DEM_Solution.Initialize()
+        self.InitializeProcessesAndVariables()
+
+        self.FEM_Solution.KratosPrintInfo("")
+        self.FEM_Solution.KratosPrintInfo("    ______                 ___    ____                 ")
+        self.FEM_Solution.KratosPrintInfo("   / ____/___   ____ ___  |__ \  / __ \ ___   ____ ___ ")
+        self.FEM_Solution.KratosPrintInfo("  / /_   / _ \ / __ `__ \ __/ / / / / // _ \ / __ `__ \ ")
+        self.FEM_Solution.KratosPrintInfo(" / __/  /  __// / / / / // __/ / /_/ //  __// / / / / /")
+        self.FEM_Solution.KratosPrintInfo("/_/     \___//_/ /_/ /_//____//_____/ \___//_/ /_/ /_/ Application")
+        self.FEM_Solution.KratosPrintInfo("                           Developed by Alejandro Cornejo")
+        self.FEM_Solution.KratosPrintInfo("")
+
 
 #============================================================================================================================
     def RunMainTemporalLoop(self):
@@ -708,7 +716,6 @@ class MainCoupledFemDem_Solution:
 
         self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
         self.FEM_Solution.main_model_part.RemoveSubModelPart("ContactForcesDEMConditions")
-
 
 #ExecuteBeforeGeneratingDEM============================================================================================================================
     def ExecuteBeforeGeneratingDEM(self):
