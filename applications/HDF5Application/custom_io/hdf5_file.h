@@ -273,7 +273,7 @@ public:
      *
      * @tparam TDataType    Data type of the Data.
      * @param rPath         Path to which the data is written.
-     * @param rData         Data to be writtent.
+     * @param rData         Data to be written.
      * @param rInfo         Information about the written data (output).
      */
     template<class TDataType>
