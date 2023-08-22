@@ -49,7 +49,6 @@ class MainCoupledFemDem_Solution:
             self.number_of_nodes_element = 3
         else: # 3D
             self.number_of_nodes_element = 4
-            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME] = 0.0 # Sand Production Calculations
 
         self.FEM_Solution.Initialize()
         self.DEM_Solution.Initialize()
@@ -74,7 +73,8 @@ class MainCoupledFemDem_Solution:
                                                                            self.DEMProperties,
                                                                            self.DEMParameters)
         if self.domain_size == 3:
-            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part)
+            KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
+            KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
 
         if self.FEM_Solution.ProjectParameters.Has("transfer_dem_contact_forces") == False:
             self.TransferDEMContactForcesToFEM = True
@@ -136,9 +136,6 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM Solution initialized")
 
         if self.domain_size == 3: # only in 3D
-            # We assign the flag to recompute neighbours inside the 3D elements the 1st time
-            utils = KratosMultiphysics.VariableUtils()
-            utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
             # We assign the flag to recompute neighbours inside the 3D elements the 1st time
             utils = KratosMultiphysics.VariableUtils()
             utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
@@ -304,12 +301,10 @@ class MainCoupledFemDem_Solution:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: ComputeNeighboursIfNecessary")
 
         if self.domain_size == 3:
-            data_communicator = self.FEM_Solution.main_model_part.GetCommunicator().GetDataCommunicator()
-            self.nodal_neighbour_finder = KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(data_communicator, self.FEM_Solution.main_model_part)
-            self.nodal_neighbour_finder.Execute()
+            KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
+            KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
         else: # 2D
-            neighbour_elemental_finder =  KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part)
-            neighbour_elemental_finder.Execute()
+            KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
 
 
 #ComputeSkinSubModelPart============================================================================================================================
@@ -797,7 +792,7 @@ class MainCoupledFemDem_Solution:
 
         gp_list = self.FEM_Solution.ProjectParameters["output_configuration"]["result_file_configuration"]["gauss_point_results"]
         gauss_points_results = []
-        for i in gp_list:
+        for i in gp_list.values():
             gauss_points_results.append(i.GetString())
 
         self.gid_output.initialize_dem_fem_results(solid_nodal_results,
