@@ -273,7 +273,7 @@ public:
      *
      * @tparam TDataType    Data type of the Data.
      * @param rPath         Path to which the data is written.
-     * @param rData         Data to be writtent.
+     * @param rData         Data to be written.
      * @param rInfo         Information about the written data (output).
      */
     template<class TDataType>
@@ -432,13 +432,6 @@ private:
         hid_t FileAccessPropertyListId) const;
 
     hid_t GetFileId() const;
-
-    void CreateNewDataSet(
-        hid_t& rDataSetId,
-        hid_t& rDataSpaceId,
-        const hid_t DataTypeId,
-        const std::vector<hsize_t>& rDims,
-        const std::string& rPath);
 
     hid_t OpenExistingDataSet(const std::string& rPath);
 
