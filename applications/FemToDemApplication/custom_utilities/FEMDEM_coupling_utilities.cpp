@@ -191,8 +191,8 @@ void FEMDEMCouplingUtilities::ComputeAndTranferAveragedContactTotalForces(
             }
             it_cond->SetValue(FORCE_LOAD, dem_forces);
             // We reset it for the next substepping
-            noalias(r_explicit_impulse_node) = ZeroVector(3);
-            noalias(r_explicit_impulse_DEM)  = ZeroVector(3);
+            r_explicit_impulse_node.clear();
+            r_explicit_impulse_DEM.clear();
         }
     }
 }
