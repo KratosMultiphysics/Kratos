@@ -86,12 +86,15 @@ class MainCoupledFemDem_Solution:
                 "maximum_damage_erase"        : 0.98
             }""")
         femdem_custom_settings.ValidateAndAssignDefaults(femdem_default_settings)
+        process_info = self.FEM_Solution.main_model_part.ProcessInfo
         self.TransferDEMContactForcesToFEM = femdem_custom_settings["transfer_dem_contact_forces"].GetBool()
         self.PressureLoad = femdem_custom_settings["pressure_load_extrapolation"].GetBool()
         self.DEMFEM_contact = femdem_custom_settings["DEM_FEM_contact"].GetBool()
-        self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.TANGENT_CONSTITUTIVE_TENSOR] = femdem_custom_settings["tangent_operator"].GetInt()
+        process_info[KratosFemDem.TANGENT_CONSTITUTIVE_TENSOR] = femdem_custom_settings["tangent_operator"].GetInt()
         self.CreateInitialSkin = femdem_custom_settings["create_initial_skin"].GetBool()
         self.do_stabilization_solve = femdem_custom_settings["do_stabilization_solve"].GetBool()
+        process_info[KratosFemDem.SMOOTHING_OF_STRESSES] = femdem_custom_settings["smoothing_of_stresses"].GetBool()
+        process_info[KratosFemDem.MAX_DAMAGE_ERASE] = femdem_custom_settings["maximum_damage_erase"].GetInt()
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
