@@ -12,8 +12,7 @@
 //
 
 
-#if !defined(KRATOS_GENERIC_TOTAL_LAGRANGIAN_FEMDEM_H_INCLUDED )
-#define  KRATOS_GENERIC_TOTAL_LAGRANGIAN_FEMDEM_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -542,4 +541,3 @@ template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericT
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined
