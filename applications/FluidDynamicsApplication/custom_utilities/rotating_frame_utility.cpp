@@ -48,9 +48,6 @@ void RotatingFrameUtility::ApplyVelocityToRotatingObject(
         velocity_vector = MathUtils<double>::CrossProduct(angular_velocity_vector, position_vector);
 
         // Setting the node's velocity
-        // rNode.FastGetSolutionStepValue(VELOCITY_X) = velocity_vector[0];
-        // rNode.FastGetSolutionStepValue(VELOCITY_Y) = velocity_vector[1];
-        // rNode.FastGetSolutionStepValue(VELOCITY_Z) = velocity_vector[2];
         rNode.FastGetSolutionStepValue(VELOCITY) = velocity_vector;
 
         // Fix the velocity components
@@ -109,16 +106,10 @@ void RotatingFrameUtility::ApplyRotationAndMeshDisplacement(
         mesh_displacement[2] = rotated_point[2] - rNode.Z0();
 
         rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT) = mesh_displacement;
-        // rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_X) = rotated_point[0] - rNode.X0();
-        // rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_Y) = rotated_point[1] - rNode.Y0();
-        // rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT_Z) = rotated_point[2] - rNode.Z0();
         rNode.Fix(MESH_DISPLACEMENT_X);
         rNode.Fix(MESH_DISPLACEMENT_Y);
         rNode.Fix(MESH_DISPLACEMENT_Z);
         rNode.Coordinates() = rotated_point;
-        // rNode.X() = rotated_point[0];
-        // rNode.Y() = rotated_point[1];
-        // rNode.Z() = rotated_point[2];
     });
 
     KRATOS_CATCH("");
