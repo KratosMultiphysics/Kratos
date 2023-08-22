@@ -7,7 +7,7 @@
 #include "includes/model_part.h"
 #include "includes/kratos_components.h"
 #include "testing/testing.h"
-#include "custom_io/hdf5_file_serial.h"
+#include "custom_io/hdf5_file.h"
 #include "custom_utilities/registered_component_lookup.h"
 
 namespace Kratos
@@ -469,7 +469,7 @@ HDF5::File::Pointer pGetTestSerialFile()
             "file_name" : "test.h5",
             "file_driver": "core"
         })");
-    return HDF5::File::Pointer(new HDF5::FileSerial(file_params));
+    return HDF5::File::Pointer(new HDF5::File(Testing::GetDefaultDataCommunicator(), file_params));
 }
 
 HDF5::File GetTestFile()
@@ -479,17 +479,17 @@ HDF5::File GetTestFile()
             "file_name" : "test.h5",
             "file_driver": "core"
         })");
-    return HDF5::File(file_params);
+    return HDF5::File(Testing::GetDefaultDataCommunicator(), file_params);
 }
 
-HDF5::FileSerial GetTestSerialFile()
+HDF5::File GetTestSerialFile()
 {
     Parameters file_params(R"(
         {
             "file_name" : "test.h5",
             "file_driver": "core"
         })");
-    return HDF5::FileSerial(file_params);
+    return HDF5::File(Testing::GetDefaultDataCommunicator(), file_params);
 }
 
 } // namespace Testing
