@@ -66,7 +66,7 @@ public:
     ///@{
 
     /**
-     * \brief  Initializes the set parameter field process. Checks what type of input field is given and generates the parameter field
+     * \brief  Initializes the set parameter field process. Checks if the value that needs to be changed is a UMAT_PARAMETERS(so Vector) or double.
      */
     void ExecuteInitialize() override;
 
@@ -100,30 +100,38 @@ private:
      * \param Value new value for the to be altered variable
      */
      static void SetValueAtElement(Element& rElement, const Variable<double>& rVar, const double Value);
-
+     static void SetValueAtElement(Element& rElement, const Variable<Vector>& rVar, const Vector Value);
      /**
      * \brief Sets the parameter field, using an input function
      * \param rVar variable type which is to be used to generate the parameter field
      */
      void SetParameterFieldUsingInputFunction(const Variable<double>& rVar);
-
+     void SetParameterFieldUsingInputFunction(const Variable<Vector>& rVar);
      /**
      * \brief Sets the parameter field, using a custom Parameter structure
      * \param rVar variable type which is to be used to generate the parameter field
      */
      void SetParameterFieldUsingParametersClass(const Variable<double>& rVar, Parameters& rParameters);
-
+     void SetParameterFieldUsingParametersClass(const Variable<Vector>& rVar, Parameters& rParameters);
      /**
      * \brief Sets the parameter field, using an input json file
      * \param rVar variable type which is to be used to generate the parameter field
      */
      void SetParameterFieldUsingJsonFile(const Variable<double>& rVar);
-
+     void SetParameterFieldUsingJsonFile(const Variable<Vector>& rVar);
      /**
      * \brief Sets the parameter field, using a json string
      * \param rVar variable type which is to be used to generate the parameter field
      */
-     void SetParameterFieldUsingJsonString(const  Variable<double>& rVar);
+     void SetParameterFieldUsingJsonString(const Variable<double>& rVar);
+     void SetParameterFieldUsingJsonString(const Variable<Vector>& rVar);
+     /**
+     * \brief  Checks what type of input field is given and generates the parameter field.
+     * \param rVar variable type which is to be used to generate the parameter field
+     */
+     void SetParameterFieldProcess::SetParameterFieldForVariableType(const Variable<double>& r_var);
+     void SetParameterFieldProcess::SetParameterFieldForVariableType(const Variable<Vector>& r_var);
+
     ///@}
     ///@name Serialization
     ///@{
