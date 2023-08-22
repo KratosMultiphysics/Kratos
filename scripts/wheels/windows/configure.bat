@@ -41,7 +41,6 @@ CALL :add_app %KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
 CALL :add_app %KRATOS_APP_DIR%\HDF5Application;
 CALL :add_app %KRATOS_APP_DIR%\IgaApplication;
 CALL :add_app %KRATOS_APP_DIR%\ChimeraApplication;
-CALL :add_app %KRATOS_APP_DIR%\MultilevelMonteCarloApplication;
 CALL :add_app %KRATOS_APP_DIR%\StatisticsApplication;
 CALL :add_app %KRATOS_APP_DIR%\RomApplication;
 CALL :add_app %KRATOS_APP_DIR%\ShallowWaterApplication;
