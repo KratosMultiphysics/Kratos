@@ -141,6 +141,12 @@ Additionaly, Visual Studio is required to compile in *Windows*.
       pacman -S mingw64/mingw-w64-x86_64-lapack mingw64/mingw-w64-x86_64-openblas mingw64/mingw-w64-x86_64-cmake mingw64/mingw-w64-x86_64-clang mingw64/mingw-w64-x86_64-gcc mingw64/mingw-w64-x86_64-gcc-fortran mingw-w64-x86_64-make mingw64/mingw-w64-x86_64-openmp mingw64/mingw-w64-x86_64-dlfcn
       ```
 
+      If using UCRT64 (newer implementation):
+
+      ```Shell
+      pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn
+      ```
+
   - Python 
       You will need at least *Python* 3.8 (recommended 3.8/3.9/3.10) in your computer in order to compile *Kratos*. You can download python from its official webpage:
 
@@ -155,6 +161,12 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
       ```Shell
       pacman -S mingw64/mingw-w64-x86_64-boost
+      ```
+
+      If using UCRT64 (newer implementation):
+
+      ```Shell
+      pacman -S ucrt64/mingw-w64-ucrt-x86_64-boost
       ```
 
 ### Specific Application Dependencies
