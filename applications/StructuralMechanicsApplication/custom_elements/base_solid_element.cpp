@@ -626,10 +626,14 @@ void BaseSolidElement::CalculateMassMatrix(
 
         Matrix J0(dimension, dimension);
 
-        const IntegrationMethod integration_method = UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod ;
+        
+        //######################################################for volume coupling ######################################################################
+        //const IntegrationMethod integration_method = UseGeometryIntegrationMethod() ? IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(r_geom) : mThisIntegrationMethod ;
+        const IntegrationMethod integration_method = this->GetIntegrationMethod();
         const GeometryType::IntegrationPointsArrayType& integration_points = this->IntegrationPoints( integration_method );
+        //######################################################for volume coupling ######################################################################
+        //auto P = this->GetIntegrationMethod();
         const Matrix& Ncontainer = this->ShapeFunctionsValues(integration_method);
-
         for ( IndexType point_number = 0; point_number < integration_points.size(); ++point_number ) {
             GeometryUtils::JacobianOnInitialConfiguration(
                 r_geom, integration_points[point_number], J0);

@@ -21,6 +21,9 @@
 #include "custom_elements/base_solid_element.h"
 #include "includes/variables.h"
 
+
+
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -53,6 +56,7 @@ class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) SmallDisplacement
     : public BaseSolidElement
 {
 public:
+
     ///@name Type Definitions
     ///@{
     ///Reference type definition for constitutive laws

@@ -52,11 +52,15 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
                 if node.Y >= self.y_fem_boundary - tolerance and node.Y <= self.y_dem_boundary + tolerance: # assigning weights to the nodes in the hybrid region
                     weight= self.weight_fem_boundary + (self.weight_dem_boundary-self.weight_fem_boundary)*(node.Y-self.y_fem_boundary)/(self.y_dem_boundary-self.y_fem_boundary)
                     node.SetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT, weight)
+                    #print("iffffffffffffffff")
                 elif node.Y <= self.y_fem_boundary + tolerance and node.Y >= self.y_dem_boundary - tolerance: # assigning weights to the nodes in the hybrid region
                     weight= self.weight_dem_boundary + (self.weight_fem_boundary-self.weight_dem_boundary)*(node.Y-self.y_dem_boundary)/(self.y_fem_boundary-self.y_dem_boundary)
+                    weight=1 #putting 1 as weight for testing
                     node.SetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT, weight)
+                    #print("eeeellllllliiiiiiiffffffffffff")
                 else: 
-                    node.SetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT, 0.0) # assigning weights to the nodes in the non-hybrid region
+                    node.SetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT, 0) # assigning weights to the nodes in the non-hybrid region
+                    #print("elseeeeeeeeeeeeeeeeeeeeeeee")
                
                 total_mass = node.GetSolutionStepValue(KM.NODAL_MAUX)
 
@@ -81,8 +85,12 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
                             else:
                                  elem.GetNodes()[n].SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE,elem.GetNodes()[n].GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE) - 2 * vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT)) #storing force to map to dem   
      
-        print("After calculation of point loads")
-        #for node in self.model_part.Nodes: 
+        #print("After calculation of point loads")
+        for node in self.model_part.Nodes: 
+            if(node.GetSolutionStepValue(KM.NODAL_MAUX))!=0:
+                node.SetSolutionStepValue(SMA.POINT_LOAD, node.GetSolutionStepValue(SMA.POINT_LOAD) / (1-0)) # dividing by nodal coupling weight, replace 0 by VCA.NODAL_COUPLING_WEIGHT in the future.
+                #print("For node id:",node.Id,", nodal maux=",node.GetSolutionStepValue(KM.NODAL_MAUX))
+                #print("For node id:",node.Id,", for particle coupling force=",node.GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE))
                 #print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD)) 
                 #print("For node id:",node.Id,", NODAL_COUPLING_WEIGHT=",node.GetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT)) 
 

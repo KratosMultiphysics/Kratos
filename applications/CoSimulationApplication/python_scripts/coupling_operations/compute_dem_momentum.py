@@ -27,12 +27,13 @@ class ComputeDemMomentum(CoSimulationCouplingOperation):
             #print("For node id:",node.Id,", EXTERNAL_APPLIED_FORCE=",node.GetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE))
             
     def FinalizeCouplingIteration(self):
-        node_ids = [22,40,47,52] # for assigning loads to the bottom nodes
+        #node_ids = [22,40,47,52] # for assigning loads to the bottom nodes
         for node in self.model_part.Nodes:
-            if node.Id in node_ids:
-                node.SetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE, [0,0.025,0])
-            #node.SetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE, node.GetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE)* node.GetSolutionStepValue(KM.NODAL_MASS)) # if nodal mass needs to be multiplied with external applied force
-
+            particle_weight = node.GetSolutionStepValue(VCA.PARTICLE_COUPLING_WEIGHT)
+            if particle_weight!=0:
+                node.SetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE, node.GetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE)/ particle_weight) # if nodal mass needs to be multiplied with external applied force
+            #if node.Id in node_ids:
+                #node.SetSolutionStepValue(KM.EXTERNAL_APPLIED_FORCE, [0,0.025,0])
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{

@@ -274,6 +274,13 @@ public:
         return mThisIntegrationMethod;
     }
 
+//###############################################################################################for volume coupling#######
+    std::vector<ConstitutiveLaw::Pointer> GetConstitutiveLawVector() const 
+    {
+        return mConstitutiveLawVector;
+    }
+//#########################################################################################################################
+
     /**
     * element can be integrated using the GP provided by the geometry or custom ones
     * by default, the base element will use the standard integration provided by the geom
@@ -660,6 +667,22 @@ public:
     ///@name Friends
     ///@{
 
+//###############################################################################################for volume coupling#######
+    void SetIntegrationMethod(const IntegrationMethod& ThisIntegrationMethod)
+    {
+         mThisIntegrationMethod = ThisIntegrationMethod;
+    }
+
+    /**
+     * @brief Sets the used constitutive laws
+     * @param ThisConstitutiveLawVector Constitutive laws used
+     */
+    void SetConstitutiveLawVector(const std::vector<ConstitutiveLaw::Pointer>& ThisConstitutiveLawVector)
+    {
+        mConstitutiveLawVector = ThisConstitutiveLawVector;
+    }
+//#########################################################################################################################
+
 protected:
 
     ///@name Protected static Member Variables
@@ -685,19 +708,7 @@ protected:
      * @brief Sets the used integration method
      * @param ThisIntegrationMethod Integration method used
      */
-    void SetIntegrationMethod(const IntegrationMethod& ThisIntegrationMethod)
-    {
-         mThisIntegrationMethod = ThisIntegrationMethod;
-    }
 
-    /**
-     * @brief Sets the used constitutive laws
-     * @param ThisConstitutiveLawVector Constitutive laws used
-     */
-    void SetConstitutiveLawVector(const std::vector<ConstitutiveLaw::Pointer>& ThisConstitutiveLawVector)
-    {
-        mConstitutiveLawVector = ThisConstitutiveLawVector;
-    }
 
     /**
      * @brief It initializes the material

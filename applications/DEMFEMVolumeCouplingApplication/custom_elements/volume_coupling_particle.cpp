@@ -11,6 +11,7 @@ namespace Kratos {
 
 
 
+
 VolumeCouplingParticle::VolumeCouplingParticle( IndexType NewId, GeometryType::Pointer pGeometry )
     : SphericParticle( NewId, pGeometry )
 {
@@ -43,15 +44,17 @@ void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
     // Call the base class's function.
     SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(data_buffer, r_elastic_force, r_contact_force, rigid_element_force, r_process_info);
 
-        double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
-        // to check if particle coupling weight is non zer0,
-         if (particle_weight!=0)
-         {
-          r_elastic_force *= particle_weight; // Scale elastic force by the weight
-          r_contact_force *= particle_weight; // Scale contact force by the  weight
-          rigid_element_force *= particle_weight; // Scale rigid element force by the  weight
-         }
+        // double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
+        // // to check if particle coupling weight is non zer0,
+        //  if (particle_weight!=0)
+        //  {
+        //   r_elastic_force *= particle_weight; // Scale elastic force by the weight
+        //   r_contact_force *= particle_weight; // Scale contact force by the  weight
+        //   rigid_element_force *= particle_weight; // Scale rigid element force by the  weight
+        //  }
 }
+
+
 
 void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                             const ProcessInfo& r_process_info,
@@ -96,11 +99,11 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
     // Scale forces by the interpolated weight
     for(int i=0; i<3; ++i)
     {
-        LocalElasticContactForce[i] *= interpolated_weight; // Scale elastic contact force
-        ViscoDampingLocalContactForce[i] *= interpolated_weight; // Scale visco-damping contact force
+        LocalElasticContactForce[i] *= (interpolated_weight/particle_weight); // Scale elastic contact force
+        ViscoDampingLocalContactForce[i] *= (interpolated_weight/particle_weight); // Scale visco-damping contact force
     }
 
-    cohesive_force *=interpolated_weight; // Scale cohesive force
+    cohesive_force *=(interpolated_weight/particle_weight); // Scale cohesive force
     }
 }
 
@@ -110,25 +113,31 @@ void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& extern
                                                      const ProcessInfo& r_process_info, 
                                                      const array_1d<double,3>& gravity)
 {
+    // statement for setting EXTERNAL_APPLIED_FORCE = DEMFEM_VOLUME_COUPLING_FORCE
+
+
     // Call the base class's function.
     SphericParticle::ComputeAdditionalForces(externally_applied_force, externally_applied_moment, r_process_info, gravity);
     
-    
+    // double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
 
-    double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
-        // to check if particle coupling weight is non zer0,
-    if (particle_weight!=0)
-    {
-    // Multiply each element of externally_applied_force and externally_applied_moment by weight.
-        for (int i = 0; i < 3; ++i)
-        {
-            externally_applied_force[i] *= particle_weight; // Scale externally applied force
-            externally_applied_moment[i] *= particle_weight; // Scale externally applied moment
-        }
-        externally_applied_force += this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE);  //adding the coupling forces exreted on particles
-        //KRATOS_WATCH(this->Id());
-        //KRATOS_WATCH(externally_applied_force);
-    }
+    //     // to check if particle coupling weight is non zer0 and to check multiple calls of this function ,
+    // if (particle_weight!=0)
+    // {
+    // // Multiply each element of externally_applied_force and externally_applied_moment by weight.
+    //     for (int i = 0; i < 3; ++i)
+    //     {
+    //         externally_applied_force[i] *= particle_weight; // Scale externally applied force
+    //         externally_applied_moment[i] *= particle_weight; // Scale externally applied moment
+    //     }
+    //    externally_applied_force += this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE);  //adding the coupling forces exreted on particles
+    //     //KRATOS_WATCH(this->Id());
+        //KRATOS_WATCH(*externally_applied_force);
+        //std::cout<<"particle_id"<<this->Id()<<std::endl;
+        //std::cout<<"particle coupling force"<<this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE)<<std::endl;
+        //std::cout<<" externally_applied_force"<<externally_applied_force<<std::endl;
+   // }
+
 }
 
 }  // namespace Kratos.

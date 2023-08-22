@@ -37,7 +37,6 @@ Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, Proper
 
 virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity) override;
 
-
 protected:
 
 // virtual void EvaluateBallToRigidFaceForcesForPositiveIndentations(SphericParticle::ParticleDataBuffer &data_buffer,
