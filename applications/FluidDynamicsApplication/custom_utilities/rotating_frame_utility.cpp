@@ -33,19 +33,16 @@ void RotatingFrameUtility::ApplyVelocityToRotatingObject(
     // Creating the angular velocity vector
     array_1d<double, 3> angular_velocity_vector = rOmega * rAxisOfRotation;
 
-    thread_local array_1d<double, 3> position_vector;
-    thread_local array_1d<double, 3> velocity_vector;
-
     // Apply the velocity calculations to each node in parallel
     block_for_each(rModelPart.Nodes(), [&](Node& rNode) {
         // Getting the current coordinates of the node
         auto& r_point = rNode.Coordinates();
 
         // Calculating the position vector (relative to the rotation center)
-        position_vector = r_point - rCenterOfRotation;
+        array_1d<double, 3> position_vector = r_point - rCenterOfRotation;
 
         // Computing the velocity due to rotation (v = omega cross r)
-        velocity_vector = MathUtils<double>::CrossProduct(angular_velocity_vector, position_vector);
+        array_1d<double, 3> velocity_vector = MathUtils<double>::CrossProduct(angular_velocity_vector, position_vector);
 
         // Setting the node's velocity
         rNode.FastGetSolutionStepValue(VELOCITY) = velocity_vector;
@@ -84,9 +81,6 @@ void RotatingFrameUtility::ApplyRotationAndMeshDisplacement(
     rot_matrix(2, 0) = 2*(b*d-a*c);
     rot_matrix(2, 1) = 2*(c*d+a*b);
     rot_matrix(2, 2) = a*a+d*d-b*b-c*c;
-    
-    thread_local array_1d<double, 3> rotated_point;
-    thread_local array_1d<double, 3> mesh_displacement;
 
     // Apply the rotation and mesh displacement calculations to each node in parallel
     block_for_each(rRotatingFrameModelPart.Nodes(), [&](Node& rNode) {
@@ -97,15 +91,12 @@ void RotatingFrameUtility::ApplyRotationAndMeshDisplacement(
         auto centered_point = r_point - rCenterOfRotation;
 
         // Applying the rotation
-        rotated_point = prod(centered_point, rot_matrix);
+        array_1d<double, 3> rotated_point = prod(centered_point, rot_matrix);
 
         // Shifting the point back and updating the node coordinates
         rotated_point += rCenterOfRotation;
-        mesh_displacement[0] = rotated_point[0] - rNode.X0();
-        mesh_displacement[1] = rotated_point[1] - rNode.Y0();
-        mesh_displacement[2] = rotated_point[2] - rNode.Z0();
 
-        rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT) = mesh_displacement;
+        rNode.FastGetSolutionStepValue(MESH_DISPLACEMENT) = rotated_point - rNode.GetInitialPosition();
         rNode.Fix(MESH_DISPLACEMENT_X);
         rNode.Fix(MESH_DISPLACEMENT_Y);
         rNode.Fix(MESH_DISPLACEMENT_Z);
