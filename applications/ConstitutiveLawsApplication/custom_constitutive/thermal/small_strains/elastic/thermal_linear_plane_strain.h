@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "custom_constitutive/linear_plane_strain.h"
+#include "thermal_elastic_isotropic_3d.h"
 
 namespace Kratos
 {
@@ -49,16 +49,16 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ThermalLinearPlaneStrain
-    : public LinearPlaneStrain
+    : public ThermalElasticIsotropic3D
 {
 public:
 
     ///@name Type Definitions
     ///@{
 
-    using BaseType = LinearPlaneStrain;
+    using BaseType = ThermalElasticIsotropic3D;
 
-    /// Counted pointer of LinearPlaneStrain
+    /// Counted pointer of ThermalLinearPlaneStrain
     KRATOS_CLASS_POINTER_DEFINITION(ThermalLinearPlaneStrain);
 
     ///@name Life Cycle
@@ -88,8 +88,7 @@ public:
     * Copy constructor.
     */
     ThermalLinearPlaneStrain(const ThermalLinearPlaneStrain &rOther)
-        : BaseType(rOther),
-        mReferenceTemperature(rOther.mReferenceTemperature)
+        : BaseType(rOther)
     {
     }
 
@@ -100,54 +99,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    /**
-     * @brief Computes the material response:
-     * @details PK2 stresses and algorithmic ConstitutiveMatrix
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void CalculateMaterialResponsePK2(ConstitutiveLaw::Parameters &rValues) override;
-
-    /**
-     * @brief This function provides the place to perform checks on the completeness of the input.
-     * @details It is designed to be called only once (or anyway, not often) typically at the beginning of the calculations, so to verify that nothing is missing from the input or that no common error is found.
-     * @param rMaterialProperties The properties of the material
-     * @param rElementGeometry The geometry of the element
-     * @param rCurrentProcessInfo The current process info instance
-     * @return 0 if OK, 1 otherwise
-     */
-    int Check(
-        const Properties& rMaterialProperties,
-        const GeometryType& rElementGeometry,
-        const ProcessInfo& rCurrentProcessInfo
-        ) const override;
-
-    /**
-     * @brief It calculates the value of a specified variable (double case)
-     * @param rParameterValues the needed parameters for the CL calculation
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    double& CalculateValue(
-        ConstitutiveLaw::Parameters& rParameterValues,
-        const Variable<double>& rThisVariable,
-        double& rValue
-        ) override;
-
-    /**
-     * This is to be called at the very beginning of the calculation
-     * (e.g. from InitializeElement) in order to initialize all relevant
-     * attributes of the constitutive law
-     * @param rMaterialProperties the Properties instance of the current element
-     * @param rElementGeometry the geometry of the current element
-     * @param rShapeFunctionsValues the shape functions values in the current integration point
-     */
-    void InitializeMaterial(
-        const Properties &rMaterialProperties,
-        const GeometryType &rElementGeometry,
-        const Vector &rShapeFunctionsValues) override;
 
     /**
      * @brief It calculates the stress vector
@@ -172,6 +123,19 @@ public:
         ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues
         ) override;
+
+    /**
+    * @brief It calculates and substracts the thermal strain
+    * @param rStrainVector The strain vector
+    * @param ReferenceTemperature the reference temeprature
+    * @param ReferenceTemperature Parameters of the constitutive law
+    * @param IsPlaneStrain indicator of plane strain
+    */
+    void SubstractThermalStrain(
+        ConstitutiveLaw::StrainVectorType &rStrainVector,
+        const double ReferenceTemperature,
+        ConstitutiveLaw::Parameters &rParameters,
+        const bool IsPlaneStrain = false) override;
 
     ///@}
     ///@name Access
@@ -219,7 +183,6 @@ private:
     ///@name Member Variables
     ///@{
 
-    double mReferenceTemperature = 0.0;
 
     ///@}
     ///@name Private Operators
@@ -235,23 +198,6 @@ private:
     ///@{
     ///@}
 
-    /**
-     * @brief Retrieves the reference temperature
-     * @return The reference temperature
-     */
-    double& GetReferenceTemperature()
-    {
-        return mReferenceTemperature;
-    }
-
-    /**
-     * @brief Sets the reference temperature
-     * @param ToRefTemperature The reference temperature
-     */
-    void SetReferenceTemperature(const double ToRefTemperature)
-    {
-        mReferenceTemperature = ToRefTemperature;
-    }
 
     ///@}
     ///@name Serialization
@@ -260,16 +206,14 @@ private:
 
     void save(Serializer& rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ElasticIsotropic3D)
-        rSerializer.save("ReferenceTemperature", mReferenceTemperature);
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ThermalElasticIsotropic3D)
     }
 
     void load(Serializer& rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ElasticIsotropic3D)
-        rSerializer.load("ReferenceTemperature", mReferenceTemperature);
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ThermalElasticIsotropic3D)
     }
 
 
-}; // Class LinearPlaneStrain
+}; // Class ThermalLinearPlaneStrain
 }  // namespace Kratos.
