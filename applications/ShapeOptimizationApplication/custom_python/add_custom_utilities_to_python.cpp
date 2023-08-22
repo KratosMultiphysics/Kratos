@@ -275,6 +275,7 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CalculateLength",&GeometryUtilities::CalculateLength<ModelPart::ConditionsContainerType>)
         .def("ComputeVolume", &GeometryUtilities::ComputeVolume)
         .def("ComputeVolumeShapeDerivatives", &GeometryUtilities::ComputeVolumeShapeDerivatives)
+        .def("CalculateAverageElementSize", &GeometryUtilities::CalculateAverageElementSize)
         ;
 
     // ========================================================================

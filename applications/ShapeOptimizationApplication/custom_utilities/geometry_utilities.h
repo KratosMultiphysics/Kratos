@@ -100,6 +100,8 @@ public:
 
     void ComputeUnitSurfaceNormals();
 
+    double CalculateAverageElementSize();
+
     void ProjectNodalVariableOnUnitSurfaceNormals( const Variable<array_3d> &rNodalVariable );
 
     void ProjectNodalVariableOnDirection( const Variable<array_3d> &rNodalVariable, const Variable<array_3d> &rDirectionVariable);

@@ -75,6 +75,21 @@ def CreateOptimizationAlgorithm(optimization_settings, analyzer, communicator, m
                                                        analyzer,
                                                        communicator,
                                                        model_part_controller)
+
+    elif algorithm_name == "free_thickness_optimization_v3":
+        from .algorithm_free_thickness_optimization_v3 import AlgorithmFreeThicknessOptimizationv3
+        return AlgorithmFreeThicknessOptimizationv3(optimization_settings,
+                                                    analyzer,
+                                                    communicator,
+                                                    model_part_controller)
+
+    elif algorithm_name == "free_thickness_optimization_v3_rgp":
+        from .algorithm_free_thickness_optimization_v3_rgp import AlgorithmFreeThicknessOptimizationv3RGP
+        return AlgorithmFreeThicknessOptimizationv3RGP(optimization_settings,
+                                                       analyzer,
+                                                       communicator,
+                                                       model_part_controller)
+
     elif algorithm_name == "free_thickness_rgp":
         from .algorithm_free_thickness_rgp import AlgorithmFreeThicknessRelaxedGradientProjection
         return AlgorithmFreeThicknessRelaxedGradientProjection(optimization_settings,

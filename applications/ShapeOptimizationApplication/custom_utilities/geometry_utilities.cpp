@@ -403,6 +403,34 @@ void GeometryUtilities::CalculateUnitNormals()
     }
 }
 
+double GeometryUtilities::CalculateAverageElementSize()
+{
+
+    double average_size = 0.0;
+
+    for (auto& r_condition : mrModelPart.Conditions())
+    {
+        auto& r_geometry = r_condition.GetGeometry();
+
+        average_size += r_geometry.Length();
+        // const auto& geometry_type = r_geometry.GetGeometryType();
+
+
+        // switch (geometry_type) {
+        //     case GeometryData::KratosGeometryType::Kratos_Triangle3D3:
+        //         average_size += ElementSizeCalculator<3, 3>::AverageElementSize(r_geometry);
+        //     case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D4:
+        //         average_size += ElementSizeCalculator<3, 4>::AverageElementSize(r_geometry);
+        //     default:
+        //         KRATOS_ERROR << "Non supported geometry type." << std::endl;
+        // }
+    }
+
+    average_size /= mrModelPart.Conditions().size();
+
+    return average_size;
+}
+
 void GeometryUtilities::CalculateGaussianCurvature() {
 
     KRATOS_TRY
