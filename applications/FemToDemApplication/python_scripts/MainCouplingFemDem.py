@@ -33,7 +33,7 @@ class MainCoupledFemDem_Solution:
         self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, DEM_project_parameters)
 
         self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.InitializePlotsFiles()
+        # self.InitializePlotsFiles()
         self.echo_level = 0
         self.is_slave = False
 
@@ -213,7 +213,7 @@ class MainCoupledFemDem_Solution:
         self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
 
         # Print required info
-        self.PrintPlotsFiles()
+        # self.PrintPlotsFiles()
 
         # MODIFIED FOR THE REMESHING
         self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()

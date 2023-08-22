@@ -29,6 +29,6 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
         self.DEM_Solution = DEM.DEM_for_coupling_Solution(Model, DEM_project_parameters)
 
         self.domain_size = self.FEM_Solution.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
-        self.InitializePlotsFiles()
+        # self.InitializePlotsFiles()
         self.echo_level = 0
         self.is_slave = False

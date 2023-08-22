@@ -79,7 +79,7 @@ class MainCoupledFemDemSubstepping_Solution(MainCouplingFemDem.MainCoupledFemDem
         self.FEM_Solution.StopTimeMeasuring(self.FEM_Solution.clock_time,"Solving", False)
 
         # Print required info
-        self.PrintPlotsFiles()
+        # self.PrintPlotsFiles()
 
         # MODIFIED FOR THE REMESHING
         self.FEM_Solution.GraphicalOutputExecuteFinalizeSolutionStep()
