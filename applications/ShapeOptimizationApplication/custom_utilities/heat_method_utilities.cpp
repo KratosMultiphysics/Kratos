@@ -261,8 +261,8 @@ void HeatMethodUtilities::ConstructLaplacian(CompressedMatrix& laplacian_matrix,
 }
 
 void HeatMethodUtilities::ConstructK (CompressedMatrix& K, CompressedMatrix laplacian_matrix, Vector_int heat_equation_mapping, Vector_int heat_equation_inverse_mapping, Vector_int nodes_label) {
-    CompressedMatrix K_hehe(heat_equation_mapping.size(), heat_equation_mapping.size());
-    K = K_hehe;
+    CompressedMatrix K_0(heat_equation_mapping.size(), heat_equation_mapping.size());
+    K = K_0;
     for (SizeType i = 0; i < K.size1(); ++i) {
 		for (SizeType j = 0; j < laplacian_matrix.size1(); ++j) {
 			unsigned int m = heat_equation_inverse_mapping(j);
@@ -274,8 +274,8 @@ void HeatMethodUtilities::ConstructK (CompressedMatrix& K, CompressedMatrix lapl
 }
 
 void HeatMethodUtilities::ConstructM (CompressedMatrix& M, Vector elements_area, Vector_int heat_equation_mapping, std::vector<std::vector<unsigned int>> VF) {
-    CompressedMatrix M_hehe(heat_equation_mapping.size(), heat_equation_mapping.size());
-    M = M_hehe;
+    CompressedMatrix M_0(heat_equation_mapping.size(), heat_equation_mapping.size());
+    M = M_0;
     for (unsigned int i = 0; i < heat_equation_mapping.size(); ++i) {
 		unsigned int m = heat_equation_mapping(i);
 		for (unsigned int j = 0; j < VF[m].size(); ++j) {
@@ -421,11 +421,11 @@ void HeatMethodUtilities::ComputeHeatField(LinearSolver<SparseSpaceType, LocalSp
         r_heat_gradient = heat_field(i-1);
     });
     
-    Matrix heat_gradient_hehe;
-    HeatMethodUtilities::ComputeHeatGradient(heat_gradient_hehe, V, F, heat_field);
+    Matrix heat_gradient;
+    HeatMethodUtilities::ComputeHeatGradient(heat_gradient, V, F, heat_field);
 
     Vector heat_divergence;
-    HeatMethodUtilities::ComputeHeatDivergence(heat_divergence, heat_gradient_hehe, V, F, VF);
+    HeatMethodUtilities::ComputeHeatDivergence(heat_divergence, heat_gradient, V, F, VF);
 
     Vector heat_distance(heat_divergence.size());
 
