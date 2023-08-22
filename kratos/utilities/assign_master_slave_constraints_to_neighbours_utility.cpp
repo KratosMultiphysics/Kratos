@@ -53,16 +53,17 @@ AssignMasterSlaveConstraintsToNeighboursUtility::~AssignMasterSlaveConstraintsTo
 void AssignMasterSlaveConstraintsToNeighboursUtility::SearchNodesInRadiusForNode(
     NodeType::Pointer pSlaveNode,
     double const Radius,
-    ResultNodesContainerType& rCloudOfNodes)
+    ResultNodesContainerType& rCloudOfNodes,
+    ResultNodesContainerType& rLocalResults)
 {
 
     KRATOS_TRY;
 
-    ResultNodesContainerType local_results(mMaxNumberOfNodes);
+    // ResultNodesContainerType local_results(mMaxNumberOfNodes);
     std::size_t num_of_results = 0;
-    auto results_iterator = local_results.begin();
+    auto results_iterator = rLocalResults.begin();
     num_of_results = mpBins->SearchInRadius(*pSlaveNode, Radius, results_iterator, mMaxNumberOfNodes);
-    rCloudOfNodes.insert(rCloudOfNodes.begin(), local_results.begin(), local_results.begin() + num_of_results);
+    rCloudOfNodes.insert(rCloudOfNodes.begin(), rLocalResults.begin(), rLocalResults.begin() + num_of_results);
 
     KRATOS_CATCH("");
 }
@@ -198,10 +199,11 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
         double local_radius = Radius;
 
         ResultNodesContainerType r_cloud_of_nodes(0);  // Container for the cloud of nodes
+        ResultNodesContainerType r_local_results(mMaxNumberOfNodes);  // Container for node search results
 
         while (r_cloud_of_nodes.size() < MinNumOfNeighNodes) {
             r_cloud_of_nodes.clear();
-            SearchNodesInRadiusForNode(p_slave_node, local_radius, r_cloud_of_nodes);  // Search for nodes in the radius
+            SearchNodesInRadiusForNode(p_slave_node, local_radius, r_cloud_of_nodes, r_local_results);  // Search for nodes in the radius
             local_radius += Radius;
         }
 
