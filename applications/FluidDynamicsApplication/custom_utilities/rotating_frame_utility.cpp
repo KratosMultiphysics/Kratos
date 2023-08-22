@@ -115,9 +115,10 @@ void RotatingFrameUtility::ApplyRotationAndMeshDisplacement(
         rNode.Fix(MESH_DISPLACEMENT_X);
         rNode.Fix(MESH_DISPLACEMENT_Y);
         rNode.Fix(MESH_DISPLACEMENT_Z);
-        rNode.X() = rotated_point[0];
-        rNode.Y() = rotated_point[1];
-        rNode.Z() = rotated_point[2];
+        rNode.Coordinates() = rotated_point;
+        // rNode.X() = rotated_point[0];
+        // rNode.Y() = rotated_point[1];
+        // rNode.Z() = rotated_point[2];
     });
 
     KRATOS_CATCH("");
