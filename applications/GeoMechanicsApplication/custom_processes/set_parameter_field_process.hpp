@@ -129,8 +129,8 @@ private:
      * \brief  Checks what type of input field is given and generates the parameter field.
      * \param rVar variable type which is to be used to generate the parameter field
      */
-     void SetParameterFieldProcess::SetParameterFieldForVariableType(const Variable<double>& r_var);
-     void SetParameterFieldProcess::SetParameterFieldForVariableType(const Variable<Vector>& r_var);
+     void SetParameterFieldForVariableType(const Variable<double>& r_var);
+     void SetParameterFieldForVariableType(const Variable<Vector>& r_var);
 
     ///@}
     ///@name Serialization
