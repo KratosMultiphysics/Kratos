@@ -25,6 +25,7 @@
 #include "includes/parallel_environment.h"
 
 // Parallel Extension
+#include "mpi/includes/mpi_expect.h"
 #include "mpi/includes/mpi_communicator.h"
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
