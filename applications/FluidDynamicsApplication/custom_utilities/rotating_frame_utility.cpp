@@ -48,9 +48,10 @@ void RotatingFrameUtility::ApplyVelocityToRotatingObject(
         velocity_vector = MathUtils<double>::CrossProduct(angular_velocity_vector, position_vector);
 
         // Setting the node's velocity
-        rNode.FastGetSolutionStepValue(VELOCITY_X) = velocity_vector[0];
-        rNode.FastGetSolutionStepValue(VELOCITY_Y) = velocity_vector[1];
-        rNode.FastGetSolutionStepValue(VELOCITY_Z) = velocity_vector[2];
+        // rNode.FastGetSolutionStepValue(VELOCITY_X) = velocity_vector[0];
+        // rNode.FastGetSolutionStepValue(VELOCITY_Y) = velocity_vector[1];
+        // rNode.FastGetSolutionStepValue(VELOCITY_Z) = velocity_vector[2];
+        rNode.FastGetSolutionStepValue(VELOCITY) = velocity_vector;
 
         // Fix the velocity components
         rNode.Fix(VELOCITY_X);
