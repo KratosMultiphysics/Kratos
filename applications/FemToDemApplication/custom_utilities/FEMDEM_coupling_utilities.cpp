@@ -272,20 +272,31 @@ int FEMDEMCouplingUtilities::GetNumberOfNodes(
     return rModelPart.NumberOfNodes();
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
 
 bool FEMDEMCouplingUtilities::IsGenerateDEMRequired(
     ModelPart &rModelPart
     )
 {
+    bool required = false;
     const auto it_elem_begin = rModelPart.ElementsBegin();
-
-    // #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i) {
-        auto it_elem = it_elem_begin + i;
-        if (it_elem->GetValue(GENERATE_DEM))
-            return true;
+    #pragma omp parallel
+    {
+        #pragma omp for
+        for (int i = 0; i < static_cast<int>(rModelPart.Elements().size()); ++i)
+        {
+            auto it_elem = it_elem_begin + i;
+            if (it_elem->GetValue(GENERATE_DEM)) {
+                #pragma omp critical
+                {
+                    required = true;
+                }
+            }
+        }
     }
-    return false;
+
+    return required;
 }
 
 /***********************************************************************************/
