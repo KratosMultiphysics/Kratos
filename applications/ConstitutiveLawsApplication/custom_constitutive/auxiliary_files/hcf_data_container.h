@@ -150,7 +150,7 @@ private:
     double mPreviousMinStress = 0.0;
     double mWohlerStress = 1.0;
     double mThresholdStress = 0.0;
-    double mCyclesToFailure = 0.0;
+    double mCyclesToFailure = std::numeric_limits<double>::infinity();
     bool mNewCycleIndicator = false;
     ///@}
 
