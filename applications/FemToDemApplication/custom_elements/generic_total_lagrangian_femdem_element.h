@@ -414,9 +414,10 @@ protected:
         const ProcessInfo &rCurrentProcessInfo, 
         const Properties& rProperties)
     {
-        if (mDamage >= 0.98) {
+        const double max_damage = rCurrentProcessInfo["MAX_DAMAGE_ERASE"];
+        if (mDamage >= max_damage) {
             this->Set(ACTIVE, false);
-            mDamage = 0.98;
+            mDamage = max_damage;
             this->SetValue(GENERATE_DEM, true);
         }
     }
