@@ -433,13 +433,6 @@ private:
 
     hid_t GetFileId() const;
 
-    void CreateNewDataSet(
-        hid_t& rDataSetId,
-        hid_t& rDataSpaceId,
-        const hid_t DataTypeId,
-        const std::vector<hsize_t>& rDims,
-        const std::string& rPath);
-
     hid_t OpenExistingDataSet(const std::string& rPath);
 
     template<class TDataType, DataTransferMode TDataTransferMode>

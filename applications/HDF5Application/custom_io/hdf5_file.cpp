@@ -803,17 +803,6 @@ bool File::HasDataType(const std::string& rPath) const
     KRATOS_CATCH("");
 }
 
-void File::CreateNewDataSet(
-    hid_t& rDataSetId,
-    hid_t& rDataSpaceId,
-    const hid_t DataTypeId,
-    const std::vector<hsize_t>& rDims,
-    const std::string& rPath)
-{
-    KRATOS_HDF5_CALL_WITH_RETURN(rDataSpaceId, H5Screate_simple, rDims.size(), rDims.data(), nullptr)
-    KRATOS_HDF5_CALL_WITH_RETURN(rDataSetId, H5Dcreate, GetFileId(), rPath.c_str(), DataTypeId, rDataSpaceId, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)
-}
-
 hid_t File::OpenExistingDataSet(const std::string& rPath)
 {
     hid_t dset_id;
@@ -902,8 +891,7 @@ void File::WriteDataSetImpl(
 
     // local_reduced_shape holds the max 2d flattened shape if the local_shape dimensions
     // are higher than 2.
-    std::array<hsize_t, global_dimension> local_reduced_shape{}, local_shape_start{};
-    std::vector<hsize_t> global_shape(global_dimension, 0);
+    std::array<hsize_t, global_dimension> local_reduced_shape{}, local_shape_start{}, global_shape{};
 
     // get total number of items to be written in the data set to the first dimension.
     global_shape[0] = r_data_communicator.SumAll(static_cast<unsigned int>(local_shape[0]));
@@ -919,17 +907,26 @@ void File::WriteDataSetImpl(
     // Set the data type.
     hid_t dtype_id = Internals::GetPrimitiveH5Type<TDataType>();
 
-
     hid_t dset_id{}, fspace_id{};
     if (!HasPath(rPath)) {
         // Create and write the data set.
-        CreateNewDataSet(dset_id, fspace_id, Internals::GetPrimitiveH5Type<TDataType>(), global_shape, rPath);
+        KRATOS_HDF5_CALL_WITH_RETURN(fspace_id, H5Screate_simple, global_shape.size(), global_shape.data(), nullptr)
+        KRATOS_HDF5_CALL_WITH_RETURN(dset_id, H5Dcreate, GetFileId(), rPath.c_str(), dtype_id, fspace_id, H5P_DEFAULT, H5P_DEFAULT, H5P_DEFAULT)
     } else {
         // if it is existing, get it.
         KRATOS_ERROR_IF_NOT(HasDataType<typename TypeTraits::PrimitiveType>(rPath))
             << "Wrong scalar data type: " << rPath << std::endl;
-        KRATOS_ERROR_IF(Internals::GetDataDimensions(*this, rPath) != global_shape)
-            << "Wrong dimensions: " << rPath << std::endl;
+        const auto& data_dimensions = Internals::GetDataDimensions(*this, rPath);
+        KRATOS_ERROR_IF_NOT(data_dimensions.size() == global_dimension)
+            << "Wrong number of dimensions [ file number of data dimensions = "
+            << data_dimensions.size() << ", memory data number of dimensions = "
+            << global_dimension << " ].\n";
+        for (IndexType i = 0; i < global_dimension; ++i) {
+            KRATOS_ERROR_IF_NOT(data_dimensions[i] == global_shape[i])
+                << "Wrong dimensional value at index = " << i
+                << " [ data dimension in file = " << data_dimensions[i]
+                << ", memory dimension = " << global_shape[i] << " ].\n";
+        }
 
         KRATOS_HDF5_CALL_WITH_RETURN(dset_id, OpenExistingDataSet, rPath)
         KRATOS_HDF5_CALL_WITH_RETURN(fspace_id, H5Dget_space, dset_id)
