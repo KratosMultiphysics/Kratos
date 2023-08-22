@@ -64,14 +64,14 @@ class RotatingFrameProcess(KM.Process):
 
         ####Case dependent, erase (CDE)
         # Get the inlet rotating object model part name
-        if not settings["inlet_model_part_name"].GetString():
-            raise Exception("\'inlet_model_part_name\' not provided. Please specify the slave model part.")
-        self.inlet_model_part_name = settings["inlet_model_part_name"].GetString()
+        # if not settings["inlet_model_part_name"].GetString():
+        #     raise Exception("\'inlet_model_part_name\' not provided. Please specify the slave model part.")
+        # self.inlet_model_part_name = settings["inlet_model_part_name"].GetString()
 
         ## Assign rotating frame and object model parts
         self.rotating_frame_model_part = self.model.GetModelPart(self.rotating_frame_model_part_name)
         self.rotating_object_model_part = self.model.GetModelPart(self.rotating_object_model_part_name)
-        self.inlet_model_part = self.model.GetModelPart(self.inlet_model_part_name)###CDE
+        # self.inlet_model_part = self.model.GetModelPart(self.inlet_model_part_name)###CDE
 
         # Get the center of rotation
         if settings.Has("center_of_rotation"):
@@ -124,7 +124,7 @@ class RotatingFrameProcess(KM.Process):
         KratosCFD.RotatingFrameUtility.ApplyVelocityToRotatingObject(self.rotating_object_model_part, self.axis_of_rotation, self.omega, self.center_of_rotation)
 
         # Apply Velocity to object.
-        KratosCFD.RotatingFrameUtility.ApplyVelocityToRotatingObject(self.inlet_model_part, self.axis_of_rotation, self.inlet_omega, self.center_of_rotation) #CDE
+        # KratosCFD.RotatingFrameUtility.ApplyVelocityToRotatingObject(self.inlet_model_part, self.axis_of_rotation, self.inlet_omega, self.center_of_rotation) #CDE
 
     def __GetThetaAndOmega(self):
         # Calculate the angular acceleration (alpha)
@@ -137,8 +137,8 @@ class RotatingFrameProcess(KM.Process):
         if self.time <= self.acceleration_time:
             self.omega = alpha * self.time
             self.theta = 0.5 * alpha * self.time**2
-            self.inlet_omega = 1.1*self.omega #CDE
+            # self.inlet_omega = 1.1*self.omega #CDE
         else:
             self.omega = self.target_angular_velocity_radians
             self.theta = 0.5 * alpha * self.acceleration_time**2 + self.omega * (self.time - self.acceleration_time)
-            self.inlet_omega = 1.1*self.omega #CDE
+            # self.inlet_omega = 1.1*self.omega #CDE
