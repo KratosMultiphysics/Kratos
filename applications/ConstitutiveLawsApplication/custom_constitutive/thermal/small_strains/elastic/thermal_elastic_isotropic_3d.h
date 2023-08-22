@@ -173,7 +173,20 @@ public:
         ConstitutiveLaw::VoigtSizeMatrixType& rConstitutiveMatrix,
         ConstitutiveLaw::Parameters& rValues
         ) override;
-    
+
+    /**
+    * @brief It calculates and substracts the thermal strain
+    * @param rStrainVector The strain vector
+    * @param ReferenceTemperature the reference temeprature
+    * @param ReferenceTemperature Parameters of the constitutive law
+    * @param IsPlaneStrain indicator of plane strain
+    */
+    virtual void SubstractThermalStrain(
+        ConstitutiveLaw::StrainVectorType &rStrainVector,
+        const double ReferenceTemperature,
+        ConstitutiveLaw::Parameters &rParameters,
+        const bool IsPlaneStrain = false);
+
     ///@}
     ///@name Inquiry
     ///@{

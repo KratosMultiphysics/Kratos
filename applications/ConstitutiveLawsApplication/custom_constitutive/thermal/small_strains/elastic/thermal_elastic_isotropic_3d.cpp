@@ -43,7 +43,7 @@ void ThermalElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Pa
     }
 
     // We add the thermal contribution
-    AdvancedConstitutiveLawUtilities<6>::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
+    SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
 
     // We add the initial strains
     AddInitialStrainVectorContribution<StrainVectorType>(r_strain_vector);
@@ -61,6 +61,19 @@ void ThermalElasticIsotropic3D::CalculateMaterialResponsePK2(ConstitutiveLaw::Pa
     }
 
     KRATOS_CATCH("")
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void ThermalElasticIsotropic3D::SubstractThermalStrain(
+    ConstitutiveLaw::StrainVectorType &rStrainVector,
+    const double ReferenceTemperature,
+    ConstitutiveLaw::Parameters &rParameters,
+    const bool IsPlaneStrain
+    )
+{
+    AdvancedConstitutiveLawUtilities<6>::SubstractThermalStrain(rStrainVector, ReferenceTemperature, rParameters);
 }
 
 /***********************************************************************************/
