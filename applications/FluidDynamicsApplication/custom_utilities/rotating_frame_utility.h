@@ -10,8 +10,7 @@
 //  Main author:     Sebastian Ares de Parga Regalado
 //
 
-#if !defined(KRATOS_ROTATING_FRAME_UTILITY_H)
-#define KRATOS_ROTATING_FRAME_UTILITY_H
+#pragma once
 
 // System includes
 #include <string>
@@ -109,5 +108,3 @@ class KRATOS_API(FLUID_DYNAMICS_APPLICATION) RotatingFrameUtility
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_ROTATING_FRAME_UTILITY_H
