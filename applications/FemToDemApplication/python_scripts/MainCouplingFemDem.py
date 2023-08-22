@@ -356,9 +356,6 @@ class MainCoupledFemDem_Solution:
         if self.echo_level > 0:
             self.FEM_Solution.KratosPrintInfo("FEM-DEM:: GenerateDEM")
 
-        # If we want to compute sand production
-        # self.CountErasedVolume()
-
         if KratosFemDem.FEMDEMCouplingUtilities().IsGenerateDEMRequired(self.FEM_Solution.main_model_part):
 
             if self.PressureLoad:
@@ -649,18 +646,6 @@ class MainCoupledFemDem_Solution:
                     self.plot_files_elements_list[iElem].close()
             self.TimePreviousPlotting = time
 
-#CountErasedVolume===================================================================================================================================
-    def CountErasedVolume(self):
-        count_erased_vol = True
-        if count_erased_vol:
-            erased_vol_process = KratosFemDem.ComputeSandProduction(self.FEM_Solution.main_model_part)
-            erased_vol_process.Execute()
-
-            self.ErasedVolume = open("ErasedVolume.txt","a")
-            erased_vol = self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.ERASED_VOLUME]
-            self.ErasedVolume.write("    " + "{0:.4e}".format(self.FEM_Solution.time).rjust(11) + "    " + "{0:.4e}".format(erased_vol).rjust(11) + "\n")
-            self.ErasedVolume.close()
-
 #GetMaximumConditionId============================================================================================================================
     def GetMaximumConditionId(self):
         max_id = 0
@@ -668,19 +653,6 @@ class MainCoupledFemDem_Solution:
             if condition.Id > max_id:
                 max_id = condition.Id
         return max_id
-
-#PrintDEMResults============================================================================================================================
-    def PrintDEMResults(self):
-        if self.DEM_Solution.step == 1: # always print the 1st step
-            self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
-            self.DEM_Solution.time_old_print = self.DEM_Solution.time
-
-        else:
-            time_to_print = self.DEM_Solution.time - self.DEM_Solution.time_old_print
-
-            if self.DEM_Solution.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self.DEM_Solution.solver.dt:
-                self.DEM_Solution.PrintResultsForGid(self.DEM_Solution.time)
-                self.DEM_Solution.time_old_print = self.DEM_Solution.time
 
 #PrintResults============================================================================================================================
     def PrintResults(self):
@@ -705,17 +677,6 @@ class MainCoupledFemDem_Solution:
                 if print_parameters["output_interval"].GetDouble() - time_to_print < 1e-2 * self.FEM_Solution.delta_time:
                     self.gid_output.Writeresults(self.FEM_Solution.time)
                     self.FEM_Solution.time_old_print = self.FEM_Solution.time
-
-#RemoveDummyNodalForces============================================================================================================================
-    def RemoveDummyNodalForces(self):
-        if self.echo_level > 0:
-            self.FEM_Solution.KratosPrintInfo("FEM-DEM:: RemoveDummyNodalForces")
-
-        for condition in self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").Conditions:
-            condition.Set(KratosMultiphysics.TO_ERASE, True)
-
-        self.FEM_Solution.main_model_part.GetSubModelPart("ContactForcesDEMConditions").RemoveConditionsFromAllLevels(KratosMultiphysics.TO_ERASE)
-        self.FEM_Solution.main_model_part.RemoveSubModelPart("ContactForcesDEMConditions")
 
 #ExecuteBeforeGeneratingDEM============================================================================================================================
     def ExecuteBeforeGeneratingDEM(self):
