@@ -22,7 +22,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "    \},"
     puts $FileVar "  \"pressure_load_extrapolation\":     [GiD_AccessValue get gendata Extrapolate_Pressure_Load],"
     puts $FileVar "  \"DEM_FEM_contact\":                 true,"
-    puts $FileVar "  \"tangent_operator\":                 2,"
+    puts $FileVar "  \"tangent_operator\":                 1,"
     puts $FileVar "  \"create_initial_skin\":             false,"
 
 

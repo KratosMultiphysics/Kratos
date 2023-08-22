@@ -20,7 +20,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
     puts $FileVar "  \"DEM_FEM_contact\":                 true,"
-    puts $FileVar "  \"tangent_operator\":                 2,"
+    puts $FileVar "  \"tangent_operator\":                 1,"
     puts $FileVar "  \"create_initial_skin\":             false,"
     ## solver_settings
     puts $FileVar "   \"solver_settings\": \{"
