@@ -11,6 +11,7 @@
 #define CLIPPER_CORE_H
 
 #include <cstdlib>
+#include <cinttypes>
 #include <cmath>
 #include <vector>
 #include <string>
