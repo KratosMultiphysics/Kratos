@@ -73,22 +73,25 @@ class MainCoupledFemDem_Solution:
             KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
             KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
 
-        if self.FEM_Solution.ProjectParameters.Has("transfer_dem_contact_forces") == False:
-            self.TransferDEMContactForcesToFEM = True
-        else:
-            self.TransferDEMContactForcesToFEM = self.FEM_Solution.ProjectParameters["transfer_dem_contact_forces"].GetBool()
-
-        if self.FEM_Solution.ProjectParameters.Has("pressure_load_extrapolation") == False:
-            self.PressureLoad = False
-        else:
-            self.PressureLoad = self.FEM_Solution.ProjectParameters["pressure_load_extrapolation"].GetBool()
-
-        if self.FEM_Solution.ProjectParameters.Has("DEM_FEM_contact") == False:
-            self.DEMFEM_contact = False
-        else:
-            self.DEMFEM_contact = self.FEM_Solution.ProjectParameters["DEM_FEM_contact"].GetBool()
-        self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.DEMFEM_CONTACT] = self.DEMFEM_contact
-
+        femdem_custom_settings = self.FEM_Solution.ProjectParameters["fem_dem_settings"]
+        femdem_default_settings = KratosMultiphysics.Parameters("""
+            {
+                "transfer_dem_contact_forces" : true,
+                "pressure_load_extrapolation" : true,
+                "DEM_FEM_contact"             : true,
+                "tangent_operator"            : 1,
+                "create_initial_skin"         : false,
+                "do_stabilization_solve"      : false,
+                "smoothing_of_stresses"       : true,
+                "maximum_damage_erase"        : 0.98
+            }""")
+        femdem_custom_settings.ValidateAndAssignDefaults(femdem_default_settings)
+        self.TransferDEMContactForcesToFEM = femdem_custom_settings["transfer_dem_contact_forces"].GetBool()
+        self.PressureLoad = femdem_custom_settings["pressure_load_extrapolation"].GetBool()
+        self.DEMFEM_contact = femdem_custom_settings["DEM_FEM_contact"].GetBool()
+        self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.TANGENT_CONSTITUTIVE_TENSOR] = femdem_custom_settings["tangent_operator"].GetInt()
+        self.CreateInitialSkin = femdem_custom_settings["create_initial_skin"].GetBool()
+        self.do_stabilization_solve = femdem_custom_settings["do_stabilization_solve"].GetBool()
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
@@ -96,13 +99,6 @@ class MainCoupledFemDem_Solution:
         if self.PressureLoad:
             KratosFemDem.AssignPressureIdProcess(self.FEM_Solution.main_model_part).Execute()
             KratosFemDem.ComputeInitialVolumeProcess(self.FEM_Solution.main_model_part).Execute()
-
-        if self.FEM_Solution.ProjectParameters.Has("tangent_operator") == True:
-            # 0 -> Elastic , 1 -> Secant , 2 -> Tangent , 3 -> Tangent 2nd Order
-            tangent_type = self.FEM_Solution.ProjectParameters["tangent_operator"].GetInt()
-            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.TANGENT_CONSTITUTIVE_TENSOR] = tangent_type
-        else:
-            self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.TANGENT_CONSTITUTIVE_TENSOR] = 2
 
         self.SkinDetectionProcessParameters = KratosMultiphysics.Parameters("""
         {
@@ -120,23 +116,10 @@ class MainCoupledFemDem_Solution:
         if self.domain_size == 3:
             self.FEM_Solution.main_model_part.ProcessInfo[KratosFemDem.RECOMPUTE_NEIGHBOURS] = True
 
-        if self.echo_level > 0:
-            self.FEM_Solution.KratosPrintInfo("FEM-DEM Solution initialized")
-
         if self.domain_size == 3: # only in 3D
             # We assign the flag to recompute neighbours inside the 3D elements the 1st time
             utils = KratosMultiphysics.VariableUtils()
             utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
-
-        if self.FEM_Solution.ProjectParameters.Has("create_initial_skin") == False:
-            self.CreateInitialSkin = False
-        else:
-            self.CreateInitialSkin = self.FEM_Solution.ProjectParameters["create_initial_skin"].GetBool()
-
-        if self.FEM_Solution.ProjectParameters.Has("do_stabilization_solve") == False:
-            self.do_stabilization_solve = False
-        else:
-            self.do_stabilization_solve = self.FEM_Solution.ProjectParameters["do_stabilization_solve"].GetBool()
 
         if self.CreateInitialSkin:
             self.ComputeSkinSubModelPart()
