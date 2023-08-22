@@ -312,6 +312,7 @@ namespace Kratos {
         int    mRVE_NumParticlesWalls;  // Total number of wall particles
         int    mRVE_NumContacts;        // Total number of contacts in RVE (all contacts)
         int    mRVE_NumContactsInner;   // Total number of inner contacts in RVE (considers only contacts involving inner particles)
+        double mRVE_MeanRadius;         // Mean radius of all particles
         double mRVE_AvgCoordNum;        // Average coordination number per particle
         double mRVE_AvgCoordNumInner;   // Average coordination number of inner particles (not in contact with walls)
         double mRVE_VolSolid;           // Volume of solid (particles) in RVE discounting overlaps
@@ -405,6 +406,7 @@ namespace Kratos {
         double RVEComputeInnerVolume    (void);
         double RVEComputeParticleVolume (SphericParticle* p_particle);
         void   RVEComputePorosity       (void);
+        void   RVEComputeInnerPorosity  (void);
         void   RVEHomogenization        (void);
         void   RVEComputeRoseUniformity (void);
         void   RVEStopCompression       (void);

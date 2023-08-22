@@ -1812,27 +1812,31 @@ namespace Kratos {
       ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
 
       // Initialize properties
+      mRVE_MeanRadius  = 0.0;
       mRVE_FlatWalls   = r_conditions.size() > 0;
       mRVE_Compress    = true;
       mRVE_Equilibrium = false;
       mRVE_FreqWrite  *= r_process_info[RVE_EVAL_FREQ];
       mRVE_Dimension   = r_process_info[DOMAIN_SIZE];
       mRVE_EqSteps     = 0;
-
+      
       // Assemble vectors of wall elements
       RVEAssembleWallVectors();
 
       // Number of wall particles
-      if (mRVE_FlatWalls)
-        mRVE_NumParticlesWalls = 0;
-      else
-        mRVE_NumParticlesWalls = mRVE_WallParticleXMin.size() + mRVE_WallParticleXMax.size() + mRVE_WallParticleYMin.size() + mRVE_WallParticleYMax.size() + mRVE_WallParticleZMin.size() + mRVE_WallParticleZMax.size();
-
+      if (mRVE_FlatWalls) mRVE_NumParticlesWalls = 0;
+      else                mRVE_NumParticlesWalls = mRVE_WallParticleXMin.size() + mRVE_WallParticleXMax.size() + mRVE_WallParticleYMin.size() + mRVE_WallParticleYMax.size() + mRVE_WallParticleZMin.size() + mRVE_WallParticleZMax.size();
       mRVE_NumParticles = mListOfSphericParticles.size() - mRVE_NumParticlesWalls;
-
-      // Particles movement
-      for (int i = 0; i < mListOfSphericParticles.size(); i++)
+      
+      // Loop over particles
+      for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+        // Particles movement
         mListOfSphericParticles[i]->mMoving = true;
+
+        // Mean radius
+        mRVE_MeanRadius += mListOfSphericParticles[i]->GetRadius();
+      }
+      mRVE_MeanRadius /= mListOfSphericParticles.size();
 
       // Open files
       RVEOpenFiles();
@@ -2365,9 +2369,262 @@ namespace Kratos {
     void ExplicitSolverStrategy::RVEComputePorosity(void) {
       mRVE_Porosity = 1.0 - mRVE_VolSolid / mRVE_VolTotal;
       mRVE_VoidRatio = mRVE_Porosity / (1.0 - mRVE_Porosity);
+      RVEComputeInnerPorosity();
+    }
 
-      //mRVE_PorosityInner = 1.0 - mRVE_VolSolidInner / mRVE_VolInner;
-      //mRVE_VoidRatioInner = mRVE_PorosityInner / (1.0 - mRVE_PorosityInner);
+    //-----------------------------------------------------------------------------------------------------------------------------------------
+    void ExplicitSolverStrategy::RVEComputeInnerPorosity(void) { // 2D only
+      ModelPart& r_dem_model_part = GetModelPart();
+      ProcessInfo& r_process_info = r_dem_model_part.GetProcessInfo();
+
+      if (!r_process_info[INNER_CONSOLIDATION_POROSITY]) {
+        mRVE_VolSolidInner  = 0.0;
+        mRVE_PorosityInner  = 0.0;
+        mRVE_VoidRatioInner = 0.0;
+        return;
+      }
+      
+      // Inner boundaries and corners
+      const double offset = r_process_info[INNER_CONSOLIDATION_POROSITY_OFFSET] * mRVE_MeanRadius;
+
+      const double xmin = mRVE_WallXMin[0]->GetGeometry()[0][0] + offset;
+      const double xmax = mRVE_WallXMax[0]->GetGeometry()[0][0] - offset;
+      const double ymin = mRVE_WallYMin[0]->GetGeometry()[0][1] + offset;
+      const double ymax = mRVE_WallYMax[0]->GetGeometry()[0][1] - offset;
+
+      const double corner_1[3] = { xmin, ymin, 0.0 };
+      const double corner_2[3] = { xmax, ymin, 0.0 };
+      const double corner_3[3] = { xmin, ymax, 0.0 };
+      const double corner_4[3] = { xmax, ymax, 0.0 };
+
+      // Inner volume
+      const double inner_vol = (xmax - xmin) * (ymax - ymin);
+
+      // Compute solid volume
+      mRVE_VolSolidInner = 0.0;
+
+      // Loop over all particles
+      for (int i = 0; i < mListOfSphericParticles.size(); i++) {
+        const double r = mListOfSphericParticles[i]->GetRadius();
+        auto& central_node = mListOfSphericParticles[i]->GetGeometry()[0];
+        const double x = central_node[0];
+        const double y = central_node[1];
+        const double z = central_node[2];
+        const double coords[3] = { x, y, z };
+
+        // Distances from particle center to corners
+        const double dist_corner_1 = GeometryFunctions::DistanceOfTwoPoint(coords, corner_1);
+        const double dist_corner_2 = GeometryFunctions::DistanceOfTwoPoint(coords, corner_2);
+        const double dist_corner_3 = GeometryFunctions::DistanceOfTwoPoint(coords, corner_3);
+        const double dist_corner_4 = GeometryFunctions::DistanceOfTwoPoint(coords, corner_4);
+
+        // Area inside inner region
+        double area_inside = 0.0;
+        
+        // 1 - Particle inside region
+        if (x + r <= xmax && x - r >= xmin && y + r <= ymax && y - r >= ymin) {
+          area_inside = Globals::Pi * r * r;
+        }
+
+        // 2A - Cell corner (bottom-left) inside circle
+        else if (dist_corner_1 < r) {
+          const double dx = x - xmin;
+          const double dy = y - ymin;
+          const double sx = sqrt(r * r - dy * dy);
+          const double sy = sqrt(r * r - dx * dx);
+          const double lx = sx + dx;
+          const double ly = sy + dy;
+          const double h = sqrt(lx * lx + ly * ly);
+          const double t = 2 * asin(h / (2 * r));
+          const double area_tri = lx * ly / 2;
+          const double area_seg = 0.5 * r * r * (t - sin(t));
+          area_inside = area_tri + area_seg;
+        }
+
+        // 2B - Cell corner (bottom-right) inside circle
+        else if (dist_corner_2 < r) {
+          const double dx = x - xmax;
+          const double dy = y - ymin;
+          const double sx = sqrt(r * r - dy * dy);
+          const double sy = sqrt(r * r - dx * dx);
+          const double lx = sx - dx;
+          const double ly = sy + dy;
+          const double h = sqrt(lx * lx + ly * ly);
+          const double t = 2 * asin(h / (2 * r));
+          const double area_tri = lx * ly / 2;
+          const double area_seg = 0.5 * r * r * (t - sin(t));
+          area_inside = area_tri + area_seg;
+        }
+
+        // 2C - Cell corner (top-left) inside circle
+        else if (dist_corner_3 < r) {
+          const double dx = x - xmin;
+          const double dy = y - ymax;
+          const double sx = sqrt(r * r - dy * dy);
+          const double sy = sqrt(r * r - dx * dx);
+          const double lx = sx + dx;
+          const double ly = sy - dy;
+          const double h = sqrt(lx * lx + ly * ly);
+          const double t = 2 * asin(h / (2 * r));
+          const double area_tri = lx * ly / 2;
+          const double area_seg = 0.5 * r * r * (t - sin(t));
+          area_inside = area_tri + area_seg;
+        }
+
+        // 2D - Cell corner (top-right) inside circle
+        else if (dist_corner_4 < r) {
+          const double dx = x - xmax;
+          const double dy = y - ymax;
+          const double sx = sqrt(r * r - dy * dy);
+          const double sy = sqrt(r * r - dx * dx);
+          const double lx = sx - dx;
+          const double ly = sy - dy;
+          const double h = sqrt(lx * lx + ly * ly);
+          const double t = 2 * asin(h / (2 * r));
+          const double area_tri = lx * ly / 2;
+          const double area_seg = 0.5 * r * r * (t - sin(t));
+          area_inside = area_tri + area_seg;
+        }
+
+        // Particle crossed by edges
+        else {
+          bool is_inside = false;
+
+          // Left edge
+          if (std::abs(x - xmin) < r && y > ymin && y < ymax) {
+            const double ident = r - std::abs(x - xmin);
+            const double ovlp  = r * r * acos((r - ident) / r) - (r - ident) * sqrt(2 * r * ident - ident * ident);
+            if (x > xmin) {
+              is_inside = 1;
+              area_inside = area_inside - ovlp;
+            }
+            else {
+              area_inside = ovlp;
+            }
+          }
+
+          // Right edge
+          if (std::abs(x - xmax) < r && y > ymin && y < ymax) {
+            const double ident = r - std::abs(x - xmax);
+            const double ovlp  = r * r * acos((r - ident) / r) - (r - ident) * sqrt(2 * r * ident - ident * ident);
+            if (x < xmax) {
+              is_inside = 1;
+              area_inside = area_inside - ovlp;
+            }
+            else {
+              area_inside = ovlp;
+            }
+          }
+
+          // Lower edge
+          if (std::abs(y - ymin) < r && x > xmin && x < xmax) {
+            const double ident = r - std::abs(y - ymin);
+            const double ovlp = r * r * acos((r - ident) / r) - (r - ident) * sqrt(2 * r * ident - ident * ident);
+            if (y > ymin) {
+              is_inside = 1;
+              area_inside = area_inside - ovlp;
+            }
+            else {
+              area_inside = ovlp;
+            }
+          }
+
+          // Top edge
+          if (std::abs(y - ymax) < r && x > xmin && x < xmax) {
+            const double ident = r - std::abs(y - ymax);
+            const double ovlp = r * r * acos((r - ident) / r) - (r - ident) * sqrt(2 * r * ident - ident * ident);
+            if (y < ymax) {
+              is_inside = 1;
+              area_inside = area_inside - ovlp;
+            }
+            else {
+              area_inside = ovlp;
+            }
+          }
+
+          // Add particle area if it is inside cell
+          if (is_inside)
+            area_inside = area_inside + Globals::Pi * r * r;
+        }
+
+        // Remove overlaps: loop over possible particle neighbors
+        for (int j = i+1; j < mListOfSphericParticles.size(); j++) {
+          const double rn = mListOfSphericParticles[j]->GetRadius();
+          const double xn = mListOfSphericParticles[j]->GetGeometry()[0][0];
+          const double yn = mListOfSphericParticles[j]->GetGeometry()[0][1];
+          const double zn = mListOfSphericParticles[j]->GetGeometry()[0][2];
+
+          // Identation
+          auto& neighbour_node = mListOfSphericParticles[j]->GetGeometry()[0];
+          array_1d<double, 3> v;
+          noalias(v) = central_node.Coordinates() - neighbour_node.Coordinates();
+          const double d = DEM_MODULUS_3(v);
+          const double ident = r + rn - d;
+
+          if (ident <= 0.0)
+            continue;
+
+          // Overlap area
+          double area_ovlp = r*r * std::acos((d*d + r*r - rn*rn) / (2.0 * d * r)) + rn*rn * std::acos((d*d + rn*rn - r*r) / (2.0 * d * rn)) - 0.5 * sqrt((d + r + rn) * (-d + r + rn) * (d + r - rn) * (d - r + rn));
+
+          // Unit vector
+          array_1d<double, 3> vu = v;
+          GeometryFunctions::normalize(vu);
+
+          // Contact radius
+          const double rc = sqrt(r*r - pow((r*r - rn* rn + d*d)/(2*d),2.0));
+
+          // Coordinates of overlap center
+          const double d_1O = sqrt(r*r - rc*rc);
+          array_1d<double,3> vu_d1O = vu;
+          DEM_MULTIPLY_BY_SCALAR_3(vu_d1O, d_1O);
+          array_1d<double, 3> pO;
+          noalias(pO) = central_node.Coordinates() + vu_d1O;
+
+          // Coordiantes of overlap ends
+          array_1d<double, 3> vu_OA;
+          array_1d<double, 3> vu_OB;
+          array_1d<double, 3> positive_z = ZeroVector(3);
+          positive_z[2] = 1.0;
+          GeometryFunctions::CrossProduct(positive_z, vu, vu_OA);
+          GeometryFunctions::CrossProduct(vu, positive_z, vu_OB);
+
+          array_1d<double, 3> v_OA = vu_OA;
+          array_1d<double, 3> v_OB = vu_OB;
+          DEM_MULTIPLY_BY_SCALAR_3(v_OA, rc);
+          DEM_MULTIPLY_BY_SCALAR_3(v_OB, rc);
+
+          array_1d<double, 3> pA;
+          array_1d<double, 3> pB;
+          noalias(pA) = pO + v_OA;
+          noalias(pB) = pO + v_OB;
+
+          // Check if overlap area is inside region or cut by edges
+          const double x1 = GeometryFunctions::min(pA[0], pB[0]);
+          const double x2 = GeometryFunctions::max(pA[0], pB[0]);
+          const double y1 = GeometryFunctions::min(pA[1], pB[1]);
+          const double y2 = GeometryFunctions::max(pA[1], pB[1]);
+          double ratio_in = 0.0;
+
+          if      (x1 > xmin && x2 < xmax && y1 > ymin && y2 < ymax) ratio_in = 1.0;                     // Inside
+          else if (x1 < xmin && x2 > xmin && y1 > ymin && y2 < ymax) ratio_in = (x2 - xmin) / (x2 - x1); // Left edge
+          else if (x1 < xmax && x2 > xmax && y1 > ymin && y2 < ymax) ratio_in = (xmax - x1) / (x2 - x1); // Right edge
+          else if (y1 < ymin && y2 > ymin && x1 > xmin && x2 < xmax) ratio_in = (y2 - ymin) / (y2 - y1); // Bottom edge
+          else if (y1 < ymax && y2 > ymax && x1 > xmin && x2 < xmax) ratio_in = (ymax - y1) / (y2 - y1); // Top edge
+
+          area_ovlp *= ratio_in;
+
+          // Discount overlap
+          area_inside -= area_ovlp;
+        }
+
+        // Add particle area to solid volume
+        mRVE_VolSolidInner += area_inside;
+      }
+
+      // Compute porosity
+      mRVE_PorosityInner = 1.0 - mRVE_VolSolidInner / inner_vol;
+      mRVE_VoidRatioInner = mRVE_PorosityInner / (1.0 - mRVE_PorosityInner);
     }
 
     //-----------------------------------------------------------------------------------------------------------------------------------------
@@ -2636,14 +2893,16 @@ namespace Kratos {
       }
 
       if (mRVE_FilePorosity.is_open())
-        mRVE_FilePorosity << time_step     << " "
-                          << time          << " "
-                          << mRVE_VolInner << " "
-                          << mRVE_VolTotal << " "
-                          << mRVE_VolSolid << " "
-                          << mRVE_VolTotal-mRVE_VolSolid << " "
-                          << mRVE_Porosity << " "
-                          << mRVE_VoidRatio
+        mRVE_FilePorosity << time_step                    << " "
+                          << time                         << " "
+                          << mRVE_VolInner                << " "
+                          << mRVE_VolTotal                << " "
+                          << mRVE_VolSolid                << " "
+                          << mRVE_VolTotal-mRVE_VolSolid  << " "
+                          << mRVE_Porosity                << " "
+                          << mRVE_PorosityInner           << " "
+                          << mRVE_VoidRatio               << " "
+                          << mRVE_VoidRatioInner
                           << std::endl;
 
       if (mRVE_FileContactNumber.is_open()) {
@@ -2926,7 +3185,9 @@ namespace Kratos {
         mRVE_FilePorosity << "5 - TOTAL SOLID VOLUME | ";
         mRVE_FilePorosity << "6 - TOTAL VOID VOLUME | ";
         mRVE_FilePorosity << "7 - POROSITY | ";
-        mRVE_FilePorosity << "8 - VOID RATIO";
+        mRVE_FilePorosity << "8 - POROSITY INNER | ";
+        mRVE_FilePorosity << "9 - VOID RATIO | ";
+        mRVE_FilePorosity << "10 - VOID RATIO INNER";
         mRVE_FilePorosity << std::endl;
       }
 
