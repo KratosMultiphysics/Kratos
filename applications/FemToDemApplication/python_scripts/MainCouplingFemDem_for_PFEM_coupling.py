@@ -64,7 +64,8 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
                                                                            self.DEMProperties,
                                                                            self.DEMParameters)
         if self.domain_size == 3:
-            self.nodal_neighbour_finder = KratosMultiphysics.FindNodalNeighboursProcess(self.FEM_Solution.main_model_part, 4, 5)
+            KratosMultiphysics.FindGlobalNodalElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
+            KratosMultiphysics.GenericFindElementalNeighboursProcess(self.FEM_Solution.main_model_part).Execute()
 
         if self.FEM_Solution.ProjectParameters.Has("transfer_dem_contact_forces") == False:
             self.TransferDEMContactForcesToFEM = True
@@ -126,9 +127,6 @@ class MainCoupledFemDem_for_PFEM_coupling_Solution(MainCouplingFemDem.MainCouple
             self.FEM_Solution.KratosPrintInfo("FEM-DEM Solution initialized")
 
         if self.domain_size == 3: # only in 3D
-            # We assign the flag to recompute neighbours inside the 3D elements the 1st time
-            utils = KratosMultiphysics.VariableUtils()
-            utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
             # We assign the flag to recompute neighbours inside the 3D elements the 1st time
             utils = KratosMultiphysics.VariableUtils()
             utils.SetNonHistoricalVariable(KratosFemDem.RECOMPUTE_NEIGHBOURS, True, self.FEM_Solution.main_model_part.Elements)
