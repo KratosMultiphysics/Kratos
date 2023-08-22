@@ -65,6 +65,8 @@ public:
         bool DamageActivation;
     };
 
+    static constexpr double tolerance = 1.0e-3;
+
     HCFDataContainer()
     {};
 
@@ -125,8 +127,13 @@ public:
                             double uniaxial_stress);
 
 
-    // Defining fatigue variables
 
+private:
+
+    ///@name Static Member Variables
+    ///@{
+
+    ///@}
     ///@name Member Variables
     ///@{
     double mMaxStress = 0.0;
@@ -145,17 +152,6 @@ public:
     double mThresholdStress = 0.0;
     double mCyclesToFailure = 0.0;
     bool mNewCycleIndicator = false;
-    ///@}
-
-private:
-
-    ///@name Static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Member Variables
-    ///@{
-
     ///@}
 
 friend class Serializer;
