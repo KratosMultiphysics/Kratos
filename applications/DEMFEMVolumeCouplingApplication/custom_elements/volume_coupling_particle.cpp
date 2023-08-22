@@ -108,37 +108,37 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
 }
 
 // Function to compute additional forces and moments on the particle considering coupling weight.
-void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, 
-                                                     array_1d<double, 3>& externally_applied_moment, 
-                                                     const ProcessInfo& r_process_info, 
-                                                     const array_1d<double,3>& gravity)
-{
-    // statement for setting EXTERNAL_APPLIED_FORCE = DEMFEM_VOLUME_COUPLING_FORCE
+// void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, 
+//                                                      array_1d<double, 3>& externally_applied_moment, 
+//                                                      const ProcessInfo& r_process_info, 
+//                                                      const array_1d<double,3>& gravity)
+// {
+//     // statement for setting EXTERNAL_APPLIED_FORCE = DEMFEM_VOLUME_COUPLING_FORCE
 
 
-    // Call the base class's function.
-    SphericParticle::ComputeAdditionalForces(externally_applied_force, externally_applied_moment, r_process_info, gravity);
-    
-    // double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
+//     // Call the base class's function.
+//     SphericParticle::ComputeAdditionalForces(externally_applied_force, externally_applied_moment, r_process_info, gravity);
+ 
+//     // double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
 
-    //     // to check if particle coupling weight is non zer0 and to check multiple calls of this function ,
-    // if (particle_weight!=0)
-    // {
-    // // Multiply each element of externally_applied_force and externally_applied_moment by weight.
-    //     for (int i = 0; i < 3; ++i)
-    //     {
-    //         externally_applied_force[i] *= particle_weight; // Scale externally applied force
-    //         externally_applied_moment[i] *= particle_weight; // Scale externally applied moment
-    //     }
-    //    externally_applied_force += this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE);  //adding the coupling forces exreted on particles
-    //     //KRATOS_WATCH(this->Id());
-        //KRATOS_WATCH(*externally_applied_force);
-        //std::cout<<"particle_id"<<this->Id()<<std::endl;
-        //std::cout<<"particle coupling force"<<this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE)<<std::endl;
-        //std::cout<<" externally_applied_force"<<externally_applied_force<<std::endl;
-   // }
+//     //     // to check if particle coupling weight is non zer0 and to check multiple calls of this function ,
+//     // if (particle_weight!=0)
+//     // {
+//     // // Multiply each element of externally_applied_force and externally_applied_moment by weight.
+//     //     for (int i = 0; i < 3; ++i)
+//     //     {
+//     //         externally_applied_force[i] *= particle_weight; // Scale externally applied force
+//     //         externally_applied_moment[i] *= particle_weight; // Scale externally applied moment
+//     //     }
+//     //    externally_applied_force += this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE);  //adding the coupling forces exreted on particles
+//     //     //KRATOS_WATCH(this->Id());
+//         //KRATOS_WATCH(*externally_applied_force);
+//         //std::cout<<"particle_id"<<this->Id()<<std::endl;
+//         //std::cout<<"particle coupling force"<<this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE)<<std::endl;
+//         //std::cout<<" externally_applied_force"<<externally_applied_force<<std::endl;
+//    // }
 
-}
+// }
 
 }  // namespace Kratos.
 
