@@ -58,6 +58,12 @@ public:
 
     using BaseType = ThermalElasticIsotropic3D;
 
+        /// Static definition of the dimension
+    static constexpr SizeType Dimension = 2;
+
+    /// Static definition of the VoigtSize
+    static constexpr SizeType VoigtSize = 3;
+
     /// Counted pointer of ThermalLinearPlaneStrain
     KRATOS_CLASS_POINTER_DEFINITION(ThermalLinearPlaneStrain);
 
@@ -99,6 +105,24 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Dimension of the law:
+     * @return The dimension were the law is working
+     */
+    SizeType WorkingSpaceDimension() override
+    {
+        return Dimension;
+    };
+
+    /**
+     * @brief Voigt tensor size:
+     * @return The size of the strain vector in Voigt notation
+     */
+    SizeType GetStrainSize() const override
+    {
+        return VoigtSize;
+    }
 
     /**
      * @brief It calculates the stress vector
