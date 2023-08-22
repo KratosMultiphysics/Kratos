@@ -180,8 +180,6 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeSolutionSte
         this->ComputeEdgeNeighbours(rCurrentProcessInfo);
         this->SetValue(RECOMPUTE_NEIGHBOURS, false);
     }
-
-    this->InitializeInternalVariablesAfterMapping();
 }
 
 /***********************************************************************************/
@@ -1143,29 +1141,6 @@ double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateElementalD
     Vector two_max_values;
     ConstitutiveLawUtilities<VoigtSize>::Get2MaxValues(two_max_values, rEdgeDamages[0], rEdgeDamages[1], rEdgeDamages[2]);
     return 0.5*(two_max_values[0] + two_max_values[1]);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeInternalVariablesAfterMapping()
-{
-    // After the mapping, the thresholds of the edges (are equal to 0.0) are imposed equal to the IP threshold
-    const double element_threhsold = mThreshold;
-    if (norm_2(mThresholds) < tolerance) {
-        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-            mThresholds[edge] = element_threhsold;
-        }
-    }
-
-    // IDEM with the edge damages
-    const double damage_element = mDamage;
-    if (norm_2(mDamages) < tolerance) {
-        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-            mDamages[edge] = damage_element;
-        }
-    }
 }
 
 /***********************************************************************************/

@@ -350,11 +350,6 @@ protected:
         rMatrix(4, 1) = 3; rMatrix(5, 0) = 2; rMatrix(5, 1) = 3;
     }
 
-    /**
-     * this imposes the damage/threshold to be equal
-     * at the edges 
-     */
-    void InitializeInternalVariablesAfterMapping();
 
     /**
      * this computes the average vector on the edge for a certain variable
@@ -423,8 +418,6 @@ protected:
         if (mDamage >= 0.98) {
             this->Set(ACTIVE, false);
             mDamage = 0.98;
-            // We set a "flag" to generate the DEM 
-            // rCurrentProcessInfo[GENERATE_DEM] = true;
             this->SetValue(GENERATE_DEM, true);
         }
     }
