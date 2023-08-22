@@ -238,8 +238,8 @@ public:
         KRATOS_INFO("") << std::endl;
         KRATOS_INFO("ImplicitVertexMorphing:MapFirstDerivative") << "Starting mapping of " << rDerivativeVariable.Name() << "..." << std::endl;
 
-        // if(mTechniqueSettings["project_to_normal"].GetBool())
-        //     ProjectToNormal(rDerivativeVariable);
+        if(mTechniqueSettings["project_to_normal"].GetBool())
+            ProjectToNormal(rDerivativeVariable);
 
         for(long unsigned int model_i =0;model_i<mpVMModelParts.size();model_i++)
         {
