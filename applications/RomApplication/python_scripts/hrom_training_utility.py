@@ -49,6 +49,7 @@ class HRomTrainingUtility(object):
         # Retrieve list of model parts from settings
         self.include_conditions_model_parts_list = settings["include_conditions_model_parts_list"].GetStringArray()
         self.include_elements_model_parts_list = settings["include_elements_model_parts_list"].GetStringArray()
+        self.include_nodal_neighbouring_elements_model_parts_list = settings["include_nodal_neighbouring_elements_model_parts_list"].GetStringArray()
 
         # Check if the model parts exist
         for model_part_name in self.include_conditions_model_parts_list:
@@ -132,7 +133,7 @@ class HRomTrainingUtility(object):
 
         # Output the HROM model part in mdpa format
         hrom_output_name = "{}HROM".format(model_part_output_name)
-        model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
+        model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
         model_part_io.WriteModelPart(hrom_main_model_part)
         KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
         if self.echo_level > 0:
@@ -153,7 +154,7 @@ class HRomTrainingUtility(object):
 
             # Write the HROM visualization mesh
             hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
-            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
+            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
             model_part_io.WriteModelPart(hrom_visualization_model_part)
             KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
             if self.echo_level > 0:
@@ -170,6 +171,7 @@ class HRomTrainingUtility(object):
             "projection_strategy": "galerkin",
             "include_conditions_model_parts_list": [],
             "include_elements_model_parts_list": [],
+            "include_nodal_neighbouring_elements_model_parts_list":[],
             "include_minimum_condition": false,
             "include_condition_parents": true
         }""")
@@ -247,6 +249,25 @@ class HRomTrainingUtility(object):
 
                 # If needed, update your weights and indexes using __AddSelectedElementsWithZeroWeights function with the new_elements
                 weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights, indexes, new_elements)
+        
+        # Add nodal neighbouring elements
+        for model_part_name in self.include_nodal_neighbouring_elements_model_parts_list:
+            # Check if the sub model part exists
+            if self.solver.model.HasModelPart(model_part_name):
+                nodal_neighbours_model_part = self.solver.model.GetModelPart(model_part_name)
+
+                # Call the GetNodalNeighbouringElementIdsNotInHRom function
+                new_nodal_neighbours = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIdsNotInHRom(
+                    root_model_part, # The complete model part
+                    nodal_neighbours_model_part, # The model part containing the nodal neighbouring elements to be included
+                    hrom_weights)
+
+                # Add the new nodal neighbouring elements to the elements dict with a null weight
+                for element_id in new_nodal_neighbours:
+                    hrom_weights["Elements"][element_id] = 0.0
+
+                # If needed, update your weights and indexes using __AddSelectedElementsWithZeroWeights function with the new_nodal_neighbours
+                weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights, indexes, new_nodal_neighbours)
 
         # If required, keep at least one condition per submodelpart
         # This might be required by those BCs involving the faces (e.g. slip BCs)

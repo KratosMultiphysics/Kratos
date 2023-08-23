@@ -1,6 +1,6 @@
 #include "custom_processes/hdf5_xdmf_connectivities_writer_process.h"
 
-#include "custom_io/hdf5_file_serial.h"
+#include "custom_io/hdf5_file.h"
 #include "utilities/openmp_utils.h"
 #include "includes/kratos_parameters.h"
 
@@ -18,7 +18,9 @@ XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::stri
                 "file_access_mode": "read_write"
             })");
     file_params["file_name"].SetString(rFileName);
-    mpFile = FileSerial::Pointer(new FileSerial(file_params));
+    // since the current implementation can only create the xdmf data in serial, we will
+    // use the serial data communicator
+    mpFile = File::Pointer(new File(mSerialDataCommunicator, file_params));
     mPrefix = rPrefix;
     std::string node_ids_path = mPrefix + "/Nodes/Local/Ids";
 
