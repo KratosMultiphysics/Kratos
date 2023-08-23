@@ -134,10 +134,7 @@ class StandardizedConstraint(ResponseRoutine):
 
     def GetScaledViolationValue(self, step_index: int = 0) -> float:
         value = self.GetStandardizedValue(step_index)
-        if value < 0.0:
-            return 0.0
-        else:
-            return value * self.__violation_scaling
+            return max(0.0, value * self.__violation_scaling)
 
     def GetAbsoluteViolation(self, step_index: int = 0) -> float:
         is_violated = self.IsEqualityType() or self.GetStandardizedValue(step_index) >= 0.0
