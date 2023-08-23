@@ -116,25 +116,17 @@ class ImplicitVertexMorphing(ShapeControl):
         for util in self.utils:
             util.ApplyOnVectorField(derivative_variable_name)
 
-
-        self.implicit_vertex_morphing.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
-
         if self.penetration_expected:
-            for node, distance in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, self.distances):
+            for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
                 projection_direction = node.GetSolutionStepValue(KOA.AUXILIARY_FIELD)
                 if self.ComputeNodalNorm(projection_direction)>1e-10:
-                    shape_update = node.GetSolutionStepValue(mapped_derivative_variable_name)
+                    shape_update = node.GetSolutionStepValue(derivative_variable_name)
                     projected_shape_update = projection_direction[0]*shape_update[0] + projection_direction[1]*shape_update[1] + projection_direction[2]*shape_update[2]
                     projected_shape_update_vec = projected_shape_update*projection_direction
-                    if distance < self.ref_val and projected_shape_update>0.0:
-                        projection_direction /= self.ComputeNodalNorm(projection_direction)
-                        projected_shape_update = projection_direction[0]*shape_update[0] + projection_direction[1]*shape_update[1] + projection_direction[2]*shape_update[2]
-                        projected_shape_update_vec = projected_shape_update*projection_direction
-                        tangent_shape_update = shape_update-projected_shape_update_vec
-                        node.SetSolutionStepValue(mapped_derivative_variable_name, tangent_shape_update)
-                    elif projected_shape_update>0.0:
-                        tangent_shape_update = shape_update-projected_shape_update_vec
-                        node.SetSolutionStepValue(mapped_derivative_variable_name, tangent_shape_update)
+                    tangent_shape_update = shape_update-projected_shape_update_vec
+                    node.SetSolutionStepValue(derivative_variable_name, tangent_shape_update)
+
+        self.implicit_vertex_morphing.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
 
     def ComputeNodalNorm(self,kratos_nodal_vector):
         return math.sqrt(kratos_nodal_vector[0]*kratos_nodal_vector[0]+kratos_nodal_vector[1]*kratos_nodal_vector[1]+kratos_nodal_vector[2]*kratos_nodal_vector[2])
@@ -156,45 +148,37 @@ class ImplicitVertexMorphing(ShapeControl):
             shape_update = node.GetSolutionStepValue(KOA.D_X)
             nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
             nodal_normal *= -1
-            projection = nodal_normal[0] * shape_update[0] + nodal_normal[1] * shape_update[1] + nodal_normal[2] * shape_update[2]
-            direction = projection*nodal_normal
+            # projection = nodal_normal[0] * shape_update[0] + nodal_normal[1] * shape_update[1] + nodal_normal[2] * shape_update[2]
+            # direction = projection*nodal_normal
             nodes.append( QuESoApp.Point(node.X0, node.Y0, node.Z0) )
             directions.append( QuESoApp.Point(nodal_normal[0], nodal_normal[1], nodal_normal[2]) )
 
         pyqueso.Run()
 
-        self.ref_val = 20
+        ref_val = 5
         self.distances = pyqueso.ClosestDistances(nodes, directions)
         self.penetration_expected = False
         for node, distance in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, self.distances):
-            if abs(distance) < self.ref_val:
+            shape_update = node.GetSolutionStepValue(KOA.D_X)
+            nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
+            nodal_normal *= -1
+            projection = nodal_normal[0] * shape_update[0] + nodal_normal[1] * shape_update[1] + nodal_normal[2] * shape_update[2]            
+            penetration_value = 0
+            if abs(distance) > ref_val and projection>(distance-ref_val):
+                penetration_value = projection - (distance-ref_val)
+            elif abs(distance) < ref_val and projection >0:
+                penetration_value = (ref_val-distance) + projection
+
+            if penetration_value > 0:
                 self.penetration_expected = True
-                shape_update = node.GetSolutionStepValue(KOA.D_X)
-                nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
-                nodal_normal *= -1
-                projection = nodal_normal[0] * shape_update[0] + nodal_normal[1] * shape_update[1] + nodal_normal[2] * shape_update[2]
-                direction = projection*nodal_normal
-                direction /= self.ComputeNodalNorm(direction)
-                node.SetSolutionStepValue(KM.KratosGlobals.GetVariable("ADJOINT_DISPLACEMENT"), nodal_normal)
-            else:
-                node.SetSolutionStepValue(KM.KratosGlobals.GetVariable("ADJOINT_DISPLACEMENT"), [0.0, 0.0, 0.0])
+                # if penetration_value<1.0:
+                #     penetration_value += 1
+
+
+            node.SetSolutionStepValue(KM.KratosGlobals.GetVariable("ADJOINT_DISPLACEMENT"), penetration_value * penetration_value * penetration_value * nodal_normal)
 
         if self.penetration_expected:
-
-            fixed_model_parts = self.technique_settings["fixed_model_parts"]
-
-            for model_part_name in fixed_model_parts:
-                for node in self.model.GetModelPart(model_part_name.GetString()).Nodes:
-                    node.Free(KOA.HELMHOLTZ_VARS_SHAPE_X)
-                    node.Free(KOA.HELMHOLTZ_VARS_SHAPE_Y)
-                    node.Free(KOA.HELMHOLTZ_VARS_SHAPE_Z)
             self.implicit_vertex_morphing.MapControlUpdate(KM.KratosGlobals.GetVariable("ADJOINT_DISPLACEMENT"),KOA.AUXILIARY_FIELD)
-            for model_part_name in fixed_model_parts:
-                for node in self.model.GetModelPart(model_part_name.GetString()).Nodes:
-                    node.Fix(KOA.HELMHOLTZ_VARS_SHAPE_X)
-                    node.Fix(KOA.HELMHOLTZ_VARS_SHAPE_Y)
-                    node.Fix(KOA.HELMHOLTZ_VARS_SHAPE_Z)
-
 
             self.max_norm = 0
             for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
@@ -207,24 +191,16 @@ class ImplicitVertexMorphing(ShapeControl):
                 projection_direction = node.GetSolutionStepValue(KOA.AUXILIARY_FIELD)
                 node.SetSolutionStepValue(KOA.AUXILIARY_FIELD, projection_direction/self.max_norm)
 
-            for node, distance in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, self.distances):
+            for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
                 projection_direction = node.GetSolutionStepValue(KOA.AUXILIARY_FIELD)
                 if self.ComputeNodalNorm(projection_direction)>1e-10:
-                    shape_update = node.GetSolutionStepValue(KOA.D_CX)
+                    shape_update = node.GetSolutionStepValue(KOA.D_X)
                     projected_shape_update = projection_direction[0]*shape_update[0] + projection_direction[1]*shape_update[1] + projection_direction[2]*shape_update[2]
                     projected_shape_update_vec = projected_shape_update*projection_direction
-                    if distance < self.ref_val and projected_shape_update>0.0:
-                        projection_direction /= self.ComputeNodalNorm(projection_direction)
-                        projected_shape_update = projection_direction[0]*shape_update[0] + projection_direction[1]*shape_update[1] + projection_direction[2]*shape_update[2]
-                        projected_shape_update_vec = projected_shape_update*projection_direction
-                        tangent_shape_update = shape_update-projected_shape_update_vec
-                        node.SetSolutionStepValue(KOA.D_CX, tangent_shape_update)
-                    elif projected_shape_update>0.0:
-                        tangent_shape_update = shape_update-projected_shape_update_vec
-                        node.SetSolutionStepValue(KOA.D_CX, tangent_shape_update)
+                    tangent_shape_update = shape_update-projected_shape_update_vec
+                    node.SetSolutionStepValue(KOA.D_X, tangent_shape_update)
 
-
-        self.implicit_vertex_morphing.MapControlUpdate(KOA.D_CX,KOA.D_X)
+        # self.implicit_vertex_morphing.MapControlUpdate(KOA.D_CX,KOA.D_X)
 
     def Update(self):
         self.implicit_vertex_morphing.Update()
