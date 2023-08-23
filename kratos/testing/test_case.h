@@ -124,6 +124,8 @@ public:
 
     virtual bool IsSelected() const;
 
+    virtual bool IsDistributedTest() const;
+
     ///@}
     ///@name Input and output
     ///@{

@@ -60,9 +60,6 @@ public:
                           PropertiesType::Pointer pProperties ) :
                         UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
-    // Destructor
-    ~UPwFaceLoadCondition() override {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,
@@ -80,9 +77,7 @@ protected:
     void CalculateRHS(VectorType& rRightHandSideVector,
                       const ProcessInfo& CurrentProcessInfo) override;
 
-    virtual void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-                                                 const Matrix& Jacobian,
-                                                 const double& Weight);
+    virtual double CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight);
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

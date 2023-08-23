@@ -134,7 +134,6 @@ void SetParameterFieldProcess::ExecuteInitialize()
 
     KRATOS_TRY
 
-
     const auto& r_var = KratosComponents< Variable<double> >::Get(mParameters["variable_name"].GetString());
 
     // set parameter field from input function

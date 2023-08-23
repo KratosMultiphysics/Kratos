@@ -14,6 +14,7 @@
 #include <set>
 #include <limits>
 #include <sstream>
+#include <algorithm>
 
 // External includes
 
@@ -176,47 +177,63 @@ void ModelPartOperationUtilities::SetCommunicator(
     rOutputModelPart.SetCommunicator(p_output_communicator);
 }
 
-ModelPart& ModelPartOperationUtilities::CreateOutputModelPart(
-    const std::string& rOutputSubModelPartName,
+void ModelPartOperationUtilities::FillOutputSubModelPart(
+    ModelPart& rOutputSubModelPart,
     ModelPart& rMainModelPart,
     std::vector<ModelPart::NodeType*>& rOutputNodes,
     std::vector<ModelPart::ConditionType*>& rOutputConditions,
     std::vector<ModelPart::ElementType*>& rOutputElements)
 {
-    KRATOS_ERROR_IF(rMainModelPart.HasSubModelPart(rOutputSubModelPartName))
-        << "\"" << rOutputSubModelPartName << "\" already exists in the \""
-        << rMainModelPart.FullName() << "\".\n";
+    // check if the sub model part is empty. Here we use the data communicator
+    // of rMainModelPart assuming the communicators are not set yet in rOutputSubModelPart
+    // since it is assumed to be empty in all contaienrs.
+    const auto& r_data_communicator = rMainModelPart.GetCommunicator().GetDataCommunicator();
+    const auto& entity_info = r_data_communicator.SumAll(std::vector<unsigned int>{
+            static_cast<unsigned int>(rOutputSubModelPart.NumberOfNodes()),
+            static_cast<unsigned int>(rOutputSubModelPart.NumberOfConditions()),
+            static_cast<unsigned int>(rOutputSubModelPart.NumberOfElements())});
 
-    // create the output sub model part
-    auto& r_output_model_part = rMainModelPart.CreateSubModelPart(rOutputSubModelPartName);
+    KRATOS_ERROR_IF(entity_info[0] > 0 || entity_info[1] > 0 || entity_info[2] > 0)
+        << rOutputSubModelPart.FullName() << " is not empty.";
 
     // add unique conditions
     std::sort(rOutputConditions.begin(), rOutputConditions.end());
     const auto& condition_last = std::unique(rOutputConditions.begin(), rOutputConditions.end());
-    std::for_each(rOutputConditions.begin(), condition_last, [&r_output_model_part](auto p_condition) {
-        r_output_model_part.Conditions().push_back(Kratos::intrusive_ptr<ModelPart::ConditionType>(p_condition));
+    std::for_each(rOutputConditions.begin(), condition_last, [&rOutputSubModelPart](auto p_condition) {
+        rOutputSubModelPart.Conditions().push_back(Kratos::intrusive_ptr<ModelPart::ConditionType>(p_condition));
     });
     FillNodesFromEntities<ModelPart::ConditionType>(rOutputNodes, rOutputConditions.begin(), condition_last);
 
     // add uniqe elements
     std::sort(rOutputElements.begin(), rOutputElements.end());
     const auto& element_last = std::unique(rOutputElements.begin(), rOutputElements.end());
-    std::for_each(rOutputElements.begin(), element_last, [&r_output_model_part](auto p_element) {
-        r_output_model_part.Elements().push_back(Kratos::intrusive_ptr<ModelPart::ElementType>(p_element));
+    std::for_each(rOutputElements.begin(), element_last, [&rOutputSubModelPart](auto p_element) {
+        rOutputSubModelPart.Elements().push_back(Kratos::intrusive_ptr<ModelPart::ElementType>(p_element));
     });
     FillNodesFromEntities<ModelPart::ElementType>(rOutputNodes, rOutputElements.begin(), element_last);
 
     // populate the mesh with nodes.
     std::sort(rOutputNodes.begin(), rOutputNodes.end());
     const auto& node_last = std::unique(rOutputNodes.begin(), rOutputNodes.end());
-    std::for_each(rOutputNodes.begin(), node_last, [&r_output_model_part](auto p_node) {
-        r_output_model_part.Nodes().push_back(Kratos::intrusive_ptr<ModelPart::NodeType>(p_node));
+    std::for_each(rOutputNodes.begin(), node_last, [&rOutputSubModelPart](auto p_node) {
+        rOutputSubModelPart.Nodes().push_back(Kratos::intrusive_ptr<ModelPart::NodeType>(p_node));
     });
 
     // sets the communicator info.
-    SetCommunicator(r_output_model_part, rMainModelPart);
+    SetCommunicator(rOutputSubModelPart, rMainModelPart);
 
-    return r_output_model_part;
+    // until now everything is sorted based on the memory location ptrs.
+    // sorting them based on the ids.
+    const auto& sort_mesh = [](ModelPart::MeshType& rMesh) {
+        rMesh.Nodes().Sort();
+        rMesh.Conditions().Sort();
+        rMesh.Elements().Sort();
+    };
+
+    sort_mesh(rOutputSubModelPart.GetMesh());
+    sort_mesh(rOutputSubModelPart.GetCommunicator().LocalMesh());
+    sort_mesh(rOutputSubModelPart.GetCommunicator().GhostMesh());
+    sort_mesh(rOutputSubModelPart.GetCommunicator().InterfaceMesh());
 }
 
 void ModelPartOperationUtilities::CheckNodes(
