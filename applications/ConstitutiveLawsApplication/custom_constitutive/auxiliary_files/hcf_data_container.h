@@ -126,6 +126,11 @@ public:
                             ConstitutiveLaw::StressVectorType stress_vector,
                             double uniaxial_stress);
 
+    /**
+     * @brief This method checks the fatigue inout properties
+     */
+    int Check(const Properties& rMaterialProperties);
+
 
 
 private:

@@ -234,6 +234,29 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
     }
 }
 
-    /***********************************************************************************/
-    /***********************************************************************************/
+/***********************************************************************************/
+/***********************************************************************************/
+
+int HCFDataContainer::Check(
+    const Properties& rMaterialProperties)
+{
+    // Check if input parameters are well defined
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined vector" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO)) << "POISSON_RATIO is not a defined vector" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined vector" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS)) << "YIELD_STRESS is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "SOFTENING_TYPE is not a defined value" << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) << "HIGH_CYCLE_FATIGUE_COEFFICIENTS is not a defined vector" << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS].size() != 7) << "HIGH_CYCLE_FATIGUE_COEFFICIENTS badly defined" << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0] < 0.0 || rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][0] > 1.0) << "Se/Su is not properly defined." << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][1] < 0.0) << "SthR1 is not properly defined." << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][3] < std::max(0.0,-rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][5])) << "alfaf is not properly defined." << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4] < 1.0) << "bataf is not properly defined." << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][5] < -rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][3]) << "AUXR1 is not properly defined." << std::endl;
+    return 0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 } // Namespace Kratos
