@@ -104,6 +104,7 @@ class AlgorithmSystemIdentification(Algorithm):
 
             for container_expression in obj_gradient_expressions_output.GetContainerExpressions():
 
+                # Automated adjustment of the initial step
                 elements = container_expression.GetModelPart().Elements
                 gradient_vector = np.reshape(container_expression.Evaluate(), (len(elements), 1))
 
@@ -117,9 +118,13 @@ class AlgorithmSystemIdentification(Algorithm):
                     gauss_newton_gradient,
                     gauss_newton_likelihood,
                     damp=0.0,
+                    # damp=1e-26,
                 )[0]
 
                 search_direction *= -1.0
+
+                # Standrad version
+                # search_direction = container_expression.Evaluate() * -1
 
                 Kratos.Expression.CArrayExpressionIO.Read(container_expression, search_direction)
 
@@ -179,6 +184,7 @@ class AlgorithmSystemIdentification(Algorithm):
                     self.algorithm_data.GetBufferedData()["abs_obj_change[%]"] = obj_info["abs_change [%]"]
 
                 obj_grad = self.__objective.CalculateStandardizedGradient()
+                self.algorithm_data.GetBufferedData()["standardized_gradient"] = obj_grad
 
                 self.ComputeSearchDirection(obj_grad)
                 alpha = self.__line_search_method.ComputeStep()
