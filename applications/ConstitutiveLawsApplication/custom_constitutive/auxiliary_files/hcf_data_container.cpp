@@ -189,7 +189,7 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
     CalculateSminAndSmax(uniaxial_stress, rFatigueVariables);
 
     rFatigueVariables.AdvanceStrategyApplied = rCurrentProcessInfo.Has(ADVANCE_STRATEGY_APPLIED) ? rCurrentProcessInfo[ADVANCE_STRATEGY_APPLIED] : false;
-    rFatigueVariables.DamageActivation = rCurrentProcessInfo[DAMAGE_ACTIVATION];
+    rFatigueVariables.DamageActivation = rCurrentProcessInfo.Has(DAMAGE_ACTIVATION) ? rCurrentProcessInfo[DAMAGE_ACTIVATION] : false;
 
     if (rFatigueVariables.MaxIndicator && rFatigueVariables.MinIndicator) {
         rFatigueVariables.PreviousReversionFactor = CalculateReversionFactor(rFatigueVariables.PreviousMaxStress, rFatigueVariables.PreviousMinStress);
