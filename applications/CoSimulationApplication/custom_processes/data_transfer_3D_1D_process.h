@@ -210,11 +210,8 @@ public:
     /// Pointer definition of DataTransfer3D1DProcess
     KRATOS_CLASS_POINTER_DEFINITION(DataTransfer3D1DProcess);
 
-    /// Node definition
-    typedef Node<3> NodeType;
-
     /// Geometry definition
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<Node>;
 
     // Define mapper factory
     DEFINE_MAPPER_FACTORY_SERIAL
