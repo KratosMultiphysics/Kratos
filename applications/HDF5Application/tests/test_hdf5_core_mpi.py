@@ -42,7 +42,7 @@ class TestFileIO(KratosUnittest.TestCase):
         io = file_io._HDF5ParallelFileIO()
         test_hdf5_core.TestFileIO._BuildTestFileIOObject(io)
         obj = io.Get('kratos.h5')
-        self.assertIsInstance(obj, KratosHDF5.HDF5FileParallel)
+        self.assertIsInstance(obj, KratosHDF5.HDF5File)
 
     @patch("KratosMultiphysics.FileNameDataCollector", autospec=True)
     def test_FilenameGetterWithDirectoryInitialization_DirectoryExists(self, mock_class):
@@ -90,7 +90,7 @@ class TestOperations(KratosUnittest.TestCase):
         }""")
         operation_settings = settings["list_of_operations"][0]
         self.assertTrue(model_part.IsDistributed())
-        with patch("KratosMultiphysics.HDF5Application.HDF5FileParallel"):
+        with patch("KratosMultiphysics.HDF5Application.HDF5File"):
             partitioned_model_part_output = operations.Create(model, settings)
             self.assertTrue(operation_settings.Has('operation_type'))
             self.assertTrue(operation_settings.Has('prefix'))
@@ -110,7 +110,7 @@ class TestOperations(KratosUnittest.TestCase):
             }]
         }""")
         self.assertTrue(model_part.IsDistributed())
-        with patch("KratosMultiphysics.HDF5Application.HDF5FileParallel"):
+        with patch("KratosMultiphysics.HDF5Application.HDF5File"):
             partitioned_model_part_output = operations.Create(model, settings)
             with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5PartitionedModelPartIO', autospec=True) as p:
                 partitioned_model_part_output.Execute()

@@ -10,15 +10,12 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_SMALL_STRAIN_UMAT_3D_LAW_H_INCLUDED )
-#define  KRATOS_SMALL_STRAIN_UMAT_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 #include "includes/define.h"
-
-// External includes
 
 // Project includes
 #include "includes/serializer.h"
@@ -26,7 +23,6 @@
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
-
 
 namespace Kratos
 {
@@ -104,32 +100,18 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       //@name Life Cycle
       //@{
 
-      //----------------------------------------------------------------------------------------
-      /**
-       * @brief Default constructor.
-       */
-      SmallStrainUMAT3DLaw();
+      SmallStrainUMAT3DLaw() = default;
+      ~SmallStrainUMAT3DLaw() override = default;
+      SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther);
+      SmallStrainUMAT3DLaw& operator=(const SmallStrainUMAT3DLaw& rOther);
+      SmallStrainUMAT3DLaw(SmallStrainUMAT3DLaw&&) = delete;
+      SmallStrainUMAT3DLaw& operator=(SmallStrainUMAT3DLaw&&) = delete;
 
       /**
        * @brief Clone method
        */
       ConstitutiveLaw::Pointer Clone() const override;
 
-      /**
-       * Copy constructor.
-       */
-      SmallStrainUMAT3DLaw(SmallStrainUMAT3DLaw const& rOther);
-
-      /**
-       * @brief Destructor.
-       */
-      virtual ~SmallStrainUMAT3DLaw();
-
-
-      // Assignment operator:
-      SmallStrainUMAT3DLaw& operator=(SmallStrainUMAT3DLaw const& rOther);
-
-      //----------------------------------------------------------------------------------------
       /**
        * @brief This function is designed to be called once to check compatibility with element
        * @param rFeatures The Features of the law
@@ -139,7 +121,7 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       /**
        * @brief Dimension of the law:
        */
-      virtual SizeType WorkingSpaceDimension() override
+      SizeType WorkingSpaceDimension() override
       {
          return Dimension;
       }
@@ -147,7 +129,7 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       /**
        * @brief Voigt tensor size:
        */
-      virtual SizeType GetStrainSize() const override
+      SizeType GetStrainSize() const override
       {
          return VoigtSize;
       }
@@ -156,7 +138,7 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
        * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
        * @return the expected strain measure
        */
-      virtual StrainMeasure GetStrainMeasure() override
+      StrainMeasure GetStrainMeasure() override
       {
          return StrainMeasure_Infinitesimal;
       }
@@ -165,7 +147,7 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
        * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
        * @return the expected stress measure
        */
-      virtual StressMeasure GetStressMeasure() override
+      StressMeasure GetStressMeasure() override
       {
          return StressMeasure_Cauchy;
       }
@@ -220,9 +202,9 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
        * @param rValue a reference to the returned value
        * @return rValue output: the value of the specified variable
        */
-      virtual double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                     const Variable<double>& rThisVariable,
-                                     double& rValue) override;
+      double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                             const Variable<double>&      rThisVariable,
+                             double&                      rValue) override;
 
       /**
        * @brief It calculates the value of a specified variable (Vector case)
@@ -231,9 +213,9 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
        * @param rValue a reference to the returned value
        * @return rValue output: the value of the specified variable
        */
-      virtual Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                     const Variable<Vector>& rThisVariable,
-                                     Vector& rValue) override;
+      Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                             const Variable<Vector>&      rThisVariable,
+                             Vector&                      rValue) override;
 
       /**
        * @brief It calculates the value of a specified variable (Matrix case)
@@ -242,9 +224,11 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
        * @param rValue a reference to the returned value
        * @return rValue output: the value of the specified variable
        */
-      virtual Matrix& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                     const Variable<Matrix>& rThisVariable,
-                                     Matrix& rValue) override;
+      Matrix& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                             const Variable<Matrix>&      rThisVariable,
+                             Matrix&                      rValue) override;
+
+      using ConstitutiveLaw::CalculateValue;
 
 
       // @brief This function provides the place to perform checks on the completeness of the input.
@@ -321,21 +305,19 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override
+      std::string Info() const override
       {
-         std::stringstream buffer;
-         buffer << "SmallStrainUMAT3DLaw";
-         return buffer.str();
+         return "SmallStrainUMAT3DLaw";
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override
+      void PrintInfo(std::ostream& rOStream) const override
       {
-         rOStream << "SmallStrainUMAT3DLaw";
+         rOStream << Info();
       }
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override
+      void PrintData(std::ostream& rOStream) const override
       {
          rOStream << "SmallStrainUMAT3DLaw Data";
       }
@@ -446,7 +428,7 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
       ///@{
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override
+      void save(Serializer& rSerializer) const override
       {
          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
          rSerializer.save("InitializedModel",           mIsModelInitialized);
@@ -455,7 +437,7 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
          rSerializer.save("StateVariablesFinalized",    mStateVariablesFinalized);
       }
 
-      virtual void load(Serializer& rSerializer) override
+      void load(Serializer& rSerializer) override
       {
          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
          rSerializer.load("InitializedModel",           mIsModelInitialized);
@@ -491,8 +473,4 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
 
    ///@} addtogroup block
 
-}  // namespace Kratos.
-
-#endif // KRATOS_SMALL_STRAIN_UMAT_3D_LAW_H_INCLUDED  defined
-
-
+}
