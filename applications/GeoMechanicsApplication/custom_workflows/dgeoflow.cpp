@@ -147,7 +147,6 @@ namespace Kratos
         "number_cycles":    100,
         "increase_factor":  2.0,
         "reduction_factor": 0.5,
-        "end_time": 1.0,
 		"max_piping_iterations": 500,
         "desired_iterations": 4,
         "max_radius_factor": 10.0,
