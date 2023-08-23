@@ -933,7 +933,13 @@ double& SerialParallelRuleOfMixturesLaw::GetValue(
         double damage_fiber, damage_matrix;
         mpFiberConstitutiveLaw->GetValue(DAMAGE, damage_fiber);
         mpMatrixConstitutiveLaw->GetValue(DAMAGE, damage_matrix);
-        rValue = std::max(damage_fiber, damage_matrix);
+        rValue = mFiberVolumetricParticipation * damage_fiber + (1.0 - mFiberVolumetricParticipation) * damage_matrix;
+        return rValue;
+    } else if (rThisVariable == PLASTIC_DISSIPATION && mpFiberConstitutiveLaw->Has(rThisVariable) && mpMatrixConstitutiveLaw->Has(rThisVariable)) {
+        double plastic_dissipation_fiber, plastic_dissipation_matrix;
+        mpFiberConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, plastic_dissipation_fiber);
+        mpMatrixConstitutiveLaw->GetValue(PLASTIC_DISSIPATION, plastic_dissipation_matrix);
+        rValue = mFiberVolumetricParticipation * plastic_dissipation_fiber + (1.0 - mFiberVolumetricParticipation) * plastic_dissipation_matrix;
         return rValue;
     } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
         return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
@@ -955,13 +961,22 @@ Vector& SerialParallelRuleOfMixturesLaw::GetValue(
     Vector& rValue
     )
 {
-    if (mpMatrixConstitutiveLaw->Has(rThisVariable)) {
-        return mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else if (mpFiberConstitutiveLaw->Has(rThisVariable)) {
-        return mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
-    } else {
-        return rValue;
+    const bool matrix_has = mpMatrixConstitutiveLaw->Has(rThisVariable);
+    const bool fiber_has = mpFiberConstitutiveLaw->Has(rThisVariable);
+    const SizeType voigt_size = GetStrainSize();
+    rValue.resize(GetStrainSize(), false);
+    rValue.clear();
+    if (matrix_has && fiber_has) {
+        Vector r_vector_matrix(voigt_size), r_vector_fiber(voigt_size);
+        mpMatrixConstitutiveLaw->GetValue(rThisVariable, r_vector_matrix);
+        mpFiberConstitutiveLaw->GetValue(rThisVariable, r_vector_fiber);
+        noalias(rValue) = mFiberVolumetricParticipation * r_vector_fiber + (1.0 - mFiberVolumetricParticipation) * r_vector_matrix;
+    } else if (matrix_has && !fiber_has) {
+        mpMatrixConstitutiveLaw->GetValue(rThisVariable, rValue);
+    } else if (!matrix_has && fiber_has) {
+        mpFiberConstitutiveLaw->GetValue(rThisVariable, rValue);
     }
+    return rValue;
 }
 
 /***********************************************************************************/
@@ -1082,13 +1097,12 @@ bool SerialParallelRuleOfMixturesLaw::Has(const Variable<double>& rThisVariable)
     } else {
         if (rThisVariable == FIBER_VOLUMETRIC_PARTICIPATION) {
             return true;
-        } else if (rThisVariable == DAMAGE_MATRIX || DAMAGE_FIBER) {
+        } else if (rThisVariable == DAMAGE_MATRIX || rThisVariable == DAMAGE_FIBER) {
             return true;
         } else {
             return false;
         }
     }
-
 }
 
 /***********************************************************************************/
@@ -1156,20 +1170,42 @@ double& SerialParallelRuleOfMixturesLaw::CalculateValue(
     double& rValue)
 {
     if (rThisVariable == UNIAXIAL_STRESS_MATRIX) {
+        const SizeType voigt_size = GetStrainSize();
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        const Vector strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
+
         const auto &props = rParameterValues.GetMaterialProperties();
         const auto it_cl_begin = props.GetSubProperties().begin();
         const auto r_props_matrix_cl = *(it_cl_begin);
         rParameterValues.SetMaterialProperties(r_props_matrix_cl);
+        noalias(rParameterValues.GetStrainVector()) = matrix_strain_vector;
         mpMatrixConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+
+        // We reset the values
         rParameterValues.SetMaterialProperties(props);
+        noalias(rParameterValues.GetStrainVector()) = strain_vector;
         return rValue;
     } else if (rThisVariable == UNIAXIAL_STRESS_FIBER) {
+        const SizeType voigt_size = GetStrainSize();
+        Matrix parallel_projector, serial_projector;
+        this->CalculateSerialParallelProjectionMatrices(parallel_projector, serial_projector);
+        const Vector strain_vector = rParameterValues.GetStrainVector();
+        Vector matrix_strain_vector(voigt_size), fiber_strain_vector(voigt_size);
+        this->CalculateStrainsOnEachComponent(strain_vector, parallel_projector, serial_projector, mPreviousSerialStrainMatrix, matrix_strain_vector, fiber_strain_vector, rParameterValues);
+
         const auto &props = rParameterValues.GetMaterialProperties();
         const auto it_cl_begin = props.GetSubProperties().begin();
-        const auto r_props_fiber_cl  = *(it_cl_begin + 1);
+        const auto r_props_fiber_cl = *(it_cl_begin + 1);
         rParameterValues.SetMaterialProperties(r_props_fiber_cl);
+        noalias(rParameterValues.GetStrainVector()) = fiber_strain_vector;
         mpFiberConstitutiveLaw->CalculateValue(rParameterValues, UNIAXIAL_STRESS, rValue);
+
+        // We reset the values
         rParameterValues.SetMaterialProperties(props);
+        noalias(rParameterValues.GetStrainVector()) = strain_vector;
         return rValue;
     }
     return rValue;

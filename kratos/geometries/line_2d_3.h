@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -349,17 +349,8 @@ public:
     */
     double Length() const override
     {
-        Vector temp;
         const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(*this);
-        this->DeterminantOfJacobian( temp, integration_method );
-        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints( integration_method );
-        double length = 0.0;
-
-        for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
-            length += temp[i] * r_integration_points[i].Weight();
-        }
-
-        return length;
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
     /** This method calculate and return area or surface area of
@@ -784,25 +775,6 @@ public:
     }
 
     ///@}
-    ///@name Shape Function Integration Points Gradient
-    ///@{
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    ///@}
     ///@name Input and output
     ///@{
 
@@ -1175,7 +1147,6 @@ const GeometryData Line2D3<TPointType>::msGeometryData(
         AllShapeFunctionsLocalGradients() );
 
 template<class TPointType>
-const GeometryDimension Line2D3<TPointType>::msGeometryDimension(
-    2, 2, 1);
+const GeometryDimension Line2D3<TPointType>::msGeometryDimension(2, 1);
 
 }  // namespace Kratos.

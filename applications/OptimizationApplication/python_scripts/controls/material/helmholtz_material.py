@@ -28,6 +28,7 @@ class HelmholtzMaterial(MaterialControl):
                         "increase_fac" : 1.5,
                         "update_period" : 20
                     },
+                    "SIMP_power_fac": 3,
                     "initial_density":0.000001,
                     "youngs_modules": [], 
                     "physical_densities": [],

@@ -15,6 +15,7 @@
 #pragma once
 
 // System includes
+#include <type_traits>
 
 // External includes
 
@@ -22,9 +23,11 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/checks.h"
+#include "includes/global_variables.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/atomic_utilities.h"
 #include "utilities/reduction_utilities.h"
+
 namespace Kratos
 {
 ///@name Kratos Globals
@@ -115,15 +118,18 @@ public:
      * @param rDestinationVariable reference to the variable to be set
      * @param rOriginModelPart origin model part from where the values are retrieved
      * @param rDestinationModelPart destination model part to where the values are copied to
-     * @param BuffStep buffer step
+     * @param ReadBufferStep origin buffer step
+     * @param WriteBufferStep destination buffer step
+     *
      */
-    template< class TVarType >
+    template <class TVarType>
     void CopyModelPartNodalVar(
-        const TVarType& rVariable,
-        const TVarType& rDestinationVariable,
-        const ModelPart& rOriginModelPart,
-        ModelPart& rDestinationModelPart,
-        const unsigned int BuffStep = 0)
+        const TVarType &rVariable,
+        const TVarType &rDestinationVariable,
+        const ModelPart &rOriginModelPart,
+        ModelPart &rDestinationModelPart,
+        const unsigned int ReadBufferStep,
+        const unsigned int WriteBufferStep )
     {
         const int n_orig_nodes = rOriginModelPart.NumberOfNodes();
         const int n_dest_nodes = rDestinationModelPart.NumberOfNodes();
@@ -133,14 +139,35 @@ public:
             << "\n\t- Number of origin nodes: " << n_orig_nodes
             << "\n\t- Number of destination nodes: " << n_dest_nodes << std::endl;
 
-        IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index){
+        IndexPartition<std::size_t>(n_orig_nodes).for_each([&](std::size_t index)
+                                                           {
             auto it_dest_node = rDestinationModelPart.NodesBegin() + index;
             const auto it_orig_node = rOriginModelPart.NodesBegin() + index;
-            const auto& r_value = it_orig_node->GetSolutionStepValue(rVariable, BuffStep);
-            it_dest_node->FastGetSolutionStepValue(rDestinationVariable, BuffStep) = r_value;
-        });
+            const auto &r_value = it_orig_node->GetSolutionStepValue(rVariable, ReadBufferStep);
+            it_dest_node->FastGetSolutionStepValue(rDestinationVariable, WriteBufferStep) = r_value; });
 
         rDestinationModelPart.GetCommunicator().SynchronizeVariable(rDestinationVariable);
+    }
+
+    /**
+     * @brief Copies the nodal value of a variable from an origin model
+     * part nodes to the nodes in a destination model part. It is assumed that
+     * both origin and destination model parts have the same number of nodes.
+     * @param rVariable reference to the variable to get the value from
+     * @param rDestinationVariable reference to the variable to be set
+     * @param rOriginModelPart origin model part from where the values are retrieved
+     * @param rDestinationModelPart destination model part to where the values are copied to
+     * @param BuffStep buffer step
+     */
+    template <class TVarType>
+    void CopyModelPartNodalVar(
+        const TVarType &rVariable,
+        const TVarType &rDestinationVariable,
+        const ModelPart &rOriginModelPart,
+        ModelPart &rDestinationModelPart,
+        const unsigned int BuffStep = 0)
+    {
+        this->CopyModelPartNodalVar(rVariable, rDestinationVariable, rOriginModelPart, rDestinationModelPart, BuffStep, BuffStep);
     }
 
     /**
@@ -653,7 +680,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodes, [&](Node<3>& rNode) {
+        block_for_each(rNodes, [&](Node& rNode) {
             rNode.FastGetSolutionStepValue(rVariable, Step) = rValue;
         });
 
@@ -680,7 +707,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodes, [&](Node<3>& rNode){
+        block_for_each(rNodes, [&](Node& rNode){
             if(rNode.Is(Flag) == CheckValue){
                 rNode.FastGetSolutionStepValue(rVariable) = rValue;}
         });
@@ -943,7 +970,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+        block_for_each(rNodesContainer, [&](Node& rNode){
             rNode.SetValue(rSavedVariable, rNode.FastGetSolutionStepValue(rOriginVariable));
         });
 
@@ -994,7 +1021,7 @@ public:
     {
         KRATOS_TRY
 
-        block_for_each(rNodesContainer, [&](Node<3>& rNode){
+        block_for_each(rNodesContainer, [&](Node& rNode){
             rNode.FastGetSolutionStepValue(rDestinationVariable) = rNode.FastGetSolutionStepValue(rOriginVariable);
         });
 
@@ -1008,7 +1035,7 @@ public:
      * @param rOriginNodes Reference to the objective node set
      * @return selected_nodes: List of filtered nodes
      */
-    NodesContainerType SelectNodeList(
+    [[nodiscard]] NodesContainerType SelectNodeList(
         const DoubleVarType& Variable,
         const double Value,
         const NodesContainerType& rOriginNodes
@@ -1064,11 +1091,11 @@ public:
             CheckVariableExists(rVar, rNodes);
 
             if (IsFixed) {
-                block_for_each(rNodes,[&](Node<3>& rNode){
+                block_for_each(rNodes,[&](Node& rNode){
                     rNode.pGetDof(rVar)->FixDof();
                 });
             } else {
-                block_for_each(rNodes,[&](Node<3>& rNode){
+                block_for_each(rNodes,[&](Node& rNode){
                     rNode.pGetDof(rVar)->FreeDof();
                 });
             }
@@ -1119,20 +1146,18 @@ public:
             CheckVariableExists(rVariable, rNodes);
 
             if (IsFixed) {
-                BlockPartition<NodesContainerType>(rNodes).for_each(
-                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
-                        if (rNode.Is(rFlag) == CheckValue) {
-                            rNode.pGetDof(rVariable)->FixDof();
-                        }
-                    });
+                block_for_each(rNodes, [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                    if (rNode.Is(rFlag) == CheckValue) {
+                        rNode.pGetDof(rVariable)->FixDof();
+                    }
+                });
             }
             else {
-                BlockPartition<NodesContainerType>(rNodes).for_each(
-                    [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
-                        if (rNode.Is(rFlag) == CheckValue) {
-                            rNode.pGetDof(rVariable)->FreeDof();
-                        }
-                    });
+                block_for_each(rNodes, [&rVariable, &rFlag, CheckValue](NodeType& rNode) {
+                    if (rNode.Is(rFlag) == CheckValue) {
+                        rNode.pGetDof(rVariable)->FreeDof();
+                    }
+                });
             }
         }
 
@@ -1178,7 +1203,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective node set
      * @return sum_value: summation vector result
      */
-    array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
+    [[nodiscard]] array_1d<double, 3> SumNonHistoricalNodeVectorVariable(
         const ArrayVarType& rVar,
         const ModelPart& rModelPart
         );
@@ -1190,7 +1215,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumNonHistoricalNodeScalarVariable(
+    [[nodiscard]] double SumNonHistoricalNodeScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1204,7 +1229,7 @@ public:
         const auto& r_local_mesh = r_communicator.LocalMesh();
         const auto& r_nodes_array = r_local_mesh.Nodes();
 
-        sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node<3>& rNode){
+        sum_value = block_for_each<SumReduction<double>>(r_nodes_array, [&](Node& rNode){
             return rNode.GetValue(rVar);
         });
 
@@ -1225,7 +1250,7 @@ public:
      * @return TDataType Value of the summation
      */
     template< class TDataType, class TVarType = Variable<TDataType> >
-    TDataType SumHistoricalVariable(
+    [[nodiscard]] TDataType SumHistoricalVariable(
         const TVarType &rVariable,
         const ModelPart &rModelPart,
         const unsigned int BuffStep = 0
@@ -1235,7 +1260,7 @@ public:
 
         const auto &r_communicator = rModelPart.GetCommunicator();
 
-        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node<3>& rNode){
+        TDataType sum_value = block_for_each<SumReduction<TDataType>>(r_communicator.LocalMesh().Nodes(),[&](Node& rNode){
             return rNode.GetSolutionStepValue(rVariable, BuffStep);
         });
 
@@ -1251,7 +1276,7 @@ public:
      * @param rModelPart reference to the model part that contains the objective condition set
      * @return sum_value: summation result
      */
-    array_1d<double, 3> SumConditionVectorVariable(
+    [[nodiscard]] array_1d<double, 3> SumConditionVectorVariable(
         const ArrayVarType& rVar,
         const ModelPart& rModelPart
         );
@@ -1263,7 +1288,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumConditionScalarVariable(
+    [[nodiscard]] double SumConditionScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1304,7 +1329,7 @@ public:
      * @return sum_value: summation result
      */
     template< class TVarType >
-    double SumElementScalarVariable(
+    [[nodiscard]] double SumElementScalarVariable(
         const TVarType& rVar,
         const ModelPart& rModelPart
         )
@@ -1346,7 +1371,7 @@ public:
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar);
 
-        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(),[&](Node& rNode){
             rNode.AddDof(rVar);
         });
 
@@ -1381,7 +1406,7 @@ public:
 
         rModelPart.GetNodalSolutionStepVariablesList().AddDof(&rVar, &rReactionVar);
 
-        block_for_each(rModelPart.Nodes(),[&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(),[&](Node& rNode){
             rNode.AddDof(rVar,rReactionVar);
         });
 
@@ -1452,7 +1477,8 @@ public:
      * @param rNodes array of nodes from which coordinates will be extracted
      * @param Dimension number of desired components
      */
-    Vector GetCurrentPositionsVector(
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetCurrentPositionsVector(
         const ModelPart::NodesContainerType& rNodes,
         const unsigned int Dimension
         );
@@ -1468,7 +1494,8 @@ public:
      * @param rNodes array of nodes from which coordinates will be extracted
      * @param Dimension number of desired components
      */
-    Vector GetInitialPositionsVector(
+    template<class TVectorType=Vector>
+    [[nodiscard]] TVectorType GetInitialPositionsVector(
         const ModelPart::NodesContainerType& rNodes,
         const unsigned int Dimension
         );
@@ -1507,6 +1534,120 @@ public:
         const Vector& rPositions
         );
 
+    /// @brief Check whether a @ref Node, @ref Element, @ref Condition, @ref ProcessInfo, or @ref ModelPart stores a value for the provided @ref Variable.
+    /// @param rEntity @ref Node, @ref Element, @ref Condition, @ref ProcessInfo, or @ref ModelPart to check.
+    /// @param rVariable to check.
+    template <Globals::DataLocation TLocation, class TEntity, class TValue>
+    static bool HasValue(const TEntity& rEntity, const Variable<TValue>& rVariable)
+    {
+        if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
+            static_assert(std::is_same_v<TEntity,Node>);
+            return rEntity.SolutionStepsDataHas(rVariable);
+        } else {
+            static_assert(std::is_same_v<TEntity,Node>
+                          || std::is_same_v<TEntity,Element>
+                          || std::is_same_v<TEntity,Condition>
+                          || std::is_same_v<TEntity,ProcessInfo>
+                          || std::is_same_v<TEntity,ModelPart>);
+            return rEntity.Has(rVariable);
+        }
+    }
+
+    /// @brief Fetch the value of a variable stored in an entity.
+    /// @param rEntity @ref Node, @ref Element, @ref Condition, @ref ProcessInfo, or @ref ModelPart to fetch data from.
+    /// @param rVariable @ref Variable to fetch the value of.
+    template <Globals::DataLocation TLocation, class TEntity, class TValue>
+    static std::conditional_t<std::is_arithmetic_v<TValue>,
+                              TValue,             // <== return by value if scalar type
+                              const TValue&>      // <== return by reference if non-scalar type
+    GetValue(const TEntity& rEntity, const Variable<TValue>& rVariable)
+    {
+        if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
+            static_assert(std::is_same_v<TEntity,Node>);
+            return rEntity.FastGetSolutionStepValue(rVariable);
+        } else if constexpr (TLocation == Globals::DataLocation::NodeNonHistorical) {
+            static_assert(std::is_same_v<TEntity,Node>);
+            return rEntity.GetValue(rVariable);
+        } else if constexpr (TLocation == Globals::DataLocation::Element) {
+            static_assert(std::is_same_v<TEntity,Element>);
+            return rEntity.GetValue(rVariable);
+        } else if constexpr (TLocation == Globals::DataLocation::Condition) {
+            static_assert(std::is_same_v<TEntity,Condition>);
+            return rEntity.GetValue(rVariable);
+        } else if constexpr (TLocation == Globals::DataLocation::ProcessInfo) {
+            static_assert(std::is_same_v<TEntity,ProcessInfo>);
+            return rEntity.GetValue(rVariable);
+        } else if constexpr (TLocation == Globals::DataLocation::ModelPart) {
+            static_assert(std::is_same_v<TEntity,ModelPart>);
+            return rEntity.GetValue(rVariable);
+        } else {
+            static_assert(std::is_same_v<TEntity,void>, "Unsupported DataLocation");
+        }
+    }
+
+    /// @brief Fetch the value of a variable stored in an entity.
+    /// @param rEntity @ref Node, @ref Element, @ref Condition, @ref ProcessInfo, or @ref ModelPart to fetch data from.
+    /// @param rVariable @ref Variable to fetch the value of.
+    template <Globals::DataLocation TLocation, class TEntity, class TValue>
+    static TValue& GetValue(TEntity& rEntity, const Variable<TValue>& rVariable)
+    {
+        if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
+            static_assert(std::is_same_v<TEntity,Node>);
+            return rEntity.FastGetSolutionStepValue(rVariable);
+        } else if constexpr (TLocation == Globals::DataLocation::NodeNonHistorical) {
+            static_assert(std::is_same_v<TEntity,Node>);
+            return rEntity.GetValue(rVariable);
+        } else if constexpr (TLocation == Globals::DataLocation::Element) {
+            static_assert(std::is_same_v<TEntity,Element>);
+            return rEntity.GetValue(rVariable);
+        } else if constexpr (TLocation == Globals::DataLocation::Condition) {
+            static_assert(std::is_same_v<TEntity,Condition>);
+            return rEntity.GetValue(rVariable);
+        } else if constexpr (TLocation == Globals::DataLocation::ProcessInfo) {
+            static_assert(std::is_same_v<TEntity,ProcessInfo>);
+            return rEntity.GetValue(rVariable);
+        } else if constexpr (TLocation == Globals::DataLocation::ModelPart) {
+            static_assert(std::is_same_v<TEntity,ModelPart>);
+            return rEntity.GetValue(rVariable);
+        } else {
+            static_assert(std::is_same_v<TEntity,void>, "Unsupported DataLocation");
+        }
+    }
+
+    /// @brief Overwrite the value of a variable stored in an entity.
+    /// @param rEntity @ref Node, @ref Element, @ref Condition, @ref ProcessInfo, or @ref ModelPart to set the value of.
+    /// @param rVariable @ref Variable to overwrite the value of.
+    /// @param Value new value of @a rVariable to set in @a rEntity.
+    template <Globals::DataLocation TLocation, class TEntity, class TValue>
+    static void SetValue(TEntity& rEntity,
+                         const Variable<TValue>& rVariable,
+                         std::conditional_t<std::is_arithmetic_v<TValue>,
+                                            TValue,         /*pass scalar types by value*/
+                                            const TValue&>  /*pass non-scalar types by reference*/ Value)
+    {
+        if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
+            static_assert(std::is_same_v<TEntity,Node>);
+            rEntity.FastGetSolutionStepValue(rVariable) = Value;
+        } else if constexpr (TLocation == Globals::DataLocation::NodeNonHistorical) {
+            static_assert(std::is_same_v<TEntity,Node>);
+            rEntity.SetValue(rVariable, Value);
+        } else if constexpr (TLocation == Globals::DataLocation::Element) {
+            static_assert(std::is_same_v<TEntity,Element>);
+            rEntity.SetValue(rVariable, Value);
+        } else if constexpr (TLocation == Globals::DataLocation::Condition) {
+            static_assert(std::is_same_v<TEntity,Condition>);
+            rEntity.SetValue(rVariable, Value);
+        } else if constexpr (TLocation == Globals::DataLocation::ProcessInfo) {
+            static_assert(std::is_same_v<TEntity,ProcessInfo>);
+            rEntity.SetValue(rVariable, Value);
+        } else if constexpr (TLocation == Globals::DataLocation::ModelPart) {
+            static_assert(std::is_same_v<TEntity,ModelPart>);
+            rEntity.SetValue(rVariable, Value);
+        } else {
+            static_assert(std::is_same_v<TEntity,void>, "Unsupported DataLocation");
+        }
+    }
+
     /**
      * @brief This function allows getting the database entries corresponding to rVar contained on all rNodes
      * flattened so that the components of interest appear in the output vector.
@@ -1518,7 +1659,7 @@ public:
      * @param Step step in the database
      * @param Dimension number of components in output
      */
-    Vector GetSolutionStepValuesVector(
+    [[nodiscard]] Vector GetSolutionStepValuesVector(
                                 const ModelPart::NodesContainerType& rNodes,
                                 const Variable<array_1d<double,3>>& rVar,
                                 const unsigned int Step,
@@ -1535,7 +1676,7 @@ public:
      * @param rVar the variable being addressed
      * @param Step step in the database
      */
-    Vector GetSolutionStepValuesVector(
+    [[nodiscard]] Vector GetSolutionStepValuesVector(
                                 const ModelPart::NodesContainerType& rNodes,
                                 const Variable<double>& rVar,
                                 const unsigned int Step
@@ -1585,7 +1726,7 @@ public:
      * @param Step step in the database
      * @param Dimension number of components in output
      */
-    Vector GetValuesVector(
+    [[nodiscard]] Vector GetValuesVector(
         const ModelPart::NodesContainerType& rNodes,
         const Variable<array_1d<double,3>>& rVar,
         const unsigned int Dimension=3
@@ -1602,7 +1743,7 @@ public:
      * @param rVar the variable being addressed
      * @param Step step in the database
      */
-    Vector GetValuesVector(
+    [[nodiscard]] Vector GetValuesVector(
         const ModelPart::NodesContainerType& rNodes,
         const Variable<double>& rVar
         );
@@ -1697,10 +1838,10 @@ private:
     }
 
     template <class TContainerType>
-    TContainerType& GetContainer(ModelPart& rModelPart);
+    [[nodiscard]] TContainerType& GetContainer(ModelPart& rModelPart);
 
     template <class TContainerType>
-    const TContainerType& GetContainer(const ModelPart& rModelPart);
+    [[nodiscard]] const TContainerType& GetContainer(const ModelPart& rModelPart);
 
     template<class TDataType>
     static void AuxiliaryHistoricalValueSetter(

@@ -204,7 +204,6 @@ bool ParallelRuleOfMixturesLaw<TDim>::Has(const Variable<double>& rThisVariable)
 {
     // At least one layer should have the value
     bool has = false;
-
     for (auto& p_law : mConstitutiveLaws) {
         if (p_law->Has(rThisVariable)) {
             has = true;
@@ -344,20 +343,17 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
 {
     // We combine the values of the layers
     rValue = 0.0;
-    SizeType counter = 0;
     double aux_value;
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+        const double factor = mCombinationFactors[i_layer];
 
         // we average over the layers
         if (p_law->Has(rThisVariable)) {
             p_law->GetValue(rThisVariable, aux_value);
-            rValue += aux_value;
-            counter++;
+            rValue += aux_value * factor;
         }
     }
-    if (counter != 0)
-        rValue /= counter;
     return rValue;
 }
 
@@ -371,14 +367,17 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     )
 {
     // We combine the values of the layers
+    rValue.resize(VoigtSize, false);
     rValue.clear();
+    Vector aux_value;
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
         const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 
-        Vector aux_value;
-        p_law->GetValue(rThisVariable, aux_value);
-        rValue += aux_value * factor;
+        if (p_law->Has(rThisVariable)) {
+            p_law->GetValue(rThisVariable, aux_value);
+            rValue += aux_value * factor;
+        }
     }
 
     return rValue;
@@ -578,19 +577,30 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     )
 {
     const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+    const Vector strain_vector = rParameterValues.GetStrainVector();
+    BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
     // We combine the value of each layer
     rValue = 0.0;
+    double aux_value = 0.0;
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
     for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+        this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
         const double factor = mCombinationFactors[i_layer];
         ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-        Properties& r_prop = *(it_prop_begin + i_layer);
 
+        Properties& r_prop = *(it_prop_begin + i_layer);
         rParameterValues.SetMaterialProperties(r_prop);
-        double aux_value;
-        p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+
+        // We rotate to local axes the strain
+        noalias(rParameterValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+
+        aux_value = 0.0;
+        p_law->CalculateValue(rParameterValues, rThisVariable, aux_value);
         rValue += factor * aux_value;
+
+        // We reset the strain to its original global axes
+        noalias(rParameterValues.GetStrainVector()) = strain_vector;
     }
 
     // Reset properties
@@ -670,24 +680,39 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         r_flags.Set( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, flag_const_tensor );
         r_flags.Set( ConstitutiveLaw::COMPUTE_STRESS, flag_stress );
     } else {
+        if (rThisVariable != DELAMINATION_DAMAGE_VECTOR_MODE_ONE && rThisVariable != DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
         const Properties& r_material_properties  = rParameterValues.GetMaterialProperties();
+        const Vector strain_vector = rParameterValues.GetStrainVector();
 
         // We combine the value of each layer
+        rValue.resize(VoigtSize, false);
         rValue.clear();
+        BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
         for (IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer) {
+            this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
             const double factor = mCombinationFactors[i_layer];
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
             Properties& r_prop = *(it_prop_begin + i_layer);
 
+            // We rotate to local axes the strain
+            noalias(rParameterValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+
             rParameterValues.SetMaterialProperties(r_prop);
             Vector aux_value;
             p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
+
+            // we return the aux_value to the global coordinates
+            aux_value = prod(trans(voigt_rotation_matrix), aux_value);
+
             noalias(rValue) += factor * aux_value;
+
+            noalias(rParameterValues.GetStrainVector()) = strain_vector;
         }
 
         // Reset properties
         rParameterValues.SetMaterialProperties(r_material_properties);
+        }
     }
 
     return( rValue );

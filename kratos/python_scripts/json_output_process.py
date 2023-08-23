@@ -57,7 +57,7 @@ class JsonOutputProcess(KratosMultiphysics.Process):
         self.time_counter = 0.0
 
     def ExecuteInitialize(self):
-        """ This method is executed at the begining to initialize the process
+        """ This method is executed at the beginning to initialize the process
 
         Keyword arguments:
         self -- It signifies an instance of a class.

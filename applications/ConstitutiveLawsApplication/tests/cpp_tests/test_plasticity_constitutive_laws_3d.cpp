@@ -56,7 +56,7 @@ namespace Kratos
 namespace Testing
 {
 // We test the associated plasticity Constitutive laws...
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawIntegrateStressPlasticitySmallStrainInternalVariables, KratosConstitutiveLawsFastSuite)
 {

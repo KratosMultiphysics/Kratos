@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Ruben Zorrilla
 //
 
-#ifndef KRATOS_NAVIER_STOKES_WALL_CONDITION_H
-#define KRATOS_NAVIER_STOKES_WALL_CONDITION_H
+#pragma once
 
 // System includes
 #include <string>
@@ -30,12 +29,10 @@
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
-#include "includes/deprecated_variables.h"
-#include "includes/cfd_variables.h"
-#include "custom_utilities/fluid_element_utilities.h"
 
 namespace Kratos
 {
+
 ///@addtogroup FluidDynamicsApplication
 ///@{
 
@@ -58,14 +55,19 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/// Implements a wall condition for the Navier-Stokes monolithic formulation.
 /**
-  It is intended to be used in combination with ASGS Navier-Stokes symbolic elements or their
-  derived classes and the ResidualBasedIncrementalUpdateStaticSchemeSlip time scheme, which supports
-  slip conditions.
-  @see NavierStokes,EmbeddedNavierStokes,ResidualBasedIncrementalUpdateStaticSchemeSlip
+ * @brief Implements a wall condition for the Navier-Stokes (and Stokes) monolithic formulations
+ * This condition is intended to be used in combination with Navier-Stokes (or Stokes) monolithic
+ * formulations. It supports the Neumann BC contribution as well as the addition of a wall law
+ * contribution through the TWallModel template argument. Such TWallModel must be a class implementing
+ * the wall model RHS and LHS Gauss point contributions (as example see @NavierSlipWallLaw).
+ * Current condition also has optional features that help numerical stability such as the outlet
+ * inflow energy correction or the spurious tangential velocity correction for pure slip boundaries.
+ * @tparam TDim Number of dimensions
+ * @tparam TNumNodes Number of nodes
+ * @tparam TWallModel Optional class implementing a LHS and RHS wall contribution
  */
-template< unsigned int TDim, unsigned int TNumNodes = TDim >
+template<unsigned int TDim, unsigned int TNumNodes, class... TWallModel>
 class KRATOS_API(FLUID_DYNAMICS_APPLICATION) NavierStokesWallCondition : public Condition
 {
 public:
@@ -89,7 +91,7 @@ public:
 
     using Condition::SizeType;
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 
@@ -255,20 +257,25 @@ public:
      */
     int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
-
-    /// Provides the global indices for each one of this element's local rows.
-    /** This determines the elemental equation ID vector for all elemental DOFs
-     * @param rResult A vector containing the global Id of each row
-     * @param rCurrentProcessInfo the current process info object (unused)
-     */
-    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
-
-    /// Returns a list of the element's Dofs
     /**
-     * @param ElementalDofList the list of DOFs
-     * @param rCurrentProcessInfo the current process info instance
+     * @brief Provides the global indices for each one of this condition's local rows
+     * This determines the elemental equation ID vector for all elemental DOFs
+     * @param rResult Reference to the vector containing the global Id of each row
+     * @param rCurrentProcessInfo Reference to the current ProcessInfo container
      */
-    void GetDofList(DofsVectorType& ConditionDofList, const ProcessInfo& CurrentProcessInfo) const override;
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override;
+
+    /**
+     * @brief Returns a list of the element's Dofs
+     *
+     * @param rConditionDofList Reference to the DOF pointers list
+     * @param CurrentProcessInfo Reference to the current ProcessInfo container
+     */
+    void GetDofList(
+        DofsVectorType& rConditionDofList,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     void Calculate(
         const Variable< array_1d<double,3> >& rVariable,
@@ -333,19 +340,52 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    void CalculateNormal(array_1d<double,3>& An);
+    /**
+     * @brief Calculate the condition area normal
+     * This method calculates the current condition area normal
+     * @param rAreaNormal Reference to the current condition area normal
+     */
+    void CalculateNormal(array_1d<double,3>& rAreaNormal);
 
+    /**
+     * @brief Calculates the Gauss point LHS contribution
+     * This method calculates the current Gauss point LHS contribution and saves it
+     * in the provided array. Note that the input data container is expected to
+     * already contain the data at the Gauss point of interest.
+     * @param rLHS Reference to the LHS output matrix
+     * @param rData Condition data container
+     * @param rProcessInfo Reference to the ProcessInfo container
+     */
     void ComputeGaussPointLHSContribution(
         BoundedMatrix<double, LocalSize, LocalSize>& rLHS,
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
 
+    /**
+     * @brief Calculates the Gauss point RHS contribution
+     * This method calculates the current Gauss point RHS contribution and saves it
+     * in the provided array. Note that the input data container is expected to
+     * already contain the data at the Gauss point of interest.
+     * @param rLHS Reference to the RHS output vector
+     * @param rData Condition data container
+     * @param rProcessInfo Reference to the ProcessInfo container
+     */
     void ComputeGaussPointRHSContribution(
         array_1d<double, LocalSize>& rRHS,
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
 
-    void ComputeRHSNeumannContribution(array_1d<double,TNumNodes*(TDim+1)>& rhs, const ConditionDataStruct& data);
+    /**
+     * @brief Calculates the RHS Neumann BC contribution
+     * This method calculates the Neumann BC pressure flux contribution
+     * Note that the Neumann BC value is expected to be stored in the historical
+     * database within the EXTERNAL_PRESSURE variable.
+     * @param rRHS Reference to the RHS output vector
+     * @param data Condition data container
+     */
+    void ComputeRHSNeumannContribution(
+        array_1d<double,LocalSize>& rRHS,
+        const ConditionDataStruct& data);
 
     /**
      * @brief Calculates and adds the RHS outlet inflow prevention contribution
@@ -360,32 +400,6 @@ protected:
         array_1d<double, LocalSize>& rRHS,
         const ConditionDataStruct& rData,
         const ProcessInfo& rProcessInfo);
-
-    /**
-     * @brief Computes the right-hand side of the Navier slip contribution as e.g. described in BEHR2004
-     * The (Navier) slip length is read as a nodal variable.
-     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-     * Though only tangential velocities should appear, a tangetial projection is added.
-     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
-     * @param rRightHandSideVector reference to the RHS vector
-     * @param rDataStruct reference to a struct to hand over data
-     */
-    virtual void ComputeGaussPointNavierSlipRHSContribution(
-        array_1d<double, TNumNodes*(TDim+1)>& rRightHandSideVector,
-        const ConditionDataStruct& rDataStruct );
-
-    /**
-     * @brief Computes the left-hand side of the Navier slip contribution as e.g. described in BEHR2004
-     * The (Navier) slip length is read as a nodal variable.
-     * If a smaller value is set, tangential velocities lead to a higher tangential traction.
-     * Though only tangential velocities should appear, a tangetial projection is added.
-     * (Reference BEHR2004: https://onlinelibrary.wiley.com/doi/abs/10.1002/fld.663)
-     * @param rLeftHandSideMatrix reference to the LHS matrix
-     * @param rDataStruct reference to a struct to hand over data
-     */
-    virtual void ComputeGaussPointNavierSlipLHSContribution(
-        BoundedMatrix<double, TNumNodes*(TDim+1),TNumNodes*(TDim+1)>& rLeftHandSideMatrix,
-        const ConditionDataStruct& rDataStruct);
 
     ///@}
     ///@name Protected  Access
@@ -494,6 +508,37 @@ private:
         }
     }
 
+    template<typename TWallModelType>
+    int WallModelCheckCall(const ProcessInfo& rProcessInfo) const
+    {
+        return TWallModelType::Check(this, rProcessInfo);
+    }
+
+    template<typename TWallModelType>
+    void AddWallModelRightHandSideCall(
+        VectorType& rRHS,
+        const ProcessInfo& rProcessInfo)
+    {
+        TWallModelType::AddWallModelRightHandSide(rRHS, this, rProcessInfo);
+    }
+
+    template<typename TWallModelType>
+    void AddWallModelLeftHandSideCall(
+        MatrixType& rLHS,
+        const ProcessInfo& rProcessInfo)
+    {
+        TWallModelType::AddWallModelLeftHandSide(rLHS, this, rProcessInfo);
+    }
+
+    template<typename TWallModelType>
+    void AddWallModelLocalSystemCall(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const ProcessInfo& rProcessInfo)
+    {
+        TWallModelType::AddWallModelLocalSystem(rLHS, rRHS, this, rProcessInfo);
+    }
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -526,15 +571,15 @@ private:
 
 
 /// input stream function
-template< unsigned int TDim, unsigned int TNumNodes >
-inline std::istream& operator >> (std::istream& rIStream, NavierStokesWallCondition<TDim,TNumNodes>& rThis)
+template< unsigned int TDim, unsigned int TNumNodes, class TWallModel >
+inline std::istream& operator >> (std::istream& rIStream, NavierStokesWallCondition<TDim,TNumNodes,TWallModel>& rThis)
 {
     return rIStream;
 }
 
 /// output stream function
-template< unsigned int TDim, unsigned int TNumNodes >
-inline std::ostream& operator << (std::ostream& rOStream, const NavierStokesWallCondition<TDim,TNumNodes>& rThis)
+template< unsigned int TDim, unsigned int TNumNodes, class TWallModel >
+inline std::ostream& operator << (std::ostream& rOStream, const NavierStokesWallCondition<TDim,TNumNodes,TWallModel>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
@@ -549,5 +594,3 @@ inline std::ostream& operator << (std::ostream& rOStream, const NavierStokesWall
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NAVIER_STOKES_WALL_CONDITION_H

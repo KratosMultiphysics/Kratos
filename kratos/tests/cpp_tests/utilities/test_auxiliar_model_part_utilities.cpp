@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:   BSD License
-//      Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -24,8 +24,9 @@
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/cpp_tests_utilities.h"
 
-namespace Kratos {
-namespace Testing {
+namespace Kratos::Testing {
+
+using DataLocation = Globals::DataLocation;
 
 /******************************************************************************************/
 /* Helper Functions */
@@ -229,6 +230,56 @@ auto PostComputeSetData(const DataLocation DataLoc, ModelPart& this_model_part, 
         return output_values;
 }
 
+KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_RemoveNodesFromSubModePartsWithoutCorrespondingEntities, KratosCoreFastSuite)
+{
+    Model current_model;
+    ModelPart& r_model_part = current_model.CreateModelPart("Main");
+    Initialize(r_model_part);
+    auto& r_sub = r_model_part.CreateSubModelPart("SubModelPart");
+    r_sub.CreateSubModelPart("SubSubModel");
+
+    r_sub.AddNode(r_model_part.pGetNode(1));
+    r_sub.AddNode(r_model_part.pGetNode(2));
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 2);
+
+    auto utilities = AuxiliarModelPartUtilities(r_model_part);
+    utilities.RemoveOrphanNodesFromSubModelParts();
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 0);
+
+    r_sub.AddNode(r_model_part.pGetNode(1));
+    r_sub.AddNode(r_model_part.pGetNode(2));
+    r_sub.AddNode(r_model_part.pGetNode(3));
+    r_sub.AddNode(r_model_part.pGetNode(4));
+    r_sub.AddElement(r_model_part.pGetElement(1));
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 4);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 0);
+
+    utilities.RemoveOrphanNodesFromSubModelParts();
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 1);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 0);
+
+    // Replace element by geometry
+    r_sub.AddNode(r_model_part.pGetNode(4));
+    r_sub.AddGeometry(r_model_part.pGetElement(1)->pGetGeometry());
+    r_sub.RemoveElement(1);
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 4);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 0);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1);
+
+    utilities.RemoveOrphanNodesFromSubModelParts();
+
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 3);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 0);
+    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1);
+}
+
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_CopySubModelPartStructure, KratosCoreFastSuite)
 {
     Model current_model;
@@ -263,7 +314,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     Properties::Pointer p_prop = r_origin_model_part.CreateNewProperties(0);
     p_prop->SetValue(DENSITY, 1.0);
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     // First we create the nodes
     auto p_node_1 = r_origin_model_part.CreateNewNode(1, 0.0 , 0.0 , 0.00);
@@ -755,5 +806,4 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_ProcessInfo, 
     KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
-} // namespace Testing
-} // namespace Kratos.
+} // namespace Kratos::Testing.

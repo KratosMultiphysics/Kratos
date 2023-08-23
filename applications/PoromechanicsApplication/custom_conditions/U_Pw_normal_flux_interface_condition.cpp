@@ -50,10 +50,10 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
         NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
     }
     BoundedMatrix<double,TDim,TDim> RotationMatrix;
-    const double& MinimumJointWidth = this->GetProperties()[MINIMUM_JOINT_WIDTH];
+    const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
     bool ComputeJointWidth;
     double JointWidth;
-    this->CheckJointWidth(JointWidth,ComputeJointWidth,RotationMatrix,MinimumJointWidth,Geom);
+    this->CheckJointWidth(JointWidth,ComputeJointWidth,RotationMatrix,InitialJointWidth,Geom);
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> LocalRelDispVector;
     array_1d<double,TDim> RelDispVector;
@@ -79,7 +79,7 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
         {
             //Compute Nu Matrix and Joint Width
             InterfaceElementUtilities::CalculateNuMatrix(Nu,NContainer,GPoint);
-            this->CalculateJointWidth(JointWidth, Nu, DisplacementVector, RelDispVector, RotationMatrix, LocalRelDispVector, MinimumJointWidth,GPoint);
+            this->CalculateJointWidth(JointWidth, Nu, DisplacementVector, RelDispVector, RotationMatrix, LocalRelDispVector, InitialJointWidth,GPoint);
         }
         
         //Compute weighting coefficient for integration

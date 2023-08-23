@@ -177,9 +177,9 @@ public:
     typedef Kratos::intrusive_ptr<PrimalElement> Pointer;
     typedef Kratos::unique_ptr<PrimalElement> UniquePointer;
 
-    static Pointer CreateEntity(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
+    static Pointer CreateEntity(Node::Pointer pNode1, Node::Pointer pNode2)
     {
-        auto nodes = PointerVector<Node<3>>{};
+        auto nodes = PointerVector<Node>{};
         nodes.push_back(pNode1);
         nodes.push_back(pNode2);
         return Kratos::make_intrusive<PrimalElement>(nodes);
@@ -281,9 +281,9 @@ public:
     typedef Kratos::intrusive_ptr<PrimalCondition> Pointer;
     typedef Kratos::unique_ptr<PrimalCondition> UniquePointer;
 
-    static Pointer CreateEntity(Node<3>::Pointer pNode1)
+    static Pointer CreateEntity(Node::Pointer pNode1)
     {
-        auto nodes = PointerVector<Node<3>>{};
+        auto nodes = PointerVector<Node>{};
         nodes.push_back(pNode1);
         return Kratos::make_intrusive<PrimalCondition>(nodes);
     }
@@ -441,9 +441,9 @@ public:
     typedef Kratos::unique_ptr<AdjointElement> UniquePointer;
 
 
-    static Pointer CreateEntity(Node<3>::Pointer pNode1, Node<3>::Pointer pNode2)
+    static Pointer CreateEntity(Node::Pointer pNode1, Node::Pointer pNode2)
     {
-        auto nodes = PointerVector<Node<3>>{};
+        auto nodes = PointerVector<Node>{};
         nodes.push_back(pNode1);
         nodes.push_back(pNode2);
         return Kratos::make_intrusive<AdjointElement>(nodes);
@@ -622,9 +622,9 @@ public:
     typedef Kratos::unique_ptr<AdjointCondition> UniquePointer;
 
 
-    static Pointer CreateEntity(Node<3>::Pointer pNode1)
+    static Pointer CreateEntity(Node::Pointer pNode1)
     {
-        auto nodes = PointerVector<Node<3>>{};
+        auto nodes = PointerVector<Node>{};
         nodes.push_back(pNode1);
         return Kratos::make_intrusive<AdjointCondition>(nodes);
     }

@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl
 //
@@ -57,7 +57,7 @@ namespace Kratos
  * @details Implements Sobolev/Helmholtz filter for optimization and regularization. This works for arbitrary geometries in 3D
  * @author Reza Najian Asl
  */
-class HelmholtzBulkElement
+class KRATOS_API(OPTIMIZATION_APPLICATION) HelmholtzBulkElement
     : public Element
 {
 public:

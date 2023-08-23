@@ -34,19 +34,6 @@ namespace Kratos
     typedef std::size_t IndexType;
 
 ///@}
-///@name  Enum's
-///@{
-
-enum class DataLocation {
-    NodeHistorical,
-    NodeNonHistorical,
-    Element,
-    Condition,
-    ModelPart,
-    ProcessInfo
-};
-
-///@}
 ///@name  Functions
 ///@{
 
@@ -65,6 +52,8 @@ public:
 
     /// Counted pointer of AuxiliarModelPartUtilities
     KRATOS_CLASS_POINTER_DEFINITION( AuxiliarModelPartUtilities );
+
+    using DataLocation = Globals::DataLocation;
 
     ///@}
     ///@name Life Cycle
@@ -289,6 +278,10 @@ public:
      */
     void RemoveConditionsAndBelongingsFromAllLevels(const Flags IdentifierFlag = TO_ERASE);
 
+    /**
+     * @brief This method removed nodes from submodelparts not contained neither in the elements or conditions
+     */
+    void RemoveOrphanNodesFromSubModelParts();
 
     /// To Export a Scalar data (Double/int/...)
     template<class TContainerType>
@@ -605,7 +598,7 @@ public:
         ModelPart& rModelPart,
         TClassContainer& rEntities,
         TReferenceClassContainer& rReferenceEntities,
-        std::unordered_map<Geometry<Node<3>>::Pointer,Geometry<Node<3>>::Pointer>& rGeometryPointerDatabase
+        std::unordered_map<Geometry<Node>::Pointer,Geometry<Node>::Pointer>& rGeometryPointerDatabase
         )
     {
         KRATOS_TRY
@@ -647,36 +640,6 @@ public:
     {
         rOStream << Info() << std::endl;
     }
-
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
 
 private:
     ///@name Static Member Variables

@@ -27,7 +27,7 @@
 
 namespace CSharpKratosWrapper {
 
-    using NodeType = Kratos::Node<3>;
+    using NodeType = Kratos::Node;
     using ModelPart = Kratos::ModelPart;
 
     class KratosWrapper {

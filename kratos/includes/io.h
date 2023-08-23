@@ -72,7 +72,7 @@ public:
     KRATOS_DEFINE_LOCAL_FLAG( MESH_ONLY );
     KRATOS_DEFINE_LOCAL_FLAG( SCIENTIFIC_PRECISION );
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType> GeometryType;
 
@@ -382,9 +382,26 @@ public:
      * @brief This method writes the mesh
      * @param rThisMesh The mesh to be written
      */
+    KRATOS_DEPRECATED_MESSAGE("'WriteMesh' with a non-const Mesh as input is deprecated. Please use the version of this function that accepts a const Mesh instead.")
     virtual void WriteMesh( MeshType& rThisMesh )
     {
         KRATOS_ERROR << "Calling base class method (WriteMesh). Please check the implementation of derived classes" << std::endl;
+    }
+
+    /**
+     * @brief This method writes the mesh
+     * @param rThisMesh The mesh to be written
+     */
+    virtual void WriteMesh(const MeshType& rThisMesh )
+    {
+        // legacy for backward compatibility
+        MeshType& non_const_mesh = const_cast<MeshType&>(rThisMesh);
+        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
+        this->WriteMesh(non_const_mesh);
+        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+
+        // activate this error once the legacy code is removed
+        // KRATOS_ERROR << "Calling base class method (WriteMesh). Please check the implementation of derived classes" << std::endl;
     }
 
     /**
@@ -426,9 +443,26 @@ public:
      * @brief This method writes the node mesh
      * @param rThisMesh The mesh to be written
      */
+    KRATOS_DEPRECATED_MESSAGE("'WriteNodeMesh' with a non-const Mesh as input is deprecated. Please use the version of this function that accepts a const Mesh instead.")
     virtual void WriteNodeMesh( MeshType& rThisMesh )
     {
         KRATOS_ERROR << "Calling base class method (WriteNodeMesh). Please check the implementation of derived classes" << std::endl;
+    }
+
+    /**
+     * @brief This method writes the node mesh
+     * @param rThisMesh The mesh to be written
+     */
+    virtual void WriteNodeMesh(const MeshType& rThisMesh )
+    {
+        // legacy for backward compatibility
+        MeshType& non_const_mesh = const_cast<MeshType&>(rThisMesh);
+        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
+        this->WriteNodeMesh(non_const_mesh);
+        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+
+        // activate this error once the legacy code is removed
+        // KRATOS_ERROR << "Calling base class method (WriteNodeMesh). Please check the implementation of derived classes" << std::endl;
     }
 
     /**
@@ -456,7 +490,10 @@ public:
     virtual void DivideInputToPartitions(SizeType NumberOfPartitions,
                                          const PartitioningInfo& rPartitioningInfo)
     {
+        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
         DivideInputToPartitions(NumberOfPartitions, rPartitioningInfo.Graph, rPartitioningInfo.NodesPartitions, rPartitioningInfo.ElementsPartitions, rPartitioningInfo.ConditionsPartitions, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions); // for backward compatibility
+        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+
         // KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl; // enable this once the old version of this function is removed
     }
 
@@ -494,7 +531,10 @@ public:
                                          SizeType NumberOfPartitions,
                                          const PartitioningInfo& rPartitioningInfo)
     {
+        KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
         DivideInputToPartitions(pStreams, NumberOfPartitions, rPartitioningInfo.Graph, rPartitioningInfo.NodesPartitions, rPartitioningInfo.ElementsPartitions, rPartitioningInfo.ConditionsPartitions, rPartitioningInfo.NodesAllPartitions, rPartitioningInfo.ElementsAllPartitions, rPartitioningInfo.ConditionsAllPartitions); // for backward compatibility
+        KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING
+
         // KRATOS_ERROR << "Calling base class method (DivideInputToPartitions). Please check the definition of derived class" << std::endl; // enable this once the old version of this function is removed
     }
 

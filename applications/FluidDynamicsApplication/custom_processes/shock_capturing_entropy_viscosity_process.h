@@ -257,7 +257,7 @@ private:
         const double ArtificialDynamicViscosity,
         const double ArtificialMassDiffusivity,
         const double ArtificialConductivity,
-        const std::function<double(Geometry<Node<3>>*)>& rGeometrySize) const;
+        const std::function<double(Geometry<Node>*)>& rGeometrySize) const;
 
     static double ComputeEntropy(
         const double Density, 

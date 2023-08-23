@@ -68,56 +68,70 @@ public:
     ///@{
 
     /// The size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// The index type definition
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// Point definition
-    typedef Point                                                                        PointType;
+    using PointType = Point;
 
-    /// Node type definition
-    typedef Node<3>                                                                       NodeType;
-
-    /// Geoemtry type definition
-    typedef Geometry<NodeType>                                                        GeometryType;
+    /// Geometry type definition
+    using GeometryType = Geometry<Node>;
 
     // Type definition for integration methods
-    typedef GeometryType::IntegrationPointsArrayType                         IntegrationPointsType;
+    using IntegrationPointsType = GeometryType::IntegrationPointsArrayType;
 
-    /// The type of points belongfs to be considered
-    typedef typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type BelongType;
+    /// The type of points belongs to be considered
+    using BelongType = typename std::conditional<TNumNodes == 2, PointBelongsLine2D2N, typename std::conditional<TNumNodes == 3, typename std::conditional<TNumNodesMaster == 3, PointBelongsTriangle3D3N, PointBelongsTriangle3D3NQuadrilateral3D4N>::type, typename std::conditional<TNumNodesMaster == 3, PointBelongsQuadrilateral3D4NTriangle3D3N, PointBelongsQuadrilateral3D4N>::type>::type>::type;
 
     /// The definition of the point with belonging
-    typedef PointBelong<TNumNodes, TNumNodesMaster>                                PointBelongType;
+    using PointBelongType = PointBelong<TNumNodes, TNumNodesMaster>;
 
-    typedef Geometry<PointBelongType>                                      GeometryPointBelongType;
+    /// Type definition for the geometry of the point belong
+    using GeometryPointBelongType = Geometry<PointBelongType>;
 
-    typedef array_1d<PointBelongType,TDim>                                      ConditionArrayType;
+    /// Array type for the conditions
+    using ConditionArrayType = array_1d<PointBelongType, TDim>;
 
-    typedef typename std::vector<ConditionArrayType>                        ConditionArrayListType;
+    /// Type definition for the array list of conditions
+    using ConditionArrayListType = typename std::vector<ConditionArrayType>;
 
-    typedef Line2D2<PointType>                                                            LineType;
+    /// Type definition for the line
+    using LineType = Line2D2<PointType>;
 
-    typedef Triangle3D3<PointType>                                                    TriangleType;
+    /// Type definition for the triangle
+    using TriangleType = Triangle3D3<PointType>;
 
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type  DecompositionType;
+    /// Type definition for the decomposition based on dimension
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
 
-    typedef typename std::conditional<TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY, DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNumNodesMaster> >::type DerivativeDataType;
+    /// Type definition for the derivative data based on frictional case
+    using DerivativeDataType = typename std::conditional<TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY, DerivativeDataFrictional<TDim, TNumNodes, TNumNodesMaster>, DerivativeData<TDim, TNumNodes, TNumNodesMaster>>::type;
 
-    static constexpr IndexType MatrixSize = (TFrictional == FrictionalCase::FRICTIONLESS) ? TDim * (TNumNodesMaster + TNumNodes) + TNumNodes : (TFrictional == FrictionalCase::FRICTIONLESS_COMPONENTS || TFrictional == FrictionalCase::FRICTIONAL) ? TDim * (TNumNodesMaster + TNumNodes + TNumNodes) :  TDim * (TNumNodesMaster + TNumNodes);
+    /// The size of the matrix
+    static constexpr IndexType MatrixSize = (TFrictional == FrictionalCase::FRICTIONLESS) ? TDim * (TNumNodesMaster + TNumNodes) + TNumNodes : (TFrictional == FrictionalCase::FRICTIONLESS_COMPONENTS || TFrictional == FrictionalCase::FRICTIONAL) ? TDim * (TNumNodesMaster + TNumNodes + TNumNodes) : TDim * (TNumNodesMaster + TNumNodes);
 
-    static constexpr bool IsFrictional  = (TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY) ? true: false;
+    /// Flag indicating if the case is frictional
+    static constexpr bool IsFrictional = (TFrictional == FrictionalCase::FRICTIONAL || TFrictional == FrictionalCase::FRICTIONAL_PENALTY) ? true : false;
 
-    typedef MortarKinematicVariablesWithDerivatives<TDim, TNumNodes,TNumNodesMaster>                               GeneralVariables;
+    /// Type definition for the general variables
+    using GeneralVariables = MortarKinematicVariablesWithDerivatives<TDim, TNumNodes, TNumNodesMaster>;
 
-    typedef DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>                   AeData;
+    /// Type definition for the Ae data
+    using AeData = DualLagrangeMultiplierOperatorsWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>;
 
-    typedef MortarOperatorWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>                   MortarConditionMatrices;
+    /// Type definition for the mortar condition matrices
+    using MortarConditionMatrices = MortarOperatorWithDerivatives<TDim, TNumNodes, IsFrictional, TNumNodesMaster>;
 
-    typedef ExactMortarIntegrationUtility<TDim, TNumNodes, true, TNumNodesMaster>                                IntegrationUtility;
+    /// Type definition for the integration utility
+    using IntegrationUtility = ExactMortarIntegrationUtility<TDim, TNumNodes, true, TNumNodesMaster>;
 
-    typedef DerivativesUtilities<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster>         DerivativesUtilitiesType;
+    /// Type definition for the derivatives utilities
+    using DerivativesUtilitiesType = DerivativesUtilities<TDim, TNumNodes, IsFrictional, TNormalVariation, TNumNodesMaster>;
+
+    // The threshold coefficient considered for checking
+    static constexpr double CheckThresholdCoefficient = 1.0e-12;
 
     ///@}
     ///@name Operators

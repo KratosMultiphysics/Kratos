@@ -269,7 +269,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::EquationIdVector
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ) { // NOTE: Assuming same number of nodes for master and slave
-        const NodeType& r_master_node = r_master_geometry[i_master];
+        const Node& r_master_node = r_master_geometry[i_master];
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if constexpr (TDim == 3) rResult[index++] = r_master_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -277,7 +277,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::EquationIdVector
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        const NodeType& r_slave_node = r_slave_geometry[ i_slave ];
+        const Node& r_slave_node = r_slave_geometry[ i_slave ];
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_X ).EquationId( );
         rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Y ).EquationId( );
         if constexpr (TDim == 3) rResult[index++] = r_slave_node.GetDof( DISPLACEMENT_Z ).EquationId( );
@@ -308,7 +308,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetDofList(
 
     // Master Nodes Displacement Equation IDs
     for ( IndexType i_master = 0; i_master < TNumNodesMaster; ++i_master ){ // NOTE: Assuming same number of nodes for master and slave
-        const NodeType& r_master_node = r_master_geometry[i_master];
+        const Node& r_master_node = r_master_geometry[i_master];
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Y );
         if constexpr (TDim == 3) rConditionalDofList[index++] = r_master_node.pGetDof( DISPLACEMENT_Z );
@@ -316,7 +316,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::GetDofList(
 
     // Slave Nodes Displacement Equation IDs
     for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-        const NodeType& r_slave_node = r_slave_geometry[ i_slave ];
+        const Node& r_slave_node = r_slave_geometry[ i_slave ];
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_X );
         rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Y );
         if constexpr (TDim == 3) rConditionalDofList[index++] = r_slave_node.pGetDof( DISPLACEMENT_Z );
@@ -381,7 +381,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::CalculateRightHa
         const GeometryType& r_slave_geometry = this->GetParentGeometry();
 
         for ( IndexType i_slave = 0; i_slave < TNumNodes; ++i_slave ) {
-            const NodeType& r_slave_node = r_slave_geometry[ i_slave ];
+            const Node& r_slave_node = r_slave_geometry[ i_slave ];
             if (r_slave_node.Is(SLIP)) {
                 const array_1d<double, 3>& r_total_force = r_slave_node.FastGetSolutionStepValue(REACTION);
                 const array_1d<double, 3>& r_normal = r_slave_node.FastGetSolutionStepValue(NORMAL);
@@ -648,8 +648,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
-        if (node_is_active) {
+        if (r_slave_geometry[i_node].IsActive()) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
             const array_1d<double, 3>& r_normal = r_slave_geometry[i_node].FastGetSolutionStepValue(NORMAL);
@@ -773,8 +772,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
-        if (node_is_active) {
+        if (r_slave_geometry[i_node].IsActive()) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
             const bool is_slip = r_slave_geometry[i_node].IsDefined(SLIP) ? r_slave_geometry[i_node].Is(SLIP) : false;
@@ -892,8 +890,7 @@ void MPCMortarContactCondition<TDim,TNumNodes,TNumNodesMaster>::UpdateConstraint
 //     lumping_factors = r_slave_geometry.LumpingFactors(lumping_factors);
 //     const double domain_size = r_slave_geometry.DomainSize();
     for (IndexType i_node = 0; i_node < TNumNodes; ++i_node) {
-        const bool node_is_active = r_slave_geometry[i_node].IsDefined(ACTIVE) ? r_slave_geometry[i_node].Is(ACTIVE) : true;
-        if (node_is_active) {
+        if (r_slave_geometry[i_node].IsActive()) {
 //             const double weight_coeff = (lumping_factors[i_node] * domain_size)/r_slave_geometry[i_node].GetValue(NODAL_MAUX);
             double weight_coeff = 1.0/r_slave_geometry[i_node].GetValue(NODAL_PAUX);
             for (IndexType j_node = 0; j_node < TNumNodesMaster; ++j_node) {

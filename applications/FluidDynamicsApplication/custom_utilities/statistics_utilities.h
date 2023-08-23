@@ -67,7 +67,7 @@ virtual ~StatisticsSampler() {}
  *  @param BufferIterator Iterator pointing to the start of the storage of the statistics managed by this class.
  */
 virtual void SampleDataPoint(
-    const Geometry< Node<3> >& rGeometry,
+    const Geometry< Node >& rGeometry,
     const Vector& rShapeFunctions,
     const Matrix& rShapeDerivatives,
     std::vector<double>::iterator& BufferIterator)
@@ -211,7 +211,7 @@ public:
  *  @see Internals::MakeSamplerAtLocalCoordinate for the definition of the Getter argument.
  */
 ScalarAverageSampler(
-    std::function<double(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter,
+    std::function<double(const Geometry< Node >&, const Vector&, const Matrix&)> Getter,
     const std::string& Tag)
     :
     StatisticsSampler(1),
@@ -222,7 +222,7 @@ ScalarAverageSampler(
 
 ~ScalarAverageSampler() override {}
 
-void SampleDataPoint(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives, std::vector<double>::iterator& BufferIterator) override
+void SampleDataPoint(const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives, std::vector<double>::iterator& BufferIterator) override
 {
     *BufferIterator = mGetter(rGeometry,rShapeFunctions,rShapeDerivatives);
     ++BufferIterator;
@@ -237,7 +237,7 @@ void OutputHeader(
 
 private:
 
-std::function<double(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> mGetter;
+std::function<double(const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> mGetter;
 
 };
 
@@ -255,7 +255,7 @@ public:
  *  @see Internals::MakeSamplerAtLocalCoordinate for the definition of the Getter argument.
  */
 VectorAverageSampler(
-    std::function<VectorType(const Geometry< Node<3> >&, const Vector&, const Matrix&)> Getter,
+    std::function<VectorType(const Geometry< Node >&, const Vector&, const Matrix&)> Getter,
     std::size_t VectorSize,
     std::vector<std::string>& Tags)
     :
@@ -270,7 +270,7 @@ VectorAverageSampler(
 
 ~VectorAverageSampler() override {}
 
-void SampleDataPoint(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives, std::vector<double>::iterator& BufferIterator) override {
+void SampleDataPoint(const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives, std::vector<double>::iterator& BufferIterator) override {
     VectorType result = mGetter(rGeometry,rShapeFunctions,rShapeDerivatives);
     for (unsigned int i = 0; i < this->GetSize(); i++) {
         *BufferIterator = result[i];
@@ -290,7 +290,7 @@ void OutputHeader(
 
 private:
 
-std::function<VectorType(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> mGetter;
+std::function<VectorType(const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> mGetter;
 };
 
 /// This class manages the computation of the (co)variance between two given quantities (scalar or vector).
@@ -647,8 +647,8 @@ namespace Internals {
 
 class MakeSamplerAtLocalCoordinate {
 public:
-    static std::function<double(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> ValueGetter(const Variable<double>& rVariable) {
-        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> double {
+    static std::function<double(const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives)> ValueGetter(const Variable<double>& rVariable) {
+        return [&rVariable](const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> double {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
             double value = 0.0;
             for (unsigned int i =  0; i < rGeometry.size(); i++) {
@@ -659,8 +659,8 @@ public:
     }
 
 
-    static std::function< array_1d<double,3>(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > ValueGetter(const Variable<array_1d<double,3>>& rVariable) {
-        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> array_1d<double,3> {
+    static std::function< array_1d<double,3>(const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > ValueGetter(const Variable<array_1d<double,3>>& rVariable) {
+        return [&rVariable](const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> array_1d<double,3> {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
             array_1d<double,3> value = ZeroVector(3);
             for (unsigned int i =  0; i < rGeometry.size(); i++) {
@@ -670,8 +670,8 @@ public:
         };
     }
 
-    static std::function< Matrix(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > ValueGetter(const Variable<Matrix>& rVariable) {
-        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> Matrix {
+    static std::function< Matrix(const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > ValueGetter(const Variable<Matrix>& rVariable) {
+        return [&rVariable](const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> Matrix {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeFunctions.size()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
             Matrix value = ZeroMatrix(3,3);
             for (unsigned int i =  0; i < rGeometry.size(); i++) {
@@ -682,8 +682,8 @@ public:
     }
 
 
-    static std::function< array_1d<double,3>(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > GradientGetter(const Variable<double>& rVariable) {
-        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> array_1d<double,3> {
+    static std::function< array_1d<double,3>(const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > GradientGetter(const Variable<double>& rVariable) {
+        return [&rVariable](const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> array_1d<double,3> {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeDerivatives.size1()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
             array_1d<double,3> gradient = ZeroVector(3);
             for (unsigned int n =  0; n < rGeometry.size(); n++) {
@@ -696,8 +696,8 @@ public:
     }
 
 
-    static std::function< Matrix(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > GradientGetter(const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, Variable<array_1d<double,3>>& rVariable) {
-        return [&rVariable](const Geometry< Node<3> >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> Matrix {
+    static std::function< Matrix(const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) > GradientGetter(const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, Variable<array_1d<double,3>>& rVariable) {
+        return [&rVariable](const Geometry< Node >& rGeometry, const Vector& rShapeFunctions, const Matrix& rShapeDerivatives) -> Matrix {
             KRATOS_DEBUG_ERROR_IF(rGeometry.size() != rShapeDerivatives.size1()) << "Number of nodes in provided geometry does not match number of shape functions" << std::endl;
             Matrix gradient = ZeroMatrix(3,3);
             for (unsigned int n =  0; n < rGeometry.size(); n++) {

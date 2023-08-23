@@ -236,6 +236,8 @@ template class UPwUpdatedLagrangianElement<3,8>;
 template class UPwUpdatedLagrangianElement<2,6>;
 template class UPwUpdatedLagrangianElement<2,8>;
 template class UPwUpdatedLagrangianElement<2,9>;
+template class UPwUpdatedLagrangianElement<2,10>;
+template class UPwUpdatedLagrangianElement<2,15>;
 template class UPwUpdatedLagrangianElement<3,10>;
 template class UPwUpdatedLagrangianElement<3,20>;
 template class UPwUpdatedLagrangianElement<3,27>;

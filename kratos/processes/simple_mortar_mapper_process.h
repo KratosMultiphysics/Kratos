@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_SIMPLE_MORTAR_MAPPER_PROCESS)
-#define KRATOS_SIMPLE_MORTAR_MAPPER_PROCESS
+#pragma once
 
 // System includes
 #include <unordered_map>
@@ -22,18 +21,14 @@
 #include "processes/process.h"
 #include "includes/kratos_parameters.h"
 #include "includes/model_part.h"
+#include "includes/mortar_classes.h"
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "utilities/atomic_utilities.h"
-
-/* Custom includes */
-#include "includes/mortar_classes.h"
-
-/* Custom utilities */
 #include "utilities/exact_mortar_segmentation_utility.h"
 
 /* Tree structures */
-// #include "spatial_containers/bounding_volume_tree.h" // k-DOP
+#include "spatial_containers/specialized_spatial_search.h"
 #include "spatial_containers/spatial_containers.h" // kd-tree
 
 namespace Kratos
@@ -46,7 +41,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -59,140 +54,6 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-
-/**
- * @ingroup KratosCore
- * @class PointMapper
- * @brief Custom Point container to be used by the mapper
- * @details The main difference with this point and the base one is that it contains the pointer to geometrical object where the center of the points belongs
- * @author Vicente Mataix Ferrandiz
- */
-class PointMapper
-    : public Point
-{
-public:
-    ///@name Type Definitions
-    ///@{
-
-    typedef Point BaseType;
-
-    /// Counted pointer of PointMapper
-    KRATOS_CLASS_POINTER_DEFINITION( PointMapper );
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructors
-    PointMapper():
-        BaseType(),
-        mpOriginGeometricalObject(nullptr)
-    {}
-
-    PointMapper(const array_1d<double, 3>& Coords)
-        :BaseType(Coords),
-         mpOriginGeometricalObject(nullptr)
-    {}
-
-    PointMapper(GeometricalObject::Pointer pGeometricalObject):
-        mpOriginGeometricalObject(pGeometricalObject)
-    {
-        UpdatePoint();
-    }
-
-    PointMapper(
-        const array_1d<double, 3>& Coords,
-        GeometricalObject::Pointer pGeometricalObject
-    ):
-        BaseType(Coords),
-        mpOriginGeometricalObject(pGeometricalObject)
-    {}
-
-    ///Copy constructor  (not really required)
-    PointMapper(const PointMapper& rhs):
-        BaseType(rhs),
-        mpOriginGeometricalObject(rhs.mpOriginGeometricalObject)
-    {
-    }
-
-    /// Destructor.
-    ~PointMapper() override= default;
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * @brief Returns the point
-     * @return The point
-     */
-    BaseType GetPoint()
-    {
-        BaseType Point(this->Coordinates());
-        return Point;
-    }
-
-    /**
-     * @brief Set the point
-     * @param Point The point
-     */
-    void SetPoint(const BaseType Point)
-    {
-        this->Coordinates() = Point.Coordinates();
-    }
-
-    /**
-     * @brief Sets the geometrical object associated to the point
-     * @param pGeometricalObject The pointer to the geometrical object
-     */
-    void SetCondition(GeometricalObject::Pointer pGeometricalObject)
-    {
-        mpOriginGeometricalObject = pGeometricalObject;
-    }
-
-    /**
-     * @brief Returns the geometrical object associated to the point
-     * @return mpOriginGeometricalObject The pointer to the geometrical object associated to the point
-     */
-    GeometricalObject::Pointer GetGeometricalObject()
-    {
-        KRATOS_DEBUG_ERROR_IF(mpOriginGeometricalObject.get() == nullptr) << "GeometricalObject no initialized in the PointMapper class" << std::endl;
-        return mpOriginGeometricalObject;
-    }
-
-    /**
-     * @brief This method checks everything is right
-     */
-    void Check()
-    {
-        KRATOS_TRY;
-
-        auto aux_coord = Kratos::make_shared<array_1d<double, 3>>(this->Coordinates());
-        KRATOS_ERROR_IF(!aux_coord) << "Coordinates no initialized in the PointMapper class" << std::endl;
-        KRATOS_ERROR_IF(mpOriginGeometricalObject->use_count() == 0) << "GeometricalObject no initialized in the PointMapper class" << std::endl;
-
-        KRATOS_CATCH("");
-    }
-
-    /**
-     * @brief This function updates the database, using as base for the coordinates the geometrical object center
-     */
-    void UpdatePoint()
-    {
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        this->Coordinates() = mpOriginGeometricalObject->GetGeometry().Center().Coordinates();
-#else
-        noalias(this->Coordinates()) = mpOriginGeometricalObject->GetGeometry().Center().Coordinates();
-#endif // ifdef KRATOS_USE_AMATRIX
-    }
-
-private:
-    ///@name Member Variables
-    ///@{
-    GeometricalObject::Pointer mpOriginGeometricalObject; /// GeometricalObject pointer
-    ///@}
-
-}; // Class PointMapper
 
 /**
  * @ingroup KratosCore
@@ -226,54 +87,65 @@ public:
     /// Pointer definition of SimpleMortarMapperProcess
     KRATOS_CLASS_POINTER_DEFINITION(SimpleMortarMapperProcess);
 
-    typedef Point                                        PointType;
-    typedef Node<3>                                       NodeType;
-    typedef Geometry<NodeType>                        GeometryType;
-    typedef Geometry<PointType>                  GeometryPointType;
+    //// Type definition for Point
+    using PointType = Point;
 
-    /// Type definition for integration methods
-    typedef GeometryData::IntegrationMethod      IntegrationMethod;
+    /// Type definition for node geometry
+    using GeometryType = Geometry<Node>;
 
-    /// Auxiliar geometries
-    typedef Line2D2<PointType>                            LineType;
-    typedef Triangle3D3<PointType>                    TriangleType;
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+    /// Type definition for point geometry
+    using GeometryPointType = Geometry<PointType>;
 
+    //// Type definition for integration methods
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
-    /// Linear solver
-    typedef UblasSpace<double, CompressedMatrix, Vector>    SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector>               LocalSpaceType;
-    typedef typename SparseSpaceType::MatrixType                 MatrixType;
-    typedef typename SparseSpaceType::VectorType                 VectorType;
-    typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
+    /// Type definition for LineType
+    using LineType = Line2D2<PointType>;
 
+    /// Type definition for TriangleType
+    using TriangleType = Triangle3D3<PointType>;
+
+    /// Type definition for DecompositionType based on TDim value
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
+
+    /// Type definition for sparse space type
+    using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+
+    /// Type definition for local space type
+    using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+
+    /// Type definition for matrix
+    using MatrixType = typename SparseSpaceType::MatrixType;
+
+    /// Type definition for vector
+    using VectorType = typename SparseSpaceType::VectorType;
+
+    /// Type definition for linear solver
+    using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
     /// Index type definition
-    typedef std::size_t                                          IndexType;
+    using IndexType = std::size_t;
 
     /// A map for integers
-    typedef std::unordered_map<IndexType, IndexType>                IntMap;
+    using IntMap = std::unordered_map<IndexType, IndexType>;
 
     /// BoundedMatrix
-    typedef BoundedMatrix<double, TNumNodes, TNumNodes>  BoundedMatrixType;
+    using BoundedMatrixType = BoundedMatrix<double, TNumNodes, TNumNodes>;
 
-    // Type definitions for the tree
-    typedef PointMapper                                     PointMapperType;
-    typedef PointMapperType::Pointer                       PointTypePointer;
-    typedef std::vector<PointTypePointer>                       PointVector;
-    typedef PointVector::iterator                             PointIterator;
-    typedef std::vector<double>                              DistanceVector;
-    typedef DistanceVector::iterator                       DistanceIterator;
+    /// Type definitions for the tree
+    using PointMapperType = PointObject<GeometricalObject>;
+    using PointTypePointer = typename PointMapperType::Pointer;
+    using PointVector = std::vector<PointTypePointer>;
 
     // KDtree definitions
-    typedef Bucket< 3ul, PointMapperType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > KDTreeType;
+    using BucketType = Bucket<3ul, PointMapperType, PointVector>;
+    using KDTreeType = Tree<KDTreePartition<BucketType>>;
 
     /// Mortar definition
-    typedef MortarKinematicVariables<TNumNodes, TNumNodesMaster>                        MortarKinematicVariablesType;
-    typedef MortarOperator<TNumNodes, TNumNodesMaster>                                            MortarOperatorType;
-    typedef DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>          DualLagrangeMultiplierOperatorsType;
-    typedef ExactMortarIntegrationUtility<TDim, TNumNodes, false, TNumNodesMaster> ExactMortarIntegrationUtilityType;
+    using MortarKinematicVariablesType = MortarKinematicVariables<TNumNodes, TNumNodesMaster>;
+    using MortarOperatorType = MortarOperator<TNumNodes, TNumNodesMaster>;
+    using DualLagrangeMultiplierOperatorsType = DualLagrangeMultiplierOperators<TNumNodes, TNumNodesMaster>;
+    using ExactMortarIntegrationUtilityType = ExactMortarIntegrationUtility<TDim, TNumNodes, false, TNumNodesMaster>;
 
     /// Auxiliar struct for mapping
     struct TLS {
@@ -405,11 +277,9 @@ public:
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -437,36 +307,6 @@ public:
     ///@{
 
     ///@}
-protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -941,7 +781,7 @@ private:
             IndexSet::Pointer indexes_set = rGeometricalObject.GetValue(INDEX_SET);
 
             for (IndexType i_point = 0; i_point < number_points_found; ++i_point ) {
-                auto p_geometrical_object_master = points_found[i_point]->GetGeometricalObject();
+                auto p_geometrical_object_master = points_found[i_point]->pGetObject();
                 indexes_set->AddId(p_geometrical_object_master->Id());
             }
         }
@@ -996,4 +836,3 @@ private:
 ///@}
 
 }  // namespace Kratos.
-#endif /* KRATOS_SIMPLE_MORTAR_MAPPER_PROCESS defined */

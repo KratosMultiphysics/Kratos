@@ -16,7 +16,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangian3D8N// GUI group identifier: bar
+Begin Elements MPMUpdatedLagrangian3D8N// GUI group identifier: bar
         3          0         14         18         10          3         16         20         12          9 
 End Elements
 

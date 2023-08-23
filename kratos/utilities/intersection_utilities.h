@@ -59,7 +59,6 @@ namespace Kratos
 class KRATOS_API(KRATOS_CORE) IntersectionUtilities
 {
 public:
-
     ///@name Type Definitions
     ///@{
 
@@ -98,7 +97,6 @@ public:
      * 1 (intersect in a unique point)
      * 2 (are in the same plane)
      */
-
     template <class TGeometryType>
     static int ComputeTriangleLineIntersection(
         const TGeometryType& rTriangleGeometry,
@@ -235,6 +233,268 @@ public:
         if (eta < -Tolerance) return false;
         if (xi + eta > 1.0 + Tolerance) return false;
         return true;
+    }
+
+    /**
+     * @brief Find the 3D intersection of a line (bounded) with a triangle (bounded) in the same plane
+     * @tparam TGeometryType The geometry type
+     * @tparam TCoordinatesType The type of coordinates
+     * @tparam TConsiderInsidePoints If considering inside points or just the intersections in the faces
+     * @param [in] rTriangleGeometry Is the tetrahedra to intersect
+     * @param [in] rLinePoint1 Coordinates of the first point of the intersecting line
+     * @param [in] rLinePoint2 Coordinates of the second point of the intersecting line
+     * @param [out] rIntersectionPoint1 The first intersection point coordinates
+     * @param [out] rIntersectionPoint2 The second intersection point coordinates
+     * @param [out] rSolution The intersection type index:
+     *         NO_INTERSECTION (disjoint - no intersection)
+     *         TWO_POINTS_INTERSECTION (intersect in two points)
+     *         ONE_POINT_INTERSECTION (intersect in one point)
+     * @param Epsilon The tolerance
+     */
+    template <class TGeometryType, class TCoordinatesType>
+    static int ComputeTriangleLineIntersectionInTheSamePlane( //static IntersectionUtilitiesTetrahedraLineIntersectionStatus ComputeTriangleLineIntersectionInTheSamePlane(
+        const TGeometryType& rTriangleGeometry,
+        const TCoordinatesType& rLinePoint1,
+        const TCoordinatesType& rLinePoint2,
+        TCoordinatesType& rIntersectionPoint1,
+        TCoordinatesType& rIntersectionPoint2,
+        int& rSolution,//IntersectionUtilitiesTetrahedraLineIntersectionStatus& rSolution,
+        const double Epsilon = 1e-12
+        ) 
+    {
+        // Lambda function to check the inside of a line corrected
+        auto is_inside_projected = [&Epsilon] (auto& rGeometry, const TCoordinatesType& rPoint) -> bool {
+            // We compute the distance, if it is not in the plane we project
+            const Point point_to_project(rPoint);
+            Point point_projected;
+            const double distance = GeometricalProjectionUtilities::FastProjectOnLine(rGeometry, point_to_project, point_projected);
+
+            // We check if we are on the plane
+            if (std::abs(distance) > Epsilon * rGeometry.Length()) {
+                return false;
+            }
+            array_1d<double, 3> local_coordinates;
+            return rGeometry.IsInside(point_projected, local_coordinates);
+        };
+
+        // Compute intersection with the edges
+        for (auto& r_edge : rTriangleGeometry.GenerateEdges()) {
+            const auto& r_edge_point_1 = r_edge[0].Coordinates();
+            const auto& r_edge_point_2 = r_edge[1].Coordinates();
+            array_1d<double, 3> intersection_point_1, intersection_point_2;
+            const auto check_1 = ComputeLineLineIntersection(rLinePoint1, rLinePoint2, r_edge_point_1, r_edge_point_2, intersection_point_1, Epsilon);
+            const auto check_2 = ComputeLineLineIntersection(r_edge_point_1, r_edge_point_2, rLinePoint1, rLinePoint2, intersection_point_2, Epsilon);
+            if (check_1 == 0 && check_2 == 0) continue; // No intersection
+            array_1d<double, 3> intersection_point = check_1 != 0 ? intersection_point_1 : intersection_point_2;
+            if (check_1 == 2 || check_2 == 2) { // Aligned
+                // Check actually are aligned
+                array_1d<double, 3> vector_line = r_edge_point_2 - r_edge_point_1;
+                vector_line /= norm_2(vector_line);
+                array_1d<double, 3> diff_coor_1 = rLinePoint1 - r_edge_point_1;
+                const double diff_coor_1_norm = norm_2(diff_coor_1);
+                if (diff_coor_1_norm > std::numeric_limits<double>::epsilon()) {
+                    diff_coor_1 /= diff_coor_1_norm;
+                } else {
+                    diff_coor_1 = rLinePoint1 - r_edge_point_2;
+                    diff_coor_1 /= norm_2(diff_coor_1);
+                }
+                array_1d<double, 3> diff_coor_2 = rLinePoint2 - r_edge_point_1;
+                const double diff_coor_2_norm = norm_2(diff_coor_2);
+                if (diff_coor_2_norm > std::numeric_limits<double>::epsilon()) {
+                    diff_coor_2 /= diff_coor_2_norm;
+                } else {
+                    diff_coor_2 = rLinePoint2 - r_edge_point_2;
+                    diff_coor_2 /= norm_2(diff_coor_2);
+                }
+                const double diff1m = norm_2(diff_coor_1 - vector_line);
+                const double diff1p = norm_2(diff_coor_1 + vector_line);
+                const double diff2m = norm_2(diff_coor_2 - vector_line);
+                const double diff2p = norm_2(diff_coor_2 + vector_line);
+
+                // Now we compute the intersection
+                if ((diff1m < Epsilon || diff1p < Epsilon) && (diff2m < Epsilon || diff2p < Epsilon)) {
+                    // First point
+                    if (is_inside_projected(r_edge, rLinePoint1)) { // Is inside the line
+                        if (rSolution == 0) {//if (rSolution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION) {
+                            noalias(rIntersectionPoint1) = rLinePoint1;
+                            rSolution = 2;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION;
+                        } else {
+                            if (norm_2(rIntersectionPoint1 - rLinePoint1) > Epsilon) { // Must be different from the first one
+                                noalias(rIntersectionPoint2) = rLinePoint1;
+                                rSolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
+                                break;
+                            }
+                        }
+                    } else { // Is in the border of the line
+                        if (rSolution == 0) {//if (rSolution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION) {
+                            noalias(rIntersectionPoint1) = norm_2(r_edge_point_1 - rLinePoint1) <  norm_2(r_edge_point_2 - rLinePoint1) ? r_edge_point_1 : r_edge_point_2;
+                            rSolution = 2;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION;
+                        } else {
+                            noalias(intersection_point) = norm_2(r_edge_point_1 - rLinePoint1) <  norm_2(r_edge_point_2 - rLinePoint1) ? r_edge_point_1 : r_edge_point_2;
+                            if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
+                                noalias(rIntersectionPoint2) = intersection_point;
+                                rSolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
+                                break;
+                            }
+                        }
+                    }
+                    // Second point
+                    if (rSolution == 2) {//if (rSolution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION) {
+                        if (is_inside_projected(r_edge, rLinePoint2)) { // Is inside the line
+                            if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) { // Must be different from the first one
+                                noalias(rIntersectionPoint2) = rLinePoint2;
+                                rSolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
+                                break;
+                            }
+                        } else { // Is in the border of the line
+                            noalias(intersection_point) = norm_2(r_edge_point_1 - rLinePoint2) <  norm_2(r_edge_point_2 - rLinePoint2) ? r_edge_point_1 : r_edge_point_2;
+                            if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
+                                noalias(rIntersectionPoint2) = intersection_point;
+                                rSolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
+                                break;
+                            }
+                        }
+                    } else { // We are done
+                        break;
+                    }
+                }
+            } else { // Direct intersection
+                if (rSolution == 0) {//if (rSolution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION) {
+                    noalias(rIntersectionPoint1) = intersection_point;
+                    rSolution = 2;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION;
+                } else {
+                    if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
+                        noalias(rIntersectionPoint2) = intersection_point;
+                        rSolution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
+                        break;
+                    }
+                }
+            }
+        }
+
+        return rSolution;
+    }
+
+    /**
+     * @brief Find the 3D intersection of a line (bounded) with a tetrahedra (bounded)
+     * @tparam TGeometryType The geometry type
+     * @tparam TCoordinatesType The type of coordinates
+     * @tparam TConsiderInsidePoints If considering inside points or just the intersections in the faces
+     * @param [in] rTetrahedraGeometry Is the tetrahedra to intersect
+     * @param [in] rLinePoint1 Coordinates of the first point of the intersecting line
+     * @param [in] rLinePoint2 Coordinates of the second point of the intersecting line
+     * @param [out] rIntersectionPoint1 The first intersection point coordinates
+     * @param [out] rIntersectionPoint2 The second intersection point coordinates
+     * @return The intersection type index:
+     *         NO_INTERSECTION (disjoint - no intersection)
+     *         TWO_POINTS_INTERSECTION (intersect in two points)
+     *         ONE_POINT_INTERSECTION (intersect in one point)
+     *         TWO_POINTS_INTERSECTION_BOTH_INSIDE (intersect in two points inside the tetrahedra)
+     *         TWO_POINTS_INTERSECTION_ONE_INSIDE (intersect in two points, one inside the tetrahedra)
+     *         FIRST_CORNER (intersect in the first corner of the tetrahedra)
+     *         SECOND_CORNER (intersect in the second corner of the tetrahedra)
+     *         THIRD_CORNER (intersect in the thid corner of the tetrahedra)
+     *         FOURTH_CORNER (intersect in the fourth corner of the tetrahedra)
+     * Equivalent enum:
+     *   enum class IntersectionUtilitiesTetrahedraLineIntersectionStatus
+     *   {
+     *       NO_INTERSECTION = 0,                     // (disjoint - no intersection)
+     *       TWO_POINTS_INTERSECTION = 1,             // (intersect in two points)
+     *       ONE_POINT_INTERSECTION = 2,              // (intersect in one point)
+     *       TWO_POINTS_INTERSECTION_BOTH_INSIDE = 3, // (intersect in two points inside the tetrahedra)
+     *       TWO_POINTS_INTERSECTION_ONE_INSIDE = 4,  // (intersect in two points, one inside the tetrahedra)
+     *       FIRST_CORNER = 5,                        // (intersect in the first corner of the tetrahedra)
+     *       SECOND_CORNER = 6,                       // (intersect in the second corner of the tetrahedra)
+     *       THIRD_CORNER = 7,                        // (intersect in the thid corner of the tetrahedra)
+     *       FOURTH_CORNER = 8                        // (intersect in the fourth corner of the tetrahedra)
+     *   };
+     * @param Epsilon The tolerance
+     */
+    template <class TGeometryType, class TCoordinatesType, bool TConsiderInsidePoints = true>
+    static int ComputeTetrahedraLineIntersection(//static IntersectionUtilitiesTetrahedraLineIntersectionStatus ComputeTetrahedraLineIntersection(
+        const TGeometryType& rTetrahedraGeometry,
+        const TCoordinatesType& rLinePoint1,
+        const TCoordinatesType& rLinePoint2,
+        TCoordinatesType& rIntersectionPoint1,
+        TCoordinatesType& rIntersectionPoint2,
+        const double Epsilon = 1e-12
+        ) 
+    {
+        int solution = 0;// IntersectionUtilitiesTetrahedraLineIntersectionStatus solution = IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION;
+        for (auto& r_face : rTetrahedraGeometry.GenerateFaces()) {
+            array_1d<double,3> intersection_point;
+            const int face_solution = ComputeTriangleLineIntersection(r_face, rLinePoint1, rLinePoint2, intersection_point, Epsilon);
+            if (face_solution == 1) { // The line intersects the face
+                if (solution == 0) {// if (solution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION) {
+                    noalias(rIntersectionPoint1) = intersection_point;
+                    solution = 2;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION;
+                } else {
+                    if (norm_2(rIntersectionPoint1 - intersection_point) > Epsilon) { // Must be different from the first one
+                        noalias(rIntersectionPoint2) = intersection_point;
+                        solution = 1;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION;
+                        break;
+                    }
+                }
+            } else if (face_solution == 2) { // The line is coincident with the face
+                ComputeTriangleLineIntersectionInTheSamePlane(r_face, rLinePoint1, rLinePoint2, rIntersectionPoint1, rIntersectionPoint2, solution, Epsilon);
+                if (solution == 1) break;// if (solution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION) break;
+            }
+        }
+
+        // Check if points are inside 
+        if constexpr (TConsiderInsidePoints) {
+            if (solution == 0) {// if (solution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION) {
+                array_1d<double,3> local_coordinates;
+                if (rTetrahedraGeometry.IsInside(rLinePoint1, local_coordinates)) {
+                    noalias(rIntersectionPoint1) = rLinePoint1;
+                    solution = 4;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION_ONE_INSIDE;
+                }
+                if (rTetrahedraGeometry.IsInside(rLinePoint2, local_coordinates)) {
+                    if (solution == 0) {// if (solution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::NO_INTERSECTION) {
+                        noalias(rIntersectionPoint1) = rLinePoint2;
+                        solution = 4;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION_ONE_INSIDE;
+                    } else {
+                        noalias(rIntersectionPoint2) = rLinePoint2;
+                        solution = 3;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION_BOTH_INSIDE;
+                    }
+                }
+            } else if (solution == 2) {// if (solution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION) {
+                array_1d<double,3> local_coordinates;
+                if (rTetrahedraGeometry.IsInside(rLinePoint1, local_coordinates)) {
+                    if (norm_2(rIntersectionPoint1 - rLinePoint1) > Epsilon) { // Must be different from the first one
+                        noalias(rIntersectionPoint2) = rLinePoint1;
+                        solution = 4;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION_ONE_INSIDE;
+                    }
+                } 
+                if (solution == 2) {// if (solution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION) {
+                    if (rTetrahedraGeometry.IsInside(rLinePoint2, local_coordinates)) {
+                        if (norm_2(rIntersectionPoint1 - rLinePoint2) > Epsilon) {  // Must be different from the first one
+                            noalias(rIntersectionPoint2) = rLinePoint2;
+                            solution = 4;// IntersectionUtilitiesTetrahedraLineIntersectionStatus::TWO_POINTS_INTERSECTION_ONE_INSIDE;
+                        }
+                    }
+                }
+            }
+        }
+
+        // Checking if any node of the tetrahedra
+        if (solution == 2) {// if (solution == IntersectionUtilitiesTetrahedraLineIntersectionStatus::ONE_POINT_INTERSECTION) {
+            // Detect the node of the tetrahedra and directly assign
+            int index_node = -1;
+            for (int i_node = 0; i_node < 4; ++i_node) {
+                if (norm_2(rTetrahedraGeometry[i_node].Coordinates() - rIntersectionPoint1) < Epsilon) {
+                    index_node = i_node;
+                    break;
+                }
+            }
+            // Return index
+            if (index_node > -1) {
+                return index_node + 5;
+                //return static_cast<IntersectionUtilitiesTetrahedraLineIntersectionStatus>(index_node + 5);
+            }
+        }
+
+        return solution;
     }
 
     /**

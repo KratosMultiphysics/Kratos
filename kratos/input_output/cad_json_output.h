@@ -54,7 +54,7 @@ class KRATOS_API(KRATOS_CORE) CadJsonOutput
     typedef std::size_t SizeType;
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Point EmbeddedNodeType;
 
     typedef Geometry<NodeType> GeometryType;

@@ -12,7 +12,7 @@ DEM_Force_Based_Inlet::DEM_Force_Based_Inlet(ModelPart& inlet_modelpart, array_1
 
 void DEM_Force_Based_Inlet::RemoveInjectionConditions(Element &element, int dimension)
 {
-    Node<3>& node = element.GetGeometry()[0];
+    Node& node = element.GetGeometry()[0];
     element.Set(NEW_ENTITY, 0);
     node.Set(NEW_ENTITY, 0);
     node.pGetDof(VELOCITY_X)->FreeDof();
@@ -29,7 +29,7 @@ void DEM_Force_Based_Inlet::FixInjectionConditions(Element* p_element, Element* 
     // the injector velocity is not relevant here
     static_cast<void>(p_injector_element);
 
-    Node<3>& node = p_element->GetGeometry()[0];
+    Node& node = p_element->GetGeometry()[0];
     node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce(p_element);
 
 //    SphericParticle* p_spheric_particle = dynamic_cast<SphericParticle*>(p_element);
@@ -38,7 +38,7 @@ void DEM_Force_Based_Inlet::FixInjectionConditions(Element* p_element, Element* 
 
 void DEM_Force_Based_Inlet::FixInjectorConditions(Element* p_element)
 {
-    Node<3>& node = p_element->GetGeometry()[0];
+    Node& node = p_element->GetGeometry()[0];
     node.FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE) = GetInjectionForce(p_element);
 }
 

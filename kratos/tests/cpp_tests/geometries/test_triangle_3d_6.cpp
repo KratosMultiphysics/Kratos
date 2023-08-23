@@ -4,10 +4,10 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors: Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 // System includes
@@ -22,9 +22,8 @@
 #include "tests/cpp_tests/geometries/test_shape_function_derivatives.h"
 #include "tests/cpp_tests/geometries/cross_check_shape_functions_values.h"
 
-namespace Kratos {
-namespace Testing {
-typedef Node<3> NodeType;
+namespace Kratos::Testing {
+typedef Node NodeType;
 
 // /// Factory functions
 namespace {
@@ -120,7 +119,7 @@ namespace {
         auto geom = GenerateReferenceTriangle3D6();
 
         Vector lumping_factors(6);
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::ROW_SUM);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::ROW_SUM);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 0.0, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 0.0, TOLERANCE);
@@ -129,7 +128,7 @@ namespace {
         KRATOS_CHECK_NEAR(lumping_factors[4], 1.0/3.0, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[5], 1.0/3.0, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::DIAGONAL_SCALING);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::DIAGONAL_SCALING);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 0.0328638, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 0.0328638, TOLERANCE);
@@ -138,7 +137,7 @@ namespace {
         KRATOS_CHECK_NEAR(lumping_factors[4], 0.300469, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[5], 0.300469, TOLERANCE);
 
-        geom->LumpingFactors(lumping_factors, Geometry<Node<3>>::LumpingMethods::QUADRATURE_ON_NODES);
+        geom->LumpingFactors(lumping_factors, Geometry<Node>::LumpingMethods::QUADRATURE_ON_NODES);
 
         KRATOS_CHECK_NEAR(lumping_factors[0], 1.0/6.0, TOLERANCE);
         KRATOS_CHECK_NEAR(lumping_factors[1], 1.0/6.0, TOLERANCE);
@@ -148,5 +147,18 @@ namespace {
         KRATOS_CHECK_NEAR(lumping_factors[5], 1.0/6.0, TOLERANCE);
     }
 
-} // namespace Testing.
-} // namespace Kratos.
+    /**
+     * Checks the distance from a point to a triangle
+     */
+    KRATOS_TEST_CASE_IN_SUITE(Triangle3D6CalculateDistance, KratosCoreGeometriesFastSuite)
+    {
+        auto geom = GenerateReferenceTriangle3D6();
+
+        Point point1(0.0, 0.0, 0.0);
+        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
+
+        Point point2(0.0, 0.0, 0.5);
+        KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), 0.5);
+    }
+
+} // namespace Kratos::Testing.

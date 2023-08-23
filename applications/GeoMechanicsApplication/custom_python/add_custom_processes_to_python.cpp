@@ -20,7 +20,6 @@
 #include "includes/kratos_parameters.h"
 
 #include "custom_processes/apply_component_table_process.hpp"
-#include "custom_processes/apply_double_table_process.hpp"
 #include "custom_processes/apply_constant_hydrostatic_pressure_process.hpp"
 #include "custom_processes/apply_hydrostatic_pressure_table_process.hpp"
 #include "custom_processes/apply_constant_boundary_hydrostatic_pressure_process.hpp"
@@ -31,15 +30,18 @@
 #include "custom_processes/apply_boundary_phreatic_line_pressure_table_process.hpp"
 #include "custom_processes/apply_constant_phreatic_surface_pressure_process.hpp"
 #include "custom_processes/apply_constant_interpolate_line_pressure_process.hpp"
-#include "custom_processes/apply_time_dependent_interpolate_line_pressure_process.hpp"
 #include "custom_processes/apply_phreatic_surface_pressure_table_process.hpp"
 #include "custom_processes/apply_constant_boundary_phreatic_surface_pressure_process.hpp"
 #include "custom_processes/apply_boundary_phreatic_surface_pressure_table_process.hpp"
 #include "custom_processes/apply_excavation_process.hpp"
 #include "custom_processes/apply_write_result_scalar_process.hpp"
+#include "custom_processes/apply_k0_procedure_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
 #include "custom_processes/deactivate_conditions_on_inactive_elements_process.hpp"
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
+#include "custom_processes/set_parameter_field_process.hpp"
+#include "custom_processes/set_multiple_moving_loads.h"
+#include "custom_processes/apply_vector_constraints_table_process.hpp"
 
 namespace Kratos {
 namespace Python {
@@ -50,10 +52,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process>
         (m, "ApplyComponentTableProcess", py::module_local())
-        .def(py::init < ModelPart&, Parameters>());
-
-    py::class_<ApplyDoubleTableProcess, ApplyDoubleTableProcess::Pointer, Process>
-        (m, "ApplyDoubleTableProcess", py::module_local())
         .def(py::init < ModelPart&, Parameters>());
 
     py::class_<ApplyConstantHydrostaticPressureProcess, ApplyConstantHydrostaticPressureProcess::Pointer, Process>
@@ -78,10 +76,6 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyConstantInterpolateLinePressureProcess, ApplyConstantInterpolateLinePressureProcess::Pointer, Process>
         (m, "ApplyConstantInterpolateLinePressureProcess")
-        .def(py::init < ModelPart&, Parameters>());
-
-    py::class_<ApplyTimeDependentInterpolateLinePressureProcess, ApplyTimeDependentInterpolateLinePressureProcess::Pointer, Process>
-        (m, "ApplyTimeDependentInterpolateLinePressureProcess")
         .def(py::init < ModelPart&, Parameters>());
 
     py::class_<ApplyPhreaticLinePressureTableProcess, ApplyPhreaticLinePressureTableProcess::Pointer, Process>
@@ -120,6 +114,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         (m, "ApplyWriteScalarProcess")
         .def(py::init < ModelPart&, Parameters&>());
 
+    py::class_<ApplyK0ProcedureProcess, ApplyK0ProcedureProcess::Pointer, Process>
+        (m, "ApplyK0ProcedureProcess")
+        .def(py::init < ModelPart&, Parameters&>());
+
     py::class_<FindNeighbourElementsOfConditionsProcess, FindNeighbourElementsOfConditionsProcess::Pointer, Process>
         (m, "FindNeighbourElementsOfConditionsProcess")
         .def(py::init < ModelPart&>());
@@ -131,6 +129,18 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     py::class_<SetAbsorbingBoundaryParametersProcess, SetAbsorbingBoundaryParametersProcess::Pointer, Process>
         (m, "SetAbsorbingBoundaryParametersProcess")
         .def(py::init < ModelPart&, Parameters&>());
+
+    py::class_<SetParameterFieldProcess, SetParameterFieldProcess::Pointer, Process>
+        (m, "SetParameterFieldProcess")
+        .def(py::init < ModelPart&, Parameters>());
+		
+	py::class_<SetMultipleMovingLoadsProcess, SetMultipleMovingLoadsProcess::Pointer, Process>
+        (m, "SetMultipleMovingLoadsProcess")
+        .def(py::init < ModelPart&, Parameters>());
+
+    py::class_<ApplyVectorConstraintsTableProcess, ApplyVectorConstraintsTableProcess::Pointer, Process>
+        (m, "ApplyVectorConstraintsTableProcess")
+        .def(py::init<ModelPart&, const Parameters&>());
 }
 
 } // Namespace Python.

@@ -133,7 +133,7 @@ void VariableUtils::AddDofsList(
     }
 
     // Add the DOFs to the model part nodes
-    block_for_each(rModelPart.Nodes(), [&dofs_vars_set](Node<3>& rNode){
+    block_for_each(rModelPart.Nodes(), [&dofs_vars_set](Node& rNode){
         for (auto p_var : dofs_vars_set) {
             rNode.AddDof(*p_var);
         }
@@ -209,7 +209,7 @@ void VariableUtils::AddDofsWithReactionsList(
     }
 
     // Add the DOFs and reactions to the model part nodes
-    block_for_each(rModelPart.Nodes(), [&dofs_and_react_vars_set](Node<3>& rNode){
+    block_for_each(rModelPart.Nodes(), [&dofs_and_react_vars_set](Node& rNode){
         for (auto& r_dof_data : dofs_and_react_vars_set) {
             rNode.AddDof(*(r_dof_data[0]), *(r_dof_data[1]));
         }
@@ -246,7 +246,7 @@ void VariableUtils::UpdateCurrentToInitialConfiguration(const ModelPart::NodesCo
 {
     KRATOS_TRY;
 
-    block_for_each(rNodes, [&](Node<3>& rNode){
+    block_for_each(rNodes, [&](Node& rNode){
         noalias(rNode.Coordinates()) = rNode.GetInitialPosition();
     });
 
@@ -260,7 +260,7 @@ void VariableUtils::UpdateInitialToCurrentConfiguration(const ModelPart::NodesCo
 {
     KRATOS_TRY;
 
-    block_for_each(rNodes, [&](Node<3>& rNode){
+    block_for_each(rNodes, [&](Node& rNode){
         noalias(rNode.GetInitialPosition().Coordinates()) = rNode.Coordinates();
     });
 
@@ -278,7 +278,7 @@ void VariableUtils::UpdateCurrentPosition(
 {
     KRATOS_TRY;
 
-    block_for_each(rNodes, [&](Node<3>& rNode){
+    block_for_each(rNodes, [&](Node& rNode){
         noalias(rNode.Coordinates()) = (rNode.GetInitialPosition()).Coordinates() + rNode.FastGetSolutionStepValue(rUpdateVariable, BufferPosition);
     });
 
@@ -354,10 +354,10 @@ void VariableUtils::WeightedAccumulateVariableOnNodes(
     auto& r_entities = GetContainer<TContainerType>(rModelPart);
     const int n_entities = r_entities.size();
 
-    const std::function<double(const Node<3>&)>& r_weight_method =
+    const std::function<double(const Node&)>& r_weight_method =
         (IsInverseWeightProvided) ?
-        static_cast<std::function<double(const Node<3>&)>>([&rWeightVariable](const Node<3>& rNode) -> double {return 1.0 / rNode.GetValue(rWeightVariable);}) :
-        static_cast<std::function<double(const Node<3>&)>>([&rWeightVariable](const Node<3>& rNode) -> double {return rNode.GetValue(rWeightVariable);});
+        static_cast<std::function<double(const Node&)>>([&rWeightVariable](const Node& rNode) -> double {return 1.0 / rNode.GetValue(rWeightVariable);}) :
+        static_cast<std::function<double(const Node&)>>([&rWeightVariable](const Node& rNode) -> double {return rNode.GetValue(rWeightVariable);});
 
 #pragma omp parallel for
     for (int i_entity = 0; i_entity < n_entities; ++i_entity)
@@ -388,13 +388,13 @@ void VariableUtils::WeightedAccumulateVariableOnNodes(
     KRATOS_CATCH("");
 }
 
-
-KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetCurrentPositionsVector(
+template<class TVectorType>
+TVectorType VariableUtils::GetCurrentPositionsVector(
     const ModelPart::NodesContainerType& rNodes,
     const unsigned int Dimension)
 {
-    KRATOS_ERROR_IF((Dimension>3)) << " Only Dimension<=3 is admitted by the function" << std::endl;
-    Vector pos(rNodes.size()*Dimension);
+    KRATOS_ERROR_IF(Dimension>3) << "Only Dimension<=3 is admitted by the function" << std::endl;
+    TVectorType pos(rNodes.size()*Dimension);
 
     IndexPartition<unsigned int>(rNodes.size()).for_each(
     [&](unsigned int i){
@@ -406,12 +406,13 @@ KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetCurrentPositionsVector(
     return pos;
 }
 
-KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetInitialPositionsVector(
+template<class TVectorType>
+TVectorType VariableUtils::GetInitialPositionsVector(
     const ModelPart::NodesContainerType& rNodes,
     const unsigned int Dimension)
 {
-    KRATOS_ERROR_IF((Dimension>3)) << " Only Dimension<=3 is admitted by the function" << std::endl;
-    Vector pos(rNodes.size()*Dimension);
+    KRATOS_ERROR_IF(Dimension>3) << "Only Dimension<=3 is admitted by the function" << std::endl;
+    TVectorType pos(rNodes.size()*Dimension);
 
     IndexPartition<unsigned int>(rNodes.size()).for_each(
     [&](unsigned int i){
@@ -618,6 +619,12 @@ template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableO
     ModelPart&, const Variable<double>&, const Variable<double>&, const bool);
 template KRATOS_API(KRATOS_CORE) void VariableUtils::WeightedAccumulateVariableOnNodes<array_1d<double, 3>, ModelPart::ElementsContainerType, double>(
     ModelPart&, const Variable<array_1d<double, 3>>&, const Variable<double>&, const bool);
+
+template KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetInitialPositionsVector<Vector>(const ModelPart::NodesContainerType&, const unsigned int Dimension);
+template KRATOS_API(KRATOS_CORE) std::vector<double> VariableUtils::GetInitialPositionsVector<std::vector<double>>(const ModelPart::NodesContainerType&, const unsigned int Dimension);
+
+template KRATOS_API(KRATOS_CORE) Vector VariableUtils::GetCurrentPositionsVector<Vector>(const ModelPart::NodesContainerType&, const unsigned int Dimension);
+template KRATOS_API(KRATOS_CORE) std::vector<double> VariableUtils::GetCurrentPositionsVector<std::vector<double>>(const ModelPart::NodesContainerType&, const unsigned int Dimension);
 
 template void VariableUtils::AuxiliaryHistoricalValueSetter<int>(const Variable<int>&, const int&, NodeType&);
 template void VariableUtils::AuxiliaryHistoricalValueSetter<double>(const Variable<double>&, const double&, NodeType&);

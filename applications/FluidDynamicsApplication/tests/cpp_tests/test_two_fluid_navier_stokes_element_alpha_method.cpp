@@ -1033,6 +1033,144 @@ namespace Kratos {
             KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
 
+        KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesAlphaMethodArtificialDynamicViscosity3D4N, FluidDynamicsApplicationFastSuite)
+        {
+            Model current_model;
+            ModelPart &r_model_part = current_model.CreateModelPart("Main");
+            r_model_part.SetBufferSize(3);
 
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(BODY_FORCE);
+            r_model_part.AddNodalSolutionStepVariable(DENSITY);
+            r_model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            r_model_part.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+            r_model_part.AddNodalSolutionStepVariable(PRESSURE);
+            r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+            r_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            r_model_part.AddNodalSolutionStepVariable(DISTANCE);
+
+            // Process info creation
+            double delta_time = 0.1;
+
+            r_model_part.GetProcessInfo().SetValue(SPECTRAL_RADIUS_LIMIT, 0.0);
+            r_model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+            r_model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            r_model_part.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
+
+            // Set the element properties
+            auto p_elem_prop = r_model_part.CreateNewProperties(0);
+            p_elem_prop->SetValue(DENSITY, 1000.0);
+            p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+            auto p_cons_law = Kratos::make_shared<NewtonianTwoFluid3DLaw>();
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_cons_law);
+
+            // Geometry creation
+            r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+            r_model_part.CreateNewNode(4, 0.0, 0.0, 1.0);
+            std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3, 4};
+            auto p_element = r_model_part.CreateNewElement("TwoFluidNavierStokesAlphaMethod3D4N", 1, elem_nodes, p_elem_prop);
+
+            // Fake time advance to set the previous ProcessInfo container
+            r_model_part.CloneSolutionStep();
+
+            array_1d<double,3> aux_v;
+            for (auto& r_node : r_model_part.Nodes()) {
+                aux_v[0] = r_node.Id();
+                aux_v[1] = 2.0*r_node.Id();
+                aux_v[2] = std::pow(r_node.Id(),2);
+                r_node.GetSolutionStepValue(VELOCITY) = aux_v;
+                r_node.GetSolutionStepValue(PRESSURE) = std::pow(r_node.Id(), 3.0);
+                r_node.GetSolutionStepValue(DISTANCE) = 1.0;
+                r_node.GetSolutionStepValue(DENSITY) = p_elem_prop->GetValue(DENSITY);
+                r_node.GetSolutionStepValue(DYNAMIC_VISCOSITY) = p_elem_prop->GetValue(DYNAMIC_VISCOSITY);
+            }
+
+            // The integration points
+            std::vector<double> art_dyn_visc;
+            const auto &r_process_info = r_model_part.GetProcessInfo();
+            p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+
+            // Obtain the artificial dynamic viscosity in each gauss point.
+            p_element->CalculateOnIntegrationPoints(ARTIFICIAL_DYNAMIC_VISCOSITY, art_dyn_visc, r_process_info);
+
+            // for (auto val : art_dyn_visc) {
+            //     std::cout << std::setprecision(12) << val << std::endl;
+            // }
+
+            const double tolerance = 1.0e-8;
+            std::vector<double> exact_art_dyn_visc = { 2501.10848959, 3288.28103954, 4328.52239208, 1961.64629118};
+
+            KRATOS_CHECK_VECTOR_NEAR(art_dyn_visc, exact_art_dyn_visc, tolerance)
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesAlphaMethodArtificialDynamicViscosity2D3N, FluidDynamicsApplicationFastSuite)
+        {
+            Model current_model;
+            ModelPart &r_model_part = current_model.CreateModelPart("Main");
+            r_model_part.SetBufferSize(3);
+
+            // Variables addition
+            r_model_part.AddNodalSolutionStepVariable(BODY_FORCE);
+            r_model_part.AddNodalSolutionStepVariable(DENSITY);
+            r_model_part.AddNodalSolutionStepVariable(DYNAMIC_VISCOSITY);
+            r_model_part.AddNodalSolutionStepVariable(DYNAMIC_TAU);
+            r_model_part.AddNodalSolutionStepVariable(PRESSURE);
+            r_model_part.AddNodalSolutionStepVariable(VELOCITY);
+            r_model_part.AddNodalSolutionStepVariable(MESH_VELOCITY);
+            r_model_part.AddNodalSolutionStepVariable(DISTANCE);
+
+            // Process info creation
+            double delta_time = 0.1;
+
+            r_model_part.GetProcessInfo().SetValue(SPECTRAL_RADIUS_LIMIT, 0.0);
+            r_model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 0.001);
+            r_model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+            r_model_part.GetProcessInfo().SetValue(VOLUME_ERROR, 0.0);
+
+            // Set the element properties
+            auto p_elem_prop = r_model_part.CreateNewProperties(0);
+            p_elem_prop->SetValue(DENSITY, 1000.0);
+            p_elem_prop->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+            auto p_cons_law = Kratos::make_shared<NewtonianTwoFluid3DLaw>();
+            p_elem_prop->SetValue(CONSTITUTIVE_LAW, p_cons_law);
+
+            // Geometry creation
+            r_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(2, 1.0, 0.0, 0.0);
+            r_model_part.CreateNewNode(3, 0.0, 1.0, 0.0);
+            std::vector<ModelPart::IndexType> elem_nodes{1, 2, 3};
+            auto p_element = r_model_part.CreateNewElement("TwoFluidNavierStokesAlphaMethod2D3N", 1, elem_nodes, p_elem_prop);
+
+            // Fake time advance to set the previous ProcessInfo container
+            r_model_part.CloneSolutionStep();
+
+            array_1d<double, 3> aux_v;
+            for (auto &r_node : r_model_part.Nodes())
+            {
+                aux_v[0] = r_node.Id();
+                aux_v[1] = 2.0 * r_node.Id();
+                aux_v[2] = std::pow(r_node.Id(), 2);
+                r_node.GetSolutionStepValue(VELOCITY) = aux_v;
+                r_node.GetSolutionStepValue(PRESSURE) = std::pow(r_node.Id(), 3.0);
+                r_node.GetSolutionStepValue(DISTANCE) = 1.0;
+                r_node.GetSolutionStepValue(DENSITY) = p_elem_prop->GetValue(DENSITY);
+                r_node.GetSolutionStepValue(DYNAMIC_VISCOSITY) = p_elem_prop->GetValue(DYNAMIC_VISCOSITY);
+            }
+
+            // The integration points
+            std::vector<double> art_dyn_visc;
+            const auto &r_process_info = r_model_part.GetProcessInfo();
+            p_element->Initialize(r_process_info); // Initialize the element to initialize the constitutive law
+
+            // Obtain the artificial dynamic viscosity in each gauss point.
+            p_element->CalculateOnIntegrationPoints(ARTIFICIAL_DYNAMIC_VISCOSITY, art_dyn_visc, r_process_info);
+
+            const double tolerance = 1.0e-8;
+            std::vector<double> exact_art_dyn_visc = {2829.53964846, 3772.34868778, 4715.15772801};
+
+            KRATOS_CHECK_VECTOR_NEAR(art_dyn_visc, exact_art_dyn_visc, tolerance)
+        }
     } // namespace Testing
 }  // namespace Kratos.

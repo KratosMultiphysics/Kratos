@@ -63,7 +63,38 @@ Element::Pointer TwoFluidNavierStokesAlphaMethod<TElementData>::Create(
     return Kratos::make_intrusive<TwoFluidNavierStokesAlphaMethod>(NewId, pGeom, pProperties);
 }
 
+template <class TElementData>
+void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateOnIntegrationPoints(
+    const Variable<double> &rVariable,
+    std::vector<double> &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    // Create new temporary data container
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
 
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
+
+    if (rOutput.size() != number_of_gauss_points){
+        rOutput.resize(number_of_gauss_points);
+    }
+
+    if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY){
+        // Iterate over integration points to evaluate the artificial viscosity at each Gauss point
+        for (unsigned int g = 0; g < number_of_gauss_points; ++g){
+            this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+            rOutput[g] = CalculateArtificialDynamicViscositySpecialization(data);
+        }
+    }
+    else{
+        BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
+    }
+}
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
@@ -73,6 +104,78 @@ Element::Pointer TwoFluidNavierStokesAlphaMethod<TElementData>::Create(
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected operations
+
+template <>
+double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::CalculateArtificialDynamicViscositySpecialization(TwoFluidNavierStokesAlphaMethodData<2, 3> &rData) const
+{
+    // Variables for artificial viscosity calculation
+    double artificial_mu = 0.0;
+    const double rho = rData.Density;
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const auto &acceleration_alpha_method = rData.AccelerationAlphaMethod;
+    const double max_spectral_radius = rData.MaxSpectralRadius;
+    const double alpha_f = 1 / (1 + max_spectral_radius);
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+    const auto &vmesh = rData.MeshVelocity;
+    const auto &vmeshn = rData.MeshVelocityOldStep;
+    const auto &f = rData.BodyForce;
+    const auto &fn = rData.BodyForce_OldStep1;
+    const auto &p = rData.Pressure;
+    const BoundedMatrix<double, 3, 2> vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const double art_dyn_visc_coeff = 0.8;
+    double grad_v_norm = 0.0;
+
+    // Check that velocity gradient norm is non-zero
+
+    //substitute_artificial_mu_grad_v_norm_2D_3N
+
+    if (grad_v_norm > 1.0e-12) {
+        // Calculate symbolic artificial viscosity
+        //substitute_artificial_mu_2D_3N
+    }
+
+    return artificial_mu;
+}
+
+template <>
+double TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<3, 4>>::CalculateArtificialDynamicViscositySpecialization(TwoFluidNavierStokesAlphaMethodData<3, 4> &rData) const
+{
+    // Variables for artificial viscosity calculation
+    double artificial_mu = 0.0;
+    const double rho = rData.Density;
+    const double h = rData.ElementSize;
+    const double dt = rData.DeltaTime;
+    const auto &acceleration_alpha_method = rData.AccelerationAlphaMethod;
+    const double max_spectral_radius = rData.MaxSpectralRadius;
+    const double alpha_f = 1 / (1 + max_spectral_radius);
+    const auto &v = rData.Velocity;
+    const auto &vn = rData.Velocity_OldStep1;
+    const auto &vmesh = rData.MeshVelocity;
+    const auto &vmeshn = rData.MeshVelocityOldStep;
+    const auto &f = rData.BodyForce;
+    const auto &fn = rData.BodyForce_OldStep1;
+    const auto &p = rData.Pressure;
+    const BoundedMatrix<double, 4, 3> vconv = (vn - vmeshn) + alpha_f * ((v - vmesh) - (vn - vmeshn));
+    const auto &N = rData.N;
+    const auto &DN = rData.DN_DX;
+    const double art_dyn_visc_coeff = 0.8;
+    double grad_v_norm = 0.0;
+
+    // Check that velocity gradient norm is non-zero
+
+    //substitute_artificial_mu_grad_v_norm_3D_4N
+
+    if (grad_v_norm > 1.0e-12) {
+        // Calculate symbolic artificial viscosity
+        //substitute_artificial_mu_3D_4N
+    }
+
+    return artificial_mu;
+}
 
 template <>
 void TwoFluidNavierStokesAlphaMethod<TwoFluidNavierStokesAlphaMethodData<2, 3>>::CalculateStrainRate(TwoFluidNavierStokesAlphaMethodData<2, 3>& rData) const

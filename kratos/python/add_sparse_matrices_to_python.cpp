@@ -5,8 +5,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -26,10 +26,7 @@
 #include "containers/system_vector.h"
 #include "utilities/amgcl_csr_spmm_utilities.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -256,5 +253,4 @@ void AddSparseMatricesToPython(pybind11::module& m)
     ;
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

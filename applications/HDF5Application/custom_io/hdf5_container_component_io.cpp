@@ -374,7 +374,7 @@ ContainerComponentIO<TContainerType, TContainerItemType, TComponents...>::Contai
             "list_of_variables": []
         })");
 
-    Settings.ValidateAndAssignDefaults(default_params);
+    Settings.AddMissingParameters(default_params);
 
     mComponentPath = Settings["prefix"].GetString() + rComponentPath;
     mComponentNames = Settings["list_of_variables"].GetStringArray();
