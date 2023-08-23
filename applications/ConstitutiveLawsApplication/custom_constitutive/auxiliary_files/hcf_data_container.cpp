@@ -183,12 +183,12 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
                         ConstitutiveLaw::StressVectorType stress_vector,
                         double uniaxial_stress)
 {
-    double sign_factor = CalculateTensionOrCompressionIdentifier(stress_vector);
+    const double sign_factor = CalculateTensionOrCompressionIdentifier(stress_vector);
     uniaxial_stress *= sign_factor;
 
     CalculateSminAndSmax(uniaxial_stress, rFatigueVariables);
 
-    rFatigueVariables.AdvanceStrategyApplied = rCurrentProcessInfo[ADVANCE_STRATEGY_APPLIED];
+    rFatigueVariables.AdvanceStrategyApplied = rCurrentProcessInfo.Has(ADVANCE_STRATEGY_APPLIED) ? rCurrentProcessInfo[ADVANCE_STRATEGY_APPLIED] : false;
     rFatigueVariables.DamageActivation = rCurrentProcessInfo[DAMAGE_ACTIVATION];
 
     if (rFatigueVariables.MaxIndicator && rFatigueVariables.MinIndicator) {
