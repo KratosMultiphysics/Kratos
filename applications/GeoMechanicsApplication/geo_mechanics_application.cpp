@@ -11,13 +11,6 @@
 //                   Aron Noordam
 //
 
-
-// System includes
-
-// External includes
-
-// Project includes
-
 // Application includes
 #include "geo_mechanics_application.h"
 
