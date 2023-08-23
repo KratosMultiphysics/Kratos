@@ -97,7 +97,7 @@ public:
         Matrix ReflectionMatrix;
         // map
         std::vector<std::pair <NodeTypePointer,NodeTypePointer>> Map;
-	};  
+	};
 
  	struct RotationalSymmetryData{
 		// point on the axis
@@ -105,14 +105,14 @@ public:
 		// angle
         double Angle;
 		// number of rotational operations
-        int NumRot;        
+        int NumRot;
         // axis
         array_1d<double,3> Axis;
         // pre-computed rotation matrices
-        std::vector<Matrix> RotationMatrices;        
-        // map 
+        std::vector<Matrix> RotationMatrices;
+        // map
         std::vector<std::pair <NodeTypePointer,NodeVector>> Map;
-	};  
+	};
 
 
     ///@}
@@ -127,7 +127,7 @@ public:
     // ==============================================================================
     void Initialize();
     // --------------------------------------------------------------------------
-    void Update();    
+    void Update();
     // --------------------------------------------------------------------------
     void ApplyOnVectorField( const Variable<array_3d> &rNodalVariable );
     // --------------------------------------------------------------------------
@@ -191,8 +191,6 @@ private:
     // ==============================================================================
     // Variables for spatial search
     // ==============================================================================
-    unsigned int mBucketSize = 100;
-    unsigned int mMaxNeighborNodes = 10000;
     NodeVector mListOfNodesOfModelPart;
     KDTree::Pointer mpSearchTree;
 

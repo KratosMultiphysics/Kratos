@@ -57,7 +57,7 @@ public:
     /// Pointer definition of GeometryMetricCalculator
     KRATOS_CLASS_POINTER_DEFINITION(GeometryMetricCalculator);
 
-    typedef Geometry<Node<3>> GeometryType;
+    typedef Geometry<Node> GeometryType;
 
     ///@}
     ///@name Life Cycle

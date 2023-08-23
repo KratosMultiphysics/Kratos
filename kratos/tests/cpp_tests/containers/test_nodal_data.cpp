@@ -109,11 +109,11 @@ namespace Testing {
             const std::string tag_string("Node");
 
 
-			Node<3>::Pointer p_node_to_be_saved = model_part.CreateNewNode(1, 1, 0, 0);
+			Node::Pointer p_node_to_be_saved = model_part.CreateNewNode(1, 1, 0, 0);
 			p_node_to_be_saved->FastGetSolutionStepValue(DISTANCE) = 1.12;
 			p_node_to_be_saved->FastGetSolutionStepValue(VELOCITY_X) = 2.32;
 
-			Node<3>::Pointer p_node_to_be_loaded(nullptr);
+			Node::Pointer p_node_to_be_loaded(nullptr);
  
             serializer.save(tag_string, p_node_to_be_saved);
             serializer.load(tag_string, p_node_to_be_loaded);

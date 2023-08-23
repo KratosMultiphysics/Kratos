@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -54,7 +54,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ImposeRigidMovementProcess);
 
     /// General type definitions
-    typedef Node<3>                                                      NodeType;
+    typedef Node                                                      NodeType;
 
     /// General containers type definitions
     typedef ModelPart::MasterSlaveConstraintContainerType ConstraintContainerType;

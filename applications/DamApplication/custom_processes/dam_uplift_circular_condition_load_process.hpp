@@ -39,7 +39,8 @@ class DamUpliftCircularConditionLoadProcess : public Process
 
     /// Constructor
     DamUpliftCircularConditionLoadProcess(ModelPart &rModelPart,
-                                          Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart)
+                                          ModelPart &rJointModelPart,
+                                          Parameters &rParameters) : Process(Flags()), mrModelPart(rModelPart), mrJointModelPart(rJointModelPart)
     {
         KRATOS_TRY
 
@@ -48,19 +49,20 @@ class DamUpliftCircularConditionLoadProcess : public Process
             {
                 "model_part_name":"PLEASE_CHOOSE_MODEL_PART_NAME",
                 "variable_name": "PLEASE_PRESCRIBE_VARIABLE_NAME",
-                "Modify"                                                : true,
-                "Gravity_Direction"                                     : "Y",
-                "Reservoir_Bottom_Coordinate_in_Gravity_Direction"      : 0.0,
-                "Upstream_Coordinate_first_bracket"                     : [0.0,0.0,0.0],
-                "Downstream_Coordinate_first_bracket"                   : [0.0,0.0,0.0],
-                "Focus"                                                 : [0.0,0.0,0.0],
-                "Spe_weight"                                            : 10000,
-                "Water_level"                                           : 0.0,
-                "Drains"                                                : false,
-                "Height_drain"                                          : 0.0,
-                "Distance"                                              : 0.0,
-                "Effectiveness"                                         : 0.0,
-                "table"                                                 : 0,
+                "Modify"                                           : true,
+                "joint_group_name"                                 : "PLEASE_CHOOSE_JOINT_GROUP_NAME",
+                "Gravity_Direction"                                : "Y",
+                "Reservoir_Bottom_Coordinate_in_Gravity_Direction" : 0.0,
+                "Upstream_Coordinate_first_bracket"                : [0.0,0.0,0.0],
+                "Downstream_Coordinate_first_bracket"              : [0.0,0.0,0.0],
+                "Focus"                                            : [0.0,0.0,0.0],
+                "Spe_weight"                                       : 10000,
+                "Water_level"                                      : 0.0,
+                "Drains"                                           : false,
+                "Height_drain"                                     : 0.0,
+                "Distance"                                         : 0.0,
+                "Effectiveness"                                    : 0.0,
+                "table"                                            : 0,
                 "interval":[
                 0.0,
                 0.0
@@ -383,6 +385,7 @@ class DamUpliftCircularConditionLoadProcess : public Process
     /// Member Variables
 
     ModelPart &mrModelPart;
+    ModelPart &mrJointModelPart;
     std::string mVariableName;
     std::string mGravityDirection;
     double mReferenceCoordinate;

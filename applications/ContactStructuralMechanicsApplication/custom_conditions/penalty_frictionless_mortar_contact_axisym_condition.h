@@ -7,7 +7,7 @@
 //  License:         BSD License
 //                   license: ContactStructuralMechanicsApplication/license.txt
 //
-//  Main authors:  Vicente Mataix Ferrandiz
+//  Main authors:    Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -29,12 +29,11 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    typedef Point                                     PointType;
-    typedef Node<3>                                    NodeType;
-    typedef Geometry<NodeType>                     GeometryType;
-    typedef Geometry<PointType>               GeometryPointType;
+    using PointType = Point;
+    using GeometryType = Geometry<Node>;
+    using GeometryPointType = Geometry<PointType>;
     ///Type definition for integration methods
-    typedef GeometryData::IntegrationMethod   IntegrationMethod;
+    using IntegrationMethod = GeometryData::IntegrationMethod;
 
 ///@}
 ///@name  Enum's
@@ -66,40 +65,58 @@ public:
     /// Counted pointer of PenaltyMethodFrictionlessMortarContactAxisymCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( PenaltyMethodFrictionlessMortarContactAxisymCondition );
 
-    typedef MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONLESS_PENALTY, TNormalVariation> MortarBaseType;
+    /// Base type for the mortar contact condition
+    using MortarBaseType = MortarContactCondition<2, TNumNodes, FrictionalCase::FRICTIONLESS_PENALTY, TNormalVariation>;
 
-    typedef PenaltyMethodFrictionlessMortarContactCondition<2, TNumNodes, TNormalVariation>                         BaseType;
+    /// Base type for the penalty method frictionless mortar contact condition
+    using BaseType = PenaltyMethodFrictionlessMortarContactCondition<2, TNumNodes, TNormalVariation>;
 
-    typedef typename MortarBaseType::MortarConditionMatrices                                                     MortarConditionMatrices;
+    /// Type definition for mortar condition matrices
+    using MortarConditionMatrices = typename MortarBaseType::MortarConditionMatrices;
 
-    typedef typename MortarBaseType::GeneralVariables                                                                   GeneralVariables;
+    /// Type definition for general variables
+    using GeneralVariables = typename MortarBaseType::GeneralVariables;
 
-    typedef typename MortarBaseType::AeData                                                                                       AeData;
+    /// Type definition for AE data
+    using AeData = typename MortarBaseType::AeData;
 
-    typedef Condition                                                                                                  ConditionBaseType;
+    /// Base type for the condition
+    using ConditionBaseType = Condition;
 
-    typedef typename ConditionBaseType::VectorType                                                                            VectorType;
+    /// Vector type definition
+    using VectorType = typename ConditionBaseType::VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                                                            MatrixType;
+    /// Matrix type definition
+    using MatrixType = typename ConditionBaseType::MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                                                              IndexType;
+    /// Index type definition
+    using IndexType = typename ConditionBaseType::IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                                                        GeometryPointerType;
+    /// Geometry pointer definition
+    using GeometryPointerType = typename ConditionBaseType::GeometryType::Pointer;
 
-    typedef typename ConditionBaseType::NodesArrayType                                                                    NodesArrayType;
+    /// Nodes array type definition
+    using NodesArrayType = typename ConditionBaseType::NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer                                                    PropertiesPointerType;
+    /// Properties pointer definition
+    using PropertiesPointerType = typename ConditionBaseType::PropertiesType::Pointer;
 
-    typedef typename ConditionBaseType::EquationIdVectorType                                                        EquationIdVectorType;
+    /// Equation ID vector type definition
+    using EquationIdVectorType = typename ConditionBaseType::EquationIdVectorType;
 
-    typedef typename ConditionBaseType::DofsVectorType                                                                    DofsVectorType;
+    /// Dofs vector type definition
+    using DofsVectorType = typename ConditionBaseType::DofsVectorType;
 
-    typedef typename std::vector<array_1d<PointType,2>>                                                           ConditionArrayListType;
+    /// Type definition for an array list of conditions
+    using ConditionArrayListType = typename std::vector<array_1d<PointType, 2>>;
 
-    typedef Line2D2<Point>                                                                                             DecompositionType;
+    /// Line type definition
+    using DecompositionType = Line2D2<PointType>;
 
-    typedef DerivativeData<2, TNumNodes>                                                                              DerivativeDataType;
+    /// Type definition for derivative data
+    using DerivativeDataType = DerivativeData<2, TNumNodes>;
 
+    /// Constant expression for matrix size
     static constexpr IndexType MatrixSize = 2 * (TNumNodes + TNumNodes) + TNumNodes;
 
     ///@}

@@ -10,11 +10,6 @@
 //  Main authors:    Vahid Galavi
 //
 
-// System includes
-#include <iostream>
-
-// External includes
-
 // Project includes
 #include "custom_constitutive/linear_elastic_plane_stress_2D_law.h"
 
@@ -23,40 +18,11 @@
 namespace Kratos
 {
 
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
-
-GeoLinearElasticPlaneStress2DLaw::GeoLinearElasticPlaneStress2DLaw()
-    : ElasticIsotropicK03DLaw()
-{
-}
-
-//******************************COPY CONSTRUCTOR**************************************
-//************************************************************************************
-
-GeoLinearElasticPlaneStress2DLaw::GeoLinearElasticPlaneStress2DLaw(const GeoLinearElasticPlaneStress2DLaw& rOther)
-    : ElasticIsotropicK03DLaw(rOther)
-{
-}
-
-//********************************CLONE***********************************************
-//************************************************************************************
-
 ConstitutiveLaw::Pointer GeoLinearElasticPlaneStress2DLaw::Clone() const
 {
     GeoLinearElasticPlaneStress2DLaw::Pointer p_clone(new GeoLinearElasticPlaneStress2DLaw(*this));
     return p_clone;
 }
-
-//*******************************DESTRUCTOR*******************************************
-//************************************************************************************
-
-GeoLinearElasticPlaneStress2DLaw::~GeoLinearElasticPlaneStress2DLaw()
-{
-}
-
-//************************************************************************************
-//************************************************************************************
 
 bool& GeoLinearElasticPlaneStress2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
@@ -66,9 +32,6 @@ bool& GeoLinearElasticPlaneStress2DLaw::GetValue(const Variable<bool>& rThisVari
 
     return rValue;
 }
-
-//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
-//************************************************************************************
 
 void GeoLinearElasticPlaneStress2DLaw::GetLawFeatures(Features& rFeatures)
 {
@@ -88,20 +51,17 @@ void GeoLinearElasticPlaneStress2DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mSpaceDimension = 2;
 }
 
-//************************************************************************************
-//************************************************************************************
-
 void GeoLinearElasticPlaneStress2DLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
+    const double E  = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
     this->CheckClearElasticMatrix(C);
 
-    const double c1 = E / (1.00 - NU * NU);
+    const double c1 = E / (1.0 - NU * NU);
     const double c2 = c1 * NU;
-    const double c3 = 0.5*E / (1 + NU);
+    const double c3 = 0.5*E / (1.0 + NU);
 
     C(0, 0) = c1;
     C(0, 1) = c2;
@@ -110,30 +70,14 @@ void GeoLinearElasticPlaneStress2DLaw::CalculateElasticMatrix(Matrix& C, Constit
     C(2, 2) = c3;
 }
 
-//************************************************************************************
-//************************************************************************************
-
-void GeoLinearElasticPlaneStress2DLaw::CalculatePK2Stress(
-    const Vector& rStrainVector,
-    Vector& rStressVector,
-    ConstitutiveLaw::Parameters& rValues
-)
+void GeoLinearElasticPlaneStress2DLaw::CalculatePK2Stress(const Vector& rStrainVector,
+                                                          Vector& rStressVector,
+                                                          ConstitutiveLaw::Parameters& rValues)
 {
-    const Properties& r_material_properties = rValues.GetMaterialProperties();
-    const double E = r_material_properties[YOUNG_MODULUS];
-    const double NU = r_material_properties[POISSON_RATIO];
-
-    const double c1 = E / (1.00 - NU * NU);
-    const double c2 = c1 * NU;
-    const double c3 = 0.5* E / (1 + NU);
-
-    rStressVector[0] = c1 * rStrainVector[0] + c2 * rStrainVector[1];
-    rStressVector[1] = c2 * rStrainVector[0] + c1 * rStrainVector[1];
-    rStressVector[2] = c3 * rStrainVector[2];
+    Matrix C;
+    this->CalculateElasticMatrix(C, rValues);
+    noalias(rStressVector) = prod(C, rStrainVector);
 }
-
-//************************************************************************************
-//************************************************************************************
 
 void GeoLinearElasticPlaneStress2DLaw::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
 {
@@ -156,4 +100,4 @@ void GeoLinearElasticPlaneStress2DLaw::CalculateCauchyGreenStrain(Parameters& rV
     noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
 }
 
-} // Namespace Kratos
+}

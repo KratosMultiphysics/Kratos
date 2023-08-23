@@ -22,12 +22,12 @@
 #include "custom_utilities/mesh_error_calculation_utilities.hpp"
 #include "custom_utilities/mesher_utilities.hpp"
 
-///VARIABLES used:
-//Data:
-//Flags:    (checked)
-//          (set)
-//          (modified)
-//          (reset)
+/// VARIABLES used:
+// Data:
+// Flags:    (checked)
+//           (set)
+//           (modified)
+//           (reset)
 //(set):=(set in this process)
 
 namespace Kratos
@@ -60,12 +60,12 @@ namespace Kratos
     ///@name Life Cycle
     ///@{
 
-  /// Default constructor.
-  SetEulerianInletProcess(ModelPart &rModelPart,
-                  int EchoLevel)
-      : mrModelPart(rModelPart)
-  {
-    KRATOS_INFO("SetEulerianInletProcess") << " activated "<< std::endl;
+    /// Default constructor.
+    SetEulerianInletProcess(ModelPart &rModelPart,
+                            int EchoLevel)
+        : mrModelPart(rModelPart)
+    {
+      KRATOS_INFO("SetEulerianInletProcess") << " activated " << std::endl;
 
       mEchoLevel = EchoLevel;
     }
@@ -100,7 +100,7 @@ namespace Kratos
         i_node->Set(INLET);
         i_node->Set(RIGID);
         i_node->Reset(FREE_SURFACE);
-        i_node->GetValue(EULERIAN_INLET) = true;
+        i_node->Set(PFEMFlags::EULERIAN_INLET);
       }
 
       KRATOS_CATCH(" ")
@@ -175,7 +175,7 @@ namespace Kratos
     /// this function is a private function
 
     /// Copy constructor.
-    //Process(Process const& rOther);
+    // Process(Process const& rOther);
 
     ///@}
 

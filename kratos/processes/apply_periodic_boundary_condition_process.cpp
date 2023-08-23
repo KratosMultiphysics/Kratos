@@ -155,7 +155,7 @@ void ApplyPeriodicConditionProcess::ApplyConstraintsForPeriodicConditions()
 
     IndexType num_slaves_found = 0;
 
-    num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), [&](Node<3>& rNode){
+    num_slaves_found = block_for_each<SumReduction<IndexType>>(mrSlaveModelPart.Nodes(), [&](Node& rNode){
         IndexType counter = 0;
         Condition::Pointer p_host_cond;
         VectorType shape_function_values;

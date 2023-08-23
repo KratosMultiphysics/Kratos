@@ -56,9 +56,9 @@ class TestGenerateMPMParticleCondition(KratosUnittest.TestCase):
 
     def _create_elements(self, initial_mp, dimension, geometry_element):
         if (dimension == 2):
-            initial_mp.CreateNewElement("UpdatedLagrangian2D4N", 1, [1,2,3,4], initial_mp.GetProperties()[1])
+            initial_mp.CreateNewElement("MPMUpdatedLagrangian2D4N", 1, [1,2,3,4], initial_mp.GetProperties()[1])
         else:
-            initial_mp.CreateNewElement("UpdatedLagrangian3D8N", 1, [1,2,3,4,5,6,7,8], initial_mp.GetProperties()[1])
+            initial_mp.CreateNewElement("MPMUpdatedLagrangian3D8N", 1, [1,2,3,4,5,6,7,8], initial_mp.GetProperties()[1])
 
         KratosMultiphysics.VariableUtils().SetFlag(KratosMultiphysics.ACTIVE, True, initial_mp.Elements)
 

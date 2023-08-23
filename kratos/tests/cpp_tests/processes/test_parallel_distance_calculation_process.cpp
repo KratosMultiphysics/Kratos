@@ -27,8 +27,8 @@ namespace ParallelDistanceCalculationProcessTestInternals
 {
     void SetUpDistanceField(
         ModelPart& rModelPart,
-        std::function<double(Node<3>& rNode)>& rDistanceFunction,
-        std::function<double&(Node<3>& rNode)>& rDistanceGetter)
+        std::function<double(Node& rNode)>& rDistanceFunction,
+        std::function<double&(Node& rNode)>& rDistanceGetter)
     {
         // Set the intersected elements
         // First set an auxiliary level set field
@@ -72,11 +72,11 @@ namespace ParallelDistanceCalculationProcessTestInternals
 KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateral2D, KratosCoreFastSuite)
 {
     // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-    Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 10.0, 0.0);
-    Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 10.0, 10.0, 0.0);
-    Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 10.0, 0.0, 0.0);
-    Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 10.0, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.0, 10.0, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.0, 0.0, 0.0);
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"({
         "number_of_divisions" : 7,
@@ -90,8 +90,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateral2D, KratosCoreFast
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
 
     // Set up the intersected elements distance
-    std::function<double(Node<3>& rNode)> nodal_value_function = [](Node<3>& rNode){return rNode.X() + rNode.Y() - 100.0/9.9;};
-    std::function<double&(Node<3>& rNode)> distance_getter = [](Node<3>& rNode)->double&{return rNode.FastGetSolutionStepValue(DISTANCE);};
+    std::function<double(Node& rNode)> nodal_value_function = [](Node& rNode){return rNode.X() + rNode.Y() - 100.0/9.9;};
+    std::function<double&(Node& rNode)> distance_getter = [](Node& rNode)->double&{return rNode.FastGetSolutionStepValue(DISTANCE);};
     ParallelDistanceCalculationProcessTestInternals::SetUpDistanceField(r_model_part, nodal_value_function, distance_getter);
 
     // Compute distance
@@ -131,11 +131,11 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateral2D, KratosCoreFast
 KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateralNonHistorical2D, KratosCoreFastSuite)
 {
     // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-    Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.0, 0.0, 0.0);
-    Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.0, 10.0, 0.0);
-    Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 10.0, 10.0, 0.0);
-    Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 10.0, 0.0, 0.0);
-    Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+    Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.0, 0.0, 0.0);
+    Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.0, 10.0, 0.0);
+    Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.0, 10.0, 0.0);
+    Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.0, 0.0, 0.0);
+    Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
     Parameters mesher_parameters(R"({
         "number_of_divisions" : 7,
@@ -147,8 +147,8 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateralNonHistorical2D, K
     StructuredMeshGeneratorProcess(geometry, r_model_part, mesher_parameters).Execute();
 
     // Set up the intersected elements distance
-    std::function<double(Node<3>& rNode)> nodal_value_function = [](Node<3>& rNode){return rNode.X() + rNode.Y() - 100.0/9.9;};
-    std::function<double&(Node<3>& rNode)> distance_getter = [](Node<3>& rNode)->double&{return rNode.GetValue(DISTANCE);};
+    std::function<double(Node& rNode)> nodal_value_function = [](Node& rNode){return rNode.X() + rNode.Y() - 100.0/9.9;};
+    std::function<double&(Node& rNode)> distance_getter = [](Node& rNode)->double&{return rNode.GetValue(DISTANCE);};
     ParallelDistanceCalculationProcessTestInternals::SetUpDistanceField(r_model_part, nodal_value_function, distance_getter);
 
     // Compute distance

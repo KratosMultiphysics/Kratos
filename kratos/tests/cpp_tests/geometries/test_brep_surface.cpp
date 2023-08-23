@@ -27,7 +27,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     NurbsSurfaceGeometry<3, PointerVector<NodeType>>::Pointer GenerateReferenceNodeSurfaceHalfCirclePointer() {
         Geometry<NodeType>::PointsArrayType points;

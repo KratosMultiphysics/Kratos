@@ -34,7 +34,7 @@ CALL :add_app %KRATOS_APP_DIR%\MeshMovingApplication;
 CALL :add_app %KRATOS_APP_DIR%\CSharpWrapperApplication;
 CALL :add_app %KRATOS_APP_DIR%\ShapeOptimizationApplication;
 CALL :add_app %KRATOS_APP_DIR%\CoSimulationApplication;
-@REM CALL :add_app %KRATOS_APP_DIR%\CableNetApplication;
+CALL :add_app %KRATOS_APP_DIR%\CableNetApplication;
 CALL :add_app %KRATOS_APP_DIR%\RANSApplication;
 CALL :add_app %KRATOS_APP_DIR%\MappingApplication;
 CALL :add_app %KRATOS_APP_DIR%\CompressiblePotentialFlowApplication;
@@ -45,6 +45,7 @@ CALL :add_app %KRATOS_APP_DIR%\MultilevelMonteCarloApplication;
 CALL :add_app %KRATOS_APP_DIR%\StatisticsApplication;
 CALL :add_app %KRATOS_APP_DIR%\RomApplication;
 CALL :add_app %KRATOS_APP_DIR%\ShallowWaterApplication;
+CALL :add_app %KRATOS_APP_DIR%\OptimizationApplication;
 
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\cmake_install.cmake"
 del /F /Q "%KRATOS_BUILD%\%KRATOS_BUILD_TYPE%\CMakeCache.txt"

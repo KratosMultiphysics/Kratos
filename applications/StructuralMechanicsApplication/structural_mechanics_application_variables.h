@@ -4,8 +4,7 @@
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
 //  License:         BSD License
-//                     license:
-// structural_mechanics_application/license.txt
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
@@ -85,6 +84,7 @@ namespace Kratos
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION,double, I22)
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION,double, I33)
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION,double, LUMPED_MASS_ROTATION_COEFFICIENT)
+    KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION,Vector, BEAM_INITIAL_STRAIN_VECTOR)
 
     // Shell generalized variables
     KRATOS_DEFINE_APPLICATION_VARIABLE( STRUCTURAL_MECHANICS_APPLICATION, bool, STENBERG_SHEAR_STABILIZATION_SUITABLE )

@@ -441,8 +441,8 @@ public:
 
     }
 
-    /** 
-     * @brief This method calculate and return volume of this geometry. 
+    /**
+     * @brief This method calculate and return volume of this geometry.
      * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
      * @see Length()
@@ -1606,7 +1606,6 @@ GeometryData Hexahedra3D20<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Hexahedra3D20<TPointType>::msGeometryDimension(
-    3, 3, 3);
+GeometryDimension Hexahedra3D20<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.

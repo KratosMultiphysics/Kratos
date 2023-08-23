@@ -896,7 +896,7 @@ namespace Kratos
 
 
     //2D: 2 enrichment functions for capturing weak discontinities. All the shape functions follow the criteria of Partition of Unity.
-    static int CalculateEnrichedShapeFuncionsExtendedmodified_gausspoints(Geometry< Node<3> >& trianglegeom,BoundedMatrix<double,(2+1), 2 >& rPoints, BoundedMatrix<double, (2+1), 2 >& DN_DX,array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, BoundedMatrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues, array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, BoundedMatrix<double,3*(2-1), (5)>& NEnriched,BoundedMatrix<double,10, 2>& rGradientpositive,BoundedMatrix<double,10, 2>& rGradientnegative ,BoundedMatrix<int,3,3>& father_nodes,std::vector<Matrix>& PRUEBA, array_1d<double,6>& weight)
+    static int CalculateEnrichedShapeFuncionsExtendedmodified_gausspoints(Geometry< Node >& trianglegeom,BoundedMatrix<double,(2+1), 2 >& rPoints, BoundedMatrix<double, (2+1), 2 >& DN_DX,array_1d<double,(2+1)>& rDistances, array_1d<double,(3*(2-1))>& rVolumes, BoundedMatrix<double, 3*(2-1), (2+1) >& rGPShapeFunctionValues, array_1d<double,(3*(2-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, BoundedMatrix<double,3*(2-1), (5)>& NEnriched,BoundedMatrix<double,10, 2>& rGradientpositive,BoundedMatrix<double,10, 2>& rGradientnegative ,BoundedMatrix<int,3,3>& father_nodes,std::vector<Matrix>& PRUEBA, array_1d<double,6>& weight)
     {
       KRATOS_TRY
 
@@ -1248,22 +1248,22 @@ namespace Kratos
 	      std::vector< Matrix > mInvJ0;
 	      Vector mDetJ0;
 
-	      Geometry< Node<3> >::PointsArrayType NewPoints;
-	      Node<3>::Pointer p_new_node;
+	      Geometry< Node >::PointsArrayType NewPoints;
+	      Node::Pointer p_new_node;
 	      int id_local=0;
 	      for (unsigned int j=0; j!=3; j++)
 		{
-		  p_new_node = Node<3>::Pointer(new Node<3>(id_local, coord_subdomain_aux(j,0), coord_subdomain_aux(j,1), coord_subdomain_aux(j,2)));
+		  p_new_node = Node::Pointer(new Node(id_local, coord_subdomain_aux(j,0), coord_subdomain_aux(j,1), coord_subdomain_aux(j,2)));
 		  NewPoints.push_back(p_new_node);
 		  id_local++;
 		}
 
-	      Geometry< Node<3> >::Pointer pGeom = trianglegeom.Create(NewPoints);
+	      Geometry< Node >::Pointer pGeom = trianglegeom.Create(NewPoints);
 	      //const unsigned int number_of_points = pGeom->size();
 	      //KRATOS_WATCH(number_of_points);
 	      mThisIntegrationMethod= GeometryData::IntegrationMethod::GI_GAUSS_2;
 
-	      typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+	      typedef Geometry<Node >::IntegrationPointsArrayType IntegrationPointsArrayType;
 	      //const GeomtryType::IntegrationPointsArrayType& integration_points = pGeom->IntegrationPoints(mThisIntegrationMethod);
 	      const IntegrationPointsArrayType& integration_points = pGeom->IntegrationPoints(mThisIntegrationMethod);
 
@@ -1488,7 +1488,7 @@ namespace Kratos
     }
 
     //for 3D
-    static int CalculateEnrichedShapeFuncions_Simplified(Geometry< Node<3> >& rGeom,BoundedMatrix<double,(3+1), 3 >& rPoints, BoundedMatrix<double, (3+1), 3 >& DN_DX, array_1d<double,(3+1)>& rDistances, array_1d<double,(3*(3-1))>& rVolumes, BoundedMatrix<double, 3*(3-1), (3+1) >& rShapeFunctionValues,array_1d<double,(3*(3-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, std::vector<Matrix>& rGradientsValueaux,     BoundedMatrix<double,3*(3-1), (2)>& NEnriched,int& number_interface_elements,BoundedMatrix<double, 2, 3 >& coord_interface_nodes, array_1d<double,6>& area_interface, array_1d<double,6>& area_inter, array_1d<double,6>& N_Star, bool& switch_off_e, std::vector<Matrix>&  edges_t,std::vector<Matrix>&  nodes,std::vector<Matrix>&  original_edges, std::vector<Matrix>& rGradientaux1, int& totalnodes, std::vector<Matrix>& interface_nodes, BoundedMatrix<double, 3*(3-1), 8 >& Ngauss_new, std::vector<Matrix>& Tres, std::vector<Matrix>& PRUEBA, array_1d<double,6>& weight)
+    static int CalculateEnrichedShapeFuncions_Simplified(Geometry< Node >& rGeom,BoundedMatrix<double,(3+1), 3 >& rPoints, BoundedMatrix<double, (3+1), 3 >& DN_DX, array_1d<double,(3+1)>& rDistances, array_1d<double,(3*(3-1))>& rVolumes, BoundedMatrix<double, 3*(3-1), (3+1) >& rShapeFunctionValues,array_1d<double,(3*(3-1))>& rPartitionsSign, std::vector<Matrix>& rGradientsValue, std::vector<Matrix>& rGradientsValueaux,     BoundedMatrix<double,3*(3-1), (2)>& NEnriched,int& number_interface_elements,BoundedMatrix<double, 2, 3 >& coord_interface_nodes, array_1d<double,6>& area_interface, array_1d<double,6>& area_inter, array_1d<double,6>& N_Star, bool& switch_off_e, std::vector<Matrix>&  edges_t,std::vector<Matrix>&  nodes,std::vector<Matrix>&  original_edges, std::vector<Matrix>& rGradientaux1, int& totalnodes, std::vector<Matrix>& interface_nodes, BoundedMatrix<double, 3*(3-1), 8 >& Ngauss_new, std::vector<Matrix>& Tres, std::vector<Matrix>& PRUEBA, array_1d<double,6>& weight)
     {
       KRATOS_TRY
 
@@ -1916,22 +1916,22 @@ namespace Kratos
               BoundedMatrix<double, 4, 3 > msDN_DX;
 	      //double Area=0.0;
 
-	      Geometry< Node<3> >::PointsArrayType NewPoints;
-	      Node<3>::Pointer p_new_node;
+	      Geometry< Node >::PointsArrayType NewPoints;
+	      Node::Pointer p_new_node;
 	      int id_local=0;
 	      for (unsigned int j=0; j!=4; j++)
 		{
 		  id_local=partition_nodes[j];
-		  p_new_node = Node<3>::Pointer(new Node<3>(id_local, coord_subdomainaux(j,0), coord_subdomainaux(j,1), coord_subdomainaux(j,2)));
+		  p_new_node = Node::Pointer(new Node(id_local, coord_subdomainaux(j,0), coord_subdomainaux(j,1), coord_subdomainaux(j,2)));
 		  NewPoints.push_back(p_new_node);
 		  id_local++;
 		}
-              Geometry< Node<3> >::Pointer pGeom = rGeom.Create(NewPoints);
+              Geometry< Node >::Pointer pGeom = rGeom.Create(NewPoints);
       	      //const unsigned int number_of_points = pGeom->size();
 	      //number of gauss points
 	      mThisIntegrationMethod= GeometryData::IntegrationMethod::GI_GAUSS_2;
 
-	      typedef Geometry<Node<3> >::IntegrationPointsArrayType IntegrationPointsArrayType;
+	      typedef Geometry<Node >::IntegrationPointsArrayType IntegrationPointsArrayType;
 
 	      const IntegrationPointsArrayType& integration_points = pGeom->IntegrationPoints(mThisIntegrationMethod);
 

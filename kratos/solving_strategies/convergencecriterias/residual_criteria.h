@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-#if !defined(KRATOS_RESIDUAL_CRITERIA )
-#define  KRATOS_RESIDUAL_CRITERIA
+#pragma once
 
 // System includes
 
@@ -178,7 +177,7 @@ public:
             SizeType size_residual;
             CalculateResidualNorm(rModelPart, mCurrentResidualNorm, size_residual, rDofSet, rb);
 
-            TDataType ratio = 0.0;
+            TDataType ratio{};
             if(mInitialResidualNorm < std::numeric_limits<TDataType>::epsilon()) {
                 ratio = 0.0;
             } else {
@@ -363,7 +362,7 @@ protected:
         SizeType dof_num = 0;
 
         // Auxiliar values
-        TDataType residual_dof_value = 0.0;
+        TDataType residual_dof_value{};
         const auto it_dof_begin = rDofSet.begin();
         const int number_of_dof = static_cast<int>(rDofSet.size());
 
@@ -432,17 +431,17 @@ private:
     ///@name Member Variables
     ///@{
 
-    TDataType mRatioTolerance;      /// The ratio threshold for the norm of the residual
+    TDataType mRatioTolerance{};      /// The ratio threshold for the norm of the residual
 
-    TDataType mInitialResidualNorm; /// The reference norm of the residual
+    TDataType mInitialResidualNorm{}; /// The reference norm of the residual
 
-    TDataType mCurrentResidualNorm; /// The current norm of the residual
+    TDataType mCurrentResidualNorm{}; /// The current norm of the residual
 
-    TDataType mAlwaysConvergedNorm; /// The absolute value threshold for the norm of the residual
+    TDataType mAlwaysConvergedNorm{}; /// The absolute value threshold for the norm of the residual
 
-    TDataType mReferenceDispNorm;   /// The norm at the beginning of the iterations
+    TDataType mReferenceDispNorm{};   /// The norm at the beginning of the iterations
 
-    std::vector<int> mActiveDofs;   /// This vector contains the dofs that are active
+    std::vector<int> mActiveDofs;     /// This vector contains the dofs that are active
 
     ///@}
     ///@name Private Operators
@@ -473,9 +472,6 @@ private:
 ///@name Type Definitions
 ///@{
 
-
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NEW_DISPLACEMENT_CRITERIA  defined

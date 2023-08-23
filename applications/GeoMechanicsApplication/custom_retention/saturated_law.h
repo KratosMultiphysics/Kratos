@@ -41,23 +41,17 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) SaturatedLaw
 public:
 
     /// The base class RetentionLaw type definition
-    typedef RetentionLaw         BaseType;
+    using BaseType = RetentionLaw;
 
-    typedef Geometry<Node<3>> GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Counted pointer of SaturatedLaw
     KRATOS_CLASS_POINTER_DEFINITION( SaturatedLaw );
 
-    SaturatedLaw();
-
     RetentionLaw::Pointer Clone() const override;
-
-    SaturatedLaw(const SaturatedLaw& rOther);
-
-    ~SaturatedLaw() override;
 
     void InitializeMaterial(const Properties& rMaterialProperties,
                             const GeometryType& rElementGeometry,

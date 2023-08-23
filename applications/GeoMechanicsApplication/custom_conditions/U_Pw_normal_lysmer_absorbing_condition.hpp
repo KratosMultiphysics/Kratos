@@ -10,10 +10,7 @@
 //
 //  Main authors:    Aron Noordam
 //
-
-
-#if !defined(KRATOS_GEO_U_PW_NORMAL_LYSMER_ABSORBING_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_NORMAL_LYSMER_ABSORBING_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -36,14 +33,13 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UPwLysmerAbsorbingCondition);
     
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    using UPwCondition<TDim,TNumNodes>::mThisIntegrationMethod;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -55,9 +51,6 @@ public:
     
     // Constructor 2
     UPwLysmerAbsorbingCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
-
-    // Destructor
-    ~UPwLysmerAbsorbingCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -112,7 +105,6 @@ protected:
 
     struct NormalLysmerAbsorbingVariables
     {
-        double IntegrationCoefficient;
         double rho; // density of soil mixture
         double Ec; // p wave modulus
         double G; // shear modulus
@@ -193,11 +185,14 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-    typedef std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>> > hashmap;
+    using hashmap = std::unordered_multimap<DenseVector<int>, std::vector<Condition::Pointer>, KeyHasherRange<DenseVector<int>>, KeyComparorRange<DenseVector<int>>>;
 
-    // Member Variables
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    /**
+    * @brief Calculates the rotation matrix of the current condition for 2D line conditions
+    * @param rRotationMatrix rotation matrix of the current condition
+    * @param rGeom geometry of the current condition
+    */
+    void CalculateRotationMatrix2DLine(DimensionMatrixType& rRotationMatrix, const Element::GeometryType& rGeom);
 
 	/**
      * @brief Calculates the stiffness matrix for the current condition
@@ -206,8 +201,6 @@ private:
      */
     void CalculateConditionStiffnessMatrix(ElementMatrixType& rStiffnessMatrix, const ProcessInfo& rCurrentProcessInfo);
 
-    // Serialization
-    
     friend class Serializer;
     
     void save(Serializer& rSerializer) const override
@@ -223,5 +216,3 @@ private:
 }; // class UPwLysmerAbsorbingCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_U_PW_NORMAL_LYSMER_ABSORBING_CONDITION_H_INCLUDED defined 

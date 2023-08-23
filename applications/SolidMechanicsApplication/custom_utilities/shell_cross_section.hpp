@@ -50,7 +50,7 @@ public:
 
 	KRATOS_CLASS_POINTER_DEFINITION(ShellCrossSection);
 
-	typedef Geometry<Node < 3 > > GeometryType;
+	typedef Geometry<Node > GeometryType;
 
 	typedef std::vector< Ply > PlyCollection;
 

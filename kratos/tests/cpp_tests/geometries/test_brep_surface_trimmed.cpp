@@ -29,7 +29,7 @@
 namespace Kratos {
 namespace Testing {
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typename NurbsSurfaceGeometry<3, PointerVector<NodeType>>::Pointer GenerateNurbsSurface() {
         PointerVector<NodeType> points(4);
@@ -131,11 +131,11 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(NurbsTrimmedBrepSurfaceIntegration, KratosCoreGeometriesFastSuite) {
         auto p_brep_surface = GenerateTrimmedBrepSurface();
 
-        typename Geometry<Node<3>>::IntegrationPointsArrayType integration_points;
+        typename Geometry<Node>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = p_brep_surface->GetDefaultIntegrationInfo();
         p_brep_surface->CreateIntegrationPoints(integration_points, integration_info);
 
-        typename Geometry<Node<3>>::GeometriesArrayType quadrature_points;
+        typename Geometry<Node>::GeometriesArrayType quadrature_points;
         p_brep_surface->CreateQuadraturePointGeometries(quadrature_points, 3, integration_points, integration_info);
 
         double area = 0;

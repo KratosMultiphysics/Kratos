@@ -24,72 +24,98 @@
 #include "utilities/reduction_utilities.h"
 
 // Application includes
+#include "optimization_application_variables.h"
 
 // Include base h
 #include "model_part_utils.h"
 
 namespace Kratos {
 
-template<class TDataType>
-std::set<TDataType> ModelPartUtils::SetReduction<TDataType>::GetValue() const
+namespace ModelPartHelperUtils
 {
-    return mValue;
-}
+
+using NodeIdsType = std::vector<IndexType>;
+
+template <class TEntityType>
+using EntityPointerType = typename TEntityType::Pointer;
+
+template <class TContainerType>
+using ContainerEntityValueType = typename TContainerType::value_type;
+
+template <class TContainerType>
+using ContainerEntityPointerType = typename ContainerEntityValueType<TContainerType>::Pointer;
 
 template<class TDataType>
-void ModelPartUtils::SetReduction<TDataType>::LocalReduce(const value_type& rValue)
+class SetReduction
 {
-    mValue.emplace(rValue);
-}
+public:
+    using return_type = std::set<TDataType>;
+    using value_type = TDataType;
 
-template<class TDataType>
-void ModelPartUtils::SetReduction<TDataType>::ThreadSafeReduce(SetReduction<TDataType>& rOther)
-{
-    KRATOS_CRITICAL_SECTION
-    mValue.merge(rOther.mValue);
-}
+    return_type mValue;
 
-template<class TEntityType, class TMapValueType>
-std::map<IndexType, TMapValueType> ModelPartUtils::ContainerEntityMapReduction<TEntityType, TMapValueType>::GetValue() const
-{
-    return mValue;
-}
+    /// access to reduced value
+    return_type GetValue() const { return mValue; }
 
-template<class TEntityType, class TMapValueType>
-void ModelPartUtils::ContainerEntityMapReduction<TEntityType, TMapValueType>::LocalReduce(const value_type& rValue)
-{
-    if constexpr(std::is_same_v<TMapValueType, EntityPointerType<TEntityType>>) {
-        for (const auto& r_item : rValue) {
-            mValue.emplace(r_item);
-        }
-    } else if constexpr(std::is_same_v<TMapValueType, std::vector<EntityPointerType<TEntityType>>>) {
-        for (const auto& r_item : rValue) {
-            mValue[r_item.first].push_back(r_item.second);
-        }
-    } else {
-        KRATOS_ERROR << "Unsupported type for TMapValueType";
-    }
-}
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const value_type& rValue) { mValue.emplace(rValue); }
 
-template<class TEntityType, class TMapValueType>
-void ModelPartUtils::ContainerEntityMapReduction<TEntityType, TMapValueType>::ThreadSafeReduce(ContainerEntityMapReduction<TEntityType, TMapValueType>& rOther)
-{
-    KRATOS_CRITICAL_SECTION
-    if constexpr(std::is_same_v<TMapValueType, EntityPointerType<TEntityType>>) {
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(SetReduction<TDataType>& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
         mValue.merge(rOther.mValue);
-    } else if constexpr(std::is_same_v<TMapValueType, std::vector<EntityPointerType<TEntityType>>>) {
-        for (const auto& it : rOther.mValue) {
-            auto& r_current_vector = mValue[it.first];
-            for (auto p_item : it.second) {
-                r_current_vector.push_back(p_item);
-            }
-        }
-    } else {
-        KRATOS_ERROR << "Unsupported type for TMapValueType";
     }
-}
+};
 
-void ModelPartUtils::AppendModelPartNames(
+template<class TEntityType, class TMapValueType>
+class ContainerEntityMapReduction
+{
+public:
+    using return_type = std::map<IndexType, TMapValueType>;
+    using value_type = std::vector<std::pair<IndexType, EntityPointerType<TEntityType>>>;
+
+    return_type mValue;
+
+    /// access to reduced value
+    return_type GetValue() const { return mValue; }
+
+    /// NON-THREADSAFE (fast) value of reduction, to be used within a single thread
+    void LocalReduce(const value_type& rValue)
+    {
+        if constexpr(std::is_same_v<TMapValueType, EntityPointerType<TEntityType>>) {
+            for (const auto& r_item : rValue) {
+                mValue.emplace(r_item);
+            }
+        } else if constexpr(std::is_same_v<TMapValueType, std::vector<EntityPointerType<TEntityType>>>) {
+            for (const auto& r_item : rValue) {
+                mValue[r_item.first].push_back(r_item.second);
+            }
+        } else {
+            KRATOS_ERROR << "Unsupported type for TMapValueType";
+        }
+    }
+
+    /// THREADSAFE (needs some sort of lock guard) reduction, to be used to sync threads
+    void ThreadSafeReduce(ContainerEntityMapReduction<TEntityType, TMapValueType>& rOther)
+    {
+        KRATOS_CRITICAL_SECTION
+        if constexpr(std::is_same_v<TMapValueType, EntityPointerType<TEntityType>>) {
+            mValue.merge(rOther.mValue);
+        } else if constexpr(std::is_same_v<TMapValueType, std::vector<EntityPointerType<TEntityType>>>) {
+            for (const auto& it : rOther.mValue) {
+                auto& r_current_vector = mValue[it.first];
+                for (auto p_item : it.second) {
+                    r_current_vector.push_back(p_item);
+                }
+            }
+        } else {
+            KRATOS_ERROR << "Unsupported type for TMapValueType";
+        }
+    }
+};
+
+void AppendModelPartNames(
     std::stringstream& rOutputStream,
     const std::vector<ModelPart*>& rModelParts)
 {
@@ -105,7 +131,7 @@ void ModelPartUtils::AppendModelPartNames(
 }
 
 template<class TContainerType>
-void ModelPartUtils::UpdateEntityIdsSetFromContainer(
+void UpdateEntityIdsSetFromContainer(
     std::set<IndexType>& rOutput,
     const TContainerType& rContainer)
 {
@@ -117,7 +143,7 @@ void ModelPartUtils::UpdateEntityIdsSetFromContainer(
 }
 
 template<class TContainerType>
-void ModelPartUtils::UpdateEntityGeometryNodeIdsSetFromContainer(
+void UpdateEntityGeometryNodeIdsSetFromContainer(
     std::set<NodeIdsType>& rOutput,
     const TContainerType& rContainer)
 {
@@ -135,7 +161,7 @@ void ModelPartUtils::UpdateEntityGeometryNodeIdsSetFromContainer(
 }
 
 template<class TContainerType>
-void ModelPartUtils::UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAndEntityIdsSet(
+void UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAndEntityIdsSet(
     std::map<IndexType, ContainerEntityPointerType<TContainerType>>& rOutput,
     const std::set<IndexType>& rEntityIdsSet,
     TContainerType& rContainer)
@@ -145,13 +171,13 @@ void ModelPartUtils::UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAn
     using reduction_type = MapReduction<map_type>;
 
     // need to use ptr_iterator here because, we need to increment the reference counter of the entity intrusive_ptr when push_back is used.
-    auto entity_id_ptr_map = BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).template for_each<reduction_type>([&](auto& pEntity) {
-        auto it = rEntityIdsSet.find(pEntity->Id());
+    auto entity_id_ptr_map = block_for_each<reduction_type>(rContainer, [&](auto& rEntity) {
+        auto it = rEntityIdsSet.find(rEntity.Id());
         if (it != rEntityIdsSet.end()) {
-            return std::make_pair(pEntity->Id(), pEntity);
+            return std::make_pair(rEntity.Id(), &rEntity);
         } else {
             // return a dummy entry which is removed later.
-            return std::make_pair(std::numeric_limits<IndexType>::max(), pEntity);
+            return std::make_pair(std::numeric_limits<IndexType>::max(), &rEntity);
         }
     });
 
@@ -164,7 +190,7 @@ void ModelPartUtils::UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAn
 }
 
 template<class TContainerType>
-void ModelPartUtils::UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAndEntityGeometryNodeIdsSet(
+void UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAndEntityGeometryNodeIdsSet(
     std::map<IndexType, ContainerEntityPointerType<TContainerType>>& rOutput,
     const std::set<NodeIdsType>& rEntityGeometryNodeIdsSet,
     TContainerType& rContainer)
@@ -174,8 +200,8 @@ void ModelPartUtils::UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAn
     using reduction_type = MapReduction<map_type>;
 
     // need to use ptr_iterator here because, we need to increment the reference counter of the entity intrusive_ptr when push_back is used.
-    auto entity_id_ptr_map = BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).template for_each<reduction_type>([&](auto& pEntity) {
-        auto& r_geometry = pEntity->GetGeometry();
+    auto entity_id_ptr_map = block_for_each<reduction_type>(rContainer, [&](auto& rEntity) {
+        auto& r_geometry = rEntity.GetGeometry();
         NodeIdsType geometry_node_ids(r_geometry.size());
         for (IndexType i = 0; i < r_geometry.size(); ++i) {
             geometry_node_ids[i] = r_geometry[i].Id();
@@ -184,10 +210,10 @@ void ModelPartUtils::UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAn
 
         auto it = rEntityGeometryNodeIdsSet.find(geometry_node_ids);
         if (it != rEntityGeometryNodeIdsSet.end()) {
-            return std::make_pair(pEntity->Id(), pEntity);
+            return std::make_pair(rEntity.Id(), &rEntity);
         } else {
             // return a dummy entry which is removed later.
-            return std::make_pair(std::numeric_limits<IndexType>::max(), pEntity);
+            return std::make_pair(std::numeric_limits<IndexType>::max(), &rEntity);
         }
     });
 
@@ -200,7 +226,7 @@ void ModelPartUtils::UpdateEntityIdEntityPtrMapWithCommonEntitiesFromContainerAn
 }
 
 template<class TContainerType>
-void ModelPartUtils::UpdateNeighbourMaps(
+void UpdateNeighbourMaps(
     std::map<IndexType, std::vector<ContainerEntityPointerType<TContainerType>>>& rOutput,
     const std::set<IndexType>& rNodeIdsSet,
     TContainerType& rContainer)
@@ -210,12 +236,12 @@ void ModelPartUtils::UpdateNeighbourMaps(
     using reduction_type = ContainerEntityMapReduction<typename TContainerType::value_type, std::vector<entity_pointer_type>>;
 
     // need to use ptr_iterator here because, we need to increment the reference counter of the entity intrusive_ptr when push_back is used.
-    auto entity_id_ptrs_map = BlockPartition<TContainerType, typename TContainerType::ptr_iterator>(rContainer.ptr_begin(), rContainer.ptr_end()).template for_each<reduction_type>([&](auto& pEntity) {
+    auto entity_id_ptrs_map = block_for_each<reduction_type>(rContainer, [&](auto& rEntity) {
         std::vector<std::pair<IndexType, entity_pointer_type>> items;
-        for (const auto& r_node : pEntity->GetGeometry()) {
+        for (const auto& r_node : rEntity.GetGeometry()) {
             auto itr = rNodeIdsSet.find(r_node.Id());
             if (itr != rNodeIdsSet.end()) {
-                items.push_back(std::make_pair(r_node.Id(), pEntity));
+                items.push_back(std::make_pair(r_node.Id(), &rEntity));
             }
         }
         return items;
@@ -225,7 +251,7 @@ void ModelPartUtils::UpdateNeighbourMaps(
 }
 
 template<class TEntityPointerType>
-void ModelPartUtils::UpdateEntityIdEntityPtrMapFromNeighbourMap(
+void UpdateEntityIdEntityPtrMapFromNeighbourMap(
     std::map<IndexType, TEntityPointerType>& rOutput,
     const std::map<IndexType, std::vector<TEntityPointerType>>& rNodeIdNeighbourEntityPtrsMap)
 {
@@ -249,7 +275,7 @@ void ModelPartUtils::UpdateEntityIdEntityPtrMapFromNeighbourMap(
 }
 
 template<class TEntityPointerType>
-void ModelPartUtils::UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(
+void UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(
     std::map<IndexType, ModelPart::NodeType::Pointer>& rOutput,
     const std::map<IndexType, TEntityPointerType>& rInput)
 {
@@ -273,7 +299,7 @@ void ModelPartUtils::UpdateNodeIdNodePtrMapFromEntityIdEntityPtrMap(
     rOutput.merge(node_id_ptr_map);
 }
 
-std::string ModelPartUtils::GetExaminedModelPartsInfo(
+std::string GetExaminedModelPartsInfo(
     const std::vector<ModelPart*>& rExaminedModelPartsList,
     const bool AreNodesConsidered,
     const bool AreConditionsConsidered,
@@ -303,7 +329,7 @@ std::string ModelPartUtils::GetExaminedModelPartsInfo(
     return msg.str();
 }
 
-void ModelPartUtils::GetModelParts(
+void GetModelParts(
     std::set<ModelPart*>& rOutput,
     ModelPart& rInput)
 {
@@ -315,7 +341,7 @@ void ModelPartUtils::GetModelParts(
     }
 }
 
-void ModelPartUtils::ExamineModelParts(
+void ExamineModelParts(
     std::set<IndexType>& rExaminedNodeIds,
     std::set<NodeIdsType>& rExaminedConditionGeometryNodeIdsSet,
     std::set<NodeIdsType>& rExaminedElementGeometryNodeIdsSet,
@@ -341,7 +367,7 @@ void ModelPartUtils::ExamineModelParts(
     }
 }
 
-void ModelPartUtils::PopulateModelPart(
+void PopulateModelPart(
     ModelPart& rOutputModelPart,
     ModelPart& rReferenceModelPart,
     const bool AreNodesConsidered,
@@ -474,6 +500,8 @@ void ModelPartUtils::PopulateModelPart(
     rOutputModelPart.Tables() = rReferenceModelPart.Tables();
 }
 
+} // namespace ModelPartHelperUtils
+
 std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities(
     const std::vector<ModelPart*>& rExaminedModelPartsList,
     const std::vector<ModelPart*>& rReferenceModelParts,
@@ -483,6 +511,8 @@ std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities
     const bool AreNeighboursConsidered,
     const IndexType EchoLevel)
 {
+    using namespace ModelPartHelperUtils;
+
     std::stringstream mp_name_prefix;
     mp_name_prefix << "<OPTIMIZATION_APP_AUTO>"
                    << (AreNodesConsidered ? "_Nodes" : "_NoNodes")
@@ -575,6 +605,8 @@ std::vector<ModelPart*> ModelPartUtils::GetModelPartsWithCommonReferenceEntities
 void ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReferenceListAndExaminedList(
     const std::vector<ModelPart*> rModelParts)
 {
+    using namespace ModelPartHelperUtils;
+
     std::set<ModelPart*> all_model_parts;
     for (auto p_model_part : rModelParts) {
         GetModelParts(all_model_parts, *p_model_part);
@@ -584,6 +616,49 @@ void ModelPartUtils::RemoveModelPartsWithCommonReferenceEntitiesBetweenReference
         if (it->Name().rfind("<OPTIMIZATION_APP_AUTO>", 0) == 0) {
             it->GetParentModelPart().RemoveSubModelPart(*it);
         }
+    }
+}
+
+void ModelPartUtils::LogModelPartStatus(
+    ModelPart& rModelPart,
+    const std::string& rStatus)
+{
+    using namespace ModelPartHelperUtils;
+
+    if (!rModelPart.Has(MODEL_PART_STATUS)) {
+        rModelPart.SetValue(MODEL_PART_STATUS, {});
+    }
+
+    auto& r_statuses = rModelPart.GetValue(MODEL_PART_STATUS);
+    const auto p_itr = std::find(r_statuses.begin(), r_statuses.end(), rStatus);
+    if (p_itr == r_statuses.end()) {
+        r_statuses.push_back(rStatus);
+    }
+}
+
+std::vector<std::string> ModelPartUtils::GetModelPartStatusLog(ModelPart& rModelPart)
+{
+    using namespace ModelPartHelperUtils;
+
+    if (!rModelPart.Has(MODEL_PART_STATUS)) {
+        return {};
+    } else {
+        return rModelPart.GetValue(MODEL_PART_STATUS);
+    }
+}
+
+bool ModelPartUtils::CheckModelPartStatus(
+    const ModelPart& rModelPart,
+    const std::string& rStatus)
+{
+    using namespace ModelPartHelperUtils;
+
+    if (!rModelPart.Has(MODEL_PART_STATUS)) {
+        return false;
+    } else {
+        const auto& r_statuses = rModelPart.GetValue(MODEL_PART_STATUS);
+        const auto p_itr = std::find(r_statuses.begin(), r_statuses.end(), rStatus);
+        return p_itr != r_statuses.end();
     }
 }
 

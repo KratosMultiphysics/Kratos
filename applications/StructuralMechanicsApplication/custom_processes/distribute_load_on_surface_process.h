@@ -1,11 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS  ___|  |                   |                   |
+//       \___ \  __|  __| |   |  __| __| |   |  __| _` | |
+//             | |   |    |   | (    |   |   | |   (   | |
+//       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Armin Geiser
 //
@@ -30,11 +29,14 @@ namespace Kratos {
 ///@name Kratos Classes
 ///@{
 
-/// Process to create the animated Eigenvectors
-/** This process distributes a load on surface load conditions belonging to a modelpart.
- *  The load is distributed according to the surface area.
+/** 
+ * @class DistributeLoadOnSurfaceProcess
+ * @brief This process distributes a load on surface load conditions belonging to a modelpart
+ * @details The load is distributed according to the surface area.
+ * @author Armin Geiser
  */
-class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DistributeLoadOnSurfaceProcess : public Process
+class KRATOS_API(STRUCTURAL_MECHANICS_APPLICATION) DistributeLoadOnSurfaceProcess 
+    : public Process
 {
 public:
     ///@name Type Definitions
@@ -84,8 +86,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    ModelPart& mrModelPart;
-    Parameters mParameters;
+    ModelPart& mrModelPart; /// The model part
+    Parameters mParameters; /// The parameters
 
     ///@}
     ///@name Private Operations

@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:             BSD License
-//                                       license: StructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -68,7 +68,7 @@ public:
     typedef std::size_t                                     IndexType;
 
     /// Geometric type definitions
-    typedef Node<3>                                          NodeType;
+    typedef Node                                          NodeType;
     typedef Geometry<NodeType>                           GeometryType;
 
     /// The definition of the containers

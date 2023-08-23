@@ -83,7 +83,7 @@ void Initialize(
     // Base class Initialize manages constitutive law parameters
     FluidElementData<TDim, TNumNodes, true>::Initialize(rElement, rProcessInfo);
 
-    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const Geometry< Node >& r_geometry = rElement.GetGeometry();
     const Properties& r_properties = rElement.GetProperties();
     this->FillFromHistoricalNodalData(Velocity, VELOCITY, r_geometry);
     this->FillFromHistoricalNodalData(Velocity_OldStep1, VELOCITY, r_geometry, 1);
@@ -117,7 +117,7 @@ void UpdateGeometryValues(
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const Geometry< Node >& r_geometry = rElement.GetGeometry();
 
     for (unsigned int i = 0; i < TNumNodes; i++)
     {

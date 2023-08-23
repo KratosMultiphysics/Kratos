@@ -43,7 +43,7 @@ add_app ${KRATOS_APP_DIR}/MeshMovingApplication;
 add_app ${KRATOS_APP_DIR}/CSharpWrapperApplication;
 add_app ${KRATOS_APP_DIR}/ShapeOptimizationApplication;
 add_app ${KRATOS_APP_DIR}/CoSimulationApplication;
-# add_app ${KRATOS_APP_DIR}/CableNetApplication;
+add_app ${KRATOS_APP_DIR}/CableNetApplication;
 add_app ${KRATOS_APP_DIR}/RANSApplication;
 add_app ${KRATOS_APP_DIR}/MappingApplication;
 add_app ${KRATOS_APP_DIR}/CompressiblePotentialFlowApplication;
@@ -54,6 +54,7 @@ add_app ${KRATOS_APP_DIR}/MultilevelMonteCarloApplication;
 add_app ${KRATOS_APP_DIR}/StatisticsApplication;
 add_app ${KRATOS_APP_DIR}/RomApplication;
 add_app ${KRATOS_APP_DIR}/ShallowWaterApplication;
+add_app ${KRATOS_APP_DIR}/OptimizationApplication;
 
 # Clean
 rm -rf "${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}/cmake_install.cmake"

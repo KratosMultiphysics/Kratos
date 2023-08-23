@@ -103,7 +103,7 @@ namespace Kratos
         /// Pointer definition of WallCondition
         KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(WallCondition);
 
-        typedef Node < 3 > NodeType;
+        typedef Node NodeType;
 
         typedef Properties PropertiesType;
 

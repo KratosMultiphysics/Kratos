@@ -32,7 +32,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
 
 //         void GiDIODebugMetric(ModelPart& rModelPart)
 //         {

@@ -759,6 +759,16 @@ void AdvancedConstitutiveLawUtilities<TVoigtSize>::CalculateRotationOperator(
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<SizeType TVoigtSize>
+double AdvancedConstitutiveLawUtilities<TVoigtSize>::MacaullyBrackets(const double Number)
+    
+{
+    return (Number > 0.0) ? Number : 0.0;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class AdvancedConstitutiveLawUtilities<3>;
 template class AdvancedConstitutiveLawUtilities<6>;
 

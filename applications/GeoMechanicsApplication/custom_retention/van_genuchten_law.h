@@ -40,23 +40,17 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) VanGenuchtenLaw
 {
 public:
     /// The base class RetentionLaw type definition
-    typedef RetentionLaw         BaseType;
+    using BaseType = RetentionLaw;
 
-    typedef Geometry<Node<3>> GeometryType;
+    using GeometryType = Geometry<Node>;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Counted pointer of VanGenuchtenLaw
     KRATOS_CLASS_POINTER_DEFINITION( VanGenuchtenLaw );
 
-    VanGenuchtenLaw();
-
     RetentionLaw::Pointer Clone() const override;
-
-    VanGenuchtenLaw(const VanGenuchtenLaw& rOther);
-
-    ~VanGenuchtenLaw() override;
 
     void InitializeMaterial(const Properties& rMaterialProperties,
                             const GeometryType& rElementGeometry,
