@@ -1,4 +1,5 @@
 import os
+import json
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
@@ -40,6 +41,31 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
         direction = 1
 
         self.run_and_assert_1d_column(file_path, node_nbrs_to_assert, direction)
+
+    def test_stiff_absorbing_boundary_on_1d_column_quad(self):
+        """
+        Tests a very stiff Lysmer absorbing boundary condition on a column made of rectangulars. The boundary is a 2d2n
+        line. Since the boundary is very stiff, the wave is completely reflected
+
+        """
+
+        test_name = 'test_lysmer_boundary_stiff_column2d_quad'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name))
+
+        test_helper.run_kratos(file_path)
+
+        # retrieve results from calculation
+        with open(os.path.join(file_path, "calculated_result.json")) as fp:
+            calculated_result = json.load(fp)
+
+        output_indices = [0, 8, 16, 24, 32]
+        calculated_velocity = [calculated_result["NODE_51"]["VELOCITY_Y"][idx] for idx in output_indices]
+
+        # set expected results
+        expected_results = [0, self.expected_velocity, 0, -self.expected_velocity, 0]
+
+        # assert
+        self.assertVectorAlmostEqual(calculated_velocity, expected_results, 2)
 
     def run_and_assert_1d_column(self, file_path, node_nbrs, direction):
         """

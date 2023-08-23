@@ -57,7 +57,7 @@ namespace Python
 {
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef PointerVector<NodeType> NodeContainerType;
     typedef Geometry<NodeType> GeometryType;
     typedef typename GeometryType::PointsArrayType PointsArrayType;
@@ -65,8 +65,8 @@ namespace Python
     typedef typename GeometryType::GeometriesArrayType GeometriesArrayType;
     typedef typename Point::CoordinatesArrayType CoordinatesArrayType;
 
-    const PointerVector< Node<3> >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
-    PointerVector< Node<3> >& GetPoints( GeometryType& geom ) { return geom.Points(); }
+    const PointerVector< Node >& ConstGetPoints( GeometryType& geom ) { return geom.Points(); }
+    PointerVector< Node >& GetPoints( GeometryType& geom ) { return geom.Points(); }
 
     // Id utilities
     void SetId1(
@@ -117,7 +117,7 @@ void  AddGeometriesToPython(pybind11::module& m)
 {
     namespace py = pybind11;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef NodeType::Pointer pNodeType;
     typedef Geometry<NodeType > GeometryType;
 
@@ -138,7 +138,6 @@ void  AddGeometriesToPython(pybind11::module& m)
     // Dimension access
     .def("WorkingSpaceDimension", &GeometryType::WorkingSpaceDimension)
     .def("LocalSpaceDimension", &GeometryType::LocalSpaceDimension)
-    .def("Dimension", &GeometryType::Dimension)
     .def("DomainSize", &GeometryType::DomainSize)
     .def("EdgesNumber", &GeometryType::EdgesNumber)
     .def("PointsNumber", &GeometryType::PointsNumber)

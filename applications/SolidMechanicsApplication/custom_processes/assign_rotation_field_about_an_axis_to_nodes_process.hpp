@@ -256,7 +256,7 @@ private:
     ///@name Private Operators
     ///@{
 
-    void CallFunction(const Node<3>::Pointer& pNode, const double& time, double& rValue)
+    void CallFunction(const Node::Pointer& pNode, const double& time, double& rValue)
     {
       KRATOS_TRY
 

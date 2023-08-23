@@ -1,12 +1,14 @@
-// ==============================================================================
-//  KratosOptimizationApplication
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
-//  License:         BSD License
-//                   license: OptimizationApplication/license.txt
+//  License:		 BSD License
+//					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl, https://github.com/RezaNajian
 //
-// =================================================================================
 
 // ------------------------------------------------------------------------------
 // System includes
@@ -26,7 +28,6 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 #include "custom_python/add_custom_optimization_algorithm_to_python.h"
-#include "custom_algorithms/algorithm_steepest_descent.h"
 #include "custom_algorithms/algorithm_gradient_projection.h"
 
 
@@ -46,12 +47,6 @@ void  AddCustomOptimizationAlgorithmToPython(pybind11::module& m)
     // ================================================================
     // 
     // ================================================================
-    py::class_<AlgorithmSteepestDescent >(m, "AlgorithmSteepestDescent")
-        .def(py::init<std::string, Model&, Parameters& >())
-        .def("Initialize", &AlgorithmSteepestDescent::Initialize)
-        .def("CalculateSolutionStep", &AlgorithmSteepestDescent::CalculateSolutionStep)
-        ;  
-
     py::class_<AlgorithmGradientProjection >(m, "AlgorithmGradientProjection")
         .def(py::init<std::string, Model&, LinearSolver<DenseSpace, DenseSpace>&, Parameters& >())
         .def("Initialize", &AlgorithmGradientProjection::Initialize)

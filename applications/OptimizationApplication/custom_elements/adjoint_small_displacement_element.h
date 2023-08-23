@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//					 license: OptimizationApplication/license.txt
 //
 //  Main authors:    Reza Najian Asl
 //
@@ -52,7 +52,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class AdjointSmallDisplacementElement
+class KRATOS_API(OPTIMIZATION_APPLICATION) AdjointSmallDisplacementElement
     : public Element
 {
 public:

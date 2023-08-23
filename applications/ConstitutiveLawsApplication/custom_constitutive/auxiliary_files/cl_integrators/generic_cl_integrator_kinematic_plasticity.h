@@ -11,8 +11,7 @@
 //  Main authors:    Alejandro Cornejo
 //
 
-#if !defined(KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_KINEMATIC_PLASTICITY_H_INCLUDED)
-#define KRATOS_GENERIC_CONSTITUTIVE_LAW_INTEGRATOR_KINEMATIC_PLASTICITY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -197,22 +196,20 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
         BoundedArrayType delta_sigma;
         double plastic_consistency_factor_increment, threshold_indicator;
         BoundedArrayType kin_hard_stress_vector;
-        Matrix tangent_tensor = ZeroMatrix(6,6);
+        const bool analytic_tangent = (r_material_properties.Has(TANGENT_OPERATOR_ESTIMATION) && r_material_properties[TANGENT_OPERATOR_ESTIMATION] == 0) ? true : false;
 
         // Backward Euler
-        while (is_converged == false && iteration <= max_iter) {
+        while (!is_converged && iteration <= max_iter) {
             threshold_indicator = rUniaxialStress - rThreshold;
             plastic_consistency_factor_increment = threshold_indicator * rPlasticDenominator;
+            plastic_consistency_factor_increment = (plastic_consistency_factor_increment < 0.0) ? 0.0 : plastic_consistency_factor_increment;
             noalias(rPlasticStrainIncrement) = plastic_consistency_factor_increment * rDerivativePlasticPotential;
             noalias(rPlasticStrain) += rPlasticStrainIncrement;
             noalias(delta_sigma) = prod(rConstitutiveMatrix, rPlasticStrainIncrement);
             noalias(rPredictiveStressVector) -= delta_sigma;
-            CalculateBackStress(rPredictiveStressVector, rValues, rPreviousStressVector,
-                                            rPlasticStrainIncrement, rBackStressVector);
+            CalculateBackStress(rPredictiveStressVector, rValues, rPreviousStressVector, rPlasticStrainIncrement, rBackStressVector);
             noalias(kin_hard_stress_vector) = rPredictiveStressVector - rBackStressVector;
-            threshold_indicator = CalculatePlasticParameters(kin_hard_stress_vector, rStrainVector, rUniaxialStress, rThreshold,
-                                        rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,
-                                        rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
+            threshold_indicator = CalculatePlasticParameters(kin_hard_stress_vector, rStrainVector, rUniaxialStress, rThreshold, rPlasticDenominator, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDissipation, rPlasticStrainIncrement,rConstitutiveMatrix, rValues, CharacteristicLength, rPlasticStrain, rBackStressVector);
 
 
             if (std::abs(threshold_indicator) <= std::abs(1.0e-4 * rThreshold)) { // Has converged
@@ -221,8 +218,12 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
                 iteration++;
             }
         }
-        CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDenominator);
-        noalias(rConstitutiveMatrix) = tangent_tensor;
+        if (analytic_tangent) {
+            Matrix tangent_tensor;
+            tangent_tensor.resize(VoigtSize, VoigtSize, false);
+            CalculateTangentMatrix(tangent_tensor, rConstitutiveMatrix, rYieldSurfaceDerivative, rDerivativePlasticPotential, rPlasticDenominator);
+            noalias(rConstitutiveMatrix) = tangent_tensor;
+        }
         KRATOS_WARNING_IF("GenericConstitutiveLawIntegratorKinematicPlasticity", iteration > max_iter) << "Maximum number of iterations in plasticity loop reached..." << std::endl;
     }
 
@@ -842,4 +843,3 @@ class GenericConstitutiveLawIntegratorKinematicPlasticity
 ///@}
 
 } // namespace Kratos.
-#endif

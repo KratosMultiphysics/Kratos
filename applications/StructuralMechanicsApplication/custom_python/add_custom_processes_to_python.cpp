@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -13,8 +13,8 @@
 
 // External includes
 
-
 // Project includes
+#include "containers/model.h"
 #include "custom_python/add_custom_processes_to_python.h"
 #include "structural_mechanics_application_variables.h"
 
@@ -36,8 +36,7 @@
 #include "custom_processes/set_spherical_local_axes_process.h"
 #include "custom_processes/set_automated_initial_variable_process.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
@@ -45,7 +44,8 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     /// Processes
     py::class_<PostprocessEigenvaluesProcess, PostprocessEigenvaluesProcess::Pointer, Process>(m,"PostprocessEigenvaluesProcess")
-        .def(py::init<ModelPart&, Parameters>());
+        .def(py::init<Model&, Parameters>())
+        ;
 
     py::class_<TotalStructuralMassProcess, TotalStructuralMassProcess::Pointer, Process>(m,"TotalStructuralMassProcess")
         .def(py::init<ModelPart&>())
@@ -118,6 +118,5 @@ void  AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init<ModelPart&, Parameters>());
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python
 

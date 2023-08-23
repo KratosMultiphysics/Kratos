@@ -12,8 +12,7 @@
 //  Collaborator:   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED)
-#define KRATOS_TANGENT_OPERATOR_CALCULATOR_UTILITY_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -588,12 +587,10 @@ private:
     {
         const SizeType dimension = rArrayValues.size();
 
-        IndexType counter = 0;
         double aux = 0.0;
         for (IndexType i = 0; i < dimension; ++i) {
             if (std::abs(rArrayValues[i]) > aux) {
                 aux = std::abs(rArrayValues[i]);
-                ++counter;
             }
         }
 
@@ -617,13 +614,11 @@ private:
         // The deformation gradient is an identity matrix for zero deformation
         const Matrix working_matrix = rMatrixValues - IdentityMatrix(size1);
 
-        IndexType counter = 0;
         double aux = 0.0;
         for (IndexType i = 0; i < size1; ++i) {
             for (IndexType j = 0; j < size2; ++j) {
                 if (std::abs(working_matrix(i, j)) > aux) {
                     aux = std::abs(working_matrix(i, j));
-                    ++counter;
                 }
             }
         }
@@ -643,12 +638,10 @@ private:
     {
         const SizeType dimension = rArrayValues.size();
 
-        IndexType counter = 0;
         double aux = std::numeric_limits<double>::max();
         for (IndexType i = 0; i < dimension; ++i) {
             if (std::abs(rArrayValues[i]) < aux) {
                 aux = std::abs(rArrayValues[i]);
-                ++counter;
             }
         }
 
@@ -672,13 +665,11 @@ private:
         // The deformation gradient is an identity matrix for zero deformation
         const Matrix working_matrix = rMatrixValues - IdentityMatrix(size1);
 
-        IndexType counter = 0;
         double aux = std::numeric_limits<double>::max();
         for (IndexType i = 0; i < size1; ++i) {
             for (IndexType j = 0; j < size2; ++j) {
                 if (std::abs(working_matrix(i, j)) < aux) {
                     aux = std::abs(working_matrix(i, j));
-                    ++counter;
                 }
             }
         }
@@ -869,4 +860,3 @@ private:
     TangentOperatorCalculatorUtility &operator=(TangentOperatorCalculatorUtility const &rOther);
 };
 } // namespace Kratos.
-#endif // KRATOS_TANGENT_OPERATOR_CALCULATOR_PROCESS_H_INCLUDED  defined

@@ -10,12 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED)
-#define  KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
@@ -55,17 +50,17 @@ public:
     ///@{
 
     /// The base class ConstitutiveLaw type definition
-    typedef ConstitutiveLaw       CLBaseType;
+    using CLBaseType = ConstitutiveLaw;
 
     /// The base class ElasticIsotropicK03DLaw type definition
-    typedef ElasticIsotropicK03DLaw      BaseType;
+    using BaseType = ElasticIsotropicK03DLaw;
 
     // Adding the respective using to avoid overload conflicts
     using BaseType::Has;
     using BaseType::GetValue;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = 2;
@@ -79,23 +74,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /**
-     * Default constructor.
-     */
-    GeoLinearElasticPlaneStress2DLaw();
-
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    GeoLinearElasticPlaneStress2DLaw (const GeoLinearElasticPlaneStress2DLaw& rOther);
-
-
-    /**
-     * Destructor.
-     */
-    ~GeoLinearElasticPlaneStress2DLaw() override;
 
     ///@}
     ///@name Operators
@@ -241,5 +220,5 @@ private:
 
 
 }; // Class GeoLinearElasticPlaneStress2DLaw
-}  // namespace Kratos.
-#endif // KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED  defined
+
+}

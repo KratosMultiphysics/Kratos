@@ -56,13 +56,13 @@ public:
     ///@{
 
     /// The base class ConstitutiveLaw type definition
-    typedef ConstitutiveLaw       CLBaseType;
+    using CLBaseType = ConstitutiveLaw;
 
     /// The base class ElasticIsotropicK03DLaw type definition
-    typedef LinearElastic2DInterfaceLaw      BaseType;
+    using BaseType = LinearElastic2DInterfaceLaw;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_3D;
@@ -74,25 +74,9 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor.
-     */
-    LinearElastic3DInterfaceLaw();
-
-    /**
      * @brief The clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    LinearElastic3DInterfaceLaw (const LinearElastic3DInterfaceLaw& rOther);
-
-
-    /**
-     * @brief Destructor.
-     */
-    ~LinearElastic3DInterfaceLaw() override;
 
     ///@}
     ///@name Operators
@@ -232,11 +216,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearElastic2DInterfaceLaw)
     }
-
-    // stress vector indices
-    // const int VOIGT_INDEX_XX = 0;
-    // const int VOIGT_INDEX_YY = 1;
-
 }; // Class LinearElastic2DInterfaceLaw
 }  // namespace Kratos.
 #endif // KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED  defined

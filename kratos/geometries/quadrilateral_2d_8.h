@@ -14,7 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#pragma once 
+#pragma once
 
 // System includes
 
@@ -434,7 +434,7 @@ public:
     //  */
     // double Volume() const override
     // {
-    //     KRATOS_ERROR << "Quadrilateral2D8:: Method not well defined. Replace with DomainSize() instead." << std::endl; 
+    //     KRATOS_ERROR << "Quadrilateral2D8:: Method not well defined. Replace with DomainSize() instead." << std::endl;
     //     return 0.0;
     // }
 
@@ -1752,7 +1752,6 @@ const GeometryData Quadrilateral2D8<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Quadrilateral2D8<TPointType>::msGeometryDimension(
-    2, 2, 2);
+const GeometryDimension Quadrilateral2D8<TPointType>::msGeometryDimension(2, 2);
 
 }  // namespace Kratos.

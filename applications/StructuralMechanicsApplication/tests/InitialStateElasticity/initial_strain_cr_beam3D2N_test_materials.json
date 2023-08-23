@@ -1,0 +1,21 @@
+{
+    "properties" : [{
+        "model_part_name" : "Structure.Parts_Beam_Span",
+        "properties_id"   : 1,
+        "Material"        : {
+            "constitutive_law" : {
+                "name" : "BeamConstitutiveLaw"
+            },
+            "Variables"        : {
+                "DENSITY"           : 7850.0,
+                "YOUNG_MODULUS"     : 206900000000.0,
+                "POISSON_RATIO"     : 0.29,
+                "CROSS_AREA"        : 0.00768,
+                "TORSIONAL_INERTIA" : 4.155e-7,
+                "I22"               : 2.769e-5,
+                "I33"               : 7.763e-5
+            },
+            "Tables"           : {}
+        }
+    }]
+}

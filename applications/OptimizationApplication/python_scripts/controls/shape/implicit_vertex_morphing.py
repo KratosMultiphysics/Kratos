@@ -28,7 +28,8 @@ class ImplicitVertexMorphing(ShapeControl):
                     "surface_filter_radius" : 0.000000000001,
                     "surface_bulk_ratio" : 2,
                     "project_to_normal" : false,
-                    "poisson_ratio" : 0.3,           
+                    "poisson_ratio" : 0.3,
+                    "utilities":[],           
                     "linear_solver_settings" : {
                         "solver_type" : "amgcl",
                         "smoother_type":"ilu0",
@@ -93,11 +94,25 @@ class ImplicitVertexMorphing(ShapeControl):
 
         self.implicit_vertex_morphing = KOA.ImplicitVertexMorphing(self.name,self.model,self.linear_solvers,self.settings)
 
+        # add utils
+        self.utils = []
+        if self.technique_settings["utilities"].size():
+            for itr in range(self.technique_settings["utilities"].size()):
+                util_settings = self.technique_settings["utilities"][itr]
+                util_type = util_settings["type"].GetString()
+                if  util_type== "plane_symmetry" or util_type== "rotational_symmetry":
+                    for model_part_name in self.controlling_objects:
+                        self.utils.append(KOA.SymmetryUtility(util_settings["name"].GetString(),self.model.GetModelPart(model_part_name),util_settings))
+
     def Initialize(self):
         super().Initialize()
         self.implicit_vertex_morphing.Initialize()
+        for util in self.utils:
+            util.Initialize()
     
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
+        for util in self.utils:
+            util.ApplyOnVectorField(derivative_variable_name)
         self.implicit_vertex_morphing.MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
 
     def Compute(self):

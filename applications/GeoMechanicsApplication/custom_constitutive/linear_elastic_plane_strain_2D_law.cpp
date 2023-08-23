@@ -23,37 +23,12 @@
 namespace Kratos
 {
 
-//******************************CONSTRUCTOR*******************************************
-/***********************************************************************************/
-
-GeoLinearElasticPlaneStrain2DLaw::
-    GeoLinearElasticPlaneStrain2DLaw(): LinearPlaneStrainK0Law()
-{
-}
-
-//******************************COPY CONSTRUCTOR**************************************
-/***********************************************************************************/
-
-GeoLinearElasticPlaneStrain2DLaw::
-    GeoLinearElasticPlaneStrain2DLaw(const GeoLinearElasticPlaneStrain2DLaw& rOther): LinearPlaneStrainK0Law(rOther) {}
-
-//********************************CLONE***********************************************
-/***********************************************************************************/
-
 ConstitutiveLaw::Pointer GeoLinearElasticPlaneStrain2DLaw::Clone() const
 {
     return Kratos::make_shared<    GeoLinearElasticPlaneStrain2DLaw>(*this);
 }
 
-//*******************************DESTRUCTOR*******************************************
-/***********************************************************************************/
-
-    GeoLinearElasticPlaneStrain2DLaw::~GeoLinearElasticPlaneStrain2DLaw() {}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-bool&     GeoLinearElasticPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
+bool& GeoLinearElasticPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
     // This Constitutive Law has been checked with Stenberg Stabilization
     if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE) {
@@ -63,9 +38,6 @@ bool&     GeoLinearElasticPlaneStrain2DLaw::GetValue(const Variable<bool>& rThis
     return rValue;
 }
 
-//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
-/***********************************************************************************/
-
 void GeoLinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
 {
     //Set the type of law
@@ -73,33 +45,29 @@ void GeoLinearElasticPlaneStrain2DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mOptions.Set( INFINITESIMAL_STRAINS );
     rFeatures.mOptions.Set( ISOTROPIC );
 
-    //Set strain measure required by the consitutive law
+    //Set strain measure required by the constitutive law
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
     //Set the strain size
-    // for the time being
     rFeatures.mStrainSize = GetStrainSize();
 
-    //Set the spacedimension
+    //Set the space dimension
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-void GeoLinearElasticPlaneStrain2DLaw::
-    CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void GeoLinearElasticPlaneStrain2DLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
     const Properties &r_material_properties = rValues.GetMaterialProperties();
-    const double &E = r_material_properties[YOUNG_MODULUS];
-    const double &NU = r_material_properties[POISSON_RATIO];
+    const double &  E = r_material_properties[YOUNG_MODULUS];
+    const double & NU = r_material_properties[POISSON_RATIO];
 
     this->CheckClearElasticMatrix(C);
 
-    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
-    const double c1 = (1.00 - NU)*c0;
+    const double c0 = E / ((1.0 + NU)*(1.0 - 2.0 * NU));
+    const double c1 = (1.0 - NU)*c0;
     const double c2 = c0 * NU;
     const double c3 = (0.5 - NU)*c0;
 
@@ -120,20 +88,18 @@ void GeoLinearElasticPlaneStrain2DLaw::
     KRATOS_CATCH("")
 }
 
-//------------------------------------------------------------------------------------------------
-void GeoLinearElasticPlaneStrain2DLaw::
-    CalculatePK2Stress(const Vector& rStrainVector,
-                       Vector& rStressVector,
-                       ConstitutiveLaw::Parameters& rValues)
+void GeoLinearElasticPlaneStrain2DLaw::CalculatePK2Stress(const Vector& rStrainVector,
+                                                          Vector& rStressVector,
+                                                          ConstitutiveLaw::Parameters& rValues)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     Matrix C;
     this->CalculateElasticMatrix(C, rValues);
+    // Total formulation
     noalias(rStressVector) = prod(C, rStrainVector);
 
-    KRATOS_CATCH("");
+    KRATOS_CATCH("")
 }
-
 
 } // Namespace Kratos

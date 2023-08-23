@@ -98,7 +98,7 @@ void DirectionDampingUtilities::SetDampingFactors()
     const std::string damping_function_type = mDampingSettings["damping_function_type"].GetString();
     const double damping_radius = mDampingSettings["damping_radius"].GetDouble();
 
-    const auto p_damping_function = CreateDampingFunction( damping_function_type, damping_radius );
+    const auto p_damping_function = CreateDampingFunction( damping_function_type );
 
     // Loop over all nodes in specified damping sub-model part
     block_for_each(damping_region.Nodes(), [&](const ModelPart::NodeType& rNode) {
@@ -114,7 +114,7 @@ void DirectionDampingUtilities::SetDampingFactors()
         for(unsigned int j_itr = 0 ; j_itr<number_of_neighbors ; j_itr++)
         {
             ModelPart::NodeType& neighbor_node = *neighbor_nodes[j_itr];
-            const double damping_factor = 1.0 - p_damping_function->ComputeWeight( rNode.Coordinates(), neighbor_node.Coordinates());
+            const double damping_factor = 1.0 - p_damping_function->ComputeWeight( rNode.Coordinates(), neighbor_node.Coordinates(), damping_radius);
 
             // We check if new damping factor is smaller than the assigned one for the current node.
             // In case yes, we overwrite the value. This ensures that the damping factor of a node is computed by its closest distance to the damping region
@@ -129,9 +129,9 @@ void DirectionDampingUtilities::SetDampingFactors()
     KRATOS_INFO("ShapeOpt") << "Finished preparation of direction damping." << std::endl;
 }
 
-FilterFunction::Pointer DirectionDampingUtilities::CreateDampingFunction( std::string damping_type, double damping_radius ) const
+FilterFunction::Pointer DirectionDampingUtilities::CreateDampingFunction( std::string damping_type ) const
 {
-    return Kratos::make_unique<FilterFunction>(damping_type, damping_radius);
+    return Kratos::make_unique<FilterFunction>(damping_type);
 }
 
 void DirectionDampingUtilities::ThrowWarningIfNodeNeighborsExceedLimit( const ModelPart::NodeType& given_node, const unsigned int number_of_neighbors ) const

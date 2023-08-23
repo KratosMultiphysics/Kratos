@@ -24,6 +24,7 @@
 #include "custom_processes/apply_sinusoidal_function_process.h"
 #include "custom_processes/calculate_distance_to_boundary_process.h"
 #include "custom_processes/depth_integration_process.h"
+#include "custom_processes/write_from_sw_at_interface_process.h"
 
 
 namespace Kratos
@@ -39,7 +40,7 @@ namespace Python
         typedef ApplyPerturbationFunctionProcess<Variable<double>> ApplyPerturbationScalarFunctionProcess;
         py::class_<ApplyPerturbationScalarFunctionProcess, ApplyPerturbationScalarFunctionProcess::Pointer, Process>
         (m, "ApplyPerturbationFunctionToScalar")
-        .def(py::init<ModelPart&, Node<3>::Pointer, Variable<double>&, Parameters&>())
+        .def(py::init<ModelPart&, Node::Pointer, Variable<double>&, Parameters&>())
         .def(py::init<ModelPart&, ModelPart::NodesContainerType&, Variable<double>&, Parameters&>())
         ;
 
@@ -68,6 +69,16 @@ namespace Python
 
         py::class_<DepthIntegrationProcess<3>, DepthIntegrationProcess<3>::Pointer, Process>
         (m, "DepthIntegrationProcess3D")
+        .def(py::init<Model&, Parameters>())
+        ;
+
+        py::class_<WriteFromSwAtInterfaceProcess<2>, WriteFromSwAtInterfaceProcess<2>::Pointer, Process>
+        (m, "WriteFromSwAtInterfaceProcess2D")
+        .def(py::init<Model&, Parameters>())
+        ;
+
+        py::class_<WriteFromSwAtInterfaceProcess<3>, WriteFromSwAtInterfaceProcess<3>::Pointer, Process>
+        (m, "WriteFromSwAtInterfaceProcess3D")
         .def(py::init<Model&, Parameters>())
         ;
 

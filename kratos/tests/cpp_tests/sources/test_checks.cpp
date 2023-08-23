@@ -67,7 +67,7 @@ namespace Kratos {
                 it_node->AddDof(PRESSURE);
             }
 
-            Node<3>& r_node = *(model_part.NodesBegin());
+            Node& r_node = *(model_part.NodesBegin());
 
             // These functions throw an error if the check fails
             // Expected passes: test OK if no error is thrown

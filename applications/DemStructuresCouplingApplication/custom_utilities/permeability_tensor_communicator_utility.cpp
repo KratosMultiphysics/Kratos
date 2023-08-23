@@ -279,8 +279,8 @@ namespace Kratos {
                 std::size_t number_of_results = 0;
                 Element::GeometryType& rGeom = elem_it->GetGeometry();
                 Point centroid = rGeom.Center();
-                Geometry<Node<3>>::PointsArrayType node_centroid;
-                node_centroid.push_back(Node<3>::Pointer(new Node<3>(k + 100000, centroid[0], centroid[1], centroid[2])));
+                Geometry<Node>::PointsArrayType node_centroid;
+                node_centroid.push_back(Node::Pointer(new Node(k + 100000, centroid[0], centroid[1], centroid[2])));
                 Kratos::intrusive_ptr<Kratos::SphericParticle> p_particle = Kratos::make_intrusive<SphericParticle>(1, node_centroid);
                 const double radius = 0.333333333333333 * rGeom.Circumradius();
                 p_particle->SetSearchRadius(radius);

@@ -4,18 +4,21 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
 
-#if !defined(KRATOS_DEFINE_PYTHON_H_INCLUDED )
-#define  KRATOS_DEFINE_PYTHON_H_INCLUDED
+#pragma once
 
-/* System includes */
-#include "intrusive_ptr/intrusive_ptr.hpp"
+// System includes
+
+// External includes
 #include <pybind11/pybind11.h>
+
+// Project includes
+#include "intrusive_ptr/intrusive_ptr.hpp"
 
 // Always needed for custom holder types
 PYBIND11_DECLARE_HOLDER_TYPE(T, Kratos::intrusive_ptr<T>);
@@ -112,5 +115,3 @@ std::string PrintObject(const T& rObject)
     ss << rObject;
     return ss.str();
 }
-
-#endif /* KRATOS_DEFINE_H_INCLUDED  defined */

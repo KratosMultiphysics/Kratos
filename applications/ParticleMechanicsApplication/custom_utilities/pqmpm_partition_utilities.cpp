@@ -20,7 +20,7 @@ namespace Kratos
     typedef boost::geometry::model::point<double, 2, boost::geometry::cs::cartesian> Boost2DPointType;
     typedef boost::geometry::model::polygon<Boost2DPointType> Boost2DPolygonType;
 
-    typedef typename Geometry<Node<3>>::Pointer GeometryNodePointerType;
+    typedef typename Geometry<Node>::Pointer GeometryNodePointerType;
 
     void PQMPMPartitionUtilities::PartitionMasterMaterialPointsIntoSubPoints(const ModelPart& rBackgroundGridModelPart,
         const array_1d<double, 3>& rCoordinates,
@@ -44,7 +44,7 @@ namespace Kratos
         // If axisymmetric make normal MP
         if (rBackgroundGridModelPart.GetProcessInfo().Has(IS_AXISYMMETRIC)) {
             if (rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_AXISYMMETRIC)) {
-                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                     pQuadraturePointGeometry, rLocalCoords,
                     rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                     rParentGeom);
@@ -69,7 +69,7 @@ namespace Kratos
         // Initially check if the bounding box volume scalar is less than the element volume scalar
         if (mp_volume_vec[0] <= rParentGeom.DomainSize()) {
             if (CheckAllPointsAreInGeom(master_domain_points, rParentGeom, Tolerance)) {
-                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                     pQuadraturePointGeometry, rLocalCoords,
                     rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                     rParentGeom);
@@ -98,7 +98,7 @@ namespace Kratos
         if (working_dim == 3) Check3DBackGroundMeshIsCubicAxisAligned(intersected_geometries);
 
         // Prepare containers to hold all sub-points
-        PointerVector<Node<3>> nodes_list(number_of_nodes);
+        PointerVector<Node> nodes_list(number_of_nodes);
         IntegrationPointsArrayType ips(intersected_geometries.size());
         Matrix N_matrix(intersected_geometries.size(), number_of_nodes, -1.0);
         DenseVector<Matrix> DN_De_vector(intersected_geometries.size());
@@ -124,7 +124,7 @@ namespace Kratos
             // Transfer local data to containers
             if (sub_point_volume / mp_volume_vec[0] > pqmpm_min_fraction) {
                 if (std::abs(sub_point_volume - mp_volume_vec[0]) < Tolerance) {
-                    CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                         pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                         rParentGeom);
                     return;
@@ -146,14 +146,14 @@ namespace Kratos
             }
         }
         if (active_subpoint_index == 1) {
-            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+            CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                 pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                 rParentGeom);
             return;
         }
 
         IntegrationPointsArrayType ips_active(active_subpoint_index);
-        PointerVector<Node<3>> nodes_list_active(active_node_index);
+        PointerVector<Node> nodes_list_active(active_node_index);
         if (ips_active.size() == ips.size()) {
             ips_active = ips;
             nodes_list_active = nodes_list;
@@ -168,7 +168,7 @@ namespace Kratos
         // check if there are any fixed nodes within the bounding box
         if (CheckFixedNodesWithinBoundingBox(nodes_list_active, point_high, point_low, working_dim))
         {
-            CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+            CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                 pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                 rParentGeom);
             return;
@@ -181,7 +181,7 @@ namespace Kratos
             const bool is_pqmpm_fallback = (rBackgroundGridModelPart.GetProcessInfo().Has(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS))
                 ? rBackgroundGridModelPart.GetProcessInfo().GetValue(IS_MAKE_NORMAL_MP_IF_PQMPM_FAILS) : false;
             if (is_pqmpm_fallback) {
-                CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                     pQuadraturePointGeometry, rLocalCoords, rMasterMaterialPoint.GetGeometry().IntegrationPoints()[0].Weight(),
                     rParentGeom);
                 return;
@@ -297,9 +297,9 @@ namespace Kratos
         KRATOS_TRY
 
         // Check all points are in MPM grid geom bounding box
-        Node<3> low, high;
+        Node low, high;
         rReferenceGeom.BoundingBox(low, high);
-        const SizeType geom_dim = rReferenceGeom.Dimension();
+        const SizeType geom_dim = rReferenceGeom.WorkingSpaceDimension();
         for (size_t i = 0; i < rPoints.size(); ++i) {
             for (size_t dim = 0; dim < geom_dim; ++dim)
             {
@@ -730,7 +730,7 @@ namespace Kratos
     }
 
 
-    bool PQMPMPartitionUtilities::CheckFixedNodesWithinBoundingBox(const PointerVector<Node<3>>& rNodesList,
+    bool PQMPMPartitionUtilities::CheckFixedNodesWithinBoundingBox(const PointerVector<Node>& rNodesList,
         const Point& rPointHigh, const Point& rPointLow, const SizeType WorkingDim)
     {
         for (auto& node_it : rNodesList)
@@ -769,30 +769,30 @@ namespace Kratos
         SizeType WorkingSpaceDimension,
         SizeType LocalSpaceDimension,
         GeometryShapeFunctionContainer<GeometryData::IntegrationMethod>& rShapeFunctionContainer,
-        typename Geometry<Node<3>>::PointsArrayType rPoints,
+        typename Geometry<Node>::PointsArrayType rPoints,
         GeometryType* pGeometryParent)
     {
         KRATOS_TRY
 
             if (WorkingSpaceDimension == 1 && LocalSpaceDimension == 1)
                 return Kratos::make_shared<
-                QuadraturePointPartitionedGeometry<Node<3>, 1>>(
+                QuadraturePointPartitionedGeometry<Node, 1>>(
                     rPoints, rShapeFunctionContainer, pGeometryParent);
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 1)
                 return Kratos::make_shared<
-                QuadraturePointPartitionedGeometry<Node<3>, 2, 1>>(
+                QuadraturePointPartitionedGeometry<Node, 2, 1>>(
                     rPoints, rShapeFunctionContainer, pGeometryParent);
             else if (WorkingSpaceDimension == 2 && LocalSpaceDimension == 2)
                 return Kratos::make_shared<
-                QuadraturePointPartitionedGeometry<Node<3>, 2>>(
+                QuadraturePointPartitionedGeometry<Node, 2>>(
                     rPoints, rShapeFunctionContainer, pGeometryParent);
             else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 2)
                 return Kratos::make_shared<
-                QuadraturePointPartitionedGeometry<Node<3>, 3, 2>>(
+                QuadraturePointPartitionedGeometry<Node, 3, 2>>(
                     rPoints, rShapeFunctionContainer, pGeometryParent);
             else if (WorkingSpaceDimension == 3 && LocalSpaceDimension == 3)
                 return Kratos::make_shared<
-                QuadraturePointPartitionedGeometry<Node<3>, 3>>(
+                QuadraturePointPartitionedGeometry<Node, 3>>(
                     rPoints, rShapeFunctionContainer, pGeometryParent);
             else {
                 KRATOS_ERROR << "Working/Local space dimension combinations are "

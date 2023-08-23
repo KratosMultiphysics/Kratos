@@ -19,7 +19,6 @@
 #include "includes/variables.h"
 #include "utilities/body_normal_calculation_utils.h"
 #include "utilities/parallel_utilities.h"
-#include "utilities/variable_redistribution_utility.h"
 #include "utilities/variable_utils.h"
 
 // Application includes
@@ -50,102 +49,82 @@ void WssStatisticsUtilities::CalculateWSS(
     const Variable<array_1d<double,3>>& rNormalVariable,
     const bool IsNormalHistorical)
 {
-    // Check if buffer size is filled (we need REACTION to be already computed)
-    // TODO: Remove this once https://github.com/KratosMultiphysics/Kratos/pull/9592 is merged
-    KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(STEP))
-        << "STEP is not in '"<< rModelPart.FullName() <<"' modelpart ProcessInfo container." << std::endl;
-    const unsigned int buffer_size = rModelPart.GetBufferSize();
-    const unsigned int step = rModelPart.GetProcessInfo()[STEP];
-    if (step > buffer_size) {
-        // Distribute the REACTION as a surface load
-        // Note that we first save the REACTION variable in the non-historical nodal database to operate with that one
-        // This avoids the need of adding the FACE_LOAD variable to the historical nodal database in the CFD solver
-        double tolerance = 1.0e-5;
-        const unsigned int max_it = 100;
-        block_for_each(rModelPart.Nodes(), [](NodeType& rNode){rNode.SetValue(REACTION, rNode.FastGetSolutionStepValue(REACTION));});
-        VariableRedistributionUtility::DistributePointValuesNonHistorical(rModelPart, rModelPart.Conditions(), REACTION, FACE_LOAD, tolerance, max_it);
+    // Set the nodal normal getter
+    std::function<const array_1d<double,3>(const NodeType&)> normal_getter;
+    if (IsNormalHistorical) {
+        normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>{return rNode.FastGetSolutionStepValue(rNormalVariable);};
+    } else {
+        normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>{return rNode.GetValue(rNormalVariable);};
+    }
 
-        // Set the nodal normal getter
-        std::function<const array_1d<double,3>(const NodeType&)> normal_getter;
-        if (IsNormalHistorical) {
-            normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>{return rNode.FastGetSolutionStepValue(rNormalVariable);};
+    // Declare the auxiliary TLS container
+    struct WSSTLS
+    {
+        array_1d<double,3> normal_tls;
+        array_1d<double,3> normal_load;
+        array_1d<double,3> tangential_load;
+    };
+
+    // Loop the WSS model part nodes
+    block_for_each(rModelPart.Nodes(), WSSTLS(), [&normal_getter](NodeType& rNode, WSSTLS& rAuxTLS){
+        // Get TLS arrays
+        auto& normal = rAuxTLS.normal_tls;
+        auto& normal_load = rAuxTLS.normal_load;
+        auto& tangential_load = rAuxTLS.tangential_load;
+
+        // Normalize nodal normal
+        noalias(normal) = normal_getter(rNode);
+        const double normal_norm = norm_2(normal);
+        if (normal_norm > 1.0e-12) {
+            normal /= normal_norm;
         } else {
-            normal_getter = [&rNormalVariable](const NodeType& rNode)->const array_1d<double,3>{return rNode.GetValue(rNormalVariable);};
+            KRATOS_WARNING("CalculateWSS") << rNode.Id() << " has normal norm equal to " << normal_norm << "." << std::endl;
         }
 
-        // Declare the auxiliary TLS container
-        struct WSSTLS
-        {
-            array_1d<double,3> normal_tls;
-            array_1d<double,3> normal_load;
-            array_1d<double,3> tangential_load;
-        };
+        // Calculate the distributed projections
+        const array_1d<double,3>& r_reaction = rNode.FastGetSolutionStepValue(REACTION);
+        const double projection = inner_prod(r_reaction, normal);
+        noalias(normal_load) = projection * normal;
+        noalias(tangential_load) = r_reaction - normal_load;
+        normal_load /= normal_norm;
+        tangential_load /= normal_norm;
 
-        // Loop the WSS model part nodes
-        block_for_each(rModelPart.Nodes(), WSSTLS(), [&normal_getter](NodeType& rNode, WSSTLS& rAuxTLS){
-            // Get TLS arrays
-            auto& normal = rAuxTLS.normal_tls;
-            auto& normal_load = rAuxTLS.normal_load;
-            auto& tangential_load = rAuxTLS.tangential_load;
-
-            // Normalize nodal normal
-            normal = normal_getter(rNode);
-            const double normal_norm = norm_2(normal);
-            if (normal_norm > 1.0e-12) {
-                normal /= normal_norm;
-            } else {
-                KRATOS_WARNING("CalculateWSS") << rNode.Id() << " has normal norm equal to " << normal_norm << "." << std::endl;
-            }
-
-            // Calculate the FACE_LOAD (distributed REACTION) projections
-            const auto& r_face_load = rNode.GetValue(FACE_LOAD);
-            const double projection = inner_prod(r_face_load, normal);
-            normal_load = projection * normal;
-            tangential_load = r_face_load - normal_load;
-
-            // Save computed magnitudes
-            rNode.GetValue(WSS) = norm_2(tangential_load);
-            rNode.GetValue(WSS_NORMAL_STRESS) = normal_load;
-            rNode.GetValue(WSS_TANGENTIAL_STRESS) = tangential_load;
-        });
-    }
+        // Save computed magnitudes
+        rNode.GetValue(WSS) = norm_2(tangential_load);
+        rNode.GetValue(WSS_NORMAL_STRESS) = normal_load;
+        rNode.GetValue(WSS_TANGENTIAL_STRESS) = tangential_load;
+    });
 }
 
 void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
 {
-    // Check if buffer size is filled (we need REACTION to be already computed)
-    // TODO: Remove this once https://github.com/KratosMultiphysics/Kratos/pull/9592 is merged
-    KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(STEP))
-        << "STEP is not in '"<< rModelPart.FullName() <<"' modelpart ProcessInfo container." << std::endl;
+    KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(STEP)) << "'STEP' is not present in '" << rModelPart.FullName() << "' ProcessInfo container." << std::endl;
     const unsigned int step = rModelPart.GetProcessInfo()[STEP];
-    const unsigned int buffer_size = rModelPart.GetBufferSize();
-    if (step > buffer_size) {
-        block_for_each(rModelPart.Nodes(), [&step](NodeType& rNode){
-            // Accumulate the current step contribution to the Oscillatory Shear Index (OSI)
-            // Note that this requires the tangential WSS to be already computed (see CalculateWSS)
-            auto& r_temporal_osi = rNode.GetValue(TEMPORAL_OSI);
-            const auto& r_wss_tang_stress = rNode.GetValue(WSS_TANGENTIAL_STRESS);
-            r_temporal_osi += (r_wss_tang_stress - r_temporal_osi)/step;
+    block_for_each(rModelPart.Nodes(), [&step](NodeType& rNode){
+        // Accumulate the current step contribution to the Oscillatory Shear Index (OSI)
+        // Note that this requires the tangential WSS to be already computed (see CalculateWSS)
+        auto& r_temporal_osi = rNode.GetValue(TEMPORAL_OSI);
+        const auto& r_wss_tang_stress = rNode.GetValue(WSS_TANGENTIAL_STRESS);
+        r_temporal_osi += (r_wss_tang_stress - r_temporal_osi)/step;
 
-            // Calculates the sum of the WSS magnitudes for all time steps
-            double& r_twss = rNode.GetValue(TWSS);
-            double& r_tawss = rNode.GetValue(TAWSS);
-            r_twss += (norm_2(r_wss_tang_stress) - r_twss)/step;
-            r_tawss = norm_2(r_temporal_osi / step);
+        // Calculates the sum of the WSS magnitudes for all time steps
+        double& r_twss = rNode.GetValue(TWSS);
+        double& r_tawss = rNode.GetValue(TAWSS);
+        r_twss += (norm_2(r_wss_tang_stress) - r_twss)/step;
+        r_tawss = norm_2(r_temporal_osi / step);
 
-            // Calculate OSI and OSI-dependent magnitudes
-            double& r_osi = rNode.GetValue(OSI);
-            r_osi = r_tawss / r_twss > 1.0 ? 0.0 : 0.5 * (1.0 - r_tawss/r_twss);
-            if (r_twss > 1.0e-12) {
-                if (std::abs(r_osi - 0.5) < 1.0e-12) {
-                    rNode.GetValue(RRT) = 0.0;
-                } else {
-                    rNode.GetValue(RRT) = 1.0 / ((1.0 - 2.0*r_osi) * r_twss);
-                }
+        // Calculate OSI and OSI-dependent magnitudes
+        double& r_osi = rNode.GetValue(OSI);
+        r_osi = r_tawss / r_twss > 1.0 ? 0.0 : 0.5 * (1.0 - r_tawss/r_twss);
+        if (r_twss > 1.0e-12) {
+            if (std::abs(r_osi - 0.5) < 1.0e-12) {
+                rNode.GetValue(RRT) = 0.0;
+            } else {
+                rNode.GetValue(RRT) = 1.0 / ((1.0 - 2.0*r_osi) * r_twss);
             }
-            rNode.GetValue(ECAP) = r_osi / r_twss;
-        });
-    }
+        }
+        rNode.GetValue(ECAP) = r_osi / r_twss;
+    });
 }
 
 }

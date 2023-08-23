@@ -53,7 +53,7 @@ double bdf2;
 void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) override
 {
     FICData<TDim,TNumNodes,true>::Initialize(rElement,rProcessInfo);
-    const Geometry< Node<3> >& r_geometry = rElement.GetGeometry();
+    const Geometry< Node >& r_geometry = rElement.GetGeometry();
     this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
     this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
 

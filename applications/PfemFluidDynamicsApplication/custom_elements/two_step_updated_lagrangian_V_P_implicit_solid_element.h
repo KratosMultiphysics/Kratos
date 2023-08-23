@@ -60,8 +60,8 @@ namespace Kratos
     ///base type:
     typedef TwoStepUpdatedLagrangianVPImplicitElement<TDim> BaseType;
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -188,7 +188,7 @@ namespace Kratos
     /// Initializes the element and all geometric information required for the problem.
     void InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo) override;
 
-    void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo) override{};
 
     void CalculateLeftHandSide(MatrixType &rLeftHandSideMatrix,
                                const ProcessInfo &rCurrentProcessInfo) override
@@ -343,9 +343,14 @@ namespace Kratos
                                const double BoundRHSCoeffAcc,
                                const double BoundRHSCoeffDev) override{};
 
-    void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep, unsigned int g,
-                                          const ProcessInfo &rCurrentProcessInfo, double &Density,
-                                          double &DeviatoricCoeff, double &VolumetricCoeff) override;
+    void CalcElasticPlasticCauchySplitted(
+        ElementalVariables &rElementalVariables,
+        const unsigned int g,
+        const Vector& rN,
+        const ProcessInfo &rCurrentProcessInfo,
+        double &Density,
+        double &DeviatoricCoeff,
+        double &VolumetricCoeff) override;
 
     void CalculateLocalContinuityEqForPressure(MatrixType &rLeftHandSideMatrix,
                                                VectorType &rRightHandSideVector,
@@ -354,6 +359,8 @@ namespace Kratos
     double GetThetaMomentum() override { return 1.0; };
 
     double GetThetaContinuity() override { return 1.0; };
+
+    void UpdateStressTensor(ElementalVariables &rElementalVariables);
 
     ///@}
     ///@name Protected  Access

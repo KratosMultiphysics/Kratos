@@ -57,8 +57,8 @@ public:
     typedef std::vector<Matrix> Matrix_Order_Tensor;
     typedef std::vector<Vector> Vector_Order_Tensor;
     typedef std::vector<Vector_Order_Tensor> Node_Vector_Order_Tensor;
-    typedef Node < 3 > PointType;
-    typedef Node < 3 > ::Pointer PointPointerType;
+    typedef Node PointType;
+    typedef Node ::Pointer PointPointerType;
     typedef std::vector<PointType::Pointer> PointVector;
     typedef PointVector::iterator PointIterator;
 
@@ -189,17 +189,6 @@ public:
         );
 
     /**
-    * This process renumerates the elements and nodes
-    * @param New_Elements: Pointers to the new elements created
-    * @return this_model_part: The model part of the model (it is the input too)
-    */
-
-    virtual void RenumeringElementsAndNodes(
-        ModelPart& this_model_part,
-        PointerVector< Element >& New_Elements
-        );
-
-    /**
     * It creates a partition of the process between the different threads
     * @param number_of_threads: Number the threads considered in the computation
     * @param number_of_rows:
@@ -220,12 +209,19 @@ public:
     * @param rCurrentProcessInfo: The model part process info
     */
 
-    virtual void InterpolateInteralVariables(
-        const int& number_elem,
-        const Element::Pointer father_elem,
-        Element::Pointer child_elem,
-        const ProcessInfo& rCurrentProcessInfo
-        );
+    template<typename TGeometricalObjectPointerType>
+    void InterpolateInteralVariables(
+            const int& number_elem,
+            const TGeometricalObjectPointerType father_elem,
+            TGeometricalObjectPointerType child_elem,
+            const ProcessInfo& rCurrentProcessInfo
+            )
+    {
+        // NOTE: Right now there is not an interpolation at all, it just copying the values
+        std::vector<Vector> values;
+        father_elem->CalculateOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+        child_elem->SetValuesOnIntegrationPoints(INTERNAL_VARIABLES, values, rCurrentProcessInfo);
+    }
 
     virtual void UpdateSubModelPartNodes(ModelPart &rModelPart);
 
@@ -238,10 +234,42 @@ protected:
     ///@}
     ///@name Protected member Variables
     ///@{
-        ModelPart& mModelPart;
+
+        ModelPart& mModelPart;       /// The model part to be refined
+        int mCurrentRefinementLevel; /// The current refinement level
+        std::unordered_map<std::size_t, unsigned int> mMapNodeIdToPos;
+        std::vector<std::size_t> mMapPosToNodeId;
     ///@}
     ///@name Protected Operators
     ///@{
+
+    template<typename TIteratorType>
+    void SearchEdgeToBeRefinedGeneric(
+            TIteratorType GeometricalObjectsBegin,
+            TIteratorType GeometricalObjectsEnd,
+            compressed_matrix<int>& rCoord
+					  )
+    {
+        KRATOS_TRY;
+
+        for (TIteratorType it = GeometricalObjectsBegin; it != GeometricalObjectsEnd; ++it) {
+            if (it->GetValue(SPLIT_ELEMENT)) {
+                auto& r_geom = it->GetGeometry(); // Nodes of the element
+                for (unsigned int i = 0; i < r_geom.size(); i++) {
+                    int index_i = mMapNodeIdToPos[r_geom[i].Id()];
+                    for (unsigned int j = 0; j < r_geom.size(); j++) {
+                        int index_j = mMapNodeIdToPos[r_geom[j].Id()];
+                        if (index_j > index_i)
+                        {
+                            rCoord(index_i, index_j) = -2;
+                        }
+                    }
+                }
+            }
+        }
+
+        KRATOS_CATCH("");
+    }
 
     ///@}
     ///@name Protected Operations
@@ -287,8 +315,8 @@ private:
     ///@}
     ///@name Private LifeCycle
     ///@{
+        
     ///@}
-
 };
 
 } // namespace Kratos.

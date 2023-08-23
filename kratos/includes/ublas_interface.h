@@ -11,18 +11,8 @@
 //
 
 
-
-
-
-
-
-
-
-
-
 #if !defined(KRATOS_UBLAS_INTERFACE_H_INCLUDED )
 #define  KRATOS_UBLAS_INTERFACE_H_INCLUDED
-
 
 
 // System includes
@@ -31,21 +21,17 @@
 
 
 // External includes
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    #include "includes/amatrix_interface.h"
-#else
-    #include <boost/numeric/ublas/matrix.hpp>
-    #include <boost/numeric/ublas/vector.hpp>
-    #include <boost/numeric/ublas/vector_proxy.hpp>
-    #include <boost/numeric/ublas/vector_sparse.hpp>
-    #include <boost/numeric/ublas/vector_expression.hpp>
-    #include <boost/numeric/ublas/matrix_proxy.hpp>
-    #include <boost/numeric/ublas/symmetric.hpp>
-    #include <boost/numeric/ublas/hermitian.hpp>
-    #include <boost/numeric/ublas/banded.hpp>
-    #include <boost/numeric/ublas/triangular.hpp>
-	#include <boost/numeric/ublas/lu.hpp>
-#endif // ifdef KRATOS_USE_AMATRIX
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/vector_proxy.hpp>
+#include <boost/numeric/ublas/vector_sparse.hpp>
+#include <boost/numeric/ublas/vector_expression.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/symmetric.hpp>
+#include <boost/numeric/ublas/hermitian.hpp>
+#include <boost/numeric/ublas/banded.hpp>
+#include <boost/numeric/ublas/triangular.hpp>
+#include <boost/numeric/ublas/lu.hpp>
 
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/numeric/ublas/matrix_sparse.hpp>
@@ -65,7 +51,6 @@ namespace Kratos
 ///@}
 ///@name Type Definitions
 ///@{
-#ifndef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
     using namespace boost::numeric::ublas;
 
     template <typename TDataType> using DenseMatrix = boost::numeric::ublas::matrix<TDataType>;
@@ -106,11 +91,7 @@ namespace Kratos
 
 	template <typename TExpressionType> using MatrixRow = matrix_row<TExpressionType>;
 
-#endif // ifndef KRATOS_USE_AMATRIX
-
-
-// As the first step we will use the compressed matrix of ublas
-typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrix;
+    typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrix;
 
 ///@}
 ///@name  Enum's

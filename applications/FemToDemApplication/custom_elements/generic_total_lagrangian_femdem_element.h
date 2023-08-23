@@ -12,8 +12,7 @@
 //
 
 
-#if !defined(KRATOS_GENERIC_TOTAL_LAGRANGIAN_FEMDEM_H_INCLUDED )
-#define  KRATOS_GENERIC_TOTAL_LAGRANGIAN_FEMDEM_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -56,7 +55,7 @@ namespace Kratos
  * @author Alejandro Cornejo
  */
 template<unsigned int TDim, unsigned int TyieldSurf>
-class GenericTotalLagrangianFemDemElement
+class KRATOS_API(FEM_TO_DEM_APPLICATION) GenericTotalLagrangianFemDemElement
     : public BaseSolidElement
 {
 public:
@@ -350,11 +349,6 @@ protected:
         rMatrix(4, 1) = 3; rMatrix(5, 0) = 2; rMatrix(5, 1) = 3;
     }
 
-    /**
-     * this imposes the damage/threshold to be equal
-     * at the edges 
-     */
-    void InitializeInternalVariablesAfterMapping();
 
     /**
      * this computes the average vector on the edge for a certain variable
@@ -420,11 +414,10 @@ protected:
         const ProcessInfo &rCurrentProcessInfo, 
         const Properties& rProperties)
     {
-        if (mDamage >= 0.98) {
+        const double max_damage = rCurrentProcessInfo["MAX_DAMAGE_ERASE"];
+        if (mDamage >= max_damage) {
             this->Set(ACTIVE, false);
-            mDamage = 0.98;
-            // We set a "flag" to generate the DEM 
-            // rCurrentProcessInfo[GENERATE_DEM] = true;
+            mDamage = max_damage;
             this->SetValue(GENERATE_DEM, true);
         }
     }
@@ -549,4 +542,3 @@ template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericT
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_TOTAL_LAGRANGIAN_H_INCLUDED  defined

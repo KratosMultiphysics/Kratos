@@ -419,7 +419,7 @@ public:
 
 	      Element& MasterElement = *(i)->GetValue(MASTER_ELEMENTS).back();
 
-	      Node<3>& rCenterOfGravity = MasterElement.GetGeometry()[0];
+	      Node& rCenterOfGravity = MasterElement.GetGeometry()[0];
 
 	      array_1d<double, 3 >&  Center              = rCenterOfGravity.GetInitialPosition();
 	      array_1d<double, 3 >&  Displacement        = rCenterOfGravity.FastGetSolutionStepValue(DISPLACEMENT);

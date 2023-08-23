@@ -14,8 +14,7 @@
 //  Collaborator:    Lucia Barbu
 //
 
-#if !defined(KRATOS_SERIAL_PARALLEL_RULE_OF_MIXTURES_H_INCLUDED)
-#define KRATOS_SERIAL_PARALLEL_RULE_OF_MIXTURES_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -60,7 +59,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
     ///@{
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -731,5 +730,3 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) SerialParallelRuleOfMixturesLaw
 }; // Class SerialParallelRuleOfMixturesLaw
 
 } // namespace Kratos
-
-#endif

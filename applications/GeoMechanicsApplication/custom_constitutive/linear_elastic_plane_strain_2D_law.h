@@ -10,12 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_LINEAR_PLANE_STRAIN_2D_LAW_GEO_H_INCLUDED)
-#define  KRATOS_LINEAR_PLANE_STRAIN_2D_LAW_GEO_H_INCLUDED
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
 #include "custom_constitutive/linear_elastic_plane_strain_K0_law.h"
@@ -56,13 +51,13 @@ public:
     ///@{
 
     /// The base class ConstitutiveLaw type definition
-    typedef ConstitutiveLaw       CLBaseType;
+    using CLBaseType = ConstitutiveLaw;
 
     /// The base class ElasticIsotropicK03DLaw type definition
-    typedef LinearPlaneStrainK0Law      BaseType;
+    using BaseType = LinearPlaneStrainK0Law;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_2D;
@@ -78,25 +73,9 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor.
-     */
-    GeoLinearElasticPlaneStrain2DLaw();
-
-    /**
      * @brief The clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    GeoLinearElasticPlaneStrain2DLaw (const GeoLinearElasticPlaneStrain2DLaw& rOther);
-
-
-    /**
-     * @brief Destructor.
-     */
-    ~GeoLinearElasticPlaneStrain2DLaw() override;
 
     ///@}
     ///@name Operators
@@ -236,11 +215,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, LinearPlaneStrainK0Law)
     }
+}; // Class GeoLinearElasticPlaneStrain2DLaw
 
-    // stress vector indices
-    // const int VOIGT_INDEX_XX = 0;
-    // const int VOIGT_INDEX_YY = 1;
-
-}; // Class LinearPlaneStrainK0Law
-}  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED  defined
+}
