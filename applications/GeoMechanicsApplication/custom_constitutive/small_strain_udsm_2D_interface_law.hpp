@@ -10,13 +10,10 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_SMALL_STRAIN_UDSM_2D_INTERFACE_LAW_H_INCLUDED )
-#define  KRATOS_SMALL_STRAIN_UDSM_2D_INTERFACE_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 #include "includes/define.h"
-
-// External includes
 
 // Project includes
 #include "small_strain_udsm_3D_law.hpp"
@@ -67,42 +64,21 @@ namespace Kratos
       /// Pointer definition of SmallStrainUDSM2DInterfaceLaw
       KRATOS_CLASS_POINTER_DEFINITION( SmallStrainUDSM2DInterfaceLaw );
 
-
       //@}
       //@name Life Cycle
       //@{
-
-      //----------------------------------------------------------------------------------------
-      /**
-       * @brief Default constructor.
-       */
-      SmallStrainUDSM2DInterfaceLaw();
 
       /**
        * @brief Clone method
        */
       ConstitutiveLaw::Pointer Clone() const override;
 
-      /**
-       * Copy constructor.
-       */
-      SmallStrainUDSM2DInterfaceLaw(SmallStrainUDSM2DInterfaceLaw const& rOther);
+      Vector& GetValue(const Variable<Vector> &rThisVariable, Vector &rValue) override;
 
-      /**
-       * @brief Destructor.
-       */
-      virtual ~SmallStrainUDSM2DInterfaceLaw();
+      void SetValue(const Variable<Vector>& rVariable,
+                    const Vector& rValue,
+                    const ProcessInfo& rCurrentProcessInfo) override;
 
-      // Assignment operator:
-      SmallStrainUDSM2DInterfaceLaw& operator=(SmallStrainUDSM2DInterfaceLaw const& rOther);
-
-      Vector& GetValue( const Variable<Vector> &rThisVariable, Vector &rValue ) override;
-
-      void SetValue( const Variable<Vector>& rVariable,
-                     const Vector& rValue,
-                     const ProcessInfo& rCurrentProcessInfo ) override;
-
-      //----------------------------------------------------------------------------------------
       /**
        * @brief Dimension of the law:
        */
@@ -137,7 +113,6 @@ namespace Kratos
          return StressMeasure_Cauchy;
       }
 
-
       /**
        * @brief It calculates the strain vector
        * @param rValues The internal values of the law
@@ -149,36 +124,31 @@ namespace Kratos
       ///@name Inquiry
       ///@{
 
-
       ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override
+      std::string Info() const override
       {
-         std::stringstream buffer;
-         buffer << "SmallStrainUDSM2DInterfaceLaw";
-         return buffer.str();
+         return "SmallStrainUDSM2DInterfaceLaw";
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override
+      void PrintInfo(std::ostream& rOStream) const override
       {
-         rOStream << "SmallStrainUDSM2DInterfaceLaw";
+         rOStream << Info();
       }
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override
+      void PrintData(std::ostream& rOStream) const override
       {
          rOStream << "SmallStrainUDSM2DInterfaceLaw Data";
       }
 
-
       ///@}
       ///@name Friends
       ///@{
-
 
       ///@}
 
@@ -194,7 +164,6 @@ namespace Kratos
       ///@name Protected Operators
       ///@{
 
-
       ///@}
       ///@name Protected Operations
       ///@{
@@ -208,16 +177,13 @@ namespace Kratos
       void SetInternalStrainVector(const Vector& rStrainVector) override;
       void CopyConstitutiveMatrix(ConstitutiveLaw::Parameters &rValues, Matrix& rConstitutiveMatrix) override;
 
-
       ///@}
       ///@name Protected Inquiry
       ///@{
 
-
       ///@}
       ///@name Protected LifeCycle
       ///@{
-
 
       ///@}
 
@@ -235,29 +201,25 @@ namespace Kratos
       ///@name Private Operators
       ///@{
 
-
       ///@}
       ///@name Private Operations
       ///@{
 
-
       ///@}
       ///@name Private  Access
       ///@{
-
-
 
       ///@}
       ///@name Serialization
       ///@{
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override
+      void save(Serializer& rSerializer) const override
       {
          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
       }
 
-      virtual void load(Serializer& rSerializer) override
+      void load(Serializer& rSerializer) override
       {
          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
       }
@@ -265,7 +227,6 @@ namespace Kratos
       ///@}
       ///@name Private Inquiry
       ///@{
-
 
       ///@}
       ///@name Un accessible methods
@@ -280,7 +241,6 @@ namespace Kratos
    ///@name Type Definitions
    ///@{
 
-
    ///@}
    ///@name Input and output
    ///@{
@@ -289,8 +249,4 @@ namespace Kratos
 
    ///@} addtogroup block
 
-}  // namespace Kratos.
-
-#endif // KRATOS_SMALL_STRAIN_UDSM_2D_INTERFACE_LAW_H_INCLUDED  defined
-
-
+}
