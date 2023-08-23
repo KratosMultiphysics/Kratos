@@ -137,11 +137,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // /**
-    //  * @brief It calculates the constitutive matrix C
-    //  * @param C The constitutive matrix
-    //  * @param rValues Parameters of the constitutive law
-    //  */
+    /**
+     * @brief It calculates the constitutive matrix C
+     * @param C The constitutive matrix
+     * @param rValues Parameters of the constitutive law
+     */
     void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
 
     void CalculatePK2Stress(const Vector& rStrainVector,

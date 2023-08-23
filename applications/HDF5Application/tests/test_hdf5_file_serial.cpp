@@ -19,7 +19,7 @@
 
 // Application includes
 #include "tests/test_utils.h"
-#include "custom_io/hdf5_file_serial.h"
+#include "custom_io/hdf5_file.h"
 
 namespace Kratos
 {
@@ -166,7 +166,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet8, KratosHDF5TestSuite)
         HDF5::File::Vector<int> data_in;
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.ReadDataSet("/data", data_in, 0, data_out.size());
-            , "Wrong scalar data type: /data");
+            , "Data type mismatch at /data");
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
@@ -250,7 +250,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet13, KratosHDF5TestSuite)
         HDF5::File::Matrix<int> data_in;
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.ReadDataSet("/data", data_in, 0, data_out.size1());
-            , "Wrong scalar data type: /data");
+            , "Data type mismatch at /data");
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
@@ -285,7 +285,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet15, KratosHDF5TestSuite)
         HDF5::WriteInfo info;
         test_file.WriteDataSet("/data", data_out1, info);
         KRATOS_CHECK_EXCEPTION_IS_THROWN(test_file.WriteDataSet("/data", data_out2, info);
-                                         , "Wrong dimensions: /data");
+                                         , "Wrong dimensional value at index = 0 [ data dimension in file = 3, memory dimension = 4 ].");
     }
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -317,7 +317,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet17, KratosHDF5TestSuite)
         HDF5::WriteInfo info;
         test_file.WriteDataSet("/data", data_out1, info);
         KRATOS_CHECK_EXCEPTION_IS_THROWN(test_file.WriteDataSet("/data", data_out2, info);
-                                         , "Wrong dimensions: /data");
+                                         , "Wrong number of dimensions [ file number of data dimensions = 1, memory data number of dimensions = 2 ].");
     }
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
