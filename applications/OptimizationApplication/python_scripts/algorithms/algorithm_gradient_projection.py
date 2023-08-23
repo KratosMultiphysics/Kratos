@@ -151,7 +151,7 @@ class AlgorithmGradientProjection(Algorithm):
         if len(collective_list) == 0:
             raise RuntimeError("Collective lists cannot be empty.")
 
-        result = collective_list[0].Clone() * 0.0
+        result = collective_list[0] * 0.0
         for i, collective_list_item in enumerate(collective_list):
             result += collective_list_item * vector[i]
 
