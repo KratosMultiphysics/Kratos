@@ -8,7 +8,7 @@
             "settings": {
                 "model_part_name": "Structure",
                 "domain_size": 3,
-                "input_filename": "Structure"
+                "input_filename": "shell_test"
             }
         }
     ],
@@ -64,7 +64,7 @@
             "type": "thickness.shell_thickness_control",
             "settings": {
                 "controlled_model_part_names": [
-                    "Structure.structure"
+                    "Structure.Parts_Shell_structure"
                 ],
                 "filter_settings": {
                     "type": "implicit",
@@ -99,7 +99,7 @@
             "linear_solver_settings": {
                 "solver_type": "LinearSolversApplication.dense_col_piv_householder_qr"
             },
-            "correction_size": 1e-2
+            "correction_size": 2e-2
         },
         "controls": [
             "thickness_control"
@@ -114,7 +114,8 @@
                 "response_name": "strain_energy",
                 "type": "<=",
                 "scaling": 1.0,
-                "scaled_ref_value": "initial_value"
+                "scaled_ref_value": "initial_value",
+                "violation_scaling"   : 5.0
             }
         ]
     },
@@ -131,7 +132,7 @@
                         "write_time_stamp": false,
                         "format_info": {
                             "int_length": 7,
-                            "float_precision": 5,
+                            "float_precision": 3,
                             "bool_values": [
                                 "no",
                                 "yes"

@@ -1,17 +1,18 @@
 {
     "properties" : [{
-        "model_part_name" : "Structure.structure",
+        "model_part_name" : "Structure.Parts_Shell_structure",
         "properties_id"   : 1,
         "Material"        : {
             "constitutive_law" : {
-                "name" : "LinearElastic3DLaw"
+                "name" : "LinearElasticPlaneStress2DLaw"
             },
             "Variables"        : {
-                "DENSITY"       : 2310.0,
-                "YOUNG_MODULUS" : 2.81329e+10,
-                "POISSON_RATIO" : 0.3
+                "THICKNESS"     : 0.15,
+                "DENSITY"       : 7850.0,
+                "YOUNG_MODULUS" : 206900000000.0,
+                "POISSON_RATIO" : 0.29
             },
-            "Tables"           : {}
+            "Tables"           : null
         }
     }]
 }
