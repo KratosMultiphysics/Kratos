@@ -23,6 +23,12 @@ namespace Kratos {
   namespace Testing {
 
     typedef Node NodeType;
+    typedef Properties PropertiesType;
+    typedef Element ElementType;
+    typedef Condition ConditionType;
+
+    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
+    typedef MeshType::NodesContainerType NodesContainerType;
 
     void GenerateGenericModelPart(ModelPart& rModelPart)
     {
@@ -64,12 +70,12 @@ namespace Kratos {
         KRATOS_CHECK_IS_FALSE(r_model_part.Has(TEMPERATURE));
         KRATOS_CHECK_DOUBLE_EQUAL(r_model_part.GetValue(DENSITY),1.0);
     }
-    
+
     KRATOS_TEST_CASE_IN_SUITE(ModelPartFlag, KratosCoreFastSuite)
     {
         Model model;
         ModelPart& r_model_part = model.CreateModelPart("Main");
-        
+
         r_model_part.Set(ACTIVE);
         KRATOS_CHECK(r_model_part.Is(ACTIVE));
         KRATOS_CHECK_IS_FALSE(r_model_part.Is(BOUNDARY));
@@ -520,6 +526,62 @@ namespace Kratos {
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             model_part.RemoveSubModelPart("Inlet1.sub_inlet.sub_sub_inlet.test"),
             "Error: There is no sub model part with name \"sub_sub_inlet\" in model part \"Main.Inlet1.sub_inlet\"");
+    }
+
+    KRATOS_TEST_CASE_IN_SUITE(ModelPartAddNodes, KratosCoreFastSuite)
+    {
+        Model model;
+
+        auto& model_part = model.CreateModelPart("Main");
+
+        auto& smp = model_part.CreateSubModelPart("Inlet1");
+        auto& ssmp = model_part.CreateSubModelPart("Inlet1.sub_inlet");
+        auto& smp2 = model_part.CreateSubModelPart("Inlet2");
+        auto& ssmp2 = model_part.CreateSubModelPart("Inlet2.sub_inlet");
+        NodesContainerType aux, aux2, aux3; //auxiliary containers
+        // Now we create some nodes and store some of them in a container
+        for(std::size_t id=1; id<25; id++){
+             auto my_node = model_part.CreateNewNode(id, 0.00,0.00,0.00);
+             if(id%2!=0){
+                aux.push_back(my_node);
+             }
+            if(id<15){
+                aux2.push_back(my_node);
+             }
+             aux3.push_back(my_node);
+        }
+        // WE chekc the first one
+        ssmp.AddNodes(aux.begin(), aux.end());
+        KRATOS_CHECK_EQUAL(ssmp.NumberOfNodes(), 12);
+        KRATOS_CHECK_EQUAL(smp.NumberOfNodes(), 12);
+
+        ssmp2.AddNodesFromOrderedContainer(aux.begin(), aux.end());
+        KRATOS_CHECK_EQUAL(ssmp2.NumberOfNodes(), 12);
+        KRATOS_CHECK_EQUAL(smp2.NumberOfNodes(), 12);
+
+        // We check the second one
+        ssmp.AddNodes(aux2.begin(), aux2.end());
+
+        KRATOS_CHECK_EQUAL(ssmp.NumberOfNodes(), 19);
+        KRATOS_CHECK_EQUAL(smp.NumberOfNodes(), 19);
+
+        ssmp2.AddNodesFromOrderedContainer(aux2.begin(), aux2.end());
+        KRATOS_CHECK_EQUAL(ssmp2.NumberOfNodes(), 19);
+        KRATOS_CHECK_EQUAL(smp2.NumberOfNodes(), 19);
+
+        //Now with aux3, we start with ordered because it needs to be unique
+        ssmp2.AddNodesFromOrderedContainer(aux3.begin(), aux3.end());
+        KRATOS_CHECK_EQUAL(ssmp2.NumberOfNodes(), 24);
+        KRATOS_CHECK_EQUAL(smp2.NumberOfNodes(), 24);
+
+        //Here we can go a bit further. No need to be Unique
+        for(auto it=aux.begin();it!=aux.end(); it++){
+            aux3.push_back(*(it.base()));
+        }
+        ssmp.AddNodes(aux3.begin(), aux3.end());
+        KRATOS_CHECK_EQUAL(ssmp.NumberOfNodes(), 24);
+        KRATOS_CHECK_EQUAL(smp.NumberOfNodes(), 24);
+
     }
   }  // namespace Testing.
 }  // namespace Kratos.

@@ -399,6 +399,31 @@ public:
         KRATOS_CATCH("")
     }
 
+    template<class TIteratorType >
+    void AddNodesFromOrderedContainer(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
+    {
+        KRATOS_TRY
+        ModelPart::NodesContainerType aux;
+        ModelPart* root_model_part = &this->GetRootModelPart();
+
+        for(TIteratorType it = nodes_begin; it!=nodes_end; it++)
+        {
+            aux.push_back( *(it.base()) );
+        }
+        // Add the nodes to the root modelpart
+        root_model_part->Nodes() = JoinOrderedNodesContainerType(root_model_part->Nodes().begin(), root_model_part->Nodes().end(), aux.begin(), aux.end());
+
+        //add to all of the leaves
+        ModelPart* current_part = this;
+        while(current_part->IsSubModelPart())
+        {
+            current_part->Nodes() = JoinOrderedNodesContainerType(current_part->Nodes().begin(), current_part->Nodes().end(), aux.begin(), aux.end());
+            current_part = &(current_part->GetParentModelPart());
+        }
+
+        KRATOS_CATCH("")
+    }
+
     /** Inserts a node in the current mesh.
      */
     NodeType::Pointer CreateNewNode(int Id, double x, double y, double z, VariablesList::Pointer pNewVariablesList, IndexType ThisIndex = 0);
@@ -2021,6 +2046,54 @@ private:
         //{
         //	if(Options->Is())
         //}
+    }
+
+    template<class TIteratorType >
+    NodesContainerType JoinOrderedNodesContainerType(TIteratorType c1_begin,  TIteratorType c1_end, TIteratorType c2_begin,  TIteratorType c2_end)
+    {
+
+        std::size_t c1length= std::distance(c1_begin,c1_end);
+        std::size_t c2length= std::distance(c2_begin,c2_end);
+        TIteratorType blong, elong, bshort, eshort;
+        NodesContainerType aux;
+        aux.reserve(c1length + c2length);
+        // We order c1 and c2 to long and short
+        if(c1length>c2length){
+            blong = c1_begin; elong = c1_end;
+            bshort = c2_begin; eshort = c2_end;
+        } else {
+            blong = c2_begin; elong = c2_end;
+            bshort = c1_begin; eshort = c1_end;
+        }
+
+        // if short is empty we return long. If both empty it returns empty aux
+        if(c2length==0 || c1length ==0){
+            for(TIteratorType it1=blong; it1!=elong; it1++){
+                aux.push_back(*(it1.base()) );
+            }
+            return aux;
+        }
+        TIteratorType it2 = blong;
+        for(TIteratorType it1=bshort; it1!=eshort; it1++)
+        {
+            while(it2!=elong && it2->Id()<it1->Id())
+            {
+                aux.push_back(*(it2.base()));
+                it2++;
+            }
+            aux.push_back(*(it1.base()) );
+            if(it2!=elong && (it1->Id() == it2->Id()) ) //If both are the same, then we need to skip
+            {
+                it2++;
+            }
+        }
+        while(it2!=elong)
+        {
+            aux.push_back(*(it2.base()));
+            it2++;
+        }
+
+        return aux;
     }
 
     /**
