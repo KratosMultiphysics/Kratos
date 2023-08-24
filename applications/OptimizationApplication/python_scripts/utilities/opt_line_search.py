@@ -102,8 +102,6 @@ class BBStep(ConstStep):
             dd = KratosOA.ExpressionUtils.InnerProduct(d,d)
             if not math.isclose(dy, 0.0, abs_tol=1e-16):
                 self.unscaled_step = abs( dd / dy )
-            if math.isclose(dd, 0.0, abs_tol=1e-16):
-                self.unscaled_step = 0.0
             else:
                 self.unscaled_step = self._max_step
 
@@ -152,8 +150,6 @@ class QNBBStep(BBStep):
                 yd = y[i] * d[i]
                 if math.isclose(yy, 0.0, abs_tol=1e-16):
                     self.step_numpy[i] = self._max_step
-                elif math.isclose(yd, 0.0, abs_tol=1e-16):
-                    self.step_numpy[i] = 0.0
                 else:
                     self.step_numpy[i] = abs( yd / yy )
                 if self.step_numpy[i] > self._max_step:
