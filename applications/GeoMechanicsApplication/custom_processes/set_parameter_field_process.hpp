@@ -99,38 +99,81 @@ private:
      * \param rVar variable type which is to be altered
      * \param Value new value for the to be altered variable
      */
-     static void SetValueAtElement(Element& rElement, const Variable<double>& rVar, const double Value);
-     static void SetValueAtElement(Element& rElement, const Variable<Vector>& rVar, const Vector Value);
+     template <typename T>
+     static void SetValueAtElement(Element& rElement, const Variable<T>& rVar, const T& Value)
+     {
+         Properties& r_prop = rElement.GetProperties();
+
+         // Copies properties
+         Properties::Pointer p_new_prop = Kratos::make_shared<Properties>(r_prop);
+
+         // Adds new properties to the element
+         p_new_prop->SetValue(rVar, Value);
+         rElement.SetProperties(p_new_prop);
+     }
+
      /**
      * \brief Sets the parameter field, using an input function
      * \param rVar variable type which is to be used to generate the parameter field
      */
      void SetParameterFieldUsingInputFunction(const Variable<double>& rVar);
      void SetParameterFieldUsingInputFunction(const Variable<Vector>& rVar);
+
      /**
      * \brief Sets the parameter field, using a custom Parameter structure
      * \param rVar variable type which is to be used to generate the parameter field
      */
-     void SetParameterFieldUsingParametersClass(const Variable<double>& rVar, Parameters& rParameters);
-     void SetParameterFieldUsingParametersClass(const Variable<Vector>& rVar, Parameters& rParameters);
+     void SetParameterFieldUsingParametersClass(const Variable<double>& rVar, const Parameters& rParameters);
+     void SetParameterFieldUsingParametersClass(const Variable<Vector>& rVar, const Parameters& rParameters);
+
      /**
      * \brief Sets the parameter field, using an input json file
      * \param rVar variable type which is to be used to generate the parameter field
      */
-     void SetParameterFieldUsingJsonFile(const Variable<double>& rVar);
-     void SetParameterFieldUsingJsonFile(const Variable<Vector>& rVar);
+     template <typename T>
+     void SetParameterFieldUsingJsonFile(const Variable<T>& rVar)
+     {
+         // Read json string in field parameters file, create Parameters
+         const std::string& field_file_name = mParameters["dataset_file_name"].GetString();
+         KRATOS_ERROR_IF_NOT(std::filesystem::exists(field_file_name))
+             << "The parameter field file specified with name \"" << field_file_name << "\" does not exist!" << std::endl;
+
+         std::ifstream ifs(field_file_name);
+         this->SetParameterFieldUsingParametersClass(rVar, Parameters{ifs});
+     }
+
      /**
      * \brief Sets the parameter field, using a json string
      * \param rVar variable type which is to be used to generate the parameter field
      */
-     void SetParameterFieldUsingJsonString(const Variable<double>& rVar);
-     void SetParameterFieldUsingJsonString(const Variable<Vector>& rVar);
+     template <typename T>
+     void SetParameterFieldUsingJsonString(const Variable<T>& rVar)
+     {
+         // get new data from the data set
+         const std::string& r_dataset = mParameters["dataset"].GetString();
+         Parameters new_data{ r_dataset };
+         this->SetParameterFieldUsingParametersClass(rVar, new_data);
+     }
+
      /**
      * \brief  Checks what type of input field is given and generates the parameter field.
      * \param rVar variable type which is to be used to generate the parameter field
      */
-     void SetParameterFieldForVariableType(const Variable<double>& r_var);
-     void SetParameterFieldForVariableType(const Variable<Vector>& r_var);
+     template <typename T>
+     void SetParameterFieldForVariableType(const Variable<T>& r_var)
+     {
+         if (mParameters["func_type"].GetString() == "input") {
+             this->SetParameterFieldUsingInputFunction(r_var);
+         }
+         else if (mParameters["func_type"].GetString() == "json_string") {
+             this->SetParameterFieldUsingJsonString(r_var);
+         }
+         else if (mParameters["func_type"].GetString() == "json_file") {
+             this->SetParameterFieldUsingJsonFile(r_var);
+         }
+     }
+
+     std::vector<IndexType> GetVectorIndices() const;
 
     ///@}
     ///@name Serialization
