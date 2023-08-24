@@ -354,14 +354,14 @@ public:
     /** Inserts a list of pointers to nodes
      */
     template<class TIteratorType >
-    void AddNodes(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
+    void AddNodes(TIteratorType iNodesBegin,  TIteratorType iNodesEnd, IndexType ThisIndex = 0)
     {
         KRATOS_TRY
         ModelPart::NodesContainerType  aux;
         ModelPart::NodesContainerType  aux_root; //they may not exist in the root
         ModelPart* root_model_part = &this->GetRootModelPart();
 
-        for(TIteratorType it = nodes_begin; it!=nodes_end; it++)
+        for(TIteratorType it = iNodesBegin; it!=iNodesEnd; it++)
         {
             auto it_found = root_model_part->Nodes().find(it->Id());
             if(it_found == root_model_part->NodesEnd()) //node does not exist in the top model part
@@ -400,13 +400,13 @@ public:
     }
 
     template<class TIteratorType >
-    void AddNodesFromOrderedContainer(TIteratorType nodes_begin,  TIteratorType nodes_end, IndexType ThisIndex = 0)
+    void AddNodesFromOrderedContainer(TIteratorType iNodesBegin,  TIteratorType iNodesEnd)
     {
         KRATOS_TRY
         ModelPart::NodesContainerType aux;
         ModelPart* root_model_part = &this->GetRootModelPart();
 
-        for(TIteratorType it = nodes_begin; it!=nodes_end; it++) {
+        for(TIteratorType it = iNodesBegin; it!=iNodesEnd; it++) {
             aux.push_back( *(it.base()) );
         }
         // Add the nodes to the root modelpart
@@ -2032,6 +2032,7 @@ private:
     void SetBufferSizeSubModelParts(IndexType NewBufferSize);
 
 
+
     void SetParentModelPart(ModelPart* pParentModelPart)
     {
         mpParentModelPart = pParentModelPart;
@@ -2047,21 +2048,21 @@ private:
     }
 
     template<class TIteratorType >
-    NodesContainerType JoinOrderedNodesContainerType(TIteratorType c1_begin,  TIteratorType c1_end, TIteratorType c2_begin,  TIteratorType c2_end)
+    NodesContainerType JoinOrderedNodesContainerType(TIteratorType iC1Begin,  TIteratorType iC1End, TIteratorType iC2Begin,  TIteratorType iC2End)
     {
-        std::size_t c1length = std::distance(c1_begin,c1_end);
-        std::size_t c2length = std::distance(c2_begin,c2_end);
+        std::size_t c1length = std::distance(iC1Begin,iC1End);
+        std::size_t c2length = std::distance(iC2Begin,iC2End);
         TIteratorType blong, elong, bshort, eshort;
         NodesContainerType aux;
         aux.reserve(c1length + c2length);
         
         // We order c1 and c2 to long and short
         if(c1length>c2length){
-            blong = c1_begin; elong = c1_end;
-            bshort = c2_begin; eshort = c2_end;
+            blong = iC1Begin; elong = iC1End;
+            bshort = iC2Begin; eshort = iC2End;
         } else {
-            blong = c2_begin; elong = c2_end;
-            bshort = c1_begin; eshort = c1_end;
+            blong = iC2Begin; elong = iC2End;
+            bshort = iC1Begin; eshort = iC1End;
         }
 
         // If short is empty we return long. If both empty it returns empty aux
