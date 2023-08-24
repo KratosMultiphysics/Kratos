@@ -19,16 +19,14 @@
 #include "utilities/auxiliar_model_part_utilities.h"
 #include "utilities/cpp_tests_utilities.h"
 
-namespace Kratos {
-  namespace Testing {
+namespace Kratos::Testing {
 
-    typedef Node NodeType;
-    typedef Properties PropertiesType;
-    typedef Element ElementType;
-    typedef Condition ConditionType;
+    using PropertiesType = Properties;
+    using ElementType = Element;
+    using ConditionType = Condition;
 
-    typedef Mesh<NodeType, PropertiesType, ElementType, ConditionType> MeshType;
-    typedef MeshType::NodesContainerType NodesContainerType;
+    using MeshType = Mesh<Node, PropertiesType, ElementType, ConditionType>;
+    using NodesContainerType = MeshType::NodesContainerType;
 
     void GenerateGenericModelPart(ModelPart& rModelPart)
     {
@@ -41,21 +39,21 @@ namespace Kratos {
         rModelPart.CreateNewCondition("LineCondition2D2N", 3, {{2,5}}, p_elem_prop);
         rModelPart.CreateNewCondition("LineCondition2D2N", 4, {{5,6}}, p_elem_prop);
 
-        std::vector<NodeType::Pointer> condition_nodes_3 (2);
+        std::vector<Node::Pointer> condition_nodes_3 (2);
         condition_nodes_3[0] = rModelPart.pGetNode(5);
         condition_nodes_3[1] = rModelPart.pGetNode(6);
 
         rModelPart.CreateNewGeometry("Line2D2", 1, {{1,2}});
         rModelPart.CreateNewGeometry("Line2D2", 2, rModelPart.pGetCondition(1)->pGetGeometry());
         rModelPart.CreateNewGeometry("Line2D2", 3, rModelPart.pGetCondition(2)->pGetGeometry());
-        rModelPart.CreateNewGeometry("Line2D2", 4, PointerVector<NodeType>{condition_nodes_3});
+        rModelPart.CreateNewGeometry("Line2D2", 4, PointerVector<Node>{condition_nodes_3});
 
-        std::vector<NodeType::Pointer> element_nodes_0 (3);
+        std::vector<Node::Pointer> element_nodes_0 (3);
         element_nodes_0[0] = rModelPart.pGetNode(1);
         element_nodes_0[1] = rModelPart.pGetNode(2);
         element_nodes_0[2] = rModelPart.pGetNode(3);
 
-        rModelPart.CreateNewGeometry("Triangle2D3", PointerVector<NodeType>{element_nodes_0});
+        rModelPart.CreateNewGeometry("Triangle2D3", PointerVector<Node>{element_nodes_0});
         rModelPart.CreateNewGeometry("Triangle2D3", rModelPart.pGetElement(1)->pGetGeometry());
         rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_7", {{2,5,3}});
         rModelPart.CreateNewGeometry("Triangle2D3", "Geometry_8", {{5,6,3}});
@@ -532,56 +530,56 @@ namespace Kratos {
     {
         Model model;
 
-        auto& model_part = model.CreateModelPart("Main");
+        auto& r_model_part = model.CreateModelPart("Main");
 
-        auto& smp = model_part.CreateSubModelPart("Inlet1");
-        auto& ssmp = model_part.CreateSubModelPart("Inlet1.sub_inlet");
-        auto& smp2 = model_part.CreateSubModelPart("Inlet2");
-        auto& ssmp2 = model_part.CreateSubModelPart("Inlet2.sub_inlet");
+        auto& r_smp = r_model_part.CreateSubModelPart("Inlet1");
+        auto& r_ssmp = r_model_part.CreateSubModelPart("Inlet1.sub_inlet");
+        auto& r_smp2 = r_model_part.CreateSubModelPart("Inlet2");
+        auto& r_ssmp2 = r_model_part.CreateSubModelPart("Inlet2.sub_inlet");
         NodesContainerType aux, aux2, aux3; //auxiliary containers
+        
         // Now we create some nodes and store some of them in a container
-        for(std::size_t id=1; id<25; id++){
-             auto my_node = model_part.CreateNewNode(id, 0.00,0.00,0.00);
-             if(id%2!=0){
-                aux.push_back(my_node);
+        for(std::size_t id=1; id<25; id++) {
+             auto p_node = r_model_part.CreateNewNode(id, 0.00,0.00,0.00);
+             if (id%2!=0) {
+                aux.push_back(p_node);
              }
-            if(id<15){
-                aux2.push_back(my_node);
+            if (id<15) {
+                aux2.push_back(p_node);
              }
-             aux3.push_back(my_node);
+             aux3.push_back(p_node);
         }
-        // WE chekc the first one
-        ssmp.AddNodes(aux.begin(), aux.end());
-        KRATOS_CHECK_EQUAL(ssmp.NumberOfNodes(), 12);
-        KRATOS_CHECK_EQUAL(smp.NumberOfNodes(), 12);
+        // We check the first one
+        r_ssmp.AddNodes(aux.begin(), aux.end());
+        KRATOS_CHECK_EQUAL(r_ssmp.NumberOfNodes(), 12);
+        KRATOS_CHECK_EQUAL(r_smp.NumberOfNodes(), 12);
 
-        ssmp2.AddNodesFromOrderedContainer(aux.begin(), aux.end());
-        KRATOS_CHECK_EQUAL(ssmp2.NumberOfNodes(), 12);
-        KRATOS_CHECK_EQUAL(smp2.NumberOfNodes(), 12);
+        r_ssmp2.AddNodesFromOrderedContainer(aux.begin(), aux.end());
+        KRATOS_CHECK_EQUAL(r_ssmp2.NumberOfNodes(), 12);
+        KRATOS_CHECK_EQUAL(r_smp2.NumberOfNodes(), 12);
 
         // We check the second one
-        ssmp.AddNodes(aux2.begin(), aux2.end());
+        r_ssmp.AddNodes(aux2.begin(), aux2.end());
 
-        KRATOS_CHECK_EQUAL(ssmp.NumberOfNodes(), 19);
-        KRATOS_CHECK_EQUAL(smp.NumberOfNodes(), 19);
+        KRATOS_CHECK_EQUAL(r_ssmp.NumberOfNodes(), 19);
+        KRATOS_CHECK_EQUAL(r_smp.NumberOfNodes(), 19);
 
-        ssmp2.AddNodesFromOrderedContainer(aux2.begin(), aux2.end());
-        KRATOS_CHECK_EQUAL(ssmp2.NumberOfNodes(), 19);
-        KRATOS_CHECK_EQUAL(smp2.NumberOfNodes(), 19);
+        r_ssmp2.AddNodesFromOrderedContainer(aux2.begin(), aux2.end());
+        KRATOS_CHECK_EQUAL(r_ssmp2.NumberOfNodes(), 19);
+        KRATOS_CHECK_EQUAL(r_smp2.NumberOfNodes(), 19);
 
-        //Now with aux3, we start with ordered because it needs to be unique
-        ssmp2.AddNodesFromOrderedContainer(aux3.begin(), aux3.end());
-        KRATOS_CHECK_EQUAL(ssmp2.NumberOfNodes(), 24);
-        KRATOS_CHECK_EQUAL(smp2.NumberOfNodes(), 24);
+        // Now with aux3, we start with ordered because it needs to be unique
+        r_ssmp2.AddNodesFromOrderedContainer(aux3.begin(), aux3.end());
+        KRATOS_CHECK_EQUAL(r_ssmp2.NumberOfNodes(), 24);
+        KRATOS_CHECK_EQUAL(r_smp2.NumberOfNodes(), 24);
 
-        //Here we can go a bit further. No need to be Unique
+        // Here we can go a bit further. No need to be Unique
         for(auto it=aux.begin();it!=aux.end(); it++){
             aux3.push_back(*(it.base()));
         }
-        ssmp.AddNodes(aux3.begin(), aux3.end());
-        KRATOS_CHECK_EQUAL(ssmp.NumberOfNodes(), 24);
-        KRATOS_CHECK_EQUAL(smp.NumberOfNodes(), 24);
+        r_ssmp.AddNodes(aux3.begin(), aux3.end());
+        KRATOS_CHECK_EQUAL(r_ssmp.NumberOfNodes(), 24);
+        KRATOS_CHECK_EQUAL(r_smp.NumberOfNodes(), 24);
 
     }
-  }  // namespace Testing.
-}  // namespace Kratos.
+}  // namespace Kratos::Testing.
