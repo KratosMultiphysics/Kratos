@@ -48,21 +48,7 @@ typedef void(*f_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doubl
                           int* kinc);
 #endif
 
-//******************************CONSTRUCTOR*******************************************
-//************************************************************************************
-
-SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw()
-   : ConstitutiveLaw()
-   {
-    KRATOS_TRY
-
-    KRATOS_CATCH("")
-
-   }
-
-//******************************COPY CONSTRUCTOR**************************************
-//************************************************************************************
-SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw &rOther)
+SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw& rOther)
    : ConstitutiveLaw(rOther),
      mStressVector(rOther.mStressVector),
      mStressVectorFinalized(rOther.mStressVectorFinalized),
@@ -83,9 +69,6 @@ SmallStrainUMAT3DLaw::SmallStrainUMAT3DLaw(const SmallStrainUMAT3DLaw &rOther)
    KRATOS_CATCH("")
 }
 
-//********************************CLONE***********************************************
-//************************************************************************************
-
 ConstitutiveLaw::Pointer SmallStrainUMAT3DLaw::Clone() const
 {
    KRATOS_TRY
@@ -95,9 +78,7 @@ ConstitutiveLaw::Pointer SmallStrainUMAT3DLaw::Clone() const
    KRATOS_CATCH("")
 }
 
-//********************************ASSIGNMENT******************************************
-//************************************************************************************
-SmallStrainUMAT3DLaw &SmallStrainUMAT3DLaw::operator=(SmallStrainUMAT3DLaw const &rOther)
+SmallStrainUMAT3DLaw& SmallStrainUMAT3DLaw::operator=(const SmallStrainUMAT3DLaw& rOther)
 {
    KRATOS_TRY
 
@@ -120,14 +101,6 @@ SmallStrainUMAT3DLaw &SmallStrainUMAT3DLaw::operator=(SmallStrainUMAT3DLaw const
    KRATOS_CATCH("")
 }
 
-//*******************************DESTRUCTOR*******************************************
-//************************************************************************************
-
-SmallStrainUMAT3DLaw::~SmallStrainUMAT3DLaw() {}
-
-//***********************PUBLIC OPERATIONS FROM BASE CLASS****************************
-//************************************************************************************
-
 void SmallStrainUMAT3DLaw::GetLawFeatures(Features &rFeatures)
 {
    //Set the type of law
@@ -136,12 +109,11 @@ void SmallStrainUMAT3DLaw::GetLawFeatures(Features &rFeatures)
 
    rFeatures.mOptions.Set(ISOTROPIC);
 
-
-   //Set strain measure required by the consitutive law
+   //Set strain measure required by the constitutive law
    rFeatures.mStrainMeasures.push_back(StrainMeasure_Infinitesimal);
    //rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
-   //Set the spacedimension
+   //Set the space dimension
    rFeatures.mSpaceDimension = WorkingSpaceDimension();
 
    //Set the strain size
@@ -175,13 +147,11 @@ void SmallStrainUMAT3DLaw::InitializeMaterial(const Properties &rMaterialPropert
    // we need to check if the model is loaded or not
    mIsUMATLoaded = loadUMAT(rMaterialProperties);
 
-   if (!mIsUMATLoaded) {
-      KRATOS_ERROR << "cannot load the specified UMAT" << rMaterialProperties[UDSM_NAME] << std::endl;
-   }
+   if (!mIsUMATLoaded) KRATOS_ERROR << "cannot load the specified UMAT" << rMaterialProperties[UDSM_NAME] << std::endl;
 
    ResetMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
 
-   KRATOS_CATCH(" ")
+   KRATOS_CATCH("")
 }
 
 void SmallStrainUMAT3DLaw::ResetStateVariables(const Properties& rMaterialProperties)
@@ -198,7 +168,7 @@ void SmallStrainUMAT3DLaw::ResetStateVariables(const Properties& rMaterialProper
    noalias(mStateVariables)          = StateVariables;
    noalias(mStateVariablesFinalized) = StateVariables;
 
-   KRATOS_CATCH(" ")
+   KRATOS_CATCH("")
 }
 
 
@@ -225,7 +195,7 @@ void SmallStrainUMAT3DLaw::ResetMaterial(const Properties& rMaterialProperties,
 
    mIsModelInitialized = false;
 
-   KRATOS_CATCH(" ")
+   KRATOS_CATCH("")
 }
 
 bool SmallStrainUMAT3DLaw::loadUMAT(const Properties &rMaterialProperties)
@@ -240,7 +210,7 @@ bool SmallStrainUMAT3DLaw::loadUMAT(const Properties &rMaterialProperties)
    KRATOS_ERROR << "loadUMAT is not supported yet for Mac OS applications" << std::endl;
 #endif
 
-   KRATOS_CATCH(" ")
+   KRATOS_CATCH("")
 }
 
 bool SmallStrainUMAT3DLaw::loadUMATLinux(const Properties &rMaterialProperties)
@@ -328,10 +298,6 @@ bool SmallStrainUMAT3DLaw::loadUMATWindows(const Properties &rMaterialProperties
    return false;
 #endif
 }
-
-
-//************************************************************************************
-//************************************************************************************
 
 void SmallStrainUMAT3DLaw::CalculateMaterialResponsePK1(ConstitutiveLaw::Parameters & rValues)
 {
@@ -425,8 +391,8 @@ void SmallStrainUMAT3DLaw::SetInternalStrainVector(const Vector& rStrainVector)
    }
 }
 
-void SmallStrainUMAT3DLaw::CopyConstitutiveMatrix( ConstitutiveLaw::Parameters &rValues,
-                                                   Matrix& rConstitutiveMatrix )
+void SmallStrainUMAT3DLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Parameters &rValues,
+                                                  Matrix& rConstitutiveMatrix)
 {
    if (rValues.GetMaterialProperties()[IS_FORTRAN_UDSM])
    {
@@ -448,8 +414,8 @@ void SmallStrainUMAT3DLaw::CopyConstitutiveMatrix( ConstitutiveLaw::Parameters &
 }
 
 
-void SmallStrainUMAT3DLaw::CalculateConstitutiveMatrix( ConstitutiveLaw::Parameters &rValues,
-                                                        Matrix& rConstitutiveMatrix )
+void SmallStrainUMAT3DLaw::CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters &rValues,
+                                                       Matrix& rConstitutiveMatrix)
 {
    KRATOS_TRY
 
@@ -463,8 +429,8 @@ void SmallStrainUMAT3DLaw::CalculateConstitutiveMatrix( ConstitutiveLaw::Paramet
    KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues,
-                                            Vector& rStressVector )
+void SmallStrainUMAT3DLaw::CalculateStress(ConstitutiveLaw::Parameters &rValues,
+                                           Vector& rStressVector)
 {
    KRATOS_TRY
 
@@ -478,7 +444,7 @@ void SmallStrainUMAT3DLaw::CalculateStress( ConstitutiveLaw::Parameters &rValues
    KRATOS_CATCH("")
 }
 
-void SmallStrainUMAT3DLaw::CallUMAT( ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUMAT3DLaw::CallUMAT(ConstitutiveLaw::Parameters &rValues)
 {
    KRATOS_TRY
 
@@ -503,22 +469,23 @@ void SmallStrainUMAT3DLaw::CallUMAT( ConstitutiveLaw::Parameters &rValues)
 
    int ndi = N_DIM_3D;
    int nshr = 3;
-   int ntens = VOIGT_SIZE_3D; // ??@@
+   int ntens = VOIGT_SIZE_3D;
 
 
    // stresses and state variables in the beginning of the steps needs to be given:
-   mStressVector  = mStressVectorFinalized;
+   mStressVector   = mStressVectorFinalized;
    mStateVariables = mStateVariablesFinalized;
 
-   // variable to check if an error happend in the model:
+   // variable to check if an error happened in the model:
    const auto &MaterialParameters = rValues.GetMaterialProperties()[UMAT_PARAMETERS];
    int nProperties = MaterialParameters.size();
-   pUserMod(&(mStressVector.data()[0]), &(mStateVariables.data()[0]), (double **)mMatrixD,  &SSE,   &SPD,                          &SCD,
-            NULL,                 NULL,                   NULL,                 NULL,   &(mStrainVectorFinalized.data()[0]), &(mDeltaStrainVector.data()[0]),
-            &time,                &deltaTime,             NULL,                 NULL,   NULL,                          NULL,
-            &materialName,        &ndi,                   &nshr,                &ntens, &nStateVariables,              &(MaterialParameters.data()[0]),
-            &nProperties,         NULL,                   NULL,                 NULL,   NULL,                          NULL,
-            NULL,                 &iElement,              &integrationNumber,   NULL,   NULL,                          &iStep,
+   pUserMod(&(mStressVector.data()[0]), &(mStateVariables.data()[0]), (double **) mMatrixD, &SSE, &SPD, &SCD,
+            nullptr, nullptr, nullptr, nullptr, &(mStrainVectorFinalized.data()[0]),
+            &(mDeltaStrainVector.data()[0]),
+            &time, &deltaTime, nullptr, nullptr, nullptr, nullptr,
+            &materialName, &ndi, &nshr, &ntens, &nStateVariables, &(MaterialParameters.data()[0]),
+            &nProperties, nullptr, nullptr, nullptr, nullptr, nullptr,
+            nullptr, &iElement, &integrationNumber, nullptr, nullptr, &iStep,
             &iteration);
 
    KRATOS_CATCH("")
@@ -589,18 +556,14 @@ void SmallStrainUMAT3DLaw::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Param
    mStressVectorFinalized   = mStressVector;
 }
 
-void SmallStrainUMAT3DLaw::
-   UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
+void SmallStrainUMAT3DLaw::UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues)
 {
    const Vector& rStrainVector = rValues.GetStrainVector();
    this->SetInternalStrainVector(rStrainVector);
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-void SmallStrainUMAT3DLaw::CalculateCauchyGreenStrain( ConstitutiveLaw::Parameters& rValues, 
-                                                       Vector& rStrainVector )
+void SmallStrainUMAT3DLaw::CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
+                                                      Vector& rStrainVector)
 {
    const SizeType space_dimension = this->WorkingSpaceDimension();
 
@@ -620,10 +583,9 @@ void SmallStrainUMAT3DLaw::CalculateCauchyGreenStrain( ConstitutiveLaw::Paramete
    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
 }
 
-
-double& SmallStrainUMAT3DLaw::CalculateValue( ConstitutiveLaw::Parameters& rParameterValues,
-                                              const Variable<double>& rThisVariable,
-                                              double& rValue )
+double& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                                             const Variable<double>& rThisVariable,
+                                             double& rValue)
 {
    Vector& rStrainVector = rParameterValues.GetStrainVector();
    Vector& rStressVector = rParameterValues.GetStressVector();
@@ -636,27 +598,22 @@ double& SmallStrainUMAT3DLaw::CalculateValue( ConstitutiveLaw::Parameters& rPara
       rValue = 0.5 * inner_prod( rStrainVector, rStressVector); // Strain energy = 0.5*E:C:E
    }
 
-   return( rValue );
+   return rValue;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-Vector& SmallStrainUMAT3DLaw::CalculateValue( ConstitutiveLaw::Parameters& rParameterValues,
-                                              const Variable<Vector>& rThisVariable,
-                                              Vector& rValue )
+Vector& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                                             const Variable<Vector>& rThisVariable,
+                                             Vector& rValue)
 {
    if (rThisVariable == STRAIN ||
        rThisVariable == GREEN_LAGRANGE_STRAIN_VECTOR ||
-       rThisVariable == ALMANSI_STRAIN_VECTOR) 
-   {
+       rThisVariable == ALMANSI_STRAIN_VECTOR) {
       this->CalculateCauchyGreenStrain( rParameterValues, rValue);
 
    } else if (rThisVariable == STRESSES ||
               rThisVariable == CAUCHY_STRESS_VECTOR ||
               rThisVariable == KIRCHHOFF_STRESS_VECTOR ||
-              rThisVariable == PK2_STRESS_VECTOR) 
-   {
+              rThisVariable == PK2_STRESS_VECTOR) {
         // Get Values to compute the constitutive law:
       Flags& rFlags = rParameterValues.GetOptions();
 
@@ -676,192 +633,175 @@ Vector& SmallStrainUMAT3DLaw::CalculateValue( ConstitutiveLaw::Parameters& rPara
       rFlags.Set( ConstitutiveLaw::COMPUTE_STRESS, flagStress );
    }
 
-   return( rValue );
+   return rValue;
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-Matrix& SmallStrainUMAT3DLaw::CalculateValue( ConstitutiveLaw::Parameters& rParameterValues,
-                                              const Variable<Matrix>& rThisVariable,
-                                              Matrix& rValue )
+Matrix& SmallStrainUMAT3DLaw::CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                                             const Variable<Matrix>& rThisVariable,
+                                             Matrix& rValue)
 {
    if (rThisVariable == CONSTITUTIVE_MATRIX ||
        rThisVariable == CONSTITUTIVE_MATRIX_PK2 ||
-       rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) 
-   {
+       rThisVariable == CONSTITUTIVE_MATRIX_KIRCHHOFF) {
       this->CalculateConstitutiveMatrix(rParameterValues, rValue);
    }
 
-   return( rValue );
+   return rValue;
 }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 int SmallStrainUMAT3DLaw::GetStateVariableIndex(const Variable<double>& rThisVariable)
 {
-
    int index = -1;
 
-   if (rThisVariable == STATE_VARIABLE_1)
-       index = 1;
+    if (rThisVariable == STATE_VARIABLE_1)
+        index = 1;
     else if (rThisVariable == STATE_VARIABLE_2)
-       index = 2;
+        index = 2;
     else if (rThisVariable == STATE_VARIABLE_3)
-       index = 3;
+        index = 3;
     else if (rThisVariable == STATE_VARIABLE_4)
-       index = 4;
+        index = 4;
     else if (rThisVariable == STATE_VARIABLE_5)
-       index = 5;
+        index = 5;
     else if (rThisVariable == STATE_VARIABLE_6)
-       index = 6;
+        index = 6;
     else if (rThisVariable == STATE_VARIABLE_7)
-       index = 7;
+        index = 7;
     else if (rThisVariable == STATE_VARIABLE_8)
-       index = 8;
+        index = 8;
     else if (rThisVariable == STATE_VARIABLE_9)
-       index = 9;
+        index = 9;
 
     else if (rThisVariable == STATE_VARIABLE_10)
-       index = 10;
+        index = 10;
     else if (rThisVariable == STATE_VARIABLE_11)
-       index = 11;
+        index = 11;
     else if (rThisVariable == STATE_VARIABLE_12)
-       index = 12;
+        index = 12;
     else if (rThisVariable == STATE_VARIABLE_13)
-       index = 13;
+        index = 13;
     else if (rThisVariable == STATE_VARIABLE_14)
-       index = 14;
+        index = 14;
     else if (rThisVariable == STATE_VARIABLE_15)
-       index = 15;
+        index = 15;
     else if (rThisVariable == STATE_VARIABLE_16)
-       index = 16;
+        index = 16;
     else if (rThisVariable == STATE_VARIABLE_17)
-       index = 17;
+        index = 17;
     else if (rThisVariable == STATE_VARIABLE_18)
-       index = 18;
+        index = 18;
     else if (rThisVariable == STATE_VARIABLE_19)
-       index = 19;
+        index = 19;
     else if (rThisVariable == STATE_VARIABLE_20)
-       index = 20;
+        index = 20;
 
     else if (rThisVariable == STATE_VARIABLE_21)
-       index = 21;
+        index = 21;
     else if (rThisVariable == STATE_VARIABLE_22)
-       index = 22;
+        index = 22;
     else if (rThisVariable == STATE_VARIABLE_23)
-       index = 23;
+        index = 23;
     else if (rThisVariable == STATE_VARIABLE_24)
-       index = 24;
+        index = 24;
     else if (rThisVariable == STATE_VARIABLE_25)
-       index = 25;
+        index = 25;
     else if (rThisVariable == STATE_VARIABLE_26)
-       index = 26;
+        index = 26;
     else if (rThisVariable == STATE_VARIABLE_27)
-       index = 27;
+        index = 27;
     else if (rThisVariable == STATE_VARIABLE_28)
-       index = 28;
+        index = 28;
     else if (rThisVariable == STATE_VARIABLE_29)
-       index = 29;
+        index = 29;
 
     else if (rThisVariable == STATE_VARIABLE_30)
-       index = 30;
+        index = 30;
     else if (rThisVariable == STATE_VARIABLE_31)
-       index = 31;
+        index = 31;
     else if (rThisVariable == STATE_VARIABLE_32)
-       index = 32;
+        index = 32;
     else if (rThisVariable == STATE_VARIABLE_33)
-       index = 33;
+        index = 33;
     else if (rThisVariable == STATE_VARIABLE_34)
-       index = 34;
+        index = 34;
     else if (rThisVariable == STATE_VARIABLE_35)
-       index = 35;
+        index = 35;
     else if (rThisVariable == STATE_VARIABLE_36)
-       index = 36;
+        index = 36;
     else if (rThisVariable == STATE_VARIABLE_37)
-       index = 37;
+        index = 37;
     else if (rThisVariable == STATE_VARIABLE_38)
-       index = 38;
+        index = 38;
     else if (rThisVariable == STATE_VARIABLE_39)
-       index = 39;
+        index = 39;
 
     else if (rThisVariable == STATE_VARIABLE_40)
-       index = 40;
+        index = 40;
     else if (rThisVariable == STATE_VARIABLE_41)
-       index = 41;
+        index = 41;
     else if (rThisVariable == STATE_VARIABLE_42)
-       index = 42;
+        index = 42;
     else if (rThisVariable == STATE_VARIABLE_43)
-       index = 43;
+        index = 43;
     else if (rThisVariable == STATE_VARIABLE_44)
-       index = 44;
+        index = 44;
     else if (rThisVariable == STATE_VARIABLE_45)
-       index = 45;
+        index = 45;
     else if (rThisVariable == STATE_VARIABLE_46)
-       index = 46;
+        index = 46;
     else if (rThisVariable == STATE_VARIABLE_47)
-       index = 47;
+        index = 47;
     else if (rThisVariable == STATE_VARIABLE_48)
-       index = 48;
+        index = 48;
     else if (rThisVariable == STATE_VARIABLE_49)
-       index = 49;
+        index = 49;
 
     else if (rThisVariable == STATE_VARIABLE_50)
-       index = 50;
+        index = 50;
 
    return index -1;
 }
 
-//----------------------------------------------------------------------------------------
 Vector& SmallStrainUMAT3DLaw::GetValue( const Variable<Vector> &rThisVariable, Vector &rValue )
 {
 
-   if (rThisVariable == STATE_VARIABLES)
-   {
-      if (rValue.size() != mStateVariablesFinalized.size())
-         rValue.resize(mStateVariablesFinalized.size());
+    if (rThisVariable == STATE_VARIABLES) {
+        if (rValue.size() != mStateVariablesFinalized.size()) rValue.resize(mStateVariablesFinalized.size());
 
-      noalias(rValue) = mStateVariablesFinalized;
-   }
-   else if (rThisVariable == CAUCHY_STRESS_VECTOR)
-   {
-      if (rValue.size() != mStressVectorFinalized.size())
-         rValue.resize(mStressVectorFinalized.size());
+        noalias(rValue) = mStateVariablesFinalized;
+    } else if (rThisVariable == CAUCHY_STRESS_VECTOR) {
+        if (rValue.size() != mStressVectorFinalized.size()) rValue.resize(mStressVectorFinalized.size());
 
-      noalias(rValue) = mStressVectorFinalized;
-   }
-
-    return rValue;
-}
-
-//----------------------------------------------------------------------------------------
-double& SmallStrainUMAT3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
-{
-
-   int index = GetStateVariableIndex(rThisVariable);
-
-   KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
-                        << "GetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
-
-   rValue = mStateVariablesFinalized[index];
-
-    return rValue;
-}
-
-//----------------------------------------------------------------------------------------
-int& SmallStrainUMAT3DLaw::GetValue( const Variable<int>& rThisVariable, int& rValue )
-{
-    if (rThisVariable == NUMBER_OF_UMAT_STATE_VARIABLES)
-    {
-       rValue = mStateVariablesFinalized.size();
+        noalias(rValue) = mStressVectorFinalized;
     }
 
     return rValue;
 }
 
-//----------------------------------------------------------------------------------------
-void SmallStrainUMAT3DLaw::SetValue( const Variable<double>& rThisVariable,
-                                     const double& rValue,
-                                     const ProcessInfo& rCurrentProcessInfo )
+double& SmallStrainUMAT3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
+{
+
+    int index = GetStateVariableIndex(rThisVariable);
+
+    KRATOS_DEBUG_ERROR_IF( index < 0 || index > (static_cast<int>(mStateVariablesFinalized.size()) - 1) )
+                        << "GetValue: State variable does not exist in UDSM. Requested index: " << index << std::endl;
+
+    rValue = mStateVariablesFinalized[index];
+
+    return rValue;
+}
+
+int& SmallStrainUMAT3DLaw::GetValue(const Variable<int>& rThisVariable,
+                                    int& rValue)
+{
+    if (rThisVariable == NUMBER_OF_UMAT_STATE_VARIABLES) rValue = static_cast<int>(mStateVariablesFinalized.size());
+
+    return rValue;
+}
+
+void SmallStrainUMAT3DLaw::SetValue(const Variable<double>& rThisVariable,
+                                    const double& rValue,
+                                    const ProcessInfo& rCurrentProcessInfo)
 {
    const int index = GetStateVariableIndex(rThisVariable);
 
@@ -871,31 +811,17 @@ void SmallStrainUMAT3DLaw::SetValue( const Variable<double>& rThisVariable,
    mStateVariablesFinalized[index] = rValue;
 }
 
-//----------------------------------------------------------------------------------------
 void SmallStrainUMAT3DLaw::SetValue( const Variable<Vector>& rThisVariable,
                                      const Vector& rValue,
                                      const ProcessInfo& rCurrentProcessInfo )
 {
-   if (rThisVariable == STATE_VARIABLES)
-   {
-      if (rValue.size() == mStateVariablesFinalized.size()) 
-      {
-         for (unsigned int i=0; i < rValue.size(); ++i)
-         {
-            mStateVariablesFinalized[i] = rValue[i];
-         }
-      }
+    if ((rThisVariable == STATE_VARIABLES) &&
+        (rValue.size() == mStateVariablesFinalized.size())) {
+        std::copy(rValue.begin(), rValue.end(), mStateVariablesFinalized.begin());
+    } else if ((rThisVariable == CAUCHY_STRESS_VECTOR) &&
+               (rValue.size() == mStressVectorFinalized.size())) {
+        std::copy(rValue.begin(), rValue.end(), mStressVectorFinalized.begin());
    }
-   else if (rThisVariable == CAUCHY_STRESS_VECTOR)
-   {
-      if (rValue.size() == mStressVectorFinalized.size()) 
-      {
-         for (unsigned int i=0; i < rValue.size(); ++i)
-         {
-            mStressVectorFinalized[i] = rValue[i];
-         }
-      }
-   }
-
 }
+
 } // Namespace Kratos

@@ -38,10 +38,9 @@ void BilinearCohesive3DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mStrainSize = GetStrainSize();
 }
 
-int BilinearCohesive3DLaw::
-    Check(const Properties& rMaterialProperties,
-          const GeometryType& rElementGeometry,
-          const ProcessInfo& rCurrentProcessInfo) const
+int BilinearCohesive3DLaw::Check(const Properties& rMaterialProperties,
+                                 const GeometryType& rElementGeometry,
+                                 const ProcessInfo& rCurrentProcessInfo) const
 {
     // Verify Properties variables
     if (rMaterialProperties.Has( CRITICAL_DISPLACEMENT ) == false || rMaterialProperties[CRITICAL_DISPLACEMENT] <= 0.0)
@@ -69,10 +68,9 @@ ConstitutiveLaw::Pointer BilinearCohesive3DLaw::Clone() const
     return p_clone;
 }
 
-void BilinearCohesive3DLaw::
-    InitializeMaterial( const Properties& rMaterialProperties,
-                        const GeometryType& rElementGeometry,
-                        const Vector& rShapeFunctionsValues )
+void BilinearCohesive3DLaw::InitializeMaterial(const Properties& rMaterialProperties,
+                                               const GeometryType& rElementGeometry,
+                                               const Vector& rShapeFunctionsValues)
 {
     mStateVariable = rMaterialProperties[DAMAGE_THRESHOLD];
 }
@@ -192,7 +190,7 @@ void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy( Parameters& rValues 
         rValues.CheckAllParameters();
 
         //Initialize main variables
-        Vector& rStrainVector = rValues.GetStrainVector();
+        const Vector& rStrainVector = rValues.GetStrainVector();
         double EquivalentStrain;
 
         //Material properties
