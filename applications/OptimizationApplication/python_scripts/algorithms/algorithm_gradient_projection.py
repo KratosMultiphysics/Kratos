@@ -39,7 +39,7 @@ class AlgorithmGradientProjection(Algorithm):
                 "correction_size" : 0.0
             }
         }""")
-    
+
     def __init__(self, model:Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
         self.model = model
         self.parameters = parameters
@@ -83,7 +83,7 @@ class AlgorithmGradientProjection(Algorithm):
 
     def Check(self):
         pass
-    
+
     @time_decorator()
     def Initialize(self):
         self.converged = False
@@ -99,14 +99,14 @@ class AlgorithmGradientProjection(Algorithm):
     @time_decorator()
     def Finalize(self):
         pass
-    
+
     @time_decorator()
     def ComputeSearchDirection(self, obj_grad: KratosOA.CollectiveExpression, constr_grad: 'list[KratosOA.CollectiveExpression]') -> KratosOA.CollectiveExpression:
         active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constr_value[i] >= 0.0]
         number_of_active_constraints = len(active_constraints_list)
         if not number_of_active_constraints:
-            search_direction = obj_grad * -1.0
-            correction = obj_grad * 0.0
+            search_direction = obj_grad.Clone() * -1.0
+            correction = obj_grad.Clone() * 0.0
         else:
             constraint_violations = Kratos.Vector(number_of_active_constraints)
             for i, active_constraint in enumerate(active_constraints_list):
@@ -151,12 +151,12 @@ class AlgorithmGradientProjection(Algorithm):
         if len(collective_list) == 0:
             raise RuntimeError("Collective lists cannot be empty.")
 
-        result = collective_list[0] * 0.0
+        result = collective_list[0].Clone() * 0.0
         for i, collective_list_item in enumerate(collective_list):
             result += collective_list_item * vector[i]
 
         return result
-    
+
     @time_decorator()
     def ComputeControlUpdate(self, alpha: float) -> KratosOA.CollectiveExpression:
         update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha + self.algorithm_data.GetBufferedData()["correction"]
@@ -171,15 +171,15 @@ class AlgorithmGradientProjection(Algorithm):
     @time_decorator()
     def GetCurrentObjValue(self) -> float:
         return self.__obj_val
-    
+
     @time_decorator()
     def GetCurrentControlField(self):
         return self.__control_field
-    
+
     @time_decorator()
     def Output(self) -> KratosOA.CollectiveExpression:
         self.CallOnAllProcesses(["output_processes"], Kratos.OutputProcess.PrintOutput)
-    
+
     @time_decorator()
     def Solve(self):
         while not self.converged:
@@ -219,7 +219,7 @@ class AlgorithmGradientProjection(Algorithm):
                 self._optimization_problem.AdvanceStep()
 
         return self.converged
-    
+
     def GetOptimizedObjectiveValue(self) -> float:
         if self.converged:
             return self.__obj_val
