@@ -28,7 +28,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyPhreaticLinePressureTableProcess);
 
     /// Defining a table with double argument and result type as table type.
-    typedef Table<double,double> TableType;
+    using TableType = Table<double,double>;
 
     ApplyPhreaticLinePressureTableProcess(ModelPart& model_part,
                                           Parameters rParameters
@@ -80,7 +80,7 @@ public:
                / (mSecondReferenceCoordinate[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]);
 
         block_for_each(mrModelPart.Nodes(), [&var, &y, this](Node& rNode) {
-            const double pressure = PORE_PRESSURE_SIGN_FACTOR * CalculatePressure(rNode, y);
+            const double pressure = PORE_PRESSURE_SIGN_FACTOR * CalculatePressurewithTable(rNode, y);
             if (mIsSeepage) {
                 if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) { // Before 0. was used i.s.o. the tension cut off value -> no effect in any test.
                     rNode.FastGetSolutionStepValue(var) = pressure;
@@ -104,7 +104,7 @@ public:
 
 protected:
 
-    double CalculatePressure(const Node &rNode, const array_1d<double, 2> &y) const
+    double CalculatePressurewithTable(const Node &rNode, const array_1d<double, 2> &y) const
     {
         double horCoord = rNode.Coordinates()[mHorizontalDirection];
         horCoord = std::max(horCoord, mMinHorizontalCoordinate);

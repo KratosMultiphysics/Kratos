@@ -10,12 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_LINEAR_ELASTIC_2D_INTERFACE_LAW_GEO_H_INCLUDED)
-#define  KRATOS_LINEAR_ELASTIC_2D_INTERFACE_LAW_GEO_H_INCLUDED
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
@@ -74,25 +69,9 @@ public:
     ///@{
 
     /**
-     * @brief Default constructor.
-     */
-    LinearElastic2DInterfaceLaw();
-
-    /**
      * @brief The clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    LinearElastic2DInterfaceLaw (const LinearElastic2DInterfaceLaw& rOther);
-
-
-    /**
-     * @brief Destructor.
-     */
-    ~LinearElastic2DInterfaceLaw() override;
 
     ///@}
     ///@name Operators
@@ -169,11 +148,11 @@ protected:
     ///@name Protected Operations
     ///@{
 
-    // /**
-    //  * @brief It calculates the constitutive matrix C
-    //  * @param C The constitutive matrix
-    //  * @param rValues Parameters of the constitutive law
-    //  */
+    /**
+     * @brief It calculates the constitutive matrix C
+     * @param C The constitutive matrix
+     * @param rValues Parameters of the constitutive law
+     */
     void CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues) override;
 
     /**
@@ -185,13 +164,6 @@ protected:
     void CalculatePK2Stress(const Vector& rStrainVector,
                             Vector& rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
-
-    // /**
-    //  * @brief It calculates the strain vector
-    //  * @param rValues The internal values of the law
-    //  * @param rStrainVector The strain vector in Voigt notation
-    //  */
-    // void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues, Vector& rStrainVector) override;
 
     ///@}
 
@@ -232,6 +204,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, GeoLinearElasticPlaneStrain2DLaw)
     }
-}; // Class GeoLinearElasticPlaneStrain2DLaw
-}  // namespace Kratos.
-#endif // KRATOS_LINEAR_PLANE_STRAIN_K0_LAW_H_INCLUDED  defined
+}; // Class LinearElastic2DInterfaceLaw
+
+}
