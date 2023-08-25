@@ -421,6 +421,26 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("CalculateVectorLaplacian", &DerivativeRecovery <3>::CalculateVectorLaplacian)
         .def("CalculateVelocityLaplacianRate", &DerivativeRecovery <3>::CalculateVelocityLaplacianRate)
         ;
+
+    py::class_<DerivativeRecovery <2> > (m, "DerivativeRecoveryTool2D")
+        .def(py::init<ModelPart&, Parameters&>())
+        .def("AddTimeDerivativeComponent", &DerivativeRecovery <2>::AddTimeDerivativeComponent)
+        .def("RecoverSuperconvergentGradient", &DerivativeRecovery <2>::RecoverSuperconvergentGradient< Variable<double> >)
+        .def("RecoverSuperconvergentLaplacian", &DerivativeRecovery <2>::RecoverSuperconvergentLaplacian)
+        .def("RecoverSuperconvergentVelocityLaplacianFromGradient", &DerivativeRecovery <2>::RecoverSuperconvergentVelocityLaplacianFromGradient)
+        .def("RecoverSuperconvergentMatDeriv", &DerivativeRecovery <2>::RecoverSuperconvergentMatDeriv)
+        .def("CalculateVectorMaterialDerivativeFromGradient", &DerivativeRecovery <2>::CalculateVectorMaterialDerivativeFromGradient)
+        .def("CalculateVectorMaterialDerivativeComponent", &DerivativeRecovery <2>::CalculateVectorMaterialDerivativeComponent)
+        .def("CalculateVorticityFromGradient", &DerivativeRecovery <2>::CalculateVorticityFromGradient)
+        .def("CalculateVorticityContributionOfTheGradientOfAComponent", &DerivativeRecovery <2>::CalculateVorticityContributionOfTheGradientOfAComponent)
+        .def("RecoverSuperconvergentMatDerivAndLaplacian", &DerivativeRecovery <2>::RecoverSuperconvergentMatDerivAndLaplacian)
+        .def("CalculateGradient", &DerivativeRecovery <2>::CalculateGradient< Variable<double> >)
+        .def("SmoothVectorField", &DerivativeRecovery <2>::SmoothVectorField)
+        .def("CalculateVectorMaterialDerivative", &DerivativeRecovery <2>::CalculateVectorMaterialDerivative)
+        .def("RecoverLagrangianAcceleration", &DerivativeRecovery <2>::RecoverLagrangianAcceleration)
+        .def("CalculateVectorLaplacian", &DerivativeRecovery <2>::CalculateVectorLaplacian)
+        .def("CalculateVelocityLaplacianRate", &DerivativeRecovery <2>::CalculateVelocityLaplacianRate)
+        ;
     //**********************************************************************************************************************************************
 
 
