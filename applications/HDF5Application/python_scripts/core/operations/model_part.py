@@ -17,7 +17,6 @@ from ..file_io import OpenHDF5File
 from importlib import import_module
 import sys
 import typing
-import re
 #import abc
 
 
@@ -148,9 +147,8 @@ class ProcessInfoInput(ProcessInfoIOOperation):
 class VariableOutputOperation(IOOperation):
     def _MakeIO(self) -> typing.Any:
         class_name = self.__class__.__name__
-        groups = re.match(r"(\w+)Output", class_name).groups()
-        if groups is not None:
-            class_type_name = f"HDF5{groups[0]}IO"
+        if class_name.endswith("Output"):
+            class_type_name = f"HDF5{class_name[:-6]}IO"
             if hasattr(KratosHDF5, class_type_name):
                 return getattr(KratosHDF5, class_type_name)(self.parameters, self.file)
             else:
@@ -175,9 +173,8 @@ class VariableOutputOperation(IOOperation):
 class VariableInputOperation(IOOperation):
     def _MakeIO(self) -> typing.Any:
         class_name = self.__class__.__name__
-        groups = re.match(r"(\w+)Input", class_name).groups()
-        if groups is not None:
-            class_type_name = f"HDF5{groups[0]}IO"
+        if class_name.endswith("Input"):
+            class_type_name = f"HDF5{class_name[:-5]}IO"
             if hasattr(KratosHDF5, class_type_name):
                 return getattr(KratosHDF5, class_type_name)(self.parameters, self.file)
             else:
