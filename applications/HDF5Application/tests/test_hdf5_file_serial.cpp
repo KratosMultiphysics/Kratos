@@ -285,7 +285,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet15, KratosHDF5TestSuite)
         HDF5::WriteInfo info;
         test_file.WriteDataSet("/data", data_out1, info);
         KRATOS_CHECK_EXCEPTION_IS_THROWN(test_file.WriteDataSet("/data", data_out2, info);
-                                         , "Wrong dimensions: /data");
+                                         , "Wrong dimensional value at index = 0 [ data dimension in file = 3, memory dimension = 4 ].");
     }
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -317,7 +317,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_FileSerial_ReadDataSet17, KratosHDF5TestSuite)
         HDF5::WriteInfo info;
         test_file.WriteDataSet("/data", data_out1, info);
         KRATOS_CHECK_EXCEPTION_IS_THROWN(test_file.WriteDataSet("/data", data_out2, info);
-                                         , "Wrong dimensions: /data");
+                                         , "Wrong number of dimensions [ file number of data dimensions = 1, memory data number of dimensions = 2 ].");
     }
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
