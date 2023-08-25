@@ -3,8 +3,8 @@ import KratosMultiphysics
 
 # HDF5 imports
 import KratosMultiphysics.HDF5Application as HDF5Application
-from KratosMultiphysics.HDF5Application.core.operations.model_part import Prefix
 from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
+from KratosMultiphysics.HDF5Application.core.utils import EvaluatePattern
 
 
 def Factory(parameters: KratosMultiphysics.Parameters,
@@ -68,7 +68,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
 
 
     def ExecuteInitialize(self):
-        coordinates_path = Prefix(
+        coordinates_path = EvaluatePattern(
             self.coordinates_prefix_pattern,
             self.model_part)
 
@@ -87,7 +87,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
 
 
     def PrintOutput(self):
-        prefix = Prefix(self.variables_prefix_pattern, self.model_part)
+        prefix = EvaluatePattern(self.variables_prefix_pattern, self.model_part)
 
         io_parameters = KratosMultiphysics.Parameters()
         io_parameters.AddString("prefix", prefix)
@@ -128,7 +128,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
 
     def __GetCurrentFileParameters(self):
         parameters = self.file_parameters.Clone()
-        file_name = Prefix(
+        file_name = EvaluatePattern(
             parameters["file_name"].GetString(),
             self.model_part)
 

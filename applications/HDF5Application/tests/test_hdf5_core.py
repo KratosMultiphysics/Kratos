@@ -7,6 +7,7 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.HDF5Application import core
 from KratosMultiphysics.HDF5Application.core.utils import ParametersWrapper
+from KratosMultiphysics.HDF5Application.core.utils import EvaluatePattern
 from KratosMultiphysics.HDF5Application.core import controllers
 from KratosMultiphysics.HDF5Application.core import operations
 from KratosMultiphysics.HDF5Application.core import file_io
@@ -293,26 +294,26 @@ class TestOperations(KratosUnittest.TestCase):
     @ensure_no_file(test_file_path)
     def test_Prefix_Literal(self):
         _, model_part = _SurrogateModelPart()
-        prefix = operations.model_part.Prefix('/ModelData', model_part)
+        prefix = EvaluatePattern('/ModelData', model_part)
         self.assertEqual(prefix, '/ModelData')
 
     @ensure_no_file(test_file_path)
     def test_Prefix_NonTerminalTime(self):
         _, model_part = _SurrogateModelPart()
-        prefix = operations.model_part.Prefix('/ModelData-<time>', model_part)
+        prefix = EvaluatePattern('/ModelData-<time>', model_part)
         self.assertEqual(prefix, '/ModelData-1.23456789')
 
     @ensure_no_file(test_file_path)
     def test_Prefix_FormattedNonTerminalTime(self):
         _, model_part = _SurrogateModelPart()
-        prefix = operations.model_part.Prefix(
+        prefix = EvaluatePattern(
             '/ModelData-<time>', model_part, '0.2f')
         self.assertEqual(prefix, '/ModelData-1.23')
 
     @ensure_no_file(test_file_path)
     def test_Prefix_NonTerminalIdentifier(self):
         _, model_part = _SurrogateModelPart()
-        prefix = operations.model_part.Prefix(
+        prefix = EvaluatePattern(
             '/<model_part_name>-<time>', model_part)
         self.assertEqual(prefix, '/model_part-1.23456789')
 
