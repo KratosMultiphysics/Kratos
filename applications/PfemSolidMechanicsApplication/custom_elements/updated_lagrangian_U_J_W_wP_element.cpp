@@ -139,7 +139,7 @@ namespace Kratos
 
 
 
-   void UpdatedLagrangianUJWwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void UpdatedLagrangianUJWwPElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
    {
       rElementalDofList.resize( 0 );
 
@@ -814,7 +814,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the Mass matrix
-   void UpdatedLagrangianUJWwPElement::CalculateMassMatrix( MatrixType & rMassMatrix, ProcessInfo & rCurrentProcessInfo)
+   void UpdatedLagrangianUJWwPElement::CalculateMassMatrix( MatrixType & rMassMatrix, const ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 
@@ -899,7 +899,7 @@ namespace Kratos
 
    // *********************************************************************************
    //         Calculate the Damping matrix
-   void UpdatedLagrangianUJWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, ProcessInfo & rCurrentProcessInfo)
+   void UpdatedLagrangianUJWwPElement::CalculateDampingMatrix( MatrixType & rDampingMatrix, const ProcessInfo & rCurrentProcessInfo)
    {
       KRATOS_TRY
 

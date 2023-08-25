@@ -151,7 +151,7 @@ namespace Kratos
 
 
 
-   void AxisymUpdatedLagrangianUPwPElement::GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo )
+   void AxisymUpdatedLagrangianUPwPElement::GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const
    {
       rElementalDofList.resize( 0 );
 
@@ -170,7 +170,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   void AxisymUpdatedLagrangianUPwPElement::EquationIdVector( EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo )
+   void AxisymUpdatedLagrangianUPwPElement::EquationIdVector( EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo ) const
    {
       const unsigned int number_of_nodes = GetGeometry().size();
       const unsigned int dimension       = GetGeometry().WorkingSpaceDimension();
@@ -274,7 +274,7 @@ namespace Kratos
    //************************************************************************************
    //************************************************************************************
 
-   int  AxisymUpdatedLagrangianUPwPElement::Check( const ProcessInfo& rCurrentProcessInfo )
+   int  AxisymUpdatedLagrangianUPwPElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
    {
       KRATOS_TRY
 
@@ -714,10 +714,10 @@ namespace Kratos
 
          ProcessInfo SomeProcessInfo;
          std::vector<double> Values;
-         LargeDisplacementElement::GetValueOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::CalculateOnIntegrationPoints( SHEAR_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization /= Values[0];
 
-         LargeDisplacementElement::GetValueOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
+         LargeDisplacementElement::CalculateOnIntegrationPoints( BULK_MODULUS, Values, SomeProcessInfo);
          AlphaStabilization *= Values[0];
 
       }
@@ -767,9 +767,9 @@ namespace Kratos
 
       const ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
-      LargeDisplacementElement::GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
+      LargeDisplacementElement::CalculateOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
       if ( Mmodulus[0] < 0.0001) {
-         LargeDisplacementElement::GetValueOnIntegrationPoints( YOUNG_MODULUS, Mmodulus, CurrentProcessInfo); 
+         LargeDisplacementElement::CalculateOnIntegrationPoints( YOUNG_MODULUS, Mmodulus, CurrentProcessInfo);
          Mmodulus[0] = GetProperties()[YOUNG_MODULUS];
       }
       Caux = 1.0/Mmodulus[0];
@@ -1041,7 +1041,7 @@ namespace Kratos
 
       const ProcessInfo CurrentProcessInfo;
       std::vector<double> Mmodulus;
-      LargeDisplacementElement::GetValueOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
+      LargeDisplacementElement::CalculateOnIntegrationPoints(M_MODULUS, Mmodulus, CurrentProcessInfo);
       if ( Mmodulus[0] < 0.0001) {
          //GetValueOnIntegrationPoints( YOUNG_MODULUS, Mmodulus, CurrentProcessInfo); 
          Mmodulus[0] = GetProperties()[YOUNG_MODULUS];
