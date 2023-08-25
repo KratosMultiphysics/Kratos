@@ -80,7 +80,7 @@ void SmallStrainUDSM2DInterfaceLaw::CopyConstitutiveMatrix(ConstitutiveLaw::Para
    }
 }
 
-indexStress3D SmallStrainUDSM2DInterfaceLaw::getIndex3D(indexStress2DInterface index2D)
+indexStress3D SmallStrainUDSM2DInterfaceLaw::getIndex3D(const indexStress2DInterface index2D) const
 {
    switch (index2D)
    {
