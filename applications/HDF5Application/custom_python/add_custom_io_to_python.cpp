@@ -173,7 +173,8 @@ public:
     PythonNodalSolutionStepBossakIO(
         Parameters Settings,
         HDF5::File::Pointer pFile)
-        : BaseType(Settings, pFile)
+        : BaseType(Settings, pFile),
+          mAlphaBossak(0.0)
     {
     }
 
@@ -274,9 +275,19 @@ void AddCustomIOToPython(pybind11::module& m)
 
     py::class_<PythonNodalSolutionStepBossakIO, PythonNodalSolutionStepBossakIO::Pointer>(m,"HDF5NodalSolutionStepBossakIO")
         .def(py::init<Parameters, HDF5::File::Pointer>())
-        .def("WriteNodalResults", &PythonNodalSolutionStepBossakIO::Write)
-        .def("ReadNodalResults", &PythonNodalSolutionStepBossakIO::Read)
-        .def("SetAlphaBossak", &PythonNodalSolutionStepBossakIO::SetAlphaBossak)
+        .def("WriteNodalResults", [](PythonNodalSolutionStepBossakIO& rSelf, const ModelPart& rModelPart) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteNodalResults\" method in \"HDF5NodalSolutionStepBossakIO\". Please use \"Write\" method instead.\n";
+                rSelf.Write(rModelPart);
+            },
+            py::arg("model_part"))
+        .def("ReadNodalResults", [](PythonNodalSolutionStepBossakIO& rSelf, ModelPart& rModelPart) {
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"ReadNodalResults\" method in \"HDF5NodalSolutionStepBossakIO\". Please use \"Read\" method instead.\n";
+                return rSelf.Read(rModelPart);
+            },
+            py::arg("model_part"))
+        .def("Write", &PythonNodalSolutionStepBossakIO::Write, py::arg("model_part"))
+        .def("Read", &PythonNodalSolutionStepBossakIO::Read, py::arg("model_part"))
+        .def("SetAlphaBossak", &PythonNodalSolutionStepBossakIO::SetAlphaBossak, py::arg("alpha_bossak"))
         ;
 
     AddContainerComponentIOToPython<FlagContainerComponentIOWrapper<ModelPart::ElementsContainerType>>(m, "HDF5ElementFlagValueIO");
@@ -287,7 +298,7 @@ void AddCustomIOToPython(pybind11::module& m)
     AddContainerComponentIOToPython<VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, HDF5::Internals::NonHistoricalIO>>(m, "HDF5NodalDataValueIO");
 
     using element_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ElementsContainerType, HDF5::Internals::GaussPointValueIO>::ContainerIOType;
-    py::class_<element_gauss_io, element_gauss_io::Pointer>(m,"HDF5ElementGaussPointOutput")
+    py::class_<element_gauss_io, element_gauss_io::Pointer>(m,"HDF5ElementGaussPointIO")
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](element_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
                 rSelf.Write(HDF5::Internals::GetLocalContainer<ModelPart::ElementsContainerType>(rModelPart), HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
@@ -295,7 +306,7 @@ void AddCustomIOToPython(pybind11::module& m)
             py::arg("model_part"),
             py::arg("attributes") = Parameters("""{}"""))
         .def("WriteElementGaussPointValues", [](element_gauss_io& rSelf, const ModelPart::ElementsContainerType& rContainer, const DataCommunicator& rDataCommunicator, const ProcessInfo& rProcessInfo) {
-                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteElementGaussPointValues\" method in \"HDF5ElementGaussPointOutput\". Please use \"Write\" method instead.\n";
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteElementGaussPointValues\" method in \"HDF5ElementGaussPointIO\". Please use \"Write\" method instead.\n";
                 rSelf.Write(rContainer, HDF5::Internals::GaussPointValueIO(rProcessInfo), Parameters("""{}"""));
             },
             py::arg("elements"),
@@ -304,7 +315,7 @@ void AddCustomIOToPython(pybind11::module& m)
         ;
 
     using condition_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ConditionsContainerType, HDF5::Internals::GaussPointValueIO>::ContainerIOType;
-    py::class_<condition_gauss_io, condition_gauss_io::Pointer>(m,"HDF5ConditionGaussPointOutput")
+    py::class_<condition_gauss_io, condition_gauss_io::Pointer>(m,"HDF5ConditionGaussPointIO")
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](condition_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
                 rSelf.Write(HDF5::Internals::GetLocalContainer<ModelPart::ConditionsContainerType>(rModelPart), HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
@@ -312,7 +323,7 @@ void AddCustomIOToPython(pybind11::module& m)
             py::arg("model_part"),
             py::arg("attributes") = Parameters("""{}"""))
         .def("WriteConditionGaussPointValues", [](condition_gauss_io& rSelf, const ModelPart::ConditionsContainerType& rContainer, const DataCommunicator& rDataCommunicator, const ProcessInfo& rProcessInfo) {
-                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteConditionGaussPointValues\" method in \"HDF5ConditionGaussPointOutput\". Please use \"Write\" method instead.\n";
+                KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteConditionGaussPointValues\" method in \"HDF5ConditionGaussPointIO\". Please use \"Write\" method instead.\n";
                 rSelf.Write(rContainer, HDF5::Internals::GaussPointValueIO(rProcessInfo), Parameters("""{}"""));
             },
             py::arg("elements"),

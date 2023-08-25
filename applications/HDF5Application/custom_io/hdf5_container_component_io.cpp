@@ -209,9 +209,9 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
     Parameters Attributes,
     WriteInfo& rInfo)
 {
-    using component_data_type = typename Internals::ComponentTraits<TComponentType>::ValueType;
+    using component_data_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
 
-    using value_type = typename TContainerDataIO::ComponentDataType<component_data_type>;
+    using value_type = typename TContainerDataIO::template ComponentDataType<component_data_type>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -282,7 +282,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
     const IndexType StartIndex,
     const IndexType BlockSize)
 {
-    using value_type = typename TContainerDataIO::ComponentDataType<typename Internals::ComponentTraits<TComponentType>::ValueType>;
+    using value_type = typename TContainerDataIO::template ComponentDataType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
