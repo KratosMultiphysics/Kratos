@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_File1, KratosHDF5TestSuite)
     KRATOS_TRY;
     Parameters test_params;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        HDF5::File test_file(ParallelEnvironment::GetDefaultDataCommunicator(), test_params);
+        HDF5::File test_file(Testing::GetDefaultDataCommunicator(), test_params);
         , "Invalid file name: PLEASE_SPECIFY_HDF5_FILENAME");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -79,7 +79,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_File2, KratosHDF5TestSuite)
             "file_driver": "abcd"
         })");
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        HDF5::File test_file(ParallelEnvironment::GetDefaultDataCommunicator(), test_params);
+        HDF5::File test_file(Testing::GetDefaultDataCommunicator(), test_params);
         , "Unsupported \"file_driver\": abcd");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -96,7 +96,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_File3, KratosHDF5TestSuite)
             "file_driver" : "core"
         })");
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        HDF5::File test_file(ParallelEnvironment::GetDefaultDataCommunicator(), test_params);
+        HDF5::File test_file(Testing::GetDefaultDataCommunicator(), test_params);
         , "Invalid \"file_access_mode\": abcd");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_File4, KratosHDF5TestSuite)
             "file_access_mode": "read_only"
         })");
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        HDF5::File test_file(ParallelEnvironment::GetDefaultDataCommunicator(), test_params);
+        HDF5::File test_file(Testing::GetDefaultDataCommunicator(), test_params);
         , "Invalid HDF5 file: test.h5");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
@@ -246,7 +246,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_HasAttribute1, KratosHDF5TestSuite)
     H5_stderr_muter muter;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
         GetTestFile().HasAttribute("/abcd", "DENSITY");
-        , "H5Aexists_by_name failed");
+        , "Error occured in H5Aexists_by_name [ hdf5 error code = -1 ].");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
@@ -283,7 +283,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_GetAttributeNames1, KratosHDF5TestSuite)
     KRATOS_TRY;
     H5_stderr_muter muter;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(
-        GetTestFile().GetAttributeNames("/invalid/path");, "H5Oopen failed");
+        GetTestFile().GetAttributeNames("/invalid/path");, "Error occured in H5Oopen [ hdf5 error code = -1 ].");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
@@ -324,7 +324,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_CreateGroup1, KratosHDF5TestSuite)
     KRATOS_TRY;
     H5_stderr_muter muter;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(GetTestFile().CreateGroup("/");
-                                     , "H5Gcreate failed");
+                                     , "Error occured in H5Gcreate [ hdf5 error code = -1 ]");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
@@ -350,7 +350,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_CreateGroup3, KratosHDF5TestSuite)
         auto test_file = GetTestFile();
         test_file.CreateGroup("/foo");
         KRATOS_CHECK_EXCEPTION_IS_THROWN(test_file.CreateGroup("/foo");
-                                         , "H5Gcreate failed");
+                                         , "Error occured in H5Gcreate [ hdf5 error code = -1 ]");
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
@@ -362,7 +362,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_GetLinkNames1, KratosHDF5TestSuite)
     KRATOS_TRY;
     H5_stderr_muter muter;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(GetTestFile().GetLinkNames("/foo");
-                                     , "H5Gopen failed");
+                                     , "Error occured in H5Gopen [ hdf5 error code = -1 ].");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
@@ -511,7 +511,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_WriteAttribute2, KratosHDF5TestSuite)
         const int attr = 1;
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.WriteAttribute("/foo", "ATTRIBUTE", attr);
-            , "H5Aexists_by_name failed.");
+            , "Error occured in H5Aexists_by_name [ hdf5 error code = -1 ].");
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
@@ -547,7 +547,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_DeleteAttribute1, KratosHDF5TestSuite)
         test_file.DeleteAttribute("/foo", "ATTRIBUTE");
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.DeleteAttribute("/foo", "ATTRIBUTE");
-            , "H5Adelete_by_name failed.");
+            , "Error occured in H5Adelete_by_name [ hdf5 error code = -1 ].");
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
@@ -592,7 +592,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_GetDataDimensions2, KratosHDF5TestSuite)
         H5_stderr_muter muter;
         auto test_file = GetTestFile();
         KRATOS_CHECK_EXCEPTION_IS_THROWN(test_file.GetDataDimensions("/data");
-                                         , "H5Dopen failed");
+                                         , "Error occured in H5Dopen [ hdf5 error code = -1 ].");
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
@@ -623,7 +623,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_HasIntDataType2, KratosHDF5TestSuite)
     KRATOS_TRY;
     H5_stderr_muter muter;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(GetTestFile().HasIntDataType("/invalid/path");
-                                     , "H5Dopen failed");
+                                     , "Error occured in H5Dopen [ hdf5 error code = -1 ].");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
@@ -652,7 +652,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_HasFloatDataType2, KratosHDF5TestSuite)
     KRATOS_TRY;
     H5_stderr_muter muter;
     KRATOS_CHECK_EXCEPTION_IS_THROWN(GetTestSerialFile().HasFloatDataType("/invalid/path");
-                                     , "H5Dopen failed");
+                                     , "Error occured in H5Dopen [ hdf5 error code = -1 ].");
     H5close(); // Clean HDF5 for next unit test.
     KRATOS_CATCH_WITH_BLOCK("", H5close(););
 }
@@ -772,7 +772,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute6, KratosHDF5TestSuite)
         double attr;
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.ReadAttribute("/foo", "ATTRIBUTE", attr);
-            , "H5Aopen_by_name failed.")
+            , "Error occured in H5Aopen_by_name [ hdf5 error code = -1 ].")
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
@@ -789,7 +789,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadAttribute7, KratosHDF5TestSuite)
         test_file.CreateGroup("/foo");
         KRATOS_CHECK_EXCEPTION_IS_THROWN(
             test_file.ReadAttribute("/foo", "ATTRIBUTE", attr);
-            , "H5Aopen_by_name failed.")
+            , "Error occured in H5Aopen_by_name [ hdf5 error code = -1 ].")
         KRATOS_CHECK(test_file.GetOpenObjectsCount() == 1); // Check for leaks.
     }
     H5close(); // Clean HDF5 for next unit test.
