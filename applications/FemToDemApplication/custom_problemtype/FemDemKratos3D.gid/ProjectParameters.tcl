@@ -19,7 +19,6 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
-    puts $FileVar "   \"problem_data\": \{"
 
     ## solver_settings
     puts $FileVar "   \"fem_dem_settings\": \{"
@@ -33,6 +32,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "      \"maximum_damage_erase\"        :  0.98"
     puts $FileVar "    \},"
 
+    puts $FileVar "   \"solver_settings\": \{"
     if {[GiD_AccessValue get gendata Solution_Type] eq "Static"} {
         puts $FileVar "            \"solver_type\":                       \"FemDemStaticSolver\","
         puts $FileVar "            \"solution_type\":                     \"Static\","
