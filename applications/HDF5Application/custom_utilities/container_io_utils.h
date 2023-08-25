@@ -406,9 +406,9 @@ void CopyToContiguousDataArray(
 {
     KRATOS_TRY
 
-    using component_data_type = typename Internals::ComponentTraits<TComponentType>::ValueType;
+    using component_data_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
 
-    using value_type = typename TContainerDataIO::ComponentDataType<component_data_type>;
+    using value_type = typename TContainerDataIO::template ComponentDataType<component_data_type>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
@@ -446,7 +446,7 @@ void CopyFromContiguousDataArray(
 {
     KRATOS_TRY
 
-    using value_type = typename TContainerDataIO::ComponentDataType<typename Internals::ComponentTraits<TComponentType>::ValueType>;
+    using value_type = typename TContainerDataIO::template ComponentDataType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
 
     using value_type_traits = DataTypeTraits<value_type>;
 
