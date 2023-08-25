@@ -537,7 +537,7 @@ HDF5::File::Pointer pGetTestSerialFile()
             "file_name" : "test.h5",
             "file_driver": "core"
         })");
-    return HDF5::File::Pointer(new HDF5::File(ParallelEnvironment::GetDefaultDataCommunicator(), file_params));
+    return HDF5::File::Pointer(new HDF5::File(Testing::GetDefaultDataCommunicator(), file_params));
 }
 
 HDF5::File GetTestFile()
@@ -547,7 +547,7 @@ HDF5::File GetTestFile()
             "file_name" : "test.h5",
             "file_driver": "core"
         })");
-    return HDF5::File(ParallelEnvironment::GetDefaultDataCommunicator(), file_params);
+    return HDF5::File(Testing::GetDefaultDataCommunicator(), file_params);
 }
 
 HDF5::File GetTestSerialFile()
@@ -557,7 +557,7 @@ HDF5::File GetTestSerialFile()
             "file_name" : "test.h5",
             "file_driver": "core"
         })");
-    return HDF5::File(ParallelEnvironment::GetDefaultDataCommunicator(), file_params);
+    return HDF5::File(Testing::GetDefaultDataCommunicator(), file_params);
 }
 
 } // namespace Testing
