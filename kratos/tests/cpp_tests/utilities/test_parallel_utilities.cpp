@@ -66,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     //error check
     for(auto& item : data_vector)
     {
-        KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
+        KRATOS_CHECK_DOUBLE_EQUAL(item, std::pow(5.0, 0.1));
     }
 
     //shorter form
@@ -77,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(BlockPartitioner, KratosCoreFastSuite)
     //error check
     for(auto& item : data_vector)
     {
-        KRATOS_CHECK_EQUAL(item, std::pow(5.0, 0.1));
+        KRATOS_CHECK_DOUBLE_EQUAL(item, std::pow(5.0, 0.1));
     }
 
     //here we check for a reduction (computing the sum of all the entries)
@@ -135,7 +135,7 @@ KRATOS_TEST_CASE_IN_SUITE(IndexPartitioner, KratosCoreFastSuite)
         );
 
     for(unsigned int i=0; i<output.size(); ++i)
-        KRATOS_CHECK_EQUAL(output[i], -2.0 );
+        KRATOS_CHECK_DOUBLE_EQUAL(output[i], -2.0 );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(BlockPartitionerThreadLocalStorage, KratosCoreFastSuite)
@@ -392,31 +392,28 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
                 this->max_abs   = std::max(this->max_abs,std::abs(function_return_value));
             }
             void ThreadSafeReduce(CustomReducer& rOther){
-                #pragma omp critical
-                {
+                KRATOS_CRITICAL_SECTION
                 this->max_value = std::max(this->max_value,rOther.max_value);
                 this->max_abs   = std::max(this->max_abs,std::abs(rOther.max_abs));
-                }
             }
     };
 
     auto partition = IndexPartition<unsigned int>(data_vector.size());
 
-    double max_value,max_abs;
-    std::tie(max_value,max_abs) = partition.for_each<CustomReducer>([&](unsigned int i){
+    auto [max_value, max_abs] = partition.for_each<CustomReducer>([&](unsigned int i){
             return data_vector[i]; //note that here the lambda returns the values to be reduced
         });
 
-    KRATOS_CHECK_EQUAL(max_value, 0.0 );
-    KRATOS_CHECK_EQUAL(max_abs, nsize-1 );
+    KRATOS_CHECK_DOUBLE_EQUAL(max_value, 0.0 );
+    KRATOS_CHECK_DOUBLE_EQUAL(max_abs, static_cast<double>(nsize-1));
 
     //same but with short form with block version
     std::tie(max_value,max_abs) = block_for_each<CustomReducer>(data_vector,[&](double& item){
             return item; //note that here the lambda returns the values to be reduced
         });
 
-    KRATOS_CHECK_EQUAL(max_value, 0.0 );
-    KRATOS_CHECK_EQUAL(max_abs, nsize-1 );
+    KRATOS_CHECK_DOUBLE_EQUAL(max_value, 0.0 );
+    KRATOS_CHECK_DOUBLE_EQUAL(max_abs, static_cast<double>(nsize-1));
 
 
 
@@ -431,8 +428,7 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
             > MultipleReduction;
 
     //auto reduction_res
-    double sum,min,max,abs_min,abs_max,sub;
-    std::tie(sum,min,max,abs_min,abs_max,sub) = IndexPartition<unsigned int>(data_vector.size()).
+    const auto [sum,min,max,abs_min,abs_max,sub] = IndexPartition<unsigned int>(data_vector.size()).
         for_each<MultipleReduction>(
             [&](unsigned int i){
                     double to_sum = data_vector[i];
@@ -444,12 +440,12 @@ KRATOS_TEST_CASE_IN_SUITE(CustomReduction, KratosCoreFastSuite)
                     return std::make_tuple( to_sum, to_max, to_min, to_abs_max, to_abs_min, to_sub ); //note that these may have different types
                 }
             );
-    KRATOS_CHECK_EQUAL(sum, reference_sum );
-    KRATOS_CHECK_EQUAL(min, reference_min );
-    KRATOS_CHECK_EQUAL(max, reference_max );
-    KRATOS_CHECK_EQUAL(abs_min, reference_abs_min );
-    KRATOS_CHECK_EQUAL(abs_max, reference_abs_max );
-    KRATOS_CHECK_EQUAL(sub, reference_sub );
+    KRATOS_CHECK_DOUBLE_EQUAL(sum, reference_sum );
+    KRATOS_CHECK_DOUBLE_EQUAL(min, reference_min );
+    KRATOS_CHECK_DOUBLE_EQUAL(max, reference_max );
+    KRATOS_CHECK_DOUBLE_EQUAL(abs_min, reference_abs_min );
+    KRATOS_CHECK_DOUBLE_EQUAL(abs_max, reference_abs_max );
+    KRATOS_CHECK_DOUBLE_EQUAL(sub, reference_sub );
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ParUtilsBlockPartitionExceptions, KratosCoreFastSuite)
