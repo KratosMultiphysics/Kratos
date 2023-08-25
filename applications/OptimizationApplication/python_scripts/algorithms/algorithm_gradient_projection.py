@@ -105,8 +105,8 @@ class AlgorithmGradientProjection(Algorithm):
         active_constraints_list = [self.__constraints_list[i] for i in range(len(self.__constraints_list)) if self.__constr_value[i] >= 0.0]
         number_of_active_constraints = len(active_constraints_list)
         if not number_of_active_constraints:
-            search_direction = obj_grad.Clone() * -1.0
-            correction = obj_grad.Clone() * 0.0
+            search_direction = obj_grad * -1.0
+            correction = obj_grad * 0.0
         else:
             constraint_violations = Kratos.Vector(number_of_active_constraints)
             for i, active_constraint in enumerate(active_constraints_list):
@@ -151,7 +151,7 @@ class AlgorithmGradientProjection(Algorithm):
         if len(collective_list) == 0:
             raise RuntimeError("Collective lists cannot be empty.")
 
-        result = collective_list[0].Clone() * 0.0
+        result = collective_list[0] * 0.0
         for i, collective_list_item in enumerate(collective_list):
             result += collective_list_item * vector[i]
 
