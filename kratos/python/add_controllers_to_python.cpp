@@ -13,11 +13,14 @@
 // System includes
 
 // External includes
+#include <pybind11/stl.h>
 
 // Project includes
 #include "includes/define_python.h"
 #include "add_controllers_to_python.h"
 #include "controllers/controller.h"
+#include "controllers/default_controller.h"
+#include "controllers/temporal_controller.h"
 
 namespace Kratos::Python
 {
@@ -59,10 +62,20 @@ void AddControllersToPython(pybind11::module& m)
 
     py::class_<Controller, Controller::Pointer, ControllerTrampoline>(m,"Controller")
         .def(py::init<>())
-        .def("Create", &Controller::Create)
+        .def("Check", &Controller::Check)
+        .def("Create", &Controller::Create, py::arg("model"), py::arg("parameters"))
         .def("Evaluate", &Controller::Evaluate)
         .def("GetDefaultParameters", &Controller::GetDefaultParameters)
         .def("__str__", PrintObject<Controller>)
+        ;
+
+    py::class_<DefaultController, DefaultController::Pointer, Controller>(m, "DefaultController")
+        .def(py::init<>())
+        ;
+
+    py::class_<TemporalController, TemporalController::Pointer, Controller>(m, "TemporalController")
+        .def(py::init<const Model&, Parameters>(), py::arg("model"), py::arg("parameters"))
+        .def("GetCurrentControlValue", &TemporalController::GetCurrentControlValue)
         ;
 }
 
