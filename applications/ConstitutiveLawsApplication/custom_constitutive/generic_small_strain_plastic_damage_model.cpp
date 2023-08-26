@@ -111,7 +111,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         cl_parameters.PlasticStrain = mPlasticStrain;
         cl_parameters.DamageDissipation = mDamageDissipation;
         cl_parameters.PlasticConsistencyIncrement = 0.0;
-        cl_parameters.CharacteristicLength = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        cl_parameters.CharacteristicLength = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
         // Stress Predictor S = (1-d)C:(E-Ep)
         array_1d<double, VoigtSize> effective_predictive_stress_vector = prod(r_constitutive_matrix, cl_parameters.StrainVector - cl_parameters.PlasticStrain);
@@ -354,7 +354,7 @@ void GenericSmallStrainPlasticDamageModel<TPlasticityIntegratorType, TDamageInte
         cl_parameters.PlasticStrain = mPlasticStrain;
         cl_parameters.DamageDissipation = mDamageDissipation;
         cl_parameters.PlasticConsistencyIncrement = 0.0;
-        cl_parameters.CharacteristicLength = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        cl_parameters.CharacteristicLength = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
         // Stress Predictor S = (1-d)C:(E-Ep)
         array_1d<double, VoigtSize> effective_predictive_stress_vector = prod(r_constitutive_matrix, cl_parameters.StrainVector - cl_parameters.PlasticStrain);
@@ -699,24 +699,29 @@ CalculateDamageParameters(
 
     this->CheckInternalVariable(rParameters.DamageDissipationIncrement);
     rParameters.DamageDissipation += rParameters.DamageDissipationIncrement;
+    // //Damage dissipation based on damage variable
+    // //LINEAR
+    // rParameters.DamageDissipation = 1.0 - (rParameters.UniaxialStressDamage / yield_tension);
+    // //INV POTENTIAL
+    // rParameters.DamageDissipation = 1.0 - std::pow((rParameters.UniaxialStressDamage / yield_tension), (yield_tension * yield_tension / young_modulus) / (0.5 * yield_tension * yield_tension / young_modulus + normalized_free_energy));
     this->CheckInternalVariable(rParameters.DamageDissipation);
 
     Vector slopes(2), thresholds(2);
     // Tension
     // LINEAR
-    thresholds[0] = yield_tension * (1.0 - rParameters.DamageDissipation);
-    slopes[0] = -yield_tension;
-    //inverse potential
+    // thresholds[0] = yield_tension * (1.0 - rParameters.DamageDissipation);
+    // slopes[0] = -yield_tension;
+    // //inverse potential
     thresholds[0] = yield_tension * std::pow((1.0 - rParameters.DamageDissipation),(0.5 * yield_tension * yield_tension / young_modulus + normalized_free_energy) / (yield_tension * yield_tension / young_modulus));
-    slopes[0] = - (0.5 * yield_tension * yield_tension / young_modulus + normalized_free_energy) / (yield_tension / young_modulus) * std::pow((1.0 - rParameters.DamageDissipation),- (0.5 * yield_tension * yield_tension / young_modulus + normalized_free_energy) / (yield_tension * yield_tension / young_modulus));
+    slopes[0] = - (0.5 * yield_tension * yield_tension / young_modulus + normalized_free_energy) / (yield_tension / young_modulus) * std::pow((1.0 - rParameters.DamageDissipation),- (0.5 * yield_tension * yield_tension / young_modulus - normalized_free_energy) / (yield_tension * yield_tension / young_modulus));
 
     // Compression
     // LINEAR
-    thresholds[1] = yield_compression * (1.0 - rParameters.DamageDissipation);
-    slopes[1] = -yield_compression;
-    //inverse potential
-    thresholds[0] = yield_compression * std::pow((1.0 - rParameters.DamageDissipation),(0.5 * yield_compression * yield_compression / young_modulus + normalized_free_energy) / (yield_compression * yield_compression / young_modulus));
-    slopes[0] = - (0.5 * yield_compression * yield_compression / young_modulus + normalized_free_energy) / (yield_compression / young_modulus) * std::pow((1.0 - rParameters.DamageDissipation),- (0.5 * yield_compression * yield_compression / young_modulus + normalized_free_energy) / (yield_compression * yield_compression / young_modulus));
+    // thresholds[1] = yield_compression * (1.0 - rParameters.DamageDissipation);
+    // slopes[1] = -yield_compression;
+    // //inverse potential
+    thresholds[1] = yield_compression * std::pow((1.0 - rParameters.DamageDissipation),(0.5 * yield_compression * yield_compression / young_modulus + normalized_free_energy) / (yield_compression * yield_compression / young_modulus));
+    slopes[1] = - (0.5 * yield_compression * yield_compression / young_modulus + normalized_free_energy) / (yield_compression / young_modulus) * std::pow((1.0 - rParameters.DamageDissipation),- (0.5 * yield_compression * yield_compression / young_modulus - normalized_free_energy) / (yield_compression * yield_compression / young_modulus));
 
     rParameters.DamageThreshold = (tensile_indicator_factor * thresholds[0]) + (compression_indicator_factor * thresholds[1]);
     const double hsigr = rParameters.DamageThreshold * (tensile_indicator_factor * slopes[0] / thresholds[0] + compression_indicator_factor * slopes[1] / thresholds[1]);
