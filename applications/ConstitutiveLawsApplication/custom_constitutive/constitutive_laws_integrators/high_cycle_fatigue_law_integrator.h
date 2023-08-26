@@ -146,6 +146,24 @@ public:
     }
 
     /**
+     * @brief This method checks if the global stress state is tension or compression; -1 for a generalized compression state and 1 for a generalized tensile state.
+     * @param StressVector Current predictive stress tensor.
+     */
+    static double CalculateTensionCompressionFactorComponentVM(const Vector& rStressVector)
+    {
+        array_1d<double,3> principal_stresses;
+        AdvancedConstitutiveLawUtilities<6>::CalculatePrincipalStresses(principal_stresses, rStressVector);
+        const double tension_principal_stress = std::abs(principal_stresses[0] - principal_stresses[2]);
+        const double compression_principal_stress = std::abs(principal_stresses[1] - principal_stresses[2]);
+        const double pre_indicator = tension_principal_stress - compression_principal_stress;
+        if (pre_indicator < 0.0) {
+            return -1.0;
+        } else {
+            return 1.0;
+        }
+    }
+
+    /**
      * @brief This method returns de reversion factor
      * @param MaxStress Signed maximum equivalent stress in the current cycle.
      * @param MinStress Signed minimum equivalent stress in the current cycle.
