@@ -523,8 +523,13 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                     // const double chi = 0.5;
                     double K0;
                     GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
-                    rPDParameters.Threshold = K0 * (std::sqrt((2.0 - chi) * (2.0 - chi) - 4.0 * rPDParameters.TotalDissipation * (1.0 - chi)) - chi) / (2.0 * (1.0 - chi));
-                    rPDParameters.Slope = -K0 / (std::sqrt((2.0 - chi) * (2.0 - chi) - 4.0 * rPDParameters.TotalDissipation * (1.0 - chi)));
+                    if (chi == 1.0) {
+                        rPDParameters.Threshold = K0 * (1.0 - rPDParameters.TotalDissipation);
+                        rPDParameters.Slope = -K0;
+                    } else {
+                        rPDParameters.Threshold = K0 * (std::sqrt((2.0 - chi) * (2.0 - chi) - 4.0 * rPDParameters.TotalDissipation * (1.0 - chi)) - chi) / (2.0 * (1.0 - chi));
+                        rPDParameters.Slope = -K0 / (std::sqrt((2.0 - chi) * (2.0 - chi) - 4.0 * rPDParameters.TotalDissipation * (1.0 - chi)));
+                    }
                     break;
             }
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::ExponentialSoftening: {
@@ -590,8 +595,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                         rPDParameters.Threshold = s_by_points(i);
                         rPDParameters.Slope = 0.0;
                     } else {
-                        if (chi == 0.0) {
-                            rPDParameters.Threshold = s_by_points(i-1) + (2.0 * g * (rPDParameters.TotalDissipation - pd_dissipation_next_point)) / (s_by_points(i-1) * (e_by_points(i) - e_by_points(i-1)) / (s_by_points(i) - s_by_points(i-1)) - e_by_points(i-1));
+                        if (chi == 1.0) {
+                            rPDParameters.Threshold = s_by_points(i-1) + (2.0 * g * (rPDParameters.TotalDissipation - pd_dissipation_previous_point)) / (s_by_points(i-1) * (e_by_points(i) - e_by_points(i-1)) / (s_by_points(i) - s_by_points(i-1)) - e_by_points(i-1));
                             rPDParameters.Slope = 2.0 * g * (s_by_points(i) - s_by_points(i-1)) / (e_by_points(i) * s_by_points(i-1) - e_by_points(i-1) * s_by_points(i));
                         } else {
                             const double A = (1.0 - chi) * ((e_by_points(i) - e_by_points(i-1)) / (s_by_points(i) - s_by_points(i-1)) - E0 / K0);
