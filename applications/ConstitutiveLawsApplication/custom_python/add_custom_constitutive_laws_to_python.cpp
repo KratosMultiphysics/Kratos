@@ -93,6 +93,7 @@
 // Rules of mixtures
 #include "custom_constitutive/rule_of_mixtures_law.h"
 #include "custom_constitutive/unified_fatigue_rule_of_mixtures_law.h"
+#include "custom_constitutive/uncoupled_plastic_damage_law.h"
 
 #include "custom_constitutive/associative_plastic_damage_model.h"
 
@@ -1458,6 +1459,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     py::class_<  UnifiedFatigueRuleOfMixturesLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
     typename UnifiedFatigueRuleOfMixturesLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer, ConstitutiveLaw >
     (m,"UnifiedFatigueRuleOfMixturesLawVonMisesVonMises").def(py::init<>());
+
+    py::class_<UncoupledPlasticDamageLaw<GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>,
+    typename UncoupledPlasticDamageLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>::Pointer, ConstitutiveLaw >
+    (m,"UncoupledPlasticDamageLawVonMisesVonMises").def(py::init<>());
 
     py::class_< ParallelRuleOfMixturesLaw<3>, typename ParallelRuleOfMixturesLaw<3>::Pointer,  ConstitutiveLaw  >
     (m,"ParallelRuleOfMixturesLaw3D").def(py::init<>())

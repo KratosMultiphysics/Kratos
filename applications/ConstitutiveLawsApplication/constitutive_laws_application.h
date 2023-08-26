@@ -101,6 +101,7 @@
 
 // Unified fatigue
 #include "custom_constitutive/unified_fatigue_rule_of_mixtures_law.h"
+#include "custom_constitutive/uncoupled_plastic_damage_law.h"
 
 #include "custom_constitutive/associative_plastic_damage_model.h"
 
@@ -613,6 +614,8 @@ private:
 	const ParallelRuleOfMixturesLaw<2> mParallelRuleOfMixturesLaw2D;
 
     const UnifiedFatigueRuleOfMixturesLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mUnifiedFatigueRuleOfMixturesLawVonMisesVonMises;
+
+    const UncoupledPlasticDamageLaw <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mUncoupledPlasticDamageLawVonMisesVonMises;
 
     // Anisotropic law
     const GenericAnisotropic3DLaw mGenericAnisotropic3DLaw;

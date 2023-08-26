@@ -401,6 +401,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DRankine", mAssociativePlasticDamageModel3DRankine);
     // Unified fatigue
     KRATOS_REGISTER_CONSTITUTIVE_LAW("UnifiedFatigueRuleOfMixturesLawVonMisesVonMises", mUnifiedFatigueRuleOfMixturesLawVonMisesVonMises);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("UncoupledPlasticDamageLawVonMisesVonMises", mUncoupledPlasticDamageLawVonMisesVonMises);
 
 
     // KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DVonMisesVonMises", mAssociativePlasticDamageModel3DVonMisesVonMises);
@@ -496,6 +497,7 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_VARIABLE(UNIAXIAL_STRESS_FIBER)
     KRATOS_REGISTER_VARIABLE(UNIAXIAL_STRESS_MATRIX)
     KRATOS_REGISTER_VARIABLE(TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE)
+    KRATOS_REGISTER_VARIABLE(VOLUMETRIC_PART)
 
     // Some variables related with SP
     KRATOS_REGISTER_VARIABLE(SERIAL_PARALLEL_EQUILIBRIUM_TOLERANCE)
