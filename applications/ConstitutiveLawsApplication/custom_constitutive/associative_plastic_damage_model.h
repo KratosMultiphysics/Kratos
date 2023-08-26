@@ -521,7 +521,7 @@ public:
         //     rPlasticDamageParameters.PlasticDamageProportion = final_proportion;
         // }
         // rPlasticDamageParameters.PlasticDamageProportion = 0.99;
-        KRATOS_WATCH(rPlasticDamageParameters.PlasticDamageProportion)
+        // KRATOS_WATCH(rPlasticDamageParameters.PlasticDamageProportion)
     }
 
     /**
