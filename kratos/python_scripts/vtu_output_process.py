@@ -91,6 +91,8 @@ class VtuOutputProcess(Kratos.OutputProcess):
         for vtu_output in self.vtu_output_ios:
             vtu_output.PrintOutput(str(self.output_path / vtu_output.GetModelPart().FullName()) + "_" + current_suffix)
 
+        self.__controller.Update()
+
     def IsOutputStep(self) -> bool:
         return self.__controller.Evaluate()
 
