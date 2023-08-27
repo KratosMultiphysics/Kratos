@@ -39,7 +39,7 @@ def _SurrogateModelPart():
 class TestFileIO(KratosUnittest.TestCase):
 
     def test_HDF5ParallelFileIO_Creation(self):
-        io = file_io.HDF5ParallelFileIO()
+        io = file_io._HDF5ParallelFileIO()
         test_hdf5_core.TestFileIO._BuildTestFileIOObject(io)
         obj = io.Get('kratos.h5')
         self.assertIsInstance(obj, KratosHDF5.HDF5File)

@@ -14,7 +14,7 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 from .utils import ParametersWrapper
 
 
-class FileIO(object):
+class _FileIO(object):
 
     def _FileSettings(self, model_part):
         settings = ParametersWrapper()
@@ -25,19 +25,19 @@ class FileIO(object):
         return settings
 
 
-class HDF5SerialFileIO(FileIO):
+class _HDF5SerialFileIO(_FileIO):
 
     def Get(self, model_part=None):
         return KratosHDF5.HDF5File(self._FileSettings(model_part).Get())
 
 
-class HDF5ParallelFileIO(FileIO):
+class _HDF5ParallelFileIO(_FileIO):
 
     def Get(self, model_part=None):
         return KratosHDF5.HDF5File(self._FileSettings(model_part).Get())
 
 
-class HDF5MockFileIO(FileIO):
+class _HDF5MockFileIO(_FileIO):
 
     class MockFile(object):
 
@@ -69,11 +69,11 @@ def _SetDefaults(settings):
 
 def _GetIO(io_type):
     if io_type == 'serial_hdf5_file_io':
-        io = HDF5SerialFileIO()
+        io = _HDF5SerialFileIO()
     elif io_type == 'parallel_hdf5_file_io':
-        io = HDF5ParallelFileIO()
+        io = _HDF5ParallelFileIO()
     elif io_type == 'mock_hdf5_file_io':
-        io = HDF5MockFileIO()
+        io = _HDF5MockFileIO()
     else:
         raise ValueError('"io_type" has invalid value "' + io_type + '"')
     return io

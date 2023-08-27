@@ -77,7 +77,7 @@ class TestFileIO(KratosUnittest.TestCase):
         return settings
 
     def test_FileIO_FileSettings(self):
-        io = file_io.FileIO()
+        io = file_io._FileIO()
         self._BuildTestFileIOObject(io)
         settings = io._FileSettings('kratos.h5')
         self.assertEqual(settings['file_name'], 'kratos.h5')
@@ -86,7 +86,7 @@ class TestFileIO(KratosUnittest.TestCase):
         self.assertEqual(settings['echo_level'], 0)
 
     def test_HDF5SerialFileIO_Creation(self):
-        io = file_io.HDF5SerialFileIO()
+        io = file_io._HDF5SerialFileIO()
         self._BuildTestFileIOObject(io)
         obj = io.Get('kratos.h5')
         self.assertIsInstance(obj, KratosHDF5.HDF5File)
@@ -124,15 +124,15 @@ class TestFileIO(KratosUnittest.TestCase):
 
     def test_GetIO_SerialIO(self):
         io = file_io._GetIO('serial_hdf5_file_io')
-        self.assertIsInstance(io, file_io.HDF5SerialFileIO)
+        self.assertIsInstance(io, file_io._HDF5SerialFileIO)
 
     def test_GetIO_ParallelIO(self):
         io = file_io._GetIO('parallel_hdf5_file_io')
-        self.assertIsInstance(io, file_io.HDF5ParallelFileIO)
+        self.assertIsInstance(io, file_io._HDF5ParallelFileIO)
 
     def test_GetIO_MockIO(self):
         io = file_io._GetIO('mock_hdf5_file_io')
-        self.assertIsInstance(io, file_io.HDF5MockFileIO)
+        self.assertIsInstance(io, file_io._HDF5MockFileIO)
 
     def test_GetIO_GarbageInput(self):
         with self.assertRaisesRegex(ValueError, r'"io_type" has invalid value "abcdefg"'):
@@ -267,7 +267,7 @@ class TestFileIO(KratosUnittest.TestCase):
         settings = ParametersWrapper()
         data_comm = KratosMultiphysics.Testing.GetDefaultDataCommunicator()
         io = file_io.Create(settings, data_comm)
-        self.assertIsInstance(io, file_io.HDF5SerialFileIO)
+        self.assertIsInstance(io, file_io._HDF5SerialFileIO)
         self.assertTrue(hasattr(io, 'filename_getter'))
         self.assertEqual(io.file_access_mode, 'exclusive')
         if os.name == 'posix':
@@ -733,7 +733,7 @@ class TestControllers(KratosUnittest.TestCase):
         controller_settings = ParametersWrapper()
         controller_settings['step_frequency'] = 2
         controller_settings['controller_type'] = 'temporal_controller'
-        with patch('KratosMultiphysics.HDF5Application.core.file_io.HDF5SerialFileIO', autospec=True):
+        with patch('KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO', autospec=True):
             operation = MagicMock(spec = operations.AggregateOperation)
             controller = controllers.Factory(
                 model_part, operation, controller_settings.Get())
@@ -749,7 +749,7 @@ class TestControllers(KratosUnittest.TestCase):
         controller_settings['step_frequency'] = 100
         controller_settings['time_frequency'] = 0.5
         controller_settings['controller_type'] = 'temporal_controller'
-        with patch('KratosMultiphysics.HDF5Application.core.file_io.HDF5SerialFileIO', autospec=True):
+        with patch('KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO', autospec=True):
             operation = MagicMock(spec = operations.AggregateOperation)
             controller = controllers.Factory(
                 model_part, operation, controller_settings.Get())
@@ -761,7 +761,7 @@ class TestControllers(KratosUnittest.TestCase):
 
     def test_TemporalController_NearlyTheSameTimeFrequency(self):
         _, model_part = _SurrogateModelPart()
-        with patch('KratosMultiphysics.HDF5Application.core.file_io.HDF5SerialFileIO', autospec=True):
+        with patch('KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO', autospec=True):
             controller_settings = ParametersWrapper()
             controller_settings['step_frequency'] = 100
             controller_settings['time_frequency'] = 0.2000001
@@ -865,7 +865,7 @@ class TestFactory(KratosUnittest.TestCase):
             "list_of_operations" : [{"operation_type" : "model_part_output"}]
         }]""")
         with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ModelPartIO', autospec=True) as MockedModelPartIO:
-            with patch("KratosMultiphysics.HDF5Application.core.file_io.HDF5SerialFileIO", autospec = True) as MockedSerialFileIO:
+            with patch("KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO", autospec = True) as MockedSerialFileIO:
                 process = core.Factory(parameters, model, KratosMultiphysics.OutputProcess)
 
                 process.ExecuteInitialize()
@@ -897,7 +897,7 @@ class TestFactory(KratosUnittest.TestCase):
             },
             "list_of_operations" : []
         }]""")
-        with patch("KratosMultiphysics.HDF5Application.core.file_io.HDF5SerialFileIO", autospec = True):
+        with patch("KratosMultiphysics.HDF5Application.core.file_io._HDF5SerialFileIO", autospec = True):
             with self.assertRaises(TypeError):
                 core.Factory(parameters, model, KratosMultiphysics.OutputProcess)
 
