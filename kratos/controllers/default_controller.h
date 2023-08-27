@@ -88,7 +88,7 @@ public:
     /**
      * @brief Using input data, returns bool.
      */
-    bool Evaluate() override
+    bool Evaluate() const override
     {
         return true;
     }
