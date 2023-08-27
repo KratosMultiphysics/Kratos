@@ -94,10 +94,15 @@ public:
     /**
      * @brief Using input data, returns bool.
      */
-    bool Evaluate() override;
+    bool Evaluate() const override;
 
     /**
-     * @brief Get the current control value.
+     * @brief Update the controller parameters
+    */
+    void Update() override;
+
+    /**
+     * @brief Returns the current control value used to evalute.
     */
     std::variant<int, double> GetCurrentControlValue() const;
 

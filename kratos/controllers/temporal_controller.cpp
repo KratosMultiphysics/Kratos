@@ -57,25 +57,9 @@ TemporalController::TemporalController(
                      << "\n\ttime";
     }
 
-    ScheduleNextOutput();
+    Update();
 
     KRATOS_CATCH("");
-}
-
-void TemporalController::ScheduleNextOutput()
-{
-    const auto& r_process_info = mpModel->GetModelPart(mModelPartName).GetProcessInfo();
-    std::visit([&](const auto& pVariable) {
-        using data_type = typename std::decay_t<decltype(*pVariable)>::Type;
-        const auto interval = std::get<data_type>(mInterval);
-
-        if (interval > 0) {
-            const auto current_value = r_process_info[*pVariable];
-            while (std::get<data_type>(mNextOutput) <= current_value) {
-                std::get<data_type>(mNextOutput) += interval;
-            }
-        }
-    }, mpVariable);
 }
 
 Controller::Pointer TemporalController::Create(
@@ -103,17 +87,28 @@ int TemporalController::Check() const
     KRATOS_CATCH("");
 }
 
-bool TemporalController::Evaluate()
+bool TemporalController::Evaluate() const
 {
     const auto& r_process_info = mpModel->GetModelPart(mModelPartName).GetProcessInfo();
     return std::visit([&](const auto& pVariable){
         using data_type = typename std::decay_t<decltype(*pVariable)>::Type;
         const auto current_value = r_process_info[*pVariable];
-        if (std::get<data_type>(mNextOutput) <= current_value) {
-            ScheduleNextOutput();
-            return true;
-        } else {
-            return false;
+        return std::get<data_type>(mNextOutput) <= current_value;
+    }, mpVariable);
+}
+
+void TemporalController::Update()
+{
+    const auto& r_process_info = mpModel->GetModelPart(mModelPartName).GetProcessInfo();
+    std::visit([&](const auto& pVariable) {
+        using data_type = typename std::decay_t<decltype(*pVariable)>::Type;
+        const auto interval = std::get<data_type>(mInterval);
+
+        if (interval > 0) {
+            const auto current_value = r_process_info[*pVariable];
+            while (std::get<data_type>(mNextOutput) <= current_value) {
+                std::get<data_type>(mNextOutput) += interval;
+            }
         }
     }, mpVariable);
 }
