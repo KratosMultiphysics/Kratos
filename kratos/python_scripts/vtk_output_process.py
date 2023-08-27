@@ -63,6 +63,7 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
 
     def PrintOutput(self):
         self.vtk_io.PrintOutput()
+        self.__controller.Update()
 
     def IsOutputStep(self):
         return self.__controller.Evaluate()
