@@ -206,7 +206,6 @@ public:
     void ResetNodalValues(ModelPart &rSolidModelPart)
     {
         auto &r_interface_sub_model = rSolidModelPart.GetSubModelPart("fsi_interface_model_part");
-        const Vector& r_zero_vector = ZeroVector(Dimension);
 
         const auto it_node_begin = r_interface_sub_model.NodesBegin();
         #pragma omp parallel for
@@ -215,9 +214,9 @@ public:
             auto &r_var_1 = it_node->FastGetSolutionStepValue(RELAXED_VELOCITY);
             auto &r_var_2 = it_node->FastGetSolutionStepValue(OLD_RELAXED_VELOCITY);
             auto &r_var_3 = it_node->FastGetSolutionStepValue(FSI_INTERFACE_RESIDUAL);
-            r_var_1 = r_zero_vector;
-            r_var_2 = r_zero_vector;
-            r_var_3 = r_zero_vector;
+            r_var_1.clear();
+            r_var_2.clear();
+            r_var_3.clear();
         }
 
         mpResidualVectorOld.reset();
