@@ -94,7 +94,12 @@ public:
     /**
      * @brief Using input data, returns bool.
      */
-    virtual bool Evaluate() = 0;
+    virtual bool Evaluate() const = 0;
+
+    /**
+     * @brief Update the controller parameters
+    */
+    virtual void Update() {}
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
