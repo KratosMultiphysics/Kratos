@@ -33,11 +33,7 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
                     kratos_utils.DeleteDirectoryIfExisting(output_path)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
-        self.output_interval = settings["output_interval"].GetDouble()
-        self.output_control = settings["output_control_type"].GetString()
-        self.next_output = 0.0
-
-        self.__ScheduleNextOutput() # required here esp for restart
+        self.__controller = KratosMultiphysics.TemporalController(model, settings)
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
@@ -62,27 +58,11 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
+    def Check(self) -> int:
+        return self.__controller.Check()
+
     def PrintOutput(self):
         self.vtk_io.PrintOutput()
 
-        self.__ScheduleNextOutput()
-
     def IsOutputStep(self):
-        if self.output_control == "time":
-            return self.__GetTime() >= self.next_output
-        else:
-            return self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output
-
-    def __ScheduleNextOutput(self):
-        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control == "time":
-                while self.next_output <= self.__GetTime():
-                    self.next_output += self.output_interval
-            else:
-                while self.next_output <= self.model_part.ProcessInfo[KratosMultiphysics.STEP]:
-                    self.next_output += self.output_interval
-
-    def __GetTime(self):
-        # remove rounding errors that mess with the comparison
-        # e.g. 1.99999999999999999 => 2.0
-        return float("{0:.12g}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]))
+        return self.__controller.Evaluate()
