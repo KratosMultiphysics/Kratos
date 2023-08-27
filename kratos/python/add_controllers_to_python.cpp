@@ -31,7 +31,7 @@ public:
     //Inherit the constructors
     using Controller::Controller;
 
-    bool Evaluate() override
+    bool Evaluate() const override
     {
         using ReturnType = bool;
         using BaseType = Controller;
@@ -65,6 +65,7 @@ void AddControllersToPython(pybind11::module& m)
         .def("Check", &Controller::Check)
         .def("Create", &Controller::Create, py::arg("model"), py::arg("parameters"))
         .def("Evaluate", &Controller::Evaluate)
+        .def("Update", &Controller::Update)
         .def("GetDefaultParameters", &Controller::GetDefaultParameters)
         .def("__str__", PrintObject<Controller>)
         ;
