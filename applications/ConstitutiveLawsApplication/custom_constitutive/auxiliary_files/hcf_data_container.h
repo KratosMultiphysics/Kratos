@@ -95,7 +95,7 @@ public:
      * @brief This method sets the variables required
      * for calculating fatigue reduction factor and Wohler stress
      */
-    void CalculateFatigueParameters(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables);
+    void CalculateFatigueParameters(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables, const Variable<double>& rVariable = YIELD_STRESS);
 
     /**
      * @brief This method calculates fatigue reduction factor
@@ -124,7 +124,8 @@ public:
                             const Properties& rMaterialProperties,
                             const ProcessInfo& rCurrentProcessInfo,
                             ConstitutiveLaw::StressVectorType stress_vector,
-                            double uniaxial_stress);
+                            double uniaxial_stress,
+                            const Variable<double>& rVariable = YIELD_STRESS);
 
     /**
      * @brief This method checks the fatigue inout properties

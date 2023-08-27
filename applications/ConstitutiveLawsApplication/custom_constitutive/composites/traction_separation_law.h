@@ -22,6 +22,7 @@
 
 // Project includes
 #include "custom_constitutive/composites/rule_of_mixtures_law.h"
+#include "custom_constitutive/auxiliary_files/hcf_data_container.h"
 
 
 namespace Kratos
@@ -278,7 +279,8 @@ private:
     Vector mDelaminationDamageModeTwo;
     Vector mThresholdModeOne;
     Vector mThresholdModeTwo;
-
+    HCFDataContainer mFatigueDataModeOne = HCFDataContainer();
+    HCFDataContainer mFatigueDataModeTwo = HCFDataContainer();
     ///@}
     ///@name Private Operators
     ///@{

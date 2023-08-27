@@ -63,10 +63,17 @@ double HCFDataContainer::CalculateReversionFactor(const double MaxStress, const 
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HCFDataContainer::CalculateFatigueParameters(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables)
+void HCFDataContainer::CalculateFatigueParameters(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables, const Variable<double>& rVariable)
 {
     const Vector& r_fatigue_coefficients = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS];
-    double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+
+    double ultimate_stress = 0.0;
+
+    if (rVariable == YIELD_STRESS) {
+        ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+    } else {
+        ultimate_stress = rMaterialParameters[rVariable];
+    }
     const double yield_stress = ultimate_stress;
 
     // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
@@ -181,7 +188,8 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
                         const Properties& rMaterialProperties,
                         const ProcessInfo& rCurrentProcessInfo,
                         ConstitutiveLaw::StressVectorType stress_vector,
-                        double uniaxial_stress)
+                        double uniaxial_stress,
+                        const Variable<double>& rVariable)
 {
     const double sign_factor = CalculateTensionOrCompressionIdentifier(stress_vector);
     uniaxial_stress *= sign_factor;
@@ -195,7 +203,7 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
         rFatigueVariables.PreviousReversionFactor = CalculateReversionFactor(rFatigueVariables.PreviousMaxStress, rFatigueVariables.PreviousMinStress);
         rFatigueVariables.ReversionFactor = CalculateReversionFactor(rFatigueVariables.MaxStress, rFatigueVariables.MinStress);
 
-        CalculateFatigueParameters(rMaterialProperties, rFatigueVariables);
+        CalculateFatigueParameters(rMaterialProperties, rFatigueVariables, rVariable);
 
         const double betaf = rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
 
@@ -241,10 +249,10 @@ int HCFDataContainer::Check(
     const Properties& rMaterialProperties)
 {
     // Check if input parameters are well defined
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined vector" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO)) << "POISSON_RATIO is not a defined vector" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined vector" << std::endl;
-    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS)) << "YIELD_STRESS is not a defined value" << std::endl;
+    // KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YOUNG_MODULUS)) << "YOUNG_MODULUS is not a defined vector" << std::endl;
+    // KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(POISSON_RATIO)) << "POISSON_RATIO is not a defined vector" << std::endl;
+    // KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(FRACTURE_ENERGY)) << "FRACTURE_ENERGY is not a defined vector" << std::endl;
+    // KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(YIELD_STRESS)) << "YIELD_STRESS is not a defined value" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(SOFTENING_TYPE)) << "SOFTENING_TYPE is not a defined value" << std::endl;
     KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(HIGH_CYCLE_FATIGUE_COEFFICIENTS)) << "HIGH_CYCLE_FATIGUE_COEFFICIENTS is not a defined vector" << std::endl;
     KRATOS_ERROR_IF(rMaterialProperties[HIGH_CYCLE_FATIGUE_COEFFICIENTS].size() != 7) << "HIGH_CYCLE_FATIGUE_COEFFICIENTS badly defined" << std::endl;
