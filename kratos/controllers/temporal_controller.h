@@ -143,13 +143,6 @@ private:
     std::string mModelPartName;
 
     ///@}
-    ///@name Private operations
-    ///@{
-
-    void ScheduleNextOutput();
-
-    ///@}
-
 }; // Class TemporalController
 
 }  // namespace Kratos.
