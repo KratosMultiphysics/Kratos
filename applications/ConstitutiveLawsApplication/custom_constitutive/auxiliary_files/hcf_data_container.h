@@ -101,7 +101,7 @@ public:
      * @brief This method calculates fatigue reduction factor
      * and Wohler stress
      */
-    void CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables);
+    void CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables, const Variable<double>& rVariable = YIELD_STRESS);
 
 
     /**
@@ -126,6 +126,28 @@ public:
                             ConstitutiveLaw::StressVectorType stress_vector,
                             double uniaxial_stress,
                             const Variable<double>& rVariable = YIELD_STRESS);
+
+    /**
+     * @brief This method returns fatigue reduction factor
+     */
+    double GetFatigueReductionFactor() {
+        return mFatigueReductionFactor;
+    }
+
+    /**
+     * @brief This method returns fatigue reduction factor
+     */
+    double GetWohlerStress() {
+        return mWohlerStress;
+    }
+
+    /**
+     * @brief This method returns fatigue reduction factor
+     */
+    int GetLocalNumberOfCycles() {
+        return mNumberOfCyclesLocal;
+    }
+
 
     /**
      * @brief This method checks the fatigue inout properties

@@ -242,11 +242,19 @@ public:
                                                                 const double Sth,
                                                                 const double Alphat,
                                                                 double& rFatigueReductionFactor,
-                                                                double& rWohlerStress)
+                                                                double& rWohlerStress,
+                                                                const Variable<double>& rVariable = YIELD_STRESS)
 	{
         const double BETAF = rMaterialParameters[HIGH_CYCLE_FATIGUE_COEFFICIENTS][4];
         if (GlobalNumberOfCycles > 2){
-            double ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+
+            double ultimate_stress = 0.0;
+
+            if (rVariable == YIELD_STRESS) {
+                ultimate_stress = rMaterialParameters.Has(YIELD_STRESS) ? rMaterialParameters[YIELD_STRESS] : rMaterialParameters[YIELD_STRESS_TENSION];
+            } else {
+                ultimate_stress = rMaterialParameters[rVariable];
+            }
 
             // The calculation is prepared to update the rN_f value when using a softening curve which initiates with hardening.
             // The jump in the advance in time process is done in these cases to the Syield rather to Sult.

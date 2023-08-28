@@ -123,7 +123,7 @@ void HCFDataContainer::CalculateFatigueParameters(const Properties& rMaterialPar
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HCFDataContainer::CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables)
+void HCFDataContainer::CalculateFatigueReductionFactorAndWohlerStress(const Properties& rMaterialParameters, HCFDataContainer::FatigueVariables &rFatigueVariables, const Variable<double>& rVariable)
 {
     HighCycleFatigueLawIntegrator<6>::CalculateFatigueReductionFactorAndWohlerStress(rMaterialParameters,
                                                                                     rFatigueVariables.MaxStress,
@@ -133,7 +133,8 @@ void HCFDataContainer::CalculateFatigueReductionFactorAndWohlerStress(const Prop
                                                                                     rFatigueVariables.Sth,
                                                                                     rFatigueVariables.Alphat,
                                                                                     rFatigueVariables.FatigueReductionFactor,
-                                                                                    rFatigueVariables.WohlerStress);
+                                                                                    rFatigueVariables.WohlerStress,
+                                                                                    rVariable);
 }
 
 /***********************************************************************************/
@@ -228,16 +229,16 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
         mCyclesToFailure = rFatigueVariables.CyclesToFailure;
 
         if (rFatigueVariables.MaxStress > rFatigueVariables.Sth) {
-            CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables);
+            CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables, rVariable);
         }
     }
     if (rFatigueVariables.AdvanceStrategyApplied) {
     rFatigueVariables.ReversionFactor = CalculateReversionFactor(rFatigueVariables.MaxStress, rFatigueVariables.MinStress);
 
-    CalculateFatigueParameters(rMaterialProperties, rFatigueVariables);
+    CalculateFatigueParameters(rMaterialProperties, rFatigueVariables, rVariable);
 
     if (rFatigueVariables.MaxStress > rFatigueVariables.Sth) {
-        CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables);
+        CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables, rVariable);
     }
     }
 }

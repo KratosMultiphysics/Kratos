@@ -112,7 +112,20 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<Vector>& rThisVariable)
         has = true;
     } else if (rThisVariable == DELAMINATION_DAMAGE_VECTOR_MODE_TWO) {
         has = true;
-    } else {
+    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR_VECTOR_MODE_ONE) {
+        has = true;
+    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR_VECTOR_MODE_TWO) {
+        has = true;
+    } else if (rThisVariable == WOHLER_STRESS_VECTOR_MODE_ONE) {
+        has = true;
+    } else if (rThisVariable == WOHLER_STRESS_VECTOR_MODE_TWO) {
+        has = true;
+    } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES_MODE_ONE) {
+        has = true;
+    } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES_MODE_TWO) {
+        has = true;
+    }
+      else {
         BaseType::Has(rThisVariable);
     }
 
@@ -143,6 +156,48 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
         rValue.resize(r_combination_factors.size()+1, false);
 
         noalias(rValue) = mDelaminationDamageModeTwo;
+        return rValue;
+    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR_VECTOR_MODE_ONE) {
+
+        rValue.resize(r_combination_factors.size()-1, false);
+        for (IndexType i = 0; i < r_combination_factors.size()-1; ++i) {
+            rValue[i] = mFatigueDataContainersModeOne[i].GetFatigueReductionFactor();
+        }
+        return rValue;
+    } else if (rThisVariable == FATIGUE_REDUCTION_FACTOR_VECTOR_MODE_TWO) {
+
+        rValue.resize(r_combination_factors.size()-1, false);
+        for (IndexType i = 0; i < r_combination_factors.size()-1; ++i) {
+            rValue[i] = mFatigueDataContainersModeTwo[i].GetFatigueReductionFactor();
+        }
+        return rValue;
+    } else if (rThisVariable == WOHLER_STRESS_VECTOR_MODE_ONE) {
+
+        rValue.resize(r_combination_factors.size()-1, false);
+        for (IndexType i = 0; i < r_combination_factors.size()-1; ++i) {
+            rValue[i] = mFatigueDataContainersModeOne[i].GetWohlerStress();
+        }
+        return rValue;
+    } else if (rThisVariable == WOHLER_STRESS_VECTOR_MODE_TWO) {
+
+        rValue.resize(r_combination_factors.size()-1, false);
+        for (IndexType i = 0; i < r_combination_factors.size()-1; ++i) {
+            rValue[i] = mFatigueDataContainersModeTwo[i].GetWohlerStress();
+        }
+        return rValue;
+    } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES_MODE_ONE) {
+
+        rValue.resize(r_combination_factors.size()-1, false);
+        for (IndexType i = 0; i < r_combination_factors.size()-1; ++i) {
+            rValue[i] = mFatigueDataContainersModeOne[i].GetLocalNumberOfCycles();
+        }
+        return rValue;
+    } else if (rThisVariable == LOCAL_NUMBER_OF_CYCLES_MODE_TWO) {
+
+        rValue.resize(r_combination_factors.size()-1, false);
+        for (IndexType i = 0; i < r_combination_factors.size()-1; ++i) {
+            rValue[i] = mFatigueDataContainersModeTwo[i].GetLocalNumberOfCycles();
+        }
         return rValue;
     } else {
         BaseType::GetValue(rThisVariable,rValue);
@@ -630,7 +685,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             // KRATOS_WATCH(HCFVariablesModeOne.Sth);
             // KRATOS_WATCH(HCFVariablesModeOne.MaxStress);
             // KRATOS_WATCH(HCFVariablesModeOne.MinStress);
-            // KRATOS_WATCH(mFatigueDataContainersModeOne[i].mFatigueReductionFactor);
+            // KRATOS_WATCH(HCFVariablesModeOne.WohlerStress);
 
             // End damage calculation
         }
