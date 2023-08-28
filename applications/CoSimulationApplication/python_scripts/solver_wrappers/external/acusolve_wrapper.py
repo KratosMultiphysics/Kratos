@@ -11,8 +11,6 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # System imports
-import time
-import sys
 import os
 from sys import platform
 
@@ -71,10 +69,10 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
 
         # ---------------------
         # Get arguments from JSON file
-        application         = self.settings["solver_wrapper_settings"]["application"].GetString()
+        #application         = self.settings["solver_wrapper_settings"]["application"].GetString()
         working_directory   = self.settings["solver_wrapper_settings"]["working_directory"].GetString()
         problem_directory   = self.settings["solver_wrapper_settings"]["problem_directory"].GetString()
-        region              = self.settings["solver_wrapper_settings"]["region"].GetString()
+        #region              = self.settings["solver_wrapper_settings"]["region"].GetString()
         echo_level          = self.settings["solver_wrapper_settings"]["echo_level"].GetInt()
         problem             = self.settings["solver_wrapper_settings"]["problem"].GetString()
         inputFile           = self.settings["solver_wrapper_settings"]["input_file"].GetString()
@@ -86,30 +84,37 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
         self.deltaT         = self.settings["solver_wrapper_settings"]["time_increment"].GetDouble()
 
         # ---------------------
-        # Lauch AcuSolve
+        # Launch AcuSolve
         # ---------------------
+        common_cmd = inputFile + " -pb " + problem +" -dir "+ working_directory + " -pdir " + problem_directory + " -np "+ str(np) + " -nt " + str(nt)
+        verbose_cmd = " -verbose " + str(echo_level)
         if platform == "linux" or platform == "linux2":
-            if (gpu!="FALSE"):
-                cmd = "acuRun -inp "+inputFile+" -pb "+problem+" -dir "+working_directory+" -pdir "+problem_directory+" -np "+str(np)+" -nt "+str(nt)+" -gpu "+gpu+" -verbose "+str(echo_level)+" &"         
-            elif (rst!="FALSE"):
-                cmd = "acuRun -inp "+inputFile+" -pb "+problem+" -dir "+working_directory+" -pdir "+problem_directory+" -np "+str(np)+" -nt "+str(nt)+" -rst "+" -verbose "+str(echo_level)+" &"         
-            elif (frst!="FALSE"):
-                cmd = "acuRun -inp "+inputFile+" -pb "+problem+" -dir "+working_directory+" -pdir "+problem_directory+" -np "+str(np)+" -nt "+str(nt)+" -frst "+" -verbose "+str(echo_level)+" &"         
+            base_cmd = "acuRun -inp "
+            buffer_cmd = " &"
+            if gpu != "FALSE":
+                cmd = base_cmd + common_cmd + " -gpu " + gpu + verbose_cmd + buffer_cmd  
+            elif rst != "FALSE":
+                cmd = base_cmd + common_cmd + " -rst " + verbose_cmd + buffer_cmd  
+            elif frst != "FALSE":
+                cmd = base_cmd + common_cmd + " -frst " + verbose_cmd + buffer_cmd  
             else:
-                cmd = "acuRun -inp "+inputFile+" -pb "+problem+" -dir "+working_directory+" -pdir "+problem_directory+" -np "+str(np)+" -nt "+str(nt)+" -verbose "+str(echo_level)+" &"       
-            cs_tools.cs_print_info(self.name + ": " +  cmd)
-            os.system(cmd)
+                cmd = base_cmd + common_cmd + verbose_cmd + buffer_cmd
         elif platform == "win32":
-            if (gpu!="FALSE"):
-                cmd = "acuRun.bat -inp "+inputFile+" -pb "+problem+" -dir "+working_directory+" -pdir "+problem_directory+" -np "+str(np)+" -nt "+str(nt)+" -gpu "+gpu+" -verbose "+str(echo_level)+" -lbuff"         
-            elif (rst!="FALSE"):
-                cmd = "acuRun.bat -inp "+inputFile+" -pb "+problem+" -dir "+working_directory+" -pdir "+problem_directory+" -np "+str(np)+" -nt "+str(nt)+" -rst "+" -verbose "+str(echo_level)+" -lbuff"         
-            elif (frst!="FALSE"):
-                cmd = "acuRun.bat -inp "+inputFile+" -pb "+problem+" -dir "+working_directory+" -pdir "+problem_directory+" -np "+str(np)+" -nt "+str(nt)+" -frst "+" -verbose "+str(echo_level)+" -lbuff"        
+            base_cmd = "acuRun.bat -inp "
+            buffer_cmd = " -lbuff"
+            if gpu != "FALSE":
+                cmd = base_cmd + common_cmd + " -gpu " + gpu + verbose_cmd + buffer_cmd  
+            elif rst != "FALSE":
+                cmd = base_cmd + common_cmd + " -rst " + verbose_cmd + buffer_cmd   
+            elif frst != "FALSE":
+                cmd = base_cmd + common_cmd + " -frst " + verbose_cmd + buffer_cmd
             else:
-                cmd = "acuRun.bat -inp "+inputFile+" -pb "+problem+" -dir "+working_directory+" -pdir "+problem_directory+" -np "+str(np)+" -nt "+str(nt)+" -verbose "+str(echo_level)+" -lbuff"  
-            cs_tools.cs_print_info(self.name + ": " +  cmd)
-            subprocess.Popen(cmd)
+                cmd = base_cmd + common_cmd + verbose_cmd + buffer_cmd
+        else:
+            # Python exception in case not detected OS
+            raise Exception("Unsupported operating system detected.")
+        cs_tools.cs_print_info(self.name + ": " +  cmd)
+        os.system(cmd)
 
     def Initialize(self):
         """ This function initializes the AFS Wrapper
