@@ -59,25 +59,25 @@ class TestVertex(KratosUnittest.TestCase):
             KratosMultiphysics.Configuration.Initial,
             1e-6)
 
-        vertices = []
-        vertices.append(HDF5Application.Vertex([0.5, 0.5, 0.0], locator, True))
-        vertices.append(HDF5Application.Vertex([1.5, 0.5, 0.0], locator, True))
+        vertices: 'list[HDF5Application.Vertex]' = []
+        vertices.append(HDF5Application.Vertex([0.5, 0.5, 0.0], locator, 1))
+        vertices.append(HDF5Application.Vertex([1.5, 0.5, 0.0], locator, 2))
 
         for vertex in vertices:
             self.assertTrue(vertex.IsLocated())
 
         self.assertVectorAlmostEqual(
-            vertices[0].GetValue(KratosMultiphysics.DISPLACEMENT),
+            vertices[0].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT),
             [1.5, 0.0, 0.0])
         self.assertVectorAlmostEqual(
-            vertices[0].GetValue(KratosMultiphysics.REACTION),
+            vertices[0].GetSolutionStepValue(KratosMultiphysics.REACTION),
             [0.0, 0.0, 1.5])
 
         self.assertVectorAlmostEqual(
-            vertices[1].GetValue(KratosMultiphysics.DISPLACEMENT),
+            vertices[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT),
             [3.0, 0.0, 0.0])
         self.assertVectorAlmostEqual(
-            vertices[1].GetValue(KratosMultiphysics.REACTION),
+            vertices[1].GetSolutionStepValue(KratosMultiphysics.REACTION),
             [0.0, 0.0, 3.0])
 
 
