@@ -247,11 +247,3 @@ class MoveMesh(ModelPartIOOperation):
 
     def Execute(self) -> None:
         KratosMultiphysics.ImplicitSolvingStrategy(self.model_part, True).MoveMesh()
-
-
-def GetSubclasses(base_class: type) -> "list[type]":
-    """Recursively find all subclasses of a base class"""
-    subclasses = base_class.__subclasses__()
-    for subclass in base_class.__subclasses__():
-        subclasses += GetSubclasses(subclass)
-    return subclasses
