@@ -6,7 +6,7 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 
 # HDF5 imports
 from KratosMultiphysics.HDF5Application.line_output_process import Factory as LineOutputProcessFactory
-from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
+from KratosMultiphysics.HDF5Application.core.file_io import NewOpenHDF5File
 
 # STD imports
 import pathlib
@@ -60,7 +60,7 @@ class TestLineOutputProcess(UnitTest.TestCase):
         # Open output file
         file_parameters = parameters["file_parameters"].Clone()
         file_parameters.AddString("file_access_mode", "read_only")
-        with OpenHDF5File(file_parameters, model_part) as file:
+        with NewOpenHDF5File(file_parameters, model_part) as file:
             # Check output file structure
             root = "/test_line_output_{}".format(parameters["model_part_name"].GetString())
             self.assertTrue(file.IsGroup(root))

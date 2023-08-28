@@ -3,8 +3,8 @@ import KratosMultiphysics
 
 # HDF5 imports
 import KratosMultiphysics.HDF5Application as HDF5Application
-from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
-from KratosMultiphysics.HDF5Application.core.utils import EvaluatePattern
+from KratosMultiphysics.HDF5Application.core.file_io import NewOpenHDF5File
+from KratosMultiphysics.HDF5Application.core.pattern import EvaluatePattern
 
 
 def Factory(parameters: KratosMultiphysics.Parameters,
@@ -77,7 +77,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
             "write_vertex_ids" : true
         }""")
         io_parameters["prefix"].SetString(coordinates_path)
-        with OpenHDF5File(self.__GetCurrentFileParameters(), self.model_part) as file:
+        with NewOpenHDF5File(self.__GetCurrentFileParameters(), self.model_part) as file:
             # Skip writing if the analysis is restarted and the group already exists.
             if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] and file.HasPath(coordinates_path):
                 KratosMultiphysics.Logger.PrintWarning("[PointSetOutputProcess] Path exists", f"Skip writing vertex coordinates to group: {coordinates_path}")
@@ -97,7 +97,7 @@ class PointSetOutputProcess(KratosMultiphysics.OutputProcess):
         file_parameters = self.__GetCurrentFileParameters()
         file_parameters["file_access_mode"].SetString("read_write")
 
-        with OpenHDF5File(file_parameters, self.model_part) as file:
+        with NewOpenHDF5File(file_parameters, self.model_part) as file:
             # Skip writing if the analysis is restarted and the group already exists.
             if self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED] and file.HasPath(prefix):
                 KratosMultiphysics.Logger.PrintWarning("[PointSetOutputProcess] Path exists", f"Skip writing vertex data to group: {prefix}")
