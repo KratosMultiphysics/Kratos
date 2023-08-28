@@ -3,7 +3,7 @@ import typing
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.HDF5Application as KratosHDF5
 
-from KratosMultiphysics.HDF5Application.core.file_io import NewOpenHDF5File
+from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
 
 class ControlledOperation:
     def __init__(self,
@@ -45,7 +45,7 @@ class AggregatedControlledOperations:
         return any([controlled_operation.Evaluate() for controlled_operation in self.__list_of_controlled_operations])
 
     def Execute(self) -> None:
-        with NewOpenHDF5File(self.__hdf5_file_parameters, self.__model_part) as h5_file:
+        with OpenHDF5File(self.__hdf5_file_parameters, self.__model_part) as h5_file:
             list(map(lambda x: x.Execute(self.__model_part, h5_file) , self.__list_of_controlled_operations))
 
     def Update(self) -> None:

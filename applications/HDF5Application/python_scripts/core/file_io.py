@@ -68,7 +68,7 @@ def CreateHDF5File(model_part: KratosMultiphysics.ModelPart, settings: KratosMul
 
     return KratosHDF5.HDF5File(model_part.GetCommunicator().GetDataCommunicator(), current_file_settings)
 
-class NewOpenHDF5File:
+class OpenHDF5File:
     def __init__(self, parameters: KratosMultiphysics.Parameters, model_part: KratosMultiphysics.ModelPart) -> None:
         self.__model_part = model_part
         self.__parameters = parameters
