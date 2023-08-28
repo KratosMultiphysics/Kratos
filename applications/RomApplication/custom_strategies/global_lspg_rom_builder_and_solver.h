@@ -78,7 +78,7 @@ namespace Kratos
  */
 
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
-class GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver : public ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
+class GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver : public GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>
 {
 public:
 
@@ -99,7 +99,6 @@ public:
     using BaseBuilderAndSolverType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
     typedef GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
     typedef typename BaseType::TSchemeType TSchemeType;
-    typedef typename BaseType::DofsArrayType DofsArrayType;
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
     typedef typename BaseType::TSystemVectorType TSystemVectorType;
     typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
@@ -109,22 +108,15 @@ public:
     typedef typename BaseType::ElementsArrayType ElementsArrayType;
     typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
 
-    /// Definition of the classes from the ROM base class
-    // typedef ROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ROMBuilderAndSolverType;
-
     /// Additional definitions
     typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
     typedef Element::EquationIdVectorType EquationIdVectorType;
     typedef Element::DofsVectorType DofsVectorType;
 
-    // Non-distributed, dense:
-    typedef LocalSystemMatrixType RomSystemMatrixType;
-    typedef LocalSystemVectorType RomSystemVectorType;
-
-    //Distributed, dense
-    typedef RomSystemMatrixType LSPGSystemMatrixType; 
-    typedef RomSystemVectorType LSPGSystemVectorType;
-    //      ^ Change this to a distributed dense type
+    // Eigen definitions
+    using EigenDynamicMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+    using EigenSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 
     /// DoF types definition
     typedef Node NodeType;
@@ -298,7 +290,7 @@ public:
 
 
         for (auto elem : this->mSelectedElements) {
-        std::cout << elem.Id() << " ";
+            std::cout << elem.Id() << " ";
         }
         std::cout << std::endl;
 
@@ -388,7 +380,7 @@ public:
         ModelPart &rModelPart,
         TSystemMatrixType &rA,
         TSystemVectorType &rb,
-        TSystemVectorType &rDx)
+        TSystemVectorType &rDx) override
     {
         KRATOS_TRY
 
@@ -405,6 +397,18 @@ public:
 
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
+        // Initialize the mask vector with zeros
+        Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
+
+        // // Get ProcessInfo from main model part
+        // const auto& r_current_process_info = rModelPart.GetProcessInfo();
+
+        // // Build the mask vector for selected elements and conditions
+        // BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
+
+        // // Zero out rows in the matrix that correspond to zero in the mask vector
+        // ApplyMaskToMatrixRows(rA, hrom_dof_mask_vector);
+
         ProjectROM(rModelPart, rA, rb);
 
         double time = assembling_timer.ElapsedSeconds();
@@ -419,16 +423,16 @@ public:
     virtual void ProjectROM(
         ModelPart &rModelPart,
         TSystemMatrixType &rA,
-        TSystemVectorType &rb)
+        TSystemVectorType &rb) override
     {
         KRATOS_TRY
 
         if (mRightRomBasisInitialized==false){
-            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
+            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), this->GetNumberOfROMModes());
             mRightRomBasisInitialized = true;
         }
 
-        BuildRightROMBasis(rModelPart);
+        this->BuildRightROMBasis(rModelPart, mPhiGlobal);
 
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
@@ -438,8 +442,8 @@ public:
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
         // Compute the matrix multiplication
-        mEigenRomA = eigen_rA_times_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
-        mEigenRomB = eigen_rA_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+        this->mEigenRomA = eigen_rA_times_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
+        this->mEigenRomB = eigen_rA_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
         
         KRATOS_CATCH("")
     }
@@ -454,35 +458,18 @@ public:
         KRATOS_TRY
 
         BuildAndProjectROM(pScheme, rModelPart, A, b, Dx);
+
+        // Obtain the assembled residuals vector (To build a basis for Petrov-Galerkin)
+        if (mTrainPetrovGalerkinFlag){
+            std::stringstream matrix_market_vector_name;
+            matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME] << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] <<  ".res.mm";
+            SparseSpaceType::WriteMatrixMarketVector((matrix_market_vector_name.str()).c_str(), b);
+        }
         
-        this->SolveROM(rModelPart, A, b, Dx);
+        this->SolveROM(rModelPart, this->mEigenRomA, this->mEigenRomB, Dx);
 
         KRATOS_CATCH("")
     }
-
-    // void BuildAndSolve(
-    //     typename TSchemeType::Pointer pScheme,
-    //     ModelPart &rModelPart,
-    //     TSystemMatrixType &A,
-    //     TSystemVectorType &Dx,
-    //     TSystemVectorType &b) override
-    // {
-    //     KRATOS_TRY
-    //     LSPGSystemMatrixType Arom = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
-    //     LSPGSystemVectorType brom = ZeroVector(BaseType::GetEquationSystemSize());
-    //     BuildROM(pScheme, rModelPart, Arom, brom);
-
-    //     // Obtain the assembled residuals vector (To build a basis for Petrov-Galerkin)
-    //     if (mTrainPetrovGalerkinFlag){
-    //         TSystemVectorType r_residual;
-    //         GetAssembledResiduals(pScheme, rModelPart, r_residual);
-    //     }
-
-    //     SolveROM(rModelPart, Arom, brom, Dx);
-
-
-    //     KRATOS_CATCH("")
-    // }
 
     Parameters GetDefaultParameters() const override
     {
@@ -539,29 +526,6 @@ public:
     ///@name Friends
     ///@{
 
-    double time_rom_system_contruction = 0;
-    double time_rom_system_solving = 0;
-    double time_rom_projection_back = 0;
-
-    void ResetTimeMeasures(){
-        time_rom_system_contruction = 0;
-        time_rom_system_solving = 0;
-        time_rom_projection_back = 0;
-    }
-
-    double Get_contruction_time(){
-        return  time_rom_system_contruction;
-    }
-
-    double Get_solving_time(){
-        return time_rom_system_solving;
-    }
-
-    double Get_projection_time(){
-        return time_rom_projection_back;
-    }
-
-
     ///@}
 protected:
 
@@ -599,19 +563,6 @@ protected:
     }
 
     /**
-    * Thread Local Storage containing dynamically allocated structures to avoid reallocating each iteration.
-    */
-    struct AssemblyTLS
-    {
-        Matrix phiE = {};                // Elemental Phi
-        LocalSystemMatrixType lhs = {};  // Elemental LHS
-        EquationIdVectorType eq_id = {}; // Elemental equation ID vector
-        DofsVectorType dofs = {};        // Elemental dof vector
-        RomSystemMatrixType romA;        // reduced LHS
-        RomSystemVectorType romB;        // reduced RHS
-    };
-
-    /**
      * Resizes a Matrix if it's not the right size
      */
     template<typename TMatrix>
@@ -627,132 +578,130 @@ protected:
     /**
      * Builds the reduced system of equations on rank 0 
      */
-    void BuildROM(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        LSPGSystemMatrixType &rA,
-        LSPGSystemVectorType &rb) override
-    {
-        KRATOS_TRY
-        // Define a dense matrix to hold the reduced problem
-        rA = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
-        rb = ZeroVector(BaseType::GetEquationSystemSize());
+    // void BuildROM(
+    //     typename TSchemeType::Pointer pScheme,
+    //     ModelPart &rModelPart,
+    //     LSPGSystemMatrixType &rA,
+    //     LSPGSystemVectorType &rb) override
+    // {
+    //     KRATOS_TRY
+    //     // Define a dense matrix to hold the reduced problem
+    //     rA = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
+    //     rb = ZeroVector(BaseType::GetEquationSystemSize());
 
-        // Build the system matrix by looping over elements and conditions and assembling to A
-        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+    //     // Build the system matrix by looping over elements and conditions and assembling to A
+    //     KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
-        // Get ProcessInfo from main model part
-        const auto& r_current_process_info = rModelPart.GetProcessInfo();
-
-
-        // Assemble all entities
-        const auto assembling_timer = BuiltinTimer();
-
-        AssemblyTLS assembly_tls_container;
-
-        // const auto& r_elements = rModelPart.Elements();
-        const auto& r_elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
-
-        if(!r_elements.empty())
-        {
-            block_for_each(r_elements, assembly_tls_container, 
-                [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
-            {
-                CalculateLocalContributionLSPG(r_element, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info, true);
-            });
-        }
+    //     // Get ProcessInfo from main model part
+    //     const auto& r_current_process_info = rModelPart.GetProcessInfo();
 
 
-        // const auto& r_conditions = rModelPart.Conditions();
-        const auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
+    //     // Assemble all entities
+    //     const auto assembling_timer = BuiltinTimer();
 
-        if(!r_conditions.empty())
-        {
-            block_for_each(r_conditions, assembly_tls_container, 
-                [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
-            {
-                CalculateLocalContributionLSPG(r_condition, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info, true);
-            });
-        }
+    //     AssemblyTLS assembly_tls_container;
 
-        //////////
-        //BUILD COMPLETE OPERATOR FOR HROM 
-        Matrix rA_left;
-        Vector rb_left;
-        if (this->mHromSimulation){
-            // rA_left = rA;
-            // rb_left = rb;  
-            AssemblyTLS assembly_tls_container_left;
-            rA_left = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
-            rb_left = ZeroVector(BaseType::GetEquationSystemSize());
-            // const auto& r_elements_left = rModelPart.Elements();
-            auto& r_elements_left = mNeighbouringAndSelectedElements;
-            // auto& r_elements_left = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
-            // auto& r_elements_left = mComplementaryElements;
+    //     // const auto& r_elements = rModelPart.Elements();
+    //     const auto& r_elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
 
-            if(!r_elements_left.empty())
-            {
-                block_for_each(r_elements_left, assembly_tls_container_left, 
-                    [&](Element& r_element, AssemblyTLS& r_thread_prealloc_left)
-                {
-                    CalculateLocalContributionLSPG(r_element, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
-                });
-            }
+    //     if(!r_elements.empty())
+    //     {
+    //         block_for_each(r_elements, assembly_tls_container, 
+    //             [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
+    //         {
+    //             CalculateLocalContributionLSPG(r_element, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info, true);
+    //         });
+    //     }
 
-            // const auto& r_conditions_left = rModelPart.Conditions();
-            auto& r_conditions_left = mNeighbouringAndSelectedConditions;
-            // auto& r_conditions_left = mComplementaryConditions;
-            // auto& r_conditions_left = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
-            if(!r_conditions_left.empty())
-            {
-                block_for_each(r_conditions_left, assembly_tls_container_left, 
-                    [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc_left)
-                {
-                    CalculateLocalContributionLSPG(r_condition, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
-                });
-            }
 
-            // Initialize the mask vector with zeros
-            Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
+    //     // const auto& r_conditions = rModelPart.Conditions();
+    //     const auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
 
-            // Build the mask vector for selected elements and conditions
-            BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
+    //     if(!r_conditions.empty())
+    //     {
+    //         block_for_each(r_conditions, assembly_tls_container, 
+    //             [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
+    //         {
+    //             CalculateLocalContributionLSPG(r_condition, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info, true);
+    //         });
+    //     }
 
-            // Zero out rows in the matrix that correspond to zero in the mask vector
-            ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
-        }
+    //     //////////
+    //     //BUILD COMPLETE OPERATOR FOR HROM 
+    //     Matrix rA_left;
+    //     Vector rb_left;
+    //     if (this->mHromSimulation){
+    //         // rA_left = rA;
+    //         // rb_left = rb;  
+    //         AssemblyTLS assembly_tls_container_left;
+    //         rA_left = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
+    //         rb_left = ZeroVector(BaseType::GetEquationSystemSize());
+    //         // const auto& r_elements_left = rModelPart.Elements();
+    //         auto& r_elements_left = mNeighbouringAndSelectedElements;
+    //         // auto& r_elements_left = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
+    //         // auto& r_elements_left = mComplementaryElements;
 
-        const auto projection_timer = BuiltinTimer();
+    //         if(!r_elements_left.empty())
+    //         {
+    //             block_for_each(r_elements_left, assembly_tls_container_left, 
+    //                 [&](Element& r_element, AssemblyTLS& r_thread_prealloc_left)
+    //             {
+    //                 CalculateLocalContributionLSPG(r_element, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
+    //             });
+    //         }
 
-        using EigenDynamicMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-        using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+    //         // const auto& r_conditions_left = rModelPart.Conditions();
+    //         auto& r_conditions_left = mNeighbouringAndSelectedConditions;
+    //         // auto& r_conditions_left = mComplementaryConditions;
+    //         // auto& r_conditions_left = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
+    //         if(!r_conditions_left.empty())
+    //         {
+    //             block_for_each(r_conditions_left, assembly_tls_container_left, 
+    //                 [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc_left)
+    //             {
+    //                 CalculateLocalContributionLSPG(r_condition, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
+    //             });
+    //         }
 
-        // Create the Eigen matrix using the buffer
-        Eigen::Map<EigenDynamicMatrix> eigen_matrix(rA.data().begin(), rA.size1(), rA.size2());
-        Eigen::Map<EigenDynamicVector> eigen_vector(rb.data().begin(), rb.size());
+    //         // Initialize the mask vector with zeros
+    //         Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
 
-        if (this->mHromSimulation){
-            Eigen::Map<EigenDynamicMatrix> eigen_matrix_left(rA_left.data().begin(), rA_left.size1(), rA_left.size2());
-            // KRATOS_WATCH(eigen_matrix)
-            // KRATOS_WATCH(eigen_matrix_left)
-            mA_eigen = eigen_matrix_left.transpose() * eigen_matrix;
-            mb_eigen = eigen_matrix_left.transpose() * eigen_vector;
-        }
-        else{
-            // Compute the matrix multiplication
-            mA_eigen = eigen_matrix.transpose() * eigen_matrix;
-            mb_eigen = eigen_matrix.transpose() * eigen_vector;
-        }
+    //         // Build the mask vector for selected elements and conditions
+    //         BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
+
+    //         // Zero out rows in the matrix that correspond to zero in the mask vector
+    //         ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
+    //     }
+
+    //     const auto projection_timer = BuiltinTimer();
+
+    //     using EigenDynamicMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
+    //     using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+
+    //     // Create the Eigen matrix using the buffer
+    //     Eigen::Map<EigenDynamicMatrix> eigen_matrix(rA.data().begin(), rA.size1(), rA.size2());
+    //     Eigen::Map<EigenDynamicVector> eigen_vector(rb.data().begin(), rb.size());
+
+    //     if (this->mHromSimulation){
+    //         Eigen::Map<EigenDynamicMatrix> eigen_matrix_left(rA_left.data().begin(), rA_left.size1(), rA_left.size2());
+    //         mA_eigen = eigen_matrix_left.transpose() * eigen_matrix;
+    //         mb_eigen = eigen_matrix_left.transpose() * eigen_vector;
+    //     }
+    //     else{
+    //         // Compute the matrix multiplication
+    //         mA_eigen = eigen_matrix.transpose() * eigen_matrix;
+    //         mb_eigen = eigen_matrix.transpose() * eigen_vector;
+    //     }
         
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Projection time: " << projection_timer.ElapsedSeconds() << std::endl;
-        time_rom_system_contruction += assembling_timer.ElapsedSeconds();
-        double time = assembling_timer.ElapsedSeconds();
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << time << std::endl;
+    //     KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Projection time: " << projection_timer.ElapsedSeconds() << std::endl;
         
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
+    //     double time = assembling_timer.ElapsedSeconds();
+    //     KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << time << std::endl;
+        
+    //     KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
 
-        KRATOS_CATCH("")
-    }
+    //     KRATOS_CATCH("")
+    // }
 
     void ApplyMaskToMatrixRows(Matrix& rA_left, 
         const Vector& hrom_dof_mask_vector)
@@ -811,96 +760,6 @@ protected:
         }
     }
 
-
-    /**
-     * Solves reduced system of equations and broadcasts it
-     */
-    void SolveROM(
-        ModelPart &rModelPart,
-        LSPGSystemMatrixType &rA,
-        LSPGSystemVectorType &rb,
-        TSystemVectorType &rDx) override
-    {
-        KRATOS_TRY
-
-        LSPGSystemVectorType dxrom(this->GetNumberOfROMModes());
-        
-        const auto solving_timer = BuiltinTimer();
-
-        using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
-        Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
-        dxrom_eigen = mA_eigen.colPivHouseholderQr().solve(mb_eigen);
-        // KRATOS_WATCH(mA_eigen)
-        // KRATOS_WATCH(dxrom_eigen)
-        time_rom_system_solving+= solving_timer.ElapsedSeconds();
-        double time = solving_timer.ElapsedSeconds();
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << time << std::endl;
-        
-
-        // Save the ROM solution increment in the root modelpart database
-        auto& r_root_mp = rModelPart.GetRootModelPart();
-        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
-
-        // project reduced solution back to full order model
-        const auto backward_projection_timer = BuiltinTimer();
-        this->ProjectToFineBasis(dxrom, rModelPart, rDx);
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
-    /**
-     * Builds the reduced system of equations on rank 0 
-     */
-    void GetAssembledResiduals(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart,
-        LSPGSystemVectorType &rb) 
-    {
-        KRATOS_TRY
-        const auto residual_writing_timer = BuiltinTimer();
-        // Define a dense matrix to hold the reduced problem
-        rb = ZeroVector(BaseType::GetEquationSystemSize());
-
-        // Build the system matrix by looping over elements and conditions and assembling to A
-        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-        // Get ProcessInfo from main model part
-        const auto& r_current_process_info = rModelPart.GetProcessInfo();
-
-        AssemblyTLS assembly_tls_container;
-
-        const auto& r_elements = rModelPart.Elements();
-
-        if(!r_elements.empty())
-        {
-            block_for_each(r_elements, assembly_tls_container, 
-                [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
-            {
-                CalculateAssembledResiduals(r_element, rb, r_thread_prealloc, *pScheme, r_current_process_info);
-            });
-        }
-
-
-        const auto& r_conditions = rModelPart.Conditions();
-
-        if(!r_conditions.empty())
-        {
-            block_for_each(r_conditions, assembly_tls_container, 
-                [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
-            {
-                CalculateAssembledResiduals(r_condition, rb, r_thread_prealloc, *pScheme, r_current_process_info);
-            });
-        }
-
-        std::stringstream matrix_market_vector_name;
-        matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME] << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] <<  ".res.mm";
-        SparseSpaceType::WriteMatrixMarketVector((matrix_market_vector_name.str()).c_str(), rb);
-
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Write residuals to train Petrov Galerkin time: " << residual_writing_timer.ElapsedSeconds() << std::endl;
-        KRATOS_CATCH("")
-    }
-
     ///@}
     ///@name Protected access
     ///@{
@@ -917,113 +776,14 @@ protected:
     
 private:
 
-    SizeType mNumberOfRomModes;
     bool mRightRomBasisInitialized = false;
-    Eigen::MatrixXd mA_eigen;
-    Eigen::VectorXd mb_eigen;
+    EigenDynamicMatrix mEigenRomA;
+    EigenDynamicVector mEigenRomB;
     Matrix mPhiGlobal;
 
     ///@}
     ///@name Private operations 
     ///@{
-
-    /**
-     * Computes the local contribution of an element or condition for LSPG
-     */
-    template<typename TEntity>
-    void CalculateLocalContributionLSPG(
-        TEntity& rEntity,
-        LSPGSystemMatrixType& rAglobal,
-        LSPGSystemVectorType& rBglobal,
-        AssemblyTLS& rPreAlloc,
-        TSchemeType& rScheme,
-        const ProcessInfo& rCurrentProcessInfo,
-        bool rHromWeightFlag)
-    {
-        if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE)) return;
-
-        // Calculate elemental contribution
-        rScheme.CalculateSystemContributions(rEntity, rPreAlloc.lhs, rPreAlloc.romB, rPreAlloc.eq_id, rCurrentProcessInfo);
-        if (rHromWeightFlag){
-            const double hrom_weight = this->mHromSimulation ? rEntity.GetValue(HROM_WEIGHT) : 1.0;
-            rPreAlloc.lhs *= hrom_weight;
-            rPreAlloc.romB *= hrom_weight;
-        }
-        
-        rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
-
-        const SizeType ndofs = rPreAlloc.dofs.size();
-        ResizeIfNeeded(rPreAlloc.phiE, ndofs, this->GetNumberOfROMModes());
-        ResizeIfNeeded(rPreAlloc.romA, ndofs, this->GetNumberOfROMModes());
-
-        const auto &r_geom = rEntity.GetGeometry();
-        RomAuxiliaryUtilities::GetPhiElemental(rPreAlloc.phiE, rPreAlloc.dofs, r_geom, this->mMapPhi);
-
-        // if (rHromWeightFlag){
-        //     const double hrom_weight = this->mHromSimulation ? rEntity.GetValue(HROM_WEIGHT) : 1.0;
-        //     noalias(rPreAlloc.romA) = prod(rPreAlloc.lhs, rPreAlloc.phiE) * hrom_weight;
-        // }
-        // else{
-        //     noalias(rPreAlloc.romA) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
-        // }
-
-        noalias(rPreAlloc.romA) = prod(rPreAlloc.lhs, rPreAlloc.phiE);
-
-        // Assembly
-        for(SizeType row=0; row < ndofs; ++row)
-        {
-            const SizeType global_row = rPreAlloc.eq_id[row];
-
-            double& r_bi = rBglobal(global_row);
-            AtomicAdd(r_bi, rPreAlloc.romB[row]);
-
-            if(rPreAlloc.dofs[row]->IsFree())
-            {
-                for(SizeType col=0; col < this->GetNumberOfROMModes(); ++col)
-                {
-                    // const SizeType global_col = rPreAlloc.eq_id[col];
-                    const SizeType global_col = col;
-                    double& r_aij = rAglobal(global_row, global_col);
-                    AtomicAdd(r_aij, rPreAlloc.romA(row, col));
-                }
-            }
-        }
-    }
-
-    /**
-     * Computes the global assembled residual 
-     */
-    template<typename TEntity>
-    void CalculateAssembledResiduals(
-        TEntity& rEntity,
-        LSPGSystemVectorType& rBglobal,
-        AssemblyTLS& rPreAlloc,
-        TSchemeType& rScheme,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE)) return;
-
-        // Calculate elemental contribution
-        rScheme.CalculateRHSContribution(rEntity, rPreAlloc.romB, rPreAlloc.eq_id, rCurrentProcessInfo);
-        rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);
-
-        const SizeType ndofs = rPreAlloc.dofs.size();
-
-        // Assembly
-        for(SizeType row=0; row < ndofs; ++row)
-        {
-            const SizeType global_row = rPreAlloc.eq_id[row];
-
-            if(rPreAlloc.dofs[row]->IsFree())
-            {
-                double& r_bi = rBglobal(global_row);
-                AtomicAdd(r_bi, rPreAlloc.romB[row]);
-            }
-        }
-    }
-
-
-
 
     ///@}
 }; /* Class GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver */

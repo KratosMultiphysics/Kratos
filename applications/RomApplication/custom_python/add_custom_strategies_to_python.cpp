@@ -79,9 +79,9 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
         ;
 
-    typedef GlobalLSPGROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> GlobalLSPGROMBuilderAndSolverType;
+    typedef GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType;
     
-    py::class_<GlobalLSPGROMBuilderAndSolverType, typename GlobalLSPGROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "GlobalLSPGROMBuilderAndSolver")
+    py::class_<GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, GlobalROMBuilderAndSolverType>(m, "GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
         ;
 
