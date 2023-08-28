@@ -103,9 +103,10 @@ private:
  *      "list_of_variables" : []
  *  }
  */
+template<class TVertexDataIOType>
 class KRATOS_API(HDF5_APPLICATION) VertexContainerVariableIO: protected ContainerComponentIO<
                                                                                 Detail::VertexContainerType,
-                                                                                Internals::VertexValueIO,
+                                                                                TVertexDataIOType,
                                                                                 Variable<int>,
                                                                                 Variable<double>,
                                                                                 Variable<array_1d<double, 3>>,
@@ -121,7 +122,7 @@ public:
 
     using BaseType = ContainerComponentIO<
                                 Detail::VertexContainerType,
-                                Internals::VertexValueIO,
+                                TVertexDataIOType,
                                 Variable<int>,
                                 Variable<double>,
                                 Variable<array_1d<double, 3>>,
@@ -148,7 +149,8 @@ public:
 
     void Write(
         const Detail::VertexContainerType& rVertices,
-        Parameters Attributes);
+        const TVertexDataIOType& rVertexDataIO,
+        const Parameters Attributes);
 
     ///@}
 
