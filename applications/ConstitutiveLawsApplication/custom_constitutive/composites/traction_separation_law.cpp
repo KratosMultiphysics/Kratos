@@ -53,7 +53,9 @@ TractionSeparationLaw3D<TDim>::TractionSeparationLaw3D(const TractionSeparationL
       mDelaminationDamageModeOne(rOther.mDelaminationDamageModeOne),
       mDelaminationDamageModeTwo(rOther.mDelaminationDamageModeTwo),
       mThresholdModeOne(rOther.mThresholdModeOne),
-      mThresholdModeTwo(rOther.mThresholdModeTwo)
+      mThresholdModeTwo(rOther.mThresholdModeTwo),
+      mFatigueDataContainersModeOne(rOther.mFatigueDataContainersModeOne),
+      mFatigueDataContainersModeTwo(rOther.mFatigueDataContainersModeTwo)
 {
 }
 
@@ -199,6 +201,9 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
     for (IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
         mThresholdModeTwo[i] = rMaterialProperties.Has(INTERFACIAL_SHEAR_STRENGTH_VECTOR) ? rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH_VECTOR][i] : rMaterialProperties[INTERFACIAL_SHEAR_STRENGTH];
     }
+
+    mFatigueDataContainersModeOne.resize(r_p_constitutive_law_vector.size()-1);
+    mFatigueDataContainersModeTwo.resize(r_p_constitutive_law_vector.size()-1);
 }
 
 /***********************************************************************************/
@@ -300,8 +305,10 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
         Vector DelaminationDamageModeTwo(r_p_constitutive_law_vector.size()+1);
         Vector ThresholdModeOne(r_p_constitutive_law_vector.size()-1);
         Vector ThresholdModeTwo(r_p_constitutive_law_vector.size()-1);
-        vector <HCFDataContainer::FatigueVariables> HCFVariablesModeOne(r_p_constitutive_law_vector.size()-1);
-        vector <HCFDataContainer::FatigueVariables> HCFVariablesModeTwo(r_p_constitutive_law_vector.size()-1);
+        // vector <HCFDataContainer::FatigueVariables> HCFVariablesModeOne(r_p_constitutive_law_vector.size()-1);
+        // vector <HCFDataContainer::FatigueVariables> HCFVariablesModeTwo(r_p_constitutive_law_vector.size()-1);
+        // HCFDataContainer::FatigueVariables HCFVariablesModeOne = HCFDataContainer::FatigueVariables();
+        // HCFDataContainer::FatigueVariables HCFVariablesModeTwo = HCFDataContainer::FatigueVariables();
 
         noalias(DelaminationDamageModeOne) = mDelaminationDamageModeOne;
         noalias(DelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
@@ -319,8 +326,11 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             double equivalent_stress_mode_two = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
 
             // Fatigue calculations
-            mFatigueDataModeOne.InitializeFatigueVariables(HCFVariablesModeOne[i]);
-            mFatigueDataModeTwo.InitializeFatigueVariables(HCFVariablesModeTwo[i]);
+            HCFDataContainer::FatigueVariables HCFVariablesModeOne = HCFDataContainer::FatigueVariables();
+            HCFDataContainer::FatigueVariables HCFVariablesModeTwo = HCFDataContainer::FatigueVariables();
+
+            mFatigueDataContainersModeOne[i].InitializeFatigueVariables(HCFVariablesModeOne);
+            mFatigueDataContainersModeTwo[i].InitializeFatigueVariables(HCFVariablesModeTwo);
 
             Vector fatigue_interfacial_stress_vector_mode_one = ZeroVector(VoigtSize);
             Vector fatigue_interfacial_stress_vector_mode_two = ZeroVector(VoigtSize);
@@ -329,14 +339,14 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             fatigue_interfacial_stress_vector_mode_two[4] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5;
             fatigue_interfacial_stress_vector_mode_two[5] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5;
 
-            mFatigueDataModeOne.FinalizeSolutionStep(HCFVariablesModeOne[i],
+            mFatigueDataContainersModeOne[i].FinalizeSolutionStep(HCFVariablesModeOne,
                                             rValues.GetMaterialProperties(),
                                             rValues.GetProcessInfo(),
                                             fatigue_interfacial_stress_vector_mode_one,
                                             equivalent_stress_mode_one_fred,
                                             INTERFACIAL_NORMAL_STRENGTH);
 
-            mFatigueDataModeTwo.FinalizeSolutionStep(HCFVariablesModeTwo[i],
+            mFatigueDataContainersModeTwo[i].FinalizeSolutionStep(HCFVariablesModeTwo,
                                             rValues.GetMaterialProperties(),
                                             rValues.GetProcessInfo(),
                                             fatigue_interfacial_stress_vector_mode_two,
@@ -357,14 +367,14 @@ void  TractionSeparationLaw3D<TDim>::CalculateMaterialResponsePK2(ConstitutiveLa
             const double Ei = r_material_properties.Has(TENSILE_INTERFACE_MODULUS_VECTOR) ? r_material_properties[TENSILE_INTERFACE_MODULUS_VECTOR][i] : r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
             const double Gi = r_material_properties.Has(SHEAR_INTERFACE_MODULUS_VECTOR) ? r_material_properties[SHEAR_INTERFACE_MODULUS_VECTOR][i] : r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
 
-            equivalent_stress_mode_one /= HCFVariablesModeOne[i].FatigueReductionFactor;
+            equivalent_stress_mode_one /= HCFVariablesModeOne.FatigueReductionFactor;
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
 
                 DelaminationDamageModeOne[i+1] = CalculateDelaminationDamageExponentialSoftening(rValues, GIc, Ei, T0n, equivalent_stress_mode_one);
             }
 
-            equivalent_stress_mode_two /= HCFVariablesModeTwo[i].FatigueReductionFactor;
+            equivalent_stress_mode_two /= HCFVariablesModeTwo.FatigueReductionFactor;
             const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
             if (F_mode_two > tolerance) {
 
@@ -533,8 +543,10 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
         Vector DelaminationDamageModeTwo(r_p_constitutive_law_vector.size()+1);
         Vector ThresholdModeOne(r_p_constitutive_law_vector.size()-1);
         Vector ThresholdModeTwo(r_p_constitutive_law_vector.size()-1);
-        vector <HCFDataContainer::FatigueVariables> HCFVariablesModeOne(r_p_constitutive_law_vector.size()-1);
-        vector <HCFDataContainer::FatigueVariables> HCFVariablesModeTwo(r_p_constitutive_law_vector.size()-1);
+        // vector <HCFDataContainer::FatigueVariables> HCFVariablesModeOne(r_p_constitutive_law_vector.size()-1);
+        // vector <HCFDataContainer::FatigueVariables> HCFVariablesModeTwo(r_p_constitutive_law_vector.size()-1);
+        // HCFDataContainer::FatigueVariables HCFVariablesModeOne = HCFDataContainer::FatigueVariables();
+        // HCFDataContainer::FatigueVariables HCFVariablesModeTwo = HCFDataContainer::FatigueVariables();
 
         noalias(DelaminationDamageModeOne) = mDelaminationDamageModeOne;
         noalias(DelaminationDamageModeTwo) = mDelaminationDamageModeTwo;
@@ -551,8 +563,11 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             double equivalent_stress_mode_two = std::sqrt(std::pow(interfacial_stress[i][1],2.0)+std::pow(interfacial_stress[i][2],2.0));
 
             // Fatigue calculations
-            mFatigueDataModeOne.InitializeFatigueVariables(HCFVariablesModeOne[i]);
-            mFatigueDataModeTwo.InitializeFatigueVariables(HCFVariablesModeTwo[i]);
+            HCFDataContainer::FatigueVariables HCFVariablesModeOne = HCFDataContainer::FatigueVariables();
+            HCFDataContainer::FatigueVariables HCFVariablesModeTwo = HCFDataContainer::FatigueVariables();
+
+            mFatigueDataContainersModeOne[i].InitializeFatigueVariables(HCFVariablesModeOne);
+            mFatigueDataContainersModeTwo[i].InitializeFatigueVariables(HCFVariablesModeTwo);
 
             Vector fatigue_interfacial_stress_vector_mode_one = ZeroVector(VoigtSize);
             Vector fatigue_interfacial_stress_vector_mode_two = ZeroVector(VoigtSize);
@@ -561,14 +576,14 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             fatigue_interfacial_stress_vector_mode_two[4] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5;
             fatigue_interfacial_stress_vector_mode_two[5] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5;
 
-            mFatigueDataModeOne.FinalizeSolutionStep(HCFVariablesModeOne[i],
+            mFatigueDataContainersModeOne[i].FinalizeSolutionStep(HCFVariablesModeOne,
                                             rValues.GetMaterialProperties(),
                                             rValues.GetProcessInfo(),
                                             fatigue_interfacial_stress_vector_mode_one,
                                             equivalent_stress_mode_one_fred,
                                             INTERFACIAL_NORMAL_STRENGTH);
 
-            mFatigueDataModeTwo.FinalizeSolutionStep(HCFVariablesModeTwo[i],
+            mFatigueDataContainersModeTwo[i].FinalizeSolutionStep(HCFVariablesModeTwo,
                                             rValues.GetMaterialProperties(),
                                             rValues.GetProcessInfo(),
                                             fatigue_interfacial_stress_vector_mode_two,
@@ -588,7 +603,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             const double Ei = r_material_properties.Has(TENSILE_INTERFACE_MODULUS_VECTOR) ? r_material_properties[TENSILE_INTERFACE_MODULUS_VECTOR][i] : r_material_properties[TENSILE_INTERFACE_MODULUS]; // Tensile modulus of the interface
             const double Gi = r_material_properties.Has(SHEAR_INTERFACE_MODULUS_VECTOR) ? r_material_properties[SHEAR_INTERFACE_MODULUS_VECTOR][i] : r_material_properties[SHEAR_INTERFACE_MODULUS]; // Shear modulus of the interface
 
-            equivalent_stress_mode_one /= HCFVariablesModeOne[i].FatigueReductionFactor;
+            equivalent_stress_mode_one /= HCFVariablesModeOne.FatigueReductionFactor;
             const double F_mode_one = equivalent_stress_mode_one - ThresholdModeOne[i];
             if (F_mode_one > tolerance) {
 
@@ -598,7 +613,7 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
                 mThresholdModeOne[i] = equivalent_stress_mode_one;
             }
 
-            equivalent_stress_mode_two /= HCFVariablesModeTwo[i].FatigueReductionFactor;
+            equivalent_stress_mode_two /= HCFVariablesModeTwo.FatigueReductionFactor;
             const double F_mode_two = equivalent_stress_mode_two - ThresholdModeTwo[i];
             if (F_mode_two > tolerance) {
 
@@ -608,14 +623,14 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
                 mThresholdModeTwo[i] = equivalent_stress_mode_two;
             }
 
-            mFatigueDataModeOne.UpdateFatigueVariables(HCFVariablesModeOne[i]);
-            mFatigueDataModeTwo.UpdateFatigueVariables(HCFVariablesModeTwo[i]);
+            mFatigueDataContainersModeOne[i].UpdateFatigueVariables(HCFVariablesModeOne);
+            mFatigueDataContainersModeTwo[i].UpdateFatigueVariables(HCFVariablesModeTwo);
 
-            // KRATOS_WATCH(HCFVariablesModeOne[i].GlobalNumberOfCycles);
-            // KRATOS_WATCH(HCFVariablesModeOne[i].Sth);
-            // KRATOS_WATCH(HCFVariablesModeOne[i].MaxStress);
-            // KRATOS_WATCH(HCFVariablesModeOne[i].MinStress);
-            // KRATOS_WATCH(HCFVariablesModeOne[i].FatigueReductionFactor);
+            // KRATOS_WATCH(HCFVariablesModeOne.GlobalNumberOfCycles);
+            // KRATOS_WATCH(HCFVariablesModeOne.Sth);
+            // KRATOS_WATCH(HCFVariablesModeOne.MaxStress);
+            // KRATOS_WATCH(HCFVariablesModeOne.MinStress);
+            // KRATOS_WATCH(mFatigueDataContainersModeOne[i].mFatigueReductionFactor);
 
             // End damage calculation
         }

@@ -279,8 +279,10 @@ private:
     Vector mDelaminationDamageModeTwo;
     Vector mThresholdModeOne;
     Vector mThresholdModeTwo;
-    HCFDataContainer mFatigueDataModeOne = HCFDataContainer();
-    HCFDataContainer mFatigueDataModeTwo = HCFDataContainer();
+    // HCFDataContainer mFatigueDataModeOne = HCFDataContainer();
+    // HCFDataContainer mFatigueDataModeTwo = HCFDataContainer();
+    std::vector <HCFDataContainer> mFatigueDataContainersModeOne;
+    std::vector <HCFDataContainer> mFatigueDataContainersModeTwo;
     ///@}
     ///@name Private Operators
     ///@{
