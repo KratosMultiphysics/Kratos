@@ -204,8 +204,7 @@ class NewPointOutputProcess(HDF5OutputProcess):
             vertex = HDF5Application.Vertex.MakeShared(
                 position.GetVector(),
                 locator,
-                i_vertex,
-                isHistorical)
+                i_vertex)
             if vertex.IsLocated():
                 self.vertices.push_back(vertex)
 
