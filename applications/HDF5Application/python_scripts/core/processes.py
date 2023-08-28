@@ -7,9 +7,6 @@ change frequently.
 
 license: HDF5Application/license.txt
 """
-
-__all__ = ["Factory"]
-
 # Kratos imports
 import KratosMultiphysics
 from .operations.aggregated_operations import AggregatedControlledOperations
