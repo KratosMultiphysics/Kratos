@@ -34,8 +34,7 @@ Parameters TemporalController::GetDefaultParameters() const
 TemporalController::TemporalController(
     const Model& rModel,
     Parameters Settings)
-    : mpModel(&rModel),
-      mNextOutput{}
+    : mpModel(&rModel)
 {
     KRATOS_TRY
 
@@ -47,9 +46,11 @@ TemporalController::TemporalController(
     if (output_control_type == "step") {
         mInterval = Settings["output_interval"].GetInt();
         mpVariable = &STEP;
+        mNextPossibleEvaluate = 0;
     } else if (output_control_type == "time") {
         mInterval = Settings["output_interval"].GetDouble();
         mpVariable = &TIME;
+        mNextPossibleEvaluate = 0.0;
     } else {
         KRATOS_ERROR << "Unsupported output_control_type = \""
                      << output_control_type << "\". Followings are supported:"
@@ -93,12 +94,14 @@ bool TemporalController::Evaluate() const
     return std::visit([&](const auto& pVariable){
         using data_type = typename std::decay_t<decltype(*pVariable)>::Type;
         const auto current_value = r_process_info[*pVariable];
-        return std::get<data_type>(mNextOutput) <= current_value;
+        return std::get<data_type>(mNextPossibleEvaluate) <= current_value;
     }, mpVariable);
 }
 
 void TemporalController::Update()
 {
+    KRATOS_TRY
+
     const auto& r_process_info = mpModel->GetModelPart(mModelPartName).GetProcessInfo();
     std::visit([&](const auto& pVariable) {
         using data_type = typename std::decay_t<decltype(*pVariable)>::Type;
@@ -106,11 +109,12 @@ void TemporalController::Update()
 
         if (interval > 0) {
             const auto current_value = r_process_info[*pVariable];
-            while (std::get<data_type>(mNextOutput) <= current_value) {
-                std::get<data_type>(mNextOutput) += interval;
-            }
+            auto& next_possible_evaluate = std::get<data_type>(mNextPossibleEvaluate);
+            next_possible_evaluate = (static_cast<int>(current_value / interval) + 1) * interval;
         }
     }, mpVariable);
+
+    KRATOS_CATCH("");
 }
 
 std::variant<int, double> TemporalController::GetCurrentControlValue() const
@@ -119,6 +123,16 @@ std::variant<int, double> TemporalController::GetCurrentControlValue() const
     return std::visit([&](const auto& pVariable) -> std::variant<int, double> {
         return r_process_info[*pVariable];
     }, mpVariable);
+}
+
+std::variant<int, double> TemporalController::GetInterval() const
+{
+    return mInterval;
+}
+
+std::variant<int, double> TemporalController::GetNextPossibleEvaluateControlValue() const
+{
+    return mNextPossibleEvaluate;
 }
 
 std::string TemporalController::Info() const
@@ -135,9 +149,9 @@ void TemporalController::PrintData(std::ostream& rOStream) const
 {
     std::visit([&](const auto& pVariable){
         using data_type = typename std::decay_t<decltype(*pVariable)>::Type;
-        rOStream << "Interval   : " << std::get<data_type>(mInterval) << std::endl
-                 << "Variable   : " << pVariable->Name() << std::endl
-                 << "Next output: " << std::get<data_type>(mNextOutput) << std::endl;
+        rOStream << "Interval     : " << std::get<data_type>(mInterval) << std::endl
+                 << "Variable     : " << pVariable->Name() << std::endl
+                 << "Next evaluate: " << std::get<data_type>(mNextPossibleEvaluate) << std::endl;
     }, mpVariable);
 }
 

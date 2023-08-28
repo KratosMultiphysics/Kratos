@@ -107,6 +107,16 @@ public:
     std::variant<int, double> GetCurrentControlValue() const;
 
     /**
+     * @brief Get the interval used in the control.
+     */
+    std::variant<int, double> GetInterval() const;
+
+    /**
+     * @brief Get the next possible evaluation control value.
+     */
+    std::variant<int, double> GetNextPossibleEvaluateControlValue() const;
+
+    /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
      */
     Parameters GetDefaultParameters() const override;
@@ -132,7 +142,7 @@ private:
 
     Model const * mpModel;
 
-    std::variant<int, double> mNextOutput;
+    std::variant<int, double> mNextPossibleEvaluate;
 
     std::variant<int, double> mInterval;
 
@@ -143,6 +153,7 @@ private:
     std::string mModelPartName;
 
     ///@}
+
 }; // Class TemporalController
 
 }  // namespace Kratos.
