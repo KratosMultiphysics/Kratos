@@ -86,7 +86,7 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
             "output_time_settings": {
                 "output_interval": 3.0
             },
-            "vertex_output_settings": {
+            "point_output_settings": {
                 "prefix"              : "/test_point_set_output_<model_part_name>",
                 "time_format"         : "0.4f",
                 "positions"           : [[0.0, 0.0, 0.0]],

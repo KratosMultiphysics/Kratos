@@ -39,7 +39,7 @@ class PointSetOutputProcess(HDF5OutputProcess):
                     "output_interval"    : 1.0,
                     "interval"           : [0.0, "End"]
                 },
-                "vertex_output_settings": {
+                "point_output_settings": {
                     "prefix"              : "/VertexData/Coordinates",
                     "time_format"         : "0.4f",
                     "positions"           : [[]],
@@ -64,24 +64,24 @@ class PointSetOutputProcess(HDF5OutputProcess):
 
         self.model_part = model[parameters["model_part_name"].GetString()]
 
-        vertex_output_settings = parameters["vertex_output_settings"]
+        point_output_settings = parameters["point_output_settings"]
 
         # create locator
-        configuration_name = vertex_output_settings["search_configuration"].GetString()
+        configuration_name = point_output_settings["search_configuration"].GetString()
         if configuration_name == "initial":
             search_configuration = KratosMultiphysics.Configuration.Initial
         elif configuration_name == "current":
             search_configuration = KratosMultiphysics.Configuration.Current
         else:
             raise RuntimeError("Invalid search configuration: '{}'".format(configuration_name))
-        search_tolerance = vertex_output_settings["search_tolerance"].GetDouble()
+        search_tolerance = point_output_settings["search_tolerance"].GetDouble()
         locator = HDF5Application.BruteForcePointLocatorAdaptor(self.model_part,
                                                                 search_configuration,
                                                                 search_tolerance)
 
         # create vertices
         self.vertices = HDF5Application.VertexContainer()
-        for i_vertex, position in enumerate(vertex_output_settings["positions"].values()):
+        for i_vertex, position in enumerate(point_output_settings["positions"].values()):
             vertex = HDF5Application.Vertex.MakeShared(
                 position.GetVector(),
                 locator,
@@ -99,7 +99,7 @@ class PointSetOutputProcess(HDF5OutputProcess):
         operations = AggregatedControlledOperations(self.model_part, parameters["file_settings"], self.vertices)
 
         # adding one time mesh output
-        operations.AddControlledOperation(ControlledOperation(VertexCoordinateOutput, parameters["vertex_output_settings"], SingleTimeController(temporal_controller)))
+        operations.AddControlledOperation(ControlledOperation(VertexCoordinateOutput, parameters["point_output_settings"], SingleTimeController(temporal_controller)))
 
         # now adding temporal outputs.
         operations.AddControlledOperation(ControlledOperation(VertexHistoricalValueOutput, parameters["nodal_solution_step_data_settings"], temporal_controller))
