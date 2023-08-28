@@ -65,7 +65,7 @@ class AlgorithmGradientProjection(Algorithm):
 
         self.__objective = StandardizedObjective(parameters["objective"], self.master_control, self._optimization_problem)
         self.__constraints_list: 'list[StandardizedConstraint]' = []
-        for constraint_param in parameters["constraints"]:
+        for constraint_param in parameters["constraints"].values():
             constraint = StandardizedConstraint(constraint_param, self.master_control, self._optimization_problem)
             self.__constraints_list.append(constraint)
         self.__control_field = None
