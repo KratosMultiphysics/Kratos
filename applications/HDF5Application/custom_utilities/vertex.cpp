@@ -13,7 +13,6 @@
 // Internal includes
 #include "vertex.h"
 
-
 // STL includes
 #include <limits>
 
@@ -24,13 +23,6 @@ namespace HDF5
 {
 namespace Detail
 {
-
-
-const NodalVariableGetter::UniquePointer Vertex::mpHistoricalVariableGetter(new HistoricalVariableGetter);
-
-
-const NodalVariableGetter::UniquePointer Vertex::mpNonHistoricalVariableGetter(new NonHistoricalVariableGetter);
-
 
 Vertex::Vertex(const array_1d<double,3>& rPosition,
                const PointLocatorAdaptor& rLocator,

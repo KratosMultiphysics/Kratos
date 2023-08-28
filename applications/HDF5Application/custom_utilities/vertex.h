@@ -10,8 +10,7 @@
 //  Main author:     Máté Kelemen
 //
 
-#ifndef KRATOS_HDF5_APPLICATION_VERTEX_H
-#define KRATOS_HDF5_APPLICATION_VERTEX_H
+#pragma once
 
 //  Project includes
 #include "vertex_utilities.h"
@@ -96,10 +95,6 @@ private:
     const Element::WeakPointer mpContainingElement;
 
     Kratos::Vector mShapeFunctionValues;
-
-    static const NodalVariableGetter::UniquePointer mpHistoricalVariableGetter;
-
-    static const NodalVariableGetter::UniquePointer mpNonHistoricalVariableGetter;
 };
 
 
@@ -114,5 +109,3 @@ using VertexContainerType = PointerVector<Vertex,
 
 // Template implementations
 #include "vertex_impl.h"
-
-#endif

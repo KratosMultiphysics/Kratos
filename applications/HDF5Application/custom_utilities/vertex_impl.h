@@ -10,8 +10,7 @@
 //  Main author:     Máté Kelemen
 //
 
-#ifndef KRATOS_HDF5_APPLICATION_VERTEX_IMPL_H
-#define KRATOS_HDF5_APPLICATION_VERTEX_IMPL_H
+#pragma once
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -59,6 +58,3 @@ inline TValue Vertex::GetValue(
 } // namespace Detail
 } // namespace HDF5
 } // namespace Kratos
-
-
-#endif
