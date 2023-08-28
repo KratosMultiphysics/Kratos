@@ -46,13 +46,11 @@ public:
      *  @param rPosition position attribute
      *  @param rLocator point locator exposing a FindElement member
      *  @param id vertex identifier (should be unique, but no checks are performed)
-     *  @param isHistorical decides whether historical or non-historical nodal variables
      *  are used for interpolation.
      */
     Vertex(const array_1d<double,3>& rPosition,
            const PointLocatorAdaptor& rLocator,
-           std::size_t id,
-           bool isHistorical = true);
+           std::size_t id);
 
     /** Default constructor required by PointerVector
      *  @note this constructor does not locate the vertex and must
@@ -73,8 +71,7 @@ public:
      */
     static Vertex::Pointer MakeShared(const array_1d<double,3>& rPosition,
                                       const PointLocatorAdaptor& rLocator,
-                                      std::size_t id,
-                                      bool isHistorical);
+                                      std::size_t id);
 
     std::size_t GetID() const;
 
@@ -82,8 +79,10 @@ public:
      *  @param rVariable variable to interpolate
      *  @note throws an exception if the vertex was not located successfully upon construction
      */
-    template <class TValue>
-    TValue GetValue(const Variable<TValue>& rVariable) const;
+    template <class TValue, class TVariableGetterType>
+    TValue GetValue(
+        const Variable<TValue>& rVariable,
+        const TVariableGetterType& rVariableGetter) const;
 
     /** Check whether the vertex was located successfully on construction
      *  @details calling @ref{GetValue} or @ref{GetSolutionStepValue} will result
@@ -95,8 +94,6 @@ private:
     std::size_t mID;
 
     const Element::WeakPointer mpContainingElement;
-
-    const NodalVariableGetter* mpVariableGetter;
 
     Kratos::Vector mShapeFunctionValues;
 
