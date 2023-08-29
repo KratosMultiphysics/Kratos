@@ -57,9 +57,11 @@ public:
     ///@{
 
     /// Constructor.
+    // TODO: Remove the rLegacySuffix once the python side is properly fixed.
     ContainerComponentIO(
         Parameters Settings,
-        File::Pointer pFile);
+        File::Pointer pFile,
+        const std::string& rLegacySuffix = "");
 
     ///@}
     ///@name Operations
@@ -96,7 +98,7 @@ protected:
 
     std::vector<std::string> mComponentNames;
 
-    std::string mComponentPath;
+    std::string mComponentPrefix;
 
     ///@}
 
