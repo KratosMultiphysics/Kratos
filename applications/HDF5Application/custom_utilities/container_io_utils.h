@@ -213,7 +213,58 @@ private:
     ///@}
 };
 
-class VertexValueIO
+class VertexHistoricalValueIO
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    template<class TDataType>
+    using TLSType = char;
+
+    template<class TDataType>
+    using ComponentDataType = TDataType;
+
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    VertexHistoricalValueIO(const unsigned int StepIndex) : mHistoricalIO(StepIndex) {}
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    template<class TDataType>
+    inline TDataType GetValue(
+        const Detail::Vertex& rVertex,
+        const Variable<TDataType>& rVariable,
+        char& rTLS) const
+    {
+        return rVertex.GetValue(rVariable, mHistoricalIO);
+    }
+
+    template<class TDataType>
+    inline void SetValue(
+        Detail::Vertex& rEntity,
+        const Variable<TDataType>& rVariable,
+        const TDataType& rValue) const
+    {
+        KRATOS_ERROR << "VertexValueIO does not support setting values from vertices";
+    }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    const HistoricalIO mHistoricalIO;
+
+    ///@}
+};
+
+class VertexNonHistoricalValueIO
 {
 public:
     ///@name Type definitions
@@ -235,7 +286,7 @@ public:
         const Variable<TDataType>& rVariable,
         char& rTLS) const
     {
-        return rVertex.GetValue(rVariable);
+        return rVertex.GetValue(rVariable, mNonHistoricalIO);
     }
 
     template<class TDataType>
@@ -246,6 +297,14 @@ public:
     {
         KRATOS_ERROR << "VertexValueIO does not support setting values from vertices";
     }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    const NonHistoricalIO mNonHistoricalIO{};
 
     ///@}
 };
@@ -413,8 +472,10 @@ std::string GetContainerIOType()
         return "FLAGS";
     } else if constexpr(std::is_same_v<TContainerIOType, BossakIO>) {
         return "HISTORICAL_BOSSAK";
-    } else if constexpr(std::is_same_v<TContainerIOType, VertexValueIO>) {
-        return "INTERPOLATED";
+    } else if constexpr(std::is_same_v<TContainerIOType, VertexHistoricalValueIO>) {
+        return "INTERPOLATED_HISTORICAL";
+    } else if constexpr(std::is_same_v<TContainerIOType, VertexNonHistoricalValueIO>) {
+        return "INTERPOLATED_NONHISTORICAL";
     } else if constexpr(std::is_same_v<TContainerIOType, GaussPointValueIO>) {
         return "GAUSS_POINT";
     } else {
