@@ -2,15 +2,17 @@ import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from  KratosMultiphysics.deprecation_management import DeprecationManager
 
-def Factory(settings, model):
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object, encapsulating a json string")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return VtkOutputProcess(model, settings["Parameters"])
 
 
 class VtkOutputProcess(KratosMultiphysics.OutputProcess):
-    def __init__(self, model, settings):
-        super().__init__()
+    def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
+        KratosMultiphysics.OutputProcess.__init__(self)
 
         model_part_name = settings["model_part_name"].GetString()
         self.model_part = model[model_part_name]
@@ -36,7 +38,7 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
         self.__controller = KratosMultiphysics.TemporalController(model, settings)
 
     # This function can be extended with new deprecated variables as they are generated
-    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings: KratosMultiphysics.Parameters) -> None:
         # Defining a string to help the user understand where the warnings come from (in case any is thrown)
         context_string = type(self).__name__
 
@@ -61,9 +63,9 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
     def Check(self) -> int:
         return self.__controller.Check()
 
-    def PrintOutput(self):
+    def PrintOutput(self) -> None:
         self.vtk_io.PrintOutput()
         self.__controller.Update()
 
-    def IsOutputStep(self):
+    def IsOutputStep(self) -> bool:
         return self.__controller.Evaluate()

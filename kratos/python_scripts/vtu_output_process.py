@@ -34,7 +34,7 @@ class VtuOutputProcess(Kratos.OutputProcess):
 
         }""")
 
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters) -> None:
         super().__init__()
 
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
