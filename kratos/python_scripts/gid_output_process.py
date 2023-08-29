@@ -126,8 +126,11 @@ class GiDOutputProcess(KM.OutputProcess):
 
         self.printed_step_count = 0
 
-        param.AddString("model_part_name", model_part.FullName())
-        self.controller = KM.TemporalController(model_part.GetModel(), param)
+        controller_settings = KM.Parameters("""{}""")
+        controller_settings.AddString("model_part_name", model_part.FullName())
+        controller_settings.AddValue("output_control_type", param["result_file_configuration"]["output_control_type"])
+        controller_settings.AddValue("output_interval", param["result_file_configuration"]["output_interval"])
+        self.controller = KM.TemporalController(model_part.GetModel(), controller_settings)
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
