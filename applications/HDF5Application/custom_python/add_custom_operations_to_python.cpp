@@ -32,7 +32,7 @@ void AddCustomOperationsToPython(pybind11::module& m)
     namespace py = pybind11;
 
     py::class_<HDF5::XdmfConnectivitiesWriterOperation, HDF5::XdmfConnectivitiesWriterOperation::Pointer, Operation>(m,"HDF5XdmfConnectivitiesWriterOperation")
-        .def(py::init<const std::string&, const std::string&>())
+        .def(py::init<const std::string&>(), py::arg("file_name"))
         ;
 }
 

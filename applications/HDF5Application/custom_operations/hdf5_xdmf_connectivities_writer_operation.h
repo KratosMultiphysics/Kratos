@@ -15,6 +15,7 @@
 
 // System includes
 #include <string>
+#include <vector>
 #include <unordered_map>
 
 // External includes
@@ -59,9 +60,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    XdmfConnectivitiesWriterOperation(
-        const std::string& rFileName,
-        const std::string& rPrefix);
+    XdmfConnectivitiesWriterOperation(const std::string& rFileName);
 
     ///@}
     ///@name Operations
@@ -79,25 +78,29 @@ private:
 
     File::Pointer mpFile;
 
-    std::string mPrefix;
-
-    IdMapType mKratosToXdmfIdMap;
+    std::vector<std::string> mListOfModelDataPaths;
 
     ///@}
     ///@name Private Operations
     ///@{
 
+    void CreateXdmfModelData(
+        const std::string& rModelDataPath) const;
+
     void CreateXdmfPoints(
         const std::string& rKratosNodeIdsPath,
-        const std::string& rXdmfNodeIdsPath) const;
+        const std::string& rXdmfNodeIdsPath,
+        const IdMapType& rKratosToXdmfIdMap) const;
 
     void CreateXdmfConnectivities(
         const std::string& rKratosConnectivitiesPath,
-        const std::string& rXdmfConnectivitiesPath) const;
+        const std::string& rXdmfConnectivitiesPath,
+        const IdMapType& rKratosToXdmfIdMap) const;
 
     void CreateXdmfConnectivitiesForSubModelParts(
         const std::string& rPath,
-        const std::string& rDestinationPrefix) const;
+        const std::string& rDestinationPrefix,
+        const IdMapType& rKratosToXdmfIdMap) const;
 
     ///@}
 
