@@ -520,7 +520,7 @@ public:
         if (rThisGeometry.LocalSpaceDimension() < this->LocalSpaceDimension()) {
             return IntersectionUtilities::TriangleLineIntersection2D(
                 *this, rThisGeometry[0], rThisGeometry[1]);
-        }  // Both geometries are 2D 
+        }  // Both geometries are 2D
         const BaseType& geom_1 = *this;
         const BaseType& geom_2 = rThisGeometry;
         return  NoDivTriTriIsect(geom_1[0], geom_1[1], geom_1[2], geom_2[0], geom_2[1], geom_2[2]);
@@ -2240,8 +2240,7 @@ GeometryData Triangle2D3<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Triangle2D3<TPointType>::msGeometryDimension(
-    2, 2, 2);
+GeometryDimension Triangle2D3<TPointType>::msGeometryDimension(2, 2);
 
 }// namespace Kratos.
 

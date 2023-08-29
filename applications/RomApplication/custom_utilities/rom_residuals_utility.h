@@ -40,12 +40,13 @@ namespace Kratos
         ModelPart& rModelPart,
         Parameters ThisParameters,
         BaseSchemeType::Pointer pScheme
-        ): mpModelPart(rModelPart), mpScheme(pScheme){
+        ): mrModelPart(rModelPart), mpScheme(pScheme){
         // Validate default parameters
         Parameters default_parameters = Parameters(R"(
         {
             "nodal_unknowns" : [],
-            "number_of_rom_dofs" : 10
+            "number_of_rom_dofs" : 10,
+            "petrov_galerkin_number_of_rom_dofs" : 10
         })" );
 
         ThisParameters.ValidateAndAssignDefaults(default_parameters);
@@ -54,6 +55,7 @@ namespace Kratos
 
         mNodalDofs = mNodalVariablesNames.size();
         mRomDofs = ThisParameters["number_of_rom_dofs"].GetInt();
+        mPetrovGalerkinRomDofs = ThisParameters["petrov_galerkin_number_of_rom_dofs"].GetInt();
 
         // Setting up mapping: VARIABLE_KEY --> CORRECT_ROW_IN_BASIS
         for(int k=0; k<mNodalDofs; k++){
@@ -70,83 +72,247 @@ namespace Kratos
 
         ~RomResidualsUtility()= default;
 
-        Matrix Calculate()
+        Matrix GetProjectedResidualsOntoPhi()
         {
             // Getting the number of elements and conditions from the model
-            const int nelements = static_cast<int>(mpModelPart.Elements().size());
-            const int nconditions = static_cast<int>(mpModelPart.Conditions().size());
+            const int n_elements = static_cast<int>(mrModelPart.Elements().size());
+            const int n_conditions = static_cast<int>(mrModelPart.Conditions().size());
 
-            const auto& CurrentProcessInfo = mpModelPart.GetProcessInfo();
-            const auto el_begin = mpModelPart.ElementsBegin();
-            const auto cond_begin = mpModelPart.ConditionsBegin();
+            const auto& r_current_process_info = mrModelPart.GetProcessInfo();
+            const auto el_begin = mrModelPart.ElementsBegin();
+            const auto cond_begin = mrModelPart.ConditionsBegin();
 
             //contributions to the system
-            Matrix LHS_Contribution = ZeroMatrix(0, 0);
-            Vector RHS_Contribution = ZeroVector(0);
+            Matrix lhs_contribution = ZeroMatrix(0, 0);
+            Vector rhs_contribution = ZeroVector(0);
 
             //vector containing the localization in the system of the different terms
-            Element::EquationIdVectorType EquationId;
-            Matrix MatrixResiduals( (nelements + nconditions), mRomDofs); // Matrix of reduced residuals.
-            Matrix PhiElemental;
-            #pragma omp parallel firstprivate(nelements, nconditions, LHS_Contribution, RHS_Contribution, EquationId, PhiElemental, el_begin, cond_begin)
+            Element::EquationIdVectorType equation_id;
+            Matrix matrix_residuals( (n_elements + n_conditions), mRomDofs); // Matrix of reduced residuals.
+            Matrix phi_elemental;
+
+            //dofs container initialization
+            Element::DofsVectorType elem_dofs;
+            Condition::DofsVectorType cond_dofs;
+            #pragma omp parallel firstprivate(n_elements, n_conditions, lhs_contribution, rhs_contribution, equation_id, phi_elemental, el_begin, cond_begin, elem_dofs, cond_dofs)
             {
                 #pragma omp for nowait
-                for (int k = 0; k < nelements; k++){
-                    auto it_el = el_begin + k;
+                for (int k = 0; k < n_elements; k++){
+                    const auto it_el = el_begin + k;
                     //detect if the element is active or not. If the user did not make any choice the element is active by default
                     bool element_is_active = true;
                     if ((it_el)->IsDefined(ACTIVE))
                         element_is_active = (it_el)->Is(ACTIVE);
                     if (element_is_active){
                         //calculate elemental contribution
-                        mpScheme->CalculateSystemContributions(*it_el, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-                        Element::DofsVectorType dofs;
-                        it_el->GetDofList(dofs, CurrentProcessInfo);
+                        mpScheme->CalculateSystemContributions(*it_el, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
+                        it_el->GetDofList(elem_dofs, r_current_process_info);
                         //assemble the elemental contribution - here is where the ROM acts
-                        //compute the elemental reduction matrix PhiElemental
-                        const auto& geom = it_el->GetGeometry();
-                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
-                            PhiElemental.resize(dofs.size(), mRomDofs,false);
-                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, MapPhi);
-                        noalias(row(MatrixResiduals, k)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
+                        //compute the elemental reduction matrix phi_elemental
+                        const auto& r_geom = it_el->GetGeometry();
+                        if(phi_elemental.size1() != elem_dofs.size() || phi_elemental.size2() != mRomDofs)
+                            phi_elemental.resize(elem_dofs.size(), mRomDofs,false);
+                        RomAuxiliaryUtilities::GetPhiElemental(phi_elemental, elem_dofs, r_geom, MapPhi);
+                        noalias(row(matrix_residuals, k)) = prod(trans(phi_elemental), rhs_contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
                     }
 
                 }
 
                 #pragma omp for nowait
-                for (int k = 0; k < nconditions;  k++){
+                for (int k = 0; k < n_conditions;  k++){
                     ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
                     //detect if the condition is active or not. If the user did not make any choice the condition is active by default
                     bool condition_is_active = true;
                     if ((it)->IsDefined(ACTIVE))
                         condition_is_active = (it)->Is(ACTIVE);
                     if (condition_is_active){
-                        Condition::DofsVectorType dofs;
-                        it->GetDofList(dofs, CurrentProcessInfo);
+                        it->GetDofList(cond_dofs, r_current_process_info);
                         //calculate elemental contribution
-                        mpScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                        mpScheme->CalculateSystemContributions(*it, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
                         //assemble the elemental contribution - here is where the ROM acts
-                        //compute the elemental reduction matrix PhiElemental
-                        const auto& geom = it->GetGeometry();
-                        if(PhiElemental.size1() != dofs.size() || PhiElemental.size2() != mRomDofs)
-                            PhiElemental.resize(dofs.size(), mRomDofs,false);
-                        RomAuxiliaryUtilities::GetPhiElemental(PhiElemental, dofs, geom, MapPhi);
-                        noalias(row(MatrixResiduals, k+nelements)) = prod(trans(PhiElemental), RHS_Contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
+                        //compute the elemental reduction matrix phi_elemental
+                        const auto& r_geom = it->GetGeometry();
+                        if(phi_elemental.size1() != cond_dofs.size() || phi_elemental.size2() != mRomDofs)
+                            phi_elemental.resize(cond_dofs.size(), mRomDofs,false);
+                        RomAuxiliaryUtilities::GetPhiElemental(phi_elemental, cond_dofs, r_geom, MapPhi);
+                        noalias(row(matrix_residuals, k+n_elements)) = prod(trans(phi_elemental), rhs_contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
                     }
                 }
             }
-        return MatrixResiduals;
+        return matrix_residuals;
+        }
+
+        Matrix GetProjectedResidualsOntoPsi()
+        {
+            // Getting the number of elements and conditions from the model
+            const int n_elements = static_cast<int>(mrModelPart.Elements().size());
+            const int n_conditions = static_cast<int>(mrModelPart.Conditions().size());
+
+            const auto& r_current_process_info = mrModelPart.GetProcessInfo();
+            const auto el_begin = mrModelPart.ElementsBegin();
+            const auto cond_begin = mrModelPart.ConditionsBegin();
+
+            //contributions to the system
+            Matrix lhs_contribution;
+            Vector rhs_contribution;
+
+            //vector containing the localization in the system of the different terms
+            Element::EquationIdVectorType equation_id;
+            Matrix matrix_residuals( (n_elements + n_conditions), mPetrovGalerkinRomDofs); // Matrix of reduced residuals.
+            Matrix psi_elemental;
+            
+            //dofs container initialization
+            Element::DofsVectorType elem_dofs;
+            Condition::DofsVectorType cond_dofs;
+            #pragma omp parallel firstprivate(n_elements, n_conditions, lhs_contribution, rhs_contribution, equation_id, psi_elemental, el_begin, cond_begin, elem_dofs, cond_dofs)
+            {
+                #pragma omp for nowait
+                for (int k = 0; k < n_elements; k++){
+                    const auto it_el = el_begin + k;
+                    //detect if the element is active or not. If the user did not make any choice the element is active by default
+                    const bool element_is_active = it_el->IsDefined(ACTIVE) ? it_el->Is(ACTIVE) : true;
+                    if (element_is_active){
+                        //calculate elemental contribution
+                        mpScheme->CalculateSystemContributions(*it_el, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
+                        it_el->GetDofList(elem_dofs, r_current_process_info);
+                        //assemble the elemental contribution - here is where the ROM acts
+                        //compute the elemental reduction matrix phi_elemental
+                        const auto& r_geom = it_el->GetGeometry();
+                        if(psi_elemental.size1() != elem_dofs.size() || psi_elemental.size2() != mPetrovGalerkinRomDofs)
+                            psi_elemental.resize(elem_dofs.size(), mPetrovGalerkinRomDofs,false);
+                        RomAuxiliaryUtilities::GetPsiElemental(psi_elemental, elem_dofs, r_geom, MapPhi);
+                        noalias(row(matrix_residuals, k)) = prod(trans(psi_elemental), rhs_contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
+                    }
+
+                }
+
+                #pragma omp for nowait
+                for (int k = 0; k < n_conditions;  k++){
+                    const auto it = cond_begin + k;
+                    //detect if the condition is active or not. If the user did not make any choice the condition is active by default
+                    const bool condition_is_active = it->IsDefined(ACTIVE) ? it->Is(ACTIVE) : true;
+                    if (condition_is_active){
+                        it->GetDofList(cond_dofs, r_current_process_info);
+                        //calculate elemental contribution
+                        mpScheme->CalculateSystemContributions(*it, lhs_contribution, rhs_contribution, equation_id, r_current_process_info);
+                        //assemble the elemental contribution - here is where the ROM acts
+                        //compute the elemental reduction matrix phi_elemental
+                        const auto& r_geom = it->GetGeometry();
+                        if(psi_elemental.size1() != cond_dofs.size() || psi_elemental.size2() != mPetrovGalerkinRomDofs)
+                            psi_elemental.resize(cond_dofs.size(), mPetrovGalerkinRomDofs,false);
+                        RomAuxiliaryUtilities::GetPsiElemental(psi_elemental, cond_dofs, r_geom, MapPhi);
+                        noalias(row(matrix_residuals, k+n_elements)) = prod(trans(psi_elemental), rhs_contribution); // The size of the residual will vary only when using more ROM modes, one row per condition
+                    }
+                }
+            }
+        return matrix_residuals;
+        }
+
+        Matrix GetProjectedGlobalLHS()
+        {
+            const int n_elements = static_cast<int>(mrModelPart.Elements().size());
+            const int n_conditions = static_cast<int>(mrModelPart.Conditions().size());
+            const auto& n_nodes = mrModelPart.NumberOfNodes();
+
+            const auto& r_current_process_info = mrModelPart.GetProcessInfo();
+            
+            const int system_size = n_nodes*mNodalDofs;
+
+            const auto el_begin = mrModelPart.ElementsBegin();
+            const auto cond_begin = mrModelPart.ConditionsBegin();
+
+            //contributions to the system
+            Matrix lhs_contribution = ZeroMatrix(0,0);
+
+            //vector containing the localization in the system of the different terms
+            Element::EquationIdVectorType equation_id;
+            Matrix a_phi = ZeroMatrix(system_size, mRomDofs);
+
+            //dofs container initialization
+            Element::DofsVectorType elem_dofs;
+            Condition::DofsVectorType cond_dofs;
+
+            Matrix phi_elemental;
+            Matrix temp_a_phi = ZeroMatrix(system_size,mRomDofs);
+            Matrix aux;
+
+            #pragma omp parallel firstprivate(n_elements, n_conditions, lhs_contribution, equation_id, el_begin, cond_begin, elem_dofs, cond_dofs)
+            {
+
+                #pragma omp for nowait
+                for (int k = 0; k < static_cast<int>(n_elements); k++) {
+                    const auto it_el = el_begin + k;
+
+                    // Detect if the element is active or not. If the user did not make any choice the element is active by default
+                    const bool element_is_active = it_el->IsDefined(ACTIVE) ? it_el->Is(ACTIVE) : true;
+
+                    // Calculate elemental contribution
+                    if (element_is_active){
+                        mpScheme->CalculateLHSContribution(*it_el, lhs_contribution, equation_id, r_current_process_info);
+                        it_el->GetDofList(elem_dofs, r_current_process_info);
+                        const auto &r_geom = it_el->GetGeometry();
+                        if(phi_elemental.size1() != elem_dofs.size() || phi_elemental.size2() != mRomDofs) {
+                            phi_elemental.resize(elem_dofs.size(), mRomDofs,false);
+                        }
+                        if(aux.size1() != elem_dofs.size() || aux.size2() != mRomDofs) {
+                            aux.resize(elem_dofs.size(), mRomDofs,false);
+                        }
+                        RomAuxiliaryUtilities::GetPhiElemental(phi_elemental, elem_dofs, r_geom, MapPhi);
+                        noalias(aux) = prod(lhs_contribution, phi_elemental);
+                        for(int d = 0; d < static_cast<int>(elem_dofs.size()); ++d){
+                            if (elem_dofs[d]->IsFixed()==false){
+                                row(temp_a_phi,elem_dofs[d]->EquationId()) += row(aux,d);// Add contributions to global system for free dofs.
+                            }
+                        }
+                    }
+                }
+
+                #pragma omp for nowait
+                for (int k = 0; k < static_cast<int>(n_conditions); k++){
+                    const auto it = cond_begin + k;
+
+                    // Detect if the element is active or not. If the user did not make any choice the condition is active by default
+                    const bool condition_is_active = it->IsDefined(ACTIVE) ? it->Is(ACTIVE) : true;
+
+                    // Calculate condition contribution
+                    if (condition_is_active) {
+                        it->GetDofList(cond_dofs, r_current_process_info);
+                        mpScheme->CalculateLHSContribution(*it, lhs_contribution, equation_id, r_current_process_info);
+                        const auto &r_geom = it->GetGeometry();
+                        if(phi_elemental.size1() != cond_dofs.size() || phi_elemental.size2() != mRomDofs) {
+                            phi_elemental.resize(cond_dofs.size(), mRomDofs,false);
+                        }
+                        if(aux.size1() != cond_dofs.size() || aux.size2() != mRomDofs) {
+                            aux.resize(cond_dofs.size(), mRomDofs,false);
+                        }
+                        RomAuxiliaryUtilities::GetPhiElemental(phi_elemental, cond_dofs, r_geom, MapPhi);
+                        noalias(aux) = prod(lhs_contribution, phi_elemental);
+                        for(int d = 0; d < static_cast<int>(cond_dofs.size()); ++d){
+                            if (cond_dofs[d]->IsFixed()==false){
+                                row(temp_a_phi,cond_dofs[d]->EquationId()) += row(aux,d);
+                            }
+                        }
+                    }
+                }
+
+                #pragma omp critical
+                {
+                    noalias(a_phi) += temp_a_phi;
+                }
+
+            }
+            return a_phi;
         }
 
     protected:
         std::vector< std::string > mNodalVariablesNames;
         int mNodalDofs;
         unsigned int mRomDofs;
-        ModelPart& mpModelPart;
+        unsigned int mPetrovGalerkinRomDofs;
+        ModelPart& mrModelPart;
         BaseSchemeType::Pointer mpScheme;
         std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> MapPhi;
     };
-
 
 
 } // namespace Kratos

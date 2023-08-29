@@ -29,7 +29,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 file(GLOB_RECURSE KRATOS_CABLE_NET_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosCableNetCore SHARED ${KRATOS_CABLE_NET_APPLICATION_CORE} ${KRATOS_CABLE_NET_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosCableNetCore PRIVATE KratosCore KratosStructuralMechanicsCore)
+target_link_libraries(KratosCableNetCore PUBLIC KratosCore KratosStructuralMechanicsCore)
 set_target_properties(KratosCableNetCore PROPERTIES COMPILE_DEFINITIONS "CABLE_NET_APPLICATION=EXPORT,API")
 
 ###############################################################

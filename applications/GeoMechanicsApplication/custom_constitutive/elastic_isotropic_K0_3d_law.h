@@ -61,10 +61,10 @@ public:
     ///@{
 
     /// The base class ConstitutiveLaw type definition
-    typedef ConstitutiveLaw         BaseType;
+    using BaseType = ConstitutiveLaw;
 
     /// The size type definition
-    typedef std::size_t             SizeType;
+    using SizeType = std::size_t;
 
     /// Static definition of the dimension
     static constexpr SizeType Dimension = N_DIM_3D;
@@ -76,28 +76,13 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( ElasticIsotropicK03DLaw );
 
     ///@}
-    ///@name Lyfe Cycle
+    ///@name Life Cycle
     ///@{
-
-    /**
-     * @brief Default constructor.
-     */
-    ElasticIsotropicK03DLaw();
 
     /**
      * @brief Clone method
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    ElasticIsotropicK03DLaw (const ElasticIsotropicK03DLaw& rOther);
-
-    /**
-     * @brief Destructor.
-     */
-    ~ElasticIsotropicK03DLaw() override;
 
     ///@}
     ///@name Operators
@@ -181,37 +166,7 @@ public:
      */
     void CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
 
-    /**
-      * @brief Updates the material response:
-      * @details Cauchy stresses and Internal Variables
-      * @param rValues The internal values of the law
-      * @see   Parameters
-      */
-    void FinalizeMaterialResponsePK1(ConstitutiveLaw::Parameters & rValues) override;
-
-    /**
-     * @brief Updates the material response:
-     * Cauchy stresses and Internal Variables
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters & rValues) override;
-
-    /**
-     * @brief Updates the material response:
-     * @details Cauchy stresses and Internal Variables
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponseKirchhoff(ConstitutiveLaw::Parameters & rValues)  override;
-
-    /**
-     * @brief Updates the material response:
-     * @details Cauchy stresses and Internal Variables
-     * @param rValues The internal values of the law
-     * @see   Parameters
-     */
-    void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues) override;
+    bool RequiresFinalizeMaterialResponse() override;
 
     /**
      * @brief It calculates the value of a specified variable (double case)
@@ -352,12 +307,6 @@ private:
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, ConstitutiveLaw)
     }
-
-    // stress vector indices
-    const int VOIGT_INDEX_XX = 0;
-    const int VOIGT_INDEX_YY = 1;
-    const int VOIGT_INDEX_ZZ = 2;
-
 }; // Class ElasticIsotropicK03DLaw
 }  // namespace Kratos.
 #endif // KRATOS_ELASTIC_ISOTROPIC_K0_3D_LAW_H_INCLUDED  defined

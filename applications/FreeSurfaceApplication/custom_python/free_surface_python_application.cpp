@@ -20,7 +20,6 @@
 #include "includes/define_python.h"
 #include "free_surface_application.h"
 #include "free_surface_application_variables.h"
-#include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_python/add_custom_edgebased_levelset_solver_to_python.h"
 
@@ -40,7 +39,6 @@ namespace Kratos
 					   KratosApplication>(pymodule, "KratosFreeSurfaceApplication")
 				.def(py::init<>());
 
-			AddCustomStrategiesToPython(pymodule);
 			AddCustomUtilitiesToPython(pymodule);
 			AddCustomEdgeBasedLevelSetToPython(pymodule);
 

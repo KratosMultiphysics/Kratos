@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Peter Wilson
 //
@@ -112,7 +112,7 @@ void MappingIntersectionUtilities::CreateQuadraturePointsCoupling1DGeometries2D(
             : (rParentModelPart.ConditionsEnd() - 1)->Id() + 1;
         for (IndexType i = 0; i < IntegrationPointsPerSpan; ++i) {
             rModelPartCoupling.AddCondition(Kratos::make_intrusive<Condition>(
-                id + i, Kratos::make_shared<CouplingGeometry<Node<3>>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
+                id + i, Kratos::make_shared<CouplingGeometry<Node>>(quadrature_point_geometries_master(i), quadrature_point_geometries_slave(i))));
         }
     }
 }

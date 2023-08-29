@@ -2,6 +2,7 @@ import time as timer
 import os
 import sys
 import pathlib
+import math
 from KratosMultiphysics import *
 from KratosMultiphysics.DEMApplication import *
 from KratosMultiphysics.analysis_stage import AnalysisStage
@@ -247,7 +248,7 @@ class DEMAnalysisStage(AnalysisStage):
         self.ReadModelParts()
 
         self.SetMaterials()
-        
+
         self.post_normal_impact_velocity_option = False
         if "PostNormalImpactVelocity" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostNormalImpactVelocity"].GetBool():
@@ -694,6 +695,52 @@ class DEMAnalysisStage(AnalysisStage):
         if self.DEM_parameters["OutputTimeStep"].GetDouble() - time_to_print < 1e-2 * self._GetSolver().dt:
             self.PrintResultsForGid(self.time)
             self.time_old_print = self.time
+
+    def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type):
+        '''
+        This is a function to establish a sphere range to measure local packing properties
+        The type could be "porosity" "stress" or "strain" 
+        This funtion is only valid for 3D model now
+        '''
+        if type == "porosity":
+
+            measure_sphere_volume = 4/3 * math.pi * radius * radius * radius
+            sphere_volume_inside_range = 0.0
+            measured_porosity = 0.0
+
+            for element in self.spheres_model_part.Elements:
+
+                node = element.GetNode(0)
+                r = node.GetSolutionStepValue(RADIUS)
+                x = node.X
+                y = node.Y
+                z = node.Z
+
+                center_to_spher_distance = ((x - center_x)**2 + (y - center_y)**2 + (z - center_z)**2)**0.5
+
+                if center_to_spher_distance < (radius - r):
+
+                    sphere_volume_inside_range += 4/3 * math.pi * r * r * r
+
+                elif center_to_spher_distance < (radius + r):
+
+                    other_part_d = radius - (radius * radius + center_to_spher_distance * center_to_spher_distance - r * r) / (center_to_spher_distance * 2)
+
+                    my_part_d = r - (r * r + center_to_spher_distance * center_to_spher_distance - radius * radius) / (center_to_spher_distance * 2)
+                    
+                    cross_volume = math.pi * other_part_d * other_part_d * (radius - 1/3 * other_part_d) + math.pi * my_part_d * my_part_d * (r - 1/3 * my_part_d)
+                    
+                    sphere_volume_inside_range += cross_volume
+
+            measured_porosity = 1 - (sphere_volume_inside_range / measure_sphere_volume)
+
+            return measured_porosity
+        
+        if type == "stress":
+            pass
+
+        if type == "strain":
+            pass
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:

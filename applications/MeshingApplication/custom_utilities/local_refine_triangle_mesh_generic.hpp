@@ -131,7 +131,7 @@ public:
                     const unsigned int i2 = rAux[t[base + 2]];
 
                     if (dimension == 2) {
-                        Triangle2D3<Node < 3 > > rGeom(
+                        Triangle2D3<Node > rGeom(
                             rThisModelPart.Nodes()(i0),
                             rThisModelPart.Nodes()(i1),
                             rThisModelPart.Nodes()(i2)
@@ -156,7 +156,7 @@ public:
                         rNewObjects.push_back(p_object);
                         r_child_objects.push_back(typename TGeometricalObjectType::WeakPointer(p_object) );
                     } else {
-                        Triangle3D3<Node < 3 > > rGeom(
+                        Triangle3D3<Node > rGeom(
                             rThisModelPart.Nodes()(i0),
                             rThisModelPart.Nodes()(i1),
                             rThisModelPart.Nodes()(i2)
@@ -210,7 +210,7 @@ public:
     * @return rAux: The vector that includes the index of the new edges
     */
     void CalculateEdges(
-        Geometry<Node<3>>& rGeom,
+        Geometry<Node>& rGeom,
         const compressed_matrix<int>& rCoord,
         int* EdgeIds,
         std::vector<int>& rAux
@@ -218,9 +218,9 @@ public:
     {
         rAux.resize(6, false);
 
-        const std::size_t index_0 = rGeom[0].Id() - 1;
-        const std::size_t index_1 = rGeom[1].Id() - 1;
-        const std::size_t index_2 = rGeom[2].Id() - 1;
+        const std::size_t index_0 = mMapNodeIdToPos[rGeom[0].Id()];
+        const std::size_t index_1 = mMapNodeIdToPos[rGeom[1].Id()];
+        const std::size_t index_2 = mMapNodeIdToPos[rGeom[2].Id()];
 
         rAux[0] = rGeom[0].Id();
         rAux[1] = rGeom[1].Id();

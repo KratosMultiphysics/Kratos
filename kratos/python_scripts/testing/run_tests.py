@@ -125,7 +125,7 @@ class Commander(object):
                         file=sys.stderr)
                     sys.stderr.flush()
 
-    def RunCppTests(self, applications):
+    def RunCppTests(self, applications, verbosity = 1):
         ''' Calls the cpp tests directly
         '''
 
@@ -135,35 +135,27 @@ class Commander(object):
         for application in applications:
             import_module("KratosMultiphysics." + application)
 
+        if verbosity == 0:
+            cpp_tests_verbosity = KM.Tester.Verbosity.QUITE
+        elif verbosity == 1:
+            cpp_tests_verbosity = KM.Tester.Verbosity.PROGRESS
+        else:
+            cpp_tests_verbosity = KM.Tester.Verbosity.TESTS_OUTPUTS
+
         try:
-            KM.Tester.SetVerbosity(KM.Tester.Verbosity.PROGRESS)
+            KM.Tester.SetVerbosity(cpp_tests_verbosity)
             self.exitCode = KM.Tester.RunAllTestCases()
         except Exception as e:
             print('[Warning]:', e, file=sys.stderr)
             self.exitCode = 1
 
 
-def print_test_header(application):
-    print("\nRunning {} tests".format(application), file=sys.stderr, flush=True)
-
-def print_test_footer(application, exit_code):
-    appendix = " with exit code {}!".format(exit_code) if exit_code != 0 else "."
-    print("Completed {} tests{}\n".format(application, appendix), file=sys.stderr, flush=True)
-
-def print_summary(exit_codes):
-    print("Test results summary:", file=sys.stderr)
-    max_test_name_length = len(max(exit_codes.keys(), key=len))
-    for test, exit_code in exit_codes.items():
-        result_string = "OK" if exit_code == 0 else "FAILED"
-        pretty_name = test.ljust(max_test_name_length)
-        print("  {}: {}".format(pretty_name, result_string), file=sys.stderr)
-    sys.stderr.flush()
 
 def main():
     # Define the command
     cmd = testing_utils.GetPython3Command()
-    
-    # List of application 
+
+    # List of application
     applications = kratos_utils.GetListOfAvailableApplications()
 
     # Keep the worst exit code
@@ -215,7 +207,7 @@ def main():
     exit_codes = {}
 
     # KratosCore must always be runned
-    print_test_header("KratosCore")
+    testing_utils.PrintTestHeader("KratosCore")
 
     with KratosUnittest.SupressConsoleOutput():
         commander.RunTestSuit(
@@ -228,12 +220,12 @@ def main():
             signalTime
         )
 
-    print_test_footer("KratosCore", commander.exitCode)
+    testing_utils.PrintTestFooter("KratosCore", commander.exitCode)
     exit_codes["KratosCore"] = commander.exitCode
 
     # Run the tests for the rest of the Applications
     for application in applications:
-        print_test_header(application)
+        testing_utils.PrintTestHeader(application)
 
         with KratosUnittest.SupressConsoleOutput():
             commander.RunTestSuit(
@@ -246,17 +238,17 @@ def main():
                 signalTime
             )
 
-        print_test_footer(application, commander.exitCode)
+        testing_utils.PrintTestFooter(application, commander.exitCode)
         exit_codes[application] = commander.exitCode
 
     # Run the cpp tests (does the same as run_cpp_tests.py)
-    print_test_header("cpp")
+    testing_utils.PrintTestHeader("cpp")
     with KratosUnittest.SupressConsoleOutput():
-        commander.RunCppTests(applications)
-    print_test_footer("cpp", commander.exitCode)
+        commander.RunCppTests(applications, args.verbosity)
+    testing_utils.PrintTestFooter("cpp", commander.exitCode)
     exit_codes["cpp"] = commander.exitCode
 
-    print_summary(exit_codes)
+    testing_utils.PrintTestSummary(exit_codes)
     sys.exit(max(exit_codes.values()))
 
 if __name__ == "__main__":

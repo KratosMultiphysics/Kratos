@@ -66,7 +66,7 @@ Their functionality is identical but they differ in the checks that are performe
 The syntax is as follows: 
 
 ```cpp
-  Node<3>::iterator inode = model_part.NodesBegin(); //to make example let's take the first node
+  Node::iterator inode = model_part.NodesBegin(); //to make example let's take the first node
   
   //here  we get REFERENCES to the database!!
   array_1d<double,3>& vel = inode->FastGetSolutionStepValue(VELOCITY); //vel here has the value of velocity at the current step

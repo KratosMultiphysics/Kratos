@@ -125,14 +125,12 @@ class DamThermoMechanicSolver(object):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ACCELERATION)
         # Add variables for the solid conditions
-        self.main_model_part.AddNodalSolutionStepVariable(KratosStructural.POINT_LOAD)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.FORCE_LOAD)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.POSITIVE_FACE_PRESSURE)
         # Add volume acceleration
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VOLUME_ACCELERATION)
         # Add variables for post-processing
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
-        self.main_model_part.AddNodalSolutionStepVariable(KratosDam.NODAL_CAUCHY_STRESS_TENSOR)
+        self.main_model_part.AddNodalSolutionStepVariable(KratosPoro.NODAL_CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.INITIAL_NODAL_CAUCHY_STRESS_TENSOR)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Vi_POSITIVE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosDam.Viii_POSITIVE)
@@ -390,7 +388,7 @@ class DamThermoMechanicSolver(object):
         rayleigh_k = self.settings["mechanical_solver_settings"]["rayleigh_k"].GetDouble()
 
         if(solution_type == "Quasi-Static"):
-            if(rayleigh_m<1.0e-20 and rayleigh_k<1.0e-20):
+            if(rayleigh_m<1.0e-15 and rayleigh_k<1.0e-15):
                 scheme =  KratosDam.IncrementalUpdateStaticSmoothingScheme()
             else:
                 scheme =  KratosDam.IncrementalUpdateStaticDampedSmoothingScheme(rayleigh_m,rayleigh_k)

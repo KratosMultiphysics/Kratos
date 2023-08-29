@@ -98,17 +98,15 @@ public:
     ///@{
 
     /// Default constructor.
-    ParticleHardeningLaw(){ mpProperties = NULL; };
+    ParticleHardeningLaw(){};
 
     /// Copy constructor.
     ParticleHardeningLaw(ParticleHardeningLaw const& rOther)
-    :mpProperties(rOther.mpProperties)
     {};
 
     /// Assignment operator.
     ParticleHardeningLaw& operator=(ParticleHardeningLaw const& rOther)
     {
-      mpProperties = rOther.mpProperties;
       return *this;
     };
 
@@ -129,26 +127,6 @@ public:
       return Kratos::make_shared<ParticleHardeningLaw>(*this);
     }
 
-    ///@}
-    ///@name Operations
-    ///@{
-    void InitializeMaterial (const Properties& rMaterialProperties)
-    {
-      SetProperties(rMaterialProperties);
-    }
-
-
-    void SetProperties (const Properties& rMaterialProperties)
-    {
-      mpProperties = (PropertiesPointer)(&rMaterialProperties);
-    }
-
-
-    const Properties& GetProperties()
-    {
-      return *mpProperties;
-    }
-
 
     /*
     * @brief This function return the hardening constant at given hardening parameters
@@ -159,11 +137,11 @@ public:
     * @param[in] rThisVariable Identifier variables
     * @return Value of Hardening
     */
-    virtual double& CalculateHardening(double &rHardening, const Parameters& rValues){ return rHardening; };
+    virtual double& CalculateHardening(double &rHardening, const Parameters& rValues, const Properties& rProperties){ return rHardening; };
 
-    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const double& rBeta) {return rHardening; };
+    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const double& rBeta, const Properties& rProperties) {return rHardening; };
 
-    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const Variable<double>& rThisVariable) {return rHardening;};
+    virtual double& CalculateHardening(double &rHardening, const double& rAlpha, const Variable<double>& rThisVariable, const Properties& rProperties) {return rHardening;};
 
     ///@}
     ///@name Access
@@ -258,18 +236,10 @@ private:
 
     virtual void save(Serializer& rSerializer) const
     {
-      //Properties can not be stored in serializer
-      //because Properties have a ConstitutiveLaw pointer
-      //when the constitutive law pointer is called to be saved
-      //a recursive call is done if properties are saved.
-      //rSerializer.save("Properties",mpProperties);
     };
 
     virtual void load(Serializer& rSerializer)
     {
-      //Properties* pProperties;
-      //rSerializer.load("Properties",pProperties);
-      //mpProperties = pProperties;
     };
 
     ///@}

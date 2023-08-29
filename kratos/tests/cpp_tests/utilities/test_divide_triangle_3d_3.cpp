@@ -16,10 +16,7 @@
 #include "includes/checks.h"
 #include "utilities/divide_triangle_3d_3.h"
 
-namespace Kratos
-{
-namespace Testing
-{
+namespace Kratos::Testing {
 
 KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
 {
@@ -42,7 +39,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     base_model_part.Nodes()[3].FastGetSolutionStepValue(DISTANCE) =  1.0;
 
     // Set the elemental distances vector
-    Geometry < Node < 3 > >& r_geometry = base_model_part.Elements()[1].GetGeometry();
+    Geometry < Node >& r_geometry = base_model_part.Elements()[1].GetGeometry();
 
     array_1d<double, 3> distances_vector;
     for (unsigned int i = 0; i < r_geometry.size(); ++i) {
@@ -54,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     Vector& r_elemental_distances = base_model_part.Elements()[1].GetValue(ELEMENTAL_DISTANCES);
 
     // Build the triangle splitting utility
-    DivideTriangle3D3<Node<3>> triangle_splitter(r_geometry, r_elemental_distances);
+    DivideTriangle3D3<Node> triangle_splitter(r_geometry, r_elemental_distances);
 
     // Call the divide geometry method
     triangle_splitter.GenerateDivision();
@@ -65,7 +62,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
 
     // Call the positive exterior faces generation method
     std::vector < unsigned int > pos_ext_faces_parent_ids;
-    std::vector < DivideTriangle2D3<Node<3>>::IndexedPointGeometryPointerType > pos_ext_faces;
+    std::vector < DivideTriangle2D3<Node>::IndexedPointGeometryPointerType > pos_ext_faces;
     triangle_splitter.GenerateExteriorFaces(
         pos_ext_faces,
         pos_ext_faces_parent_ids,
@@ -73,7 +70,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
 
     // Call the negative exterior faces generation method
     std::vector < unsigned int > neg_ext_faces_parent_ids;
-    std::vector < DivideTriangle2D3<Node<3>>::IndexedPointGeometryPointerType > neg_ext_faces;
+    std::vector < DivideTriangle2D3<Node>::IndexedPointGeometryPointerType > neg_ext_faces;
     triangle_splitter.GenerateExteriorFaces(
         neg_ext_faces,
         neg_ext_faces_parent_ids,
@@ -100,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
 
     // Check subdivisions
     const auto &r_positive_subdivision_0 = *(triangle_splitter.GetPositiveSubdivisions()[0]);
-    
+
     Vector positive_subdivision_0_node_0_coordinates(3);
     positive_subdivision_0_node_0_coordinates[0] = 0.0;
     positive_subdivision_0_node_0_coordinates[1] = 0.5;
@@ -112,13 +109,13 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     positive_subdivision_0_node_1_coordinates[1] = 0.5;
     positive_subdivision_0_node_1_coordinates[2] = -0.5;
     KRATOS_CHECK_VECTOR_EQUAL(r_positive_subdivision_0[1],positive_subdivision_0_node_1_coordinates);
-    
+
     Vector positive_subdivision_0_node_2_coordinates(3);
     positive_subdivision_0_node_2_coordinates[0] = 0.0;
     positive_subdivision_0_node_2_coordinates[1] = 1.0;
     positive_subdivision_0_node_2_coordinates[2] = -1.0;
     KRATOS_CHECK_VECTOR_EQUAL(r_positive_subdivision_0[2],positive_subdivision_0_node_2_coordinates);
-    
+
     KRATOS_CHECK_NEAR(r_positive_subdivision_0.Area(), 0.17677669529,tolerance);
 
     const auto &r_negative_subdivision_0 = *(triangle_splitter.GetNegativeSubdivisions()[0]);
@@ -269,5 +266,33 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3, KratosCoreFastSuite)
     KRATOS_CHECK_VECTOR_EQUAL((*neg_ext_faces[2])[1],neg_ext_faces_2_node_1_coordinates);
 
 }
+
+KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3ZeroNode, KratosCoreFastSuite)
+{
+    Model current_model;
+
+    // Generate a model part with the previous
+    ModelPart& base_model_part = current_model.CreateModelPart("Triangle");
+
+    // Fill the model part geometry data
+    base_model_part.CreateNewNode(1, 0.3,  0.0, 0.6);
+    base_model_part.CreateNewNode(2, 0.3,  0.0, 0.9);
+    base_model_part.CreateNewNode(3, 0.3, -0.3, 0.3);
+    Properties::Pointer p_properties(new Properties(0));
+    auto p_elem = base_model_part.CreateNewElement("Element3D3N", 1, {1, 2, 3}, p_properties);
+
+    Vector nodal_distances = ZeroVector(3);
+    // cut at z = 0.6, across node 0
+    nodal_distances[0] = 0.0;
+    nodal_distances[1] = 0.3;
+    nodal_distances[2] = -0.3;
+
+    auto divider = DivideTriangle3D3<Node>(p_elem->GetGeometry(), nodal_distances);
+    divider.GenerateDivision();
+
+    // Should split a single edge and return two triangles
+    KRATOS_CHECK_EQUAL(divider.GetPositiveSubdivisions().size(), 1);
+    KRATOS_CHECK_EQUAL(divider.GetNegativeSubdivisions().size(), 1);
 }
-}  // namespace Kratos.
+
+}  // namespace Kratos::Testing.

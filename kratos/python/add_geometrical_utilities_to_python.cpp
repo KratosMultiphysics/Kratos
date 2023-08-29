@@ -39,9 +39,9 @@
 #include "utilities/mls_shape_functions_utility.h"
 #include "utilities/tessellation_utilities/delaunator_utilities.h"
 #include "utilities/rbf_shape_functions_utility.h"
+#include "utilities/assign_mpcs_to_neighbours_utility.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 // Embedded skin utility auxiliar functions
 template<std::size_t TDim>
@@ -338,7 +338,7 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def("UpdateSearchDatabaseAssignedSize", &BinBasedNodesInElementLocator < 3 > ::UpdateSearchDatabaseAssignedSize)
         ;
 
-    //embeded skin utilities
+    //embedded skin utilities
     py::class_< EmbeddedSkinUtility < 2 > >(m,"EmbeddedSkinUtility2D")
         .def(py::init< ModelPart&, ModelPart&, const std::string >())
         .def("GenerateSkin", &EmbeddedSkinUtility < 2 > ::GenerateSkin)
@@ -432,7 +432,18 @@ void AddGeometricalUtilitiesToPython(pybind11::module &m)
         .def_static("CalculateShapeFunctions", [](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN, DenseQRPointerType pDenseQR){
             return RBFShapeFunctionsUtility::CalculateShapeFunctions(rPoints, rX, h, rN, pDenseQR);})
         ;
+    
+    // Radial Node Search and MPCs Assignation Utility
+    using NodesContainerType = typename AssignMPCsToNeighboursUtility::NodesContainerType;
+    py::class_<AssignMPCsToNeighboursUtility>(m, "AssignMPCsToNeighboursUtility")
+        .def(py::init<ModelPart::NodesContainerType&>())
+        .def("AssignRotationToNodes", &AssignMPCsToNeighboursUtility::AssignRotationToNodes)
+        // .def("AssignMPCsToNodes", &AssignMPCsToNeighboursUtility::AssignMPCsToNodes)
+        .def("AssignMPCsToNodes", [](AssignMPCsToNeighboursUtility& rAssignMPCsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<double>& rVariable, double const MinNumOfNeighNodes){
+            return rAssignMPCsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable, MinNumOfNeighNodes);})
+        .def("AssignMPCsToNodes", [](AssignMPCsToNeighboursUtility& rAssignMPCsToNeighboursUtility, NodesContainerType pNodes, double const Radius, ModelPart& rComputingModelPart, const Variable<array_1d<double, 3>>& rVariable, double const MinNumOfNeighNodes){
+            return rAssignMPCsToNeighboursUtility.AssignMPCsToNodes(pNodes, Radius, rComputingModelPart, rVariable, MinNumOfNeighNodes);})
+        ;
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.
