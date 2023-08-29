@@ -11,6 +11,7 @@ from test_hdf5_core_mpi import TestOperations as TestHDF5Operations
 from test_hdf5_core_mpi import TestFileIO as TestHDF5FileIO
 from test_point_set_output_process import TestPointSetOutputProcess
 from test_line_output_process import TestLineOutputProcess
+from test_expression_io import TestExpressionIO
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
@@ -20,7 +21,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5FileIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5Operations]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestPointSetOutputProcess, TestLineOutputProcess]))
-
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestExpressionIO]))
     nightSuite = suites['mpi_nightly']
     nightSuite.addTests(smallSuite)
 

@@ -18,9 +18,10 @@ from test_hdf5_xdmf import TestXdmfResults
 from test_hdf5_xdmf import TestTimeLabel
 from test_hdf5_xdmf import TestFindMatchingFiles
 from test_hdf5_xdmf import TestCreateXdmfTemporalGridFromMultifile
+from test_vertex import TestVertex
 from test_point_set_output_process import TestPointSetOutputProcess as TestHDF5PointSetOutputProcess
 from test_line_output_process import TestLineOutputProcess as TestHDF5LineOutputProcess
-
+from test_expression_io import TestExpressionIO
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
@@ -39,7 +40,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTimeLabel]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFindMatchingFiles]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreateXdmfTemporalGridFromMultifile]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5PointSetOutputProcess, TestHDF5LineOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertex, TestHDF5PointSetOutputProcess, TestHDF5LineOutputProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestExpressionIO]))
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     allSuite = suites['all']
