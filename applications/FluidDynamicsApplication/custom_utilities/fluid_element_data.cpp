@@ -153,6 +153,13 @@ void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromNonHis
 }
 
 template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
+void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProcessInfo(bool& rData,
+    const Variable<bool>& rVariable, const ProcessInfo& rProcessInfo)
+{
+    rData = rProcessInfo.GetValue(rVariable);
+}
+
+template <size_t TDim, size_t TNumNodes, bool TElementIntegratesInTime>
 void FluidElementData<TDim, TNumNodes, TElementIntegratesInTime>::FillFromProcessInfo(double& rData,
     const Variable<double>& rVariable, const ProcessInfo& rProcessInfo)
 {

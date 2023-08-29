@@ -43,6 +43,7 @@ typedef std::vector<array_1d<double,3>> InterfaceNormalsType;
 ///@{
 
 bool IsSlip;
+bool ApplyNitscheBoundaryImposition;
 
 double SlipLength;
 double PenaltyCoefficient;
@@ -94,6 +95,7 @@ void InitializeBoundaryConditionData(const ProcessInfo &rProcessInfo)
         this->FillFromProcessInfo(SlipLength, SLIP_LENGTH, rProcessInfo);
     }
     this->FillFromProcessInfo(PenaltyCoefficient, PENALTY_COEFFICIENT, rProcessInfo);
+    this->FillFromProcessInfo(ApplyNitscheBoundaryImposition, APPLY_NITSCHE_BOUNDARY_IMPOSITION, rProcessInfo);
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
