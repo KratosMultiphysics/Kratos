@@ -12,6 +12,7 @@
 //
 
 // System includes
+#include <cmath>
 #include <unordered_set>
 
 // External includes
@@ -51,6 +52,7 @@ EmbeddedMLSConstraintProcess::EmbeddedMLSConstraintProcess(
 
     // Set whether intersection points should be added to the cloud points or only positive nodes
     mIncludeIntersectionPoints = ThisParameters["include_intersection_points"].GetBool();
+    mSlipLength = ThisParameters["slip_length"].GetDouble();
 
     // Set whether nodal distances will be modified to avoid levelset zeros
     mAvoidZeroDistances = ThisParameters["avoid_zero_distances"].GetBool();
@@ -154,6 +156,12 @@ void EmbeddedMLSConstraintProcess::CalculateNodeCloudsIncludingBC(
     // Get the MLS shape functions function
     auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
 
+    // TODO Get boundary condition value at structural interface from variable ???
+    //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);
+    // Scale enforcement of boundary condition using the slip length
+    const double value_gamma = 0.0;
+    const double slip_length_mod = mSlipLength; //(mSlipLength < 1.0) ? std::abs(mSlipLength) : 1.0;
+
     // Loop the elements to create the negative nodes MLS basis
     for (auto& rElement : mpModelPart->Elements()) {
         // Check if the element is split
@@ -176,10 +184,32 @@ void EmbeddedMLSConstraintProcess::CalculateNodeCloudsIncludingBC(
                         Matrix intersection_points_coordinates;
                         SetNegativeNodeIntersectionPoints(r_node, positive_neighbor_nodes, intersection_points_coordinates);
 
+                        // Calculate Kernal Radius using the cloud nodes only (max. node distance to the negative node)
+                        const array_1d<double,3> r_coords = r_node.Coordinates();
+                        const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
+
+                        // Scale weighting of intersection points by modifying their distance to the negative node based on the slip length
+                        const std::size_t n_int_pt = positive_neighbor_nodes.size();
+                        for (std::size_t i_int_pt = 0; i_int_pt < n_int_pt; ++i_int_pt) {
+                            // Calculate the vector pointing to the negative node from the intersection point and its length
+                            array_1d<double,3> slip_vector;
+                            slip_vector(0) = r_coords(0) - intersection_points_coordinates(i_int_pt, 0);
+                            slip_vector(1) = r_coords(1) - intersection_points_coordinates(i_int_pt, 1);
+                            slip_vector(2) = r_coords(2) - intersection_points_coordinates(i_int_pt, 2);
+                            const double slip_vector_length = std::sqrt( std::pow(slip_vector(0),2) + std::pow(slip_vector(1),2) + std::pow(slip_vector(2),2) );
+                            // Scale the vector using a distance to the negative node of twice the kernel radius as minimal full slip condition (slip_length=1.0)
+                            slip_vector(0) = 2.0 * slip_vector(0) + slip_length_mod * (2.0 * mls_kernel_rad - slip_vector_length) / slip_vector_length;
+                            slip_vector(1) = 2.0 * slip_vector(0) + slip_length_mod * (2.0 * mls_kernel_rad - slip_vector_length) / slip_vector_length;
+                            slip_vector(2) = 2.0 * slip_vector(0) + slip_length_mod * (2.0 * mls_kernel_rad - slip_vector_length) / slip_vector_length;
+                            // Modify the distance of the intersection point and thereby its weighting
+                            intersection_points_coordinates(i_int_pt, 0) += slip_vector(0);
+                            intersection_points_coordinates(i_int_pt, 1) += slip_vector(1);
+                            intersection_points_coordinates(i_int_pt, 2) += slip_vector(2);
+                        }
+
                         // Add matrix of cloud nodes to matrix of intersection points to get matrix of all cloud points
                         Matrix cloud_points_coordinates;
                         const std::size_t n_cl_nod = cloud_nodes.size();
-                        const std::size_t n_int_pt = positive_neighbor_nodes.size();
                         cloud_points_coordinates.resize(n_cl_nod+n_int_pt, 3);
                         for (std::size_t i_cl_nod = 0; i_cl_nod < n_cl_nod; ++i_cl_nod) {
                             cloud_points_coordinates(i_cl_nod, 0) = cloud_nodes_coordinates(i_cl_nod, 0);
@@ -194,9 +224,7 @@ void EmbeddedMLSConstraintProcess::CalculateNodeCloudsIncludingBC(
 
                         // Calculate the MLS basis in the current negative node
                         Vector N_container;
-                        const array_1d<double,3> r_coords = r_node.Coordinates();
-                        const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
-                        p_mls_sh_func(cloud_nodes_coordinates, r_coords, 1.01 * mls_kernel_rad, N_container);
+                        p_mls_sh_func(cloud_points_coordinates, r_coords, 1.01 * mls_kernel_rad, N_container);
 
                         // Save the extension operator nodal data
                         CloudDataVectorType cloud_data_vector(n_cl_nod);
@@ -211,9 +239,9 @@ void EmbeddedMLSConstraintProcess::CalculateNodeCloudsIncludingBC(
                         for (std::size_t i_int_pt = 0; i_int_pt < n_int_pt; ++i_int_pt) {
                             // Get boundary condition value for the intersection point  // TODO  different boundary condition?!?
                             //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);  // TODO =0.0 if value_bc = 0.0 ???
-                            const double value_bc = std::pow(intersection_points_coordinates(i_int_pt, 0), 2) + std::pow(intersection_points_coordinates(i_int_pt, 1), 2);
+                            //const double value_bc = std::pow(intersection_points_coordinates(i_int_pt, 0), 2) + std::pow(intersection_points_coordinates(i_int_pt, 1), 2);
                             // Add influence of value at intersection point to the constraint for the negative node
-                            constraint_offset += value_bc * N_container[n_cl_nod+i_int_pt];
+                            constraint_offset += value_gamma * N_container[n_cl_nod+i_int_pt];
                         }
 
                         // Pair pointer to negative node with vector of pairs of a pointer to a positive node with its MLS shape function value and add it to the extension operator map
@@ -224,7 +252,7 @@ void EmbeddedMLSConstraintProcess::CalculateNodeCloudsIncludingBC(
                         auto offset_key_data = std::make_pair(&r_node, constraint_offset);
                         rOffsetsMap.insert(offset_key_data);
 
-                        KRATOS_WATCH("Added mls cloud for a negative node of a cut element");
+                        KRATOS_WATCH("Added mls cloud including intersection points for a negative node of a cut element");
                     }
                 }
             }

@@ -121,7 +121,8 @@ public:
             "include_intersection_points"     : false,
             "avoid_zero_distances"            : true,
             "deactivate_negative_elements"    : true,
-            "deactivate_intersected_elements" : false
+            "deactivate_intersected_elements" : false,
+            "slip_length"                     : 0.0
         })" );
 
         return default_parameters;
@@ -206,8 +207,9 @@ private:
 
     std::size_t mMLSExtensionOperatorOrder;
 
-    bool mIncludeIntersectionPoints;
     bool mApplyToAllNegativeCutNodes;
+    bool mIncludeIntersectionPoints;
+    double mSlipLength;
 
     bool mAvoidZeroDistances;
 

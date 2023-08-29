@@ -401,6 +401,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         # Set type of small cut treatment
         self.apply_DistMod = False
         self.apply_MLSConstraints = False
+        self.apply_MLSConstraintsBC = False
         self.apply_LocalConstraints = False
         self.apply_LocalConstraintsABC = False
         if self.small_cut_treatment == None:
@@ -409,6 +410,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self.apply_DistMod = True
         elif self.small_cut_treatment == "mls":
             self.apply_MLSConstraints = True
+        elif self.small_cut_treatment == "mlsbc":
+            self.apply_MLSConstraintsBC = True
         elif self.small_cut_treatment == "local":
             self.apply_LocalConstraints = True
         elif self.small_cut_treatment == "localbc":
@@ -466,6 +469,10 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self.GetMLSConstraintProcess(mls_order=1, apply_to_all=self.apply_constraints_to_all_cut_elements).Execute()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Applied MLS Constraints.")
             self.apply_MLSConstraints = False
+        if self.apply_MLSConstraintsBC:
+            self.GetMLSConstraintProcess(mls_order=1, use_bc=True, apply_to_all=self.apply_constraints_to_all_cut_elements, slip_length=self.slip_length).Execute()
+            KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Applied MLS Constraints.")
+            self.apply_MLSConstraintsBC = False
         if self.apply_LocalConstraints:
             self.GetLocalConstraintProcess(use_bc=False, apply_to_all=self.apply_constraints_to_all_cut_elements).Execute()
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Applied Local Constraints.")
@@ -599,7 +606,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             self._distance_modification_process = self.__CreateDistanceModificationProcess()
         return self._distance_modification_process
 
-    def GetMLSConstraintProcess(self, mls_order=1, apply_to_all=True):
+    def GetMLSConstraintProcess(self, mls_order=1, use_bc=False, apply_to_all=True, slip_length=0.0):
         if not hasattr(self, '_mls_constraint_process'):
             # Calculate the required neighbours
             nodal_neighbours_process = KratosMultiphysics.FindGlobalNodalNeighboursProcess(self.main_model_part)
@@ -615,10 +622,11 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             settings.AddEmptyValue("apply_to_all_negative_cut_nodes").SetBool(apply_to_all)
             settings.AddEmptyValue("model_part_name").SetString(self.main_model_part.Name)
             settings.AddEmptyValue("mls_extension_operator_order").SetInt(mls_order)
-            settings.AddEmptyValue("include_intersection_points").SetBool(False)
+            settings.AddEmptyValue("include_intersection_points").SetBool(use_bc)
             settings.AddEmptyValue("avoid_zero_distances").SetBool(True)
             settings.AddEmptyValue("deactivate_negative_elements").SetBool(True)
             settings.AddEmptyValue("deactivate_intersected_elements").SetBool(False)
+            settings.AddEmptyValue("slip_length").SetDouble(slip_length)
             self._mls_constraint_process = KratosCFD.EmbeddedMLSConstraintProcess(self.model, settings)
         return self._mls_constraint_process
 
