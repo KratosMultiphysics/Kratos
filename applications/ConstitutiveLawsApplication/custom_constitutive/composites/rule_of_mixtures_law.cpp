@@ -688,9 +688,9 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     // We rotate to local axes the strain
     noalias(rParameterValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
 
-    ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[capa_a_imprimir];
+    // ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[capa_a_imprimir];
 
-    Properties& r_prop = *(it_prop_begin + capa_a_imprimir);
+    // Properties& r_prop = *(it_prop_begin + capa_a_imprimir);
     rParameterValues.SetMaterialProperties(r_prop);
 
     p_law->CalculateValue(rParameterValues,rThisVariable, rValue);
