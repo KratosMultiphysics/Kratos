@@ -128,8 +128,8 @@ class GiDOutputProcess(KM.OutputProcess):
 
         controller_settings = KM.Parameters("""{}""")
         controller_settings.AddString("model_part_name", model_part.FullName())
-        controller_settings.AddValue("output_control_type", param["result_file_configuration"]["output_control_type"])
-        controller_settings.AddValue("output_interval", param["result_file_configuration"]["output_interval"])
+        if param["result_file_configuration"].Has("output_control_type"): controller_settings.AddValue("output_control_type", param["result_file_configuration"]["output_control_type"])
+        if param["result_file_configuration"].Has("output_interval"): controller_settings.AddValue("output_interval", param["result_file_configuration"]["output_interval"])
         self.controller = KM.TemporalController(model_part.GetModel(), controller_settings)
 
     # This function can be extended with new deprecated variables as they are generated
