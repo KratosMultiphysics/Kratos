@@ -259,6 +259,11 @@ void TractionSeparationLaw3D<TDim>::InitializeMaterial(
 
     mFatigueDataContainersModeOne.resize(r_p_constitutive_law_vector.size()-1);
     mFatigueDataContainersModeTwo.resize(r_p_constitutive_law_vector.size()-1);
+
+    for (IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
+        mFatigueDataContainersModeOne[i] = HCFDataContainer();
+        mFatigueDataContainersModeTwo[i] = HCFDataContainer();
+    }
 }
 
 /***********************************************************************************/

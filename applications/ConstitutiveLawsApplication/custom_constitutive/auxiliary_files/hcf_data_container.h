@@ -61,8 +61,8 @@ public:
         double Alphat = 0.0;
         double PreviousReversionFactor = 0.0;
         double ReversionFactor = 0.0;
-        bool AdvanceStrategyApplied;
-        bool DamageActivation;
+        bool AdvanceStrategyApplied = false;
+        bool DamageActivation = false;
     };
 
     static constexpr double tolerance = 1.0e-3;
