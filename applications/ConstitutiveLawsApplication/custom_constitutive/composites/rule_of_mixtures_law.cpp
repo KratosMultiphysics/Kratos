@@ -362,8 +362,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
             } 
 		}
 	} else if (rThisVariable == THRESHOLD_STRESS){
-		//double max_stress_relative_error;
-        double stress;
+		double stress;
 		for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
              ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 			if (p_law-> Has (HIGH_CYCLE_FATIGUE_DAMAGE)){
@@ -393,9 +392,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
                             				
             }
 		}
-        // KRATOS_WATCH(rValue)
 	} else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR){
-        //double max_stress_relative_error;
         for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
@@ -421,7 +418,6 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
                 
                 if(max_stress > s_th){
                 min_value = std::min(min_value, aux_values);
-                KRATOS_WATCH(min_value)
 			    }    
 			}
 		}
@@ -670,7 +666,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     rValue = 0.0;
     const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
 
-    const IndexType capa_a_imprimir = 1;
+    const IndexType capa_a_imprimir = 0;
     this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, capa_a_imprimir);
 
     // We rotate to local axes the strain
@@ -749,6 +745,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
             this->CalculateMaterialResponseKirchhoff(rParameterValues);
         } if (rThisVariable == CAUCHY_STRESS_VECTOR) {
             this->CalculateMaterialResponseCauchy(rParameterValues);
+
         } if (rThisVariable == PK2_STRESS_VECTOR) {
             this->CalculateMaterialResponsePK2(rParameterValues);
         }
@@ -788,8 +785,8 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
             if(i_layer == 0){
             noalias(rValue) = aux_value;
             noalias(rParameterValues.GetStrainVector()) = strain_vector;
-            }
-            
+            }         
+
             /**
             noalias(rValue) += factor * aux_value;
 

@@ -117,7 +117,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
             reversion_factor_relative_error = std::abs(reversion_factor - previous_reversion_factor);
         } else {
             reversion_factor_relative_error = std::abs((reversion_factor - previous_reversion_factor) / reversion_factor);
-            //KRATOS_WATCH(max_stress)
         }
         max_stress_relative_error = std::abs((max_stress - previous_max_stress) / max_stress);
 
@@ -142,8 +141,6 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
                                                                                         alphat,
                                                                                         fatigue_reduction_factor,
                                                                                         wohler_stress);
-    KRATOS_WATCH(mCyclesToFailure)
-    KRATOS_WATCH(max_stress)
     }
     if (adnvance_strategy_applied) {
         const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
@@ -573,25 +570,19 @@ double& GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::GetValue
 {
 
     if (rThisVariable == FATIGUE_REDUCTION_FACTOR) {
-        rValue = mFatigueReductionFactor;
-        //KRATOS_WATCH(mFatigueReductionFactor)
+        rValue = mFatigueReductionFactor;   
     } else if (rThisVariable == WOHLER_STRESS) {
         rValue = mWohlerStress;
     } else if (rThisVariable == CYCLES_TO_FAILURE) {
-        rValue = mCyclesToFailure;
-        //KRATOS_WATCH(mCyclesToFailure)
+        rValue = mCyclesToFailure;   
     } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
-        rValue = mReversionFactorRelativeError;
-        //KRATOS_WATCH(mReversionFactorRelativeError)
+        rValue = mReversionFactorRelativeError;   
     } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
-        rValue = mMaxStressRelativeError;
-        //KRATOS_WATCH(mMaxStressRelativeError)
+        rValue = mMaxStressRelativeError;   
     } else if (rThisVariable == MAX_STRESS) {
-        rValue = mMaxStress;
-        //KRATOS_WATCH(mMaxStress)
+        rValue = mMaxStress;    
     } else if (rThisVariable == THRESHOLD_STRESS) {
         rValue = mThresholdStress;
-        //KRATOS_WATCH(mThresholdStress)
     } else if (rThisVariable == PREVIOUS_CYCLE) {
         rValue = mPreviousCycleTime;
     } else if (rThisVariable == CYCLE_PERIOD) {
