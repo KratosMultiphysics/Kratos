@@ -81,25 +81,25 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                         "time_format": "0.2f"
                     },
                     "element_data_value_settings": {
-                        "prefix": "/ResultsData/ElementDataValues"
+                        "prefix": "/ResultsData/ElementDataValues/"
                     },
                     "nodal_flag_value_settings": {
-                        "prefix": "/ResultsData/NodalFlagValues"
+                        "prefix": "/ResultsData/NodalFlagValues/"
                     },
                     "element_flag_value_settings": {
-                        "prefix": "/ResultsData/ElementFlagValues"
+                        "prefix": "/ResultsData/ElementFlagValues/"
                     },
                     "element_gauss_point_value_settings"      : {
-                        "prefix": "/ResultsData/ElementGaussPointValues"
+                        "prefix": "/ResultsData/ElementGaussPointValues/"
                     },
                     "condition_data_value_settings": {
-                        "prefix": "/ResultsData/ConditionDataValues"
+                        "prefix": "/ResultsData/ConditionDataValues/"
                     },
                     "condition_flag_value_settings": {
-                        "prefix": "/ResultsData/ConditionFlagValues"
+                        "prefix": "/ResultsData/ConditionFlagValues/"
                     },
                     "condition_gauss_point_value_settings"      : {
-                        "prefix": "/ResultsData/ConditionGaussPointValues"
+                        "prefix": "/ResultsData/ConditionGaussPointValues/"
                     },
                     "output_time_settings": {
                         "output_control_type": "time",
@@ -137,7 +137,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.HDF5NodalSolutionStepDataIO.return_value.Write.call_count, 1)
         self.assertEqual(self.HDF5NodalSolutionStepDataIO.return_value.Write.call_args[0][0], self.model_part)
         self.assertEqual(self.HDF5NodalDataValueIO.call_count, 1)
-        self.assertEqual(self.HDF5NodalDataValueIO.call_args[0][0]['prefix'].GetString(), '/ResultsData/NodalDataValues')
+        self.assertEqual(self.HDF5NodalDataValueIO.call_args[0][0]['prefix'].GetString(), '/ResultsData/NodalDataValues/')
         self.assertEqual(
             self.HDF5NodalDataValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
@@ -146,7 +146,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
 
         self.assertEqual(self.HDF5NodalFlagValueIO.call_count, 1)
         self.assertEqual(
-            self.HDF5NodalFlagValueIO.call_args[0][0]['prefix'].GetString(), '/ResultsData/NodalFlagValues')
+            self.HDF5NodalFlagValueIO.call_args[0][0]['prefix'].GetString(), '/ResultsData/NodalFlagValues/')
         self.assertEqual(
             self.HDF5NodalFlagValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
@@ -155,7 +155,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
 
         self.assertEqual(self.HDF5ElementDataValueIO.call_count, 1)
         self.assertEqual(self.HDF5ElementDataValueIO.call_args[0][0]['prefix'].GetString(
-        ), '/ResultsData/ElementDataValues')
+        ), '/ResultsData/ElementDataValues/')
         self.assertEqual(
             self.HDF5ElementDataValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
@@ -164,7 +164,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
 
         self.assertEqual(self.HDF5ElementFlagValueIO.call_count, 1)
         self.assertEqual(self.HDF5ElementFlagValueIO.call_args[0][0]['prefix'].GetString(
-        ), '/ResultsData/ElementFlagValues')
+        ), '/ResultsData/ElementFlagValues/')
         self.assertEqual(
             self.HDF5ElementFlagValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
@@ -173,7 +173,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
 
         self.assertEqual(self.HDF5ElementGaussPointIO.call_count, 1)
         self.assertEqual(self.HDF5ElementGaussPointIO.call_args[0][0]['prefix'].GetString(
-        ), '/ResultsData/ElementGaussPointValues')
+        ), '/ResultsData/ElementGaussPointValues/')
         self.assertEqual(
             self.HDF5ElementGaussPointIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
@@ -182,7 +182,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
 
         self.assertEqual(self.HDF5ConditionDataValueIO.call_count, 1)
         self.assertEqual(self.HDF5ConditionDataValueIO.call_args[0][0]['prefix'].GetString(
-        ), '/ResultsData/ConditionDataValues')
+        ), '/ResultsData/ConditionDataValues/')
         self.assertEqual(
             self.HDF5ConditionDataValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
@@ -191,7 +191,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
 
         self.assertEqual(self.HDF5ConditionFlagValueIO.call_count, 1)
         self.assertEqual(self.HDF5ConditionFlagValueIO.call_args[0][0]['prefix'].GetString(
-        ), '/ResultsData/ConditionFlagValues')
+        ), '/ResultsData/ConditionFlagValues/')
         self.assertEqual(
             self.HDF5ConditionFlagValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
@@ -200,7 +200,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
 
         self.assertEqual(self.HDF5ConditionGaussPointIO.call_count, 1)
         self.assertEqual(self.HDF5ConditionGaussPointIO.call_args[0][0]['prefix'].GetString(
-        ), '/ResultsData/ConditionGaussPointValues')
+        ), '/ResultsData/ConditionGaussPointValues/')
         self.assertEqual(
             self.HDF5ConditionGaussPointIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
@@ -276,7 +276,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 process.PrintOutput()
         self.assertEqual(self.HDF5NodalSolutionStepBossakIO.call_count, 2)
         self.assertEqual(
-            self.HDF5NodalSolutionStepBossakIO.call_args[0][0]['prefix'].GetString(), '/ResultsData/NodalSolutionStepData')
+            self.HDF5NodalSolutionStepBossakIO.call_args[0][0]['prefix'].GetString(), '/ResultsData/NodalSolutionStepData/')
         self.assertEqual(
             self.HDF5NodalSolutionStepBossakIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(

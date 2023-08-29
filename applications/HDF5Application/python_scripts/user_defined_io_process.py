@@ -123,7 +123,7 @@ def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.M
             "prefix": "/<time>/<model_part_name>/ModelData",
             "operation_type": "model_part_output"
         },{
-            "prefix": "/<time>/<model_part_name>/ResultsData",
+            "prefix": "/<time>/<model_part_name>/ResultsData/",
             "operation_type": "nodal_solution_step_data_output",
             "list_of_variables": ["DISPLACEMENT"]
         }]

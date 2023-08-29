@@ -37,37 +37,37 @@ class InitializationFromHDF5Process(HDF5Process):
                     "echo_level"       :  0
                 },
                 "nodal_solution_step_data_settings": {
-                    "prefix"           : "/ResultsData/NodalSolutionStepData",
+                    "prefix"           : "/ResultsData/NodalSolutionStepData/",
                     "list_of_variables": [],
                     "time_format"      : "0.4f"
                 },
                 "nodal_data_value_settings": {
-                    "prefix"           : "/ResultsData/NodalDataValues",
+                    "prefix"           : "/ResultsData/NodalDataValues/",
                     "list_of_variables": [],
                     "time_format"      : "0.4f"
                 },
                 "nodal_flag_value_settings": {
-                    "prefix"           : "/ResultsData/NodalFlagValues",
+                    "prefix"           : "/ResultsData/NodalFlagValues/",
                     "list_of_variables": [],
                     "time_format"      : "0.4f"
                 },
                 "element_data_value_settings": {
-                    "prefix"           : "/ResultsData/ElementDataValues",
+                    "prefix"           : "/ResultsData/ElementDataValues/",
                     "list_of_variables": [],
                     "time_format"      : "0.4f"
                 },
                 "element_flag_value_settings": {
-                    "prefix"           : "/ResultsData/ElementFlagValues",
+                    "prefix"           : "/ResultsData/ElementFlagValues/",
                     "list_of_variables": [],
                     "time_format"      : "0.4f"
                 },
                 "condition_data_value_settings": {
-                    "prefix"           : "/ResultsData/ConditionDataValues",
+                    "prefix"           : "/ResultsData/ConditionDataValues/",
                     "list_of_variables": [],
                     "time_format"      : "0.4f"
                 },
                 "condition_flag_value_settings": {
-                    "prefix"           : "/ResultsData/ConditionFlagValues",
+                    "prefix"           : "/ResultsData/ConditionFlagValues/",
                     "list_of_variables": [],
                     "time_format"      : "0.4f"
                 }

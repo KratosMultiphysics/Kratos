@@ -112,11 +112,7 @@ void AddContainerComponentIOToPython(
     }
 
     py::class_<data_io, typename data_io::Pointer>(m, rName.c_str())
-        // TODO: Remove th below custom init, and use the one without suffix.
-        .def(py::init([container_name, legacy_suffix](Parameters Settings, HDF5::File::Pointer pFile) {
-            return Kratos::make_shared<data_io>(Settings, pFile, ("/" + container_name + legacy_suffix + "Values/"));
-        }))
-        // .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](data_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
                     rSelf.Write(rModelPart, container_data_io_type{}, Attributes);
                 },
@@ -180,7 +176,7 @@ public:
     PythonNodalSolutionStepBossakIO(
         Parameters Settings,
         HDF5::File::Pointer pFile)
-        : BaseType(Settings, pFile, "/NodalSolutionStepData/"),
+        : BaseType(Settings, pFile),
           mAlphaBossak(0.0)
     {
     }
@@ -253,11 +249,7 @@ void AddCustomIOToPython(pybind11::module& m)
 
     using nodal_solution_step_data_io = VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, HDF5::Internals::HistoricalIO>::ContainerIOType;
     py::class_<nodal_solution_step_data_io, nodal_solution_step_data_io::Pointer>(m,"HDF5NodalSolutionStepDataIO")
-        // TODO: Remove th below custom init, and use the one without suffix.
-        .def(py::init([](Parameters Settings, HDF5::File::Pointer pFile) {
-            return Kratos::make_shared<nodal_solution_step_data_io>(Settings, pFile, "/NodalSolutionStepData/");
-        }))
-        // .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](nodal_solution_step_data_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes, const IndexType StepIndex) {
                 rSelf.Write(rModelPart, HDF5::Internals::HistoricalIO(StepIndex), Attributes);
             },
@@ -310,11 +302,7 @@ void AddCustomIOToPython(pybind11::module& m)
 
     using element_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ElementsContainerType, HDF5::Internals::GaussPointValueIO>::ContainerIOType;
     py::class_<element_gauss_io, element_gauss_io::Pointer>(m,"HDF5ElementGaussPointIO")
-        // TODO: Remove th below custom init, and use the one without suffix.
-        .def(py::init([](Parameters Settings, HDF5::File::Pointer pFile) {
-            return Kratos::make_shared<element_gauss_io>(Settings, pFile, "/ElementGaussPointValues/");
-        }))
-        // .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](element_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
                 rSelf.Write(rModelPart, HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
             },
@@ -331,11 +319,7 @@ void AddCustomIOToPython(pybind11::module& m)
 
     using condition_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ConditionsContainerType, HDF5::Internals::GaussPointValueIO>::ContainerIOType;
     py::class_<condition_gauss_io, condition_gauss_io::Pointer>(m,"HDF5ConditionGaussPointIO")
-        // TODO: Remove th below custom init, and use the one without suffix.
-        .def(py::init([](Parameters Settings, HDF5::File::Pointer pFile) {
-            return Kratos::make_shared<condition_gauss_io>(Settings, pFile, "/ConditionGaussPointValues/");
-        }))
-        // .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](condition_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
                 rSelf.Write(rModelPart, HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
             },
