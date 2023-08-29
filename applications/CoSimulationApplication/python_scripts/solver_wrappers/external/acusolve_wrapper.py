@@ -11,8 +11,8 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # System imports
-import os
-from sys import platform
+import subprocess
+import platform
 
 def Create(settings, model, solver_name):
     return acuSolveWrapper(settings, model, solver_name)
@@ -35,23 +35,24 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
         super().__init__(settings, model, solver_name)
         # Set default settings and validate JSON settings
         solver_wrapper_settings_defaults = KM.Parameters("""{
-            "main_model_part_name" : "",
-            "application"          : "AcuSolve",
-            "problem"              : "",
-            "input_file"           : "",
-            "working_directory"    : "",
-            "problem_directory"    : ".",
-            "num_processors"       : 1,
-            "num_threads"          : 1,
-            "time_increment"       : 0.0,
-            "region"               : "",
-            "gpu_flag"             : "FALSE",
-            "restart_flag"         : "FALSE",
-            "fast_restart_flag"    : "FALSE",
-            "echo_level"           : 1,
-            "export_data"          : [ ],
-            "import_data"          : [ ],
-            "import_meshes"        : [ ]
+            "main_model_part_name"    : "",
+            "application"             : "AcuSolve",
+            "problem"                 : "",
+            "input_file"              : "",
+            "working_directory"       : "",
+            "problem_directory"       : ".",
+            "num_processors"          : 1,
+            "num_threads"             : 1,
+            "time_increment"          : 0.0,
+            "region"                  : "",
+            "gpu_flag"                : "FALSE",
+            "restart_flag"            : "FALSE",
+            "fast_restart_flag"       : "FALSE",
+            "echo_level"              : 1,
+            "export_data"             : [ ],
+            "import_data"             : [ ],
+            "import_meshes"           : [ ],
+            "post_process_first_step" :  true
         }""")
 
         # Validate settings
@@ -69,52 +70,46 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
 
         # ---------------------
         # Get arguments from JSON file
-        #application         = self.settings["solver_wrapper_settings"]["application"].GetString()
-        working_directory   = self.settings["solver_wrapper_settings"]["working_directory"].GetString()
-        problem_directory   = self.settings["solver_wrapper_settings"]["problem_directory"].GetString()
-        #region              = self.settings["solver_wrapper_settings"]["region"].GetString()
-        echo_level          = self.settings["solver_wrapper_settings"]["echo_level"].GetInt()
-        problem             = self.settings["solver_wrapper_settings"]["problem"].GetString()
-        inputFile           = self.settings["solver_wrapper_settings"]["input_file"].GetString()
-        np                  = self.settings["solver_wrapper_settings"]["num_processors"].GetInt()
-        nt                  = self.settings["solver_wrapper_settings"]["num_threads"].GetInt()
-        gpu                 = self.settings["solver_wrapper_settings"]["gpu_flag"].GetString()
-        rst                 = self.settings["solver_wrapper_settings"]["restart_flag"].GetString()
-        frst                = self.settings["solver_wrapper_settings"]["restart_flag"].GetString()
-        self.deltaT         = self.settings["solver_wrapper_settings"]["time_increment"].GetDouble()
+        #application                  = self.settings["solver_wrapper_settings"]["application"].GetString()
+        working_directory            = self.settings["solver_wrapper_settings"]["working_directory"].GetString()
+        problem_directory            = self.settings["solver_wrapper_settings"]["problem_directory"].GetString()
+        #region                       = self.settings["solver_wrapper_settings"]["region"].GetString()
+        echo_level                   = self.settings["solver_wrapper_settings"]["echo_level"].GetInt()
+        problem                      = self.settings["solver_wrapper_settings"]["problem"].GetString()
+        inputFile                    = self.settings["solver_wrapper_settings"]["input_file"].GetString()
+        np                           = self.settings["solver_wrapper_settings"]["num_processors"].GetInt()
+        nt                           = self.settings["solver_wrapper_settings"]["num_threads"].GetInt()
+        gpu                          = self.settings["solver_wrapper_settings"]["gpu_flag"].GetString()
+        rst                          = self.settings["solver_wrapper_settings"]["restart_flag"].GetString()
+        frst                         = self.settings["solver_wrapper_settings"]["restart_flag"].GetString()
+        self.deltaT                  = self.settings["solver_wrapper_settings"]["time_increment"].GetDouble()
+        self.post_process_first_step = self.settings["solver_wrapper_settings"]["post_process_first_step"].GetBool()
 
         # ---------------------
         # Launch AcuSolve
         # ---------------------
         common_cmd = inputFile + " -pb " + problem +" -dir "+ working_directory + " -pdir " + problem_directory + " -np "+ str(np) + " -nt " + str(nt)
         verbose_cmd = " -verbose " + str(echo_level)
-        if platform == "linux" or platform == "linux2":
-            base_cmd = "acuRun -inp "
-            buffer_cmd = " &"
+        platform_details = {
+            "Linux"   : ("acuRun -inp ", " &"),
+            "Windows" : ("acuRun.bat -inp ", " -lbuff")
+        }
+        current_platform = platform.system()
+        if current_platform in platform_details:
+            base_cmd, buffer_cmd = platform_details[current_platform]
+            
             if gpu != "FALSE":
-                cmd = base_cmd + common_cmd + " -gpu " + gpu + verbose_cmd + buffer_cmd  
+                cmd = f"{base_cmd}{common_cmd} -gpu {gpu}{verbose_cmd}{buffer_cmd}"
             elif rst != "FALSE":
-                cmd = base_cmd + common_cmd + " -rst " + verbose_cmd + buffer_cmd  
+                cmd = f"{base_cmd}{common_cmd} -rst {verbose_cmd}{buffer_cmd}"
             elif frst != "FALSE":
-                cmd = base_cmd + common_cmd + " -frst " + verbose_cmd + buffer_cmd  
+                cmd = f"{base_cmd}{common_cmd} -frst {verbose_cmd}{buffer_cmd}"
             else:
-                cmd = base_cmd + common_cmd + verbose_cmd + buffer_cmd
-        elif platform == "win32":
-            base_cmd = "acuRun.bat -inp "
-            buffer_cmd = " -lbuff"
-            if gpu != "FALSE":
-                cmd = base_cmd + common_cmd + " -gpu " + gpu + verbose_cmd + buffer_cmd  
-            elif rst != "FALSE":
-                cmd = base_cmd + common_cmd + " -rst " + verbose_cmd + buffer_cmd   
-            elif frst != "FALSE":
-                cmd = base_cmd + common_cmd + " -frst " + verbose_cmd + buffer_cmd
-            else:
-                cmd = base_cmd + common_cmd + verbose_cmd + buffer_cmd
+                cmd = f"{base_cmd}{common_cmd}{verbose_cmd}{buffer_cmd}"
         else:
-            # Python exception in case not detected OS
             raise Exception("Unsupported operating system detected.")
         cs_tools.cs_print_info(self.name + ": " +  cmd)
-        os.system(cmd)
+        subprocess.run(cmd, shell=True)
 
     def Initialize(self):
         """ This function initializes the AFS Wrapper
@@ -125,16 +120,18 @@ class acuSolveWrapper(CoSimulationSolverWrapper):
              interface_config = { "model_part_name" : model_part_name }
              self.ImportCouplingInterface(interface_config)
         
-        cs_tools.cs_print_info(self.name + ": " +  "WRITING VTK OUTPUT...........")
-        vtk_output_configuration = KM.Parameters("""{
-                "model_part_name"        : \""""+model_part_name+"""\",
-                "output_sub_model_parts" : false,
-                "nodal_solution_step_data_variables" : ["HEAT_FLUX"]
-            }""")
-        self.vtk_output = VtkOutputProcess(self.model, vtk_output_configuration)
-        self.vtk_output.ExecuteInitialize()
-        self.vtk_output.ExecuteBeforeSolutionLoop()
-        self.vtk_output.PrintOutput()
+        # Post-process if required
+        if self.post_process_first_step:
+            cs_tools.cs_print_info(self.name + ": " +  "WRITING VTK OUTPUT...........")
+            vtk_output_configuration = KM.Parameters("""{
+                    "model_part_name"        : \""""+model_part_name+"""\",
+                    "output_sub_model_parts" : false,
+                    "nodal_solution_step_data_variables" : ["HEAT_FLUX"]
+                }""")
+            self.vtk_output = VtkOutputProcess(self.model, vtk_output_configuration)
+            self.vtk_output.ExecuteInitialize()
+            self.vtk_output.ExecuteBeforeSolutionLoop()
+            self.vtk_output.PrintOutput()
 
     def ExportData(self, data_config):
         """This function exports data to the AFS Wrapper
