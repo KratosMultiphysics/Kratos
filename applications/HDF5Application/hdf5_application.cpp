@@ -28,5 +28,8 @@ KratosHDF5Application::KratosHDF5Application() : KratosApplication("HDF5Applicat
 
 void KratosHDF5Application::Register() {
  	KRATOS_INFO("") << "Initializing KratosHDF5Application..." << std::endl;
+
+	// Register variables
+	KRATOS_REGISTER_VARIABLE(HDF5_MESH_LOCATION_INFO);
 }
 }  // namespace Kratos.
