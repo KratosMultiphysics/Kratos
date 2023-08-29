@@ -19,10 +19,10 @@
             "analysis_type"                   : "non_linear",
             "model_import_settings"           : {
                 "input_type"     : "mdpa",
-                "input_filename" : "thermo_mechanical_tests/coupled_problem_test"
+                "input_filename" : "thermo_mechanical_tests/thermo_mechanical/coupled_problem_test"
             },
             "material_import_settings"        : {
-                "materials_filename" : "thermo_mechanical_tests/StructuralMaterials.json"
+                "materials_filename" : "thermo_mechanical_tests/thermo_mechanical/StructuralMaterials.json"
             },
             "time_stepping"                   : {
                 "time_step" : 0.4
@@ -43,10 +43,10 @@
             "domain_size"                        : 2,
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
-                "input_filename" : "thermo_mechanical_tests/coupled_problem_test"
+                "input_filename" : "thermo_mechanical_tests/thermo_mechanical/coupled_problem_test"
             },
             "material_import_settings"           : {
-                "materials_filename" : "thermo_mechanical_tests/ConvectionDiffusionMaterials.json"
+                "materials_filename" : "thermo_mechanical_tests/thermo_mechanical/ConvectionDiffusionMaterials.json"
             },
             "line_search"                        : false,
             "echo_level"                         : 0,
@@ -129,7 +129,7 @@
             "Parameters"            : {
                 "check_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
                 "gauss_points_check_variables" : [],
-                "input_file_name"              : "thermo_mechanical_tests/thermo_mechanical_test_results.json",
+                "input_file_name"              : "thermo_mechanical_tests/thermo_mechanical/thermo_mechanical_test_results.json",
                 "model_part_name"               : "Structure.Parts_Solid_Auto1",
                 "time_frequency"                : 1.0
             }
@@ -143,7 +143,7 @@
         "Parameters"            : {
             "output_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
             "gauss_points_output_variables" : [],
-            "output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_tests_results.json",
+            "output_file_name"              : "thermo_mechanical_tests/thermo_mechanical/thermo_mechanical_tests_results.json",
             "model_part_name"               : "Structure.Parts_Solid_Auto1",
             "time_frequency"                : 1.0
         }
