@@ -93,6 +93,37 @@ class TestExpressionIO(UnitTest.TestCase):
         # expression_io.Write("test", nodal_expression.GetExpression(), in_attribs)
         # out_expression, out_attribs = expression_io.Read("test")
 
+    def __TestWriteVariableAndReadExpression(self, variable):
+        nodal_params = Kratos.Parameters("""{"prefix": "/ResultsData/NodalDataValues/" }""")
+        nodal_params.AddStringArray("list_of_variables", [variable.Name()])
+        nodal_io = KratosHDF5.HDF5NodalDataValueIO(nodal_params, self.h5_file)
+        nodal_io.Write(self.model_part)
+        nodal_expression_orig = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(nodal_expression_orig, variable, False)
+        nodal_expression_read = Kratos.Expression.NodalExpression(self.model_part)
+        KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/ResultsData/NodalDataValues/"}"""), self.h5_file).Read(variable.Name(), nodal_expression_read)
+        self.assertEqual(np.linalg.norm((nodal_expression_read - nodal_expression_orig).Evaluate()), 0)
+
+        condition_params = Kratos.Parameters("""{"prefix": "/ResultsData/ConditionDataValues/" }""")
+        condition_params.AddStringArray("list_of_variables", [variable.Name()])
+        condition_io = KratosHDF5.HDF5ConditionDataValueIO(condition_params, self.h5_file)
+        condition_io.Write(self.model_part)
+        condition_expression_orig = Kratos.Expression.ConditionExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(condition_expression_orig, variable)
+        condition_expression_read = Kratos.Expression.ConditionExpression(self.model_part)
+        KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/ResultsData/ConditionDataValues/"}"""), self.h5_file).Read(variable.Name(), condition_expression_read)
+        self.assertEqual(np.linalg.norm((condition_expression_read - condition_expression_orig).Evaluate()), 0)
+
+        element_params = Kratos.Parameters("""{"prefix": "/ResultsData/ElementDataValues/" }""")
+        element_params.AddStringArray("list_of_variables", [variable.Name()])
+        element_io = KratosHDF5.HDF5ElementDataValueIO(element_params, self.h5_file)
+        element_io.Write(self.model_part)
+        element_expression_orig = Kratos.Expression.ElementExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(element_expression_orig, variable)
+        element_expression_read = Kratos.Expression.ElementExpression(self.model_part)
+        KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix": "/ResultsData/ElementDataValues/"}"""), self.h5_file).Read(variable.Name(), element_expression_read)
+        self.assertEqual(np.linalg.norm((element_expression_read - element_expression_orig).Evaluate()), 0)
+
     def test_ReadWriteExpressionScalar(self):
         self.__TestContainerExpressions(Kratos.PRESSURE)
 
@@ -104,6 +135,19 @@ class TestExpressionIO(UnitTest.TestCase):
 
     def test_ReadWriteExpressionMatrix(self):
         self.__TestContainerExpressions(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+
+    def test_WriteVariableReadExpressionScalar(self):
+        self.__TestWriteVariableAndReadExpression(Kratos.PRESSURE)
+
+    def test_WriteVariableReadExpressionArray3(self):
+        self.__TestWriteVariableAndReadExpression(Kratos.VELOCITY)
+
+    def test_WriteVariableReadExpressionVector(self):
+        self.__TestWriteVariableAndReadExpression(Kratos.GREEN_LAGRANGE_STRAIN_VECTOR)
+
+    def test_WriteVariableReadExpressionMatrix(self):
+        self.__TestWriteVariableAndReadExpression(Kratos.GREEN_LAGRANGE_STRAIN_TENSOR)
+
 
     @staticmethod
     def GetInputMDPAPath() -> Path:

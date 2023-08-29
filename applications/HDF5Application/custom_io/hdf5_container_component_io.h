@@ -96,7 +96,7 @@ protected:
 
     std::vector<std::string> mComponentNames;
 
-    std::string mComponentPath;
+    std::string mComponentPrefix;
 
     ///@}
 

@@ -103,12 +103,12 @@ class TestLineOutputProcess(UnitTest.TestCase):
                 "search_tolerance"    : 1e-6
             },
             "nodal_solution_step_data_settings": {
-                "prefix"           : "/test_line_output_<model_part_name>/test_step_hist_<step>",
+                "prefix"           : "/test_line_output_<model_part_name>/test_step_hist_<step>/",
                 "list_of_variables": ["DISPLACEMENT_X", "VELOCITY"],
                 "time_format"      : "0.4f"
             },
             "nodal_data_value_settings": {
-                "prefix"           : "/test_line_output_<model_part_name>/test_step_nonhist_<step>",
+                "prefix"           : "/test_line_output_<model_part_name>/test_step_nonhist_<step>/",
                 "list_of_variables": ["DISPLACEMENT_X", "VELOCITY"],
                 "time_format"      : "0.4f"
             }

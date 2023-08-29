@@ -80,11 +80,11 @@ ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Containe
 
     Settings.AddMissingParameters(default_params);
 
-    mComponentPath = Settings["prefix"].GetString();
+    mComponentPrefix = Settings["prefix"].GetString();
     mComponentNames = Settings["list_of_variables"].GetStringArray();
 
-    KRATOS_ERROR_IF(mComponentPath == "" || mComponentPath == "/")
-        << "The prefix should not be blank or \"/\" [ prefix = " << mComponentPath << " ].\n";
+    KRATOS_ERROR_IF(mComponentPrefix == "" || mComponentPrefix == "/")
+        << "The prefix should not be blank or \"/\" [ prefix = " << mComponentPrefix << " ].\n";
 
     // Sort component names to make sure they're in the same order on each rank.
     // The basic assumption is that the set of components is identical on every
@@ -104,16 +104,18 @@ void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
 {
     KRATOS_TRY
 
+    auto current_attributes = Attributes.Clone();
+
     if constexpr(
         std::is_same_v<TContainerType, NodesContainerType> ||
         std::is_same_v<TContainerType, ConditionsContainerType> ||
         std::is_same_v<TContainerType, ElementsContainerType>) {
         if (rModelPart.Has(HDF5_MESH_LOCATION_INFO)) {
-            mpFile->AddPath(mComponentPath);
-            mpFile->WriteAttribute(mComponentPath, "__mesh_location", rModelPart.GetValue(HDF5_MESH_LOCATION_INFO));
+            KRATOS_ERROR_IF(current_attributes.Has("__mesh_location"))
+                << "The reserved keyword \"__mesh_location\" is found. Please remove it from attributes.";
+            current_attributes.AddString("__mesh_location", rModelPart.GetValue(HDF5_MESH_LOCATION_INFO));
         }
-
-        Write(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, Attributes);
+        Write(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, current_attributes);
     } else {
         KRATOS_ERROR << "Unsupported container type.";
     }
@@ -164,7 +166,7 @@ void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
     }
 
     // Write block partition.
-    WritePartitionTable(*mpFile, mComponentPath, info);
+    WritePartitionTable(*mpFile, mComponentPrefix, info);
 
     KRATOS_CATCH("");
 }
@@ -184,7 +186,7 @@ std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContaine
     }
 
     IndexType start_index, block_size;
-    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, mComponentPath);
+    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, mComponentPrefix);
 
     // Write each variable.
     for (const auto& r_component_name : mComponentNames) {
@@ -209,6 +211,8 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
     Parameters Attributes,
     WriteInfo& rInfo)
 {
+    KRATOS_TRY
+
     using component_data_type = typename Internals::template ComponentTraits<TComponentType>::ValueType;
 
     using value_type = typename TContainerDataIO::template ComponentDataType<component_data_type>;
@@ -218,12 +222,12 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
     using value_primitive_type = typename value_type_traits::PrimitiveType;
 
     if (KratosComponents<TComponentType>::Has(rComponentName)) {
-        const auto& r_data_set_path = mComponentPath + "/" + rComponentName;
+        const auto& r_data_set_path = mComponentPrefix + rComponentName;
         const auto& r_component = KratosComponents<TComponentType>::Get(rComponentName);
 
+        std::vector<int> shape(value_type_traits::Dimension);
         if constexpr(value_type_traits::IsDynamic) {
             // retrieving dynamic shape
-            std::vector<int> shape(value_type_traits::Dimension);
             if (!rLocalContainer.empty()) {
                 typename TContainerDataIO::template TLSType<component_data_type> tls;
                 const auto& value_prototype = rContainerDataIO.GetValue(rLocalContainer.front(), r_component, tls);
@@ -231,24 +235,31 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             }
             shape = mpFile->GetDataCommunicator().MaxAll(shape);
 
-            // add the shape to attributes.
-            KRATOS_ERROR_IF(Attributes.Has("__shape"))
-                << "The reserved keyword \"__shape\" is found. Please remove it from attributes.";
-            Attributes.AddEmptyArray("__shape");
-            for (const auto v : shape) {
-                Attributes["__shape"].Append(v);
-            }
-
             Matrix<value_primitive_type> values;
             values.resize(rLocalContainer.size(), std::accumulate(shape.begin(), shape.end(), 1, std::multiplies<int>{}));
             Internals::CopyToContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Matrix<value_primitive_type>>::GetContiguousData(values));
             mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         } else {
+            value_type_traits::Shape(value_type{}, shape.data(), shape.data() + value_type_traits::Dimension);
             Vector<value_type> values;
             values.resize(rLocalContainer.size());
             Internals::CopyToContiguousDataArray(rLocalContainer, r_component, rContainerDataIO, DataTypeTraits<Vector<value_type>>::GetContiguousData(values));
             mpFile->WriteDataSet(r_data_set_path, values, rInfo);
         }
+
+        // add the shape to attributes.
+        KRATOS_ERROR_IF(Attributes.Has("__data_shape"))
+            << "The reserved keyword \"__data_shape\" is found. Please remove it from attributes.";
+        if (shape.size() > 0) {
+            Attributes.AddEmptyArray("__data_shape");
+            for (const auto v : shape) {
+                Attributes["__data_shape"].Append(v);
+            }
+        }
+
+        KRATOS_ERROR_IF(Attributes.Has("__data_dimension"))
+            << "The reserved keyword \"__data_dimension\" is found. Please remove it from attributes.";
+        Attributes.AddInt("__data_dimension", value_type_traits::Dimension);
 
         KRATOS_ERROR_IF(Attributes.Has("__container_type"))
             << "The reserved keyword \"__container_type\" is found. Please remove it from attributes.";
@@ -262,10 +273,6 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             << "The reserved keyword \"__data_name\" is found. Please remove it from attributes.";
         Attributes.AddString("__data_name", rComponentName);
 
-        KRATOS_ERROR_IF(Attributes.Has("__data_type"))
-            << "The reserved keyword \"__data_type\" is found. Please remove it from attributes.";
-        Attributes.AddString("__data_type", "Variable");
-
         // now write the attributes
         mpFile->WriteAttribute(r_data_set_path, Attributes);
         return true;
@@ -273,6 +280,8 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
         // if the component is not a match.
         return false;
     }
+
+    KRATOS_CATCH("");
 }
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
@@ -286,6 +295,8 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
     const IndexType StartIndex,
     const IndexType BlockSize)
 {
+    KRATOS_TRY
+
     using value_type = typename TContainerDataIO::template ComponentDataType<typename Internals::template ComponentTraits<TComponentType>::ValueType>;
 
     using value_type_traits = DataTypeTraits<value_type>;
@@ -293,7 +304,7 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
     using value_primitive_type = typename value_type_traits::PrimitiveType;
 
     if (KratosComponents<TComponentType>::Has(rComponentName)) {
-        const auto& r_data_set_path = mComponentPath + "/" + rComponentName;
+        const auto& r_data_set_path = mComponentPrefix + rComponentName;
         const auto& r_component = KratosComponents<TComponentType>::Get(rComponentName);
 
         KRATOS_ERROR_IF_NOT(mpFile->IsDataSet(r_data_set_path))
@@ -326,15 +337,12 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
 
         NewContainerComponentIOUtilities::SynchronizeComponent<TContainerType>::template Execute<TContainerDataIO>(rCommunicator, r_component);
 
-        if (attributes.Has("__shape")) attributes.RemoveValue("__shape");
+        if (attributes.Has("__data_dimension")) attributes.RemoveValue("__data_dimension");
+        if (attributes.Has("__data_shape")) attributes.RemoveValue("__data_shape");
         if (attributes.Has("__container_type")) attributes.RemoveValue("__container_type");
         if (attributes.Has("__data_name")) attributes.RemoveValue("__data_name");
         if (attributes.Has("__data_location")) attributes.RemoveValue("__data_location");
-        if (attributes.Has("__data_type")) {
-            KRATOS_ERROR_IF_NOT(attributes["__data_type"].GetString() == "Variable")
-                << "The dataset at \"" << r_data_set_path << "\" is not of a variable.\n";
-            attributes.RemoveValue("__data_type");
-        }
+        if (attributes.Has("__mesh_location")) attributes.RemoveValue("__mesh_location");
 
         rAttributesMap[rComponentName] = attributes;
 
@@ -343,6 +351,8 @@ bool ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Rea
         // if the component is not a match.
         return false;
     }
+
+    KRATOS_CATCH("");
 }
 
 template <class TContainerType, class TContainerDataIO, class... TComponents>
@@ -356,13 +366,14 @@ std::map<std::string, Parameters> ContainerComponentIO<TContainerType, TContaine
         KRATOS_ERROR_IF(attributes_map.find(r_component_name) != attributes_map.end())
             << "The attributes for component \"" << r_component_name << "\" already exists.";
 
-        const auto& r_data_set_path = mComponentPath + "/" + r_component_name;
+        const auto& r_data_set_path = mComponentPrefix + r_component_name;
         auto attributes = mpFile->ReadAttribute(r_data_set_path);
-        if (attributes.Has("__shape")) attributes.RemoveValue("__shape");
+        if (attributes.Has("__data_dimension")) attributes.RemoveValue("__data_dimension");
+        if (attributes.Has("__data_shape")) attributes.RemoveValue("__data_shape");
         if (attributes.Has("__container_type")) attributes.RemoveValue("__container_type");
         if (attributes.Has("__data_name")) attributes.RemoveValue("__data_name");
         if (attributes.Has("__data_location")) attributes.RemoveValue("__data_location");
-        if (attributes.Has("__data_type")) attributes.RemoveValue("__data_type");
+        if (attributes.Has("__mesh_location")) attributes.RemoveValue("__mesh_location");
 
         attributes_map[r_component_name] = attributes;
     }
