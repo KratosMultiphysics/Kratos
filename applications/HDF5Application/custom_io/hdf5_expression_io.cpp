@@ -67,7 +67,6 @@ void ExpressionIO::Write(
         }
     });
 
-
     auto appended_attribs = Attributes.Clone();
 
     const auto& shape = rExpression.GetItemShape();
@@ -75,6 +74,10 @@ void ExpressionIO::Write(
     KRATOS_ERROR_IF(appended_attribs.Has("__data_dimension"))
         << "The reserved keyword \"__data_dimension\" is found. Please remove it from attributes.";
     appended_attribs.AddInt("__data_dimension", static_cast<int>(shape.size()));
+
+    KRATOS_ERROR_IF(Attributes.Has("__data_name"))
+        << "The reserved keyword \"__data_name\" is found. Please remove it from attributes.";
+    appended_attribs.AddString("__data_name", rExpressionName);
 
     KRATOS_ERROR_IF(appended_attribs.Has("__data_shape"))
         << "The reserved keyword \"__data_shape\" is found. Please remove it from attributes.";
@@ -86,7 +89,7 @@ void ExpressionIO::Write(
         }
     }
 
-    const auto& dataset_path = mPrefix + "/" + rExpressionName;
+    const auto& dataset_path = mPrefix + rExpressionName;
     WriteInfo info;
     mpFile->WriteDataSet(dataset_path, values, info);
     mpFile->WriteAttribute(dataset_path, appended_attribs);
@@ -99,7 +102,7 @@ std::pair<Expression::Pointer, Parameters> ExpressionIO::Read(const std::string&
 {
     KRATOS_TRY
 
-    const auto& dataset_path = mPrefix + "/" + rExpressionName;
+    const auto& dataset_path = mPrefix + rExpressionName;
 
     KRATOS_ERROR_IF_NOT(mpFile->HasPath(dataset_path))
         << "Path \"" << dataset_path << "\" does not exist.";
@@ -128,22 +131,55 @@ std::pair<Expression::Pointer, Parameters> ExpressionIO::Read(const std::string&
     }
 
     IndexType start_index, block_size;
-    std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, dataset_path);
+    if (HasPartitionTable(*mpFile, dataset_path)) {
+        // partition table is available for the given data set.
+        std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, dataset_path);
+    } else {
+        // check if the patiton table is written as a common table for set of datasets
+        // such as in the Variable data writing.
+        std::string data_set_name;
+        mpFile->ReadAttribute(dataset_path, "__data_name", data_set_name);
 
-    KRATOS_ERROR_IF_NOT(block_size % stride == 0)
+        const auto& partition_path = dataset_path.substr(0, dataset_path.size() - data_set_name.size());
+        if (HasPartitionTable(*mpFile, partition_path)) {
+            std::tie(start_index, block_size) = StartIndexAndBlockSize(*mpFile, partition_path);
+        } else {
+            KRATOS_ERROR << "Partition table not found for dataset at \""
+                         << data_set_name << "\" either at the dataset location or at \""
+                         << partition_path << "\".";
+        }
+    }
+
+    // get raw data dimensions of h5.
+    const auto& h5_dimensions = mpFile->GetDataDimensions(dataset_path);
+    const auto h5_total_data_size = std::accumulate(h5_dimensions.begin(), h5_dimensions.end(), 1U, std::multiplies<unsigned int>{});
+
+    KRATOS_ERROR_IF_NOT(h5_total_data_size % stride == 0)
         << "Dataset at \"" << dataset_path << "\" size is not a multiple of stride [ stride = "
-        << stride << ", dataset size = " << block_size << ", shape = " << shape << " ].\n";
+        << stride << ", dataset total size = " << h5_total_data_size << ", shape = " << shape << " ].\n";
 
-    Vector<double> values;
-    mpFile->ReadDataSet(dataset_path, values, start_index, block_size);
+    const auto number_of_items = h5_total_data_size / stride;
+    auto p_expression = LiteralFlatExpression<double>::Create(number_of_items, shape);
 
-    auto p_expression = LiteralFlatExpression<double>::Create(block_size / stride, shape);
+    if (h5_dimensions.size() == 1) {
+        // reading a scalar or a flattened expression
+        Vector<double> values;
+        mpFile->ReadDataSet(dataset_path, values, start_index, block_size);
+        IndexPartition<IndexType>(h5_total_data_size).for_each([&p_expression, &values](const auto Index) {
+            *(p_expression->begin() + Index) = values[Index];
+        });
+    } else {
+        // reading a non-flattened multi-dimensional dataset.
+        Matrix<double> values;
+        mpFile->ReadDataSet(dataset_path, values, start_index, block_size);
+        IndexPartition<IndexType>(h5_total_data_size).for_each([&p_expression, &values](const auto Index) {
+            *(p_expression->begin() + Index) = *(values.data().begin() + Index);
+        });
+    }
 
-    IndexPartition<IndexType>(block_size).for_each([&p_expression, &values](const auto Index) {
-        *(p_expression->begin() + Index) = values[Index];
-    });
-
-    attributes.RemoveValue("__data_dimension");
+    if (attributes.Has("__data_dimension")) attributes.RemoveValue("__data_dimension");
+    if (attributes.Has("__data_shape")) attributes.RemoveValue("__data_shape");
+    if (attributes.Has("__data_name")) attributes.RemoveValue("__data_name");
 
     return std::make_pair(p_expression, attributes);
 
@@ -167,6 +203,10 @@ void ExpressionIO::Write(
         appended_attribs.AddString("__mesh_location", rContainerExpression.GetModelPart().GetValue(HDF5_MESH_LOCATION_INFO));
     }
 
+    KRATOS_ERROR_IF(appended_attribs.Has("__container_type"))
+        << "The reserved keyword \"__container_type\" is found. Please remove it from attributes.";
+    appended_attribs.AddString("__container_type", Internals::GetContainerType<TContainerType>());
+
     Write(rContainerExpressionName, rContainerExpression.GetExpression(), appended_attribs);
 
     KRATOS_CATCH("");
@@ -181,8 +221,8 @@ Parameters ExpressionIO::Read(
 
     auto attribs = expression_attr_pair.second;
 
-    attribs.RemoveValue("__container_type");
     if (attribs.Has("__mesh_location")) attribs.RemoveValue("__mesh_location");
+    if (attribs.Has("__container_type")) attribs.RemoveValue("__container_type");
 
     rContainerExpression.SetExpression(expression_attr_pair.first);
     return attribs;
