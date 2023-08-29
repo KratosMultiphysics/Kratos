@@ -80,6 +80,7 @@ class EmbeddedFormulation(object):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "embedded_weakly_compressible_navier_stokes",
             "is_slip": false,
+            "apply_nitsche_boundary_imposition": true,
             "slip_length": 1.0e8,
             "penalty_coefficient": 10.0,
             "dynamic_tau": 1.0,
@@ -100,6 +101,7 @@ class EmbeddedFormulation(object):
         self.non_historical_nodal_properties_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
 
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
+        self.process_info_data[KratosCFD.APPLY_NITSCHE_BOUNDARY_IMPOSITION] = formulation_settings["apply_nitsche_boundary_imposition"].GetBool()
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
         if formulation_settings["is_slip"].GetBool():
             self.slip_length = formulation_settings["slip_length"].GetDouble()
