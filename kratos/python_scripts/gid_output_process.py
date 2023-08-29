@@ -124,9 +124,10 @@ class GiDOutputProcess(KM.OutputProcess):
         else:
             self.point_output_process = None
 
-        self.step_count = 0
         self.printed_step_count = 0
-        self.next_output = 0.0
+
+        param.AddString("model_part_name", model_part.FullName())
+        self.controller = KM.TemporalController(model_part.GetModel(), param)
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
@@ -258,8 +259,6 @@ class GiDOutputProcess(KM.OutputProcess):
             self.point_output_process.ExecuteBeforeSolutionLoop()
 
     def ExecuteInitializeSolutionStep(self):
-        self.step_count += 1
-
         if self.point_output_process is not None:
             self.point_output_process.ExecuteInitializeSolutionStep()
 
@@ -269,11 +268,7 @@ class GiDOutputProcess(KM.OutputProcess):
             self.point_output_process.ExecuteFinalizeSolutionStep()
 
     def IsOutputStep(self):
-        if self.output_control_is_time:
-            time = self.__get_pretty_time(self.model_part.ProcessInfo[KM.TIME])
-            return (time >= self.__get_pretty_time(self.next_output))
-        else:
-            return ( self.step_count >= self.next_output )
+        return self.controller.Evaluate()
 
     def PrintOutput(self):
         if self.point_output_process is not None:
@@ -311,13 +306,7 @@ class GiDOutputProcess(KM.OutputProcess):
             self.__write_step_to_list(label)
 
         # Schedule next output
-        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control_is_time:
-                while self.__get_pretty_time(self.next_output) <= time:
-                    self.next_output += self.output_interval
-            else:
-                while self.next_output <= self.step_count:
-                    self.next_output += self.output_interval
+        self.controller.Update()
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteAfterOutputStep()
@@ -728,13 +717,7 @@ class GiDOutputProcess(KM.OutputProcess):
         return KM.CuttingUtility()
 
     def _SetCurrentTimeParameters(self, additional_list_files):
-        self.step_count = self.model_part.ProcessInfo[KM.STEP]
         self.printed_step_count = self.model_part.ProcessInfo[KM.PRINTED_STEP]
-
-        if self.output_control_is_time:
-            self.next_output = self.model_part.ProcessInfo[KM.TIME]
-        else:
-            self.next_output = self.model_part.ProcessInfo[KM.STEP]
 
         # Remove post results
         if self.output_label_is_time:
