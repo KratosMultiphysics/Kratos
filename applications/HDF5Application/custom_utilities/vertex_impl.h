@@ -10,8 +10,7 @@
 //  Main author:     Máté Kelemen
 //
 
-#ifndef KRATOS_HDF5_APPLICATION_VERTEX_IMPL_H
-#define KRATOS_HDF5_APPLICATION_VERTEX_IMPL_H
+#pragma once
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -24,56 +23,30 @@ namespace HDF5
 namespace Detail
 {
 
-
-template <class TValue>
-struct ZeroInitialized
-{
-    static TValue Get()
-    {
-        return TValue(0);
-    }
-};
-
-
-template <class TValue, std::size_t ArraySize>
-struct ZeroInitialized<array_1d<TValue, ArraySize>>
-{
-    static array_1d<TValue, ArraySize> Get()
-    {
-        return ZeroVector(ArraySize);
-    }
-};
-
-
-template <class TValue>
-struct ZeroInitialized<Matrix<TValue>>
-{
-    static Matrix<TValue> Get()
-    {
-        return ZeroMatrix();
-    }
-};
-
-
 inline std::size_t Vertex::GetID() const
 {
     return mID;
 }
 
 
-template <class TValue>
-inline TValue Vertex::GetValue(const Variable<TValue>& rVariable) const
+template <class TValue, class TVariableGetterType>
+inline TValue Vertex::GetValue(
+    const Variable<TValue>& rVariable,
+    const TVariableGetterType& rVariableGetter) const
 {
     KRATOS_TRY
 
     KRATOS_ERROR_IF(!mpContainingElement.get()) << "attempt to interpolate on a non-located vertex";
 
     const auto& r_geometry = mpContainingElement->GetGeometry();
-    auto value = ZeroInitialized<TValue>::Get();
+
+    char dummy{};
+
+    TValue value = rVariableGetter.GetValue(r_geometry[0], rVariable, dummy) * mShapeFunctionValues[0];
 
     // Interpolate variable
-    for (std::size_t i_node=0; i_node<r_geometry.size(); ++i_node) {
-        value += mShapeFunctionValues[i_node] * mpVariableGetter->GetValue(r_geometry.GetPoint(i_node), rVariable);
+    for (std::size_t i_node = 1; i_node < r_geometry.size(); ++i_node) {
+        value += rVariableGetter.GetValue(r_geometry[i_node], rVariable, dummy) * mShapeFunctionValues[i_node];
     }
 
     return value;
@@ -85,6 +58,3 @@ inline TValue Vertex::GetValue(const Variable<TValue>& rVariable) const
 } // namespace Detail
 } // namespace HDF5
 } // namespace Kratos
-
-
-#endif
