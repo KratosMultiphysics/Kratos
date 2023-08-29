@@ -173,6 +173,12 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeClouds(NodesCloudMapType& rC
 
 void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloudMapType& rCloudsMap, NodesOffsetMapType& rOffsetsMap, std::vector<NodeType::Pointer> neg_nodes_element, std::vector<NodeType::Pointer> pos_nodes_element)
 {
+    // TODO Get boundary condition value at structural interface from variable ???
+    //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);
+    // Scale enforcement of boundary condition using the slip length
+    const double value_gamma = 0.0;
+    const double slip_length_mod = (mSlipLength < 1.0) ? std::abs(mSlipLength) : 1.0;
+
     for (auto slave_node : neg_nodes_element) {
         // Check whether node was already added because of a previous element
         if (!rCloudsMap.count(slave_node)) {
@@ -187,22 +193,18 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
             }
             //TODO: case: small cut for positive side - change!!!  // TODO: scale slave_distance using edge length/elements size?
             // --> apply boundary condition by making negative distance very small
-            // TODO: tolerance ???
-            if (sum_dist_cloud_nodes < 1e-10) {
-                sum_dist_cloud_nodes = 1e-10;
+            // TODO: tolerance ??? -- 1e-6 IsSmallCut, 1e-9 sufficient (?), 1e-10 too small!
+            if (sum_dist_cloud_nodes < 1e-8) {
+                dist_slave = sum_dist_cloud_nodes;
+                sum_dist_cloud_nodes = n_cloud_nodes;
                 mNSmallCutPos++;
             }
 
-            // TODO Get boundary condition value at structural interface from variable ???
-            //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);
-            // Scale enforcement of boundary condition using the slip length
-            const double value_gamma = 0.0;
-            const double slip_length_mod = (mSlipLength < 1.0) ? mSlipLength : 1.0;
-
             // Calculate weight
-            //without slip length: const double cloud_node_weight = dist_slave / sum_dist_cloud_nodes;
-            const double cloud_node_weight = slip_length_mod / n_cloud_nodes + dist_slave / sum_dist_cloud_nodes * (1 - slip_length_mod);
-            KRATOS_WATCH(cloud_node_weight);
+            //without slip length:
+            //const double cloud_node_weight = dist_slave / sum_dist_cloud_nodes;
+            const double cloud_node_weight = slip_length_mod / n_cloud_nodes + dist_slave / sum_dist_cloud_nodes * (1.0 - slip_length_mod);
+            //KRATOS_WATCH(cloud_node_weight);
 
             // Save positive element nodes (cloud nodes) and weights (linear interpolation of averaged positive nodes and averaged intersection points)
             CloudDataVectorType cloud_data_vector(n_cloud_nodes);
@@ -212,8 +214,9 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
             }
 
             //Calculate offset for master-slave constraint
-            //without slip length: const double offset = value_gamma * (1 - dist_slave * n_cloud_nodes / sum_dist_cloud_nodes);
-            const double offset = value_gamma * (1 - slip_length_mod) * (1 - dist_slave * n_cloud_nodes / sum_dist_cloud_nodes);
+            //without slip length:
+            //const double offset = value_gamma * (1 - dist_slave * n_cloud_nodes / sum_dist_cloud_nodes);
+            const double offset = value_gamma * (1.0 - slip_length_mod) * (1.0 - dist_slave * n_cloud_nodes / sum_dist_cloud_nodes);
 
             // Pair slave node and constraint offset as well as slave node and cloud vector and add to respective map
             rOffsetsMap.insert(std::make_pair(slave_node, offset));
