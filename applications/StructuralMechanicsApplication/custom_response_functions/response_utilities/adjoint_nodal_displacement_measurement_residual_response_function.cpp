@@ -140,20 +140,12 @@ namespace Kratos
 
                             const ArrayVariableType &measurement_type = KratosComponents<ArrayVariableType>::Get(sensor_data["type_of_sensor"].GetString());
                             simulated_displacement = response_part.GetNode(node_id).FastGetSolutionStepValue(measurement_type);
-                            std::cout << "U: " << simulated_displacement << std::endl;
-
-                            std::cout << response_part.GetNode(node_id) << std::endl;
 
                             simulated_displacement_projected_on_measurement = inner_prod(simulated_displacement, measurement_normal);
 
                             rResponseGradient[i + 0] = measurement_normal[0] * (measurement_value - simulated_displacement_projected_on_measurement);
                             rResponseGradient[i + 1] = measurement_normal[1] * (measurement_value - simulated_displacement_projected_on_measurement);
                             rResponseGradient[i + 2] = measurement_normal[2] * (measurement_value - simulated_displacement_projected_on_measurement);
-
-                            std::cout << "Measured value: " << measurement_value << " simulated value: " << simulated_displacement_projected_on_measurement <<" ID: " << sensor_data["mesh_node_id"].GetInt() << std::endl;
-                            std::cout << sensor_data << std::endl;
-
-                            throw Exception("Stop");
 
                             break;
                         }

@@ -175,7 +175,6 @@ class AlgorithmSystemIdentification(Algorithm):
             with OptimizationAlgorithmTimeLogger("AlgorithmSystemIdentification", self._optimization_problem.GetStep()):
 
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
-                CallOnAll(self._optimization_problem.GetListOfExecutionPolicies(), ExecutionPolicyDecorator.Execute)
 
                 obj_info = self.__objective.GetInfo()
                 self.algorithm_data.GetBufferedData()["std_obj_value"] = obj_info["value"]
