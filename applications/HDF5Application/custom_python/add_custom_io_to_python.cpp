@@ -111,12 +111,12 @@ void AddContainerComponentIOToPython(
     py::class_<data_io, typename data_io::Pointer>(m, rName.c_str())
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](data_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
-                    rSelf.Write(HDF5::Internals::GetLocalContainer<container_type>(rModelPart), container_data_io_type{}, Attributes);
+                    rSelf.Write(rModelPart, container_data_io_type{}, Attributes);
                 },
                 py::arg("model_part"),
                 py::arg("attributes") = Parameters("""{}"""))
         .def("Read", [](data_io& rSelf, ModelPart& rModelPart) {
-                    return rSelf.Read(HDF5::Internals::GetLocalContainer<container_type>(rModelPart), container_data_io_type{}, rModelPart.GetCommunicator());
+                    return rSelf.Read(rModelPart, container_data_io_type{});
                 },
                 py::arg("model_part"))
         .def("ReadAttributes", &data_io::ReadAttributes)
@@ -189,12 +189,12 @@ public:
 
     void Write(const ModelPart& rModelPart)
     {
-        BaseType::Write(rModelPart.GetCommunicator().LocalMesh().Nodes(), HDF5::Internals::BossakIO(mAlphaBossak), Parameters("""{}"""));
+        BaseType::Write(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak), Parameters("""{}"""));
     }
 
     void Read(ModelPart& rModelPart)
     {
-        BaseType::Read(rModelPart.GetCommunicator().LocalMesh().Nodes(), HDF5::Internals::BossakIO(mAlphaBossak), rModelPart.GetCommunicator());
+        BaseType::Read(rModelPart, HDF5::Internals::BossakIO(mAlphaBossak));
     }
 
     ///@}
@@ -244,26 +244,26 @@ void AddCustomIOToPython(pybind11::module& m)
     py::class_<nodal_solution_step_data_io, nodal_solution_step_data_io::Pointer>(m,"HDF5NodalSolutionStepDataIO")
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](nodal_solution_step_data_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes, const IndexType StepIndex) {
-                rSelf.Write(rModelPart.GetCommunicator().LocalMesh().Nodes(), HDF5::Internals::HistoricalIO(StepIndex), Attributes);
+                rSelf.Write(rModelPart, HDF5::Internals::HistoricalIO(StepIndex), Attributes);
             },
             py::arg("model_part"),
             py::arg("attributes") = Parameters("""{}"""),
             py::arg("step_index") = 0)
         .def("Read", [](nodal_solution_step_data_io& rSelf, ModelPart& rModelPart, const IndexType StepIndex) {
-                return rSelf.Read(rModelPart.GetCommunicator().LocalMesh().Nodes(), HDF5::Internals::HistoricalIO(StepIndex), rModelPart.GetCommunicator());
+                return rSelf.Read(rModelPart, HDF5::Internals::HistoricalIO(StepIndex));
             },
             py::arg("model_part"),
             py::arg("step_index") = 0)
         .def("ReadAttributes", &nodal_solution_step_data_io::ReadAttributes)
         .def("WriteNodalResults", [](nodal_solution_step_data_io& rSelf, const ModelPart& rModelPart, const IndexType StepIndex) {
                 KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteNodalResults\" method in \"HDF5NodalSolutionStepDataIO\". Please use \"Write\" method instead.\n";
-                rSelf.Write(rModelPart.GetCommunicator().LocalMesh().Nodes(), HDF5::Internals::HistoricalIO(StepIndex), Parameters("""{}"""));
+                rSelf.Write(rModelPart, HDF5::Internals::HistoricalIO(StepIndex), Parameters("""{}"""));
             },
             py::arg("model_part"),
             py::arg("step_index") = 0)
         .def("ReadNodalResults", [](nodal_solution_step_data_io& rSelf, ModelPart& rModelPart, const IndexType StepIndex) {
                 KRATOS_WARNING("DEPRECATION") << "Using deprecated \"ReadNodalResults\" method in \"HDF5NodalSolutionStepDataIO\". Please use \"Read\" method instead.\n";
-                return rSelf.Read(rModelPart.GetCommunicator().LocalMesh().Nodes(), HDF5::Internals::HistoricalIO(StepIndex), rModelPart.GetCommunicator());
+                return rSelf.Read(rModelPart, HDF5::Internals::HistoricalIO(StepIndex));
             },
             py::arg("model_part"),
             py::arg("step_index") = 0)
@@ -297,7 +297,7 @@ void AddCustomIOToPython(pybind11::module& m)
     py::class_<element_gauss_io, element_gauss_io::Pointer>(m,"HDF5ElementGaussPointIO")
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](element_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
-                rSelf.Write(HDF5::Internals::GetLocalContainer<ModelPart::ElementsContainerType>(rModelPart), HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
+                rSelf.Write(rModelPart, HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
             },
             py::arg("model_part"),
             py::arg("attributes") = Parameters("""{}"""))
@@ -314,7 +314,7 @@ void AddCustomIOToPython(pybind11::module& m)
     py::class_<condition_gauss_io, condition_gauss_io::Pointer>(m,"HDF5ConditionGaussPointIO")
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](condition_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
-                rSelf.Write(HDF5::Internals::GetLocalContainer<ModelPart::ConditionsContainerType>(rModelPart), HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
+                rSelf.Write(rModelPart, HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
             },
             py::arg("model_part"),
             py::arg("attributes") = Parameters("""{}"""))
@@ -322,7 +322,7 @@ void AddCustomIOToPython(pybind11::module& m)
                 KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteConditionGaussPointValues\" method in \"HDF5ConditionGaussPointIO\". Please use \"Write\" method instead.\n";
                 rSelf.Write(rContainer, HDF5::Internals::GaussPointValueIO(rProcessInfo), Parameters("""{}"""));
             },
-            py::arg("elements"),
+            py::arg("conditions"),
             py::arg("data_communicator"),
             py::arg("process_info"))
         ;
