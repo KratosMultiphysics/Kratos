@@ -52,19 +52,26 @@ void VertexContainerCoordinateIO::Write(
     mpFile->WriteAttribute(mPrefix, Attributes);
 }
 
-VertexContainerVariableIO::VertexContainerVariableIO(
+template<class TVertexDataIOType>
+VertexContainerVariableIO<TVertexDataIOType>::VertexContainerVariableIO(
     Parameters Settings,
     File::Pointer pFile)
     : BaseType(Settings, pFile)
 {
 }
 
-void VertexContainerVariableIO::Write(
+template<class TVertexDataIOType>
+void VertexContainerVariableIO<TVertexDataIOType>::Write(
     const Detail::VertexContainerType& rVertices,
-    Parameters Atttributes)
+    const TVertexDataIOType& rVertexDataIO,
+    const Parameters Atttributes)
 {
-    BaseType::Write(rVertices, Internals::VertexValueIO{}, Atttributes);
+    BaseType::Write(rVertices, rVertexDataIO, Atttributes);
 }
+
+// template instantiations
+template class KRATOS_API(HDF5_APPLICATION) VertexContainerVariableIO<Internals::VertexHistoricalValueIO>;
+template class KRATOS_API(HDF5_APPLICATION) VertexContainerVariableIO<Internals::VertexNonHistoricalValueIO>;
 
 } // namespace HDF5
 } // namespace Kratos
