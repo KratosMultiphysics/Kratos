@@ -19,7 +19,7 @@ class TestControllers(KratosUnittest.TestCase):
         }""")
 
         # testing from start
-        controller = KM.TemporalController(self.model, params)
+        controller = KM.OutputController(self.model, params)
         for _ in range(100):
             self.model_part.ProcessInfo[KM.STEP] += 1
             self.assertEqual(controller.Evaluate(), self.model_part.ProcessInfo[KM.STEP] % 3 == 0)
@@ -27,7 +27,7 @@ class TestControllers(KratosUnittest.TestCase):
 
         # testing for restart
         self.model_part.ProcessInfo[KM.STEP] = 99
-        controller = KM.TemporalController(self.model, params)
+        controller = KM.OutputController(self.model, params)
         for _ in range(100):
             self.model_part.ProcessInfo[KM.STEP] += 1
             self.assertEqual(controller.Evaluate(), self.model_part.ProcessInfo[KM.STEP] % 3 == 0)
@@ -41,7 +41,7 @@ class TestControllers(KratosUnittest.TestCase):
         }""")
 
         # testing from start
-        controller = KM.TemporalController(self.model, params)
+        controller = KM.OutputController(self.model, params)
         for _ in range(100):
             self.model_part.ProcessInfo[KM.TIME] += 1
             self.assertEqual(controller.Evaluate(), self.model_part.ProcessInfo[KM.TIME] % 3 == 0)
@@ -49,7 +49,7 @@ class TestControllers(KratosUnittest.TestCase):
 
         # testing for restart
         self.model_part.ProcessInfo[KM.TIME] = 99
-        controller = KM.TemporalController(self.model, params)
+        controller = KM.OutputController(self.model, params)
         for _ in range(100):
             self.model_part.ProcessInfo[KM.TIME] += 1
             self.assertEqual(controller.Evaluate(), self.model_part.ProcessInfo[KM.TIME] % 3 == 0)

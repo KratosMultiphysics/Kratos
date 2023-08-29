@@ -36,40 +36,40 @@ namespace Kratos
  * @details This controller checks prescribed control variables, and evalutes.
  * @author Suneth Warnakulasuriya
 */
-class KRATOS_API(KRATOS_CORE) TemporalController: public Controller
+class KRATOS_API(KRATOS_CORE) OutputController: public Controller
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of TemporalController
-    KRATOS_CLASS_POINTER_DEFINITION(TemporalController);
+    /// Pointer definition of OutputController
+    KRATOS_CLASS_POINTER_DEFINITION(OutputController);
 
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
-    TemporalController(
+    OutputController(
         const Model& rModel,
         Parameters Settings);
 
     /// Destructor.
-    ~TemporalController() override = default;
+    ~OutputController() override = default;
 
     /// Copy constructor.
     //TODO: Check. It is required by the registry
-    TemporalController(TemporalController const& rOther) = default;
+    OutputController(OutputController const& rOther) = default;
 
     /// Move constructor
-    TemporalController(TemporalController&& rOther) noexcept = default;
+    OutputController(OutputController&& rOther) noexcept = default;
 
     ///@}
     ///@name Operators
     ///@{
 
     /// Assignment operator.
-    TemporalController& operator=(TemporalController const& rOther) = delete;
+    OutputController& operator=(OutputController const& rOther) = delete;
 
     ///@}
     ///@name Operations
@@ -154,6 +154,6 @@ private:
 
     ///@}
 
-}; // Class TemporalController
+}; // Class OutputController
 
 }  // namespace Kratos.

@@ -18,11 +18,11 @@
 #include "includes/variables.h"
 
 // Include base h
-#include "temporal_controller.h"
+#include "output_controller.h"
 
 namespace Kratos {
 
-Parameters TemporalController::GetDefaultParameters() const
+Parameters OutputController::GetDefaultParameters() const
 {
     return Parameters(R"({
         "model_part_name"     : "PLEASE_SPECIFY_THE_MODEL_PART_NAME",
@@ -31,7 +31,7 @@ Parameters TemporalController::GetDefaultParameters() const
     })" );
 }
 
-TemporalController::TemporalController(
+OutputController::OutputController(
     const Model& rModel,
     Parameters Settings)
     : mpModel(&rModel)
@@ -63,14 +63,14 @@ TemporalController::TemporalController(
     KRATOS_CATCH("");
 }
 
-Controller::Pointer TemporalController::Create(
+Controller::Pointer OutputController::Create(
     Model& rModel,
     Parameters Settings) const
 {
-    return Kratos::make_shared<TemporalController>(rModel, Settings);
+    return Kratos::make_shared<OutputController>(rModel, Settings);
 }
 
-int TemporalController::Check() const
+int OutputController::Check() const
 {
     KRATOS_TRY
 
@@ -88,7 +88,7 @@ int TemporalController::Check() const
     KRATOS_CATCH("");
 }
 
-bool TemporalController::Evaluate() const
+bool OutputController::Evaluate() const
 {
     const auto& r_process_info = mpModel->GetModelPart(mModelPartName).GetProcessInfo();
     return std::visit([&](const auto& pVariable){
@@ -98,7 +98,7 @@ bool TemporalController::Evaluate() const
     }, mpVariable);
 }
 
-void TemporalController::Update()
+void OutputController::Update()
 {
     KRATOS_TRY
 
@@ -117,7 +117,7 @@ void TemporalController::Update()
     KRATOS_CATCH("");
 }
 
-std::variant<int, double> TemporalController::GetCurrentControlValue() const
+std::variant<int, double> OutputController::GetCurrentControlValue() const
 {
     const auto& r_process_info = mpModel->GetModelPart(mModelPartName).GetProcessInfo();
     return std::visit([&](const auto& pVariable) -> std::variant<int, double> {
@@ -125,27 +125,27 @@ std::variant<int, double> TemporalController::GetCurrentControlValue() const
     }, mpVariable);
 }
 
-std::variant<int, double> TemporalController::GetInterval() const
+std::variant<int, double> OutputController::GetInterval() const
 {
     return mInterval;
 }
 
-std::variant<int, double> TemporalController::GetNextPossibleEvaluateControlValue() const
+std::variant<int, double> OutputController::GetNextPossibleEvaluateControlValue() const
 {
     return mNextPossibleEvaluate;
 }
 
-std::string TemporalController::Info() const
+std::string OutputController::Info() const
 {
-    return "TemporalController";
+    return "OutputController";
 }
 
-void TemporalController::PrintInfo(std::ostream& rOStream) const
+void OutputController::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << Info();
 }
 
-void TemporalController::PrintData(std::ostream& rOStream) const
+void OutputController::PrintData(std::ostream& rOStream) const
 {
     std::visit([&](const auto& pVariable){
         using data_type = typename std::decay_t<decltype(*pVariable)>::Type;

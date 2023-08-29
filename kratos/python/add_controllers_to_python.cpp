@@ -19,7 +19,7 @@
 #include "includes/define_python.h"
 #include "add_controllers_to_python.h"
 #include "controllers/controller.h"
-#include "controllers/temporal_controller.h"
+#include "controllers/output_controller.h"
 
 namespace Kratos::Python
 {
@@ -69,11 +69,11 @@ void AddControllersToPython(pybind11::module& m)
         .def("__str__", PrintObject<Controller>)
         ;
 
-    py::class_<TemporalController, TemporalController::Pointer, Controller>(m, "TemporalController")
+    py::class_<OutputController, OutputController::Pointer, Controller>(m, "OutputController")
         .def(py::init<const Model&, Parameters>(), py::arg("model"), py::arg("parameters"))
-        .def("GetCurrentControlValue", &TemporalController::GetCurrentControlValue)
-        .def("GetInterval", &TemporalController::GetInterval)
-        .def("GetNextPossibleEvaluateControlValue", &TemporalController::GetNextPossibleEvaluateControlValue)
+        .def("GetCurrentControlValue", &OutputController::GetCurrentControlValue)
+        .def("GetInterval", &OutputController::GetInterval)
+        .def("GetNextPossibleEvaluateControlValue", &OutputController::GetNextPossibleEvaluateControlValue)
         ;
 }
 

@@ -72,7 +72,7 @@ class VtuOutputProcess(Kratos.OutputProcess):
 
         self.vtu_output_ios: 'list[Kratos.VtuOutput]' = []
 
-        self.__controller = Kratos.TemporalController(model, parameters)
+        self.__controller = Kratos.OutputController(model, parameters)
 
     def ExecuteInitialize(self) -> None:
         # check and create all the vtu outputs

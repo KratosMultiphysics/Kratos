@@ -48,7 +48,7 @@ class UnvOutputProcess(KratosMultiphysics.OutputProcess):
         self.unv_io.InitializeMesh()
         self.unv_io.WriteMesh()
 
-        self.controller = KratosMultiphysics.TemporalController(model, settings)
+        self.controller = KratosMultiphysics.OutputController(model, settings)
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings: KratosMultiphysics.Parameters) -> None:

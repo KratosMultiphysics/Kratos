@@ -35,7 +35,7 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
                     kratos_utils.DeleteDirectoryIfExisting(output_path)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
-        self.__controller = KratosMultiphysics.TemporalController(model, settings)
+        self.__controller = KratosMultiphysics.OutputController(model, settings)
 
     # This function can be extended with new deprecated variables as they are generated
     def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings: KratosMultiphysics.Parameters) -> None:
