@@ -797,13 +797,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
             p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
 
             // we return the aux_value to the global coordinates
-            aux_value = prod(trans(voigt_rotation_matrix), aux_value);
-            
-            if(i_layer == 0){
-            noalias(rValue) = aux_value;
-            noalias(rParameterValues.GetStrainVector()) = strain_vector;
-            }         
-
+            aux_value = prod(trans(voigt_rotation_matrix), aux_value);    
             /**
             noalias(rValue) += factor * aux_value;
 
