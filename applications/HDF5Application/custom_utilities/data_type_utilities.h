@@ -73,12 +73,12 @@ void GetShapeFromAttributes(
     std::vector<TIndexType>& rShape,
     const Parameters Attributes)
 {
-    if (Attributes.Has("__shape") && Attributes["__shape"].IsVector()) {
-        const auto& shape_param = Attributes["__shape"];
+    if (Attributes.Has("__data_shape") && Attributes["__data_shape"].IsVector()) {
+        const auto& shape_param = Attributes["__data_shape"];
         rShape.resize(shape_param.size());
         for (unsigned int i = 0; i < shape_param.size(); ++i) {
             KRATOS_ERROR_IF_NOT(shape_param.GetArrayItem(i).IsInt())
-                << "Invalid type found in \"__shape\" attribute.";
+                << "Invalid type found in \"__data_shape\" attribute.";
             rShape[i] = shape_param.GetArrayItem(i).GetInt();
         }
     } else {
