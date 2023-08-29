@@ -8,7 +8,6 @@ from KratosMultiphysics.vtk_output_process import VtkOutputProcess
 # CoSimulation imports
 from KratosMultiphysics.CoSimulationApplication.utilities import model_part_utilities
 import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tools
-import KratosMultiphysics.CoSimulationApplication.colors as colors
 
 # System imports
 import subprocess
