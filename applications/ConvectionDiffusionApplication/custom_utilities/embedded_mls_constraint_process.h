@@ -10,8 +10,8 @@
 //                   Franziska Wahl
 //
 
-#ifndef KRATOS_EMBEDDED_CONSTRAINT_UTILITIES_H
-#define  KRATOS_EMBEDDED_CONSTRAINT_UTILITIES_H
+#ifndef KRATOS_EMBEDDED_MLS_CONSTRAINT_H
+#define  KRATOS_EMBEDDED_MLS_CONSTRAINT_H
 
 // System includes
 
@@ -279,4 +279,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_EMBEDDED_CONSTRAINT_UTILITIES_H  defined
+#endif // KRATOS_EMBEDDED_MLS_CONSTRAINT_H  defined

@@ -102,7 +102,7 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    // Resize and intialize output
+    // Resize and initialize output
     if (rLeftHandSideMatrix.size1() != LocalSize){
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
     }
@@ -186,7 +186,6 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
             AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
             AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
             AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-
     }
 }
 

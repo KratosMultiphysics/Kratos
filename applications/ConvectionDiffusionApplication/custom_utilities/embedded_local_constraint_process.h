@@ -9,8 +9,8 @@
 //  Main authors:    Franziska Wahl
 //
 
-#ifndef KRATOS_EMBEDDED_CONSTRAINT_H
-#define  KRATOS_EMBEDDED_CONSTRAINT_H
+#ifndef KRATOS_EMBEDDED_LOCAL_CONSTRAINT_H
+#define  KRATOS_EMBEDDED_LOCAL_CONSTRAINT_H
 
 // System includes
 
@@ -282,4 +282,4 @@ private:
 
 } // namespace Kratos.
 
-#endif // KRATOS_EMBEDDED_CONSTRAINT_UTILITIES_H  defined
+#endif // KRATOS_EMBEDDED_LOCAL_CONSTRAINT_H  defined
