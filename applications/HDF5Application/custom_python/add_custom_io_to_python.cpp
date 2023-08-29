@@ -103,13 +103,19 @@ void AddContainerComponentIOToPython(
         static_assert(!std::is_same_v<TContainerComponentIOWrapper, TContainerComponentIOWrapper>, "Unsupported container component io wrapper type.");
     }
 
-    std::string results_type = "Results";
+    // TODO: Remove legacy suffix once the python side is fixed.
+    std::string results_type = "Results", legacy_suffix = "Data";
     if constexpr(std::is_same_v<container_data_io_type, HDF5::Internals::FlagIO>) {
         results_type = "Flags";
+        legacy_suffix = "Flag";
     }
 
     py::class_<data_io, typename data_io::Pointer>(m, rName.c_str())
-        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        // TODO: Remove th below custom init, and use the one without suffix.
+        .def(py::init([container_name, legacy_suffix](Parameters Settings, HDF5::File::Pointer pFile) {
+            return Kratos::make_shared<data_io>(Settings, pFile, ("/" + container_name + legacy_suffix + "Values/"));
+        }))
+        // .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](data_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
                     rSelf.Write(rModelPart, container_data_io_type{}, Attributes);
                 },
@@ -173,7 +179,7 @@ public:
     PythonNodalSolutionStepBossakIO(
         Parameters Settings,
         HDF5::File::Pointer pFile)
-        : BaseType(Settings, pFile),
+        : BaseType(Settings, pFile, "/NodalSolutionStepData/"),
           mAlphaBossak(0.0)
     {
     }
@@ -242,7 +248,11 @@ void AddCustomIOToPython(pybind11::module& m)
 
     using nodal_solution_step_data_io = VariableContainerComponentIOWrapper<ModelPart::NodesContainerType, HDF5::Internals::HistoricalIO>::ContainerIOType;
     py::class_<nodal_solution_step_data_io, nodal_solution_step_data_io::Pointer>(m,"HDF5NodalSolutionStepDataIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        // TODO: Remove th below custom init, and use the one without suffix.
+        .def(py::init([](Parameters Settings, HDF5::File::Pointer pFile) {
+            return Kratos::make_shared<nodal_solution_step_data_io>(Settings, pFile, "/NodalSolutionStepData/");
+        }))
+        // .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](nodal_solution_step_data_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes, const IndexType StepIndex) {
                 rSelf.Write(rModelPart, HDF5::Internals::HistoricalIO(StepIndex), Attributes);
             },
@@ -270,7 +280,7 @@ void AddCustomIOToPython(pybind11::module& m)
         ;
 
     py::class_<PythonNodalSolutionStepBossakIO, PythonNodalSolutionStepBossakIO::Pointer>(m,"HDF5NodalSolutionStepBossakIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>())
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("WriteNodalResults", [](PythonNodalSolutionStepBossakIO& rSelf, const ModelPart& rModelPart) {
                 KRATOS_WARNING("DEPRECATION") << "Using deprecated \"WriteNodalResults\" method in \"HDF5NodalSolutionStepBossakIO\". Please use \"Write\" method instead.\n";
                 rSelf.Write(rModelPart);
@@ -295,7 +305,11 @@ void AddCustomIOToPython(pybind11::module& m)
 
     using element_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ElementsContainerType, HDF5::Internals::GaussPointValueIO>::ContainerIOType;
     py::class_<element_gauss_io, element_gauss_io::Pointer>(m,"HDF5ElementGaussPointIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        // TODO: Remove th below custom init, and use the one without suffix.
+        .def(py::init([](Parameters Settings, HDF5::File::Pointer pFile) {
+            return Kratos::make_shared<element_gauss_io>(Settings, pFile, "/ElementGaussPointValues/");
+        }))
+        // .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](element_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
                 rSelf.Write(rModelPart, HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
             },
@@ -312,7 +326,11 @@ void AddCustomIOToPython(pybind11::module& m)
 
     using condition_gauss_io = VariableContainerComponentIOWrapper<ModelPart::ConditionsContainerType, HDF5::Internals::GaussPointValueIO>::ContainerIOType;
     py::class_<condition_gauss_io, condition_gauss_io::Pointer>(m,"HDF5ConditionGaussPointIO")
-        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        // TODO: Remove th below custom init, and use the one without suffix.
+        .def(py::init([](Parameters Settings, HDF5::File::Pointer pFile) {
+            return Kratos::make_shared<condition_gauss_io>(Settings, pFile, "/ConditionGaussPointValues/");
+        }))
+        // .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         .def("Write", [](condition_gauss_io& rSelf, const ModelPart& rModelPart, const Parameters Attributes) {
                 rSelf.Write(rModelPart, HDF5::Internals::GaussPointValueIO(rModelPart.GetProcessInfo()), Attributes);
             },
