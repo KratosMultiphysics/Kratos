@@ -495,7 +495,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         class ScopedMDPA:
             def __init__(self, model_part_name: str):
                 self.model_part_name = model_part_name
-                KratosMultiphysics.ModelPartIO(self.model_part_name, KratosMultiphysics.IO.WRITE).Write(KratosMultiphysics.Model().CreateModelPart(model_part_name))
+                KratosMultiphysics.ModelPartIO(self.model_part_name, KratosMultiphysics.IO.WRITE).WriteModelPart(KratosMultiphysics.Model().CreateModelPart(model_part_name))
 
             def __enter__(self) -> None:
                 pass
