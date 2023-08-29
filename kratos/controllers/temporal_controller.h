@@ -36,7 +36,7 @@ namespace Kratos
  * @details This controller checks prescribed control variables, and evalutes.
  * @author Suneth Warnakulasuriya
 */
-class TemporalController: public Controller
+class KRATOS_API(KRATOS_CORE) TemporalController: public Controller
 {
 public:
     ///@name Type Definitions
