@@ -22,7 +22,7 @@
 #include "hdf5_application.h"
 #include "hdf5_application_variables.h"
 #include "custom_python/add_custom_io_to_python.h"
-#include "custom_python/add_custom_processes_to_python.h"
+#include "custom_python/add_custom_operations_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
 namespace Kratos {
@@ -39,7 +39,7 @@ PYBIND11_MODULE(KratosHDF5Application,m)
         ;
 
     AddCustomIOToPython(m);
-    AddCustomProcessesToPython(m);
+    AddCustomOperationsToPython(m);
     AddCustomUtilitiesToPython(m);
 
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HDF5_MESH_LOCATION_INFO);

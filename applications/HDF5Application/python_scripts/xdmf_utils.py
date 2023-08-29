@@ -86,7 +86,7 @@ def RenumberConnectivitiesForXdmf(filename_or_list_of_filenames, h5path_to_mesh)
     skipped.
 
     See:
-    - XdmfConnectivitiesWriterProcess.
+    - XdmfConnectivitiesWriterOperation.
     """
     for path in list(filename_or_list_of_filenames):
         skip = True
@@ -96,7 +96,7 @@ def RenumberConnectivitiesForXdmf(filename_or_list_of_filenames, h5path_to_mesh)
             if h5path_to_mesh in f:
                 skip = "Xdmf" in f[h5path_to_mesh]
         if not skip:
-            KratosHDF5.HDF5XdmfConnectivitiesWriterProcess(
+            KratosHDF5.HDF5XdmfConnectivitiesWriterOperation(
                 path, h5path_to_mesh).Execute()
 
 def GetListOfSpatialGrids(spatial_grids_list, h5_model_part, current_path):
@@ -588,7 +588,7 @@ def CreateXdmfTemporalGridFromSinglefile(h5_file_name,
 
     # renumber xdmf connectivities
     for v in renumbering_mesh_paths:
-        KratosHDF5.HDF5XdmfConnectivitiesWriterProcess(
+        KratosHDF5.HDF5XdmfConnectivitiesWriterOperation(
             h5_file_name, v).Execute()
 
     with TryOpenH5File(h5_file_name, "r") as file_:

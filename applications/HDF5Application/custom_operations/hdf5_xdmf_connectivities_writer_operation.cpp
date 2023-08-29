@@ -1,14 +1,35 @@
-#include "custom_processes/hdf5_xdmf_connectivities_writer_process.h"
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
+//
+//  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneht Warnakulasuriya
+//
 
-#include "custom_io/hdf5_file.h"
+// System includes
+
+// Project includes
 #include "utilities/openmp_utils.h"
 #include "includes/kratos_parameters.h"
+
+// Application includes
+#include "custom_io/hdf5_file.h"
+
+// Include base h
+#include "hdf5_xdmf_connectivities_writer_operation.h"
 
 namespace Kratos
 {
 namespace HDF5
 {
-XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::string& rFileName, const std::string& rPrefix)
+XdmfConnectivitiesWriterOperation::XdmfConnectivitiesWriterOperation(
+    const std::string& rFileName,
+    const std::string& rPrefix)
 {
     KRATOS_TRY;
 
@@ -42,7 +63,7 @@ XdmfConnectivitiesWriterProcess::XdmfConnectivitiesWriterProcess(const std::stri
     KRATOS_CATCH("");
 }
 
-void XdmfConnectivitiesWriterProcess::Execute()
+void XdmfConnectivitiesWriterOperation::Execute()
 {
     KRATOS_TRY;
 
@@ -60,7 +81,9 @@ void XdmfConnectivitiesWriterProcess::Execute()
     KRATOS_CATCH("");
 }
 
-void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivitiesForSubModelParts(const std::string& rPath, const std::string& rDestinationPrefix) const
+void XdmfConnectivitiesWriterOperation::CreateXdmfConnectivitiesForSubModelParts(
+    const std::string& rPath,
+    const std::string& rDestinationPrefix) const
 {
     CreateXdmfPoints(rPath, rDestinationPrefix);
     for (const auto& r_name : mpFile->GetGroupNames(rPath))
@@ -78,7 +101,9 @@ void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivitiesForSubModelParts(c
     }
 }
 
-void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(const std::string& rKratosConnectivitiesPath, const std::string& rXdmfConnectivitiesPath) const
+void XdmfConnectivitiesWriterOperation::CreateXdmfConnectivities(
+    const std::string& rKratosConnectivitiesPath,
+    const std::string& rXdmfConnectivitiesPath) const
 {
     KRATOS_TRY;
 
@@ -110,7 +135,7 @@ void XdmfConnectivitiesWriterProcess::CreateXdmfConnectivities(const std::string
     KRATOS_CATCH("");
 }
 
-void XdmfConnectivitiesWriterProcess::CreateXdmfPoints(
+void XdmfConnectivitiesWriterOperation::CreateXdmfPoints(
     const std::string& rKratosNodeIdsPath,
     const std::string& rXdmfNodeIdsPath) const
 {

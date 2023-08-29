@@ -4,14 +4,14 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 license: HDF5Application/license.txt
+//  License:        BSD License
+//                  license: HDF5Application/license.txt
 //
 //  Main author:    Michael Andre, https://github.com/msandre
+//                  Suneht Warnakulasuriya
 //
 
-#if !defined(KRATOS_HDF5_XDMF_CONNECTIVITIES_WRITER_PROCESS_H_INCLUDED)
-#define KRATOS_HDF5_XDMF_CONNECTIVITIES_WRITER_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
@@ -21,7 +21,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "processes/process.h"
+#include "operations/operation.h"
 
 // Application includes
 #include "hdf5_application_define.h"
@@ -44,18 +44,24 @@ namespace HDF5
  * connectivities to Xdmf connectivities, which can be used directly to
  * index the node arrays.
  */
-class KRATOS_API(HDF5_APPLICATION) XdmfConnectivitiesWriterProcess : public Process
+class KRATOS_API(HDF5_APPLICATION) XdmfConnectivitiesWriterOperation : public Operation
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    using IdMapType = std::unordered_map<int, int>;
+
     /// Pointer definition
-    KRATOS_CLASS_POINTER_DEFINITION(XdmfConnectivitiesWriterProcess);
-    typedef std::unordered_map<int, int> IdMapType;
+    KRATOS_CLASS_POINTER_DEFINITION(XdmfConnectivitiesWriterOperation);
+
     ///@}
     ///@name Life Cycle
     ///@{
-    XdmfConnectivitiesWriterProcess(const std::string& rFileName, const std::string& rPrefix);
+
+    XdmfConnectivitiesWriterOperation(
+        const std::string& rFileName,
+        const std::string& rPrefix);
 
     ///@}
     ///@name Operations
@@ -64,32 +70,40 @@ public:
     void Execute() override;
 
     ///@}
+
 private:
     ///@name Member Variables
     ///@{
 
     DataCommunicator mSerialDataCommunicator;
+
     File::Pointer mpFile;
+
     std::string mPrefix;
+
     IdMapType mKratosToXdmfIdMap;
 
     ///@}
     ///@name Private Operations
     ///@{
 
-    void CreateXdmfPoints(const std::string& rKratosNodeIdsPath, const std::string& rXdmfNodeIdsPath) const;
+    void CreateXdmfPoints(
+        const std::string& rKratosNodeIdsPath,
+        const std::string& rXdmfNodeIdsPath) const;
 
-    void CreateXdmfConnectivities(const std::string& rKratosConnectivitiesPath, const std::string& rXdmfConnectivitiesPath) const;
+    void CreateXdmfConnectivities(
+        const std::string& rKratosConnectivitiesPath,
+        const std::string& rXdmfConnectivitiesPath) const;
 
-    void CreateXdmfConnectivitiesForSubModelParts(const std::string& rPath, const std::string& rDestinationPrefix) const;
+    void CreateXdmfConnectivitiesForSubModelParts(
+        const std::string& rPath,
+        const std::string& rDestinationPrefix) const;
 
     ///@}
 
-}; // class XdmfConnectivitiesWriterProcess
+}; // class XdmfConnectivitiesWriterOperation
 
 ///@} // Kratos Classes
 ///@} addtogroup
 } // namespace HDF5.
 } // namespace Kratos.
-
-#endif // KRATOS_HDF5_XDMF_CONNECTIVITIES_WRITER_PROCESS_H_INCLUDED defined
