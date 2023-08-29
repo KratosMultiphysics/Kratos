@@ -182,6 +182,7 @@ class AlgorithmGradientProjection(Algorithm):
 
     @time_decorator()
     def Solve(self):
+        for_testing = []
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("Gradient Projection",self._optimization_problem.GetStep()):
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
@@ -190,6 +191,7 @@ class AlgorithmGradientProjection(Algorithm):
                 self.algorithm_data.GetBufferedData()["rel_change[%]"] = obj_info["rel_change [%]"]
                 if "abs_change [%]" in obj_info:
                     self.algorithm_data.GetBufferedData()["abs_change[%]"] = obj_info["abs_change [%]"]
+                    for_testing.append([obj_info["value"], obj_info["rel_change [%]"], obj_info["abs_change [%]"]])
 
                 obj_grad = self.__objective.CalculateStandardizedGradient()
 
@@ -203,6 +205,7 @@ class AlgorithmGradientProjection(Algorithm):
                     self.algorithm_data.GetBufferedData()[f"std_constr_{constr_name}_value"] = constr_info["value"]
                     if value >= 0.0:
                         active_constr_grad.append(constraint.CalculateStandardizedGradient())
+                    for_testing.append([constr_info["value"]])
 
                 self.ComputeSearchDirection(obj_grad, active_constr_grad)
 
@@ -217,6 +220,8 @@ class AlgorithmGradientProjection(Algorithm):
                 self.converged = self.__convergence_criteria.IsConverged()
 
                 self._optimization_problem.AdvanceStep()
+
+        raise RuntimeError(for_testing)
 
         return self.converged
 
