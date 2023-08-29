@@ -22,6 +22,7 @@
 #include "includes/define.h"
 
 // Application includes
+#include "custom_io/hdf5_file.h"
 #include "hdf5_application_define.h"
 
 namespace Kratos
@@ -81,7 +82,9 @@ public:
         TContainerType& rEntities);
 
     /// Write data to a file.
-    void Write(const TContainerType& rEntities);
+    void Write(
+        const TContainerType& rEntities,
+        const bool WriteProperties = true);
 
     ///@}
 
