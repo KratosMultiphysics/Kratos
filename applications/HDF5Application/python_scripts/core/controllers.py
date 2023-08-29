@@ -54,7 +54,7 @@ class DefaultController(Controller):
         self.ExecuteOperation()
 
 
-class OutputController(Controller):
+class TemporalController(Controller):
     """!@brief Frequency-based controller.
     @detail Controls execution according to the 'time_frequency' and 'step_frequency'
     specified in the json settings.
@@ -136,7 +136,7 @@ def Factory(model_part: KratosMultiphysics.ModelPart,
     if controller_type == 'default_controller':
         return DefaultController(model_part, operation)
     elif controller_type == 'temporal_controller':
-        return OutputController(model_part, operation, parameters)
+        return TemporalController(model_part, operation, parameters)
     else:
         raise ValueError(f'"controller_type" has invalid value "{controller_type}"')
 ##!@}
