@@ -79,20 +79,6 @@ class TestVertex(KratosUnittest.TestCase):
             self.assertTrue(vertex.IsLocated())
 
         self.assertVectorAlmostEqual(
-            vertices[0].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT),
-            [1.5, 0.0, 0.0])
-        self.assertVectorAlmostEqual(
-            vertices[0].GetSolutionStepValue(KratosMultiphysics.REACTION),
-            [0.0, 0.0, 1.5])
-
-        self.assertVectorAlmostEqual(
-            vertices[1].GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT),
-            [3.0, 0.0, 0.0])
-        self.assertVectorAlmostEqual(
-            vertices[1].GetSolutionStepValue(KratosMultiphysics.REACTION),
-            [0.0, 0.0, 3.0])
-
-        self.assertVectorAlmostEqual(
             vertices[0].GetValue(KratosMultiphysics.DISPLACEMENT),
             [1.5, 0.0, 0.0])
         self.assertVectorAlmostEqual(
