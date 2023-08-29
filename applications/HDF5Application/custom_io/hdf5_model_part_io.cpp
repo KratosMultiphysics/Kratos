@@ -49,6 +49,13 @@ ModelPartIO::ModelPartIO(
 
     Settings.AddMissingParameters(default_params);
     mPrefix = Settings["prefix"].GetString();
+
+    KRATOS_ERROR_IF(mPrefix.empty()) << "ModelPartIO requires non-empty prefix.\n";
+
+    KRATOS_ERROR_IF(mPrefix.back() == '/')
+        << "The ModelPartIO prefix is always assumed to be representing a group,"
+        << " hence ending \"\\\" is not required [ provided prefix = "
+        << mPrefix << " ].\n";
 }
 
 ModelPartIO::ModelPartIO(
@@ -199,6 +206,10 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
     KRATOS_TRY;
 
     BuiltinTimer timer;
+
+    // write model part name as an attribute
+    mpFile->AddPath(mPrefix);
+    mpFile->WriteAttribute(mPrefix, "__model_part_name", rModelPart.FullName());
 
     rModelPart.SetValue(HDF5_MESH_LOCATION_INFO, mpFile->GetFileName() + ":" + mPrefix);
 
