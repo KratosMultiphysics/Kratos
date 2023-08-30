@@ -520,6 +520,16 @@ class TestContainerExpression(ABC):
             new_matrix[1, 2] = original_value[5]
             self.assertMatrixAlmostEqual(self._GetValue(entity, Kratos.PK2_STRESS_TENSOR), new_matrix * 2, 12)
 
+    def test_CornerCaseReshape(self) -> None:
+        # Reshape a single scalar expression to itself
+        input_expression = self._GetContainerExpression()
+        self._Read(input_expression, Kratos.PRESSURE)
+        combed = input_expression.Reshape([])
+        array = Kratos.Vector(input_expression.GetExpression().NumberOfEntities() * input_expression.GetItemComponentCount())
+        Kratos.Expression.CArrayExpressionIO.Write(combed, array)
+        for i_entity, entity in enumerate(combed.GetContainer()):
+            self.assertAlmostEqual(array[i_entity], self._GetValue(entity, Kratos.PRESSURE), 12)
+
     def test_Comb(self):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.PRESSURE)
@@ -554,6 +564,16 @@ class TestContainerExpression(ABC):
             new_vector[3] = original_v[2]
             new_vector[4] = original_p
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.PENALTY), new_vector * 2, 12)
+
+    def test_CornerCaseComb(self) -> None:
+        # Comb from a single scalar expression
+        input_expression = self._GetContainerExpression()
+        self._Read(input_expression, Kratos.PRESSURE)
+        combed = input_expression.Comb([])
+        array = Kratos.Vector(input_expression.GetExpression().NumberOfEntities() * input_expression.GetItemComponentCount())
+        Kratos.Expression.CArrayExpressionIO.Write(combed, array)
+        for i_entity, entity in enumerate(combed.GetContainer()):
+            self.assertAlmostEqual(array[i_entity], self._GetValue(entity, Kratos.PRESSURE), 12)
 
     def test_SliceCombReshape(self):
         a = self._GetContainerExpression()

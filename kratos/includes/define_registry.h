@@ -56,7 +56,7 @@
 #define KRATOS_REGISTRY_ADD_TEMPLATE_PROTOTYPE(NAME, X, ...)                                            \
     static inline bool KRATOS_REGISTRY_NAME(_is_registered_, __LINE__) = []() -> bool {                 \
         using TFunctionType = std::function<std::shared_ptr<X<__VA_ARGS__>>()>;                         \
-        std::string key_name = NAME + std::string(".") + std::string(#X) + "<" + #__VA_ARGS__ + ">";    \
+        std::string key_name = NAME + std::string(".") + std::string(#X) + "<" + Kratos::Registry::RegistryTemplateToString(__VA_ARGS__) + ">";    \
         if (!Registry::HasItem(key_name))                                                               \
         {                                                                                               \
             auto &r_item = Registry::AddItem<RegistryItem>(key_name);                                   \

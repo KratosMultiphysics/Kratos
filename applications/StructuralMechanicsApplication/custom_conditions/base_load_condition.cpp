@@ -113,23 +113,16 @@ void BaseLoadCondition::EquationIdVector(
                 rResult[index + 2] = GetGeometry()[i].GetDof(ROTATION_Z,pos + 2).EquationId();
         }
     } else {
-        if (this->HasRotDof()) {
-            const SizeType rot_pos = this->GetGeometry()[0].GetDofPosition(ROTATION_X);
-            for (SizeType i = 0; i < number_of_nodes; ++i) {
-                const SizeType index = i * block_size;
-                rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-                rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
-                rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
-                rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X,rot_pos    ).EquationId();
-                rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y,rot_pos + 1).EquationId();
-                rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z,rot_pos + 2).EquationId();
-            }
-        } else {
-            for (SizeType i = 0; i < number_of_nodes; ++i) {
-                const SizeType index = i * block_size;
-                rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
-                rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
-                rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
+        for (SizeType i = 0; i < number_of_nodes; ++i) {
+            const SizeType index = i * block_size;
+            rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
+            rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
+            rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
+            if (this->HasRotDof())
+            {
+                rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X, pos + 3).EquationId();
+                rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y, pos + 4).EquationId();
+                rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z, pos + 5).EquationId();
             }
         }
     }
