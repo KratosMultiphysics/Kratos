@@ -11,7 +11,7 @@ class NeuralNetworkData:
             self.data = new_data.data
         else:
             self.data = new_data
-    
+
     def ExportAsArray(self):
         try:
             '''for converting pytorch predictions to numpy'''
@@ -19,7 +19,7 @@ class NeuralNetworkData:
             return self.data
         except:
             return self.data
-    
+
     def ExportElementAsArray(self, id):
         return self.ExportAsArray()
 
@@ -34,10 +34,10 @@ class NeuralNetworkData:
                 return len(self.data)
             except TypeError:
                 return self.data.size
-    
+
     def __getitem__(self, key):
         return self.data[key]
-    
+
     def GetDataShape(self):
         return self.data.shape
 
@@ -98,16 +98,16 @@ class DataWithLookback(NeuralNetworkData):
         new_array = array
         for i in range(len(partitions)):
             new_array[...,i::number_of_partitions] = partitions[i]
-        
+
         return new_array
 
     def ExportDataOnly(self):
         return self.data
-    
+
     def UpdateLookbackLast(self, new_data):
         new_array = np.zeros_like(self.lookback_data)
         if self.lookback_index > 1:
-           
+
             # if len(new_data.shape)>1:
             #     new_array[:-new_data.shape[0]] = self.lookback_data[new_data.shape[0]:]
             #     new_array[-new_data.shape[0]:] = new_data
@@ -117,7 +117,7 @@ class DataWithLookback(NeuralNetworkData):
         else:
             new_array = new_data
         self.lookback_data = new_array
-    
+
     def UpdateRecordLast(self, new_data):
         new_array = np.zeros_like(self.data)
         if self.lookback_index > 1:
@@ -144,14 +144,14 @@ class DataWithLookback(NeuralNetworkData):
                 self.lookback_data = np.stack(list(np.zeros_like(new_data) for _ in range(self.lookback_index)))
                 self.lookback_data[-1] = new_data
             else:
-                self.lookback_data = new_data 
-                
+                self.lookback_data = new_data
+
             self.lookback_state = True
 
     def FlattenTo2DLookback(self):
         if len(self.lookback_data.shape)>2:
             self.lookback_data = np.reshape(self.lookback_data, (self.lookback_index, int(self.lookback_data.size/self.lookback_index)))
-        else: 
+        else:
             pass
 
     def CheckRecordAndUpdate(self, new_data):
@@ -162,7 +162,7 @@ class DataWithLookback(NeuralNetworkData):
                 self.data = np.stack(list(np.zeros_like(new_data) for _ in range(self.lookback_index)))
                 self.data[-1] = new_data
             else:
-                self.data = new_data 
+                self.data = new_data
 
             self.record_data = True
 
@@ -170,13 +170,13 @@ class DataWithLookback(NeuralNetworkData):
 
     def ExtendFromNeuralNetworkData(self, data_structure):
         self.data = data_structure.data
-    
+
     def SetOnlyLookback(self, switch_to = True):
         self.only_lookback = switch_to
 
     def GetLookbackIndex(self):
         return self.lookback_index
-    
+
     def GetLookbackShape(self):
         if self.lookback_index == 1:
                 return tuple((1, len(self.lookback_data)))
@@ -184,9 +184,9 @@ class DataWithLookback(NeuralNetworkData):
             try:
                 return self.lookback_data.shape
             except AttributeError:
-                
+
                     return tuple((self.lookback_index,0))
-        
+
     def ExportElementAsArray(self, id):
 
         array = self.ExportAsArray()
@@ -216,7 +216,7 @@ class DataWithLookback(NeuralNetworkData):
 
     def SetTimestepsAsFeatures(self, switch_to = True):
         self.timesteps_as_features = switch_to
-    
+
     def SetFeaturesAsTimesteps(self, switch_to = True):
         self.features_as_timesteps = switch_to
 
@@ -238,12 +238,12 @@ class ListNeuralNetworkData:
             try:
                 if len(array)>0 or not isinstance(array, list):
                     new_timestep = self.data_array[i].ExportAsArray()
-                    array = np.vstack([array, new_timestep]) 
+                    array = np.vstack([array, new_timestep])
                 else:
                     array = self.data_array[i].ExportAsArray()
             except TypeError:
                 array = np.reshape(array,array.shape + tuple((1,)))
-                array = np.vstack([array, self.data_array[i].ExportAsArray()]) 
+                array = np.vstack([array, self.data_array[i].ExportAsArray()])
 
         # THIS CAN BE MORE EFFICIENT, RESHAPE TAKES A LOT OF TIME
         if not self.data_array[0].GetDataShape() == ():
@@ -266,22 +266,22 @@ class ListNeuralNetworkData:
     def UpdateData(self, array):
         for i in range(len(self.data_array)):
             self.data_array[i].UpdateData(array[i])
-    
+
     def CopyLast(self):
         self.AddToList(self.data_array[-1])
-    
+
     def __len__(self):
         return len(self.data_array)
 
     def __getitem__(self, key):
         return self.data_array[key]
-    
+
     def KeepPart(self,key):
         self.data_array = self.data_array[key]
 
     def GetDataShape(self):
         return self.data_array[0].GetDataShape()
-    
+
 
 @dataclass
 class ListDataWithLookback(ListNeuralNetworkData):
@@ -299,38 +299,38 @@ class ListDataWithLookback(ListNeuralNetworkData):
             self.data_array.append(DataWithLookback(new_array, self.lookback_index))
         else:
             self.data_array.append(DataWithLookback(np.ndarray(new_array), self.lookback_index))
-    
+
     def ExportAsArray(self):
         array = []
         for i in range(len(self.data_array)):
             try:
                 if len(array)>0 or not isinstance(array, list):
                     new_timestep = self.data_array[i].ExportAsArray()
-                    array = np.vstack([array, new_timestep]) 
+                    array = np.vstack([array, new_timestep])
                 else:
                     array = self.data_array[i].ExportAsArray()
             except TypeError:
                 array = np.reshape(array,array.shape + tuple((1,)))
-                array = np.vstack([array, self.data_array[i].ExportAsArray()]) 
+                array = np.vstack([array, self.data_array[i].ExportAsArray()])
         out_array = self.__Reshape(array)
         return out_array
-    
+
     def ExportDataOnly(self):
         array = []
         for i in range(len(self.data_array)):
             try:
                 if len(array)>0 or not isinstance(array, list):
                     new_timestep = self.data_array[i].ExportDataOnly()
-                    array = np.vstack([array, new_timestep]) 
+                    array = np.vstack([array, new_timestep])
                 else:
                     array = self.data_array[i].ExportDataOnly()
             except TypeError:
                 array = np.reshape(array,array.shape + tuple((1,)))
-                array = np.vstack([array, self.data_array[i].ExportDataOnly()]) 
+                array = np.vstack([array, self.data_array[i].ExportDataOnly()])
 
         out_array = self.__Reshape(array, data_only=True)
         return out_array
-    
+
     def ExportElementAsArray(self, element_id):
 
         array = self.data_array[element_id].ExportElementAsArray(element_id)
@@ -365,11 +365,11 @@ class ListDataWithLookback(ListNeuralNetworkData):
             self.data_array[i].SetOnlyLookback()
             try:
                 if len(array)>0 or not isinstance(array, list):
-                    array = np.vstack([array, self.data_array[i].ExportAsArray()]) 
+                    array = np.vstack([array, self.data_array[i].ExportAsArray()])
                 else:
                     array = self.data_array[i].ExportAsArray()
             except TypeError:
-                array = np.vstack([array, self.data_array[i].ExportAsArray()]) 
+                array = np.vstack([array, self.data_array[i].ExportAsArray()])
         return array
 
     def UpdateLookbackLast(self, array):
@@ -383,11 +383,11 @@ class ListDataWithLookback(ListNeuralNetworkData):
     def CheckLookbackAndUpdate(self, array):
         for i in range(array.shape[0]):
             self.data_array[i].CheckLookbackAndUpdate(array[i])
-    
+
     def CheckRecordAndUpdate(self, array):
         for i in range(array.shape[0]):
             self.data_array[i].CheckRecordAndUpdate(array[i])
-    
+
     def ExtendFromNeuralNetworkData(self, data_structure):
         for i in range(len(data_structure)):
             new_entry = DataWithLookback(lookback_index=self.lookback_index)
@@ -400,16 +400,16 @@ class ListDataWithLookback(ListNeuralNetworkData):
     def FlattenTo2DLookback(self):
         for i in range(len(self.data_array)):
             self.data_array[i].FlattenTo2DLookback()
-    
+
     def SetOnlyLookback(self, switch_to = True):
         for i in range(len(self.data_array)):
             self.data_array[i].SetOnlyLookback(switch_to)
-    
+
     def SetTimestepsAsFeatures(self, switch_to = True):
         self.timesteps_as_features = switch_to
         for entry in self.data_array:
             entry.SetTimestepsAsFeatures(switch_to)
-    
+
     def SetFeaturesAsTimesteps(self, switch_to = True):
         self.features_as_timesteps = switch_to
         for entry in self.data_array:
@@ -421,17 +421,17 @@ class ListDataWithLookback(ListNeuralNetworkData):
 
     def GetLookbackIndex(self):
         return self.lookback_index
-    
+
     def GetLookbackShape(self):
         return self.data_array[0].GetLookbackShape()
-    
+
     def AddDataAndUpdate(self, new_data, new_lookback):
         self.CopyLast()
         self.data_array[-1].UpdateData(new_data)
         self.data_array[-1].CheckLookbackAndUpdate(new_lookback)
-    
+
     def __Reshape(self, array, data_only = False):
-    
+
          # THIS CAN BE MORE EFFICIENT, RESHAPE TAKES A LOT OF TIME
 
         # Calculate the length of the lookback (flattened or not)
@@ -457,7 +457,7 @@ class ListDataWithLookback(ListNeuralNetworkData):
                 data_length = self.data_array[0].GetDataShape()[1]
             except IndexError:
                 data_length = self.data_array[0].GetDataShape()[0]
-        
+
         # Calculate the feature length
         if data_only:
             feature_length = data_length

@@ -7,7 +7,8 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Rishith Ellath Meethal (https://github.com/rishithellathmeethal)
+//                   Daniel Andrés Arcones https://github.com/danielandresarcones
 //
 
 
@@ -43,7 +44,7 @@ PYBIND11_MODULE(KratosNeuralNetworkApplication,m)
     AddCustomUtilitiesToPython(m);
 
     //registering variables in python
-    
+
     //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
 
 }

@@ -80,15 +80,15 @@ class TestDataGenerationFactory(KratosUnittest.TestCase):
         # Within this location context:
         with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.RunSolutionLoop()
-            # self._check_data_dimensions()  
-            
+            # self._check_data_dimensions()
+
 
     def tearDown(self):
         # Within this location context:
         with KratosUnittest.WorkFolderScope(".", __file__):
             self.test.Finalize()
-            self._check_data_dimensions() 
-            
+            self._check_data_dimensions()
+
 
 class TestDataGeneration1I1OVariablesText(TestDataGenerationFactory):
     file_name = "beam_cantilever_nonlinear/1I1OVariablesText"

@@ -85,7 +85,7 @@ def ImportPkl(external_file):
 
 def ImportDictionaryFromText(external_file):
     "Import the data from a text file to a dictionary"
-    
+
     with open(external_file, 'r') as file:
         data = file.read()
 
