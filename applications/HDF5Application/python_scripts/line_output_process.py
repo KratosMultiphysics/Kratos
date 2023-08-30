@@ -34,17 +34,20 @@ class LineOutputProcess(KratosMultiphysics.OutputProcess):
                     "end_point"           : [0.0, 0.0, 0.0],
                     "number_of_points"    : 2,
                     "search_configuration": "initial",
-                    "search_tolerance"    : 1e-6
+                    "search_tolerance"    : 1e-6,
+                    "custom_attributes"   : {}
                 },
                 "nodal_solution_step_data_settings": {
-                    "prefix"           : "/VertexData/VertexSolutionStepData",
+                    "prefix"           : "/VertexData/VertexSolutionStepData/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "nodal_data_value_settings": {
-                    "prefix"           : "/VertexData/VertexDataValues",
+                    "prefix"           : "/VertexData/VertexDataValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 }
             }""")
 
@@ -60,9 +63,11 @@ class LineOutputProcess(KratosMultiphysics.OutputProcess):
 
     @staticmethod
     def __ConvertToPointSetOutputParameters(parameters: KratosMultiphysics.Parameters):
-        parameters.ValidateAndAssignDefaults(LineOutputProcess.GetDefaultParameters())
+        defaults = LineOutputProcess.GetDefaultParameters()
+        parameters.ValidateAndAssignDefaults(defaults)
 
-        line_output_settings = parameters["line_output_settings"]
+        line_output_settings =  parameters["line_output_settings"]
+        line_output_settings.ValidateAndAssignDefaults(defaults["line_output_settings"])
 
         start_point = line_output_settings["start_point"].GetVector()
         end_point = line_output_settings["end_point"].GetVector()
@@ -88,6 +93,7 @@ class LineOutputProcess(KratosMultiphysics.OutputProcess):
         point_output_settings["time_format"].SetString(line_output_settings["time_format"].GetString())
         point_output_settings["search_configuration"].SetString(line_output_settings["search_configuration"].GetString())
         point_output_settings["search_tolerance"].SetInt(line_output_settings["search_tolerance"].GetInt())
+        point_output_settings.AddValue("custom_attributes", line_output_settings["custom_attributes"])
 
         for i_point in range(number_of_points):
             point_output_settings["positions"].Append(start_point + i_point * step_vector)
