@@ -246,8 +246,10 @@ void AddCustomIOToPython(pybind11::module& m)
     py::class_<HDF5::ModelPartIO, HDF5::ModelPartIO::Pointer, IO>(m,"HDF5ModelPartIO")
         .def(py::init([](HDF5::File::Pointer pFile, const std::string& rPrefix) {
                 KRATOS_WARNING("DEPRECATION") << "Using deprecated constructor in \"HDF5::ModelPartIO\". Please use (Parameters, HDF5File) constructor.\n";
-                return Kratos::make_shared<HDF5::ModelPartIO>(rPrefix, pFile);
-            }), py::arg("prefix"), py::arg("hdf5_file"))
+                auto parameters = Parameters(R"({"prefix": ""})");
+                parameters["prefix"].SetString(rPrefix);
+                return Kratos::make_shared<HDF5::ModelPartIO>(parameters, pFile);
+            }), py::arg("hdf5_file"), py::arg("prefix"))
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
         ;
 
