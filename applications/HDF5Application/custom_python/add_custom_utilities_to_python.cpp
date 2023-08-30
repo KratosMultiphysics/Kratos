@@ -8,22 +8,31 @@
 //                   license: HDF5Application/license.txt
 //
 //  Main author:     Máté Kelemen
+//                   Suneth Warnakulasuriya
 //
 
-// Internal includes
-#include "add_custom_utilities_to_python.h"
+// System includes
+
+// External includes
+#include "pybind11/stl.h"
 
 // Project includes
+#include "includes/define_python.h"
+
+// Application includes
 #include "custom_utilities/vertex.h"
 #include "custom_utilities/vertex_utilities.h"
 #include "custom_utilities/container_io_utils.h"
+#include "custom_utilities/mesh_location_container.h"
+
+// Include base h
+#include "add_custom_utilities_to_python.h"
 
 
 namespace Kratos
 {
 namespace Python
 {
-
 
 class PointLocatorAdaptorTrampoline : public HDF5::PointLocatorAdaptor
 {
@@ -88,6 +97,21 @@ void AddCustomUtilitiesToPython(pybind11::module& rModule)
         ;
 
     #undef KRATOS_DEFINE_VERTEX_GETVALUE_OVERLOAD_BINDING
+
+    pybind11::class_<HDF5::MeshLocationContainer, HDF5::MeshLocationContainer::Pointer>(rModule, "MeshLocationContainer")
+        .def(pybind11::init<>())
+        .def("Set", &HDF5::MeshLocationContainer::Set, pybind11::arg("hdf5_rank_id"), pybind11::arg("hdf5_process_id"), pybind11::arg("hdf5_mesh_location"))
+        .def("Has", &HDF5::MeshLocationContainer::Has, pybind11::arg("hdf5_rank_id"), pybind11::arg("hdf5_process_id"))
+        .def("Get", &HDF5::MeshLocationContainer::Get, pybind11::arg("hdf5_rank_id"), pybind11::arg("hdf5_process_id"))
+        .def("__str__", PrintObject<HDF5::MeshLocationContainer>)
+        ;
+
+    rModule.def("HasProcessId", &HDF5::HasProcessId, pybind11::arg("parameters"));
+    rModule.def("GetProcessId", &HDF5::GetProcessId, pybind11::arg("parameters"));
+    rModule.def("AddProcessId", &HDF5::AddProcessId, pybind11::arg("parameters"), pybind11::arg("hdf5_rank_id"), pybind11::arg("hdf5_process_id"));
+    rModule.def("HasMeshLocationContainer", &HDF5::HasMeshLocationContainer, pybind11::arg("model_part"));
+    rModule.def("GetMeshLocationContainer", pybind11::overload_cast<ModelPart&>(&HDF5::GetMeshLocationContainer), pybind11::arg("model_part"));
+    rModule.def("SetMeshLocationContainer", &HDF5::SetMeshLocationContainer, pybind11::arg("model_part"), pybind11::arg("mesh_location_container"));
 }
 
 
