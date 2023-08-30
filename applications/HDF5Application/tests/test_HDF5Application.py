@@ -23,6 +23,7 @@ from test_point_set_output_process import TestPointSetOutputProcess as TestHDF5P
 from test_line_output_process import TestLineOutputProcess as TestHDF5LineOutputProcess
 from test_pattern import TestGetMachingEntitiesString
 from test_expression_io import TestExpressionIO
+from test_hdf5_mesh_location_container import TestMeshLocationContainer
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
@@ -44,6 +45,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertex, TestHDF5PointSetOutputProcess, TestHDF5LineOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestExpressionIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestGetMachingEntitiesString]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMeshLocationContainer]))
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     allSuite = suites['all']
