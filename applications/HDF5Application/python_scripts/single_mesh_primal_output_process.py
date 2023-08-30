@@ -51,53 +51,63 @@ class SingleMeshPrimalOutputProcess(HDF5OutputProcess):
                 },
                 "model_part_output_settings": {
                     "prefix"     : "/ModelData",
-                    "time_format": "0.4f"
+                    "time_format": "0.4f",
+                    "custom_attributes": {}
                 },
                 "nodal_solution_step_data_settings": {
                     "prefix"           : "/ResultsData/NodalSolutionStepData/",
                     "list_of_variables": [],
                     "time_format"      : "0.4f",
+                    "custom_attributes": {},
                     "alpha_bossak"     : -0.3
                 },
                 "nodal_data_value_settings": {
                     "prefix"           : "/ResultsData/NodalDataValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "nodal_flag_value_settings": {
                     "prefix"           : "/ResultsData/NodalFlagValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "element_data_value_settings": {
                     "prefix"           : "/ResultsData/ElementDataValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "element_gauss_point_value_settings": {
                     "prefix"           : "/ResultsData/ElementGaussPointValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "element_flag_value_settings": {
                     "prefix"           : "/ResultsData/ElementFlagValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "condition_data_value_settings": {
                     "prefix"           : "/ResultsData/ConditionDataValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "condition_gauss_point_value_settings": {
                     "prefix"           : "/ResultsData/ConditionGaussPointValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "condition_flag_value_settings": {
                     "prefix"           : "/ResultsData/ConditionFlagValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 }
             }""")
 
@@ -116,18 +126,18 @@ class SingleMeshPrimalOutputProcess(HDF5OutputProcess):
         operations = AggregatedControlledOperations(model_part, parameters["file_settings"])
 
         # adding one time mesh output
-        operations.AddControlledOperation(ControlledOperation(ModelPartOutput, parameters["model_part_output_settings"], SingleTimeController(temporal_controller)))
+        operations.AddControlledOperation(ControlledOperation(ModelPartOutput, self._ValidateAndAddProcessIdToAttributes("model_part_output_settings", parameters), SingleTimeController(temporal_controller)))
 
         # now adding temporal outputs.
-        operations.AddControlledOperation(ControlledOperation(PrimalBossakOutput, parameters["nodal_solution_step_data_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalDataValueOutput, parameters["nodal_data_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalFlagValueOutput, parameters["nodal_flag_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementDataValueOutput, parameters["element_data_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementGaussPointOutput, parameters["element_gauss_point_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementFlagValueOutput, parameters["element_flag_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionDataValueOutput, parameters["condition_data_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionGaussPointOutput, parameters["condition_gauss_point_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionFlagValueOutput, parameters["condition_flag_value_settings"], temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(PrimalBossakOutput, self._ValidateAndAddProcessIdToAttributes("nodal_solution_step_data_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalDataValueOutput, self._ValidateAndAddProcessIdToAttributes("nodal_data_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalFlagValueOutput, self._ValidateAndAddProcessIdToAttributes("nodal_flag_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementDataValueOutput, self._ValidateAndAddProcessIdToAttributes("element_data_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementGaussPointOutput, self._ValidateAndAddProcessIdToAttributes("element_gauss_point_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementFlagValueOutput, self._ValidateAndAddProcessIdToAttributes("element_flag_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionDataValueOutput, self._ValidateAndAddProcessIdToAttributes("condition_data_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionGaussPointOutput, self._ValidateAndAddProcessIdToAttributes("condition_gauss_point_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionFlagValueOutput, self._ValidateAndAddProcessIdToAttributes("condition_flag_value_settings", parameters), temporal_controller))
 
         # now add all operations to PrintOutput method
         self.AddPrintOutput(operations)

@@ -123,7 +123,8 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         call_args = self.HDF5ModelPartIO.call_args
         params = KratosMultiphysics.Parameters("""{
             "prefix": "/ModelData/test_model_part",
-            "time_format": "0.4f"
+            "time_format": "0.4f",
+            "custom_attributes": {}
         }""")
         self.assertTrue(params.IsEquivalentTo(call_args[0][0]))
         self.assertEqual(call_args[0][1], self.HDF5File.return_value)
@@ -242,7 +243,8 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         call_args = self.HDF5ModelPartIO.call_args
         params = KratosMultiphysics.Parameters("""{
             "prefix": "/ModelData",
-            "time_format": "0.4f"
+            "time_format": "0.4f",
+            "custom_attributes": {}
         }""")
         self.assertTrue(params.IsEquivalentTo(call_args[0][0]))
         self.assertEqual(call_args[0][1], self.HDF5File.return_value)

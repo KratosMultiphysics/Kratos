@@ -76,8 +76,9 @@ class ModelPartIOOperation(IOOperation):
     @classmethod
     def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
         return KratosMultiphysics.Parameters("""{
-            "prefix"        : "/ModelData",
-            "time_format"   : "0.4f"
+            "prefix"           : "/ModelData",
+            "time_format"      : "0.4f",
+            "custom_attributes": {}
         }""")
 
 
@@ -144,8 +145,8 @@ class VariableOutputOperation(IOOperation):
         return KratosMultiphysics.Parameters("""{
             "prefix"           : "/ResultsData",
             "list_of_variables": [],
-            "custom_attributes": {},
-            "time_format"      : "0.4f"
+            "time_format"      : "0.4f",
+            "custom_attributes": {}
         }""")
 
 class VariableInputOperation(IOOperation):

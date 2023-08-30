@@ -165,7 +165,8 @@ class TestOperations(KratosUnittest.TestCase):
             args, _ = p.call_args
             current_settings = KratosMultiphysics.Parameters("""{
                 "prefix": "/ModelData/model_part/1.23",
-                "time_format": "0.2f"
+                "time_format": "0.2f",
+                "custom_attributes":{}
             }""")
             self.assertTrue(current_settings.IsEquivalentTo(args[0]))
             self.assertEqual(args[1].GetFileName(), ".h5")
