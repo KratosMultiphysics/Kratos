@@ -73,13 +73,14 @@ namespace Kratos
        */
       ConstitutiveLaw::Pointer Clone() const override;
 
+      using SmallStrainUDSM3DLaw::GetValue;
       Vector& GetValue( const Variable<Vector> &rThisVariable, Vector &rValue ) override;
 
-      void SetValue( const Variable<Vector>& rVariable,
+       using SmallStrainUDSM3DLaw::SetValue;
+       void SetValue( const Variable<Vector>& rVariable,
                      const Vector& rValue,
                      const ProcessInfo& rCurrentProcessInfo ) override;
 
-      //----------------------------------------------------------------------------------------
       /**
        * @brief Dimension of the law:
        */
