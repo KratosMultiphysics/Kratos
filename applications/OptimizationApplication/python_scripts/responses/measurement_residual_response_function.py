@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+from typing import Optional
 
 import numpy as np
 
@@ -9,10 +10,10 @@ from KratosMultiphysics.OptimizationApplication.utilities.optimization_problem i
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy_decorator import ExecutionPolicyDecorator
 from KratosMultiphysics.OptimizationApplication.responses.response_function import ResponseFunction
 from KratosMultiphysics.OptimizationApplication.responses.response_function import SupportedSensitivityFieldVariableTypes
+from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartOperation
 from KratosMultiphysics.OptimizationApplication.utilities.model_part_utilities import ModelPartUtilities
 
 from KratosMultiphysics.StructuralMechanicsApplication import structural_mechanics_analysis
-import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
 
 
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem) -> ResponseFunction:
@@ -43,16 +44,18 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         }""")
         parameters.ValidateAndAssignDefaults(default_settings)
 
-        self.model = model
-        self.primal_model_part: Kratos.ModelPart = None
-
-        evaluated_model_parts = [model[model_part_name] for model_part_name in parameters["evaluated_model_part_names"].GetStringArray()]
-        if len(evaluated_model_parts) == 0:
-            raise RuntimeError(f"No model parts were provided for LinearStrainEnergyResponseFunction. [ response name = \"{self.GetName()}\"]")
-        self.primal_model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_parts, False)
-
         self.perturbation_size = parameters["perturbation_size"].GetDouble()
+        self.model = model
 
+        # Standard setup
+        evaluated_model_part_names = parameters["evaluated_model_part_names"].GetStringArray()
+        if len(evaluated_model_part_names) == 0:
+            raise RuntimeError(f"No model parts were provided for LinearStrainEnergyResponseFunction. [ response name = \"{self.GetName()}\"]")
+
+        self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
+        self.model_part: Optional[Kratos.ModelPart] = None
+
+        # Specific setup
         self.measurement_data_file = parameters["measurement_data_file"].GetString()
         self.measurement_std = parameters["measurement_standard_deviation"].GetDouble()
 
@@ -69,25 +72,25 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         return [Kratos.YOUNG_MODULUS]
 
     def Initialize(self) -> None:
-        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.primal_model_part, "element_specific_properties_created"):
-            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.primal_model_part, self.primal_model_part.Elements)
-            KratosOA.ModelPartUtils.LogModelPartStatus(self.primal_model_part, "element_specific_properties_created")
+        self.model_part = self.model_part_operation.GetModelPart()
+
+        if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
+            KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
+            KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
 
         file = open(self.measurement_data_file)
         self.measurement_data = json.load(file)
 
-        ModelPartUtilities.ExecuteOperationOnModelPart(self.primal_model_part)
-
     def Check(self) -> None:
-        KratosOA.PropertiesVariableExpressionIO.Check(Kratos.Expression.ElementExpression(self.primal_model_part), Kratos.YOUNG_MODULUS)
+        KratosOA.PropertiesVariableExpressionIO.Check(Kratos.Expression.ElementExpression(self.model_part), Kratos.YOUNG_MODULUS)
 
     def Finalize(self) -> None:
         pass
 
     def GetEvaluatedModelPart(self) -> Kratos.ModelPart:
-        if self.primal_model_part is None:
+        if self.model_part is None:
             raise RuntimeError("Please call MeasurementResidualResponseFunction::Initialize first.")
-        return self.primal_model_part
+        return self.model_part
 
     def GetAnalysisModelPart(self) -> Kratos.ModelPart:
         return self.primal_analysis_execution_policy_decorators[0].GetAnalysisModelPart()
@@ -105,7 +108,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
                 measured_displacement = sensor["measured_value"]
                 measured_direction = Kratos.Array3(sensor["measurement_direction_normal"])
 
-                mesh_node = self.primal_model_part.GetNode(sensor["mesh_node_id"])
+                mesh_node = self.model_part.GetNode(sensor["mesh_node_id"])
 
                 node_displacement = mesh_node.GetSolutionStepValue(Kratos.KratosGlobals.GetVariable(sensor["type_of_sensor"]))
                 in_measurement_direction_projected_vector = (measured_direction[0]*node_displacement[0])+(measured_direction[1]*node_displacement[1])+(measured_direction[2]*node_displacement[2])
@@ -145,7 +148,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
 
         # now get the intersected model parts
-        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.primal_model_part, merged_model_part_map, True)
+        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, True)
 
         print("MeasurementResidualResponseFunction:: Start gradient calculation")
         for variable, collective_expression in physical_variable_collective_expressions.items():
@@ -174,7 +177,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
                 KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(adjoint_model_part, adjoint_model_part.Elements)
 
                 # read primal E
-                primal_youngs_modulus = Kratos.Expression.ElementExpression(self.primal_model_part)
+                primal_youngs_modulus = Kratos.Expression.ElementExpression(self.model_part)
                 KratosOA.PropertiesVariableExpressionIO.Read(primal_youngs_modulus, Kratos.YOUNG_MODULUS)
 
                 # assign primal E to adjoint
@@ -226,7 +229,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
 
         # now get the intersected model parts
-        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.primal_model_part, merged_model_part_map, True)
+        intersected_model_part_map = ModelPartUtilities.GetIntersectedMap(self.model_part, merged_model_part_map, True)
 
         model_part = self.GetAnalysisModelPart()
 
@@ -255,4 +258,4 @@ class MeasurementResidualResponseFunction(ResponseFunction):
             return gradient
 
     def __str__(self) -> str:
-        return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.primal_model_part.FullName()}]"
+        return f"Response [type = {self.__class__.__name__}, name = {self.GetName()}, model part name = {self.model_part.FullName()}]"
