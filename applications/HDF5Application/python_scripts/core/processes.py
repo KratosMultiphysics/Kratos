@@ -46,7 +46,7 @@ class HDF5Process(KratosMultiphysics.Process):
         else:
             return []
 
-    def _ValidateAndAddProcessIdToAttributes(self, sub_parameter_name: str, parameters: KratosMultiphysics.Parameters) -> KratosMultiphysics.Parameters:
+    def _GetOperationParameters(self, sub_parameter_name: str, parameters: KratosMultiphysics.Parameters) -> KratosMultiphysics.Parameters:
         default_sub_parameters = self.GetDefaultParameters()[sub_parameter_name]
         sub_parameters = parameters[sub_parameter_name]
         sub_parameters.ValidateAndAssignDefaults(default_sub_parameters)

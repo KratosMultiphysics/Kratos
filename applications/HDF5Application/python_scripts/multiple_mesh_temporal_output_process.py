@@ -109,10 +109,9 @@ class MultipleMeshTemporalOutputProcess(HDF5OutputProcess):
             }""")
 
     def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters) -> None:
-        super().__init__()
-        parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
-
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         model_part = model[parameters["model_part_name"].GetString()]
+        super().__init__()
 
         # create temporal controller
         temporal_controller_settings = parameters["output_time_settings"]
@@ -123,16 +122,16 @@ class MultipleMeshTemporalOutputProcess(HDF5OutputProcess):
         operations = AggregatedControlledOperations(model_part, parameters["file_settings"])
 
         # now adding temporal outputs.
-        operations.AddControlledOperation(ControlledOperation(ModelPartOutput, self._ValidateAndAddProcessIdToAttributes("model_part_output_settings", parameters), temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalSolutionStepDataOutput, self._ValidateAndAddProcessIdToAttributes("nodal_solution_step_data_settings", parameters), temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalDataValueOutput, self._ValidateAndAddProcessIdToAttributes("nodal_data_value_settings", parameters), temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalFlagValueOutput, self._ValidateAndAddProcessIdToAttributes("nodal_flag_value_settings", parameters), temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementDataValueOutput, self._ValidateAndAddProcessIdToAttributes("element_data_value_settings", parameters), temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementGaussPointOutput, self._ValidateAndAddProcessIdToAttributes("element_gauss_point_value_settings", parameters), temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementFlagValueOutput, self._ValidateAndAddProcessIdToAttributes("element_flag_value_settings", parameters), temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionDataValueOutput, self._ValidateAndAddProcessIdToAttributes("condition_data_value_settings", parameters), temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionGaussPointOutput, self._ValidateAndAddProcessIdToAttributes("condition_gauss_point_value_settings", parameters), temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionFlagValueOutput, self._ValidateAndAddProcessIdToAttributes("condition_flag_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ModelPartOutput, self._GetOperationParameters("model_part_output_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalSolutionStepDataOutput, self._GetOperationParameters("nodal_solution_step_data_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalDataValueOutput, self._GetOperationParameters("nodal_data_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalFlagValueOutput, self._GetOperationParameters("nodal_flag_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementDataValueOutput, self._GetOperationParameters("element_data_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementGaussPointOutput, self._GetOperationParameters("element_gauss_point_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementFlagValueOutput, self._GetOperationParameters("element_flag_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionDataValueOutput, self._GetOperationParameters("condition_data_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionGaussPointOutput, self._GetOperationParameters("condition_gauss_point_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionFlagValueOutput, self._GetOperationParameters("condition_flag_value_settings", parameters), temporal_controller))
 
         # now add all operations to PrintOutput method
         self.AddPrintOutput(operations)
