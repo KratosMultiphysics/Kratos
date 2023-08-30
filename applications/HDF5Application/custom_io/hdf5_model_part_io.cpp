@@ -27,7 +27,7 @@
 #include "custom_utilities/container_io_utils.h"
 #include "custom_utilities/factor_elements_and_conditions_utility.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
-#include "hdf5_application_variables.h"
+#include "custom_utilities/mesh_location_container.h"
 
 // Include base h
 #include "custom_io/hdf5_model_part_io.h"
@@ -56,6 +56,10 @@ ModelPartIO::ModelPartIO(
     KRATOS_ERROR_IF(mCustomAttributes.Has("__model_part_name"))
         << "The \"__model_part_name\" is a reserved attribute name. Please remove it from custom attributes."
         << " Custom attributes:\n" << mCustomAttributes << "\n";
+
+    if (HasProcessId(Settings["custom_attributes"])) {
+        std::tie(mHDF5RankId, mHDF5ProcessId) = GetProcessId(Settings["custom_attributes"]);
+    }
 
     KRATOS_ERROR_IF(mPrefix.empty()) << "ModelPartIO requires non-empty prefix.\n";
 
@@ -215,6 +219,17 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
             << "The provided custom attributes has the reserved \"__model_part_name\" attribute with a different value other than \""
             << rModelPart.FullName() << "\" [ attribute value = " << mCustomAttributes["__model_part_name"] << " ].\n";
     }
+
+    // add the model part information to the model part so that datasets can see them.
+    if (mHDF5RankId.has_value()) {
+        if (!HasMeshLocationContainer(rModelPart)) {
+            SetMeshLocationContainer(rModelPart, Kratos::make_shared<MeshLocationContainer>());
+        }
+
+        auto& r_process_data = GetMeshLocationContainer(rModelPart);
+        r_process_data.Set(mHDF5RankId.value(), mHDF5ProcessId.value(), mpFile->GetFileName() + ":" + mPrefix);
+    }
+
     mpFile->WriteAttribute(mPrefix, mCustomAttributes);
 
     Internals::WriteVariablesList(*mpFile, mPrefix, rModelPart);
