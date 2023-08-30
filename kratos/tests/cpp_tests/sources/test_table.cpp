@@ -17,40 +17,53 @@
 #include "includes/checks.h"
 #include "includes/variables.h"
 
-namespace Kratos {
-    namespace Testing {
+namespace Kratos::Testing {
 
-        KRATOS_TEST_CASE_IN_SUITE(BaseTable, KratosCoreFastSuite)
-        {
-            Table<double> table;
-            for (std::size_t i = 0; i < 6; ++i)
-                table.PushBack(static_cast<double>(i), 2.0 * static_cast<double>(i));
+KRATOS_TEST_CASE_IN_SUITE(BaseTable, KratosCoreFastSuite)
+{
+    Table<double> table;
+    for (std::size_t i = 0; i < 6; ++i)
+        table.PushBack(static_cast<double>(i), 2.0 * static_cast<double>(i));
             
-            double nearest = (table.GetNearestRow(2.1))[0];
-            KRATOS_CHECK_DOUBLE_EQUAL(nearest, 4.0);
-            KRATOS_CHECK_DOUBLE_EQUAL(table.GetValue(2.1), 4.2);
-            KRATOS_CHECK_DOUBLE_EQUAL(table(2.1), 4.2);
-            KRATOS_CHECK_DOUBLE_EQUAL(table.GetDerivative(2.1), 2.0);
+    double nearest = (table.GetNearestRow(2.1))[0];
+    KRATOS_CHECK_DOUBLE_EQUAL(nearest, 4.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(table.GetValue(2.1), 4.2);
+    KRATOS_CHECK_DOUBLE_EQUAL(table(2.1), 4.2);
+    KRATOS_CHECK_DOUBLE_EQUAL(table.GetDerivative(2.1), 2.0);
 
-            auto& r_data = table.Data();
-            KRATOS_CHECK_EQUAL(r_data.size(), 6);
+    auto& r_data = table.Data();
+    KRATOS_CHECK_EQUAL(r_data.size(), 6);
             
-            // Clear database
-            table.Clear();
-            KRATOS_CHECK_EQUAL(r_data.size(), 0);
+    // Clear database
+    table.Clear();
+    KRATOS_CHECK_EQUAL(r_data.size(), 0);
 
-            // Inverse filling with insert
-            for (std::size_t i = 6; i > 0; --i)
-                table.insert(static_cast<double>(i), 2.0 * static_cast<double>(i));
-            
-            KRATOS_CHECK_EQUAL(r_data.size(), 6);
-            
-            nearest = (table.GetNearestRow(2.1))[0];
-            KRATOS_CHECK_DOUBLE_EQUAL(nearest, 4.0);
-            KRATOS_CHECK_DOUBLE_EQUAL(table.GetValue(2.1), 4.2);
-            KRATOS_CHECK_DOUBLE_EQUAL(table(2.1), 4.2);
-            KRATOS_CHECK_DOUBLE_EQUAL(table.GetDerivative(2.1), 2.0);
-        }
+    // Inverse filling with insert
+    for (std::size_t i = 6; i > 0; --i)
+        table.insert(static_cast<double>(i), 2.0 * static_cast<double>(i));
 
-    }
-}  // namespace Kratos.
+    KRATOS_CHECK_EQUAL(r_data.size(), 6);
+
+    nearest = (table.GetNearestRow(2.1))[0];
+    KRATOS_CHECK_DOUBLE_EQUAL(nearest, 4.0);
+    KRATOS_CHECK_DOUBLE_EQUAL(table.GetValue(2.1), 4.2);
+    KRATOS_CHECK_DOUBLE_EQUAL(table(2.1), 4.2);
+    KRATOS_CHECK_DOUBLE_EQUAL(table.GetDerivative(2.1), 2.0);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NamesOfXAndYInTable, KratosCoreFastSuite)
+{
+    Table<double, double> table;
+
+    // New tables shouldn't have any names set
+    KRATOS_CHECK(table.NameOfX().empty())
+    KRATOS_CHECK(table.NameOfY().empty())
+
+    table.SetNameOfX("Foo");
+    KRATOS_CHECK_STRING_EQUAL(table.NameOfX(), "Foo")
+
+    table.SetNameOfY("Bar");
+    KRATOS_CHECK_STRING_EQUAL(table.NameOfY(), "Bar")
+}
+
+}  // namespace Kratos::Testing.
