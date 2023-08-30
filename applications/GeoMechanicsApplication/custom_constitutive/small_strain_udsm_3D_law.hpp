@@ -10,14 +10,12 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_SMALL_STRAIN_UDSM_3D_LAW_H_INCLUDED )
-#define  KRATOS_SMALL_STRAIN_UDSM_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 #include <string>
 #include <iostream>
 #include "includes/define.h"
-// External includes
 
 // Project includes
 #include "includes/serializer.h"
@@ -25,7 +23,6 @@
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
-
 
 namespace Kratos
 {
@@ -102,7 +99,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       /// Pointer definition of SmallStrainUDSM3DLaw
       KRATOS_CLASS_POINTER_DEFINITION( SmallStrainUDSM3DLaw );
 
-
       //@}
       //@name Life Cycle
       //@{
@@ -111,7 +107,7 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       /**
        * @brief Default constructor.
        */
-      SmallStrainUDSM3DLaw();
+      SmallStrainUDSM3DLaw() = default;
 
       /**
        * @brief Clone method
@@ -126,13 +122,11 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       /**
        * @brief Destructor.
        */
-      virtual ~SmallStrainUDSM3DLaw();
-
+      ~SmallStrainUDSM3DLaw() override = default;
 
       // Assignment operator:
       SmallStrainUDSM3DLaw& operator=(SmallStrainUDSM3DLaw const& rOther);
 
-      //----------------------------------------------------------------------------------------
       /**
        * @brief This function is designed to be called once to check compatibility with element
        * @param rFeatures The Features of the law
@@ -142,33 +136,33 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       /**
        * @brief Dimension of the law:
        */
-      virtual SizeType WorkingSpaceDimension() override
+      SizeType WorkingSpaceDimension() override
       {
-         return Dimension;
+          return Dimension;
       }
 
       /**
        * @brief Voigt tensor size:
        */
-      virtual SizeType GetStrainSize() const override
+      SizeType GetStrainSize() const override
       {
-         return VoigtSize;
+          return VoigtSize;
       }
 
       /**
        * @brief Returns the expected strain measure of this constitutive law (by default Green-Lagrange)
        * @return the expected strain measure
        */
-      virtual StrainMeasure GetStrainMeasure() override
+      StrainMeasure GetStrainMeasure() override
       {
-         return StrainMeasure_Infinitesimal;
+          return StrainMeasure_Infinitesimal;
       }
 
       /**
-       * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in voigt notation)
+       * returns the stress measure of this constitutive law (by default 1st Piola-Kirchhoff stress in Voigt notation)
        * @return the expected stress measure
        */
-      virtual StressMeasure GetStressMeasure() override
+      StressMeasure GetStressMeasure() override
       {
          return StressMeasure_Cauchy;
       }
@@ -223,9 +217,9 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
        * @param rValue a reference to the returned value
        * @return rValue output: the value of the specified variable
        */
-      virtual double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                     const Variable<double>& rThisVariable,
-                                     double& rValue) override;
+      double& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                             const Variable<double>&      rThisVariable,
+                             double&                      rValue) override;
 
       /**
        * @brief It calculates the value of a specified variable (Vector case)
@@ -234,9 +228,9 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
        * @param rValue a reference to the returned value
        * @return rValue output: the value of the specified variable
        */
-      virtual Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                     const Variable<Vector>& rThisVariable,
-                                     Vector& rValue) override;
+      Vector& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                             const Variable<Vector>&      rThisVariable,
+                             Vector&                      rValue) override;
 
       /**
        * @brief It calculates the value of a specified variable (Matrix case)
@@ -245,10 +239,11 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
        * @param rValue a reference to the returned value
        * @return rValue output: the value of the specified variable
        */
-      virtual Matrix& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
-                                     const Variable<Matrix>& rThisVariable,
-                                     Matrix& rValue) override;
+      Matrix& CalculateValue(ConstitutiveLaw::Parameters& rParameterValues,
+                             const Variable<Matrix>&      rThisVariable,
+                             Matrix&                      rValue) override;
 
+      using ConstitutiveLaw::CalculateValue;
 
       // @brief This function provides the place to perform checks on the completeness of the input.
       // @details It is designed to be called only once (or anyway, not often) typically at the beginning
@@ -299,57 +294,46 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
                         const GeometryType& rElementGeometry,
                         const Vector& rShapeFunctionsValues) override;
 
-   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     double& GetValue( const Variable<double> &rThisVariable, double &rValue ) override;
     int& GetValue( const Variable<int> &rThisVariable, int &rValue ) override;
     Vector& GetValue( const Variable<Vector> &rThisVariable, Vector &rValue ) override;
 
-    void SetValue( const Variable<double>& rVariable,
-                   const double& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) override;
+    void SetValue(const Variable<double>& rVariable,
+                  const double&           rValue,
+                  const ProcessInfo&      rCurrentProcessInfo) override;
 
-    void SetValue( const Variable<Vector>& rVariable,
-                   const Vector& rValue,
-                   const ProcessInfo& rCurrentProcessInfo ) override;
-
-   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
-
+    void SetValue(const Variable<Vector>& rVariable,
+                  const Vector&           rValue,
+                  const ProcessInfo&      rCurrentProcessInfo) override;
       ///@}
       ///@name Inquiry
       ///@{
-
 
       ///@}
       ///@name Input and output
       ///@{
 
       /// Turn back information as a string.
-      virtual std::string Info() const override
+      std::string Info() const override
       {
-         std::stringstream buffer;
-         buffer << "SmallStrainUDSM3DLaw";
-         return buffer.str();
+         return "SmallStrainUDSM3DLaw";
       }
 
       /// Print information about this object.
-      virtual void PrintInfo(std::ostream& rOStream) const override
+      void PrintInfo(std::ostream& rOStream) const override
       {
-         rOStream << "SmallStrainUDSM3DLaw";
+         rOStream << Info();
       }
 
       /// Print object's data.
-      virtual void PrintData(std::ostream& rOStream) const override
+      void PrintData(std::ostream& rOStream) const override
       {
          rOStream << "SmallStrainUDSM3DLaw Data";
       }
 
-
       ///@}
       ///@name Friends
       ///@{
-
 
       ///@}
 
@@ -387,7 +371,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       ///@name Protected Operators
       ///@{
 
-
       ///@}
       ///@name Protected Operations
       ///@{
@@ -402,11 +385,10 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       virtual void SetInternalStrainVector(const Vector& rStrainVector);
       virtual void CopyConstitutiveMatrix(ConstitutiveLaw::Parameters &rValues, Matrix& rConstitutiveMatrix);
 
-
       void CalculateConstitutiveMatrix(ConstitutiveLaw::Parameters &rValues, Matrix& rConstitutiveMatrix);
       void CalculateStress(ConstitutiveLaw::Parameters &rValues, Vector& rStressVector);
 
-      // returns 1 if the stiffness matrix of the material is non symmetric
+      // returns 1 if the stiffness matrix of the material is non-symmetric
       int getIsNonSymmetric() {return mAttributes[IS_NON_SYMMETRIC];}
 
       // returns 1 if the stiffness matrix of the material is stress dependent
@@ -415,25 +397,22 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       // returns 1 if material is time dependent
       int getIsTimeDependent() {return mAttributes[IS_TIME_DEPENDENT];}
 
-      // returns 1 if the stiffness matrix of the material is tanential
+      // returns 1 if the stiffness matrix of the material is tangential
       int getUseTangentMatrix() {return mAttributes[USE_TANGENT_MATRIX];}
 
       ///@}
       ///@name Protected Inquiry
       ///@{
 
-
       ///@}
       ///@name Protected LifeCycle
       ///@{
-
 
       ///@}
 
    private:
       ///@name Static Member Variables
       ///@{
-
 
       ///@}
       ///@name Member Variables
@@ -453,16 +432,13 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       Vector mStateVariables;
       Vector mStateVariablesFinalized;
 
-
       ///@}
       ///@name Private Operators
       ///@{
 
-
       ///@}
       ///@name Private Operations
       ///@{
-
 
       ///@}
       ///@name Private  Access
@@ -489,13 +465,12 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       int GetNumberOfMaterialParametersFromUDSM(const Properties& rMaterialProperties);
       int GetStateVariableIndex(const Variable<double>& rThisVariable);
 
-
       ///@}
       ///@name Serialization
       ///@{
       friend class Serializer;
 
-      virtual void save(Serializer& rSerializer) const override
+      void save(Serializer& rSerializer) const override
       {
          KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
          rSerializer.save("InitializedModel",           mIsModelInitialized);
@@ -505,7 +480,7 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
          rSerializer.save("StateVariablesFinalized",    mStateVariablesFinalized);
       }
 
-      virtual void load(Serializer& rSerializer) override
+      void load(Serializer& rSerializer) override
       {
          KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
          rSerializer.load("InitializedModel",           mIsModelInitialized);
@@ -518,7 +493,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
       ///@}
       ///@name Private Inquiry
       ///@{
-
 
       ///@}
       ///@name Un accessible methods
@@ -533,7 +507,6 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
    ///@name Type Definitions
    ///@{
 
-
    ///@}
    ///@name Input and output
    ///@{
@@ -542,8 +515,4 @@ typedef void(*pF_UserMod) (int    *, int     *, int    *,
 
    ///@} addtogroup block
 
-}  // namespace Kratos.
-
-#endif // KRATOS_SMALL_STRAIN_UDSM_3D_LAW_H_INCLUDED  defined
-
-
+}

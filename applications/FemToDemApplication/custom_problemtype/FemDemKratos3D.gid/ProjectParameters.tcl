@@ -33,6 +33,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "    \},"
 
     puts $FileVar "   \"solver_settings\": \{"
+
     if {[GiD_AccessValue get gendata Solution_Type] eq "Static"} {
         puts $FileVar "            \"solver_type\":                       \"FemDemStaticSolver\","
         puts $FileVar "            \"solution_type\":                     \"Static\","
