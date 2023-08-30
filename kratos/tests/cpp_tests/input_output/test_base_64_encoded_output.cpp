@@ -32,7 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(Base64EcodedEmptyOutput, KratosCoreFastSuite)
         encoder.WriteData(data.begin(), data.size());
     }
 
-    KRATOS_CHECK_EQUAL(output.str(), "");
+    KRATOS_EXPECT_EQ(output.str(), "");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Base64EcodedSingleCharacter, KratosCoreFastSuite)
@@ -45,7 +45,7 @@ KRATOS_TEST_CASE_IN_SUITE(Base64EcodedSingleCharacter, KratosCoreFastSuite)
         encoder.WriteData(data.begin(), data.size());
     }
 
-    KRATOS_CHECK_EQUAL(output.str(), "QQ==");
+    KRATOS_EXPECT_EQ(output.str(), "QQ==");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Base64EcodedExampleString, KratosCoreFastSuite)
@@ -58,7 +58,7 @@ KRATOS_TEST_CASE_IN_SUITE(Base64EcodedExampleString, KratosCoreFastSuite)
         encoder.WriteData(data.begin(), data.size());
     }
 
-    KRATOS_CHECK_EQUAL(output.str(), "TWFu");
+    KRATOS_EXPECT_EQ(output.str(), "TWFu");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Base64EcodedPadding, KratosCoreFastSuite)
@@ -71,7 +71,7 @@ KRATOS_TEST_CASE_IN_SUITE(Base64EcodedPadding, KratosCoreFastSuite)
         encoder.WriteData(data.begin(), data.size());
     }
 
-    KRATOS_CHECK_EQUAL(output.str(), "QUJD");
+    KRATOS_EXPECT_EQ(output.str(), "QUJD");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Base64EcodedLargeInput, KratosCoreFastSuite)
@@ -86,7 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(Base64EcodedLargeInput, KratosCoreFastSuite)
 
     std::string expected(1000 / 3 * 4, 'V');
     expected += "VQ==";
-    KRATOS_CHECK_EQUAL(output.str(), expected);
+    KRATOS_EXPECT_EQ(output.str(), expected);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Base64EcodedSmallInput, KratosCoreFastSuite)
@@ -103,7 +103,7 @@ KRATOS_TEST_CASE_IN_SUITE(Base64EcodedSmallInput, KratosCoreFastSuite)
         encoder.WriteData(&v2, 1);
     }
 
-    KRATOS_CHECK_EQUAL(output.str(), "AQAAAAE=");
+    KRATOS_EXPECT_EQ(output.str(), "AQAAAAE=");
 }
 
 } // namespace Kratos::Testing
