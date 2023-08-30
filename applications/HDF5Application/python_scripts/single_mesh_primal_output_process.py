@@ -112,10 +112,9 @@ class SingleMeshPrimalOutputProcess(HDF5OutputProcess):
             }""")
 
     def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters) -> None:
-        super().__init__()
-        parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
-
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         model_part = model[parameters["model_part_name"].GetString()]
+        super().__init__()
 
         # create temporal controller
         temporal_controller_settings = parameters["output_time_settings"]

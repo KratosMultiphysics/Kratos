@@ -78,10 +78,9 @@ class ImportModelPartFromHDF5Process(HDF5Process):
             }""")
 
     def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters) -> None:
-        super().__init__()
         parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
-
         model_part = model[parameters["model_part_name"].GetString()]
+        super().__init__()
 
         # create default controller
         default_controller = DefaultController()

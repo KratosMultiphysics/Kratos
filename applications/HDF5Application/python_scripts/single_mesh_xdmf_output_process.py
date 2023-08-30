@@ -118,10 +118,9 @@ class SingleMeshXdmfOutputProcess(HDF5OutputProcess):
             }""")
 
     def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters) -> None:
-        super().__init__()
-        parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
-
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         model_part = model[parameters["model_part_name"].GetString()]
+        super().__init__()
 
         # default controller
         initialize_operation = AggregatedControlledOperations(model_part, parameters["file_settings"])
