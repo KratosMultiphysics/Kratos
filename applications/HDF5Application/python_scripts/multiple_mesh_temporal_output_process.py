@@ -49,60 +49,69 @@ class MultipleMeshTemporalOutputProcess(HDF5OutputProcess):
                 },
                 "model_part_output_settings": {
                     "prefix"     : "/ModelData",
-                    "time_format": "0.4f"
+                    "time_format": "0.4f",
+                    "custom_attributes": {}
                 },
                 "nodal_solution_step_data_settings": {
                     "prefix"           : "/ResultsData/NodalSolutionStepData/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "nodal_data_value_settings": {
                     "prefix"           : "/ResultsData/NodalDataValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "nodal_flag_value_settings": {
                     "prefix"           : "/ResultsData/NodalFlagValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "element_data_value_settings": {
                     "prefix"           : "/ResultsData/ElementDataValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "element_gauss_point_value_settings": {
                     "prefix"           : "/ResultsData/ElementGaussPointValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "element_flag_value_settings": {
                     "prefix"           : "/ResultsData/ElementFlagValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "condition_data_value_settings": {
                     "prefix"           : "/ResultsData/ConditionDataValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "condition_gauss_point_value_settings": {
                     "prefix"           : "/ResultsData/ConditionGaussPointValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "condition_flag_value_settings": {
                     "prefix"           : "/ResultsData/ConditionFlagValues/",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 }
             }""")
 
     def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters) -> None:
-        super().__init__()
-        parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
-
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         model_part = model[parameters["model_part_name"].GetString()]
+        super().__init__()
 
         # create temporal controller
         temporal_controller_settings = parameters["output_time_settings"]
@@ -110,19 +119,19 @@ class MultipleMeshTemporalOutputProcess(HDF5OutputProcess):
         temporal_controller = KratosMultiphysics.TemporalController(model, temporal_controller_settings)
 
         # create the aggregated operation with hdf5 file settings
-        operations = AggregatedControlledOperations(model_part, parameters["file_settings"])
+        operations = AggregatedControlledOperations(model_part, self._GetValidatedParameters("file_settings", parameters))
 
         # now adding temporal outputs.
-        operations.AddControlledOperation(ControlledOperation(ModelPartOutput, parameters["model_part_output_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalSolutionStepDataOutput, parameters["nodal_solution_step_data_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalDataValueOutput, parameters["nodal_data_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalFlagValueOutput, parameters["nodal_flag_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementDataValueOutput, parameters["element_data_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementGaussPointOutput, parameters["element_gauss_point_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementFlagValueOutput, parameters["element_flag_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionDataValueOutput, parameters["condition_data_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionGaussPointOutput, parameters["condition_gauss_point_value_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionFlagValueOutput, parameters["condition_flag_value_settings"], temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ModelPartOutput, self._GetOperationParameters("model_part_output_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalSolutionStepDataOutput, self._GetOperationParameters("nodal_solution_step_data_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalDataValueOutput, self._GetOperationParameters("nodal_data_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalFlagValueOutput, self._GetOperationParameters("nodal_flag_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementDataValueOutput, self._GetOperationParameters("element_data_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementGaussPointOutput, self._GetOperationParameters("element_gauss_point_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementFlagValueOutput, self._GetOperationParameters("element_flag_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionDataValueOutput, self._GetOperationParameters("condition_data_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionGaussPointOutput, self._GetOperationParameters("condition_gauss_point_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionFlagValueOutput, self._GetOperationParameters("condition_flag_value_settings", parameters), temporal_controller))
 
         # now add all operations to PrintOutput method
         self.AddPrintOutput(operations)

@@ -44,25 +44,27 @@ class PointSetOutputProcess(HDF5OutputProcess):
                     "time_format"         : "0.4f",
                     "positions"           : [[]],
                     "search_configuration": "initial",
-                    "search_tolerance"    : 1e-6
+                    "search_tolerance"    : 1e-6,
+                    "custom_attributes"   : {}
                 },
                 "nodal_solution_step_data_settings": {
                     "prefix"           : "/VertexData/VertexSolutionStepData",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 },
                 "nodal_data_value_settings": {
                     "prefix"           : "/VertexData/VertexDataValues",
                     "list_of_variables": [],
-                    "time_format"      : "0.4f"
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
                 }
             }""")
 
     def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters) -> None:
-        super().__init__()
-        parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
-
+        parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.model_part = model[parameters["model_part_name"].GetString()]
+        super().__init__()
 
         point_output_settings = parameters["point_output_settings"]
 
@@ -96,14 +98,14 @@ class PointSetOutputProcess(HDF5OutputProcess):
         self.interval_utility = KratosMultiphysics.IntervalUtility(temporal_controller_settings)
 
         # create the aggregated operation with hdf5 file settings
-        operations = AggregatedControlledOperations(self.model_part, parameters["file_settings"], self.vertices)
+        operations = AggregatedControlledOperations(self.model_part, self._GetValidatedParameters("file_settings", parameters), self.vertices)
 
         # adding one time mesh output
-        operations.AddControlledOperation(ControlledOperation(VertexCoordinateOutput, parameters["point_output_settings"], SingleTimeController(temporal_controller)))
+        operations.AddControlledOperation(ControlledOperation(VertexCoordinateOutput, self._GetOperationParameters("point_output_settings", parameters), SingleTimeController(temporal_controller)))
 
         # now adding temporal outputs.
-        operations.AddControlledOperation(ControlledOperation(VertexHistoricalValueOutput, parameters["nodal_solution_step_data_settings"], temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(VertexNonHistoricalValueOutput, parameters["nodal_data_value_settings"], temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(VertexHistoricalValueOutput, self._GetOperationParameters("nodal_solution_step_data_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(VertexNonHistoricalValueOutput, self._GetOperationParameters("nodal_data_value_settings", parameters), temporal_controller))
 
         # now add all operations to PrintOutput method
         self.AddPrintOutput(operations)

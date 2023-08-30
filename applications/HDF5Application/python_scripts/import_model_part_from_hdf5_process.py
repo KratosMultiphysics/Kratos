@@ -78,10 +78,9 @@ class ImportModelPartFromHDF5Process(HDF5Process):
             }""")
 
     def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters) -> None:
-        super().__init__()
         parameters.RecursivelyValidateAndAssignDefaults(self.GetDefaultParameters())
-
         model_part = model[parameters["model_part_name"].GetString()]
+        super().__init__()
 
         # create default controller
         default_controller = DefaultController()
@@ -90,14 +89,14 @@ class ImportModelPartFromHDF5Process(HDF5Process):
         operations = AggregatedControlledOperations(model_part, parameters["file_settings"])
 
         # now adding temporal outputs.
-        operations.AddControlledOperation(ControlledOperation(ModelPartInput, parameters["model_part_input_settings"], default_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalSolutionStepDataInput, parameters["nodal_solution_step_data_settings"], default_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalDataValueInput, parameters["nodal_data_value_settings"], default_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalFlagValueInput, parameters["nodal_flag_value_settings"], default_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementDataValueInput, parameters["element_data_value_settings"], default_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementFlagValueInput, parameters["element_flag_value_settings"], default_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionDataValueInput, parameters["condition_data_value_settings"], default_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionFlagValueInput, parameters["condition_flag_value_settings"], default_controller))
+        operations.AddControlledOperation(ControlledOperation(ModelPartInput, self._GetOperationParameters("model_part_input_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalSolutionStepDataInput, self._GetOperationParameters("nodal_solution_step_data_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalDataValueInput, self._GetOperationParameters("nodal_data_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalFlagValueInput, self._GetOperationParameters("nodal_flag_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementDataValueInput, self._GetOperationParameters("element_data_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementFlagValueInput, self._GetOperationParameters("element_flag_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionDataValueInput, self._GetOperationParameters("condition_data_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionFlagValueInput, self._GetOperationParameters("condition_flag_value_settings", parameters), default_controller))
 
         # now add all operations to PrintOutput method
         self.AddInitialize(operations)

@@ -22,7 +22,6 @@
 #include "custom_utilities/container_io_utils.h"
 #include "custom_utilities/data_type_utilities.h"
 #include "custom_utilities/hdf5_data_set_partition_utility.h"
-#include "hdf5_application_variables.h"
 
 // Include base h
 #include "custom_io/hdf5_container_component_io.h"
@@ -104,18 +103,11 @@ void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
 {
     KRATOS_TRY
 
-    auto current_attributes = Attributes.Clone();
-
     if constexpr(
         std::is_same_v<TContainerType, NodesContainerType> ||
         std::is_same_v<TContainerType, ConditionsContainerType> ||
         std::is_same_v<TContainerType, ElementsContainerType>) {
-        if (rModelPart.Has(HDF5_MESH_LOCATION_INFO)) {
-            KRATOS_ERROR_IF(current_attributes.Has("__mesh_location"))
-                << "The reserved keyword \"__mesh_location\" is found. Please remove it from attributes.";
-            current_attributes.AddString("__mesh_location", rModelPart.GetValue(HDF5_MESH_LOCATION_INFO));
-        }
-        Write(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, current_attributes);
+        Write(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, Attributes);
     } else {
         KRATOS_ERROR << "Unsupported container type.";
     }
