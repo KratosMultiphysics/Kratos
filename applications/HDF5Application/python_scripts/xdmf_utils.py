@@ -96,8 +96,7 @@ def RenumberConnectivitiesForXdmf(filename_or_list_of_filenames, h5path_to_mesh)
             if h5path_to_mesh in f:
                 skip = "Xdmf" in f[h5path_to_mesh]
         if not skip:
-            KratosHDF5.HDF5XdmfConnectivitiesWriterOperation(
-                path, h5path_to_mesh).Execute()
+            KratosHDF5.HDF5XdmfConnectivitiesWriterOperation(path).Execute()
 
 def GetListOfSpatialGrids(spatial_grids_list, h5_model_part, current_path):
     if (isinstance(h5_model_part, h5py.Dataset)):

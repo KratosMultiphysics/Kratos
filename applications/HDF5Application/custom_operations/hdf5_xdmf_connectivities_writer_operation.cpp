@@ -36,7 +36,9 @@ void GetModelDataGroups(
     File& rFile,
     const std::string& rCurrentPath)
 {
-    if (rFile.HasAttribute(rCurrentPath, "__model_part_name") and rFile.HasAttributeType<char>(rCurrentPath, "__model_part_name")) {
+    KRATOS_TRY
+
+    if (rCurrentPath != "/" && rFile.HasAttribute(rCurrentPath, "__model_part_name") && rFile.HasAttributeType<char>(rCurrentPath, "__model_part_name")) {
         // found a model data path. add it. No model data within a model data group is allowed.
         // Hence, recursive check is not required for this branch.
         rModelDataPaths.push_back(rCurrentPath);
@@ -47,6 +49,8 @@ void GetModelDataGroups(
             GetModelDataGroups(rModelDataPaths, rFile, rCurrentPath + "/" + group_name);
         }
     }
+
+    KRATOS_CATCH("Path: " << rCurrentPath);
 }
 
 } // namespace Detail
