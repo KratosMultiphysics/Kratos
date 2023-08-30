@@ -44,11 +44,18 @@ ModelPartIO::ModelPartIO(
 {
     Parameters default_params(R"(
         {
-            "prefix": ""
+            "prefix"           : "",
+            "custom_attributes": {}
         })");
 
     Settings.AddMissingParameters(default_params);
     mPrefix = Settings["prefix"].GetString();
+
+    mCustomAttributes = Settings["custom_attributes"];
+
+    KRATOS_ERROR_IF(mCustomAttributes.Has("__model_part_name"))
+        << "The \"__model_part_name\" is a reserved attribute name. Please remove it from custom attributes."
+        << " Custom attributes:\n" << mCustomAttributes << "\n";
 
     KRATOS_ERROR_IF(mPrefix.empty()) << "ModelPartIO requires non-empty prefix.\n";
 
@@ -56,15 +63,6 @@ ModelPartIO::ModelPartIO(
         << "The ModelPartIO prefix is always assumed to be representing a group,"
         << " hence ending \"\\\" is not required [ provided prefix = "
         << mPrefix << " ].\n";
-}
-
-ModelPartIO::ModelPartIO(
-    const std::string& rPrefix,
-    File::Pointer pFile)
-    : mpFile(pFile),
-      mPrefix(rPrefix),
-      mWriteEntityProperyIds(true)
-{
 }
 
 ModelPartIO::ModelPartIO(
@@ -209,9 +207,15 @@ void ModelPartIO::WriteModelPart(ModelPart& rModelPart)
 
     // write model part name as an attribute
     mpFile->AddPath(mPrefix);
-    mpFile->WriteAttribute(mPrefix, "__model_part_name", rModelPart.FullName());
 
-    rModelPart.SetValue(HDF5_MESH_LOCATION_INFO, mpFile->GetFileName() + ":" + mPrefix);
+    if (!mCustomAttributes.Has("__model_part_name")) {
+        mCustomAttributes.AddString("__model_part_name", rModelPart.FullName());
+    } else {
+        KRATOS_ERROR_IF(!mCustomAttributes["__model_part_name"].IsString() || mCustomAttributes["__model_part_name"].GetString() != rModelPart.FullName())
+            << "The provided custom attributes has the reserved \"__model_part_name\" attribute with a different value other than \""
+            << rModelPart.FullName() << "\" [ attribute value = " << mCustomAttributes["__model_part_name"] << " ].\n";
+    }
+    mpFile->WriteAttribute(mPrefix, mCustomAttributes);
 
     Internals::WriteVariablesList(*mpFile, mPrefix, rModelPart);
     Internals::WriteBufferSize(*mpFile, mPrefix, rModelPart.GetBufferSize());
