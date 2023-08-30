@@ -1062,8 +1062,8 @@ int  TotalLagrangianMixedVolumetricStrainElement<TDim>::Check(const ProcessInfo&
     const auto& r_geometry = this->GetGeometry();
     for ( IndexType i = 0; i < r_geometry.size(); i++ ) {
         const NodeType& r_node = r_geometry[i];
-        KRATOS_EXPECT_VARIABLE_IN_NODAL_DATA(VOLUMETRIC_STRAIN,r_node)
-        KRATOS_EXPECT_DOF_IN_NODE(VOLUMETRIC_STRAIN, r_node)
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VOLUMETRIC_STRAIN,r_node)
+        KRATOS_CHECK_DOF_IN_NODE(VOLUMETRIC_STRAIN, r_node)
     }
 
     return check;
