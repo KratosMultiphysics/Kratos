@@ -640,11 +640,10 @@ protected:
 
         Build(pScheme, rModelPart, rA, rb);
 
-        if (!mHromSimulation)
+        if (mMonotonicityPreservingFlag) {
             BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
-
-        if (mMonotonicityPreservingFlag)
             MonotonicityPreserving(rA, rb);
+        }
 
         ProjectROM(rModelPart, rA, rb);
 

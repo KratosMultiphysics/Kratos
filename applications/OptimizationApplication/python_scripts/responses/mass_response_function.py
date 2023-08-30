@@ -36,7 +36,7 @@ class MassResponseFunction(ResponseFunction):
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"response_{self.GetName()}", evaluated_model_part_names, False)
         self.model_part: Optional[Kratos.ModelPart] = None
 
-    def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
+    def GetImplementedPhysicalKratosVariables(self) -> 'list[SupportedSensitivityFieldVariableTypes]':
         return [KratosOA.SHAPE, Kratos.DENSITY, Kratos.THICKNESS, KratosOA.CROSS_AREA]
 
     def Initialize(self) -> None:
@@ -59,7 +59,7 @@ class MassResponseFunction(ResponseFunction):
     def CalculateValue(self) -> float:
         return KratosOA.ResponseUtils.MassResponseUtils.CalculateValue(self.model_part)
 
-    def CalculateGradient(self, physical_variable_collective_expressions: dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]) -> None:
+    def CalculateGradient(self, physical_variable_collective_expressions: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> None:
         # first merge all the model parts
         merged_model_part_map = ModelPartUtilities.GetMergedMap(physical_variable_collective_expressions, False)
 

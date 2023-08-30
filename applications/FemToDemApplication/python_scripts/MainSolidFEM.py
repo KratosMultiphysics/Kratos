@@ -30,16 +30,9 @@ class Solution():
         # set echo level
         self.echo_level = self.ProjectParameters["problem_data"]["echo_level"].GetInt()
 
-        print(" ")
-
-        # defining the number of threads:
-        num_threads =  self.GetParallelSize()
-        print("::[KSM Simulation]:: [OMP USING",num_threads,"THREADS ]")
-        #parallel.PrintOMPInfo()
-
 
         print(" ")
-        print("::[KSM Simulation]:: [Time Step:", self.ProjectParameters["problem_data"]["time_step"].GetDouble()," echo:", self.echo_level,"]")
+        print("::[KSM Simulation]:: [Time Step: ", self.ProjectParameters["problem_data"]["time_step"].GetDouble()," echo:", self.echo_level,"]")
 
         #### Model_part settings start ####
 
@@ -61,7 +54,6 @@ class Solution():
 
 
         #### Output settings start ####
-
         self.problem_path = os.getcwd()
         self.problem_name = self.ProjectParameters["problem_data"]["problem_name"].GetString()                 
 
@@ -92,8 +84,7 @@ class Solution():
                                 
         else:
             print(" No Materials.json found ")
-            
-           
+
     def AddProcesses(self):
 
         # Build sub_model_parts or submeshes (rearrange parts for the application of custom processes)
@@ -117,7 +108,7 @@ class Solution():
 
         return (process_handler.ProcessHandler(self.Model, process_parameters))
 
-    
+
     def Run(self):
 
         self.Initialize()
@@ -125,10 +116,8 @@ class Solution():
         self.RunMainTemporalLoop()
 
         self.Finalize()
-        
-        
-    def Initialize(self):
 
+    def Initialize(self):
 
         #### INITIALIZE ####
         
@@ -202,14 +191,12 @@ class Solution():
             self.InitializeSolutionStep()
             self.SolveSolutionStep()
             self.FinalizeSolutionStep()
-
             sys.stdout.flush()
-      
-            
+
+
     def InitializeSolutionStep(self):
         
         # current time parameters
-        # self.main_model_part.ProcessInfo.GetPreviousSolutionStepInfo()[KratosMultiphysics.DELTA_TIME] = self.delta_time
         self.delta_time = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
 
         self.time = self.time + self.delta_time
@@ -227,25 +214,16 @@ class Solution():
         self.GraphicalOutputExecuteInitializeSolutionStep()
 
         self.solver.InitializeSolutionStep()
-        
-        
+
+
     def SolveSolutionStep(self):
 
         self.clock_time = self.StartTimeMeasuring();
-
-        #self.solver.Predict()
-
-        #self.solver.SolveSolutionStep()
-
-        #self.solver.FinalizeSolutionStep()
-
         self.solver.Solve()
-
         self.StopTimeMeasuring(self.clock_time,"Solving", False);
 
         
     def FinalizeSolutionStep(self):
-        
 
         self.GraphicalOutputExecuteFinalizeSolutionStep()            
 
@@ -271,11 +249,6 @@ class Solution():
 
         print("::[KSM Simulation]:: Analysis -END- ")
         print(" ")
-
-        # Check solving information for any problem
-        #~ self.solver.InfoCheck() # InfoCheck not implemented yet.
-
-        #### END SOLUTION ####
 
         # Measure process time
         tfp = timer.process_time()
@@ -314,16 +287,7 @@ class Solution():
                 self.graphical_output.PrintOutput()
 
     def GraphicalOutputExecuteFinalize(self):
-        self.graphical_output.ExecuteFinalize()
-                
-     
-    def SetParallelSize(self, num_threads):
-        parallel = KratosMultiphysics.OpenMPUtils()
-        parallel.SetNumThreads(int(num_threads))
-
-    def GetParallelSize(self):
-        parallel = KratosMultiphysics.OpenMPUtils()
-        return parallel.GetNumThreads()    
+        self.graphical_output.ExecuteFinalize()  
     
     def StartTimeMeasuring(self):
         # Measure process time
@@ -340,4 +304,4 @@ class Solution():
 
 if __name__ == "__main__": 
     Solution().Run()
-    
+
