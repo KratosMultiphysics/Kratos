@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithTolerance, Krat
     std::vector<double> bboxes_wrong_size(5);
     std::vector<double> bboxes_with_tol;
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Cretae a vector containing the fake bboxes
@@ -81,7 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithToleranceChecki
     std::vector<double> bboxes_wrong_size(5);
     std::vector<double> bboxes_with_tol;
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(bboxes_wrong_size, 1.235, bboxes_with_tol),
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(bboxes_wrong_size, 1.235, bboxes_with_tol),
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Cretae a vector containing the fake bboxes

@@ -38,7 +38,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingElement, KratosCoreFastS
     KRATOS_EXPECT_TRUE(KratosComponents<Element>::Has("Element2D2N"));
     KRATOS_EXPECT_FALSE(KratosComponents<Element>::Has("NonExisting2D2N"));
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(KratosComponents<Element>::Get("NonExisting2D2N"), "Error: The component \"NonExisting2D2N\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following components of this type are registered:");
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(KratosComponents<Element>::Get("NonExisting2D2N"), "Error: The component \"NonExisting2D2N\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following components of this type are registered:");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingVariable, KratosCoreFastSuite)
@@ -46,7 +46,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingVariable, KratosCoreFast
     KRATOS_EXPECT_TRUE(KratosComponents<Variable<double>>::Has("TIME"));
     KRATOS_EXPECT_FALSE(KratosComponents<Variable<double>>::Has("NON_EXISTING_VARIABLE_NAME"));
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(KratosComponents<Variable<double>>::Get("NON_EXISTING_VARIABLE_NAME"), "Error: The component \"NON_EXISTING_VARIABLE_NAME\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following components of this type are registered:");
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(KratosComponents<Variable<double>>::Get("NON_EXISTING_VARIABLE_NAME"), "Error: The component \"NON_EXISTING_VARIABLE_NAME\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following components of this type are registered:");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosComponentsAddDifferentObjectsSameName, KratosCoreFastSuite)

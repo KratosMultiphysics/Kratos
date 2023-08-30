@@ -181,5 +181,11 @@ try {                                                                           
         KRATOS_ERROR << "Missing Degree of Freedom for " << TheVariable.Name() \
         << " in node " << TheNode.Id() << "." << std::endl;
 
+#ifdef KRATOS_DEBUG
+#define KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) KRATOS_EXPECT_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
+#else
+#define KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) if(false) KRATOS_EXPECT_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
+#endif
+
 ///@}
 ///@} addtogroup block

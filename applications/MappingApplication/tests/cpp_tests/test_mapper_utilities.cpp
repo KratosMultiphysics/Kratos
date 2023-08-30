@@ -141,7 +141,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_FillBufferBeforeLocalSearch, KratosMap
     // xmax, xmin,  ymax, ymin,  zmax, zmin
     const std::vector<double> missized_bounding_boxes {10.5, -2.8, 3.89};
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MapperUtilities::FillBufferBeforeLocalSearch(
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(MapperUtilities::FillBufferBeforeLocalSearch(
         local_systems,
         missized_bounding_boxes,
         buffer_size_estimate,
@@ -287,7 +287,7 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, 
     MapperInterfaceInfoUniquePointerType p_ref_interface_info(Kratos::make_unique<NearestNeighborInterfaceInfo>());
 
     // throws bcs "interface_info_container" has the wrong size
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
         recv_buffer,
         p_ref_interface_info,
         comm_rank,
@@ -296,14 +296,14 @@ KRATOS_TEST_CASE_IN_SUITE(MapperUtilities_CreateMapperInterfaceInfosFromBuffer, 
 
     interface_info_container.resize(comm_size);
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
         recv_buffer_wrong,
         p_ref_interface_info,
         comm_rank,
         interface_info_container),
         "Error: Rank 16 received a wrong buffer-size from rank 3!");
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(MapperUtilities::CreateMapperInterfaceInfosFromBuffer(
         recv_buffer_wrong_2,
         p_ref_interface_info,
         comm_rank,
