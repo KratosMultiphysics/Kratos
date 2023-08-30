@@ -46,6 +46,12 @@ class HDF5Process(KratosMultiphysics.Process):
         else:
             return []
 
+    def _GetOperationParameters(self, sub_parameter_name: str, parameters: KratosMultiphysics.Parameters) -> KratosMultiphysics.Parameters:
+        default_sub_parameters = self.GetDefaultParameters()[sub_parameter_name]
+        sub_parameters = parameters[sub_parameter_name]
+        sub_parameters.ValidateAndAssignDefaults(default_sub_parameters)
+        return sub_parameters
+
     def AddInitialize(self, aggregated_controlled_operation: AggregatedControlledOperations) -> None:
         self._AddAggregatedControlledOperations("ExecuteInitialize", aggregated_controlled_operation)
 

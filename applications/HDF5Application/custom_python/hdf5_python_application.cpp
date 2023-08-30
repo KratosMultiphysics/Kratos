@@ -41,8 +41,6 @@ PYBIND11_MODULE(KratosHDF5Application,m)
     AddCustomIOToPython(m);
     AddCustomProcessesToPython(m);
     AddCustomUtilitiesToPython(m);
-
-    KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, HDF5_MESH_LOCATION_INFO);
 }
 
 
