@@ -124,7 +124,7 @@ void ContainerComponentIO<TContainerType, TContainerDataIO, TComponents...>::Wri
             }
         }
 
-        Write(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, Attributes);
+        Write(Internals::GetLocalContainer<TContainerType>(rModelPart), rContainerDataIO, appended_attribs);
     } else {
         KRATOS_ERROR << "Unsupported container type.";
     }
