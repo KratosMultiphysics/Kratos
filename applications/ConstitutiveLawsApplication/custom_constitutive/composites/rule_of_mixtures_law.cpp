@@ -344,26 +344,23 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     // We combine the values of the layers
     rValue = 0.0;
 
-    //Check if there is fatigue and check if S>Sth and return the value of the first layer that accomplishes
     if (rThisVariable == MAX_STRESS){
-        //double max_stress_relative_error;
         for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
-				double max_stress;
-				double s_th;
-				p_law->GetValue(MAX_STRESS, max_stress);
-				p_law->GetValue(THRESHOLD_STRESS, s_th);
-				if(max_stress > s_th){
-					p_law->GetValue(rThisVariable, rValue);
-					break;
-				}
+            if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
+                double max_stress;
+                double s_th;
+                p_law->GetValue(MAX_STRESS, max_stress);
+                p_law->GetValue(THRESHOLD_STRESS, s_th);
+                if(max_stress > s_th){
+                    p_law->GetValue(rThisVariable, rValue);
+                    break;
+                }
             } 
-		}
-	} else if (rThisVariable == THRESHOLD_STRESS){
-		double stress;
-		for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
-             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
+        }
+    } else if (rThisVariable == THRESHOLD_STRESS){
+        for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
+            ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 			if (p_law-> Has (HIGH_CYCLE_FATIGUE_DAMAGE)){
 				double max_stress;
 				double s_th;
@@ -384,8 +381,6 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
 				rev_factor_rel_error=0;
-                double fatigue_feduction_factor;
-                double fred;
 			    p_law->GetValue(REVERSION_FACTOR_RELATIVE_ERROR, rev_factor_rel_error);
 				rValue += rev_factor_rel_error;
                             				
