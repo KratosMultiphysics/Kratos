@@ -133,7 +133,7 @@ class SingleMeshXdmfOutputProcess(HDF5OutputProcess):
         temporal_controller = KratosMultiphysics.TemporalController(model, temporal_controller_settings)
 
         # create the aggregated operation with hdf5 file settings
-        operations = AggregatedControlledOperations(model_part, parameters["file_settings"])
+        operations = AggregatedControlledOperations(model_part, self._GetValidatedParameters("file_settings", parameters))
 
         # adding one time mesh output
         operations.AddControlledOperation(ControlledOperation(ModelPartOutput, self._GetOperationParameters("model_part_output_settings", parameters), SingleTimeController(temporal_controller)))
