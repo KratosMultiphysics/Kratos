@@ -75,18 +75,13 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
 
                 if(total_mass!=0): # check for hybrid region
                     node.SetSolutionStepValue(SMA.POINT_LOAD,[0,0,0]) #nodal coupling forces set to zero before every iteration
-                    node.SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE,[0,0,0]) # force to map to dem (set to zero before every iteration)
-<<<<<<< HEAD
-                    Velocity_dem = node.GetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS) / total_mass # total lagrange method-> calculating homogenised velocity
-                    node.SetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT, (Velocity_dem - node.GetSolutionStepValue(KM.VELOCITY))*self.dt)# updated lagrange method : calcualting displacement difference
-=======
-                    Displacement_dem = node.GetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS) / total_mass # total lagrange method-> calculating homogenised displacement
+                    #node.SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE,[0,0,0]) # force to map to dem (set to zero before every iteration)
+                    Displacement_dem = node.GetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS) / total_mass # updated lagrange method-> calculating homogenised velocity
                     # if displacement_1000_timesteps_ago:
                     #     displacement_new = current_displacement - displacement_1000_timesteps_ago
                     #     node.SetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT, Displacement_dem - displacement_new)# total lagrange method : calcualting displacement difference
                     # else:
-                    node.SetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT, Displacement_dem - node.GetSolutionStepValue(KM.DISPLACEMENT))# total lagrange method : calcualting displacement difference
->>>>>>> total_lagrangian
+                    node.SetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT, Displacement_dem - node.GetSolutionStepValue(KM.VELOCITY))# updated lagrange method : calcualting displacement difference
 
         for elem in self.model_part.Elements:
              if(elem.GetNodes()[0].GetSolutionStepValue(KM.NODAL_MAUX))!=0:  

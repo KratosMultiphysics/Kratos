@@ -47,7 +47,7 @@ class ComputeDemMomentum(CoSimulationCouplingOperation):
             #     node.SetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS, node.GetSolutionStepValue(KM.NODAL_MASS) * displacement_new)
             # else:
             #     # If there's no displacement from 1000 timesteps ago (like in the first few timesteps), you can choose to do nothing or use the current displacement
-            node.SetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS, node.GetSolutionStepValue(KM.NODAL_MASS)* node.GetSolutionStepValue(KM.DISPLACEMENT))
+            node.SetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS, node.GetSolutionStepValue(KM.NODAL_MASS)* node.GetSolutionStepValue(KM.VELOCITY))
 
     def FinalizeCouplingIteration(self):
         node_ids = [22,40,47,52] # for assigning loads to the bottom nodes
