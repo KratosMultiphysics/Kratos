@@ -7,7 +7,7 @@ import KratosMultiphysics.DEMFEMVolumeCouplingApplication as VCA
 from KratosMultiphysics.CoSimulationApplication.base_classes.co_simulation_coupling_operation import CoSimulationCouplingOperation
 
 import math
-
+from collections import deque
 def Create(*args):
     return ComputeNodalCouplingForce(*args)
 
@@ -24,12 +24,13 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
         self.tolerance= self.settings["velocity_tolerance"].GetDouble() 
         self.y_fem_boundary= self.settings["y_fem_boundary"].GetDouble() 
         self.y_dem_boundary= self.settings["y_dem_boundary"].GetDouble() 
-        self.weight_fem_boundary = 0.01
-        self.weight_dem_boundary = 0.99
+        self.weight_fem_boundary = 0.1
+        self.weight_dem_boundary = 0.9
         self.step=0
         self.timesteps=self.force_end_time/self.dt
         self.max_force=0.025
         self.force_slope=self.max_force/self.timesteps # to reach max force within force_end_time
+        #self.displacements_history = {node.Id: deque(maxlen=1000) for node in self.model_part.Nodes}
 
 
     def InitializeCouplingIteration(self):
@@ -45,26 +46,47 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
                 if node.Id in node_ids:   # assigning point loads
 
                     node.SetSolutionStepValue(SMA.POINT_LOAD,[0,-pointload,0])
-                    print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD))
+                    #print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD))
 
-
+                #current_displacement = node.GetSolutionStepValue(KM.DISPLACEMENT)
+            
+                # Append current displacement to the deque
+                #self.displacements_history[node.Id].append(current_displacement)
+                
+                # Get displacement from 1000 timesteps ago, if available
+                #displacement_1000_timesteps_ago = self.displacements_history[node.Id][0] if len(self.displacements_history[node.Id]) == 1000 else None
+                
+                
                 tolerance = 0.0001 # tolerance on the boundary limits
                 if node.Y >= self.y_fem_boundary - tolerance and node.Y <= self.y_dem_boundary + tolerance: # assigning weights to the nodes in the hybrid region
                     weight= self.weight_fem_boundary + (self.weight_dem_boundary-self.weight_fem_boundary)*(node.Y-self.y_fem_boundary)/(self.y_dem_boundary-self.y_fem_boundary)
                     node.SetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT, weight)
+                    #print("iffffffffffffffff")
                 elif node.Y <= self.y_fem_boundary + tolerance and node.Y >= self.y_dem_boundary - tolerance: # assigning weights to the nodes in the hybrid region
                     weight= self.weight_dem_boundary + (self.weight_fem_boundary-self.weight_dem_boundary)*(node.Y-self.y_dem_boundary)/(self.y_fem_boundary-self.y_dem_boundary)
+                    #weight=0.5 #putting 1 as weight for testing
                     node.SetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT, weight)
+                    #print("eeeellllllliiiiiiiffffffffffff")
                 else: 
-                    node.SetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT, 0.0) # assigning weights to the nodes in the non-hybrid region
+                    node.SetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT, 0) # assigning weights to the nodes in the non-hybrid region
+                    #print("elseeeeeeeeeeeeeeeeeeeeeeee")
                
                 total_mass = node.GetSolutionStepValue(KM.NODAL_MAUX)
 
                 if(total_mass!=0): # check for hybrid region
                     node.SetSolutionStepValue(SMA.POINT_LOAD,[0,0,0]) #nodal coupling forces set to zero before every iteration
                     node.SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE,[0,0,0]) # force to map to dem (set to zero before every iteration)
+<<<<<<< HEAD
                     Velocity_dem = node.GetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS) / total_mass # total lagrange method-> calculating homogenised velocity
                     node.SetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT, (Velocity_dem - node.GetSolutionStepValue(KM.VELOCITY))*self.dt)# updated lagrange method : calcualting displacement difference
+=======
+                    Displacement_dem = node.GetSolutionStepValue(VCA.DISPLACEMENT_MULTIPLIED_MASS) / total_mass # total lagrange method-> calculating homogenised displacement
+                    # if displacement_1000_timesteps_ago:
+                    #     displacement_new = current_displacement - displacement_1000_timesteps_ago
+                    #     node.SetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT, Displacement_dem - displacement_new)# total lagrange method : calcualting displacement difference
+                    # else:
+                    node.SetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT, Displacement_dem - node.GetSolutionStepValue(KM.DISPLACEMENT))# total lagrange method : calcualting displacement difference
+>>>>>>> total_lagrangian
 
         for elem in self.model_part.Elements:
              if(elem.GetNodes()[0].GetSolutionStepValue(KM.NODAL_MAUX))!=0:  
@@ -77,23 +99,29 @@ class ComputeNodalCouplingForce(CoSimulationCouplingOperation):
                             vol = self.penalty_max * w * J * shape_functions[(i,n)] * shape_functions[(i,m)]
                             elem.GetNodes()[n].SetSolutionStepValue(SMA.POINT_LOAD, elem.GetNodes()[n].GetSolutionStepValue(SMA.POINT_LOAD) + 2* vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT))
                             if(elem.GetNodes()[n].GetSolutionStepValue(KM.NODAL_MAUX))>0.002: # mass of one particle is 0.00131kg, checking if the node has contribution from 2 elements
-                                 elem.GetNodes()[n].SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE,elem.GetNodes()[n].GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE) - vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT)) #storing force to map to dem 
+                                 #elem.GetNodes()[n].SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE,elem.GetNodes()[n].GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE) - vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT)) #storing force to map to dem 
+                                 elem.GetNodes()[n].SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE,elem.GetNodes()[n].GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE) -2* vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT)) #storing force to map to dem 
                             else:
                                  elem.GetNodes()[n].SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE,elem.GetNodes()[n].GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE) - 2 * vol * elem.GetNodes()[n].GetSolutionStepValue(KM.LAGRANGE_DISPLACEMENT)) #storing force to map to dem   
      
-        print("After calculation of point loads")
+        #print("After calculation of point loads")
         for node in self.model_part.Nodes: 
-                print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD)) 
-                print("For node id:",node.Id,", NODAL_COUPLING_WEIGHT=",node.GetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT)) 
+            if(node.GetSolutionStepValue(KM.NODAL_MAUX))!=0:
+                node.SetSolutionStepValue(SMA.POINT_LOAD, node.GetSolutionStepValue(SMA.POINT_LOAD) / (1-node.GetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT))) # dividing by nodal coupling weight, replace 0 by VCA.NODAL_COUPLING_WEIGHT in the future.
+                node.SetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE, node.GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE) / node.GetSolutionStepValue(KM.NODAL_MAUX))
+                #print("For node id:",node.Id,", nodal maux=",node.GetSolutionStepValue(KM.NODAL_MAUX))
+                #print("For node id:",node.Id,", for particle coupling force=",node.GetSolutionStepValue(VCA.DEMFEM_VOLUME_COUPLING_FORCE))
+                #print("For node id:",node.Id,", point load=",node.GetSolutionStepValue(SMA.POINT_LOAD)) 
+                #print("For node id:",node.Id,", NODAL_COUPLING_WEIGHT=",node.GetSolutionStepValue(VCA.NODAL_COUPLING_WEIGHT)) 
 
-        print(self.model_part.NumberOfConditions(0))
+        #print(self.model_part.NumberOfConditions(0))
 
     @classmethod
     def _GetDefaultParameters(cls):
         this_defaults = KM.Parameters("""{
             "solver"                : "UNSPECIFIED",
             "model_part_name"       : "",
-            "penalty_max"           : 1e11,
+            "penalty_max"           : 1e10,
             "timestep"              : 1e-5,
             "force_end_time"        : 1e-1,
             "velocity_tolerance"    : 1e-6,

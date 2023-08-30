@@ -1,0 +1,104 @@
+
+C:\KRATOS\Kratos\scripts>cmake -G"Visual Studio 16 2019" -H"C:\KRATOS\Kratos\scripts\.." -B"C:\KRATOS\Kratos\scripts\../build\FullDebug"          -DUSE_EIGEN_MKL=OFF                                                                                 -DINSTALL_RUNKRATOS=OFF       																		-DCMAKE_CXX_FLAGS=" /MP10 "                                                  -DUSE_TRIANGLE_NONFREE_TPL=ON                                                                       -DKRATOS_GENERATE_PYTHON_STUBS=OFF 
+-- Selecting Windows SDK version 10.0.19041.0 to target Windows 10.0.19045.
+-- The C compiler identification is MSVC 19.29.30151.0
+-- The CXX compiler identification is MSVC 19.29.30151.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Git: C:/Git/cmd/git.exe (found version "2.41.0.windows.1") 
+-- CMAKE_SYSTEM_NAME = Windows
+-- CMAKE_CXX_COMPILER_ID = MSVC
+-- CMAKE_CXX_FLAGS =  /MP10
+-- CMAKE_C_FLAGS = /DWIN32 /D_WINDOWS /W3
+-- Found PythonInterp: C:\Windows\py.exe (found version "3.11.4") 
+-- Found PythonLibs: C:/Python installation/libs/Python311.lib
+-- LTO is Disabled
+-- AR VERSION: C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/lib.exe
+-- Python version used for the interface will be 3.11
+-- Standard install dir C:/KRATOS/Kratos/bin/FullDebug
+-- "KRATOS_SHARED_MEMORY_PARALLELIZATION" not defined, defaulting to "OpenMP"
+-- Found OpenMP_C: -openmp (found version "2.0") 
+-- Found OpenMP_CXX: -openmp (found version "2.0") 
+-- Found OpenMP: TRUE (found version "2.0")  
+-- Using OpenMP for shared memory parallelization
+-- Found Boost: C:/Boost extracted/boost_1_82_0 (found version "1.82.0")  
+-- Boost Include: C:/Boost extracted/boost_1_82_0
+-- Boost Linkdir: 
+-- Could NOT find ZLIB (missing: ZLIB_LIBRARY ZLIB_INCLUDE_DIR) 
+-- Preparing local ZLIB compilation.
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of off64_t
+-- Check size of off64_t - failed
+-- Looking for fseeko
+-- Looking for fseeko - not found
+-- Looking for unistd.h
+-- Looking for unistd.h - not found
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - not found
+-- Found Threads: TRUE  
+-- Configuring applications (ENV):
+-- Tetgen found in C:/KRATOS/Kratos/applications/DelaunayMeshingApplication/external_libraries/tetgen
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Failed
+-- Performing Test COMPILER_HAS_DEPRECATED
+-- Performing Test COMPILER_HAS_DEPRECATED - Success
+-- clipper : C:/KRATOS/Kratos/external_libraries/clipper
+-- triangle : C:/KRATOS/Kratos/external_libraries/triangle
+-- tinyexpr : C:/KRATOS/Kratos/external_libraries/tinyexpr/tinyexpr/
+-- Configuring done (27.1s)
+-- Generating done (0.3s)
+-- Build files have been written to: C:/KRATOS/Kratos/build/FullDebug
+
+C:\KRATOS\Kratos\scripts>rem Build 
+
+C:\KRATOS\Kratos\scripts>cmake --build "C:\KRATOS\Kratos\scripts\../build/FullDebug" --target install -- /property:configuration=FullDebug /p:Platform=x64 
+Microsoft (R) Build Engine version 16.11.2+f32259642 for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  KratosVersion.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\KratosVersion.dir\FullDebug\KratosVersion.lib
+  clipper.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\clipper\FullDebug\clipper.lib
+  zlib.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\zlib\FullDebug\zlib.dll
+  gidpost.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\gidpost\FullDebug\gidpost.lib
+  tinyexpr.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\tinyexpr\FullDebug\tinyexpr.lib
+  triangle.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\triangle\FullDebug\triangle.lib
+  KratosCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\FullDebug\KratosCore.dll
+  Kratos.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\FullDebug\Kratos.cp311-win_amd64.pyd
+  co_sim_io.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\custom_external_libraries\CoSimIO\FullDebug\co_sim_io.dll
+  KratosCoSimulationCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\FullDebug\KratosCoSimulationCore.dll
+  KratosCoSimulationApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\FullDebug\KratosCoSimulationApplication.pyd
+  spheric_particle.cpp
+C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(953,45): error C2664: 'void Kratos::DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM(const Kratos::ProcessInfo &,const double [],double [],double [],double [],double,double,double [],double &,Kratos::SphericParticle *const ,Kratos::Condition *const ,bool &)': cannot convert argument 4 from 'const double []' to 'double []' [C:\KRATOS\Kratos\build\FullDebug\applications\DEMApplication\KratosDEMCore.vcxproj]
+C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(956,69): message : Conversion loses qualifiers [C:\KRATOS\Kratos\build\FullDebug\applications\DEMApplication\KratosDEMCore.vcxproj]
+C:\KRATOS\Kratos\applications\DEMApplication\custom_constitutive/DEM_discontinuum_constitutive_law.h(64,22): message : see declaration of 'Kratos::DEMDiscontinuumConstitutiveLaw::CalculateForcesWithFEM' [C:\KRATOS\Kratos\build\FullDebug\applications\DEMApplication\KratosDEMCore.vcxproj]
+C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(1072,16): error C2664: 'void Kratos::SphericParticle::EvaluateBallToRigidFaceForcesForPositiveIndentations(Kratos::SphericParticle::ParticleDataBuffer &,const int,const Kratos::array_1d<double,3> &,const Kratos::ProcessInfo &,double [],double [],const double [],const double,const double,double [],double &,Kratos::Condition *const ,bool &)': cannot convert argument 3 from 'double [3]' to 'const Kratos::array_1d<double,3> &' [C:\KRATOS\Kratos\build\FullDebug\applications\DEMApplication\KratosDEMCore.vcxproj]
+C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(1084,76): message : Reason: cannot convert from 'double [3]' to 'const Kratos::array_1d<double,3>' [C:\KRATOS\Kratos\build\FullDebug\applications\DEMApplication\KratosDEMCore.vcxproj]
+C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(1084,76): message : No constructor could take the source type, or constructor overload resolution was ambiguous [C:\KRATOS\Kratos\build\FullDebug\applications\DEMApplication\KratosDEMCore.vcxproj]
+C:\KRATOS\Kratos\applications\DEMApplication\custom_elements\spheric_particle.cpp(937,23): message : see declaration of 'Kratos::SphericParticle::EvaluateBallToRigidFaceForcesForPositiveIndentations' [C:\KRATOS\Kratos\build\FullDebug\applications\DEMApplication\KratosDEMCore.vcxproj]
+  tetgen.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\FullDebug\tetgen.lib
+  KratosDelaunayMeshingCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\FullDebug\KratosDelaunayMeshingCore.dll
+  KratosDelaunayMeshingApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\FullDebug\KratosDelaunayMeshingApplication.pyd
+  KratosLinearSolversCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\LinearSolversApplication\FullDebug\KratosLinearSolversCore.pyd
+  KratosLinearSolversApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\LinearSolversApplication\FullDebug\KratosLinearSolversApplication.pyd
+  KratosMappingCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\MappingApplication\FullDebug\KratosMappingCore.dll
+  KratosMappingApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\MappingApplication\FullDebug\KratosMappingApplication.pyd
+  KratosStructuralMechanicsCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\StructuralMechanicsApplication\FullDebug\KratosStructuralMechanicsCore.dll
+  KratosStructuralMechanicsApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\StructuralMechanicsApplication\FullDebug\KratosStructuralMechanicsApplication.pyd
+
+C:\KRATOS\Kratos\scripts>goto:eof

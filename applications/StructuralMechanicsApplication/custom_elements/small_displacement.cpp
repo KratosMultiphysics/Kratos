@@ -23,6 +23,7 @@
 #include "custom_utilities/structural_mechanics_element_utilities.h"
 #include "structural_mechanics_application_variables.h"
 
+
 namespace Kratos
 {
 SmallDisplacement::SmallDisplacement( IndexType NewId, GeometryType::Pointer pGeometry )
@@ -98,6 +99,7 @@ bool SmallDisplacement::UseElementProvidedStrain() const
 
 /***********************************************************************************/
 /***********************************************************************************/
+
 
 void SmallDisplacement::CalculateAll(
     MatrixType& rLeftHandSideMatrix,

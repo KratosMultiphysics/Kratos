@@ -32,19 +32,20 @@ public:
    
 VolumeCouplingParticle(IndexType NewId, GeometryType::Pointer pGeometry);
 VolumeCouplingParticle();// Default constructor needed for serialization
+VolumeCouplingParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties);
+Element::Pointer Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const override;
 
-virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity) override;
-
+//virtual void ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, array_1d<double, 3>& externally_applied_moment, const ProcessInfo& r_process_info, const array_1d<double,3>& gravity) override;
 
 protected:
 
 // virtual void EvaluateBallToRigidFaceForcesForPositiveIndentations(SphericParticle::ParticleDataBuffer &data_buffer,
 //                                                                    const int rigid_neighbour_index,
-//                                                                    const array_1d<double, 3>& DeltVel,
+//                                                                    double DeltVel[3],
 //                                                                    const ProcessInfo& r_process_info,
 //                                                                    double OldLocalElasticContactForce[3],
 //                                                                    double LocalElasticContactForce[3],
-//                                                                    const double LocalDeltDisp[3],
+//                                                                    double LocalDeltDisp[3],
 //                                                                    const double indentation,
 //                                                                    const double  previous_indentation,
 //                                                                    double ViscoDampingLocalContactForce[3],
@@ -52,7 +53,7 @@ protected:
 //                                                                    Condition* const wall,
 //                                                                    bool& sliding) override;
 
-virtual void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
+virtual void ComputeBallToRigidFaceContactForceAndMoment(
     SphericParticle::ParticleDataBuffer & data_buffer,
     array_1d<double, 3>& r_elastic_force,
     array_1d<double, 3>& r_contact_force,

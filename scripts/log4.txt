@@ -1,0 +1,231 @@
+
+C:\KRATOS\Kratos\scripts>cmake -G"Visual Studio 16 2019" -H"C:\KRATOS\Kratos\scripts\.." -B"C:\KRATOS\Kratos\scripts\../build\FullDebug"          -DUSE_EIGEN_MKL=OFF                                                                                 -DINSTALL_RUNKRATOS=OFF       																		-DCMAKE_CXX_FLAGS=" /MP10 "                                                  -DUSE_TRIANGLE_NONFREE_TPL=ON                                                                       -DKRATOS_GENERATE_PYTHON_STUBS=OFF 
+-- Selecting Windows SDK version 10.0.19041.0 to target Windows 10.0.19045.
+-- The C compiler identification is MSVC 19.29.30151.0
+-- The CXX compiler identification is MSVC 19.29.30151.0
+-- Detecting C compiler ABI info
+-- Detecting C compiler ABI info - done
+-- Check for working C compiler: C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting C compile features
+-- Detecting C compile features - done
+-- Detecting CXX compiler ABI info
+-- Detecting CXX compiler ABI info - done
+-- Check for working CXX compiler: C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/cl.exe - skipped
+-- Detecting CXX compile features
+-- Detecting CXX compile features - done
+-- Found Git: C:/Git/cmd/git.exe (found version "2.41.0.windows.1") 
+-- CMAKE_SYSTEM_NAME = Windows
+-- CMAKE_CXX_COMPILER_ID = MSVC
+-- CMAKE_CXX_FLAGS =  /MP10
+-- CMAKE_C_FLAGS = /DWIN32 /D_WINDOWS /W3
+-- Found PythonInterp: C:\Windows\py.exe (found version "3.11.4") 
+-- Found PythonLibs: C:/Python installation/libs/Python311.lib
+-- LTO is Disabled
+-- AR VERSION: C:/Program Files (x86)/Microsoft Visual Studio/2019/Community/VC/Tools/MSVC/14.29.30133/bin/Hostx64/x64/lib.exe
+-- Python version used for the interface will be 3.11
+-- Standard install dir C:/KRATOS/Kratos/bin/FullDebug
+-- "KRATOS_SHARED_MEMORY_PARALLELIZATION" not defined, defaulting to "OpenMP"
+-- Found OpenMP_C: -openmp (found version "2.0") 
+-- Found OpenMP_CXX: -openmp (found version "2.0") 
+-- Found OpenMP: TRUE (found version "2.0")  
+-- Using OpenMP for shared memory parallelization
+-- Found Boost: C:/Boost extracted/boost_1_82_0 (found version "1.82.0")  
+-- Boost Include: C:/Boost extracted/boost_1_82_0
+-- Boost Linkdir: 
+-- Could NOT find ZLIB (missing: ZLIB_LIBRARY ZLIB_INCLUDE_DIR) 
+-- Preparing local ZLIB compilation.
+-- Looking for sys/types.h
+-- Looking for sys/types.h - found
+-- Looking for stdint.h
+-- Looking for stdint.h - found
+-- Looking for stddef.h
+-- Looking for stddef.h - found
+-- Check size of off64_t
+-- Check size of off64_t - failed
+-- Looking for fseeko
+-- Looking for fseeko - not found
+-- Looking for unistd.h
+-- Looking for unistd.h - not found
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD
+-- Performing Test CMAKE_HAVE_LIBC_PTHREAD - Failed
+-- Looking for pthread_create in pthreads
+-- Looking for pthread_create in pthreads - not found
+-- Looking for pthread_create in pthread
+-- Looking for pthread_create in pthread - not found
+-- Found Threads: TRUE  
+-- Configuring applications (ENV):
+-- Tetgen found in C:/KRATOS/Kratos/applications/DelaunayMeshingApplication/external_libraries/tetgen
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR
+-- Performing Test COMPILER_HAS_DEPRECATED_ATTR - Failed
+-- Performing Test COMPILER_HAS_DEPRECATED
+-- Performing Test COMPILER_HAS_DEPRECATED - Success
+-- clipper : C:/KRATOS/Kratos/external_libraries/clipper
+-- triangle : C:/KRATOS/Kratos/external_libraries/triangle
+-- tinyexpr : C:/KRATOS/Kratos/external_libraries/tinyexpr/tinyexpr/
+-- Configuring done (56.2s)
+-- Generating done (1.4s)
+-- Build files have been written to: C:/KRATOS/Kratos/build/FullDebug
+
+C:\KRATOS\Kratos\scripts>rem Build 
+
+C:\KRATOS\Kratos\scripts>cmake --build "C:\KRATOS\Kratos\scripts\../build/FullDebug" --target install -- /property:configuration=FullDebug /p:Platform=x64 
+Microsoft (R) Build Engine version 16.11.2+f32259642 for .NET Framework
+Copyright (C) Microsoft Corporation. All rights reserved.
+
+  1>Checking Build System
+  KratosVersion.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\KratosVersion.dir\FullDebug\KratosVersion.lib
+  clipper.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\clipper\FullDebug\clipper.lib
+  zlib.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\zlib\FullDebug\zlib.dll
+  gidpost.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\gidpost\FullDebug\gidpost.lib
+  tinyexpr.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\tinyexpr\FullDebug\tinyexpr.lib
+  triangle.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\triangle\FullDebug\triangle.lib
+  KratosCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\FullDebug\KratosCore.dll
+  Kratos.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\kratos\FullDebug\Kratos.cp311-win_amd64.pyd
+  co_sim_io.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\custom_external_libraries\CoSimIO\FullDebug\co_sim_io.dll
+  KratosCoSimulationCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\FullDebug\KratosCoSimulationCore.dll
+  KratosCoSimulationApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\FullDebug\KratosCoSimulationApplication.pyd
+  DEM_application.cpp
+  explicit_solver_strategy.cpp
+  explicit_solver_continuum.cpp
+  spheric_particle.cpp
+  nanoparticle.cpp
+  analytic_spheric_particle.cpp
+  spheric_continuum_particle.cpp
+  ice_continuum_particle.cpp
+  beam_particle.cpp
+  bonding_spheric_continuum_particle.cpp
+  cylinder_particle.cpp
+  cylinder_continuum_particle.cpp
+  cluster3D.cpp
+  rigid_body_element.cpp
+  ship_element.cpp
+  contact_info_spheric_particle.cpp
+  polyhedron_skin_spheric_particle.cpp
+  RigidFace.cpp
+  analytic_RigidFace.cpp
+  RigidEdge.cpp
+  SolidFace.cpp
+  dem_wall.cpp
+  DEM_discontinuum_constitutive_law.cpp
+  DEM_continuum_constitutive_law.cpp
+  DEM_rolling_friction_model.cpp
+  singlespherecluster3D.cpp
+  dem_integration_scheme.cpp
+  glued_to_wall_scheme.cpp
+  DEM_Dempack_CL.cpp
+  DEM_Dempack_torque_CL.cpp
+  DEM_Dempack_dev_CL.cpp
+  DEM_KDEM_fabric_CL.cpp
+  DEM_KDEM_CL.cpp
+  DEM_beam_constitutive_law.cpp
+  DEM_KDEM_soft_torque_CL.cpp
+  DEM_KDEM_soft_torque_with_noise_CL.cpp
+  DEM_KDEM_with_damage_CL.cpp
+  DEM_KDEM_with_damage_parallel_bond_CL.cpp
+  DEM_KDEM_with_damage_parallel_bond_capped_CL.cpp
+  DEM_KDEM_with_damage_parallel_bond_2D_CL.cpp
+  DEM_KDEM_with_damage_parallel_bond_Hertz_CL.cpp
+  DEM_KDEM_with_damage_parallel_bond_Hertz_2D_CL.cpp
+  DEM_KDEM_Rankine_CL.cpp
+  DEM_KDEM_Mohr_Coulomb_CL.cpp
+  DEM_KDEM_CamClay_CL.cpp
+  dem_kdem_fissured_rock_cl.cpp
+  DEM_ExponentialHC_CL.cpp
+  DEM_D_Linear_viscous_Coulomb_CL.cpp
+  DEM_D_Linear_HighStiffness_CL.cpp
+  DEM_D_Linear_HighStiffness_2D_CL.cpp
+  DEM_D_Linear_confined_CL.cpp
+  DEM_D_Linear_classic_CL.cpp
+  DEM_D_Hertz_viscous_Coulomb_CL.cpp
+  DEM_D_Hertz_confined_CL.cpp
+  DEM_D_Bentonite_Colloid_CL.cpp
+  DEM_D_JKR_cohesive_law.cpp
+  DEM_D_DMT_cohesive_law.cpp
+  DEM_D_Stress_dependent_cohesive_CL.cpp
+  DEM_D_Linear_viscous_Coulomb_2D_CL.cpp
+  DEM_D_Hertz_viscous_Coulomb_2D_CL.cpp
+  dem_d_linear_custom_constants_cl.cpp
+  DEM_D_Conical_damage_CL.cpp
+  DEM_D_Quadratic_CL.cpp
+  dem_kdem_2d_cl.cpp
+  dem_kdem_fabric_2d_cl.cpp
+  DEM_D_Hertz_viscous_Coulomb_Nestle_CL.cpp
+  DEM_parallel_bond_CL.cpp
+  DEM_parallel_bond_for_membrane_CL.cpp
+  inlet.cpp
+  force_based_inlet.cpp
+  create_and_destroy.cpp
+  dem_fem_utilities.cpp
+  analytic_model_part_filler.cpp
+  particles_history_watcher.cpp
+  bins_dynamic_objects_periodic.cpp
+  stationarity_checker.cpp
+  automatic_dt_process.cpp
+  multiaxial_control_module_generalized_2d_utilities.cpp
+  DEM_rolling_friction_model_constant_torque.cpp
+  DEM_rolling_friction_model_viscous_torque.cpp
+  DEM_rolling_friction_model_bounded.cpp
+     Creating library C:/KRATOS/Kratos/build/FullDebug/applications/DEMApplication/FullDebug/KratosDEMCore.lib and object C:/KRATOS/Kratos/build/FullDebug/applications/DEMApplication/FullDebug/KratosDEMCore.exp
+  KratosDEMCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\DEMApplication\FullDebug\KratosDEMCore.dll
+  Building Custom Rule C:/KRATOS/Kratos/applications/DEMApplication/CMakeLists.txt
+  DEM_python_application.cpp
+  add_custom_strategies_to_python.cpp
+  add_custom_utilities_to_python.cpp
+  add_custom_constitutive_laws_to_python.cpp
+  add_custom_processes_to_python.cpp
+  AuxiliaryUtilities.cpp
+  analytic_face_watcher.cpp
+  analytic_particle_watcher.cpp
+     Creating library C:/KRATOS/Kratos/build/FullDebug/applications/DEMApplication/FullDebug/KratosDEMApplication.lib and object C:/KRATOS/Kratos/build/FullDebug/applications/DEMApplication/FullDebug/KratosDEMApplication.exp
+  KratosDEMApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\DEMApplication\FullDebug\KratosDEMApplication.pyd
+  KratosStructuralMechanicsCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\StructuralMechanicsApplication\FullDebug\KratosStructuralMechanicsCore.dll
+  Building Custom Rule C:/KRATOS/Kratos/applications/DEMFEMVolumeCouplingApplication/CMakeLists.txt
+  DEMFEM_volume_coupling_application.cpp
+  volume_coupling_element.cpp
+  volume_coupling_particle.cpp
+     Creating library C:/KRATOS/Kratos/build/FullDebug/applications/DEMFEMVolumeCouplingApplication/FullDebug/KratosDEMFEMVolumeCouplingCore.lib and object C:/KRATOS/Kratos/build/FullDebug/applications/DEMFEMVolumeCouplingApplication/FullDebug/KratosDEMFEMVolumeCouplingCore.exp
+  KratosDEMFEMVolumeCouplingCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\DEMFEMVolumeCouplingApplication\FullDebug\KratosDEMFEMVolumeCouplingCore.dll
+  Building Custom Rule C:/KRATOS/Kratos/applications/DEMFEMVolumeCouplingApplication/CMakeLists.txt
+  DEMFEM_volume_coupling_python_application.cpp
+     Creating library C:/KRATOS/Kratos/build/FullDebug/applications/DEMFEMVolumeCouplingApplication/FullDebug/KratosDEMFEMVolumeCouplingApplication.lib and object C:/KRATOS/Kratos/build/FullDebug/applications/DEMFEMVolumeCouplingApplication/FullDebug/KratosDEMFEMVolumeCouplingApplication.exp
+  KratosDEMFEMVolumeCouplingApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\DEMFEMVolumeCouplingApplication\FullDebug\KratosDEMFEMVolumeCouplingApplication.pyd
+  tetgen.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\FullDebug\tetgen.lib
+  KratosDelaunayMeshingCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\FullDebug\KratosDelaunayMeshingCore.dll
+  KratosDelaunayMeshingApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\DelaunayMeshingApplication\FullDebug\KratosDelaunayMeshingApplication.pyd
+  KratosLinearSolversCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\LinearSolversApplication\FullDebug\KratosLinearSolversCore.pyd
+  KratosLinearSolversApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\LinearSolversApplication\FullDebug\KratosLinearSolversApplication.pyd
+  KratosMappingCore.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\MappingApplication\FullDebug\KratosMappingCore.dll
+  KratosMappingApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\MappingApplication\FullDebug\KratosMappingApplication.pyd
+  KratosStructuralMechanicsApplication.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\StructuralMechanicsApplication\FullDebug\KratosStructuralMechanicsApplication.pyd
+  Building Custom Rule C:/KRATOS/Kratos/applications/CoSimulationApplication/CMakeLists.txt
+  cpp_test_solver_ping.cpp
+  ping.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\FullDebug\ping.exe
+  Building Custom Rule C:/KRATOS/Kratos/applications/CoSimulationApplication/CMakeLists.txt
+  cpp_test_solver_pong.cpp
+  pong.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\applications\CoSimulationApplication\FullDebug\pong.exe
+  Building Custom Rule C:/KRATOS/Kratos/external_libraries/zlib/CMakeLists.txt
+cl : command line warning D9025: overriding '/W1' with '/w' [C:\KRATOS\Kratos\build\FullDebug\external_libraries\zlib\zlibstatic.vcxproj]
+  adler32.c
+  compress.c
+  crc32.c
+  deflate.c
+  gzclose.c
+  gzlib.c
+  gzread.c
+  gzwrite.c
+  inflate.c
+  infback.c
+  inftrees.c
+  inffast.c
+  trees.c
+  uncompr.c
+  zutil.c
+  Generating Code...
+  zlibstatic.vcxproj -> C:\KRATOS\Kratos\build\FullDebug\external_libraries\zlib\FullDebug\zlibstatic.lib
+  Building Custom Rule C:/KRATOS/Kratos/CMakeLists.txt
+  1>
+  -- Install configuration: "FullDebug"
+  -- Deleting: C:/KRATOS/Kratos/bin/FullDebug/KratosMultiphysics
+  -- Deleting: C:/KRATOS/Kratos/bin/FullDebug/libs
+
+C:\KRATOS\Kratos\scripts>goto:eof

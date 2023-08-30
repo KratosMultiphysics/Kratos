@@ -19,8 +19,8 @@ include_directories( ${KRATOS_SOURCE_DIR}/applications/StructuralMechanicsApplic
 ## generate variables with the sources
 set(KRATOS_DEMFEM_VOLUME_COUPLING_APPLICATION_CORE
 
-    ${CMAKE_CURRENT_SOURCE_DIR}/DEMFEM_Volume_Coupling_Application.h
-    ${CMAKE_CURRENT_SOURCE_DIR}/DEMFEM_Volume_Coupling_Application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/DEMFEM_volume_coupling_application.h
+    ${CMAKE_CURRENT_SOURCE_DIR}/DEMFEM_volume_coupling_application.cpp
     
     ## ELEMENTS FEM
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/volume_coupling_element.h
@@ -33,7 +33,7 @@ set(KRATOS_DEMFEM_VOLUME_COUPLING_APPLICATION_CORE
 )
 
 set(KRATOS_DEMFEM_VOLUME_COUPLING_APPLICATION_PYTHON_INTERFACE
-    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/demfem_volume_coupling_python_application.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/DEMFEM_volume_coupling_python_application.cpp
 )
 
 

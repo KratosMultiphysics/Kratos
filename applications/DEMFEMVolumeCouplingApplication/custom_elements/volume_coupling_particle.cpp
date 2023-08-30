@@ -11,6 +11,7 @@ namespace Kratos {
 
 
 
+
 VolumeCouplingParticle::VolumeCouplingParticle( IndexType NewId, GeometryType::Pointer pGeometry )
     : SphericParticle( NewId, pGeometry )
 {
@@ -21,6 +22,17 @@ VolumeCouplingParticle::VolumeCouplingParticle( ) // Default constructor needed 
 {
     
 }
+VolumeCouplingParticle::VolumeCouplingParticle(IndexType NewId, GeometryType::Pointer pGeometry,  PropertiesType::Pointer pProperties)
+    : SphericParticle(NewId, pGeometry, pProperties)
+{
+
+}
+
+Element::Pointer VolumeCouplingParticle::Create(IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties) const
+{
+    return Element::Pointer(new VolumeCouplingParticle(NewId, GetGeometry().Create(ThisNodes), pProperties));
+}
+
 // Function to compute contact forces and moments between ball and rigid face considering coupling weight.
 void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
     SphericParticle::ParticleDataBuffer & data_buffer,
@@ -32,15 +44,17 @@ void VolumeCouplingParticle::ComputeBallToRigidFaceContactForceAndMoment(
     // Call the base class's function.
     SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(data_buffer, r_elastic_force, r_contact_force, rigid_element_force, r_process_info);
 
-        double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
-        // to check if particle coupling weight is non zer0,
-         if (particle_weight!=0)
-         {
-          r_elastic_force *= particle_weight; // Scale elastic force by the weight
-          r_contact_force *= particle_weight; // Scale contact force by the  weight
-          rigid_element_force *= particle_weight; // Scale rigid element force by the  weight
-         }
+        // double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
+        // // to check if particle coupling weight is non zer0,
+        //  if (particle_weight!=0)
+        //  {
+        //   r_elastic_force *= particle_weight; // Scale elastic force by the weight
+        //   r_contact_force *= particle_weight; // Scale contact force by the  weight
+        //   rigid_element_force *= particle_weight; // Scale rigid element force by the  weight
+        //  }
 }
+
+
 
 void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(SphericParticle::ParticleDataBuffer & data_buffer,
                                                             const ProcessInfo& r_process_info,
@@ -76,7 +90,7 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
         const double my_arm_length = this->GetRadius() - indentation * other_young * inverse_of_sum_of_youngs;
         const double other_arm_length  = element2->GetRadius() - indentation * my_young * inverse_of_sum_of_youngs;
         double interpolated_weight = (particle_weight*other_arm_length+element2->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)*my_arm_length)/(my_arm_length+other_arm_length);
-    }
+    
     // Calculate the interpolated weight based on the current and neighboring particles, w'=w1+((3r1+r2-|y1-y2|)/2|y1-y2|)*(w2-w1) considering some indentation
     // double interpolated_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT)+
     // (( 3* this->GetGeometry()[0].FastGetSolutionStepValue(RADIUS) + element2->GetGeometry()[0].FastGetSolutionStepValue(RADIUS)-
@@ -85,34 +99,46 @@ void VolumeCouplingParticle::EvaluateBallToBallForcesForPositiveIndentiations(Sp
     // Scale forces by the interpolated weight
     for(int i=0; i<3; ++i)
     {
-        LocalElasticContactForce[i] *= interpolated_weight; // Scale elastic contact force
-        ViscoDampingLocalContactForce[i] *= interpolated_weight; // Scale visco-damping contact force
+        LocalElasticContactForce[i] *= (interpolated_weight/particle_weight); // Scale elastic contact force
+        ViscoDampingLocalContactForce[i] *= (interpolated_weight/particle_weight); // Scale visco-damping contact force
     }
 
-    cohesive_force *=interpolated_weight; // Scale cohesive force
-
+    cohesive_force *=(interpolated_weight/particle_weight); // Scale cohesive force
+    }
 }
 
 // Function to compute additional forces and moments on the particle considering coupling weight.
-void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, 
-                                                     array_1d<double, 3>& externally_applied_moment, 
-                                                     const ProcessInfo& r_process_info, 
-                                                     const array_1d<double,3>& gravity)
-{
-    // Call the base class's function.
-    SphericParticle::ComputeAdditionalForces(externally_applied_force, externally_applied_moment, r_process_info, gravity);
-    
-    
-    double w = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
-    
-    // Multiply each element of externally_applied_force and externally_applied_moment by w.
-    for (int i = 0; i < 3; ++i)
-    {
-        externally_applied_force[i] *= w; // Scale externally applied force
-        externally_applied_moment[i] *= w; // Scale externally applied moment
-    }
-    externally_applied_force += this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE);  //adding the coupling forces exreted on particles
-}
+// void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_applied_force, 
+//                                                      array_1d<double, 3>& externally_applied_moment, 
+//                                                      const ProcessInfo& r_process_info, 
+//                                                      const array_1d<double,3>& gravity)
+// {
+//     // statement for setting EXTERNAL_APPLIED_FORCE = DEMFEM_VOLUME_COUPLING_FORCE
+
+
+//     // Call the base class's function.
+//     SphericParticle::ComputeAdditionalForces(externally_applied_force, externally_applied_moment, r_process_info, gravity);
+ 
+//     // double particle_weight = this->GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_COUPLING_WEIGHT); // Coupling weight of the particle center
+
+//     //     // to check if particle coupling weight is non zer0 and to check multiple calls of this function ,
+//     // if (particle_weight!=0)
+//     // {
+//     // // Multiply each element of externally_applied_force and externally_applied_moment by weight.
+//     //     for (int i = 0; i < 3; ++i)
+//     //     {
+//     //         externally_applied_force[i] *= particle_weight; // Scale externally applied force
+//     //         externally_applied_moment[i] *= particle_weight; // Scale externally applied moment
+//     //     }
+//     //    externally_applied_force += this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE);  //adding the coupling forces exreted on particles
+//     //     //KRATOS_WATCH(this->Id());
+//         //KRATOS_WATCH(*externally_applied_force);
+//         //std::cout<<"particle_id"<<this->Id()<<std::endl;
+//         //std::cout<<"particle coupling force"<<this->GetGeometry()[0].FastGetSolutionStepValue(DEMFEM_VOLUME_COUPLING_FORCE)<<std::endl;
+//         //std::cout<<" externally_applied_force"<<externally_applied_force<<std::endl;
+//    // }
+
+// }
 
 }  // namespace Kratos.
 
@@ -121,11 +147,11 @@ void VolumeCouplingParticle::ComputeAdditionalForces(array_1d<double, 3>& extern
 
 // void VolumeCouplingParticle::EvaluateBallToRigidFaceForcesForPositiveIndentations(SphericParticle::ParticleDataBuffer &data_buffer,
 //                                                                    const int rigid_neighbour_index,
-//                                                                    const array_1d<double, 3>& DeltVel,
+//                                                                    double DeltVel[3],
 //                                                                    const ProcessInfo& r_process_info,
 //                                                                    double OldLocalElasticContactForce[3],
 //                                                                    double LocalElasticContactForce[3],
-//                                                                    const double LocalDeltDisp[3],
+//                                                                    double LocalDeltDisp[3],
 //                                                                    const double indentation,
 //                                                                    const double  previous_indentation,
 //                                                                    double ViscoDampingLocalContactForce[3],
