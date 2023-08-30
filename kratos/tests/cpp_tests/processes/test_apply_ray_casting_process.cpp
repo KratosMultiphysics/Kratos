@@ -14,7 +14,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
@@ -82,9 +82,9 @@ namespace Kratos {
 		// gid_io_skin.InitializeResults(0, skin_part.GetMesh());
 		// gid_io_skin.FinalizeResults();
 
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(21))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(22))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(30))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(21))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(22))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(30))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
 	}
 
 	KRATOS_TEST_CASE_IN_SUITE(RayCastingProcessSquareRing2D, KratosCoreFastSuite)
@@ -139,10 +139,10 @@ namespace Kratos {
 		// Compute distance
 		ApplyRayCastingProcess<2>(surface_part, skin_part).Execute();
 
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(86))->FastGetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(88))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(112))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(138))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(86))->FastGetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(88))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(112))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(138))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
 	}
 
 	KRATOS_TEST_CASE_IN_SUITE(TetrahedraInCubeRayCastingProcess, KratosCoreFastSuite)
@@ -199,16 +199,16 @@ namespace Kratos {
 	Point dummy(0.00,0.00,0.00);
 	for(auto& node : volume_part.Nodes()){
 		if(tetrahedra.IsInside(node.Coordinates(),dummy)){
-			KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+			KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), -1.00, 1e-6);
 		}
 	}
 		// Note that we cannot check the outside because on the interface is not well defined
-		KRATOS_CHECK_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
 
 
 		//GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);
