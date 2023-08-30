@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "trilinos_cpp_test_utilities.h"
 
 namespace Kratos
