@@ -11,6 +11,7 @@
 //
 
 // System includes
+#include <numeric>
 
 // External includes
 
@@ -21,7 +22,6 @@
 
 // Application includes
 #include "custom_utilities/container_io_utils.h"
-#include "hdf5_application_variables.h"
 
 // Include base h
 #include "hdf5_expression_io.h"
@@ -158,7 +158,7 @@ std::pair<Expression::Pointer, Parameters> ExpressionIO::Read(const std::string&
         << "Dataset at \"" << dataset_path << "\" size is not a multiple of stride [ stride = "
         << stride << ", dataset total size = " << h5_total_data_size << ", shape = " << shape << " ].\n";
 
-    const auto number_of_items = h5_total_data_size / stride;
+    const IndexType number_of_items = h5_total_data_size / stride;
     auto p_expression = LiteralFlatExpression<double>::Create(number_of_items, shape);
 
     if (h5_dimensions.size() == 1) {
@@ -195,13 +195,6 @@ void ExpressionIO::Write(
     KRATOS_TRY
 
     auto appended_attribs = Attributes.Clone();
-
-    KRATOS_ERROR_IF(appended_attribs.Has("__mesh_location"))
-        << "The reserved keyword \"__mesh_location\" is found. Please remove it from attributes.";
-
-    if (rContainerExpression.GetModelPart().Has(HDF5_MESH_LOCATION_INFO)) {
-        appended_attribs.AddString("__mesh_location", rContainerExpression.GetModelPart().GetValue(HDF5_MESH_LOCATION_INFO));
-    }
 
     KRATOS_ERROR_IF(appended_attribs.Has("__container_type"))
         << "The reserved keyword \"__container_type\" is found. Please remove it from attributes.";

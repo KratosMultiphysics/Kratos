@@ -56,10 +56,6 @@ public:
         Parameters Settings,
         File::Pointer pFile);
 
-    ModelPartIO(
-        const std::string& rPrefix,
-        File::Pointer pFile);
-
     ///@}
     ///@name Operations
     ///@{
@@ -119,6 +115,8 @@ private:
     ///@{
 
     const bool mWriteEntityProperyIds;
+
+    Parameters mCustomAttributes;
 
     ///@}
     ///@name Private life cycle
