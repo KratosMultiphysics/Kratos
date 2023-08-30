@@ -33,11 +33,11 @@
 #define KRATOS_EXPECT_EQ(a,b) if(!((a) == (b))) KRATOS_ERROR << "Check failed because " << #a << " is not equal to " << #b
 #define KRATOS_EXPECT_NE(a,b) if((a) == (b)) KRATOS_ERROR << "Check failed because " << #a << " is equal to " << #b
 
-#define KRATOS_EXPECT_STREQ(a,b) if(a.compare(b) != 0) KRATOS_ERROR << "Check failed because \"" << a << "\" is not equal to \"" << b << "\"" << std::endl;
-#define KRATOS_EXPECT_STRNE(a,b) if(a.compare(b) == 0) KRATOS_ERROR << "Check failed because \"" << a << "\" is equal to \"" << b << "\"" << std::endl;
+// #define KRATOS_EXPECT_STREQ(a,b) if(a.compare(b) != 0) KRATOS_ERROR << "Check failed because \"" << a << "\" is not equal to \"" << b << "\"" << std::endl;
+// #define KRATOS_EXPECT_STRNE(a,b) if(a.compare(b) == 0) KRATOS_ERROR << "Check failed because \"" << a << "\" is equal to \"" << b << "\"" << std::endl;
 
-// #define KRATOS_CHECK_C_STRING_EQUAL(a,b) if((strcmp(a,b) != 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is not equal to \"" << b << "\"" << std::endl;
-// #define KRATOS_CHECK_C_STRING_NOT_EQUAL(a,b) if((strcmp(a,b) == 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is equal to \"" << b << "\"" << std::endl;
+#define KRATOS_EXPECT_STREQ(a,b) if((strcmp(a,b) != 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is not equal to \"" << b << "\"" << std::endl;
+#define KRATOS_EXPECT_STRNE(a,b) if((strcmp(a,b) == 0)) KRATOS_ERROR << "Check failed because \"" << a << "\" is equal to \"" << b << "\"" << std::endl;
 
 #define KRATOS_EXPECT_LT(a,b) if(!(a < b)) KRATOS_ERROR << "Check failed because " << #a << " is greater than or equal to " << #b << std::endl;
 #define KRATOS_EXPECT_LE(a,b) if(!(a <= b)) KRATOS_ERROR << "Check failed because " << #a << " is greater than " << #b << std::endl;
@@ -51,8 +51,8 @@ KRATOS_ERROR << "The string \"" << SubString << "\" was not found in the given s
 #define KRATOS_EXPECT_NEAR(a,b, tolerance) if(!(std::abs(a - b) <= tolerance)) KRATOS_ERROR << "Check failed because " << #a << " = " << a << \
 " is not near to " << #b << " = " << b << " within the tolerance " << tolerance
 #define KRATOS_EXPECT_RELATIVE_NEAR(a,b, tolerance) if(!(std::abs(b) <= std::numeric_limits<double>::epsilon())) { KRATOS_ERROR_IF(!(std::abs((a - b)/b) <= tolerance)) << "Check failed because " << #a << " = " << a << \
-" is not near to " << #b << " = " << b << " within the relative tolerance " << tolerance << std::endl; } else {KRATOS_CHECK_NEAR(a,b,tolerance);}
-#define KRATOS_EXPECT_DOUBLE_EQ(a,b) KRATOS_CHECK_NEAR(a,b,std::numeric_limits<double>::epsilon())
+" is not near to " << #b << " = " << b << " within the relative tolerance " << tolerance << std::endl; } else {KRATOS_EXPECT_NEAR(a,b,tolerance);}
+#define KRATOS_EXPECT_DOUBLE_EQ(a,b) KRATOS_EXPECT_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
 #define KRATOS_EXPECT_VECTOR_NEAR(a, b, tolerance) {                        \
 KRATOS_ERROR_IF_NOT(a.size() == b.size())                                  \
@@ -71,6 +71,7 @@ for (std::size_t _i = 0; _i < a.size(); _i++) {                              \
    << " within tolerance " << tolerance << "." << std::endl;               \
 }                                                                          \
 }
+
 #define KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(a, b, tolerance) {                   \
 KRATOS_ERROR_IF_NOT(a.size() == b.size())                                      \
 << "Check failed because vector arguments do not have the same size:"          \
@@ -99,7 +100,8 @@ for (std::size_t _i = 0; _i < a.size(); _i++) {                                 
     }                                                                          \
 }                                                                              \
 }
-#define KRATOS_EXPECT_VECTOR_EQ(a, b) KRATOS_CHECK_VECTOR_NEAR(a,b,std::numeric_limits<double>::epsilon())
+
+#define KRATOS_EXPECT_VECTOR_EQ(a, b) KRATOS_EXPECT_VECTOR_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
 #define KRATOS_EXPECT_MATRIX_NEAR(a, b, tolerance) {                              \
 KRATOS_ERROR_IF_NOT((a.size1() == b.size1()) && (a.size2() == b.size2()))        \
@@ -121,6 +123,7 @@ for (std::size_t _i = 0; _i < a.size1(); _i++) {                                
     }                                                                            \
 }                                                                                \
 }
+
 #define KRATOS_EXPECT_MATRIX_RELATIVE_NEAR(a, b, tolerance) {                         \
 KRATOS_ERROR_IF_NOT((a.size1() == b.size1()) && (a.size2() == b.size2()))            \
 << "Check failed because matrix arguments do not have the same dimensions:"          \
@@ -152,7 +155,8 @@ for (std::size_t _i = 0; _i < a.size1(); _i++) {                                
 }                                                                                    \
 }                                                                                    \
 }
-#define KRATOS_EXPECT_MATRIX_EQUAL(a, b) KRATOS_CHECK_MATRIX_NEAR(a,b,std::numeric_limits<double>::epsilon())
+
+#define KRATOS_EXPECT_MATRIX_EQUAL(a, b) KRATOS_EXPECT_MATRIX_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
 #define KRATOS_EXPECT_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)                 \
 try {                                                                                   \
@@ -168,13 +172,13 @@ try {                                                                           
 }
 
 #define KRATOS_EXPECT_VARIABLE_IN_NODAL_DATA(TheVariable, TheNode)                          \
-    KRATOS_ERROR_IF_NOT(TheNode.SolutionStepsDataHas(TheVariable))                         \
-        << "Missing " << TheVariable.Name() << " variable in solution step data for node " \
+    KRATOS_EXPECT_TRUE(TheNode.SolutionStepsDataHas(TheVariable));                         \
+        KRATOS_ERROR << "Missing " << TheVariable.Name() << " variable in solution step data for node " \
         << TheNode.Id() << "." << std::endl;
 
 #define KRATOS_EXPECT_DOF_IN_NODE(TheVariable, TheNode)            \
-    KRATOS_ERROR_IF_NOT(TheNode.HasDofFor(TheVariable))           \
-        << "Missing Degree of Freedom for " << TheVariable.Name() \
+    KRATOS_EXPECT_TRUE(TheNode.HasDofFor(TheVariable));           \
+        KRATOS_ERROR << "Missing Degree of Freedom for " << TheVariable.Name() \
         << " in node " << TheNode.Id() << "." << std::endl;
 
 ///@}

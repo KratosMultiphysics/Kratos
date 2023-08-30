@@ -104,7 +104,7 @@ namespace Testing
         p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         std::vector<double> expected_RHS = {0.166667, 0.166667, 0.166667};
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4);
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4);
 
         // Set distances for intersected element
         p_element->GetGeometry()[0].FastGetSolutionStepValue(DISTANCE) = -1.0;
@@ -115,7 +115,7 @@ namespace Testing
         p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
 
         expected_RHS = {0.00617284, 0.00617284, 0.0432099};
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4);
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4);
     }
 
 } // namespace Testing
