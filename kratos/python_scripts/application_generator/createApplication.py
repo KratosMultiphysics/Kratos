@@ -21,12 +21,12 @@ debugApp = ApplicationGenerator(appNameCamel)
 
 
 # Add KratosVariables
-debugApp.AddVariables([
-    VariableCreator(name='DOF_1', vtype='double'),
-    VariableCreator(name='DOF_2', vtype='double'),
-    VariableCreator(name='ScalarVariable', vtype='double'),
-    VariableCreator(name='VectorVariable', vtype='double', is3D=True),
-])
+#debugApp.AddVariables([
+#    VariableCreator(name='DOF_1', vtype='double'),
+#    VariableCreator(name='DOF_2', vtype='double'),
+#    VariableCreator(name='ScalarVariable', vtype='double'),
+#    VariableCreator(name='VectorVariable', vtype='double', is3D=True),
+#])
 
 # Add test element
 debugApp.AddElements([
