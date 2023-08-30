@@ -36,7 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_IsPath1, KratosHDF5TestSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_IsPath2, KratosHDF5TestSuite)
 {
-    KRATOS_CHECK(HDF5::Internals::IsPath("/") == false);
+    KRATOS_CHECK(HDF5::Internals::IsPath("/") == true);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_IsPath3, KratosHDF5TestSuite)

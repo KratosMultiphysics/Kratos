@@ -65,7 +65,12 @@ namespace Internals
 
 bool IsPath(const std::string& rPath)
 {
-    return regex_match(rPath, std::regex("(/[\\w\\(\\)]+)+"));
+    bool is_path = true;
+    is_path = is_path && !rPath.empty();
+    is_path = is_path && rPath.front() == '/';
+    is_path = is_path && (rPath.size() == 1 || (rPath.size() > 1 && rPath.back() != '/'));
+    is_path = is_path && (rPath.find("//") == std::string::npos);
+    return is_path;
 }
 
 std::vector<hsize_t> GetDataDimensions(
