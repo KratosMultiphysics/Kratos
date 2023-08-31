@@ -281,9 +281,9 @@ namespace Kratos {
         aux_util.AddElementsWithNodesToSubModelParts(list_elements);
 
         // Check results
-        KRATOS_CHECK(r_sub_model_part.NumberOfNodes() == 4);
-        KRATOS_CHECK(r_sub_model_part.NumberOfElements() == 2);
-        KRATOS_CHECK(r_sub_model_part.NumberOfConditions() == 0);
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfNodes() == 4);
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfElements() == 2);
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfConditions() == 0);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartAddConditionsWithNodes, KratosCoreFastSuite)
@@ -302,9 +302,9 @@ namespace Kratos {
         aux_util.AddConditionsWithNodesToSubModelParts(list_conditions);
 
         // Check results
-        KRATOS_CHECK(r_sub_model_part.NumberOfNodes() == 3);
-        KRATOS_CHECK(r_sub_model_part.NumberOfElements() == 0);
-        KRATOS_CHECK(r_sub_model_part.NumberOfConditions() == 2);
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfNodes() == 3);
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfElements() == 0);
+        KRATOS_EXPECT_TRUE(r_sub_model_part.NumberOfConditions() == 2);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ModelPartRemoveElementsAndBelongings, KratosCoreFastSuite)
