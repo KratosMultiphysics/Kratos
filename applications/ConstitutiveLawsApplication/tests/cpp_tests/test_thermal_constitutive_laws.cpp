@@ -111,9 +111,9 @@ namespace Kratos::Testing
         reference_strain(2) = 0.0;
         const double reference_von_mises_pk2 = 2742.33;
 
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_stress[0], reference_stress, 1e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(output_von_mises[0],reference_von_mises_pk2, 1.0e-4);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(output_stress[0], reference_stress, 1e-4);
+        KRATOS_EXPECT_RELATIVE_NEAR(output_von_mises[0],reference_von_mises_pk2, 1.0e-4);
     }
 
     /**
@@ -157,9 +157,9 @@ namespace Kratos::Testing
         reference_strain(2) = 0.0;
         const double reference_von_mises_pk2 = 1690.19;
 
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_stress[0], reference_stress, 1e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(output_von_mises[0],reference_von_mises_pk2, 1.0e-4);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(output_stress[0], reference_stress, 1e-4);
+        KRATOS_EXPECT_RELATIVE_NEAR(output_von_mises[0],reference_von_mises_pk2, 1.0e-4);
     }
 
     /**
@@ -214,9 +214,9 @@ namespace Kratos::Testing
         reference_strain(2) = 0.0;
         const double reference_von_mises_pk2 = 30577.5;
 
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_stress[0], reference_stress, 1e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(output_von_mises[0],reference_von_mises_pk2, 1.0e-4);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(output_stress[0], reference_stress, 1e-4);
+        KRATOS_EXPECT_RELATIVE_NEAR(output_von_mises[0],reference_von_mises_pk2, 1.0e-4);
     }
 
     /**
@@ -315,9 +315,9 @@ namespace Kratos::Testing
         reference_strain(5) = 0.002;
         const double reference_von_mises_pk2 =  856.274;
 
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
-        KRATOS_CHECK_VECTOR_RELATIVE_NEAR(output_stress[0], reference_stress, 1e-4);
-        KRATOS_CHECK_RELATIVE_NEAR(output_von_mises[0],reference_von_mises_pk2, 1.0e-4);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(output_strains[0], reference_strain, 1e-4);
+        KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(output_stress[0], reference_stress, 1e-4);
+        KRATOS_EXPECT_RELATIVE_NEAR(output_von_mises[0],reference_von_mises_pk2, 1.0e-4);
     }
 
 } // namespace Kratos::Testing
