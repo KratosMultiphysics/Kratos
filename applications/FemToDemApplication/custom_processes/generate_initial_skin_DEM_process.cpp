@@ -45,8 +45,9 @@ void GenerateInitialSkinDEMProcess::Execute()
     for (int i = 0; i < static_cast<int>(r_submodel_part.Nodes().size()); i++) {
         auto it_node = it_node_begin + i;
 
-        if ((!it_node->GetValue(IS_DEM) && body1.HasNode(it_node->Id())) ||
-            (!it_node->GetValue(IS_DEM) && body2.HasNode(it_node->Id()))) { // we have to generate its DEM
+        // if ((!it_node->GetValue(IS_DEM) && body1.HasNode(it_node->Id())) ||
+        //     (!it_node->GetValue(IS_DEM) && body2.HasNode(it_node->Id()))) { // we have to generate its DEM
+        if (!it_node->GetValue(IS_DEM)) {
             auto& r_neigh_nodes = it_node->GetValue(NEIGHBOUR_NODES);
             Vector potential_radii(r_neigh_nodes.size());
             Vector distances(r_neigh_nodes.size());
