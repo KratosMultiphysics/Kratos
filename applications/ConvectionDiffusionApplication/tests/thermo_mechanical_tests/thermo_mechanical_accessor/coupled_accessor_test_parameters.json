@@ -1,10 +1,9 @@
-{
+  {
     "problem_data"     : {
-        "problem_name"  : "coupled_problem_test",
+        "problem_name"  : "coupled_problem",
         "parallel_type" : "OpenMP",
-        "time_step"     : 1.0,
         "start_time"    : 0.0,
-        "end_time"      : 10.0,
+        "end_time"      : 5.0,
         "echo_level"    : 0
     },
     "solver_settings"  : {
@@ -15,17 +14,17 @@
             "solver_type"                     : "Static",
             "model_part_name"                 : "Structure",
             "domain_size"                     : 2,
-            "echo_level"                      : 0,
+            "echo_level"                      : 1,
             "analysis_type"                   : "non_linear",
             "model_import_settings"           : {
                 "input_type"     : "mdpa",
-                "input_filename" : "thermo_mechanical_tests/coupled_problem_test"
+                "input_filename" : "thermo_mechanical_tests/thermo_mechanical_accessor/coupled_accessor_test"
             },
             "material_import_settings"        : {
-                "materials_filename" : "thermo_mechanical_tests/StructuralMaterials.json"
+                "materials_filename" : "thermo_mechanical_tests/thermo_mechanical_accessor/StructuralMaterials.json"
             },
             "time_stepping"                   : {
-                "time_step" : 0.4
+                "time_step" : 1.0
             },
             "line_search"                     : false,
             "convergence_criterion"           : "residual_criterion",
@@ -43,13 +42,13 @@
             "domain_size"                        : 2,
             "model_import_settings"              : {
                 "input_type"     : "mdpa",
-                "input_filename" : "thermo_mechanical_tests/coupled_problem_test"
+                "input_filename" : "thermo_mechanical_tests/thermo_mechanical_accessor/coupled_accessor_test"
             },
             "material_import_settings"           : {
-                "materials_filename" : "thermo_mechanical_tests/ConvectionDiffusionMaterials.json"
+                "materials_filename" : "thermo_mechanical_tests/thermo_mechanical_accessor/ConvectionDiffusionMaterials.json"
             },
             "line_search"                        : false,
-            "echo_level"                         : 0,
+            "echo_level"                         : 1,
             "compute_reactions"                  : false,
             "max_iteration"                      : 10,
             "convergence_criterion"              : "residual_criterion",
@@ -57,10 +56,10 @@
             "solution_absolute_tolerance"        : 1e-7,
             "residual_relative_tolerance"        : 1e-5,
             "residual_absolute_tolerance"        : 1e-7,
-            "problem_domain_sub_model_part_list" : ["Parts_Solid_Auto1"],
-            "processes_sub_model_part_list"      : ["TEMPERATURE_Temperature_Auto1","HeatFlux2D_External_heat_flux_Auto1"],
+            "problem_domain_sub_model_part_list" : ["CNVDFFParts_Parts_Auto1"],
+            "processes_sub_model_part_list"      : ["TEMPERATURE_Temperature_Auto1","ImposedTemperature3D_Imposed_temperature_Auto1"],
             "time_stepping"                      : {
-                "time_step" : 0.4
+                "time_step" : 1.0
             }
         }
     },
@@ -68,87 +67,89 @@
         "initial_conditions_process_list" : [{
             "python_module" : "assign_scalar_variable_process",
             "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
                 "model_part_name" : "ThermalModelPart.TEMPERATURE_Temperature_Auto1",
                 "variable_name"   : "TEMPERATURE",
+                "interval"        : [0.0,0.0],
                 "constrained"     : false,
-                "value"           : 25.0,
-                "interval"        : [0.0,0.0]
+                "value"           : 1.0
             }
         }],
         "constraints_process_list"        : [{
             "python_module" : "assign_scalar_variable_process",
             "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.HeatFlux2D_External_heat_flux_Auto1",
-                "variable_name"   : "FACE_HEAT_FLUX",
-                "constrained"     : false,
-                "value"           : 50.0,
-                "interval"        : [0.0,0.0]
-            }
-        },{
-            "python_module" : "assign_vector_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
-                "variable_name"   : "DISPLACEMENT",
-                "constrained"     : [true,true,true],
-                "value"           : [0.0,0.0,0.0],
-                "interval"        : [0.0,"End"]
+                "model_part_name" : "ThermalModelPart.ImposedTemperature2D_Imposed_temperature_Auto1",
+                "variable_name"   : "TEMPERATURE",
+                "interval"        : [0.0,100],
+                "constrained"     : true,
+                "value"           : "5*t"
             }
         }],
-        "loads_process_list"       : [{
-            "python_module" : "assign_vector_by_direction_process",
-            "kratos_module" : "KratosMultiphysics",
-            "check"         : "DirectorVectorNonZero direction",
-            "Parameters"    : {
-                "model_part_name" : "Structure.SelfWeight2D_Self_weight_Auto1",
-                "variable_name"   : "VOLUME_ACCELERATION",
-                "modulus"         : "100.5*t",
-                "direction"       : [0.0,-1.0,0.0],
-                "constrained"     : false,
-                "interval"        : [0.0,"End"]
-            }
-        }],
+        "loads_process_list"              : [],
         "list_other_processes"            : [{
             "python_module" : "assign_scalar_variable_process",
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignScalarVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "ThermalModelPart.Parts_Solid_Auto1",
+                "model_part_name" : "ThermalModelPart.CNVDFFParts_Parts_Auto1",
                 "variable_name"   : "HEAT_FLUX",
-                "value"           : 1e4,
+                "value"           : 0.0,
                 "constrained"     : false
             }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto1",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,true,true],
+                "value"           : [0.0,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Auto2",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,null,0.0]
+            }
         }],
-		"json_check_process" : [{
-			"python_module"   : "from_json_check_result_process",
-			"kratos_module" : "KratosMultiphysics",
-			"help"                  : "",
-			"process_name"          : "FromJsonCheckResultProcess",
-			"Parameters"            : {
-			    "check_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
-				"gauss_points_check_variables" : [],
-				"input_file_name"              : "thermo_mechanical_tests/thermo_mechanical_test_results.json",
-				"model_part_name"               : "Structure.Parts_Solid_Auto1",
-				"time_frequency"                : 1.0
-			}
-		}]
+        "json_check_process" : [{
+            "python_module"   : "from_json_check_result_process",
+            "kratos_module" : "KratosMultiphysics",
+            "help"                  : "",
+            "process_name"          : "FromJsonCheckResultProcess",
+            "Parameters"            : {
+                "check_variables"              : ["DISPLACEMENT"],
+                "gauss_points_check_variables" : ["VON_MISES_STRESS"],
+                "input_file_name"              : "thermo_mechanical_tests/thermo_mechanical_accessor/coupled_accessor_test_results.json",
+                "model_part_name"               : "Structure.Parts_Solid_Solid_Auto1",
+                "time_frequency"                : 1.0
+            }
+        }]
+	//"_json_output_process" : [{
+	//	"python_module"   : "json_output_process",
+	//	"kratos_module" : "KratosMultiphysics",
+	//	"help"                  : "",
+	//	"process_name"          : "JsonOutputProcess",
+	//	"Parameters"            : {
+	//		"output_variables"              : ["DISPLACEMENT"],
+	//		"gauss_points_output_variables" : ["VON_MISES_STRESS"],
+	//		"output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_accessor/coupled_accessor_test_results.json",
+	//		"model_part_name"               : "Structure.Parts_Solid_Solid_Auto1",
+	//		"time_frequency"                : 1.0
+	//	}
+	//}]
     },
-	"_json_output_process" : [{
-		"python_module"   : "json_output_process",
-		"kratos_module" : "KratosMultiphysics",
-		"help"                  : "",
-		"process_name"          : "JsonOutputProcess",
-		"Parameters"            : {
-			"output_variables"              : ["DISPLACEMENT", "TEMPERATURE"],
-			"gauss_points_output_variables" : [],
-			"output_file_name"              : "thermo_mechanical_tests/thermo_mechanical_tests_results.json",
-			"model_part_name"               : "Structure.Parts_Solid_Auto1",
-			"time_frequency"                : 1.0
-		}
-	}],
-    "_output_processes" : {
+    "output_processes" : {
         "gid_output" : [{
             "python_module" : "gid_output_process",
             "kratos_module" : "KratosMultiphysics",
@@ -156,49 +157,30 @@
             "help"          : "This process writes postprocessing files for GiD",
             "Parameters"    : {
                 "model_part_name"        : "Structure",
-                "output_name"            : "coupled_problem",
+                "output_name"            : "Results/coupled_problem",
                 "postprocess_parameters" : {
                     "result_file_configuration" : {
                         "gidpost_flags"       : {
                             "GiDPostMode"           : "GiD_PostBinary",
                             "WriteDeformedMeshFlag" : "WriteDeformed",
-                            "WriteConditionsFlag"   : "WriteConditions",
-                            "MultiFileFlag"         : "SingleFile"
+                            "WriteConditionsFlag"   : "WriteElementsOnly",
+                            "MultiFileFlag"         : "MultipleFiles"
                         },
                         "file_label"          : "step",
                         "output_control_type" : "step",
-                        "output_interval"    : 1.0,
+                        "output_frequency"    : 5,
                         "body_output"         : true,
                         "node_output"         : false,
                         "skin_output"         : false,
                         "plane_output"        : [],
                         "nodal_results"       : ["TEMPERATURE", "DISPLACEMENT"],
-                        "gauss_point_results" : ["CAUCHY_STRESS_VECTOR"]
+                        "gauss_point_results" : ["VON_MISES_STRESS"]
                     },
                     "point_data_configuration"  : []
                 }
             }
         }],
-        "vtk_output" : [{
-            "python_module" : "vtk_output_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "VtkOutputProcess",
-            "help"          : "This process writes postprocessing files for Paraview",
-            "Parameters"    : {
-                "model_part_name"                    : "ThermalModelPart",
-                "output_control_type"                : "step",
-                "output_interval"                   : 1,
-                "file_format"                        : "ascii",
-                "output_precision"                   : 7,
-                "output_sub_model_parts"             : false,
-                "folder_name"                        : "vtk_output",
-                "save_output_files_in_folder"        : true,
-                "nodal_solution_step_data_variables" : ["TEMPERATURE"],
-                "nodal_data_value_variables"         : [],
-                "element_data_value_variables"       : [],
-                "condition_data_value_variables"     : []
-            }
-        }]
+        "vtk_output" : []
     },
     "restart_options"  : {
         "SaveRestart"      : "False",

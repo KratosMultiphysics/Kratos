@@ -82,8 +82,8 @@ namespace Testing
         lhs_reference(3,1) = 0.199997763932;
         lhs_reference(3,2) = 0.4;
         lhs_reference(3,3) = 0.200002236068;
-        KRATOS_CHECK_VECTOR_NEAR(rhs, rhs_reference, tolerance);
-        KRATOS_CHECK_MATRIX_NEAR(lhs, lhs_reference, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(rhs, rhs_reference, tolerance);
+        KRATOS_EXPECT_MATRIX_NEAR(lhs, lhs_reference, tolerance);
     }
 
 } // namespace Testing.

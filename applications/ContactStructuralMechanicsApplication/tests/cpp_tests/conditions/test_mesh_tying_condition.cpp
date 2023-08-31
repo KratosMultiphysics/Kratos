@@ -123,11 +123,11 @@ void CheckSolution(ModelPart& rModelPart)
     const double tolerance = 1.0e-6;
     for (auto& r_node : rModelPart.Nodes()) {
         if (r_node.X() < 0.01) {
-            KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE), 1.0, tolerance);
+            KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE), 1.0, tolerance);
         } else if (r_node.X() > 0.99) {
-            KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE), 0.0, tolerance);
+            KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE), 0.0, tolerance);
         } else {
-            KRATOS_CHECK_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE), 0.5, tolerance);
+            KRATOS_EXPECT_NEAR(r_node.FastGetSolutionStepValue(TEMPERATURE), 0.5, tolerance);
         }
     }
 }
