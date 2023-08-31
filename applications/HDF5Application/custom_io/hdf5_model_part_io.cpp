@@ -82,7 +82,7 @@ void ModelPartIO::WriteNodes(NodesContainerType const& rNodes)
     KRATOS_TRY;
 
     Internals::PointsData<Internals::NodesIO> points(mPrefix + "/Nodes/Local", mpFile);
-    points.Write(rNodes, Internals::NodesIO{});
+    points.Write(rNodes, Internals::NodesIO{}, Parameters(R"({})"));
 
     KRATOS_CATCH("");
 }
