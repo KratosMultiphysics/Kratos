@@ -36,7 +36,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_PointsData1, KratosHDF5TestSuite)
     KRATOS_CHECK(r_test_model_part.NumberOfNodes() > 0);
 
     HDF5::Internals::PointsData<HDF5::Internals::NodesIO> data("/Nodes", pGetTestSerialFile());
-    data.Write(r_test_model_part.Nodes(), HDF5::Internals::NodesIO{});
+    data.Write(r_test_model_part.Nodes(), HDF5::Internals::NodesIO{}, Parameters(R"({})"));
 
     HDF5::NodesContainerType new_nodes;
     data.Read(new_nodes, HDF5::Internals::NodesIO{});
