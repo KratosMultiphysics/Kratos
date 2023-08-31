@@ -42,7 +42,7 @@ namespace HDF5
 
 /// A class for IO of element data in HDF5.
 template <typename TContainerType, typename... TComponents>
-class ContainerGaussPointOutput
+class KRATOS_API(HDF5_APPLICATION) ContainerGaussPointOutput
 {
 public:
     ///@name Type Definitions

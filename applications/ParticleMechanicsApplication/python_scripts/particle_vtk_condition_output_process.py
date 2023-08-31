@@ -18,7 +18,7 @@ class ParticleConditionVTKOutputProcess(ParticleVTKOutputProcess):
     defaults = KratosMultiphysics.Parameters("""{
         "model_part_name"                    : "MPM_Material",
         "output_control_type"                : "step",
-        "output_frequency"                   : 1,
+        "output_interval"                   : 1,
         "file_format"                        : "ascii",
         "output_precision"                   : 7,
         "folder_name"                        : "vtk_condition_output",

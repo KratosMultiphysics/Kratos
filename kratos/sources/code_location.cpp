@@ -31,10 +31,6 @@ namespace Kratos
 	CodeLocation::CodeLocation(std::string const& FileName, std::string const& FunctionName, std::size_t LineNumber) :
 		mFileName(FileName), mFunctionName(FunctionName), mLineNumber(LineNumber) {}
 
-	CodeLocation::CodeLocation(CodeLocation const & Other) :
-		mFileName(Other.mFileName), mFunctionName(Other.mFunctionName), mLineNumber(Other.mLineNumber) {}
-
-
 	const std::string& CodeLocation::GetFileName() const	{
 		return mFileName;
 	}
@@ -52,9 +48,11 @@ namespace Kratos
 		std::string clean_file_name(mFileName);
 		ReplaceAll(clean_file_name, "\\", "/");
 
-		std::size_t kratos_root_position = clean_file_name.rfind("/application/");
-		if (kratos_root_position != std::string::npos)
-			clean_file_name.erase(0, kratos_root_position);
+		std::size_t kratos_root_position = clean_file_name.rfind("/applications/");
+		if (kratos_root_position != std::string::npos) {
+			clean_file_name.erase(0, kratos_root_position+1);
+			return clean_file_name;
+		}
 
 
 		if (kratos_root_position == std::string::npos)
@@ -85,7 +83,7 @@ namespace Kratos
 		ReduceTemplateArgumentsToFirstN(clean_function_name, "ResidualBasedBlockBuilderAndSolver", 1);
 		ReduceTemplateArgumentsToFirstN(clean_function_name, "ResidualBasedLinearStrategy", 1);
 		ReplaceAll(clean_function_name, "Dof<double>", "Dof");
-		ReplaceAll(clean_function_name, "Node<3, Dof >", "Node");
+		ReplaceAll(clean_function_name, "Node", "Node");
 
 
 
@@ -179,7 +177,7 @@ namespace Kratos
 	std::ostream & operator <<(std::ostream& rOStream,
 		const CodeLocation& Location)
 	{
-		rOStream << Location.CleanFileName() << ":" << Location.GetLineNumber() << ":" << Location.CleanFunctionName();
+		rOStream << Location.CleanFileName() << ":" << Location.GetLineNumber() << ": " << Location.CleanFunctionName();
 		return rOStream;
 	}
 

@@ -10,6 +10,8 @@
 //  Main authors:    Jonathan Nuttall
 //
 
+#pragma once
+
 // System includes
 #include <limits>
 #include <map>
@@ -20,16 +22,13 @@
 
 /* Project includes */
 #include "testing/testing.h"
-#include "cpp_geomechanics_application.h"
+#include "custom_workflows/dgeoflow.h"
+#include "flow_stubs.h"
 
 namespace Kratos
 {
     namespace Testing
     {
-        void emptyLog(char *log) {}
-        bool emptyCancel() {
-            return false;
-        }
 
         KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategy, KratosGeoMechanicsFastSuite)
         {
@@ -37,7 +36,81 @@ namespace Kratos
             auto projectFile = "ProjectParameters.json";
 
             auto execute = KratosExecute();
-            execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", &emptyLog, &emptyLog, &emptyCancel);
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+
+            KRATOS_EXPECT_EQ(status, 0);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeoMechanicsFastSuite)
+        {
+            auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
+            auto projectFile = "ProjectParameters.json";
+
+            auto execute = KratosExecute();
+            
+            bool firstMessageFound = false;
+            bool finalMessageFound = false;
+            int messageCount = 0;
+
+            std::function<void(const char*)> reportTextualProgress = [&firstMessageFound, &finalMessageFound, &messageCount](const char* message)
+            {
+                messageCount++;
+                std::cout << "Captured: " << message << std::endl;
+
+                if(strcmp(message, "Calculating head level 3m (1/12)") == 0) {
+                    firstMessageFound = true;
+                }
+
+                if(strcmp(message, "Calculating head level 3.8m (9/12)") == 0) {
+                    finalMessageFound = true;
+                }
+            };
+            
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
+                                                     reportTextualProgress, &flow_stubs::emptyCancel);
+
+            KRATOS_EXPECT_EQ(status, 0);
+            KRATOS_EXPECT_EQ(firstMessageFound, true);
+            KRATOS_EXPECT_EQ(finalMessageFound, true);
+            KRATOS_EXPECT_EQ(messageCount, 9);
+        }
+
+        KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyProgressReport, KratosGeoMechanicsFastSuite)
+        {
+            auto workingDirectory = "./applications/GeoMechanicsApplication/tests/test_compare_sellmeijer/HeightAquiferD10L30.gid";
+            auto projectFile = "ProjectParameters.json";
+
+            auto execute = KratosExecute();
+            
+            bool startProgressFound = false;
+            bool endProgressFound = false;
+            int progressUpdates = 0;
+
+            std::function<void(double)> reportProgress = [&startProgressFound, &endProgressFound, &progressUpdates](double progress) 
+            {
+                std::cout << "Progress: " << progress << std::endl;
+                progressUpdates++;
+
+                if(progress == 0.0) {
+                    startProgressFound = true;
+                }
+
+                if(progress == 0.75) {
+                    endProgressFound = true;
+                }
+            };
+            
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
+                                                     &flow_stubs::emptyLog, reportProgress, &flow_stubs::emptyLog,
+                                                     &flow_stubs::emptyCancel);
+
+            KRATOS_EXPECT_EQ(status, 0);
+            KRATOS_EXPECT_EQ(startProgressFound, true);
+            KRATOS_EXPECT_EQ(endProgressFound, true);
+            KRATOS_EXPECT_EQ(progressUpdates, 10);
         }
     }
 }

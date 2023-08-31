@@ -519,6 +519,11 @@ class Procedures():
         if self.DEM_parameters["PostExportId"].GetBool():  # TODO: add suffix Option
             model_part.AddNodalSolutionStepVariable(EXPORT_ID)
 
+        # ONLY VISUALIZATION
+        if "PostGroupId" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostGroupId"].GetBool(): 
+                model_part.AddNodalSolutionStepVariable(GROUP_ID)
+
         #model_part.AddNodalSolutionStepVariable(SPRAYED_MATERIAL)
 
     def AddRigidFaceVariables(self, model_part, DEM_parameters):
@@ -1262,6 +1267,7 @@ class DEMIo():
         self.PostAppliedForces = self.DEM_parameters["PostAppliedForces"].GetBool()
         self.PostDampForces = self.DEM_parameters["PostDampForces"].GetBool()
         self.PostRadius = self.DEM_parameters["PostRadius"].GetBool()
+        self.PostGroupId = GetBoolParameterIfItExists(self.DEM_parameters, "PostGroupId")
         self.PostExportId = self.DEM_parameters["PostExportId"].GetBool()
         self.PostSkinSphere = GetBoolParameterIfItExists(self.DEM_parameters, "PostSkinSphere")
         self.PostGluedSphere = GetBoolParameterIfItExists(self.DEM_parameters, "PostGluedSphere")
@@ -1474,6 +1480,10 @@ class DEMIo():
         if "PostPoissonRatio" in self.DEM_parameters.keys():
             if self.DEM_parameters["PostPoissonRatio"].GetBool():
                 self.PushPrintVar(1, POISSON_VALUE, self.spheres_variables)
+
+        if "PostGroupId" in self.DEM_parameters.keys():
+            if self.DEM_parameters["PostGroupId"].GetBool():
+                self.PushPrintVar(self.PostGroupId, GROUP_ID, self.spheres_variables)
 
     def AddFEMBoundaryVariables(self):
         self.PushPrintVar(self.PostElasticForces, ELASTIC_FORCES, self.fem_boundary_variables)

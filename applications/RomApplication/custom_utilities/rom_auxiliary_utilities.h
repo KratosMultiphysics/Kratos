@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 #include "modified_shape_functions/modified_shape_functions.h"
+#include "processes/find_nodal_neighbours_process.h"
 
 // Application includes
 #include "rom_application_variables.h"
@@ -49,7 +50,7 @@ public:
 
     using IndexType = std::size_t;
 
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     using GeometryType = Geometry<NodeType>;
 
@@ -106,6 +107,53 @@ public:
     static std::vector<IndexType> GetHRomConditionParentsIds(
         const ModelPart& rModelPart,
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+    
+    /**
+     * @brief Retrieve the IDs of elements neighboring nodes in a given sub-model part but not present in HRom weights.
+     *
+     * This function iterates over all the nodes in the provided sub-model part (`rGivenModelPart`) and collects 
+     * the IDs of the elements neighboring each node. The neighboring elements are determined using the 
+     * 'NEIGHBOUR_ELEMENTS' value attached to each node. The function then checks if these elements are already 
+     * present in `rHRomWeights`. If not, their IDs are added to the return vector. It's important to note that 
+     * this function assumes that the 'NEIGHBOUR_ELEMENTS' values are already computed for the nodes in the model part.
+     *
+     * @param rModelPart The complete model part which houses all the elements.
+     * @param rGivenModelPart The sub-model part with nodes for which neighboring elements should be fetched.
+     * @param rHRomWeights Map containing the original HROM conditions and elements weights.
+     * @return std::vector<IndexType> A list of unique neighboring element IDs not already present in HRom weights.
+     */
+    static std::vector<IndexType> GetNodalNeighbouringElementIdsNotInHRom(
+        ModelPart& rModelPart,
+        ModelPart& rGivenModelPart,
+        const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
+    /**
+     * @brief Identifies condition IDs from a given ModelPart that are not in the HROM weights
+     * This function iterates through the conditions in the provided ModelPart, checks if their IDs exist in the HROM weights,
+     * and includes them in a list if they are missing. The IDs of the absent conditions are returned.
+     * @param rModelPart Complete hrom model part (all elements and conditions)
+     * @param rModelPartWithConditionsToInclude ModelPart with conditions that should be checked against HROM weights
+     * @param rHRomWeights Map containing the original HROM conditions and elements weights
+     * @return std::vector<IndexType> List containing the IDs of the conditions absent in HROM weights
+     */
+    static std::vector<IndexType> GetConditionIdsNotInHRomModelPart(
+        const ModelPart& rModelPart,
+        const ModelPart& rModelPartWithConditionsToInclude,
+        std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
+    /**
+     * @brief Identifies element IDs from a given ModelPart that are not in the HROM weights
+     * This function iterates through the elements in the provided ModelPart, checks if their IDs exist in the HROM weights,
+     * and includes them in a list if they are missing. The IDs of the absent elements are returned.
+     * @param rModelPart Complete hrom model part (all elements and conditions)
+     * @param rModelPartWithElementsToInclude ModelPart with elements that should be checked against HROM weights
+     * @param rHRomWeights Map containing the original HROM elements and conditions weights
+     * @return std::vector<IndexType> List containing the IDs of the elements absent in HROM weights
+     */
+    static std::vector<IndexType> GetElementIdsNotInHRomModelPart(
+        const ModelPart& rModelPart,
+        const ModelPart& rModelPartWithElementsToInclude,
+        std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
     /**
      * @brief Return the a minimum condition for each HROM submodelpart
@@ -140,6 +188,20 @@ public:
      */
     static void GetPhiElemental(
         Matrix &rPhiElemental,
+        const Element::DofsVectorType& rDofs,
+        const Element::GeometryType& rGeom,
+        const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
+
+
+    /**
+     * @brief Obtain the left elemental basis (Psi) matrix for a particular element.
+     * @param rPsiElemental The matrix to store the result in. Must have the appropiate size already.
+     * @param rDofs The set of dofs of the element.
+     * @param rGeom The geometry of the element.
+     * @param rVarToRowMapping A map from each variables's key to its row in the basis matrix.
+     */
+    static void GetPsiElemental(
+        Matrix &rPsiElemental,
         const Element::DofsVectorType& rDofs,
         const Element::GeometryType& rGeom,
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);

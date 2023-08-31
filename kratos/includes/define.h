@@ -40,12 +40,14 @@
      #define KRATOS_ENV64BIT
    #else
      #define KRATOS_ENV32BIT
+     #error 32 bit system are not supported anymore. Please consider a 64 bits system
   #endif
 #else // It is POSIX (Linux, MacOSX, BSD...)
   #if defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__)
     #define KRATOS_ENV64BIT
   #else // This includes __arm__ and __x86__
     #define KRATOS_ENV32BIT
+     #error 32 bit system are not supported anymore. Please consider a 64 bits system
   #endif
 #endif
 
@@ -95,15 +97,20 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #define KRATOS_CATCH_BLOCK_BEGIN class ExceptionBlock{public: void operator()(void){
 #define KRATOS_CATCH_BLOCK_END }} exception_block; exception_block();
 
-#ifndef __SUNPRO_CC
-#define KRATOS_TRY try {
-
-#define KRATOS_CATCH(MoreInfo) \
-  KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
+#ifndef KRATOS_NO_TRY_CATCH
+    #define KRATOS_TRY_IMPL try {
+    #define KRATOS_CATCH_IMPL(MoreInfo) KRATOS_CATCH_WITH_BLOCK(MoreInfo,{})
 #else
-#define KRATOS_TRY { };
+    #define KRATOS_TRY_IMPL {};
+    #define KRATOS_CATCH_IMPL(MoreInfo) {};
+#endif
 
-#define KRATOS_CATCH(MoreInfo) { };
+#ifndef __SUNPRO_CC
+    #define KRATOS_TRY KRATOS_TRY_IMPL
+    #define KRATOS_CATCH(MoreInfo) KRATOS_CATCH_IMPL(MoreInfo)
+#else
+    #define KRATOS_TRY {};
+    #define KRATOS_CATCH(MoreInfo) {};
 #endif
 
 //-----------------------------------------------------------------
@@ -690,7 +697,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_REGISTER_GEOMETRY
 #endif
 #define KRATOS_REGISTER_GEOMETRY(name, reference) \
-    KratosComponents<Geometry<Node<3>>>::Add(name, reference); \
+    KratosComponents<Geometry<Node>>::Add(name, reference); \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_ELEMENT
@@ -734,14 +741,14 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 // The following block defines the macro KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING
 // If written in a file, for the following lines of code the compiler will not print warnings of type 'deprecated function'.
 // The scope ends where KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING is called.
-// NOTE!! this macro is not intented for extensive use, it's just for temporary use in methods exported to Python which
+// NOTE!! this macro is not intended for extensive use, it's just for temporary use in methods exported to Python which
 // are still calling a C++ deprecated function.
 #if defined(__clang__)
 #define KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(x) _Pragma(#x)
 #define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
 KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(clang diagnostic push) \
 KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(clang diagnostic ignored "-Wdeprecated-declarations")
-#elif defined(__GNUC__) || defined(__GNUG__)
+#elif defined(__GNUG__) && !defined(__INTEL_COMPILER)
 #define KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(x) _Pragma(#x)
 #define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
 KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(GCC diagnostic push) \
@@ -750,6 +757,8 @@ KRATOS_PRAGMA_INSIDE_MACRO_DEFINITION(GCC diagnostic ignored "-Wdeprecated-decla
 #define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING \
 __pragma(warning(push))\
 __pragma(warning(disable: 4996))
+#else
+#define KRATOS_START_IGNORING_DEPRECATED_FUNCTION_WARNING // not implemented for other compilers, hence does nothing
 #endif
 
 // The following block defines the macro KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING which ends the scope for
@@ -757,12 +766,14 @@ __pragma(warning(disable: 4996))
 #if defined(__clang__)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
 _Pragma("clang diagnostic pop")
-#elif defined(__GNUC__) || defined(__GNUG__)
+#elif defined(__GNUG__) && !defined(__INTEL_COMPILER)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
 _Pragma("GCC diagnostic pop")
 #elif defined(_MSC_VER)
 #define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING \
 __pragma(warning(pop))
+#else
+#define KRATOS_STOP_IGNORING_DEPRECATED_FUNCTION_WARNING // not implemented for other compilers, hence does nothing
 #endif
 
 
@@ -794,6 +805,7 @@ namespace Kratos
 //Print Trace if defined
 #define KRATOS_WATCH(variable) std::cout << #variable << " : " << variable << std::endl;
 #define KRATOS_WATCH_CERR(variable) std::cerr << #variable << " : " << variable << std::endl;
+#define KRATOS_WATCH_MPI(variable, mpi_data_comm) std::cout << "RANK " << mpi_data_comm.Rank() << "/" << mpi_data_comm.Size()  << "    "; KRATOS_WATCH(variable);
 
 }  /* namespace Kratos.*/
 

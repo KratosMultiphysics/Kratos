@@ -4,20 +4,19 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MPC_CONTACT_CRITERIA_H)
-#define  KRATOS_MPC_CONTACT_CRITERIA_H
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "solving_strategies/convergencecriterias/convergence_criteria.h"
 #include "utilities/color_utilities.h"
 #include "utilities/variable_utils.h"
@@ -63,30 +62,29 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION( MPCContactCriteria );
 
     /// The base class definition
-    typedef ConvergenceCriteria< TSparseSpace, TDenseSpace > BaseType;
+    using BaseType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     /// The definition of the current class
-    typedef MPCContactCriteria< TSparseSpace, TDenseSpace > ClassType;
+    using ClassType = MPCContactCriteria<TSparseSpace, TDenseSpace>;
 
     /// The dofs array type
-    typedef typename BaseType::DofsArrayType            DofsArrayType;
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
     /// The sparse matrix type
-    typedef typename BaseType::TSystemMatrixType    TSystemMatrixType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
     /// The dense vector type
-    typedef typename BaseType::TSystemVectorType    TSystemVectorType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
     /// The table stream definition TODO: Replace by logger
-    typedef TableStreamUtility::Pointer       TablePrinterPointerType;
+    using TablePrinterPointerType = TableStreamUtility::Pointer;
 
     /// The index type definition
-    typedef std::size_t                                     IndexType;
+    using IndexType = std::size_t;
 
     // Geometry definition
-    typedef Node<3>                                          NodeType;
-    typedef CouplingGeometry<NodeType>           CouplingGeometryType;
-
+    using CouplingGeometryType = CouplingGeometry<Node>;
+    
     ///@}
     ///@name Life Cycle
     ///@{
@@ -163,7 +161,7 @@ public:
         auto& r_nodes_array = rModelPart.GetSubModelPart("Contact").Nodes();
 
         // We save the current WEIGHTED_GAP in the buffer and reset the CONTACT_FORCE
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             rNode.SetValue(CONTACT_FORCE, zero_array);
             rNode.FastGetSolutionStepValue(WEIGHTED_GAP, 1) = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
         });
@@ -246,7 +244,7 @@ public:
 
             // If frictionaless or mesh tying
             if (rModelPart.IsNot(SLIP)) {
-                is_active_set_converged = block_for_each<SumReduction<IndexType>>(r_nodes_array, [&](NodeType& rNode) {
+                is_active_set_converged = block_for_each<SumReduction<IndexType>>(r_nodes_array, [&](Node& rNode) {
                     if (rNode.Is(SLAVE)) {
                         // The contact force corresponds with the reaction in the normal direction
                         const array_1d<double, 3>& r_total_force = rNode.FastGetSolutionStepValue(REACTION);
@@ -276,7 +274,7 @@ public:
                 });
             } else { // If frictional
                 using TwoReduction = CombinedReduction<SumReduction<IndexType>, SumReduction<IndexType>>;
-                std::tie(is_active_set_converged, is_slip_converged) = block_for_each<TwoReduction>(r_nodes_array, [&](NodeType& rNode) {
+                std::tie(is_active_set_converged, is_slip_converged) = block_for_each<TwoReduction>(r_nodes_array, [&](Node& rNode) {
                     if (rNode.Is(SLAVE)) {
                         const double auxiliary_check = young_modulus > 0.0 ? -(reaction_check_stiffness_factor * young_modulus) : 0.0;
                         // The contact force corresponds with the reaction in the normal direction
@@ -442,11 +440,7 @@ public:
     }
 
     ///@}
-    ///@name Friends
-    ///@{
-
 protected:
-
     ///@name Protected static Member Variables
     ///@{
 
@@ -472,19 +466,6 @@ protected:
     }
 
     ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -543,29 +524,10 @@ private:
     }
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-    ///@}
-    ///@name Unaccessible methods
-    ///@{
-
-    ///@}
-
 }; // Class MPCContactCriteria
 
 ///@name Explicit Specializations
 ///@{
 
 }  // namespace Kratos
-
-#endif /* KRATOS_MPC_CONTACT_CRITERIA_H  defined */
 

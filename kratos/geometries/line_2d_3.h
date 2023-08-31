@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,8 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-#if !defined(KRATOS_LINE_2D_3_H_INCLUDED )
-#define  KRATOS_LINE_2D_3_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -350,17 +349,8 @@ public:
     */
     double Length() const override
     {
-        Vector temp;
         const IntegrationMethod integration_method = IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(*this);
-        this->DeterminantOfJacobian( temp, integration_method );
-        const IntegrationPointsArrayType& r_integration_points = this->IntegrationPoints( integration_method );
-        double length = 0.0;
-
-        for (std::size_t i = 0; i < r_integration_points.size(); ++i) {
-            length += temp[i] * r_integration_points[i].Weight();
-        }
-
-        return length;
+        return IntegrationUtilities::ComputeDomainSize(*this, integration_method);
     }
 
     /** This method calculate and return area or surface area of
@@ -504,6 +494,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod ) const override
     {
@@ -548,6 +539,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     JacobiansType& Jacobian( JacobiansType& rResult, IntegrationMethod ThisMethod, Matrix& rDeltaPosition ) const override
     {
@@ -594,6 +586,7 @@ public:
      * integration method.
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     Matrix& Jacobian( Matrix& rResult, IndexType IntegrationPointIndex, IntegrationMethod ThisMethod ) const override
     {
@@ -630,6 +623,7 @@ public:
      *
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
+     * @todo We must check if this override methods are faster than the base class methods
      */
     Matrix& Jacobian( Matrix& rResult, const CoordinatesArrayType& rPoint ) const override
     {
@@ -702,6 +696,10 @@ public:
         return std::sqrt(std::pow(J(0,0), 2) + std::pow(J(1,0), 2));
     }
 
+    ///@}
+    ///@name Edges and faces
+    ///@{
+
     /** EdgesNumber
     @return SizeType containes number of this geometry edges.
     */
@@ -712,11 +710,11 @@ public:
 
 
     /** FacesNumber
-    @return SizeType containes number of this geometry edges/faces.
+    @return SizeType containes number of this geometry faces.
     */
     SizeType FacesNumber() const override
     {
-      return EdgesNumber();
+      return 0;
     }
 
     ///@}
@@ -774,25 +772,6 @@ public:
         }
 
         return 0;
-    }
-
-    ///@}
-    ///@name Shape Function Integration Points Gradient
-    ///@{
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
-    }
-
-    void ShapeFunctionsIntegrationPointsGradients(
-        ShapeFunctionsGradientsType &rResult,
-        Vector &rDeterminantsOfJacobian,
-        IntegrationMethod ThisMethod) const override
-    {
-        KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
     ///@}
@@ -1168,9 +1147,6 @@ const GeometryData Line2D3<TPointType>::msGeometryData(
         AllShapeFunctionsLocalGradients() );
 
 template<class TPointType>
-const GeometryDimension Line2D3<TPointType>::msGeometryDimension(
-    2, 2, 1);
+const GeometryDimension Line2D3<TPointType>::msGeometryDimension(2, 1);
 
 }  // namespace Kratos.
-
-#endif // KRATOS_LINE_2D_3_H_INCLUDED  defined

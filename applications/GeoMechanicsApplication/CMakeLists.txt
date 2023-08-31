@@ -27,7 +27,8 @@ file(GLOB_RECURSE KRATOS_GEO_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_response_functions/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_strategies/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
-    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp	
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_workflows/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/external_bindings/*.cpp		
 )
 
 ## GeoMechanics testing sources
@@ -54,6 +55,13 @@ IF(CMAKE_UNITY_BUILD MATCHES ON)
     set_target_properties(KratosGeoMechanicsCore PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
     set_target_properties(KratosGeoMechanicsApplication PROPERTIES UNITY_BUILD_BATCH_SIZE ${KRATOS_UNITY_BUILD_BATCH_SIZE})
 ENDIF(CMAKE_UNITY_BUILD MATCHES ON)
+
+# Add version info to DLL's
+if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
+    configure_file(${CMAKE_CURRENT_SOURCE_DIR}/version.rc.in ${CMAKE_CURRENT_BINARY_DIR}/version.rc @ONLY)
+    target_sources(KratosGeoMechanicsCore PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+    target_sources(KratosGeoMechanicsApplication PRIVATE ${CMAKE_CURRENT_BINARY_DIR}/version.rc)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Windows")
 
 # changing the .dll suffix to .pyd (Windows)
 if(${CMAKE_SYSTEM_NAME} MATCHES "Windows")

@@ -8,6 +8,7 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   Ruben Zorrilla
 //
 
 #pragma once
@@ -20,7 +21,6 @@
 
 // Project includes
 #include "includes/registry_item.h"
-#include "includes/registry_value_item.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/string_utilities.h"
 
@@ -30,22 +30,6 @@ namespace Kratos
 ///@addtogroup KratosCore
 ///@{
 
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -54,7 +38,7 @@ namespace Kratos
  * This class is intended to act as global registry
  * Each time the AddItem method is called a pair of name and prototype is called
  */
-class Registry
+class KRATOS_API(KRATOS_CORE) Registry final
 {
 public:
     ///@name Type Definitions
@@ -71,7 +55,7 @@ public:
     Registry(){}
 
     /// Destructor.
-    virtual ~Registry(){}
+    ~Registry(){}
 
     ///@}
     ///@name Operators
@@ -82,11 +66,12 @@ public:
     ///@name Operations
     ///@{
 
-    template< typename TItemType, class... TArgumentsList >
+    template<typename TItemType, class... TArgumentsList >
     static RegistryItem& AddItem(
         std::string const& rItemFullName,
         TArgumentsList&&... Arguments)
     {
+        KRATOS_TRY
 
         const std::lock_guard<LockObject> scope_lock(ParallelUtilities::GetGlobalLock());
 
@@ -115,14 +100,48 @@ public:
         }
 
         return *p_current_item;
+
+        KRATOS_CATCH("")
+    }
+
+    template<typename... Types>
+    static std::string RegistryTemplateToString(Types&&... args) {
+        std::string f_name = (... += ("," + std::to_string(args)));
+        f_name.erase(0,1);
+        return f_name;
     }
 
     ///@}
     ///@name Access
     ///@{
 
+    static auto begin()
+    {
+        return mspRootRegistryItem->begin();
+    }
+
+    static auto cbegin()
+    {
+        return mspRootRegistryItem->cbegin();
+    }
+
+    static auto end()
+    {
+        return mspRootRegistryItem->end();
+    }
+
+    static auto const cend()
+    {
+        return mspRootRegistryItem->cend();
+    }
+
     static RegistryItem& GetItem(std::string const& rItemFullName);
 
+    template<typename TDataType>
+    static TDataType const& GetValue(std::string const& rItemFullName)
+    {
+        return GetItem(rItemFullName).GetValue<TDataType>();
+    }
 
     static void RemoveItem(std::string const& ItemName);
 
@@ -130,20 +149,26 @@ public:
     ///@name Inquiry
     ///@{
 
+    static std::size_t size();
+
     static bool HasItem(std::string const& rItemFullName);
+
+    static bool HasValue(std::string const& rItemFullName);
+
+    static bool HasItems(std::string const& rItemFullName);
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const;
 
     std::string ToJson(std::string const& Indentation) const;
 

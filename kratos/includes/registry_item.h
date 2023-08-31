@@ -8,6 +8,8 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   Ruben Zorrilla
+//                   Carlos Roig
 //
 
 #pragma once
@@ -16,6 +18,7 @@
 #include <string>
 #include <iostream>
 #include <unordered_map>
+#include <any>
 
 // External includes
 
@@ -27,23 +30,6 @@ namespace Kratos
 {
 ///@addtogroup KratosCore
 ///@{
-
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -52,12 +38,9 @@ namespace Kratos
  *  value, and an unorder_set of its sub data.
  *  This structure let us to have registry of the elements and then different
  *  registries for each elements inside it.
- *  Please note that RegistryItem stores a pointer to the value.
- *  To have a copy of the value you may use the derived RegistryValueItem
- *  which crates a copy in construction and delete it in its destructor
- *  to make the memory management easier.
+ *  Please note that RegistryItem stores a shared pointer to the value.
 */
-class RegistryItem
+class KRATOS_API(KRATOS_CORE) RegistryItem
 {
 public:
     ///@name Type Definitions
@@ -65,6 +48,94 @@ public:
 
     /// Pointer definition of RegistryItem
     KRATOS_CLASS_POINTER_DEFINITION(RegistryItem);
+
+    /// Subregistry item type definition
+    using SubRegistryItemType = std::unordered_map<std::string, Kratos::shared_ptr<RegistryItem>>;
+
+    /// Pointer definition of SubRegistryItemType
+    using SubRegistryItemPointerType = Kratos::shared_ptr<SubRegistryItemType>;
+
+    /// Custom iterator with key as return type to be used in the Python export
+    class KeyReturnConstIterator
+    {
+    public:
+        ///@name Type Definitions
+        ///@{
+
+        using BaseIterator      = SubRegistryItemType::const_iterator;
+        using iterator_category = std::forward_iterator_tag;
+        using difference_type   = BaseIterator::difference_type;
+        using value_type        = SubRegistryItemType::key_type;
+        using const_pointer     = const value_type*;
+        using const_reference   = const value_type&;
+
+        ///@}
+        ///@name Life Cycle
+        ///@{
+
+        KeyReturnConstIterator()
+        {}
+
+        KeyReturnConstIterator(const BaseIterator Iterator)
+            : mIterator(Iterator)
+        {}
+
+        KeyReturnConstIterator(const KeyReturnConstIterator& rIterator)
+            : mIterator(rIterator.mIterator)
+        {}
+
+        ///@}
+        ///@name Operators
+        ///@{
+
+        KeyReturnConstIterator& operator=(const KeyReturnConstIterator& rIterator)
+        {
+            this->mIterator = rIterator.mIterator;
+            return *this;
+        }
+
+        const_reference operator*() const
+        {
+            return mIterator->first;
+        }
+
+        const_pointer operator->() const
+        {
+            return &(mIterator->first);
+        }
+
+        KeyReturnConstIterator& operator++()
+        {
+            ++mIterator;
+            return *this;
+        }
+
+        KeyReturnConstIterator operator++(int)
+        {
+            KeyReturnConstIterator tmp(*this);
+            ++(*this);
+            return tmp;
+        }
+
+        bool operator==(const KeyReturnConstIterator& rIterator) const
+        {
+            return this->mIterator == rIterator.mIterator;
+        }
+
+        bool operator!=(const KeyReturnConstIterator& rIterator) const
+        {
+            return this->mIterator != rIterator.mIterator;
+        }
+
+        ///@}
+    private:
+        ///@name Member Variables
+        ///@{
+
+        BaseIterator mIterator;
+
+        ///@}
+    };
 
     ///@}
     ///@name Life Cycle
@@ -74,49 +145,107 @@ public:
     RegistryItem() = delete;
 
     /// Constructor with the name
-    RegistryItem(std::string Name) : mName(Name), mpValue(nullptr){}
+    RegistryItem(const std::string& rName)
+        : mName(rName),
+          mpValue(Kratos::make_shared<SubRegistryItemType>()),
+          mGetValueStringMethod(&RegistryItem::GetRegistryItemType) {}
+
+    /// Constructor with the name and lambda
+    template <typename TItemType, typename... TArgs>
+    RegistryItem(
+        const std::string &rName,
+        const std::function<std::shared_ptr<TItemType>(TArgs...)> &rValue)
+        : mName(rName),
+          mpValue(rValue()),
+          mGetValueStringMethod(&RegistryItem::GetItemString<TItemType>) {}
 
     /// Constructor with the name and value
-    template<typename TValueType>
-    RegistryItem(std::string Name, TValueType const& Value) : mName(Name), mpValue(&Value){}
+    template<class TItemType>
+    RegistryItem(
+        const std::string&  rName,
+        const TItemType& rValue)
+        : mName(rName),
+          mpValue(Kratos::make_shared<TItemType>(rValue)),
+          mGetValueStringMethod(&RegistryItem::GetItemString<TItemType>) {}
+
+    /// Constructor with the name and shared ptr
+    template<class TItemType>
+    RegistryItem(
+        const std::string&  rName,
+        const shared_ptr<TItemType>& pValue)
+        : mName(rName),
+          mpValue(pValue),
+          mGetValueStringMethod(&RegistryItem::GetItemString<TItemType>) {}
+
+    // Copy constructor deleted
+    RegistryItem(RegistryItem const& rOther) = delete;
 
     /// Destructor.
-    virtual ~RegistryItem(){}
+    ~RegistryItem() = default;
 
-    ///@}
-    ///@name Operators
-    ///@{
-
+    /// Assignment operator deleted.
+    RegistryItem& operator=(RegistryItem& rOther) = delete;
 
     ///@}
     ///@name Items
     ///@{
 
-    template< typename TItemType, class... TArgumentsList >
+    // Adding sub value item
+    template<typename TItemType, class... TArgumentsList>
     RegistryItem& AddItem(
         std::string const& ItemName,
         TArgumentsList&&... Arguments)
     {
-        KRATOS_ERROR_IF(this->HasItem(ItemName)) << "The RegistryItem " << this->Name() << " already has an item with name " << ItemName << std::endl;
-        auto insert_result = mSubRegistryItem.emplace(std::make_pair(ItemName, Kratos::make_unique<TItemType>(ItemName, std::forward<TArgumentsList>(Arguments)...)));
-        KRATOS_ERROR_IF_NOT(insert_result.second) << "Error in inserting " << ItemName << " in registry item with name " << this->Name() << std::endl;
+        KRATOS_ERROR_IF(this->HasItem(ItemName))
+            << "The RegistryItem '" << this->Name() << "' already has an item with name "
+            << ItemName << "." << std::endl;
+
+        using ValueType = typename std::conditional<std::is_same<TItemType, RegistryItem>::value, SubRegistryItemFunctor, SubValueItemFunctor<TItemType>>::type;
+
+        auto insert_result = GetSubRegistryItemMap().emplace(
+            std::make_pair(
+                ItemName,
+                ValueType::Create(ItemName, std::forward<TArgumentsList>(Arguments)...)
+                )
+            );
+
+        KRATOS_ERROR_IF_NOT(insert_result.second)
+            << "Error in inserting '" << ItemName
+            << "' in registry item with name '" << this->Name() << "'." << std::endl;
+
         return *insert_result.first->second;
     }
-
-
 
     ///@}
     ///@name Access
     ///@{
 
-    const std::string& Name() const
-    {
-        return mName;
-    }
+    SubRegistryItemType::iterator begin();
+
+    SubRegistryItemType::const_iterator cbegin() const;
+
+    SubRegistryItemType::iterator end();
+
+    SubRegistryItemType::const_iterator cend() const;
+
+    KeyReturnConstIterator KeyConstBegin() const;
+
+    KeyReturnConstIterator KeyConstEnd() const;
+
+    const std::string& Name() const  { return mName; }
 
     RegistryItem const& GetItem(std::string const& rItemName) const;
 
     RegistryItem& GetItem(std::string const& rItemName);
+
+    template<typename TDataType> TDataType const& GetValue() const
+    {
+        KRATOS_TRY
+
+        return *(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
+
+        KRATOS_CATCH("");
+    }
 
     void RemoveItem(std::string const& rItemName);
 
@@ -124,129 +253,106 @@ public:
     ///@name Inquiry
     ///@{
 
-    bool HasValue() const
-    {
-        return (mpValue != nullptr);
-    }
+    std::size_t size();
 
-    bool HasItems() const
-    {
-        return (!mSubRegistryItem.empty());
-    }
+    bool HasValue() const;
 
-    bool HasItem(std::string const& rItemName) const
-    {
-        return (mSubRegistryItem.find(rItemName) != mSubRegistryItem.end());
-    }
+    bool HasItems() const;
 
+    bool HasItem(std::string const& rItemName) const;
 
     ///@}
     ///@name Input and output
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const;
+    std::string Info() const;
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const;
+    void PrintInfo(std::ostream& rOStream) const;
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const;
+    void PrintData(std::ostream& rOStream) const;
 
-    virtual std::string ToJson(std::string const& rIndetation = "") const;
-
-    ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    std::string mName;
-    const void* mpValue;
-    std::unordered_map<std::string, Kratos::unique_ptr<RegistryItem>> mSubRegistryItem;
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
+    std::string ToJson(std::string const& rTabSpacing = "", const std::size_t Level = 0) const;
 
     ///@}
 private:
-    ///@name Static Member Variables
+    ///@name Private Member Variables
     ///@{
 
+    std::string mName;
+    std::any mpValue;
+    std::string (RegistryItem::*mGetValueStringMethod)() const;
 
     ///@}
-    ///@name Member Variables
+    ///@name Private operations
     ///@{
 
+    std::string GetRegistryItemType() const
+    {
+        return mpValue.type().name();
+    }
+
+    template<class TItemType>
+    std::string GetItemString() const
+    {
+        std::stringstream buffer;
+        buffer << this->GetValue<TItemType>();
+        return buffer.str();
+    }
 
     ///@}
-    ///@name Private Operators
+    ///@name Private classes
     ///@{
 
+    class SubRegistryItemFunctor
+    {
+    public:
+        template<class... TArgumentsList>
+        static inline RegistryItem::Pointer Create(
+            std::string const& ItemName,
+            TArgumentsList&&... Arguments)
+        {
+            return Kratos::make_shared<RegistryItem>(ItemName);
+        }
+    };
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+    template<typename TItemType>
+    class SubValueItemFunctor
+    {
+    public:
+        template<class... TArgumentsList, class TFunctionType = std::function<std::shared_ptr<TItemType>(TArgumentsList...)>>
+        static inline RegistryItem::Pointer Create(
+            std::string const& ItemName,
+            TFunctionType && Function)
+        {
+            return Kratos::make_shared<RegistryItem>(ItemName, std::forward<TFunctionType>(Function));
+        }
 
+        template<class... TArgumentsList>
+        static inline RegistryItem::Pointer Create(
+            std::string const& ItemName,
+            TArgumentsList&&... Arguments)
+        {
+            return Kratos::make_shared<RegistryItem>(ItemName, Kratos::make_shared<TItemType>(std::forward<TArgumentsList>(Arguments)...));
+        }
 
-    ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
+    };
 
     ///@}
     ///@name Un accessible methods
     ///@{
 
-    /// Assignment operator.
-    RegistryItem& operator=(RegistryItem const& rOther);
+    std::string GetValueString() const;
 
-    /// Copy constructor.
-    RegistryItem(RegistryItem const& rOther);
+    SubRegistryItemType& GetSubRegistryItemMap();
+
+    SubRegistryItemType& GetSubRegistryItemMap() const;
 
     ///@}
+
 }; // Class RegistryItem
-
-///@}
-///@name Type Definitions
-///@{
-
 
 ///@}
 ///@name Input and output

@@ -98,9 +98,9 @@ namespace Testing
         std::vector<double> expected_LHS = {11.5051, 5.75253,
                                             5.75253, 11.5051};
         for (unsigned int i = 0; i < 2; ++i) {
-            KRATOS_CHECK_NEAR(RHS(i), expected_RHS[i], 1.0e-2);
+            KRATOS_EXPECT_NEAR(RHS(i), expected_RHS[i], 1.0e-2);
             for (unsigned int j = 0; j < 2; ++j) {
-                KRATOS_CHECK_NEAR(LHS(i,j), expected_LHS[i*2+j], 1.0e-4);
+                KRATOS_EXPECT_NEAR(LHS(i,j), expected_LHS[i*2+j], 1.0e-4);
             }
         }
     }
@@ -145,9 +145,9 @@ namespace Testing
                                             1.43813, 2.87627, 1.43813,
                                             1.43813, 1.43813, 2.87627};
         for (unsigned int i = 0; i < 3; ++i) {
-            KRATOS_CHECK_NEAR(RHS(i), expected_RHS[i], 1.0e-3);
+            KRATOS_EXPECT_NEAR(RHS(i), expected_RHS[i], 1.0e-3);
             for (unsigned int j = 0; j < 3; ++j) {
-                KRATOS_CHECK_NEAR(LHS(i,j), expected_LHS[i*3+j], 1.0e-5);
+                KRATOS_EXPECT_NEAR(LHS(i,j), expected_LHS[i*3+j], 1.0e-5);
             }
         }
     }
@@ -195,9 +195,9 @@ namespace Testing
                                             0.958756, 1.91751, 3.83502, 1.91751,
                                             1.91751, 0.958756, 1.91751, 3.83502};
         for (unsigned int i = 0; i < 4; ++i) {
-            KRATOS_CHECK_NEAR(RHS(i), expected_RHS[i], 1.0e-3);
+            KRATOS_EXPECT_NEAR(RHS(i), expected_RHS[i], 1.0e-3);
             for (unsigned int j = 0; j < 4; ++j) {
-                KRATOS_CHECK_NEAR(LHS(i,j), expected_LHS[i*4+j], 1.0e-5);
+                KRATOS_EXPECT_NEAR(LHS(i,j), expected_LHS[i*4+j], 1.0e-5);
             }
         }
     }

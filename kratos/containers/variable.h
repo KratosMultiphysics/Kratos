@@ -24,6 +24,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/registry.h"
 #include "variable_data.h"
 #include "utilities/stl_vector_io.h"
 
@@ -95,6 +96,7 @@ public:
           mZero(Zero),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {
+        RegisterThisVariable();
     }
     /**
      * @brief Constructor with specific name and zero value
@@ -109,7 +111,8 @@ public:
           mZero(TDataType()),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {
-    }
+         RegisterThisVariable();
+   }
 
     /**
      * @brief Constructor for creating a component of other variable
@@ -126,6 +129,7 @@ public:
         : VariableData(rNewName, sizeof(TDataType), pSourceVariable, ComponentIndex),
           mZero(Zero)
     {
+        RegisterThisVariable();
     }
 
     /**
@@ -146,6 +150,7 @@ public:
           mZero(Zero),
           mpTimeDerivativeVariable(pTimeDerivativeVariable)
     {
+        RegisterThisVariable();
     }
 
     /**
@@ -158,6 +163,7 @@ public:
         mZero(rOtherVariable.mZero),
         mpTimeDerivativeVariable(rOtherVariable.mpTimeDerivativeVariable)
     {
+        // Here we don't register as we asume that the origin is already registered
     }
 
     /// Destructor.
@@ -426,9 +432,7 @@ protected:
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -465,6 +469,13 @@ private:
     const TDataType& GetValueByIndex(const TValueType* pValue, std::size_t index) const
     {
         return *static_cast<const TDataType*>(pValue + index);
+    }
+
+    void RegisterThisVariable(){
+        std::string variable_path = "variables.all." + Name();
+        if(!Registry::HasItem(variable_path)){
+            Registry::AddItem<VariableType>(variable_path, *this);
+        }
     }
 
     ///@}

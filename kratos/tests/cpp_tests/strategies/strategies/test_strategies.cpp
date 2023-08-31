@@ -57,7 +57,7 @@ namespace Kratos
         /// Tests
         // NOTE: The strategies test many things simulataneously
         // TODO: Create test for the other components
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
         typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
         typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
@@ -173,8 +173,8 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
@@ -221,8 +221,8 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
@@ -275,8 +275,8 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepReactionValue()), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.0), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepReactionValue()), tolerance);
                 }
             }
         }
@@ -335,7 +335,7 @@ namespace Kratos
                 pstrategy->Solve();
 
                 for (auto it= Doftemp.begin(); it!= Doftemp.end(); it++) {
-                    KRATOS_CHECK_LESS_EQUAL(std::abs(it->GetSolutionStepValue() - 1.25), tolerance);
+                    KRATOS_EXPECT_LE(std::abs(it->GetSolutionStepValue() - 1.25), tolerance);
                 }
             }
         }

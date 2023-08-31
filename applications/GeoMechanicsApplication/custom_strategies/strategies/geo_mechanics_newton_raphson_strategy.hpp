@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_MECHANICS_NEWTON_RAPHSON_STRATEGY)
-#define KRATOS_GEO_MECHANICS_NEWTON_RAPHSON_STRATEGY
+#pragma once
 
 // Project includes
 #include "includes/define.h"
@@ -30,19 +29,17 @@ template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GeoMechanicsNewtonRaphsonStrategy :
   public ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(GeoMechanicsNewtonRaphsonStrategy);
 
-    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              BaseType;
-    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> MotherType;
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>                 TConvergenceCriteriaType;
-    typedef typename BaseType::TBuilderAndSolverType                          TBuilderAndSolverType;
-    typedef typename BaseType::TSchemeType                                              TSchemeType;
-    typedef typename BaseType::DofsArrayType                                          DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType                                  TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType                                  TSystemVectorType;
+    using BaseType                 = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using MotherType               = ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using TConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
+    using TBuilderAndSolverType    = typename BaseType::TBuilderAndSolverType;
+    using TSchemeType              = typename BaseType::TSchemeType;
+    using DofsArrayType            = typename BaseType::DofsArrayType;
+    using TSystemMatrixType        = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType        = typename BaseType::TSystemVectorType;
     using MotherType::mpScheme;
     using MotherType::mpBuilderAndSolver;
     using MotherType::mpA; //Tangent matrix
@@ -51,8 +48,6 @@ public:
     using MotherType::mMaxIterationNumber;
     using MotherType::mInitializeWasPerformed;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    ///Constructor
     /**
      * @brief Default constructor 
      * @param rModelPart The model part of the problem
@@ -92,18 +87,15 @@ public:
                     "number_cycles":    5,
                     "increase_factor":  2.0,
                     "reduction_factor": 0.5,
-                    "end_time": 1.0,
-                    "realised_factor": 1.0,
-					
-					"max_piping_iterations": 50,
-
+                    "max_piping_iterations": 50,
                     "desired_iterations": 4,
                     "max_radius_factor": 20.0,
                     "min_radius_factor": 0.5,
                     "search_neighbours_step": false,
                     "body_domain_sub_model_part_list": [],
                     "loads_sub_model_part_list": [],
-                    "loads_variable_list" : []
+                    "loads_variable_list" : [],
+                    "rebuild_level": 2
                 }  )" );
 
             // Validate agains defaults -- this also ensures no type mismatch
@@ -128,35 +120,20 @@ public:
             }
         }
 
-    //------------------------------------------------------------------------------------
-
-    ///Destructor
-    ~GeoMechanicsNewtonRaphsonStrategy() override {}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
-
     /// Member Variables
     Parameters* mpParameters;
     std::vector<ModelPart*> mSubModelPartList; /// List of every SubModelPart associated to an external load
     std::vector<std::string> mVariableNames; /// Name of the nodal variable associated to every SubModelPart
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     int Check() override
     {
         KRATOS_TRY
 
-        int ierr = MotherType::Check();
-        if(ierr != 0) return ierr;
-
-        return ierr;
+        return MotherType::Check();
 
         KRATOS_CATCH( "" )
     }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     double CalculateReferenceDofsNorm(DofsArrayType& rDofSet)
     {
@@ -171,7 +148,7 @@ protected:
             int k = OpenMPUtils::ThisThread();
 
             typename DofsArrayType::iterator DofsBegin = rDofSet.begin() + DofSetPartition[k];
-            typename DofsArrayType::iterator DofsEnd = rDofSet.begin() + DofSetPartition[k+1];
+            typename DofsArrayType::iterator DofsEnd   = rDofSet.begin() + DofSetPartition[k+1];
 
             for (typename DofsArrayType::iterator itDof = DofsBegin; itDof != DofsEnd; ++itDof)
             {
@@ -185,14 +162,6 @@ protected:
 
         return sqrt(ReferenceDofsNorm);
     }
-
-private:
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-
 }; // Class GeoMechanicsNewtonRaphsonStrategy
 
-} // namespace Kratos
-
-#endif // KRATOS_GEO_MECHANICS_NEWTON_RAPHSON_STRATEGY  defined
+}

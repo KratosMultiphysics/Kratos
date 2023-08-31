@@ -35,7 +35,7 @@ namespace Kratos
 
       // Public methods
       void SetThermalIntegrationSchemeInProperties (Properties::Pointer pProp, bool verbose = true) const override;
-      void UpdateTemperature                       (Node<3>& i, const double delta_t, const double c) override;
+      void UpdateTemperature                       (Node& i, const double delta_t, const double c) override;
 
       // Clone
       ThermalDEMIntegrationScheme* CloneRaw() const override {

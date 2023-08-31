@@ -37,10 +37,10 @@ namespace Kratos
       typedef ParticleWeakVectorType::ptr_iterator    ParticleWeakIteratorType_ptr;
       typedef GlobalPointersVector<Element>::iterator ParticleWeakIteratorType;
 
-      typedef Node<3>                             NodeType;
+      typedef Node                             NodeType;
       typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
       typedef std::size_t                         IndexType;
-      typedef Geometry<Node<3>>                   GeometryType;
+      typedef Geometry<Node>                   GeometryType;
       typedef Properties                          PropertiesType;
 
       // Definitions
@@ -116,14 +116,14 @@ namespace Kratos
       double ComputeMeanConductivity             (void);
 
       // Get/Set methods
-      ThermalDEMIntegrationScheme& GetThermalIntegrationScheme   (void);
-      NumericalIntegrationMethod&  GetNumericalIntegrationMethod (void);
       HeatExchangeMechanism&       GetDirectConductionModel      (void);
       HeatExchangeMechanism&       GetIndirectConductionModel    (void);
       HeatExchangeMechanism&       GetConvectionModel            (void);
       HeatExchangeMechanism&       GetRadiationModel             (void);
       HeatGenerationMechanism&     GetGenerationModel            (void);
       RealContactModel&            GetRealContactModel           (void);
+      ThermalDEMIntegrationScheme& GetThermalIntegrationScheme   (void);
+      NumericalIntegrationMethod&  GetNumericalIntegrationMethod (void);
 
       double GetYoung   (void) override;
       double GetPoisson (void) override;
@@ -134,7 +134,6 @@ namespace Kratos
       array_1d<double,3> GetParticleAngularVelocity           (void);
       double             GetParticleTemperature               (void);
       double             GetParticleRadius                    (void);
-      double             GetParticleSurfaceArea               (void);
       double             GetParticleCharacteristicLength      (void);
       double             GetParticleVolume                    (void);
       double             GetParticleYoung                     (void);
@@ -175,14 +174,14 @@ namespace Kratos
       double             GetContactRollingFrictionCoefficient (void);
       ContactParams      GetContactParameters                 (void);
 
-      void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
-      void               SetNumericalIntegrationMethod        (NumericalIntegrationMethod::Pointer& method);
       void               SetDirectConductionModel             (HeatExchangeMechanism::Pointer& model);
       void               SetIndirectConductionModel           (HeatExchangeMechanism::Pointer& model);
       void               SetConvectionModel                   (HeatExchangeMechanism::Pointer& model);
       void               SetRadiationModel                    (HeatExchangeMechanism::Pointer& model);
       void               SetGenerationModel                   (HeatGenerationMechanism::Pointer& model);
       void               SetRealContactModel                  (RealContactModel::Pointer& model);
+      void               SetThermalIntegrationScheme          (ThermalDEMIntegrationScheme::Pointer& scheme);
+      void               SetNumericalIntegrationMethod        (NumericalIntegrationMethod::Pointer& method);
       void               SetParticleTemperature               (const double temperature);
       void               SetParticleHeatFlux                  (const double heat_flux);
       void               SetParticlePrescribedHeatFluxSurface (const double heat_flux);
@@ -192,17 +191,26 @@ namespace Kratos
       void               SetParticleMomentInertia             (const double moment_inertia);
       void               SetParticleRealYoungRatio            (const double ratio);
 
+      // DIMENSION DEPENDENT METHODS (DIFFERENT FOR 2D AND 3D)
+      // ATTENTION:
+      // METHODS INEHERITED IN CYLINDER PARTICLE (2D) FROM SPEHRIC PARTICLE ARE REIMPLEMENTED HERE
+      // THIS IS TO AVOID MAKING THERMAL PARTICLE A TEMPALTE CLASS TO INHERIT FROM CYLINDER PARTICLE
+      double CalculateVolume          (void) override;
+      double CalculateMomentOfInertia (void) override;
+      double GetParticleSurfaceArea   (void);
+
       // Pointers to auxiliary objects
-      ThermalDEMIntegrationScheme* mpThermalIntegrationScheme;
-      NumericalIntegrationMethod*  mpNumericalIntegrationMethod;
       HeatExchangeMechanism*       mpDirectConductionModel;
       HeatExchangeMechanism*       mpIndirectConductionModel;
       HeatExchangeMechanism*       mpConvectionModel;
       HeatExchangeMechanism*       mpRadiationModel;
       HeatGenerationMechanism*     mpGenerationModel;
       RealContactModel*            mpRealContactModel;
+      ThermalDEMIntegrationScheme* mpThermalIntegrationScheme;
+      NumericalIntegrationMethod*  mpNumericalIntegrationMethod;
 
       // General properties
+      unsigned int mDimension;           // dimension (2D or 3D)
       unsigned int mNumStepsEval;        // number of steps passed since last thermal evaluation
       double       mPreviousTemperature; // temperature from the beginning of the step
       bool         mIsTimeToSolve;       // flag to solve thermal problem in current step
@@ -229,9 +237,17 @@ namespace Kratos
       double mTotalHeatFlux;
 
       // Energy properties
-      double mPreviousViscodampingEnergy; // accumulated energy dissipation from previous interaction:   viscodamping 
-      double mPreviousFrictionalEnergy;   // accumulated energy dissipation from previous interaction:   frictional
-      double mPreviousRollResistEnergy;   // accumulated energy dissipation from previous interaction:   rolling resistance
+      double mPreviousViscodampingEnergy; // accumulated energy dissipation from previous interaction: viscodamping 
+      double mPreviousFrictionalEnergy;   // accumulated energy dissipation from previous interaction: frictional
+      double mPreviousRollResistEnergy;   // accumulated energy dissipation from previous interaction: rolling resistance
+
+      // Heat maps
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationDampingPP;  // Local heat map matrix for heat generaion by damping between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationDampingPW;  // Local heat map matrix for heat generaion by damping between particle-wall
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationSlidingPP;  // Local heat map matrix for heat generaion by sliding between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationSlidingPW;  // Local heat map matrix for heat generaion by sliding between particle-wall
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationRollingPP;  // Local heat map matrix for heat generaion by rolling between particle-particle
+      std::vector<std::vector<std::vector<double>>> mHeatMapGenerationRollingPW;  // Local heat map matrix for heat generaion by rolling between particle-wall
 
       // Interaction properties
       bool   mNeighborInContact;          // flag for contact interaction

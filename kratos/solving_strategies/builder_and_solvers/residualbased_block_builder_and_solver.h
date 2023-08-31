@@ -5,14 +5,14 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //  Collaborators:   Vicente Mataix
 //
 //
-#if !defined(KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER )
-#define  KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER
+
+#pragma once
 
 /* System includes */
 #include <unordered_set>
@@ -34,6 +34,7 @@
 #include "utilities/sparse_matrix_multiplication_utility.h"
 #include "utilities/builtin_timer.h"
 #include "utilities/atomic_utilities.h"
+#include "spaces/ublas_space.h"
 
 namespace Kratos
 {
@@ -58,7 +59,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class ResidualBasedEliminationBuilderAndSolver
+ * @class ResidualBasedBlockBuilderAndSolver
  * @ingroup KratosCore
  * @brief Current class provides an implementation for standard builder and solving operations.
  * @details The RHS is constituted by the unbalanced loads (residual)
@@ -66,7 +67,7 @@ namespace Kratos
  * the end of the system ordered in reverse order with respect to the DofSet.
  * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
  * this information.
- * Calculation of the reactions involves a cost very similiar to the calculation of the total residual
+ * Calculation of the reactions involves a cost very similar to the calculation of the total residual
  * @tparam TSparseSpace The sparse system considered
  * @tparam TDenseSpace The dense system considered
  * @tparam TLinearSolver The linear solver considered
@@ -85,9 +86,6 @@ public:
 
     /// Definition of the flags
     KRATOS_DEFINE_LOCAL_FLAG( SILENT_WARNINGS );
-
-    // Scaling enum
-    enum class SCALING_DIAGONAL {NO_SCALING = 0, CONSIDER_NORM_DIAGONAL = 1, CONSIDER_MAX_DIAGONAL = 2, CONSIDER_PRESCRIBED_DIAGONAL = 3};
 
     /// Definition of the pointer
     KRATOS_CLASS_POINTER_DEFINITION(ResidualBasedBlockBuilderAndSolver);
@@ -123,7 +121,7 @@ public:
     typedef boost::numeric::ublas::compressed_matrix<double> CompressedMatrixType;
 
     /// DoF types definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef typename NodeType::DofType DofType;
     typedef typename DofType::Pointer DofPointerType;
 
@@ -157,7 +155,6 @@ public:
     explicit ResidualBasedBlockBuilderAndSolver(typename TLinearSolver::Pointer pNewLinearSystemSolver)
         : BaseType(pNewLinearSystemSolver)
     {
-        mScalingDiagonal = SCALING_DIAGONAL::NO_SCALING;
     }
 
     /** Destructor.
@@ -229,51 +226,34 @@ public:
         #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
         {
             # pragma omp for  schedule(guided, 512) nowait
-            for (int k = 0; k < nelements; k++)
-            {
-                ModelPart::ElementsContainerType::iterator it = el_begin + k;
+            for (int k = 0; k < nelements; k++) {
+                auto it_elem = el_begin + k;
 
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    element_is_active = (it)->Is(ACTIVE);
+                if (it_elem->IsActive()) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                if (element_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
+                    // Assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
 
             }
 
             #pragma omp for  schedule(guided, 512)
-            for (int k = 0; k < nconditions; k++)
-            {
-                ModelPart::ConditionsContainerType::iterator it = cond_begin + k;
+            for (int k = 0; k < nconditions; k++) {
+                auto it_cond = cond_begin + k;
 
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool condition_is_active = true;
-                if ((it)->IsDefined(ACTIVE))
-                    condition_is_active = (it)->Is(ACTIVE);
+                if (it_cond->IsActive()) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
-                if (condition_is_active)
-                {
-                    //calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*it, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
-                    //assemble the elemental contribution
+                    // Assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
             }
         }
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
-
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
@@ -282,7 +262,7 @@ public:
 
     /**
      * @brief Function to perform the building of the LHS
-     * @details Depending on the implementation choosen the size of the matrix could
+     * @details Depending on the implementation chosen the size of the matrix could
      * be equal to the total number of Dofs or to the number of unrestrained dofs
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
@@ -324,18 +304,13 @@ public:
                 auto it_elem = it_elem_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool element_is_active = true;
-                if (it_elem->IsDefined(ACTIVE))
-                    element_is_active = it_elem->Is(ACTIVE);
-
-                if (element_is_active) {
+                if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_elem, lhs_contribution, equation_id, r_current_process_info);
 
                     // Assemble the elemental contribution
                     AssembleLHS(rA, lhs_contribution, equation_id);
                 }
-
             }
 
             #pragma omp for  schedule(guided, 512)
@@ -343,12 +318,7 @@ public:
                 auto it_cond = it_cond_begin + k;
 
                 // Detect if the element is active or not. If the user did not make any choice the element is active by default
-                bool condition_is_active = true;
-                if (it_cond->IsDefined(ACTIVE))
-                    condition_is_active = it_cond->Is(ACTIVE);
-
-                if (condition_is_active)
-                {
+                if (it_cond->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateLHSContribution(*it_cond, lhs_contribution, equation_id, r_current_process_info);
 
@@ -422,7 +392,7 @@ public:
             TSparseSpace::Mult(mT, Dxmodified, Dx);
         }
 
-        //prints informations about the current time
+        //prints information about the current time
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -490,7 +460,7 @@ public:
             KRATOS_WARNING_IF("ResidualBasedBlockBuilderAndSolver", mOptions.IsNot(SILENT_WARNINGS)) << "ATTENTION! setting the RHS to zero!" << std::endl;
         }
 
-        // Prints informations about the current time
+        // Prints information about the current time
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 1) << *(BaseType::mpLinearSystemSolver) << std::endl;
 
         KRATOS_CATCH("")
@@ -552,7 +522,7 @@ public:
      * @param pScheme The pointer to the integration scheme
      * @param rModelPart The model part to compute
      * @param rA The LHS matrix of the system of equations
-     * @param rDx The vector of unkowns
+     * @param rDx The vector of unknowns
      * @param rb The RHS vector of the system of equations
      * @param MoveMesh tells if the update of the scheme needs  to be performed when calling the Update of the scheme
      */
@@ -566,7 +536,7 @@ public:
         ) override
     {
         Timer::Start("Linearizing on Old iteration");
-             
+
         KRATOS_INFO_IF("BlockBuilderAndSolver", this->GetEchoLevel() > 0) << "Linearizing on Old iteration" << std::endl;
 
         KRATOS_ERROR_IF(rModelPart.GetBufferSize() == 1) << "BlockBuilderAndSolver: \n"
@@ -595,7 +565,7 @@ public:
         // The goal is that the stiffness is computed with the
         // converged configuration at the end of the previous step.
         block_for_each(BaseType::mDofSet, [&](Dof<double>& rDof){
-            // NOTE: this is initialzed to - the value of dx prediction
+            // NOTE: this is initialized to - the value of dx prediction
             dx_prediction[rDof.EquationId()] = -(rDof.GetSolutionStepValue() - rDof.GetSolutionStepValue(1));
 
         });
@@ -605,13 +575,13 @@ public:
         if (MoveMesh) {
             VariableUtils().UpdateCurrentPosition(rModelPart.Nodes(),DISPLACEMENT,0);
         }
-             
+
         Timer::Stop("Linearizing on Old iteration");
 
         Timer::Start("Build");
-             
+
         this->Build(pScheme, rModelPart, rA, rb);
-             
+
         Timer::Stop("Build");
 
         // Put back the prediction into the database
@@ -641,11 +611,11 @@ public:
             KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
         }
         this->ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
-             
+
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "Before the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
-            
+
         const auto timer = BuiltinTimer();
-             
+
         Timer::Start("Solve");
 
         this->SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
@@ -654,7 +624,6 @@ public:
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
-
     }
 
     /**
@@ -695,7 +664,6 @@ public:
         Timer::Stop("Solve");
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >=1) << "System solve time: " << timer.ElapsedSeconds() << std::endl;
 
-
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
         KRATOS_CATCH("")
@@ -734,7 +702,7 @@ public:
     /**
      * @brief Builds the list of the DofSets involved in the problem by "asking" to each element
      * and condition its Dofs.
-     * @details The list of dofs is stores insde the BuilderAndSolver as it is closely connected to the
+     * @details The list of dofs is stores inside the BuilderAndSolver as it is closely connected to the
      * way the matrix and RHS are built
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
@@ -917,7 +885,7 @@ public:
         {
             if (A.size1() != BaseType::mEquationSystemSize || A.size2() != BaseType::mEquationSystemSize)
             {
-                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permited."<<std::endl;
+                KRATOS_ERROR <<"The equation system size has changed during the simulation. This is not permitted."<<std::endl;
                 A.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, true);
                 ConstructMatrixStructure(pScheme, A, rModelPart);
             }
@@ -960,9 +928,9 @@ public:
 
     /**
      * @brief Applies the dirichlet conditions. This operation may be very heavy or completely
-     * unexpensive depending on the implementation choosen and on how the System Matrix is built.
+     * unexpensive depending on the implementation chosen and on how the System Matrix is built.
      * @details For explanation of how it works for a particular implementation the user
-     * should refer to the particular Builder And Solver choosen
+     * should refer to the particular Builder And Solver chosen
      * @param pScheme The integration scheme considered
      * @param rModelPart The model part of the problem to solve
      * @param rA The LHS matrix
@@ -992,32 +960,12 @@ public:
             }
         });
 
+        // Detect if there is a line of all zeros and set the diagonal to a certain number (1 if not scale, some norms values otherwise) if this happens
+        mScaleFactor = TSparseSpace::CheckAndCorrectZeroDiagonalValues(rModelPart.GetProcessInfo(), rA, rb, mScalingDiagonal);
+
         double* Avalues = rA.value_data().begin();
         std::size_t* Arow_indices = rA.index1_data().begin();
         std::size_t* Acol_indices = rA.index2_data().begin();
-
-        // The diagonal considered
-        mScaleFactor = GetScaleNorm(rModelPart, rA);
-
-        // Detect if there is a line of all zeros and set the diagonal to a 1 if this happens
-        IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
-            bool empty = true;
-
-            const std::size_t col_begin = Arow_indices[Index];
-            const std::size_t col_end = Arow_indices[Index + 1];
-
-            for (std::size_t j = col_begin; j < col_end; ++j) {
-                if(Avalues[j] != 0.0) {
-                    empty = false;
-                    break;
-                }
-            }
-
-            if(empty) {
-                rA(Index, Index) = mScaleFactor;
-                rb[Index] = 0.0;
-            }
-        });
 
         IndexPartition<std::size_t>(system_size).for_each([&](std::size_t Index){
             const std::size_t col_begin = Arow_indices[Index];
@@ -1111,13 +1059,14 @@ public:
             SparseMatrixMultiplicationUtility::MatrixMultiplication(auxiliar_A_matrix, mT, rA); //A = auxilar * T   NOTE: here we are overwriting the old A matrix!
             auxiliar_A_matrix.resize(0, 0, false);                                              //free memory
 
-            const double max_diag = GetMaxDiagonal(rA);
+            // Compute the scale factor value
+            mScaleFactor = TSparseSpace::GetScaleNorm(rModelPart.GetProcessInfo(), rA, mScalingDiagonal);
 
             // Apply diagonal values on slaves
             IndexPartition<std::size_t>(mSlaveIds.size()).for_each([&](std::size_t Index){
                 const IndexType slave_equation_id = mSlaveIds[Index];
                 if (mInactiveSlaveDofs.find(slave_equation_id) == mInactiveSlaveDofs.end()) {
-                    rA(slave_equation_id, slave_equation_id) = max_diag;
+                    rA(slave_equation_id, slave_equation_id) = mScaleFactor;
                     rb[slave_equation_id] = 0.0;
                 }
             });
@@ -1188,6 +1137,44 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief This method returns constraint relation (T) matrix
+     * @return The constraint relation (T) matrix
+     */
+    typename TSparseSpace::MatrixType& GetConstraintRelationMatrix() override
+    {
+        return mT;
+    }
+
+    /**
+     * @brief This method returns constraint constant vector
+     * @return The constraint constant vector
+     */
+    typename TSparseSpace::VectorType& GetConstraintConstantVector() override
+    {
+        return mConstantVector;
+    }
+
+    /**
+    * @brief Retrieves the current scale factor.
+    * This function returns the current scale factor value.
+    * @return Returns the current scale factor.
+    */
+    double GetScaleFactor()
+    {
+        return mScaleFactor;
+    }
+
+    /**
+    * @brief Sets the scale factor.
+    * This function sets a new value for the scale factor.
+    * @param ScaleFactor The new value for the scale factor.
+    */
+    void SetScaleFactor(const double ScaleFactor)
+    {
+        mScaleFactor = ScaleFactor;
+    }
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -1228,15 +1215,15 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    TSystemMatrixType mT;              /// This is matrix containing the global relation for the constraints
-    TSystemVectorType mConstantVector; /// This is vector containing the rigid movement of the constraint
-    std::vector<IndexType> mSlaveIds;  /// The equation ids of the slaves
-    std::vector<IndexType> mMasterIds; /// The equation ids of the master
+    TSystemMatrixType mT;                             /// This is matrix containing the global relation for the constraints
+    TSystemVectorType mConstantVector;                /// This is vector containing the rigid movement of the constraint
+    std::vector<IndexType> mSlaveIds;                 /// The equation ids of the slaves
+    std::vector<IndexType> mMasterIds;                /// The equation ids of the master
     std::unordered_set<IndexType> mInactiveSlaveDofs; /// The set containing the inactive slave dofs
-    double mScaleFactor = 1.0;         /// The manuallyset scale factor
+    double mScaleFactor = 1.0;                        /// The manually set scale factor
 
-    SCALING_DIAGONAL mScalingDiagonal; /// We identify the scaling considered for the dirichlet dofs
-    Flags mOptions;                    /// Some flags used internally
+    SCALING_DIAGONAL mScalingDiagonal = SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL; /// We identify the scaling considered for the dirichlet dofs
+    Flags mOptions;                                                              /// Some flags used internally
 
     ///@}
     ///@name Protected Operators
@@ -1278,14 +1265,8 @@ protected:
             #pragma omp for schedule(guided, 512) nowait
             for (int i=0; i<nelements; i++) {
                 typename ElementsArrayType::iterator it = pElements.begin() + i;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool element_is_active = true;
-                if( (it)->IsDefined(ACTIVE) ) {
-                    element_is_active = (it)->Is(ACTIVE);
-                }
-
-                if(element_is_active) {
+                // If the element is active
+                if(it->IsActive()) {
                     //calculate elemental Right Hand Side Contribution
                     pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -1302,14 +1283,8 @@ protected:
             #pragma omp for schedule(guided, 512)
             for (int i = 0; i<nconditions; i++) {
                 auto it = ConditionsArray.begin() + i;
-                //detect if the element is active or not. If the user did not make any choice the element
-                //is active by default
-                bool condition_is_active = true;
-                if( (it)->IsDefined(ACTIVE) ) {
-                    condition_is_active = (it)->Is(ACTIVE);
-                }
-
-                if(condition_is_active) {
+                // If the condition is active
+                if(it->IsActive()) {
                     //calculate elemental contribution
                     pScheme->CalculateRHSContribution(*it, RHS_Contribution, EquationId, CurrentProcessInfo);
 
@@ -1329,16 +1304,13 @@ protected:
             Timer::Start("ConstraintsRelationMatrixStructure");
             const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-            // Vector containing the localization in the system of the different terms
-            DofsVectorType slave_dof_list, master_dof_list;
-
             // Constraint initial iterator
             const auto it_const_begin = rModelPart.MasterSlaveConstraints().begin();
             std::vector<std::unordered_set<IndexType>> indices(BaseType::mDofSet.size());
 
             std::vector<LockObject> lock_array(indices.size());
 
-            #pragma omp parallel firstprivate(slave_dof_list, master_dof_list)
+            #pragma omp parallel
             {
                 Element::EquationIdVectorType slave_ids(3);
                 Element::EquationIdVectorType master_ids(3);
@@ -1347,29 +1319,19 @@ protected:
                 #pragma omp for schedule(guided, 512) nowait
                 for (int i_const = 0; i_const < static_cast<int>(rModelPart.MasterSlaveConstraints().size()); ++i_const) {
                     auto it_const = it_const_begin + i_const;
+                    it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
 
-                    // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                    // It is active by default
-                    bool constraint_is_active = true;
-                    if( it_const->IsDefined(ACTIVE) ) {
-                        constraint_is_active = it_const->Is(ACTIVE);
-                    }
-
-                    if(constraint_is_active) {
-                        it_const->EquationIdVector(slave_ids, master_ids, r_current_process_info);
-
-                        // Slave DoFs
-                        for (auto &id_i : slave_ids) {
-                            temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
-                        }
+                    // Slave DoFs
+                    for (auto &id_i : slave_ids) {
+                        temp_indices[id_i].insert(master_ids.begin(), master_ids.end());
                     }
                 }
 
                 // Merging all the temporal indexes
-                for (int i = 0; i < static_cast<int>(temp_indices.size()); ++i) {
-                    lock_array[i].lock();
-                    indices[i].insert(temp_indices[i].begin(), temp_indices[i].end());
-                    lock_array[i].unlock();
+                for (auto& pair_temp_indices : temp_indices) {
+                    lock_array[pair_temp_indices.first].lock();
+                    indices[pair_temp_indices.first].insert(pair_temp_indices.second.begin(), pair_temp_indices.second.end());
+                    lock_array[pair_temp_indices.first].unlock();
                 }
             }
 
@@ -1384,9 +1346,7 @@ protected:
             }
 
             // Count the row sizes
-            std::size_t nnz = 0;
-            for (IndexType i = 0; i < indices.size(); ++i)
-                nnz += indices[i].size();
+            const std::size_t nnz = block_for_each<SumReduction<std::size_t>>(indices, [](auto& rIndices) {return rIndices.size();});
 
             mT = TSystemMatrixType(indices.size(), indices.size(), nnz);
             mConstantVector.resize(indices.size(), false);
@@ -1431,9 +1391,6 @@ protected:
         // The current process info
         const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
 
-        // Vector containing the localization in the system of the different terms
-        DofsVectorType slave_dof_list, master_dof_list;
-
         // Contributions to the system
         Matrix transformation_matrix = LocalSystemMatrixType(0, 0);
         Vector constant_vector = LocalSystemVectorType(0);
@@ -1453,16 +1410,11 @@ protected:
             #pragma omp for schedule(guided, 512)
             for (int i_const = 0; i_const < number_of_constraints; ++i_const) {
                 auto it_const = rModelPart.MasterSlaveConstraints().begin() + i_const;
+                it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
-                // Detect if the constraint is active or not. If the user did not make any choice the constraint
-                // It is active by default
-                bool constraint_is_active = true;
-                if (it_const->IsDefined(ACTIVE))
-                    constraint_is_active = it_const->Is(ACTIVE);
-
-                if (constraint_is_active) {
+                // If the constraint is active
+                if (it_const->IsActive()) {
                     it_const->CalculateLocalSystem(transformation_matrix, constant_vector, r_current_process_info);
-                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
 
                     for (IndexType i = 0; i < slave_equation_ids.size(); ++i) {
                         const IndexType i_global = slave_equation_ids[i];
@@ -1476,7 +1428,6 @@ protected:
                         AtomicAdd(r_value, constant_value);
                     }
                 } else { // Taking into account inactive constraints
-                    it_const->EquationIdVector(slave_equation_ids, master_equation_ids, r_current_process_info);
                     auxiliar_inactive_slave_dofs.insert(slave_equation_ids.begin(), slave_equation_ids.end());
                 }
             }
@@ -1573,14 +1524,11 @@ protected:
 
         }
 
-        //destroy locks
+        // Destroy locks
         lock_array = std::vector< LockObject >();
 
-        //count the row sizes
-        unsigned int nnz = 0;
-        for (unsigned int i = 0; i < indices.size(); i++) {
-            nnz += indices[i].size();
-        }
+        // Count the row sizes
+        const std::size_t nnz = block_for_each<SumReduction<std::size_t>>(indices, [](auto& rIndices) {return rIndices.size();});
 
         A = CompressedMatrixType(indices.size(), indices.size(), nnz);
 
@@ -1709,128 +1657,6 @@ protected:
             last_found = id_to_find;
             last_pos = pos;
         }
-    }
-
-    /**
-     * @brief This method returns the scale norm considering for scaling the diagonal
-     * @param rModelPart The problem model part
-     * @param rA The LHS matrix
-     * @return The scale norm
-     */
-    double GetScaleNorm(
-        ModelPart& rModelPart,
-        TSystemMatrixType& rA
-        )
-    {
-        switch (mScalingDiagonal) {
-            case SCALING_DIAGONAL::NO_SCALING:
-                return 1.0;
-            case SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL: {
-                const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-                KRATOS_ERROR_IF_NOT(r_current_process_info.Has(BUILD_SCALE_FACTOR)) << "Scale factor not defined at process info" << std::endl;
-                return r_current_process_info.GetValue(BUILD_SCALE_FACTOR);
-            }
-            case SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL:
-                return GetDiagonalNorm(rA)/static_cast<double>(rA.size1());
-            case SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL:
-                return GetMaxDiagonal(rA);
-//                 return TSparseSpace::TwoNorm(rA)/static_cast<double>(rA.size1());
-            default:
-                return GetMaxDiagonal(rA);
-        }
-    }
-
-    /**
-     * @brief This method returns the diagonal norm considering for scaling the diagonal
-     * @param rA The LHS matrix
-     * @return The diagonal norm
-     */
-    double GetDiagonalNorm(TSystemMatrixType& rA)
-    {
-        double diagonal_norm = 0.0;
-        diagonal_norm = IndexPartition<std::size_t>(TSparseSpace::Size1(rA)).for_each<SumReduction<double>>([&](std::size_t Index){
-            return std::pow(rA(Index,Index), 2);
-        });
-
-        return std::sqrt(diagonal_norm);
-    }
-
-    /**
-     * @brief This method returns the diagonal max value
-     * @param rA The LHS matrix
-     * @return The diagonal  max value
-     */
-    double GetAveragevalueDiagonal(TSystemMatrixType& rA)
-    {
-        return 0.5 * (GetMaxDiagonal(rA) + GetMinDiagonal(rA));
-    }
-
-    /**
-     * @brief This method returns the diagonal max value
-     * @param rA The LHS matrix
-     * @return The diagonal  max value
-     */
-    double GetMaxDiagonal(TSystemMatrixType& rA)
-    {
-//         // NOTE: Reduction failing in MSVC
-//         double max_diag = 0.0;
-//         #pragma omp parallel for reduction(max:max_diag)
-//         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
-//             max_diag = std::max(max_diag, std::abs(rA(i,i)));
-//         }
-//         return max_diag;
-
-        // Creating a buffer for parallel vector fill
-        const int num_threads = ParallelUtilities::GetNumThreads();
-        Vector max_vector(num_threads, 0.0);
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
-            const int id = OpenMPUtils::ThisThread();
-            const double abs_value_ii = std::abs(rA(i,i));
-            if (abs_value_ii > max_vector[id])
-                max_vector[id] = abs_value_ii;
-        }
-
-        double max_diag = 0.0;
-        for(int i = 0; i < num_threads; ++i) {
-            max_diag = std::max(max_diag, max_vector[i]);
-        }
-        return max_diag;
-    }
-
-    /**
-     * @brief This method returns the diagonal min value
-     * @param rA The LHS matrix
-     * @return The diagonal min value
-     */
-    double GetMinDiagonal(TSystemMatrixType& rA)
-    {
-//         // NOTE: Reduction failing in MSVC
-//         double min_diag = std::numeric_limits<double>::max();
-//         #pragma omp parallel for reduction(min:min_diag)
-//         for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
-//             min_diag = std::min(min_diag, std::abs(rA(i,i)));
-//         }
-//         return min_diag;
-
-        // Creating a buffer for parallel vector fill
-        const int num_threads = ParallelUtilities::GetNumThreads();
-        Vector min_vector(num_threads, std::numeric_limits<double>::max());
-
-        #pragma omp parallel for
-        for(int i = 0; i < static_cast<int>(TSparseSpace::Size1(rA)); ++i) {
-            const int id = OpenMPUtils::ThisThread();
-            const double abs_value_ii = std::abs(rA(i,i));
-            if (abs_value_ii < min_vector[id])
-                min_vector[id] = abs_value_ii;
-        }
-
-        double min_diag = std::numeric_limits<double>::max();
-        for(int i = 0; i < num_threads; ++i) {
-            min_diag = std::min(min_diag, min_vector[i]);
-        }
-        return min_diag;
     }
 
     /**
@@ -1972,5 +1798,3 @@ const Kratos::Flags ResidualBasedBlockBuilderAndSolver<TSparseSpace, TDenseSpace
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUAL_BASED_BLOCK_BUILDER_AND_SOLVER  defined */

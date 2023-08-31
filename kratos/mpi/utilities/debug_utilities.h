@@ -13,9 +13,13 @@
 
 #pragma once
 
+// System includes
 #include <vector>
 #include <sstream>
 
+// External includes
+
+// Project includes
 #include "includes/model_part.h"
 #include "includes/parallel_environment.h"
 #include "utilities/global_pointer_utilities.h"
@@ -23,9 +27,10 @@
 #include "utilities/retrieve_global_pointers_by_index_functor.h"
 #include "utilities/get_value_functor.h"
 
-#define KRATOS_SINGLE_VARIABLE_TYPES bool, int, double, unsigned int
-#define KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES array_1d<double,3>, array_1d<double,4>, array_1d<double,6>, array_1d<double,9>
-#define KRATOS_UNBOUNDED_VECTOR_VARIABLE_TYPES Vector, Matrix
+#define KRATOS_SINGLE_VARIABLE_TYPES            bool, int, double, unsigned int
+#define KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES    array_1d<double,3>, array_1d<double,4>, array_1d<double,6>, array_1d<double,9>
+#define KRATOS_UNBOUNDED_VECTOR_VARIABLE_TYPES  Vector, Matrix
+
 namespace Kratos {
 
 class MpiDebugUtilities {
@@ -35,18 +40,18 @@ public:
 
     MpiDebugUtilities() {}
 
-    /* ==== Enable this once we move to C++17 ==== */
-    // template <class T, class... Ts>
-    // struct is_any : std::integral_constant<bool, (std::is_same<T, Ts>::value || ...)> {};
+    template <class T, class... Ts>
+    struct is_any : std::integral_constant<bool, (std::is_same<T, Ts>::value || ...)> {};
 
-    // template<class TVarType> struct is_kratos_single_variable : is_any<TVarType, KRATOS_SINGLE_VARIABLE_TYPES> {};
-    // template<class TVarType> struct is_kratos_bounded_vector_variable : is_any<TVarType, KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES> {};
-    // template<class TVarType> struct is_kratos_unbounded_vector_variable : is_any<TVarType, KRATOS_UNBOUNDED_VECTOR_VARIABLE_TYPES> {};
+    template<class TVarType> struct is_kratos_single_variable :                 is_any<TVarType, KRATOS_SINGLE_VARIABLE_TYPES> {};
+    template<class TVarType> struct is_kratos_bounded_vector_variable :         is_any<TVarType, KRATOS_BOUNDED_VECTOR_VARIABLE_TYPES> {};
+    template<class TVarType> struct is_kratos_unbounded_vector_variable :       is_any<TVarType, KRATOS_UNBOUNDED_VECTOR_VARIABLE_TYPES> {};
 
-    // template<class TVarType, class TReturnType> using EnalbeIfSingle = typename std::enable_if<is_kratos_single_variable<TVarType>::value, TReturnType>::type;
-    // template<class TVarType, class TReturnType> using EnalbeIfBoundedVector = typename std::enable_if<is_kratos_bounded_vector_variable<TVarType>::value, TReturnType>::type;
-    // template<class TVarType, class TReturnType> using EnalbeIfUnbounedVector = typename std::enable_if<is_kratos_unbounded_vector_variable<TVarType>::value, TReturnType>::type;
+    template<class TVarType, class TReturnType> using EnalbeIfSingle =          typename std::enable_if<is_kratos_single_variable<TVarType>::value, TReturnType>::type;
+    template<class TVarType, class TReturnType> using EnalbeIfBoundedVector =   typename std::enable_if<is_kratos_bounded_vector_variable<TVarType>::value, TReturnType>::type;
+    template<class TVarType, class TReturnType> using EnalbeIfUnbounedVector =  typename std::enable_if<is_kratos_unbounded_vector_variable<TVarType>::value, TReturnType>::type;
 
+    // Entrypoint to check all variables. Not yet tested
     // static void CheckNodalHistoricalDatabase(ModelPart & rModelPart) { 
     //     // Build the list of indices and the pointer communicator
     //     DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
@@ -61,7 +66,7 @@ public:
     //     auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(node_list, indices, r_default_comm );
     //     auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(node_list, indices, r_default_comm );
 
-    //     GlobalPointerCommunicator<Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+    //     GlobalPointerCommunicator<Node> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
     //     // Note: I think this can be change for an access function with std::tuple of the variables instead of a loop, but not in C++11/14
     //     for(auto & variableData: rModelPart.GetNodalSolutionStepVariablesList()) {
@@ -69,78 +74,22 @@ public:
     //         CheckNodalHistoricalVariable(rModelPart, variable, pointer_comm, gp_map);
     //     }
     // }
-    /* ==== Enable this once we move to C++17 ==== */
 
-    // Non historical Variables
-    static bool InteralCmpEq(const bool& rVar1, const bool& rVar2) 
+    // Trait Specialization
+    template<class TVarType>
+    static EnalbeIfSingle<TVarType, bool> InteralCmpEq(const TVarType& rVar1, const TVarType& rVar2) 
     {
         return rVar1 == rVar2;
     }
 
-    static bool InteralCmpEq(const int& rVar1, const int& rVar2) 
+    template<class TVarType>
+    static EnalbeIfBoundedVector<TVarType, bool> InteralCmpEq(const TVarType& rVar1, const TVarType& rVar2) 
     {
-        return rVar1 == rVar2;
-    }
-
-    static bool InteralCmpEq(const unsigned int& rVar1, const unsigned int& rVar2) 
-    {
-        return rVar1 == rVar2;
-    }
-
-    static bool InteralCmpEq(const double& rVar1, const double& rVar2) 
-    {
-        return rVar1 == rVar2;
-    }
-
-    static bool InteralCmpEq(const array_1d<double,3>& rVar1, const array_1d<double,3>& rVar2) 
-    {
-        for(int i = 0; i < 3; i++) {
+        for(typename TVarType::array_type::size_type i = 0; i < std::tuple_size<typename TVarType::array_type>::value; i++) {
             if(rVar1[i] != rVar2[i]) return false;
         }
         return true;
     }
-
-    static bool InteralCmpEq(const array_1d<double,4>& rVar1, const array_1d<double,4>& rVar2) 
-    {
-        for(int i = 0; i < 4; i++) {
-            if(rVar1[i] != rVar2[i]) return false;
-        }
-        return true;
-    }
-
-    static bool InteralCmpEq(const array_1d<double,6>& rVar1, const array_1d<double,6>& rVar2) 
-    {
-        for(int i = 0; i < 6; i++) {
-            if(rVar1[i] != rVar2[i]) return false;
-        }
-        return true;
-    }
-
-    static bool InteralCmpEq(const array_1d<double,9>& rVar1, const array_1d<double,9>& rVar2) 
-    {
-        for(int i = 0; i < 9; i++) {
-            if(rVar1[i] != rVar2[i]) return false;
-        }
-        return true;
-    }
-
-    /* ==== Enable this once we move to C++17 ==== */
-    // This will prevent having to specialize the functions inline and also will make them generic to all types having traits.
-    // template<class TVarType>
-    // static EnalbeIfSingle<TVarType, bool> InteralCmpEq(const TVarType& rVar1, const TVarType& rVar2) 
-    // {
-    //     return rVar1 == rVar2;
-    // }
-
-    // template<class TVarType>
-    // static EnalbeIfBoundedVector<TVarType, bool> InteralCmpEq(const TVarType& rVar1, const TVarType& rVar2) 
-    // {
-    //     for(typename TVarType::array_type::size_type i = 0; i < std::tuple_size<typename TVarType::array_type>::value; i++) {
-    //         if(rVar1[i] != rVar2[i]) return false;
-    //     }
-    //     return true;
-    // }
-    /* ==== Enable this once we move to C++17 ==== */
 
     template<class TVarType, class TContainerType>
     static void CheckNonHistoricalVariable(
@@ -180,7 +129,7 @@ public:
 
         // Create the data functior
         auto data_proxy = rPointerCommunicator.Apply(
-            [rVariable](GlobalPointer<typename TContainerType::data_type>& gp)-> typename TVarType::Type {
+            [&rVariable](GlobalPointer<typename TContainerType::data_type>& gp)-> typename TVarType::Type {
                 return gp->GetValue(rVariable);
             }
         );
@@ -225,7 +174,7 @@ public:
         auto gp_map  = GlobalPointerUtilities::RetrieveGlobalIndexedPointersMap(node_list, indices, r_default_comm );
         auto gp_list = GlobalPointerUtilities::RetrieveGlobalIndexedPointers(node_list, indices, r_default_comm );
 
-        GlobalPointerCommunicator<Node<3>> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
+        GlobalPointerCommunicator<Node> pointer_comm(r_default_comm, gp_list.ptr_begin(), gp_list.ptr_end());
 
         CheckHistoricalVariable(rModelPart, rVariable, pointer_comm, gp_map);
     }
@@ -234,8 +183,8 @@ public:
     static void CheckHistoricalVariable(
         ModelPart & rModelPart,
         const TVarType & rVariable,
-        GlobalPointerCommunicator<Node<3>> & rPointerCommunicator, 
-        std::unordered_map<int, GlobalPointer<Node<3>>> & gp_map) 
+        GlobalPointerCommunicator<Node> & rPointerCommunicator, 
+        std::unordered_map<int, GlobalPointer<Node>> & gp_map) 
     {
         DataCommunicator& r_default_comm = ParallelEnvironment::GetDefaultDataCommunicator();
         
@@ -246,7 +195,7 @@ public:
 
         // Create the data functior
         auto data_proxy = rPointerCommunicator.Apply(
-            [rVariable](GlobalPointer< Node<3> >& gp)-> std::pair<typename TVarType::Type, bool> {
+            [&rVariable](GlobalPointer< Node >& gp)-> std::pair<typename TVarType::Type, bool> {
                 return {gp->FastGetSolutionStepValue(rVariable),gp->IsFixed(rVariable)};
             }
         );
