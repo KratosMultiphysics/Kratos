@@ -194,7 +194,7 @@ namespace Kratos
       ///@name Static Member Variables
       ///@{
 
-      indexStress3D getIndex3D(indexStress2DInterface index2D);
+      indexStress3D getIndex3D(indexStress2DInterface index2D) const;
 
       ///@}
       ///@name Member Variables

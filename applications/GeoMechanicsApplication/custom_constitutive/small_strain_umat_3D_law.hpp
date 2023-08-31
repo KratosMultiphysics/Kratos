@@ -280,11 +280,12 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
                         const GeometryType& rElementGeometry,
                         const Vector& rShapeFunctionsValues) override;
 
-   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    using ConstitutiveLaw::GetValue;
     double& GetValue( const Variable<double> &rThisVariable, double &rValue ) override;
     int& GetValue( const Variable<int> &rThisVariable, int &rValue ) override;
     Vector& GetValue( const Variable<Vector> &rThisVariable, Vector &rValue ) override;
 
+    using ConstitutiveLaw::SetValue;
     void SetValue( const Variable<double>& rVariable,
                    const double& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
@@ -293,12 +294,9 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
                    const Vector& rValue,
                    const ProcessInfo& rCurrentProcessInfo ) override;
 
-   //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
       ///@}
       ///@name Inquiry
       ///@{
-
 
       ///@}
       ///@name Input and output
@@ -322,11 +320,9 @@ typedef void(*pF_UMATMod) (double* STRESS, double* STATEV, double** DDSDDE, doub
          rOStream << "SmallStrainUMAT3DLaw Data";
       }
 
-
       ///@}
       ///@name Friends
       ///@{
-
 
       ///@}
 

@@ -127,6 +127,7 @@ public:
      * @param rValue a reference to the returned value
      * @param rValue output: the value of the specified variable
      */
+    using GeoLinearElasticPlaneStrain2DLaw::GetValue;
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
     ///@}
