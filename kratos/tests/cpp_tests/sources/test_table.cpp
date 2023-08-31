@@ -5,10 +5,10 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
-//
+//                   Anne van de Graaf
 //
 
 // Project includes
@@ -56,14 +56,14 @@ KRATOS_TEST_CASE_IN_SUITE(NamesOfXAndYInTable, KratosCoreFastSuite)
     Table<double, double> table;
 
     // New tables shouldn't have any names set
-    KRATOS_EXPECT_TRUE(table.NameOfX().empty())
-    KRATOS_EXPECT_TRUE(table.NameOfY().empty())
+    KRATOS_EXPECT_TRUE(table.NameOfX().empty());
+    KRATOS_EXPECT_TRUE(table.NameOfY().empty());
 
     table.SetNameOfX("Foo");
-    KRATOS_EXPECT_EQ(table.NameOfX(), "Foo")
+    KRATOS_EXPECT_EQ(table.NameOfX(), "Foo");
 
     table.SetNameOfY("Bar");
-    KRATOS_EXPECT_EQ(table.NameOfY(), "Bar")
+    KRATOS_EXPECT_EQ(table.NameOfY(), "Bar");
 }
 
 }  // namespace Kratos::Testing.
