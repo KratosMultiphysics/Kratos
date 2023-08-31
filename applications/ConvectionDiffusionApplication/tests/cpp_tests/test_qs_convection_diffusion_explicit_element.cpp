@@ -105,7 +105,7 @@ namespace Testing
         std::vector<double> expected_reaction({0.5, -0.5, 0.0});
         for (unsigned int i_node = 0; i_node < r_test_model_part.NumberOfNodes(); ++i_node) {
             const auto it_node = r_test_model_part.NodesBegin() + i_node;
-            KRATOS_CHECK_NEAR(it_node->FastGetSolutionStepValue(REACTION_FLUX), expected_reaction[i_node], 1.0e-6);
+            KRATOS_EXPECT_NEAR(it_node->FastGetSolutionStepValue(REACTION_FLUX), expected_reaction[i_node], 1.0e-6);
         }
     }
 
@@ -145,7 +145,7 @@ namespace Testing
         std::vector<double> expected_projection({-0.5, 0.5, 0.0});
         for (unsigned int i_node = 0; i_node < r_test_model_part.NumberOfNodes(); ++i_node) {
             const auto it_node = r_test_model_part.NodesBegin() + i_node;
-            KRATOS_CHECK_NEAR(it_node->GetValue(PROJECTED_SCALAR1), expected_projection[i_node], 1.0e-6);
+            KRATOS_EXPECT_NEAR(it_node->GetValue(PROJECTED_SCALAR1), expected_projection[i_node], 1.0e-6);
         }
     }
 
@@ -186,7 +186,7 @@ namespace Testing
         std::vector<double> expected_reaction({0.166667, -0.166667, 0.0, 0.0});
         for (unsigned int i_node = 0; i_node < r_test_model_part.NumberOfNodes(); ++i_node) {
             const auto it_node = r_test_model_part.NodesBegin() + i_node;
-            KRATOS_CHECK_NEAR(it_node->FastGetSolutionStepValue(REACTION_FLUX), expected_reaction[i_node], 1.0e-6);
+            KRATOS_EXPECT_NEAR(it_node->FastGetSolutionStepValue(REACTION_FLUX), expected_reaction[i_node], 1.0e-6);
         }
     }
 
@@ -227,7 +227,7 @@ namespace Testing
         std::vector<double> expected_projection({-0.166667, 0.166667, 0.0, 0.0});
         for (unsigned int i_node = 0; i_node < r_test_model_part.NumberOfNodes(); ++i_node) {
             const auto it_node = r_test_model_part.NodesBegin() + i_node;
-            KRATOS_CHECK_NEAR(it_node->GetValue(PROJECTED_SCALAR1), expected_projection[i_node], 1.0e-6);
+            KRATOS_EXPECT_NEAR(it_node->GetValue(PROJECTED_SCALAR1), expected_projection[i_node], 1.0e-6);
         }
     }
 
