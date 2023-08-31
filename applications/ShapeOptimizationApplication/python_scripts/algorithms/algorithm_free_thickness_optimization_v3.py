@@ -50,12 +50,18 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
             }
         }""")
         self.shape_opt = True
+        # TODO: make design optimization_settings["design_variables"] a list
+        # for design_variable in optimization_settings["design_variables"]:
+        #     if design_variable["type"].GetString() is "vertex_morphing":
+        #         self.shape_opt = True
+        #         self.shape_mapper_settings = design_variable["filter"]
 
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
 
         self.optimization_settings = optimization_settings
         self.mapper_settings = optimization_settings["design_variables"]["filter"]
+        self.shape_mapper_settings = self.mapper_settings
 
         if optimization_settings["design_variables"].Has("projection"):
             self.projection = optimization_settings["design_variables"]["projection"]
@@ -137,7 +143,7 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CORRECTION)
 
         # TODO: clean up scaling experiment
-        self.shape_scaling = True
+        self.variable_scaling = True
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -169,19 +175,21 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
         self.initial_design_surface = self.initial_model_part_controller.GetDesignSurface()
         self.design_surface = self.model_part_controller.GetDesignSurface()
 
-        if self.shape_scaling:
-            step_t = self.step_size
+        if self.variable_scaling:
+            step_t = ( self.thickness_targets[len(self.thickness_targets)-1] - self.thickness_targets[0] ) / 10
             h = KSO.GeometryUtilities(self.design_surface).CalculateAverageElementSize()
             step_x = h / 4
-            self.shape_scaling_factor = step_x / step_t
+            self.shape_scaling_factor = step_x
+            self.thickness_scaling_factor = step_t
             KM.Logger.PrintInfo(f"Opt", f"Average element size {h}")
             KM.Logger.PrintInfo(f"Opt", f"Shape scaling factor {self.shape_scaling_factor}")
+            KM.Logger.PrintInfo(f"Opt", f"Thickness scaling factor {self.thickness_scaling_factor}")
 
         self.initial_mapper = mapper_factory.CreateMapper(self.initial_design_surface, self.initial_design_surface, self.mapper_settings)
         self.initial_mapper.Initialize()
         self.initial_model_part_controller.InitializeDamping()
 
-        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
+        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.shape_mapper_settings)
         self.mapper.Initialize()
         self.model_part_controller.InitializeDamping()
 
@@ -540,13 +548,14 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
                 df_dt /= df_dt.norm_inf()
                 df_dx = df_dx.norm_inf()
 
+            if self.variable_scaling:
+                df_dt *= self.thickness_scaling_factor
+                df_dx *= self.shape_scaling_factor
+
             for i in range(df_dt.Size()):
                 df_dc[i] = df_dt[i]
 
             shift = df_dt.Size()
-            if self.shape_scaling:
-                df_dx *= self.shape_scaling_factor
-
             for i in range(df_dx.Size()):
                 df_dc[shift+i] = df_dx[i]
 
@@ -569,12 +578,15 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
                 dg_dx = KM.Vector()
                 self.optimization_utilities.AssembleVector(self.design_surface, dg_dx, g_a_x_variable)
                 dg_dc = KM.Vector(dg_dt.Size()+dg_dx.Size())
+
+                if self.variable_scaling:
+                    dg_dt *= self.thickness_scaling_factor
+                    dg_dx *= self.shape_scaling_factor
+
                 for i in range(dg_dt.Size()):
                     dg_dc[i] = dg_dt[i]
 
                 shift = dg_dt.Size()
-                if self.shape_scaling:
-                    dg_dx *= self.shape_scaling_factor
                 for i in range(dg_dx.Size()):
                     dg_dc[shift+i] = dg_dx[i]
 
@@ -599,8 +611,11 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
 
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, s_t, KSO.THICKNESS_SEARCH_DIRECTION)
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, c_t, KSO.THICKNESS_CORRECTION)
-        self.optimization_utilities.AssignVectorToVariable(self.design_surface, s_t+c_t, KSO.THICKNESS_CONTROL_UPDATE)
-        self.optimization_utilities.AssignVectorToVariable(self.design_surface, delta_t_control+s_t+c_t, KSO.THICKNESS_CHANGE_CONTROL)
+        delta_t_control_update = s_t+c_t
+        if self.variable_scaling:
+            delta_t_control_update *= self.thickness_scaling_factor
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, delta_t_control_update, KSO.THICKNESS_CONTROL_UPDATE)
+        self.optimization_utilities.AssignVectorToVariable(self.design_surface, delta_t_control+delta_t_control_update, KSO.THICKNESS_CHANGE_CONTROL)
 
         if self.shape_opt:
             shift = len(self.design_surface.Nodes)
@@ -611,9 +626,13 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
                 s_x[i] = search_direction[shift+i]
                 c_x[i] = correction[shift+i]
 
+            control_x_update = s_x+c_x
+            if self.variable_scaling:
+                control_x_update *= self.shape_scaling_factor
+
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s_x, KSO.SEARCH_DIRECTION)
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, c_x, KSO.CORRECTION)
-            self.optimization_utilities.AssignVectorToVariable(self.design_surface, s_x+c_x, KSO.CONTROL_POINT_UPDATE)
+            self.optimization_utilities.AssignVectorToVariable(self.design_surface, control_x_update, KSO.CONTROL_POINT_UPDATE)
 
     # --------------------------------------------------------------------------
     def __mapControlUpdate(self):
@@ -647,12 +666,6 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __mapControlShapeUpdate(self):
-
-        if self.shape_scaling:
-            control_update_x = KM.Vector()
-            self.optimization_utilities.AssembleVector(self.design_surface, control_update_x, KSO.CONTROL_POINT_UPDATE)
-            control_update_x *= self.shape_scaling_factor
-            self.optimization_utilities.AssignVectorToVariable(self.design_surface, control_update_x, KSO.CONTROL_POINT_UPDATE)
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
         self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.SHAPE_UPDATE)

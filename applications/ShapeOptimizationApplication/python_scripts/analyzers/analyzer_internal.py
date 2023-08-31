@@ -96,6 +96,13 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
                     response.CalculateGradient()
                     communicator.reportGradient(identifier, response.GetNodalGradient(KM.SHAPE_SENSITIVITY))
 
+                # no thickness gradients available
+                if communicator.isRequestingThicknessGradientOf(identifier):
+                    thickness_gradient = {}
+                    for condition in optimization_model_part.Conditions:
+                        thickness_gradient[condition.Properties.Id] = 0.0
+                    communicator.reportThicknessGradient(identifier, thickness_gradient)
+
                 response.FinalizeSolutionStep()
 
             # Clear results or modifications on model part

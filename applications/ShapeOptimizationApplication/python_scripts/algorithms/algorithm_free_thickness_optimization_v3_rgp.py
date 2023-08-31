@@ -49,6 +49,11 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
             }
         }""")
         self.shape_opt = True
+        # TODO: make design optimization_settings["design_variables"] a list
+        # for design_variable in optimization_settings["design_variables"]:
+        #     if design_variable["type"].GetString() is "vertex_morphing":
+        #         self.shape_opt = True
+        #         self.shape_mapper_settings = design_variable["filter"]
 
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
@@ -159,7 +164,7 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
             self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
 
         # TODO: clean up scaling experiment
-        self.shape_scaling = True
+        self.variable_scaling = True
 
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
@@ -178,14 +183,15 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
         self.initial_design_surface = self.initial_model_part_controller.GetDesignSurface()
         self.design_surface = self.model_part_controller.GetDesignSurface()
 
-        if self.shape_scaling:
+        if self.variable_scaling:
             step_t = ( self.thickness_targets[len(self.thickness_targets)-1] - self.thickness_targets[0] ) / 10
             h = KSO.GeometryUtilities(self.design_surface).CalculateAverageElementSize()
             step_x = h / 4
-            self.shape_scaling_factor = step_x / step_t
-            KM.Logger.PrintInfo(f"Opt", f"scaling t {step_t}")
+            self.shape_scaling_factor = step_x
+            self.thickness_scaling_factor = step_t
             KM.Logger.PrintInfo(f"Opt", f"Average element size {h}")
             KM.Logger.PrintInfo(f"Opt", f"Shape scaling factor {self.shape_scaling_factor}")
+            KM.Logger.PrintInfo(f"Opt", f"Thickness scaling factor {self.thickness_scaling_factor}")
 
         self.initial_mapper = mapper_factory.CreateMapper(self.initial_design_surface, self.initial_design_surface, self.mapper_settings)
         self.initial_mapper.Initialize()
@@ -394,12 +400,16 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
 
                 # TODO: letzte n iterationen werden nur verwendet um buffer size zu bestimmen
                 n_iterations = 5
-                if n_iterations:
+                if self.optimization_iteration > n_iterations and n_iterations:
+                    max_constraint_change = 0.0
                     for i in range(n_iterations):
-                        if abs(g - g_mi) > self.constraint_buffer_variables[identifier]["max_constraint_change"]:
+                        if abs(g - g_mi[-i]) > max_constraint_change:
+                            max_constraint_change = abs(g - g_mi[-i])
 
-                if abs(g - g_mi) > self.constraint_buffer_variables[identifier]["max_constraint_change"]:
-                    self.constraint_buffer_variables[identifier]["max_constraint_change"] = abs(g - g_mi)
+                    self.constraint_buffer_variables[identifier]["max_constraint_change"] = max_constraint_change
+                else:
+                    if abs(g - g_mi[-1]) > self.constraint_buffer_variables[identifier]["max_constraint_change"]:
+                        self.constraint_buffer_variables[identifier]["max_constraint_change"] = abs(g - g_mi[-1])
 
                 max_constraint_change = self.constraint_buffer_variables[identifier]["max_constraint_change"]
                 self.constraint_buffer_variables[identifier]["buffer_size"] = max(buffer_size_factor * max_constraint_change, 1e-12)
@@ -552,15 +562,9 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
         else:
             self.optimization_utilities.AssembleVector(self.design_surface, df_dt, KSO.DF1DT_MAPPED)
 
-        print(f"Size of df_dt : {df_dt.Size()}")
-        print(f"Max df_dt : {df_dt.norm_inf()}")
-
         if self.shape_opt:
             df_dx = KM.Vector()
             self.optimization_utilities.AssembleVector(self.design_surface, df_dx, KSO.DF1DX_MAPPED)
-
-            print(f"Size of df_dx : {df_dx.Size()}")
-            print(f"Max df_dx : {df_dx.norm_inf()}")
 
             df_dc = KM.Vector(df_dt.Size()+df_dx.Size())
 
@@ -570,17 +574,18 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
                 df_dt /= df_dt.norm_inf()
                 df_dx = df_dx.norm_inf()
 
+            if self.variable_scaling:
+                df_dt *= self.thickness_scaling_factor
+                df_dx *= self.shape_scaling_factor
+
             for i in range(df_dt.Size()):
                 df_dc[i] = df_dt[i]
 
             shift = df_dt.Size()
-            if self.shape_scaling:
-                df_dx *= self.shape_scaling_factor
 
             for i in range(df_dx.Size()):
                 df_dc[shift+i] = df_dx[i]
 
-            print(f"Max df_dc : {df_dc.norm_inf()}")
             return df_dc
 
         else:
@@ -599,12 +604,15 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
                 dg_dx = KM.Vector()
                 self.optimization_utilities.AssembleVector(self.design_surface, dg_dx, g_a_x_variable)
                 dg_dc = KM.Vector(dg_dt.Size()+dg_dx.Size())
+
+                if self.variable_scaling:
+                    dg_dt *= self.thickness_scaling_factor
+                    dg_dx *= self.shape_scaling_factor
+
                 for i in range(dg_dt.Size()):
                     dg_dc[i] = dg_dt[i]
 
                 shift = dg_dt.Size()
-                if self.shape_scaling:
-                    dg_dx *= self.shape_scaling_factor
                 for i in range(dg_dx.Size()):
                     dg_dc[shift+i] = dg_dx[i]
 
@@ -631,9 +639,12 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
         delta_t_control = KM.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, delta_t_control, KSO.THICKNESS_CHANGE_CONTROL)
 
+
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, s_t, KSO.THICKNESS_SEARCH_DIRECTION)
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, p_t, KSO.THICKNESS_PROJECTION)
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, c_t, KSO.THICKNESS_CORRECTION)
+        if self.variable_scaling:
+            update_t *= self.thickness_scaling_factor
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, update_t, KSO.THICKNESS_CONTROL_UPDATE)
         self.optimization_utilities.AssignVectorToVariable(self.design_surface, delta_t_control+update_t, KSO.THICKNESS_CHANGE_CONTROL)
 
@@ -649,6 +660,9 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
                 p_x[i] = projection[shift+i]
                 c_x[i] = correction[shift+i]
                 update_x[i] = control_update[shift+i]
+
+            if self.variable_scaling:
+                update_x *= self.shape_scaling_factor
 
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, s_x, KSO.SEARCH_DIRECTION)
             self.optimization_utilities.AssignVectorToVariable(self.design_surface, p_x, KSO.PROJECTION)
@@ -687,12 +701,6 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
 
     # --------------------------------------------------------------------------
     def __mapControlShapeUpdate(self):
-
-        if self.shape_scaling:
-            control_update_x = KM.Vector()
-            self.optimization_utilities.AssembleVector(self.design_surface, control_update_x, KSO.CONTROL_POINT_UPDATE)
-            control_update_x *= self.shape_scaling_factor
-            self.optimization_utilities.AssignVectorToVariable(self.design_surface, control_update_x, KSO.CONTROL_POINT_UPDATE)
 
         self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
         self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.SHAPE_UPDATE)
@@ -799,14 +807,14 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
 
             identifier = constraint["identifier"].GetString()
             g_i = self.communicator.getStandardizedValue(identifier)
-            g_i_m1 = self.constraint_buffer_variables[identifier]["g_i-1"]
-            g_i_m2 = self.constraint_buffer_variables[identifier]["g_i-2"]
-            g_i_m3 = self.constraint_buffer_variables[identifier]["g_i-3"]
+            g_i_m1 = self.constraint_buffer_variables[identifier]["g_-i"][-1]
 
             buffer_value = self.constraint_buffer_variables[identifier]["buffer_value"]
             buffer_value_m1 = self.constraint_buffer_variables[identifier]["buffer_value-1"]
 
             if self.optimization_iteration > 3:
+                g_i_m2 = self.constraint_buffer_variables[identifier]["g_-i"][-2]
+                g_i_m3 = self.constraint_buffer_variables[identifier]["g_-i"][-3]
                 delta_g_1 = g_i - g_i_m1
                 delta_g_2 = g_i_m1 -g_i_m2
                 delta_g_3 = g_i_m2 -g_i_m3
@@ -823,9 +831,7 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
                     self.constraint_buffer_variables[identifier]["central_buffer_value"] = \
                         max(self.constraint_buffer_variables[identifier]["central_buffer_value"], 0.0)
 
-            self.constraint_buffer_variables[identifier]["g_i-3"] = g_i_m2
-            self.constraint_buffer_variables[identifier]["g_i-2"] = g_i_m1
-            self.constraint_buffer_variables[identifier]["g_i-1"] = g_i
+            self.constraint_buffer_variables[identifier]["g_-i"].append(g_i)
 
     # --------------------------------------------------------------------------
     def __logCurrentOptimizationStep(self):
