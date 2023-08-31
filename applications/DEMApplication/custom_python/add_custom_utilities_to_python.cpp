@@ -90,7 +90,7 @@ Element::Pointer CreateSphericParticle1(ParticleCreatorDestructor& r_creator_des
 Element::Pointer CreateSphericParticle2(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const Element& r_reference_element) {
@@ -101,7 +101,7 @@ Element::Pointer CreateSphericParticle2(ParticleCreatorDestructor& r_creator_des
 Element::Pointer CreateSphericParticle3(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
                                               int r_Elem_Id,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {
@@ -111,7 +111,7 @@ Element::Pointer CreateSphericParticle3(ParticleCreatorDestructor& r_creator_des
 
 Element::Pointer CreateSphericParticle4(ParticleCreatorDestructor& r_creator_destructor,
                                               ModelPart& r_modelpart,
-                                              Node < 3 > ::Pointer reference_node,
+                                              Node ::Pointer reference_node,
                                               Properties::Pointer r_params,
                                               const double radius,
                                               const std::string& element_name) {

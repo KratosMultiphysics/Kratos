@@ -58,7 +58,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
     ///@{
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;

@@ -39,40 +39,7 @@ namespace Kratos
 
             const double area = MathUtils<double>::Heron<false>(std::sqrt(2.0), 1.0, 1.0);
 
-            KRATOS_CHECK_NEAR(area, 0.5, tolerance);
-        }
-
-        /** Checks if it gives you the absolute value of a given value
-         * Checks if It gives you the absolute value of a given value
-         */
-
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsAbs, KratosCoreFastSuite)
-        {
-            const double absolute = MathUtils<double>::Abs(-1.0);
-
-            KRATOS_CHECK_EQUAL(absolute, 1.0);
-        }
-
-        /** Checks if it gives you the minimum value of a given value
-         * Checks if It gives you the minimum value of a given value
-         */
-
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMin, KratosCoreFastSuite)
-        {
-            const double min = MathUtils<double>::Min(0.0,1.0);
-
-            KRATOS_CHECK_EQUAL(min, 0.0);
-        }
-
-        /** Checks if it gives you the maximum value of a given value
-         * Checks if It gives you the maximum value of a given value
-         */
-
-        KRATOS_TEST_CASE_IN_SUITE(MathUtilsMax, KratosCoreFastSuite)
-        {
-            const double max = MathUtils<double>::Max(0.0,1.0);
-
-            KRATOS_CHECK_EQUAL(max, 1.0);
+            KRATOS_EXPECT_NEAR(area, 0.5, tolerance);
         }
 
         /** Checks if it calculates the determinant of a 1x1, 2x2, 3x3 and 4x4 matrix
@@ -88,7 +55,7 @@ namespace Kratos
 
             double det = MathUtils<double>::Det(mat11);
 
-            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
+            KRATOS_EXPECT_NEAR(det, 1.0, tolerance);
 
             BoundedMatrix<double, 2, 2> mat22 = ZeroMatrix(2, 2);
             mat22(0,0) = 1.0;
@@ -96,7 +63,7 @@ namespace Kratos
 
             det = MathUtils<double>::Det(mat22);
 
-            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
+            KRATOS_EXPECT_NEAR(det, 1.0, tolerance);
 
             BoundedMatrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
             mat33(0,0) = 1.0;
@@ -105,7 +72,7 @@ namespace Kratos
 
             det = MathUtils<double>::Det(mat33);
 
-            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
+            KRATOS_EXPECT_NEAR(det, 1.0, tolerance);
 
             BoundedMatrix<double, 4, 4> mat44 = ZeroMatrix(4, 4);
             mat44(0,0) = 1.0;
@@ -115,7 +82,7 @@ namespace Kratos
 
             det = MathUtils<double>::Det(mat44);
 
-            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
+            KRATOS_EXPECT_NEAR(det, 1.0, tolerance);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsCofactor, KratosCoreFastSuite)
@@ -127,17 +94,17 @@ namespace Kratos
 
             double cofactor = MathUtils<double>::Cofactor(mat11, 0, 0);
 
-            KRATOS_CHECK_EQUAL(cofactor, 1.0);
+            KRATOS_EXPECT_EQ(cofactor, 1.0);
 
             BoundedMatrix<double, 2, 2> mat22 = ZeroMatrix(2, 2);
             mat22(0,0) = -2.0; mat22(0,1) = 2.0;
             mat22(1,0) = -1.0; mat22(1,1) = 1.0;
 
             cofactor = MathUtils<double>::Cofactor(mat22, 1, 1);
-            KRATOS_CHECK_EQUAL(cofactor, -2.0);
+            KRATOS_EXPECT_EQ(cofactor, -2.0);
 
             cofactor = MathUtils<double>::Cofactor(mat22, 0, 1);
-            KRATOS_CHECK_EQUAL(cofactor, 1.0);
+            KRATOS_EXPECT_EQ(cofactor, 1.0);
 
             BoundedMatrix<double, 3, 3> mat33 = ZeroMatrix(3, 3);
             mat33(0,0) = -2.0; mat33(0,1) = 2.0; mat33(0,2) = -3.0;
@@ -145,7 +112,7 @@ namespace Kratos
             mat33(2,0) = 2.0; mat33(2,1) = 0.0; mat33(2,2) = -1.0;
 
             cofactor = MathUtils<double>::Cofactor(mat33, 2, 1);
-            KRATOS_CHECK_NEAR(cofactor, 9.0, tolerance);
+            KRATOS_EXPECT_NEAR(cofactor, 9.0, tolerance);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsCofactorMatrix, KratosCoreFastSuite)
@@ -165,7 +132,7 @@ namespace Kratos
             MathUtils<double>::MatrixType cof_mat = MathUtils<double>::CofactorMatrix(mat33);
             for (unsigned i = 0; i < ref33.size1(); ++i)
                 for (unsigned j = 0; j < ref33.size2(); ++j)
-                    KRATOS_CHECK_NEAR(cof_mat(i,j), ref33(i,j), tolerance);
+                    KRATOS_EXPECT_NEAR(cof_mat(i,j), ref33(i,j), tolerance);
         }
 
         /** Checks if it calculates the generalized determinant of a non-square matrix
@@ -182,7 +149,7 @@ namespace Kratos
 
             double det = MathUtils<double>::GeneralizedDet(mat23);
 
-            KRATOS_CHECK_NEAR(det, 1.0, tolerance);
+            KRATOS_EXPECT_NEAR(det, 1.0, tolerance);
 
             Matrix mat55 = ZeroMatrix(5, 5);
             mat55(0,0) =   1.0;
@@ -195,7 +162,7 @@ namespace Kratos
 
             det = MathUtils<double>::Det(mat55);
 
-            KRATOS_CHECK_NEAR(det, 4.0, tolerance);
+            KRATOS_EXPECT_NEAR(det, 4.0, tolerance);
         }
 
         /** Checks if it calculates the inverse of a 1x1, 2x2, 3x3 and 4x4 matrix
@@ -214,7 +181,7 @@ namespace Kratos
             MathUtils<double>::InvertMatrix(mat11, inv11, det);
             const BoundedMatrix<double, 1, 1> I11 = prod(inv11, mat11);
 
-            KRATOS_CHECK_NEAR(I11(0,0), 1.0, tolerance);
+            KRATOS_EXPECT_NEAR(I11(0,0), 1.0, tolerance);
 
             BoundedMatrix<double, 2, 2> mat22;
             mat22(0,0) = 0.670005;
@@ -229,9 +196,9 @@ namespace Kratos
             for (std::size_t i = 0; i < 2; i++) {
                 for (std::size_t j = 0; j < 2; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I22(i,j), 1.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I22(i,j), 1.0, tolerance);
                     } else {
-                        KRATOS_CHECK_NEAR(I22(i,j), 0.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I22(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -255,9 +222,9 @@ namespace Kratos
             for (std::size_t i = 0; i < 3; i++) {
                 for (std::size_t j = 0; j < 3; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I33(i,j), 1.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I33(i,j), 1.0, tolerance);
                     } else {
-                        KRATOS_CHECK_NEAR(I33(i,j), 0.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I33(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -288,9 +255,9 @@ namespace Kratos
             for (std::size_t i = 0; i < 4; i++) {
                 for (std::size_t j = 0; j < 4; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I44(i,j), 1.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I44(i,j), 1.0, tolerance);
                     } else {
-                        KRATOS_CHECK_NEAR(I44(i,j), 0.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I44(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -321,9 +288,9 @@ namespace Kratos
             for (std::size_t i = 0; i < i_dim; i++) {
                 for (std::size_t j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 1.0, tolerance);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -345,9 +312,9 @@ namespace Kratos
             for (std::size_t i = 0; i < i_dim; i++) {
                 for (std::size_t j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 1.0, tolerance);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -374,9 +341,9 @@ namespace Kratos
             for (std::size_t i = 0; i < i_dim; i++) {
                 for (std::size_t j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 1.0, tolerance);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -410,9 +377,9 @@ namespace Kratos
             for (std::size_t i = 0; i < i_dim; i++) {
                 for (std::size_t j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 1.0, tolerance);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -433,16 +400,16 @@ namespace Kratos
 
             MathUtils<double>::InvertMatrix(mat,inv, det);
 
-            KRATOS_CHECK_NEAR(det, 4.0, tolerance);
+            KRATOS_EXPECT_NEAR(det, 4.0, tolerance);
 
             I = prod(inv, mat);
 
             for (std::size_t i = 0; i < i_dim; i++) {
                 for (std::size_t j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 1.0, tolerance);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -459,7 +426,7 @@ namespace Kratos
 
             MathUtils<double>::InvertMatrix(b_mat,b_inv, det);
 
-            KRATOS_CHECK_NEAR(det, 4.0, tolerance);
+            KRATOS_EXPECT_NEAR(det, 4.0, tolerance);
 
             BoundedMatrix<double,5,5> b_I = ZeroMatrix(5);
             noalias(b_I) = prod(b_inv, b_mat);
@@ -467,9 +434,9 @@ namespace Kratos
             for (std::size_t i = 0; i < i_dim; i++) {
                 for (std::size_t j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(b_I(i,j), 1.0, tolerance);
+                        KRATOS_EXPECT_NEAR(b_I(i,j), 1.0, tolerance);
                     } else {
-                        KRATOS_CHECK_NEAR(b_I(i,j), 0.0, tolerance);
+                        KRATOS_EXPECT_NEAR(b_I(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -518,7 +485,7 @@ namespace Kratos
 
             MathUtils<double>::Solve(A,x,b);
 
-            KRATOS_CHECK_VECTOR_NEAR(ref_x, x, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(ref_x, x, tolerance);
         }
 
         /** Checks if it calculates correctly the inverse of a non square matrix
@@ -553,9 +520,9 @@ namespace Kratos
             for (std::size_t i = 0; i < i_dim; i++) {
                 for (std::size_t j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 1.0, tolerance);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -578,9 +545,9 @@ namespace Kratos
             for (std::size_t i = 0; i < i_dim; i++) {
                 for (std::size_t j = 0; j < i_dim; j++) {
                     if (i == j) {
-                        KRATOS_CHECK_NEAR(I(i,j), 1.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 1.0, tolerance);
                     } else {
-                        KRATOS_CHECK_NEAR(I(i,j), 0.0, tolerance);
+                        KRATOS_EXPECT_NEAR(I(i,j), 0.0, tolerance);
                     }
                 }
             }
@@ -594,11 +561,11 @@ namespace Kratos
         {
             int sign = MathUtils<double>::Sign(-1.0);
 
-            KRATOS_CHECK_EQUAL(sign, -1);
+            KRATOS_EXPECT_EQ(sign, -1);
 
             sign = MathUtils<double>::Sign(1.0);
 
-            KRATOS_CHECK_EQUAL(sign, 1);
+            KRATOS_EXPECT_EQ(sign, 1);
         }
 
         /** Checks if it calculates the eigen decomposition of a 3x3 system
@@ -630,11 +597,11 @@ namespace Kratos
 
             for (std::size_t i = 0; i < 3; i++) {
                 for (std::size_t j = i; j < 3; j++) {
-                    KRATOS_CHECK_NEAR(auxmat33(i,j), mat33(i,j), tolerance);
+                    KRATOS_EXPECT_NEAR(auxmat33(i,j), mat33(i,j), tolerance);
                 }
             }
 
-            KRATOS_CHECK_EQUAL(converged, true);
+            KRATOS_EXPECT_EQ(converged, true);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsMatrixSquareRoot, KratosCoreFastSuite)
@@ -653,7 +620,7 @@ namespace Kratos
             // Check solution
             const double test_tolerance = 1.0e-10;
             const Matrix solution = prod(mat33sqroot, mat33sqroot);
-            KRATOS_CHECK_MATRIX_NEAR(solution, mat33, test_tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(solution, mat33, test_tolerance);
         }
 
         /** Checks if it calculates the dot product
@@ -670,8 +637,8 @@ namespace Kratos
             const double c = MathUtils<double>::Dot3(a, b);
             const double d = MathUtils<double>::Dot(a, b);
 
-            KRATOS_CHECK_EQUAL(c, 0.0);
-            KRATOS_CHECK_EQUAL(d, 0.0);
+            KRATOS_EXPECT_EQ(c, 0.0);
+            KRATOS_EXPECT_EQ(d, 0.0);
         }
 
         /** Checks if it calculates the norm of a vector
@@ -686,8 +653,8 @@ namespace Kratos
             const double b = MathUtils<double>::Norm3(a);
             const double c = MathUtils<double>::Norm(a);
 
-            KRATOS_CHECK_EQUAL(b, 1.0);
-            KRATOS_CHECK_EQUAL(c, 1.0);
+            KRATOS_EXPECT_EQ(b, 1.0);
+            KRATOS_EXPECT_EQ(c, 1.0);
         }
 
         /** Checks if it calculates the norm of a vector without underflow
@@ -701,7 +668,7 @@ namespace Kratos
 
             const double b = MathUtils<double>::StableNorm(a);
 
-            KRATOS_CHECK_EQUAL(b, 1e-162);
+            KRATOS_EXPECT_EQ(b, 1e-162);
         }
 
         /** Checks if it calculates the norm of a vector without overflow
@@ -715,7 +682,7 @@ namespace Kratos
 
             const double b = MathUtils<double>::StableNorm(a);
 
-            KRATOS_CHECK_EQUAL(b, 1e155);
+            KRATOS_EXPECT_EQ(b, 1e155);
         }
 
         /** Checks if it calculates the cross product (I)
@@ -731,7 +698,7 @@ namespace Kratos
 
             const double angle = MathUtils<double>::VectorsAngle(b, a);
 
-            KRATOS_CHECK_EQUAL(angle, Globals::Pi/2.0);
+            KRATOS_EXPECT_EQ(angle, Globals::Pi/2.0);
         }
 
         /** Checks if it calculates the cross product (II)
@@ -747,7 +714,7 @@ namespace Kratos
 
             const double angle = MathUtils<double>::VectorsAngle(b, a);
 
-            KRATOS_CHECK_EQUAL(angle, Globals::Pi);
+            KRATOS_EXPECT_EQ(angle, Globals::Pi);
         }
 
         /** Checks if it calculates the cross product (III)
@@ -767,7 +734,7 @@ namespace Kratos
 
             const double angle = MathUtils<double>::VectorsAngle(b, a);
 
-            KRATOS_CHECK_EQUAL(angle, Globals::Pi/3.0);
+            KRATOS_EXPECT_EQ(angle, Globals::Pi/3.0);
         }
 
         /** Checks if it calculates the angle between two vectors
@@ -787,9 +754,9 @@ namespace Kratos
             MathUtils<double>::UnitCrossProduct(d, b, a);
             array_1d<double,3> e = MathUtils<double>::CrossProduct(b, a);
 
-            KRATOS_CHECK_EQUAL(c[2], 2.0);
-            KRATOS_CHECK_EQUAL(d[2], 1.0);
-            KRATOS_CHECK_EQUAL(e[2], 2.0);
+            KRATOS_EXPECT_EQ(c[2], 2.0);
+            KRATOS_EXPECT_EQ(d[2], 1.0);
+            KRATOS_EXPECT_EQ(e[2], 2.0);
         }
 
         /** Checks if it calculates the orthonormal base
@@ -805,19 +772,19 @@ namespace Kratos
 
             MathUtils<double>::OrthonormalBasisHughesMoeller(a, b, c);
 
-            KRATOS_CHECK_EQUAL(b[0], 1.0);
-            KRATOS_CHECK_EQUAL(c[2], -1.0);
+            KRATOS_EXPECT_EQ(b[0], 1.0);
+            KRATOS_EXPECT_EQ(c[2], -1.0);
 
             MathUtils<double>::OrthonormalBasisFrisvad(a, b, c);
 
-            KRATOS_CHECK_EQUAL(b[0], 1.0);
-            KRATOS_CHECK_EQUAL(c[2], -1.0);
+            KRATOS_EXPECT_EQ(b[0], 1.0);
+            KRATOS_EXPECT_EQ(c[2], -1.0);
 
             MathUtils<double>::OrthonormalBasisNaive(a, b, c);
 
 
-            KRATOS_CHECK_EQUAL(b[0], 1.0);
-            KRATOS_CHECK_EQUAL(c[2], -1.0);
+            KRATOS_EXPECT_EQ(b[0], 1.0);
+            KRATOS_EXPECT_EQ(c[2], -1.0);
         }
 
         /** Checks if it calculates the tensor product
@@ -833,10 +800,10 @@ namespace Kratos
 
             const Matrix c = MathUtils<double>::TensorProduct3(a, b);
 
-            KRATOS_CHECK_EQUAL(c(0,0), 0.0);
-            KRATOS_CHECK_EQUAL(c(1,0), 2.0);
-            KRATOS_CHECK_EQUAL(c(0,1), 0.0);
-            KRATOS_CHECK_EQUAL(c(1,1), 0.0);
+            KRATOS_EXPECT_EQ(c(0,0), 0.0);
+            KRATOS_EXPECT_EQ(c(1,0), 2.0);
+            KRATOS_EXPECT_EQ(c(0,1), 0.0);
+            KRATOS_EXPECT_EQ(c(1,1), 0.0);
         }
 
         /** Checks if it calculates the  matrix operations
@@ -850,35 +817,35 @@ namespace Kratos
 
             MathUtils<double>::AddMatrix(a, b, 0 ,0);
 
-            KRATOS_CHECK_EQUAL(a(0,0), 2.0);
-            KRATOS_CHECK_EQUAL(a(1,0), 0.0);
-            KRATOS_CHECK_EQUAL(a(0,1), 0.0);
-            KRATOS_CHECK_EQUAL(a(1,1), 2.0);
+            KRATOS_EXPECT_EQ(a(0,0), 2.0);
+            KRATOS_EXPECT_EQ(a(1,0), 0.0);
+            KRATOS_EXPECT_EQ(a(0,1), 0.0);
+            KRATOS_EXPECT_EQ(a(1,1), 2.0);
 
             MathUtils<double>::SubtractMatrix(a, b, 0 ,0);
 
-            KRATOS_CHECK_EQUAL(a(0,0), 1.0);
-            KRATOS_CHECK_EQUAL(a(1,0), 0.0);
-            KRATOS_CHECK_EQUAL(a(0,1), 0.0);
-            KRATOS_CHECK_EQUAL(a(1,1), 1.0);
+            KRATOS_EXPECT_EQ(a(0,0), 1.0);
+            KRATOS_EXPECT_EQ(a(1,0), 0.0);
+            KRATOS_EXPECT_EQ(a(0,1), 0.0);
+            KRATOS_EXPECT_EQ(a(1,1), 1.0);
 
             MathUtils<double>::WriteMatrix(a, b, 0 ,0);
 
-            KRATOS_CHECK_EQUAL(a(0,0), 1.0);
-            KRATOS_CHECK_EQUAL(a(1,0), 0.0);
-            KRATOS_CHECK_EQUAL(a(0,1), 0.0);
-            KRATOS_CHECK_EQUAL(a(1,1), 1.0);
+            KRATOS_EXPECT_EQ(a(0,0), 1.0);
+            KRATOS_EXPECT_EQ(a(1,0), 0.0);
+            KRATOS_EXPECT_EQ(a(0,1), 0.0);
+            KRATOS_EXPECT_EQ(a(1,1), 1.0);
 
             BoundedMatrix<double,3,3> c = IdentityMatrix(3);
             BoundedMatrix<double,2,2> d = IdentityMatrix(2);
 
             MathUtils<double>::AddMatrix(c, d, 0 ,0);
 
-            KRATOS_CHECK_EQUAL(c(0,0), 2.0);
-            KRATOS_CHECK_EQUAL(c(1,0), 0.0);
-            KRATOS_CHECK_EQUAL(c(0,1), 0.0);
-            KRATOS_CHECK_EQUAL(c(1,1), 2.0);
-            KRATOS_CHECK_EQUAL(c(2,2), 1.0);
+            KRATOS_EXPECT_EQ(c(0,0), 2.0);
+            KRATOS_EXPECT_EQ(c(1,0), 0.0);
+            KRATOS_EXPECT_EQ(c(0,1), 0.0);
+            KRATOS_EXPECT_EQ(c(1,1), 2.0);
+            KRATOS_EXPECT_EQ(c(2,2), 1.0);
         }
 
         /** Checks if it calculates the vector operations
@@ -890,20 +857,20 @@ namespace Kratos
         
             MathUtils<double>::AddVector(a, b, 0);
 
-            KRATOS_CHECK_EQUAL(a[0], 1.0);
-            KRATOS_CHECK_EQUAL(a[1], 1.0);
-            KRATOS_CHECK_EQUAL(a[2], 0.0);
+            KRATOS_EXPECT_EQ(a[0], 1.0);
+            KRATOS_EXPECT_EQ(a[1], 1.0);
+            KRATOS_EXPECT_EQ(a[2], 0.0);
         }
 
         /** Checks if it calculates the Factorial
          */
         KRATOS_TEST_CASE_IN_SUITE(MathUtilsFactorial, KratosCoreFastSuite)
         {
-            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(0), 1);
-            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(1), 1);
-            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(2), 2);
-            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(6), 720);
-            KRATOS_CHECK_EQUAL(MathUtils<double>::Factorial(8), 40320);
+            KRATOS_EXPECT_EQ(MathUtils<double>::Factorial(0), 1);
+            KRATOS_EXPECT_EQ(MathUtils<double>::Factorial(1), 1);
+            KRATOS_EXPECT_EQ(MathUtils<double>::Factorial(2), 2);
+            KRATOS_EXPECT_EQ(MathUtils<double>::Factorial(6), 720);
+            KRATOS_EXPECT_EQ(MathUtils<double>::Factorial(8), 40320);
         }
 
         /** Checks if the exponential of a matrix is performed correctly
@@ -922,7 +889,18 @@ namespace Kratos
             A(0, 0) = std::exp(A(0, 0));
             A(1, 1) = std::exp(A(1, 1));
             A(2, 2) = std::exp(A(2, 2));
-            KRATOS_CHECK_MATRIX_NEAR(exp_A, A, 1.0e-8);
+            KRATOS_EXPECT_MATRIX_NEAR(exp_A, A, 1.0e-8);
+        }
+
+        /** Checks whether the angle conversion from degrees to radians is performed correctly
+         */
+        KRATOS_TEST_CASE_IN_SUITE(MathUtilsDegreesToRadians, KratosCoreFastSuite)
+        {
+            const double abs_tolerance = 1e-9;
+            KRATOS_EXPECT_NEAR(          0.0, MathUtils<>::DegreesToRadians(   0.0), abs_tolerance);
+            KRATOS_EXPECT_NEAR(Globals::Pi/2, MathUtils<>::DegreesToRadians(  90.0), abs_tolerance);
+            KRATOS_EXPECT_NEAR( -Globals::Pi, MathUtils<>::DegreesToRadians(-180.0), abs_tolerance);
+            KRATOS_EXPECT_NEAR(4*Globals::Pi, MathUtils<>::DegreesToRadians( 720.0), abs_tolerance);
         }
 
     } // namespace Testing

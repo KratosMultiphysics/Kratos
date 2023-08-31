@@ -2113,7 +2113,7 @@ public:
      * @see EdgesNumber()
      * @see Edge()
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdgesInstead)") virtual GeometriesArrayType Edges( void )
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdges instead)") virtual GeometriesArrayType Edges( void )
     {
         return this->GenerateEdges();
     }
@@ -2173,7 +2173,7 @@ public:
      * @see Edges
      * @see FacesNumber
      */
-    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateEdgesInstead)") virtual GeometriesArrayType Faces( void )
+    KRATOS_DEPRECATED_MESSAGE("This is legacy version (use GenerateFaces instead)") virtual GeometriesArrayType Faces( void )
     {
         const SizeType dimension = this->LocalSpaceDimension();
         if (dimension == 3) {
@@ -2686,7 +2686,7 @@ public:
         const double Tolerance = std::numeric_limits<double>::epsilon()
     ) const
     {
-        KRATOS_ERROR << "Calling ProjectionPoinGlobalToLocalSpace within geometry base class."
+        KRATOS_ERROR << "Calling ProjectionPointGlobalToLocalSpace within geometry base class."
             << " Please check the definition within derived class. "
             << *this << std::endl;
     }

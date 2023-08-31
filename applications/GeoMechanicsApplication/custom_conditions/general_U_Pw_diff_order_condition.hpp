@@ -37,7 +37,7 @@ public:
 
     using IndexType = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType = Vector;
@@ -59,9 +59,6 @@ public:
                                   PropertiesType::Pointer pProperties )
         : Condition(NewId, pGeometry, pProperties)
     {}
-
-    // Destructor
-    virtual ~GeneralUPwDiffOrderCondition();
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -110,7 +107,7 @@ protected:
     };
 
     // Member Variables
-    Geometry< Node<3> >::Pointer mpPressureGeometry;
+    Geometry< Node >::Pointer mpPressureGeometry;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

@@ -30,7 +30,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -68,54 +68,70 @@ public:
     /// Counted pointer of AugmentedLagrangianMethodFrictionlessMortarContactCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( AugmentedLagrangianMethodFrictionlessMortarContactCondition );
 
-    typedef MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation, TNumNodesMaster> BaseType;
+    /// Base type for the mortar contact condition
+    using BaseType = MortarContactCondition<TDim, TNumNodes, FrictionalCase::FRICTIONLESS, TNormalVariation, TNumNodesMaster>;
 
-    typedef typename BaseType::MortarConditionMatrices                    MortarConditionMatrices;
+    /// Type for the matrices used in the mortar contact condition
+    using MortarConditionMatrices = typename BaseType::MortarConditionMatrices;
 
-    typedef Condition                                                           ConditionBaseType;
+    /// Base type for the condition
+    using ConditionBaseType = Condition;
 
-    typedef PairedCondition                                               PairedConditionBaseType;
+    /// Base type for the paired condition
+    using PairedConditionBaseType = PairedCondition;
 
-    typedef typename ConditionBaseType::VectorType                                     VectorType;
+    /// Type for the vector used in the condition
+    using VectorType = typename ConditionBaseType::VectorType;
 
-    typedef typename ConditionBaseType::MatrixType                                     MatrixType;
+    /// Type for the matrix used in the condition
+    using MatrixType = typename ConditionBaseType::MatrixType;
 
-    typedef typename ConditionBaseType::IndexType                                       IndexType;
+    /// Type for the index used in the condition
+    using IndexType = typename ConditionBaseType::IndexType;
 
-    typedef typename ConditionBaseType::GeometryType::Pointer                 GeometryPointerType;
+    /// Pointer type for the geometry used in the condition
+    using GeometryPointerType = typename ConditionBaseType::GeometryType::Pointer;
 
-    typedef typename ConditionBaseType::NodesArrayType                             NodesArrayType;
+    /// Type for the array of nodes used in the condition
+    using NodesArrayType = typename ConditionBaseType::NodesArrayType;
 
-    typedef typename ConditionBaseType::PropertiesType                             PropertiesType;
+    /// Type for the properties used in the condition
+    using PropertiesType = typename ConditionBaseType::PropertiesType;
 
-    typedef typename ConditionBaseType::PropertiesType::Pointer             PropertiesPointerType;
+    /// Pointer type for the properties used in the condition
+    using PropertiesPointerType = typename PropertiesType::Pointer;
 
-    typedef typename ConditionBaseType::EquationIdVectorType                 EquationIdVectorType;
+    /// Type for the vector of equation IDs used in the condition
+    using EquationIdVectorType = typename ConditionBaseType::EquationIdVectorType;
 
-    typedef typename ConditionBaseType::DofsVectorType                             DofsVectorType;
+    /// Type for the vector of DOFs used in the condition
+    using DofsVectorType = typename ConditionBaseType::DofsVectorType;
 
-    /// Point definition
-    typedef Point                                                                       PointType;
+    /// Definition of a point
+    using PointType = Point;
 
-    /// Node type definition
-    typedef Node<3>                                                                      NodeType;
+    /// Definition of the geometry type
+    using GeometryType = Geometry<Node>;
 
-    /// Geoemtry type definition
-    typedef Geometry<NodeType>                                                       GeometryType;
+    /// Type for the integration points in the geometry
+    using IntegrationPointsType = typename GeometryType::IntegrationPointsArrayType;
 
-    // Type definition for integration methods
-    typedef GeometryType::IntegrationPointsArrayType                        IntegrationPointsType;
+    /// Type for the array list of conditions with points
+    using ConditionArrayListType = std::vector<array_1d<PointType, TDim>>;
 
-    typedef typename std::vector<array_1d<PointType,TDim>>                 ConditionArrayListType;
+    /// Line type definition
+    using LineType = Line2D2<Point>;
 
-    typedef Line2D2<Point>                                                               LineType;
+    /// Triangle type definition
+    using TriangleType = Triangle3D3<Point>;
 
-    typedef Triangle3D3<Point>                                                       TriangleType;
+    /// Type definition for the decomposition based on dimension
+    using DecompositionType = typename std::conditional<TDim == 2, LineType, TriangleType>::type;
 
-    typedef typename std::conditional<TDim == 2, LineType, TriangleType >::type DecompositionType;
+    /// Type definition for the derivative data based on dimension and number of nodes
+    using DerivativeDataType = DerivativeData<TDim, TNumNodes, TNumNodesMaster>;
 
-    typedef DerivativeData<TDim, TNumNodes, TNumNodesMaster>                   DerivativeDataType;
-
+    /// Constant expression for matrix size
     static constexpr IndexType MatrixSize = TDim * (TNumNodes + TNumNodesMaster) + TNumNodes;
 
     ///@}

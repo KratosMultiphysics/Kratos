@@ -20,7 +20,7 @@ the implementation is divded, under the hood, in a partitioner class and a "for"
 to make an example, making a parallel for loop to set the value of a variable to a prescribed value would look in the user code as:
 
 ```cpp
-block_for_each(model_part.Nodes(), [&](Node<3>& rNode){
+block_for_each(model_part.Nodes(), [&](Node& rNode){
     noalias(rNode.FastGetSolutionStepValue(rVariable)) = value;
 });
 ```

@@ -73,7 +73,7 @@ namespace Kratos {
 
         typedef double coordinate_type;
 
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
 
         typedef Geometry<NodeType> GeometryType;
 

@@ -324,7 +324,9 @@ class FSICouplingInterface:
 
         # Create the communication plan for the current coupling interface
         # Note that we retrieve the fill communicator from the ParallelEnvironment so nothing would be done if non MPI
-        fill_communicator = KratosMultiphysics.ParallelEnvironment.CreateFillCommunicator(self._fsi_interface_model_part)
+        fill_communicator = KratosMultiphysics.ParallelEnvironment.CreateFillCommunicatorFromGlobalParallelism(
+            self._fsi_interface_model_part,
+            self._fsi_interface_model_part.GetCommunicator().GetDataCommunicator())
         fill_communicator.Execute()
 
         return self._fsi_interface_model_part

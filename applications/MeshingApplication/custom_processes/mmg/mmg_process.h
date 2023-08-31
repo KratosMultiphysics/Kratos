@@ -102,7 +102,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(MmgProcess);
 
     /// Node definition
-    typedef Node <3>                                                   NodeType;
+    typedef Node                                                   NodeType;
     // Geometry definition
     typedef Geometry<NodeType>                                     GeometryType;
 

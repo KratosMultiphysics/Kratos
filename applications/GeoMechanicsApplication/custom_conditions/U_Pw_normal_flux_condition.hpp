@@ -39,7 +39,7 @@ public:
     
     using IndexType = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType = Vector;
@@ -55,9 +55,6 @@ public:
     
     // Constructor 2
     UPwNormalFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwFaceLoadCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
-
-    // Destructor
-    ~UPwNormalFluxCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

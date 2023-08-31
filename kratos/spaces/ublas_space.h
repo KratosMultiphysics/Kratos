@@ -133,10 +133,6 @@ public:
     typedef typename Kratos::shared_ptr< TMatrixType > MatrixPointerType;
     typedef typename Kratos::shared_ptr< TVectorType > VectorPointerType;
 
-#ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-    template<typename T> using compressed_matrix = boost::numeric::ublas::compressed_matrix<T>;
-#endif // ifdef KRATOS_USE_AMATRIX
-
     typedef DofUpdater< UblasSpace<TDataType,TMatrixType,TVectorType> > DofUpdaterType;
     typedef typename DofUpdaterType::UniquePointer DofUpdaterPointerType;
 

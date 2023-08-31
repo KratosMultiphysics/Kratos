@@ -334,7 +334,7 @@ void NormalCalculationUtils::SwapNormals(ModelPart& rModelPart)
 
     for(auto& r_cond : rModelPart.Conditions()) {
         GeometryType& r_geometry = r_cond.GetGeometry();
-        Node<3>::Pointer paux = r_geometry(0);
+        Node::Pointer paux = r_geometry(0);
         r_geometry(0) = r_geometry(1);
         r_geometry(1) = paux;
     }

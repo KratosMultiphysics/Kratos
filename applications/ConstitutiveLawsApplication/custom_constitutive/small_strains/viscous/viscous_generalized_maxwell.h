@@ -86,7 +86,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) ViscousGeneralizedMaxwell
     KRATOS_CLASS_POINTER_DEFINITION(ViscousGeneralizedMaxwell);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;

@@ -32,8 +32,8 @@ namespace Kratos::Testing
 ///@name Kratos Classes
 ///@{
 
-class TestCase;
-class TestSuite;
+class TestCase;  // Forward declaration of TestCase class
+class TestSuite; // Forward declaration of TestSuite class
 
 /// Tester class manages all tests and provide interface to run them.
 /** Tester is a singletone class which registers the test cases and
@@ -46,9 +46,9 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef std::map<std::string, TestCase*> TestCasesContainerType;
+    using TestCasesContainerType = std::map<std::string, TestCase*>;
 
-    typedef std::map<std::string, TestSuite*> TestSuitesContainerType;
+    using TestSuitesContainerType = std::map<std::string, TestSuite*>;
 
     ///@}
     ///@name Enums
@@ -66,7 +66,6 @@ public:
     /// Destructor.
     virtual ~Tester();
 
-
     ///@}
     ///@name Operators
     ///@{
@@ -82,7 +81,11 @@ public:
 
     static int RunAllTestCases();
 
+    static int RunAllDistributedTestCases();
+
     static int ProfileAllTestCases();
+
+    static int ProfileAllDistributedTestCases();
 
     static int RunTestSuite(std::string const& TestSuiteName);
 
@@ -171,29 +174,109 @@ private:
     Verbosity mVerbosity;
 
     ///@}
+    ///@name Private Operations
+    ///@{
 
+    /**
+    * @brief Unselects all test cases.
+    * @details This function iterates over all test cases in the 'mTestCases' map and calls the 'UnSelect()' method on each of them, effectively unselecting them.
+    */
     static void UnSelectAllTestCases();
 
+    /**
+    * @brief Selects only the enabled test cases.
+    * @details This function iterates over all the test cases in the `mTestCases` map of the `Tester` singleton instance, and selects only the ones that are enabled by calling their `Select()` method. The test cases that are disabled are unselected by calling their `UnSelect()` method.
+    */
     static void SelectOnlyEnabledTestCases();
 
-    static void SelectTestCasesByPattern(std::string const& TestCasesNamePattern);
+    /**
+    * @brief Selects only the distributed test cases.
+    * @details This function iterates over all the test cases in the `mTestCases` map of the `Tester` singleton instance, and selects only the ones that are enabled by calling their `Select()` method. The test cases that are disabled are unselected by calling their `UnSelect()` method.
+    */
+    static void SelectOnlyDistributedTestCases();
 
+    /**
+    * @brief Select test cases whose names match a given pattern.
+    * @param TestCasesNamePattern a string representing a regex pattern, where * is replaced with ".*"
+    */
+    static void SelectTestCasesByPattern(std::string const& rTestCasesNamePattern);
+
+    /**
+    * @brief Runs all selected test cases and reports the results
+    * @return The number of selected test cases
+    */
     static int RunSelectedTestCases();
 
+    /**
+    * @brief Profiles all selected test cases and reports the results
+    * @return The number of selected test cases
+    * @todo May be unified with benchmarking
+    */
     static int ProfileSelectedTestCases();
 
+    /**
+    * @brief Calculates the number of selected test cases.
+    * @details This method:
+    * - Loops through all the test cases in the mTestCases list of the Tester instance.
+    * - If a test case is enabled and selected, increments the result counter.
+    * - Returns the final count of selected test cases.
+    * @return An integer representing the number of selected test cases.
+    */
     static std::size_t NumberOfSelectedTestCases();
 
-    static void StartShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase);
+    /**
+    * @brief Starts the progress show of test cases
+    * @param Current: a std::size_t representing the current progress
+    * @param Total: a std::size_t representing the total progress
+    * @param pTheTestCase: a pointer to a TestCase object representing the current test case
+    */
+    static void StartShowProgress(
+        const std::size_t Current,
+        const std::size_t Total,
+        const TestCase* pTheTestCase
+        );
 
-    static void EndShowProgress(std::size_t Current, std::size_t Total, const TestCase* const pTheTestCase);
+    /**
+    * @brief Ends the progress show of test cases
+    * @param Current: a std::size_t representing the current progress
+    * @param Total: a std::size_t representing the total progress
+    * @param pTheTestCase: a pointer to a TestCase object representing the current test case
+    */
+    static void EndShowProgress(
+        const std::size_t Current,
+        const std::size_t Total,
+        const TestCase* pTheTestCase
+        );
 
-    static int ReportResults(std::ostream& rOStream, std::size_t NumberOfRunTests, double ElapsedTime);
+    /**
+    * @brief Reports test results to a given output stream.
+    * @param rOStream Output stream to report results to.
+    * @param NumberOfRunTests Number of test cases run.
+    * @param ElapsedTime Time elapsed during test execution.
+    * @return An integer representing the exit code of the function.
+    * @return 0 if all tests passed, 1 if any tests failed.
+    */
+    static int ReportResults(
+        std::ostream& rOStream,
+        const std::size_t NumberOfRunTests,
+        const double ElapsedTime
+        );
 
+    /**
+    * @brief A description of the entire function, its parameters, and its return types.
+    * @param rOStream The output stream to write test failure results to.
+    */
     static void ReportFailures(std::ostream& rOStream);
 
-    static void ReportDistributedFailureDetails(std::ostream& rOStream, const TestCase* const pTheTestCase);
-
+    /**
+    * Reports detailed failure information in a distributed setting.
+    * @param rOStream The output stream to write the failure details to.
+    * @param pTheTestCase A pointer to the test case object being reported.
+    */
+    static void ReportDistributedFailureDetails(
+        std::ostream& rOStream,
+        const TestCase* pTheTestCase
+        );
 
 }; // Class Tester
 
@@ -216,8 +299,7 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@name macros
 ///@{
 
-
 ///@}
 
 ///@} addtogroup block
-} // manespace Kratos::Testing.
+} // namespace Kratos::Testing.

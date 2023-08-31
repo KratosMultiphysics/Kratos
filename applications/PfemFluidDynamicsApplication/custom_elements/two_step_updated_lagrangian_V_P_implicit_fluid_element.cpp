@@ -561,8 +561,13 @@ namespace Kratos
 
   template <>
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<2>::CalcElasticPlasticCauchySplitted(
-      ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
-      double &Density, double &DeviatoricCoeff, double &VolumetricCoeff)
+      ElementalVariables &rElementalVariables,
+      const unsigned int g,
+      const Vector& rN,
+      const ProcessInfo &rCurrentProcessInfo,
+      double &Density,
+      double &DeviatoricCoeff,
+      double &VolumetricCoeff)
   {
 
     mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
@@ -573,8 +578,7 @@ namespace Kratos
     constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
-    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetShapeFunctionsValues(rN);
     constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
     constitutive_law_values.SetStressVector(rElementalVariables.UpdatedDeviatoricCauchyStress);
     constitutive_law_values.SetConstitutiveMatrix(rElementalVariables.ConstitutiveMatrix);
@@ -602,8 +606,13 @@ namespace Kratos
 
   template <>
   void TwoStepUpdatedLagrangianVPImplicitFluidElement<3>::CalcElasticPlasticCauchySplitted(
-      ElementalVariables &rElementalVariables, double TimeStep, unsigned int g, const ProcessInfo &rCurrentProcessInfo,
-      double &Density, double &DeviatoricCoeff, double &VolumetricCoeff)
+      ElementalVariables &rElementalVariables, 
+      const unsigned int g,
+      const Vector& rN,
+      const ProcessInfo &rCurrentProcessInfo,
+      double &Density,
+      double &DeviatoricCoeff,
+      double &VolumetricCoeff)
   {
 
     mpConstitutiveLaw = this->GetProperties().GetValue(CONSTITUTIVE_LAW);
@@ -614,8 +623,7 @@ namespace Kratos
     constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_STRESS, true);
     constitutive_law_options.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR, true);
 
-    const Vector &r_shape_functions = row((this->GetGeometry()).ShapeFunctionsValues(), g);
-    constitutive_law_values.SetShapeFunctionsValues(r_shape_functions);
+    constitutive_law_values.SetShapeFunctionsValues(rN);
     constitutive_law_values.SetStrainVector(rElementalVariables.SpatialDefRate);
     constitutive_law_values.SetStressVector(rElementalVariables.UpdatedDeviatoricCauchyStress);
     constitutive_law_values.SetConstitutiveMatrix(rElementalVariables.ConstitutiveMatrix);

@@ -67,7 +67,7 @@ public:
 
         typedef QSConvectionDiffusionExplicit<TDim,TNumNodes> BaseType;
         typedef typename BaseType::ElementData ElementData;
-        typedef Node < 3 > NodeType;
+        typedef Node NodeType;
         typedef Geometry<NodeType> GeometryType;
         typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
         typedef Vector VectorType;
