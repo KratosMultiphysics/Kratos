@@ -71,9 +71,9 @@ class Pattern:
 
         for tag, value_type in tag_type_dict.items():
             if value_type == int:
-                regex_pattern = regex_pattern.replace(tag, r"([-+]?[0-9]+)")
+                regex_pattern = regex_pattern.replace(tag, r"([0-9]+)")
             elif value_type == float:
-                regex_pattern = regex_pattern.replace(tag, r"([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)")
+                regex_pattern = regex_pattern.replace(tag, r"([0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)")
             else:
                 raise RuntimeError(f"Unsupported tag type for tag = \"{tag}\" [ type = {value_type} ].")
 
@@ -137,3 +137,34 @@ def EvaluatePattern(pattern: str, model_part: Kratos.ModelPart, time_format='') 
     pattern = pattern.replace("<model_part_name>", model_part.Name)
     pattern = pattern.replace("<model_part_full_name>", model_part.FullName())
     return pattern
+
+def IdentifyPattern(entity_name: str) -> 'tuple[str, dict[str, Any]]':
+    # all the tag types are assumed to be of float type
+    # here the "-" sign is omitted.
+    float_pattern = re.compile(r"([0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)")
+    values = float_pattern.findall(entity_name)
+
+    current_pos = 0
+    current_value_index = 0
+    initial_value_index = 0
+    pattern = ""
+    tags_dict: 'dict[str, Any]' = {}
+    while current_pos < len(entity_name):
+        found_tag = False
+        current_value_index = initial_value_index
+        while current_value_index < len(values):
+            current_value = values[current_value_index]
+            if entity_name[current_pos:current_pos + len(current_value)] == current_value:
+                tags_dict[f"<float_{current_value_index+1}>"] = float
+                pattern += f"<float_{current_value_index+1}>"
+                current_pos += len(current_value)
+                initial_value_index += 1
+                found_tag = True
+                break
+            current_value_index += 1
+
+        if not found_tag:
+            pattern += entity_name[current_pos]
+            current_pos += 1
+
+    return pattern, tags_dict
