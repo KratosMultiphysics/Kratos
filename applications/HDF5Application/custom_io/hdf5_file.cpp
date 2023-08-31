@@ -423,6 +423,24 @@ std::vector<std::string> File::GetGroupNames(const std::string& rGroupPath) cons
     KRATOS_CATCH("");
 }
 
+std::vector<std::string> File::GetRootGroupNames() const
+{
+    KRATOS_TRY;
+
+    std::vector<std::string> names;
+    std::vector<std::string> link_names = GetLinkNames("/");
+    names.reserve(link_names.size());
+    for (const auto& r_name : link_names) {
+        if (IsGroup('/' + r_name)) {
+            names.emplace_back(std::move(r_name));
+        }
+    }
+
+    return names;
+
+    KRATOS_CATCH("");
+}
+
 std::vector<std::string> File::GetDataSetNames(const std::string& rGroupPath) const
 {
     KRATOS_TRY;
@@ -432,6 +450,23 @@ std::vector<std::string> File::GetDataSetNames(const std::string& rGroupPath) co
     names.reserve(link_names.size());
     for (const auto& r_name : link_names) {
         if (IsDataSet(rGroupPath + '/' + r_name)) {
+            names.push_back(r_name);
+        }
+    }
+    return names;
+
+    KRATOS_CATCH("");
+}
+
+std::vector<std::string> File::GetRootDataSetNames() const
+{
+    KRATOS_TRY;
+
+    std::vector<std::string> names;
+    std::vector<std::string> link_names = GetLinkNames("/");
+    names.reserve(link_names.size());
+    for (const auto& r_name : link_names) {
+        if (IsDataSet('/' + r_name)) {
             names.push_back(r_name);
         }
     }
