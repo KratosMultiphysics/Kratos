@@ -81,7 +81,7 @@ typename Triangle3D3<TPointType>::Pointer GenerateEquilateralTriangle3D3() {
 KRATOS_TEST_CASE_IN_SUITE(Triangle3D3EdgesNumber, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateRightTriangle3D3<NodeType>();
 
-    KRATOS_EXPECT_EQUAL(geom->EdgesNumber(), 3);
+    KRATOS_EXPECT_EQ(geom->EdgesNumber(), 3);
 }
 
 /** Checks if the edges are correct.
@@ -125,7 +125,7 @@ KRATOS_TEST_CASE_IN_SUITE(Triangle3D3FacesNumber, KratosCoreGeometriesFastSuite)
 
     // Charlie: I will let this to 3 but probably 'FacesNumber' needs to be documented to state
     // that for planar geometries it also return the number of edges.
-    KRATOS_EXPECT_EQUAL(geom->FacesNumber(), 1);
+    KRATOS_EXPECT_EQ(geom->FacesNumber(), 1);
 }
 
 /** Checks if the faces are correct.
