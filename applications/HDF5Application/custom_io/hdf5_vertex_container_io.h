@@ -67,18 +67,6 @@ public:
     ///@}
 
 private:
-    ///@name Private Operations
-    ///@{
-
-    void WriteWithoutIDs(
-        const Detail::VertexContainerType& rVertices,
-        Parameters Attributes);
-
-    void WriteWithIDs(
-        const Detail::VertexContainerType& rVertices,
-        Parameters Attributes);
-
-    ///@}
     ///@name Private Member Variables
     ///@{
 
