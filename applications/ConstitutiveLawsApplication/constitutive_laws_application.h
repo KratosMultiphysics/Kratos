@@ -42,6 +42,7 @@
 #include "custom_constitutive/small_strain_plasticity_3d_ath.h"
 #include "custom_constitutive/small_strain_isotropic_damage_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_3d_athira.h"
+#include "custom_constitutive/small_strain_isotropic_damage_3d_mazars.h"
 #include "custom_constitutive/small_strain_isotropic_damage_implex_3d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_plane_strain_2d.h"
 #include "custom_constitutive/small_strain_isotropic_damage_traction_only_3d.h"
@@ -273,6 +274,7 @@ private:
     const SmallStrainJ2PlasticityPlaneStrain2D mSmallStrainJ2PlasticityPlaneStrain2D;
     const SmallStrainIsotropicDamage3D mSmallStrainIsotropicDamage3D;
     const SmallStrainIsotropicDamageAthira3D mSmallStrainIsotropicDamageAthira3D;
+    const SmallStrainIsotropicDamage3DMazars mSmallStrainIsotropicDamage3DMazars;
     const SmallStrainIsotropicDamageImplex3D mSmallStrainIsotropicDamageImplex3D;
     const SmallStrainIsotropicDamagePlaneStrain2D mSmallStrainIsotropicDamagePlaneStrain2D;
     const SmallStrainIsotropicDamageTractionOnly3D mSmallStrainIsotropicDamageTractionOnly3D;
