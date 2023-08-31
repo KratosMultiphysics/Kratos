@@ -62,13 +62,13 @@ namespace Kratos
             AssignNodalElementsToNodesProcess assign_nodal_elements_to_nodes_process(r_model_part, parameters);
             assign_nodal_elements_to_nodes_process.Execute();
 
-            KRATOS_CHECK_EQUAL(r_model_part.Elements().size(), r_model_part.Nodes().size());
+            KRATOS_EXPECT_EQ(r_model_part.Elements().size(), r_model_part.Nodes().size());
 
             for (auto& r_elem : r_model_part.Elements()) {
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_MASS], 1.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][0], 1.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][1], 0.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][2], 0.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_MASS], 1.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][0], 1.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][1], 0.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][2], 0.0);
             }
         }
 
@@ -100,19 +100,19 @@ namespace Kratos
             AssignNodalElementsToNodesProcess assign_nodal_elements_to_nodes_process(r_model_part, parameters);
             assign_nodal_elements_to_nodes_process.Execute();
 
-            KRATOS_CHECK_EQUAL(r_model_part.Elements().size(), r_model_part.Nodes().size());
+            KRATOS_EXPECT_EQ(r_model_part.Elements().size(), r_model_part.Nodes().size());
 
             for (auto& r_elem : r_model_part.Elements()) {
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_MASS], 1.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][0], 1.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][1], 0.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][2], 0.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_INERTIA][0], 1.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_INERTIA][1], 1.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_INERTIA][2], 1.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_ROTATIONAL_STIFFNESS][0], 1.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_ROTATIONAL_STIFFNESS][1], 0.0);
-                KRATOS_CHECK_EQUAL(r_elem.GetProperties()[NODAL_ROTATIONAL_STIFFNESS][2], 1.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_MASS], 1.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][0], 1.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][1], 0.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_DISPLACEMENT_STIFFNESS][2], 0.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_INERTIA][0], 1.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_INERTIA][1], 1.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_INERTIA][2], 1.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_ROTATIONAL_STIFFNESS][0], 1.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_ROTATIONAL_STIFFNESS][1], 0.0);
+                KRATOS_EXPECT_EQ(r_elem.GetProperties()[NODAL_ROTATIONAL_STIFFNESS][2], 1.0);
             }
         }
 
