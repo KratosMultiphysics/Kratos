@@ -228,8 +228,8 @@ private:
     std::vector<const Variable<Vector>*> mVectorVariable;             /// The vector variables to compute
     std::vector<const Variable<Matrix>*> mMatrixVariable;             /// The matrix variables to compute
 
-    std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher<Variable<Vector>>, pVariableComparator<Variable<Vector>>> mSizeVectors; /// The size of the vector variables
-    std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher<Variable<Matrix>>, pVariableComparator<Variable<Matrix>>> mSizeMatrixes; /// The size of the matrixes variables
+    std::unordered_map<const Variable<Vector>*, SizeType, pVariableHasher, pVariableComparator> mSizeVectors; /// The size of the vector variables
+    std::unordered_map<const Variable<Matrix>*, std::pair<SizeType, SizeType>, pVariableHasher, pVariableComparator> mSizeMatrixes; /// The size of the matrixes variables
 
     const Variable<double>* mpAverageVariable;          /// The variable used to compute the average weight
 

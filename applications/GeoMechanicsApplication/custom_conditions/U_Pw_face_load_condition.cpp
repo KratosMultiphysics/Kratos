@@ -53,7 +53,6 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
     BoundedMatrix<double,TDim, TNumNodes*TDim> Nu = ZeroMatrix(TDim, TNumNodes*TDim);
     array_1d<double,TDim> TractionVector;
     array_1d<double,TNumNodes*TDim> UVector;
-    double IntegrationCoefficient;
 
     //Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
@@ -67,82 +66,71 @@ void UPwFaceLoadCondition<TDim,TNumNodes>::
         ConditionUtilities::CalculateNuMatrix<TDim, TNumNodes>(Nu,NContainer,GPoint);
 
         //Compute weighting coefficient for integration
-        this->CalculateIntegrationCoefficient(IntegrationCoefficient,
-                                              JContainer[GPoint],
-                                              IntegrationPoints[GPoint].Weight());
+        double integration_coefficient = this->CalculateIntegrationCoefficient(JContainer[GPoint],
+                                                                              IntegrationPoints[GPoint].Weight());
 
         //Contributions to the right hand side
-        noalias(UVector) = prod(trans(Nu),TractionVector) * IntegrationCoefficient;
+        noalias(UVector) = prod(trans(Nu),TractionVector) * integration_coefficient;
         ConditionUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector, UVector);
     }
 }
 
 //----------------------------------------------------------------------------------------
 template< >
-void UPwFaceLoadCondition<2,2>::
-    CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-                                    const Matrix& Jacobian,
-                                    const double& Weight)
+double UPwFaceLoadCondition<2,2>::
+    CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
 {
     double dx_dxi = Jacobian(0,0);
     double dy_dxi = Jacobian(1,0);
 
     double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi);
 
-    rIntegrationCoefficient = ds * Weight;
+    return ds * Weight;
 }
 
 //----------------------------------------------------------------------------------------
 template< >
-void UPwFaceLoadCondition<2,3>::
-    CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-                                    const Matrix& Jacobian,
-                                    const double& Weight)
+double UPwFaceLoadCondition<2,3>::
+    CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
 {
     double dx_dxi = Jacobian(0,0);
     double dy_dxi = Jacobian(1,0);
 
     double ds = sqrt(dx_dxi*dx_dxi + dy_dxi*dy_dxi);
 
-    rIntegrationCoefficient = ds * Weight;
+    return ds * Weight;
 }
 
 //----------------------------------------------------------------------------------------
 template< >
-void UPwFaceLoadCondition<2,4>::
-CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-    const Matrix& Jacobian,
-    const double& Weight)
+double UPwFaceLoadCondition<2,4>::
+CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
 {
     const double dx_dxi = Jacobian(0, 0);
     const double dy_dxi = Jacobian(1, 0);
 
     const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
 
-    rIntegrationCoefficient = ds * Weight;
+    return ds * Weight;
 }
 
 //----------------------------------------------------------------------------------------
 template< >
-void UPwFaceLoadCondition<2,5>::
-CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-    const Matrix& Jacobian,
-    const double& Weight)
+double UPwFaceLoadCondition<2,5>::
+CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
 {
     const double dx_dxi = Jacobian(0, 0);
     const double dy_dxi = Jacobian(1, 0);
 
     const double ds = std::sqrt(dx_dxi * dx_dxi + dy_dxi * dy_dxi);
 
-    rIntegrationCoefficient = ds * Weight;
+    return ds * Weight;
 }
 
 //----------------------------------------------------------------------------------------
 template< >
-void UPwFaceLoadCondition<3,3>::
-    CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-                                    const Matrix& Jacobian,
-                                    const double& Weight)
+double UPwFaceLoadCondition<3,3>::
+    CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
 {
     double NormalVector[3];
 
@@ -156,15 +144,13 @@ void UPwFaceLoadCondition<3,3>::
                      + NormalVector[1]*NormalVector[1]
                      + NormalVector[2]*NormalVector[2]);
 
-    rIntegrationCoefficient = dA * Weight;
+    return dA * Weight;
 }
 
 //----------------------------------------------------------------------------------------
 template< >
-void UPwFaceLoadCondition<3,4>::
-    CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-                                    const Matrix& Jacobian,
-                                    const double& Weight)
+double UPwFaceLoadCondition<3,4>::
+    CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight)
 {
     double NormalVector[3];
 
@@ -178,7 +164,7 @@ void UPwFaceLoadCondition<3,4>::
                      + NormalVector[1]*NormalVector[1]
                      + NormalVector[2]*NormalVector[2]);
 
-    rIntegrationCoefficient = dA * Weight;
+    return dA * Weight;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
