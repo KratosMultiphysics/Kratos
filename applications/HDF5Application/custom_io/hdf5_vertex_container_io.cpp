@@ -42,14 +42,20 @@ VertexContainerCoordinateIO::VertexContainerCoordinateIO(
     File::Pointer pFile)
     : BaseType(Internals::AddMissingAndGetPrefix(Settings), pFile)
 {
+    KRATOS_TRY
+
+    KRATOS_ERROR_IF(Settings["prefix"].GetString().back() == '/')
+        << "The prefix for vertex coordinates assumed to be a group hence no need to have an ending \"\\\" [ prefix = \""
+        << Settings["prefix"].GetString() << "\" ].\n";
+
+    KRATOS_CATCH("");
 }
 
 void VertexContainerCoordinateIO::Write(
     const Detail::VertexContainerType& rVertices,
     Parameters Attributes)
 {
-    BaseType::Write(rVertices, Internals::VerticesIO{});
-    mpFile->WriteAttribute(mPrefix, Attributes);
+    BaseType::Write(rVertices, Internals::VerticesIO{}, Attributes);
 }
 
 template<class TVertexDataIOType>
