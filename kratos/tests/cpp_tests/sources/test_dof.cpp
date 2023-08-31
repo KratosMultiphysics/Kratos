@@ -32,11 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(DofConstructorWtihoutVariableInVariablesList, KratosCo
 
     auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
 
-<<<<<<< HEAD
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_node->AddDof(VELOCITY_Y),
-=======
     KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(p_node->AddDof(VELOCITY_Y),
->>>>>>> master
         "Error: The Dof-Variable VELOCITY_Y is not in the list of variables");
 }
 
@@ -51,11 +47,7 @@ KRATOS_TEST_CASE_IN_SUITE(DofConstructorWtihoutReactionInVariablesList, KratosCo
 
     auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
 
-<<<<<<< HEAD
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(p_node->AddDof(VELOCITY_Y, REACTION_Y),
-=======
     KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(p_node->AddDof(VELOCITY_Y, REACTION_Y),
->>>>>>> master
         "Error: The Reaction-Variable REACTION_Y is not in the list of variables");
 }
 
