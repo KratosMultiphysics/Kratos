@@ -130,9 +130,9 @@ public:
      * @param rValue a reference to the returned value
      * @return rValue output: the value of the specified variable
      */
-    Vector& GetValue(
-        const Variable<Vector>& rThisVariable,
-        Vector& rValue
+    double& GetValue(
+        const Variable<double>& rThisVariable,
+        double& rValue
         ) override;
 
     /**
@@ -142,8 +142,8 @@ public:
      * @param rCurrentProcessInfo the process info
      */
     void SetValue(
-        const Variable<Vector>& rThisVariable,
-        const Vector& rValue,
+        const Variable<double>& rThisVariable,
+        const double& rValue,
         const ProcessInfo& rProcessInfo
         ) override;
 
@@ -254,7 +254,7 @@ protected:
 
     ///@name Protected member Variables
     ///@{
-    double mStrainVariable;
+    Vector mInternalVariables =ZeroVector(2);
     ///@}
 
     ///@name Protected Operators
@@ -267,9 +267,9 @@ protected:
 
      * @brief This method computes derivatives of invariants
      * @param StressVector Stresses in vector form
-     * @param dI1dS 
-     * @param dJ2ddS 
-     * @param dJ2dS 
+     * @param dI1dS
+     * @param dJ2ddS
+     * @param dJ2dS
      */
     void GetDerivatives(const Vector StressVector,
                         Vector& dI1dS,
@@ -286,10 +286,10 @@ protected:
     void GetEigenValues(const Vector& StressVector,
                         Vector& Pri_Values,
                         double& MaxValue,
-                        double& MinValue); 
-        
+                        double& MinValue);
+
     ///@}
-    
+
     /**
      * @brief This method computes dSprdS
      * @param StressVector Stresses in vector form
@@ -297,7 +297,7 @@ protected:
      */
     void ComputedSprdS(const Vector StressVector,
                        const Vector Spr,
-                       Matrix& dSprdS);  
+                       Matrix& dSprdS);
     /**
      * @brief This method computes the invariants of stress matrix
      * @param StressVector Stresses in vector form

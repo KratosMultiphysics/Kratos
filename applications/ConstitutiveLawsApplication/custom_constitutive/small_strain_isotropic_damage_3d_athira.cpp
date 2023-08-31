@@ -12,6 +12,9 @@
 //  Collaborators:
 //
 
+// System includes
+#include <algorithm>
+
 // Project includes
 #include "small_strain_isotropic_damage_3d_athira.h"
 #include "constitutive_laws_application_variables.h"
@@ -62,8 +65,6 @@ int SmallStrainIsotropicDamageAthira3D::Check(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
-    // const double tolerance = std::numeric_limits<double>::epsilon();
-
     KRATOS_CHECK(rMaterialProperties.Has(YOUNG_MODULUS));
     KRATOS_CHECK(rMaterialProperties.Has(POISSON_RATIO));
     KRATOS_CHECK(rMaterialProperties.Has(YIELD_STRESS_TENSION));
@@ -81,7 +82,7 @@ bool SmallStrainIsotropicDamageAthira3D::Has(const Variable<double>& rThisVariab
         return false;
     } else if(rThisVariable == DAMAGE_VARIABLE){
         // explicitly returning "false", so the element calls CalculateValue(...)
-        return false;
+        return true;
 
     }
 
@@ -106,14 +107,15 @@ bool SmallStrainIsotropicDamageAthira3D::Has(const Variable<Vector>& rThisVariab
 //************************************************************************************
 //************************************************************************************
 
-Vector& SmallStrainIsotropicDamageAthira3D::GetValue(
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue
+double& SmallStrainIsotropicDamageAthira3D::GetValue(
+    const Variable<double>& rThisVariable,
+    double& rValue
     )
 {
     if(rThisVariable == INTERNAL_VARIABLES){
-        rValue.resize(1);
-        rValue[0] = mStrainVariable;
+        rValue = mInternalVariables[0];
+    }else if(rThisVariable == DAMAGE_VARIABLE){
+        rValue = mInternalVariables[1];
     }
 
     return rValue;
@@ -123,13 +125,15 @@ Vector& SmallStrainIsotropicDamageAthira3D::GetValue(
 //************************************************************************************
 
 void SmallStrainIsotropicDamageAthira3D::SetValue(
-    const Variable<Vector>& rThisVariable,
-    const Vector& rValue,
+    const Variable<double>& rThisVariable,
+    const double& rValue,
     const ProcessInfo& rProcessInfo
     )
 {
     if(rThisVariable == INTERNAL_VARIABLES){
-        mStrainVariable = rValue[0];
+        mInternalVariables[0] = rValue;
+    }else if(rThisVariable == DAMAGE_VARIABLE){
+        mInternalVariables[1] = rValue;
     }
 }
 
@@ -153,9 +157,9 @@ void SmallStrainIsotropicDamageAthira3D::InitializeMaterial(
 void SmallStrainIsotropicDamageAthira3D::FinalizeMaterialResponseCauchy(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
-    Vector internal_variables(1);
+    Vector internal_variables(2);
     this->CalculateStressResponse(rParametersValues, internal_variables);
-    mStrainVariable = internal_variables[0];
+    mInternalVariables = internal_variables;
 }
 
 //************************************************************************************
@@ -164,7 +168,7 @@ void SmallStrainIsotropicDamageAthira3D::FinalizeMaterialResponseCauchy(
 void SmallStrainIsotropicDamageAthira3D::CalculateMaterialResponsePK2(
     ConstitutiveLaw::Parameters& rParametersValues)
 {
-    Vector internal_variables(1);
+    Vector internal_variables(2);
     CalculateStressResponse(rParametersValues, internal_variables);
 }
 
@@ -179,6 +183,7 @@ void SmallStrainIsotropicDamageAthira3D::CalculateStressResponse(
     Flags& r_constitutive_law_options = rParametersValues.GetOptions();
     Vector& r_strain_vector = rParametersValues.GetStrainVector();
     CalculateValue(rParametersValues, STRAIN, r_strain_vector);
+    rInternalVariables = mInternalVariables;
     // If we compute the tangent moduli or the stress
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
         r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
@@ -255,14 +260,14 @@ void SmallStrainIsotropicDamageAthira3D::CalculateStressResponse(
         double k0 = k0t  * H  + (1.-H) * k0c;
         double beta1 = beta1t  * H  + (1.-H) * beta1c;
         double beta2 = beta2t  * H  + (1.-H) * beta2c;
-
-        double Loc_e = std::fabs(Eps_eq);
+        double max_e = std::max(mInternalVariables[0], std::fabs(Eps_eq));
+        double Loc_e = std::max(std::fabs(Eps_eq), std::fabs(max_e));
         double kappa = std::max(Loc_e,k0);
         double f_d   = Loc_e - kappa;
 
         if (f_d < 0.0){
           D = 0.0;
-         }else if (f_d == 0.0) {
+        }else if (f_d == 0.0) {
 
             double var1      = pow((k0/kappa),beta1);
             double var2      = exp(-beta2*((kappa-k0)/(k0)));
@@ -280,7 +285,9 @@ void SmallStrainIsotropicDamageAthira3D::CalculateStressResponse(
             TensorProduct6(product,dsdeii,dKappadSig);
             r_constitutive_matrix = DN * r_constitutive_matrix + dDdKappa * prod(product,r_constitutive_matrix);
         }
-        if(D < 0.0) D = 0.0;
+        if(D < 0.0){ D = 0.0;}
+        rInternalVariables[0] = max_e;
+        rInternalVariables[1] = D;
         KRATOS_WATCH(r_stress_vector);
         KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME]);
         KRATOS_WATCH("-------------------------------------------");
@@ -337,7 +344,7 @@ void SmallStrainIsotropicDamageAthira3D::GetLawFeatures(Features& rFeatures)
 void SmallStrainIsotropicDamageAthira3D::save(Serializer& rSerializer) const
 {
     KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.save("mStrainVariable", mStrainVariable);
+    rSerializer.save("mInternalVariables", mInternalVariables);
 }
 
 //************************************************************************************
@@ -346,7 +353,7 @@ void SmallStrainIsotropicDamageAthira3D::save(Serializer& rSerializer) const
 void SmallStrainIsotropicDamageAthira3D::load(Serializer& rSerializer)
 {
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw);
-    rSerializer.load("mStrainVariable", mStrainVariable);
+    rSerializer.load("mInternalVariables", mInternalVariables);
 }
 
 void SmallStrainIsotropicDamageAthira3D::TensorProduct6(
