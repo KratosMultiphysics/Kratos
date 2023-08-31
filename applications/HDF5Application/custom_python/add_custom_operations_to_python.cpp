@@ -15,6 +15,7 @@
 
 // External includes
 #include "pybind11/pybind11.h"
+#include "pybind11/stl.h"
 
 // Project includes
 
@@ -32,7 +33,7 @@ void AddCustomOperationsToPython(pybind11::module& m)
     namespace py = pybind11;
 
     py::class_<HDF5::XdmfConnectivitiesWriterOperation, HDF5::XdmfConnectivitiesWriterOperation::Pointer, Operation>(m,"HDF5XdmfConnectivitiesWriterOperation")
-        .def(py::init<const std::string&>(), py::arg("file_name"))
+        .def(py::init<const std::string&, const std::vector<std::string>&>(), py::arg("file_name"), py::arg("list_of_model_prefixes") = std::vector<std::string>{})
         ;
 }
 

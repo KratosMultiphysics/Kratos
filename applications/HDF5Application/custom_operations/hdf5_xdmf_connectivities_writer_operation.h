@@ -60,7 +60,23 @@ public:
     ///@name Life Cycle
     ///@{
 
-    XdmfConnectivitiesWriterOperation(const std::string& rFileName);
+    /**
+     * @brief Construct a new Xdmf Connectivities Writer
+     *
+     * This creates an xdmf connectivities writer operation. If @ref rModelPrefixes
+     * is empty, then it will iterate through all the groups in the given @ref rFileName h5
+     * file to identify available model data groups, then will create xdmf connectivities
+     * when @ref Execute is called.
+     *
+     * If @ref rModelPrefixes is not empty, then it will only create xdmf connectivities
+     * for those goups.
+     *
+     * @param rFileName         HDF5 filename.
+     * @param rModelPrefixes    The model prefixes. If empty, this will find all possible model prefixes.
+     */
+    XdmfConnectivitiesWriterOperation(
+        const std::string& rFileName,
+        const std::vector<std::string>& rModelPrefixes);
 
     ///@}
     ///@name Operations

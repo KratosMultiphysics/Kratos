@@ -55,12 +55,15 @@ void GetModelDataGroups(
 
 } // namespace Detail
 
-XdmfConnectivitiesWriterOperation::XdmfConnectivitiesWriterOperation(const std::string& rFileName)
+XdmfConnectivitiesWriterOperation::XdmfConnectivitiesWriterOperation(
+    const std::string& rFileName,
+    const std::vector<std::string>& rModelPrefixes)
+    : mListOfModelDataPaths(rModelPrefixes)
 {
     KRATOS_TRY;
 
     Parameters file_params(R"({
-        "file_name" : "",
+        "file_name"       : "",
         "file_access_mode": "read_write"
     })");
     file_params["file_name"].SetString(rFileName);
@@ -69,8 +72,10 @@ XdmfConnectivitiesWriterOperation::XdmfConnectivitiesWriterOperation(const std::
     // use the serial data communicator
     mpFile = File::Pointer(new File(mSerialDataCommunicator, file_params));
 
-    // generate the possible model data paths in the file.
-    Detail::GetModelDataGroups(mListOfModelDataPaths, *mpFile, "/");
+    if (mListOfModelDataPaths.empty()) {
+        // generate the possible model data paths in the file.
+        Detail::GetModelDataGroups(mListOfModelDataPaths, *mpFile, "/");
+    }
 
     KRATOS_CATCH("");
 }
