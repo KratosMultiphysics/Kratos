@@ -13,7 +13,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "utilities/divide_triangle_3d_3.h"
 
 namespace Kratos::Testing {
@@ -291,8 +291,8 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle3D3ZeroNode, KratosCoreFastSuite
     divider.GenerateDivision();
 
     // Should split a single edge and return two triangles
-    KRATOS_CHECK_EQUAL(divider.GetPositiveSubdivisions().size(), 1);
-    KRATOS_CHECK_EQUAL(divider.GetNegativeSubdivisions().size(), 1);
+    KRATOS_EXPECT_EQ(divider.GetPositiveSubdivisions().size(), 1);
+    KRATOS_EXPECT_EQ(divider.GetNegativeSubdivisions().size(), 1);
 }
 
 }  // namespace Kratos::Testing.

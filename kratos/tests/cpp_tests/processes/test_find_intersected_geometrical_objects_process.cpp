@@ -18,7 +18,7 @@
 // #include "includes/gid_io.h"
 // #include "input_output/vtk_output.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 #include "processes/find_intersected_geometrical_objects_with_obb_process.h"
 #include "processes/skin_detection_process.h"

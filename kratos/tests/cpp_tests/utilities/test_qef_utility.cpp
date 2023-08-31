@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "testing/testing.h"
 #include "containers/model.h"
 #include "utilities/qef_utility.h"

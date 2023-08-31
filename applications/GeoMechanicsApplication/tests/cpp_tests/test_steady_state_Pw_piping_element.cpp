@@ -106,7 +106,7 @@ namespace Kratos
             // calculate equilibrium height
             double expected_eq_height = PipeEl->CalculateEquilibriumPipeHeight(*p_elem_prop, Geom, p_elem_prop->GetValue(PIPE_ELEMENT_LENGTH));
 
-            KRATOS_CHECK_NEAR(
+            KRATOS_EXPECT_NEAR(
                 expected_eq_height,
                 0.000489,
                 1.0e-6);
@@ -181,7 +181,7 @@ namespace Kratos
 
             // assert gradient
             // expected gradient should be 2. Test is failing on purpose to check CI
-            KRATOS_CHECK_NEAR(
+            KRATOS_EXPECT_NEAR(
                 expected_gradient,
                 2,
                 1.0e-10);

@@ -17,7 +17,7 @@
 #include "geometries/line_3d_2.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "testing/testing.h"
 #include "utilities/intersection_utilities.h"
 

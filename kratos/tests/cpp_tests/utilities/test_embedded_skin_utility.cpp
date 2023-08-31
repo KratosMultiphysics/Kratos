@@ -13,7 +13,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 // #include "includes/gid_io.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "processes/calculate_distance_to_skin_process.h"

@@ -130,10 +130,10 @@ KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
         N[0] = 0.3;
         N[0] = 0.4;
 
-        KRATOS_CHECK_EQUAL(2.0e6, (*p_elem_prop)[YOUNG_MODULUS]);
-        KRATOS_CHECK_EQUAL(2.0e6, (*p_elem_prop).GetValue(YOUNG_MODULUS));
-        KRATOS_CHECK_EQUAL(2.0e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
-        KRATOS_CHECK_EQUAL(false, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(2.0e6, (*p_elem_prop)[YOUNG_MODULUS]);
+        KRATOS_EXPECT_EQ(2.0e6, (*p_elem_prop).GetValue(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(2.0e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+        KRATOS_EXPECT_EQ(false, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
 
         p_node_1->GetSolutionStepValue(TEMPERATURE) = 25.0;
         p_node_2->GetSolutionStepValue(TEMPERATURE) = 30.0;
@@ -147,12 +147,12 @@ KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
         T_E_table.PushBack(200.0, 0.25e6);
 
         p_elem_prop->SetTable(TEMPERATURE, YOUNG_MODULUS, T_E_table);
-        KRATOS_CHECK_EQUAL(true, (*p_elem_prop).HasTable(TEMPERATURE, YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasTable(TEMPERATURE, YOUNG_MODULUS));
 
         TableAccessor E_table_accessor = TableAccessor(TEMPERATURE, "node_historical");
         p_elem_prop->SetAccessor(YOUNG_MODULUS, E_table_accessor.Clone());
-        KRATOS_CHECK_EQUAL(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
-        KRATOS_CHECK_EQUAL(1.6e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(1.6e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
 
         Table<double> T_NU_table;
         T_NU_table.PushBack(0.0,   0.3);
@@ -163,10 +163,10 @@ KRATOS_TEST_CASE_IN_SUITE(TableAccessorSimpleProperties, KratosCoreFastSuite)
         TableAccessor nu_table_accessor = TableAccessor(TEMPERATURE); // using the default nodal_historical
         p_elem_prop->SetAccessor(POISSON_RATIO, nu_table_accessor.Clone());
 
-        KRATOS_CHECK_EQUAL(true, (*p_elem_prop).HasAccessor(POISSON_RATIO));
-        KRATOS_CHECK_EQUAL(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
-        KRATOS_CHECK_EQUAL(1.6e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
-        KRATOS_CHECK_EQUAL(0.34, (*p_elem_prop).GetValue(POISSON_RATIO, *p_geom, N, r_model_part.GetProcessInfo()));
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasAccessor(POISSON_RATIO));
+        KRATOS_EXPECT_EQ(true, (*p_elem_prop).HasAccessor(YOUNG_MODULUS));
+        KRATOS_EXPECT_EQ(1.6e6, (*p_elem_prop).GetValue(YOUNG_MODULUS, *p_geom, N, r_model_part.GetProcessInfo()));
+        KRATOS_EXPECT_EQ(0.34, (*p_elem_prop).GetValue(POISSON_RATIO, *p_geom, N, r_model_part.GetProcessInfo()));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(TableTableAccessorSerialization, KratosCoreFastSuite)
@@ -181,7 +181,7 @@ KRATOS_TEST_CASE_IN_SUITE(TableTableAccessorSerialization, KratosCoreFastSuite)
     // Variable<double> *p_var_loaded;
     serializer.load("table_accessor_info", table_accessor_loaded);
 
-    KRATOS_CHECK_EQUAL(TEMPERATURE.Key(), table_accessor_loaded.GetInputVariable().Key());
+    KRATOS_EXPECT_EQ(TEMPERATURE.Key(), table_accessor_loaded.GetInputVariable().Key());
 }
 
 }  // namespace Kratos::Testing.

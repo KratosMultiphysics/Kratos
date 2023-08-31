@@ -8,6 +8,7 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig
+//                   Pooyan Dadvand
 //
 //
 
@@ -18,16 +19,16 @@
 
 // External includes
 #include <gtest/gtest.h>
-// #include <gmock/gmock.h>
+#include <gmock/gmock.h>
 
 // Project includes
 #include "includes/exception.h"
 
+#pragma once
+
 using ::testing::DoubleNear;
 using ::testing::HasSubstr;
 using ::testing::Pointwise;
-
-#pragma once
 
 ///@addtogroup KratosCore
 ///@{
@@ -177,7 +178,7 @@ if(!(std::abs(b) <= std::numeric_limits<double>::epsilon())) {                  
     }                                                                                       \
 }
 
-#define KRATOS_EXPECT_MATRIX_EQUAL(a, b) KRATOS_EXPECT_MATRIX_NEAR(a,b,std::numeric_limits<double>::epsilon())
+#define KRATOS_EXPECT_MATRIX_EQ(a, b) KRATOS_EXPECT_MATRIX_NEAR(a,b,std::numeric_limits<double>::epsilon())
 
 #define KRATOS_EXPECT_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) {                      \
     EXPECT_THROW({                                                                              \
@@ -206,6 +207,12 @@ if(!(std::abs(b) <= std::numeric_limits<double>::epsilon())) {                  
         << "Missing Degree of Freedom for " << TheVariable.Name()   \
         << " in node " << TheNode.Id() << "." << std::endl;         \
 }
+
+#ifdef KRATOS_DEBUG
+#define KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) KRATOS_EXPECT_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
+#else
+#define KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage) if(false) KRATOS_EXPECT_EXCEPTION_IS_THROWN(TheStatement, TheErrorMessage)
+#endif
 
 ///@}
 ///@} addtogroup block

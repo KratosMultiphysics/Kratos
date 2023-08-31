@@ -13,7 +13,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "utilities/divide_triangle_2d_3.h"
 #include "modified_shape_functions/triangle_2d_3_ausas_incised_shape_functions.h"
 

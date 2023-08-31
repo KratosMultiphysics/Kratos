@@ -18,9 +18,10 @@
 
 
 // Project includes
-#include "testing/testing.h"
 #include "containers/model.h"
+#include "includes/checks.h"
 #include "includes/model_part.h"
+#include "testing/testing.h"
 
 
 namespace Kratos {
@@ -132,7 +133,7 @@ namespace Kratos {
             m2(0,1) = 0.01;
             Matrix m3 = IdentityMatrix(3);
 
-            KRATOS_EXPECT_MATRIX_EQUAL(m1, m1);
+            KRATOS_EXPECT_MATRIX_EQ(m1, m1);
             KRATOS_EXPECT_MATRIX_NEAR(m1, m2, 0.1);
 
             KRATOS_EXPECT_EXCEPTION_IS_THROWN(

@@ -13,7 +13,7 @@
 
 // Project includes
 #include "geometries/point.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "testing/testing.h"
 #include "utilities/plane_approximation_utility.h"
 

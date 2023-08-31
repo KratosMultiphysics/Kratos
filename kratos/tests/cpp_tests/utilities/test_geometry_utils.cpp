@@ -14,7 +14,7 @@
 
 // Project includes
 #include "testing/testing.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "utilities/geometry_utilities.h"
 #include "geometries/line_2d_2.h"
 #include "geometries/triangle_2d_3.h"

@@ -20,7 +20,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "utilities/parallel_utilities.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 
 
 namespace Kratos {

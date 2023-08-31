@@ -95,7 +95,7 @@ namespace Kratos {
             // Check if geometry 2 can be found.
             KRATOS_EXPECT_EQ(p_coupling_geometry->GetGeometryPart(CouplingGeometry<Node>::Slave).LocalSpaceDimension(), 2);
 
-            KRATOS_EXPECT_EXCEPTION_IS_THROWN(
+            KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(
                 p_coupling_geometry->GetGeometryPart(2),
                 "Index 2 out of range. CouplingGeometry #1 has 2 geometries.")
 

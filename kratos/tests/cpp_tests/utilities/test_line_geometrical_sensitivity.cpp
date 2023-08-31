@@ -15,7 +15,7 @@
 #include "geometries/line_3d_2.h"
 #include "geometries/line_3d_3.h"
 #include "geometries/triangle_3d_3.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "utilities/line_sensitivity_utility.h"
 #include "utilities/math_utils.h"
 #include "testing/testing.h"

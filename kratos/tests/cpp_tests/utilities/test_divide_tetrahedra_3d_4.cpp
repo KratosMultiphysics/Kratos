@@ -14,7 +14,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "utilities/divide_tetrahedra_3d_4.h"
 
 namespace Kratos::Testing
@@ -82,7 +82,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4Horizontal, KratosCoreFastS
     const double tolerance = 1e-10;
 
     // Check general splitting values
-    KRATOS_CHECK(tetrahedra_splitter.mIsSplit);
+    KRATOS_EXPECT_TRUE(tetrahedra_splitter.mIsSplit);
     KRATOS_EXPECT_EQ(tetrahedra_splitter.mDivisionsNumber, 4);
     KRATOS_EXPECT_EQ(tetrahedra_splitter.mSplitEdgesNumber, 3);
 
@@ -253,7 +253,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4Oblique, KratosCoreFastSuit
     const double tolerance = 1e-10;
 
     // Check general splitting values
-    KRATOS_CHECK(tetrahedra_splitter.mIsSplit);
+    KRATOS_EXPECT_TRUE(tetrahedra_splitter.mIsSplit);
     KRATOS_EXPECT_EQ(tetrahedra_splitter.mDivisionsNumber, 6);
     KRATOS_EXPECT_EQ(tetrahedra_splitter.mSplitEdgesNumber, 4);
 
@@ -429,7 +429,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4NoDivision, KratosCoreFastS
     tetrahedra_splitter.GenerateDivision();
 
     // Check general splitting values
-    KRATOS_CHECK_IS_FALSE(tetrahedra_splitter.mIsSplit);
+    KRATOS_EXPECT_FALSE(tetrahedra_splitter.mIsSplit);
     KRATOS_EXPECT_EQ(tetrahedra_splitter.mDivisionsNumber, 1);
     KRATOS_EXPECT_EQ(tetrahedra_splitter.mSplitEdgesNumber, 0);
 
@@ -497,7 +497,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTetrahedra3D4ZeroNodes, KratosCoreFastSu
     const double tolerance = 1e-10;
 
     // Check general splitting values
-    KRATOS_CHECK(tetrahedra_splitter.mIsSplit);
+    KRATOS_EXPECT_TRUE(tetrahedra_splitter.mIsSplit);
     KRATOS_EXPECT_EQ(tetrahedra_splitter.mDivisionsNumber, 2);
     KRATOS_EXPECT_EQ(tetrahedra_splitter.mSplitEdgesNumber, 1);
 

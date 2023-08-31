@@ -14,7 +14,7 @@
 // Project includes
 #include "containers/model.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "linear_solvers/linear_solver.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/calculate_distance_to_skin_process.h"

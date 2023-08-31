@@ -17,7 +17,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "includes/variables.h"
 #include "tests/test_utilities/test_bar_element.h"
 
@@ -378,13 +378,13 @@ int TestBarElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
     for ( std::size_t i = 0; i < this->GetGeometry().size(); ++i ) {
         const Node& rnode = this->GetGeometry()[i];
 
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
+        KRATOS_EXPECT_VARIABLE_IN_NODAL_DATA(DISPLACEMENT,rnode)
+        KRATOS_EXPECT_VARIABLE_IN_NODAL_DATA(VELOCITY,rnode)
+        KRATOS_EXPECT_VARIABLE_IN_NODAL_DATA(ACCELERATION,rnode)
 
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_X,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Y,rnode)
-        KRATOS_CHECK_DOF_IN_NODE(DISPLACEMENT_Z,rnode)
+        KRATOS_EXPECT_DOF_IN_NODE(DISPLACEMENT_X,rnode)
+        KRATOS_EXPECT_DOF_IN_NODE(DISPLACEMENT_Y,rnode)
+        KRATOS_EXPECT_DOF_IN_NODE(DISPLACEMENT_Z,rnode)
     }
 
     return 0;

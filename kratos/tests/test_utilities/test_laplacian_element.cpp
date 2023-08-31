@@ -16,7 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
@@ -280,8 +280,8 @@ int TestLaplacianElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for (auto& r_node : this->GetGeometry()) {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(TEMPERATURE,r_node)
-        KRATOS_CHECK_DOF_IN_NODE(TEMPERATURE,r_node)
+        KRATOS_EXPECT_VARIABLE_IN_NODAL_DATA(TEMPERATURE,r_node)
+        KRATOS_EXPECT_DOF_IN_NODE(TEMPERATURE,r_node)
     }
 
     return 0;

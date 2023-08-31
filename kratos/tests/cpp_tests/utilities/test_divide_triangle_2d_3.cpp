@@ -14,7 +14,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "utilities/divide_triangle_2d_3.h"
 
 namespace Kratos::Testing
@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3Horizontal, KratosCoreFastSui
     const double tolerance = 1e-10;
 
     // Check general splitting values
-    KRATOS_CHECK(triangle_splitter.mIsSplit);
+    KRATOS_EXPECT_TRUE(triangle_splitter.mIsSplit);
     KRATOS_EXPECT_EQ(triangle_splitter.mDivisionsNumber, 3);
     KRATOS_EXPECT_EQ(triangle_splitter.mSplitEdgesNumber, 2);
 
@@ -230,7 +230,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3Vertical, KratosCoreFastSuite
     const double tolerance = 1e-10;
 
     // Check general splitting values
-    KRATOS_CHECK(triangle_splitter.mIsSplit);
+    KRATOS_EXPECT_TRUE(triangle_splitter.mIsSplit);
     KRATOS_EXPECT_EQ(triangle_splitter.mDivisionsNumber, 3);
     KRATOS_EXPECT_EQ(triangle_splitter.mSplitEdgesNumber, 2);
 
@@ -358,7 +358,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3NoDivision, KratosCoreFastSui
     triangle_splitter.GenerateDivision();
 
     // Check general splitting values
-    KRATOS_CHECK_IS_FALSE(triangle_splitter.mIsSplit);
+    KRATOS_EXPECT_FALSE(triangle_splitter.mIsSplit);
     KRATOS_EXPECT_EQ(triangle_splitter.mDivisionsNumber, 1);
     KRATOS_EXPECT_EQ(triangle_splitter.mSplitEdgesNumber, 0);
 
@@ -416,7 +416,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3TwoZeroNodes, KratosCoreFastS
     auto divider_one_negative = DivideTriangle2D3<Node>(p_elem->GetGeometry(), nodal_distances);
     divider_one_negative.GenerateDivision();
 
-    KRATOS_CHECK_IS_FALSE(divider_one_negative.mIsSplit);
+    KRATOS_EXPECT_FALSE(divider_one_negative.mIsSplit);
     KRATOS_EXPECT_EQ(divider_one_negative.mDivisionsNumber, 1);
     KRATOS_EXPECT_EQ(divider_one_negative.mSplitEdgesNumber, 0);
 
@@ -424,7 +424,7 @@ KRATOS_TEST_CASE_IN_SUITE(DivideGeometryTriangle2D3TwoZeroNodes, KratosCoreFastS
     auto divider_one_positive = DivideTriangle2D3<Node>(p_elem->GetGeometry(), nodal_distances);
     divider_one_positive.GenerateDivision();
 
-    KRATOS_CHECK_IS_FALSE(divider_one_positive.mIsSplit);
+    KRATOS_EXPECT_FALSE(divider_one_positive.mIsSplit);
     KRATOS_EXPECT_EQ(divider_one_positive.mDivisionsNumber, 1);
     KRATOS_EXPECT_EQ(divider_one_positive.mSplitEdgesNumber, 0);
 }

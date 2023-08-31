@@ -14,7 +14,7 @@
 #include "containers/model.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 // #include "includes/gid_io.h" // Include this for debugging
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/parallel_distance_calculation_process.h"

@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "testing/testing.h"
 #include "utilities/polynomial_utilities.h"
 

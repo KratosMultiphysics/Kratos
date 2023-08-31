@@ -44,23 +44,13 @@ KRATOS_TEST_CASE_IN_SUITE(HashCombine, KratosCoreFastSuite)
     HashCombine(expected_hash, value3);
     HashCombine(expected_hash, value4);
 
-<<<<<<< HEAD
-  // Not expected hash value
-  const double value5 = 3.14159265358979323846;
-  HashType not_expected_hash = expected_hash;
-  HashCombine(not_expected_hash, value5);
-  
-  KRATOS_EXPECT_EQ(seed, expected_hash);
-  KRATOS_EXPECT_NE(seed, not_expected_hash);
-=======
     // Not expected hash value
     const double value5 = 3.14159265358979323846;
     HashType not_expected_hash = expected_hash;
     HashCombine(not_expected_hash, value5);
     
-    KRATOS_CHECK_EQUAL(seed, expected_hash);
-    KRATOS_CHECK_NOT_EQUAL(seed, not_expected_hash);
->>>>>>> master
+    KRATOS_EXPECT_EQ(seed, expected_hash);
+    KRATOS_EXPECT_NE(seed, not_expected_hash);
 }
 
 /**
