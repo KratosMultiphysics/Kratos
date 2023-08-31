@@ -1,656 +1,222 @@
-"""Utilities for creating XDMF metadata from results stored in HDF5.
-
-XDMF utilities are separate from the core xdmf to reduce core dependencies.
-
-See:
-- core.xdmf
-
-license: HDF5Application/license.txt
-"""
-
-
 import xml.etree.ElementTree as ET
-import os
-import warnings
-from itertools import chain
-from contextlib import contextmanager
-import re
-
+import typing
+import h5py
+import abc
+from pathlib import Path
 
 import KratosMultiphysics
-import KratosMultiphysics.HDF5Application as KratosHDF5
+from KratosMultiphysics.HDF5Application.core.pattern import PathPatternEntity
+from KratosMultiphysics.HDF5Application.core.pattern import GetMachingEntitiesWithTagData
+from KratosMultiphysics.HDF5Application.core.pattern import IdentifyPattern
 from KratosMultiphysics.HDF5Application.core.xdmf import SpatialGrid
 from KratosMultiphysics.HDF5Application.core.xdmf import HDF5UniformDataItem
 from KratosMultiphysics.HDF5Application.core.xdmf import Geometry
 from KratosMultiphysics.HDF5Application.core.xdmf import TopologyCellType
 from KratosMultiphysics.HDF5Application.core.xdmf import UniformMeshTopology
 from KratosMultiphysics.HDF5Application.core.xdmf import UniformGrid
-from KratosMultiphysics.HDF5Application.core.xdmf import NodalData
-from KratosMultiphysics.HDF5Application.core.xdmf import ElementData
-from KratosMultiphysics.HDF5Application.core.xdmf import ConditionData
 from KratosMultiphysics.HDF5Application.core.xdmf import TemporalGrid
 from KratosMultiphysics.HDF5Application.core.xdmf import Time
 from KratosMultiphysics.HDF5Application.core.xdmf import Domain
 from KratosMultiphysics.HDF5Application.core.xdmf import Xdmf
+from KratosMultiphysics.HDF5Application.core.xdmf import EntityData
 
-
-try:
-    with warnings.catch_warnings():
-        # suppressing an import-related warning from h5py
-        # problem appears when using it in a test with python >=3.6
-        warnings.simplefilter('ignore', category=ImportWarning)
-        import h5py
-except ModuleNotFoundError:
-    # If h5py is not found, then we delay the exception until name lookup is
-    # performed on the module. This allows the current module to still be used
-    # for testing purposes. Otherwise the tests must be skipped.
-    warn_msg = "h5py module was not found!"
-    KratosMultiphysics.Logger.PrintWarning(__name__, warn_msg)
-    class NonExistingModule(object):
-
-        def __init__(self, module_name):
-            self.module_name = module_name
-
-        def __getattr__(self, name):
-            raise ModuleNotFoundError(
-                "No module named '" + self.module_name + "'")
-    h5py = NonExistingModule('h5py')
-
-
-@contextmanager
-def TryOpenH5File(name, mode=None, driver=None, **kwds):
-    """A context manager wrapper for the opened file.
-
-    In case the file cannot be opened, yield None rather than raise an
-    exception.  This can be the case if the file is already opened.
-    """
-    try:
-        with h5py.File(name, mode, driver=driver, **kwds) as f:
-            yield f
-    except OSError:
-        warn_msg = 'No xdmf-data was written for file:\n"' + name + '"'
-        KratosMultiphysics.Logger.PrintWarning("XDMF", warn_msg)
-        yield None
-
-
-def RenumberConnectivitiesForXdmf(filename_or_list_of_filenames, h5path_to_mesh):
-    """Renumber mesh connectivities for XDMF.
-
-    Keyword arguments:
-    filename_or_list_of_filenames -- the HDF5 file(s) to renumber
-    h5path_to_mesh -- the internal HDF5 file path to the mesh
-
-    The mesh connectivities must be renumbered for XDMF by the node's array
-    index rather than its ID.  The renumbered connectivities are stored in
-    HDF5 and referenced by the XDMF Grid.  If a file cannot be opened, it is
-    skipped.
-
-    See:
-    - XdmfConnectivitiesWriterOperation.
-    """
-    for path in list(filename_or_list_of_filenames):
-        skip = True
-        with TryOpenH5File(path, "r") as f:
-            if not f:
-                continue
-            if h5path_to_mesh in f:
-                skip = "Xdmf" in f[h5path_to_mesh]
-        if not skip:
-            KratosHDF5.HDF5XdmfConnectivitiesWriterOperation(path).Execute()
-
-def GetListOfSpatialGrids(spatial_grids_list, h5_model_part, current_path):
-    if (isinstance(h5_model_part, h5py.Dataset)):
-        # add point clouds
-        spatial_grids_list.append([str(h5_model_part.name), current_path])
+def GetPatternDetailsFromFileName(file_name_path: Path) -> str:
+    file_relative_path = str(file_name_path.relative_to(Path(".")))
+    if file_relative_path.endswith(".h5"):
+        file_relative_path = file_relative_path[:-1]
+        pattern, tag_type_dict = IdentifyPattern(file_relative_path)
+        return pattern + "5", tag_type_dict
     else:
-        for key in h5_model_part.keys():
-            if (key == "Conditions" or key == "Elements"):
-                spatial_grids_list.append([str(h5_model_part.name) + "/" + str(key), current_path + "." + str(key)])
-            else:
-                GetListOfSpatialGrids(spatial_grids_list, h5_model_part[key], current_path + "." + str(key))
+        return IdentifyPattern(file_relative_path)
 
+def GetSortedFilesListFromPattern(path: Path,
+                                  pattern: str,
+                                  tag_type_dict: {"<time>": float, "<step>": int},
+                                  sorting_functor=lambda _, *args: tuple(args)) -> 'list[tuple[typing.Any]]':
+    return GetMachingEntitiesWithTagData(PathPatternEntity(path), pattern, tag_type_dict, sorting_functor)
 
-def CreateXdmfSpatialGrid(h5_model_part):
-    """Return an XDMF Grid object corresponding to a mesh in an HDF5 file.
-
-    Keyword arguments:
-    h5_model_part -- the HDF5 group containing the model part
-
-    Expects:
-    - element connectivities in h5_model_part["Xdmf/Elements/<element-name>"].
-      Each connectivities has attributes "Dimension" and "NumberOfNodes".  For
-      example, "Element2D3N" has "Dimension" 2 and "NumberOfNodes" 3.  The
-      connectivities differ from the normal mdpa connectivities in that they
-      directly index the array of nodal coordinates.  Currently there is
-      no other way to post-process the mesh with Xdmf.
-
-    See:
-    - core.operations.ModelPartOutput,
-    - core.operations.PartitionedModelPartOutput,
-    - RenumberConnectivitiesForXdmf.
-    """
-    sgrid = SpatialGrid()
-    geom = Geometry(HDF5UniformDataItem(
-        h5_model_part["Nodes/Local/Coordinates"]))
-
-    spatial_grids_list = []
-    GetListOfSpatialGrids(spatial_grids_list, h5_model_part["Xdmf"], "RootModelPart")
-
-    for spatial_grid in spatial_grids_list:
-        spatial_grid_location = spatial_grid[0]
-        spatial_grid_name = spatial_grid[1]
-        current_h5_item = h5_model_part[spatial_grid_location]
-        if (isinstance(current_h5_item, h5py.Dataset)):
-            cell_type = TopologyCellType(3, 1)
-            points = HDF5UniformDataItem(current_h5_item)
-            topology = UniformMeshTopology(cell_type, points)
-            sgrid.add_grid(UniformGrid(spatial_grid_name + "." + name, geom, topology))
-            KratosMultiphysics.Logger.PrintInfo("XDMF", "Added " + spatial_grid_name + " spatial grid.")
+def GetSpatialGridPaths(h5_file: h5py.File, list_of_model_data_paths: 'list[str]', current_path: str) -> None:
+    current_data = h5_file[current_path]
+    if isinstance(current_data, h5py.Group):
+        if "__model_part_name" in current_data.attrs.keys():
+            list_of_model_data_paths.append(current_path)
         else:
-            for name, value in current_h5_item.items():
-                cell_type = TopologyCellType(
-                    value.attrs["WorkingSpaceDimension"], value.attrs["NumberOfNodes"])
-                connectivities = HDF5UniformDataItem(value["Connectivities"])
+            for itr in current_data:
+                GetSpatialGridPaths(h5_file, list_of_model_data_paths, f"{current_path}/{str(itr)}")
+
+def __GetModelPartUniformGrids(h5_group: h5py.Group, grid_name: str, coordinates: Geometry) -> 'list[UniformGrid]':
+    grids: 'list[UniformGrid]' = []
+    for name, entity_group in h5_group.items():
+        if isinstance(entity_group, h5py.Group):
+            if "NumberOfNodes" in entity_group.attrs and "WorkingSpaceDimension" in entity_group.attrs and "Connectivities" in entity_group.keys():
+                cell_type = TopologyCellType(entity_group.attrs["WorkingSpaceDimension"], entity_group.attrs["NumberOfNodes"])
+                connectivities = HDF5UniformDataItem(entity_group["Connectivities"])
                 topology = UniformMeshTopology(cell_type, connectivities)
-                sgrid.add_grid(UniformGrid(spatial_grid_name + "." + name, geom, topology))
-                KratosMultiphysics.Logger.PrintInfo("XDMF", "Added " + spatial_grid_name + "." + name + " spatial grid.")
-
-    return sgrid
-
-
-def Has_dtype(item): return hasattr(item[1], 'dtype')
-
-
-def XdmfNodalResults(h5_results):
-    """Return a list of XDMF Attribute objects for nodal results in an HDF5 file.
-
-    Keyword arguments:
-    h5_results -- the HDF5 group containing the results
-
-    Checks for results stored in data sets by variable name in:
-    - h5_results["NodalSolutionStepData/<variable-name>"]
-    - h5_results["NodalDataValues/<variable-name>"]
-
-    Expects:
-    - each result variable occurs only once
-
-    If no results are found, returns an empty list.
-
-    See:
-    - core.operations.NodalSolutionStepDataOutput,
-    - core.operations.NodalDataValueOutput.
-    """
-    results = {}
-    for path in ["NodalSolutionStepData", "NodalDataValues"]:
-        try:
-            grp = h5_results[path]
-        except KeyError:
-            continue
-        for variable, data in filter(Has_dtype, grp.items()):
-            if variable in results:
-                # A variable can exist in the nodal solution step data or
-                # non-historical nodal data value container, but not both.
-                raise RuntimeError('Nodal result variable "' +
-                                   variable + '" already exists.')
-            results[variable] = NodalData(variable, HDF5UniformDataItem(data))
-    return list(results.values())
-
-
-def XdmfNodalFlags(h5_results):
-    """Return a list of XDMF Attribute objects for nodal flags in an HDF5 file.
-
-    Keyword arguments:
-    h5_results -- the HDF5 group containing the flags
-
-    Checks for flags stored in data sets by variable name in:
-    - h5_flags["NodalFlagValues/<flag-name>"]
-
-    Expects:
-    - each flag variable occurs only once
-
-    If no flags are found, returns an empty list.
-
-    See:
-    - core.operations.NodalFlagsValueOutput.
-    """
-
-    results_path = "NodalFlagValues"
-    results = []
-    try:
-        grp = h5_results[results_path]
-    except KeyError:
-        return results
-    for variable, data in filter(Has_dtype, grp.items()):
-        r = NodalData(variable, HDF5UniformDataItem(data))
-        results.append(r)
-    return results
-
-
-def XdmfElementResults(h5_results):
-    """Return a list of XDMF Attribute objects for element results in an HDF5 file.
-
-    Keyword arguments:
-    h5_results -- the HDF5 group containing the results
-
-    Checks for results stored by variable name in:
-    - h5_results["ElementDataValues/<variable>"]
-
-    If no results are found, returns an empty list.
-
-    See:
-    - core.operations.ElementDataValueOutput.
-    """
-    results_path = "ElementDataValues"
-    results = []
-    try:
-        grp = h5_results[results_path]
-    except KeyError:
-        return results
-    for variable, data in filter(Has_dtype, grp.items()):
-        r = ElementData(variable, HDF5UniformDataItem(data))
-        results.append(r)
-    return results
-
-def XdmfElementFlags(h5_results):
-    """Return a list of XDMF Attribute objects for element flags in an HDF5 file.
-
-    Keyword arguments:
-    h5_flags -- the HDF5 group containing the flags
-
-    Checks for flags stored by variable name in:
-    - h5_flags["ElementFlagValues/<flag-name>"]
-
-    If no flags are found, returns an empty list.
-
-    See:
-    - core.operations.ElementFlagValueOutput.
-    """
-    results_path = "ElementFlagValues"
-    results = []
-    try:
-        grp = h5_results[results_path]
-    except KeyError:
-        return results
-    for variable, data in filter(Has_dtype, grp.items()):
-        r = ElementData(variable, HDF5UniformDataItem(data))
-        results.append(r)
-    return results
-
-def XdmfElementGaussPointValues(h5_results):
-    """Return a list of XDMF Attribute objects for element integration point values in an HDF5 file.
-
-    Keyword arguments:
-    h5_results -- the HDF5 group containing the results
-
-    Checks for results stored by variable name in:
-    - h5_results["ElementGaussPointValues/<variable>"]
-
-    If no results are found, returns an empty list.
-
-    See:
-    - core.operations.ElementGaussPointOutput.
-    """
-    results_path = "ElementGaussPointValues"
-    results = []
-    try:
-        grp = h5_results[results_path]
-    except KeyError:
-        return results
-    for variable, data in filter(Has_dtype, grp.items()):
-        r = ElementData(variable, HDF5UniformDataItem(data))
-        results.append(r)
-    return results
-
-def XdmfConditionResults(h5_results):
-    """Return a list of XDMF Attribute objects for element results in an HDF5 file.
-
-    Keyword arguments:
-    h5_results -- the HDF5 group containing the results
-
-    Checks for results stored by variable name in:
-    - h5_results["ConditionDataValues/<variable>"]
-
-    If no results are found, returns an empty list.
-
-    See:
-    - core.operations.ConditionDataValueOutput.
-    """
-    results_path = "ConditionDataValues"
-    results = []
-    try:
-        grp = h5_results[results_path]
-    except KeyError:
-        return results
-    for variable, data in filter(Has_dtype, grp.items()):
-        r = ConditionData(variable, HDF5UniformDataItem(data))
-        results.append(r)
-    return results
-
-def XdmfConditionFlags(h5_results):
-    """Return a list of XDMF Attribute objects for element flags in an HDF5 file.
-
-    Keyword arguments:
-    h5_flags -- the HDF5 group containing the flags
-
-    Checks for flags stored by variable name in:
-    - h5_flags["ConditionFlagValues/<flag-name>"]
-
-    If no flags are found, returns an empty list.
-
-    See:
-    - core.operations.ConditionFlagValueOutput.
-    """
-    results_path = "ConditionFlagValues"
-    results = []
-    try:
-        grp = h5_results[results_path]
-    except KeyError:
-        return results
-    for variable, data in filter(Has_dtype, grp.items()):
-        r = ConditionData(variable, HDF5UniformDataItem(data))
-        results.append(r)
-    return results
-
-def XdmfConditionGaussPointValues(h5_results):
-    """Return a list of XDMF Attribute objects for element integration point values in an HDF5 file.
-
-    Keyword arguments:
-    h5_results -- the HDF5 group containing the results
-
-    Checks for results stored by variable name in:
-    - h5_results["ConditionGaussPointValues/<variable>"]
-
-    If no results are found, returns an empty list.
-
-    See:
-    - core.operations.ConditionGaussPointOutput.
-    """
-    results_path = "ConditionGaussPointValues"
-    results = []
-    try:
-        grp = h5_results[results_path]
-    except KeyError:
-        return results
-    for variable, data in filter(Has_dtype, grp.items()):
-        r = ElementData(variable, HDF5UniformDataItem(data))
-        results.append(r)
-    return results
-
-
-def XdmfResults(h5_results):
-    """Return a list of XDMF Attribute objects for results in an HDF5 file.
-
-    Keyword arguments:
-    h5_results -- the HDF5 group containing the results
-    """
-    return list(
-        chain(
-            XdmfNodalResults(h5_results),
-            XdmfNodalFlags(h5_results),
-            XdmfElementResults(h5_results),
-            XdmfElementFlags(h5_results),
-            XdmfElementGaussPointValues(h5_results),
-            XdmfConditionResults(h5_results),
-            XdmfConditionFlags(h5_results),
-            XdmfConditionGaussPointValues(h5_results)
-        )
-    )
-
-
-def TimeLabel(file_path):
-    """Return the time string from the file name.
-
-    E.g.:
-    'kratos-123.h5' -> '123'
-    'kratos-1.2.h5' -> '1.2'
-    'kratos-1.2e+00.h5' -> '1.2e+00'
-
-    Returns empty string if not found.
-    """
-    # Is there a better way to do this?
-    temp_file_path = file_path.replace("E-", "E*")
-    temp_file_path = temp_file_path.replace("e-", "e*")
-
-    dash_split = temp_file_path[:temp_file_path.rfind(".")].split("-")
-    dash_split[-1] = dash_split[-1].replace("E*", "E-")
-    dash_split[-1] = dash_split[-1].replace("e*", "e-")
-
-    float_regex = re.compile(r'^[-+]?([0-9]+|[0-9]*\.[0-9]+)([eE][-+]?[0-9]+)?$')
-    if (float_regex.match(dash_split[-1])):
-        return dash_split[-1]
-    else:
-        return ""
-
-
-def TimeFromFileName(file_path):
-    """Return the time value for the file name.
-
-    If the file name contains no time value, zero time value is assumed.
-
-    """
-    label = TimeLabel(file_path)
-    if label == "":
-        return 0.0
-    else:
-        return float(label)
-
-
-def FindMatchingFiles(pattern):
-    """Return a list of HDF5 files matching the given file name pattern.
-
-    For example, "./sim/kratos" matches:
-    - ./sim/kratos.h5
-    - ./sim/kratos-0.0000.h5
-    - ./sim/kratos-0.2000.h5
-    - etc.
-    """
-    path, _ = os.path.split(pattern)
-    if path == "":
-        path = "."  # os.listdir fails with empty path
-    def match(s): return s.startswith(pattern) and s.endswith(".h5")
-    return list(filter(match, os.listdir(path)))
-
-
-def GetSortedListOfFiles(pattern):
-    """Return sorted file list based on the time stamp
-
-    see @FindMatchingFiles
-    """
-    list_of_files = FindMatchingFiles(pattern)
-    list_of_files.sort(key=TimeFromFileName)
-    return list_of_files
-
-def GetStep(value, patterns):
-    if len(patterns) == 1:
-        return 0
-    else:
-        if (len(patterns[1]) == 0):
-            return int(value[len(patterns[0]):])
-        else:
-            return int(value[len(patterns[0]):-len(patterns[1])])
-
-def GetMatchingGroupNames(output_dict, value, patterns, pattern_with_wildcards):
-    matching_value = re.search(pattern_with_wildcards, value)
-    if  matching_value is not None:
-        current_group = str(matching_value.group())
-        output_dict[GetStep(current_group, patterns)] = "/" + current_group
-
-def CreateXdmfTemporalGridFromMultifile(list_of_h5_files, h5path_to_mesh, h5path_to_results):
-    """Return an XDMF Grid object for a list of temporal results in HDF5 files.
-
-    Keyword arguments:
-    list_of_h5_files -- the list of HDF5 files to be parsed
-    h5path_to_mesh -- the internal HDF5 file path to the mesh
-    h5path_to_results -- the internal HDF5 file path to the results
-
-    Expects:
-    - each file corresponds to a separate time step
-    - the first file includes a mesh.  Subsequent files may include their own
-      meshes.  If a file does not contain a mesh, it is assumed to have the
-      same mesh as the most recent file containing a mesh.
-    - meshes include XDMF mesh connectivities under the internal HDF5 file path
-      "<h5path_to_mesh>/Xdmf".  If XDMF connectivities are not found, the file is
-      skipped.  See RenumberConnectivitiesForXdmf.
-    - file names contain their time step as a substring. Optionally the first
-      file may omit the time step in which case it is assumed to be zero.
-
-    If a file cannot be opened, it is skipped.
-    """
-    tgrid = TemporalGrid()
-    for path in list_of_h5_files:
-        with TryOpenH5File(path, "r") as file_:
-            if not file_:
-                continue
-            if h5path_to_mesh in file_:
-                if not "Xdmf" in file_[h5path_to_mesh]:
-                    continue
-                sgrid = CreateXdmfSpatialGrid(file_[h5path_to_mesh])
-            current_sgrid = SpatialGrid()
-            for g in sgrid.grids:
-                current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
-            if h5path_to_results in file_:
-                for result in XdmfResults(file_[h5path_to_results]):
-                    current_sgrid.add_attribute(result)
-            time_label = TimeLabel(path)
-            if time_label == "":
-                time_label = "0.0"
-            tgrid.add_grid(Time(time_label), current_sgrid)
-    return tgrid
-
-
-def WriteMultifileTemporalAnalysisToXdmf(ospath, h5path_to_mesh, h5path_to_results):
-    """Write XDMF metadata for a temporal analysis from multiple HDF5 files.
-
-    Keyword arguments:
-    ospath -- path to one of the HDF5 files or the corresponding XDMF output file.
-    h5path_to_mesh -- the internal HDF5 file path to the mesh
-    h5path_to_results -- the internal HDF5 file path to the results
-    """
-    pat = ospath
-    # Strip any time label from the file name.
-    time_label = TimeLabel(pat)
-    pat = pat.rstrip('.h5').rstrip('.xdmf')
-    if time_label:
-        pat = pat.rstrip(time_label).rstrip("-")
-    # Generate the temporal grid.
-    list_of_files = GetSortedListOfFiles(pat)
-    RenumberConnectivitiesForXdmf(list_of_files, h5path_to_mesh)
-    temporal_grid = CreateXdmfTemporalGridFromMultifile(
-        list_of_files, h5path_to_mesh, h5path_to_results)
-    domain = Domain(temporal_grid)
-    xdmf = Xdmf(domain)
-    # Write the XML tree containing the XDMF metadata to the file.
-    ET.ElementTree(xdmf.create_xml_element()).write(pat + ".xdmf")
-
-
-def CreateXdmfTemporalGridFromSinglefile(h5_file_name,
-                                         h5path_pattern_to_mesh,
-                                         h5path_pattern_to_results,
-                                         require_results: bool = False):
-    """Return an XDMF Grid object for a list of temporal results in a single HDF5 file.
-
-    Keyword arguments:
-    h5_file_name -- the HDF5 file to be parsed
-    h5path_pattern_to_mesh -- the internal HDF5 file path pattern to the mesh [ only <step> flag is supported ]
-    h5path_pattern_to_results -- the internal HDF5 file path pattern to the results [ only <step> flag is supported ]
-
-    Expects:
-    - In prefixes, <step> flag is used maximum of one time only
-    - If single mesh description is found, it is considered as single mesh temporal output
-    """
-    tgrid = TemporalGrid()
-
-    h5path_pattern_to_mesh_wild_cards = h5path_pattern_to_mesh.replace("<step>", "\d*")
-    h5path_patterns_to_mesh = h5path_pattern_to_mesh.split("<step>")
-    if (len(h5path_patterns_to_mesh) > 2):
-        raise RuntimeError("'<step>' flag can only be used once in a prefix")
-
-    h5path_pattern_to_results_wild_cards = h5path_pattern_to_results.replace("<step>", "\d*")
-    h5path_patterns_to_results = h5path_pattern_to_results.split("<step>")
-    if (len(h5path_patterns_to_results) > 2):
-        raise RuntimeError("'<step>' flag can only be used once in a prefix")
-
-    renumbering_mesh_paths = []
-    with TryOpenH5File(h5_file_name, "r") as file_:
-        if not file_:
-            raise RuntimeError("Unsupported h5 file provided [ file_name = {:s} ].".format(h5_file_name))
-
-        output_meshes_dict = {}
-        file_.visit(lambda x : GetMatchingGroupNames(output_meshes_dict, x, h5path_patterns_to_mesh, h5path_pattern_to_mesh_wild_cards))
-
-        for _, v in output_meshes_dict.items():
-            if "Xdmf" not in file_[v]:
-                renumbering_mesh_paths.append(v)
-
-        if len(output_meshes_dict.keys()) == 0:
-            raise RuntimeError("No grid information is found in the given hdf5 file matching the given pattern [ file_name = {:s}, pattern = {:s} ].".format(h5_file_name, h5path_pattern_to_mesh))
-
-    # renumber xdmf connectivities
-    for v in renumbering_mesh_paths:
-        KratosHDF5.HDF5XdmfConnectivitiesWriterOperation(
-            h5_file_name, v).Execute()
-
-    with TryOpenH5File(h5_file_name, "r") as file_:
-        output_results_dict = {}
-        file_.visit(lambda x : GetMatchingGroupNames(output_results_dict, x, h5path_patterns_to_results, h5path_pattern_to_results_wild_cards))
-
-        if not output_results_dict:
-            raise RuntimeError("No results data is found in the given hdf5 file matching the given pattern [ file_name = {:s}, pattern = {:s} ].".format(h5_file_name, h5path_pattern_to_results))
-
-        compound_dict = {}
-        for key in output_meshes_dict:
-            compound_dict[key] = (True, False)
-        for key in output_results_dict:
-            if key in compound_dict:
-                compound_dict[key][1] = True
+                grids.append(UniformGrid(f"{grid_name}.{name}", coordinates, topology))
+                KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added {grid_name}.{name} spatial grid.")
             else:
-                compound_dict[key] = (False, True)
+                raise RuntimeError(f"Either \"Connectivities\", \"NumberOfNodes\" or \"WorkingSpaceDimension\" are not defined for {h5_group.name}.")
+    return grids
 
-        sgrid = None
-        for key, (has_mesh, has_results) in compound_dict.items():
-            current_sgrid = SpatialGrid()
-            if has_mesh:
-                sgrid = CreateXdmfSpatialGrid(file_[output_meshes_dict[key]])
-                for g in sgrid.grids:
-                    current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
+def GenerateUniformGrids(h5_file: h5py.File, grid_path: str, grid_name: str, coordinates: Geometry, spatial_grid: SpatialGrid):
+    grid_data = h5_file[grid_path]
 
-            if has_results:
-                if sgrid is None:
-                    raise RuntimeError(f"No mesh found for results at {key}")
-                for g in sgrid.grids:
-                    current_sgrid.add_grid(UniformGrid(g.name, g.geometry, g.topology))
-                for result in XdmfResults(file_[output_results_dict[key]]):
-                    current_sgrid.add_attribute(result)
+    for name, h5_object in grid_data.items():
+        if isinstance(h5_object, h5py.Dataset) and name == "Points":
+            cell_type = TopologyCellType(3, 1)
+            points = HDF5UniformDataItem(h5_object)
+            topology = UniformMeshTopology(cell_type, points)
+            spatial_grid.add_grid(UniformGrid(f"{grid_name}.Points", coordinates, topology))
+            KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added {grid_name}.Points spatial grid.")
+        elif isinstance(h5_object, h5py.Group):
+            if name in ["Conditions", "Elements"]:
+                list(map(spatial_grid.add_grid, __GetModelPartUniformGrids(h5_object, grid_name, coordinates)))
+            else:
+                GenerateUniformGrids(h5_file, f"{grid_path}/{name}", f"{grid_name}.{name}", coordinates, spatial_grid)
 
-            if has_results or not (require_results and not has_results):
-                tgrid.add_grid(Time(key), current_sgrid)
+def GenerateSpatialGrid(h5_file: h5py.File, model_data_path: str) -> 'tuple[SpatialGrid, list[UniformGrid], list[UniformGrid]]':
+    spatial_grid = SpatialGrid()
+    coordinates = Geometry(HDF5UniformDataItem(h5_file[f"{model_data_path}/Nodes/Local/Coordinates"]))
 
-    return tgrid
+    model_data = h5_file[model_data_path]
+    model_part_name = ''.join([chr(i) for i in h5_file[model_data_path].attrs["__model_part_name"]])
 
+    if "Xdmf" in model_data.keys():
+        xdmf_data = model_data["Xdmf"]
 
-def WriteSinglefileTemporalAnalysisToXdmf(h5_file_name,
-                                          h5path_pattern_to_mesh,
-                                          h5path_pattern_to_results,
-                                          require_results: bool = False):
-    """Write XDMF metadata for a temporal analysis from single HDF5 file.
+        # add root model part entities
+        condition_grids: 'list[UniformGrid]' = []
+        if "Conditions" in xdmf_data.keys():
+            condition_grids = __GetModelPartUniformGrids(xdmf_data["Conditions"], model_part_name, coordinates)
 
-    Keyword arguments:
-    h5_file_name -- hdf5 filename
-    h5path_pattern_to_mesh -- the internal HDF5 file path pattern to the mesh [ only <step> flag is supported ]
-    h5path_to_results -- the internal HDF5 file path pattern to the results [ only <step> flag is supported ]
-    """
+        element_grids: 'list[UniformGrid]' = []
+        if "Elements" in xdmf_data.keys():
+            element_grids = __GetModelPartUniformGrids(xdmf_data["Elements"], model_part_name, coordinates)
 
-    if (h5path_pattern_to_mesh.startswith("/")):
-        h5path_pattern_to_mesh = h5path_pattern_to_mesh[1:]
+        # now add sub model part entitites
+        if "SubModelParts" in xdmf_data.keys():
+            GenerateUniformGrids(h5_file, f"{model_data_path}/Xdmf/SubModelParts", model_part_name, coordinates, spatial_grid)
+    else:
+        KratosMultiphysics.Logger.PrintInfo("XDMF", f"No Xdmf data found in {h5_file.filename}:{model_data_path}.")
 
-    if (h5path_pattern_to_results.startswith("/")):
-        h5path_pattern_to_results = h5path_pattern_to_results[1:]
+    return spatial_grid, condition_grids, element_grids
 
-    temporal_grid = CreateXdmfTemporalGridFromSinglefile(h5_file_name,
-                                                         h5path_pattern_to_mesh,
-                                                         h5path_pattern_to_results,
-                                                         require_results = require_results)
+def GetAvailableDataSets(h5_file: h5py.File, group_paths_list: 'list[str]') -> 'list[EntityData]':
+    # data_sets holds a dictionary of data sets found in the specified group_paths_list.
+    # in data_sets, first we store the mesh_location, then container_type, then data_names list
+    data_sets: 'list[EntityData]' = []
+
+    def __check_item(_: str, h5_object: typing.Any) -> None:
+        if isinstance(h5_object, h5py.Dataset):
+            attribs = h5_object.attrs
+
+            container_type = None
+            if "__container_type" in attribs.keys():
+                container_type = ''.join(chr(i) for i in attribs["__container_type"])
+            mesh_location = None
+            if "__mesh_location" in attribs.keys():
+                mesh_location = ''.join(chr(i) for i in attribs["__mesh_location"])
+            data_name = None
+            if "__data_name" in attribs.keys():
+                data_name = ''.join(chr(i) for i in attribs["__data_name"])
+
+            if container_type and mesh_location and data_name:
+                data_sets.append(EntityData(h5_object))
+
+    for group_path in group_paths_list:
+        h5_file[group_path].visititems(__check_item)
+
+    return data_sets
+
+class OrderedDataSets(abc.ABC):
+    @abc.abstractmethod
+    def Iterate(self) -> 'typing.Generator[float, str, list[EntityData]]':
+        pass
+
+class SingleMeshMultiFileSameOrderedDataSets(OrderedDataSets):
+    def __init__(self,
+                 path: Path,
+                 file_name_pattern: str,
+                 temporal_tag_position = 0,
+                 tag_type_dict = {"<time>": float, "<step>": int},
+                 sorting_functor=lambda _, *args: tuple(args)) -> None:
+        # generated the sorted file data lists
+        self.file_data_list =  GetSortedFilesListFromPattern(path, file_name_pattern, tag_type_dict, sorting_functor)
+        self.temporal_tag_position = temporal_tag_position
+
+        if not self.file_data_list:
+            raise RuntimeError(f"No files found matching the file name pattern at {str(path)} [ file_name_pattern = {file_name_pattern} ].")
+
+        # since all files should have the same results. We only open one file and get the data sets.
+        with h5py.File(self.file_data_list[0][0].Get(), "r") as h5_file:
+            self.data_sets = GetAvailableDataSets(h5_file, ["/"])
+
+        if not self.data_sets:
+            raise RuntimeError("No data sets found.")
+
+    def Iterate(self) -> 'typing.Generator[float, str, list[EntityData]]':
+        for file_data in self.file_data_list:
+            yield float(file_data[self.temporal_tag_position + 1]), self.data_sets[0].mesh_location, self.data_sets
+
+def WriteOrderedDataSetsToXdmf(ordered_datasets: OrderedDataSets, output_file_name: str) -> None:
+    temporal_grid = TemporalGrid()
+
+    spatial_grids: 'dict[str, tuple[SpatialGrid, list[UniformGrid], list[UniformGrid]]]' = {}
+
+    for control_value, mesh_location, datasets in ordered_datasets.Iterate():
+        # get the spatial grid
+        if not mesh_location in spatial_grids.keys():
+            mesh_data = mesh_location.split(":")
+            with h5py.File(mesh_data[0], "r") as h5_file:
+                spatial_grids[mesh_location] = GenerateSpatialGrid(h5_file, mesh_data[1])
+
+        # now create a duplicate of the found spatial grid
+        current_spatial_grid = SpatialGrid()
+        spatial_grid, condition_grids, element_grids = spatial_grids[mesh_location]
+
+        # add the condition and element grids
+        current_condition_grids: 'list[UniformGrid]' = []
+        for grid in condition_grids:
+            condition_grid = UniformGrid(grid.name, grid.geometry, grid.topology)
+            current_condition_grids.append(condition_grid)
+            current_spatial_grid.add_grid(condition_grid)
+
+        current_element_grids: 'list[UniformGrid]' = []
+        for grid in element_grids:
+            condition_grid = UniformGrid(grid.name, grid.geometry, grid.topology)
+            current_element_grids.append(condition_grid)
+            current_spatial_grid.add_grid(condition_grid)
+
+        # now add submodel part grids
+        for grid in spatial_grid.grids:
+            current_spatial_grid.add_grid(UniformGrid(grid.name, grid.geometry, grid.topology))
+
+        # now add the results
+        for dataset in datasets:
+            if dataset.container_type == "NODES":
+                # add nodal results to all the grids
+                for grid in current_spatial_grid.grids:
+                    grid.add_attribute(dataset)
+            else:
+                if dataset.container_type == "CONDITIONS":
+                    # now we have to check whether we have multiple condition types.
+                    # because, the condition data is stored as one dataset, but for different conditons
+                    # are stored in different groups with different xdmf indices.
+                    if len(current_condition_grids) != 1:
+                        raise RuntimeError(f"The condition data_set {dataset.name} can be written to only one condition data grid. [ number of condition grids = {len(current_condition_grids)} ].")
+                    current_condition_grids[0].add_attribute(dataset)
+                elif dataset.container_type == "ELEMENTS":
+                    # now we have to check whether we have multiple condition types.
+                    # because, the condition data is stored as one dataset, but for different conditons
+                    # are stored in different groups with different xdmf indices.
+                    if len(current_element_grids) != 1:
+                        raise RuntimeError(f"The condition data_set {dataset.name} can be written to only one condition data grid. [ number of condition grids = {len(current_element_grids)} ].")
+                    current_element_grids[0].add_attribute(dataset)
+                else:
+                    raise RuntimeError(f"Unsupported container_type = \"{dataset.container_type} ].")
+
+        temporal_grid.add_grid(Time(control_value), current_spatial_grid)
+
     domain = Domain(temporal_grid)
     xdmf = Xdmf(domain)
-    # Write the XML tree containing the XDMF metadata to the file.
-    ET.ElementTree(xdmf.create_xml_element()).write(h5_file_name[:h5_file_name.rfind(".")] + ".xdmf")
+    ET.ElementTree(xdmf.create_xml_element()).write(output_file_name)

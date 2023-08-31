@@ -36,6 +36,7 @@ BSD license: HDF5Application/license.txt
 
 from abc import ABCMeta, abstractmethod
 import xml.etree.ElementTree as ET
+import h5py
 
 
 class XdmfItem(metaclass=ABCMeta):
@@ -327,6 +328,52 @@ class HDF5UniformDataItem(DataItem):
         e.text = self.file_name + ":" + self.name
         return e
 
+class EntityData(Attribute):
+    @property
+    def attribute_type(self):
+        if len(self.data.dimensions) == 1:
+            return "Scalar"
+        elif len(self.data.dimensions) == 2:
+            if (self.data.dimensions[1] == 3):
+                return "Vector"
+            else:
+                return "Matrix"
+        else:
+            raise Exception("Invalid dimensions.")
+
+    @property
+    def name(self):
+        return self.__name
+
+    @property
+    def center(self):
+        return self.__center
+
+    def __init__(self, data_set: h5py.Dataset):
+        """Construct the object.
+
+        Keyword arguments:
+        name -- the name of the results data, e.g., "PRESSURE"
+        data -- the data item for the corresponding HDF5 data set
+        """
+        self.data = HDF5UniformDataItem(data_set)
+        self.container_type = ''.join([chr(i) for i in data_set.attrs["__container_type"]])
+        self.mesh_location = ''.join([chr(i) for i in data_set.attrs["__mesh_location"]])
+        self.__name = ''.join([chr(i) for i in data_set.attrs["__data_name"]])
+        if self.container_type == "NODES":
+            self.__center = "Node"
+        elif self.container_type in ["CONDITIONS", "ELEMENTS"]:
+            self.__center = "Cell"
+        else:
+            raise RuntimeError(f"Unsupported container_type = \"{self.container_type}\" at {data_set.name}.")
+
+    def create_xml_element(self):
+        e = ET.Element(self.xml_tag)
+        e.set("Name", self.name)
+        e.set("Center", self.center)
+        e.set("AttributeType", self.attribute_type)
+        e.append(self.data.create_xml_element())
+        return e
 
 class NodalData(Attribute):
     """An XDMF Attribute for nodal solution step or data value container data."""
@@ -423,6 +470,39 @@ class ConditionData(GeometrycalObjectData):
         super(ConditionData, self).__init__(name, data)
 
 
+class UniformGrid(Grid):
+    """An XDMF Grid for a single element or condition."""
+
+    def __init__(self, name, geom, topology):
+        """Construct the object.
+
+        Keyword arguments:
+        name -- the grid name (normally the element or condition name)
+        geom -- the XDMF Geometry (nodal coordinates, see Geometry)
+        topology -- the XDMF Topology (mesh connectivities, see Topology)
+        """
+        self.name = name
+        self.geometry = geom
+        self.topology = topology
+        self.attributes = []
+
+    def create_xml_element(self):
+        e = ET.Element(self.xml_tag)
+        e.set("Name", self.name)
+        e.append(self.topology.create_xml_element())
+        e.append(self.geometry.create_xml_element())
+        for attr in self.attributes:
+            e.append(attr.create_xml_element())
+        return e
+
+    def add_attribute(self, attr):
+        """Add an XDMF Attribute (results data) to the grid.
+
+        See class Attribute.
+        """
+        self.attributes.append(attr)
+
+
 class SpatialGrid(Grid):
     """A collection of uniform XDMF Grid objects with results data.
 
@@ -433,17 +513,17 @@ class SpatialGrid(Grid):
     grids -- the list of XDMF Grid objects
     """
 
-    def __init__(self):
-        self.grids = []
+    def __init__(self) -> None:
+        self.grids: 'list[UniformGrid]' = []
 
-    def create_xml_element(self):
+    def create_xml_element(self) -> ET.Element:
         # The "Name": "Mesh" is included here because VisIt seems to have problems otherwise -- mike.
         e = ET.Element(self.xml_tag, {"Name": "Mesh", "GridType": "Collection", "CollectionType": "Spatial"})
         for grid in self.grids:
             e.append(grid.create_xml_element())
         return e
 
-    def add_attribute(self, attr):
+    def add_attribute(self, attr) -> None:
         """Add an XDMF Attribute (results data set) to each child grid."""
         for grid in self.grids:
             if (attr.center == "Cell"):
@@ -454,7 +534,7 @@ class SpatialGrid(Grid):
             else:
                 grid.add_attribute(attr)
 
-    def add_grid(self, grid):
+    def add_grid(self, grid: UniformGrid) -> None:
         self.grids.append(grid)
 
 
@@ -491,39 +571,6 @@ class TemporalGrid(Grid):
         """
         self.times.append(time)
         self.grids.append(grid)
-
-
-class UniformGrid(Grid):
-    """An XDMF Grid for a single element or condition."""
-
-    def __init__(self, name, geom, topology):
-        """Construct the object.
-
-        Keyword arguments:
-        name -- the grid name (normally the element or condition name)
-        geom -- the XDMF Geometry (nodal coordinates, see Geometry)
-        topology -- the XDMF Topology (mesh connectivities, see Topology)
-        """
-        self.name = name
-        self.geometry = geom
-        self.topology = topology
-        self.attributes = []
-
-    def create_xml_element(self):
-        e = ET.Element(self.xml_tag)
-        e.set("Name", self.name)
-        e.append(self.topology.create_xml_element())
-        e.append(self.geometry.create_xml_element())
-        for attr in self.attributes:
-            e.append(attr.create_xml_element())
-        return e
-
-    def add_attribute(self, attr):
-        """Add an XDMF Attribute (results data) to the grid.
-
-        See class Attribute.
-        """
-        self.attributes.append(attr)
 
 
 class Domain(XdmfItem):
