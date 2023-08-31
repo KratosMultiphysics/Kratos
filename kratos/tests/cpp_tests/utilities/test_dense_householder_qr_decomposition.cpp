@@ -47,12 +47,12 @@ KRATOS_TEST_CASE_IN_SUITE(DenseHouseholderQRDecomposition, KratosCoreFastSuite)
     // Check decomposition is correct
     constexpr double tolerance = 1e-10;
     const Matrix QR_matrix = prod(Q_matrix, R_matrix);
-    KRATOS_CHECK_MATRIX_NEAR(QR_matrix, A_copy, tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(QR_matrix, A_copy, tolerance);
 
     // Check values
-    KRATOS_CHECK_NEAR(R_matrix(0,1), -0.49637670012, tolerance);
-    KRATOS_CHECK_NEAR(R_matrix(1,1), 0.0260998022652, tolerance);
-    KRATOS_CHECK_NEAR(Q_matrix(0,0), -0.620627440497, tolerance);
+    KRATOS_EXPECT_NEAR(R_matrix(0,1), -0.49637670012, tolerance);
+    KRATOS_EXPECT_NEAR(R_matrix(1,1), 0.0260998022652, tolerance);
+    KRATOS_EXPECT_NEAR(Q_matrix(0,0), -0.620627440497, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DenseHouseholderQRSolveVector, KratosCoreFastSuite)
@@ -98,7 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(DenseHouseholderQRSolveVector, KratosCoreFastSuite)
     x_ref[2] = 0.668500192182;
     x_ref[3] = 1.13901969982;
     constexpr double tolerance = 1e-10;
-    KRATOS_CHECK_VECTOR_NEAR(x_vector, x_ref, tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(x_vector, x_ref, tolerance);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DenseHouseholderQRSolveMatrix, KratosCoreFastSuite)
@@ -152,7 +152,7 @@ KRATOS_TEST_CASE_IN_SUITE(DenseHouseholderQRSolveMatrix, KratosCoreFastSuite)
     X_ref(2,1) = 0.668500192182;
     X_ref(3,1) = 1.13901969982;
     constexpr double tolerance = 1e-10;
-    KRATOS_CHECK_MATRIX_NEAR(X_matrix, X_ref, tolerance);
+    KRATOS_EXPECT_MATRIX_NEAR(X_matrix, X_ref, tolerance);
 }
 
 } // namespace Testing

@@ -35,18 +35,18 @@ class DummyCondition2 : public Condition {};
 
 KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingElement, KratosCoreFastSuite)
 {
-    KRATOS_CHECK(KratosComponents<Element>::Has("Element2D2N"));
-    KRATOS_CHECK_IS_FALSE(KratosComponents<Element>::Has("NonExisting2D2N"));
+    KRATOS_EXPECT_TRUE(KratosComponents<Element>::Has("Element2D2N"));
+    KRATOS_EXPECT_FALSE(KratosComponents<Element>::Has("NonExisting2D2N"));
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(KratosComponents<Element>::Get("NonExisting2D2N"), "Error: The component \"NonExisting2D2N\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following components of this type are registered:");
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(KratosComponents<Element>::Get("NonExisting2D2N"), "Error: The component \"NonExisting2D2N\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following components of this type are registered:");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosComponentsGetNonExistingVariable, KratosCoreFastSuite)
 {
-    KRATOS_CHECK(KratosComponents<Variable<double>>::Has("TIME"));
-    KRATOS_CHECK_IS_FALSE(KratosComponents<Variable<double>>::Has("NON_EXISTING_VARIABLE_NAME"));
+    KRATOS_EXPECT_TRUE(KratosComponents<Variable<double>>::Has("TIME"));
+    KRATOS_EXPECT_FALSE(KratosComponents<Variable<double>>::Has("NON_EXISTING_VARIABLE_NAME"));
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(KratosComponents<Variable<double>>::Get("NON_EXISTING_VARIABLE_NAME"), "Error: The component \"NON_EXISTING_VARIABLE_NAME\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following components of this type are registered:");
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(KratosComponents<Variable<double>>::Get("NON_EXISTING_VARIABLE_NAME"), "Error: The component \"NON_EXISTING_VARIABLE_NAME\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following components of this type are registered:");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(KratosComponentsAddDifferentObjectsSameName, KratosCoreFastSuite)
@@ -66,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(KratosComponentsAddDifferentObjectsSameName, KratosCor
     KratosComponents<Condition>::Add("dummy_1", dummy_1_1);
 
     // registering the a different object with the name - NOT OK, this is UNDEFINED BEHAVIOR, we don't know what we get when we query the name
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(KratosComponents<Condition>::Add("dummy_1", dummy_2), "Error: An object of different type was already registered with name \"dummy_1\"");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(KratosComponents<Condition>::Add("dummy_1", dummy_2), "Error: An object of different type was already registered with name \"dummy_1\"");
 
     // Clean up after ourselves
     KratosComponents<Condition>::Remove("dummy_1");
@@ -80,19 +80,19 @@ KRATOS_TEST_CASE_IN_SUITE(KratosComponentsRemove, KratosCoreFastSuite)
 
     // First we add the condition
     KratosComponents<Condition>::Add(registered_name, remove_dummy);
-    KRATOS_CHECK(KratosComponents<Condition>::Has(registered_name));
+    KRATOS_EXPECT_TRUE(KratosComponents<Condition>::Has(registered_name));
 
     // Then we remove it
     KratosComponents<Condition>::Remove(registered_name);
-    KRATOS_CHECK_IS_FALSE(KratosComponents<Condition>::Has(registered_name));
+    KRATOS_EXPECT_FALSE(KratosComponents<Condition>::Has(registered_name));
 
     // We can still register another object with the same name
     DummyCondition1 another_dummy;
     KratosComponents<Condition>::Add(registered_name, another_dummy);
-    KRATOS_CHECK(KratosComponents<Condition>::Has(registered_name));
+    KRATOS_EXPECT_TRUE(KratosComponents<Condition>::Has(registered_name));
 
     // If we try to remove things that do not exist, we get an error
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
         KratosComponents<Condition>::Remove("WrongName"),
         "Error: Trying to remove inexistent component \"WrongName\"."
     );
