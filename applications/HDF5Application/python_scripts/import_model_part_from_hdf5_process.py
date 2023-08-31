@@ -89,14 +89,14 @@ class ImportModelPartFromHDF5Process(HDF5Process):
         operations = AggregatedControlledOperations(model_part, parameters["file_settings"])
 
         # now adding temporal outputs.
-        operations.AddControlledOperation(ControlledOperation(ModelPartInput, self._GetOperationParameters("model_part_input_settings", parameters), default_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalSolutionStepDataInput, self._GetOperationParameters("nodal_solution_step_data_settings", parameters), default_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalDataValueInput, self._GetOperationParameters("nodal_data_value_settings", parameters), default_controller))
-        operations.AddControlledOperation(ControlledOperation(NodalFlagValueInput, self._GetOperationParameters("nodal_flag_value_settings", parameters), default_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementDataValueInput, self._GetOperationParameters("element_data_value_settings", parameters), default_controller))
-        operations.AddControlledOperation(ControlledOperation(ElementFlagValueInput, self._GetOperationParameters("element_flag_value_settings", parameters), default_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionDataValueInput, self._GetOperationParameters("condition_data_value_settings", parameters), default_controller))
-        operations.AddControlledOperation(ControlledOperation(ConditionFlagValueInput, self._GetOperationParameters("condition_flag_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ModelPartInput, self._GetValidatedParameters("model_part_input_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalSolutionStepDataInput, self._GetValidatedParameters("nodal_solution_step_data_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalDataValueInput, self._GetValidatedParameters("nodal_data_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(NodalFlagValueInput, self._GetValidatedParameters("nodal_flag_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementDataValueInput, self._GetValidatedParameters("element_data_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ElementFlagValueInput, self._GetValidatedParameters("element_flag_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionDataValueInput, self._GetValidatedParameters("condition_data_value_settings", parameters), default_controller))
+        operations.AddControlledOperation(ControlledOperation(ConditionFlagValueInput, self._GetValidatedParameters("condition_flag_value_settings", parameters), default_controller))
 
         # now add all operations to PrintOutput method
         self.AddInitialize(operations)
