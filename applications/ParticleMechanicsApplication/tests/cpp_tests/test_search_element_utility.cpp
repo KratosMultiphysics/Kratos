@@ -38,10 +38,10 @@ namespace Testing
         Properties::Pointer p_elem_prop = rModelPart.CreateNewProperties(0);
 
         // Elements
-        auto p_quad = CreateQuadraturePointsUtility<Node<3>>::CreateFromCoordinates(
+        auto p_quad = CreateQuadraturePointsUtility<Node>::CreateFromCoordinates(
             rBackgroundModelPart.GetElement(1).pGetGeometry(), rMPCoords, IntWeight);
 
-        const Element& new_element = KratosComponents<Element>::Get("UpdatedLagrangian2D4N");
+        const Element& new_element = KratosComponents<Element>::Get("MPMUpdatedLagrangian2D4N");
         Element::Pointer p_element = new_element.Create(
             2, p_quad, p_elem_prop);
 
@@ -116,7 +116,7 @@ namespace Testing
 
 
         // Nodes
-        std::vector<Kratos::Properties::NodeType::Pointer> point_vector(number_of_nodes);
+        std::vector<Node::Pointer> point_vector(number_of_nodes);
         const double dx = 1.0;
         const double dy = 1.0;
         IndexType point_index = 1;
@@ -189,7 +189,7 @@ namespace Testing
     }
 
     ///// Check if search function works properly
-    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElement, KratosParticleMechanicsFastSuite)
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementQuad2D, KratosParticleMechanicsFastSuite)
     {
         // First Coordinates of Material Point
         array_1d<double, 3> mp_coordinate;
@@ -213,10 +213,10 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check nodes
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 1);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 2);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 3);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[3].Id(), 4);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 1);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 2);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 3);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[3].Id(), 4);
 
         // New Coordinates of Material Point
         mp_coordinate[0] = 1.2;
@@ -232,12 +232,132 @@ namespace Testing
         std::vector<array_1d<double, 3>> coords;
         r_mpm_model_part.GetElement(2).CalculateOnIntegrationPoints(
             MP_COORD, coords, r_current_process_info);
-        KRATOS_CHECK_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
+        KRATOS_EXPECT_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
         // Check nodes
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 2);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 9);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 10);
-        KRATOS_CHECK_EQUAL(r_mpm_model_part.GetElement(2).GetGeometry()[3].Id(), 3);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 2);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 9);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 10);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[3].Id(), 3);
+    }
+
+    ///// Check if search function works properly
+    KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementTri2D, KratosParticleMechanicsFastSuite)
+    {
+        // First Coordinates of Material Point: (0.0, 0.2, 0.0)
+        array_1d<double, 3> mp_coordinate;
+        mp_coordinate[0] = 0.0;
+        mp_coordinate[1] = 0.2;
+        mp_coordinate[2] = 0.0;
+        const double int_weight = 1.5;
+
+        const IndexType grid_case = 10;
+
+        Model current_model;
+        ModelPart& r_mpm_model_part = current_model.CreateModelPart("MPMModelPart");
+
+        ModelPart& r_background_model_part = current_model.CreateModelPart("MPMBackgroundModelPart");
+        PrepareGeneralBackgroundModelPart(r_background_model_part, grid_case);
+        PrepareModelPart(r_mpm_model_part, r_background_model_part, mp_coordinate, int_weight);
+
+        const ProcessInfo& r_current_process_info = r_mpm_model_part.GetProcessInfo();
+        const double search_tolerance = 1e-7;
+        const double check_tolerance = 1e-10;
+
+        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+            MP_COORD, { mp_coordinate }, r_current_process_info);
+
+        MPMSearchElementUtility::SearchElement<2>(
+            r_background_model_part, r_mpm_model_part, 1000, search_tolerance);
+
+        std::vector<array_1d<double, 3>> coords;
+        r_mpm_model_part.GetElement(2).CalculateOnIntegrationPoints(
+            MP_COORD, coords, r_current_process_info);
+        KRATOS_EXPECT_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
+
+        // Check nodes
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 1);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 6);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 5);
+
+        Matrix shape_functions_values = r_mpm_model_part.GetElement(2).GetGeometry().ShapeFunctionsValues();
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,0), 0.8, check_tolerance);
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,1), 0.0, check_tolerance);
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,2), 0.2, check_tolerance);
+
+        // New Coordinates of Material Point
+        mp_coordinate[0] = 1.2;
+        mp_coordinate[1] = 0.0;
+        mp_coordinate[2] = 0.0;
+
+        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+            MP_COORD, { mp_coordinate }, r_current_process_info);
+
+        MPMSearchElementUtility::SearchElement<2>(
+            r_background_model_part, r_mpm_model_part, 1000, search_tolerance);
+
+        r_mpm_model_part.GetElement(2).CalculateOnIntegrationPoints(
+            MP_COORD, coords, r_current_process_info);
+        KRATOS_EXPECT_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
+
+        // Check nodes
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 2);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 3);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 7);
+
+        shape_functions_values = r_mpm_model_part.GetElement(2).GetGeometry().ShapeFunctionsValues();
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,0), 0.8, check_tolerance);
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,1), 0.2, check_tolerance);
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,2), 0.0, check_tolerance);
+
+        // New Coordinates of Material Point
+        mp_coordinate[0] = 2.6;
+        mp_coordinate[1] = 2.1;
+        mp_coordinate[2] = 0.0;
+
+        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+            MP_COORD, { mp_coordinate }, r_current_process_info);
+
+        MPMSearchElementUtility::SearchElement<2>(
+            r_background_model_part, r_mpm_model_part, 1000, search_tolerance);
+
+        r_mpm_model_part.GetElement(2).CalculateOnIntegrationPoints(
+            MP_COORD, coords, r_current_process_info);
+        KRATOS_EXPECT_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
+
+        // Check nodes
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 11);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 12);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 16);
+
+        shape_functions_values = r_mpm_model_part.GetElement(2).GetGeometry().ShapeFunctionsValues();
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,0), 0.4, check_tolerance);
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,1), 0.5, check_tolerance);
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,2), 0.1, check_tolerance);
+
+        // New Coordinates of Material Point
+        mp_coordinate[0] = 0.2349;
+        mp_coordinate[1] = 2.7238;
+        mp_coordinate[2] = 0.0;
+
+        r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
+            MP_COORD, { mp_coordinate }, r_current_process_info);
+
+        MPMSearchElementUtility::SearchElement<2>(
+            r_background_model_part, r_mpm_model_part, 1000, search_tolerance);
+
+        r_mpm_model_part.GetElement(2).CalculateOnIntegrationPoints(
+            MP_COORD, coords, r_current_process_info);
+        KRATOS_EXPECT_VECTOR_NEAR(coords[0], mp_coordinate, 1e-6)
+
+        // Check nodes
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[0].Id(), 9);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[1].Id(), 14);
+        KRATOS_EXPECT_EQ(r_mpm_model_part.GetElement(2).GetGeometry()[2].Id(), 13);
+
+        shape_functions_values = r_mpm_model_part.GetElement(2).GetGeometry().ShapeFunctionsValues();
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,0), 0.2762, check_tolerance);
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,1), 0.2349, check_tolerance);
+        KRATOS_EXPECT_NEAR(shape_functions_values(0,2), 0.4889, check_tolerance);
     }
 
     /// PQMPM test 1 - MP domain is entirely within cell and should only make 1 mp
@@ -277,9 +397,9 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results - MP should lie entirely within one cell
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
-        KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
-        KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(),1.0, std::numeric_limits<double>::epsilon());
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        KRATOS_EXPECT_EQ(rGeom.IntegrationPointsNumber(), 1);
+        KRATOS_EXPECT_NEAR(rGeom.IntegrationPoints()[0].Weight(),1.0, std::numeric_limits<double>::epsilon());
     }
 
     /// PQMPM test 2 - MP domain is entirely within cell and should only make 1 mp
@@ -319,9 +439,9 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results - MP should lie entirely within one cell
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
-        KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
-        KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(),1.0, std::numeric_limits<double>::epsilon());
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        KRATOS_EXPECT_EQ(rGeom.IntegrationPointsNumber(), 1);
+        KRATOS_EXPECT_NEAR(rGeom.IntegrationPoints()[0].Weight(),1.0, std::numeric_limits<double>::epsilon());
     }
 
     /// PQMPM test 3 - MP domain is not entirely within one cell and should make 9 mp. 2D skew quad
@@ -360,15 +480,15 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
-        KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 9);
+        KRATOS_EXPECT_EQ(rGeom.IntegrationPointsNumber(), 9);
         std::vector<double> result_weight = { 0.5, 0.0307296, 0.103553, 0.0121636, 0.0785534,
             0.103553, 0.128553, 0.0214466, 0.0214466 };
         for (size_t i = 0; i < rGeom.IntegrationPointsNumber(); i++)
         {
             //KRATOS_WATCH(rGeom.IntegrationPoints()[i].Weight())
-            KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[i].Weight(), result_weight[i], tolerance_pqmpm_weight);
+            KRATOS_EXPECT_NEAR(rGeom.IntegrationPoints()[i].Weight(), result_weight[i], tolerance_pqmpm_weight);
         }
     }
 
@@ -408,14 +528,14 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
-        KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 5);
+        KRATOS_EXPECT_EQ(rGeom.IntegrationPointsNumber(), 5);
         std::vector<double> result_weight = { 0.42, 0.018, 0.162, 0.32, 0.08};
         for (size_t i = 0; i < rGeom.IntegrationPointsNumber(); i++)
         {
             //KRATOS_WATCH(rGeom.IntegrationPoints()[i].Weight())
-            KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[i].Weight(), result_weight[i], tolerance_pqmpm_weight);
+            KRATOS_EXPECT_NEAR(rGeom.IntegrationPoints()[i].Weight(), result_weight[i], tolerance_pqmpm_weight);
         }
     }
 
@@ -455,18 +575,18 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
         //KRATOS_WATCH(rGeom.IntegrationPointsNumber())
-        KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 4);
+        KRATOS_EXPECT_EQ(rGeom.IntegrationPointsNumber(), 4);
         std::vector<double> result_weight = { 0.511859 , 0.203584 , 0.203584 , 0.0809724 };
         for (size_t i = 0; i < rGeom.IntegrationPointsNumber(); i++)
         {
             //KRATOS_WATCH(rGeom.IntegrationPoints()[i].Weight())
-            KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[i].Weight(), result_weight[i], tolerance_pqmpm_weight);
+            KRATOS_EXPECT_NEAR(rGeom.IntegrationPoints()[i].Weight(), result_weight[i], tolerance_pqmpm_weight);
         }
     }
 
-    // TEST DISABLED - KRATOS_CHECK_EXCEPTION_IS_THROWN doesn't work in parallel!
+    // TEST DISABLED - KRATOS_EXPECT_EXCEPTION_IS_THROWN doesn't work in parallel!
     /// PQMPM test 6 - Check pqmpm fails with unstructured 3D mesh
     //KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM3DHexError, KratosParticleMechanicsFastSuite)
     //{
@@ -499,12 +619,12 @@ namespace Testing
     //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
     //        MP_VOLUME, mp_volume, r_current_process_info);
     //
-    //    KRATOS_CHECK_EXCEPTION_IS_THROWN(MPMSearchElementUtility::SearchElement<2>(
+    //    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MPMSearchElementUtility::SearchElement<2>(
     //        r_background_model_part, r_mpm_model_part, 1000, 1e-6) ,
     //        "Error: ERROR")
     //}
 
-    // TEST DISABLED - KRATOS_CHECK_EXCEPTION_IS_THROWN doesn't work in parallel!
+    // TEST DISABLED - KRATOS_EXPECT_EXCEPTION_IS_THROWN doesn't work in parallel!
     ///// PQMPM test 7 - Check pqmpm fails if point tries to split outside mesh
     //KRATOS_TEST_CASE_IN_SUITE(MPMSearchElementPQMPM2DOutsideSplit, KratosParticleMechanicsFastSuite)
     //{
@@ -537,7 +657,7 @@ namespace Testing
     //    r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
     //        MP_VOLUME, mp_volume, r_current_process_info);
     //
-    //    KRATOS_CHECK_EXCEPTION_IS_THROWN(MPMSearchElementUtility::SearchElement<2>(
+    //    KRATOS_EXPECT_EXCEPTION_IS_THROWN(MPMSearchElementUtility::SearchElement<2>(
     //        r_background_model_part, r_mpm_model_part, 1000, 1e-6) ,
     //        "Error: ERROR")
     //}
@@ -574,9 +694,9 @@ namespace Testing
         r_mpm_model_part.GetElement(2).SetValuesOnIntegrationPoints(
             MP_VOLUME, mp_volume, r_current_process_info);
 
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
-        KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
-        KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(), 1.0, std::numeric_limits<double>::epsilon());
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        KRATOS_EXPECT_EQ(rGeom.IntegrationPointsNumber(), 1);
+        KRATOS_EXPECT_NEAR(rGeom.IntegrationPoints()[0].Weight(), 1.0, std::numeric_limits<double>::epsilon());
     }
 
     /// PQMPM test 9 - Check pqmpm does not split across a BC
@@ -618,9 +738,9 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results - MP should lie entirely within one cell
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
-        KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
-        KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(), 1.0, std::numeric_limits<double>::epsilon());
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        KRATOS_EXPECT_EQ(rGeom.IntegrationPointsNumber(), 1);
+        KRATOS_EXPECT_NEAR(rGeom.IntegrationPoints()[0].Weight(), 1.0, std::numeric_limits<double>::epsilon());
     }
 
     /// PQMPM test 10 - Check pqmpm reverts back to normal MPM if min_pqmpm fraction is specified and not fulfilled
@@ -660,9 +780,9 @@ namespace Testing
             r_background_model_part, r_mpm_model_part, 1000, 1e-6);
 
         // Check results - MP should lie entirely within one cell
-        Geometry<Node<3>>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
-        KRATOS_CHECK_EQUAL(rGeom.IntegrationPointsNumber(), 1);
-        KRATOS_CHECK_NEAR(rGeom.IntegrationPoints()[0].Weight(), 1.0, std::numeric_limits<double>::epsilon());
+        Geometry<Node>& rGeom = r_mpm_model_part.GetElement(2).GetGeometry();
+        KRATOS_EXPECT_EQ(rGeom.IntegrationPointsNumber(), 1);
+        KRATOS_EXPECT_NEAR(rGeom.IntegrationPoints()[0].Weight(), 1.0, std::numeric_limits<double>::epsilon());
     }
 
 } // namespace Testing

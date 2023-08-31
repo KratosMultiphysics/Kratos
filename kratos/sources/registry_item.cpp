@@ -20,41 +20,46 @@
 
 namespace Kratos
 {
+    RegistryItem::SubRegistryItemType& RegistryItem::GetSubRegistryItemMap()
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return *(std::any_cast<SubRegistryItemPointerType>(mpValue));
+    }
+
+    RegistryItem::SubRegistryItemType& RegistryItem::GetSubRegistryItemMap() const
+    {
+        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
+        return *(std::any_cast<SubRegistryItemPointerType>(mpValue));
+    }
 
     RegistryItem::SubRegistryItemType::iterator RegistryItem::begin()
     {
-        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return mSubRegistryItem.begin();
+        return GetSubRegistryItemMap().begin();
     }
 
     RegistryItem::SubRegistryItemType::const_iterator RegistryItem::cbegin() const
     {
-        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return mSubRegistryItem.cbegin();
+        return GetSubRegistryItemMap().cbegin();
     }
 
     RegistryItem::SubRegistryItemType::iterator RegistryItem::end()
     {
-        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return mSubRegistryItem.end();
+        return GetSubRegistryItemMap().end();
     }
 
     RegistryItem::SubRegistryItemType::const_iterator RegistryItem::cend() const
     {
-        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return mSubRegistryItem.cend();
+        return GetSubRegistryItemMap().cend();
     }
 
     RegistryItem::KeyReturnConstIterator RegistryItem::KeyConstBegin() const
     {
-        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return KeyReturnConstIterator(mSubRegistryItem.cbegin());
+        return KeyReturnConstIterator(GetSubRegistryItemMap().cbegin());
     }
 
     RegistryItem::KeyReturnConstIterator RegistryItem::KeyConstEnd() const
     {
-        KRATOS_ERROR_IF(HasValue()) << "Item " << Name() << " has value and cannot be iterated." << std::endl;
-        return KeyReturnConstIterator(mSubRegistryItem.cend());
+        return KeyReturnConstIterator(GetSubRegistryItemMap().cend());
     }
 
     std::string RegistryItem::Info() const
@@ -69,45 +74,105 @@ namespace Kratos
 
     void RegistryItem::PrintData(std::ostream &rOStream) const
     {
-        for(auto& item : mSubRegistryItem){
-            rOStream << *(item.second) << std::endl;
+        if (HasValue()) {
+            rOStream << this->GetValueString();
+        } else {
+            for(auto& item : GetSubRegistryItemMap()){
+                rOStream << item.second->GetValueString() << std::endl;
+            }
         }
     }
 
-    std::string RegistryItem::ToJson(std::string const& rIndentation) const
+    std::string RegistryItem::GetValueString() const
     {
-        KRATOS_ERROR_IF(HasValue()) << "For storing a value you should use the RegistryValueItem" << std::endl;
+        return (this->*(this->mGetValueStringMethod))();
+    }
+
+    std::string RegistryItem::ToJson(std::string const& rTabSpacing, const std::size_t Level) const
+    {
+        std::string tabbing;
+        for (std::size_t i = 0; i < Level + 1; ++i) {
+            tabbing += rTabSpacing;
+        }
 
         std::stringstream buffer;
-        buffer  << rIndentation << "\"" << mName << "\" : {" << std::endl;
-        for(auto& item : mSubRegistryItem){
-            buffer << item.second->ToJson(rIndentation + "    ");
+
+        if (Level == 0)
+            buffer << "{" << std::endl;
+
+        if (HasValue()) {
+            buffer << tabbing << "\"" << mName << "\": \""
+                   << this->GetValueString() << "\"";
+        } else {
+            buffer << tabbing << "\"" << mName << "\": {";
+
+            for (auto& r_item : GetSubRegistryItemMap()) {
+                buffer << std::endl;
+                buffer << r_item.second->ToJson(rTabSpacing, Level + 1);
+                buffer << ",";
+            }
+
+            if (HasItems()) {
+                buffer.seekp(-1, std::ios_base::end);
+                buffer << std::endl << tabbing;
+            }
+
+            buffer << "}";
         }
-        buffer << "}" << std::endl;
+
+        if (Level == 0)
+            buffer << std::endl << "}";
 
         return buffer.str();
     }
 
+    bool RegistryItem::HasValue() const
+    {
+        return (mpValue.type() != typeid(SubRegistryItemPointerType));
+    }
+
+    bool RegistryItem::HasItem(std::string const& rItemName) const
+    {
+        if (!HasValue()) {
+            SubRegistryItemType& r_map = GetSubRegistryItemMap();
+            return (r_map.find(rItemName) != r_map.end());
+        } else {
+            return false;
+        }
+    }
+
+    bool RegistryItem::HasItems() const
+    {
+        return (!HasValue() && !GetSubRegistryItemMap().empty());
+    }
+
+    std::size_t RegistryItem::size()
+    {
+        return GetSubRegistryItemMap().size();
+    }
+
     RegistryItem const& RegistryItem::GetItem(std::string const& rItemName) const
     {
-        auto iterator = mSubRegistryItem.find(rItemName);
-        KRATOS_ERROR_IF(iterator == mSubRegistryItem.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << std::endl;
+        SubRegistryItemType& r_map = GetSubRegistryItemMap();
+        auto iterator = r_map.find(rItemName);
+        KRATOS_ERROR_IF(iterator == r_map.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << std::endl;
         return *(iterator->second);
     }
 
     RegistryItem& RegistryItem::GetItem(std::string const& rItemName)
     {
-        auto iterator = mSubRegistryItem.find(rItemName);
-        KRATOS_ERROR_IF(iterator == mSubRegistryItem.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << std::endl;
+        SubRegistryItemType& r_map = GetSubRegistryItemMap();
+        auto iterator = r_map.find(rItemName);
+        KRATOS_ERROR_IF(iterator == r_map.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << std::endl;
         return *(iterator->second);
     }
 
     void RegistryItem::RemoveItem(std::string const& rItemName)
     {
-        auto iterator = mSubRegistryItem.find(rItemName);
-        KRATOS_ERROR_IF(iterator == mSubRegistryItem.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << std::endl;
-        mSubRegistryItem.erase(iterator);
+        SubRegistryItemType& r_map = GetSubRegistryItemMap();
+        auto iterator = r_map.find(rItemName);
+        KRATOS_ERROR_IF(iterator == r_map.end()) << "The RegistryItem " << this->Name() << " does not have an item with name " << rItemName << std::endl;
+        r_map.erase(iterator);
     }
-
 
 } // namespace Kratos.

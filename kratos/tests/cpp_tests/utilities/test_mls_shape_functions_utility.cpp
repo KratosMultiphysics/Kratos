@@ -60,11 +60,11 @@ namespace Testing
         r_model_part.AddNodalSolutionStepVariable(DENSITY);
 
         // Generate the background mesh (done with the StructuredMeshGeneratorProcess)
-        auto p_point_1 = Kratos::make_intrusive<Node<3>>(1, -0.5, -0.5,  0.0);
-        auto p_point_2 = Kratos::make_intrusive<Node<3>>(2, -0.5,  0.5,  0.0);
-        auto p_point_3 = Kratos::make_intrusive<Node<3>>(3,  0.5,  0.5,  0.0);
-        auto p_point_4 = Kratos::make_intrusive<Node<3>>(4,  0.5, -0.5,  0.0);
-        Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+        auto p_point_1 = Kratos::make_intrusive<Node>(1, -0.5, -0.5,  0.0);
+        auto p_point_2 = Kratos::make_intrusive<Node>(2, -0.5,  0.5,  0.0);
+        auto p_point_3 = Kratos::make_intrusive<Node>(3,  0.5,  0.5,  0.0);
+        auto p_point_4 = Kratos::make_intrusive<Node>(4,  0.5, -0.5,  0.0);
+        Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
         Parameters mesher_parameters(R"(
         {
             "number_of_divisions": 3,
@@ -138,9 +138,9 @@ namespace Testing
         }
 
         const double zero_tol = 1.0e-15;
-        KRATOS_CHECK_LESS_EQUAL(std::abs(val_error), zero_tol);
-        KRATOS_CHECK_LESS_EQUAL(std::abs(val_dx_error), zero_tol);
-        KRATOS_CHECK_LESS_EQUAL(std::abs(val_dy_error), zero_tol);
+        KRATOS_EXPECT_LE(std::abs(val_error), zero_tol);
+        KRATOS_EXPECT_LE(std::abs(val_dx_error), zero_tol);
+        KRATOS_EXPECT_LE(std::abs(val_dy_error), zero_tol);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateKernelCoordinates, KratosCoreFastSuite)
@@ -158,7 +158,7 @@ namespace Testing
         const std::array<double, 4> expected_values = {0.367879441171,0.367879441171,0.367879441171,0.367879441171};
         for (std::size_t i_pt = 0; i_pt < 4; ++i_pt) {
             const double kernel = MLSShapeFunctionsUtility::CalculateKernel(ref_pt - row(pt_coords, i_pt), h);
-            KRATOS_CHECK_NEAR(kernel, expected_values[i_pt], tol);
+            KRATOS_EXPECT_NEAR(kernel, expected_values[i_pt], tol);
         }
     }
 
@@ -168,7 +168,7 @@ namespace Testing
         const double h = 0.25;
         const double tol = 1.0e-12;
         const double kernel = MLSShapeFunctionsUtility::CalculateKernel(ZeroVector(3), h);
-        KRATOS_CHECK_NEAR(kernel, 1.0, tol);
+        KRATOS_EXPECT_NEAR(kernel, 1.0, tol);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(MLSShapeFunctionsUtilityCalculateKernelDerivative, KratosCoreFastSuite)
@@ -191,8 +191,8 @@ namespace Testing
             -0.0861571172074,0.0861571172074};
         for (std::size_t i_pt = 0; i_pt < 4; ++i_pt) {
             MLSShapeFunctionsUtility::CalculateKernelDerivative<2>(ref_pt - row(pt_coords, i_pt), h, kernel_der);
-            KRATOS_CHECK_NEAR(kernel_der[0], expected_values[2*i_pt], tol);
-            KRATOS_CHECK_NEAR(kernel_der[1], expected_values[2*i_pt+1], tol);
+            KRATOS_EXPECT_NEAR(kernel_der[0], expected_values[2*i_pt], tol);
+            KRATOS_EXPECT_NEAR(kernel_der[1], expected_values[2*i_pt+1], tol);
         }
     }
 
@@ -218,7 +218,7 @@ namespace Testing
         const double tol = 1.0e-12;
         const std::array<double, 4> expected_N = {0.25,0.25,0.25,0.25};
         for (std::size_t i_pt = 0; i_pt < 4; ++i_pt) {
-            KRATOS_CHECK_NEAR(N_container(i_pt), expected_N[i_pt], tol);
+            KRATOS_EXPECT_NEAR(N_container(i_pt), expected_N[i_pt], tol);
         }
     }
 
@@ -247,9 +247,9 @@ namespace Testing
         const std::array<double, 4> expected_N = {0.25,0.25,0.25,0.25};
         const std::array<double, 8> expected_DN_DX = {-0.25, -0.25, 0.25, -0.25, 0.25, 0.25, -0.25,0.25};
         for (std::size_t i_pt = 0; i_pt < 4; ++i_pt) {
-            KRATOS_CHECK_NEAR(N_container(i_pt), expected_N[i_pt], tol);
-            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 0), expected_DN_DX[2*i_pt], tol);
-            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 1), expected_DN_DX[2*i_pt+1], tol);
+            KRATOS_EXPECT_NEAR(N_container(i_pt), expected_N[i_pt], tol);
+            KRATOS_EXPECT_NEAR(DN_DX_container(i_pt, 0), expected_DN_DX[2*i_pt], tol);
+            KRATOS_EXPECT_NEAR(DN_DX_container(i_pt, 1), expected_DN_DX[2*i_pt+1], tol);
         }
     }
 
@@ -275,7 +275,7 @@ namespace Testing
         const double tol = 1.0e-12;
         const std::array<double, 8> expected_N = {0.125,0.125,0.125,0.125,0.125,0.125,0.125,0.125};
         for (std::size_t i_pt = 0; i_pt < 8; ++i_pt) {
-            KRATOS_CHECK_NEAR(N_container(i_pt), expected_N[i_pt], tol);
+            KRATOS_EXPECT_NEAR(N_container(i_pt), expected_N[i_pt], tol);
         }
     }
 
@@ -312,10 +312,10 @@ namespace Testing
             0.125, 0.125, 0.125,
             -0.125,0.125, 0.125};
         for (std::size_t i_pt = 0; i_pt < 8; ++i_pt) {
-            KRATOS_CHECK_NEAR(N_container(i_pt), expected_N[i_pt], tol);
-            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 0), expected_DN_DX[3*i_pt], tol);
-            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 1), expected_DN_DX[3*i_pt+1], tol);
-            KRATOS_CHECK_NEAR(DN_DX_container(i_pt, 2), expected_DN_DX[3*i_pt+2], tol);
+            KRATOS_EXPECT_NEAR(N_container(i_pt), expected_N[i_pt], tol);
+            KRATOS_EXPECT_NEAR(DN_DX_container(i_pt, 0), expected_DN_DX[3*i_pt], tol);
+            KRATOS_EXPECT_NEAR(DN_DX_container(i_pt, 1), expected_DN_DX[3*i_pt+1], tol);
+            KRATOS_EXPECT_NEAR(DN_DX_container(i_pt, 2), expected_DN_DX[3*i_pt+2], tol);
         }
     }
 

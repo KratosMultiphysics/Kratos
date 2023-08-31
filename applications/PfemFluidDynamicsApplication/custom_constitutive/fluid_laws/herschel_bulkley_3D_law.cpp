@@ -49,7 +49,7 @@ namespace Kratos
 
     ConstitutiveLaw::SizeType HerschelBulkley3DLaw::WorkingSpaceDimension() { return 3; }
 
-    ConstitutiveLaw::SizeType HerschelBulkley3DLaw::GetStrainSize() { return 6; }
+    ConstitutiveLaw::SizeType HerschelBulkley3DLaw::GetStrainSize() const { return 6; }
 
     void HerschelBulkley3DLaw::CalculateMaterialResponseCauchy(Parameters &rValues)
     {
@@ -105,7 +105,7 @@ namespace Kratos
     //*****************************************************************************
 
     int HerschelBulkley3DLaw::Check(const Properties &rMaterialProperties, const GeometryType &rElementGeometry,
-                                    const ProcessInfo &rCurrentProcessInfo)
+                                    const ProcessInfo &rCurrentProcessInfo) const
     {
 
         KRATOS_ERROR_IF(rMaterialProperties[DYNAMIC_VISCOSITY] < 0.0)

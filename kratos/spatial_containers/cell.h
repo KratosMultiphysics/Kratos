@@ -4,17 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Nelson Lafontaine
 //
 
-
-#if !defined(KRATOS_CELL_H_INCLUDED)
-#define  KRATOS_CELL_H_INCLUDED
-
-
+#pragma once
 
 // System includes
 #include <string>
@@ -22,8 +18,9 @@
 #include <cmath>
 #include <algorithm>
 
+// External includes
 
-
+// Project includes
 
 namespace Kratos
 {
@@ -54,7 +51,6 @@ public:
     ///@name Type Definitions
     ///@{
 
-
     /// configure types
     typedef std::size_t  SizeType;
     typedef typename TConfigure::PointType               PointType;
@@ -63,16 +59,10 @@ public:
     typedef typename TConfigure::IteratorType            IteratorType;
     typedef typename TConfigure::ResultContainerType     ResultContainerType;
     typedef typename TConfigure::ResultIteratorType      ResultIteratorType;
-    typedef typename TConfigure::DistanceIteratorType	   DistanceIteratorType;
-
-    ///configure Contact Pair
-    typedef typename TConfigure::ContainerContactType  ContainerContactType;
-    typedef typename TConfigure::ContactPairType       ContactPairType;
-    typedef typename TConfigure::IteratorContactType   IteratorContactType;
+    typedef typename TConfigure::DistanceIteratorType	 DistanceIteratorType;
 
     typedef std::vector<PointerType>     LocalContainerType;
     typedef typename LocalContainerType::iterator LocalIteratorType;
-
 
     /// Pointer definition of Cell
     KRATOS_CLASS_POINTER_DEFINITION(Cell);
@@ -133,9 +123,6 @@ public:
     {
     }
 
-//************************************************************************
-//************************************************************************
-
     void SearchObjects(PointerType& rThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
     {
         for(LocalIteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++)
@@ -153,9 +140,6 @@ public:
         }
     }
 
-//************************************************************************
-//************************************************************************
-
     void SearchObjects(PointerType& rThisObject, ResultContainerType& Result)
     {
         for(LocalIteratorType i_object = Begin() ; i_object != End(); i_object++)
@@ -170,9 +154,6 @@ public:
             }
         }
     }
-
-//************************************************************************
-//************************************************************************
 
     void SearchObjectsExclusive(PointerType& rThisObject, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
     {
@@ -194,9 +175,6 @@ public:
         }
     }
 
-//************************************************************************
-//************************************************************************
-
     void SearchObjectsExclusive(PointerType& rThisObject, ResultContainerType& Result)
     {
         for(LocalIteratorType i_object = Begin() ; i_object != End(); i_object++)
@@ -214,9 +192,6 @@ public:
             }
         }
     }
-    
-//************************************************************************
-//************************************************************************
 
     void SearchObjectsInRadius(PointerType& rThisObject, double const& Radius, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
     {
@@ -234,9 +209,6 @@ public:
             }
         }
     }
-    
-//************************************************************************
-//************************************************************************
 
     void SearchObjectsInRadiusExclusive(PointerType& rThisObject, double const& Radius, ResultIteratorType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
     {
@@ -258,9 +230,6 @@ public:
         }
     }
 
-//************************************************************************
-//************************************************************************
-
     void SearchObjectsInRadius(PointerType& rThisObject, double const& Radius, ResultIteratorType& Result, DistanceIteratorType& Distances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
     {
         for(LocalIteratorType i_object = Begin() ; i_object != End()  && NumberOfResults < MaxNumberOfResults ; i_object++)
@@ -281,9 +250,6 @@ public:
             }
         }
     }
-    
-//************************************************************************
-//************************************************************************
 
     void SearchObjectsInRadiusExclusive(PointerType& rThisObject, double const& Radius, ResultIteratorType& Result, DistanceIteratorType& Distances, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults)
     {
@@ -308,59 +274,6 @@ public:
             }
         }
     }
-
-//************************************************************************
-//************************************************************************
-
-
-    void SearchContact(ContainerContactType& Result)
-    {
-        ContactPairType Pair;
-        for(LocalIteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
-        {
-            Pair[0] = *i_object_1;
-            for(LocalIteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End(); i_object_2++ )
-            {
-                if(TConfigure::Intersection(*i_object_1, *i_object_2))
-                {
-                    Pair[1] = *i_object_2;
-                    IteratorContactType repeated_par_1 = std::find(Result.begin(), Result.end(), Pair);
-                    if(repeated_par_1==Result.end())
-                        Result.push_back(Pair);
-                }
-            }
-        }
-    }
-
-
-//************************************************************************
-//************************************************************************
-
-    void SearchContact(IteratorContactType& Result, SizeType& NumberOfResults, const SizeType& MaxNumberOfResults )
-    {
-        ContactPairType Pair;
-        for(LocalIteratorType i_object_1 = Begin(); i_object_1 != End(); i_object_1 ++)
-        {
-            Pair[0] = *i_object_1;
-            for(LocalIteratorType i_object_2 = i_object_1 + 1 ; i_object_2!= End() && NumberOfResults < MaxNumberOfResults ; i_object_2++ )
-            {
-                Pair[1] = *i_object_2;
-                if(TConfigure::Intersection(*i_object_1, *i_object_2))
-                {
-                    IteratorContactType repeated_par_1 = std::find(Result-NumberOfResults, Result, Pair);
-                    if(repeated_par_1==Result)
-                    {
-                        *Result =  Pair;
-                        NumberOfResults++;
-                        Result++;
-                    }
-                }
-            }
-        }
-    }
-
-//************************************************************************
-//************************************************************************
 
     LocalIteratorType Begin()
     {
@@ -397,30 +310,21 @@ public:
         return mObjects[Index];
     }
 
-
-
-
     ///@}
     ///@name Operators
     ///@{
-
-
 
     ///@}
     ///@name Operations
     ///@{
 
-
-
     ///@}
     ///@name Access
     ///@{
 
-
     ///@}
     ///@name Inquiry
     ///@{
-
 
     ///@}
     ///@name Input and output
@@ -444,63 +348,47 @@ public:
         return;
     }
 
-
-
-
-
     ///@}
     ///@name Friends
     ///@{
 
-
     ///@}
-
 protected:
     ///@name Protected static Member Variables
     ///@{
-
 
     ///@}
     ///@name Protected member Variables
     ///@{
 
-
     ///@}
     ///@name Protected Operators
     ///@{
-
 
     ///@}
     ///@name Protected Operations
     ///@{
 
-
     ///@}
     ///@name Protected  Access
     ///@{
-
 
     ///@}
     ///@name Protected Inquiry
     ///@{
 
-
     ///@}
     ///@name Protected LifeCycle
     ///@{
 
-
     ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
 
-
     ///@}
     ///@name Member Variables
     ///@{
-
 
     std::vector<PointerType> mObjects;
 
@@ -508,26 +396,21 @@ private:
     ///@name Private Operators
     ///@{
 
-
     ///@}
     ///@name Private Operations
     ///@{
-
 
     ///@}
     ///@name Private  Access
     ///@{
 
-
     ///@}
     ///@name Private Inquiry
     ///@{
 
-
     ///@}
     ///@name Un accessible methods
     ///@{
-
 
     ///@}
 
@@ -567,7 +450,5 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FILENAME_H_INCLUDED  defined 
 
 

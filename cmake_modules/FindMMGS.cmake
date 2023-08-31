@@ -34,13 +34,12 @@
 #  MMGS_LIBRARIES       - mmg component libraries to be linked
 #
 # The user can give specific paths where to find the libraries adding cmake
-# options at configure (ex: cmake path/to/project -DMMG_DIR=path/to/mmg):
-#  MMG_DIR                   - Where to find the base directory of mmg
-#  MMG_INCDIR                - Where to find the header files
-#  MMG_LIBDIR                - Where to find the library files
-#  MMG_BUILDDIR              - Where to find the build directory of Mmg
+# options at configure (ex: cmake path/to/project -DMMG_DIR=path/to/mmg/install):
+#  MMG_DIR                  - Where to find the base directory of mmg
+#  MMG_INCDIR               - Path toward Mmg installation (should at least contains mmg/common filder)
+#  MMG_LIBDIR               - Where to find the library files
 # The module can also look for the following environment variables if paths
-# are not given as cmake variable: MMG_DIR, MMG_INCDIR, MMG_LIBDIR, MMG_BUILDDIR
+# are not given as cmake variable: MMG_DIR, MMG_INCDIR, MMG_LIBDIR
 
 if (NOT MMGS_FOUND)
   set(MMG_DIR "" CACHE PATH "Installation directory of MMG library")
@@ -48,25 +47,6 @@ if (NOT MMGS_FOUND)
     message(STATUS "A cache variable, namely MMG_DIR, has been set to specify the install directory of MMG")
   endif()
 endif()
-
-# Looking for the Mmg build directory
-# -----------------------------------
-set(ENV_MMG_BUILDDIR "$ENV{MMG_BUILDDIR}")
-
-if ( NOT MMG_BUILDDIR )
-  FIND_PATH(MMG_BUILDDIR_INTERNAL
-    NAMES src/common/mmgcmakedefines.h
-    HINTS ${ENV_MMG_BUILDDIR} ${MMG_DIR} ${ENV_MMG_DIR}
-    PATH_SUFFIXES build Build BUILD builds Builds BUILDS
-    DOC "The mmg build directory"
-    )
-else ()
-  set(MMG_BUILDDIR_INTERNAL "${MMG_BUILDDIR}")
-endif()
-
-if ( NOT MMG_BUILDDIR AND MMG_BUILDDIR_INTERNAL )
-   SET ( MMG_BUILDDIR "${MMG_BUILDDIR_INTERNAL}" )
-endif ( )
 
 # Looking for include
 # -------------------
@@ -79,22 +59,10 @@ set(ENV_MMG_INCDIR "$ENV{MMG_INCDIR}")
 
 if(ENV_MMG_INCDIR)
   list(APPEND _inc_env "${ENV_MMG_INCDIR}")
-elseif(ENV_MMG_BUILDDIR)
-  list(APPEND _inc_env "${ENV_MMG_BUILDDIR}/include")
-  list(APPEND _inc_env "${ENV_MMG_BUILDDIR}/include/mmg")
 elseif(ENV_MMG_DIR)
-  if ( MMG_BUILDDIR )
-    list(APPEND _inc_env "${MMG_BUILDDIR}/include")
-    list(APPEND _inc_env "${MMG_BUILDDIR}/include/mmg")
-  else ( )
-    list(APPEND _inc_env "${ENV_MMG_DIR}")
-    list(APPEND _inc_env "${ENV_MMG_DIR}/include")
-    list(APPEND _inc_env "${ENV_MMG_DIR}/include/mmg")
-    if ( MMG_BUILDDIR_INTERNAL )
-      list(APPEND _inc_env "${MMG_BUILDDIR_INTERNAL}/include")
-      list(APPEND _inc_env "${MMG_BUILDDIR_INTERNAL}/include/mmg")
-    endif()
-  endif()
+  list(APPEND _inc_env "${ENV_MMG_DIR}")
+  list(APPEND _inc_env "${ENV_MMG_DIR}/include")
+  list(APPEND _inc_env "${ENV_MMG_DIR}/include/mmg")
 else()
   if(WIN32)
     string(REPLACE ":" ";" _inc_env "$ENV{INCLUDE}")
@@ -122,38 +90,23 @@ if(MMG_INCDIR)
   find_path(MMGS_libmmgtypes.h_DIRS
     NAMES libmmgtypes.h
     HINTS ${MMG_INCDIR}
-    PATH_SUFFIXES "mmgs")
-elseif(MMG_BUILDDIR)
-  set(MMGS_libmmgtypes.h_DIRS "MMGS_libmmgtypes.h_DIRS-NOTFOUND")
-  find_path(MMGS_libmmgtypes.h_DIRS
-    NAMES libmmgtypes.h
-    HINTS ${MMG_BUILDDIR}
-    PATH_SUFFIXES "include" "include/mmg" "include/mmg/mmgs")
+    PATH_SUFFIXES "mmg/mmgs" "mmgs" "mmg/common")
 else()
   if(MMG_DIR)
     set(MMGS_libmmgtypes.h_DIRS "MMGS_libmmgtypes.h_DIRS-NOTFOUND")
-    if ( MMG_BUILDDIR )
-      find_path(MMGS_libmmgtypes.h_DIRS
-        NAMES */libmmgtypes.h
-        HINTS ${MMG_BUILDDIR}
-        PATH_SUFFIXES "include" "include/mmg" "include/mmg/mmgs")
-    else()
-      find_path(MMGS_libmmgtypes.h_DIRS
-        NAMES libmmgtypes.h
-        HINTS ${MMG_DIR} ${MMG_BUILDDIR_INTERNAL}
-        PATH_SUFFIXES "include" "include/mmg" "include/mmg/mmgs")
-    endif()
-
+    find_path(MMGS_libmmgtypes.h_DIRS
+      NAMES libmmgtypes.h
+      HINTS ${MMG_DIR}/include
+      PATH_SUFFIXES "mmg" "mmg/common")
   else()
     set(MMGS_libmmgtypes.h_DIRS "MMGS_libmmgtypes.h_DIRS-NOTFOUND")
     find_path(MMGS_libmmgtypes.h_DIRS
       NAMES libmmgtypes.h
       HINTS ${_inc_env}
-      PATH_SUFFIXES "include/mmg" "include/mmg/mmgs")
+      PATH_SUFFIXES  "mmg" "mmg/common")
   endif()
 endif()
-STRING(REGEX REPLACE "(mmg/mmgs)" ""
-  MMGS_libmmgtypes.h_DIRS ${MMGS_libmmgtypes.h_DIRS} )
+STRING(REGEX REPLACE "(mmg/mmgs)|(mmg/common)" "" MMGS_libmmgtypes.h_DIRS "${MMGS_libmmgtypes.h_DIRS}" )
 
 mark_as_advanced(MMGS_libmmgtypes.h_DIRS)
 
@@ -179,19 +132,9 @@ unset(_lib_env)
 set(ENV_MMG_LIBDIR "$ENV{MMG_LIBDIR}")
 if(ENV_MMG_LIBDIR)
   list(APPEND _lib_env "${ENV_MMG_LIBDIR}")
-elseif(ENV_MMG_BUILDDIR)
-  list(APPEND _lib_env "${ENV_MMG_BUILDDIR}")
-  list(APPEND _lib_env "${ENV_MMG_BUILDDIR}/lib")
 elseif(ENV_MMG_DIR)
-  if ( MMG_BUILDDIR )
-    list(APPEND _lib_env "${MMG_BUILDDIR}/lib")
-  else ( )
-    list(APPEND _lib_env "${ENV_MMG_DIR}")
-    list(APPEND _lib_env "${ENV_MMG_DIR}/lib")
-    if ( MMG_BUILDDIR_INTERNAL )
-      list(APPEND _lib_env "${MMG_BUILDDIR_INTERNAL}/lib")
-    endif()
-  endif()
+  list(APPEND _lib_env "${ENV_MMG_DIR}")
+  list(APPEND _lib_env "${ENV_MMG_DIR}/lib")
 else()
   if(WIN32)
     string(REPLACE ":" ";" _lib_env "$ENV{LIB}")
@@ -219,17 +162,10 @@ else()
   if(MMG_DIR)
     set(MMGS_mmgs_LIBRARY "MMGS_mmgs_LIBRARY-NOTFOUND")
 
-    if ( MMG_BUILDDIR )
-      find_library(MMGS_mmgs_LIBRARY
-        NAMES mmgs
-        HINTS ${MMG_BUILDDIR}
-        PATH_SUFFIXES lib lib32 lib64)
-    else ()
-      find_library(MMGS_mmgs_LIBRARY
-        NAMES mmgs
-        HINTS ${MMG_DIR} ${MMG_BUILDDIR_INTERNAL}
-        PATH_SUFFIXES lib lib32 lib64)
-    endif()
+    find_library(MMGS_mmgs_LIBRARY
+      NAMES mmgs
+      HINTS ${MMG_DIR}
+      PATH_SUFFIXES lib lib32 lib64)
   else()
     set(MMGS_mmgs_LIBRARY "MMGS_mmgs_LIBRARY-NOTFOUND")
     find_library(MMGS_mmgs_LIBRARY

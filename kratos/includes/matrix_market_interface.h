@@ -4,26 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //
 
-
-
-
-
-
-
-
-
-
-
-
-#if !defined(KRATOS_MATRIX_MARKET_INTERFACE_H_INCLUDED )
-#define  KRATOS_MATRIX_MARKET_INTERFACE_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <stdio.h>
@@ -110,7 +97,7 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     // Check for supported types of MM file
     if (!(mm_is_coordinate(mm_code) && mm_is_sparse(mm_code)))
     {
-        printf("ReadMatrixMarketMatrix(): unspported MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
+        printf("ReadMatrixMarketMatrix(): unsupported MatrixMarket type, \"%s\".\n",  mm_typecode_to_str(mm_code));
         fclose(f);
         return false;
     }
@@ -588,5 +575,3 @@ template <typename VectorType> inline bool WriteMatrixMarketVector(const char *F
 }
 
 } // namespace Kratos
-
-#endif // KRATOS_MATRIX_MARKET_INTERFACE_H_INCLUDED  defined

@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
@@ -98,7 +98,7 @@ void BaseLoadCondition::EquationIdVector(
     const SizeType number_of_nodes = GetGeometry().size();
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
     const SizeType block_size = this->GetBlockSize();
-    if (rResult.size() != dim * number_of_nodes) {
+    if (rResult.size() != block_size * number_of_nodes) {
         rResult.resize(number_of_nodes * block_size, false);
     }
 
@@ -118,6 +118,12 @@ void BaseLoadCondition::EquationIdVector(
             rResult[index    ] = GetGeometry()[i].GetDof(DISPLACEMENT_X,pos    ).EquationId();
             rResult[index + 1] = GetGeometry()[i].GetDof(DISPLACEMENT_Y,pos + 1).EquationId();
             rResult[index + 2] = GetGeometry()[i].GetDof(DISPLACEMENT_Z,pos + 2).EquationId();
+            if (this->HasRotDof())
+            {
+                rResult[index + 3] = GetGeometry()[i].GetDof(ROTATION_X, pos + 3).EquationId();
+                rResult[index + 4] = GetGeometry()[i].GetDof(ROTATION_Y, pos + 4).EquationId();
+                rResult[index + 5] = GetGeometry()[i].GetDof(ROTATION_Z, pos + 5).EquationId();
+            }
         }
     }
     KRATOS_CATCH("")

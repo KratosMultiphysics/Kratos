@@ -14,7 +14,7 @@
 // Project includes
 #include "containers/model.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "linear_solvers/linear_solver.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
@@ -35,12 +35,12 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(CalculateEmbeddedNodalVariableFromSkinProcessDouble, KratosCoreFastSuite)
     {
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.00, 0.00, 0.00);
+        Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+        Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 1.00, 0.00);
+        Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.00, 1.00, 0.00);
+        Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 1.00, 0.00, 0.00);
 
-        Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+        Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
         Parameters mesher_parameters(R"({
 			"number_of_divisions": 7,
@@ -92,19 +92,19 @@ namespace Testing {
         std::vector<double> expected_values = {0.883925, 1.42073, 1.69546, 2.57927, 3.11607, 3.47553};
         for (std::size_t i_node = 0; i_node < check_nodes_ids.size(); ++i_node) {
             const auto p_node = surface_part.pGetNode(check_nodes_ids[i_node]);
-            KRATOS_CHECK_NEAR(p_node->FastGetSolutionStepValue(TEMPERATURE), expected_values[i_node], 1e-5);
+            KRATOS_EXPECT_NEAR(p_node->FastGetSolutionStepValue(TEMPERATURE), expected_values[i_node], 1e-5);
         }
     }
 
     KRATOS_TEST_CASE_IN_SUITE(CalculateEmbeddedNodalVariableFromSkinProcessArray, KratosCoreFastSuite)
     {
         // Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-        Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-        Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 1.00, 1.00, 0.00);
-        Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 1.00, 0.00, 0.00);
+        Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+        Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 1.00, 0.00);
+        Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 1.00, 1.00, 0.00);
+        Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 1.00, 0.00, 0.00);
 
-        Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+        Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
         Parameters mesher_parameters(R"({
 			"number_of_divisions": 7,
@@ -157,8 +157,8 @@ namespace Testing {
         const std::vector<double> expected_values_y = {0.539057, -0.416819, 0.132631, -0.416819, 0.539057, 1.72279};
         for (std::size_t i_node = 0; i_node < check_nodes_ids.size(); ++i_node) {
             const auto p_node = surface_part.pGetNode(check_nodes_ids[i_node]);
-            KRATOS_CHECK_NEAR(p_node->FastGetSolutionStepValue(DISPLACEMENT_X), expected_values_x[i_node], 1e-5);
-            KRATOS_CHECK_NEAR(p_node->FastGetSolutionStepValue(DISPLACEMENT_Y), expected_values_y[i_node], 1e-5);
+            KRATOS_EXPECT_NEAR(p_node->FastGetSolutionStepValue(DISPLACEMENT_X), expected_values_x[i_node], 1e-5);
+            KRATOS_EXPECT_NEAR(p_node->FastGetSolutionStepValue(DISPLACEMENT_Y), expected_values_y[i_node], 1e-5);
         }
     }
 

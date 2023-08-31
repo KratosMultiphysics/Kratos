@@ -46,7 +46,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_bc_fix",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,true,true],
@@ -58,7 +57,6 @@
             "help"                  : "This process fixes the selected components of a given vector variable",
             "process_name"          : "AssignVectorVariableProcess",
             "Parameters"            : {
-                "mesh_id"         : 0,
                 "model_part_name" : "Structure.DISPLACEMENT_bc_fix_x",
                 "variable_name"   : "DISPLACEMENT",
                 "constrained"     : [true,false,true],
@@ -72,7 +70,6 @@
             "help"                  : "This process sets a scalar variable value over a condition",
             "process_name"          : "ApplyScalarOnConditionsProcess",
             "Parameters"            : {
-                "mesh_id"           : 0,
                 "model_part_name"   : "Structure.LineLoad2D_bc_pressure",
                 "variable_name"     : "LINE_LOAD",
                 "direction"         : [0.0, -1.0, 0.0],
@@ -85,7 +82,6 @@
             "help"                  : "This process sets a scalar variable value over a condition",
             "process_name"          : "ApplyScalarOnConditionsProcess",
             "Parameters"            : {
-                "mesh_id"           : 0,
                 "model_part_name"   : "Structure.LineLoad2D_bc_pressure",
                 "variable_name"     : "LINE_LOAD",
                 "direction"         : [0.0, -1.0, 0.0],
@@ -98,7 +94,6 @@
             "help"                  : "This process sets a scalar variable value over a condition",
             "process_name"          : "ApplyScalarOnConditionsProcess",
             "Parameters"            : {
-                "mesh_id"           : 0,
                 "model_part_name"   : "Structure.LineLoad2D_bc_friction",
                 "variable_name"     : "LINE_LOAD",
                 "direction"         : [1.0, 0.0, 0.0],
@@ -111,7 +106,6 @@
             "help"                  : "This process sets a scalar variable value over a condition",
             "process_name"          : "ApplyScalarOnConditionsProcess",
             "Parameters"            : {
-                "mesh_id"           : 0,
                 "model_part_name"   : "Structure.LineLoad2D_bc_friction",
                 "variable_name"     : "LINE_LOAD",
                 "direction"         : [1.0, 0.0, 0.0],

@@ -12,8 +12,7 @@
 //  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_ISOTROPIC_DAMAGE_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -76,7 +75,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainIsotropicDamage);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -254,17 +253,6 @@ public:
     Vector& GetValue(
         const Variable<Vector> &rThisVariable,
         Vector& rValue
-        ) override;
-
-    /**
-     * @brief Returns the value of a specified variable (matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
         ) override;
 
     /**
@@ -451,4 +439,3 @@ private:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Anna Rehr
 //  Co-author   :    Vicente Mataix Ferrandiz
@@ -72,7 +72,7 @@ public:
     typedef ModelPart::ConditionsContainerType                           ConditionsArrayType;
 
     /// The definition of the node type
-    typedef Node <3>                                                                NodeType;
+    typedef Node                                                                NodeType;
 
     /// Definition of the iterators
     typedef GlobalPointersVector< Element >::iterator                         WeakElementItType;

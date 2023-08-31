@@ -34,12 +34,12 @@ namespace Kratos {
 		{
 			Model current_model;
 
-			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-			Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
-			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-			Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
+			Node::Pointer p_point1(new Node(1, 0.00, 0.00, 0.00));
+			Node::Pointer p_point2(new Node(2, 0.00, 10.00, 0.00));
+			Node::Pointer p_point3(new Node(3, 10.00, 10.00, 0.00));
+			Node::Pointer p_point4(new Node(4, 10.00, 0.00, 0.00));
 
-			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+			Quadrilateral2D4<Node > geometry(p_point1, p_point2, p_point3, p_point4);
 
 			ModelPart& model_part = current_model.CreateModelPart("Test");
 
@@ -75,31 +75,31 @@ namespace Kratos {
 			//KRATOS_WATCH(model_part.NumberOfNodes());
 			//KRATOS_WATCH(model_part.NumberOfElements());
 			//std::size_t number_of_nodes = (number_of_divisions + 1) * (number_of_divisions + 1);
-			//KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), number_of_nodes);
-			//KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
+			//KRATOS_EXPECT_EQ(model_part.NumberOfNodes(), number_of_nodes);
+			//KRATOS_EXPECT_EQ(model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
 
 			double total_area = 0.00;
 			for (auto i_element = model_part.ElementsBegin(); i_element != model_part.ElementsEnd(); i_element++) {
 				double element_area = i_element->GetGeometry().Area();
-				KRATOS_CHECK_GREATER(element_area, 1.00/number_of_divisions) << " for element #" << i_element->Id() << " with nodes ["
+				KRATOS_EXPECT_GT(element_area, 1.00/number_of_divisions) << " for element #" << i_element->Id() << " with nodes ["
 					<< i_element->GetGeometry()[0].Id()
 					<< "," << i_element->GetGeometry()[1].Id()
 					<< "," << i_element->GetGeometry()[2].Id() << "] with area : " << element_area << std::endl << *i_element;
 				total_area += element_area;
 			}
-			KRATOS_CHECK_NEAR(total_area, 100., 1e-6) << " : " << total_area << " != 100" << std::endl;
+			KRATOS_EXPECT_NEAR(total_area, 100., 1e-6) << " : " << total_area << " != 100" << std::endl;
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(PerturbedStructured2DMeshCoarseningProcess, KratosCoreFastSuite)
 		{
 			Model current_model;
 
-			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-			Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
-			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-			Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
+			Node::Pointer p_point1(new Node(1, 0.00, 0.00, 0.00));
+			Node::Pointer p_point2(new Node(2, 0.00, 10.00, 0.00));
+			Node::Pointer p_point3(new Node(3, 10.00, 10.00, 0.00));
+			Node::Pointer p_point4(new Node(4, 10.00, 0.00, 0.00));
 
-			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+			Quadrilateral2D4<Node > geometry(p_point1, p_point2, p_point3, p_point4);
 
 			ModelPart& model_part = current_model.CreateModelPart("Test");
 
@@ -139,31 +139,31 @@ namespace Kratos {
 
 
 			//std::size_t number_of_nodes = (number_of_divisions + 1) * (number_of_divisions + 1);
-			//KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), number_of_nodes);
-			//KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
+			//KRATOS_EXPECT_EQ(model_part.NumberOfNodes(), number_of_nodes);
+			//KRATOS_EXPECT_EQ(model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
 
 			double total_area = 0.00;
 			for (auto i_element = model_part.ElementsBegin(); i_element != model_part.ElementsEnd(); i_element++) {
 				double element_area = i_element->GetGeometry().Area();
-				KRATOS_CHECK_GREATER(element_area, 1.00 / number_of_divisions) << " for element #" << i_element->Id() << " with nodes ["
+				KRATOS_EXPECT_GT(element_area, 1.00 / number_of_divisions) << " for element #" << i_element->Id() << " with nodes ["
 					<< i_element->GetGeometry()[0].Id()
 					<< "," << i_element->GetGeometry()[1].Id()
 					<< "," << i_element->GetGeometry()[2].Id() << "] with area : " << element_area << std::endl << *i_element;
 				total_area += element_area;
 			}
-			KRATOS_CHECK_NEAR(total_area, original_mesh_area, 1e-6);
+			KRATOS_EXPECT_NEAR(total_area, original_mesh_area, 1e-6);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(RedistributedStructured2DMeshCoarseningProcess, KratosCoreFastSuite)
 		{
 			Model current_model;
 
-			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-			Node<3>::Pointer p_point2(new Node<3>(2, 0.00, 10.00, 0.00));
-			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-			Node<3>::Pointer p_point4(new Node<3>(4, 10.00, 0.00, 0.00));
+			Node::Pointer p_point1(new Node(1, 0.00, 0.00, 0.00));
+			Node::Pointer p_point2(new Node(2, 0.00, 10.00, 0.00));
+			Node::Pointer p_point3(new Node(3, 10.00, 10.00, 0.00));
+			Node::Pointer p_point4(new Node(4, 10.00, 0.00, 0.00));
 
-			Quadrilateral2D4<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4);
+			Quadrilateral2D4<Node > geometry(p_point1, p_point2, p_point3, p_point4);
 
 			ModelPart& model_part = current_model.CreateModelPart("Test");
 
@@ -208,35 +208,35 @@ namespace Kratos {
 
 
 			//std::size_t number_of_nodes = (number_of_divisions + 1) * (number_of_divisions + 1);
-			//KRATOS_CHECK_EQUAL(model_part.NumberOfNodes(), number_of_nodes);
-			//KRATOS_CHECK_EQUAL(model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
+			//KRATOS_EXPECT_EQ(model_part.NumberOfNodes(), number_of_nodes);
+			//KRATOS_EXPECT_EQ(model_part.NumberOfElements(), number_of_divisions * number_of_divisions * 2);
 
 			double total_area = 0.00;
 			for (auto i_element = model_part.ElementsBegin(); i_element != model_part.ElementsEnd(); i_element++) {
 				double element_area = i_element->GetGeometry().Area();
-				KRATOS_CHECK_GREATER(element_area, 0.01 / number_of_divisions) << " for element #" << i_element->Id() << " with nodes ["
+				KRATOS_EXPECT_GT(element_area, 0.01 / number_of_divisions) << " for element #" << i_element->Id() << " with nodes ["
 					<< i_element->GetGeometry()[0].Id()
 					<< "," << i_element->GetGeometry()[1].Id()
 					<< "," << i_element->GetGeometry()[2].Id() << "] with area : " << element_area << std::endl << *i_element;
 				total_area += element_area;
 			}
-			KRATOS_CHECK_NEAR(total_area, original_mesh_area, 1e-6);
+			KRATOS_EXPECT_NEAR(total_area, original_mesh_area, 1e-6);
 		}
 
 		KRATOS_TEST_CASE_IN_SUITE(Structured3DMeshCoarseningProcess, KratosCoreFastSuite)
 		{
 			Model current_model;
 
-			Node<3>::Pointer p_point1(new Node<3>(1, 0.00, 0.00, 0.00));
-			Node<3>::Pointer p_point2(new Node<3>(2, 10.00, 0.00, 0.00));
-			Node<3>::Pointer p_point3(new Node<3>(3, 10.00, 10.00, 0.00));
-			Node<3>::Pointer p_point4(new Node<3>(4, 0.00, 10.00, 0.00));
-			Node<3>::Pointer p_point5(new Node<3>(5, 0.00, 0.00, 10.00));
-			Node<3>::Pointer p_point6(new Node<3>(6, 10.00, 0.00, 10.00));
-			Node<3>::Pointer p_point7(new Node<3>(7, 10.00, 10.00, 10.00));
-			Node<3>::Pointer p_point8(new Node<3>(8, 0.00, 10.00, 10.00));
+			Node::Pointer p_point1(new Node(1, 0.00, 0.00, 0.00));
+			Node::Pointer p_point2(new Node(2, 10.00, 0.00, 0.00));
+			Node::Pointer p_point3(new Node(3, 10.00, 10.00, 0.00));
+			Node::Pointer p_point4(new Node(4, 0.00, 10.00, 0.00));
+			Node::Pointer p_point5(new Node(5, 0.00, 0.00, 10.00));
+			Node::Pointer p_point6(new Node(6, 10.00, 0.00, 10.00));
+			Node::Pointer p_point7(new Node(7, 10.00, 10.00, 10.00));
+			Node::Pointer p_point8(new Node(8, 0.00, 10.00, 10.00));
 
-			Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+			Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
 			ModelPart& model_part = current_model.CreateModelPart("Test");
 
@@ -271,8 +271,8 @@ namespace Kratos {
 
 			//KRATOS_WATCH(model_part.NumberOfNodes());
 			//KRATOS_WATCH(model_part.NumberOfElements());
-			KRATOS_CHECK_NOT_EQUAL(model_part.NumberOfNodes(), 0);
-			KRATOS_CHECK_NOT_EQUAL(model_part.NumberOfElements(), 0);
+			KRATOS_EXPECT_NE(model_part.NumberOfNodes(), 0);
+			KRATOS_EXPECT_NE(model_part.NumberOfElements(), 0);
 
 
 			const double cube_volume = 1000.;
@@ -280,13 +280,13 @@ namespace Kratos {
 			double total_volume = 0.00;
 			for (auto i_element = model_part.ElementsBegin(); i_element != model_part.ElementsEnd(); i_element++) {
 				double element_volume = i_element->GetGeometry().Volume();
-				KRATOS_CHECK_GREATER(element_volume, avarage_element_volume / 1000) << " for element #" << i_element->Id() << " with nodes ["
+				KRATOS_EXPECT_GT(element_volume, avarage_element_volume / 1000) << " for element #" << i_element->Id() << " with nodes ["
 					<< i_element->GetGeometry()[0].Id()
 					<< "," << i_element->GetGeometry()[1].Id()
 					<< "," << i_element->GetGeometry()[2].Id() << "] with volume : " << element_volume << std::endl << *i_element;
 				total_volume += element_volume;
 			}
-			KRATOS_CHECK_NEAR(total_volume, cube_volume, 1.E-6) << "with total_volume = " << total_volume;
+			KRATOS_EXPECT_NEAR(total_volume, cube_volume, 1.E-6) << "with total_volume = " << total_volume;
 		}
 
 	}

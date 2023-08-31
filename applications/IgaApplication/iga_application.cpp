@@ -17,35 +17,35 @@ namespace Kratos {
 KratosIgaApplication::KratosIgaApplication()
     : KratosApplication("IgaApplication")
     , mTrussElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mTrussEmbeddedEdgeElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mIgaMembraneElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell3pElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pHierarchicElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mShell5pElement(0, Element::GeometryType::Pointer(
-        new Geometry<Node<3>>(Element::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Element::GeometryType::PointsArrayType(1))))
     , mOutputCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mLoadMomentDirector5pCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingPenaltyCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingLagrangeCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mCouplingNitscheCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportPenaltyCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportLagrangeCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
     , mSupportNitscheCondition(0, Condition::GeometryType::Pointer(
-        new Geometry<Node<3>>(Condition::GeometryType::PointsArrayType(1))))
+        new Geometry<Node>(Condition::GeometryType::PointsArrayType(1))))
 {
 }
 

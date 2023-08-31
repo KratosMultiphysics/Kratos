@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
@@ -110,7 +110,7 @@ void ConductShellDampingMatrixTest(std::string const& rElementName, const Matrix
     //     }
     // }
 
-    KRATOS_CHECK_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
 
     KRATOS_CATCH("ConductShellDampingMatrixTest");
 }
@@ -142,7 +142,7 @@ void ConductShellMassMatrixTest(std::string const& rElementName, const Matrix& r
     //     }
     // }
 
-    KRATOS_CHECK_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
 
     KRATOS_CATCH("ConductShellMassMatrixTest");
 }

@@ -3,15 +3,14 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED )
-#define  KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -444,5 +443,3 @@ private:
 ///@{
 
 } // namespace Kratos.
-
-#endif // KRATOS_BASE_LOAD_CONDITION_3D_H_INCLUDED  defined

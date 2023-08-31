@@ -114,7 +114,7 @@ public:
 
     typedef PointerVectorSet<DofType> DofsArrayType;
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Properties PropertiesType;
     typedef Element ElementType;
@@ -232,7 +232,7 @@ public:
 
     /// The Geometry Container.
     /**
-    * Contains all geometries, which can be adressed by specific identifiers.
+    * Contains all geometries, which can be addressed by specific identifiers.
     */
     typedef GeometryContainer<GeometryType> GeometryContainerType;
 
@@ -792,6 +792,19 @@ public:
      */
     void RemoveMasterSlaveConstraintsFromAllLevels(Flags IdentifierFlag = TO_ERASE);
 
+    /**
+     * @brief Returns if the MasterSlaveConstraint corresponding to it's identifier exists
+     * @param MasterSlaveConstraintId The ID of master-slave constraint
+     * @param ThisIndex The mesh index
+     */
+    bool HasMasterSlaveConstraint(
+        const IndexType MasterSlaveConstraintId,
+        IndexType ThisIndex = 0
+        ) const
+    {
+        return GetMesh(ThisIndex).HasMasterSlaveConstraint(MasterSlaveConstraintId);
+    }
+
     /** Returns the MasterSlaveConstraint::Pointer  corresponding to it's identifier */
     MasterSlaveConstraintType::Pointer pGetMasterSlaveConstraint(IndexType ConstraintId, IndexType ThisIndex = 0);
 
@@ -1078,7 +1091,7 @@ public:
 
     /// Creates new element with a nodes list.
     ElementType::Pointer CreateNewElement(std::string ElementName,
-        IndexType Id, Geometry< Node < 3 > >::PointsArrayType pElementNodes,
+        IndexType Id, Geometry< Node >::PointsArrayType pElementNodes,
         PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
     /// Creates new element with pointer to geometry.
@@ -1270,10 +1283,10 @@ public:
 
     /// Creates new condition with a nodes list.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
-            IndexType Id, Geometry< Node < 3 > >::PointsArrayType pConditionNodes,
+            IndexType Id, Geometry< Node >::PointsArrayType pConditionNodes,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
 
-    /// Creates new condtion with pointer to geometry.
+    /// Creates new condition with pointer to geometry.
     ConditionType::Pointer CreateNewCondition(std::string ConditionName,
             IndexType Id, typename GeometryType::Pointer pGeometry,
             PropertiesType::Pointer pProperties, IndexType ThisIndex = 0);
@@ -1633,13 +1646,13 @@ public:
     }
 
 
-    /// Get geometry map containe
+    /// Get geometry map container
     GeometriesMapType& Geometries()
     {
         return mGeometries.Geometries();
     }
 
-    /// Get geometry map containe
+    /// Get geometry map container
     const GeometriesMapType& Geometries() const
     {
         return mGeometries.Geometries();
@@ -1660,12 +1673,17 @@ public:
     ModelPart& CreateSubModelPart(std::string const& NewSubModelPartName);
 
     /** Returns a reference to the sub_model part with given string name
-    	In debug gives an error if does not exist.
+    	Throws if it does not exist.
     */
     ModelPart& GetSubModelPart(std::string const& SubModelPartName);
 
-    /** Returns a shared pointer to the sub_model part with given string name
-    	In debug gives an error if does not exist.
+    /** Returns a reference to the sub_model part with given string name
+    	Throws if it does not exist.
+    */
+    const ModelPart& GetSubModelPart(std::string const& SubModelPartName) const;
+
+    /** Returns a raw pointer to the sub_model part with given string name
+    	Throws if it does not exist.
     */
     ModelPart* pGetSubModelPart(std::string const& SubModelPartName);
 
@@ -1839,10 +1857,10 @@ public:
     }
 
     /**
-     * @brief This method returns the name list of submodelparts
-     * @return A vector conrtaining the list of submodelparts contained
+     * @brief This method returns the names of submodelparts
+     * @return A vector containing the list of submodelparts names
      */
-    std::vector<std::string> GetSubModelPartNames();
+    std::vector<std::string> GetSubModelPartNames() const;
 
     /**
      * @brief This method sets the suffer size of the model part database
@@ -2004,6 +2022,12 @@ private:
         //	if(Options->Is())
         //}
     }
+
+    /**
+     * @brief This method issues a proper error message if a SubModelPart does not exist
+     * @param rSubModelPartName Name of the SubModelPart that does not exits
+     */
+    [[ noreturn ]] void ErrorNonExistingSubModelPart(const std::string& rSubModelPartName) const;
 
     ///@}
     ///@name Serialization

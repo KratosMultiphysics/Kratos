@@ -52,9 +52,9 @@ namespace Kratos {
         const double equiv_poisson   = 2.0 * my_poisson * other_poisson / (my_poisson + other_poisson);
 
         //Get equivalent Shear Modulus
-        const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
-        const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
-        const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
+        //const double my_shear_modulus = 0.5 * my_young / (1.0 + my_poisson);
+        //const double other_shear_modulus = 0.5 * other_young / (1.0 + other_poisson);
+        //const double equiv_shear = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - other_poisson)/other_shear_modulus);
 
         //Normal and Tangent stiffness
         Properties& properties_of_this_contact = element1->GetProperties().GetSubProperties(element2->GetProperties().Id());
@@ -68,7 +68,7 @@ namespace Kratos {
 
         // mKn for conical contact is from Sneddon, I. N., 1965, [The Relation between Load and Penetration in the Axisymmetric Boussinesq Problem for a Punch of Arbitrary Profile]
         mKn = 4.0 * equiv_young * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha * Globals::Pi / 180.0));
-        mKt = 4.0 * equiv_shear * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha * Globals::Pi / 180.0));
+        mKt = mKn / (2.0 * (equiv_poisson + 1.0));
     }
 
     double DEM_D_Quadratic::CalculateNormalForce(const double indentation) {
@@ -87,15 +87,15 @@ namespace Kratos {
         const double equiv_poisson       = 2.0 * my_poisson * walls_poisson / (my_poisson + walls_poisson);
 
         //Get equivalent Shear Modulus
-        const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
-        const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
-        const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
+        //const double my_shear_modulus    = 0.5 * my_young / (1.0 + my_poisson);
+        //const double walls_shear_modulus = 0.5 * walls_young / (1.0 + walls_poisson);
+        //const double equiv_shear         = 1.0 / ((2.0 - my_poisson)/my_shear_modulus + (2.0 - walls_poisson)/walls_shear_modulus);
 
         Properties& properties_of_this_contact = element->GetProperties().GetSubProperties(wall->GetProperties().Id());
         const double k_alpha = properties_of_this_contact[K_ALPHA];
  
         mKn = 4.0 * equiv_young * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha * Globals::Pi / 180.0));
-        mKt = 4.0 * equiv_shear * indentation / (Globals::Pi * (1 - equiv_poisson * equiv_poisson) * tan(k_alpha * Globals::Pi / 180.0));
+        mKt = mKn / (2.0 * (equiv_poisson + 1.0));
     }
 
 } //namespace Kratos

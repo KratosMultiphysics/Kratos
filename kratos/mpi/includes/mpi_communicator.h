@@ -168,13 +168,13 @@ template<> struct SendTraits< Kratos::VariablesListDataValueContainer >
     }
 };
 
-template<> struct SendTraits< Node<3>::DofsContainerType >
+template<> struct SendTraits< Node::DofsContainerType >
 {
     using SendType = int;
     using BufferType = std::vector<SendType>;
     constexpr static bool IsFixedSize = false;
 
-    static inline std::size_t GetMessageSize(const Node<3>::DofsContainerType& rValue)
+    static inline std::size_t GetMessageSize(const Node::DofsContainerType& rValue)
     {
         return rValue.size();
     }
@@ -294,11 +294,11 @@ template<> struct SendTools< Kratos::VariablesListDataValueContainer >
     }
 };
 
-template<> struct SendTools< Node<3>::DofsContainerType >
+template<> struct SendTools< Node::DofsContainerType >
 {
-    using SendType = SendTraits< Node<3>::DofsContainerType >::SendType;
+    using SendType = SendTraits< Node::DofsContainerType >::SendType;
 
-    static inline void WriteBuffer(const Node<3>::DofsContainerType& rValue, SendType* pBuffer)
+    static inline void WriteBuffer(const Node::DofsContainerType& rValue, SendType* pBuffer)
     {
         unsigned int i = 0;
         for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
@@ -308,7 +308,7 @@ template<> struct SendTools< Node<3>::DofsContainerType >
         }
     }
 
-    static inline void ReadBuffer(const SendType* pBuffer, Node<3>::DofsContainerType& rValue)
+    static inline void ReadBuffer(const SendType* pBuffer, Node::DofsContainerType& rValue)
     {
         unsigned int i = 0;
         for (auto i_dof = rValue.begin(); i_dof != rValue.end(); ++i_dof)
@@ -498,7 +498,7 @@ class DofIdAccess: public NodalContainerAccess
 {
 public:
 
-    using ValueType = Node<3>::DofsContainerType;
+    using ValueType = Node::DofsContainerType;
     using SendType = typename SendTraits<ValueType>::SendType;
 
     ValueType& GetValue(IteratorType& iter)

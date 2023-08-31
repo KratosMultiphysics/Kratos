@@ -299,7 +299,7 @@ private:
             {
                 ModelPart::ConditionsContainerType::iterator it = it_begin + i;
 
-		Geometry< Node<3> >& rGeometry = it->GetGeometry();
+		Geometry< Node >& rGeometry = it->GetGeometry();
 
 		//Get geometry size
 		unsigned int size  = rGeometry.size();
@@ -352,7 +352,7 @@ private:
 	    for(int i = 0; i<nconditions; i++)
 	    {
 		ModelPart::ConditionsContainerType::iterator it = it_begin + i;
-		Geometry< Node<3> >& rGeometry = it->GetGeometry();
+		Geometry< Node >& rGeometry = it->GetGeometry();
 		const unsigned int dimension = rGeometry.WorkingSpaceDimension();
 		double domain_size = 0.0;
 		if(dimension==3)

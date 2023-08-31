@@ -16,6 +16,8 @@
 
 // Project includes
 #include "includes/model_part.h"
+#include "geometries/triangle_2d_3.h"
+#include "geometries/tetrahedra_3d_4.h"
 #include "utilities/cpp_tests_utilities.h"
 
 namespace Kratos
@@ -69,8 +71,51 @@ void Create2DGeometry(
 /***********************************************************************************/
 /***********************************************************************************/
 
+void CreateTestModelPartTriangle2D3N(ModelPart& rModelPart)
+{
+    Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
+
+    using NodeType = Node;
+
+    // Clear the model part
+    rModelPart.Clear();
+
+    // First we create the nodes
+    auto p_node_1 = rModelPart.CreateNewNode(1, 0.0 , 0.0 , 0.0);
+    auto p_node_2 = rModelPart.CreateNewNode(2, 1.0 , 0.0 , 0.0);
+    auto p_node_3 = rModelPart.CreateNewNode(3, 1.0 , 1.0 , 0.0);
+    auto p_node_4 = rModelPart.CreateNewNode(4, 0.0 , 1.0 , 0.0);
+    auto p_node_5 = rModelPart.CreateNewNode(5, 2.0 , 0.0 , 0.0);
+    auto p_node_6 = rModelPart.CreateNewNode(6, 2.0 , 1.0 , 0.0);
+
+    // Now we create the "elements"
+    std::vector<NodeType::Pointer> element_nodes_0 ({p_node_1, p_node_2, p_node_3});
+    Triangle2D3 <NodeType>::Pointer p_triangle_0 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_0} );
+
+    std::vector<NodeType::Pointer> element_nodes_1 ({p_node_1, p_node_3, p_node_4});
+    Triangle2D3 <NodeType>::Pointer p_triangle_1 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_1} );
+
+    std::vector<NodeType::Pointer> element_nodes_2 ({p_node_2, p_node_5, p_node_3});
+    Triangle2D3 <NodeType>::Pointer p_triangle_2 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_2} );
+
+    std::vector<NodeType::Pointer> element_nodes_3 ({p_node_5, p_node_6, p_node_3});
+    Triangle2D3 <NodeType>::Pointer p_triangle_3 = Kratos::make_shared<Triangle2D3 <NodeType>>( PointerVector<NodeType>{element_nodes_3} );
+
+    auto p_elem_0 = Kratos::make_intrusive<Element>(1, p_triangle_0, p_prop);
+    auto p_elem_1 = Kratos::make_intrusive<Element>(2, p_triangle_1, p_prop);
+    auto p_elem_2 = Kratos::make_intrusive<Element>(3, p_triangle_2, p_prop);
+    auto p_elem_3 = Kratos::make_intrusive<Element>(4, p_triangle_3, p_prop);
+    rModelPart.AddElement(p_elem_0);
+    rModelPart.AddElement(p_elem_1);
+    rModelPart.AddElement(p_elem_2);
+    rModelPart.AddElement(p_elem_3);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void Create2DQuadrilateralsGeometry(
-    ModelPart& rModelPart, 
+    ModelPart& rModelPart,
     const std::string& rEntityName,
     const bool Initialize,
     const bool Elements
@@ -154,6 +199,96 @@ void Create3DGeometry(
         for (auto& r_elem : rModelPart.Elements())
             r_elem.Initialize(r_process_info);
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+void CreateTestModelPartTetrahedra3D4N(ModelPart& rModelPart)
+{
+    Properties::Pointer p_prop = rModelPart.HasProperties(0) ? rModelPart.pGetProperties(0) : rModelPart.CreateNewProperties(0);
+
+    using NodeType = Node;
+
+    // Clear the model part
+    rModelPart.Clear();
+
+    // First we create the nodes
+    auto p_node_1 = rModelPart.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
+    auto p_node_2 = rModelPart.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
+    auto p_node_3 = rModelPart.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
+    auto p_node_4 = rModelPart.CreateNewNode(4 , 1.0 , 1.0 , 1.0);
+    auto p_node_5 = rModelPart.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
+    auto p_node_6 = rModelPart.CreateNewNode(6 , 1.0 , 1.0 , 0.0);
+
+    auto p_node_7 = rModelPart.CreateNewNode(7 , 1.0 , 0.0 , 1.0);
+    auto p_node_8 = rModelPart.CreateNewNode(8 , 1.0 , 0.0 , 0.0);
+    auto p_node_9 = rModelPart.CreateNewNode(9 , 2.0 , 1.0 , 1.0);
+    auto p_node_10 = rModelPart.CreateNewNode(10 , 2.0 , 1.0 , 0.0);
+    auto p_node_11 = rModelPart.CreateNewNode(11 , 2.0 , 0.0 , 1.0);
+    auto p_node_12 = rModelPart.CreateNewNode(12 , 2.0 , 0.0 , 0.0);
+
+    // Now we create the "elements"
+    std::vector<NodeType::Pointer> element_nodes_0 ({p_node_12, p_node_10, p_node_8, p_node_9});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_0 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_0} );
+
+    std::vector<NodeType::Pointer> element_nodes_1 ({p_node_4, p_node_6, p_node_9, p_node_7});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_1 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_1} );
+
+    std::vector<NodeType::Pointer> element_nodes_2 ({p_node_11, p_node_7, p_node_9, p_node_8});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_2 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_2} );
+
+    std::vector<NodeType::Pointer> element_nodes_3 ({p_node_5, p_node_3, p_node_8, p_node_6});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_3 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_3} );
+
+    std::vector<NodeType::Pointer> element_nodes_4 ({p_node_4, p_node_6, p_node_7, p_node_3});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_4 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_4} );
+
+    std::vector<NodeType::Pointer> element_nodes_5 ({p_node_2, p_node_3, p_node_5, p_node_6});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_5 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_5} );
+
+    std::vector<NodeType::Pointer> element_nodes_6 ({p_node_10, p_node_9, p_node_6, p_node_8});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_6 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_6} );
+
+    std::vector<NodeType::Pointer> element_nodes_7 ({p_node_7, p_node_8, p_node_3, p_node_6});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_7 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_7} );
+
+    std::vector<NodeType::Pointer> element_nodes_8 ({p_node_7, p_node_8, p_node_6, p_node_9});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_8 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_8} );
+
+    std::vector<NodeType::Pointer> element_nodes_9 ({p_node_4, p_node_1, p_node_6, p_node_3});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_9 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_9} );
+
+    std::vector<NodeType::Pointer> element_nodes_10 ({p_node_9, p_node_12, p_node_11, p_node_8});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_10 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_10} );
+
+    std::vector<NodeType::Pointer> element_nodes_11 ({p_node_3, p_node_2, p_node_1, p_node_6});
+    Tetrahedra3D4 <NodeType>::Pointer p_tetrahedra_11 = Kratos::make_shared<Tetrahedra3D4 <NodeType>>( PointerVector<NodeType>{element_nodes_11} );
+
+    auto p_elem_0 = Kratos::make_intrusive<Element>(1, p_tetrahedra_0, p_prop);
+    auto p_elem_1 = Kratos::make_intrusive<Element>(2, p_tetrahedra_1, p_prop);
+    auto p_elem_2 = Kratos::make_intrusive<Element>(3, p_tetrahedra_2, p_prop);
+    auto p_elem_3 = Kratos::make_intrusive<Element>(4, p_tetrahedra_3, p_prop);
+    auto p_elem_4 = Kratos::make_intrusive<Element>(5, p_tetrahedra_4, p_prop);
+    auto p_elem_5 = Kratos::make_intrusive<Element>(6, p_tetrahedra_5, p_prop);
+    auto p_elem_6 = Kratos::make_intrusive<Element>(7, p_tetrahedra_6, p_prop);
+    auto p_elem_7 = Kratos::make_intrusive<Element>(8, p_tetrahedra_7, p_prop);
+    auto p_elem_8 = Kratos::make_intrusive<Element>(9, p_tetrahedra_8, p_prop);
+    auto p_elem_9 = Kratos::make_intrusive<Element>(10, p_tetrahedra_9, p_prop);
+    auto p_elem_10 = Kratos::make_intrusive<Element>(11, p_tetrahedra_10, p_prop);
+    auto p_elem_11 = Kratos::make_intrusive<Element>(12, p_tetrahedra_11, p_prop);
+    rModelPart.AddElement(p_elem_0);
+    rModelPart.AddElement(p_elem_1);
+    rModelPart.AddElement(p_elem_2);
+    rModelPart.AddElement(p_elem_3);
+    rModelPart.AddElement(p_elem_4);
+    rModelPart.AddElement(p_elem_5);
+    rModelPart.AddElement(p_elem_6);
+    rModelPart.AddElement(p_elem_7);
+    rModelPart.AddElement(p_elem_8);
+    rModelPart.AddElement(p_elem_9);
+    rModelPart.AddElement(p_elem_10);
+    rModelPart.AddElement(p_elem_11);
 }
 
 /***********************************************************************************/

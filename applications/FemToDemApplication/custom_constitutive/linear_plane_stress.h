@@ -46,7 +46,7 @@ namespace Kratos
  * @details This class derives from the linear elastic case on 3D
  * @author Riccardo Rossi
  */
-class LinearPlaneStressFEMDEM
+class KRATOS_API(FEM_TO_DEM_APPLICATION) LinearPlaneStressFEMDEM
     : public ElasticIsotropic3DFEMDEM
 {
 public:

@@ -110,7 +110,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::CalculateMa
     } else { // We check for plasticity
         // Integrate Stress plasticity
         Vector& r_integrated_stress_vector = rValues.GetStressVector();
-        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+        const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
         //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
         if ( r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
@@ -274,7 +274,7 @@ void GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::FinalizeMat
     ConstitutiveLaw::Parameters& rValues
     )
 {
-    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // We get the strain vector
@@ -456,7 +456,8 @@ Vector& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::GetValue
         return rValue;
     }
     if (rThisVariable == PLASTIC_STRAIN_VECTOR) {
-        rValue = mPlasticStrain;
+        rValue.resize(VoigtSize, false);
+        noalias(rValue) = mPlasticStrain;
         return rValue;
     }
     return BaseType::GetValue(rThisVariable, rValue);
@@ -471,10 +472,11 @@ Matrix& GenericSmallStrainKinematicPlasticity<TConstLawIntegratorType>::GetValue
     Matrix& rValue
     )
 {
+    rValue.resize(Dimension, Dimension, false);
     if (rThisVariable == PLASTIC_STRAIN_TENSOR) {
-        rValue = MathUtils<double>::StrainVectorToTensor(mPlasticStrain);
+        noalias(rValue) = MathUtils<double>::StrainVectorToTensor(mPlasticStrain);
     } else if (rThisVariable == INTEGRATED_STRESS_TENSOR) {
-        rValue = MathUtils<double>::StressVectorToTensor(mPreviousStressVector);
+        noalias(rValue) = MathUtils<double>::StressVectorToTensor(mPreviousStressVector);
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }

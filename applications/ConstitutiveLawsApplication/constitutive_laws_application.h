@@ -12,8 +12,7 @@
 //                   Riccardo Rossi
 //
 
-#if !defined(KRATOS_CONSTITUTIVE_LAWS_APPLICATION_H_INCLUDED )
-#define  KRATOS_CONSTITUTIVE_LAWS_APPLICATION_H_INCLUDED
+#pragma once
 
 
 // System includes
@@ -101,8 +100,14 @@
 
 // Rules of mixtures
 #include "custom_constitutive/composites/rule_of_mixtures_law.h"
+#include "custom_constitutive/composites/traction_separation_law.h"
 
 #include "custom_constitutive/small_strains/plastic_damage/associative_plastic_damage_model.h"
+
+// Thermal CL
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_elastic_isotropic_3d.h"
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_strain.h"
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_stress.h"
 
 namespace Kratos {
 
@@ -553,6 +558,7 @@ private:
 
     // Rules of mixtures
     const ParallelRuleOfMixturesLaw<3> mParallelRuleOfMixturesLaw3D;
+    const TractionSeparationLaw3D<3> mTractionSeparationLaw3D;
 	const ParallelRuleOfMixturesLaw<2> mParallelRuleOfMixturesLaw2D;
 
     // Anisotropic law
@@ -563,6 +569,10 @@ private:
     const AssociativePlasticDamageModel <ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>> mAssociativePlasticDamageModel3DModifiedMohrCoulomb;
     const AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>> mAssociativePlasticDamageModel3DRankine;
 
+    // Thermal CL
+    const ThermalElasticIsotropic3D mThermalElasticIsotropic3D;
+    const ThermalLinearPlaneStrain mThermalLinearPlaneStrain;
+    const ThermalLinearPlaneStress mThermalLinearPlaneStress;
     ///@}
     ///@name Private Operators
     ///@{
@@ -613,5 +623,3 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_CONSTITUTIVE_LAWS_APPLICATION_H_INCLUDED  defined
