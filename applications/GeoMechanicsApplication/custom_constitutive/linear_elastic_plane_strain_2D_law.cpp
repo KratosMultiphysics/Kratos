@@ -23,16 +23,13 @@ namespace Kratos
 
 ConstitutiveLaw::Pointer GeoLinearElasticPlaneStrain2DLaw::Clone() const
 {
-    return Kratos::make_shared<    GeoLinearElasticPlaneStrain2DLaw>(*this);
+    return Kratos::make_shared<GeoLinearElasticPlaneStrain2DLaw>(*this);
 }
 
 bool& GeoLinearElasticPlaneStrain2DLaw::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
     // This Constitutive Law has been checked with Stenberg Stabilization
-    if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE) {
-        rValue = true;
-    }
-
+    if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE) rValue = true;
     return rValue;
 }
 

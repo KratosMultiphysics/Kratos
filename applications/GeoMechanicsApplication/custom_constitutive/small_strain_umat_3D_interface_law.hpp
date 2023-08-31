@@ -60,7 +60,7 @@ namespace Kratos
       /// Static definition of the dimension
       static constexpr SizeType Dimension = N_DIM_3D;
 
-      /// Static definition of the VoigtSize
+      /// Static definition of the Voigt Size
       static constexpr SizeType VoigtSize = VOIGT_SIZE_3D_INTERFACE;
 
       /// Pointer definition of SmallStrainUMAT3DInterfaceLaw
@@ -74,12 +74,13 @@ namespace Kratos
        * @brief Clone method
        */
       ConstitutiveLaw::Pointer Clone() const override;
-
+      using SmallStrainUMAT3DLaw::GetValue;
       Vector& GetValue(const Variable<Vector> &rThisVariable, Vector &rValue) override;
 
-      void SetValue(const Variable<Vector>& rVariable,
-                    const Vector& rValue,
-                    const ProcessInfo& rCurrentProcessInfo) override;
+       using SmallStrainUMAT3DLaw::SetValue;
+       void SetValue(const Variable<Vector>& rVariable,
+                     const Vector& rValue,
+                     const ProcessInfo& rCurrentProcessInfo) override;
 
       /**
        * @brief Dimension of the law:
@@ -201,7 +202,7 @@ namespace Kratos
       ///@name Static Member Variables
       ///@{
 
-      indexStress3D getIndex3D(indexStress3DInterface index3D);
+      indexStress3D getIndex3D(indexStress3DInterface index3D) const;
 
       ///@}
       ///@name Member Variables

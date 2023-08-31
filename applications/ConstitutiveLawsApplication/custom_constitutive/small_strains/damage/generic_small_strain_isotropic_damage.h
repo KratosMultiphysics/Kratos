@@ -256,17 +256,6 @@ public:
         ) override;
 
     /**
-     * @brief Returns the value of a specified variable (matrix)
-     * @param rThisVariable the variable to be returned
-     * @param rValue a reference to the returned value
-     * @return rValue output: the value of the specified variable
-     */
-    Matrix& GetValue(
-        const Variable<Matrix>& rThisVariable,
-        Matrix& rValue
-        ) override;
-
-    /**
      * @brief If the CL requires to initialize the material response, called by the element in InitializeSolutionStep.
      */
     bool RequiresFinalizeMaterialResponse() override
