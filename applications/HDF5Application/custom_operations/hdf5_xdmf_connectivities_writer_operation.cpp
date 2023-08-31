@@ -38,7 +38,7 @@ void GetModelDataGroups(
 {
     KRATOS_TRY
 
-    if (rCurrentPath != "/" && rFile.HasAttribute(rCurrentPath, "__model_part_name") && rFile.HasAttributeType<char>(rCurrentPath, "__model_part_name")) {
+    if (rFile.HasAttribute(rCurrentPath, "__model_part_name") && rFile.HasAttributeType<char>(rCurrentPath, "__model_part_name")) {
         // found a model data path. add it. No model data within a model data group is allowed.
         // Hence, recursive check is not required for this branch.
         rModelDataPaths.push_back(rCurrentPath);
@@ -74,7 +74,9 @@ XdmfConnectivitiesWriterOperation::XdmfConnectivitiesWriterOperation(
 
     if (mListOfModelDataPaths.empty()) {
         // generate the possible model data paths in the file.
-        Detail::GetModelDataGroups(mListOfModelDataPaths, *mpFile, "/");
+        for (const auto& group_name : mpFile->GetRootGroupNames()) {
+            Detail::GetModelDataGroups(mListOfModelDataPaths, *mpFile, "/" + group_name);
+        }
     }
 
     KRATOS_CATCH("");
