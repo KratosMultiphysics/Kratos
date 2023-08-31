@@ -266,7 +266,7 @@ KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IsInside, KratosCoreGeometriesFastSuite) {
 
     // It appears that the function checks whether the PROJECTION of the point is inside the geometry.
     KRATOS_EXPECT_TRUE(geom->IsInside(PointInside, LocalCoords, EPSILON));
-    KRATOS_EXPECT_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
     KRATOS_EXPECT_TRUE(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
     KRATOS_EXPECT_TRUE(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
 }
@@ -476,7 +476,7 @@ KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNoIntersection, KratosCoreGeometrie
         std::make_shared<Point>(0.0, 1.0, 0.01)
         );
 
-    KRATOS_EXPECT_IS_FALSE(triangle_1.HasIntersection(triangle_2));
+    KRATOS_EXPECT_FALSE(triangle_1.HasIntersection(triangle_2));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNearIntersection, KratosCoreGeometriesFastSuite) {
@@ -491,7 +491,7 @@ KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelNearIntersection, KratosCoreGeometr
         std::make_shared<Point>(0.0, 1.0, 0.00000001)
         );
 
-    KRATOS_EXPECT_IS_FALSE(triangle_1.HasIntersection(triangle_2));
+    KRATOS_EXPECT_FALSE(triangle_1.HasIntersection(triangle_2));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarNoIntersection, KratosCoreGeometriesFastSuite) {
@@ -506,7 +506,7 @@ KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarNoIntersection, KratosCoreGeometrie
         std::make_shared<Point>(0.0, -1.0, 0.00)
         );
 
-    KRATOS_EXPECT_IS_FALSE(triangle_1.HasIntersection(triangle_2));
+    KRATOS_EXPECT_FALSE(triangle_1.HasIntersection(triangle_2));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarPointIntersection, KratosCoreGeometriesFastSuite) {
@@ -579,7 +579,7 @@ KRATOS_TEST_CASE_IN_SUITE(Triangle3D3CoplanarLineNoIntersection, KratosCoreGeome
         std::make_shared<Point>(0.0, 6.0, 1.0)
         );
 
-    KRATOS_EXPECT_IS_FALSE(triangle.HasIntersection(line));
+    KRATOS_EXPECT_FALSE(triangle.HasIntersection(line));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelLineNoIntersection, KratosCoreGeometriesFastSuite) {
@@ -593,7 +593,7 @@ KRATOS_TEST_CASE_IN_SUITE(Triangle3D3ParallelLineNoIntersection, KratosCoreGeome
         std::make_shared<Point>(1.0, 3.0, 1.0)
         );
 
-    KRATOS_EXPECT_IS_FALSE(triangle.HasIntersection(line));
+    KRATOS_EXPECT_FALSE(triangle.HasIntersection(line));
 }
 
 /**
@@ -649,7 +649,7 @@ KRATOS_TEST_CASE_IN_SUITE(Triangle3D3IntersectionBoxNoIntersect, KratosCoreGeome
     auto geom = GenerateEquilateralTriangle3D3<NodeType>();
     Point point_1( 0.4, 0.5, 0.6);
     Point point_2( 1.0, 1.0, 1.0);
-    KRATOS_EXPECT_IS_FALSE(geom->HasIntersection(point_1, point_2));
+    KRATOS_EXPECT_FALSE(geom->HasIntersection(point_1, point_2));
 }
 
 /**
