@@ -42,16 +42,16 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerAddResult, 
 
     // Check that the result was added correctly
     auto& r_local_pointers = container.GetLocalResults();
-    KRATOS_CHECK_EQUAL(r_local_pointers.size(), 1);
-    KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
+    KRATOS_EXPECT_EQ(r_local_pointers.size(), 1);
+    KRATOS_EXPECT_EQ(r_local_pointers.size(), container.NumberOfLocalResults());
 
     // Check distances
-    KRATOS_CHECK_EQUAL(container[0].GetDistance(), 0.5);
+    KRATOS_EXPECT_EQ(container[0].GetDistance(), 0.5);
 
     // Check global pointers
     auto& r_global_pointers = container.GetGlobalResults();
-    KRATOS_CHECK_EQUAL(r_global_pointers.size(), 0); // It should be empty as we have not synchronized
-    KRATOS_CHECK_EQUAL(r_global_pointers.size(), container.NumberOfGlobalResults()); // It should be empty as we have not synchronized
+    KRATOS_EXPECT_EQ(r_global_pointers.size(), 0); // It should be empty as we have not synchronized
+    KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults()); // It should be empty as we have not synchronized
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerClear, KratosMPICoreFastSuite)
@@ -75,8 +75,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerClear, Krat
 
     // Check that the result was added correctly
     auto& r_local_pointers = container.GetLocalResults();
-    KRATOS_CHECK_EQUAL(r_local_pointers.size(), 0);
-    KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
+    KRATOS_EXPECT_EQ(r_local_pointers.size(), 0);
+    KRATOS_EXPECT_EQ(r_local_pointers.size(), container.NumberOfLocalResults());
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronizeAll, KratosMPICoreFastSuite)
@@ -99,13 +99,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerSynchronize
 
     // Check that the result was added correctly
     auto& r_local_pointers = container.GetLocalResults();
-    KRATOS_CHECK_EQUAL(r_local_pointers.size(), 1);
-    KRATOS_CHECK_EQUAL(r_local_pointers.size(), container.NumberOfLocalResults());
+    KRATOS_EXPECT_EQ(r_local_pointers.size(), 1);
+    KRATOS_EXPECT_EQ(r_local_pointers.size(), container.NumberOfLocalResults());
 
     // Check global pointers
     auto& r_global_pointers = container.GetGlobalResults();
-    KRATOS_CHECK_EQUAL(static_cast<int>(r_global_pointers.size()), r_data_comm.Size());
-    KRATOS_CHECK_EQUAL(r_global_pointers.size(), container.NumberOfGlobalResults()); 
+    KRATOS_EXPECT_EQ(static_cast<int>(r_global_pointers.size()), r_data_comm.Size());
+    KRATOS_EXPECT_EQ(r_global_pointers.size(), container.NumberOfGlobalResults()); 
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultShapeFunctions, KratosMPICoreFastSuite)
@@ -136,10 +136,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultSh
     auto shape_functions = container.GetResultShapeFunctions(point);
 
     // Check shape functions
-    KRATOS_CHECK_EQUAL(static_cast<int>(shape_functions.size()), r_data_comm.Size());
+    KRATOS_EXPECT_EQ(static_cast<int>(shape_functions.size()), r_data_comm.Size());
     for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
-        KRATOS_CHECK_NEAR(shape_functions[i_rank][0], 0.5, 1.0e-12);
-        KRATOS_CHECK_NEAR(shape_functions[i_rank][1], 0.5, 1.0e-12);
+        KRATOS_EXPECT_NEAR(shape_functions[i_rank][0], 0.5, 1.0e-12);
+        KRATOS_EXPECT_NEAR(shape_functions[i_rank][1], 0.5, 1.0e-12);
     }
 }
 
@@ -165,9 +165,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultIn
     auto indixes = container.GetResultIndices();
 
     // Check shape functions
-    KRATOS_CHECK_EQUAL(static_cast<int>(indixes.size()), r_data_comm.Size());
+    KRATOS_EXPECT_EQ(static_cast<int>(indixes.size()), r_data_comm.Size());
     for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
-        KRATOS_CHECK_EQUAL(static_cast<int>(indixes[i_rank]), i_rank + 1);
+        KRATOS_EXPECT_EQ(static_cast<int>(indixes[i_rank]), i_rank + 1);
     }
 }
 
@@ -198,11 +198,11 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerGetResultCo
     auto coordinates = container.GetResultCoordinates();
 
     // Check shape functions
-    KRATOS_CHECK_EQUAL(static_cast<int>(coordinates.size()), r_data_comm.Size());
+    KRATOS_EXPECT_EQ(static_cast<int>(coordinates.size()), r_data_comm.Size());
     for (int i_rank = 0; i_rank < r_data_comm.Size(); ++i_rank) {
-        KRATOS_CHECK_EQUAL(coordinates[i_rank].size(), 2);
-        KRATOS_CHECK_VECTOR_NEAR(coordinates[i_rank][0], p_node1->Coordinates(), 1.0e-12);
-        KRATOS_CHECK_VECTOR_NEAR(coordinates[i_rank][1], p_node2->Coordinates(), 1.0e-12);
+        KRATOS_EXPECT_EQ(coordinates[i_rank].size(), 2);
+        KRATOS_EXPECT_VECTOR_NEAR(coordinates[i_rank][0], p_node1->Coordinates(), 1.0e-12);
+        KRATOS_EXPECT_VECTOR_NEAR(coordinates[i_rank][1], p_node2->Coordinates(), 1.0e-12);
     }
 }
 
@@ -216,9 +216,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerMapInitiali
     container_map.InitializeResult(point);
 
     // Check that the result was added correctly
-    KRATOS_CHECK(container_map.HasResult(point));
+    KRATOS_EXPECT_TRUE(container_map.HasResult(point));
     Point fake_point = Point(1.5, 0.0, 0.0);
-    KRATOS_CHECK_IS_FALSE(container_map.HasResult(fake_point));
+    KRATOS_EXPECT_FALSE(container_map.HasResult(fake_point));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerMapClear, KratosMPICoreFastSuite)
@@ -231,9 +231,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerMapClear, K
     container_map.InitializeResult(point);
 
     // Check that the result was added correctly
-    KRATOS_CHECK(container_map.HasResult(point));
+    KRATOS_EXPECT_TRUE(container_map.HasResult(point));
     container_map.Clear();
-    KRATOS_CHECK_IS_FALSE(container_map.HasResult(point));
+    KRATOS_EXPECT_FALSE(container_map.HasResult(point));
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerMapOperators, KratosMPICoreFastSuite)
@@ -248,8 +248,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerMapOperator
     // Check that the result was added correctly
     auto& r_result = container_map[point];
     auto& r_local_pointers = r_result.GetLocalResults();
-    KRATOS_CHECK_EQUAL(r_local_pointers.size(), 0);
-    KRATOS_CHECK_EQUAL(r_local_pointers.size(), r_result.NumberOfLocalResults());
+    KRATOS_EXPECT_EQ(r_local_pointers.size(), 0);
+    KRATOS_EXPECT_EQ(r_local_pointers.size(), r_result.NumberOfLocalResults());
 }
 
 }  // namespace Kratos::Testing
