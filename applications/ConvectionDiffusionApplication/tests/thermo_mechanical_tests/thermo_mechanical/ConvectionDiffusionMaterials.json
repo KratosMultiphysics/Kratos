@@ -8,7 +8,7 @@
                 "CONDUCTIVITY"      : 0.83052,
                 "SPECIFIC_HEAT"     : 1004.84
             },
-            "Tables"    : {}
+            "Tables"    : null
         }
     }]
 }
