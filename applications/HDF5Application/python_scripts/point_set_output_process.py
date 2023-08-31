@@ -64,7 +64,7 @@ class PointSetOutputProcess(HDF5OutputProcess):
     def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters) -> None:
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.model_part = model[parameters["model_part_name"].GetString()]
-        super().__init__()
+        super().__init__(self.model_part)
 
         point_output_settings = parameters["point_output_settings"]
 

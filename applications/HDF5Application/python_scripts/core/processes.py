@@ -9,6 +9,7 @@ license: HDF5Application/license.txt
 """
 # Kratos imports
 import KratosMultiphysics
+import KratosMultiphysics.HDF5Application as KratosHDF5
 from .operations.aggregated_operations import AggregatedControlledOperations
 
 ##!@addtogroup HDF5Application
@@ -17,9 +18,30 @@ from .operations.aggregated_operations import AggregatedControlledOperations
 ##!@{
 
 class HDF5Process(KratosMultiphysics.Process):
-    def __init__(self) -> None:
+    __process_local_counter = 0
+    __process_mpi_counter = 0
+
+    def __init__(self, model_part: KratosMultiphysics.ModelPart) -> None:
         KratosMultiphysics.Process.__init__(self)
         self.Clear()
+
+        if KratosMultiphysics.IsDistributedRun():
+            if model_part.IsDistributed():
+                # the run and model parts are distributed.
+                HDF5Process.__process_mpi_counter += 1
+                self.__process_id = [-1, HDF5Process.__process_mpi_counter]
+            else:
+                # the run is distributed, but the model part is serial
+                HDF5Process.__process_local_counter += 1
+                data_comm: KratosMultiphysics.DataCommunicator = model_part.GetCommunicator().GetDataCommunicator()
+                self.__process_id = [data_comm.Rank(), HDF5Process.__process_local_counter]
+        else:
+            # the run is serial, and the model part should be always serial
+            HDF5Process.__process_local_counter += 1
+            self.__process_id = [-1, HDF5Process.__process_local_counter]
+
+    def GetProcessId(self) -> 'list[int]':
+        return self.__process_id
 
     def Check(self) -> None:
         list(map(lambda x: x.Check(), *self.__aggregated_operations_dict.values()))
@@ -53,6 +75,15 @@ class HDF5Process(KratosMultiphysics.Process):
         return sub_parameters
 
     def _GetOperationParameters(self, sub_parameter_name: str, parameters: KratosMultiphysics.Parameters) -> KratosMultiphysics.Parameters:
+        sub_parameters = parameters[sub_parameter_name]
+
+        # we do the custom attributes addition first then the validation
+        # to make sure that the operation defaults has custom attributes and is capable of writing
+        # them.
+        if not sub_parameters.Has("custom_attributes"):
+            sub_parameters.AddEmptyValue("custom_attributes")
+
+        KratosHDF5.AddProcessId(sub_parameters["custom_attributes"], self.__process_id[0], self.__process_id[1])
         return self._GetValidatedParameters(sub_parameter_name, parameters)
 
     def AddInitialize(self, aggregated_controlled_operation: AggregatedControlledOperations) -> None:
@@ -105,9 +136,9 @@ class HDF5Process(KratosMultiphysics.Process):
         self._UpdateAggregatedControlledOperations("ExecuteFinalize")
 
 class HDF5OutputProcess(KratosMultiphysics.OutputProcess, HDF5Process):
-    def __init__(self) -> None:
+    def __init__(self, model_part: KratosMultiphysics.ModelPart) -> None:
         KratosMultiphysics.OutputProcess.__init__(self)
-        HDF5Process.__init__(self)
+        HDF5Process.__init__(self, model_part)
 
     def AddPrintOutput(self, aggregated_controlled_operation: AggregatedControlledOperations) -> None:
         self._AddAggregatedControlledOperations("PrintOutput", aggregated_controlled_operation)
