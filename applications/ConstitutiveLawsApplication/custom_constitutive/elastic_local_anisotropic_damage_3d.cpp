@@ -96,7 +96,7 @@ bool ElasticAnisotropicDamage::Has(const Variable<Vector>& rThisVariable)
 {
     if(rThisVariable == INTERNAL_VARIABLES){
         // explicitly returning "false", so the element calls CalculateValue(...)s
-        return false;
+        return true;
     } else if(rThisVariable == STRAIN){
         // explicitly returning "false", so the element calls CalculateValue(...)
         return false;
@@ -106,7 +106,6 @@ bool ElasticAnisotropicDamage::Has(const Variable<Vector>& rThisVariable)
 
     return false;
 }
-
 //************************************************************************************
 //************************************************************************************
 
@@ -118,6 +117,8 @@ Vector& ElasticAnisotropicDamage::GetValue(
     KRATOS_TRY
     if(rThisVariable == DAMAGE_VECTOR){
         rValues = mDamageVector;
+    }else if(rThisVariable == INTERNAL_VARIABLES){
+        rValues = mStrainVariables;
     }
     return rValues;
     KRATOS_CATCH("")
@@ -150,7 +151,7 @@ void ElasticAnisotropicDamage::InitializeMaterial(
 {
     // const double yield_stress = rMaterialProperties[STRESS_LIMITS](0);
     // const double young_modulus = rMaterialProperties[YOUNG_MODULUS];
-    // mStrainVariable = yield_stress / std::sqrt(young_modulus);
+    // mStrainVariables = yield_stress / std::sqrt(young_modulus);
 }
 
 //************************************************************************************
@@ -161,8 +162,10 @@ void ElasticAnisotropicDamage::FinalizeMaterialResponseCauchy(
 {
     KRATOS_TRY
     Vector damage_vector;
-    this->CalculateStressResponse(rParametersValues, damage_vector);
+    Vector strain_variables;
+    this->CalculateStressResponse(rParametersValues, damage_vector, strain_variables);
     mDamageVector = damage_vector;
+    mStrainVariables = strain_variables;
 
     KRATOS_CATCH("")
 }
@@ -175,7 +178,8 @@ void ElasticAnisotropicDamage::CalculateMaterialResponsePK2(
 {
     KRATOS_TRY
     Vector damage_vector;
-    CalculateStressResponse(rParametersValues, damage_vector);
+    Vector strain_variables;
+    CalculateStressResponse(rParametersValues, damage_vector, strain_variables);
 
     KRATOS_CATCH("")
 }
@@ -185,14 +189,17 @@ void ElasticAnisotropicDamage::CalculateMaterialResponsePK2(
 
 void ElasticAnisotropicDamage::CalculateStressResponse(
     ConstitutiveLaw::Parameters& rParametersValues,
-    Vector& rDamageVector)
+    Vector& rDamageVector,
+    Vector& rStrainVariables)
 {
     KRATOS_TRY
     const Properties& r_material_properties = rParametersValues.GetMaterialProperties();
     Flags& r_constitutive_law_options = rParametersValues.GetOptions();
     Vector& r_strain_vector = rParametersValues.GetStrainVector();
+    KRATOS_WATCH(r_strain_vector)
     CalculateValue(rParametersValues, STRAIN, r_strain_vector);
-
+    rStrainVariables = mStrainVariables;
+    KRATOS_WATCH(mStrainVariables)
     // If we compute the tangent moduli or the stress
     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ||
         r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ))
@@ -220,6 +227,7 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         BoundedMatrix3x6Type dEprdE = ZeroMatrix(3,6);
         BoundedMatrixType dkdEpr = ZeroMatrix(3,3);
         BoundedMatrix6x3Type dHdk   = ZeroMatrix(6,3);
+        Vector max_history_e = ZeroVector(3);
 
         double k0t, k0c;
         if(r_material_properties.Has(DAMAGE_THRESHOLD_TENSION)==true){
@@ -239,9 +247,13 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
             k0[i] = (principal_strains[i] > eps) ? k0t : k0c;
             beta1[i] = (principal_strains[i] > eps) ? beta1t : beta1c;
             beta2[i] = (principal_strains[i] > eps) ? beta2t : beta2c;
-            kappa[i]       = std::max(fabs(principal_strains[i]),k0[i]);
+            max_history_e[i] = std::max(mStrainVariables[i], fabs(principal_strains[i]));
+            kappa[i]       = std::max(max_history_e[i], k0[i]);
             F[i]           = fabs(principal_strains[i])-kappa[i];
         }
+        KRATOS_WATCH(kappa)
+        KRATOS_WATCH(F)
+        KRATOS_WATCH(k0)
         //Compute damage in principal directions
         for (SizeType i = 0; i < Dimension; ++i) {
             if (kappa[i]>= 0 && kappa[i]<=k0[i]) {
@@ -261,8 +273,11 @@ void ElasticAnisotropicDamage::CalculateStressResponse(
         CalculatePartialDerivatives(dHdk, r_material_properties, damage_vector, k0, beta1, beta2, kappa);
         const BoundedMatrix3x6Type b = prod(dkdEpr, dEprdE);
         noalias(r_constitutive_matrix) = EffStiffnessMatrix + prod(dHdk, b);
-        KRATOS_WATCH(r_constitutive_matrix)
         rDamageVector = damage_vector;
+        rStrainVariables = max_history_e;
+        KRATOS_WATCH(r_stress_vector);
+        KRATOS_WATCH(rParametersValues.GetProcessInfo()[TIME]);
+        KRATOS_WATCH("-------------------------------------------");
         }
     KRATOS_CATCH("")
 }
@@ -301,8 +316,14 @@ Vector& ElasticAnisotropicDamage::CalculateValue(
     KRATOS_TRY
     if (rThisVariable == DAMAGE_VECTOR) {
         Vector damage_vector;
-        this->CalculateStressResponse( rParametersValues, damage_vector);
+        Vector strain_variables;
+        this->CalculateStressResponse( rParametersValues, damage_vector, strain_variables);
         rValues = damage_vector;
+    }else if(rThisVariable == INTERNAL_VARIABLES){
+        Vector damage_vector;
+        Vector strain_variables;
+        this->CalculateStressResponse( rParametersValues, damage_vector, strain_variables);
+        rValues = strain_variables;
     }else{
         ElasticIsotropic3D::CalculateValue(rParametersValues, rThisVariable, rValues);
     }
