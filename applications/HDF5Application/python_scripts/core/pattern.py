@@ -115,15 +115,18 @@ def __GetMachingEntities(starting_entity: PatternEntity, patterns: 'list[str]', 
                     data.extend(__GetMachingEntities(itr, patterns[1:], tag_type_dict, [*common_data, *dir_pattern_data]))
         return data
 
-def GetMachingEntities(starting_entity: PatternEntity, tagged_pattern: str, tag_type_dict: 'dict[str, Any]', sorting_functor = None) -> 'list[Any]':
+def GetMachingEntitiesWithTagData(starting_entity: PatternEntity, tagged_pattern: str, tag_type_dict: 'dict[str, Any]', sorting_functor = None) -> 'list[tuple[Any]]':
     sub_patterns = tagged_pattern.split("/")
     matching_entities_list = __GetMachingEntities(starting_entity, sub_patterns, tag_type_dict, [])
 
     if sorting_functor is None:
-        return [v[0].Get() for v in matching_entities_list]
+        return matching_entities_list
     else:
         matching_entities_list = sorted(matching_entities_list, key=lambda x: sorting_functor(x[0].Get(), *x[1:]))
-        return [v[0].Get() for v in matching_entities_list]
+        return matching_entities_list
+
+def GetMachingEntities(starting_entity: PatternEntity, tagged_pattern: str, tag_type_dict: 'dict[str, Any]', sorting_functor = None) -> 'list[Any]':
+    return [v[0].Get() for v in GetMachingEntitiesWithTagData(starting_entity, tagged_pattern, tag_type_dict, sorting_functor)]
 
 def EvaluatePattern(pattern: str, model_part: Kratos.ModelPart, time_format='') -> str:
     time = model_part.ProcessInfo[Kratos.TIME]
