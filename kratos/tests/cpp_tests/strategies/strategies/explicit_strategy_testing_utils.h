@@ -26,7 +26,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
+#include "tests/test_utilities/test_element.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "utilities/math_utils.h"

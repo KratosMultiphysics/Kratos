@@ -76,10 +76,10 @@ class KRATOS_API(KRATOS_CORE) Kernel {
     /// Copy constructor.
     /** This constructor is empty
     */
-    Kernel(Kernel const& rOther) {}
+    Kernel(Kernel const& rOther);
 
     /// Destructor.
-    virtual ~Kernel() {}
+    virtual ~Kernel();
 
     ///@}
     ///@name Operations

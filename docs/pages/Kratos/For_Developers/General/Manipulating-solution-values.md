@@ -78,7 +78,7 @@ As illustrated, a no slip condition is applied on the top and bottom walls of th
         }]
 ```
 More information on which processes exists for boundary conditions and how to use them is described in [this](How-to-use-Processes-In-the-application-of-BCs) wiki page.
-Please run the example by using the method described in the previous tutorials. That is by using the `runkratos` executable. Once the simulation is finished we load the result (.bin) file into GiD to view the following result 
+Please run the example by using the method described in the previous tutorials. That is by using the `python` executable. Once the simulation is finished we load the result (.bin) file into GiD to view the following result 
 ![Initial_solution](https://raw.githubusercontent.com/KratosMultiphysics/Documentation/master/Wiki_files/workshop_2019_tutorials/solution_manipulation/initial_solution.gif)
 
 

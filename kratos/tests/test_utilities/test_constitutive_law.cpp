@@ -15,8 +15,8 @@
 // External includes
 
 // Project includes
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
-#include "includes/expect.h"
+#include "tests/test_utilities/test_constitutive_law.h"
+#include "includes/checks.h"
 
 
 namespace Kratos

@@ -58,7 +58,6 @@ echo "Kratos build type is ${KRATOS_BUILD_TYPE}"
 # Configure
 cmake -H"${KRATOS_SOURCE}" -B"${KRATOS_BUILD}/${KRATOS_BUILD_TYPE}" \
 ${KRATOS_CMAKE_OPTIONS_FLAGS} \
--DINSTALL_RUNKRATOS=OFF \
 -DUSE_MPI=ON \
 -DPYTHON_EXECUTABLE="/usr/bin/python3.10" \
 -DCMAKE_CXX_FLAGS="${KRATOS_CMAKE_CXX_FLAGS} -O3 -Wall -Werror-all -diag-disable 1478 -diag-disable 1786" \

@@ -947,7 +947,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_File_ReadWriteParameterAttribute1, KratosHDF5Test
         mat_values.data()[2] = 2;
         mat_values.data()[3] = 3;
         KRATOS_EXPECT_TRUE(attr_in["matrix"].IsMatrix());
-        KRATOS_EXPECT_MATRIX_EQUAL(attr_in["matrix"].GetMatrix(), mat_values);
+        KRATOS_EXPECT_MATRIX_EQ(attr_in["matrix"].GetMatrix(), mat_values);
         KRATOS_EXPECT_TRUE(attr_in["int_array"].IsArray());
         int local_index = 1;
         for (const auto& v : attr_in["int_array"]) {

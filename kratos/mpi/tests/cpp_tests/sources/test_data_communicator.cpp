@@ -19,7 +19,7 @@
 // Project includes
 #include "includes/data_communicator.h"
 #include "includes/kratos_components.h"
-#include "testing/testing.h"
+#include "mpi/testing/mpi_testing.h"
 
 namespace Kratos::Testing {
 
