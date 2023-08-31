@@ -14,7 +14,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "includes/table.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "includes/variables.h"
 
 namespace Kratos::Testing {
@@ -26,29 +26,29 @@ KRATOS_TEST_CASE_IN_SUITE(BaseTable, KratosCoreFastSuite)
         table.PushBack(static_cast<double>(i), 2.0 * static_cast<double>(i));
             
     double nearest = (table.GetNearestRow(2.1))[0];
-    KRATOS_CHECK_DOUBLE_EQUAL(nearest, 4.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(table.GetValue(2.1), 4.2);
-    KRATOS_CHECK_DOUBLE_EQUAL(table(2.1), 4.2);
-    KRATOS_CHECK_DOUBLE_EQUAL(table.GetDerivative(2.1), 2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(nearest, 4.0);
+    KRATOS_EXPECT_DOUBLE_EQ(table.GetValue(2.1), 4.2);
+    KRATOS_EXPECT_DOUBLE_EQ(table(2.1), 4.2);
+    KRATOS_EXPECT_DOUBLE_EQ(table.GetDerivative(2.1), 2.0);
 
     auto& r_data = table.Data();
-    KRATOS_CHECK_EQUAL(r_data.size(), 6);
+    KRATOS_EXPECT_EQ(r_data.size(), 6);
             
     // Clear database
     table.Clear();
-    KRATOS_CHECK_EQUAL(r_data.size(), 0);
+    KRATOS_EXPECT_EQ(r_data.size(), 0);
 
     // Inverse filling with insert
     for (std::size_t i = 6; i > 0; --i)
         table.insert(static_cast<double>(i), 2.0 * static_cast<double>(i));
 
-    KRATOS_CHECK_EQUAL(r_data.size(), 6);
+    KRATOS_EXPECT_EQ(r_data.size(), 6);
 
     nearest = (table.GetNearestRow(2.1))[0];
-    KRATOS_CHECK_DOUBLE_EQUAL(nearest, 4.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(table.GetValue(2.1), 4.2);
-    KRATOS_CHECK_DOUBLE_EQUAL(table(2.1), 4.2);
-    KRATOS_CHECK_DOUBLE_EQUAL(table.GetDerivative(2.1), 2.0);
+    KRATOS_EXPECT_DOUBLE_EQ(nearest, 4.0);
+    KRATOS_EXPECT_DOUBLE_EQ(table.GetValue(2.1), 4.2);
+    KRATOS_EXPECT_DOUBLE_EQ(table(2.1), 4.2);
+    KRATOS_EXPECT_DOUBLE_EQ(table.GetDerivative(2.1), 2.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(NamesOfXAndYInTable, KratosCoreFastSuite)
@@ -56,14 +56,14 @@ KRATOS_TEST_CASE_IN_SUITE(NamesOfXAndYInTable, KratosCoreFastSuite)
     Table<double, double> table;
 
     // New tables shouldn't have any names set
-    KRATOS_CHECK(table.NameOfX().empty())
-    KRATOS_CHECK(table.NameOfY().empty())
+    KRATOS_EXPECT_TRUE(table.NameOfX().empty())
+    KRATOS_EXPECT_TRUE(table.NameOfY().empty())
 
     table.SetNameOfX("Foo");
-    KRATOS_CHECK_STRING_EQUAL(table.NameOfX(), "Foo")
+    KRATOS_EXPECT_EQ(table.NameOfX(), "Foo")
 
     table.SetNameOfY("Bar");
-    KRATOS_CHECK_STRING_EQUAL(table.NameOfY(), "Bar")
+    KRATOS_EXPECT_EQ(table.NameOfY(), "Bar")
 }
 
 }  // namespace Kratos::Testing.

@@ -92,15 +92,15 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults2, KratosHDF5TestSuite)
     {
         HDF5::NodeType& r_read_node = r_read_model_part.Nodes()[i + 1];
         HDF5::NodeType& r_write_node = r_write_model_part.Nodes()[i + 1];
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_X) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_X) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_X));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Y) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Y) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_Y));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Z) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Z) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_Z));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(PRESSURE) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(PRESSURE) ==
                      r_write_node.FastGetSolutionStepValue(PRESSURE));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(REFINEMENT_LEVEL) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(REFINEMENT_LEVEL) ==
                      r_write_node.FastGetSolutionStepValue(REFINEMENT_LEVEL));
     }
 }
@@ -153,15 +153,15 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5PointsData_ReadNodalResults, KratosHDF5TestSuite)
     {
         HDF5::NodeType& r_read_node = r_read_model_part.Nodes()[i + 1];
         HDF5::NodeType& r_write_node = r_write_model_part.Nodes()[i + 1];
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_X) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_X) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_X));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Y) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Y) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_Y));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Z) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(DISPLACEMENT_Z) ==
                      r_write_node.FastGetSolutionStepValue(DISPLACEMENT_Z));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(PRESSURE) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(PRESSURE) ==
                      r_write_node.FastGetSolutionStepValue(PRESSURE));
-        KRATOS_CHECK(r_read_node.FastGetSolutionStepValue(REFINEMENT_LEVEL) ==
+        KRATOS_EXPECT_TRUE(r_read_node.FastGetSolutionStepValue(REFINEMENT_LEVEL) ==
                      r_write_node.FastGetSolutionStepValue(REFINEMENT_LEVEL));
     }
 }

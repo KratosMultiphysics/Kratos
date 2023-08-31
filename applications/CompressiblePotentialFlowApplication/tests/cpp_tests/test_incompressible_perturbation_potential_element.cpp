@@ -104,7 +104,7 @@ namespace Kratos {
       // Check the RHS values
       std::vector<double> reference{5.5, -5, -0.5};
 
-      KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-6);
+      KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-6);
     }
 
     /** Checks the IncompressiblePotentialFlowElement element.
@@ -131,7 +131,7 @@ namespace Kratos {
 
       for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-          KRATOS_CHECK_NEAR(LHS(i,j), reference[3*i+j], 1e-6);
+          KRATOS_EXPECT_NEAR(LHS(i,j), reference[3*i+j], 1e-6);
         }
       }
     }
@@ -161,7 +161,7 @@ namespace Kratos {
       // Check the RHS values
       std::vector<double> reference{5.39026,2.252080000000001,-1.31174,0.9403400000000008,-7.1563,0.8256999999999999};
 
-      KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+      KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(WakeIncompressiblePerturbationPotentialFlowElementCalculateLHS, CompressiblePotentialApplicationFastSuite)
@@ -194,7 +194,7 @@ namespace Kratos {
 
       for (unsigned int i = 0; i < LHS.size1(); i++) {
         for (unsigned int j = 0; j < LHS.size2(); j++) {
-          KRATOS_CHECK_NEAR(LHS(i,j), reference[6*i+j], 1e-6);
+          KRATOS_EXPECT_NEAR(LHS(i,j), reference[6*i+j], 1e-6);
         }
       }
     }
@@ -227,7 +227,7 @@ namespace Kratos {
 
       // Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
-        KRATOS_CHECK(EquationIdVector[i] == i);
+        KRATOS_EXPECT_TRUE(EquationIdVector[i] == i);
       }
     }
 
@@ -264,7 +264,7 @@ namespace Kratos {
 
       //Check the EquationIdVector values
       for (unsigned int i = 0; i < EquationIdVector.size(); i++) {
-        KRATOS_CHECK(EquationIdVector[i] == i);
+        KRATOS_EXPECT_TRUE(EquationIdVector[i] == i);
       }
     }
 
