@@ -250,7 +250,7 @@ namespace Kratos::Testing
         NodeType::Pointer p_point_1 = Kratos::make_intrusive<NodeType>(1,  2.0, 0.0, 0.0);
         NodeType::Pointer p_point_2 = Kratos::make_intrusive<NodeType>(2, -1.0, 0.25, 0.25);
         Line3D2<NodeType> geom_2(p_point_1, p_point_2);
-        KRATOS_CHECK(geom_1->HasIntersection(geom_2));
+        KRATOS_EXPECT_TRUE(geom_1->HasIntersection(geom_2));
     }
 
     /**
@@ -264,13 +264,13 @@ namespace Kratos::Testing
         auto intersection = geom_1->GetIntersectionPoints(geom_2);
         const Point pt0(0.5,0.0,0.0);
         const Point pt1(0.0,0.5,0.0);
-        KRATOS_CHECK_VECTOR_EQUAL(intersection[0], pt0.Coordinates());
-        KRATOS_CHECK_VECTOR_EQUAL(intersection[1], pt1.Coordinates());
+        KRATOS_EXPECT_VECTOR_EQUAL(intersection[0], pt0.Coordinates());
+        KRATOS_EXPECT_VECTOR_EQUAL(intersection[1], pt1.Coordinates());
         p_point_2->X() = 0.05;
         p_point_2->Y() = 0.45;
         intersection = geom_1->GetIntersectionPoints(geom_2);
-        KRATOS_CHECK_VECTOR_EQUAL(intersection[0], pt0.Coordinates());
-        KRATOS_CHECK_VECTOR_EQUAL(intersection[1], p_point_2->Coordinates());
+        KRATOS_EXPECT_VECTOR_EQUAL(intersection[0], pt0.Coordinates());
+        KRATOS_EXPECT_VECTOR_EQUAL(intersection[1], p_point_2->Coordinates());
     }
 
     /**
@@ -281,7 +281,7 @@ namespace Kratos::Testing
         NodeType::Pointer p_point_1 = Kratos::make_intrusive<NodeType>(1,  1.0, 1.0, 0.0);
         NodeType::Pointer p_point_2 = Kratos::make_intrusive<NodeType>(2, -0.5, 2.5, 0.0);
         Line3D2<NodeType> geom_2(p_point_1, p_point_2);
-        KRATOS_CHECK_EQUAL(geom_1->GetIntersectionPoints(geom_2).size(), 0);
+        KRATOS_EXPECT_EQ(geom_1->GetIntersectionPoints(geom_2).size(), 0);
     }
 
     /**
@@ -294,7 +294,7 @@ namespace Kratos::Testing
         Line3D2<NodeType> geom_2(p_point_1, p_point_2);
         const auto intersection = geom_1->GetIntersectionPoints(geom_2);
         const Point pt(0.857143,0.0952381,0.0952381);
-        KRATOS_CHECK_VECTOR_NEAR(intersection[0], pt.Coordinates(), 1e-6);
+        KRATOS_EXPECT_VECTOR_NEAR(intersection[0], pt.Coordinates(), 1e-6);
     }
 
     /** Checks the ProjectionPoint test for a given point respect to the triangle

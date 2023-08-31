@@ -240,7 +240,7 @@ namespace Testing {
       Point::Pointer p_point_1 = Kratos::make_shared<Point>(1.0, -0.5, 0.0);
       Point::Pointer p_point_2 = Kratos::make_shared<Point>(-0.5, 1.0, 0.0);
       Line2D2<Point> geom_2(p_point_1, p_point_2);
-      KRATOS_CHECK(geom_1->HasIntersection(geom_2));
+      KRATOS_EXPECT_TRUE(geom_1->HasIntersection(geom_2));
   }
 
   /**
@@ -251,7 +251,7 @@ namespace Testing {
       Point::Pointer p_point_1 = Kratos::make_shared<Point>( 1.0, 1.0, 0.0);
       Point::Pointer p_point_2 = Kratos::make_shared<Point>(-0.5, 2.5, 0.0);
       Line2D2<Point> geom_2(p_point_1, p_point_2);
-      KRATOS_CHECK_IS_FALSE(geom_1->HasIntersection(geom_2));
+      KRATOS_EXPECT_FALSE(geom_1->HasIntersection(geom_2));
   }
 
   /**
@@ -265,13 +265,13 @@ namespace Testing {
       auto intersection = geom_1->GetIntersectionPoints(geom_2);
       const Point pt0(0.5,0.0,0.0);
       const Point pt1(0.0,0.5,0.0);
-      KRATOS_CHECK_VECTOR_EQUAL(intersection[0], pt0.Coordinates());
-      KRATOS_CHECK_VECTOR_EQUAL(intersection[1], pt1.Coordinates());
+      KRATOS_EXPECT_VECTOR_EQUAL(intersection[0], pt0.Coordinates());
+      KRATOS_EXPECT_VECTOR_EQUAL(intersection[1], pt1.Coordinates());
       p_point_2->X() = 0.05;
       p_point_2->Y() = 0.45;
       intersection = geom_1->GetIntersectionPoints(geom_2);
-      KRATOS_CHECK_VECTOR_EQUAL(intersection[0], pt0.Coordinates());
-      KRATOS_CHECK_VECTOR_EQUAL(intersection[1], p_point_2->Coordinates());
+      KRATOS_EXPECT_VECTOR_EQUAL(intersection[0], pt0.Coordinates());
+      KRATOS_EXPECT_VECTOR_EQUAL(intersection[1], p_point_2->Coordinates());
   }
 
   /**
@@ -282,7 +282,7 @@ namespace Testing {
       Point::Pointer p_point_1 = Kratos::make_shared<Point>( 1.0, 1.0, 0.0);
       Point::Pointer p_point_2 = Kratos::make_shared<Point>(-0.5, 2.5, 0.0);
       Line2D2<Point> geom_2(p_point_1, p_point_2);
-      KRATOS_CHECK_EQUAL(geom_1->GetIntersectionPoints(geom_2).size(), 0);
+      KRATOS_EXPECT_EQ(geom_1->GetIntersectionPoints(geom_2).size(), 0);
   }
 
   /** Checks the inside test for a given point respect to the triangle

@@ -543,7 +543,7 @@ namespace Testing {
         auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
         const auto intersection = geom_1->GetIntersectionPoints(*geom_2);
         const Point pt(0.5,0.0,0.0);
-        KRATOS_CHECK_VECTOR_EQUAL(intersection[0], pt.Coordinates());
+        KRATOS_EXPECT_VECTOR_EQUAL(intersection[0], pt.Coordinates());
     }
 
     /**
@@ -554,7 +554,7 @@ namespace Testing {
         Point::Pointer point_1 = Kratos::make_shared<Point>(0.0, 0.5, 0.0);
         Point::Pointer point_2 = Kratos::make_shared<Point>(0.5, 0.5, 0.0);
         auto geom_2 = GenerateLine2D2WithPoints(point_1, point_2);
-        KRATOS_CHECK_EQUAL(geom_1->GetIntersectionPoints(*geom_2).size(), 0);
+        KRATOS_EXPECT_EQ(geom_1->GetIntersectionPoints(*geom_2).size(), 0);
     }
 
     /**
