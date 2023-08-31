@@ -135,7 +135,7 @@ namespace Testing {
         auto geom_2 = GenerateLine3D2WithPoints(point_1, point_2);
         const auto intersection = geom_1->GetIntersectionPoints(*geom_2);
         const Point pt(0.5,0.0,0.0);
-        KRATOS_EXPECT_VECTOR_EQUAL(intersection[0], pt.Coordinates());
+        KRATOS_EXPECT_VECTOR_EQ(intersection[0], pt.Coordinates());
     }
 
     /**
