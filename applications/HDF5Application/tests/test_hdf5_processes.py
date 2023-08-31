@@ -121,12 +121,9 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(self.HDF5File.call_args[0][1]['file_access_mode'].GetString(), 'truncate')
         self.assertEqual(self.HDF5File.call_args[0][1]['echo_level'].GetInt(), 1)
         call_args = self.HDF5ModelPartIO.call_args
-        params = KratosMultiphysics.Parameters("""{
-            "prefix": "/ModelData/test_model_part",
-            "time_format": "0.4f",
-            "custom_attributes": {}
-        }""")
-        self.assertTrue(params.IsEquivalentTo(call_args[0][0]))
+        self.assertEqual(call_args[0][0]["prefix"].GetString(), "/ModelData/test_model_part")
+        self.assertEqual(call_args[0][0]["time_format"].GetString(), "0.4f")
+        self.assertTrue(call_args[0][0]["custom_attributes"].Has("__hdf5_process_id"))
         self.assertEqual(call_args[0][1], self.HDF5File.return_value)
         self.HDF5ModelPartIO.return_value.WriteModelPart.assert_called_once_with(
             self.model_part)
@@ -241,12 +238,9 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.HDF5File.call_args[0][1]['echo_level'].GetInt(), 0)
         self.assertEqual(self.HDF5ModelPartIO.call_count, 2)
         call_args = self.HDF5ModelPartIO.call_args
-        params = KratosMultiphysics.Parameters("""{
-            "prefix": "/ModelData",
-            "time_format": "0.4f",
-            "custom_attributes": {}
-        }""")
-        self.assertTrue(params.IsEquivalentTo(call_args[0][0]))
+        self.assertEqual(call_args[0][0]["prefix"].GetString(), "/ModelData")
+        self.assertEqual(call_args[0][0]["time_format"].GetString(), "0.4f")
+        self.assertTrue(call_args[0][0]["custom_attributes"].Has("__hdf5_process_id"))
         self.assertEqual(call_args[0][1], self.HDF5File.return_value)
         self.assertEqual(
             self.HDF5ModelPartIO.return_value.WriteModelPart.call_count, 2)
