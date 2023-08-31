@@ -40,7 +40,7 @@ PointsData<TContainerDataIO>::PointsData(
 }
 
 template<class TContainerDataIO>
-void PointsData<TContainerDataIO>::Read(
+Parameters PointsData<TContainerDataIO>::Read(
     typename TContainerDataIO::ContainerType& rContainer,
     const TContainerDataIO& rContainerDataIO)
 {
@@ -54,6 +54,7 @@ void PointsData<TContainerDataIO>::Read(
 
     mpFile->ReadDataSet(mPrefix + "/Ids", ids, start_index, block_size);
     mpFile->ReadDataSet(mPrefix + "/Coordinates", coords, start_index, block_size);
+    auto attributes = mpFile->ReadAttribute(mPrefix);
 
     const unsigned num_new_nodes = ids.size();
     rContainer.reserve(rContainer.size() + num_new_nodes);
@@ -62,13 +63,16 @@ void PointsData<TContainerDataIO>::Read(
         rContainerDataIO.AddPoint(rContainer, ids[i], coords[i]);
     }
 
+    return attributes;
+
     KRATOS_CATCH("");
 }
 
 template<class TContainerDataIO>
 void PointsData<TContainerDataIO>::Write(
     const typename TContainerDataIO::ContainerType& rContainer,
-    const TContainerDataIO& rContainerDataIO)
+    const TContainerDataIO& rContainerDataIO,
+    const Parameters Attributes)
 {
     KRATOS_TRY;
 
@@ -85,6 +89,7 @@ void PointsData<TContainerDataIO>::Write(
     WriteInfo info;
     mpFile->WriteDataSet(mPrefix + "/Ids", ids, info);
     mpFile->WriteDataSet(mPrefix + "/Coordinates", coords, info);
+    mpFile->WriteAttribute(mPrefix, Attributes);
 
     WritePartitionTable(*mpFile, mPrefix, info);
 

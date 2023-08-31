@@ -61,13 +61,14 @@ public:
     ///@name Operations
     ///@{
 
-    void Read(
+    Parameters Read(
         typename TContainerDataIO::ContainerType& rContainer,
         const TContainerDataIO& rContainerDataIO);
 
     void Write(
         const typename TContainerDataIO::ContainerType& rContainer,
-        const TContainerDataIO& rContainerDataIO);
+        const TContainerDataIO& rContainerDataIO,
+        const Parameters Attributes);
 
     ///@}
 
