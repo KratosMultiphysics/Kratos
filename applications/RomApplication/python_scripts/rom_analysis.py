@@ -67,6 +67,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             # Add or remove parameters depending on the solving strategy
             ##LSPG
             if self.solving_strategy=="lspg":
+                self.project_parameters["solver_settings"]["rom_settings"].AddValue("lspg_settings")
                 self.project_parameters["solver_settings"]["rom_settings"].AddBool("train_petrov_galerkin", self.train_petrov_galerkin)
             ##Petrov Galerkin
             if self.solving_strategy=="petrov_galerkin":
