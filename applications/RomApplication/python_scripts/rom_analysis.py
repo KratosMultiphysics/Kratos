@@ -67,8 +67,14 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             # Add or remove parameters depending on the solving strategy
             ##LSPG
             if self.solving_strategy=="lspg":
-                self.project_parameters["solver_settings"]["rom_settings"].AddValue("lspg_settings")
+                solving_technique = self.rom_parameters["lspg_settings"]["solving_technique"].GetString() if self.rom_parameters["lspg_settings"].Has("solving_technique") else "normal_equations"
+                self.project_parameters["solver_settings"]["rom_settings"].AddString("solving_technique", solving_technique)
                 self.project_parameters["solver_settings"]["rom_settings"].AddBool("train_petrov_galerkin", self.train_petrov_galerkin)
+                if self.train_petrov_galerkin:
+                    #Adding the basis strategy for generating the left ROB for the Petrov-Galerkin ROM.
+                    petrov_galerkin_basis_strategy = self.rom_parameters["lspg_settings"]["train_petrov_galerkin"]["basis_strategy"].GetString() if self.rom_parameters["lspg_settings"]["train_petrov_galerkin"].Has("basis_strategy") else "residuals"
+                    self.project_parameters["solver_settings"]["rom_settings"].AddString("basis_strategy", petrov_galerkin_basis_strategy)
+            
             ##Petrov Galerkin
             if self.solving_strategy=="petrov_galerkin":
                 self.petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
