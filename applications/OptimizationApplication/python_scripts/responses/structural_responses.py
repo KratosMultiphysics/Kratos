@@ -376,6 +376,8 @@ class EmbeddedStrainEnergyResponseFunction(BaseResponseFunction):
             self.variable = "STRAIN_ENERGY_2"
         elif not self.embedded_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_3_D_X")):
             self.variable = "STRAIN_ENERGY_3"
+        elif not self.embedded_model_part.HasNodalSolutionStepVariable(KM.KratosGlobals.GetVariable("D_STRAIN_ENERGY_4_D_X")):
+            self.variable = "STRAIN_ENERGY_4"
 
         self.supported_control_types = ["shape"]
         self.gradients_variables = {"shape":"D_"+self.variable+"_D_X"}
@@ -635,7 +637,7 @@ class SelfIntersectionResponseFunction(BaseResponseFunction):
     def CalculateValue(self):
         Logger.PrintInfo("SelfIntersectionResponseFunction:CalculateValue: Starting value calculation for response ", self.name)
         startTime = timer.time()
-        
+
         # run PyQuESo
         try:
             import QuESo_PythonApplication as QuESoApp

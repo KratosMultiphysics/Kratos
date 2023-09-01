@@ -42,6 +42,7 @@ class QuesoSteppingAnalysisExecutionPolicy(ExecutionPolicy):
             "nurbs_model_part_name" : "",
             "analysis_module"  : "KratosMultiphysics",
             "analysis_type"    : "",
+            "queso_json_input_file"    : "",
             "analysis_settings": {}
         }""")
         self.model = model
@@ -55,13 +56,14 @@ class QuesoSteppingAnalysisExecutionPolicy(ExecutionPolicy):
         self.analysis_module = parameters["analysis_module"].GetString()
         self.analysis_type = parameters["analysis_type"].GetString()
         self.analysis_settings = parameters["analysis_settings"]
+        queso_json_input_file = parameters["queso_json_input_file"].GetString()
 
         if self.analysis_module == "KratosMultiphysics":
             self.analysis_full_module, self.analysis_type = GetClassModuleFromKratos(self.analysis_type)
         else:
             self.analysis_full_module = f"{self.analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(self.analysis_type)}"
 
-        self.pyqueso = PyQuESo("QUESOParameters.json")
+        self.pyqueso = PyQuESo(queso_json_input_file)
 
         self.CreateAnalysis()
 
@@ -79,12 +81,13 @@ class QuesoSteppingAnalysisExecutionPolicy(ExecutionPolicy):
         self.analysis: AnalysisStage = getattr(import_module(self.analysis_full_module), self.analysis_type)(self.model, self.analysis_settings.Clone())
 
     def Initialize(self):
+
         # Read nurbs_volume_model_part
         modeler_settings = Kratos.Parameters("""
             [{
                 "modeler_name": "NurbsGeometryModeler",
                 "Parameters": {
-                    "model_part_name" : "NurbsMesh",
+                    "model_part_name" : "NurbsMesh1",
                     "geometry_name"   : "NurbsVolume"
                 }
             }]
@@ -103,6 +106,8 @@ class QuesoSteppingAnalysisExecutionPolicy(ExecutionPolicy):
         tmp_parameters["polynomial_order"].SetVector(queso_params.Order())
         tmp_parameters.AddEmptyValue("number_of_knot_spans")
         tmp_parameters["number_of_knot_spans"].SetVector(queso_params.NumberOfElements())
+        tmp_parameters["model_part_name"].SetString(self.nurbs_model_part_name)
+
         run_modelers(self.model, modeler_settings)
         self.pyqueso.Run(self.embedded_model_part)
         self.pyqueso.UpdateKratosNurbsVolumeModelPart(self.model_part)

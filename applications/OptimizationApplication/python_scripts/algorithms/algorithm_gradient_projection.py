@@ -24,12 +24,12 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def __init__(self,name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller):
         super().__init__(name,opt_settings,model,model_parts_controller,analyses_controller,responses_controller,controls_controller)
 
-        # check if constraint list is empty or not 
+        # check if constraint list is empty or not
         # if not len(self.constraints)>0:
-        #     raise RuntimeError("AlgorithmGradientProjection:__init__: constraints list can not be empty !")  
+        #     raise RuntimeError("AlgorithmGradientProjection:__init__: constraints list can not be empty !")
 
         self.lin_solver_settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
-        self.lin_solver = dense_linear_solver_factory.ConstructSolver(self.lin_solver_settings)          
+        self.lin_solver = dense_linear_solver_factory.ConstructSolver(self.lin_solver_settings)
 
         self.opt_algorithm = KOA.AlgorithmGradientProjection(self.name,self.model,self.lin_solver,self.opt_parameters)
 
@@ -46,7 +46,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def RunOptimizationLoop(self):
 
         timer = Timer()
-        timer.StartTimer()        
+        timer.StartTimer()
 
         for self.optimization_iteration in range(1,self.max_iterations+1):
             Logger.Print("")
@@ -59,7 +59,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
             # update controls
             for control in self.controls:
-                self.controls_controller.UpdateControl(control,False)            
+                self.controls_controller.UpdateControl(control,False)
 
             self.num_active_consts = 0
             # evaluate all analysis-based responses
@@ -68,33 +68,38 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 for response in self.analyses_responses[analysis]:
                     response_value = self.responses_controller.CalculateResponseValue(response)
                     calc_response_grad = self.SetResponseValue(response,response_value)
-                    if calc_response_grad: 
+                    if calc_response_grad:
                         self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])
 
-            # evaluate all analysis-free responses  
+            # evaluate all analysis-free responses
             for response in self.analysis_free_responses:
                 response_value = self.responses_controller.CalculateResponseValue(response)
                 calc_response_grad = self.SetResponseValue(response,response_value)
                 if calc_response_grad:
-                    self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])                
-                        
+                    self.responses_controller.CalculateResponseGradientsForTypesAndObjects(response,self.responses_control_types[response],self.responses_controlled_objects[response])
+
             self.opt_parameters["num_active_consts"].SetInt(self.num_active_consts)
 
-            # calculate control gradients
-            for control in self.controls_response_gradient_names.keys():
-                for itr in range(len(self.controls_response_gradient_names[control])):
-                    self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(self.controls_response_gradient_names[control][itr]),KM.KratosGlobals.GetVariable(self.controls_response_control_gradient_names[control][itr]),False)
+            self.opt_parameters.AddBool("update_coefficients", True)
+            self.opt_parameters["update_coefficients"].SetBool(True)
+            for i in range(2):
+                # calculate control gradients
+                for control in self.controls_response_gradient_names.keys():
+                    for itr in range(len(self.controls_response_gradient_names[control])):
+                        self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(self.controls_response_gradient_names[control][itr]),
+                                                                        KM.KratosGlobals.GetVariable(self.controls_response_control_gradient_names[control][itr]),
+                                                                        self.opt_parameters, False)
+                # calcuate
+                self.opt_algorithm.CalculateSolutionStep()
+                self.opt_parameters["update_coefficients"].SetBool(False)
 
-            # calcuate
-            self.opt_algorithm.CalculateSolutionStep() 
+                # compute controls
+                for control in self.controls:
+                    self.controls_controller.ComputeControl(control,False)
 
             self._WriteCurrentOptItrToCSVFile()
 
-            # compute controls
-            for control in self.controls:
-                self.controls_controller.ComputeControl(control,False)
-
-            # now output 
+            # now output
             for control_model_part,vtkIO in self.root_model_parts_vtkIOs.items():
                 root_control_model_part = self.model_parts_controller.GetRootModelPart(control_model_part)
                 OriginalTime = root_control_model_part.ProcessInfo[KM.TIME]
@@ -106,7 +111,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
                 vtkIO.ExecuteFinalizeSolutionStep()
 
                 root_control_model_part.ProcessInfo[KM.TIME] = OriginalTime
-                            
+
             Logger.Print("")
             Logger.PrintInfo("AlgorithmGradientProjection", "Time needed for current optimization step = ", timer.GetLapTime(), "s")
             Logger.PrintInfo("AlgorithmGradientProjection", "Time needed for total optimization so far = ", timer.GetTotalTime(), "s")

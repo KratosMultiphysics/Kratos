@@ -31,10 +31,15 @@ class ShapeControl():
             self.scalar_fields.append("NODAL_AREA")
 
         # if self.auxiliary_field:
+        self.vector_fields.append("D_X_BEFORE_MANIPULATION")
+        self.vector_fields.append("ACTIVE_POSITIVE_INTERSECTION_NORMAL")
+        self.vector_fields.append("FILTERED_ACTIVE_POSITIVE_INTERSECTION_NORMAL")
+        self.vector_fields.append("ACTIVE_NEGATIVE_INTERSECTION_NORMAL")
+        self.vector_fields.append("FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL")
+        self.vector_fields.append("ACTIVE_BC_NORMAL")
         self.vector_fields.append("AUXILIARY_FIELD")
-
-
-        self.vector_fields.append("ADJOINT_DISPLACEMENT")
+        self.vector_fields.append("FILTERED_ACTIVE_BC_NORMAL")
+        self.scalar_fields.append("ADJACENT_TRIANGLE_COUNT")
 
         self.output_names_tmp = self.vector_fields + self.scalar_fields
         self.output_names = self.vector_fields + self.scalar_fields + ["NORMAL", "NODAL_AREA"]
@@ -56,7 +61,7 @@ class ShapeControl():
                 for scala_field in self.scalar_fields:
                     node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(scala_field), 0)
 
-    def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
+    def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name,opt_parameters):
         raise RuntimeError("ShapeControl:MapFirstDerivative: calling base class function")
 
     def Compute(self):
