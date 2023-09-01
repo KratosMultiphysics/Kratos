@@ -221,8 +221,6 @@ class AlgorithmGradientProjection(Algorithm):
 
                 self._optimization_problem.AdvanceStep()
 
-        raise RuntimeError(for_testing)
-
         return self.converged
 
     def GetOptimizedObjectiveValue(self) -> float:

@@ -130,9 +130,10 @@
                         "output_file_name": "summary.csv",
                         "write_kratos_version": false,
                         "write_time_stamp": false,
+                        "list_of_output_components": ["response_function.mass", "response_function.strain_energy"],
                         "format_info": {
                             "int_length": 7,
-                            "float_precision": 3,
+                            "float_precision": 6,
                             "bool_values": [
                                 "no",
                                 "yes"
