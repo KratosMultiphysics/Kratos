@@ -1,13 +1,9 @@
 import xml.etree.ElementTree as ET
-import typing
 import h5py
-import abc
 from pathlib import Path
 
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
-from KratosMultiphysics.HDF5Application.core.pattern import PathPatternEntity
-from KratosMultiphysics.HDF5Application.core.pattern import GetMachingEntitiesWithTagData
 from KratosMultiphysics.HDF5Application.core.pattern import IdentifyPattern
 from KratosMultiphysics.HDF5Application.core.xdmf import SpatialGrid
 from KratosMultiphysics.HDF5Application.core.xdmf import HDF5UniformDataItem
@@ -20,6 +16,7 @@ from KratosMultiphysics.HDF5Application.core.xdmf import Time
 from KratosMultiphysics.HDF5Application.core.xdmf import Domain
 from KratosMultiphysics.HDF5Application.core.xdmf import Xdmf
 from KratosMultiphysics.HDF5Application.core.xdmf import EntityData
+from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import DataSetGenerator
 
 def GetPatternDetailsFromFileName(file_name_path: Path) -> str:
     file_relative_path = str(file_name_path.relative_to(Path(".")))
@@ -29,12 +26,6 @@ def GetPatternDetailsFromFileName(file_name_path: Path) -> str:
         return pattern + "5", tag_type_dict
     else:
         return IdentifyPattern(file_relative_path)
-
-def GetSortedFilesListFromPattern(path: Path,
-                                  pattern: str,
-                                  tag_type_dict: {"<time>": float, "<step>": int},
-                                  sorting_functor=lambda _, *args: tuple(args)) -> 'list[tuple[typing.Any]]':
-    return GetMachingEntitiesWithTagData(PathPatternEntity(path), pattern, tag_type_dict, sorting_functor)
 
 def GetSpatialGridPaths(h5_file: h5py.File, list_of_model_data_paths: 'list[str]', current_path: str) -> None:
     current_data = h5_file[current_path]
@@ -77,7 +68,7 @@ def GenerateUniformGridsForSubModelParts(h5_file: h5py.File, grid_path: str, gri
             else:
                 GenerateUniformGridsForSubModelParts(h5_file, f"{grid_path}/{name}", f"{grid_name}.{name}", coordinates, spatial_grid)
 
-def GenerateSpatialGrid(h5_file_name: str, model_data_path: str) -> 'tuple[SpatialGrid, list[UniformGrid], list[UniformGrid]]':
+def GenerateSpatialGrid(h5_file_name: str, model_data_path: str) -> SpatialGrid:
     h5_file = h5py.File(h5_file_name, "r")
 
     if model_data_path not in h5_file.keys():
@@ -122,88 +113,39 @@ def GenerateSpatialGrid(h5_file_name: str, model_data_path: str) -> 'tuple[Spati
 
     return spatial_grid
 
-def GetAvailableDataSets(h5_file: h5py.File, group_paths_list: 'list[str]') -> 'list[EntityData]':
-    # data_sets holds a dictionary of data sets found in the specified group_paths_list.
-    # in data_sets, first we store the mesh_location, then container_type, then data_names list
-    data_sets: 'list[EntityData]' = []
+def WriteDataSetsToXdmf(dataset_generator: DataSetGenerator, output_file_name: str) -> None:
+    temporal_information: 'dict[float, list[EntityData]]' = {}
 
-    def __check_item(_: str, h5_object: typing.Any) -> None:
-        if isinstance(h5_object, h5py.Dataset):
-            attribs = h5_object.attrs
+    for temporal_value, dataset in dataset_generator.Iterate():
+        if temporal_value not in temporal_information.keys():
+            temporal_information[temporal_value]: 'list[EntityData]' = []
+        temporal_information[temporal_value].append(dataset)
 
-            container_type = None
-            if "__container_type" in attribs.keys():
-                container_type = ''.join(chr(i) for i in attribs["__container_type"])
-            mesh_location = None
-            if "__mesh_location" in attribs.keys():
-                mesh_location = ''.join(chr(i) for i in attribs["__mesh_location"])
-            data_name = None
-            if "__data_name" in attribs.keys():
-                data_name = ''.join(chr(i) for i in attribs["__data_name"])
+    # now we have done with the dataset_generator. So we can safely generate the spatial grids.
 
-            if container_type and mesh_location and data_name:
-                data_sets.append(EntityData(h5_object))
-
-    for group_path in group_paths_list:
-        h5_file[group_path].visititems(__check_item)
-
-    return data_sets
-
-class OrderedDataSets(abc.ABC):
-    @abc.abstractmethod
-    def Iterate(self) -> 'typing.Generator[tuple[float, str, list[EntityData]]]':
-        pass
-
-class SingleMeshMultiFileSameOrderedDataSets(OrderedDataSets):
-    def __init__(self,
-                 path: Path,
-                 file_name_pattern: str,
-                 temporal_tag_position = 0,
-                 tag_type_dict = {"<time>": float, "<step>": int},
-                 sorting_functor=lambda _, *args: tuple(args)) -> None:
-        # generated the sorted file data lists
-        self.file_data_list =  GetSortedFilesListFromPattern(path, file_name_pattern, tag_type_dict, sorting_functor)
-        self.temporal_tag_position = temporal_tag_position
-
-        if not self.file_data_list:
-            raise RuntimeError(f"No files found matching the file name pattern at {str(path)} [ file_name_pattern = {file_name_pattern} ].")
-
-        # since all files should have the same results. We only open one file and get the data sets.
-        with h5py.File(self.file_data_list[0][0].Get(), "r") as h5_file:
-            self.data_sets = GetAvailableDataSets(h5_file, ["/"])
-
-        if not self.data_sets:
-            raise RuntimeError("No data sets found.")
-
-    def Iterate(self) -> 'typing.Generator[tuple[float, str, list[EntityData]]]':
-        for file_data in self.file_data_list:
-            yield float(file_data[self.temporal_tag_position + 1]), self.data_sets[0].mesh_location, self.data_sets
-
-def WriteOrderedDataSetsToXdmf(ordered_datasets: OrderedDataSets, output_file_name: str) -> None:
     temporal_grid = TemporalGrid()
-
     spatial_grids: 'dict[str, SpatialGrid]' = {}
 
-    for control_value, mesh_location, datasets in ordered_datasets.Iterate():
-        # get the spatial grid
-        if not mesh_location in spatial_grids.keys():
-            mesh_data = mesh_location.split(":")
-            spatial_grids[mesh_location] = GenerateSpatialGrid(mesh_data[0], mesh_data[1])
+    for temporal_value in sorted(list(temporal_information.keys())):
+        # there is no sense in haiving mutiple meshes in the same time step. Hence mesh data
+        # is retrieved from the first dataset.
+        datasets = temporal_information[temporal_value]
 
-        # now create a duplicate of the found spatial grid
+        mesh_location = datasets[0].mesh_location
+        if mesh_location not in spatial_grids.keys():
+            mesh_location_data = mesh_location.split(":")
+            spatial_grids[mesh_location] = GenerateSpatialGrid(mesh_location_data[0], mesh_location_data[1])
+
+        # create a copy of the spatial grid
         current_spatial_grid = SpatialGrid()
-        spatial_grid = spatial_grids[mesh_location]
-
-        # now add submodel part grids
-        for grid in spatial_grid.grids:
+        for grid in spatial_grids[mesh_location].grids:
             current_spatial_grid.AddGrid(UniformGrid(grid.name, grid.geometry, grid.topology, grid.is_root, grid.container_type))
 
-        # now add the results
         for dataset in datasets:
             current_spatial_grid.AddAttribute(dataset)
 
-        temporal_grid.AddGrid(Time(control_value), current_spatial_grid)
-        KratosMultiphysics.Logger.PrintInfo("XDMF", f"Written data for control value = {control_value}.")
+        temporal_grid.AddGrid(Time(temporal_value), current_spatial_grid)
+        KratosMultiphysics.Logger.PrintInfo("XDMF", f"Written data for control value = {temporal_value}.")
 
     domain = Domain(temporal_grid)
     xdmf = Xdmf(domain)
