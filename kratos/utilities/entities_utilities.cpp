@@ -63,15 +63,6 @@ bool EntitityIdentifier<TEntity>::IsInitialized() const
 /***********************************************************************************/
 
 template<class TEntity>
-bool EntitityIdentifier<TEntity>::HasPrototypeEntity(typename GeometryType::Pointer pGeometry) const
-{
-    return mTypes[static_cast<std::size_t>(pGeometry->GetGeometryType())] != nullptr;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<class TEntity>
 bool EntitityIdentifier<TEntity>::HasPrototypeEntity(const GeometryType& rGeometry) const
 {
     return mTypes[static_cast<std::size_t>(rGeometry.GetGeometryType())] != nullptr;
