@@ -109,7 +109,7 @@ namespace EntitiesUtilities
          * @return true there is a prototype for the provided entity.
          * @return false there is no prototype for the provided entity.
          */
-        const bool HasPrototypeEntity(typename GeometryType::Pointer pGeometry) const;
+        bool HasPrototypeEntity(typename GeometryType::Pointer pGeometry) const;
 
         /**
          * @brief Get the prototype entity.
@@ -117,7 +117,7 @@ namespace EntitiesUtilities
          * @return true there is a prototype for the provided entity.
          * @return false there is no prototype for the provided entity.
          */
-        const bool HasPrototypeEntity(const GeometryType& rGeometry) const;
+        bool HasPrototypeEntity(const GeometryType& rGeometry) const;
 
         /**
          * @brief Get the prototype entity.
