@@ -381,7 +381,7 @@ class EntityData(Attribute):
             self._container_type = Kratos.Globals.DataLocation.Element
             self._center = "Cell"
         else:
-            raise RuntimeError(f"Unsupported container_type = \"{self.container_type}\" at {data_set.name}.")
+            raise RuntimeError(f"Unsupported container_type = \"{container_type}\" at {data_set.name}.")
 
     def CreateXmlElement(self) -> ET.Element:
         e = ET.Element(self.xml_tag)
@@ -465,7 +465,13 @@ class SpatialGrid(Grid):
         """Add an XDMF Attribute (results data set) to each child grid."""
         if  attr.container_type == Kratos.Globals.DataLocation.NodeNonHistorical:
             # nodal data is added to all grids since, all grids has all the nodes.
+
+            # first check whther the attribute already exists in the nodal gridse
             for grid in self.grids:
+                for grid_attr in grid.attributes:
+                    if grid_attr.container_type == attr.container_type and grid_attr.name == attr.name:
+                        raise RuntimeError(f"Trying to add duplicate field with name \"{attr.name}\" for {attr.container_type.name}.")
+
                 grid.AddAttribute(attr)
         else:
             # condition data is added to only the root condition grid. Because,
@@ -480,6 +486,9 @@ class SpatialGrid(Grid):
             for grid in self.grids:
                 if grid.is_root and grid.container_type == attr.container_type:
                     if not added_once:
+                        for grid_attr in grid.attributes:
+                            if grid_attr.container_type == attr.container_type and grid_attr.name == attr.name:
+                                raise RuntimeError(f"Trying to add duplicate field with name \"{attr.name}\" for {attr.container_type.name}.")
                         grid.AddAttribute(attr)
                         added_once = True
                     else:
