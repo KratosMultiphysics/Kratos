@@ -54,7 +54,7 @@ def __GetModelPartUniformGrids(h5_group: h5py.Group, grid_name: str, coordinates
                 connectivities = HDF5UniformDataItem(entity_group["Connectivities"])
                 topology = UniformMeshTopology(cell_type, connectivities)
                 grids.append(UniformGrid(f"{grid_name}.{name}", coordinates, topology, is_root, container_type))
-                KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added {grid_name}.{name} spatial grid.")
+                KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added \"{h5_group.file.filename}:{grid_name}.{name}\" spatial grid from")
             else:
                 raise RuntimeError(f"Either \"Connectivities\", \"NumberOfNodes\" or \"WorkingSpaceDimension\" are not defined for {h5_group.name}.")
     return grids
@@ -68,7 +68,7 @@ def GenerateUniformGridsForSubModelParts(h5_file: h5py.File, grid_path: str, gri
             points = HDF5UniformDataItem(h5_object)
             topology = UniformMeshTopology(cell_type, points)
             spatial_grid.AddGrid(UniformGrid(f"{grid_name}.Points", coordinates, topology, False, KratosMultiphysics.Globals.DataLocation.NodeNonHistorical))
-            KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added {grid_name}.Points spatial grid.")
+            KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added \"{h5_file.filename}:{grid_name}.{name}\" spatial grid from")
         elif isinstance(h5_object, h5py.Group):
             if name == "Conditions":
                 list(map(spatial_grid.AddGrid, __GetModelPartUniformGrids(h5_object, grid_name, coordinates, False, KratosMultiphysics.Globals.DataLocation.Condition)))

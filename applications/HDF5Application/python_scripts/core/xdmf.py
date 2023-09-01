@@ -33,18 +33,16 @@ See also http://www.xdmf.org/index.php/XDMF_Model_and_Format.
 BSD license: HDF5Application/license.txt
 """
 
-
-from abc import ABC, abstractmethod
 import xml.etree.ElementTree as ET
 import h5py
+import abc
 import KratosMultiphysics as Kratos
 
-
-class XdmfItem(ABC):
+class XdmfItem(abc.ABC):
     """The base class for all XDMF XML elements."""
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def xml_tag(self) -> str:
         """Return the XML tag for the XDMF item as a string.
 
@@ -53,7 +51,7 @@ class XdmfItem(ABC):
         """
         pass
 
-    @abstractmethod
+    @abc.abstractmethod
     def CreateXmlElement(self) -> ET.Element:
         """Return the XDMF item as an XML element node in the XML document tree.
 
@@ -86,7 +84,7 @@ class DataItem(XdmfItem):
         return "DataItem"
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def dimensions(self) -> 'list[int]':
         """Return a shape tuple of the HDF5 data set.
 
@@ -103,7 +101,7 @@ class Attribute(XdmfItem):
         return "Attribute"
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def name(self) -> str:
         """A descriptive name of the results data.
 
@@ -112,7 +110,7 @@ class Attribute(XdmfItem):
         pass
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def center(self) -> str:
         """Specifies where the data is centered.
 
@@ -121,7 +119,7 @@ class Attribute(XdmfItem):
         pass
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def attribute_type(self) -> str:
         """Specifies the rank of the data.
 
@@ -130,7 +128,7 @@ class Attribute(XdmfItem):
         pass
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def container_type(self) -> Kratos.Globals.DataLocation:
         """Specifies the container type from where the data is originated from.
 
@@ -141,7 +139,7 @@ class Attribute(XdmfItem):
         pass
 
     @property
-    @abstractmethod
+    @abc.abstractmethod
     def mesh_location(self) -> str:
         """Specifies the mesh location from where the data is originated from.
 
@@ -173,7 +171,7 @@ class Grid(XdmfItem):
     def xml_tag(self) -> str:
         return "Grid"
 
-    @abstractmethod
+    @abc.abstractmethod
     def AddAttribute(self, attr: Attribute) -> None:
         """Add an XDMF Attribute to the grid.
 
@@ -476,7 +474,8 @@ class SpatialGrid(Grid):
             # when we write conditions, we break the whole conditions list to sub lists
             # based on their type. But the condition datasets are written as a contigous dataset.
             # hence the values and conditions may not match.
-            # TODO: Check whether paraview support Set and SubSet XDMF elements
+            # TODO: Once Paraview supports Set and SubSet XDMF elements, then
+            #       update this section.
             added_once = False
             for grid in self.grids:
                 if grid.is_root and grid.container_type == attr.container_type:
@@ -494,7 +493,8 @@ class SpatialGrid(Grid):
             # when we write conditions, we break the whole conditions list to sub lists
             # based on their type. But the condition datasets are written as a contigous dataset.
             # hence the values and conditions may not match.
-            # TODO: Check whether paraview support Set and SubSet XDMF elements
+            # TODO: Once Paraview supports Set and SubSet XDMF elements, then
+            #       update this section.
             added_once = False
             for grid in self.grids:
                 if grid.is_root and grid.container_type == attr.container_type:
