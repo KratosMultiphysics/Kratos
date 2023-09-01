@@ -105,14 +105,6 @@ namespace EntitiesUtilities
 
         /**
          * @brief Get the prototype entity.
-         * @param pGeometry The pointer to the geometry.
-         * @return true there is a prototype for the provided entity.
-         * @return false there is no prototype for the provided entity.
-         */
-        bool HasPrototypeEntity(typename GeometryType::Pointer pGeometry) const;
-
-        /**
-         * @brief Get the prototype entity.
          * @param rGeometry The reference to the geometry.
          * @return true there is a prototype for the provided entity.
          * @return false there is no prototype for the provided entity.
