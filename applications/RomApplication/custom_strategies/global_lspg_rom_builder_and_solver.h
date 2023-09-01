@@ -8,6 +8,7 @@
 //                  Kratos default license: kratos/license.txt
 //
 //  Main authors:   Sebastian Ares de Parga Regalado
+//                  Eduard Gomez Escandell
 //
 
 #pragma once
@@ -63,18 +64,20 @@ namespace Kratos
 /**
  * @class GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver
  * @ingroup RomApplication
- * @brief Current class provides an implementation for LeastSquaresPetrovGalerkinROM builder and solving operations.
- * @details The RHS is constituted by the unbalanced loads (residual).
- * The LHS is constituted by multiplying the Jacobian or its approximation with the ROM RIGHT BASIS, 
- * yielding a rectangular system (FOM size) that is then solved using the QR decomposition.
- * Degrees of freedom are reordered putting the restrained degrees of freedom at
- * the end of the system ordered in reverse order with respect to the DofSet (as for the FOM).
- * Imposition of the dirichlet conditions is naturally dealt with as the residual already contains
- * this information (as for the FOM).
- * @tparam TSparseSpace The sparse system considered
- * @tparam TDenseSpace The dense system considered
- * @tparam TLinearSolver The linear solver considered
- * @author SebastianAres
+ * @brief This class provides an implementation for the LeastSquaresPetrovGalerkinROM builder and solver operations.
+ * This B&S now inherits from the GlobalROMBuilderAndSolver, which in turn inherits 
+ * from the ResidualBasedBlockBuilderAndSolver. The RHS is composed of unbalanced loads 
+ * (residual) and is constructed using the ResidualBasedBlockBuilderAndSolver. Similarly, the 
+ * LHS is constructed using the ResidualBasedBlockBuilderAndSolver and is then multiplied 
+ * by the ROM RIGHT BASIS. This results in a rectangular system with dimensions of FOM size 
+ * by ROM size. This system can be solved using either the normal equations or the QR 
+ * decomposition. The degrees of freedom are rearranged so that the restrained ones are 
+ * placed at the end of the system, ordered inversely to the DofSet, mirroring the arrangement 
+ * in the FOM.
+ * @tparam TSparseSpace Defines the sparse system under consideration
+ * @tparam TDenseSpace Defines the dense system under consideration
+ * @tparam TLinearSolver Specifies the linear solver being utilized
+ * @author Sebastian Ares de Parga Regalado
  */
 
 template <class TSparseSpace, class TDenseSpace, class TLinearSolver>
@@ -89,29 +92,28 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver);
 
     // The size_t types
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
+    using SizeType = std::size_t;
+    using IndexType = std::size_t;
 
     /// The definition of the current class
-    typedef GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+    using ClassType = GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
 
     /// Definition of the classes from the base class
     using BaseBuilderAndSolverType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
-    typedef GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
-    typedef typename BaseType::TSchemeType TSchemeType;
-    typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
-    typedef typename BaseType::TSystemMatrixPointerType TSystemMatrixPointerType;
-    typedef typename BaseType::TSystemVectorPointerType TSystemVectorPointerType;
-    typedef typename BaseType::ElementsArrayType ElementsArrayType;
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
+    using BaseType = GlobalROMBuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using TSchemeType = typename BaseType::TSchemeType;
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
+    using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
+    using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
+    using ElementsArrayType = typename BaseType::ElementsArrayType;
+    using ConditionsArrayType = typename BaseType::ConditionsArrayType;
 
     /// Additional definitions
-    typedef typename ModelPart::MasterSlaveConstraintContainerType MasterSlaveConstraintContainerType;
-    typedef Element::EquationIdVectorType EquationIdVectorType;
-    typedef Element::DofsVectorType DofsVectorType;
+    using MasterSlaveConstraintContainerType = typename ModelPart::MasterSlaveConstraintContainerType;
+    using EquationIdVectorType = Element::EquationIdVectorType;
 
     // Eigen definitions
     using EigenDynamicMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
@@ -119,10 +121,12 @@ public:
     using EigenSparseMatrix = Eigen::SparseMatrix<double, Eigen::RowMajor, int>;
 
     /// DoF types definition
-    typedef Node NodeType;
-    typedef typename NodeType::DofType DofType;
-    typedef typename DofType::Pointer DofPointerType;
-    typedef moodycamel::ConcurrentQueue<DofType::Pointer> DofQueue;
+    using NodeType = Node;
+    using DofType = typename NodeType::DofType;
+    using DofPointerType = typename DofType::Pointer;
+    using DofQueue = moodycamel::ConcurrentQueue<DofType::Pointer>;
+    using DofsVectorType = Element::DofsVectorType;
+
 
     ///@}
     ///@name Life cycle
@@ -148,229 +152,6 @@ public:
     ///@}
     ///@name Operations
     ///@{
-
-    void SetUpDofSet(
-        typename TSchemeType::Pointer pScheme,
-        ModelPart &rModelPart) override
-    {
-        KRATOS_TRY;
-
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
-
-        // Get model part data
-        if (this->mHromWeightsInitialized == false) {
-            this->InitializeHROMWeights(rModelPart);
-        }
-
-        // Compute the complementary mesh for HROM
-        if (this->mHromSimulation){
-            FindNeighbouringElementsAndConditions(rModelPart);
-            // ComputeComplementaryElementsAndConditions(rModelPart);
-        }
-
-        auto dof_queue = this->ExtractDofSet(pScheme, rModelPart);
-        
-        // Fill a sorted auxiliary array of with the DOFs set
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
-        auto dof_array = this->SortAndRemoveDuplicateDofs(dof_queue);
-
-        // Update base builder and solver DOFs array and set corresponding flag
-        BaseType::GetDofSet().swap(dof_array);
-        BaseType::SetDofSetIsInitializedFlag(true);
-
-        // Throw an exception if there are no DOFs involved in the analysis
-        KRATOS_ERROR_IF(BaseType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::GetDofSet().size() << std::endl;
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
-
-#ifdef KRATOS_DEBUG
-        // If reactions are to be calculated, we check if all the dofs have reactions defined
-        if (BaseType::GetCalculateReactionsFlag())
-        {
-            for (const auto& r_dof: BaseType::GetDofSet())
-            {
-                KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
-                    << "Reaction variable not set for the following :\n"
-                    << "Node : " << r_dof.Id() << '\n'
-                    << "Dof  : " << r_dof      << '\n'
-                    << "Not possible to calculate reactions." << std::endl;
-            }
-        }
-#endif
-        KRATOS_CATCH("");
-    } 
-
-    void FindNeighbouringElementsAndConditions(ModelPart& rModelPart) 
-    {
-        mNeighbouringAndSelectedElements.clear();
-        mNeighbouringAndSelectedConditions.clear();
-
-        // Create sets for storing Ids
-        std::set<int> selected_element_ids;
-        std::set<int> selected_condition_ids;
-
-        FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
-        find_nodal_elements_neighbours_process.Execute();
-        FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rModelPart);
-        find_nodal_conditions_neighbours_process.Execute();
-
-        for (auto it_elem = this->mSelectedElements.ptr_begin(); it_elem != this->mSelectedElements.ptr_end(); ++it_elem) {
-            mNeighbouringAndSelectedElements.push_back(*it_elem);
-            selected_element_ids.insert((*it_elem)->Id());
-
-            const auto& r_geom = (*it_elem)->GetGeometry();
-            const SizeType n_nodes = r_geom.PointsNumber();
-            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-                NodeType::Pointer p_node = r_geom(i_node);
-                auto& neighbour_elements = p_node->GetValue(NEIGHBOUR_ELEMENTS);
-                for (auto& neighbor_elem : neighbour_elements.GetContainer()) {
-                    if(selected_element_ids.find(neighbor_elem->Id()) == selected_element_ids.end()) {
-                        mNeighbouringAndSelectedElements.push_back(&*neighbor_elem);
-                        selected_element_ids.insert(neighbor_elem->Id());
-                    }
-                }
-
-                // Check and add neighbouring conditions
-                auto& neighbour_conditions = p_node->GetValue(NEIGHBOUR_CONDITIONS);
-                for (auto& neighbor_cond : neighbour_conditions.GetContainer()) {
-                    if(selected_condition_ids.find(neighbor_cond->Id()) == selected_condition_ids.end()) {
-                        mNeighbouringAndSelectedConditions.push_back(&*neighbor_cond);
-                        selected_condition_ids.insert(neighbor_cond->Id());
-                    }
-                }
-            }
-        }
-
-        for (auto it_cond = this->mSelectedConditions.ptr_begin(); it_cond != this->mSelectedConditions.ptr_end(); ++it_cond) {
-            mNeighbouringAndSelectedConditions.push_back(*it_cond);
-            selected_condition_ids.insert((*it_cond)->Id());
-
-            const auto& r_geom = (*it_cond)->GetGeometry();
-            const SizeType n_nodes = r_geom.PointsNumber();
-            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-                NodeType::Pointer p_node = r_geom(i_node);
-                auto& neighbour_conditions = p_node->GetValue(NEIGHBOUR_CONDITIONS);
-                for (auto& neighbor_cond : neighbour_conditions.GetContainer()) {
-                    if(selected_condition_ids.find(neighbor_cond->Id()) == selected_condition_ids.end()) {
-                        mNeighbouringAndSelectedConditions.push_back(&*neighbor_cond);
-                        selected_condition_ids.insert(neighbor_cond->Id());
-                    }
-                }
-
-                // Check and add neighbouring elements
-                auto& neighbour_elements = p_node->GetValue(NEIGHBOUR_ELEMENTS);
-                for (auto& neighbor_elem : neighbour_elements.GetContainer()) {
-                    if(selected_element_ids.find(neighbor_elem->Id()) == selected_element_ids.end()) {
-                        mNeighbouringAndSelectedElements.push_back(&*neighbor_elem);
-                        selected_element_ids.insert(neighbor_elem->Id());
-                    }
-                }
-            }
-        }
-
-        std::unordered_map<int, Element::Pointer> unique_elements_map;
-        for (const auto& elem : mNeighbouringAndSelectedElements) {
-            unique_elements_map[elem.Id()] = intrusive_ptr<Element>(const_cast<Element*>(&elem));
-        }
-        mNeighbouringAndSelectedElements.clear();
-        for (const auto& pair : unique_elements_map) {
-            mNeighbouringAndSelectedElements.push_back(pair.second);
-        }
-
-        std::unordered_map<int, Condition::Pointer> unique_conditions_map;
-        for (const auto& cond : mNeighbouringAndSelectedConditions) {
-            unique_conditions_map[cond.Id()] = intrusive_ptr<Condition>(const_cast<Condition*>(&cond));
-        }
-        mNeighbouringAndSelectedConditions.clear();
-        for (const auto& pair : unique_conditions_map) {
-            mNeighbouringAndSelectedConditions.push_back(pair.second);
-        }
-
-
-        for (auto elem : this->mSelectedElements) {
-            std::cout << elem.Id() << " ";
-        }
-        std::cout << std::endl;
-
-        for (auto elem : this->mNeighbouringAndSelectedElements) {
-            std::cout << elem.Id() << " ";
-        }
-        std::cout << std::endl;
-
-        for (auto cond : this->mSelectedConditions) {
-            std::cout << cond.Id() << " ";
-        }
-        std::cout << std::endl;
-
-        for (auto cond : this->mNeighbouringAndSelectedConditions) {
-            std::cout << cond.Id() << " ";
-        }
-        std::cout << std::endl;
-    }
-
-
-    void CheckForDuplicates() 
-    {
-        std::set<int> element_ids;
-        std::set<int> condition_ids;
-
-        for(auto& elem : mNeighbouringAndSelectedElements) {
-            element_ids.insert(elem.Id());
-        }
-
-        for(auto& cond : mNeighbouringAndSelectedConditions) {
-            condition_ids.insert(cond.Id());
-        }
-
-        if(element_ids.size() != mNeighbouringAndSelectedElements.size()) {
-            std::cout << "There are duplicate elements in mNeighbouringAndSelectedElements." << std::endl;
-        }
-
-        if(condition_ids.size() != mNeighbouringAndSelectedConditions.size()) {
-            std::cout << "There are duplicate conditions in mNeighbouringAndSelectedConditions." << std::endl;
-        }
-    }
-
-
-
-    // TODO: Parallel Utilities
-    void ComputeComplementaryElementsAndConditions(ModelPart& rModelPart) 
-    {
-        // Creating a standard vector of IDs from the selected elements and conditions
-        std::vector<unsigned int> selectedElementIds;
-        for (const auto& element: this->mSelectedElements) {
-            selectedElementIds.push_back(element.Id());
-        }
-
-        std::vector<unsigned int> selectedConditionIds;
-        for (const auto& condition: this->mSelectedConditions) {
-            selectedConditionIds.push_back(condition.Id());
-        }
-
-        // Compute complementary elements
-        for (auto& p_element : rModelPart.Elements().GetContainer())
-        {
-            auto found_element = std::find(selectedElementIds.begin(), selectedElementIds.end(), p_element->Id());
-
-            // If the element is not found in selectedElementIds, add it to mComplementaryElements.
-            if (found_element == selectedElementIds.end()) {
-                mComplementaryElements.push_back(p_element);;
-            }
-        }
-
-        // Compute complementary conditions
-        for (auto& p_condition : rModelPart.Conditions().GetContainer())
-        {
-            auto found_condition = std::find(selectedConditionIds.begin(), selectedConditionIds.end(), p_condition->Id());
-
-            // If the condition is not found in selectedConditionIds, add it to mComplementaryConditions.
-            if (found_condition == selectedConditionIds.end()) {
-                mComplementaryConditions.push_back(p_condition);
-            }
-        }
-    }
 
     /**
      * Builds and projects the reduced system of equations 
@@ -399,15 +180,6 @@ public:
 
         // Initialize the mask vector with zeros
         Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
-
-        // // Get ProcessInfo from main model part
-        // const auto& r_current_process_info = rModelPart.GetProcessInfo();
-
-        // // Build the mask vector for selected elements and conditions
-        // BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
-
-        // // Zero out rows in the matrix that correspond to zero in the mask vector
-        // ApplyMaskToMatrixRows(rA, hrom_dof_mask_vector);
 
         ProjectROM(rModelPart, rA, rb);
 
@@ -441,10 +213,16 @@ public:
         
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
-        // Compute the matrix multiplication
-        this->mEigenRomA = eigen_rA_times_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
-        this->mEigenRomB = eigen_rA_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
-        
+        if (mSolvingTechnique == "normal_equations"){
+            // Compute the matrix multiplication
+            this->mEigenRomA = eigen_rA_times_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
+            this->mEigenRomB = eigen_rA_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+        }
+        else if (mSolvingTechnique == "qr_decomposition") {
+            this->mEigenRomA = eigen_rA_times_mPhiGlobal; 
+            this->mEigenRomB = eigen_rb;
+        }
+
         KRATOS_CATCH("")
     }
 
@@ -460,13 +238,16 @@ public:
         BuildAndProjectROM(pScheme, rModelPart, A, b, Dx);
 
         // Obtain the assembled residuals vector (To build a basis for Petrov-Galerkin)
-        if (mTrainPetrovGalerkinFlag){
+        if (mTrainPetrovGalerkinFlag & mBasisStrategy=="residuals"){
             std::stringstream matrix_market_vector_name;
             matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME] << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] <<  ".res.mm";
             SparseSpaceType::WriteMatrixMarketVector((matrix_market_vector_name.str()).c_str(), b);
         }
         
-        this->SolveROM(rModelPart, this->mEigenRomA, this->mEigenRomB, Dx);
+        if (mSolvingTechnique == "normal_equations")
+            this->SolveROM(rModelPart, this->mEigenRomA, this->mEigenRomB, Dx);
+        else if (mSolvingTechnique == "qr_decomposition")
+            SolveROM(rModelPart, this->mEigenRomA, this->mEigenRomB, Dx);
 
         KRATOS_CATCH("")
     }
@@ -478,7 +259,9 @@ public:
             "name" : "lspg_rom_builder_and_solver",
             "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10,
-            "train_petrov_galerkin" : false
+            "train_petrov_galerkin" : false,
+            "solving_technique" : "normal_equations",
+            "basis_strategy" : "residuals"
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 
@@ -537,13 +320,16 @@ protected:
     ///@}
     ///@name Protected member variables
     ///@{
-
+    
     SizeType mNodalDofs;
     ElementsArrayType mComplementaryElements;
     ConditionsArrayType mComplementaryConditions;
     ElementsArrayType mNeighbouringAndSelectedElements;
     ConditionsArrayType mNeighbouringAndSelectedConditions;
-    bool mTrainPetrovGalerkinFlag = false;
+    EigenDynamicMatrix mEigenRomA;
+    EigenDynamicVector mEigenRomB;
+    Matrix mPhiGlobal;
+    bool mRightRomBasisInitialized = false;
 
     ///@}
     ///@name Protected operators
@@ -560,6 +346,8 @@ protected:
 
         // // Set member variables
         mTrainPetrovGalerkinFlag = ThisParameters["train_petrov_galerkin"].GetBool();
+        mBasisStrategy = ThisParameters["basis_strategy"].GetString();
+        mSolvingTechnique = ThisParameters["solving_technique"].GetString();
     }
 
     /**
@@ -574,190 +362,36 @@ protected:
         }
     };
 
-
     /**
-     * Builds the reduced system of equations on rank 0 
+     * Solves reduced system of equations and broadcasts it
      */
-    // void BuildROM(
-    //     typename TSchemeType::Pointer pScheme,
-    //     ModelPart &rModelPart,
-    //     LSPGSystemMatrixType &rA,
-    //     LSPGSystemVectorType &rb) override
-    // {
-    //     KRATOS_TRY
-    //     // Define a dense matrix to hold the reduced problem
-    //     rA = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
-    //     rb = ZeroVector(BaseType::GetEquationSystemSize());
-
-    //     // Build the system matrix by looping over elements and conditions and assembling to A
-    //     KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
-
-    //     // Get ProcessInfo from main model part
-    //     const auto& r_current_process_info = rModelPart.GetProcessInfo();
-
-
-    //     // Assemble all entities
-    //     const auto assembling_timer = BuiltinTimer();
-
-    //     AssemblyTLS assembly_tls_container;
-
-    //     // const auto& r_elements = rModelPart.Elements();
-    //     const auto& r_elements = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
-
-    //     if(!r_elements.empty())
-    //     {
-    //         block_for_each(r_elements, assembly_tls_container, 
-    //             [&](Element& r_element, AssemblyTLS& r_thread_prealloc)
-    //         {
-    //             CalculateLocalContributionLSPG(r_element, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info, true);
-    //         });
-    //     }
-
-
-    //     // const auto& r_conditions = rModelPart.Conditions();
-    //     const auto& r_conditions = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
-
-    //     if(!r_conditions.empty())
-    //     {
-    //         block_for_each(r_conditions, assembly_tls_container, 
-    //             [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc)
-    //         {
-    //             CalculateLocalContributionLSPG(r_condition, rA, rb, r_thread_prealloc, *pScheme, r_current_process_info, true);
-    //         });
-    //     }
-
-    //     //////////
-    //     //BUILD COMPLETE OPERATOR FOR HROM 
-    //     Matrix rA_left;
-    //     Vector rb_left;
-    //     if (this->mHromSimulation){
-    //         // rA_left = rA;
-    //         // rb_left = rb;  
-    //         AssemblyTLS assembly_tls_container_left;
-    //         rA_left = ZeroMatrix(BaseType::GetEquationSystemSize(), this->GetNumberOfROMModes());
-    //         rb_left = ZeroVector(BaseType::GetEquationSystemSize());
-    //         // const auto& r_elements_left = rModelPart.Elements();
-    //         auto& r_elements_left = mNeighbouringAndSelectedElements;
-    //         // auto& r_elements_left = this->mHromSimulation ? this->mSelectedElements : rModelPart.Elements();
-    //         // auto& r_elements_left = mComplementaryElements;
-
-    //         if(!r_elements_left.empty())
-    //         {
-    //             block_for_each(r_elements_left, assembly_tls_container_left, 
-    //                 [&](Element& r_element, AssemblyTLS& r_thread_prealloc_left)
-    //             {
-    //                 CalculateLocalContributionLSPG(r_element, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
-    //             });
-    //         }
-
-    //         // const auto& r_conditions_left = rModelPart.Conditions();
-    //         auto& r_conditions_left = mNeighbouringAndSelectedConditions;
-    //         // auto& r_conditions_left = mComplementaryConditions;
-    //         // auto& r_conditions_left = this->mHromSimulation ? this->mSelectedConditions : rModelPart.Conditions();
-    //         if(!r_conditions_left.empty())
-    //         {
-    //             block_for_each(r_conditions_left, assembly_tls_container_left, 
-    //                 [&](Condition& r_condition, AssemblyTLS& r_thread_prealloc_left)
-    //             {
-    //                 CalculateLocalContributionLSPG(r_condition, rA_left, rb_left, r_thread_prealloc_left, *pScheme, r_current_process_info, false);
-    //             });
-    //         }
-
-    //         // Initialize the mask vector with zeros
-    //         Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
-
-    //         // Build the mask vector for selected elements and conditions
-    //         BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
-
-    //         // Zero out rows in the matrix that correspond to zero in the mask vector
-    //         ApplyMaskToMatrixRows(rA_left, hrom_dof_mask_vector);
-    //     }
-
-    //     const auto projection_timer = BuiltinTimer();
-
-    //     using EigenDynamicMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
-    //     using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
-
-    //     // Create the Eigen matrix using the buffer
-    //     Eigen::Map<EigenDynamicMatrix> eigen_matrix(rA.data().begin(), rA.size1(), rA.size2());
-    //     Eigen::Map<EigenDynamicVector> eigen_vector(rb.data().begin(), rb.size());
-
-    //     if (this->mHromSimulation){
-    //         Eigen::Map<EigenDynamicMatrix> eigen_matrix_left(rA_left.data().begin(), rA_left.size1(), rA_left.size2());
-    //         mA_eigen = eigen_matrix_left.transpose() * eigen_matrix;
-    //         mb_eigen = eigen_matrix_left.transpose() * eigen_vector;
-    //     }
-    //     else{
-    //         // Compute the matrix multiplication
-    //         mA_eigen = eigen_matrix.transpose() * eigen_matrix;
-    //         mb_eigen = eigen_matrix.transpose() * eigen_vector;
-    //     }
-        
-    //     KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Projection time: " << projection_timer.ElapsedSeconds() << std::endl;
-        
-    //     double time = assembling_timer.ElapsedSeconds();
-    //     KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build time: " << time << std::endl;
-        
-    //     KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished parallel building" << std::endl;
-
-    //     KRATOS_CATCH("")
-    // }
-
-    void ApplyMaskToMatrixRows(Matrix& rA_left, 
-        const Vector& hrom_dof_mask_vector)
+    void SolveROM(
+        ModelPart &rModelPart,
+        EigenDynamicMatrix &rEigenRomA,
+        EigenDynamicVector &rEigenRomB,
+        TSystemVectorType &rDx) override
     {
-        if(rA_left.size1() != hrom_dof_mask_vector.size()) 
-        {
-            throw std::invalid_argument("Matrix and vector sizes do not match");
-        }
+        KRATOS_TRY
         
-        for(std::size_t i = 0; i < hrom_dof_mask_vector.size(); ++i)
-        {
-            if(hrom_dof_mask_vector[i] == 0)
-            {
-                row(rA_left, i) = zero_vector<double>(rA_left.size2());
-            }
-        }
-    }
+        const auto solving_timer = BuiltinTimer();
 
+        LocalSystemVectorType dxrom(this->GetNumberOfROMModes());
 
-    void BuildHromDofMaskVector(
-        Vector& rHromDofMaskVector,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        const auto& r_hrom_elements = this->mSelectedElements;
-        const auto& r_hrom_conditions = this->mSelectedConditions;
+        using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
+        Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
+        dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
-        // Ensuring the vector has the correct type for atomic operations.
-        std::vector<std::atomic<int>> atomicHromDofMaskVector(rHromDofMaskVector.size());
+        // Save the ROM solution increment in the root modelpart database
+        auto& r_root_mp = rModelPart.GetRootModelPart();
+        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
 
-        block_for_each(r_hrom_elements, [&](Element& r_element)
-        {
-            Element::DofsVectorType hrom_dofs;
-            r_element.GetDofList(hrom_dofs, rCurrentProcessInfo);
-            for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
-            {
-                const Dof<double>& r_dof = *hrom_dofs[i];
-                std::atomic_fetch_or(&atomicHromDofMaskVector[r_dof.EquationId()], 1);
-            }
-        });
+        // project reduced solution back to full order model
+        const auto backward_projection_timer = BuiltinTimer();
+        this->ProjectToFineBasis(dxrom, rModelPart, rDx);
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
-        block_for_each(r_hrom_conditions, [&](Condition& r_condition)
-        {
-            Condition::DofsVectorType hrom_dofs;
-            r_condition.GetDofList(hrom_dofs, rCurrentProcessInfo);
-            for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
-            {
-                const Dof<double>& r_dof = *hrom_dofs[i];
-                std::atomic_fetch_or(&atomicHromDofMaskVector[r_dof.EquationId()], 1);
-            }
-        });
-
-        // Copy back the atomic vector to the original one after all threads have finished their work.
-        for(std::size_t i = 0; i < atomicHromDofMaskVector.size(); ++i)
-        {
-            rHromDofMaskVector[i] = atomicHromDofMaskVector[i].load();
-        }
+        KRATOS_CATCH("")
     }
 
     ///@}
@@ -775,11 +409,9 @@ protected:
     ///@{
     
 private:
-
-    bool mRightRomBasisInitialized = false;
-    EigenDynamicMatrix mEigenRomA;
-    EigenDynamicVector mEigenRomB;
-    Matrix mPhiGlobal;
+    bool mTrainPetrovGalerkinFlag = false;
+    std::string mBasisStrategy;
+    std::string mSolvingTechnique;
 
     ///@}
     ///@name Private operations 
