@@ -68,7 +68,7 @@ def GenerateUniformGridsForSubModelParts(h5_file: h5py.File, grid_path: str, gri
             else:
                 GenerateUniformGridsForSubModelParts(h5_file, f"{grid_path}/{name}", f"{grid_name}.{name}", coordinates, spatial_grid)
 
-def GenerateSpatialGrid(h5_file_name: str, model_data_path: str) -> SpatialGrid:
+def CreateXdmfSpatialGrid(h5_file_name: str, model_data_path: str) -> SpatialGrid:
     """Generate a spatial grid from data in h4 file name and model data path.
 
     Args:
@@ -168,7 +168,7 @@ def WriteDataSetsToXdmf(dataset_generator: DataSetGenerator, output_file_name: s
         mesh_location = datasets[0].mesh_location
         if mesh_location not in spatial_grids.keys():
             mesh_location_data = mesh_location.split(":")
-            spatial_grids[mesh_location] = GenerateSpatialGrid(mesh_location_data[0], mesh_location_data[1])
+            spatial_grids[mesh_location] = CreateXdmfSpatialGrid(mesh_location_data[0], mesh_location_data[1])
 
         # create a copy of the spatial grid
         current_spatial_grid = SpatialGrid()

@@ -199,5 +199,106 @@ class TestDatasetGenerator(KratosUnittest.TestCase):
                 "comparison_type"       : "deterministic"
             }""")).Execute()
 
+    def testMultiFileDatasetsGenerator1(self):
+        number_of_time_steps = 5
+
+        for t in range(1, number_of_time_steps + 1, 1):
+            self.addCleanup(kratos_utils.DeleteFileIfExisting, str((Path(__file__).parent / f"auxiliar_files/xdmf/test-{t}.h5").absolute()))
+
+        with KratosUnittest.WorkFolderScope("auxiliar_files/xdmf", __file__):
+            parameters = Kratos.Parameters("""{
+                "model_part_name": "test",
+                "file_settings": {
+                    "file_name"        : "<model_part_name>-<step>.h5",
+                    "file_access_mode" : "exclusive"
+                },
+                "output_time_settings": {
+                    "output_control_type": "step",
+                    "output_interval"    : 1.0
+                },
+                "nodal_data_value_settings": {
+                    "list_of_variables": ["PRESSURE", "VELOCITY"]
+                },
+                "element_data_value_settings": {
+                    "list_of_variables": ["PRESSURE", "VELOCITY"]
+                },
+                "condition_data_value_settings": {
+                    "list_of_variables": ["PRESSURE", "VELOCITY"]
+                }
+            }""")
+
+            process = SingleMeshTemporalOutputProcess(self.model, parameters)
+            process.ExecuteInitialize()
+            process.Check()
+            for t in range(1, number_of_time_steps + 1, 1):
+                self.model_part.ProcessInfo[Kratos.STEP] = t
+                if process.IsOutputStep():
+                    process.PrintOutput()
+
+            generator = MultiFileDatasetsGenerator("test-<step>.h5")
+            WriteDataSetsToXdmf(generator, "single_mesh4.xdmf")
+            CompareTwoFilesCheckProcess(Kratos.Parameters("""
+            {
+                "reference_file_name"   : "single_mesh1.orig.xdmf",
+                "output_file_name"      : "single_mesh4.xdmf",
+                "remove_output_file"    : true,
+                "comparison_type"       : "deterministic"
+            }""")).Execute()
+
+        with self.assertRaises(RuntimeError):
+            generator = SingleMeshMultiFileSameDatasetsGenerator("test-1.h5")
+
+        with self.assertRaises(RuntimeError):
+            generator = SingleMeshMultiFileSameDatasetsGenerator("test-1:/ModelData<step>.h5")
+
+        with self.assertRaises(RuntimeError):
+            generator = SingleMeshMultiFileSameDatasetsGenerator("test-<step>:/ModelData<step>.h5")
+
+    def testMultiFileDatasetsGenerator2(self):
+        number_of_time_steps = 5
+
+        for t in range(1, number_of_time_steps + 1, 1):
+            self.addCleanup(kratos_utils.DeleteFileIfExisting, str((Path(__file__).parent / f"auxiliar_files/xdmf/test-{t}.h5").absolute()))
+
+        with KratosUnittest.WorkFolderScope("auxiliar_files/xdmf", __file__):
+            parameters = Kratos.Parameters("""{
+                "model_part_name": "test",
+                "file_settings": {
+                    "file_name"        : "<model_part_name>-<step>.h5",
+                    "file_access_mode" : "exclusive"
+                },
+                "output_time_settings": {
+                    "output_control_type": "step",
+                    "output_interval"    : 1.0
+                },
+                "nodal_data_value_settings": {
+                    "list_of_variables": ["PRESSURE", "VELOCITY"]
+                },
+                "element_data_value_settings": {
+                    "list_of_variables": ["PRESSURE", "VELOCITY"]
+                },
+                "condition_data_value_settings": {
+                    "list_of_variables": ["PRESSURE", "VELOCITY"]
+                }
+            }""")
+
+            process = MultipleMeshTemporalOutputProcess(self.model, parameters)
+            process.ExecuteInitialize()
+            process.Check()
+            for t in range(1, number_of_time_steps + 1, 1):
+                self.model_part.ProcessInfo[Kratos.STEP] = t
+                if process.IsOutputStep():
+                    process.PrintOutput()
+
+            generator = MultiFileDatasetsGenerator("test-<step>.h5")
+            WriteDataSetsToXdmf(generator, "single_mesh5.xdmf")
+            CompareTwoFilesCheckProcess(Kratos.Parameters("""
+            {
+                "reference_file_name"   : "single_mesh4.orig.xdmf",
+                "output_file_name"      : "single_mesh5.xdmf",
+                "remove_output_file"    : true,
+                "comparison_type"       : "deterministic"
+            }""")).Execute()
+
 if __name__ == "__main__":
     KratosUnittest.main()
