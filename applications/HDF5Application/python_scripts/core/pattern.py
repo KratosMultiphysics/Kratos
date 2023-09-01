@@ -99,10 +99,9 @@ def __GetMachingEntities(starting_entity: PatternEntity, patterns: 'list[str]', 
         # this is the file pattern. hence we now try to find matching files
         pattern = Pattern(patterns[0], tag_type_dict)
         for itr in starting_entity.Iterate():
-            if itr.IsLeaf():
-                is_valid, file_pattern_data = pattern.GetData(itr.Name())
-                if is_valid:
-                    yield itr, *common_data, *file_pattern_data
+            is_valid, file_pattern_data = pattern.GetData(itr.Name())
+            if is_valid:
+                yield itr, *common_data, *file_pattern_data
     else:
         # this is a dir pattern
         pattern = Pattern(patterns[0], tag_type_dict)

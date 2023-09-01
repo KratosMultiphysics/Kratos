@@ -45,7 +45,7 @@ def __GetModelPartUniformGrids(h5_group: h5py.Group, grid_name: str, coordinates
                 connectivities = HDF5UniformDataItem(entity_group["Connectivities"])
                 topology = UniformMeshTopology(cell_type, connectivities)
                 grids.append(UniformGrid(f"{grid_name}.{name}", coordinates, topology, is_root, container_type))
-                KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added \"{h5_group.file.filename}:{grid_name}.{name}\" spatial grid from")
+                KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added \"{grid_name}.{name}\" spatial grid from \"{h5_group.file.filename}:{h5_group.name}\".")
             else:
                 raise RuntimeError(f"Either \"Connectivities\", \"NumberOfNodes\" or \"WorkingSpaceDimension\" are not defined for {h5_group.name}.")
     return grids
@@ -59,7 +59,7 @@ def GenerateUniformGridsForSubModelParts(h5_file: h5py.File, grid_path: str, gri
             points = HDF5UniformDataItem(h5_object)
             topology = UniformMeshTopology(cell_type, points)
             spatial_grid.AddGrid(UniformGrid(f"{grid_name}.Points", coordinates, topology, False, KratosMultiphysics.Globals.DataLocation.NodeNonHistorical))
-            KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added \"{h5_file.filename}:{grid_name}.{name}\" spatial grid from")
+            KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added \"{grid_name}.{name}\" spatial grid from \"{h5_object.file.filename}:{h5_object.name}\".")
         elif isinstance(h5_object, h5py.Group):
             if name == "Conditions":
                 list(map(spatial_grid.AddGrid, __GetModelPartUniformGrids(h5_object, grid_name, coordinates, False, KratosMultiphysics.Globals.DataLocation.Condition)))
@@ -69,6 +69,19 @@ def GenerateUniformGridsForSubModelParts(h5_file: h5py.File, grid_path: str, gri
                 GenerateUniformGridsForSubModelParts(h5_file, f"{grid_path}/{name}", f"{grid_name}.{name}", coordinates, spatial_grid)
 
 def GenerateSpatialGrid(h5_file_name: str, model_data_path: str) -> SpatialGrid:
+    """Generate a spatial grid from data in h4 file name and model data path.
+
+    Args:
+        h5_file_name (str): hdf5 file name.
+        model_data_path (str): model data prefix.
+
+    Raises:
+        RuntimeError: If the model data path is not found.
+        RuntimeError: IF the specified model_data_path does not contain model data.
+
+    Returns:
+        SpatialGrid: Spatial grid containing root model part nodes, conditions, elements and sub-model parts.
+    """
     h5_file = h5py.File(h5_file_name, "r")
 
     if model_data_path not in h5_file.keys():
@@ -114,6 +127,26 @@ def GenerateSpatialGrid(h5_file_name: str, model_data_path: str) -> SpatialGrid:
     return spatial_grid
 
 def WriteDataSetsToXdmf(dataset_generator: DataSetGenerator, output_file_name: str) -> None:
+    """Write the given datasets by the generator to the specified output file name.
+
+    This method can write given datasets in the generator to xdmf. The generator does
+    not have to be yielding datasets in a specific order. The datasets will
+    be ordered based on the temporal value each yielding provides in this method.
+
+    Since the HDF5 dataset file paths are written relative to the point where
+    this method is called, the @ref output_file_name should not have any relative
+    paths in it.
+
+    Args:
+        dataset_generator (DataSetGenerator): tuple[float, EntityData] generator
+        output_file_name (str): output xdmf filename
+
+    Raises:
+        RuntimeError: If output_file_name includes a relative path.
+    """
+    if "/" in output_file_name or "\\"  in output_file_name:
+        raise RuntimeError(f"Output file name should not include a relative path [ output_file_name = \"{output_file_name}\" ].")
+
     temporal_information: 'dict[float, list[EntityData]]' = {}
 
     for temporal_value, dataset in dataset_generator.Iterate():
@@ -121,8 +154,9 @@ def WriteDataSetsToXdmf(dataset_generator: DataSetGenerator, output_file_name: s
             temporal_information[temporal_value]: 'list[EntityData]' = []
         temporal_information[temporal_value].append(dataset)
 
-    # now we have done with the dataset_generator. So we can safely generate the spatial grids.
-
+    # now we are done with the dataset_generator. So we can safely generate the spatial grids.
+    # otherwise, if the dataset_generator also keeps the same file open, it may conflict with
+    # the xdmf data generation which is required when generating spatial grids.
     temporal_grid = TemporalGrid()
     spatial_grids: 'dict[str, SpatialGrid]' = {}
 
