@@ -24,6 +24,7 @@ namespace Kratos
 {
 
 namespace {
+
 /**
  * @brief Create entities from geometries.
  * @param EntityName the name of the entity
@@ -56,17 +57,12 @@ void CreateEntitiesFromGeometries(
     // Loop geometries to create the corresponding entities from them
     // Note that we retrieve the corresponding prototype entity from the entities idenfifier
     // This makes possible to loop and create entities from different type geometries
-    KRATOS_WATCH(rModelPart)
-    KRATOS_WATCH(rModelPart.Geometries().size())
     for (auto& r_geom : rModelPart.Geometries()) {
-        const auto& r_ref_entity = rEntityIdentifier.GetPrototypeEntity(r_geom);
-        KRATOS_WATCH("1")
-        KRATOS_WATCH(r_ref_entity)
-        KRATOS_WATCH("2")
-        KRATOS_WATCH(r_geom)
-        KRATOS_WATCH("3")
-        auto p_entity = r_ref_entity.Create(++max_id, r_geom, nullptr);
-        entities_to_add.push_back(p_entity);
+        if (rEntityIdentifier.HasPrototypeEntity(r_geom)) {
+            const auto& r_ref_entity = rEntityIdentifier.GetPrototypeEntity(r_geom);
+            auto p_entity = r_ref_entity.Create(++max_id, r_geom, nullptr);
+            entities_to_add.push_back(p_entity);
+        }
     }
 
     // Add the created entities to current submodelpart
@@ -76,6 +72,7 @@ void CreateEntitiesFromGeometries(
         rModelPart.AddConditions(entities_to_add.begin(), entities_to_add.end());
     }
 }
+
 }
 
 template <>
