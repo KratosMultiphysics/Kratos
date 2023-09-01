@@ -151,7 +151,7 @@ def GetAvailableDataSets(h5_file: h5py.File, group_paths_list: 'list[str]') -> '
 
 class OrderedDataSets(abc.ABC):
     @abc.abstractmethod
-    def Iterate(self) -> 'typing.Generator[float, str, list[EntityData]]':
+    def Iterate(self) -> 'typing.Generator[tuple[float, str, list[EntityData]]]':
         pass
 
 class SingleMeshMultiFileSameOrderedDataSets(OrderedDataSets):
@@ -175,7 +175,7 @@ class SingleMeshMultiFileSameOrderedDataSets(OrderedDataSets):
         if not self.data_sets:
             raise RuntimeError("No data sets found.")
 
-    def Iterate(self) -> 'typing.Generator[float, str, list[EntityData]]':
+    def Iterate(self) -> 'typing.Generator[tuple[float, str, list[EntityData]]]':
         for file_data in self.file_data_list:
             yield float(file_data[self.temporal_tag_position + 1]), self.data_sets[0].mesh_location, self.data_sets
 
