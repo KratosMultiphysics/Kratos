@@ -44,10 +44,10 @@ void  AddCustomControlsToPython(pybind11::module& m)
     namespace py = pybind11;
 
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
-    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;    
+    typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
     // ================================================================
-    // 
+    //
     // ================================================================
     py::class_<ImplicitVertexMorphing >(m, "ImplicitVertexMorphing")
         .def(py::init<std::string, Model&, std::vector<LinearSolverType::Pointer>&, Parameters>())
@@ -55,6 +55,7 @@ void  AddCustomControlsToPython(pybind11::module& m)
         .def("Update", &ImplicitVertexMorphing::Update)
         .def("MapControlUpdate", &ImplicitVertexMorphing::MapControlUpdate)
         .def("MapFirstDerivative", &ImplicitVertexMorphing::MapFirstDerivative)
+        .def("SetFilterRadius", &ImplicitVertexMorphing::SetFilterRadius)
         .def("Finalize", &ImplicitVertexMorphing::Finalize)
         ;
 
@@ -74,8 +75,8 @@ void  AddCustomControlsToPython(pybind11::module& m)
         .def("MapControlUpdate", &HelmholtzMaterial::MapControlUpdate)
         .def("MapFirstDerivative", &HelmholtzMaterial::MapFirstDerivative)
         .def("Finalize", &HelmholtzMaterial::Finalize)
-        ;                  
- 
+        ;
+
     py::class_<HelmholtzPartition >(m, "HelmholtzPartition")
         .def(py::init<std::string, Model&, std::vector<LinearSolverType::Pointer>&, Parameters>())
         .def("Initialize", &HelmholtzPartition::Initialize)
@@ -83,7 +84,7 @@ void  AddCustomControlsToPython(pybind11::module& m)
         .def("MapControlUpdate", &HelmholtzPartition::MapControlUpdate)
         .def("MapFirstDerivative", &HelmholtzPartition::MapFirstDerivative)
         .def("Finalize", &HelmholtzPartition::Finalize)
-        ; 
+        ;
 
 }
 
