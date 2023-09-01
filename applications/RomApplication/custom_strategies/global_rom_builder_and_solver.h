@@ -447,14 +447,14 @@ protected:
 
     SizeType mNodalDofs;
     std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type> mMapPhi;
-
     ElementsArrayType mSelectedElements;
     ConditionsArrayType mSelectedConditions;
-
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
-
     bool mRightRomBasisInitialized = false;
+    EigenDynamicMatrix mEigenRomA;
+    EigenDynamicVector mEigenRomB;
+    Matrix mPhiGlobal;
 
     ///@}
     ///@name Protected operators
@@ -820,9 +820,6 @@ private:
     ///@{
         
     SizeType mNumberOfRomModes;
-    EigenDynamicMatrix mEigenRomA;
-    EigenDynamicVector mEigenRomB;
-    Matrix mPhiGlobal;
     bool mMonotonicityPreservingFlag;
 
     ///@}
