@@ -203,6 +203,7 @@ def WriteOrderedDataSetsToXdmf(ordered_datasets: OrderedDataSets, output_file_na
             current_spatial_grid.AddAttribute(dataset)
 
         temporal_grid.AddGrid(Time(control_value), current_spatial_grid)
+        KratosMultiphysics.Logger.PrintInfo("XDMF", f"Written data for control value = {control_value}.")
 
     domain = Domain(temporal_grid)
     xdmf = Xdmf(domain)
