@@ -37,8 +37,7 @@ def CreateSolver(cls, model, custom_settings):
             available_solving_strategies = {
                 "elemental_galerkin": KratosROM.ROMBuilderAndSolver, 
                 "global_galerkin": KratosROM.GlobalROMBuilderAndSolver, 
-                "elemental_lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
-                "global_lspg": KratosROM.GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver,
+                "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
                 "petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver
             }
             if solving_strategy in available_solving_strategies:
@@ -69,7 +68,7 @@ def CreateSolver(cls, model, custom_settings):
             assembling_strategy = self.settings["assembling_strategy"].GetString()
             monotonicity_preserving = self.settings["monotonicity_preserving"].GetBool()
             # For now, only Galerkin projection has the elemental or global approach option
-            if projection_strategy=="galerkin" or projection_strategy=="lspg": #TODO: Possibility of doing elemental lspg and petrov_galerkin
+            if projection_strategy=="galerkin": #TODO: Possibility of doing elemental lspg and petrov_galerkin
                 available_assembling_strategies = {
                     "global",
                     "elemental"
@@ -81,7 +80,7 @@ def CreateSolver(cls, model, custom_settings):
                     err_msg = f"'Assembling_strategy': '{assembling_strategy}' is not available. Please select one of the following: {list(available_assembling_strategies)}."
                     raise ValueError(err_msg)
             
-            if projection_strategy=="global_galerkin" or projection_strategy=="global_lspg": #TODO: Do it for all global rom B&Ss.
+            if projection_strategy=="global_galerkin": #TODO: Do it for all global rom B&Ss.
                 self.settings["rom_settings"].AddBool("monotonicity_preserving",monotonicity_preserving)
                 
             # Return the validated ROM parameters
