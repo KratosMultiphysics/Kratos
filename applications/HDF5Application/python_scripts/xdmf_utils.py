@@ -5,6 +5,7 @@ import abc
 from pathlib import Path
 
 import KratosMultiphysics
+import KratosMultiphysics.HDF5Application as KratosHDF5
 from KratosMultiphysics.HDF5Application.core.pattern import PathPatternEntity
 from KratosMultiphysics.HDF5Application.core.pattern import GetMachingEntitiesWithTagData
 from KratosMultiphysics.HDF5Application.core.pattern import IdentifyPattern
@@ -44,7 +45,7 @@ def GetSpatialGridPaths(h5_file: h5py.File, list_of_model_data_paths: 'list[str]
             for itr in current_data:
                 GetSpatialGridPaths(h5_file, list_of_model_data_paths, f"{current_path}/{str(itr)}")
 
-def __GetModelPartUniformGrids(h5_group: h5py.Group, grid_name: str, coordinates: Geometry) -> 'list[UniformGrid]':
+def __GetModelPartUniformGrids(h5_group: h5py.Group, grid_name: str, coordinates: Geometry, is_root: bool, container_type: KratosMultiphysics.Globals.DataLocation) -> 'list[UniformGrid]':
     grids: 'list[UniformGrid]' = []
     for name, entity_group in h5_group.items():
         if isinstance(entity_group, h5py.Group):
@@ -52,13 +53,13 @@ def __GetModelPartUniformGrids(h5_group: h5py.Group, grid_name: str, coordinates
                 cell_type = TopologyCellType(entity_group.attrs["WorkingSpaceDimension"], entity_group.attrs["NumberOfNodes"])
                 connectivities = HDF5UniformDataItem(entity_group["Connectivities"])
                 topology = UniformMeshTopology(cell_type, connectivities)
-                grids.append(UniformGrid(f"{grid_name}.{name}", coordinates, topology))
+                grids.append(UniformGrid(f"{grid_name}.{name}", coordinates, topology, is_root, container_type))
                 KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added {grid_name}.{name} spatial grid.")
             else:
                 raise RuntimeError(f"Either \"Connectivities\", \"NumberOfNodes\" or \"WorkingSpaceDimension\" are not defined for {h5_group.name}.")
     return grids
 
-def GenerateUniformGrids(h5_file: h5py.File, grid_path: str, grid_name: str, coordinates: Geometry, spatial_grid: SpatialGrid):
+def GenerateUniformGridsForSubModelParts(h5_file: h5py.File, grid_path: str, grid_name: str, coordinates: Geometry, spatial_grid: SpatialGrid):
     grid_data = h5_file[grid_path]
 
     for name, h5_object in grid_data.items():
@@ -66,13 +67,15 @@ def GenerateUniformGrids(h5_file: h5py.File, grid_path: str, grid_name: str, coo
             cell_type = TopologyCellType(3, 1)
             points = HDF5UniformDataItem(h5_object)
             topology = UniformMeshTopology(cell_type, points)
-            spatial_grid.add_grid(UniformGrid(f"{grid_name}.Points", coordinates, topology))
+            spatial_grid.AddGrid(UniformGrid(f"{grid_name}.Points", coordinates, topology, False, KratosMultiphysics.Globals.DataLocation.NodeNonHistorical))
             KratosMultiphysics.Logger.PrintInfo("XDMF", f"Added {grid_name}.Points spatial grid.")
         elif isinstance(h5_object, h5py.Group):
-            if name in ["Conditions", "Elements"]:
-                list(map(spatial_grid.add_grid, __GetModelPartUniformGrids(h5_object, grid_name, coordinates)))
+            if name == "Conditions":
+                list(map(spatial_grid.AddGrid, __GetModelPartUniformGrids(h5_object, grid_name, coordinates, False, KratosMultiphysics.Globals.DataLocation.Condition)))
+            elif name == "Elements":
+                list(map(spatial_grid.AddGrid, __GetModelPartUniformGrids(h5_object, grid_name, coordinates, False, KratosMultiphysics.Globals.DataLocation.Element)))
             else:
-                GenerateUniformGrids(h5_file, f"{grid_path}/{name}", f"{grid_name}.{name}", coordinates, spatial_grid)
+                GenerateUniformGridsForSubModelParts(h5_file, f"{grid_path}/{name}", f"{grid_name}.{name}", coordinates, spatial_grid)
 
 def GenerateSpatialGrid(h5_file: h5py.File, model_data_path: str) -> 'tuple[SpatialGrid, list[UniformGrid], list[UniformGrid]]':
     spatial_grid = SpatialGrid()
@@ -81,25 +84,27 @@ def GenerateSpatialGrid(h5_file: h5py.File, model_data_path: str) -> 'tuple[Spat
     model_data = h5_file[model_data_path]
     model_part_name = ''.join([chr(i) for i in h5_file[model_data_path].attrs["__model_part_name"]])
 
+    if not "Xdmf" in model_data.keys():
+        # try generating the xdmf data.
+        KratosHDF5.HDF5XdmfConnectivitiesWriterOperation(h5_file.filename, [model_data_path]).Execute()
+
     if "Xdmf" in model_data.keys():
         xdmf_data = model_data["Xdmf"]
 
         # add root model part entities
-        condition_grids: 'list[UniformGrid]' = []
         if "Conditions" in xdmf_data.keys():
-            condition_grids = __GetModelPartUniformGrids(xdmf_data["Conditions"], model_part_name, coordinates)
+            list(map(spatial_grid.AddGrid, __GetModelPartUniformGrids(xdmf_data["Conditions"], model_part_name, coordinates, True, KratosMultiphysics.Globals.DataLocation.Condition)))
 
-        element_grids: 'list[UniformGrid]' = []
         if "Elements" in xdmf_data.keys():
-            element_grids = __GetModelPartUniformGrids(xdmf_data["Elements"], model_part_name, coordinates)
+            list(map(spatial_grid.AddGrid, __GetModelPartUniformGrids(xdmf_data["Elements"], model_part_name, coordinates, True, KratosMultiphysics.Globals.DataLocation.Element)))
 
         # now add sub model part entitites
         if "SubModelParts" in xdmf_data.keys():
-            GenerateUniformGrids(h5_file, f"{model_data_path}/Xdmf/SubModelParts", model_part_name, coordinates, spatial_grid)
+            GenerateUniformGridsForSubModelParts(h5_file, f"{model_data_path}/Xdmf/SubModelParts", model_part_name, coordinates, spatial_grid)
     else:
         KratosMultiphysics.Logger.PrintInfo("XDMF", f"No Xdmf data found in {h5_file.filename}:{model_data_path}.")
 
-    return spatial_grid, condition_grids, element_grids
+    return spatial_grid
 
 def GetAvailableDataSets(h5_file: h5py.File, group_paths_list: 'list[str]') -> 'list[EntityData]':
     # data_sets holds a dictionary of data sets found in the specified group_paths_list.
@@ -161,7 +166,7 @@ class SingleMeshMultiFileSameOrderedDataSets(OrderedDataSets):
 def WriteOrderedDataSetsToXdmf(ordered_datasets: OrderedDataSets, output_file_name: str) -> None:
     temporal_grid = TemporalGrid()
 
-    spatial_grids: 'dict[str, tuple[SpatialGrid, list[UniformGrid], list[UniformGrid]]]' = {}
+    spatial_grids: 'dict[str, SpatialGrid]' = {}
 
     for control_value, mesh_location, datasets in ordered_datasets.Iterate():
         # get the spatial grid
@@ -172,51 +177,18 @@ def WriteOrderedDataSetsToXdmf(ordered_datasets: OrderedDataSets, output_file_na
 
         # now create a duplicate of the found spatial grid
         current_spatial_grid = SpatialGrid()
-        spatial_grid, condition_grids, element_grids = spatial_grids[mesh_location]
-
-        # add the condition and element grids
-        current_condition_grids: 'list[UniformGrid]' = []
-        for grid in condition_grids:
-            condition_grid = UniformGrid(grid.name, grid.geometry, grid.topology)
-            current_condition_grids.append(condition_grid)
-            current_spatial_grid.add_grid(condition_grid)
-
-        current_element_grids: 'list[UniformGrid]' = []
-        for grid in element_grids:
-            condition_grid = UniformGrid(grid.name, grid.geometry, grid.topology)
-            current_element_grids.append(condition_grid)
-            current_spatial_grid.add_grid(condition_grid)
+        spatial_grid = spatial_grids[mesh_location]
 
         # now add submodel part grids
         for grid in spatial_grid.grids:
-            current_spatial_grid.add_grid(UniformGrid(grid.name, grid.geometry, grid.topology))
+            current_spatial_grid.AddGrid(UniformGrid(grid.name, grid.geometry, grid.topology, grid.is_root, grid.container_type))
 
         # now add the results
         for dataset in datasets:
-            if dataset.container_type == "NODES":
-                # add nodal results to all the grids
-                for grid in current_spatial_grid.grids:
-                    grid.add_attribute(dataset)
-            else:
-                if dataset.container_type == "CONDITIONS":
-                    # now we have to check whether we have multiple condition types.
-                    # because, the condition data is stored as one dataset, but for different conditons
-                    # are stored in different groups with different xdmf indices.
-                    if len(current_condition_grids) != 1:
-                        raise RuntimeError(f"The condition data_set {dataset.name} can be written to only one condition data grid. [ number of condition grids = {len(current_condition_grids)} ].")
-                    current_condition_grids[0].add_attribute(dataset)
-                elif dataset.container_type == "ELEMENTS":
-                    # now we have to check whether we have multiple condition types.
-                    # because, the condition data is stored as one dataset, but for different conditons
-                    # are stored in different groups with different xdmf indices.
-                    if len(current_element_grids) != 1:
-                        raise RuntimeError(f"The condition data_set {dataset.name} can be written to only one condition data grid. [ number of condition grids = {len(current_element_grids)} ].")
-                    current_element_grids[0].add_attribute(dataset)
-                else:
-                    raise RuntimeError(f"Unsupported container_type = \"{dataset.container_type} ].")
+            current_spatial_grid.AddAttribute(dataset)
 
-        temporal_grid.add_grid(Time(control_value), current_spatial_grid)
+        temporal_grid.AddGrid(Time(control_value), current_spatial_grid)
 
     domain = Domain(temporal_grid)
     xdmf = Xdmf(domain)
-    ET.ElementTree(xdmf.create_xml_element()).write(output_file_name)
+    ET.ElementTree(xdmf.CreateXmlElement()).write(output_file_name)

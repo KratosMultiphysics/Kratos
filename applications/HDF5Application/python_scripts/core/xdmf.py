@@ -24,8 +24,8 @@ topology = UniformMeshTopology(
 grid = UniformGrid("Element2D3N", geom, topology)
 nodal_pressure = NodalData("PRESSURE",
     HDF5UniformDataItem(results_file["/Nodal/PRESSURE"]))
-grid.add_attribute(nodal_pressure)
-root = Xdmf(Domain(grid)).create_xml_element()
+grid.AddAttribute(nodal_pressure)
+root = Xdmf(Domain(grid)).CreateXmlElement()
 ElementTree(root).write('kratos.xdmf')
 
 See also http://www.xdmf.org/index.php/XDMF_Model_and_Format.
@@ -34,17 +34,18 @@ BSD license: HDF5Application/license.txt
 """
 
 
-from abc import ABCMeta, abstractmethod
+from abc import ABC, abstractmethod
 import xml.etree.ElementTree as ET
 import h5py
+import KratosMultiphysics as Kratos
 
 
-class XdmfItem(metaclass=ABCMeta):
+class XdmfItem(ABC):
     """The base class for all XDMF XML elements."""
 
     @property
     @abstractmethod
-    def xml_tag(self):
+    def xml_tag(self) -> str:
         """Return the XML tag for the XDMF item as a string.
 
         Every XML element is identified by a tag. Valid tags are specified by
@@ -53,18 +54,18 @@ class XdmfItem(metaclass=ABCMeta):
         pass
 
     @abstractmethod
-    def create_xml_element(self):
+    def CreateXmlElement(self) -> ET.Element:
         """Return the XDMF item as an XML element node in the XML document tree.
 
         If the node is the root element of the XML document, it can be written
         to a file as:
 
-        root = obj.create_xml_element()
+        root = obj.CreateXmlElement()
         ElementTree(root).write(file_or_filename)
 
         If it is a child node, it can be appended to its parent as:
 
-        child = obj.create_xml_element()
+        child = obj.CreateXmlElement()
         parent.append(child)
 
         An entire XML document representing an XDMF model is built from a set
@@ -81,12 +82,12 @@ class DataItem(XdmfItem):
     """
 
     @property
-    def xml_tag(self):
+    def xml_tag(self) -> str:
         return "DataItem"
 
     @property
     @abstractmethod
-    def dimensions(self):
+    def dimensions(self) -> 'list[int]':
         """Return a shape tuple of the HDF5 data set.
 
         For example the return value for the data set dset[0:100,0:3] would be
@@ -94,17 +95,16 @@ class DataItem(XdmfItem):
         """
         pass
 
-
 class Attribute(XdmfItem):
     """An abc for an XDMF Attribute (e.g., nodal or gauss point results)."""
 
     @property
-    def xml_tag(self):
+    def xml_tag(self) -> str:
         return "Attribute"
 
     @property
     @abstractmethod
-    def name(self):
+    def name(self) -> str:
         """A descriptive name of the results data.
 
         Example: "VELOCITY".
@@ -113,7 +113,7 @@ class Attribute(XdmfItem):
 
     @property
     @abstractmethod
-    def center(self):
+    def center(self) -> str:
         """Specifies where the data is centered.
 
         Options: "Node", "Edge", "Face", "Cell", "Grid", "Other".
@@ -122,10 +122,31 @@ class Attribute(XdmfItem):
 
     @property
     @abstractmethod
-    def attribute_type(self):
+    def attribute_type(self) -> str:
         """Specifies the rank of the data.
 
         Options: "Scalar", "Vector", "Tensor", "Tensor6", "Matrix".
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def container_type(self) -> Kratos.Globals.DataLocation:
+        """Specifies the container type from where the data is originated from.
+
+        Options: "Kratos.Globals.DataLocation.NodeNonHistorical",
+                 "Kratos.Globals.DataLocation.Condition",
+                 "Kratos.Globals.DataLocation.Element".
+        """
+        pass
+
+    @property
+    @abstractmethod
+    def mesh_location(self) -> str:
+        """Specifies the mesh location from where the data is originated from.
+
+        For example, if the mesh is found in "test.h5" under "/ModelData" prefix,
+        then this property should return "test.h5:/ModelData".
         """
         pass
 
@@ -137,9 +158,8 @@ class Topology(XdmfItem):
     """
 
     @property
-    def xml_tag(self):
+    def xml_tag(self) -> str:
         return "Topology"
-
 
 class Grid(XdmfItem):
     """An abc for an XDMF Grid (a mesh with results data).
@@ -150,17 +170,16 @@ class Grid(XdmfItem):
     """
 
     @property
-    def xml_tag(self):
+    def xml_tag(self) -> str:
         return "Grid"
 
     @abstractmethod
-    def add_attribute(self, attr):
+    def AddAttribute(self, attr: Attribute) -> None:
         """Add an XDMF Attribute to the grid.
 
         This allows results data to be appended to the current mesh.
         """
         pass
-
 
 class Time(XdmfItem):
     """An XDMF Time (a single time step value).
@@ -170,38 +189,24 @@ class Time(XdmfItem):
     """
 
     @property
-    def xml_tag(self):
+    def xml_tag(self) -> str:
         return "Time"
 
-    @property
-    def attrib(self):
-        attrib = {"TimeType": "Single"}
-        attrib["Value"] = self.time
-        return attrib
+    def __init__(self, time: float) -> None:
+        self.time = str(time)
 
-    def __init__(self, time):
-        try:
-            self.time = str(time)
-        except Exception:
-            print('Invalid input argument!')
-
-    def create_xml_element(self):
-        e = ET.Element(self.xml_tag, self.attrib)
+    def CreateXmlElement(self) -> ET.Element:
+        e = ET.Element(self.xml_tag, {"TimeType": "Single", "Value": self.time})
         return e
-
 
 class Geometry(XdmfItem):
     """An XDMF Geometry (nodal coordinates)."""
 
     @property
-    def xml_tag(self):
+    def xml_tag(self) -> str:
         return "Geometry"
 
-    @property
-    def attrib(self):
-        return {"GeometryType": "XYZ"}
-
-    def __init__(self, coords):
+    def __init__(self, coords: DataItem) -> None:
         """Construct the Geometry.
 
         Keyword arguments:
@@ -209,9 +214,9 @@ class Geometry(XdmfItem):
         """
         self.coords = coords
 
-    def create_xml_element(self):
-        e = ET.Element(self.xml_tag, self.attrib)
-        e.append(self.coords.create_xml_element())
+    def CreateXmlElement(self) -> ET.Element:
+        e = ET.Element(self.xml_tag, {"GeometryType": "XYZ"})
+        e.append(self.coords.CreateXmlElement())
         return e
 
 
@@ -255,7 +260,7 @@ class TopologyCellType:
         (3,27): "Hexahedron_27"
     }
 
-    def __init__(self, dim, num_points):
+    def __init__(self, dim: int, num_points: int):
         """Construct the object.
 
         Keyword arguments:
@@ -263,7 +268,7 @@ class TopologyCellType:
         num_points -- the number of vertices of the mesh cell
         """
         try:
-            self.attrib = {}
+            self.attrib: 'dict[str, str]' = {}
             cell_type = self._topologies[(dim, num_points)]
             if cell_type == "Polyvertex_1":
                 self.attrib["TopologyType"] = "Polyvertex"
@@ -280,7 +285,7 @@ class TopologyCellType:
 class UniformMeshTopology(Topology):
     """An XDMF Topology for a single element or condition type."""
 
-    def __init__(self, cell_type, data):
+    def __init__(self, cell_type: TopologyCellType, data: DataItem) -> None:
         """Construct the object.
 
         Keyword arguments:
@@ -290,12 +295,11 @@ class UniformMeshTopology(Topology):
         self._cell_type = cell_type
         self.data = data
 
-    def create_xml_element(self):
+    def CreateXmlElement(self) -> ET.Element:
         e = ET.Element(self.xml_tag, self._cell_type.attrib)
         e.set("NumberOfElements", str(self.data.dimensions[0]))
-        e.append(self.data.create_xml_element())
+        e.append(self.data.CreateXmlElement())
         return e
-
 
 class HDF5UniformDataItem(DataItem):
     """An XDMF DataItem for an HDF5 data set."""
@@ -317,20 +321,20 @@ class HDF5UniformDataItem(DataItem):
         attribs["Dimensions"] = str(self.dimensions).replace(',','').lstrip('(').rstrip(')')
         return attribs
 
-    def __init__(self, data_set):
+    def __init__(self, data_set: h5py.Dataset) -> None:
         self.file_name = data_set.file.filename
         self.name = data_set.name
         self.dtype = data_set.dtype
         self._dimensions = data_set.shape
 
-    def create_xml_element(self):
+    def CreateXmlElement(self) -> ET.Element:
         e = ET.Element(self.xml_tag, self.attrib)
         e.text = self.file_name + ":" + self.name
         return e
 
 class EntityData(Attribute):
     @property
-    def attribute_type(self):
+    def attribute_type(self) -> str:
         if len(self.data.dimensions) == 1:
             return "Scalar"
         elif len(self.data.dimensions) == 2:
@@ -342,14 +346,22 @@ class EntityData(Attribute):
             raise Exception("Invalid dimensions.")
 
     @property
-    def name(self):
-        return self.__name
+    def name(self) -> str:
+        return self._name
 
     @property
-    def center(self):
-        return self.__center
+    def center(self) -> str:
+        return self._center
 
-    def __init__(self, data_set: h5py.Dataset):
+    @property
+    def container_type(self) -> str:
+        return self._container_type
+
+    @property
+    def mesh_location(self) -> str:
+        return self._mesh_location
+
+    def __init__(self, data_set: h5py.Dataset) -> None:
         """Construct the object.
 
         Keyword arguments:
@@ -357,123 +369,46 @@ class EntityData(Attribute):
         data -- the data item for the corresponding HDF5 data set
         """
         self.data = HDF5UniformDataItem(data_set)
-        self.container_type = ''.join([chr(i) for i in data_set.attrs["__container_type"]])
-        self.mesh_location = ''.join([chr(i) for i in data_set.attrs["__mesh_location"]])
-        self.__name = ''.join([chr(i) for i in data_set.attrs["__data_name"]])
-        if self.container_type == "NODES":
-            self.__center = "Node"
-        elif self.container_type in ["CONDITIONS", "ELEMENTS"]:
-            self.__center = "Cell"
+        self._mesh_location = ''.join([chr(i) for i in data_set.attrs["__mesh_location"]])
+        self._name = ''.join([chr(i) for i in data_set.attrs["__data_name"]])
+
+        container_type = ''.join([chr(i) for i in data_set.attrs["__container_type"]])
+        if container_type == "NODES":
+            self._container_type = Kratos.Globals.DataLocation.NodeNonHistorical
+            self._center = "Node"
+        elif container_type == "CONDITIONS":
+            self._container_type = Kratos.Globals.DataLocation.Condition
+            self._center = "Cell"
+        elif container_type == "ELEMENTS":
+            self._container_type = Kratos.Globals.DataLocation.Element
+            self._center = "Cell"
         else:
             raise RuntimeError(f"Unsupported container_type = \"{self.container_type}\" at {data_set.name}.")
 
-    def create_xml_element(self):
+    def CreateXmlElement(self) -> ET.Element:
         e = ET.Element(self.xml_tag)
         e.set("Name", self.name)
         e.set("Center", self.center)
         e.set("AttributeType", self.attribute_type)
-        e.append(self.data.create_xml_element())
+        e.append(self.data.CreateXmlElement())
         return e
-
-class NodalData(Attribute):
-    """An XDMF Attribute for nodal solution step or data value container data."""
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def center(self):
-        return "Node"
-
-    @property
-    def attribute_type(self):
-        if len(self.data.dimensions) == 1:
-            return "Scalar"
-        elif len(self.data.dimensions) == 2:
-            if (self.data.dimensions[1] == 3):
-                return "Vector"
-            else:
-                return "Matrix"
-        else:
-            raise Exception("Invalid dimensions.")
-
-    def __init__(self, name, data):
-        """Construct the object.
-
-        Keyword arguments:
-        name -- the name of the results data, e.g., "PRESSURE"
-        data -- the data item for the corresponding HDF5 data set
-        """
-        self._name = name
-        self.data = data
-
-    def create_xml_element(self):
-        e = ET.Element(self.xml_tag)
-        e.set("Name", self.name)
-        e.set("Center", self.center)
-        e.set("AttributeType", self.attribute_type)
-        e.append(self.data.create_xml_element())
-        return e
-
-
-class GeometrycalObjectData(Attribute):
-    """An XDMF Attribute for element data value container data."""
-
-    @property
-    def name(self):
-        return self._name
-
-    @property
-    def center(self):
-        return "Cell"
-
-    @property
-    def attribute_type(self):
-        if len(self.data.dimensions) == 1:
-            return "Scalar"
-        elif len(self.data.dimensions) == 2:
-            if (self.data.dimensions[1] == 3):
-                return "Vector"
-            else:
-                return "Matrix"
-        else:
-            raise Exception("Invalid dimensions.")
-
-    def __init__(self, name, data):
-        """Construct the object.
-
-        Keyword arguments:
-        name -- the name of the results data, e.g., "PRESSURE"
-        data -- the data item for the corresponding HDF5 data set
-        """
-        self._name = name
-        self.data = data
-
-    def create_xml_element(self):
-        e = ET.Element(self.xml_tag)
-        e.set("Name", self.name)
-        e.set("Center", self.center)
-        e.set("AttributeType", self.attribute_type)
-        e.append(self.data.create_xml_element())
-        return e
-
-
-class ElementData(GeometrycalObjectData):
-    """An XDMF Attribute for element data value container data."""
-    def __init__(self, name, data):
-        super(ElementData, self).__init__(name, data)
-
-
-class ConditionData(GeometrycalObjectData):
-    def __init__(self, name, data):
-        super(ConditionData, self).__init__(name, data)
-
 
 class UniformGrid(Grid):
     """An XDMF Grid for a single element or condition."""
 
-    def __init__(self, name, geom, topology):
+    @property
+    def name(self) -> str:
+        return self._name
+
+    @property
+    def is_root(self) -> bool:
+        return self._is_root
+
+    @property
+    def container_type(self) -> Kratos.Globals.DataLocation:
+        return self._container_type
+
+    def __init__(self, name: str, geom: Geometry, topology: Topology, is_root: bool, container_type: Kratos.Globals.DataLocation) -> None:
         """Construct the object.
 
         Keyword arguments:
@@ -481,27 +416,32 @@ class UniformGrid(Grid):
         geom -- the XDMF Geometry (nodal coordinates, see Geometry)
         topology -- the XDMF Topology (mesh connectivities, see Topology)
         """
-        self.name = name
+        self._name = name
+        self._is_root = is_root
+        self._container_type = container_type
+
+        if self._container_type not in [Kratos.Globals.DataLocation.NodeNonHistorical, Kratos.Globals.DataLocation.Condition, Kratos.Globals.DataLocation.Element]:
+            raise RuntimeError(f"Unsupported container type.")
+
         self.geometry = geom
         self.topology = topology
-        self.attributes = []
+        self.attributes: 'list[Attribute]' = []
 
-    def create_xml_element(self):
+    def CreateXmlElement(self) -> ET.Element:
         e = ET.Element(self.xml_tag)
         e.set("Name", self.name)
-        e.append(self.topology.create_xml_element())
-        e.append(self.geometry.create_xml_element())
+        e.append(self.topology.CreateXmlElement())
+        e.append(self.geometry.CreateXmlElement())
         for attr in self.attributes:
-            e.append(attr.create_xml_element())
+            e.append(attr.CreateXmlElement())
         return e
 
-    def add_attribute(self, attr):
+    def AddAttribute(self, attr: Attribute) -> None:
         """Add an XDMF Attribute (results data) to the grid.
 
         See class Attribute.
         """
         self.attributes.append(attr)
-
 
 class SpatialGrid(Grid):
     """A collection of uniform XDMF Grid objects with results data.
@@ -516,27 +456,58 @@ class SpatialGrid(Grid):
     def __init__(self) -> None:
         self.grids: 'list[UniformGrid]' = []
 
-    def create_xml_element(self) -> ET.Element:
+    def CreateXmlElement(self) -> ET.Element:
         # The "Name": "Mesh" is included here because VisIt seems to have problems otherwise -- mike.
         e = ET.Element(self.xml_tag, {"Name": "Mesh", "GridType": "Collection", "CollectionType": "Spatial"})
         for grid in self.grids:
-            e.append(grid.create_xml_element())
+            e.append(grid.CreateXmlElement())
         return e
 
-    def add_attribute(self, attr) -> None:
+    def AddAttribute(self, attr: Attribute) -> None:
         """Add an XDMF Attribute (results data set) to each child grid."""
-        for grid in self.grids:
-            if (attr.center == "Cell"):
-                if (isinstance(attr, ConditionData) and (grid.name.startswith("RootModelPart.Conditions"))):
-                    grid.add_attribute(attr)
-                if (isinstance(attr, ElementData) and (grid.name.startswith("RootModelPart.Elements"))):
-                    grid.add_attribute(attr)
-            else:
-                grid.add_attribute(attr)
+        if  attr.container_type == Kratos.Globals.DataLocation.NodeNonHistorical:
+            # nodal data is added to all grids since, all grids has all the nodes.
+            for grid in self.grids:
+                grid.AddAttribute(attr)
+        elif attr.container_type == Kratos.Globals.DataLocation.Condition:
+            # condition data is added to only the root condition grid. Because,
+            # the datasets only represent the root model parts condition data.
+            # here we cannot support multiple condition types because
+            # when we write conditions, we break the whole conditions list to sub lists
+            # based on their type. But the condition datasets are written as a contigous dataset.
+            # hence the values and conditions may not match.
+            # TODO: Check whether paraview support Set and SubSet XDMF elements
+            added_once = False
+            for grid in self.grids:
+                if grid.is_root and grid.container_type == attr.container_type:
+                    if not added_once:
+                        grid.AddAttribute(attr)
+                        added_once = True
+                    else:
+                        raise RuntimeError(f"Only one condition type can be visualized if condition data is added to hdf5 [ grid_name = {grid.name}, dataset name = {attr.name} ].")
+            if not added_once:
+                raise RuntimeError(f"No condition grid was found to visualize dataset = \"{attr.name}\".")
+        elif attr.container_type == Kratos.Globals.DataLocation.Element:
+            # condition data is added to only the root condition grid. Because,
+            # the datasets only represent the root model parts condition data.
+            # here we cannot support multiple condition types because
+            # when we write conditions, we break the whole conditions list to sub lists
+            # based on their type. But the condition datasets are written as a contigous dataset.
+            # hence the values and conditions may not match.
+            # TODO: Check whether paraview support Set and SubSet XDMF elements
+            added_once = False
+            for grid in self.grids:
+                if grid.is_root and grid.container_type == attr.container_type:
+                    if not added_once:
+                        grid.AddAttribute(attr)
+                        added_once = True
+                    else:
+                        raise RuntimeError(f"Only one condition type can be visualized if condition data is added to hdf5 [ grid_name = {grid.name}, dataset name = {attr.name} ].")
+            if not added_once:
+                raise RuntimeError(f"No condition grid was found to visualize dataset = \"{attr.name}\".")
 
-    def add_grid(self, grid: UniformGrid) -> None:
+    def AddGrid(self, grid: UniformGrid) -> None:
         self.grids.append(grid)
-
 
 class TemporalGrid(Grid):
     """A collection of XDMF Grid objects associated with time steps.
@@ -545,24 +516,24 @@ class TemporalGrid(Grid):
     SpatialGrid objects.
     """
 
-    def __init__(self):
-        self.times = []
-        self.grids = []
+    def __init__(self) -> None:
+        self.times: 'list[Time]' = []
+        self.grids: 'list[Grid]' = []
 
-    def create_xml_element(self):
+    def CreateXmlElement(self) -> ET.Element:
         e = ET.Element(self.xml_tag, {"GridType": "Collection", "CollectionType": "Temporal"})
         for time, grid in zip(self.times, self.grids):
-            tmp = grid.create_xml_element()
-            tmp.append(time.create_xml_element())
+            tmp = grid.CreateXmlElement()
+            tmp.append(time.CreateXmlElement())
             e.append(tmp)
         return e
 
-    def add_attribute(self, attr):
+    def AddAttribute(self, attr: Attribute) -> None:
         """Add an XDMF Attribute (results data set) to each child grid."""
         for grid in self.grids:
-            grid.add_attribute(attr)
+            grid.AddAttribute(attr)
 
-    def add_grid(self, time, grid):
+    def AddGrid(self, time: Time, grid: Grid) -> None:
         """Add a child grid with a time step value.
 
         Keyword arguments:
@@ -572,7 +543,6 @@ class TemporalGrid(Grid):
         self.times.append(time)
         self.grids.append(grid)
 
-
 class Domain(XdmfItem):
     """An XDMF Domain (computational domain).
 
@@ -580,10 +550,10 @@ class Domain(XdmfItem):
     """
 
     @property
-    def xml_tag(self):
+    def xml_tag(self) -> str:
         return "Domain"
 
-    def __init__(self, grid):
+    def __init__(self, grid: Grid) -> None:
         """Construct the object.
 
         Keyword arguments:
@@ -591,20 +561,19 @@ class Domain(XdmfItem):
         """
         self._grid = grid
 
-    def create_xml_element(self):
+    def CreateXmlElement(self) -> ET.Element:
         e = ET.Element(self.xml_tag)
-        e.append(self._grid.create_xml_element())
+        e.append(self._grid.CreateXmlElement())
         return e
-
 
 class Xdmf(XdmfItem):
     """The XML root element of the XDMF model."""
 
     @property
-    def xml_tag(self):
+    def xml_tag(self) -> str:
         return "Xdmf"
 
-    def __init__(self, domain):
+    def __init__(self, domain: Domain) -> None:
         """Construct the object.
 
         Keyword arguments:
@@ -612,7 +581,7 @@ class Xdmf(XdmfItem):
         """
         self._domain = domain
 
-    def create_xml_element(self):
+    def CreateXmlElement(self) -> ET.Element:
         e = ET.Element(self.xml_tag, {"Version": "3.0"})
-        e.append(self._domain.create_xml_element())
+        e.append(self._domain.CreateXmlElement())
         return e
