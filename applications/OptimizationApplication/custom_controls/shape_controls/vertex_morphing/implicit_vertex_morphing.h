@@ -259,6 +259,12 @@ public:
 
     };
 
+    void SetFilterRadius(double Value) {
+        for(auto& p_property : mpVMModelPartsProperties){
+            p_property->SetValue(HELMHOLTZ_SURF_RADIUS_SHAPE, Value);
+        }
+    }
+
     ///@}
     ///@name Access
     ///@{
