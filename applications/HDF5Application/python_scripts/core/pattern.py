@@ -1,13 +1,13 @@
 import re
 import abc
-from typing import Any
+import typing
 from pathlib import Path
 
 import KratosMultiphysics as Kratos
 
 class PatternEntity(abc.ABC):
     @abc.abstractmethod
-    def Iterate(self):
+    def Iterate(self) -> 'typing.Generator[PatternEntity]':
         pass
 
     @abc.abstractmethod
@@ -19,14 +19,14 @@ class PatternEntity(abc.ABC):
         pass
 
     @abc.abstractmethod
-    def Get(self) -> Any:
+    def Get(self) -> typing.Any:
         pass
 
 class PathPatternEntity(PatternEntity):
     def __init__(self, path: Path) -> None:
         self.__path = path
 
-    def Iterate(self):
+    def Iterate(self) -> 'typing.Generator[PathPatternEntity]':
         for itr in self.__path.iterdir():
             yield PathPatternEntity(itr)
 
@@ -40,7 +40,7 @@ class PathPatternEntity(PatternEntity):
         return self.__path
 
 class Pattern:
-    def __init__(self, tagged_pattern: str, tag_type_dict: 'dict[str, Any]') -> None:
+    def __init__(self, tagged_pattern: str, tag_type_dict: 'dict[str, typing.Any]') -> None:
         regex_special_chars_escape_map = {
             "+": r"\+",
             "^": r"\^",
@@ -62,7 +62,7 @@ class Pattern:
         for k, v in regex_special_chars_escape_map.items():
             regex_pattern = regex_pattern.replace(k, v)
 
-        self.__converters: 'list[Any]' = []
+        self.__converters: 'list[typing.Any]' = []
 
         tags: 'list[str]' = re.findall(r"[\w+]?(<\w+>)", tagged_pattern)
         for tag in tags:
@@ -71,9 +71,9 @@ class Pattern:
 
         for tag, value_type in tag_type_dict.items():
             if value_type == int:
-                regex_pattern = regex_pattern.replace(tag, r"([-+]?[0-9]+)")
+                regex_pattern = regex_pattern.replace(tag, r"([0-9]+)")
             elif value_type == float:
-                regex_pattern = regex_pattern.replace(tag, r"([-+]?[0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)")
+                regex_pattern = regex_pattern.replace(tag, r"([0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)")
             else:
                 raise RuntimeError(f"Unsupported tag type for tag = \"{tag}\" [ type = {value_type} ].")
 
@@ -83,7 +83,7 @@ class Pattern:
         else:
             self.__value_getter_method = lambda x: x[0]
 
-    def GetData(self, input_str: str) -> 'tuple[bool, list[Any]]':
+    def GetData(self, input_str: str) -> 'tuple[bool, list[typing.Any]]':
         values = self.__pattern.findall(input_str)
         if len(values) >= 1:
             converted_values = [converter(v) for v, converter in zip(self.__value_getter_method(values), self.__converters)]
@@ -94,8 +94,7 @@ class Pattern:
     def GetNumberOfDataItems(self) -> int:
         return len(self.__converters)
 
-def __GetMachingEntities(starting_entity: PatternEntity, patterns: 'list[str]', tag_type_dict: 'dict[str, Any]', common_data: 'list[Any]') -> 'list[tuple[Path, Any]]':
-    data = []
+def __GetMachingEntities(starting_entity: PatternEntity, patterns: 'list[str]', tag_type_dict: 'dict[str, typing.Any]', common_data: 'list[typing.Any]') -> 'typing.Generator[tuple[PatternEntity, typing.Any]]':
     if len(patterns) == 1:
         # this is the file pattern. hence we now try to find matching files
         pattern = Pattern(patterns[0], tag_type_dict)
@@ -103,8 +102,7 @@ def __GetMachingEntities(starting_entity: PatternEntity, patterns: 'list[str]', 
             if itr.IsLeaf():
                 is_valid, file_pattern_data = pattern.GetData(itr.Name())
                 if is_valid:
-                    data.append([itr, *common_data, *file_pattern_data])
-        return data
+                    yield itr, *common_data, *file_pattern_data
     else:
         # this is a dir pattern
         pattern = Pattern(patterns[0], tag_type_dict)
@@ -112,18 +110,13 @@ def __GetMachingEntities(starting_entity: PatternEntity, patterns: 'list[str]', 
             if not itr.IsLeaf():
                 is_valid, dir_pattern_data = pattern.GetData(itr.Name())
                 if is_valid:
-                    data.extend(__GetMachingEntities(itr, patterns[1:], tag_type_dict, [*common_data, *dir_pattern_data]))
-        return data
+                    for data in __GetMachingEntities(itr, patterns[1:], tag_type_dict, [*common_data, *dir_pattern_data]):
+                        yield data
 
-def GetMachingEntities(starting_entity: PatternEntity, tagged_pattern: str, tag_type_dict: 'dict[str, Any]', sorting_functor = None) -> 'list[Any]':
+def GetMachingEntities(starting_entity: PatternEntity, tagged_pattern: str, tag_type_dict: 'dict[str, typing.Any]') -> 'typing.Generator[tuple[PatternEntity, typing.Any]]':
     sub_patterns = tagged_pattern.split("/")
-    matching_entities_list = __GetMachingEntities(starting_entity, sub_patterns, tag_type_dict, [])
-
-    if sorting_functor is None:
-        return [v[0].Get() for v in matching_entities_list]
-    else:
-        matching_entities_list = sorted(matching_entities_list, key=lambda x: sorting_functor(x[0].Get(), *x[1:]))
-        return [v[0].Get() for v in matching_entities_list]
+    for data in __GetMachingEntities(starting_entity, sub_patterns, tag_type_dict, []):
+        yield data
 
 def EvaluatePattern(pattern: str, model_part: Kratos.ModelPart, time_format='') -> str:
     time = model_part.ProcessInfo[Kratos.TIME]
@@ -137,3 +130,34 @@ def EvaluatePattern(pattern: str, model_part: Kratos.ModelPart, time_format='') 
     pattern = pattern.replace("<model_part_name>", model_part.Name)
     pattern = pattern.replace("<model_part_full_name>", model_part.FullName())
     return pattern
+
+def IdentifyPattern(entity_name: str) -> 'tuple[str, dict[str, typing.Any]]':
+    # all the tag types are assumed to be of float type
+    # here the "-" sign is omitted.
+    float_pattern = re.compile(r"([0-9]*\.?[0-9]+(?:[eE][-+]?[0-9]+)?)")
+    values = float_pattern.findall(entity_name)
+
+    current_pos = 0
+    current_value_index = 0
+    initial_value_index = 0
+    pattern = ""
+    tags_dict: 'dict[str, typing.Any]' = {}
+    while current_pos < len(entity_name):
+        found_tag = False
+        current_value_index = initial_value_index
+        while current_value_index < len(values):
+            current_value = values[current_value_index]
+            if entity_name[current_pos:current_pos + len(current_value)] == current_value:
+                tags_dict[f"<float_{current_value_index+1}>"] = float
+                pattern += f"<float_{current_value_index+1}>"
+                current_pos += len(current_value)
+                initial_value_index += 1
+                found_tag = True
+                break
+            current_value_index += 1
+
+        if not found_tag:
+            pattern += entity_name[current_pos]
+            current_pos += 1
+
+    return pattern, tags_dict

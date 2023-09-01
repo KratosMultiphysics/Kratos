@@ -25,10 +25,11 @@ def KeepMostRecentFiles(file_name_pattern: str, max_files_to_keep: int, number_o
     if number_of_oldest_files_to_keep > max_files_to_keep:
         raise RuntimeError(f"Max files to keep should be higher than or equal to number_of_oldest_files_to_keep.")
 
-    list_of_sorted_file_names = GetMachingEntities(PathPatternEntity(Path(".")),
+
+    list_of_sorted_file_names = sorted(list(GetMachingEntities(PathPatternEntity(Path(".")),
                                                    file_name_pattern,
-                                                   {"<step>": int, "<time>": float},
-                                                   lambda _, *args: tuple(args))
+                                                   {"<step>": int, "<time>": float})),
+                                                   key=lambda args: tuple(args[1:]))
 
     if (len(list_of_sorted_file_names) >= max_files_to_keep):
         for file_name in list_of_sorted_file_names[number_of_oldest_files_to_keep:len(list_of_sorted_file_names) - max_files_to_keep + number_of_oldest_files_to_keep]:
