@@ -7,44 +7,87 @@ license: HDF5Application/license.txt
 from argparse import ArgumentParser
 
 
-from KratosMultiphysics.HDF5Application.xdmf_utils import WriteMultifileTemporalAnalysisToXdmf
-from KratosMultiphysics.HDF5Application.xdmf_utils import WriteSinglefileTemporalAnalysisToXdmf
+"""A script for creating XDMF files for results stored in HDF5.
+
+license: HDF5Application/license.txt
+"""
+
+
+from argparse import ArgumentParser
+
+from KratosMultiphysics.HDF5Application.xdmf_utils import WriteDataSetsToXdmf
+from KratosMultiphysics.HDF5Application.xdmf_utils import IdentifyPattern
+from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import SingleMeshMultiFileSameDatasetsGenerator
+from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import SingleFileDatasetsGenerator
+from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import MultiFileDatasetsGenerator
+from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import HasTags
+from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import GetDataSetPatterns
 
 
 def main():
     """Parse the command line arguments and write the corresponding XDMF file."""
-    parser = ArgumentParser(
-        description="Write an XDMF file for post-processing results in HDF5.")
-    parser.add_argument(dest="file_name", metavar="<filename>",
-                        help="path to an HDF5 file for which XDMF metadata should be written")
-    parser.add_argument("-t", "--type", dest="type", metavar="<type>",
-                        choices=['single', 'multiple'], default="multiple", help="type of HDF5 file")
-    parser.add_argument("-a", "--analysis", dest="analysis", metavar="<analysis>",
-                        choices=['static', 'temporal'], default="temporal", help="type of analysis")
-    parser.add_argument("-m", "--mesh-path", dest="mesh_path", metavar="<mesh-path>",
-                        default="/ModelData", help="internal HDF5 file path to the mesh")
-    parser.add_argument("-r", "--results-path", dest="results_path", metavar="<results-path>",
-                        default="/ResultsData", help="internal HDF5 file path to the results")
-    parser.add_argument("--require-results",
-                        dest = "require_results",
-                        action = "store_const",
-                        default = False,
-                        const = True,
-                        help = "Ignore outputs that have mesh data but lack results.")
+    parser = ArgumentParser(description="Write an XDMF file for post-processing results in HDF5.")
+
+    parser.add_argument("dataset_pattern",
+                        metavar="<dataset_pattern>",
+                        help="The pattern of the dataset with prefix. Eg: test_<step>:/ResultsData, test.h5:/Results_<step>")
+    parser.add_argument("-0",
+                        "--output_name",
+                        dest="output_name",
+                        type=str,
+                        default="output.xdmf",
+                        help="Output filen name. (default = output.xdmf if a pattern is given.)")
+
+    parser.add_argument("-p",
+                        "--time_pos",
+                        dest="temporal_tag_position",
+                        type=int,
+                        default=0,
+                        help="The temporal value tag position. (default = 0)")
+    parser.add_argument("-n",
+                        "--no-identify",
+                        dest="identify_pattern",
+                        action="store_false",
+                        default=True,
+                        help="Use the provided <dataset_pattern> to identify a pattern string (default = on)")
+    parser.add_argument("-m",
+                        "--mesh-type",
+                        dest="mesh_type",
+                        choices=["single", "multiple"],
+                        default="single",
+                        help="Specify whether there is a \"single\" mesh or \"multiple\" meshes. (default = \"single\")")
+
     print('\nCreate XDMF:')
     args = parser.parse_args()
-    if args.type == "multiple" and args.analysis == "temporal":
-        WriteMultifileTemporalAnalysisToXdmf(args.file_name,
-                                             args.mesh_path,
-                                             args.results_path)
-    elif args.type == "single" and args.analysis == "temporal":
-        WriteSinglefileTemporalAnalysisToXdmf(args.file_name,
-                                              args.mesh_path,
-                                              args.results_path,
-                                              require_results = args.require_results)
-    else:
-        raise RuntimeError("Unsupported command line options.")
+    dataset_pattern:str = args.dataset_pattern
+    temporal_tag_position:int = args.temporal_tag_position
+    mesh_type:str = args.mesh_type
+    identify_pattern:bool = args.identify_pattern
+    output_name:str = args.output_name
 
+    # by default the dataset_pattern if not a pattern then, the pattern will be identified.
+    # if it is already a pattern, then nothing is done.
+    if dataset_pattern.find("<time>") != -1 or dataset_pattern.find("<step>") != -1:
+        identify_pattern = False
+
+    if identify_pattern:
+        output_name = dataset_pattern.split(":")[0][:-2] + "xdmf"
+        dataset_pattern, tag_type_dict = IdentifyPattern(dataset_pattern)
+    else:
+        tag_type_dict = {"<step>" : int, "<time>": float}
+
+    # now check where the tags are
+    h5_file_name, _ = GetDataSetPatterns(dataset_pattern)
+
+    if HasTags(h5_file_name, tag_type_dict):
+        if mesh_type == "single":
+            dataset_generator = SingleMeshMultiFileSameDatasetsGenerator(dataset_pattern, temporal_tag_position, tag_type_dict)
+        else:
+            dataset_generator = MultiFileDatasetsGenerator(dataset_pattern, temporal_tag_position, tag_type_dict)
+    else:
+        dataset_generator = SingleFileDatasetsGenerator(dataset_pattern, temporal_tag_position, tag_type_dict)
+
+    WriteDataSetsToXdmf(dataset_generator, output_name)
 
 if __name__ == "__main__":
     main()

@@ -54,40 +54,38 @@ class HDF5PatternEntity(PatternEntity):
     def Get(self) -> 'typing.Union[h5py.Dataset, h5py.Group]':
         return self.__hdf5_object
 
+def GetDataSetPatterns(dataset_pattern: str) -> 'tuple[str, str]':
+    if dataset_pattern == "":
+        raise RuntimeError(f"Dataset pattern cannot be empty.")
+
+    dataset_pattern_data = dataset_pattern.split(":")
+
+    if len(dataset_pattern_data) == 2:
+        if not dataset_pattern_data[1].startswith("/"):
+            raise RuntimeError(f"Dataset prefix pattern must always start with \"/\" [ dataset_pattern = {dataset_pattern} ].")
+        return dataset_pattern_data[0], dataset_pattern_data[1]
+    elif len(dataset_pattern_data) == 1:
+        return dataset_pattern_data[0], "/"
+    else:
+        raise RuntimeError(f"Dataset pattern should only have one \":\" delimeter seperating fileanme and dataset prefix [ dataset_pattern = \"{dataset_pattern}\" ].")
+
+def HasTags(pattern: str, tag_type_dict: 'dict[str, typing.Any]') -> bool:
+    for tag in tag_type_dict.keys():
+        if pattern.find(tag) != -1:
+            return True
+
+    return False
+
 class DataSetGenerator(abc.ABC):
     @abc.abstractmethod
     def Iterate(self) -> 'typing.Generator[tuple[float, EntityData]]':
         pass
 
-    @staticmethod
-    def _GetDataSetPatterns(dataset_pattern: str) -> 'tuple[str, str]':
-        if dataset_pattern == "":
-            raise RuntimeError(f"Dataset pattern cannot be empty.")
-
-        dataset_pattern_data = dataset_pattern.split(":")
-
-        if len(dataset_pattern_data) == 2:
-            if not dataset_pattern_data[1].startswith("/"):
-                raise RuntimeError(f"Dataset prefix pattern must always start with \"/\" [ dataset_pattern = {dataset_pattern} ].")
-            return dataset_pattern_data[0], dataset_pattern_data[1]
-        elif len(dataset_pattern_data) == 1:
-            return dataset_pattern_data[0], "/"
-        else:
-            raise RuntimeError(f"Dataset pattern should only have one \":\" delimeter seperating fileanme and dataset prefix [ dataset_pattern = \"{dataset_pattern}\" ].")
-
-    @staticmethod
-    def _HasTags(pattern: str, tag_type_dict: 'dict[str, typing.Any]') -> bool:
-        for tag in tag_type_dict.keys():
-            if pattern.find(tag) != -1:
-                return True
-
-        return False
-
 class SingleMeshMultiFileSameDatasetsGenerator(DataSetGenerator):
     def __init__(self, dataset_pattern: str, temporal_value_tag_position: int = 0, tag_type_dict: 'dict[str, typing.Any]' = {"<time>": float, "<step>": int}) -> None:
-        self.hdf5_file_name_pattern, self.dataset_prefix = self._GetDataSetPatterns(dataset_pattern)
+        self.hdf5_file_name_pattern, self.dataset_prefix = GetDataSetPatterns(dataset_pattern)
 
-        if self._HasTags(self.dataset_prefix, tag_type_dict):
+        if HasTags(self.dataset_prefix, tag_type_dict):
             raise RuntimeError(f"Dataset prefix tags are not supported in SingleFileDatasetsGenerator [ dataset_pattern: {dataset_pattern} ].")
 
         self.temporal_value_tag_position = temporal_value_tag_position
@@ -120,9 +118,9 @@ class SingleMeshMultiFileSameDatasetsGenerator(DataSetGenerator):
 
 class SingleFileDatasetsGenerator(DataSetGenerator):
     def __init__(self, dataset_pattern: str, temporal_value_tag_position: int = 0, tag_type_dict: 'dict[str, typing.Any]' = {"<time>": float, "<step>": int}) -> None:
-        self.hdf5_file_name, self.dataset_prefix_pattern = self._GetDataSetPatterns(dataset_pattern)
+        self.hdf5_file_name, self.dataset_prefix_pattern = GetDataSetPatterns(dataset_pattern)
 
-        if self._HasTags(self.hdf5_file_name, tag_type_dict):
+        if HasTags(self.hdf5_file_name, tag_type_dict):
             raise RuntimeError(f"File name tags are not supported in SingleFileDatasetsGenerator [ dataset_pattern: {dataset_pattern} ].")
 
         self.temporal_value_tag_position = temporal_value_tag_position
@@ -141,9 +139,9 @@ class SingleFileDatasetsGenerator(DataSetGenerator):
 
 class MultiFileDatasetsGenerator(DataSetGenerator):
     def __init__(self, dataset_pattern: str, temporal_value_tag_position: int = 0, tag_type_dict: 'dict[str, typing.Any]' = {"<time>": float, "<step>": int}) -> None:
-        self.hdf5_file_name_pattern, self.dataset_prefix = self._GetDataSetPatterns(dataset_pattern)
+        self.hdf5_file_name_pattern, self.dataset_prefix = GetDataSetPatterns(dataset_pattern)
 
-        if self._HasTags(self.dataset_prefix, tag_type_dict):
+        if HasTags(self.dataset_prefix, tag_type_dict):
             raise RuntimeError(f"Dataset prefix tags are not supported in SingleFileDatasetsGenerator [ dataset_pattern: {dataset_pattern} ].")
 
         self.temporal_value_tag_position = temporal_value_tag_position
