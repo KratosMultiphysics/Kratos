@@ -77,16 +77,32 @@ def GenerateUniformGridsForSubModelParts(h5_file: h5py.File, grid_path: str, gri
             else:
                 GenerateUniformGridsForSubModelParts(h5_file, f"{grid_path}/{name}", f"{grid_name}.{name}", coordinates, spatial_grid)
 
-def GenerateSpatialGrid(h5_file: h5py.File, model_data_path: str) -> 'tuple[SpatialGrid, list[UniformGrid], list[UniformGrid]]':
-    spatial_grid = SpatialGrid()
-    coordinates = Geometry(HDF5UniformDataItem(h5_file[f"{model_data_path}/Nodes/Local/Coordinates"]))
+def GenerateSpatialGrid(h5_file_name: str, model_data_path: str) -> 'tuple[SpatialGrid, list[UniformGrid], list[UniformGrid]]':
+    h5_file = h5py.File(h5_file_name, "r")
+
+    if model_data_path not in h5_file.keys():
+        raise RuntimeError(f"The model_data_path = \"{model_data_path}\" not found in {h5_file_name}.")
 
     model_data = h5_file[model_data_path]
-    model_part_name = ''.join([chr(i) for i in h5_file[model_data_path].attrs["__model_part_name"]])
 
     if not "Xdmf" in model_data.keys():
+        # temporarily close existing file so following operation can open
+        # and add Xdmf content
+        h5_file.close()
         # try generating the xdmf data.
-        KratosHDF5.HDF5XdmfConnectivitiesWriterOperation(h5_file.filename, [model_data_path]).Execute()
+        KratosHDF5.HDF5XdmfConnectivitiesWriterOperation(h5_file_name, [model_data_path]).Execute()
+        # again open the h5_file
+        h5_file = h5py.File(h5_file_name, "r")
+
+    spatial_grid = SpatialGrid()
+    model_data = h5_file[model_data_path]
+
+    if "__model_part_name" not in model_data.attrs.keys():
+        raise RuntimeError(f"The attribute \"__model_part_name\" not found in \"{h5_file_name}:{model_data_path}\".")
+
+    model_part_name = ''.join([chr(i) for i in model_data.attrs["__model_part_name"]])
+
+    coordinates = Geometry(HDF5UniformDataItem(h5_file[f"{model_data_path}/Nodes/Local/Coordinates"]))
 
     if "Xdmf" in model_data.keys():
         xdmf_data = model_data["Xdmf"]
@@ -102,7 +118,7 @@ def GenerateSpatialGrid(h5_file: h5py.File, model_data_path: str) -> 'tuple[Spat
         if "SubModelParts" in xdmf_data.keys():
             GenerateUniformGridsForSubModelParts(h5_file, f"{model_data_path}/Xdmf/SubModelParts", model_part_name, coordinates, spatial_grid)
     else:
-        KratosMultiphysics.Logger.PrintInfo("XDMF", f"No Xdmf data found in {h5_file.filename}:{model_data_path}.")
+        KratosMultiphysics.Logger.PrintInfo("XDMF", f"No Xdmf data found in {h5_file_name}:{model_data_path}.")
 
     return spatial_grid
 
@@ -172,8 +188,7 @@ def WriteOrderedDataSetsToXdmf(ordered_datasets: OrderedDataSets, output_file_na
         # get the spatial grid
         if not mesh_location in spatial_grids.keys():
             mesh_data = mesh_location.split(":")
-            with h5py.File(mesh_data[0], "r") as h5_file:
-                spatial_grids[mesh_location] = GenerateSpatialGrid(h5_file, mesh_data[1])
+            spatial_grids[mesh_location] = GenerateSpatialGrid(mesh_data[0], mesh_data[1])
 
         # now create a duplicate of the found spatial grid
         current_spatial_grid = SpatialGrid()

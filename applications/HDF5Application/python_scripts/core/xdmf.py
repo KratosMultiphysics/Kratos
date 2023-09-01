@@ -467,7 +467,7 @@ class SpatialGrid(Grid):
             # nodal data is added to all grids since, all grids has all the nodes.
             for grid in self.grids:
                 grid.AddAttribute(attr)
-        elif attr.container_type == Kratos.Globals.DataLocation.Condition:
+        else:
             # condition data is added to only the root condition grid. Because,
             # the datasets only represent the root model parts condition data.
             # here we cannot support multiple condition types because
@@ -483,28 +483,9 @@ class SpatialGrid(Grid):
                         grid.AddAttribute(attr)
                         added_once = True
                     else:
-                        raise RuntimeError(f"Only one condition type can be visualized if condition data is added to hdf5 [ grid_name = {grid.name}, dataset name = {attr.name} ].")
+                        raise RuntimeError(f"Only one {attr.container_type.name} type can be visualized if condition data is added to hdf5 [ grid_name = {grid.name}, dataset name = {attr.name} ].")
             if not added_once:
-                raise RuntimeError(f"No condition grid was found to visualize dataset = \"{attr.name}\".")
-        elif attr.container_type == Kratos.Globals.DataLocation.Element:
-            # condition data is added to only the root condition grid. Because,
-            # the datasets only represent the root model parts condition data.
-            # here we cannot support multiple condition types because
-            # when we write conditions, we break the whole conditions list to sub lists
-            # based on their type. But the condition datasets are written as a contigous dataset.
-            # hence the values and conditions may not match.
-            # TODO: Once Paraview supports Set and SubSet XDMF elements, then
-            #       update this section.
-            added_once = False
-            for grid in self.grids:
-                if grid.is_root and grid.container_type == attr.container_type:
-                    if not added_once:
-                        grid.AddAttribute(attr)
-                        added_once = True
-                    else:
-                        raise RuntimeError(f"Only one condition type can be visualized if condition data is added to hdf5 [ grid_name = {grid.name}, dataset name = {attr.name} ].")
-            if not added_once:
-                raise RuntimeError(f"No condition grid was found to visualize dataset = \"{attr.name}\".")
+                raise RuntimeError(f"No {attr.container_type.name} grid was found to visualize dataset = \"{attr.name}\".")
 
     def AddGrid(self, grid: UniformGrid) -> None:
         self.grids.append(grid)
