@@ -9,21 +9,17 @@ from test_hdf5_core import TestOperations as TestHDF5Operations
 from test_hdf5_core import TestControllers as TestHDF5Controllers
 from test_hdf5_model_part_io import TestCase as TestHDF5ModelPartIO
 from test_hdf5_processes import TestHDF5Processes
-# from test_hdf5_xdmf import TestTryOpenH5File
-# from test_hdf5_xdmf import TestCreateXdmfSpatialGrid
-# from test_hdf5_xdmf import TestXdmfNodalResults
-# from test_hdf5_xdmf import TestXdmfElementResults
-# from test_hdf5_xdmf import TestXdmfConditionResults
-# from test_hdf5_xdmf import TestXdmfResults
-# from test_hdf5_xdmf import TestTimeLabel
-# from test_hdf5_xdmf import TestFindMatchingFiles
-# from test_hdf5_xdmf import TestCreateXdmfTemporalGridFromMultifile
+from test_hdf5_xdmf import TestCreateXdmfSpatialGrid
+from test_hdf5_xdmf import TestXdmfNodalResults
+from test_hdf5_xdmf import TestXdmfElementResults
+from test_hdf5_xdmf import TestXdmfConditionResults
 from test_vertex import TestVertex
 from test_point_set_output_process import TestPointSetOutputProcess as TestHDF5PointSetOutputProcess
 from test_line_output_process import TestLineOutputProcess as TestHDF5LineOutputProcess
 from test_pattern import TestGetMachingEntitiesString
 from test_expression_io import TestExpressionIO
 from test_hdf5_mesh_location_container import TestMeshLocationContainer
+from test_xdmf_dataset_generator import TestDatasetGenerator
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
@@ -33,19 +29,15 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5Controllers]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5ModelPartIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestHDF5Processes]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTryOpenH5File]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreateXdmfSpatialGrid]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfNodalResults]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfElementResults]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfConditionResults]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfResults]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTimeLabel]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFindMatchingFiles]))
-    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreateXdmfTemporalGridFromMultifile]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestCreateXdmfSpatialGrid]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfNodalResults]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfElementResults]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestXdmfConditionResults]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestVertex, TestHDF5PointSetOutputProcess, TestHDF5LineOutputProcess]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestExpressionIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestGetMachingEntitiesString]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMeshLocationContainer]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestDatasetGenerator]))
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
     allSuite = suites['all']
