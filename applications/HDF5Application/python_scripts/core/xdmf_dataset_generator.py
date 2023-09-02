@@ -86,10 +86,10 @@ class SingleMeshMultiFileSameDatasetsGenerator(DataSetGenerator):
         self.hdf5_file_name_pattern, self.dataset_prefix = GetDataSetPatterns(dataset_pattern)
 
         if HasTags(self.dataset_prefix, tag_type_dict):
-            raise RuntimeError(f"Dataset prefix tags are not supported in SingleFileDatasetsGenerator [ dataset_pattern: {dataset_pattern} ].")
+            raise RuntimeError(f"Dataset prefix tags are not supported in SingleMeshMultiFileSameDatasetsGenerator [ dataset_pattern: {dataset_pattern} ].")
 
         if not HasTags(self.hdf5_file_name_pattern, tag_type_dict):
-            raise RuntimeError(f"File name is required to have tags in SingleFileDatasetsGenerator [ dataset_pattern = {dataset_pattern} ].")
+            raise RuntimeError(f"File name is required to have tags in SingleMeshMultiFileSameDatasetsGenerator [ dataset_pattern = {dataset_pattern} ].")
 
         self.temporal_value_tag_position = temporal_value_tag_position
         self.tag_type_dict = tag_type_dict

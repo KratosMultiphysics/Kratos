@@ -126,6 +126,23 @@ def CreateXdmfSpatialGrid(h5_file_name: str, model_data_path: str) -> SpatialGri
 
     return spatial_grid
 
+def WriteMeshToXdmf(h5_file_name: str, output_file_name: str, model_data_prefix: str = "/") -> None:
+    list_of_model_part_prefixes = []
+    if model_data_prefix == "/":
+        with h5py.File(h5_file_name, "r") as h5_file:
+            GetSpatialGridPaths(h5_file, list_of_model_part_prefixes, "/")
+    else:
+        list_of_model_part_prefixes = [model_data_prefix]
+
+    temporal_grid = TemporalGrid()
+    for spatial_grid_path in list_of_model_part_prefixes:
+        spatial_grid = CreateXdmfSpatialGrid(h5_file_name, spatial_grid_path)
+        temporal_grid.AddGrid(Time(0.0), spatial_grid)
+
+    domain = Domain(temporal_grid)
+    xdmf = Xdmf(domain)
+    ET.ElementTree(xdmf.CreateXmlElement()).write(output_file_name)
+
 def WriteDataSetsToXdmf(dataset_generator: DataSetGenerator, output_file_name: str) -> None:
     """Write the given datasets by the generator to the specified output file name.
 
