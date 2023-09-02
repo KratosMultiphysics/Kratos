@@ -727,7 +727,7 @@ class DEMAnalysisStage(AnalysisStage):
 
     def MeasureSphereForGettingPackingProperties(self, radius, center_x, center_y, center_z, type):
         '''
-        This is a function to establish a sphere range to measure local packing properties
+        This is a function to establish a sphere to measure local packing properties
         The type could be "porosity", "averaged_coordination_number", "fabric_tensor", "stress" or "strain" 
         This funtion is only valid for 3D model now
         '''
@@ -779,6 +779,9 @@ class DEMAnalysisStage(AnalysisStage):
                     y_1 = element.GetNode(1).Y
                     z_0 = element.GetNode(0).Z
                     z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
 
                     center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
                     center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
@@ -814,6 +817,9 @@ class DEMAnalysisStage(AnalysisStage):
                     y_1 = element.GetNode(1).Y
                     z_0 = element.GetNode(0).Z
                     z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
 
                     center_to_sphere_distance_0 = ((x_0 - center_x)**2 + (y_0 - center_y)**2 + (z_0 - center_z)**2)**0.5
                     center_to_sphere_distance_1 = ((x_1 - center_x)**2 + (y_1 - center_y)**2 + (z_1 - center_z)**2)**0.5
@@ -842,7 +848,8 @@ class DEMAnalysisStage(AnalysisStage):
 
                 eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
 
-                np.savetxt(os.path.join(self.graphs_path, "number_of_contacts_in_all_directions.txt"), number_of_contacts_in_a_direction, fmt='%d', delimiter=' ')
+                output_file_name = "number_of_contacts_in_all_directions_of_size_" + str(radius) +".txt"
+                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction, fmt='%d', delimiter=' ')
                 
                 return eigenvalues
 
@@ -868,8 +875,9 @@ class DEMAnalysisStage(AnalysisStage):
                     this_particle_info = np.array([particle_number_count,x, y, z, r])
                     particle_id_positions_and_radius = np.vstack((particle_id_positions_and_radius, this_particle_info))
 
+            output_file_name = "voronoi_input_data_of_size_" + str(radius) +".txt"
             fmt_list = ['%d', '%.6f', '%.6f', '%.6f', '%.6f']
-            np.savetxt(os.path.join(self.graphs_path, "voronoi_input_data.txt"), particle_id_positions_and_radius, fmt=fmt_list, delimiter='\t', comments='')
+            np.savetxt(os.path.join(self.graphs_path, output_file_name), particle_id_positions_and_radius, fmt=fmt_list, delimiter='\t', comments='')
         
         if type == "stress":
             pass
@@ -877,7 +885,7 @@ class DEMAnalysisStage(AnalysisStage):
         if type == "strain":
             pass
     
-    def MeasureSphereForGettingRadialDistributionFunction(self, radius, center_x, center_y, center_z, num_bins, d_mean):
+    def MeasureSphereForGettingRadialDistributionFunction(self, radius, center_x, center_y, center_z, delta_r, d_mean):
         
         min_reference_particle_to_center_distance = 1e10
         particle_positions = np.empty((0, 3))
@@ -914,6 +922,7 @@ class DEMAnalysisStage(AnalysisStage):
 
         # Set histogram parameters
         max_distance = radius
+        num_bins = int(max_distance // delta_r)
         bin_edges = np.linspace(0, max_distance, num_bins + 1)
 
         # Calculate histogram
@@ -925,25 +934,210 @@ class DEMAnalysisStage(AnalysisStage):
         rdf = hist / (4 * np.pi * bin_edges[1:]**2 * bin_width * TotalParticleNumber / measure_sphere_volume)
 
         data_to_save = np.column_stack((bin_edges[1:] / d_mean, rdf))
-        np.savetxt(os.path.join(self.graphs_path, "rdf_data.txt"), data_to_save, fmt='%.6f', delimiter='\t', header='r/d\tRDF', comments='')
-    
-    def OutputVoronoiInputDataOfAllTheParticles(self):
+        output_file_name = "rdf_data_of_size_" + str(radius * 2) +".txt"
+        np.savetxt(os.path.join(self.graphs_path, output_file_name), data_to_save, fmt='%.6f', delimiter='\t', comments='')
 
-        particle_id_positions_and_radius = np.empty((0, 5))
-        particle_number_count = 0
-        for node in self.spheres_model_part.Nodes:
+    def MeasureCubicForGettingPackingProperties(self, side_length, center_x, center_y, center_z, type):
+        '''
+        This is a function to establish a cubic with 'side_length' to measure local packing properties
+        The type could be "porosity", "averaged_coordination_number", "fabric_tensor", "stress" or "strain" 
+        This funtion is only valid for 3D model now
+        '''
+        if type == "porosity":
+            measure_cubic_volume = side_length ** 3
+            sphere_volume_inside = 0.0
+            measured_porosity = 0.0
 
-            r = node.GetSolutionStepValue(RADIUS)
-            x = node.X
-            y = node.Y
-            z = node.Z
+            for node in self.spheres_model_part.Nodes:
 
-            particle_number_count += 1
-            this_particle_info = np.array([particle_number_count,x, y, z, r])
-            particle_id_positions_and_radius = np.vstack((particle_id_positions_and_radius, this_particle_info))
+                r = node.GetSolutionStepValue(RADIUS)
+                x = node.X
+                y = node.Y
+                z = node.Z
 
-        fmt_list = ['%d', '%.6f', '%.6f', '%.6f', '%.6f']
-        np.savetxt(os.path.join(self.graphs_path, "voronoi_input_data_all.txt"), particle_id_positions_and_radius, fmt=fmt_list, delimiter='\t', comments='')
+                if (center_x - 0.5 * side_length + r) < x < (center_x + 0.5 * side_length - r):
+                    if (center_y - 0.5 * side_length + r) < y < (center_y + 0.5 * side_length - r):
+                        if (center_z - 0.5 * side_length + r) < z < (center_z + 0.5 * side_length - r):
+                            sphere_volume_inside += 4/3 * math.pi * r * r * r
+
+            if measure_cubic_volume:
+                measured_porosity = 1 - (sphere_volume_inside / measure_cubic_volume)
+
+            return measured_porosity
+        
+        if type == "averaged_coordination_number":
+            
+            measured_coordination_number = 0
+            if self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                total_particle_number = 0
+                total_contact_number  = 0
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
+
+                    if (center_x - 0.5 * side_length + r) < x_0 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_0 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_0 < (center_z + 0.5 * side_length - r):
+                                total_contact_number += 1
+
+                    if (center_x - 0.5 * side_length + r) < x_1 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_1 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_1 < (center_z + 0.5 * side_length - r):
+                                total_contact_number += 1
+                
+                for node in self.spheres_model_part.Nodes:
+
+                    r = node.GetSolutionStepValue(RADIUS)
+                    x = node.X
+                    y = node.Y
+                    z = node.Z
+
+                    if (center_x - 0.5 * side_length + r) < x < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z < (center_z + 0.5 * side_length - r):
+                                total_particle_number += 1
+                
+                
+                if total_particle_number:
+                    measured_coordination_number = total_contact_number / total_particle_number
+                
+                return measured_coordination_number
+
+            else:
+                raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+        
+        if type == "fabric_tensor":
+
+            if self.DEM_parameters["ContactMeshOption"].GetBool():
+                
+                total_tensor = np.empty((3, 3))
+                total_contact_number  = 0
+                number_of_contacts_in_a_direction = np.zeros((18, 36))
+
+                for element in self.contact_model_part.Elements:
+            
+                    x_0 = element.GetNode(0).X
+                    x_1 = element.GetNode(1).X
+                    y_0 = element.GetNode(0).Y
+                    y_1 = element.GetNode(1).Y
+                    z_0 = element.GetNode(0).Z
+                    z_1 = element.GetNode(1).Z
+                    r_0 = element.GetNode(0).GetSolutionStepValue(RADIUS)
+                    r_1 = element.GetNode(1).GetSolutionStepValue(RADIUS)
+                    r   = 0.5 * (r_0 + r_1)
+
+                    sphere_0_is_inside = False
+                    sphere_1_is_inside = False
+
+                    if (center_x - 0.5 * side_length + r) < x_0 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_0 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_0 < (center_z + 0.5 * side_length - r):
+                                sphere_0_is_inside = True
+
+                    if (center_x - 0.5 * side_length + r) < x_1 < (center_x + 0.5 * side_length - r):
+                        if (center_y - 0.5 * side_length + r) < y_1 < (center_y + 0.5 * side_length - r):
+                            if (center_z - 0.5 * side_length + r) < z_1 < (center_z + 0.5 * side_length - r):
+                                sphere_1_is_inside = True
+
+                    if sphere_0_is_inside or sphere_1_is_inside:
+                        
+                        vector1 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
+                        #vector2 = np.array([x_1 - x_0 , y_1 - y_0, z_1 - z_0])
+                        v1_norm = np.linalg.norm(vector1)
+                        if v1_norm:
+                            vector1_unit = vector1 / v1_norm
+                        tensor = np.outer(vector1_unit, vector1_unit)
+                        total_tensor += tensor
+                        total_contact_number += 1
+
+                        #calculate the contact direction
+                        # here, y is the north direction
+                        x, y, z = vector1
+                        vector_length = np.linalg.norm(vector1)
+                        theta = np.arccos(y / vector_length)
+                        phi = np.arctan2(z, x)
+                        if z < 0:
+                            phi += 2 * np.pi
+
+                        theta_index = int(theta / (np.pi) * 18)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+                        
+                        number_of_contacts_in_a_direction[phi_index, theta_index] += 1
+
+                        
+                        vector2 = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
+                        x, y, z = vector2
+                        vector_length = np.linalg.norm(vector1)
+                        theta = np.arccos(y / vector_length)
+                        phi = np.arctan2(z, x)
+                        if z < 0:
+                            phi += 2 * np.pi
+                        
+                        theta_index = int(theta / (np.pi) * 18)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+                        
+                        number_of_contacts_in_a_direction[phi_index, theta_index] += 1
+                        
+                
+                if total_contact_number:
+                    measured_fabric_tensor = total_tensor / total_contact_number
+                
+                deviatoric_tensor = 4 * (measured_fabric_tensor - 1/3 * np.eye(3)) 
+
+                second_invariant_of_deviatoric_tensor = (0.5 * np.sum(deviatoric_tensor * deviatoric_tensor))**0.5
+
+                eigenvalues, eigenvectors = np.linalg.eig(measured_fabric_tensor)
+
+                output_file_name = "number_of_contacts_in_all_directions_of_size_" + str(side_length) +".txt"
+                np.savetxt(os.path.join(self.graphs_path, output_file_name), number_of_contacts_in_a_direction, fmt='%d', delimiter=' ')
+                
+                return eigenvalues, second_invariant_of_deviatoric_tensor
+
+            else:
+                raise Exception('The \"ContactMeshOption\" in the [ProjectParametersDEM.json] should be [True].')
+            
+        if type == "voronoi_input_data":
+
+            particle_id_positions_and_radius = np.empty((0, 5))
+            particle_number_count = 0
+            for node in self.spheres_model_part.Nodes:
+
+                r = node.GetSolutionStepValue(RADIUS)
+                x = node.X
+                y = node.Y
+                z = node.Z
+
+                sphere_is_inside = False
+
+                if (center_x - 0.5 * side_length + r) < x < (center_x + 0.5 * side_length - r):
+                    if (center_y - 0.5 * side_length + r) < y < (center_y + 0.5 * side_length - r):
+                        if (center_z - 0.5 * side_length + r) < z < (center_z + 0.5 * side_length - r):
+                            sphere_is_inside = True
+
+                if sphere_is_inside:
+
+                    particle_number_count += 1
+                    this_particle_info = np.array([particle_number_count,x, y, z, r])
+                    particle_id_positions_and_radius = np.vstack((particle_id_positions_and_radius, this_particle_info))
+
+            output_file_name = "voronoi_input_data_of_size_" + str(side_length) +".txt"
+            fmt_list = ['%d', '%.6f', '%.6f', '%.6f', '%.6f']
+            np.savetxt(os.path.join(self.graphs_path, output_file_name), particle_id_positions_and_radius, fmt=fmt_list, delimiter='\t', comments='')
+
+        if type == "stress":
+            pass
+
+        if type == "strain":
+            pass
 
 if __name__ == "__main__":
     with open("ProjectParametersDEM.json",'r') as parameter_file:
