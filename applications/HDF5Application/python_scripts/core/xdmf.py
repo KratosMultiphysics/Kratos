@@ -191,7 +191,10 @@ class Time(XdmfItem):
         return "Time"
 
     def __init__(self, time: float) -> None:
-        self.time = str(time)
+        if isinstance(time, int):
+            self.time = f"{time}"
+        else:
+            self.time = f"{time:0.10f}"
 
     def CreateXmlElement(self) -> ET.Element:
         e = ET.Element(self.xml_tag, {"TimeType": "Single", "Value": self.time})
