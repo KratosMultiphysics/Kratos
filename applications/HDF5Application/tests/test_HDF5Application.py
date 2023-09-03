@@ -19,7 +19,7 @@ from test_line_output_process import TestLineOutputProcess as TestHDF5LineOutput
 from test_pattern import TestGetMachingEntitiesString
 from test_expression_io import TestExpressionIO
 from test_hdf5_mesh_location_container import TestMeshLocationContainer
-from test_xdmf_dataset_generator import TestDatasetGenerator
+from test_dataset_generator import TestDatasetGenerator
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites

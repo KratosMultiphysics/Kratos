@@ -16,7 +16,7 @@ from KratosMultiphysics.HDF5Application.core.xdmf import Time
 from KratosMultiphysics.HDF5Application.core.xdmf import Domain
 from KratosMultiphysics.HDF5Application.core.xdmf import Xdmf
 from KratosMultiphysics.HDF5Application.core.xdmf import EntityData
-from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import DataSetGenerator
+from KratosMultiphysics.HDF5Application.core.dataset_generator import DataSetGenerator
 
 def GetPatternDetailsFromFileName(file_name_path: Path) -> str:
     file_relative_path = str(file_name_path.relative_to(Path(".")))

@@ -15,20 +15,20 @@ import KratosMultiphysics as Kratos
 from KratosMultiphysics.HDF5Application.xdmf_utils import WriteDataSetsToXdmf
 from KratosMultiphysics.HDF5Application.xdmf_utils import WriteMeshToXdmf
 from KratosMultiphysics.HDF5Application.xdmf_utils import IdentifyPattern
-from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import SingleMeshMultiFileSameDatasetsGenerator
-from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import SingleFileDatasetsGenerator
-from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import MultiFileDatasetsGenerator
-from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import HasTags
-from KratosMultiphysics.HDF5Application.core.xdmf_dataset_generator import GetDataSetPatterns
+from KratosMultiphysics.HDF5Application.core.dataset_generator import SingleMeshMultiFileSameDatasetsGenerator
+from KratosMultiphysics.HDF5Application.core.dataset_generator import SingleFileDatasetsGenerator
+from KratosMultiphysics.HDF5Application.core.dataset_generator import MultiFileDatasetsGenerator
+from KratosMultiphysics.HDF5Application.core.dataset_generator import HasTags
+from KratosMultiphysics.HDF5Application.core.dataset_generator import GetDataSetPatterns
 
 def CreateXDMFFile(
         dataset_pattern: str,
-        temporal_tag_position: int,
-        is_single_file: bool,
-        is_mesh_only: bool,
-        identify_pattern: bool,
-        dynamic_mesh: bool,
-        output_xdmf_file_name: str):
+        temporal_tag_position: int = 0,
+        is_single_file: bool = False,
+        is_mesh_only: bool = False,
+        identify_pattern: bool = True,
+        dynamic_mesh: bool = False,
+        output_xdmf_file_name: str = "output.xdmf"):
 
     # by default the dataset_pattern if not a pattern then, the pattern will be identified.
     # if it is already a pattern, then nothing is done.
