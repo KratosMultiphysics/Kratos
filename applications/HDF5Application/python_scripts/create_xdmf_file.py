@@ -16,8 +16,7 @@ from KratosMultiphysics.HDF5Application.xdmf_utils import WriteDataSetsToXdmf
 from KratosMultiphysics.HDF5Application.xdmf_utils import WriteMeshToXdmf
 from KratosMultiphysics.HDF5Application.xdmf_utils import IdentifyPattern
 from KratosMultiphysics.HDF5Application.core.dataset_generator import SingleMeshMultiFileSameDatasetsGenerator
-from KratosMultiphysics.HDF5Application.core.dataset_generator import SingleFileDatasetsGenerator
-from KratosMultiphysics.HDF5Application.core.dataset_generator import MultiFileDatasetsGenerator
+from KratosMultiphysics.HDF5Application.core.dataset_generator import GenericDatasetsGenerator
 from KratosMultiphysics.HDF5Application.core.dataset_generator import HasTags
 from KratosMultiphysics.HDF5Application.core.dataset_generator import GetDataSetPatterns
 
@@ -50,21 +49,14 @@ def CreateXDMFFile(
             else:
                 h5_file_name, tag_type_dict = IdentifyPattern(h5_file_name)
 
-        if HasTags(h5_file_name, tag_type_dict) and HasTags(dataset_prefix, tag_type_dict):
-            raise RuntimeError(f"Tags cannot be present in both h5 file name and dataset prefix.")
-
         dataset_pattern = f"{h5_file_name}:{dataset_prefix}"
 
-        if HasTags(h5_file_name, tag_type_dict):
-            if not dynamic_mesh:
-                Kratos.Logger.PrintInfo("XDMF", "Using SingleMeshMultiFileSameDatasetsGenerator.")
-                dataset_generator = SingleMeshMultiFileSameDatasetsGenerator(dataset_pattern, temporal_tag_position, tag_type_dict)
-            else:
-                Kratos.Logger.PrintInfo("XDMF", "Using MultiFileDatasetsGenerator.")
-                dataset_generator = MultiFileDatasetsGenerator(dataset_pattern, temporal_tag_position, tag_type_dict)
+        if not dynamic_mesh and HasTags(h5_file_name, tag_type_dict) and not HasTags(dataset_prefix, tag_type_dict):
+            Kratos.Logger.PrintInfo("XDMF", "Using SingleMeshMultiFileSameDatasetsGenerator.")
+            dataset_generator = SingleMeshMultiFileSameDatasetsGenerator(dataset_pattern, temporal_tag_position, tag_type_dict)
         else:
-            Kratos.Logger.PrintInfo("XDMF", "Using SingleFileDatasetsGenerator.")
-            dataset_generator = SingleFileDatasetsGenerator(dataset_pattern, temporal_tag_position, tag_type_dict)
+            Kratos.Logger.PrintInfo("XDMF", "Using GenericDatasetsGenerator.")
+            dataset_generator = GenericDatasetsGenerator(dataset_pattern, temporal_tag_position, tag_type_dict)
 
         WriteDataSetsToXdmf(dataset_generator, output_xdmf_file_name)
 
