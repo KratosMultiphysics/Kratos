@@ -312,19 +312,6 @@ class FluxWrapper(CoSimulationSolverWrapper):
             if not self.flux.IsExistInstance(region_type,region):
                 raise Exception ("Wrong JSON setting : The region " + region + " defined in data " + data_name + " does not exist in Flux project.")
 
-    def Check(self):
-        """
-        Placeholder method for checking the state of the project and data.
-
-        Note:
-            The project check is performed in the constructor (__init__) during the call to OpenMultiPhysics().
-            Data verification is also performed in the constructor (__init__).
-
-        Args:
-            self: An instance of the FluxWrapper class.
-        """
-
-        pass
 
     def Initialize(self):
         """
