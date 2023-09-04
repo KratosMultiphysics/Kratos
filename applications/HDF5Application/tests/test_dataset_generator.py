@@ -1,6 +1,8 @@
 from pathlib import Path
+from typing import Any
 
 import KratosMultiphysics as Kratos
+import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
@@ -12,6 +14,11 @@ from KratosMultiphysics.HDF5Application.core.dataset_generator import MultiFileD
 from KratosMultiphysics.HDF5Application.xdmf_utils import WriteDataSetsToXdmf
 
 from KratosMultiphysics.HDF5Application.core.processes import HDF5OutputProcess
+from KratosMultiphysics.HDF5Application.core.operations.model_part import IOOperation
+from KratosMultiphysics.HDF5Application.core.operations.model_part import ModelPartOutput
+from KratosMultiphysics.HDF5Application.core.operations.aggregated_operations import ControlledOperation
+from KratosMultiphysics.HDF5Application.core.operations.aggregated_operations import AggregatedControlledOperations
+from KratosMultiphysics.HDF5Application.core.controllers import SingleTimeController
 from KratosMultiphysics.HDF5Application.single_mesh_temporal_output_process import SingleMeshTemporalOutputProcess
 from KratosMultiphysics.HDF5Application.multiple_mesh_temporal_output_process import MultipleMeshTemporalOutputProcess
 
@@ -315,6 +322,68 @@ class TestDatasetGenerator(KratosUnittest.TestCase):
         for t in range(1, number_of_time_steps + 1, 1):
             self.addCleanup(kratos_utils.DeleteFileIfExisting, str((Path(__file__).parent / f"auxiliar_files/xdmf/test-{t:0.7f}.h5").absolute()))
 
+        class TestExpressionOperation(IOOperation):
+            def __init__(self,
+                        model_part: KratosMultiphysics.ModelPart,
+                        parameters: KratosMultiphysics.Parameters,
+                        file: KratosHDF5.HDF5File,
+                        expressions: 'list[tuple[str, Any]]'):
+                super().__init__(model_part, parameters, file)
+                self.expressions = expressions
+
+            def Execute(self) -> None:
+                operation = KratosHDF5.ExpressionIO(self.parameters, self.file)
+                for name, cexp in self.expressions:
+                    operation.Write(name, cexp, self.parameters["custom_attributes"])
+
+            @classmethod
+            def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+                return KratosMultiphysics.Parameters("""{
+                    "prefix"           : "/ResultsData/ExpressionData/",
+                    "time_format"      : "0.4f",
+                    "custom_attributes": {}
+                }""")
+
+        class TestExpHDF5OutputProcess(HDF5OutputProcess):
+            @classmethod
+            def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+                return KratosMultiphysics.Parameters("""
+                    {
+                        "model_part_name": "test",
+                        "file_settings": {
+                            "file_name"        : "<model_part_name>-<time>.h5",
+                            "time_format"      : "0.7f",
+                            "file_access_mode" : "read_write",
+                            "echo_level"       :  0
+                        },
+                        "model_part_output_settings": {
+                            "prefix"           : "/ModelData",
+                            "time_format"      : "0.4f",
+                            "custom_attributes": {}
+                        },
+                        "output_time_settings": {
+                            "model_part_name"    : "test",
+                            "output_control_type": "time",
+                            "output_interval"    : 1.0
+                        },
+                        "expression_data_settings": {
+                            "prefix"           : "/Results/",
+                            "time_format"      : "0.4f",
+                            "custom_attributes": {}
+                        }
+                    }""")
+            def __init__(self, model_part: Kratos.ModelPart, expressions: 'list[tuple[str, Any]]') -> None:
+                super().__init__(model_part)
+
+                params = self.GetDefaultParameters()
+                temporal_controller = Kratos.TemporalController(model_part.GetModel(), params["output_time_settings"])
+
+                operation = AggregatedControlledOperations(model_part,  params["file_settings"])
+                operation.AddControlledOperation(ControlledOperation(ModelPartOutput, self._GetOperationParameters("model_part_output_settings", params), SingleTimeController(temporal_controller)))
+                operation.AddControlledOperation(ControlledOperation(TestExpressionOperation, self._GetOperationParameters("expression_data_settings", params), temporal_controller, expressions))
+
+                self.AddPrintOutput(operation)
+
         nodal_cexp = Kratos.Expression.NodalExpression(self.model_part)
         cond_cexp = Kratos.Expression.ConditionExpression(self.model_part)
         elem_cexp = Kratos.Expression.ElementExpression(self.model_part)
@@ -324,46 +393,17 @@ class TestDatasetGenerator(KratosUnittest.TestCase):
         Kratos.Expression.VariableExpressionIO.Read(elem_cexp, Kratos.VELOCITY)
 
         with KratosUnittest.WorkFolderScope("auxiliar_files/xdmf", __file__):
-            process = HDF5OutputProcess(self.model_part)
-            process_id = process.GetProcessId()
-
-            parameters = Kratos.Parameters("""{
-                "file_name"        : "<model_part_name>-<time>.h5",
-                "file_access_mode" : "exclusive",
-                "custom_attributes": {
-                    "__hdf5_process_id": []
-                }
-            }""")
-            parameters["custom_attributes"]["__hdf5_process_id"].Append(process_id[0])
-            parameters["custom_attributes"]["__hdf5_process_id"].Append(process_id[1])
-            model_part_written = False
+            process = TestExpHDF5OutputProcess(self.model_part, [("nodal_values", nodal_cexp), ("cond_values", cond_cexp), ("elem_values", elem_cexp)])
+            process.ExecuteInitialize()
+            process.Check()
             for t in range(1, number_of_time_steps + 1, 1):
-                parameters["file_name"].SetString(f"test-{t:0.7f}.h5")
-                h5_file = KratosHDF5.HDF5File(self.model_part.GetCommunicator().GetDataCommunicator(), parameters)
-                if not model_part_written:
-                    model_param = Kratos.Parameters("""{
-                        "prefix": "/ModelData",
-                        "custom_attributes": {
-                            "__hdf5_process_id": []
-                        }
-                    }""")
-                    model_param["custom_attributes"]["__hdf5_process_id"].Append(process_id[0])
-                    model_param["custom_attributes"]["__hdf5_process_id"].Append(process_id[1])
-                    KratosHDF5.HDF5ModelPartIO(model_param, h5_file).WriteModelPart(self.model_part)
-                    model_part_written = True
-
+                self.model_part.ProcessInfo[Kratos.TIME] = t
                 nodal_cexp += nodal_cexp
                 cond_cexp += cond_cexp
-                elem_cexp += elem_cexp
 
-                attribs = Kratos.Parameters("""{
-                    "__hdf5_process_id": []
-                }""")
-                attribs["__hdf5_process_id"].Append(process_id[0])
-                attribs["__hdf5_process_id"].Append(process_id[1])
-                KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix":"/Results/"}"""), h5_file).Write("nodal_values", nodal_cexp, attribs)
-                KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix":"/Results/"}"""), h5_file).Write("cond_values", cond_cexp, attribs)
-                KratosHDF5.ExpressionIO(Kratos.Parameters("""{"prefix":"/Results/"}"""), h5_file).Write("elem_values", elem_cexp, attribs)
+                elem_cexp += elem_cexp
+                if process.IsOutputStep():
+                    process.PrintOutput()
 
             generator = SingleMeshMultiFileSameDatasetsGenerator("test-<time>.h5")
             WriteDataSetsToXdmf(generator, "single_mesh5.xdmf")
