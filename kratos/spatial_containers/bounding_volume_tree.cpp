@@ -1,11 +1,21 @@
 //
-//   Project Name:        Kratos
-//   Last Modified by:    $Author: hbui $
-//   Date:                $Date: 1 Oct 2015 $
-//   Revision:            $Revision: 1.0 $
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
 //
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    hbui
 //
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "spatial_containers/bounding_volume_tree.h"
 
 namespace Kratos
