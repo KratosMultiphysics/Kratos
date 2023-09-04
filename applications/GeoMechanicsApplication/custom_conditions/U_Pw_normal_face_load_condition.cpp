@@ -86,6 +86,42 @@ void UPwNormalFaceLoadCondition<2,2>::
 
 //----------------------------------------------------------------------------------------
 template< >
+void UPwNormalFaceLoadCondition<2,3>::
+InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
+    const GeometryType& rGeom)
+{
+    for (unsigned int i = 0; i < 3; ++i) {
+        rVariables.NormalStressVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+        rVariables.TangentialStressVector[i] = rGeom[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
+    }
+}
+
+//----------------------------------------------------------------------------------------
+template< >
+void UPwNormalFaceLoadCondition<2,4>::
+InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
+    const GeometryType& rGeom)
+{
+    for (unsigned int i = 0; i < 4; ++i) {
+        rVariables.NormalStressVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+        rVariables.TangentialStressVector[i] = rGeom[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
+    }
+}
+
+//----------------------------------------------------------------------------------------
+template< >
+void UPwNormalFaceLoadCondition<2,5>::
+InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
+    const GeometryType& rGeom)
+{
+    for (unsigned int i = 0; i < 5; ++i) {
+        rVariables.NormalStressVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+        rVariables.TangentialStressVector[i] = rGeom[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
+    }
+}
+
+//----------------------------------------------------------------------------------------
+template< >
 void UPwNormalFaceLoadCondition<3,3>::
     InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
                                  const GeometryType& rGeom)
@@ -128,6 +164,78 @@ void UPwNormalFaceLoadCondition<2,2>::
 
     rTractionVector[0] = TangentialStress * dx_dxi - NormalStress     * dy_dxi;
     rTractionVector[1] = NormalStress     * dx_dxi + TangentialStress * dy_dxi;
+}
+
+//----------------------------------------------------------------------------------------
+template< >
+void UPwNormalFaceLoadCondition<2,3>::
+CalculateTractionVector(array_1d<double, 2>& rTractionVector,
+    const Matrix& Jacobian,
+    const Matrix& NContainer,
+    const NormalFaceLoadVariables& Variables,
+    const unsigned int& GPoint)
+{
+    double NormalStress = 0.0;
+    double TangentialStress = 0.0;
+
+    for (unsigned int i = 0; i < 3; ++i) {
+        NormalStress += NContainer(GPoint, i) * Variables.NormalStressVector[i];
+        TangentialStress += NContainer(GPoint, i) * Variables.TangentialStressVector[i];
+    }
+
+    double dx_dxi = Jacobian(0, 0);
+    double dy_dxi = Jacobian(1, 0);
+
+    rTractionVector[0] = TangentialStress * dx_dxi - NormalStress * dy_dxi;
+    rTractionVector[1] = NormalStress * dx_dxi + TangentialStress * dy_dxi;
+}
+
+//----------------------------------------------------------------------------------------
+template< >
+void UPwNormalFaceLoadCondition<2,4>::
+CalculateTractionVector(array_1d<double, 2>& rTractionVector,
+    const Matrix& Jacobian,
+    const Matrix& NContainer,
+    const NormalFaceLoadVariables& Variables,
+    const unsigned int& GPoint)
+{
+    double NormalStress = 0.0;
+    double TangentialStress = 0.0;
+
+    for (unsigned int i = 0; i < 4; ++i) {
+        NormalStress += NContainer(GPoint, i) * Variables.NormalStressVector[i];
+        TangentialStress += NContainer(GPoint, i) * Variables.TangentialStressVector[i];
+    }
+
+    double dx_dxi = Jacobian(0, 0);
+    double dy_dxi = Jacobian(1, 0);
+
+    rTractionVector[0] = TangentialStress * dx_dxi - NormalStress * dy_dxi;
+    rTractionVector[1] = NormalStress * dx_dxi + TangentialStress * dy_dxi;
+}
+
+//----------------------------------------------------------------------------------------
+template< >
+void UPwNormalFaceLoadCondition<2,5>::
+CalculateTractionVector(array_1d<double, 2>& rTractionVector,
+    const Matrix& Jacobian,
+    const Matrix& NContainer,
+    const NormalFaceLoadVariables& Variables,
+    const unsigned int& GPoint)
+{
+    double NormalStress = 0.0;
+    double TangentialStress = 0.0;
+
+    for (unsigned int i = 0; i < 5; ++i) {
+        NormalStress += NContainer(GPoint, i) * Variables.NormalStressVector[i];
+        TangentialStress += NContainer(GPoint, i) * Variables.TangentialStressVector[i];
+    }
+
+    double dx_dxi = Jacobian(0, 0);
+    double dy_dxi = Jacobian(1, 0);
+
+    rTractionVector[0] = TangentialStress * dx_dxi - NormalStress * dy_dxi;
+    rTractionVector[1] = NormalStress * dx_dxi + TangentialStress * dy_dxi;
 }
 
 //----------------------------------------------------------------------------------------
@@ -200,6 +308,9 @@ double UPwNormalFaceLoadCondition<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class UPwNormalFaceLoadCondition<2,2>;
+template class UPwNormalFaceLoadCondition<2,3>;
+template class UPwNormalFaceLoadCondition<2,4>;
+template class UPwNormalFaceLoadCondition<2,5>;
 template class UPwNormalFaceLoadCondition<3,3>;
 template class UPwNormalFaceLoadCondition<3,4>;
 
