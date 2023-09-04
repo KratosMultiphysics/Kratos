@@ -1005,17 +1005,8 @@ public:
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
 
-        // Check if the geometry has valid points
-        bool is_valid = true;
-        for (IndexType i = 0; i < this->PointsNumber(); ++i) {
-            if (this->pGetPoint(i) == nullptr) {
-                is_valid = false;
-                break;
-            }
-        }
-
         // If the geometry has valid points, calculate and output its data
-        if (is_valid) {
+        if (this->AllPointsAreValid()) {
             Matrix jacobian;
             this->Jacobian( jacobian, PointType() );
             rOStream << "    Jacobian\t : " << jacobian;
