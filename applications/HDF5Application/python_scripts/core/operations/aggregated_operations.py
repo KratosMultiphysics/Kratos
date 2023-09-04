@@ -35,9 +35,9 @@ class ControlledOperation:
 class AggregatedControlledOperations:
     def __init__(self,
                  model_part: Kratos.ModelPart,
-                 file_settings: Kratos.Parameters) -> None:
+                 hdf5_file_settings: Kratos.Parameters) -> None:
         self.__model_part = model_part
-        self.__hdf5_file_parameters = file_settings
+        self.__hdf5_file_parameters = hdf5_file_settings
         self.__list_of_controlled_operations: 'list[ControlledOperation]' = []
 
     def Check(self):
