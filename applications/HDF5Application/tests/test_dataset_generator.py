@@ -353,7 +353,7 @@ class TestDatasetGenerator(KratosUnittest.TestCase):
                         "file_settings": {
                             "file_name"        : "<model_part_name>-<time>.h5",
                             "time_format"      : "0.7f",
-                            "file_access_mode" : "read_write",
+                            "file_access_mode" : "exclusive",
                             "echo_level"       :  0
                         },
                         "model_part_output_settings": {
