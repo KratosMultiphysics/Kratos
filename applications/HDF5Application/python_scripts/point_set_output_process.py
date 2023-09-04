@@ -98,14 +98,14 @@ class PointSetOutputProcess(HDF5OutputProcess):
         self.interval_utility = KratosMultiphysics.IntervalUtility(temporal_controller_settings)
 
         # create the aggregated operation with hdf5 file settings
-        operations = AggregatedControlledOperations(self.model_part, self._GetValidatedParameters("file_settings", parameters), self.vertices)
+        operations = AggregatedControlledOperations(self.model_part, self._GetValidatedParameters("file_settings", parameters))
 
         # adding one time mesh output
-        operations.AddControlledOperation(ControlledOperation(VertexCoordinateOutput, self._GetOperationParameters("point_output_settings", parameters), SingleTimeController(temporal_controller)))
+        operations.AddControlledOperation(ControlledOperation(VertexCoordinateOutput, self._GetOperationParameters("point_output_settings", parameters), SingleTimeController(temporal_controller), self.vertices))
 
         # now adding temporal outputs.
-        operations.AddControlledOperation(ControlledOperation(VertexHistoricalValueOutput, self._GetOperationParameters("nodal_solution_step_data_settings", parameters), temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(VertexNonHistoricalValueOutput, self._GetOperationParameters("nodal_data_value_settings", parameters), temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(VertexHistoricalValueOutput, self._GetOperationParameters("nodal_solution_step_data_settings", parameters), temporal_controller, self.vertices))
+        operations.AddControlledOperation(ControlledOperation(VertexNonHistoricalValueOutput, self._GetOperationParameters("nodal_data_value_settings", parameters), temporal_controller, self.vertices))
 
         # now add all operations to PrintOutput method
         self.AddPrintOutput(operations)
