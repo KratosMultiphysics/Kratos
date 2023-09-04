@@ -83,6 +83,9 @@ class FluxWrapper(CoSimulationSolverWrapper):
         # Importing the FluxPythonServer API
         import FluxPythonServer as FXapi
 
+        # Revert path
+        sys.path.remove(str(flux_install_path))
+
         # ---------------------
         # Start the Flux server
         # ---------------------
