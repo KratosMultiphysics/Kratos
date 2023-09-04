@@ -38,11 +38,17 @@ class KratosGeoMechanicsParameterFieldTests(KratosUnittest.TestCase):
 
         # Get test results
         results = test_helper.get_on_integration_points(simulation, KratosGeo.UMAT_PARAMETERS)
-
+        default_umat_parameters = [1e3, 0.3, 0.0, 30.0, 0.0, 0.0, 1.0, 0.0]
         # assert
         for center_coord, res in zip(center_coords, results):
             expected_res = 20000 * center_coord[0] + 30000 * center_coord[1]
             self.assertAlmostEqual(expected_res, res[0][0])
+            self.assertAlmostEqual(default_umat_parameters[1], res[0][1])
+            self.assertAlmostEqual(default_umat_parameters[3], res[0][3])
+            self.assertAlmostEqual(default_umat_parameters[4], res[0][4])
+            self.assertAlmostEqual(default_umat_parameters[5], res[0][5])
+            self.assertAlmostEqual(default_umat_parameters[6], res[0][6])
+            self.assertAlmostEqual(default_umat_parameters[7], res[0][7])
             self.assertAlmostEqual(expected_res, res[0][2])
 
     def test_parameter_field_with_python_umat_parameters(self):
