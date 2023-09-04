@@ -9,10 +9,12 @@ class ControlledOperation:
     def __init__(self,
                  operation_type: 'typing.Type[Kratos.Operation]',
                  parameters: Kratos.Parameters,
-                 controller: Kratos.Controller) -> None:
+                 controller: Kratos.Controller,
+                 *args) -> None:
         self.__parameters = parameters
         self.__operation_type = operation_type
         self.__controller = controller
+        self.__other_args = args
 
         if self.__parameters is not None:
             self.__parameters.AddMissingParameters(self.__operation_type.GetDefaultParameters())
@@ -23,9 +25,9 @@ class ControlledOperation:
     def Evaluate(self) -> bool:
         return self.__controller.Evaluate()
 
-    def Execute(self, model_part: Kratos.ModelPart, hdf5_file: KratosHDF5.HDF5File, *args) -> None:
+    def Execute(self, model_part: Kratos.ModelPart, hdf5_file: KratosHDF5.HDF5File) -> None:
         if self.Evaluate():
-            self.__operation_type(model_part, self.__parameters, hdf5_file, *args).Execute()
+            self.__operation_type(model_part, self.__parameters, hdf5_file, *self.__other_args).Execute()
 
     def Update(self) -> None:
         self.__controller.Update()
@@ -33,12 +35,10 @@ class ControlledOperation:
 class AggregatedControlledOperations:
     def __init__(self,
                  model_part: Kratos.ModelPart,
-                 parameters: Kratos.Parameters,
-                 *args) -> None:
+                 file_settings: Kratos.Parameters) -> None:
         self.__model_part = model_part
-        self.__hdf5_file_parameters = parameters
+        self.__hdf5_file_parameters = file_settings
         self.__list_of_controlled_operations: 'list[ControlledOperation]' = []
-        self.__other_args = args
 
     def Check(self):
         list(map(lambda x: x.Check(), self.__list_of_controlled_operations))
@@ -48,7 +48,7 @@ class AggregatedControlledOperations:
 
     def Execute(self) -> None:
         with OpenHDF5File(self.__hdf5_file_parameters, self.__model_part) as h5_file:
-            list(map(lambda x: x.Execute(self.__model_part, h5_file, *self.__other_args) , self.__list_of_controlled_operations))
+            list(map(lambda x: x.Execute(self.__model_part, h5_file) , self.__list_of_controlled_operations))
 
     def Update(self) -> None:
         list(map(lambda x: x.Update() , self.__list_of_controlled_operations))
