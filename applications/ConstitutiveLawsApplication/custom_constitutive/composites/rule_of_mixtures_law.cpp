@@ -368,7 +368,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
 				p_law->GetValue(THRESHOLD_STRESS, s_th);
 		
 				if(max_stress > s_th){
-				stress = p_law->GetValue(rThisVariable, rValue);
+				p_law->GetValue(rThisVariable, rValue);
                 break;
 				}
             }
@@ -380,7 +380,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
         for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
-				rev_factor_rel_error=0;
+				rev_factor_rel_error=0.0;
 			    p_law->GetValue(REVERSION_FACTOR_RELATIVE_ERROR, rev_factor_rel_error);
 				rValue += rev_factor_rel_error;
                             				
@@ -398,7 +398,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
 		}
 	} else if (rThisVariable == CYCLES_TO_FAILURE){
         double max_stress_relative_error;
-        double min_value=1.0e20;
+        double min_value = std::numeric_limits<double>::infinity();
         for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
 			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
@@ -425,7 +425,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
 
             // we average over the layers
             if (p_law->Has(rThisVariable)) {
-                aux_value=0;
+                aux_value = 0.0;
                 p_law->GetValue(rThisVariable, aux_value);
                 rValue += aux_value * factor;
             }
@@ -683,8 +683,6 @@ double& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
     // We rotate to local axes the strain
     noalias(rParameterValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
 
-    // ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[capa_a_imprimir];
-
     // Properties& r_prop = *(it_prop_begin + capa_a_imprimir);
     rParameterValues.SetMaterialProperties(r_prop);
 
@@ -774,7 +772,6 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         // We combine the value of each layer
         rValue.resize(VoigtSize, false);
         rValue.clear();
-        rValue.resize(VoigtSize, false);
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
@@ -792,11 +789,7 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
             p_law->CalculateValue(rParameterValues,rThisVariable, aux_value);
 
             // we return the aux_value to the global coordinates
-            aux_value = prod(trans(voigt_rotation_matrix), aux_value);    
-            /**
-            noalias(rValue) += factor * aux_value;
-
-            noalias(rParameterValues.GetStrainVector()) = strain_vector;**/
+            aux_value = prod(trans(voigt_rotation_matrix), aux_value); 
         }
 
         // Reset properties

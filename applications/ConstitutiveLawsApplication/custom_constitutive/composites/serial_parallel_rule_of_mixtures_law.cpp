@@ -212,7 +212,7 @@ void SerialParallelRuleOfMixturesLaw::CalculateMaterialResponseKirchhoff(Constit
 
         if (flag_const_tensor) {
             this->CalculateTangentTensor(rValues, ConstitutiveLaw::StressMeasure_PK2);
-            // 857 forward Constitutive tangent tensor
+            // we push forward Constitutive tangent tensor
             if (rValues.IsSetDeterminantF())
                 PushForwardConstitutiveMatrix(rValues.GetConstitutiveMatrix(), rValues.GetDeformationGradientF());
         }
