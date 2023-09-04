@@ -410,19 +410,6 @@ class FluxWrapper(CoSimulationSolverWrapper):
             # Import all data from Flux to Kratos
             self.ImportAllData()
 
-    def _GetIOType(self):
-        """
-        Get the Flux I/O type dedicated to handling import/export data.
-
-        Returns:
-            str: The string "flux_io".
-
-        Note:
-            This method specifies the dedicated I/O type for handling data import and export using Flux.
-
-        """
-
-        return "flux_io"
 
     def _GetDataCommunicator(self):
         """
