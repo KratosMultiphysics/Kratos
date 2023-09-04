@@ -43,7 +43,7 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
         self.params.AddValue("dataset", settings["dataset"])
         is_variable_vector_type = isinstance(self.GetVariableBasedOnString(), KratosMultiphysics.VectorVariable)
         if "input" in settings["func_type"].GetString() and is_variable_vector_type:
-            self.params.AddValue("vector_index", settings["vector_index"])
+            self.params.AddValue("vector_variable_indices", settings["vector_variable_indices"])
         if "json_file" in settings["func_type"].GetString():
             self.params.AddValue("dataset_file_name", settings["dataset_file_name"])
         self.process = KratosGeo.SetParameterFieldProcess(self.model_part, self.params)

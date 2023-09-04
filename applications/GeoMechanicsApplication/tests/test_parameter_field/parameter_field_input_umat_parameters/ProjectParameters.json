@@ -126,7 +126,7 @@
             "variable_name":   "UMAT_PARAMETERS",
             "func_type":       "input",
             "function":        "20000*x + 30000*y",
-            "vector_index":    [0, 2],
+            "vector_variable_indices":    [0, 2],
 			"dataset":         "test_json.json"
         }
     }],

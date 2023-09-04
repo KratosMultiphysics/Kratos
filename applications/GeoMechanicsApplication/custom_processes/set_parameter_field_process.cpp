@@ -42,7 +42,7 @@ namespace Kratos
             "function"          : "0",
             "dataset"           : "dummy",
             "dataset_file_name" : "dummy",
-            "vector_index"      : []
+            "vector_variable_indices" : []
         }  )"
         );
 
@@ -102,7 +102,7 @@ namespace Kratos
         auto parameter_function = BasicGenericFunctionUtility(mParameters["function"].GetString());
         const double current_time = this->mrModelPart.GetProcessInfo().GetValue(TIME);
         // get all indexes 
-        const Vector& vector_index = mParameters["vector_index"].GetVector();
+        const Vector& vector_variable_indices = mParameters["vector_variable_indices"].GetVector();
 
         for (Element& r_element : mrModelPart.Elements()) {
 
@@ -115,7 +115,7 @@ namespace Kratos
             Vector& umat_parameters = r_prop.GetValue(UMAT_PARAMETERS);
 
             // loop through the indexes that need to be set 
-            for (int index_umat_parameters : vector_index)
+            for (int index_umat_parameters : vector_variable_indices)
             {
                 umat_parameters[index_umat_parameters] = val;
 
@@ -226,6 +226,7 @@ namespace Kratos
         KRATOS_TRY
 
             const bool umat_check = mParameters["variable_name"].GetString() == "UMAT_PARAMETERS";
+        auto it_comp = find(mParameters["variable_name"].GetString());
 
         if (umat_check) {
             const auto& r_var = KratosComponents<Variable<Vector>>::Get(mParameters["variable_name"].GetString());
