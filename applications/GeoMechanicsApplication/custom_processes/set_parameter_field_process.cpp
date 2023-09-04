@@ -114,7 +114,7 @@ namespace Kratos
             "does not have the same size as the amount of elements within the model part!" << std::endl;
 
         // set new data on the elements
-        const auto vector_size = r_data_matrix.size2();
+        const int vector_size = r_data_matrix.size2();
         IndexType i = 0;
         for (Element& r_element : mrModelPart.Elements()) {
             Vector sub_vector;
