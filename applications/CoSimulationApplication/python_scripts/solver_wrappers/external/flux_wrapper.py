@@ -10,6 +10,7 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 # Importing standard required modules
 import os
 import sys
+from pathlib import Path
 
 def Create(settings, model, solver_name):
     """
@@ -75,8 +76,9 @@ class FluxWrapper(CoSimulationSolverWrapper):
 
         # If not defined, importing the local version of FluxPythonServer API
         if not flux_install_path:
-            flux_install_path = os.path.abspath(os.path.join(os.path.dirname(__file__), "../..", "Api", "Python"))
-        sys.path.append(flux_install_path)
+            current_file_path = Path(__file__).resolve()
+            flux_install_path = current_file_path.parent.parent / "Api" / "Python"
+        sys.path.append(str(flux_install_path))
 
         # Importing the FluxPythonServer API
         import FluxPythonServer as FXapi
