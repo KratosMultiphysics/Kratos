@@ -196,7 +196,7 @@ def WriteDataSetsToXdmf(dataset_generator: DataSetGenerator, output_file_name: s
             current_spatial_grid.AddAttribute(dataset)
 
         temporal_grid.AddGrid(Time(temporal_value), current_spatial_grid)
-        KratosMultiphysics.Logger.PrintInfo("XDMF", f"Written data for control value = {temporal_value}.")
+        KratosMultiphysics.Logger.PrintInfo("XDMF", f"Written data for temporal value = {temporal_value}.")
 
     domain = Domain(temporal_grid)
     xdmf = Xdmf(domain)
