@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_MECHANICS_RAMM_ARC_LENGTH_STRATEGY)
-#define KRATOS_GEO_MECHANICS_RAMM_ARC_LENGTH_STRATEGY
+#pragma once
 
 // Project includes
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
@@ -24,26 +23,23 @@ namespace Kratos
 {
 
 template<class TSparseSpace,class TDenseSpace,class TLinearSolver>
-
 class GeoMechanicsRammArcLengthStrategy :
   public GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(GeoMechanicsRammArcLengthStrategy);
 
-    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>                   BaseType;
-    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> GrandMotherType;
-    typedef GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>       MotherType;
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>                      TConvergenceCriteriaType;
-    typedef typename BaseType::TBuilderAndSolverType                               TBuilderAndSolverType;
-    typedef typename BaseType::TSchemeType                                                   TSchemeType;
-    typedef TSparseSpace                                                                 SparseSpaceType;
-    typedef typename BaseType::DofsArrayType                                               DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType                                       TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType                                       TSystemVectorType;
-    typedef typename BaseType::TSystemVectorPointerType                         TSystemVectorPointerType;
+    using BaseType                 = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using GrandMotherType          = ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using MotherType               = GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using TConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
+    using TBuilderAndSolverType    = typename BaseType::TBuilderAndSolverType;
+    using TSchemeType              = typename BaseType::TSchemeType;
+    using SparseSpaceType          = TSparseSpace;
+    using DofsArrayType            = typename BaseType::DofsArrayType;
+    using TSystemMatrixType        = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType        = typename BaseType::TSystemVectorType;
+    using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
     using GrandMotherType::mpScheme;
     using GrandMotherType::mpBuilderAndSolver;
     using GrandMotherType::mpConvergenceCriteria;
@@ -57,8 +53,6 @@ public:
     using MotherType::mSubModelPartList;
     using MotherType::mVariableNames;
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    ///Constructor
     GeoMechanicsRammArcLengthStrategy(
         ModelPart& model_part,
         typename TSchemeType::Pointer pScheme,
@@ -86,21 +80,15 @@ public:
             mMinRadiusFactor   = rParameters["min_radius_factor"].GetDouble();
         }
 
-    //------------------------------------------------------------------------------------
-
-    ///Destructor
-    ~GeoMechanicsRammArcLengthStrategy() override {}
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void Initialize() override
     {
         KRATOS_TRY
 
-        if (mInitializeWasPerformed == false)
+        if (!mInitializeWasPerformed)
         {
             MotherType::Initialize();
 
-            if (mInitializeArcLengthWasPerformed == false)
+            if (!mInitializeArcLengthWasPerformed)
             {
                 //set up the system
                 if (mpBuilderAndSolver->GetDofSetIsInitializedFlag() == false)
@@ -149,7 +137,6 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void InitializeSolutionStep() override
     {
         KRATOS_TRY
@@ -165,11 +152,9 @@ public:
         KRATOS_CATCH( "" )
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     bool SolveSolutionStep() override
     {
         // ********** Prediction phase **********
-
         KRATOS_INFO("Ramm's Arc Length Strategy") << "ARC-LENGTH RADIUS: " << mRadius/mRadius_0 << " X initial radius" << std::endl;
 
         // Initialize variables
@@ -187,9 +172,8 @@ public:
         double NormDx;
         unsigned int iteration_number = 1;
         BaseType::GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER] = iteration_number;
-        bool is_converged = false;
         mpScheme->InitializeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
-        is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
+        bool is_converged = mpConvergenceCriteria->PreCriteria(BaseType::GetModelPart(), rDofSet, mA, mDx, mb);
 
         TSparseSpace::SetToZero(mA);
         TSparseSpace::SetToZero(mb);
@@ -211,7 +195,7 @@ public:
         //move the mesh if needed
         if (BaseType::MoveMeshFlag()) BaseType::MoveMesh();
 
-        // ********** Correction phase (iteration cicle) **********
+        // ********** Correction phase (iteration cycle) **********
         if (is_converged) {
             mpConvergenceCriteria->InitializeSolutionStep(BaseType::GetModelPart(), rDofSet, mA, mDxf, mb);
             if (mpConvergenceCriteria->GetActualizeRHSflag()) {
@@ -272,7 +256,6 @@ public:
             mpScheme->FinalizeNonLinIteration(BaseType::GetModelPart(), mA, mDx, mb);
 
             // *** Check Convergence ***
-
             if (is_converged) {
                 if (mpConvergenceCriteria->GetActualizeRHSflag()) {
                     TSparseSpace::SetToZero(mb);
@@ -302,7 +285,6 @@ public:
         return is_converged;
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void FinalizeSolutionStep() override
     {
         KRATOS_TRY
@@ -357,7 +339,6 @@ public:
         KRATOS_CATCH("")
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void Clear() override
     {
         KRATOS_TRY
@@ -409,7 +390,6 @@ public:
     //     KRATOS_CATCH("")
     // }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual void UpdateLoads()
     {
         KRATOS_TRY
@@ -423,7 +403,6 @@ public:
         KRATOS_CATCH("")
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 protected:
 
     /// Member Variables
@@ -443,20 +422,18 @@ protected:
     double mNormxEquilibrium; /// Norm of the solution vector in equilibrium
     double mDLambdaStep; /// Delta lambda of the current step
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     int Check() override
     {
         KRATOS_TRY
 
         return MotherType::Check();
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void InitializeSystemVector(TSystemVectorPointerType& pv)
     {
-        if (pv == NULL)
+        if (pv == nullptr)
         {
             TSystemVectorPointerType pNewv = TSystemVectorPointerType(new TSystemVectorType(0));
             pv.swap(pNewv);
@@ -468,10 +445,9 @@ protected:
             v.resize(mpBuilderAndSolver->GetEquationSystemSize(), false);
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void SaveInitializeSystemVector(TSystemVectorPointerType& pv)
     {
-        if (pv == NULL)
+        if (pv == nullptr)
         {
             TSystemVectorPointerType pNewv = TSystemVectorPointerType(new TSystemVectorType(0));
             pv.swap(pNewv);
@@ -483,7 +459,6 @@ protected:
             v.resize(mpBuilderAndSolver->GetEquationSystemSize(), true);
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void BuildWithDirichlet(TSystemMatrixType& mA, TSystemVectorType& mDx, TSystemVectorType& mb)
     {
         KRATOS_TRY
@@ -491,10 +466,9 @@ protected:
         mpBuilderAndSolver->Build(mpScheme, BaseType::GetModelPart(), mA, mb);
         mpBuilderAndSolver->ApplyDirichletConditions(mpScheme, BaseType::GetModelPart(), mA, mDx, mb);
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     virtual void Update(DofsArrayType& rDofSet,
                         TSystemMatrixType& mA,
                         TSystemVectorType& mDx,
@@ -508,10 +482,9 @@ protected:
         // Update External Loads
         this->UpdateExternalLoads();
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void ClearStep()
     {
         KRATOS_TRY
@@ -533,10 +506,9 @@ protected:
 
         GrandMotherType::Clear();
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void UpdateExternalLoads()
     {
         // Update External Loads
@@ -578,11 +550,11 @@ protected:
                     for (ModelPart::NodeIterator itNode = NodesBegin; itNode != NodesEnd; ++itNode)
                     {
                         double& rvaluex = itNode->FastGetSolutionStepValue(varx);
-                        rvaluex *= (mLambda/mLambda_old);
+                        rvaluex *= mLambda/mLambda_old;
                         double& rvaluey = itNode->FastGetSolutionStepValue(vary);
-                        rvaluey *= (mLambda/mLambda_old);
+                        rvaluey *= mLambda/mLambda_old;
                         double& rvaluez = itNode->FastGetSolutionStepValue(varz);
-                        rvaluez *= (mLambda/mLambda_old);
+                        rvaluez *= mLambda/mLambda_old;
                     }
                 }
             }
@@ -597,9 +569,6 @@ protected:
         // Save the applied Lambda factor
         mLambda_old = mLambda;
     }
-
 }; // Class GeoMechanicsRammArcLengthStrategy
 
-} // namespace Kratos
-
-#endif // KRATOS_GEO_MECHANICS_RAMM_ARC_LENGTH_STRATEGY  defined
+}

@@ -111,12 +111,12 @@ namespace Testing
 
         const auto& r_process_info = r_test_model_part.GetProcessInfo();
         p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
-        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-12)
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
+        KRATOS_EXPECT_MATRIX_NEAR(LHS, expected_LHS, 1.0e-12)
 
         // Test CalculateRightHandSide
         p_element->CalculateRightHandSide(RHS, r_process_info);
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(EulerianDiff3D4N, KratosConvectionDiffusionFastSuite)
@@ -170,12 +170,12 @@ namespace Testing
         Matrix LHS = ZeroMatrix(4,4);
         const auto& r_process_info = r_test_model_part.GetProcessInfo();
         p_element->CalculateLocalSystem(LHS, RHS, r_process_info);
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
-        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-8)
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
+        KRATOS_EXPECT_MATRIX_NEAR(LHS, expected_LHS, 1.0e-8)
 
         // Test CalculateRightHandSide
         p_element->CalculateRightHandSide(RHS, r_process_info);
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-12)
     }
 
 } // namespace Testing

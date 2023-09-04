@@ -59,7 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(AALMProcess1, KratosContactStructuralMechanicsFastSuit
     //KRATOS_WATCH(p_node_1->GetValue(INITIAL_PENALTY))
     
     const double tolerance = 1.0e-6;
-    KRATOS_CHECK_NEAR(p_node_1->GetValue(INITIAL_PENALTY), 0.2 * penalty_parameter, tolerance);
+    KRATOS_EXPECT_NEAR(p_node_1->GetValue(INITIAL_PENALTY), 0.2 * penalty_parameter, tolerance);
 }
 
 }  // namespace Kratos::Testing.
