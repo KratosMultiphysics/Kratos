@@ -83,7 +83,7 @@ bool IsEntityProxyMutable(TEntityProxy Proxy)
 template <Globals::DataLocation TLocation, class TContainer>
 void TestEntityProxy(TContainer& rEntities)
 {
-    KRATOS_CHECK_IS_FALSE(rEntities.empty());
+    KRATOS_EXPECT_FALSE(rEntities.empty());
     const TContainer& r_immutable_entities = rEntities;
 
     // Check immutable EntityProxy
@@ -92,14 +92,14 @@ void TestEntityProxy(TContainer& rEntities)
         auto proxy = MakeProxy<TLocation>(r_entity);
 
         // Check const-correctness
-        KRATOS_CHECK_IS_FALSE(IsEntityProxyMutable(proxy));
+        KRATOS_EXPECT_FALSE(IsEntityProxyMutable(proxy));
 
         // Check EntityProxy::HasValue
-        KRATOS_CHECK(proxy.HasValue(PRESSURE));
-        KRATOS_CHECK_IS_FALSE(proxy.HasValue(VELOCITY));
+        KRATOS_EXPECT_TRUE(proxy.HasValue(PRESSURE));
+        KRATOS_EXPECT_FALSE(proxy.HasValue(VELOCITY));
 
         // Check EntityProxy::GetValue
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), double(id));
     }
 
     // Check mutable EntityProxy
@@ -108,22 +108,22 @@ void TestEntityProxy(TContainer& rEntities)
         auto proxy = MakeProxy<TLocation>(r_entity);
 
         // Check const-correctness
-        KRATOS_CHECK(IsEntityProxyMutable(proxy));
+        KRATOS_EXPECT_TRUE(IsEntityProxyMutable(proxy));
 
         // Check EntityProxy::HasValue
-        KRATOS_CHECK(proxy.HasValue(PRESSURE));
-        KRATOS_CHECK_IS_FALSE(proxy.HasValue(VELOCITY));
+        KRATOS_EXPECT_TRUE(proxy.HasValue(PRESSURE));
+        KRATOS_EXPECT_FALSE(proxy.HasValue(VELOCITY));
 
         // Check EntityProxy::GetValue
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), double(id));
 
         // Check mutable EntityProxy::GetValue
         proxy.GetValue(PRESSURE) *= 2;
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2 * double(id));
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2 * double(id));
 
         // Check EntityProxy::SetValue
         proxy.SetValue(PRESSURE, proxy.GetValue(PRESSURE) * 2);
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2 * double(2 * double(id)));
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2 * double(2 * double(id)));
     }
 }
 
@@ -174,44 +174,44 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessInfoProxy, KratosCoreFastSuite)
         auto proxy = MakeProxy<Globals::DataLocation::ProcessInfo>(r_immutable_model_part.GetProcessInfo());
 
         // Check immutable EntityProxy::GetValue
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2.0);
     }
 
     {
         auto proxy = MakeProxy<Globals::DataLocation::ProcessInfo>(r_mutable_model_part.GetProcessInfo());
 
         // Check immutable EntityProxy::GetValue
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2.0);
 
         // Check mutable EntityProxy::GetValue
         proxy.GetValue(PRESSURE) *= 3.0;
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 3.0 * 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 3.0 * 2.0);
 
         // Check EntityProxy::SetValue
         proxy.SetValue(PRESSURE, 2.0);
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2.0);
     }
 
     {
         auto proxy = MakeProxy<Globals::DataLocation::ProcessInfo>(r_immutable_model_part);
 
         // Check immutable EntityProxy::GetValue
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2.0);
     }
 
     {
         auto proxy = MakeProxy<Globals::DataLocation::ProcessInfo>(r_mutable_model_part);
 
         // Check immutable EntityProxy::GetValue
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2.0);
 
         // Check mutable EntityProxy::GetValue
         proxy.GetValue(PRESSURE) *= 3.0;
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 3.0 * 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 3.0 * 2.0);
 
         // Check EntityProxy::SetValue
         proxy.SetValue(PRESSURE, 2.0);
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2.0);
     }
 }
 
@@ -227,22 +227,22 @@ KRATOS_TEST_CASE_IN_SUITE(ModelPartProxy, KratosCoreFastSuite)
         auto proxy = MakeProxy<Globals::DataLocation::ModelPart>(r_immutable_model_part);
 
         // Check immutable EntityProxy::GetValue
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2.0);
     }
 
     {
         auto proxy = MakeProxy<Globals::DataLocation::ModelPart>(r_mutable_model_part);
 
         // Check immutable EntityProxy::GetValue
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2.0);
 
         // Check mutable EntityProxy::GetValue
         proxy.GetValue(PRESSURE) *= 3.0;
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 3.0 * 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 3.0 * 2.0);
 
         // Check EntityProxy::SetValue
         proxy.SetValue(PRESSURE, 2.0);
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2.0);
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2.0);
     }
 }
 
@@ -251,28 +251,28 @@ template <class TMutableContainerProxy, class TImmutableContainerProxy>
 void TestContainerProxy(TMutableContainerProxy MutableProxies, TImmutableContainerProxy ImmutableProxies)
 {
     // Check ContainerProxy::empty
-    KRATOS_CHECK_IS_FALSE(MutableProxies.empty());
-    KRATOS_CHECK_IS_FALSE(ImmutableProxies.empty());
+    KRATOS_EXPECT_FALSE(MutableProxies.empty());
+    KRATOS_EXPECT_FALSE(ImmutableProxies.empty());
 
     // Check ContainerProxy::size
-    KRATOS_CHECK_EQUAL(MutableProxies.size(), ImmutableProxies.size());
+    KRATOS_EXPECT_EQ(MutableProxies.size(), ImmutableProxies.size());
 
     // Make sure that the two container proxies point to the same range
-    KRATOS_CHECK_EQUAL(&(*MutableProxies.begin()).GetEntity(), &(*ImmutableProxies.begin()).GetEntity());
+    KRATOS_EXPECT_EQ(&(*MutableProxies.begin()).GetEntity(), &(*ImmutableProxies.begin()).GetEntity());
 
     // Check immutable ContainerProxy
     for (auto proxy : ImmutableProxies) {
         const auto id = proxy.GetEntity().Id();
 
         // Check const-correctness
-        KRATOS_CHECK_IS_FALSE(IsEntityProxyMutable(proxy));
+        KRATOS_EXPECT_FALSE(IsEntityProxyMutable(proxy));
 
         // Check EntityProxy::HasValue
-        KRATOS_CHECK(proxy.HasValue(PRESSURE));
-        KRATOS_CHECK_IS_FALSE(proxy.HasValue(VELOCITY));
+        KRATOS_EXPECT_TRUE(proxy.HasValue(PRESSURE));
+        KRATOS_EXPECT_FALSE(proxy.HasValue(VELOCITY));
 
         // Check EntityProxy::GetValue
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), double(id));
     }
 
     // Check mutable ContainerProxy
@@ -280,22 +280,22 @@ void TestContainerProxy(TMutableContainerProxy MutableProxies, TImmutableContain
         const auto id = proxy.GetEntity().Id();
 
         // Check const-correctness
-        KRATOS_CHECK(IsEntityProxyMutable(proxy));
+        KRATOS_EXPECT_TRUE(IsEntityProxyMutable(proxy));
 
         // Check EntityProxy::HasValue
-        KRATOS_CHECK(proxy.HasValue(PRESSURE));
-        KRATOS_CHECK_IS_FALSE(proxy.HasValue(VELOCITY));
+        KRATOS_EXPECT_TRUE(proxy.HasValue(PRESSURE));
+        KRATOS_EXPECT_FALSE(proxy.HasValue(VELOCITY));
 
         // Check EntityProxy::GetValue
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), double(id));
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), double(id));
 
         // Check mutable EntityProxy::GetValue
         proxy.GetValue(PRESSURE) *= 2;
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2 * double(id));
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2 * double(id));
 
         // Check EntityProxy::SetValue
         proxy.SetValue(PRESSURE, proxy.GetValue(PRESSURE) * 2);
-        KRATOS_CHECK_EQUAL(proxy.GetValue(PRESSURE), 2 * double(2 * double(id)));
+        KRATOS_EXPECT_EQ(proxy.GetValue(PRESSURE), 2 * double(2 * double(id)));
     }
 }
 
