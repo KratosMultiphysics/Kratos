@@ -99,9 +99,9 @@ class FluxWrapper(CoSimulationSolverWrapper):
         self.full_device = self.settings["solver_wrapper_settings"]["rebuilt_full_device"].GetString().upper() == "YES" 
 
         # Start the Flux server and store the instance
-        cs_tools.cs_print_info("Working directory : " + working_directory)
-        cs_tools.cs_print_info("Application : " + application)
-        cs_tools.cs_print_info("Name  : " + solver_name)
+        cs_tools.cs_print_info(f"Working directory : {working_directory}")
+        cs_tools.cs_print_info(f"Application : {application}")
+        cs_tools.cs_print_info(f"Name  : {solver_name}")
         self.flux = FXapi.FluxServer(working_directory, application=application, mode="debug", langage="eng", name=solver_name, verbose=echo_level>0)
 
         # ---------------------
