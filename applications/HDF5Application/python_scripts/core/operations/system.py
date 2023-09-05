@@ -18,6 +18,9 @@ import pathlib
 
 class DeleteOldH5Files(KratosMultiphysics.Operation):
     '''Delete h5-files from previous simulations.'''
+    @classmethod
+    def GetDefaultParameters(cls) -> KratosMultiphysics.Parameters:
+        return KratosMultiphysics.Parameters("""{}""")
 
     def __init__(self,
                  model_part: KratosMultiphysics.ModelPart,

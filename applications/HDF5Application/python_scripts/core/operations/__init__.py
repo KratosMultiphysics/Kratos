@@ -10,10 +10,10 @@ __all__ = ["CreateAggregatedOperation"]
 
 import KratosMultiphysics as Kratos
 
-from .model_part import *
-from .xdmf import *
-from .system import *
-from .aggregated_operations import *
+from KratosMultiphysics.HDF5Application.core.operations.model_part import *
+from KratosMultiphysics.HDF5Application.core.operations.xdmf import *
+from KratosMultiphysics.HDF5Application.core.operations.system import *
+from KratosMultiphysics.HDF5Application.core.operations.aggregated_operations import *
 
 from KratosMultiphysics.HDF5Application.core.controllers import Factory as ControllerFactory
 
