@@ -48,7 +48,7 @@ void CreateEntitiesFromGeometries(
         max_id = block_for_each<MaxReduction<SizeType>>(r_root_model_part.Elements(), [](auto& rElement){
             return rElement.Id();
         });
-    } else {
+    } else if constexpr (std::is_same<typename TEntitiesContainerType::value_type, Condition>::value) {
         max_id = block_for_each<MaxReduction<SizeType>>(r_root_model_part.Conditions(), [](auto& rCondition){
             return rCondition.Id();
         });
@@ -68,7 +68,7 @@ void CreateEntitiesFromGeometries(
     // Add the created entities to current submodelpart
     if constexpr (std::is_same<typename TEntitiesContainerType::value_type, Element>::value) {
         rModelPart.AddElements(entities_to_add.begin(), entities_to_add.end());
-    } else {
+    } else if constexpr (std::is_same<typename TEntitiesContainerType::value_type, Condition>::value) {
         rModelPart.AddConditions(entities_to_add.begin(), entities_to_add.end());
     }
 }
