@@ -34,7 +34,7 @@ BSD license: HDF5Application/license.txt
 """
 
 import xml.etree.ElementTree as ET
-import h5py
+import h5py # type: ignore
 import abc
 import KratosMultiphysics as Kratos
 

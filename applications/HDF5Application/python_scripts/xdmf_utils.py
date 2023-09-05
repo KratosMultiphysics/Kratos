@@ -1,5 +1,5 @@
 import xml.etree.ElementTree as ET
-import h5py
+import h5py # type: ignore
 import typing
 from pathlib import Path
 

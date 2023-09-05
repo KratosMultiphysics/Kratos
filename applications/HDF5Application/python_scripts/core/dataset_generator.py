@@ -1,6 +1,6 @@
 import abc
 import typing
-import h5py
+import h5py # type: ignore
 import copy
 from pathlib import Path
 from operator import itemgetter
