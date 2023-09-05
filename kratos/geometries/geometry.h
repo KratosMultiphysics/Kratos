@@ -4092,15 +4092,7 @@ protected:
      */
     bool AllPointsAreValid() const
     {
-        // Check if the geometry has valid (i.e. not nullptr) points
-        bool is_valid = true;
-        for (IndexType i = 0; i < this->PointsNumber(); ++i) {
-            if (this->pGetPoint(i) == nullptr) {
-                is_valid = false;
-                break;
-            }
-        }
-        return is_valid;
+        return std::none_of(mPoints.ptr_begin(), mPoints.ptr_end(), [](auto& pPoint){return pPoint == nullptr;});
     }
 
     ///@}
