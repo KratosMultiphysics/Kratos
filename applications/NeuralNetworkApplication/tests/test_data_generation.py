@@ -1,11 +1,9 @@
 import KratosMultiphysics
 from KratosMultiphysics import IsDistributedRun
-import os
 
 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import (
     StructuralMechanicsAnalysis,
 )
-import KratosMultiphysics.NeuralNetworkApplication as NeuralNetworkApplication
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 import KratosMultiphysics.NeuralNetworkApplication.data_loading_utilities as DataLoadingUtils

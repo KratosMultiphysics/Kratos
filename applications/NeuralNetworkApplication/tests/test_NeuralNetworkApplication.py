@@ -1,8 +1,3 @@
-# import Kratos
-
-import KratosMultiphysics
-import KratosMultiphysics.NeuralNetworkApplication
-
 # Import Kratos "wrapper" for unittests
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 

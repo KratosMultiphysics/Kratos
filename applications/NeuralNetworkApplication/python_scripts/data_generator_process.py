@@ -103,7 +103,6 @@ class DataGeneratorProcess(KM.Process):
         if not self.perturbate_variables: self.perturbate_variables.append(None)
         input_dist_names = settings["random_distribution"]
         self.random_distribution = [ input_dist_names[i].GetString() for i in range( input_dist_names.size() ) ]
-        
 
         # getting the list of distribution parameters for each variable
         random_parameters_matrix = settings["random_parameters"].GetMatrix()
@@ -304,8 +303,6 @@ class DataGeneratorProcess(KM.Process):
                     self.hdf5_input_parameters["prefix"].SetString("/"+str(current_step)+"/InputData") 
                     nodal_io = KratosHDF5.HDF5NodalSolutionStepDataIO(self.hdf5_input_parameters, self.hdf5_file_training_input)
                     nodal_io.WriteNodalResults(self.input_model_parts[0],1)
-                    
-
 
     def ExecuteFinalizeSolutionStep(self):
         current_time = self.output_model_parts[0].ProcessInfo[KM.TIME]
