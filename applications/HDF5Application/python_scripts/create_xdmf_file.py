@@ -68,6 +68,7 @@ def main():
 
     parser.add_argument("dataset_pattern",
                         metavar="<dataset_pattern>",
+                        type=str,
                         help="The pattern of the dataset with prefix. Eg: test_<step>:/ResultsData, test.h5:/Results_<step>")
     parser.add_argument("-o",
                         "--output_name",
@@ -85,33 +86,37 @@ def main():
     parser.add_argument("-i",
                         "--no-identify",
                         dest="identify_pattern",
+                        type=bool,
                         action="store_false",
                         help="Use the provided <dataset_pattern> to identify a pattern string (default = on)")
     parser.add_argument("-m",
                         "--mesh-only",
                         dest="mesh_only",
+                        type=bool,
                         action="store_true",
                         help="Find and write datasets (default = off)")
     parser.add_argument("-s",
                         "--single-file",
                         dest="single_file",
+                        type=bool,
                         action="store_true",
                         help="Specify whether all data is present in one file. (default = off")
     parser.add_argument("-d",
                         "--dynamic-mesh",
                         dest="dynamic_mesh",
+                        type=bool,
                         action="store_true",
                         help="Specify whether multiple meshes are present. (default = off")
 
     print('\nCreate XDMF:')
     args = parser.parse_args()
-    dataset_pattern:str = args.dataset_pattern
-    output_name:str = args.output_name
-    temporal_tag_position:int = args.temporal_tag_position
-    identify_pattern:bool = args.identify_pattern
-    mesh_only:bool = args.mesh_only
-    single_file: bool = args.single_file
-    dynamic_mesh:bool = args.dynamic_mesh
+    dataset_pattern = args.dataset_pattern
+    output_name = args.output_name
+    temporal_tag_position = args.temporal_tag_position
+    identify_pattern = args.identify_pattern
+    mesh_only = args.mesh_only
+    single_file = args.single_file
+    dynamic_mesh = args.dynamic_mesh
 
     CreateXDMFFile(dataset_pattern, temporal_tag_position, single_file, mesh_only, identify_pattern, dynamic_mesh, output_name)
 
