@@ -12,6 +12,7 @@
 //
 
 // Project includes
+#include "includes/checks.h"
 #include "testing/testing.h"
 #include "modeler/create_entities_from_geometries_modeler.h"
 
@@ -87,10 +88,6 @@ KRATOS_TEST_CASE_IN_SUITE(CreateEntitiesFromGeometriesModeler, KratosCoreFastSui
     KRATOS_CHECK_EQUAL(r_model_part_quads_2.NumberOfConditions(), 0);
     KRATOS_CHECK_EQUAL(r_model_part_quads_boundary.NumberOfElements(), 0);
     KRATOS_CHECK_EQUAL(r_model_part_quads_boundary.NumberOfConditions(), 2);
-
-    // model_part_2.GetProperties(1).SetValue(DISTANCE, 2.2);
-    // KRATOS_CHECK_EQUAL(model_part_1.GetProperties(1).GetValue(DISTANCE), 1.1);
-    // KRATOS_CHECK_EQUAL(model_part_2.GetProperties(1).GetValue(DISTANCE), 2.2);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreateEntitiesFromGeometriesModelerMixedEntities, KratosCoreFastSuite)
@@ -118,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateEntitiesFromGeometriesModelerMixedEntities, Krat
             "element_name" : "Element2D3N;Element2D4N"
         }],
         "conditions_list" : [{
-            "model_part_name" : "Quadrilaterals.QuadsBoundary",
+            "model_part_name" : "MainModelPart",
             "condition_name" : "LineCondition2D2N"
         }]
     })");
@@ -128,24 +125,8 @@ KRATOS_TEST_CASE_IN_SUITE(CreateEntitiesFromGeometriesModelerMixedEntities, Krat
     modeler.SetupModelPart();
 
     // Check results
-    // KRATOS_CHECK_EQUAL(r_model_part_tri.NumberOfElements(), 1);
-    // KRATOS_CHECK_EQUAL(r_model_part_tri.NumberOfConditions(), 1);
-    // KRATOS_CHECK_EQUAL(r_model_part_tri_2d.NumberOfElements(), 1);
-    // KRATOS_CHECK_EQUAL(r_model_part_tri_2d.NumberOfConditions(), 0);
-    // KRATOS_CHECK_EQUAL(r_model_part_tri_3d.NumberOfElements(), 0);
-    // KRATOS_CHECK_EQUAL(r_model_part_tri_3d.NumberOfConditions(), 1);
-    // KRATOS_CHECK_EQUAL(r_model_part_quads.NumberOfElements(), 2);
-    // KRATOS_CHECK_EQUAL(r_model_part_quads.NumberOfConditions(), 2);
-    // KRATOS_CHECK_EQUAL(r_model_part_quads_1.NumberOfElements(), 1);
-    // KRATOS_CHECK_EQUAL(r_model_part_quads_1.NumberOfConditions(), 0);
-    // KRATOS_CHECK_EQUAL(r_model_part_quads_2.NumberOfElements(), 1);
-    // KRATOS_CHECK_EQUAL(r_model_part_quads_2.NumberOfConditions(), 0);
-    // KRATOS_CHECK_EQUAL(r_model_part_quads_boundary.NumberOfElements(), 0);
-    // KRATOS_CHECK_EQUAL(r_model_part_quads_boundary.NumberOfConditions(), 2);
-
-    // model_part_2.GetProperties(1).SetValue(DISTANCE, 2.2);
-    // KRATOS_CHECK_EQUAL(model_part_1.GetProperties(1).GetValue(DISTANCE), 1.1);
-    // KRATOS_CHECK_EQUAL(model_part_2.GetProperties(1).GetValue(DISTANCE), 2.2);
+    KRATOS_CHECK_EQUAL(r_model_part.NumberOfElements(), 3);
+    KRATOS_CHECK_EQUAL(r_model_part.NumberOfConditions(), 2);
 }
 
 }  // namespace Kratos::Testing.

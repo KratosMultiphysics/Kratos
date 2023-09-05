@@ -109,7 +109,7 @@ namespace Testing
 
         // Check convergence
         const bool convergence = mixed_generic_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
-        KRATOS_CHECK(convergence)
+        KRATOS_EXPECT_TRUE(convergence)
     }
 
     /**
@@ -173,7 +173,7 @@ namespace Testing
 
         // Check convergence
         const bool convergence = mixed_generic_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
-        KRATOS_CHECK(convergence)
+        KRATOS_EXPECT_TRUE(convergence)
     }
 
     /**
@@ -247,7 +247,7 @@ namespace Testing
 
         // Check convergence
         const bool convergence = mixed_generic_criteria.PostCriteria(r_model_part, aux_dof_set, A, Dx, b);
-        KRATOS_CHECK(convergence)
+        KRATOS_EXPECT_TRUE(convergence)
     }
 
 } // namespace Testing

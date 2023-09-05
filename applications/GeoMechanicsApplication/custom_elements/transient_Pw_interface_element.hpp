@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_TRANSIENT_PW_INTERFACE_ELEMENT_H_INCLUDED )
-#define  KRATOS_GEO_TRANSIENT_PW_INTERFACE_ELEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -41,7 +40,7 @@ public:
     using VectorType = Vector;
     using MatrixType = Matrix;
 
-    using DofsVectorType = Element::DofsVectorType;
+    using DofsVectorType       = Element::DofsVectorType;
     using EquationIdVectorType = Element::EquationIdVectorType;
 
     /// The definition of the sizetype
@@ -52,9 +51,7 @@ public:
     using BaseType::CalculateRetentionResponse;
 
     using InterfaceElementVariables = typename BaseType::InterfaceElementVariables;
-    using SFGradAuxVariables = typename BaseType::SFGradAuxVariables;
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    using SFGradAuxVariables        = typename BaseType::SFGradAuxVariables;
 
     /// Default Constructor
     TransientPwInterfaceElement(IndexType NewId = 0) : UPwSmallStrainInterfaceElement<TDim,TNumNodes>( NewId ) {}
@@ -74,10 +71,11 @@ public:
                                 : UPwSmallStrainInterfaceElement<TDim,TNumNodes>( NewId, pGeometry, pProperties )
     {}
 
-    /// Destructor
-    ~TransientPwInterfaceElement() override {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ~TransientPwInterfaceElement() override = default;
+    TransientPwInterfaceElement(const TransientPwInterfaceElement&) = delete;
+    TransientPwInterfaceElement& operator=(const TransientPwInterfaceElement&) = delete;
+    TransientPwInterfaceElement(TransientPwInterfaceElement&&) = delete;
+    TransientPwInterfaceElement& operator=(TransientPwInterfaceElement&&) = delete;
 
     Element::Pointer Create(IndexType NewId,
                             NodesArrayType const& ThisNodes,
@@ -103,15 +101,12 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void CalculateMassMatrix(MatrixType& rMassMatrix,
                              const ProcessInfo& rCurrentProcessInfo) override;
 
     void InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
     void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
     void CalculateOnIntegrationPoints(const Variable<Matrix>& rVariable,
                                       std::vector<Matrix>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
@@ -124,11 +119,7 @@ public:
                                       std::vector<array_1d<double,3>>& rValues,
                                       const ProcessInfo& rCurrentProcessInfo) override;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateOnLobattoIntegrationPoints(const Variable<array_1d<double,3>>& rVariable,
                                             std::vector<array_1d<double,3>>& rOutput,
@@ -173,16 +164,8 @@ protected:
 
     unsigned int GetNumberOfDOF() const override;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 private:
-
-    /// Member Variables
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Serialization
-
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
@@ -195,14 +178,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
 
-    /// Assignment operator.
-    TransientPwInterfaceElement & operator=(TransientPwInterfaceElement const& rOther);
-
-    /// Copy constructor.
-    TransientPwInterfaceElement(TransientPwInterfaceElement const& rOther);
-
 }; // Class TransientPwInterfaceElement
 
-} // namespace Kratos
-
-#endif // KRATOS_GEO_TRANSIENT_PW_INTERFACE_ELEMENT_H_INCLUDED  defined
+}
