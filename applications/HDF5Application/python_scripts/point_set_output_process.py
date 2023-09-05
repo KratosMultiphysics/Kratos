@@ -94,7 +94,7 @@ class PointSetOutputProcess(HDF5OutputProcess):
         # create temporal controller
         temporal_controller_settings = parameters["output_time_settings"]
         temporal_controller_settings.AddString("model_part_name", self.model_part.FullName())
-        temporal_controller = KratosMultiphysics.TemporalController(model, temporal_controller_settings)
+        temporal_controller = KratosMultiphysics.OutputController(model, temporal_controller_settings)
         self.interval_utility = KratosMultiphysics.IntervalUtility(temporal_controller_settings)
 
         # create the aggregated operation with hdf5 file settings

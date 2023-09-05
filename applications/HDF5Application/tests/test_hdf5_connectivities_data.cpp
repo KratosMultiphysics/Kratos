@@ -33,7 +33,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_ConnectivitiesData1, KratosHDF5TestSuit
     Model this_model;
     ModelPart& r_test_model_part = this_model.CreateModelPart("TestModelPart");
     TestModelPartFactory::CreateModelPart(r_test_model_part, {{"Element2D3N"}});
-    KRATOS_CHECK(r_test_model_part.Elements().size() > 0);
+    KRATOS_EXPECT_TRUE(r_test_model_part.Elements().size() > 0);
 
     HDF5::Internals::ConnectivitiesData<ModelPart::ElementsContainerType> data("/Elements", pGetTestSerialFile());
     for (const auto& r_factored_elements : FactorElements(r_test_model_part.Elements())) {
@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(HDF5_Internals_ConnectivitiesData2, KratosHDF5TestSuit
     Model this_model;
     ModelPart& r_test_model_part = this_model.CreateModelPart("TestModelPart");
     TestModelPartFactory::CreateModelPart(r_test_model_part, {}, {{"SurfaceCondition3D3N"}});
-    KRATOS_CHECK(r_test_model_part.Conditions().size() > 0);
+    KRATOS_EXPECT_TRUE(r_test_model_part.Conditions().size() > 0);
 
     HDF5::Internals::ConnectivitiesData<ModelPart::ConditionsContainerType> data("/Conditions", pGetTestSerialFile());
     for (const auto& r_factored_conditions : FactorConditions(r_test_model_part.Conditions())) {
