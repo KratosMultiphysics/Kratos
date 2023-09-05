@@ -25,7 +25,7 @@ class DefaultController(KratosMultiphysics.Controller):
         return True
 
 class SingleTimeController(KratosMultiphysics.Controller):
-    def __init__(self, temporal_controller: KratosMultiphysics.TemporalController) -> None:
+    def __init__(self, temporal_controller: KratosMultiphysics.OutputController) -> None:
         KratosMultiphysics.Controller.__init__(self)
         self.__temporal_controller = temporal_controller
         self.__is_evaluated = temporal_controller.GetNextPossibleEvaluateControlValue() > temporal_controller.GetInterval()
@@ -50,9 +50,9 @@ def Factory(model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Para
     if controller_type == 'default_controller':
         return DefaultController()
     elif controller_type == 'temporal_controller':
-        return KratosMultiphysics.TemporalController(model, parameters)
+        return KratosMultiphysics.OutputController(model, parameters)
     elif controller_type == "single_time_controller":
-        return SingleTimeController(KratosMultiphysics.TemporalController(model, parameters))
+        return SingleTimeController(KratosMultiphysics.OutputController(model, parameters))
     else:
         raise ValueError(f"Unsupported controller_type = \"{controller_type}\". Followings are supported controller types:\n\ttemporal_controller\n\tdefault_controller\n\tsingle_time_controller")
 ##!@}

@@ -38,26 +38,25 @@ void BilinearCohesive3DLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mStrainSize = GetStrainSize();
 }
 
-int BilinearCohesive3DLaw::
-    Check(const Properties& rMaterialProperties,
-          const GeometryType& rElementGeometry,
-          const ProcessInfo& rCurrentProcessInfo) const
+int BilinearCohesive3DLaw::Check(const Properties& rMaterialProperties,
+                                 const GeometryType& rElementGeometry,
+                                 const ProcessInfo& rCurrentProcessInfo) const
 {
     // Verify Properties variables
-    if (rMaterialProperties.Has( CRITICAL_DISPLACEMENT ) == false || rMaterialProperties[CRITICAL_DISPLACEMENT] <= 0.0)
+    if (!rMaterialProperties.Has( CRITICAL_DISPLACEMENT ) || rMaterialProperties[CRITICAL_DISPLACEMENT] <= 0.0)
         KRATOS_ERROR << "CRITICAL_DISPLACEMENT has Key zero, is not defined or has an invalid value for property: " << rMaterialProperties.Id() << std::endl;
 
-    if (rMaterialProperties.Has( YOUNG_MODULUS ) == false || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
+    if (!rMaterialProperties.Has( YOUNG_MODULUS ) || rMaterialProperties[YOUNG_MODULUS]<= 0.00)
         KRATOS_ERROR << "YOUNG_MODULUS has Key zero, is not defined or has an invalid value for property" << rMaterialProperties.Id() << std::endl;
 
-    if (rMaterialProperties.Has( YIELD_STRESS ) == false || rMaterialProperties[YIELD_STRESS] < 0.0)
+    if (!rMaterialProperties.Has( YIELD_STRESS ) || rMaterialProperties[YIELD_STRESS] < 0.0)
         KRATOS_ERROR <<  "YIELD_STRESS has Key zero, is not defined or has an invalid value for property" << rMaterialProperties.Id() << std::endl;
 
-    if (rMaterialProperties.Has( FRICTION_COEFFICIENT ) == false || rMaterialProperties[FRICTION_COEFFICIENT] < 0.0)
+    if (!rMaterialProperties.Has( FRICTION_COEFFICIENT ) || rMaterialProperties[FRICTION_COEFFICIENT] < 0.0)
         KRATOS_ERROR << "FRICTION_COEFFICIENT has Key zero, is not defined or has an invalid value for property" << rMaterialProperties.Id() << std::endl;
 
-    const double& DamageThreshold = rMaterialProperties[DAMAGE_THRESHOLD];
-    if (rMaterialProperties.Has( DAMAGE_THRESHOLD ) == false || DamageThreshold<=0.0 || DamageThreshold > 1.0)
+    if (!rMaterialProperties.Has( DAMAGE_THRESHOLD ) ||
+        rMaterialProperties[DAMAGE_THRESHOLD]<=0.0 || rMaterialProperties[DAMAGE_THRESHOLD] > 1.0)
         KRATOS_ERROR << "DAMAGE_THRESHOLD has Key zero, is not defined or has an invalid value for property" << rMaterialProperties.Id() << std::endl;
 
     return 0;
@@ -65,14 +64,12 @@ int BilinearCohesive3DLaw::
 
 ConstitutiveLaw::Pointer BilinearCohesive3DLaw::Clone() const
 {
-    BilinearCohesive3DLaw::Pointer p_clone(new BilinearCohesive3DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<BilinearCohesive3DLaw>(*this);
 }
 
-void BilinearCohesive3DLaw::
-    InitializeMaterial( const Properties& rMaterialProperties,
-                        const GeometryType& rElementGeometry,
-                        const Vector& rShapeFunctionsValues )
+void BilinearCohesive3DLaw::InitializeMaterial(const Properties& rMaterialProperties,
+                                               const GeometryType& rElementGeometry,
+                                               const Vector& rShapeFunctionsValues)
 {
     mStateVariable = rMaterialProperties[DAMAGE_THRESHOLD];
 }
@@ -192,7 +189,7 @@ void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy( Parameters& rValues 
         rValues.CheckAllParameters();
 
         //Initialize main variables
-        Vector& rStrainVector = rValues.GetStrainVector();
+        const Vector& rStrainVector = rValues.GetStrainVector();
         double EquivalentStrain;
 
         //Material properties
@@ -215,11 +212,7 @@ void BilinearCohesive3DLaw::FinalizeMaterialResponseCauchy( Parameters& rValues 
 
 double& BilinearCohesive3DLaw::GetValue( const Variable<double>& rThisVariable, double& rValue )
 {
-    if ( rThisVariable == DAMAGE_VARIABLE || rThisVariable == STATE_VARIABLE )
-    {
-        rValue = mStateVariable;
-    }
-
+    if ( rThisVariable == DAMAGE_VARIABLE || rThisVariable == STATE_VARIABLE ) rValue = mStateVariable;
     return rValue;
 }
 
@@ -227,16 +220,7 @@ void BilinearCohesive3DLaw::SetValue(const Variable<double>& rThisVariable,
                                      const double& rValue,
                                      const ProcessInfo& rCurrentProcessInfo )
 {
-    if (rThisVariable == STATE_VARIABLE)
-    {
-        mStateVariable = rValue;
-    }
-}
-
-void BilinearCohesive3DLaw::SetValue(const Variable<Vector>& rThisVariable,
-                                     const Vector& rValue,
-                                     const ProcessInfo& rCurrentProcessInfo )
-{
+    if (rThisVariable == STATE_VARIABLE) mStateVariable = rValue;
 }
 
 void BilinearCohesive3DLaw::ComputeEquivalentStrain(double& rEquivalentStrain,const Vector& StrainVector,const double& CriticalDisplacement)
