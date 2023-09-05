@@ -177,7 +177,7 @@ int ElasticIsotropicK03DLaw::Check(const Properties& rMaterialProperties,
     return 0;
 }
 
-void ElasticIsotropicK03DLaw::CheckClearElasticMatrix(Matrix& rConstitutiveMatrix)
+void ElasticIsotropicK03DLaw::CheckClearElasticMatrix(Matrix& rConstitutiveMatrix) const
 {
     const SizeType size_system = this->GetStrainSize();
     if (rConstitutiveMatrix.size1() != size_system || rConstitutiveMatrix.size2() != size_system)
