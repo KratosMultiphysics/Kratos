@@ -4092,7 +4092,7 @@ protected:
      */
     bool AllPointsAreValid() const
     {
-        return std::none_of(mPoints.ptr_begin(), mPoints.ptr_end(), [](auto& pPoint){return pPoint == nullptr;});
+        return std::none_of(mPoints.ptr_begin(), mPoints.ptr_end(), [](const auto& pPoint){return pPoint == nullptr;});
     }
 
     ///@}
