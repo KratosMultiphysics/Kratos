@@ -395,12 +395,15 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                     "output_time_settings": {
                     "output_control_type": "time",
                     "output_interval"    : 0.1
+                    },
+                    "xdmf_output_settings": {
+                        "dataset_pattern": "test_model_part-<time>.h5"
                     }
                 }
             }
             ''')
 
-        with patch('KratosMultiphysics.HDF5Application.core.operations.xdmf.WriteMultifileTemporalAnalysisToXdmf', autospec=True) as WriteMultifileTemporalAnalysisToXdmf:
+        with patch('KratosMultiphysics.HDF5Application.core.operations.xdmf.WriteDatasetsToXdmf', autospec=True) as WriteDatasetsToXdmf:
             with patch('KratosMultiphysics.HDF5Application.core.operations.system.DeleteFileIfExisting', autospec=True) as DeleteFileIfExisting:
                 with patch('pathlib.Path.glob', autospec=True) as listdir:
                     self.HDF5File().GetFileName.return_value = settings["Parameters"]["model_part_name"].GetString() + ".h5"
@@ -413,12 +416,9 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                         self.model_part.CloneTimeStep(time)
                         if process.IsOutputStep():
                             process.PrintOutput()
-                    self.assertEqual(WriteMultifileTemporalAnalysisToXdmf.call_count, 2)
-                    WriteMultifileTemporalAnalysisToXdmf.assert_called_with('test_model_part.h5',
-                                                                            '/ModelData',
-                                                                            '/ResultsData')
+                    self.assertEqual(WriteDatasetsToXdmf.call_count, 2)
                     DeleteFileIfExisting.assert_called_once_with(
-                        str(pathlib.Path('./test_model_part-0.1000.h5').absolute()))
+                         str(pathlib.Path('./test_model_part-0.1000.h5').absolute()))
 
     def test_ImportModelPartFromHDF5Process(self):
         settings = KratosMultiphysics.Parameters('''

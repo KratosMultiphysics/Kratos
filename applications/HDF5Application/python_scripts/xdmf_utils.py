@@ -1,5 +1,6 @@
 import xml.etree.ElementTree as ET
 import h5py
+import typing
 from pathlib import Path
 
 import KratosMultiphysics
@@ -16,9 +17,9 @@ from KratosMultiphysics.HDF5Application.core.xdmf import Time
 from KratosMultiphysics.HDF5Application.core.xdmf import Domain
 from KratosMultiphysics.HDF5Application.core.xdmf import Xdmf
 from KratosMultiphysics.HDF5Application.core.xdmf import EntityData
-from KratosMultiphysics.HDF5Application.core.dataset_generator import DataSetGenerator
+from KratosMultiphysics.HDF5Application.core.dataset_generator import DatasetGenerator
 
-def GetPatternDetailsFromFileName(file_name_path: Path) -> str:
+def GetPatternDetailsFromFileName(file_name_path: Path) -> 'tuple[str, dict[str, typing.Any]]':
     file_relative_path = str(file_name_path.relative_to(Path(".")))
     if file_relative_path.endswith(".h5"):
         file_relative_path = file_relative_path[:-1]
@@ -127,7 +128,7 @@ def CreateXdmfSpatialGrid(h5_file_name: str, model_data_path: str) -> SpatialGri
     return spatial_grid
 
 def WriteMeshToXdmf(h5_file_name: str, output_file_name: str, model_data_prefix: str = "/") -> None:
-    list_of_model_part_prefixes = []
+    list_of_model_part_prefixes: 'list[str]' = []
     if model_data_prefix == "/":
         with h5py.File(h5_file_name, "r") as h5_file:
             GetSpatialGridPaths(h5_file, list_of_model_part_prefixes, "/")
@@ -143,7 +144,7 @@ def WriteMeshToXdmf(h5_file_name: str, output_file_name: str, model_data_prefix:
     xdmf = Xdmf(domain)
     ET.ElementTree(xdmf.CreateXmlElement()).write(output_file_name)
 
-def WriteDataSetsToXdmf(dataset_generator: DataSetGenerator, output_file_name: str) -> None:
+def WriteDatasetsToXdmf(dataset_generator: DatasetGenerator, output_file_name: str) -> None:
     """Write the given datasets by the generator to the specified output file name.
 
     This method can write given datasets in the generator to xdmf. The generator does
@@ -155,7 +156,7 @@ def WriteDataSetsToXdmf(dataset_generator: DataSetGenerator, output_file_name: s
     paths in it.
 
     Args:
-        dataset_generator (DataSetGenerator): tuple[float, EntityData] generator
+        dataset_generator (DatasetGenerator): tuple[float, EntityData] generator
         output_file_name (str): output xdmf filename
 
     Raises:
@@ -168,7 +169,7 @@ def WriteDataSetsToXdmf(dataset_generator: DataSetGenerator, output_file_name: s
 
     for temporal_value, dataset in dataset_generator.Iterate():
         if temporal_value not in temporal_information.keys():
-            temporal_information[temporal_value]: 'list[EntityData]' = []
+            temporal_information[temporal_value] = []
         temporal_information[temporal_value].append(dataset)
 
     # now we are done with the dataset_generator. So we can safely generate the spatial grids.
