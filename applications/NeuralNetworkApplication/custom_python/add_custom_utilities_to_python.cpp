@@ -11,12 +11,10 @@
 //                   Daniel Andrés Arcones https://github.com/danielandresarcones
 //
 
-
 // System includes
 
 // External includes
 #include <pybind11/pybind11.h>
-
 
 // Project includes
 #include "includes/define.h"
@@ -25,9 +23,7 @@
 #include "spaces/ublas_space.h"
 #include "linear_solvers/linear_solver.h"
 
-
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddCustomUtilitiesToPython(pybind11::module& m)
 {
@@ -36,8 +32,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     typedef UblasSpace<double, CompressedMatrix, Vector> SparseSpaceType;
     typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
     // typedef LinearSolver<SparseSpaceType, LocalSpaceType > LinearSolverType;
-
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

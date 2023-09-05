@@ -11,13 +11,12 @@
 //                   Daniel Andrés Arcones https://github.com/danielandresarcones
 //
 
-
 // System includes
 
 #if defined(KRATOS_PYTHON)
+
 // External includes
 #include <pybind11/pybind11.h>
-
 
 // Project includes
 #include "includes/define_python.h"
@@ -26,9 +25,7 @@
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
 
-
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 PYBIND11_MODULE(KratosNeuralNetworkApplication,m)
 {
@@ -49,7 +46,6 @@ PYBIND11_MODULE(KratosNeuralNetworkApplication,m)
 
 }
 
-} // namespace Python.
-} // namespace Kratos.
+} // namespace Kratos::Python.
 
 #endif // KRATOS_PYTHON defined

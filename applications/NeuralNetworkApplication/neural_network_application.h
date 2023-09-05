@@ -7,23 +7,18 @@
 //  License:         BSD License
 //                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    @{KRATOS_APP_AUTHOR}
+//  Main authors:    Rishith Ellath Meethal (https://github.com/rishithellathmeethal)
+//                   Daniel Andrés Arcones https://github.com/danielandresarcones
 //
 
-
-#if !defined(KRATOS_NEURAL_NETWORK_APPLICATION_H_INCLUDED )
-#define  KRATOS_NEURAL_NETWORK_APPLICATION_H_INCLUDED
-
+#pragma once
 
 // System includes
 
-
 // External includes
-
 
 // Project includes
 #include "includes/kratos_application.h"
-
 
 namespace Kratos {
 
@@ -228,5 +223,3 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_NEURAL_NETWORK_APPLICATION_H_INCLUDED  defined

@@ -11,29 +11,23 @@
 //                   Daniel Andrés Arcones https://github.com/danielandresarcones
 //
 
-
 // System includes
-
 
 // External includes
 #include <pybind11/pybind11.h>
 
-
 // Project includes
 #include "includes/define_python.h"
 #include "custom_python/add_custom_strategies_to_python.h"
-
 #include "spaces/ublas_space.h"
 
-//strategies
+/* Strategies */
 #include "solving_strategies/strategies/solving_strategy.h"
 
-//linear solvers
+/* Linear solvers */
 #include "linear_solvers/linear_solver.h"
 
-
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void  AddCustomStrategiesToPython(pybind11::module& m)
 {
@@ -57,5 +51,4 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.
