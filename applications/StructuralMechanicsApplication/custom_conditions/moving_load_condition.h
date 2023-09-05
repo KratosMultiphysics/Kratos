@@ -242,10 +242,10 @@ protected:
     void CalculateExactRotationalShapeFunctions(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
 
     /**
- * \brief Calculates derivatives of exact shape functions for a local load in perpendicular direction
- * \param rShapeFunctionsVector vector of exact shape functions
- * \param LocalXCoord local x coordinate within condition element
- */
+    * \brief Calculates derivatives of exact shape functions for a local load in perpendicular direction
+    * \param rShapeFunctionsVector vector of exact shape functions
+    * \param LocalXCoord local x coordinate within condition element
+    */
     void CalculateExactShearShapeFunctionsDerivatives(VectorType& rShapeFunctionsVector, const double LocalXCoord) const;
 
     /**

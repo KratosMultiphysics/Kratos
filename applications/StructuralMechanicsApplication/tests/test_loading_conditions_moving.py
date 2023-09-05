@@ -6,13 +6,14 @@ import math
 
 class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
-    def setup_strategy(self, mp):
+    @staticmethod
+    def setup_strategy(mp):
         """
-        Setup strategy for solving the problem
+        Setup default strategy for solving the problem
 
         Parameters
         ----------
-        mp model part
+        mp: model part
 
         Returns default strategy
         -------
@@ -41,24 +42,25 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         strategy.SetEchoLevel(0)
         return strategy
 
-    def calculate_rotation_of_beam(self, disp_left, disp_right, rot_left, rot_right, length_beam, x, rotation):
+    @staticmethod
+    def calculate_rotation_of_beam(disp_left, disp_right, rot_left, rot_right, length_beam, x, rotation):
         """
-        Calculate vertical deflection of a beam with given displacements and rotations
+        Calculate rotation at a certain position along an euler bernoulli beam
 
         Parameters
         ----------
-        disp_left
-        disp_right
-        rot_left
-        rot_right
-        length_beam
-        x
+        disp_left: left displacement of beam [m]
+        disp_right: right displacement of beam [m]
+        rot_left: left rotation of beam [rad]
+        rot_right: right rotation of beam [rad]
+        length_beam: length of beam [m]
+        x: local position of the load within the beam [m]
 
-        Returns
+        Returns expected rotation at location of load
         -------
 
         """
-        eta_left =  disp_left * math.cos(rotation)
+        eta_left = disp_left * math.cos(rotation)
         eta_right = disp_right * math.cos(rotation)
 
         n1 = 6 * (x**2 / length_beam**3) - 6 * (x / length_beam**2)
@@ -68,25 +70,23 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         expected_rotation = n1 * eta_left + n2 * rot_left + n3 * eta_right + n4 * rot_right
 
-
-        # expected_deflection_y = expected_deflection_xi * math.sin(rotation) + expected_deflection_eta * math.cos(
-        #     rotation)
         return expected_rotation
 
-    def calculate_deflection_of_beam(self, disp_left, disp_right, rot_left, rot_right, length_beam, x, rotation):
+    @staticmethod
+    def calculate_deflection_of_beam(disp_left, disp_right, rot_left, rot_right, length_beam, x, rotation):
         """
-        Calculate vertical deflection of a beam with given displacements and rotations
+        Calculate vertical deflection at a certain position along an Euler Bernoulli beam
 
         Parameters
         ----------
-        disp_left
-        disp_right
-        rot_left
-        rot_right
-        length_beam
-        x
+        disp_left: left displacement of beam [m]
+        disp_right: right displacement of beam [m]
+        rot_left: left rotation of beam [rad]
+        rot_right: right rotation of beam [rad]
+        length_beam: length of beam [m]
+        x: local position of the load within the beam [m]
 
-        Returns
+        Returns expected rotation at location of load
         -------
 
         """
@@ -105,18 +105,16 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         expected_deflection_y = expected_deflection_xi*math.sin(rotation) + expected_deflection_eta*math.cos(rotation)
         return expected_deflection_x, expected_deflection_y
 
-
-
     def __CalculateReaction2n(self, length, angle, load, distance):
         """
         Calculate reaction forces on 2 noded 2d inclined element
 
         Parameters
         ----------
-        length length of the element
-        angle angle of the element
-        load load vector
-        distance local distance of the load within the element
+        length: length of the element
+        angle: angle of the element
+        load: load vector
+        distance: local distance of the load within the element
 
         Returns reaction forces
         -------
@@ -148,10 +146,10 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         Parameters
         ----------
-        length length of the element
-        angle angle of the element
-        load load vector
-        distance local distance of the load within the element
+        length: length of the element
+        angle: angle of the element
+        load: load vector
+        distance: local distance of the load within the element
 
         Returns reaction forces
         -------
@@ -192,10 +190,10 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         Parameters
         ----------
-        length length of the element
-        angle angle of the element
-        load load vector
-        distance local distance of the load within the element
+        length: length of the element
+        angle: angle of the element
+        load: load vector
+        distance: local distance of the load within the element
 
         Returns reaction forces
         -------
@@ -429,7 +427,6 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
             # set load on node
             cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, distance)
             strategy.InitializeSolutionStep()
-            strategy.Solve()
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
             self.assertAlmostEqual(rhs[0], x_left)
@@ -554,7 +551,8 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, location_load)
 
         # solve system and calculate displacement and rotation at the location of the load
-        strategy.Solve()
+        strategy.InitializeSolutionStep()
+        strategy.SolveSolutionStep()
 
         # get calculated displacement at the load
         disp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
@@ -656,7 +654,8 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, location_load)
 
         # solve system and calculate displacement and rotation at the location of the load
-        strategy.Solve()
+        strategy.InitializeSolutionStep()
+        strategy.SolveSolutionStep()
 
         # get calculated displacement at the load position
         disp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
@@ -727,7 +726,8 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, location_load)
 
         # solve system and calculate displacement and rotation at the location of the load
-        strategy.Solve()
+        strategy.InitializeSolutionStep()
+        strategy.SolveSolutionStep()
 
         # get calculated displacement at the load position
         disp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)

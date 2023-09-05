@@ -285,9 +285,10 @@ template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateExactShearShapeFunctionsDerivatives(VectorType& rShapeFunctionsDerivativesVector, const double LocalXCoord) const
 {
     KRATOS_TRY
-        if (rShapeFunctionsDerivativesVector.size() != TNumNodes) {
-            rShapeFunctionsDerivativesVector.resize(TNumNodes, false);
-        }
+    if (rShapeFunctionsDerivativesVector.size() != TNumNodes) {
+        rShapeFunctionsDerivativesVector.resize(TNumNodes, false);
+    }
+
     const auto& r_geometry = this->GetGeometry();
     const double length = r_geometry.Length();
 
@@ -302,14 +303,17 @@ template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateExactRotationalShapeFunctionsDerivatives(VectorType& rShapeFunctionsDerivativesVector, const double LocalXCoord) const
 {
     KRATOS_TRY
-        if (rShapeFunctionsDerivativesVector.size() != TNumNodes) {
-            rShapeFunctionsDerivativesVector.resize(TNumNodes, false);
-        }
+
+    if (rShapeFunctionsDerivativesVector.size() != TNumNodes) {
+        rShapeFunctionsDerivativesVector.resize(TNumNodes, false);
+    }
+
     const auto& r_geometry = this->GetGeometry();
     const double length = r_geometry.Length();
 
     rShapeFunctionsDerivativesVector[0] = 1 + 3 * std::pow(LocalXCoord/length, 2)  - 4 * LocalXCoord / length;
     rShapeFunctionsDerivativesVector[1] = 3 * std::pow(LocalXCoord / length, 2) - 2 * LocalXCoord / length;
+
     KRATOS_CATCH("")
 }
 
@@ -317,6 +321,7 @@ template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const GeometryType& rGeom)
 {
     KRATOS_TRY
+
     constexpr double tolerance = 1e-8;
     //Unitary vector in local x direction
     array_1d<double, 3> vx = ZeroVector(3);
@@ -338,8 +343,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateRotationMatrix(BoundedMatri
     // Unitary vector in local y direction
     if (std::fabs(vx[0]) < tolerance && std::fabs(vx[1]) < tolerance) {
         MathUtils<double>::CrossProduct(vy, vy_tmp, vx);
-    }
-    else {
+    } else {
         MathUtils<double>::CrossProduct(vy, vz_tmp, vx);
     }
 
@@ -397,12 +401,14 @@ void MovingLoadCondition<TDim, TNumNodes>::InitializeSolutionStep(const ProcessI
 
     
 template< std::size_t TDim, std::size_t TNumNodes >
-	void MovingLoadCondition<TDim, TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+void MovingLoadCondition<TDim, TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
-    if (mIsMovingLoad)
-    {
+    if (mIsMovingLoad) {
         this->CalculateLoadPointDisplacementVector();
         this->CalculateLoadPointRotationVector();
+    } else {
+        this->SetValue(DISPLACEMENT, ZeroVector(3));
+        this->SetValue(ROTATION, ZeroVector(3));
     }
 }
 
@@ -415,7 +421,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     KRATOS_TRY
 
     // Get global displacement vector
-	Vector displacement_vector;
+    Vector displacement_vector;
     this->GetValuesVector(displacement_vector);
 
     // check if rotation degrees of freedom are active
@@ -426,9 +432,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
     IndexType vector_index = 0;
     for (IndexType ii = 0; ii < TNumNodes; ++ii) {
-
-        for (IndexType jj = 0; jj < TDim; ++jj)
-        {
+        for (IndexType jj = 0; jj < TDim; ++jj) {
             displacement_matrix(jj, ii) = displacement_vector[vector_index];
             vector_index++;
         }
@@ -443,7 +447,6 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
             nodal_rotation_matrix(0, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_X);
             nodal_rotation_matrix(1, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Y);
             nodal_rotation_matrix(2, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Z);
-
         }
     }
 
@@ -453,10 +456,8 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
     // make sure the elemental rotation matrix is 3x3
     bounded_matrix<double, 3, 3> full_rotation_matrix = ZeroMatrix(3, 3);
-    for (IndexType i = 0; i < TDim; i++)
-    {
-        for (IndexType j = 0; j < TDim; j++)
-        {
+    for (IndexType i = 0; i < TDim; i++) {
+        for (IndexType j = 0; j < TDim; j++) {
             full_rotation_matrix(i, j) = rotation_matrix(i, j);
         }
     }
@@ -471,8 +472,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
     // Get local coordinate of the moving load position
     const double local_x_coord = this->GetValue(MOVING_LOAD_LOCAL_DISTANCE);
 
-
-	// calculate shape functions
+    // calculate shape functions
     VectorType normal_shape_functions_vector;
     VectorType shear_shape_functions_vector;
     VectorType rotational_shape_functions_vector;
@@ -485,9 +485,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
         this->CalculateExactNormalShapeFunctions(normal_shape_functions_vector, local_x_coord);
         this->CalculateExactShearShapeFunctions(shear_shape_functions_vector, local_x_coord);
         this->CalculateExactRotationalShapeFunctions(rotational_shape_functions_vector, local_x_coord);
-    }
-    else
-    {
+    } else {
         GeometryType::CoordinatesArrayType local_coordinates_array = ZeroVector(3);
         local_coordinates_array[0] = local_x_coord / r_geom.Length() * 2 - 1;
 
@@ -507,8 +505,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
             disp_normal_axis += local_disp_matrix(0, ii) * normal_shape_functions_vector[ii];
             disp_shear_axis += local_disp_matrix(1, ii) * shear_shape_functions_vector[ii];
 
-            if (has_rot_dof)
-            {
+            if (has_rot_dof) {
                 disp_shear_axis += local_nodal_rotation_matrix(2, ii) * rotational_shape_functions_vector[ii];
             }
         }
@@ -516,9 +513,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
         local_disp_vector(0) = disp_normal_axis;
         local_disp_vector(1) = disp_shear_axis;
 
-    }
-    else if constexpr (TDim == 3)
-    {
+    } else if constexpr (TDim == 3) {
         double disp_normal_axis = 0;
         double disp_shear_axis_1 = 0;
         double disp_shear_axis_2 = 0;
@@ -531,8 +526,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
             disp_shear_axis_1 += local_disp_matrix(1, ii) * shear_shape_functions_vector[ii];
             disp_shear_axis_2 += local_disp_matrix(2, ii) * shear_shape_functions_vector[ii];
 
-            if (has_rot_dof)
-            {
+            if (has_rot_dof) {
                 disp_shear_axis_1 += local_nodal_rotation_matrix(2, ii) * rotational_shape_functions_vector[ii];
                 disp_shear_axis_2 += local_nodal_rotation_matrix(1, ii) * rotational_shape_functions_vector[ii];
             }
@@ -548,8 +542,9 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVect
 
     // make sure displacement is a vector with size 3
     Vector displacements = ZeroVector(3);
-    for (IndexType ii = 0; ii < TDim; ++ii)
+    for (IndexType ii = 0; ii < TDim; ++ii) {
         displacements(ii) = global_point_disp_vector(ii);
+    }
 
     // Set Displacement at the location of the point load to the element
     this->SetValue(DISPLACEMENT, displacements);
@@ -566,7 +561,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
     KRATOS_TRY
 
-	// Get global displacement vector
+    // Get global displacement vector
     Vector displacement_vector;
     this->GetValuesVector(displacement_vector);
 
@@ -579,8 +574,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     IndexType vector_index = 0;
     for (IndexType ii = 0; ii < TNumNodes; ++ii) {
 
-        for (IndexType jj = 0; jj < TDim; ++jj)
-        {
+        for (IndexType jj = 0; jj < TDim; ++jj) {
             displacement_matrix(jj, ii) = displacement_vector[vector_index];
             vector_index++;
         }
@@ -595,7 +589,6 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
             nodal_rotation_matrix(0, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_X);
             nodal_rotation_matrix(1, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Y);
             nodal_rotation_matrix(2, ii) = GetGeometry()[ii].FastGetSolutionStepValue(ROTATION_Z);
-
         }
     }
 
@@ -608,10 +601,8 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     // define full rotation matrix which is required to back calculate the global rotation at the location of the moving load
     bounded_matrix<double, 3, 3> full_rotation_matrix = ZeroMatrix(3, 3);
 
-    for (IndexType i = 0; i<TDim; ++i)
-    {
-        for (IndexType j = 0; j < TDim; ++j)
-        {
+    for (IndexType i = 0; i<TDim; ++i) {
+        for (IndexType j = 0; j < TDim; ++j) {
             full_rotation_matrix(i, j) = rotation_matrix(i, j);
         }
     }
@@ -637,17 +628,14 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
         this->CalculateExactShearShapeFunctionsDerivatives(shear_shape_functions_derivatives_vector, local_x_coord);
         this->CalculateExactRotationalShapeFunctionsDerivatives(rotational_shape_functions_derivatives_vector, local_x_coord);
-    }
-    else
-    {
+    } else {
         GeometryType::CoordinatesArrayType local_coordinates_array = ZeroVector(3);
         local_coordinates_array[0] = local_x_coord / r_geom.Length() * 2 - 1;
 
         Matrix local_gradient_matrix;
 
         r_geom.ShapeFunctionsLocalGradients(local_gradient_matrix, local_coordinates_array);
-        for (IndexType i = 0; i < TNumNodes; ++i)
-        {
+        for (IndexType i = 0; i < TNumNodes; ++i) {
             shear_shape_functions_derivatives_vector(i) = local_gradient_matrix(i, 0);
         }
     }
@@ -662,15 +650,13 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
             local_rotation += local_disp_matrix(1, ii) * shear_shape_functions_derivatives_vector[ii];
 
-            if (has_rot_dof)
-            {
+            if (has_rot_dof) {
                 local_rotation += local_nodal_rotation_matrix(2, ii) * rotational_shape_functions_derivatives_vector[ii];
             }
         }
 
         local_rot_vector(2) = local_rotation;
-    }
-    else if constexpr (TDim == 3){
+    } else if constexpr (TDim == 3) {
 
         double local_rotation_axis_1 = 0;
         double local_rotation_axis_2 = 0;
@@ -681,8 +667,7 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
             local_rotation_axis_1 += local_disp_matrix(2, ii) * shear_shape_functions_derivatives_vector[ii];
             local_rotation_axis_2 += local_disp_matrix(1, ii) * shear_shape_functions_derivatives_vector[ii];
 
-            if (has_rot_dof)
-            {
+            if (has_rot_dof) {
                 local_rotation_axis_1 += local_nodal_rotation_matrix(1, ii) * rotational_shape_functions_derivatives_vector[ii];
                 local_rotation_axis_2 += local_nodal_rotation_matrix(2, ii) * rotational_shape_functions_derivatives_vector[ii];
             }
@@ -695,12 +680,9 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
 
     // calculate global rotation vector at the location of the moving load
     VectorType global_point_rotation_vector = ZeroVector(3);
-    if constexpr (TDim == 2)
-    {
+    if constexpr (TDim == 2) {
         global_point_rotation_vector(2) = local_rot_vector(2);
-    }
-    else if constexpr (TDim == 3)
-    {
+    } else if constexpr (TDim == 3) {
         global_point_rotation_vector = prod(trans(full_rotation_matrix), local_rot_vector);
     }
 
@@ -729,12 +711,9 @@ void MovingLoadCondition<TDim, TNumNodes>::GetRotationsVector(Vector& rRotations
     const SizeType dim = GetGeometry().WorkingSpaceDimension();
 
     SizeType mat_size;
-    if constexpr (TDim == 2)
-    {
+    if constexpr (TDim == 2) {
         mat_size = number_of_nodes;
-    }
-    else
-    {
+    } else {
         mat_size = number_of_nodes * dim;
     }
 
@@ -742,13 +721,12 @@ void MovingLoadCondition<TDim, TNumNodes>::GetRotationsVector(Vector& rRotations
     if (rRotationsVector.size() != mat_size) {
         rRotationsVector.resize(mat_size, false);
     }
-    if constexpr (TDim == 2)
-    {
+
+    if constexpr (TDim == 2) {
         for (SizeType i = 0; i < number_of_nodes; ++i) {
             rRotationsVector[i] = GetGeometry()[i].FastGetSolutionStepValue(ROTATION_Z, Step);
         }
-    }
-    else {
+    } else {
         for (SizeType i = 0; i < number_of_nodes; ++i) {
             const array_1d<double, 3 >& r_rotation = GetGeometry()[i].FastGetSolutionStepValue(ROTATION, Step);
             const SizeType index = i * dim;
