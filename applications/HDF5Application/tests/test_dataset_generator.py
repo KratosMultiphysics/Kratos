@@ -366,7 +366,7 @@ class TestDatasetGenerator(KratosUnittest.TestCase):
                 super().__init__(model_part)
 
                 params = self.GetDefaultParameters()
-                temporal_controller = Kratos.TemporalController(model_part.GetModel(), params["output_time_settings"])
+                temporal_controller = Kratos.OutputController(model_part.GetModel(), params["output_time_settings"])
 
                 operation = AggregatedControlledOperations(model_part,  params["file_settings"])
                 operation.AddControlledOperation(ControlledOperation(ModelPartOutput, self._GetOperationParameters("model_part_output_settings", params), SingleTimeController(temporal_controller)))
