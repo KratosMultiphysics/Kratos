@@ -115,19 +115,19 @@ namespace Testing
 
         // Check MP_TEMPERATURE
         cl.GetValue(MP_TEMPERATURE, value);
-        KRATOS_CHECK_NEAR(ref_temperature, value, tolerance);
+        KRATOS_EXPECT_NEAR(ref_temperature, value, tolerance);
 
         // Check MP_EQUIVALENT_PLASTIC_STRAIN
         cl.GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, value);
-        KRATOS_CHECK_NEAR(ref_plastic_strain, value, tolerance*tolerance);
+        KRATOS_EXPECT_NEAR(ref_plastic_strain, value, tolerance*tolerance);
 
         // Check MP_EQUIVALENT_PLASTIC_STRAIN_RATE
         cl.GetValue(MP_EQUIVALENT_PLASTIC_STRAIN_RATE, value);
-        KRATOS_CHECK_NEAR(ref_plastic_strain_rate, value, tolerance*tolerance);
+        KRATOS_EXPECT_NEAR(ref_plastic_strain_rate, value, tolerance*tolerance);
 
         // Check MP_EQUIVALENT_STRESS
         cl.GetValue(MP_EQUIVALENT_STRESS, value);
-        KRATOS_CHECK_NEAR(ref_equivalent_stress, value, tolerance);
+        KRATOS_EXPECT_NEAR(ref_equivalent_stress, value, tolerance);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(ParticleConstitutiveLawJohnsonCookWithoutThermalSoftening, KratosParticleMechanicsFastSuite)
@@ -210,19 +210,19 @@ namespace Testing
 
         // Check MP_TEMPERATURE
         cl.GetValue(MP_TEMPERATURE, value);
-        KRATOS_CHECK_NEAR(ref_temperature, value, tolerance);
+        KRATOS_EXPECT_NEAR(ref_temperature, value, tolerance);
 
         // Check MP_EQUIVALENT_PLASTIC_STRAIN
         cl.GetValue(MP_EQUIVALENT_PLASTIC_STRAIN, value);
-        KRATOS_CHECK_NEAR(ref_plastic_strain, value, tolerance * tolerance);
+        KRATOS_EXPECT_NEAR(ref_plastic_strain, value, tolerance * tolerance);
 
         // Check MP_EQUIVALENT_PLASTIC_STRAIN_RATE
         cl.GetValue(MP_EQUIVALENT_PLASTIC_STRAIN_RATE, value);
-        KRATOS_CHECK_NEAR(ref_plastic_strain_rate, value, tolerance * tolerance);
+        KRATOS_EXPECT_NEAR(ref_plastic_strain_rate, value, tolerance * tolerance);
 
         // Check MP_EQUIVALENT_STRESS
         cl.GetValue(MP_EQUIVALENT_STRESS, value);
-        KRATOS_CHECK_NEAR(ref_equivalent_stress, value, tolerance);
+        KRATOS_EXPECT_NEAR(ref_equivalent_stress, value, tolerance);
     }
 
 } // namespace Testing

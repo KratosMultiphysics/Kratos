@@ -94,7 +94,7 @@ class MainCoupledFemDem_Solution:
         self.CreateInitialSkin = femdem_custom_settings["create_initial_skin"].GetBool()
         self.do_stabilization_solve = femdem_custom_settings["do_stabilization_solve"].GetBool()
         process_info[KratosFemDem.SMOOTHING_OF_STRESSES] = femdem_custom_settings["smoothing_of_stresses"].GetBool()
-        process_info[KratosFemDem.MAX_DAMAGE_ERASE] = femdem_custom_settings["maximum_damage_erase"].GetInt()
+        process_info[KratosFemDem.MAX_DAMAGE_ERASE] = femdem_custom_settings["maximum_damage_erase"].GetDouble()
 
         # Initialize IP variables to zero
         self.InitializeIntegrationPointsVariables()
