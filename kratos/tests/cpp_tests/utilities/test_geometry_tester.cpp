@@ -14,7 +14,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "utilities/geometry_tester.h"
 
 namespace Kratos {
@@ -23,7 +23,7 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(GeometryTester, KratosCoreFastSuite)
     {
         Model this_model;
-        KRATOS_CHECK(GeometryTesterUtility().RunTest(this_model));
+        KRATOS_EXPECT_TRUE(GeometryTesterUtility().RunTest(this_model));
     }
 
 }  // namespace Testing.

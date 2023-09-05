@@ -521,15 +521,15 @@ private:
     const ElasticIsotropicK03DLaw           mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw  mLinearElasticPlaneStress2DLaw;
 
-    const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw;
-    const SmallStrainUDSM2DPlaneStrainLaw mSmallStrainUDSM2DPlaneStrainLaw;
-    const SmallStrainUDSM2DInterfaceLaw   mSmallStrainUDSM2DInterfaceLaw;
-    const SmallStrainUDSM3DInterfaceLaw   mSmallStrainUDSM3DInterfaceLaw;
+    const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw{};
+    const SmallStrainUDSM2DPlaneStrainLaw mSmallStrainUDSM2DPlaneStrainLaw{};
+    const SmallStrainUDSM2DInterfaceLaw   mSmallStrainUDSM2DInterfaceLaw{};
+    const SmallStrainUDSM3DInterfaceLaw   mSmallStrainUDSM3DInterfaceLaw{};
 
-    const SmallStrainUMAT3DLaw            mSmallStrainUMAT3DLaw;
-    const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw;
-    const SmallStrainUMAT2DInterfaceLaw   mSmallStrainUMAT2DInterfaceLaw;
-    const SmallStrainUMAT3DInterfaceLaw   mSmallStrainUMAT3DInterfaceLaw;
+    const SmallStrainUMAT3DLaw            mSmallStrainUMAT3DLaw{};
+    const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw{};
+    const SmallStrainUMAT2DInterfaceLaw   mSmallStrainUMAT2DInterfaceLaw{};
+    const SmallStrainUMAT3DInterfaceLaw   mSmallStrainUMAT3DInterfaceLaw{};
 
     const LinearElastic2DInterfaceLaw     mLinearElastic2DInterfaceLaw;
     const LinearElastic3DInterfaceLaw     mLinearElastic3DInterfaceLaw;

@@ -71,38 +71,38 @@ namespace{
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10EdgesNumber, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK_EQUAL(geom->EdgesNumber(), 6);
+    KRATOS_EXPECT_EQ(geom->EdgesNumber(), 6);
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10FacesNumber, KratosCoreGeometriesFastSuite) {
     Geometry<NodeType>::Pointer geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK_EQUAL(geom->FacesNumber(), 4);
+    KRATOS_EXPECT_EQ(geom->FacesNumber(), 4);
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10Volume, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK_NEAR(geom->Volume(), 1.0 / 6.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->Volume(), 1.0 / 6.0, TOLERANCE);
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10MinEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->MinEdgeLength(), "Calling base class 'MinEdgeLength' method instead of derived class one.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->MinEdgeLength(), "Calling base class 'MinEdgeLength' method instead of derived class one.");
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10MaxEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->MaxEdgeLength(), "Calling base class 'MaxEdgeLength' method instead of derived class one.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->MaxEdgeLength(), "Calling base class 'MaxEdgeLength' method instead of derived class one.");
   }
 
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10Circumradius, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Circumradius(), "Calling base class 'Circumradius' method instead of derived class one.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->Circumradius(), "Calling base class 'Circumradius' method instead of derived class one.");
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10Inradius, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(geom->Inradius(), "Calling base class 'Inradius' method instead of derived class one.");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(geom->Inradius(), "Calling base class 'Inradius' method instead of derived class one.");
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10IsInside, KratosCoreGeometriesFastSuite) {
@@ -112,12 +112,12 @@ namespace{
     Point PointInVertex(0.0, 0.0, 0.0);
     Point PointInEdge(0.6, 0.0, 0.0);
     Point LocalCoords;
-    KRATOS_CHECK(geom->IsInside(PointInside, LocalCoords, EPSILON));
-    KRATOS_CHECK_IS_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
-    KRATOS_CHECK(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_FALSE(geom->IsInside(PointOutside, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInVertex, LocalCoords, EPSILON));
     geom->IsInside(PointInEdge, LocalCoords, EPSILON);
     KRATOS_WATCH(LocalCoords);
-    KRATOS_CHECK(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
+    KRATOS_EXPECT_TRUE(geom->IsInside(PointInEdge, LocalCoords, EPSILON));
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10DeterminantOfJacobianArray1, KratosCoreGeometriesFastSuite) {
@@ -125,18 +125,18 @@ namespace{
     Vector JacobianDeterminants;
     geom->DeterminantOfJacobian(JacobianDeterminants, GeometryData::IntegrationMethod::GI_GAUSS_2);
     for (unsigned int i=0; i<JacobianDeterminants.size(); ++i)
-        KRATOS_CHECK_NEAR(JacobianDeterminants[i], 1.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(JacobianDeterminants[i], 1.0, TOLERANCE);
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10IntegrationPointsNumber, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK_EQUAL(geom->IntegrationPointsNumber(), 4);
+    KRATOS_EXPECT_EQ(geom->IntegrationPointsNumber(), 4);
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10DeterminantOfJacobianIndex1, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
     for (unsigned g = 0; g < geom->IntegrationPointsNumber(); ++g)
-      KRATOS_CHECK_NEAR(geom->DeterminantOfJacobian(g), 1.0, TOLERANCE);
+      KRATOS_EXPECT_NEAR(geom->DeterminantOfJacobian(g), 1.0, TOLERANCE);
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10ShapeFunctionsValues, KratosCoreGeometriesFastSuite) {
@@ -145,16 +145,16 @@ namespace{
     coord[0] = 1.0 / 2.0;
     coord[1] = 1.0 / 4.0;
     coord[2] = 1.0 / 16.0;
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(0, coord), -0.1171875, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(1, coord), 0.0, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(2, coord), -0.125, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(3, coord), -0.0546875, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(4, coord), 0.375, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(5, coord), 0.5, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(6, coord), 0.1875, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(7, coord), 0.046875, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(8, coord), 0.125, TOLERANCE);
-    KRATOS_CHECK_NEAR(geom->ShapeFunctionValue(9, coord), 0.0625, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(0, coord), -0.1171875, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(1, coord), 0.0, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(2, coord), -0.125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(3, coord), -0.0546875, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(4, coord), 0.375, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(5, coord), 0.5, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(6, coord), 0.1875, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(7, coord), 0.046875, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(8, coord), 0.125, TOLERANCE);
+    KRATOS_EXPECT_NEAR(geom->ShapeFunctionValue(9, coord), 0.0625, TOLERANCE);
     CrossCheckShapeFunctionsValues(*geom);
   }
 
@@ -165,7 +165,7 @@ namespace{
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10AverageEdgeLength, KratosCoreGeometriesFastSuite) {
     auto geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK_NEAR(geom->AverageEdgeLength(), 1.20710678119, 1e-7);
+    KRATOS_EXPECT_NEAR(geom->AverageEdgeLength(), 1.20710678119, 1e-7);
   }
 
   KRATOS_TEST_CASE_IN_SUITE(Tetrahedra3D10HasIntersection, KratosCoreGeometriesFastSuite) {
@@ -176,11 +176,11 @@ namespace{
     const Point OutHighPoint(1.1,0.1,1.1);
 
     auto geom = GenerateReferenceTetrahedra3D10();
-    KRATOS_CHECK(geom->HasIntersection(LowPoint, HighPoint));
-    KRATOS_CHECK_IS_FALSE(geom->HasIntersection(OutLowPoint, OutHighPoint));
+    KRATOS_EXPECT_TRUE(geom->HasIntersection(LowPoint, HighPoint));
+    KRATOS_EXPECT_FALSE(geom->HasIntersection(OutLowPoint, OutHighPoint));
 
     auto curved_geom = GenerateCurvedTetrahedra3D10();
-    KRATOS_CHECK_EXCEPTION_IS_THROWN(
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(
       curved_geom->HasIntersection(LowPoint, HighPoint),
       "\"HasIntersection\" is not implemented for non-planar 10 noded tetrahedra.");
   }
@@ -190,12 +190,12 @@ namespace{
       auto geom = GenerateReferenceTetrahedra3D10();
 
       Point point1(0.25, 0.25, 0.25);
-      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), 0.0);
-      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point1), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point1));
+      KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point1), 0.0);
+      KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point1), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point1));
 
       Point point2(1.5, 0.0, 0.0);
-      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), 0.5);
-      KRATOS_CHECK_DOUBLE_EQUAL(geom->CalculateDistance(point2), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point2));
+      KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point2), 0.5);
+      KRATOS_EXPECT_DOUBLE_EQ(geom->CalculateDistance(point2), GeometryUtils::CalculateDistanceFrom3DGeometry(*geom, point2));
   }
 
 } // namespace Kratos::Testing.

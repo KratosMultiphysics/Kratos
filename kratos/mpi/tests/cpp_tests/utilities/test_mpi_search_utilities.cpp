@@ -37,8 +37,8 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPoint
     MPISearchUtilities::MPISynchronousPointSynchronization(points.begin(), points.end(), all_points_coordinates, r_data_comm);
 
     // Check the results
-    KRATOS_CHECK_EQUAL(all_points_coordinates.size(), 9);
-    KRATOS_CHECK_EQUAL(all_points_coordinates, expected_coordinates);
+    KRATOS_EXPECT_EQ(all_points_coordinates.size(), 9);
+    KRATOS_EXPECT_EQ(all_points_coordinates, expected_coordinates);
 }
 
 KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPointsAreDifferent, KratosMPICoreFastSuite) 
@@ -60,13 +60,13 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPoint
     MPISearchUtilities::MPISynchronousPointSynchronization(points.begin(), points.end(), all_points_coordinates, r_data_comm);
 
     // Check the results
-    KRATOS_CHECK_EQUAL(static_cast<int>(all_points_coordinates.size()), 2 * 3 * world_size);
+    KRATOS_EXPECT_EQ(static_cast<int>(all_points_coordinates.size()), 2 * 3 * world_size);
     for (int i_rank = 0; i_rank < world_size; ++i_rank) {
         value = static_cast<double>(i_rank);
         value2 = 2 * value;
         for (int j = 0; j < 3; ++j) {
-            KRATOS_CHECK_DOUBLE_EQUAL(all_points_coordinates[i_rank * 6 + j    ], value );
-            KRATOS_CHECK_DOUBLE_EQUAL(all_points_coordinates[i_rank * 6 + j + 3], value2);
+            KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j    ], value );
+            KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j + 3], value2);
         }
     }
 }
@@ -91,15 +91,15 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationAllPoint
     auto radius = MPISearchUtilities::MPISynchronousPointSynchronizationWithRadius(points.begin(), points.end(), all_points_coordinates, local_radius, r_data_comm);
 
     // Check the results
-    KRATOS_CHECK_EQUAL(static_cast<int>(all_points_coordinates.size()), 2 * 3 * world_size);
+    KRATOS_EXPECT_EQ(static_cast<int>(all_points_coordinates.size()), 2 * 3 * world_size);
     for (int i_rank = 0; i_rank < world_size; ++i_rank) {
         value = static_cast<double>(i_rank);
         value2 = 2 * value;
-        KRATOS_CHECK_DOUBLE_EQUAL(radius[i_rank * 2    ], value );
-        KRATOS_CHECK_DOUBLE_EQUAL(radius[i_rank * 2 + 1], value2);
+        KRATOS_EXPECT_DOUBLE_EQ(radius[i_rank * 2    ], value );
+        KRATOS_EXPECT_DOUBLE_EQ(radius[i_rank * 2 + 1], value2);
         for (int j = 0; j < 3; ++j) {
-            KRATOS_CHECK_DOUBLE_EQUAL(all_points_coordinates[i_rank * 6 + j    ], value );
-            KRATOS_CHECK_DOUBLE_EQUAL(all_points_coordinates[i_rank * 6 + j + 3], value2);
+            KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j    ], value );
+            KRATOS_EXPECT_DOUBLE_EQ(all_points_coordinates[i_rank * 6 + j + 3], value2);
         }
     }
 }
