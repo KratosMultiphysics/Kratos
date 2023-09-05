@@ -20,6 +20,7 @@ from test_pattern import TestGetMachingEntitiesString
 from test_expression_io import TestExpressionIO
 from test_hdf5_mesh_location_container import TestMeshLocationContainer
 from test_dataset_generator import TestDatasetGenerator
+from test_mypy import TestTypeHinting
 
 def AssembleTestSuites():
     suites = KratosUnittest.KratosSuites
@@ -42,6 +43,11 @@ def AssembleTestSuites():
     nightSuite.addTests(smallSuite)
     allSuite = suites['all']
     allSuite.addTests([nightSuite])
+
+    validationSuite = suites['validation']
+    validationSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestTypeHinting]))
+    validationSuite.addTests([allSuite])
+
     return suites
 
 
