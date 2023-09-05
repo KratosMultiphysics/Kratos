@@ -144,12 +144,8 @@ class ImplicitVertexMorphing(ShapeControl):
 
         self.implicit_vertex_morphing.MapFirstDerivative(derivative_variable_name, mapped_derivative_variable_name)
 
-        direction = self.GetActiveSensitivityDirection(mapped_derivative_variable_name.Name())
-        if self.positive_intersection_normals_active:
-            self.RemoveActiveFilteredIntersectionNormals(mapped_derivative_variable_name, direction, True)
-        if self.negative_intersection_normals_active or self.construction_space_constraint_active:
-            self.RemoveActiveFilteredIntersectionNormals(mapped_derivative_variable_name, direction, False)
-
+        #direction = self.GetActiveSensitivityDirection(mapped_derivative_variable_name.Name())
+        self.RemoveActiveFilteredIntersectionNormals(mapped_derivative_variable_name)
         self.RemoveActiveFilteredBCNormals(mapped_derivative_variable_name)
 
     def ComputeNodalNorm(self,kratos_nodal_vector):
@@ -255,41 +251,51 @@ class ImplicitVertexMorphing(ShapeControl):
 
         return intersection_active
 
-    def RemoveActiveFilteredIntersectionNormals(self, field_variable, direction, positive_dir=True):
-        if(positive_dir):
-            raw_variable = KOA.ACTIVE_POSITIVE_INTERSECTION_NORMAL
-            filtered_variable = KOA.FILTERED_ACTIVE_POSITIVE_INTERSECTION_NORMAL
-        else:
-            raw_variable = KOA.ACTIVE_NEGATIVE_INTERSECTION_NORMAL
-            filtered_variable = KOA.FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL
+    def RemoveActiveFilteredIntersectionNormals(self, field_variable_name):
 
-        self.NormalizeField(filtered_variable)
+        pos_active = self.positive_intersection_normals_active
+        neg_active = self.negative_intersection_normals_active or self.construction_space_constraint_active
 
         for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
-            remove_direction = node.GetSolutionStepValue(filtered_variable)
+            nodal_field_variable = node.GetSolutionStepValue(field_variable_name)
 
-            if self.ComputeNodalNorm(remove_direction)>0.05: #TODO: Better 0??
-                remove_direction /= self.ComputeNodalNorm(remove_direction)
-                control_update = node.GetSolutionStepValue(field_variable)
-                projected_control_update = remove_direction[0]*control_update[0] + remove_direction[1]*control_update[1] + remove_direction[2]*control_update[2]
-                #if projected_control_update > 1e-10:
-                projected_control_update_vec = projected_control_update*remove_direction
-                tangent_control_update = control_update-projected_control_update_vec
-                node.SetSolutionStepValue(field_variable, tangent_control_update)
+            C = np.empty((0, 3))
+            variable_vector = np.zeros(3)
 
-                intersection_normal = node.GetSolutionStepValue(raw_variable)
-                if self.ComputeNodalNorm(intersection_normal)>1e-10:
-                    if(positive_dir):
-                        remove_direction = -1.0*node.GetSolutionStepValue(KM.NORMAL)
-                    else:
-                        remove_direction = node.GetSolutionStepValue(KM.NORMAL)
+            variable_vector[0] = nodal_field_variable[0]
+            variable_vector[1] = nodal_field_variable[1]
+            variable_vector[2] = nodal_field_variable[2]
 
-                    control_update = node.GetSolutionStepValue(field_variable)
-                    projected_control_update = remove_direction[0]*control_update[0] + remove_direction[1]*control_update[1] + remove_direction[2]*control_update[2]
-                    #if projected_control_update > 1e-10:
-                    projected_control_update_vec = projected_control_update*remove_direction
-                    tangent_control_update = control_update-projected_control_update_vec
-                    node.SetSolutionStepValue(field_variable, tangent_control_update)
+            if pos_active or neg_active:
+                raw_value_pos = node.GetSolutionStepValue(KOA.ACTIVE_POSITIVE_INTERSECTION_NORMAL)
+                raw_value_neg = node.GetSolutionStepValue(KOA.ACTIVE_NEGATIVE_INTERSECTION_NORMAL)
+                if self.ComputeNodalNorm(raw_value_pos)>1e-10 or self.ComputeNodalNorm(raw_value_neg)>1e-10:
+                    remove_direction = node.GetSolutionStepValue(KM.NORMAL)
+                    C = np.append(C, np.array([remove_direction]), axis=0)
+
+            if pos_active:
+                avg_value_pos = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_POSITIVE_INTERSECTION_NORMAL)
+                norm = self.ComputeNodalNorm(avg_value_pos)
+                if(norm > 0.05):
+                    avg_value_pos /= norm
+                    C = np.append(C, np.array([avg_value_pos]), axis=0)
+
+            if neg_active:
+                avg_value_neg = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL)
+                norm = self.ComputeNodalNorm(avg_value_neg)
+                if(norm > 0.05):
+                    avg_value_neg /= norm
+                    C = np.append(C, np.array([avg_value_neg]), axis=0)
+
+            if C.shape[0] > 0:
+                inverse = np.linalg.inv( np.matmul(C, (np.transpose(C))) )
+                A = np.matmul( np.transpose(C), inverse)
+                B = np.matmul( C, variable_vector )
+                C = A @ B
+                new_field = variable_vector - C
+                node.SetSolutionStepValue(field_variable_name, [new_field[0], new_field[1], new_field[2]])
+
+
 
     def ComputeFilteredActiveBCNormals(self):
         fixed_model_parts = self.technique_settings["fixed_model_parts"]
@@ -371,12 +377,8 @@ class ImplicitVertexMorphing(ShapeControl):
         self.ComputeFilteredActiveBCNormals()
 
     def Compute(self):
-        direction = 1
-        if self.positive_intersection_normals_active:
-            self.RemoveActiveFilteredIntersectionNormals(KOA.D_CX, direction, True)
-        if self.negative_intersection_normals_active or self.construction_space_constraint_active:
-            self.RemoveActiveFilteredIntersectionNormals(KOA.D_CX, direction, False)
 
+        self.RemoveActiveFilteredIntersectionNormals(KOA.D_CX)
         self.RemoveActiveFilteredBCNormals(KOA.D_CX)
         active_bcs = True
         self.MapField(KOA.D_CX, KOA.D_X, active_bcs)
