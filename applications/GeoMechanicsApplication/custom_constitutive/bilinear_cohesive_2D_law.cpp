@@ -41,8 +41,7 @@ void BilinearCohesive2DLaw::GetLawFeatures(Features& rFeatures)
 
 ConstitutiveLaw::Pointer BilinearCohesive2DLaw::Clone() const
 {
-    BilinearCohesive2DLaw::Pointer p_clone(new BilinearCohesive2DLaw(*this));
-    return p_clone;
+    return Kratos::make_shared<BilinearCohesive2DLaw>(*this);
 }
 
 void BilinearCohesive2DLaw::ComputeEquivalentStrain(double& rEquivalentStrain,

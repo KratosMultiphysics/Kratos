@@ -76,7 +76,7 @@ namespace Kratos {
         PotentialFlowTestUtilities::ComputeElementalSensitivities<4>(
             model_part, LHS_finite_diference, LHS_analytical, potential);
 
-        KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+        KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
     }
 
     // Checks the LHS of the 3D Wake IncompressiblePotentialFlowElement element.
@@ -99,7 +99,7 @@ namespace Kratos {
         PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<4>(
             model_part, LHS_finite_diference, LHS_analytical, potential);
 
-        KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+        KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
     }
 
     // Checks the RHS of the 3D Wake IncompressiblePotentialFlowElement element.
@@ -130,7 +130,7 @@ namespace Kratos {
 
         std::vector<double> reference{11.25952380952381,-14.46333333333333,2.251904761904762,-10.51435102035238,26.29551835085714,-3.872345907866666,-10.5883452321619,-0.9519047619047605};
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
     }
 
     // Checks the LHS of the 3D Wake IncompressiblePotentialFlowElement element.
@@ -171,7 +171,7 @@ namespace Kratos {
 
         for (unsigned int i = 0; i < LHS.size1(); i++) {
             for (unsigned int j = 0; j < LHS.size2(); j++) {
-                KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 8 + j], 1e-13);
+                KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 8 + j], 1e-13);
             }
         }
     }
@@ -197,7 +197,7 @@ namespace Kratos {
 
         std::vector<double> reference{50.64261358895238,-23.79161257453333,-13.02259285120952,-13.82840816320952};
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
     }
 
     // Checks the LHS of the 3D IncompressiblePotentialFlowElement element.
@@ -223,7 +223,7 @@ namespace Kratos {
 
         for (unsigned int i = 0; i < LHS.size1(); i++) {
             for (unsigned int j = 0; j < LHS.size2(); j++) {
-                KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 4 + j], 1e-13);
+                KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 4 + j], 1e-13);
             }
         }
     }

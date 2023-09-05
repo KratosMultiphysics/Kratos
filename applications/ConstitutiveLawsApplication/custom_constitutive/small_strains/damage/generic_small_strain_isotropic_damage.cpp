@@ -365,8 +365,6 @@ double& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
         rValue = mDamage;
     } else if (rThisVariable == THRESHOLD) {
         rValue = mThreshold;
-    } else {
-        return BaseType::GetValue(rThisVariable, rValue);
     }
 
     return rValue;
@@ -387,18 +385,6 @@ Vector& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
         rValue[1] = mThreshold;
     }
     return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-Matrix& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
-    )
-{
-    return BaseType::GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/
