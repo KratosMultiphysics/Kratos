@@ -51,7 +51,7 @@ class ShapeControl():
                 self.model.GetModelPart(root_model).AddNodalSolutionStepVariable(KM.KratosGlobals.GetVariable(field_name))
 
 
-    def Initialize(self):
+    def Initialize(self,opt_parameters):
         # initialize zero the fields
         for model_part_name in self.controlling_objects:
             model_part = self.model.GetModelPart(model_part_name)
@@ -60,6 +60,7 @@ class ShapeControl():
                     node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(vec_field), [0.0, 0.0, 0.0])
                 for scala_field in self.scalar_fields:
                     node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(scala_field), 0)
+        self.opt_parameters = opt_parameters
 
     def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name,opt_parameters):
         raise RuntimeError("ShapeControl:MapFirstDerivative: calling base class function")

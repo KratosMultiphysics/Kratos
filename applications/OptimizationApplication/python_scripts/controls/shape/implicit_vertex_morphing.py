@@ -104,15 +104,13 @@ class ImplicitVertexMorphing(ShapeControl):
                     for model_part_name in self.controlling_objects:
                         self.utils.append(KOA.SymmetryUtility(util_settings["name"].GetString(),self.model.GetModelPart(model_part_name),util_settings))
 
-    def Initialize(self):
-        super().Initialize()
+    def Initialize(self, opt_parameters):
+        super().Initialize(opt_parameters)
         self.implicit_vertex_morphing.Initialize()
         for util in self.utils:
             util.Initialize()
 
-        self.positive_intersection_normals_active = False
-        self.negative_intersection_normals_active = False
-        self.construction_space_constraint_active = False
+        self.Update()
 
     def NormalizeField(self, variable_name):
         max_value = 0.0
@@ -125,11 +123,11 @@ class ImplicitVertexMorphing(ShapeControl):
                 normalized_values = 1.0/max_value * node.GetSolutionStepValue(variable_name)
                 node.SetSolutionStepValue(variable_name, normalized_values)
 
-    def GetActiveSensitivityDirection(self, opt_parameters, sensitivity_variable_name):
-        for objective in opt_parameters["objectives"]:
+    def GetActiveSensitivityDirection(self, sensitivity_variable_name):
+        for objective in self.opt_parameters["objectives"]:
             if( objective["control_gradient_names"][0].GetString() == sensitivity_variable_name  ):
                 return -1
-        for constraint in opt_parameters["constraints"]:
+        for constraint in self.opt_parameters["constraints"]:
             if( constraint["control_gradient_names"][0].GetString() == sensitivity_variable_name  ):
                 if( "equality" in constraint["type"].GetString() ):
                     current_value = constraint["value"].GetDouble()
@@ -138,19 +136,15 @@ class ImplicitVertexMorphing(ShapeControl):
                         return -1
                     else:
                         return 1
-        print(opt_parameters)
-        print(sensitivity_variable_name)
 
-
-
-    def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name,opt_parameters):
+    def MapFirstDerivative(self,derivative_variable_name,mapped_derivative_variable_name):
 
         for util in self.utils:
             util.ApplyOnVectorField(derivative_variable_name)
 
         self.implicit_vertex_morphing.MapFirstDerivative(derivative_variable_name, mapped_derivative_variable_name)
 
-        direction = self.GetActiveSensitivityDirection(opt_parameters, mapped_derivative_variable_name.Name())
+        direction = self.GetActiveSensitivityDirection(mapped_derivative_variable_name.Name())
         if self.positive_intersection_normals_active:
             self.RemoveActiveFilteredIntersectionNormals(mapped_derivative_variable_name, direction, True)
         if self.negative_intersection_normals_active or self.construction_space_constraint_active:
@@ -201,19 +195,17 @@ class ImplicitVertexMorphing(ShapeControl):
             raise Exception("QuESo python library is not available")
 
         pyqueso = PyQuESo("QUESOParameters_vertical.json")
-        #pyqueso = PyQuESo("QUESOParameters.json")
 
         nodes = QuESoApp.PointVector()
         directions = QuESoApp.PointVector()
         for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
-            shape_update = node.GetSolutionStepValue(KOA.D_X)
             nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
             if positive_dir:
                 nodal_normal *= -1
             nodes.append( QuESoApp.Point(node.X0, node.Y0, node.Z0) )
             directions.append( QuESoApp.Point(nodal_normal[0], nodal_normal[1], nodal_normal[2]) )
 
-        pyqueso.Run()
+        pyqueso.Run(self.model.GetModelPart(self.controlling_objects[0]))
         self.distances = pyqueso.ClosestDistances(nodes, directions)
 
         if(positive_dir):
@@ -223,12 +215,11 @@ class ImplicitVertexMorphing(ShapeControl):
 
         intersection_active = False
         for node, distance in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, self.distances):
-            shape_update = node.GetSolutionStepValue(KOA.D_X)
             nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
             if positive_dir:
                 nodal_normal *= -1
-            projection = nodal_normal[0] * shape_update[0] + nodal_normal[1] * shape_update[1] + nodal_normal[2] * shape_update[2]
-            if (abs(distance) > min_distance and projection>(distance-min_distance)) or (abs(distance) < min_distance and projection >0):
+
+            if (abs(distance) > min_distance and self.nodal_max_control_update>abs(distance-min_distance)) or (abs(distance) < min_distance ):
                 intersection_active = True
                 node.SetSolutionStepValue(variable, nodal_normal)
             else:
@@ -247,10 +238,8 @@ class ImplicitVertexMorphing(ShapeControl):
 
         nodes = QuESoApp.PointVector()
         for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
-            shape_update = node.GetSolutionStepValue(KOA.D_X)
-            nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
-            # Maybe shape_update should be projected to normal direction?? But no one knows..
-            nodes.append( QuESoApp.Point(node.X0 + shape_update[0], node.Y0 + shape_update[1], node.Z0 + shape_update[2]) )
+            nodal_normal = self.nodal_max_control_update*node.GetSolutionStepValue(KM.NORMAL)
+            nodes.append( QuESoApp.Point(node.X0 + nodal_normal[0], node.Y0 + nodal_normal[1], node.Z0 + nodal_normal[2]) )
 
         pyqueso.Run()
         are_inside = pyqueso.IsInside(nodes)
@@ -259,11 +248,8 @@ class ImplicitVertexMorphing(ShapeControl):
 
         intersection_active = False
         for node, is_inside in zip(self.model.GetModelPart(self.controlling_objects[0]).Nodes, are_inside):
-            shape_update = node.GetSolutionStepValue(KOA.D_X)
             nodal_normal = node.GetSolutionStepValue(KM.NORMAL)
-
-            projection = nodal_normal[0] * shape_update[0] + nodal_normal[1] * shape_update[1] + nodal_normal[2] * shape_update[2]
-            if not is_inside and projection > 0:
+            if not is_inside:
                 intersection_active = True
                 node.SetSolutionStepValue(variable, nodal_normal)
 
@@ -283,28 +269,24 @@ class ImplicitVertexMorphing(ShapeControl):
             remove_direction = node.GetSolutionStepValue(filtered_variable)
 
             if self.ComputeNodalNorm(remove_direction)>0.05: #TODO: Better 0??
+                remove_direction /= self.ComputeNodalNorm(remove_direction)
+                control_update = node.GetSolutionStepValue(field_variable)
+                projected_control_update = remove_direction[0]*control_update[0] + remove_direction[1]*control_update[1] + remove_direction[2]*control_update[2]
+                #if projected_control_update > 1e-10:
+                projected_control_update_vec = projected_control_update*remove_direction
+                tangent_control_update = control_update-projected_control_update_vec
+                node.SetSolutionStepValue(field_variable, tangent_control_update)
+
                 intersection_normal = node.GetSolutionStepValue(raw_variable)
                 if self.ComputeNodalNorm(intersection_normal)>1e-10:
-                    weight = 1
-                else:
-                    weight = (1.0-self.ComputeNodalNorm(remove_direction))
+                    if(positive_dir):
+                        remove_direction = -1.0*node.GetSolutionStepValue(KM.NORMAL)
+                    else:
+                        remove_direction = node.GetSolutionStepValue(KM.NORMAL)
 
-                remove_direction /= self.ComputeNodalNorm(remove_direction)
-                control_update = direction*node.GetSolutionStepValue(field_variable)
-                projected_control_update = remove_direction[0]*control_update[0] + remove_direction[1]*control_update[1] + remove_direction[2]*control_update[2]
-                if projected_control_update > 1e-10:
-                    projected_control_update_vec = projected_control_update*remove_direction
-                    tangent_control_update = control_update-projected_control_update_vec
-                    node.SetSolutionStepValue(field_variable, tangent_control_update)
-
-                if(positive_dir):
-                    remove_direction = -1.0*node.GetSolutionStepValue(KM.NORMAL)
-                else:
-                    remove_direction = node.GetSolutionStepValue(KM.NORMAL)
-
-                control_update = direction*node.GetSolutionStepValue(field_variable)
-                projected_control_update = remove_direction[0]*control_update[0] + remove_direction[1]*control_update[1] + remove_direction[2]*control_update[2]
-                if projected_control_update > 1e-10:
+                    control_update = node.GetSolutionStepValue(field_variable)
+                    projected_control_update = remove_direction[0]*control_update[0] + remove_direction[1]*control_update[1] + remove_direction[2]*control_update[2]
+                    #if projected_control_update > 1e-10:
                     projected_control_update_vec = projected_control_update*remove_direction
                     tangent_control_update = control_update-projected_control_update_vec
                     node.SetSolutionStepValue(field_variable, tangent_control_update)
@@ -345,7 +327,7 @@ class ImplicitVertexMorphing(ShapeControl):
 
         self.implicit_vertex_morphing.SetFilterRadius(1)
         self.implicit_vertex_morphing.MapControlUpdate(KOA.ACTIVE_BC_NORMAL, KOA.FILTERED_ACTIVE_BC_NORMAL)
-        self.implicit_vertex_morphing.SetFilterRadius(2)
+        self.implicit_vertex_morphing.SetFilterRadius(5)
 
         for model_part_name, fixed_x, fixed_y, fixed_z in zip(fixed_model_parts, fixed_model_parts_X, fixed_model_parts_Y, fixed_model_parts_Z):
             for node in self.model.GetModelPart(model_part_name.GetString()).Nodes:
@@ -368,36 +350,41 @@ class ImplicitVertexMorphing(ShapeControl):
             if norm_filtered_active_bc_normal>0.05:
                 node.SetSolutionStepValue(field_variable, [0.0, 0.0, 0.0])
 
-    def Compute(self):
-        active_bcs = True
+    def ComputeConstrainingFields(self):
+        min_distance = 1
 
-        self.MapField(KOA.D_CX, KOA.D_X, active_bcs)
-        min_distance = 0.5
-        self.positive_intersection_normals_active = self.ComputeActiveIntersectionNormal(min_distance, True)
+        self.nodal_max_control_update = 0.05
+        # for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
+        #     control_update = node.GetSolutionStepValue(KOA.D_X)
+        #     self.nodal_max_control_update = max(self.nodal_max_control_update, self.ComputeNodalNorm(control_update))
+
+        self.positive_intersection_normals_active = self.ComputeActiveIntersectionNormal(min_distance,  True)
         self.negative_intersection_normals_active = self.ComputeActiveIntersectionNormal(min_distance, False)
         self.construction_space_constraint_active = self.ComputeConstructionSpaceConstraint()
-        direction = 1
+
+        active_bcs = True
         if self.positive_intersection_normals_active:
             self.MapField(KOA.ACTIVE_POSITIVE_INTERSECTION_NORMAL, KOA.FILTERED_ACTIVE_POSITIVE_INTERSECTION_NORMAL, active_bcs)
-            self.RemoveActiveFilteredIntersectionNormals(KOA.D_CX, direction, True)
         if self.negative_intersection_normals_active or self.construction_space_constraint_active:
             self.MapField(KOA.ACTIVE_NEGATIVE_INTERSECTION_NORMAL, KOA.FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL, active_bcs)
-            self.RemoveActiveFilteredIntersectionNormals(KOA.D_CX, direction, False)
 
         self.ComputeFilteredActiveBCNormals()
+
+    def Compute(self):
+        direction = 1
+        if self.positive_intersection_normals_active:
+            self.RemoveActiveFilteredIntersectionNormals(KOA.D_CX, direction, True)
+        if self.negative_intersection_normals_active or self.construction_space_constraint_active:
+            self.RemoveActiveFilteredIntersectionNormals(KOA.D_CX, direction, False)
+
         self.RemoveActiveFilteredBCNormals(KOA.D_CX)
-
+        active_bcs = True
         self.MapField(KOA.D_CX, KOA.D_X, active_bcs)
-
-        norm = 0.0
-        for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
-            shape_update = node.GetSolutionStepValue(KOA.D_X)
-            norm += self.ComputeNodalNorm(shape_update)
-        number_of_nodes = self.model.GetModelPart(self.controlling_objects[0]).NumberOfNodes()
-        print("D_X Norm : ", norm/number_of_nodes)
 
     def Update(self):
         self.implicit_vertex_morphing.Update()
+
+        self.ComputeConstrainingFields()
 
     def GetControllingObjects(self):
         if self.technique_settings["only_design_surface_parameterization"].GetBool():

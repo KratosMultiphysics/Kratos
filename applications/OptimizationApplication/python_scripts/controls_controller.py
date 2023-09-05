@@ -108,12 +108,12 @@ class ControlsController:
             self.controls_types_vars_dict[control_type].extend(control_controlling_objects_list)
 
     # --------------------------------------------------------------------------
-    def Initialize(self):
+    def Initialize(self,opt_parameters):
         for key,value in self.controls.items():
-            value.Initialize()
+            value.Initialize(opt_parameters)
 
     # --------------------------------------------------------------------------
-    def ControlMapFirstDerivative(self,control_name,derivative_name,mapped_derivative_name,opt_parametersraise_error=True):
+    def ControlMapFirstDerivative(self,control_name,derivative_name,mapped_derivative_name,raise_error=True):
         if raise_error:
             if not control_name in self.controls.keys():
                 raise RuntimeError("ControlsController:ControlMapFirstDerivative: Control {} does not exist.".format(control_name))
@@ -183,12 +183,12 @@ class ControlsController:
     # --------------------------------------------------------------------------
     def MapControlFirstDerivative(self, control_name, derivative_variable_name,
                                   mapped_derivative_variable_name,
-                                  opt_parameters, raise_error=True):
+                                  raise_error=True):
         if raise_error:
             if not control_name in self.controls_controlling_objects.keys():
                 raise RuntimeError("ControlsController:MapControlFirstDerivative: Control {} does not exist.".format(control_name))
 
-        self.controls[control_name].MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name,opt_parameters)
+        self.controls[control_name].MapFirstDerivative(derivative_variable_name,mapped_derivative_variable_name)
 
     # --------------------------------------------------------------------------
     def UpdateControl(self, control_name, raise_error=True):

@@ -38,7 +38,7 @@ class OptimizationAlgorithm:
         self.responses = self.objectives + self.constraints
 
         # now extract analyses belong to responses
-        self.analyses = self.responses_controller.GetResponsesAnalyses(self.responses)        
+        self.analyses = self.responses_controller.GetResponsesAnalyses(self.responses)
 
         # controls
         self.controls = opt_settings["controls"].GetStringArray()
@@ -105,12 +105,12 @@ class OptimizationAlgorithm:
                                 self.responses_control_types[response]=[control_type]
                                 self.responses_control_var_names[response]=[control_variable_name]
                                 self.responses_control_gradient_names[response]=[response_control_gradient_field]
-                                self.responses_controls[response]=[control]   
+                                self.responses_controls[response]=[control]
 
-                            
+
                             control_controlling_root_model_part = self.model_parts_controller.GetRootModelPart(control_controlling_object)
                             extracted_root_model_part_name = control_controlling_object.split(".")[0]
-                            
+
                             if extracted_root_model_part_name in self.root_model_part_data_field_names.keys():
                                 if not response_control_gradient_field in self.root_model_part_data_field_names[extracted_root_model_part_name]:
                                     self.root_model_part_data_field_names[extracted_root_model_part_name].append(response_control_gradient_field)
@@ -127,15 +127,15 @@ class OptimizationAlgorithm:
                                     self.controls_responses[control].append(response)
                                     self.controls_response_var_names[control].append(response_variable_name)
                                     self.controls_response_gradient_names[control].append(response_gradient_name)
-                                    self.controls_response_control_gradient_names[control].append(response_control_gradient_field)                                   
+                                    self.controls_response_control_gradient_names[control].append(response_control_gradient_field)
                             else:
                                 self.controls_responses[control] = [response]
                                 self.controls_response_var_names[control] = [response_variable_name]
                                 self.controls_response_gradient_names[control]= [response_gradient_name]
-                                self.controls_response_control_gradient_names[control] = [response_control_gradient_field]  
-                        
-                        response_controlled_object_index +=1                          
-        
+                                self.controls_response_control_gradient_names[control] = [response_control_gradient_field]
+
+                        response_controlled_object_index +=1
+
         # compile settings for c++ optimizer
         self.opt_parameters = Parameters()
         self.opt_parameters.AddEmptyArray("objectives")
@@ -161,7 +161,7 @@ class OptimizationAlgorithm:
             response_settings.AddEmptyArray("control_gradient_names")
             response_settings.AddEmptyArray("control_variable_names")
             response_settings.AddEmptyArray("controls")
-                
+
             for control_obj in self.responses_controlled_objects[response]:
                 response_settings["controlled_objects"].Append(control_obj)
 
@@ -219,14 +219,19 @@ class OptimizationAlgorithm:
 
             control_controlling_objects = self.controls_controller.GetControlControllingObjects(control)
             for control_controlling_object in control_controlling_objects:
-                control_settings["controlling_objects"].Append(control_controlling_object) 
+                control_settings["controlling_objects"].Append(control_controlling_object)
 
-            self.opt_parameters["controls"].Append(control_settings) 
+            self.opt_parameters["controls"].Append(control_settings)
 
         Logger.PrintInfo("::[OptimizationAlgorithm]:: ", "Variables ADDED")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop( self ):
+
+        self.model_parts_controller.Initialize()
+        self.analyses_controller.Initialize()
+        self.responses_controller.Initialize()
+        self.controls_controller.Initialize(self.opt_parameters)
 
         # create vtkIOs
         self.root_model_parts_vtkIOs = {}
@@ -241,7 +246,7 @@ class OptimizationAlgorithm:
             vtk_parameters.AddEmptyArray("nodal_solution_step_data_variables")
             for nodal_result in data_fields:
                 vtk_parameters["nodal_solution_step_data_variables"].Append(nodal_result)
-            
+
             controlling_model_part_vtkIO = VtkOutputProcess(self.model, vtk_parameters)
             controlling_model_part_vtkIO.ExecuteInitialize()
             controlling_model_part_vtkIO.ExecuteBeforeSolutionLoop()
@@ -254,7 +259,7 @@ class OptimizationAlgorithm:
     # --------------------------------------------------------------------------
     def FinalizeOptimizationLoop( self ):
         for vtkIO in self.root_model_parts_vtkIOs.values():
-            vtkIO.ExecuteFinalize() 
+            vtkIO.ExecuteFinalize()
 
     # --------------------------------------------------------------------------
     def SetResponseValue( self,response,value ):
@@ -264,14 +269,14 @@ class OptimizationAlgorithm:
                 objective["prev_itr_value"].SetDouble(objective["value"].GetDouble())
                 objective["value"].SetDouble(value)
                 if self.opt_parameters["opt_itr"].GetInt()<2:
-                   objective["init_value"].SetDouble(value)   
-                
+                   objective["init_value"].SetDouble(value)
+
                 return  True
 
         for constraint in self.opt_parameters["constraints"]:
             if constraint["name"].GetString() == response:
                 constraint["prev_itr_value"].SetDouble(constraint["value"].GetDouble())
-                constraint["value"].SetDouble(value) 
+                constraint["value"].SetDouble(value)
                 if self.opt_parameters["opt_itr"].GetInt()<2:
                     constraint["init_value"].SetDouble(value)
                     valid_types = ["initial_value_equality","smaller_than_initial_value","bigger_than_initial_value"]
@@ -295,7 +300,7 @@ class OptimizationAlgorithm:
                 constraint["prev_itr_is_active"].SetBool(constraint["is_active"].GetBool())
                 constraint["is_active"].SetBool(is_active)
 
-                return is_active       
+                return is_active
 
     # --------------------------------------------------------------------------
     def _InitializeCSVLogger(self):
@@ -327,7 +332,7 @@ class OptimizationAlgorithm:
 
     # --------------------------------------------------------------------------
     def _WriteCurrentOptItrToCSVFile( self ):
-        
+
         with open(self.complete_log_file_name, 'a') as csvfile:
             historyWriter = csv.writer(csvfile, delimiter=',',quotechar='|',quoting=csv.QUOTE_MINIMAL)
             row = []
@@ -341,9 +346,9 @@ class OptimizationAlgorithm:
                 objective_initial_value = objectivs_current_value
                 objective_previous_value = objectivs_current_value
 
-                if self.optimization_iteration>1:                
-                    objective_initial_value = objective["init_value"].GetDouble() 
-                    objective_previous_value = objective["prev_itr_value"].GetDouble() 
+                if self.optimization_iteration>1:
+                    objective_initial_value = objective["init_value"].GetDouble()
+                    objective_previous_value = objective["prev_itr_value"].GetDouble()
 
                 rel_change = 100 * (objectivs_current_value-objective_previous_value)/objective_previous_value
                 abs_change = 100 * (objectivs_current_value-objective_initial_value)/objective_initial_value
@@ -355,11 +360,11 @@ class OptimizationAlgorithm:
                 Logger.Print("                   weight: ",objectivs_weight)
                 row.append(" {:> .5E}".format(objectivs_current_value))
                 row.append(" {:> .5E}".format(abs_change))
-                row.append(" {:> .5E}".format(rel_change)) 
+                row.append(" {:> .5E}".format(rel_change))
                 row.append(" {:> .5E}".format(objectivs_weight))
 
             for constraint in self.opt_parameters["constraints"]:
-                constraint_current_value = constraint["value"].GetDouble() 
+                constraint_current_value = constraint["value"].GetDouble()
                 constraint_ref_val = constraint["ref_value"].GetDouble()
                 constraint_weight = constraint["weight"].GetDouble()
                 is_active = constraint["is_active"].GetBool()
@@ -377,9 +382,9 @@ class OptimizationAlgorithm:
                 row.append(" {:> .5E}".format(abs_change))
                 row.append(" {:> .5E}".format(constraint_weight))
                 row.append(" {:> .5E}".format(is_active))
-                
 
-            Logger.Print("  ===== projection_step_size: ",self.opt_parameters["projection_step_size"].GetDouble())            
+
+            Logger.Print("  ===== projection_step_size: ",self.opt_parameters["projection_step_size"].GetDouble())
             row.append(" {:> .5E}".format(self.opt_parameters["projection_step_size"].GetDouble()))
 
             if self.opt_parameters["constraints"].size() > 0 and self.opt_parameters["num_active_consts"].GetInt()>0:

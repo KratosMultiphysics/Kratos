@@ -82,20 +82,20 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
             self.opt_parameters.AddBool("update_coefficients", True)
             self.opt_parameters["update_coefficients"].SetBool(True)
-            for i in range(2):
-                # calculate control gradients
-                for control in self.controls_response_gradient_names.keys():
-                    for itr in range(len(self.controls_response_gradient_names[control])):
-                        self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(self.controls_response_gradient_names[control][itr]),
-                                                                        KM.KratosGlobals.GetVariable(self.controls_response_control_gradient_names[control][itr]),
-                                                                        self.opt_parameters, False)
-                # calcuate
-                self.opt_algorithm.CalculateSolutionStep()
-                self.opt_parameters["update_coefficients"].SetBool(False)
 
-                # compute controls
-                for control in self.controls:
-                    self.controls_controller.ComputeControl(control,False)
+            # calculate control gradients
+            for control in self.controls_response_gradient_names.keys():
+                for itr in range(len(self.controls_response_gradient_names[control])):
+                    self.controls_controller.MapControlFirstDerivative(control,KM.KratosGlobals.GetVariable(self.controls_response_gradient_names[control][itr]),
+                                                                    KM.KratosGlobals.GetVariable(self.controls_response_control_gradient_names[control][itr]),
+                                                                    False)
+            # calcuate
+            self.opt_algorithm.CalculateSolutionStep()
+            #self.opt_parameters["update_coefficients"].SetBool(False)
+
+            # compute controls
+            for control in self.controls:
+                self.controls_controller.ComputeControl(control,False)
 
             self._WriteCurrentOptItrToCSVFile()
 
