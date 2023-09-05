@@ -49,12 +49,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosMPICoreFa
     DistributedVectorExporter<IndexType> exporter(r_comm,indices_to_export,x.GetNumbering());
     exporter.Apply(x,data_to_export);
     if(x.GetNumbering().IsLocal(0))
-        KRATOS_CHECK_NEAR(x[x.GetNumbering().LocalId(0)], 5.0, 1e-14);
+        KRATOS_EXPECT_NEAR(x[x.GetNumbering().LocalId(0)], 5.0, 1e-14);
     // TODO: These checks are failing, to be fixed by @riccardorossi
     // if(x.GetNumbering().IsLocal(total_size/2))
-    //     KRATOS_CHECK_NEAR(x[x.GetNumbering().LocalId(total_size/2)], 9.0, 1e-14);
+    //     KRATOS_EXPECT_NEAR(x[x.GetNumbering().LocalId(total_size/2)], 9.0, 1e-14);
     // if(x.GetNumbering().IsLocal(total_size-1))
-    //     KRATOS_CHECK_NEAR(x[x.GetNumbering().LocalId(total_size-1)], 15.0, 1e-14);
+    //     KRATOS_EXPECT_NEAR(x[x.GetNumbering().LocalId(total_size-1)], 15.0, 1e-14);
 }
 
 } // namespace Kratos::Testing

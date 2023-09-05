@@ -80,7 +80,7 @@ namespace Kratos
 
             for (unsigned int i = 0; i < conditionSize; ++i)
             {
-                KRATOS_CHECK_NEAR(
+                KRATOS_EXPECT_NEAR(
                     rRightHandSideVector[i],
                     expected_vector[i],
                     1.0e-6);
@@ -144,7 +144,7 @@ namespace Kratos
 
             for (unsigned int i = 0; i < conditionSize; ++i)
             {
-                KRATOS_CHECK_NEAR(
+                KRATOS_EXPECT_NEAR(
                     rRightHandSideVector[i],
                     expected_vector[i],
                     1.0e-6);

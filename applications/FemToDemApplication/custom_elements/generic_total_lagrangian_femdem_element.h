@@ -414,7 +414,7 @@ protected:
         const ProcessInfo &rCurrentProcessInfo, 
         const Properties& rProperties)
     {
-        const double max_damage = rCurrentProcessInfo["MAX_DAMAGE_ERASE"];
+        const double max_damage = 0.98;
         if (mDamage >= max_damage) {
             this->Set(ACTIVE, false);
             mDamage = max_damage;

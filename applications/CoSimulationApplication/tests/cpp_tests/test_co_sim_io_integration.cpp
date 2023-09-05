@@ -41,10 +41,10 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart_NodesOnly, KratosCos
         co_sim_io_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
     }
 
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfLocalNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfGhostNodes(), 0);
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfElements(), 0);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfLocalNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfGhostNodes(), 0);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfElements(), 0);
 
     const auto& r_serial_data_comm = ParallelEnvironment::GetDataCommunicator("Serial");
 
@@ -68,10 +68,10 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart_NodesOnly_Unordered,
         co_sim_io_model_part.CreateNewNode(node_ids[i], i*1.5, i+3.5, i-8.6);
     }
 
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfLocalNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfGhostNodes(), 0);
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfElements(), 0);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfLocalNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfGhostNodes(), 0);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfElements(), 0);
 
     const auto& r_serial_data_comm = ParallelEnvironment::GetDataCommunicator("Serial");
 
@@ -93,8 +93,8 @@ KRATOS_TEST_CASE_IN_SUITE(KratosModelPartToCoSimIOModelPart_NodesOnly, KratosCos
         kratos_model_part.CreateNewNode(i+1, i*1.5, i+3.5, i-8.6);
     }
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 0);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 0);
 
     CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(kratos_model_part, co_sim_io_model_part);
 
@@ -114,7 +114,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart, KratosCosimulationF
     co_sim_io_model_part.CreateNewNode(node_ids[1], node_coords[1], node_coords[2], node_coords[0]);
     co_sim_io_model_part.CreateNewNode(node_ids[2], node_coords[2], node_coords[0], node_coords[1]);
 
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfNodes(), 3);
 
     const int elem_ids[] = {1,19,21};
     const CoSimIO::ElementType elem_types[] = {
@@ -127,7 +127,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart, KratosCosimulationF
     co_sim_io_model_part.CreateNewElement(elem_ids[1], elem_types[1], {node_ids[1]});
     co_sim_io_model_part.CreateNewElement(elem_ids[2], elem_types[2], {node_ids[1], node_ids[2]});
 
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfElements(), 3);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfElements(), 3);
 
     const auto& r_serial_data_comm = ParallelEnvironment::GetDataCommunicator("Serial");
     CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part, r_serial_data_comm);
@@ -148,7 +148,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart_Unordered, KratosCos
     co_sim_io_model_part.CreateNewNode(node_ids[1], node_coords[1], node_coords[2], node_coords[0]);
     co_sim_io_model_part.CreateNewNode(node_ids[2], node_coords[2], node_coords[0], node_coords[1]);
 
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfNodes(), 3);
 
     const int elem_ids[] = {104,19,21};
     const CoSimIO::ElementType elem_types[] = {
@@ -161,7 +161,7 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIOModelPartToKratosModelPart_Unordered, KratosCos
     co_sim_io_model_part.CreateNewElement(elem_ids[1], elem_types[1], {node_ids[1]});
     co_sim_io_model_part.CreateNewElement(elem_ids[2], elem_types[2], {node_ids[1], node_ids[2]});
 
-    KRATOS_CHECK_EQUAL(co_sim_io_model_part.NumberOfElements(), 3);
+    KRATOS_EXPECT_EQ(co_sim_io_model_part.NumberOfElements(), 3);
 
     const auto& r_serial_data_comm = ParallelEnvironment::GetDataCommunicator("Serial");
     CoSimIOConversionUtilities::CoSimIOModelPartToKratosModelPart(co_sim_io_model_part, kratos_model_part, r_serial_data_comm);
@@ -191,9 +191,9 @@ KRATOS_TEST_CASE_IN_SUITE(KratosModelPartToCoSimIOModelPart, KratosCosimulationF
     conn = {3,4,5};
     kratos_model_part.CreateNewElement("Element2D3N", 3, conn, p_props);
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), 3);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfElements(), 3);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 1);
 
     CoSimIOConversionUtilities::KratosModelPartToCoSimIOModelPart(kratos_model_part, co_sim_io_model_part);
 
@@ -219,19 +219,19 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_direct_scalar, KratosCosimulationFas
         p_elem->GetValue(TEMPERATURE) = exp_values[i];
     }
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfElements(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 1);
 
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, AUX_INDEX, DataLocation::NodeHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, PRESSURE, DataLocation::NodeNonHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, TEMPERATURE, DataLocation::Element);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_reordered_scalar, KratosCosimulationFastSuite)
@@ -258,9 +258,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_reordered_scalar, KratosCosimulation
     kratos_model_part.Nodes().Sort();
     kratos_model_part.Elements().Sort();
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfElements(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 1);
 
     for (std::size_t i=0; i<num_nodes; ++i) {
         kratos_model_part.Nodes().find(cosimio_ids[i])->FastGetSolutionStepValue(AUX_INDEX) = exp_values[i];
@@ -270,13 +270,13 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_reordered_scalar, KratosCosimulation
 
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, AUX_INDEX, DataLocation::NodeHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, PRESSURE, DataLocation::NodeNonHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, TEMPERATURE, DataLocation::Element);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_direct_vector, KratosCosimulationFastSuite)
@@ -305,19 +305,19 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_direct_vector, KratosCosimulationFas
         p_elem->GetValue(VELOCITY) = vals;
     }
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfElements(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 1);
 
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, DISPLACEMENT, DataLocation::NodeHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, ROTATION, DataLocation::NodeNonHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, VELOCITY, DataLocation::Element);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_reordered_vector, KratosCosimulationFastSuite)
@@ -350,9 +350,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_reordered_vector, KratosCosimulation
     kratos_model_part.Nodes().Sort();
     kratos_model_part.Elements().Sort();
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfElements(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 1);
 
     for (std::size_t i=0; i<num_nodes; ++i) {
         const array_1d<double, 3> vals(3, ref_values[i]);
@@ -363,13 +363,13 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataExport_reordered_vector, KratosCosimulation
 
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, DISPLACEMENT, DataLocation::NodeHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, ROTATION, DataLocation::NodeNonHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, VELOCITY, DataLocation::Element);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
 }
 
 
@@ -389,9 +389,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataImport_direct_scalar, KratosCosimulationFas
         auto p_elem = kratos_model_part.CreateNewElement("Element2D1N", i+1, std::vector<std::size_t>{i+1ul}, p_props);
     }
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfElements(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 1);
 
     CoSimIOConversionUtilities::SetData(kratos_model_part, ref_values, AUX_INDEX, DataLocation::NodeHistorical);
     CoSimIOConversionUtilities::SetData(kratos_model_part, ref_values, PRESSURE, DataLocation::NodeNonHistorical);
@@ -400,9 +400,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataImport_direct_scalar, KratosCosimulationFas
     for (std::size_t i=0; i<num_nodes; ++i) {
         auto p_node = kratos_model_part.NodesBegin()+i;
         auto p_elem = kratos_model_part.ElementsBegin()+i;
-        KRATOS_CHECK_DOUBLE_EQUAL(p_node->FastGetSolutionStepValue(AUX_INDEX), ref_values[i]);
-        KRATOS_CHECK_DOUBLE_EQUAL(p_node->GetValue(PRESSURE), ref_values[i]);
-        KRATOS_CHECK_DOUBLE_EQUAL(p_elem->GetValue(TEMPERATURE), ref_values[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(p_node->FastGetSolutionStepValue(AUX_INDEX), ref_values[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(p_node->GetValue(PRESSURE), ref_values[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(p_elem->GetValue(TEMPERATURE), ref_values[i]);
     }
 }
 
@@ -430,9 +430,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataImport_reordered_scalar, KratosCosimulation
     kratos_model_part.Nodes().Sort();
     kratos_model_part.Elements().Sort();
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfElements(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 1);
 
     CoSimIOConversionUtilities::SetData(kratos_model_part, ref_values, AUX_INDEX, DataLocation::NodeHistorical);
     CoSimIOConversionUtilities::SetData(kratos_model_part, ref_values, PRESSURE, DataLocation::NodeNonHistorical);
@@ -441,9 +441,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataImport_reordered_scalar, KratosCosimulation
     for (std::size_t i=0; i<num_nodes; ++i) {
         auto& r_node = *(kratos_model_part.Nodes().find(cosimio_ids[i]));
         auto& r_elem = *(kratos_model_part.Elements().find(cosimio_ids[i]));
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(AUX_INDEX), ref_values[i]);
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.GetValue(PRESSURE), ref_values[i]);
-        KRATOS_CHECK_DOUBLE_EQUAL(r_elem.GetValue(TEMPERATURE), ref_values[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(AUX_INDEX), ref_values[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.GetValue(PRESSURE), ref_values[i]);
+        KRATOS_EXPECT_DOUBLE_EQ(r_elem.GetValue(TEMPERATURE), ref_values[i]);
     }
 }
 
@@ -469,9 +469,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataImport_direct_vector, KratosCosimulationFas
         auto p_elem = kratos_model_part.CreateNewElement("Element2D1N", i+1, std::vector<std::size_t>{i+1ul}, p_props);
     }
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfElements(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 1);
 
     CoSimIOConversionUtilities::SetData(kratos_model_part, set_values, DISPLACEMENT, DataLocation::NodeHistorical);
     CoSimIOConversionUtilities::SetData(kratos_model_part, set_values, ROTATION, DataLocation::NodeNonHistorical);
@@ -481,9 +481,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataImport_direct_vector, KratosCosimulationFas
         auto p_node = kratos_model_part.NodesBegin()+i;
         auto p_elem = kratos_model_part.ElementsBegin()+i;
         const array_1d<double, 3> vals(3, ref_values[i]);
-        KRATOS_CHECK_VECTOR_EQUAL(p_node->FastGetSolutionStepValue(DISPLACEMENT), vals);
-        KRATOS_CHECK_VECTOR_EQUAL(p_node->GetValue(ROTATION), vals);
-        KRATOS_CHECK_VECTOR_EQUAL(p_elem->GetValue(VELOCITY), vals);
+        KRATOS_EXPECT_VECTOR_EQ(p_node->FastGetSolutionStepValue(DISPLACEMENT), vals);
+        KRATOS_EXPECT_VECTOR_EQ(p_node->GetValue(ROTATION), vals);
+        KRATOS_EXPECT_VECTOR_EQ(p_elem->GetValue(VELOCITY), vals);
     }
 }
 
@@ -517,9 +517,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataImport_reordered_vector, KratosCosimulation
     kratos_model_part.Nodes().Sort();
     kratos_model_part.Elements().Sort();
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfElements(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 1);
 
     CoSimIOConversionUtilities::SetData(kratos_model_part, set_values, DISPLACEMENT, DataLocation::NodeHistorical);
     CoSimIOConversionUtilities::SetData(kratos_model_part, set_values, ROTATION, DataLocation::NodeNonHistorical);
@@ -529,9 +529,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIODataImport_reordered_vector, KratosCosimulation
         auto& r_node = *(kratos_model_part.Nodes().find(cosimio_ids[i]));
         auto& r_elem = *(kratos_model_part.Elements().find(cosimio_ids[i]));
         const array_1d<double, 3> vals(3, ref_values[i]);
-        KRATOS_CHECK_VECTOR_EQUAL(r_node.FastGetSolutionStepValue(DISPLACEMENT), vals);
-        KRATOS_CHECK_VECTOR_EQUAL(r_node.GetValue(ROTATION), vals);
-        KRATOS_CHECK_VECTOR_EQUAL(r_elem.GetValue(VELOCITY), vals);
+        KRATOS_EXPECT_VECTOR_EQ(r_node.FastGetSolutionStepValue(DISPLACEMENT), vals);
+        KRATOS_EXPECT_VECTOR_EQ(r_node.GetValue(ROTATION), vals);
+        KRATOS_EXPECT_VECTOR_EQ(r_elem.GetValue(VELOCITY), vals);
     }
 }
 
@@ -559,9 +559,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIO_SetGetData_scalar, KratosCosimulationFastSuite
     kratos_model_part.Nodes().Sort();
     kratos_model_part.Elements().Sort();
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfElements(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 1);
 
     CoSimIOConversionUtilities::SetData(kratos_model_part, exp_values, AUX_INDEX, DataLocation::NodeHistorical);
     CoSimIOConversionUtilities::SetData(kratos_model_part, exp_values, PRESSURE, DataLocation::NodeNonHistorical);
@@ -569,13 +569,13 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIO_SetGetData_scalar, KratosCosimulationFastSuite
 
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, AUX_INDEX, DataLocation::NodeHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, PRESSURE, DataLocation::NodeNonHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, TEMPERATURE, DataLocation::Element);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CoSimIO_SetGetData_vector, KratosCosimulationFastSuite)
@@ -604,9 +604,9 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIO_SetGetData_vector, KratosCosimulationFastSuite
     kratos_model_part.Nodes().Sort();
     kratos_model_part.Elements().Sort();
 
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfNodes(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfElements(), num_nodes);
-    KRATOS_CHECK_EQUAL(kratos_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfNodes(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfElements(), num_nodes);
+    KRATOS_EXPECT_EQ(kratos_model_part.NumberOfProperties(), 1);
 
     CoSimIOConversionUtilities::SetData(kratos_model_part, exp_values, DISPLACEMENT, DataLocation::NodeHistorical);
     CoSimIOConversionUtilities::SetData(kratos_model_part, exp_values, ROTATION, DataLocation::NodeNonHistorical);
@@ -614,13 +614,13 @@ KRATOS_TEST_CASE_IN_SUITE(CoSimIO_SetGetData_vector, KratosCosimulationFastSuite
 
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, DISPLACEMENT, DataLocation::NodeHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, ROTATION, DataLocation::NodeNonHistorical);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
     {std::vector<double> values;
     CoSimIOConversionUtilities::GetData(kratos_model_part, values, VELOCITY, DataLocation::Element);
-    KRATOS_CHECK_VECTOR_EQUAL(exp_values, values);}
+    KRATOS_EXPECT_VECTOR_EQ(exp_values, values);}
 }
 
 namespace DistributedTestHelpers {
@@ -650,7 +650,7 @@ void CreateDistributedNodes(
     const std::size_t NumLocalNodesPerRank,
     const std::size_t NumGhostNodesPerRank)
 {
-    KRATOS_CHECK_GREATER(NumLocalNodesPerRank, NumGhostNodesPerRank);
+    KRATOS_EXPECT_GT(NumLocalNodesPerRank, NumGhostNodesPerRank);
 
     const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
     const std::size_t my_rank = r_world_data_comm.Rank();
@@ -679,11 +679,11 @@ void CreateDistributedNodes(
         create_ghost_nodes();
     }
 
-    KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfNodes(), NumLocalNodesPerRank+NumGhostNodesPerRank);
-    KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfLocalNodes(), NumLocalNodesPerRank);
-    KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfGhostNodes(), NumGhostNodesPerRank);
-    KRATOS_CHECK_EQUAL(r_world_data_comm.SumAll(static_cast<int>(rCoSimIOModelPart.NumberOfLocalNodes())), static_cast<int>(NumLocalNodesPerRank*world_size));
-    KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfElements(), 0);
+    KRATOS_EXPECT_EQ(rCoSimIOModelPart.NumberOfNodes(), NumLocalNodesPerRank+NumGhostNodesPerRank);
+    KRATOS_EXPECT_EQ(rCoSimIOModelPart.NumberOfLocalNodes(), NumLocalNodesPerRank);
+    KRATOS_EXPECT_EQ(rCoSimIOModelPart.NumberOfGhostNodes(), NumGhostNodesPerRank);
+    KRATOS_EXPECT_EQ(r_world_data_comm.SumAll(static_cast<int>(rCoSimIOModelPart.NumberOfLocalNodes())), static_cast<int>(NumLocalNodesPerRank*world_size));
+    KRATOS_EXPECT_EQ(rCoSimIOModelPart.NumberOfElements(), 0);
 }
 
 void CreateDistributedNodesUnordered(
@@ -691,7 +691,7 @@ void CreateDistributedNodesUnordered(
     const std::size_t NumLocalNodesPerRank,
     const std::size_t NumGhostNodesPerRank)
 {
-    KRATOS_CHECK_GREATER(NumLocalNodesPerRank, NumGhostNodesPerRank);
+    KRATOS_EXPECT_GT(NumLocalNodesPerRank, NumGhostNodesPerRank);
 
     const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
     const std::size_t world_size = r_world_data_comm.Size();
@@ -704,11 +704,11 @@ void CreateDistributedNodesUnordered(
         rCoSimIOModelPart.CreateNewGhostNode(GetGhostId(NumLocalNodesPerRank, i), 0,0,0, GetPartnerRank());
     }
 
-    KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfNodes(), NumLocalNodesPerRank+NumGhostNodesPerRank);
-    KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfLocalNodes(), NumLocalNodesPerRank);
-    KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfGhostNodes(), NumGhostNodesPerRank);
-    KRATOS_CHECK_EQUAL(r_world_data_comm.SumAll(static_cast<int>(rCoSimIOModelPart.NumberOfLocalNodes())), static_cast<int>(NumLocalNodesPerRank*world_size));
-    KRATOS_CHECK_EQUAL(rCoSimIOModelPart.NumberOfElements(), 0);
+    KRATOS_EXPECT_EQ(rCoSimIOModelPart.NumberOfNodes(), NumLocalNodesPerRank+NumGhostNodesPerRank);
+    KRATOS_EXPECT_EQ(rCoSimIOModelPart.NumberOfLocalNodes(), NumLocalNodesPerRank);
+    KRATOS_EXPECT_EQ(rCoSimIOModelPart.NumberOfGhostNodes(), NumGhostNodesPerRank);
+    KRATOS_EXPECT_EQ(r_world_data_comm.SumAll(static_cast<int>(rCoSimIOModelPart.NumberOfLocalNodes())), static_cast<int>(NumLocalNodesPerRank*world_size));
+    KRATOS_EXPECT_EQ(rCoSimIOModelPart.NumberOfElements(), 0);
 }
 
 void CreateDistributedNodes(
@@ -716,7 +716,7 @@ void CreateDistributedNodes(
     const std::size_t NumLocalNodesPerRank,
     const std::size_t NumGhostNodesPerRank)
 {
-    KRATOS_CHECK_GREATER(NumLocalNodesPerRank, NumGhostNodesPerRank);
+    KRATOS_EXPECT_GT(NumLocalNodesPerRank, NumGhostNodesPerRank);
 
     const auto& r_world_data_comm = ParallelEnvironment::GetDataCommunicator("World");
     const std::size_t my_rank = r_world_data_comm.Rank();
@@ -737,11 +737,11 @@ void CreateDistributedNodes(
     // this calls the ParallelFillCommunicator
     ParallelEnvironment::CreateFillCommunicatorFromGlobalParallelism(rKratosModelPart, r_world_data_comm)->Execute();
 
-    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfNodes(), NumLocalNodesPerRank+NumGhostNodesPerRank);
-    KRATOS_CHECK_EQUAL(rKratosModelPart.GetCommunicator().LocalMesh().NumberOfNodes(), NumLocalNodesPerRank);
-    KRATOS_CHECK_EQUAL(rKratosModelPart.GetCommunicator().GhostMesh().NumberOfNodes(), NumGhostNodesPerRank);
-    KRATOS_CHECK_EQUAL(rKratosModelPart.GetCommunicator().GlobalNumberOfNodes(), (NumLocalNodesPerRank)*world_size);
-    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfProperties(), 0);
+    KRATOS_EXPECT_EQ(rKratosModelPart.NumberOfNodes(), NumLocalNodesPerRank+NumGhostNodesPerRank);
+    KRATOS_EXPECT_EQ(rKratosModelPart.GetCommunicator().LocalMesh().NumberOfNodes(), NumLocalNodesPerRank);
+    KRATOS_EXPECT_EQ(rKratosModelPart.GetCommunicator().GhostMesh().NumberOfNodes(), NumGhostNodesPerRank);
+    KRATOS_EXPECT_EQ(rKratosModelPart.GetCommunicator().GlobalNumberOfNodes(), (NumLocalNodesPerRank)*world_size);
+    KRATOS_EXPECT_EQ(rKratosModelPart.NumberOfProperties(), 0);
 }
 
 } // DistributedTestHelpers
