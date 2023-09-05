@@ -68,21 +68,21 @@ void CompareValues(
     const TDataType& rValue2)
 {
     if constexpr(std::is_same_v<TDataType, int>) {
-        KRATOS_CHECK_EQUAL(rValue1, rValue2);
+        KRATOS_EXPECT_EQ(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, double>) {
-        KRATOS_CHECK_EQUAL(rValue1, rValue2);
+        KRATOS_EXPECT_EQ(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 3>>) {
-        KRATOS_CHECK_VECTOR_EQUAL(rValue1, rValue2);
+        KRATOS_EXPECT_VECTOR_EQ(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 4>>) {
-        KRATOS_CHECK_VECTOR_EQUAL(rValue1, rValue2);
+        KRATOS_EXPECT_VECTOR_EQ(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 6>>) {
-        KRATOS_CHECK_VECTOR_EQUAL(rValue1, rValue2);
+        KRATOS_EXPECT_VECTOR_EQ(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, array_1d<double, 9>>) {
-        KRATOS_CHECK_VECTOR_EQUAL(rValue1, rValue2);
+        KRATOS_EXPECT_VECTOR_EQ(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, Kratos::Vector>) {
-        KRATOS_CHECK_VECTOR_EQUAL(rValue1, rValue2);
+        KRATOS_EXPECT_VECTOR_EQ(rValue1, rValue2);
     } else if constexpr(std::is_same_v<TDataType, Kratos::Matrix>) {
-        KRATOS_CHECK_MATRIX_EQUAL(rValue1, rValue2);
+        KRATOS_EXPECT_MATRIX_EQUAL(rValue1, rValue2);
     } else {
         static_assert(!std::is_same_v<TDataType, TDataType>, "Unsupported data type.");
     }
@@ -189,9 +189,9 @@ bool CompareComponent(
     if (KratosComponents<TComponentType>::Has(rComponentName)) {
         const auto& r_component = KratosComponents<TComponentType>::Get(rComponentName);
         if constexpr(std::is_same_v<TComponentType, Flags>) {
-            KRATOS_CHECK(rFlags1.Is(r_component) == rFlags2.Is(r_component));
+            KRATOS_EXPECT_TRUE(rFlags1.Is(r_component) == rFlags2.Is(r_component));
         } else {
-            KRATOS_CHECK(rData1.Has(r_component) && rData2.Has(r_component));
+            KRATOS_EXPECT_TRUE(rData1.Has(r_component) && rData2.Has(r_component));
             CompareValues(rData1[r_component], rData2[r_component]);
         }
         return true;
@@ -432,60 +432,60 @@ void TestModelPartFactory::AddElementsAndConditionsSubModelPart()
 
 void CompareNodes(HDF5::NodesContainerType& rNodes1, HDF5::NodesContainerType& rNodes2)
 {
-    KRATOS_CHECK(rNodes1.size() == rNodes2.size());
-    KRATOS_CHECK(rNodes1.size() > 0);
+    KRATOS_EXPECT_TRUE(rNodes1.size() == rNodes2.size());
+    KRATOS_EXPECT_TRUE(rNodes1.size() > 0);
     for (const auto& r_node_1 : rNodes1)
     {
         HDF5::NodeType& r_node_2 = rNodes2[r_node_1.Id()];
         for (unsigned i = 0; i < 3; ++i)
-            KRATOS_CHECK(r_node_1.Coordinates()[i] == r_node_2.Coordinates()[i]);
+            KRATOS_EXPECT_TRUE(r_node_1.Coordinates()[i] == r_node_2.Coordinates()[i]);
     }
 }
 
 void CompareElements(HDF5::ElementsContainerType& rElements1, HDF5::ElementsContainerType& rElements2)
 {
-    KRATOS_CHECK(rElements1.size() == rElements2.size());
-    KRATOS_CHECK(rElements1.size() > 0);
+    KRATOS_EXPECT_TRUE(rElements1.size() == rElements2.size());
+    KRATOS_EXPECT_TRUE(rElements1.size() > 0);
     for (auto it = rElements1.begin(); it != rElements1.end(); ++it)
     {
         HDF5::ElementType& r_elem_1 = *it;
         HDF5::ElementType& r_elem_2 = rElements2[r_elem_1.Id()];
-        KRATOS_CHECK(GeometricalObject::IsSame(r_elem_1, r_elem_2));
+        KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(r_elem_1, r_elem_2));
         for (unsigned i = 0; i < r_elem_1.GetGeometry().size(); ++i)
         {
-            KRATOS_CHECK(r_elem_1.GetGeometry()[i].Id() == r_elem_2.GetGeometry()[i].Id());
-            KRATOS_CHECK(r_elem_1.GetProperties().Id() == r_elem_2.GetProperties().Id());
+            KRATOS_EXPECT_TRUE(r_elem_1.GetGeometry()[i].Id() == r_elem_2.GetGeometry()[i].Id());
+            KRATOS_EXPECT_TRUE(r_elem_1.GetProperties().Id() == r_elem_2.GetProperties().Id());
         }
     }
 }
 
 void CompareConditions(HDF5::ConditionsContainerType& rConditions1, HDF5::ConditionsContainerType& rConditions2)
 {
-    KRATOS_CHECK(rConditions1.size() == rConditions2.size());
-    KRATOS_CHECK(rConditions1.size() > 0);
+    KRATOS_EXPECT_TRUE(rConditions1.size() == rConditions2.size());
+    KRATOS_EXPECT_TRUE(rConditions1.size() > 0);
     for (auto it = rConditions1.begin(); it != rConditions1.end(); ++it)
     {
         HDF5::ConditionType& r_cond_1 = *it;
         HDF5::ConditionType& r_cond_2 = rConditions2[r_cond_1.Id()];
-        KRATOS_CHECK(GeometricalObject::IsSame(r_cond_1, r_cond_2));
+        KRATOS_EXPECT_TRUE(GeometricalObject::IsSame(r_cond_1, r_cond_2));
         for (unsigned i = 0; i < r_cond_1.GetGeometry().size(); ++i)
         {
-            KRATOS_CHECK(r_cond_1.GetGeometry()[i].Id() == r_cond_2.GetGeometry()[i].Id());
-            KRATOS_CHECK(r_cond_1.GetProperties().Id() == r_cond_2.GetProperties().Id());
+            KRATOS_EXPECT_TRUE(r_cond_1.GetGeometry()[i].Id() == r_cond_2.GetGeometry()[i].Id());
+            KRATOS_EXPECT_TRUE(r_cond_1.GetProperties().Id() == r_cond_2.GetProperties().Id());
         }
     }
 }
 
 void CompareModelParts(ModelPart& rModelPart1, ModelPart& rModelPart2)
 {
-    KRATOS_CHECK(rModelPart1.IsSubModelPart() == rModelPart2.IsSubModelPart());
+    KRATOS_EXPECT_TRUE(rModelPart1.IsSubModelPart() == rModelPart2.IsSubModelPart());
     if (!rModelPart1.IsSubModelPart() || rModelPart1.NumberOfNodes() > 0)
         CompareNodes(rModelPart1.Nodes(), rModelPart2.Nodes());
     if (!rModelPart1.IsSubModelPart() || rModelPart1.NumberOfElements() > 0)
         CompareElements(rModelPart1.Elements(), rModelPart2.Elements());
     if (!rModelPart1.IsSubModelPart() || rModelPart1.NumberOfConditions() > 0)
        CompareConditions(rModelPart1.Conditions(), rModelPart2.Conditions());
-    KRATOS_CHECK(rModelPart1.NumberOfSubModelParts() == rModelPart2.NumberOfSubModelParts());
+    KRATOS_EXPECT_TRUE(rModelPart1.NumberOfSubModelParts() == rModelPart2.NumberOfSubModelParts());
     for (ModelPart& sub_model_part_1 : rModelPart1.SubModelParts())
     {
         ModelPart& sub_model_part_2 = rModelPart2.GetSubModelPart(sub_model_part_1.Name());
@@ -498,7 +498,7 @@ void CompareNonHistoricalNodalData(
     HDF5::NodesContainerType& rNodes1,
     HDF5::NodesContainerType& rNodes2)
 {
-    KRATOS_CHECK(rNodes1.size() == rNodes2.size());
+    KRATOS_EXPECT_TRUE(rNodes1.size() == rNodes2.size());
     for (auto& r_node1 : rNodes1) {
         auto& r_node2 = rNodes2[r_node1.Id()];
         CompareDataValueContainers(rFlagNames, r_node1.GetData(), r_node1, r_node2.GetData(), r_node2);

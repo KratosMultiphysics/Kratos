@@ -179,6 +179,7 @@ def PostProcessGeneratedStubFiles():
             data = file_input.read()
 
         data = re.sub(R"import +Kratos(\w+)\n", R"import KratosMultiphysics.\1 as Kratos\1\n", data)
+        data = re.sub(R"import +Kratos.(\w+)\n", R"import KratosMultiphysics.\1\n", data)
         data = data.replace("import Kratos\n", "import KratosMultiphysics as Kratos\n")
 
         with open(str(file.absolute()), "w") as file_output:

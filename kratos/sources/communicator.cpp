@@ -4,14 +4,19 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
 //
 
+// System includes
+
+// External includes
+
+// Project includes
 #include "includes/communicator.h"
 #include "includes/data_communicator.h"
 #include "includes/parallel_environment.h"

@@ -1729,14 +1729,18 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData( std::ostream& rOStream ) const override
     {
-        BaseType::PrintData(rOStream);
+        // Base Geometry class PrintData call
+        BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        rOStream << "    in Tetrahedra3D4 PrintData\t : " << std::endl;
-        Matrix jacobian(3,3);
-        this->Jacobian(jacobian, PointType());
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
 protected:
