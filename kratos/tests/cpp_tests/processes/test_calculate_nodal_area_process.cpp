@@ -70,19 +70,19 @@ namespace Kratos
 //             GiDIODebugNodalArea(this_model_part);
 
             const double tolerance = 1.0e-8;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/3.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/3.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/3.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/6.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/3.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/3.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/3.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/6.0, tolerance);
 
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
             NonHistNodalAreaProcess nonhist_process(this_model_part, 2);
             nonhist_process.Execute();
 
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->GetValue(NODAL_AREA)) - 1.0/3.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->GetValue(NODAL_AREA)) - 1.0/3.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->GetValue(NODAL_AREA)) - 1.0/3.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(6)->GetValue(NODAL_AREA)) - 1.0/6.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->GetValue(NODAL_AREA)) - 1.0/3.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->GetValue(NODAL_AREA)) - 1.0/3.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->GetValue(NODAL_AREA)) - 1.0/3.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(6)->GetValue(NODAL_AREA)) - 1.0/6.0, tolerance);
         }
 
         /**
@@ -115,27 +115,27 @@ namespace Kratos
 //             GiDIODebugNodalArea(this_model_part);
 
             const double tolerance = 1.0e-8;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/4.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(9)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/4.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(10)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(11)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(12)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/4.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(9)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/4.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(10)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(11)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(12)->FastGetSolutionStepValue(NODAL_AREA)) - 1.0/12.0, tolerance);
 
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
             NonHistNodalAreaProcess nonhist_process(this_model_part, 3);
             nonhist_process.Execute();
 
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(3)->GetValue(NODAL_AREA)) - 1.0/4.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(9)->GetValue(NODAL_AREA)) - 1.0/4.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(10)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(11)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(12)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(3)->GetValue(NODAL_AREA)) - 1.0/4.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(9)->GetValue(NODAL_AREA)) - 1.0/4.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(10)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(11)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(12)->GetValue(NODAL_AREA)) - 1.0/12.0, tolerance);
         }
 
         /**
@@ -165,23 +165,23 @@ namespace Kratos
 //             GiDIODebugNodalArea(this_model_part);
             
             const double tolerance = 1.0e-8;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_AREA)) - 0.5, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_AREA)) - 0.5, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(4)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_AREA)) - 0.5, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_AREA)) - 0.5, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(4)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
 
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
             NonHistNodalAreaProcess nonhist_process(this_model_part, 2);
             nonhist_process.Execute();
 
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->GetValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->GetValue(NODAL_AREA)) - 0.5, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(3)->GetValue(NODAL_AREA)) - 0.5, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(4)->GetValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->GetValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(6)->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->GetValue(NODAL_AREA)) - 0.5, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(3)->GetValue(NODAL_AREA)) - 0.5, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(4)->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(6)->GetValue(NODAL_AREA)) - 0.25, tolerance);
         }
         
         /** 
@@ -214,35 +214,35 @@ namespace Kratos
 //             GiDIODebugNodalArea(this_model_part);
             
             const double tolerance = 1.0e-8;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(4)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(7)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(8)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(9)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(10)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(11)->FastGetSolutionStepValue(NODAL_AREA)) - 0125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(12)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(3)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(4)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(6)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(7)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(8)->FastGetSolutionStepValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(9)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(10)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(11)->FastGetSolutionStepValue(NODAL_AREA)) - 0125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(12)->FastGetSolutionStepValue(NODAL_AREA)) - 0.125, tolerance);
 
             typedef CalculateNodalAreaProcess<CalculateNodalAreaSettings::SaveAsNonHistoricalVariable> NonHistNodalAreaProcess;
             NonHistNodalAreaProcess nonhist_process(this_model_part, 3);
             nonhist_process.Execute();
 
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(1)->GetValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(2)->GetValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(3)->GetValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(4)->GetValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(5)->GetValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(6)->GetValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(7)->GetValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(8)->GetValue(NODAL_AREA)) - 0.25, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(9)->GetValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(10)->GetValue(NODAL_AREA)) - 0.125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(11)->GetValue(NODAL_AREA)) - 0125, tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(this_model_part.pGetNode(12)->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(1)->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(2)->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(3)->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(4)->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(5)->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(6)->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(7)->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(8)->GetValue(NODAL_AREA)) - 0.25, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(9)->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(10)->GetValue(NODAL_AREA)) - 0.125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(11)->GetValue(NODAL_AREA)) - 0125, tolerance);
+            KRATOS_EXPECT_LE(std::abs(this_model_part.pGetNode(12)->GetValue(NODAL_AREA)) - 0.125, tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.
