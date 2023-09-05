@@ -115,7 +115,10 @@ void LinearPlaneStrain::GetLawFeatures(Features& rFeatures)
 
 void LinearPlaneStrain::CalculateElasticMatrix(VoigtSizeMatrixType& rC, ConstitutiveLaw::Parameters& rValues)
 {
-    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStrain(rC, rValues);
+    const auto &r_props = rValues.GetMaterialProperties();
+    const double E = r_props[YOUNG_MODULUS];
+    const double NU = r_props[POISSON_RATIO];
+    ConstitutiveLawUtilities<3>::CalculateElasticMatrixPlaneStrain(rC, E, NU);
 }
 
 /***********************************************************************************/
@@ -131,14 +134,7 @@ void LinearPlaneStrain::CalculatePK2Stress(
     const double E = r_material_properties[YOUNG_MODULUS];
     const double NU = r_material_properties[POISSON_RATIO];
 
-    const double c0 = E / ((1.00 + NU)*(1 - 2 * NU));
-    const double c1 = (1.00 - NU)*c0;
-    const double c2 = c0 * NU;
-    const double c3 = (0.5 - NU)*c0;
-
-    rStressVector[0] = c1 * rStrainVector[0] + c2 * rStrainVector[1];
-    rStressVector[1] = c2 * rStrainVector[0] + c1 * rStrainVector[1];
-    rStressVector[2] = c3 * rStrainVector[2];
+    ConstitutiveLawUtilities<3>::CalculatePK2StressFromStrainPlaneStrain(rStressVector, rStrainVector, E, NU);
 }
 
 /***********************************************************************************/
@@ -146,23 +142,7 @@ void LinearPlaneStrain::CalculatePK2Stress(
 
 void LinearPlaneStrain::CalculateCauchyGreenStrain(Parameters& rValues, ConstitutiveLaw::StrainVectorType& rStrainVector)
 {
-    //1.-Compute total deformation gradient
-    const ConstitutiveLaw::DeformationGradientMatrixType& F = rValues.GetDeformationGradientF();
-
-    // for shells/membranes in case the DeformationGradient is of size 3x3
-    BoundedMatrix<double, 2, 2> F2x2;
-    for (unsigned int i = 0; i<2; ++i)
-        for (unsigned int j = 0; j<2; ++j)
-            F2x2(i, j) = F(i, j);
-
-    BoundedMatrix<double,2,2> E_tensor = prod(trans(F2x2), F2x2);
-
-    for (unsigned int i = 0; i<2; ++i)
-        E_tensor(i, i) -= 1.0;
-
-    E_tensor *= 0.5;
-
-    noalias(rStrainVector) = MathUtils<double>::StrainTensorToVector(E_tensor);
+    ConstitutiveLawUtilities<3>::CalculateCauchyGreenStrain(rValues, rStrainVector);
 }
 
 } // Namespace Kratos

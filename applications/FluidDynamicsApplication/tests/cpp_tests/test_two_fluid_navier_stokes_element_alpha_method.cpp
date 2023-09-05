@@ -139,7 +139,7 @@ namespace Kratos {
             reference_RHS[7] = -79.83781791;
             reference_RHS[8] = -0.06606793466;
 
-            KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
+            KRATOS_EXPECT_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
         // /** Checks the TwoFluidNavierStokesAlphaMethod3D4N element
         //  * Checks the LHS and RHS for a cut element
@@ -228,22 +228,22 @@ namespace Kratos {
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 
-            KRATOS_CHECK_NEAR(RHS(0), -119.5094945, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(1), 13.86753717, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(2), -264.4471963, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(3), -0.008525833469, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(4), 31.81898305, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(5), -23.48989075, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(6), -515.5487839, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(7), 0.1753941423, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(8), 52.86326183, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(9), -58.7570097, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(10), -510.5819917, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(11), -0.03898369627, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(12), 89.23040167, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(13), -30.84418781, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(14), -581.986129, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(15), -0.2278846126, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(0), -119.5094945, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(1), 13.86753717, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(2), -264.4471963, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(3), -0.008525833469, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(4), 31.81898305, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(5), -23.48989075, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(6), -515.5487839, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(7), 0.1753941423, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(8), 52.86326183, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(9), -58.7570097, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(10), -510.5819917, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(11), -0.03898369627, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(12), 89.23040167, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(13), -30.84418781, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(14), -581.986129, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(15), -0.2278846126, 1e-7);
 
         }
                 // /** Checks the TwoFluidNavierStokesAlphaMethod3D4N element
@@ -370,7 +370,7 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_VECTOR_NEAR(RHS, reference_RHS, 1e-7);
+            KRATOS_EXPECT_VECTOR_NEAR(RHS, reference_RHS, 1e-7);
 
         }
        // /** Checks the TwoFluidNavierStokesAlphaMethod3D4N element
@@ -457,22 +457,22 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_NEAR(RHS(0), 16.6700148724, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(1), 17.5504263651, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(2), 76.0097167815, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(3),0.951210720699, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(4), -35.762027016, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(5), -35.3837331297, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(6), -701.815365218, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(7), -0.0572209011027, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(8), -30.4898366163, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(9), -52.0920660863, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(10), -784.514819936, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(11), -0.0700797902459, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(12), -35.584025235, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(13), -47.95583463, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(14), -879.858882572, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(15), -0.923910029351, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(0), 16.6700148724, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(1), 17.5504263651, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(2), 76.0097167815, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(3),0.951210720699, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(4), -35.762027016, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(5), -35.3837331297, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(6), -701.815365218, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(7), -0.0572209011027, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(8), -30.4898366163, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(9), -52.0920660863, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(10), -784.514819936, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(11), -0.0700797902459, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(12), -35.584025235, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(13), -47.95583463, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(14), -879.858882572, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(15), -0.923910029351, 1e-7);
 
         }
 
@@ -562,22 +562,22 @@ namespace Kratos {
 
             // Check the RHS values (the RHS is computed as the LHS x previous_solution,
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
-            KRATOS_CHECK_NEAR(RHS(0), 16.6700148724, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(1), 17.5504263651, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(2), 76.0097167815, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(3), 0.951210720699, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(4), -35.762027016, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(5), -35.3837331297, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(6),-701.815365218, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(7), -0.0572209011027, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(8), -30.4898366163, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(9), -52.0920660863, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(10), -784.514819936, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(11),-0.0700797902459, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(12), -35.584025235, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(13), -47.95583463, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(14), -879.858882572, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(15), -0.923910029351, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(0), 16.6700148724, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(1), 17.5504263651, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(2), 76.0097167815, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(3), 0.951210720699, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(4), -35.762027016, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(5), -35.3837331297, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(6),-701.815365218, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(7), -0.0572209011027, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(8), -30.4898366163, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(9), -52.0920660863, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(10), -784.514819936, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(11),-0.0700797902459, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(12), -35.584025235, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(13), -47.95583463, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(14), -879.858882572, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(15), -0.923910029351, 1e-7);
 
         }
 
@@ -691,17 +691,17 @@ namespace Kratos {
             // The remaining residuals in the velocities have the size of the boundary integrals over the enriched pressure.
             // If the "standard" pressure shape functions are used, the results do not hold.
 
-            KRATOS_CHECK_NEAR(RHS(0), 0.0, 1e-7);		// U_x at node 1
-            KRATOS_CHECK_NEAR(RHS(1), -17.5, 1e-7); 	// U_y at node 1
-            KRATOS_CHECK_NEAR(RHS(2), 0.0, 1e-7);		// P   at node 1
+            KRATOS_EXPECT_NEAR(RHS(0), 0.0, 1e-7);		// U_x at node 1
+            KRATOS_EXPECT_NEAR(RHS(1), -17.5, 1e-7); 	// U_y at node 1
+            KRATOS_EXPECT_NEAR(RHS(2), 0.0, 1e-7);		// P   at node 1
 
-            KRATOS_CHECK_NEAR(RHS(3), 7.5, 1e-7);		// U_x at node 2
-            KRATOS_CHECK_NEAR(RHS(4), 0.0, 1e-7);		// U_y at node 2
-            KRATOS_CHECK_NEAR(RHS(5), 0.0, 1e-7);		// P   at node 2
+            KRATOS_EXPECT_NEAR(RHS(3), 7.5, 1e-7);		// U_x at node 2
+            KRATOS_EXPECT_NEAR(RHS(4), 0.0, 1e-7);		// U_y at node 2
+            KRATOS_EXPECT_NEAR(RHS(5), 0.0, 1e-7);		// P   at node 2
 
-            KRATOS_CHECK_NEAR(RHS(6), -7.5, 1e-7);		// U_x at node 3
-            KRATOS_CHECK_NEAR(RHS(7), -7.5, 1e-7);		// U_y at node 3
-            KRATOS_CHECK_NEAR(RHS(8), 0.0, 1e-7);		// P   at node 3
+            KRATOS_EXPECT_NEAR(RHS(6), -7.5, 1e-7);		// U_x at node 3
+            KRATOS_EXPECT_NEAR(RHS(7), -7.5, 1e-7);		// U_y at node 3
+            KRATOS_EXPECT_NEAR(RHS(8), 0.0, 1e-7);		// P   at node 3
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesDarcyAlphaMethod3D4N, FluidDynamicsApplicationFastSuite)
@@ -790,22 +790,22 @@ namespace Kratos {
             // hence, it is assumed that if the RHS is correct, the LHS is correct as well)
 
 
-            KRATOS_CHECK_NEAR(RHS(0), -119.5094945, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(1), 13.86753717, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(2), -264.4471963, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(3), -0.008525833469, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(4), 31.81898305, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(5), -23.48989075, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(6), -515.5487839, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(7), 0.1753941423, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(8), 52.86326183, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(9), -58.7570097, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(10), -510.5819917, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(11), -0.03898369627, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(12), 89.23040167, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(13), -30.84418781, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(14), -581.986129, 1e-7);
-            KRATOS_CHECK_NEAR(RHS(15), -0.2278846126, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(0), -119.5094945, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(1), 13.86753717, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(2), -264.4471963, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(3), -0.008525833469, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(4), 31.81898305, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(5), -23.48989075, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(6), -515.5487839, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(7), 0.1753941423, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(8), 52.86326183, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(9), -58.7570097, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(10), -510.5819917, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(11), -0.03898369627, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(12), 89.23040167, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(13), -30.84418781, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(14), -581.986129, 1e-7);
+            KRATOS_EXPECT_NEAR(RHS(15), -0.2278846126, 1e-7);
 
         }
 
@@ -913,7 +913,7 @@ namespace Kratos {
             reference_RHS[7] = -3593.338385;
             reference_RHS[8] = -5.576347377;
 
-            KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
+            KRATOS_EXPECT_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
 
         // /** Checks the TwoFluidNavierStokesAlphaMethod3D4N element with a source term in mass conservation equation
@@ -1030,7 +1030,7 @@ namespace Kratos {
             reference_RHS[13] = 684.7556692;
             reference_RHS[14] = -4513.788544;
             reference_RHS[15] = -4.392089354;
-            KRATOS_CHECK_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
+            KRATOS_EXPECT_VECTOR_NEAR(reference_RHS, RHS, 1e-2);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesAlphaMethodArtificialDynamicViscosity3D4N, FluidDynamicsApplicationFastSuite)
@@ -1102,7 +1102,7 @@ namespace Kratos {
             const double tolerance = 1.0e-8;
             std::vector<double> exact_art_dyn_visc = { 2501.10848959, 3288.28103954, 4328.52239208, 1961.64629118};
 
-            KRATOS_CHECK_VECTOR_NEAR(art_dyn_visc, exact_art_dyn_visc, tolerance)
+            KRATOS_EXPECT_VECTOR_NEAR(art_dyn_visc, exact_art_dyn_visc, tolerance)
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ElementTwoFluidNavierStokesAlphaMethodArtificialDynamicViscosity2D3N, FluidDynamicsApplicationFastSuite)
@@ -1170,7 +1170,7 @@ namespace Kratos {
             const double tolerance = 1.0e-8;
             std::vector<double> exact_art_dyn_visc = {2829.53964846, 3772.34868778, 4715.15772801};
 
-            KRATOS_CHECK_VECTOR_NEAR(art_dyn_visc, exact_art_dyn_visc, tolerance)
+            KRATOS_EXPECT_VECTOR_NEAR(art_dyn_visc, exact_art_dyn_visc, tolerance)
         }
     } // namespace Testing
 }  // namespace Kratos.
