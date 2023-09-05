@@ -135,20 +135,26 @@ def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.M
     for aggregated_operation_params in settings.values():
         aggregated_operation_params.ValidateAndAssignDefaults(defaults)
 
+        model_part = model[aggregated_operation_params["model_part_name"].GetString()]
         process_step = aggregated_operation_params["process_step"].GetString()
         if process_step not in aggregated_operations_map.keys():
-            aggregated_operations_map[process_step]: 'list[AggregatedControlledOperations]' = []
+            aggregated_operations_map[process_step] = []
         aggregated_operations_map[process_step].append(CreateAggregatedOperation(model, aggregated_operation_params))
 
+    process: 'typing.Union[HDF5Process, HDF5OutputProcess]'
     if "print_output" in aggregated_operations_map.keys():
-        process: 'typing.Union[HDF5Process, HDF5OutputProcess]' = HDF5OutputProcess()
+        output_process = HDF5OutputProcess(model_part)
+        for process_step, aggregated_operations_list in aggregated_operations_map.items():
+            if process_step == "print_output":
+                list(map(lambda x: output_process.AddPrintOutput(x) , aggregated_operations_list))
+            else:
+                modified_process_step = KratosMultiphysics.StringUtilities.ConvertSnakeCaseToCamelCase(process_step)
+                method_name = f"Add{modified_process_step}"
+                list(map(lambda x: getattr(output_process, method_name)(x), aggregated_operations_list))
+        process = output_process
     else:
-        process: 'typing.Union[HDF5Process, HDF5OutputProcess]' = HDF5Process()
-
-    for process_step, aggregated_operations_list in aggregated_operations_map.items():
-        if process_step == "print_output":
-            list(map(lambda x: process.AddPrintOutput(x) , aggregated_operations_list))
-        else:
+        process = HDF5Process(model_part)
+        for process_step, aggregated_operations_list in aggregated_operations_map.items():
             modified_process_step = KratosMultiphysics.StringUtilities.ConvertSnakeCaseToCamelCase(process_step)
             method_name = f"Add{modified_process_step}"
             list(map(lambda x: getattr(process, method_name)(x), aggregated_operations_list))

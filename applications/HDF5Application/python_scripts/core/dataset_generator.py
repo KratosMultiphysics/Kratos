@@ -3,6 +3,7 @@ import typing
 import h5py
 import copy
 from pathlib import Path
+from operator import itemgetter
 
 from KratosMultiphysics.HDF5Application.core.xdmf import EntityData
 from KratosMultiphysics.HDF5Application.core.pattern import PatternEntity
@@ -41,7 +42,7 @@ class HDF5PatternEntity(PatternEntity):
         self.__hdf5_object = hdf5_object
         self.__name = name
 
-    def Iterate(self) -> 'typing.Generator[HDF5PatternEntity]':
+    def Iterate(self) -> 'typing.Generator[HDF5PatternEntity, None, None]':
         for name, itr in self.__hdf5_object.items():
             yield HDF5PatternEntity(name, itr)
 
@@ -76,27 +77,30 @@ def HasTags(pattern: str, tag_type_dict: 'dict[str, typing.Any]') -> bool:
 
     return False
 
-class DataSetGenerator(abc.ABC):
+class DatasetGenerator(abc.ABC):
     @abc.abstractmethod
-    def Iterate(self) -> 'typing.Generator[tuple[float, EntityData]]':
+    def Iterate(self) -> 'typing.Generator[tuple[typing.Union[int, float], EntityData], None, None]':
         pass
 
-class SingleMeshMultiFileSameDatasetsGenerator(DataSetGenerator):
+class SingleMeshMultiFileSameDatasetGenerator(DatasetGenerator):
     def __init__(self, dataset_pattern: str, temporal_value_tag_position: int = 0, tag_type_dict: 'dict[str, typing.Any]' = {"<time>": float, "<step>": int}) -> None:
         self.hdf5_file_name_pattern, self.dataset_prefix = GetDataSetPatterns(dataset_pattern)
 
         if HasTags(self.dataset_prefix, tag_type_dict):
-            raise RuntimeError(f"Dataset prefix tags are not supported in SingleMeshMultiFileSameDatasetsGenerator [ dataset_pattern: {dataset_pattern} ].")
+            raise RuntimeError(f"Dataset prefix tags are not supported in SingleMeshMultiFileSameDatasetGenerator [ dataset_pattern: {dataset_pattern} ].")
 
         if not HasTags(self.hdf5_file_name_pattern, tag_type_dict):
-            raise RuntimeError(f"File name is required to have tags in SingleMeshMultiFileSameDatasetsGenerator [ dataset_pattern = {dataset_pattern} ].")
+            raise RuntimeError(f"File name is required to have tags in SingleMeshMultiFileSameDatasetGenerator [ dataset_pattern = {dataset_pattern} ].")
+
+        if temporal_value_tag_position < 0:
+            raise RuntimeError(f"Temporal value tag position should be positive [ temporal_value_tag_position = {temporal_value_tag_position} ].")
 
         self.temporal_value_tag_position = temporal_value_tag_position
         self.tag_type_dict = tag_type_dict
 
-    def Iterate(self) -> 'typing.Generator[tuple[float, EntityData]]':
+    def Iterate(self) -> 'typing.Generator[tuple[typing.Union[int, float], EntityData], None, None]':
         # get the generator
-        generator: 'typing.Generator[tuple[PathPatternEntity, typing.Any]]' = GetMachingEntities(PathPatternEntity(Path(".")), self.hdf5_file_name_pattern, self.tag_type_dict)
+        generator: 'typing.Generator[tuple[PatternEntity, ...], None, None]' = GetMachingEntities(PathPatternEntity(Path(".")), self.hdf5_file_name_pattern, self.tag_type_dict)
 
         # get the first file
         first_file_data = next(generator, None)
@@ -108,20 +112,20 @@ class SingleMeshMultiFileSameDatasetsGenerator(DataSetGenerator):
 
         # yield the first finding
         for dataset in datasets:
-            yield first_file_data[self.temporal_value_tag_position + 1], dataset
+            yield itemgetter(self.temporal_value_tag_position + 1)(first_file_data), dataset
 
         # now yield the rest of the files
         for file_data in generator:
-            control_value = file_data[self.temporal_value_tag_position + 1]
+            temporal_value = itemgetter(self.temporal_value_tag_position + 1)(file_data)
             for dataset in datasets:
-                file_path = file_data[0].Get()
+                file_path: Path = file_data[0].Get()
                 if file_path.is_file():
                     file_name = str(file_path.relative_to(Path(".")))
                     copied_dataset = copy.deepcopy(dataset)
                     copied_dataset.data.file_name = file_name
-                    yield control_value, copied_dataset
+                    yield temporal_value, copied_dataset
 
-class GenericDatasetsGenerator(DataSetGenerator):
+class GenericDatasetGenerator(DatasetGenerator):
     def __init__(self, dataset_pattern: str, temporal_value_tag_position: int = 0, tag_type_dict: 'dict[str, typing.Any]' = {"<time>": float, "<step>": int}) -> None:
         self.hdf5_file_name_pattern, self.dataset_prefix_pattern = GetDataSetPatterns(dataset_pattern)
 
@@ -134,37 +138,37 @@ class GenericDatasetsGenerator(DataSetGenerator):
         # remove the first "/" character for pattern mathing.
         self.dataset_prefix_pattern = self.dataset_prefix_pattern[1:]
 
-    def Iterate(self) -> 'typing.Generator[tuple[float, EntityData]]':
+    def Iterate(self) -> 'typing.Generator[tuple[typing.Union[int, float], EntityData], None, None]':
         # get the generator
-        file_generator: 'typing.Generator[tuple[PathPatternEntity, typing.Any]]' = GetMachingEntities(PathPatternEntity(Path(".")), self.hdf5_file_name_pattern, self.tag_type_dict)
+        file_generator: 'typing.Generator[tuple[PatternEntity, ...], None, None]' = GetMachingEntities(PathPatternEntity(Path(".")), self.hdf5_file_name_pattern, self.tag_type_dict)
 
-        first_file = next(file_generator, None)
-        if first_file is None:
-            raise RuntimeError(f"No matching files were found for the pattern \"{self.hdf5_file_name_pattern}:{self.dataset_prefix_pattern}\".")
+        try:
+            first_file = next(file_generator)
+            if len(first_file) - 1 > self.temporal_value_tag_position:
+                temporal_value_getter = lambda h5_file_data, _: itemgetter(self.temporal_value_tag_position + 1)(h5_file_data)
+            else:
+                temporal_value_getter = lambda _, dataset_data: itemgetter(self.temporal_value_tag_position + 2 - len(first_file))(dataset_data)
 
-        if len(first_file) - 1 > self.temporal_value_tag_position:
-            temporal_value_getter = lambda h5_file_data, _: h5_file_data[self.temporal_value_tag_position + 1]
-        else:
-            temporal_value_getter = lambda _, dataset_data: dataset_data[self.temporal_value_tag_position + 2 - len(first_file)]
-
-        # now yield the data of the first file
-        for data in self.__GetFileDataSets(first_file, temporal_value_getter):
-            yield data
-
-        # now yeild data of the rest of the files
-        for file_data in file_generator:
-            for data in self.__GetFileDataSets(file_data, temporal_value_getter):
+            # now yield the data of the first file
+            for data in self.__GetFileDataSets(first_file, temporal_value_getter):
                 yield data
 
-    def __GetFileDataSets(self, file_data: 'tuple[PathPatternEntity, typing.Any]', temporal_value_getter: typing.Any) -> 'typing.Generator[tuple[float, EntityData]]':
+            # now yeild data of the rest of the files
+            for file_data in file_generator:
+                for data in self.__GetFileDataSets(file_data, temporal_value_getter):
+                    yield data
+        except StopIteration:
+            raise RuntimeError(f"No matching files were found for the pattern \"{self.hdf5_file_name_pattern}:{self.dataset_prefix_pattern}\".")
+
+    def __GetFileDataSets(self, file_data: 'tuple[PatternEntity, ...]', temporal_value_getter: typing.Any) -> 'typing.Generator[tuple[float, EntityData], None, None]':
         with h5py.File(file_data[0].Get()) as h5_file:
-            dataset_generator: 'typing.Generator[tuple[HDF5PatternEntity, typing.Any]]' = GetMachingEntities(HDF5PatternEntity("", h5_file), self.dataset_prefix_pattern, self.tag_type_dict)
+            dataset_generator: 'typing.Generator[tuple[PatternEntity, ...], None, None]' = GetMachingEntities(HDF5PatternEntity("", h5_file), self.dataset_prefix_pattern, self.tag_type_dict)
             for dataset_data in dataset_generator:
-                control_value = temporal_value_getter(file_data, dataset_data)
-                h5_object = dataset_data[0].Get()
+                temporal_value = temporal_value_getter(file_data, dataset_data)
+                h5_object: 'typing.Union[h5py.Group, h5py.Dataset]' = dataset_data[0].Get()
                 if isinstance(h5_object, h5py.Group):
                     for sub_dataset in GetAvailableDataSets(h5_file, [h5_object.name]):
-                        yield control_value, sub_dataset
+                        yield temporal_value, sub_dataset
                 else:
-                    yield control_value, EntityData(h5_object)
+                    yield temporal_value, EntityData(h5_object)
 

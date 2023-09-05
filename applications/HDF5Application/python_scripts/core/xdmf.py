@@ -355,7 +355,7 @@ class EntityData(Attribute):
         return self._center
 
     @property
-    def container_type(self) -> str:
+    def container_type(self) -> Kratos.Globals.DataLocation:
         return self._container_type
 
     @property
