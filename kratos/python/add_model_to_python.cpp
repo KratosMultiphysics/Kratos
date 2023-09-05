@@ -31,7 +31,7 @@ ModelPart& Model_GetModelPart(Model& rModel, const std::string& rFullModelPartNa
 void  AddModelToPython(pybind11::module& m)
 {
     namespace py = pybind11;
-    py::class_<Model, Kratos::shared_ptr<Model>, DataValueContainer>(m, "Model")
+    py::class_<Model, Model::Pointer, DataValueContainer>(m, "Model")
         .def(py::init<>())
         .def("Reset", &Model::Reset)
         .def("CreateModelPart", [&](Model &self, const std::string &Name) { return &self.CreateModelPart(Name); }, py::return_value_policy::reference_internal)
