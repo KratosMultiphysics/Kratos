@@ -1,8 +1,3 @@
-
-import sys
-sys.path.append(r"D:/software_development/Kratos/bin/Debug")
-sys.path.append(r"D:/software_development/Kratos/bin/Debug/libs")
-
 import KratosMultiphysics
 
 import KratosMultiphysics.StructuralMechanicsApplication as StructuralMechanicsApplication
@@ -375,11 +370,8 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
             # set load on quarter
             cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, distance)
 
-
             strategy.InitializeSolutionStep()
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
-
-            tmp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
 
             self.assertAlmostEqual(rhs[0], x_left)
             self.assertAlmostEqual(rhs[1], 0)
@@ -440,8 +432,6 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
             strategy.Solve()
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
 
-            tmp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
-
             self.assertAlmostEqual(rhs[0], x_left)
             self.assertAlmostEqual(rhs[1], y_left)
             self.assertAlmostEqual(rhs[2], x_right)
@@ -449,7 +439,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         # set load outside condition
         cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, length * 2)
-        self.initialize_solution_step(strategy)
+        strategy.InitializeSolutionStep()
         cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
         self.assertAlmostEqual(rhs[0], 0)
         self.assertAlmostEqual(rhs[1], 0)
@@ -507,8 +497,6 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
             strategy.InitializeSolutionStep()
             strategy.Solve()
             cond.CalculateLocalSystem(lhs, rhs, mp.ProcessInfo)
-
-            tmp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
 
             self.assertAlmostEqual(rhs[0], x_left)
             self.assertAlmostEqual(rhs[1], y_left)
@@ -593,8 +581,6 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         strategy = self.setup_strategy(mp)
 
         # create nodes
-
-
         node_1 = mp.CreateNewNode(1, 0.0, 0.0, 0.0)
         node_2 = mp.CreateNewNode(2, second_coordinates[0], second_coordinates[1], second_coordinates[2])
 
@@ -681,8 +667,9 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         rot = cond.GetValue(KratosMultiphysics.ROTATION)
         self.assertVectorAlmostEqual(rot, expected_rotation)
 
-    def _MovingLoadCondition3D2N_disp_rot_at_load(self, second_coordinates, axis_1, axis_2):
+    def _MovingLoadCondition3D3N_disp_rot_at_load(self, second_coordinates, axis_1, axis_2):
 
+        # get out of plane axis
         out_of_plane_axis = list({0, 1, 2} - {axis_1, axis_2})[0]
 
         current_model = KratosMultiphysics.Model()
@@ -698,17 +685,14 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         node_1 = mp.CreateNewNode(1, 0.0, 0.0, 0.0)
         node_2 = mp.CreateNewNode(2, second_coordinates[0], second_coordinates[1], second_coordinates[2])
+        node_3 = mp.CreateNewNode(3, second_coordinates[0]/2, second_coordinates[1]/2, second_coordinates[2]/2)
 
         length = math.sqrt(second_coordinates[0] ** 2 + second_coordinates[1] ** 2 + second_coordinates[2] ** 2)
-
-        rotation = math.atan(second_coordinates[axis_2] / second_coordinates[axis_1])
 
         # add dofs
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_X, KratosMultiphysics.REACTION_X, mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Y, KratosMultiphysics.REACTION_Y, mp)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.DISPLACEMENT_Z, KratosMultiphysics.REACTION_Z, mp)
-
-
 
         # set displacement
         disp_left, disp_right = 2, 0.0
@@ -724,17 +708,20 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         node_1.SetSolutionStepValue(var_disp, 0, disp_left)
         node_2.SetSolutionStepValue(var_disp, 0, disp_right)
+        node_3.SetSolutionStepValue(var_disp, 0, (disp_left + disp_right)/2)
         node_1.Fix(var_disp)
         node_2.Fix(var_disp)
+        node_3.Fix(var_disp)
 
         location_load = 0.5
 
         # calculate expected deflection and rotation at the location of the load
         expected_deflection = [0, 0, 0]
-
         expected_deflection[axis_2] = disp_left * (1 - location_load / length) + disp_right * location_load / length
 
-        cond = mp.CreateNewCondition("MovingLoadCondition3D2N", 1, [1, 2], mp.GetProperties()[1])
+        expected_rotation = (disp_right - disp_left)/length
+
+        cond = mp.CreateNewCondition("MovingLoadCondition3D3N", 1, [1, 2, 3], mp.GetProperties()[1])
 
         cond.SetValue(StructuralMechanicsApplication.POINT_LOAD, KratosMultiphysics.Vector(3))
         cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, location_load)
@@ -744,8 +731,9 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         # get calculated displacement at the load position
         disp = cond.GetValue(KratosMultiphysics.DISPLACEMENT)
-
+        rot = cond.GetValue(KratosMultiphysics.ROTATION)
         self.assertVectorAlmostEqual(disp, expected_deflection)
+        self.assertAlmostEqual(rot[out_of_plane_axis], expected_rotation)
 
     def _MovingLoadCondition2D3N(self):
         current_model = KratosMultiphysics.Model()
@@ -917,9 +905,13 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         coords_node_2 = [0.0, math.sqrt(2.0), math.sqrt(2.0)]
         self._MovingLoadCondition3D2NRot_disp_rot_at_load(coords_node_2, 2,1)
 
+    def test_MovingLoadCondition3D2N_disp_rot_at_load_x_y_plane(self):
+        coords_node_2 = [2, 3, 0]
+        self._MovingLoadCondition3D3N_disp_rot_at_load(coords_node_2, 0, 1)
+
     def test_MovingLoadCondition3D2N_disp_rot_at_load_z_y_plane(self):
-        coords_node_2 = [0.0, math.sqrt(2.0), math.sqrt(2.0)]
-        self._MovingLoadCondition3D2N_disp_rot_at_load(coords_node_2, 2, 1)
+        coords_node_2 = [0, 3, 2]
+        self._MovingLoadCondition3D3N_disp_rot_at_load(coords_node_2, 2, 1)
 
 if __name__ == '__main__':
     KratosUnittest.main()
