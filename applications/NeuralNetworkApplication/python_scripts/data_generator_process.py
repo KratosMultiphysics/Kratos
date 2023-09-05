@@ -362,11 +362,3 @@ class DataGeneratorProcess(KM.Process):
                 ordered_list.append(variable_list[index])
 
         return ordered_list
-        
-
-
-
-
-
-
-
