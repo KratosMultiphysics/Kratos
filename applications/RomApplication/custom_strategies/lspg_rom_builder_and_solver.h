@@ -169,14 +169,16 @@ public:
 
         const auto assembling_timer = BuiltinTimer();
 
-        if (rA.size1() != BaseType::mEquationSystemSize || rA.size2() != BaseType::mEquationSystemSize) {
-            rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-            BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
-        }
+        BuildAndApplyDirichletConditions(pScheme, rModelPart, rA, rb, rDx);
 
-        this->Build(pScheme, rModelPart, rA, rb);
+        // if (rA.size1() != BaseType::mEquationSystemSize || rA.size2() != BaseType::mEquationSystemSize) {
+        //     rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+        //     BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
+        // }
 
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        // this->Build(pScheme, rModelPart, rA, rb);
+
+        // BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
 
         // Initialize the mask vector with zeros
         Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
@@ -187,6 +189,31 @@ public:
         KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build and project time: " << time << std::endl;
 
         KRATOS_CATCH("")
+    }
+
+    void BuildAndApplyDirichletConditions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart &rModelPart,
+        TSystemMatrixType &rA,
+        TSystemVectorType &rb,
+        TSystemVectorType &rDx
+    ){
+        if (rA.size1() != BaseType::mEquationSystemSize || rA.size2() != BaseType::mEquationSystemSize) {
+            rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+            BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
+        }
+
+        this->Build(pScheme, rModelPart, rA, rb);
+
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+    }
+
+    void BuildRightRomBasis(
+        const ModelPart& rModelPart,
+        Matrix& rPhiGlobal
+    )
+    {
+        this->BuildRightROMBasis(rModelPart, rPhiGlobal);
     }
 
     /**

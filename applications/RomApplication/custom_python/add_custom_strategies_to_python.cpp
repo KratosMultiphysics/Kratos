@@ -75,8 +75,11 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     typedef LeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> LeastSquaresPetrovGalerkinROMBuilderAndSolverType;
     
     py::class_<LeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename LeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, GlobalROMBuilderAndSolverType>(m, "LeastSquaresPetrovGalerkinROMBuilderAndSolver")
-        .def(py::init< LinearSolverType::Pointer, Parameters>() )
-        ;
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("BuildAndApplyDirichletConditions", &LeastSquaresPetrovGalerkinROMBuilderAndSolverType::BuildAndApplyDirichletConditions)
+    .def("BuildRightROMBasis", &LeastSquaresPetrovGalerkinROMBuilderAndSolverType::BuildRightROMBasis)
+    ;
+
 
 }
 
