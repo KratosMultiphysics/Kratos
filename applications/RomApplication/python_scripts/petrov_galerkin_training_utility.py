@@ -21,14 +21,15 @@ class PetrovGalerkinTrainingUtility(object):
 
     def __init__(self, solver, custom_settings):
         # Validate and assign the HROM training settings
-        settings = custom_settings["train_petrov_galerkin"]
+        settings = custom_settings["rom_settings"]["inner_rom_settings"]
         settings.ValidateAndAssignDefaults(self.__GetPetrovGalerkinTrainingDefaultSettings())
 
         # Auxiliary member variables
         self.solver = solver
         self.time_step_snapshots_matrix_container = [] ## J@Phi or R
         self.echo_level = settings["echo_level"].GetInt()
-        self.rom_settings = custom_settings["rom_settings"]
+        self.rom_settings = custom_settings["rom_settings"].Clone()
+        self.rom_settings.RemoveValue("inner_rom_settings") #Removing becuase the inner rom settings are specific for each builder and solver.
         self.basis_strategy = settings["basis_strategy"].GetString()
         self.include_phi = settings["include_phi"].GetBool()
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
@@ -86,7 +87,7 @@ class PetrovGalerkinTrainingUtility(object):
     @classmethod
     def __GetPetrovGalerkinTrainingDefaultSettings(cls):
         default_settings = KratosMultiphysics.Parameters("""{
-                "train": false,
+                "train_petrov_galerkin": false,
                 "basis_strategy": "residuals",
                 "include_phi": false,
                 "svd_truncation_tolerance": 1.0e-6,

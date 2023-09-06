@@ -40,6 +40,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             # Set the ROM settings in the "solver_settings" of the solver introducing the physics
             self.project_parameters["solver_settings"].AddValue("rom_settings", self.rom_parameters["rom_settings"])
 
+            # Inner ROM settings
+            self.inner_rom_settings = self.rom_parameters["rom_settings"]["inner_rom_settings"]
+
             # HROM operations flags
             self.rom_basis_process_list_check = True
             self.rom_basis_output_process_check = True
@@ -52,7 +55,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 raise Exception(err_msg)
 
             # Petrov Galerking Training settings
-            self.train_petrov_galerkin = self.rom_parameters["rom_settings"]["train_petrov_galerkin"].GetBool() if self.rom_parameters["rom_settings"].Has("train_petrov_galerkin") else False
+            self.train_petrov_galerkin = self.inner_rom_settings["train_petrov_galerkin"].GetBool() if self.inner_rom_settings.Has("train_petrov_galerkin") else False
             if self.train_hrom and self.train_petrov_galerkin:
                 err_msg = "\'train_petrov_galerkin\' and \'train_hrom\' are both \'true\'. Select only one training strategy."
                 raise Exception(err_msg)
@@ -64,19 +67,15 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             self.solving_strategy = self.rom_parameters["projection_strategy"].GetString() if self.rom_parameters.Has("projection_strategy") else "galerkin"
             self.project_parameters["solver_settings"].AddString("projection_strategy",self.solving_strategy)
 
-            # Inner ROM settings
-            self.inner_rom_settings = self.rom_parameters["rom_settings"]["inner_rom_settings"]
-
             # Add or remove parameters depending on the solving strategy
             ##LSPG
             if self.solving_strategy=="lspg":
-                solving_technique = self.rom_parameters["rom_settings"]["solving_technique"].GetString() if self.rom_parameters["rom_settings"].Has("solving_technique") else "normal_equations"
-                self.project_parameters["solver_settings"]["rom_settings"].AddString("solving_technique", solving_technique)
-                self.project_parameters["solver_settings"]["rom_settings"].AddBool("train_petrov_galerkin", self.train_petrov_galerkin)
-                if self.train_petrov_galerkin:
-                    #Adding the basis strategy for generating the left ROB for the Petrov-Galerkin ROM.
-                    petrov_galerkin_basis_strategy = self.rom_parameters["rom_settings"]["basis_strategy"].GetString() if self.rom_parameters["rom_settings"].Has("basis_strategy") else "residuals"
-                    self.project_parameters["solver_settings"]["rom_settings"].AddString("basis_strategy", petrov_galerkin_basis_strategy)
+                solving_technique = self.inner_rom_settings["solving_technique"].GetString() if self.inner_rom_settings.Has("solving_technique") else "normal_equations"
+                self.project_parameters["solver_settings"]["rom_settings"]["inner_rom_settings"].AddString("solving_technique", solving_technique)
+                self.project_parameters["solver_settings"]["rom_settings"]["inner_rom_settings"].AddBool("train_petrov_galerkin", self.train_petrov_galerkin)
+                #Adding the basis strategy for generating the left ROB for the Petrov-Galerkin ROM.
+                petrov_galerkin_basis_strategy = self.inner_rom_settings["basis_strategy"].GetString() if self.rom_parameters["rom_settings"].Has("basis_strategy") else "residuals"
+                self.project_parameters["solver_settings"]["rom_settings"]["inner_rom_settings"].AddString("basis_strategy", petrov_galerkin_basis_strategy)
             
             ##Petrov Galerkin
             if self.solving_strategy=="petrov_galerkin":
