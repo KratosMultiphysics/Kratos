@@ -22,7 +22,6 @@
 // Project includes
 #include "includes/kernel.h"
 #include "includes/expect.h"                    // Includes the expects from gtest and gmock adapted to kratos checks.
-#include "testing/test_suite.h"                 // This includes the test_case.h which includes tester.h
 #include "includes/data_communicator.h"
 #include "testing/test_skipped_exception.h"     // Macros and exception class used to skip tests.
 
@@ -53,6 +52,9 @@ class KratosCoreCouplingGeometriesFastSuite : public KratosCoreFastSuite {};
 class KratosExternalLibrariesFastSuite : public KratosCoreFastSuite {};
 class KratosNonRectangularJacobianFastSuite : public KratosCoreFastSuite {};
 class KratosCoreStressSuite : public KratosCoreFastSuite {};
+
+// TODO: To be removed
+class FluidDynamicsApplicationFastSuite : public KratosCoreFastSuite {};
 
 DataCommunicator& GetDefaultDataCommunicator();
 
