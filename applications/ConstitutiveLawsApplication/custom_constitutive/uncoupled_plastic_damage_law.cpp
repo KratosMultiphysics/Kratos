@@ -110,7 +110,59 @@ void UncoupledPlasticDamageLaw<TConstLawIntegratorType>::InitializeMaterialRespo
     } else {
         KRATOS_ERROR << "Volumetric participation not defined" << std::endl;
     }
-    mIsotrpicDamageVolumetricParticipation = values_plastic_damage.GetMaterialProperties()[VOLUMETRIC_PART];
+    const SizeType volumetric_participation_size = values_plastic_damage.GetMaterialProperties()[VOLUMETRIC_PART].size();
+    double volumetric_participation;
+    const double damage = mDamage;
+    const double plastic_dissipation = mPlasticDissipation;
+    double reference_damage = mReferenceDamage;
+    double reference_plastic_dissipation = mReferencePlasticDissipation;
+    double reference_volumetric_participation = mIsotrpicDamageVolumetricParticipation;
+    double reference_equivalent_plastic_strain, equivalent_plastic_strain;
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(values_plasticity_component.GetElementGeometry());
+    GenericConstitutiveLawIntegratorPlasticityWithFatigue<TConstLawIntegratorType::YieldSurfaceType>::EquivalencyPlasticDissipationUniaxialPlasticStrain(reference_equivalent_plastic_strain,
+                                                                                                                                                        values_plasticity_component, reference_plastic_dissipation,
+                                                                                                                                                        1.0, characteristic_length);
+    GenericConstitutiveLawIntegratorPlasticityWithFatigue<TConstLawIntegratorType::YieldSurfaceType>::EquivalencyPlasticDissipationUniaxialPlasticStrain(equivalent_plastic_strain,
+                                                                                                                                                        values_plasticity_component, plastic_dissipation,
+                                                                                                                                                        1.0, characteristic_length);
+
+    if (volumetric_participation_size == 1) {
+        volumetric_participation = values_plastic_damage.GetMaterialProperties()[VOLUMETRIC_PART][0];
+    } else if (volumetric_participation_size == 3) { //Linear or exponential transition
+        const int volumetric_participation_transition_type = values_plastic_damage.GetMaterialProperties()[VOLUMETRIC_PART][0];
+        const double initial_volumetric_participation = values_plastic_damage.GetMaterialProperties()[VOLUMETRIC_PART][1];
+        const double final_volumetric_participation = values_plastic_damage.GetMaterialProperties()[VOLUMETRIC_PART][2];
+        if (volumetric_participation_transition_type == 0) { //Linear case
+            volumetric_participation = initial_volumetric_participation * (1.0 - damage) + final_volumetric_participation * damage;
+        } else { //Exponential case
+            volumetric_participation = initial_volumetric_participation * std::exp(damage * std::log(final_volumetric_participation / initial_volumetric_participation));
+        }
+    } else if (volumetric_participation_size == 4) { //Potential or inverse potential transition
+        const int volumetric_participation_transition_type = values_plastic_damage.GetMaterialProperties()[VOLUMETRIC_PART][0];
+        const double initial_volumetric_participation = values_plastic_damage.GetMaterialProperties()[VOLUMETRIC_PART][1];
+        const double final_volumetric_participation = values_plastic_damage.GetMaterialProperties()[VOLUMETRIC_PART][2];
+        const double index_volumetric_participation = values_plastic_damage.GetMaterialProperties()[VOLUMETRIC_PART][3];
+        if (volumetric_participation_transition_type == 0) { //Potential case
+            volumetric_participation = (final_volumetric_participation - initial_volumetric_participation) * std::pow(damage, index_volumetric_participation) + initial_volumetric_participation;
+        } else { //Inverse potential case
+            volumetric_participation = (final_volumetric_participation - initial_volumetric_participation) * std::pow((damage - 1.0), index_volumetric_participation) + final_volumetric_participation;
+        }
+    } else {
+        KRATOS_ERROR << "Wrong size VOLUMETRIC_PART variable" << std::endl;
+    }
+    //Limits to not recover aparent stiffness nor reduce aparent plastic strain
+    const double min_volumetric_participation = (damage > 0.0) ? reference_damage / damage * reference_volumetric_participation : 0.0;
+    const double max_volumetric_participation = (plastic_dissipation > 0.0) ? ((1.0 - reference_volumetric_participation) * reference_equivalent_plastic_strain - (1.0 - reference_volumetric_participation * reference_damage) * equivalent_plastic_strain)
+                                                / (damage * (1.0 - reference_volumetric_participation) * reference_equivalent_plastic_strain - (1.0 - reference_volumetric_participation * reference_damage) * equivalent_plastic_strain) : 1.0;
+
+    // volumetric_participation = (min_volumetric_participation + max_volumetric_participation) / 2.0;
+    volumetric_participation = (volumetric_participation < min_volumetric_participation) ? min_volumetric_participation : volumetric_participation;
+    volumetric_participation = (volumetric_participation > max_volumetric_participation) ? max_volumetric_participation : volumetric_participation;
+    mMinVolumetricParticipation = min_volumetric_participation;
+    mMaxVolumetricParticipation = max_volumetric_participation;
+    mIsotrpicDamageVolumetricParticipation = volumetric_participation;
+    mReferenceDamage = damage;
+    mReferencePlasticDissipation = plastic_dissipation;
 }
 
 /***********************************************************************************/
@@ -703,6 +755,12 @@ bool UncoupledPlasticDamageLaw<TConstLawIntegratorType>::Has(const Variable<doub
         return true;
     } else if (rThisVariable == PLASTIC_DISSIPATION) {
         return true;
+    } else if (rThisVariable == VOLUMETRIC_PARTICIPATION) {
+        return true;
+    } else if (rThisVariable == VISCOUS_PARAMETER) {
+        return true;
+    } else if (rThisVariable == DELAY_TIME) {
+        return true;
     } else {
         return BaseType::Has(rThisVariable);
     }
@@ -771,6 +829,12 @@ void UncoupledPlasticDamageLaw<TConstLawIntegratorType>::SetValue(
         mPlasticDissipation = rValue;
     } else if (rThisVariable == DAMAGE) {
         mDamage = rValue;
+    } else if (rThisVariable == VOLUMETRIC_PARTICIPATION) {
+        mIsotrpicDamageVolumetricParticipation = rValue;
+    } else if (rThisVariable == VISCOUS_PARAMETER) {
+        mMinVolumetricParticipation = rValue;
+    } else if (rThisVariable == DELAY_TIME) {
+        mMaxVolumetricParticipation = rValue;
     } else {
         BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
     }
@@ -830,6 +894,12 @@ double& UncoupledPlasticDamageLaw<TConstLawIntegratorType>::GetValue(
         rValue = mDamage;
     } else if (rThisVariable == PLASTIC_DISSIPATION) {
         rValue = mPlasticDissipation;
+    } else if (rThisVariable == VOLUMETRIC_PARTICIPATION) {
+        rValue = mIsotrpicDamageVolumetricParticipation;
+    } else if (rThisVariable == VISCOUS_PARAMETER) {
+        rValue = mMinVolumetricParticipation;
+    } else if (rThisVariable == DELAY_TIME) {
+        rValue = mMaxVolumetricParticipation;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
     }

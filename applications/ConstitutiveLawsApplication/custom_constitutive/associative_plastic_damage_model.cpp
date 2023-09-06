@@ -293,8 +293,14 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialSofteningImplicitFu
     ResidualFunctionType implicit_function = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters &rValues, PlasticDamageParameters &rPDParameters)
     {
         const auto& r_mat_properties = rValues.GetMaterialProperties();
-        const double chi = rPDParameters.PlasticDamageProportion;
-        // const double chi = 0.5;
+        double chi;
+        KRATOS_ERROR_IF_NOT(r_mat_properties.Has(THRESHOLD_XI_DEPENDENCE)) << "THRESHOLD_XI_DEPENDENCE is not a defined value" << std::endl;
+        const bool threshold_xi_dependence = r_mat_properties[THRESHOLD_XI_DEPENDENCE];
+        if (threshold_xi_dependence) {
+            chi = rPDParameters.PlasticDamageProportion;
+        } else {
+            chi = 0.5;
+        }
         const double E = r_mat_properties[YOUNG_MODULUS];
         const double g = AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
         double K0;
@@ -315,8 +321,14 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialSofteningImplicitFu
 {
     ResidualFunctionType function_derivative = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters& rValues, PlasticDamageParameters &rPDParameters) {
         const auto& r_mat_properties = rValues.GetMaterialProperties();
-        const double chi = rPDParameters.PlasticDamageProportion;
-        // const double chi = 0.5;
+        double chi;
+        KRATOS_ERROR_IF_NOT(r_mat_properties.Has(THRESHOLD_XI_DEPENDENCE)) << "THRESHOLD_XI_DEPENDENCE is not a defined value" << std::endl;
+        const bool threshold_xi_dependence = r_mat_properties[THRESHOLD_XI_DEPENDENCE];
+        if (threshold_xi_dependence) {
+            chi = rPDParameters.PlasticDamageProportion;
+        } else {
+            chi = 0.5;
+        }
         const double E = r_mat_properties[YOUNG_MODULUS];
         const double g = AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
         double K0;
@@ -339,7 +351,14 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
     {
         const auto& r_mat_properties = rValues.GetMaterialProperties();
         // we first need a plastic-damage indicator
-        const double xi = rPDParameters.PlasticDamageProportion;
+        double xi;
+        KRATOS_ERROR_IF_NOT(r_mat_properties.Has(THRESHOLD_XI_DEPENDENCE)) << "THRESHOLD_XI_DEPENDENCE is not a defined value" << std::endl;
+        const bool threshold_xi_dependence = r_mat_properties[THRESHOLD_XI_DEPENDENCE];
+        if (threshold_xi_dependence) {
+            xi = rPDParameters.PlasticDamageProportion;
+        } else {
+            xi = 0.5;
+        }
         double max_threshold = 0.0;
         double chi = 0.0;
         double K0;
@@ -379,7 +398,14 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::ExponentialHardeningImplicitFu
     {
         const auto& r_mat_properties = rValues.GetMaterialProperties();
         // we first need a plastic-damage indicator
-        const double xi = rPDParameters.PlasticDamageProportion;
+        double xi;
+        KRATOS_ERROR_IF_NOT(r_mat_properties.Has(THRESHOLD_XI_DEPENDENCE)) << "THRESHOLD_XI_DEPENDENCE is not a defined value" << std::endl;
+        const bool threshold_xi_dependence = r_mat_properties[THRESHOLD_XI_DEPENDENCE];
+        if (threshold_xi_dependence) {
+            xi = rPDParameters.PlasticDamageProportion;
+        } else {
+            xi = 0.5;
+        }
         double max_threshold = 0.0;
         double chi = 0.0;
         double K0;
@@ -425,8 +451,14 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::CurveByPointsHardeningImplicit
     ResidualFunctionType implicit_function = [](const double Dissipation, const double Threshold, ConstitutiveLaw::Parameters &rValues, PlasticDamageParameters &rPDParameters)
     {
         const auto& r_mat_properties = rValues.GetMaterialProperties();
-        const double chi = rPDParameters.PlasticDamageProportion;
-        // const double chi = 0.5;
+        double chi;
+        KRATOS_ERROR_IF_NOT(r_mat_properties.Has(THRESHOLD_XI_DEPENDENCE)) << "THRESHOLD_XI_DEPENDENCE is not a defined value" << std::endl;
+        const bool threshold_xi_dependence = r_mat_properties[THRESHOLD_XI_DEPENDENCE];
+        if (threshold_xi_dependence) {
+            chi = rPDParameters.PlasticDamageProportion;
+        } else {
+            chi = 0.5;
+        }
         const double C0 = r_mat_properties[YOUNG_MODULUS];
         const double g = AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateVolumetricFractureEnergy(r_mat_properties, rPDParameters);
         double K0;
@@ -464,8 +496,14 @@ AssociativePlasticDamageModel<TYieldSurfaceType>::CurveByPointsHardeningImplicit
     {
         const auto& r_mat_properties = rValues.GetMaterialProperties();
         // we first need a plastic-damage indicator
-        const double chi = rPDParameters.PlasticDamageProportion;
-        // const double chi = 0.5;
+        double chi;
+        KRATOS_ERROR_IF_NOT(r_mat_properties.Has(THRESHOLD_XI_DEPENDENCE)) << "THRESHOLD_XI_DEPENDENCE is not a defined value" << std::endl;
+        const bool threshold_xi_dependence = r_mat_properties[THRESHOLD_XI_DEPENDENCE];
+        if (threshold_xi_dependence) {
+            chi = rPDParameters.PlasticDamageProportion;
+        } else {
+            chi = 0.5;
+        }
         const double C0 = r_mat_properties[YOUNG_MODULUS];
         const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
         double K0;
@@ -502,7 +540,14 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
 {
     const auto& r_mat_properties = rValues.GetMaterialProperties();
 
-    if (rPDParameters.PlasticDamageProportion == 0.0) { // full plastic behaviour
+    double chi;
+    const bool threshold_xi_dependence = r_mat_properties[THRESHOLD_XI_DEPENDENCE];
+    if (threshold_xi_dependence) {
+        chi = rPDParameters.PlasticDamageProportion;
+    } else {
+        chi = 0.5;
+    }
+    if (chi == 0.0) { // full plastic behaviour
         double uniaxial_plastic_strain = 0.0;
         GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::
             CalculateEquivalentPlasticStrain(rPDParameters.StressVector,
@@ -519,8 +564,14 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
         const int curve_type = r_mat_properties[HARDENING_CURVE];
         switch (static_cast<typename GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType>(curve_type)) {
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::LinearSoftening: {
-                    const double chi = rPDParameters.PlasticDamageProportion;
-                    // const double chi = 0.5;
+                    double chi;
+                    KRATOS_ERROR_IF_NOT(r_mat_properties.Has(THRESHOLD_XI_DEPENDENCE)) << "THRESHOLD_XI_DEPENDENCE is not a defined value" << std::endl;
+                    const bool threshold_xi_dependence = r_mat_properties[THRESHOLD_XI_DEPENDENCE];
+                    if (threshold_xi_dependence) {
+                        chi = rPDParameters.PlasticDamageProportion;
+                    } else {
+                        chi = 0.5;
+                    }
                     double K0;
                     GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::GetInitialUniaxialThreshold(rValues, K0);
                     if (chi == 1.0) {
@@ -556,7 +607,14 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculateThresholdAndSlop
                 break;
             }
             case GenericConstitutiveLawIntegratorPlasticity<TYieldSurfaceType>::HardeningCurveType::CurveDefinedByPoints: {
-                const double chi = rPDParameters.PlasticDamageProportion;
+                double chi;
+                KRATOS_ERROR_IF_NOT(r_mat_properties.Has(THRESHOLD_XI_DEPENDENCE)) << "THRESHOLD_XI_DEPENDENCE is not a defined value" << std::endl;
+                const bool threshold_xi_dependence = r_mat_properties[THRESHOLD_XI_DEPENDENCE];
+                if (threshold_xi_dependence) {
+                    chi = rPDParameters.PlasticDamageProportion;
+                } else {
+                    chi = 0.5;
+                }
                 const double g = CalculateVolumetricFractureEnergy(rValues.GetMaterialProperties(), rPDParameters);
                 const double C0 = rValues.GetMaterialProperties()[YOUNG_MODULUS];
                 double K0;
@@ -752,11 +810,13 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::CalculatePlasticConsisten
 {
     const double denominator = CalculatePlasticDenominator(rValues, rPDParameters);
 
-    if (std::abs(denominator) > machine_tolerance)
+    if (std::abs(denominator) > machine_tolerance) {
         rPDParameters.PlasticConsistencyIncrement = (rPDParameters.NonLinearIndicator) / denominator;
-    else
-        rPDParameters.PlasticConsistencyIncrement = 0.0;
+        // rPDParameters.PlasticConsistencyIncrement = (rPDParameters.PlasticConsistencyIncrement < 0.0) ? 0.0 : rPDParameters.PlasticConsistencyIncrement;
 
+    } else {
+        rPDParameters.PlasticConsistencyIncrement = 0.0;
+    }
     rPDParameters.PlasticConsistencyIncrement = MacaullyBrackets(rPDParameters.PlasticConsistencyIncrement);
 }
 
@@ -950,6 +1010,8 @@ bool AssociativePlasticDamageModel<TYieldSurfaceType>::Has(
         has = true;
     } else if (rThisVariable == DISSIPATION) {
         has = true;
+    } else if (rThisVariable == VOLUMETRIC_PARTICIPATION) {
+        has = true;
     }
     return has;
 }
@@ -987,6 +1049,8 @@ double& AssociativePlasticDamageModel<TYieldSurfaceType>::GetValue(
         rValue = mDamageDissipation;
     } else if (rThisVariable == DISSIPATION) {
         rValue = mPlasticDissipation + mDamageDissipation;
+    } else if (rThisVariable == VOLUMETRIC_PARTICIPATION) {
+        rValue = mPlasticDamageProportion;
     }
     return rValue;
 }
@@ -1025,6 +1089,8 @@ void AssociativePlasticDamageModel<TYieldSurfaceType>::SetValue(
         mThreshold = rValue;
     }  else if (rThisVariable == DAMAGE) {
         mDamageDissipation = rValue;
+    }  else if (rThisVariable == VOLUMETRIC_PARTICIPATION) {
+        mPlasticDamageProportion = rValue;
     }
 }
 
@@ -1230,10 +1296,10 @@ int AssociativePlasticDamageModel<TYieldSurfaceType>::Check(
     int aux_out = 0;
     KRATOS_ERROR_IF(!rMaterialProperties.Has(FRACTURE_ENERGY))           << "FRACTURE_ENERGY not provided in the material properties" << std::endl;
     KRATOS_ERROR_IF(!rMaterialProperties.Has(HARDENING_CURVE))           << "HARDENING_CURVE not provided in the material properties" << std::endl;
-    KRATOS_ERROR_IF(!rMaterialProperties.Has(PLASTIC_DAMAGE_PROPORTION)) << "PLASTIC_DAMAGE_PROPORTION not provided in the material properties" << std::endl;
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(PLASTIC_DAMAGE_PROPORTION) && !rMaterialProperties.Has(VOLUMETRIC_PART)) << "PLASTIC_DAMAGE_PROPORTION nor VOLUMETRIC_PART provided in the material properties" << std::endl;
+    KRATOS_ERROR_IF(!rMaterialProperties.Has(THRESHOLD_XI_DEPENDENCE)) << "THRESHOLD_XI_DEPENDENCE not provided in the material properties" << std::endl;
     return aux_out;
 }
-
 
 /***********************************************************************************/
 /***********************************************************************************/

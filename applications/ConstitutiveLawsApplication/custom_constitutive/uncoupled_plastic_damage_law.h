@@ -549,10 +549,13 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) UncoupledPlasticDamageLaw
     ConstitutiveLaw::Pointer mpIsotropicDamageConstitutiveLaw;
     ConstitutiveLaw::Pointer mpPlasticityConstitutiveLaw;
     double mIsotrpicDamageVolumetricParticipation = 0.5;
+    double mMinVolumetricParticipation = 0.0;
+    double mMaxVolumetricParticipation = 1.0;
     double mIsotropicDamageThreshold = 0.0;
     double mPlasticityThreshold = 0.0;
     double mPlasticDissipation = 0.0;
     double mDamage = 0.0;
+    double mReferencePlasticDissipation = 0.0;
     Vector mPlasticStrain = ZeroVector(VoigtSize);
 
     //Variables used while defining the cycle

@@ -501,7 +501,41 @@ public:
         noalias(rPlasticDamageParameters.ComplianceMatrixCompression) = mComplianceMatrixCompression;
         noalias(rPlasticDamageParameters.StrainVector) = rStrainVector;
         rPlasticDamageParameters.CharacteristicLength  = CharateristicLength;
-        rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
+
+        if (rMaterialProperties.Has(VOLUMETRIC_PART)) { // Fluctuating plastic-damage CL
+            const SizeType volumetric_participation_size = rMaterialProperties[VOLUMETRIC_PART].size();
+            double volumetric_participation;
+            if (volumetric_participation_size == 1) {
+                volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][0];
+            } else if (volumetric_participation_size == 3) { //Linear or exponential transition
+                const int volumetric_participation_transition_type = rMaterialProperties[VOLUMETRIC_PART][0];
+                const double initial_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][1];
+                const double final_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][2];
+                if (volumetric_participation_transition_type == 0) { //Linear case
+                    volumetric_participation = initial_volumetric_participation * (1.0 - rPlasticDamageParameters.TotalDissipation) + final_volumetric_participation * rPlasticDamageParameters.TotalDissipation;
+                } else { //Exponential case
+                    volumetric_participation = initial_volumetric_participation * std::exp(rPlasticDamageParameters.TotalDissipation * std::log(final_volumetric_participation / initial_volumetric_participation));
+                }
+            } else if (volumetric_participation_size == 4) { //Potential or inverse potential transition
+                const int volumetric_participation_transition_type = rMaterialProperties[VOLUMETRIC_PART][0];
+                const double initial_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][1];
+                const double final_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][2];
+                const double index_volumetric_participation = rMaterialProperties[VOLUMETRIC_PART][3];
+                if (volumetric_participation_transition_type == 0) { //Potential case
+                    volumetric_participation = (final_volumetric_participation - initial_volumetric_participation) * std::pow(rPlasticDamageParameters.TotalDissipation, index_volumetric_participation) + initial_volumetric_participation;
+                } else { //Inverse potential case
+                    volumetric_participation = (final_volumetric_participation - initial_volumetric_participation) * std::pow((rPlasticDamageParameters.TotalDissipation - 1.0), index_volumetric_participation) + final_volumetric_participation;
+                }
+            } else {
+                KRATOS_ERROR << "Wrong size VOLUMETRIC_PART variable" << std::endl;
+            }
+            volumetric_participation = (volumetric_participation > 1.0) ? 1.0 : volumetric_participation;
+            volumetric_participation = (volumetric_participation < 0.0) ? 0.0 : volumetric_participation;
+            rPlasticDamageParameters.PlasticDamageProportion = volumetric_participation;
+            mPlasticDamageProportion = volumetric_participation;
+        } else {
+            rPlasticDamageParameters.PlasticDamageProportion = rMaterialProperties[PLASTIC_DAMAGE_PROPORTION];
+        }
 
         // const double initial_proportion = -2.0;
         // const double final_proportion = 2.0;
@@ -667,6 +701,7 @@ private:
     double mPlasticDissipation = 0.0;
     double mDamageDissipation  = 0.0;
     double mThreshold          = 0.0;
+    double mPlasticDamageProportion          = 0.0;
     BoundedVectorType mPlasticStrain    = ZeroVector(VoigtSize);
     BoundedVectorType mOldStrain        = ZeroVector(VoigtSize);
     BoundedMatrixType mComplianceMatrix = ZeroMatrix(VoigtSize, VoigtSize);
