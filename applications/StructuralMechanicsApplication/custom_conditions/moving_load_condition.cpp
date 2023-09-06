@@ -82,6 +82,47 @@ MovingLoadCondition< TDim, TNumNodes>::~MovingLoadCondition()
 //************************************************************************************
 //************************************************************************************
 
+template< std::size_t TDim, std::size_t TNumNodes >
+bool MovingLoadCondition<TDim, TNumNodes>::HasRotDof() const
+{
+    KRATOS_TRY
+        return GetGeometry()[0].HasDofFor(ROTATION_Z) && GetGeometry().size() == 2;
+
+    KRATOS_CATCH("")
+}
+
+template< std::size_t TDim, std::size_t TNumNodes >
+void MovingLoadCondition<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
+{
+    const double local_x_coord = this->GetValue(MOVING_LOAD_LOCAL_DISTANCE);
+
+    // check if cond should be calculated
+    mIsMovingLoad = false;
+    for (IndexType i = 0; i < TDim; ++i) {
+        if (std::abs(this->GetValue(POINT_LOAD)[i]) > std::numeric_limits<double>::epsilon() && local_x_coord <= this->GetGeometry().Length() && local_x_coord >= 0.0) {
+            mIsMovingLoad = true;
+        }
+    }
+}
+
+
+template< std::size_t TDim, std::size_t TNumNodes >
+void MovingLoadCondition<TDim, TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
+{
+    if (mIsMovingLoad) {
+        this->CalculateLoadPointDisplacementVector();
+        this->CalculateLoadPointRotationVector();
+    }
+    else {
+
+        VectorType displacement = ZeroVector(3);
+        displacement(0) = 2.0;
+
+        this->SetValue(DISPLACEMENT, displacement);
+        this->SetValue(ROTATION, ZeroVector(3));
+    }
+}
+
 
 template< std::size_t TDim, std::size_t TNumNodes >
 void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
@@ -384,35 +425,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateRotationMatrix(BoundedMatri
 
     KRATOS_CATCH("")
 }
-
-template< std::size_t TDim, std::size_t TNumNodes >
-void MovingLoadCondition<TDim, TNumNodes>::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
-{
-    const double local_x_coord = this->GetValue(MOVING_LOAD_LOCAL_DISTANCE);
-
-    // check if cond should be calculated
-    mIsMovingLoad = false;
-    for (IndexType i = 0; i < TDim; ++i) {
-        if (std::abs(this->GetValue(POINT_LOAD)[i]) > std::numeric_limits<double>::epsilon() && local_x_coord <= this->GetGeometry().Length() && local_x_coord >= 0.0) {
-            mIsMovingLoad = true;
-        }
-    }
-}
-
     
-template< std::size_t TDim, std::size_t TNumNodes >
-void MovingLoadCondition<TDim, TNumNodes>::InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
-{
-    if (mIsMovingLoad) {
-        this->CalculateLoadPointDisplacementVector();
-        this->CalculateLoadPointRotationVector();
-    } else {
-        this->SetValue(DISPLACEMENT, ZeroVector(3));
-        this->SetValue(ROTATION, ZeroVector(3));
-    }
-}
-
-
 
 template< std::size_t TDim, std::size_t TNumNodes >
 Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointDisplacementVector()
@@ -690,15 +703,6 @@ Vector MovingLoadCondition< TDim, TNumNodes>::CalculateLoadPointRotationVector()
     this->SetValue(ROTATION, global_point_rotation_vector);
 
     return global_point_rotation_vector;
-    KRATOS_CATCH("")
-}
-
-template< std::size_t TDim, std::size_t TNumNodes >
-bool MovingLoadCondition<TDim, TNumNodes>::HasRotDof() const
-{
-    KRATOS_TRY
-    return GetGeometry()[0].HasDofFor(ROTATION_Z) && GetGeometry().size() == 2;
-
     KRATOS_CATCH("")
 }
 
