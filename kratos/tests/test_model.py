@@ -56,6 +56,9 @@ class TestModel(KratosUnittest.TestCase):
     def _create_and_save_model(self,file_name, serializer_flag):
         current_model = KratosMultiphysics.Model()
 
+        # Setting the data value container
+        current_model.SetValue(KratosMultiphysics.TEMPERATURE, 293.0)
+
         model_part = current_model.CreateModelPart("Main")
         model_part.AddNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE)
         model_part.CreateSubModelPart("Inlets")
@@ -83,6 +86,9 @@ class TestModel(KratosUnittest.TestCase):
 
         loaded_model = KratosMultiphysics.Model()
         KratosMultiphysics.FileSerializer(file_name, serializer_flag).Load("ModelSerialization",loaded_model)
+
+        self.assertTrue(loaded_model.Has(KratosMultiphysics.TEMPERATURE))
+        self.assertAlmostEqual(loaded_model.GetValue(KratosMultiphysics.TEMPERATURE), 293.0)
 
         self.assertTrue(loaded_model["Main"].HasNodalSolutionStepVariable(KratosMultiphysics.TEMPERATURE))
         self.assertTrue(loaded_model["Other"].HasNodalSolutionStepVariable(KratosMultiphysics.PRESSURE))
@@ -129,7 +135,6 @@ class TestModel(KratosUnittest.TestCase):
         self.assertTrue(1 in loaded_model["Main"].Nodes)
         self.assertTrue(1 in loaded_model["Other"].Nodes)
 
-
-
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
     KratosUnittest.main()
