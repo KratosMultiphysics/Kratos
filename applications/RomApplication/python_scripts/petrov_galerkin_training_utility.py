@@ -91,6 +91,7 @@ class PetrovGalerkinTrainingUtility(object):
                 "basis_strategy": "residuals",
                 "include_phi": false,
                 "svd_truncation_tolerance": 1.0e-6,
+                "solving_technique": "normal_equations",
                 "echo_level": 0
         }""")
         return default_settings
