@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Pooyan Dadvand
@@ -328,25 +328,29 @@ ModelPart* Model::RecursiveSearchByName(const std::string& ModelPartName, ModelP
 
 void Model::save(Serializer& rSerializer) const
 {
+    // Save the base class
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, DataValueContainer );
+
     //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
     std::vector<std::string> aux_names;
     aux_names.reserve(mRootModelPartMap.size());
 
-    for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it)
-    {
+    for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it) {
         aux_names.push_back(it->first);
     }
 
     rSerializer.save("ModelPartNames", aux_names);
 
-    for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it)
-    {
+    for(auto it = mRootModelPartMap.begin(); it!=mRootModelPartMap.end(); ++it) {
         rSerializer.save(it->first, (it->second).get());
     }
 }
 
 void Model::load(Serializer& rSerializer)
 {
+    // Load the base class
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, DataValueContainer );
+
     //we construct auxiliary arrays to avoid having to serialize sets and maps of unique_ptrs
     std::vector<std::string> aux_names;
 
