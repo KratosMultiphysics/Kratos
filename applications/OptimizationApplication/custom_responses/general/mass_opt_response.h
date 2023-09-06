@@ -23,6 +23,7 @@
 // ------------------------------------------------------------------------------
 #include "custom_responses/response.h"
 #include "utilities/geometry_utilities.h"
+#include "utilities/atomic_utilities.h"
 
 // ==============================================================================
 
@@ -172,6 +173,8 @@ public:
             auto control_type = mrResponseSettings["control_types"][i].GetString();
             if(control_type=="shape"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_X, controlled_model_part.Nodes());
+                VariableUtils().SetNonHistoricalVariableToZero(NODAL_MASS, controlled_model_part.Nodes());
+
                 #pragma omp parallel
                 {
                     Element::NodesArrayType node_array;
@@ -190,6 +193,37 @@ public:
                         }
                     }
                 }
+
+                const auto el_it_begin = controlled_model_part.ElementsBegin();
+
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(controlled_model_part.NumberOfElements()); ++i) {
+                    auto el_it = (el_it_begin+i);
+                    auto& r_this_geometry = el_it->GetGeometry();
+                    const std::size_t number_of_nodes = r_this_geometry.size();
+                    if(el_it->IsDefined(ACTIVE) ? el_it->Is(ACTIVE) : true) {
+                        MatrixType element_mass_matrix;
+                        el_it->CalculateMassMatrix(element_mass_matrix, CurrentProcessInfo);
+
+                        for (IndexType j = 0; j < number_of_nodes; ++j) {
+                            const IndexType index = 3*j;
+                            AtomicAdd(r_this_geometry[j].GetValue(NODAL_MASS), element_mass_matrix(index, index));
+                        }
+                    }
+                }
+
+                #pragma omp parallel for
+                for (auto& r_node : controlled_model_part.Nodes()) {
+                    if( r_node.GetValue(NODAL_MASS) > 1e-10 ){
+                        auto r_value = r_node.GetSolutionStepValue(D_MASS_D_X) / r_node.GetValue(NODAL_MASS);
+                        auto& r_new_value = r_node.FastGetSolutionStepValue(D_MASS_D_X);
+                        r_new_value = r_value;
+                    }
+                    // else {
+                        // r_node.SetValue(D_MASS_D_X, [0.0, 0.0, 0.0]);
+                    // }
+                }
+
             }
             else if(control_type=="material"){
                 VariableUtils().SetHistoricalVariableToZero(D_MASS_D_FD, controlled_model_part.Nodes());

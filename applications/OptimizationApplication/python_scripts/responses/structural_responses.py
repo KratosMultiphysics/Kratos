@@ -459,6 +459,12 @@ class EmbeddedStrainEnergyResponseFunction(BaseResponseFunction):
         } """ )
         process = MapNurbsVolumeResultsToEmbeddedGeometryProcess(self.model, map_params)
         process.ExecuteBeforeOutputStep()
+
+        for node in self.model.GetModelPart(self.embedded_model_part_name).Nodes:
+            sens = node.GetSolutionStepValue(KM.KratosGlobals.GetVariable(self.gradients_variables["shape"]))
+            nodal_area = node.GetSolutionStepValue(KM.NODAL_AREA)
+            node.SetSolutionStepValue(KM.KratosGlobals.GetVariable(self.gradients_variables["shape"]),nodal_area * sens)
+
         Logger.PrintInfo("EmbeddedStrainEnergyResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
 
 # ==============================================================================
@@ -578,6 +584,12 @@ class EmbeddedMassResponseFunction(BaseResponseFunction):
         } """ )
         process = MapNurbsVolumeResultsToEmbeddedGeometryProcess(self.model, map_params)
         process.ExecuteBeforeOutputStep()
+
+        for node in self.model.GetModelPart(self.embedded_model_part_name).Nodes:
+            sens = node.GetSolutionStepValue(KOA.D_MASS_D_X)
+            nodal_area = node.GetSolutionStepValue(KM.NODAL_AREA)
+            node.SetSolutionStepValue(KOA.D_MASS_D_X,nodal_area * sens)
+
         Logger.PrintInfo("EmbeddedMassResponseFunction", "Time needed for calculating gradients ",round(timer.time() - startTime,2),"s")
 
 class SelfIntersectionResponseFunction(BaseResponseFunction):

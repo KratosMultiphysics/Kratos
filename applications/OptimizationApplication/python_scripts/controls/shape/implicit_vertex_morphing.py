@@ -276,14 +276,14 @@ class ImplicitVertexMorphing(ShapeControl):
             if pos_active:
                 avg_value_pos = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_POSITIVE_INTERSECTION_NORMAL)
                 norm = self.ComputeNodalNorm(avg_value_pos)
-                if(norm > 0.05):
+                if(norm > 0.01):
                     avg_value_pos /= norm
                     C = np.append(C, np.array([avg_value_pos]), axis=0)
 
             if neg_active:
                 avg_value_neg = node.GetSolutionStepValue(KOA.FILTERED_ACTIVE_NEGATIVE_INTERSECTION_NORMAL)
                 norm = self.ComputeNodalNorm(avg_value_neg)
-                if(norm > 0.05):
+                if(norm > 0.01):
                     avg_value_neg /= norm
                     C = np.append(C, np.array([avg_value_neg]), axis=0)
 
@@ -359,7 +359,7 @@ class ImplicitVertexMorphing(ShapeControl):
     def ComputeConstrainingFields(self):
         min_distance = 1
 
-        self.nodal_max_control_update = 0.05
+        self.nodal_max_control_update = 0.1
         # for node in self.model.GetModelPart(self.controlling_objects[0]).Nodes:
         #     control_update = node.GetSolutionStepValue(KOA.D_X)
         #     self.nodal_max_control_update = max(self.nodal_max_control_update, self.ComputeNodalNorm(control_update))

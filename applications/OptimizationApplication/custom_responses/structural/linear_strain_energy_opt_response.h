@@ -152,6 +152,7 @@ public:
 
         for(long unsigned int i=0;i<mrResponseSettings["controlled_objects"].size();i++){
             auto controlled_obj = mrResponseSettings["controlled_objects"][i].GetString();
+
             ModelPart& controlled_model_part = mrModel.GetModelPart(controlled_obj);
             const ProcessInfo &CurrentProcessInfo = controlled_model_part.GetProcessInfo();
             auto control_type = mrResponseSettings["control_types"][i].GetString();
@@ -159,6 +160,7 @@ public:
             if(control_type=="shape"){
                 grad_field_name = mrResponseSettings["gradient_settings"]["shape_gradient_field_name"].GetString();
                 VariableUtils().SetHistoricalVariableToZero(KratosComponents<Variable<array_1d<double,3>>>::Get(grad_field_name), controlled_model_part.Nodes());
+                VariableUtils().SetNonHistoricalVariableToZero(NODAL_MASS, controlled_model_part.Nodes());
 
                 #pragma omp parallel
                 {
@@ -178,6 +180,37 @@ public:
                             CalculateElementShapeGradients(*el_it, p_new_parent.get(), grad_field_name,CurrentProcessInfo);
                         }
                     }
+                }
+
+                const auto el_it_begin = controlled_model_part.ElementsBegin();
+
+                #pragma omp parallel for
+                for (int i = 0; i < static_cast<int>(controlled_model_part.NumberOfElements()); ++i) {
+                    auto el_it = (el_it_begin+i);
+                    auto& r_this_geometry = el_it->GetGeometry();
+                    const std::size_t number_of_nodes = r_this_geometry.size();
+                    if(el_it->IsDefined(ACTIVE) ? el_it->Is(ACTIVE) : true) {
+                        MatrixType element_mass_matrix;
+                        el_it->CalculateMassMatrix(element_mass_matrix, CurrentProcessInfo);
+
+                        for (IndexType j = 0; j < number_of_nodes; ++j) {
+                            const IndexType index = 3*j;
+                            AtomicAdd(r_this_geometry[j].GetValue(NODAL_MASS), element_mass_matrix(index, index));
+                        }
+                    }
+                }
+
+
+                #pragma omp parallel for
+                for (auto& r_node : controlled_model_part.Nodes()) {
+                    if( r_node.GetValue(NODAL_MASS) > 1e-10 ){
+                        auto r_value = r_node.GetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(grad_field_name)) / r_node.GetValue(NODAL_MASS);
+                        auto& r_new_value = r_node.FastGetSolutionStepValue(KratosComponents<Variable<array_1d<double,3>>>::Get(grad_field_name));
+                        r_new_value = r_value;
+                    }
+                    // else {
+                        // r_node.SetValue(D_MASS_D_X, [0.0, 0.0, 0.0]);
+                    // }
                 }
 
                 // for (auto& cond_i : controlled_model_part.Conditions())
