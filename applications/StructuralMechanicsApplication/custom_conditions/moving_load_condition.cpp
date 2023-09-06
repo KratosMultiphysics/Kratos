@@ -114,11 +114,7 @@ void MovingLoadCondition<TDim, TNumNodes>::InitializeNonLinearIteration(const Pr
         this->CalculateLoadPointRotationVector();
     }
     else {
-
-        VectorType displacement = ZeroVector(3);
-        displacement(0) = 2.0;
-
-        this->SetValue(DISPLACEMENT, displacement);
+        this->SetValue(DISPLACEMENT, ZeroVector(3));
         this->SetValue(ROTATION, ZeroVector(3));
     }
 }

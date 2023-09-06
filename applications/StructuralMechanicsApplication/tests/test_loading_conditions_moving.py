@@ -547,7 +547,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         # create condition
         cond = mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], mp.GetProperties()[1])
 
-        cond.SetValue(StructuralMechanicsApplication.POINT_LOAD, KratosMultiphysics.Vector(3))
+        cond.SetValue(StructuralMechanicsApplication.POINT_LOAD, [0, 1, 0])
         cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, location_load)
 
         # solve system and calculate displacement and rotation at the location of the load
@@ -650,8 +650,8 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
         # create condition
         cond = mp.CreateNewCondition("MovingLoadCondition3D2N", 1, [1, 2], mp.GetProperties()[1])
 
-        cond.SetValue(StructuralMechanicsApplication.POINT_LOAD, KratosMultiphysics.Vector(3))
-        cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, 20)
+        cond.SetValue(StructuralMechanicsApplication.POINT_LOAD, [0, 1, 0])
+        cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, location_load)
 
         # solve system and calculate displacement and rotation at the location of the load
         strategy.InitializeSolutionStep()
@@ -722,7 +722,7 @@ class TestLoadingConditionsMoving(KratosUnittest.TestCase):
 
         cond = mp.CreateNewCondition("MovingLoadCondition3D3N", 1, [1, 2, 3], mp.GetProperties()[1])
 
-        cond.SetValue(StructuralMechanicsApplication.POINT_LOAD, KratosMultiphysics.Vector(3))
+        cond.SetValue(StructuralMechanicsApplication.POINT_LOAD, [0, 1, 0])
         cond.SetValue(StructuralMechanicsApplication.MOVING_LOAD_LOCAL_DISTANCE, location_load)
 
         # solve system and calculate displacement and rotation at the location of the load
