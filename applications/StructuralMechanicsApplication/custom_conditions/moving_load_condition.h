@@ -137,10 +137,15 @@ public:
 
 
     /**
-    * this is called in the beginning of each solution step
-    */
+     * \brief Initializes solution step. It determines wether the moving load reactions are to be calculated
+     * \param rCurrentProcessInfo current process info
+     */
     void InitializeSolutionStep(const ProcessInfo & rCurrentProcessInfo) override;
 
+    /**
+     * \brief Initializes non linear iteration. It calculates the displacement and the rotation at the location of the moving load
+     * \param rCurrentProcessInfo current process info
+     */
     void InitializeNonLinearIteration(const ProcessInfo & rCurrentProcessInfo) override;
 
     ///@}
@@ -263,7 +268,13 @@ protected:
     void CalculateRotationMatrix(BoundedMatrix<double, TDim, TDim>& rRotationMatrix, const GeometryType& rGeom);
 
 
-    Matrix CalculateGlobalMomentMatrix(const VectorType& RotationalShapeFunctionVector, array_1d<double, TDim> LocalMovingLoad) const;
+    /**
+     * \brief Calculates the global bending moment matrix
+     * \param rRotationalShapeFunctionVector shape functions vector for rotation
+     * \param rLocalMovingLoad array for the value if the local moving load
+     * \return global bending moment matrix
+     */
+    Matrix CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim>& rLocalMovingLoad) const;
 
     ///@}
     ///@name Protected  Access
@@ -298,13 +309,27 @@ private:
     ///@}
     ///@name Private Operators
     ///@{
+
+    /**
+     * \brief Gets the nodal rotation vector
+     * \param rRotationsVector nodal rotation vector
+     * \param Step step from which the rotations needs to be retrieved
+     */
     void GetRotationsVector(Vector& rRotationsVector, const int Step) const;
+
     ///@}
     ///@name Private Operations
     ///@{
 
 
+     /**
+     * \brief Calculates displacement vector at the location of the moving load
+     */
     Vector CalculateLoadPointDisplacementVector();
+
+    /**
+    * \brief Calculates rotation vector at the location of the moving load
+    */
     Vector CalculateLoadPointRotationVector();
 
     ///@}

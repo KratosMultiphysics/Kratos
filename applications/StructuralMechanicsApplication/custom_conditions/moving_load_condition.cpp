@@ -233,7 +233,7 @@ void MovingLoadCondition< TDim, TNumNodes>::CalculateAll(
 }
 
 template< std::size_t TDim, std::size_t TNumNodes >
-Matrix MovingLoadCondition<TDim, TNumNodes>::CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim> LocalMovingLoad) const
+Matrix MovingLoadCondition<TDim, TNumNodes>::CalculateGlobalMomentMatrix(const VectorType& rRotationalShapeFunctionVector, const array_1d<double, TDim>& rLocalMovingLoad) const
 {
     KRATOS_TRY
 
@@ -251,17 +251,17 @@ Matrix MovingLoadCondition<TDim, TNumNodes>::CalculateGlobalMomentMatrix(const V
     if (has_rot_dof) {
         if constexpr (TDim == 2) {
             // rotation around z axis (2D)
-            global_moment_matrix(0, 0) = rRotationalShapeFunctionVector[0] * LocalMovingLoad[1];
-            global_moment_matrix(0, 1) = rRotationalShapeFunctionVector[1] * LocalMovingLoad[1];
+            global_moment_matrix(0, 0) = rRotationalShapeFunctionVector[0] * rLocalMovingLoad[1];
+            global_moment_matrix(0, 1) = rRotationalShapeFunctionVector[1] * rLocalMovingLoad[1];
         } else if constexpr (TDim == 3){
             // rotation around y and z axis (3D)
             global_moment_matrix(0, 0) = 0;
-            global_moment_matrix(1, 0) = rRotationalShapeFunctionVector[0] * LocalMovingLoad[2];
-            global_moment_matrix(2, 0) = rRotationalShapeFunctionVector[0] * LocalMovingLoad[1];
+            global_moment_matrix(1, 0) = rRotationalShapeFunctionVector[0] * rLocalMovingLoad[2];
+            global_moment_matrix(2, 0) = rRotationalShapeFunctionVector[0] * rLocalMovingLoad[1];
 
             global_moment_matrix(0, 1) = 0;
-            global_moment_matrix(1, 1) = rRotationalShapeFunctionVector[1] * LocalMovingLoad[2];
-            global_moment_matrix(2, 1) = rRotationalShapeFunctionVector[1] * LocalMovingLoad[1];
+            global_moment_matrix(1, 1) = rRotationalShapeFunctionVector[1] * rLocalMovingLoad[2];
+            global_moment_matrix(2, 1) = rRotationalShapeFunctionVector[1] * rLocalMovingLoad[1];
         }
     }
     return global_moment_matrix;
