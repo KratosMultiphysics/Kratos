@@ -2,6 +2,7 @@
 import json
 import numpy as np
 from pathlib import Path
+from glob import glob
 
 # Importing the Kratos Library
 import KratosMultiphysics
