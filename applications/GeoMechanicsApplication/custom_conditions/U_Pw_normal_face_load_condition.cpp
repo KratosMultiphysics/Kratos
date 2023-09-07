@@ -80,15 +80,13 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::InitializeConditionVariables(
     NormalFaceLoadVariables& rVariables,
     const GeometryType& rGeom)
 {
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
+        rVariables.NormalStressVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+    }
+    //
     if (TDim == 2) {
         for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rVariables.NormalStressVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
             rVariables.TangentialStressVector[i] = rGeom[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
-        }
-    }
-    else if (TDim == 3) {
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            rVariables.NormalStressVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
         }
     }
 }
