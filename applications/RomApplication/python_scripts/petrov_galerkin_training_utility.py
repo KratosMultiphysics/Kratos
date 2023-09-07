@@ -2,10 +2,10 @@
 import json
 import numpy as np
 from pathlib import Path
-from glob import glob
 
 # Importing the Kratos Library
 import KratosMultiphysics
+import KratosMultiphysics.scipy_conversion_tools
 
 # Import applications
 import KratosMultiphysics.RomApplication as KratosROM
@@ -35,6 +35,7 @@ class PetrovGalerkinTrainingUtility(object):
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
         self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
         self.rom_basis_output_folder = Path(custom_settings["rom_basis_output_folder"].GetString())
+        self.num_of_right_rom_dofs = self.rom_settings["number_of_rom_dofs"].GetInt()
 
         self.rom_format =  custom_settings["rom_format"].GetString()
         available_rom_format = ["json", "numpy"]
@@ -60,10 +61,7 @@ class PetrovGalerkinTrainingUtility(object):
 
         # Generate the matrix of residuals or projected Jacobians.
         if self.basis_strategy=="jacobian":
-            snapshots_matrix = KratosMultiphysics.CompressedMatrix()
-            rhs = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
-            dx = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
-            self.solver._GetBuilderAndSolver().BuildAndApplyDirichletConditions(self.solver._GetScheme(), computing_model_part, snapshots_matrix, rhs, dx)
+            snapshots_matrix = self.GetJacobianPhiMultiplication(computing_model_part)
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("PetrovGalerkinTrainingUtility","Generated matrix of projected Jacobian.")
         elif self.basis_strategy=="residuals":
             snapshots_matrix = []
@@ -80,6 +78,22 @@ class PetrovGalerkinTrainingUtility(object):
 
         np_snapshots_matrix = np.array(snapshots_matrix, copy=False)
         self.time_step_snapshots_matrix_container.append(np_snapshots_matrix)
+
+    def GetJacobianPhiMultiplication(self, computing_model_part):
+        jacobian_matrix = KratosMultiphysics.CompressedMatrix()
+        residual_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
+        delta_x_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
+        
+        self.solver._GetBuilderAndSolver().BuildAndApplyDirichletConditions(self.solver._GetScheme(), computing_model_part, jacobian_matrix, residual_vector, delta_x_vector)
+        
+        right_rom_basis = KratosMultiphysics.Matrix(self.solver._GetBuilderAndSolver().GetEquationSystemSize(), self.num_of_right_rom_dofs)
+        self.solver._GetBuilderAndSolver().BuildRightROMBasis(computing_model_part, right_rom_basis)
+        
+        jacobian_scipy_format = KratosMultiphysics.scipy_conversion_tools.to_csr(jacobian_matrix)
+        jacobian_phi_product = jacobian_scipy_format @ right_rom_basis
+
+        return jacobian_phi_product
+
 
     def CalculateAndSaveBasis(self, snapshots_matrix = None):
         # Calculate the new basis and save
