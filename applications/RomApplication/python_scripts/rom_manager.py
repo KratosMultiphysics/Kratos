@@ -504,16 +504,16 @@ class RomManager(object):
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=False
-                f["rom_settings"]['inner_rom_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["lspg_inner_rom_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_inner_rom_settings"].Has("monotonicity_preserving") else False
+                f["rom_settings"]['inner_rom_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_inner_rom_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_inner_rom_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='trainHROMGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
-                f["rom_settings"]['inner_rom_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["lspg_inner_rom_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_inner_rom_settings"].Has("monotonicity_preserving") else False
+                f["rom_settings"]['inner_rom_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_inner_rom_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_inner_rom_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='runHROMGalerkin':
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=True
-                f["rom_settings"]['inner_rom_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["lspg_inner_rom_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_inner_rom_settings"].Has("monotonicity_preserving") else False
+                f["rom_settings"]['inner_rom_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_inner_rom_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_inner_rom_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='lspg':
                 f['train_hrom']=False
                 f['run_hrom']=False
