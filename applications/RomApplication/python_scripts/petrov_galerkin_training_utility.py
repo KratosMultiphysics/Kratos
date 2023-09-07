@@ -30,7 +30,7 @@ class PetrovGalerkinTrainingUtility(object):
         self.time_step_snapshots_matrix_container = [] ## J@Phi or R
         self.echo_level = settings["echo_level"].GetInt()
         self.rom_settings = custom_settings["rom_settings"].Clone()
-        self.rom_settings.RemoveValue("inner_rom_settings") #Removing becuase the inner rom settings are specific for each builder and solver.
+        self.rom_settings.RemoveValue("inner_rom_settings") #Removing because the inner rom settings are specific for each builder and solver.
         self.basis_strategy = settings["basis_strategy"].GetString()
         self.include_phi = settings["include_phi"].GetBool()
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
@@ -110,6 +110,7 @@ class PetrovGalerkinTrainingUtility(object):
                 "include_phi": false,
                 "svd_truncation_tolerance": 1.0e-6,
                 "solving_technique": "normal_equations",
+                "monotonicity_preserving": false,
                 "echo_level": 0
         }""")
         return default_settings
