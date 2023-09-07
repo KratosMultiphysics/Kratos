@@ -361,58 +361,58 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
     } else if (rThisVariable == THRESHOLD_STRESS){
         for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-			if (p_law-> Has (HIGH_CYCLE_FATIGUE_DAMAGE)){
-				double max_stress;
-				double s_th;
-				p_law->GetValue(MAX_STRESS, max_stress);
-				p_law->GetValue(THRESHOLD_STRESS, s_th);
-		
-				if(max_stress > s_th){
-				p_law->GetValue(rThisVariable, rValue);
+            if (p_law-> Has (HIGH_CYCLE_FATIGUE_DAMAGE)){
+                double max_stress;
+                double s_th;
+                p_law->GetValue(MAX_STRESS, max_stress);
+                p_law->GetValue(THRESHOLD_STRESS, s_th);
+        
+                if(max_stress > s_th){
+                p_law->GetValue(rThisVariable, rValue);
                 break;
-				}
+                }
             }
-		}   
-	} else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR){
+        }   
+    } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR){
         double rev_factor_rel_error;
         
         for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
-				rev_factor_rel_error=0.0;
-			    p_law->GetValue(REVERSION_FACTOR_RELATIVE_ERROR, rev_factor_rel_error);
-				rValue += rev_factor_rel_error;                				
+            if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
+                rev_factor_rel_error=0.0;
+                p_law->GetValue(REVERSION_FACTOR_RELATIVE_ERROR, rev_factor_rel_error);
+                rValue += rev_factor_rel_error;                                
             }
-		}
-	} else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR){
+        }
+    } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR){
         for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
-				double max_stress_rel_error;
+            if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
+                double max_stress_rel_error;
                 
-				p_law->GetValue(MAX_STRESS_RELATIVE_ERROR, max_stress_rel_error);
-				rValue += max_stress_rel_error;	                
-			}
-		}
-	} else if (rThisVariable == CYCLES_TO_FAILURE){
+                p_law->GetValue(MAX_STRESS_RELATIVE_ERROR, max_stress_rel_error);
+                rValue += max_stress_rel_error;                    
+            }
+        }
+    } else if (rThisVariable == CYCLES_TO_FAILURE){
         //double max_stress_relative_error;
         double min_value = std::numeric_limits<double>::infinity();
         for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
-			if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
-				double max_stress;
-				double s_th;
+            if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
+                double max_stress;
+                double s_th;
                 double aux_values;
                 
-				p_law->GetValue(MAX_STRESS, max_stress);
-				p_law->GetValue(THRESHOLD_STRESS, s_th);
+                p_law->GetValue(MAX_STRESS, max_stress);
+                p_law->GetValue(THRESHOLD_STRESS, s_th);
                 p_law->GetValue(CYCLES_TO_FAILURE, aux_values);          
                 
                 if(max_stress > s_th){
                 min_value = std::min(min_value, aux_values);
-			    }    
-			}
-		}
+                }    
+            }
+        }
         rValue = min_value;
     } else {
         double aux_value;
