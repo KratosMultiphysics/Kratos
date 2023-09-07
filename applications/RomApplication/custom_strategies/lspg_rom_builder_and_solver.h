@@ -410,6 +410,9 @@ protected:
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
         dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
+        KRATOS_WATCH(rEigenRomA)
+        KRATOS_WATCH(rEigenRomB)
+        KRATOS_WATCH(dxrom_eigen)
         KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
         // Save the ROM solution increment in the root modelpart database
@@ -419,6 +422,7 @@ protected:
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
         this->ProjectToFineBasis(dxrom, rModelPart, rDx);
+        KRATOS_WATCH(rDx)
         KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         KRATOS_CATCH("")
