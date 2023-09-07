@@ -395,8 +395,7 @@ double& ParallelRuleOfMixturesLaw<TDim>::GetValue(
             }
         }
     } else if (rThisVariable == CYCLES_TO_FAILURE){
-        //double max_stress_relative_error;
-        double min_value = std::numeric_limits<double>::infinity();
+        double min_value = std::numeric_limits<double>::max();
         for(IndexType i_layer = 0; i_layer < mCombinationFactors.size(); ++i_layer){
             ConstitutiveLaw::Pointer p_law = mConstitutiveLaws[i_layer];
             if (p_law->Has(HIGH_CYCLE_FATIGUE_DAMAGE)) {
@@ -760,7 +759,6 @@ Vector& ParallelRuleOfMixturesLaw<TDim>::CalculateValue(
         // We combine the value of each layer
         rValue.resize(VoigtSize, false);
         rValue.clear();
-        rValue.resize(VoigtSize, false);
         BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
 
         const auto it_prop_begin = r_material_properties.GetSubProperties().begin();
