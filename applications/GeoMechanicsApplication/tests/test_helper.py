@@ -414,92 +414,117 @@ def find_closest_index_greater_than_value(input_list, value):
     return None
 
 
-def read_numerical_results_from_post_res(project_path):
-    """
-    Reads the numerical results from a Kratos "post.res" output file
-    :param project_path: path to the result file
-    :return: Puts the nodal and gauss point results into a dictionary sorted by result name for every time step
+class GiDOutputFileReader:
+    def __init__(self):
+        self._reset_internal_state()
 
-    """
-    output_data = {"GaussPoints": {},
-                   "results": {}}
-    with open(project_path, "r") as result_file:
-        gauss_points_name = None
-        result_name = None
-        result_type = None
-        current_block_name = None
-        result_location = None
-        current_integration_point = 0
-        for line in result_file:
-            line = line.strip()
-            if line.startswith("GaussPoints"):
-                current_block_name = "GaussPoints"
-                words = line.split()
-                gauss_points_name = words[1][1:-1]  # strip off enclosing double quotes
-                output_data["GaussPoints"][gauss_points_name] = {}
-                continue
+    def read_output_from(self, gid_output_file_path):
+        self._reset_internal_state()
 
-            if line == "End GaussPoints":
-                current_block_name = None
-                gauss_points_name = None
-                continue
+        with open(gid_output_file_path, "r") as result_file:
+            for line in result_file:
+                line = line.strip()
+                if line.startswith("GaussPoints"):
+                    self._process_begin_of_gauss_points(line)
+                elif line == "End GaussPoints":
+                    self._process_end_of_gauss_points(line)
+                elif line.startswith("Result"):
+                    self._process_result_header(line)
+                elif line == "Values":
+                    self._process_begin_of_block(line)
+                elif line == "End Values":
+                    self._process_end_of_block(line)
+                elif self.current_block_name == "GaussPoints":
+                    self._process_gauss_point_data(line)
+                elif self.current_block_name == "Values":
+                    self._process_value_data(line)
 
-            if line.startswith("Result"):
-                words = line.split()
-                result_name = words[1][1:-1]  # strip off enclosing double quotes
-                if result_name not in output_data["results"]:
-                    output_data["results"][result_name] = []
-                result_type = words[4]
-                result_location = words[5]
-                this_result = {"time": float(words[3]),
-                               "location": result_location,
-                               "values": []}
-                output_data["results"][result_name].append(this_result)
-                if result_location == "OnGaussPoints":
-                    current_integration_point = 0
-                    gauss_points_name = words[6][1:-1]  # strip off enclosing double quotes
-                continue
+        return self.output_data
 
-            if line == "Values":
-                current_block_name = "Values"
-                continue
+    def _reset_internal_state(self):
+        self.output_data = {}
+        self.current_block_name = None
+        self.result_name = None
+        self.result_type = None
+        self.result_location = None
+        self.gauss_points_name = None
+        self.current_integration_point = 0
 
-            if line == "End Values":
-                current_block_name = None
-                continue
+    def _process_begin_of_gauss_points(self, line):
+        self._process_begin_of_block(line)
+        self.gauss_points_name = self._strip_off_quotes(line.split()[1])
+        if self.current_block_name not in self.output_data:
+            self.output_data[self.current_block_name] = {}
+        self.output_data[self.current_block_name][self.gauss_points_name] = {}
 
-            if current_block_name == "GaussPoints":
-                if line.startswith("Number Of Gauss Points:"):
-                    pos = line.index(":")
-                    num_gauss_points = int(line[pos+1:].strip())
-                    output_data["GaussPoints"][gauss_points_name]["size"] = num_gauss_points
-                continue
+    def _process_end_of_gauss_points(self, line):
+        self._process_end_of_block(line)
+        self.gauss_points_name = None
 
-            if current_block_name == "Values":
-                words = line.split()
+    def _process_result_header(self, line):
+        if "results" not in self.output_data:
+            self.output_data["results"] = {}
+        words = line.split()
+        self.result_name = self._strip_off_quotes(words[1])
+        if self.result_name not in self.output_data["results"]:
+            self.output_data["results"][self.result_name] = []
+        self.result_type = words[4]
+        self.result_location = words[5]
+        this_result = {"time": float(words[3]),
+                       "location": self.result_location,
+                       "values": []}
+        self.output_data["results"][self.result_name].append(this_result)
+        if self.result_location == "OnGaussPoints":
+            self.current_integration_point = 0
+            self.gauss_points_name = self._strip_off_quotes(words[6])
 
-                if result_location == "OnNodes":
-                    value = {"node": int(words[0])}
-                    if result_type == "Scalar":
-                        value["value"] = float(words[1])
-                    elif result_type == "Vector":
-                        value["value"] = [float(x) for x in words[1:]]
+    def _process_gauss_point_data(self, line):
+        if line.startswith("Number Of Gauss Points:"):
+            pos = line.index(":")
+            num_gauss_points = int(line[pos+1:].strip())
+            self.output_data[self.current_block_name][self.gauss_points_name]["size"] = num_gauss_points
 
-                    output_data["results"][result_name][-1]["values"].append(value)
-                elif result_location == "OnGaussPoints":
-                    current_integration_point %= output_data["GaussPoints"][gauss_points_name]["size"]
-                    current_integration_point += 1
-                    if current_integration_point == 1:
-                        value = {"element": int(words[0]),
-                                 "value": []}
-                        output_data["results"][result_name][-1]["values"].append(value)
-                        words.pop(0)
+    def _process_value_data(self, line):
+        words = line.split()
+        if self.result_location == "OnNodes":
+            self._process_nodal_result(words)
+        elif self.result_location == "OnGaussPoints":
+            self._process_gauss_point_result(words)
 
-                    value = output_data["results"][result_name][-1]["values"][-1]["value"]
-                    if result_type == "Scalar":
-                        value.append(float(words[0]))
-                    elif result_type == "Matrix":
-                        value.append([float(v) for v in words])
+    def _process_nodal_result(self, words):
+        value = {"node": int(words[0])}
+        if self.result_type == "Scalar":
+            value["value"] = float(words[1])
+        elif self.result_type == "Vector":
+            value["value"] = [float(x) for x in words[1:]]
+        self.output_data["results"][self.result_name][-1]["values"].append(value)
 
-                continue
-    return output_data
+    def _process_gauss_point_result(self, words):
+        self.current_integration_point %= self.output_data["GaussPoints"][self.gauss_points_name]["size"]
+        self.current_integration_point += 1
+        if self.current_integration_point == 1:
+            value = {"element": int(words[0]),
+                     "value": []}
+            self.output_data["results"][self.result_name][-1]["values"].append(value)
+            words.pop(0)
+
+        value = self.output_data["results"][self.result_name][-1]["values"][-1]["value"]
+        if self.result_type == "Scalar":
+            value.append(float(words[0]))
+        elif self.result_type == "Matrix":
+            value.append([float(x) for x in words])
+
+    def _process_begin_of_block(self, line):
+        assert(self.current_block_name is None)  # nested blocks are not supported
+        self.current_block_name = line.split()[0]
+
+    def _process_end_of_block(self, line):
+        words = line.split()
+        assert(words[0] == "End")
+        assert(self.current_block_name == words[1])
+        self.current_block_name = None
+
+    def _strip_off_quotes(self, quoted_string):
+        assert(quoted_string[0] == '"')
+        assert(quoted_string[-1] == '"')
+        return quoted_string[1:-1]
