@@ -31,8 +31,8 @@ public:
                                            const Kratos::Variable<double>& rVariable,
                                            double                          DoubleValue,
                                            std::size_t                     MeshId,
-                                           const Flags                     Options)
-        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, Options)
+                                           const Flags&                    rOptions)
+        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, rOptions)
     {}
 
     bool hasWaterPressure()
@@ -49,9 +49,9 @@ public:
 class GeoFlowApplyConstantHydrostaticPressureProcess : public Kratos::ApplyConstantHydrostaticPressureProcess
 {
 public:
-    GeoFlowApplyConstantHydrostaticPressureProcess(Kratos::ModelPart& rModelPart,
-                                                   Kratos::Parameters Settings)
-        : Kratos::ApplyConstantHydrostaticPressureProcess(rModelPart, Settings)
+    GeoFlowApplyConstantHydrostaticPressureProcess(Kratos::ModelPart&        rModelPart,
+                                                   const Kratos::Parameters& rSettings)
+        : Kratos::ApplyConstantHydrostaticPressureProcess(rModelPart, rSettings)
     {}
 
     Kratos::ModelPart &GetModelPart()

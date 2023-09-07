@@ -194,8 +194,8 @@ class KratosGeoMechanicsChangingWaterLevelTests(KratosUnittest.TestCase):
         # run simulation
         simulation = test_helper.run_kratos(file_path)
         # read results
-        result_file_path = os.path.join(file_path, "test_phreatic.post.res")
-        simulation_output = test_helper.read_numerical_results_from_post_res(result_file_path)
+        reader = test_helper.GiDOutputFileReader()
+        simulation_output = reader.read_output_from(os.path.join(file_path, "test_phreatic.post.res"))
         # compare results
         self.parameters()
         self.compare_effective_stresses(simulation_output, simulation)
