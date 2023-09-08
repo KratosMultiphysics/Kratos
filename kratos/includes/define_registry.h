@@ -82,24 +82,6 @@ namespace Kratos::_Registry
  * the dispatcher function directly inside the std::move would break current code as the compiler will deduce the type
  * of the lambda function to something that is not an std::function.
  */
-// #define KRATOS_REGISTRY_ADD_PROTOTYPE(NAME, X)                                            \
-//     static inline bool KRATOS_REGISTRY_NAME(_is_registered_, __LINE__) = []() -> bool {   \
-//         using TType = X;                                                                  \
-//         using TBase = decltype(base_of(&X::__kratos_registry_base));                      \
-//         using TFunctionType = std::function<std::shared_ptr<TType>()>;                    \
-//         using TFunctionBase = std::function<std::shared_ptr<TBase>()>;                    \
-//         std::string key_name = NAME + std::string(".") + std::string(#X);                 \
-//         if (!Registry::HasItem(key_name))                                                 \
-//         {                                                                                 \
-//             auto &r_item = Registry::AddItem<RegistryItem>(key_name);                     \
-//             TFunctionType pdispatcher = [](){return std::make_shared<TType>();};          \
-//             TFunctionBase bdispatcher = [](){return std::make_shared<TBase>();};          \
-//             r_item.AddItem<TFunctionType>("Prototype", std::move(pdispatcher));           \
-//             r_item.AddItem<TFunctionType>("Base",      std::move(bdispatcher));           \
-//         }                                                                                 \
-//         return Registry::HasItem(key_name);                                               \
-//     }();
-
 #define KRATOS_REGISTRY_ADD_PROTOTYPE(NAME, X)                                              \
     static inline bool KRATOS_REGISTRY_NAME(_is_registered_, __LINE__) = []() -> bool {     \
         std::string key_name = NAME + std::string(".") + std::string(#X);                   \
