@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <string>
+#include <filesystem>
 #include <functional>
 
 #include "includes/kernel.h"
@@ -29,8 +29,8 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 public:
     KratosGeoSettlement();
 
-    int RunStage(const std::string&                      rWorkingDirectory,
-                 const std::string&                      rProjectParametersFileName,
+    int RunStage(const std::filesystem::path&            rWorkingDirectory,
+                 const std::filesystem::path&            rProjectParametersFile,
                  const std::function<void(const char*)>& rLogCallback,
                  const std::function<void(double)>&      rReportProgress,
                  const std::function<void(const char*)>& rReportTextualProgress,
