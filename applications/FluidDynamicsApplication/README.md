@@ -21,6 +21,9 @@ The Fluid Dynamics Application contains the core developments in Computational F
 
 
 ### Weakly-compressible flow
+Similar to the described above incompressible solver, the application also includes a **VMS stabilized weakly compressible Navier-Stokes** formulation.
+This solver modifies the mass conservation equation to add a slight compressibility which relates the pressure to the volume variation thanks to the inclusion of a pressure-density equation of state.
+The energy equation remains uncoupled so thermal effects are assummed to be negligible.
 
 ### Compressible flow
 #### Features
