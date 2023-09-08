@@ -1,5 +1,7 @@
 ## Fluid Dynamics Application
-The Fluid Dynamics Application contains the core developments in Computational Fluid Dynamics (CFD) within Kratos Multiphysics.
+| Left columns  | Description | Status | Authors
+| ------------- | ------------| :----: | -------
+| `FluidDynamicsApplication` | The Fluid Dynamics Application contains the core developments in Computational Fluid Dynamics (CFD) within Kratos Multiphysics. | <img src="https://img.shields.io/badge/Status-%F0%9F%94%A7Maintained-blue"  width="300px"> | Rubén Zorrilla (rzorrilla@cimne.upc.edu) <br /> Riccardo Rossi (rrossi@cimne.upc.edu) <br /> Jordi Cotela (jcotela@altair.com)
 
 ### 1. General features:
 - Stabilized FEM solvers for incompressible, weakly-compressible and compressible flow problems.
