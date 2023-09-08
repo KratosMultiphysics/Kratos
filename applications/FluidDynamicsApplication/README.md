@@ -1,12 +1,12 @@
 ## Fluid Dynamics Application
 The Fluid Dynamics Application contains the core developments in Computational Fluid Dynamics (CFD) within Kratos Multiphysics.
 
-### General features:
+### 1. General features:
 - Stabilized FEM solvers for incompressible, weakly-compressible and compressible flow problems.
 - Support for MPI parallelization (with _MetisApplication_ and _TrilinosApplication_).
 - Arbitrary Lagrangian-Eulerian (ALE) formulation allows for mesh deformation during the simulation (see _MeshMovingApplication_).
 
-### Incompressible flow
+### 2. Incompressible flows
 #### Features
 The simulation of viscous incompressible flows is the main capability of this application.
 The application includes a variety of stabilized 2D/3D **Navier-Stokes** and **Stokes** solvers.
@@ -21,13 +21,13 @@ The application also includes two different solution strategies. First one is th
 #### Examples
 - [Body-fitted 100 Re cylinder](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/body_fitted_cylinder_100Re/README.md)
 
-### Weakly-compressible flow
+### 3. Weakly-compressible flows
 #### Features
 Similar to the described above incompressible solver, the application also includes a **VMS stabilized weakly compressible Navier-Stokes** formulation.
 This solver modifies the mass conservation equation to add a slight compressibility which relates the pressure to the volume variation thanks to the inclusion of a pressure-density equation of state.
 The energy equation remains uncoupled so thermal effects are assummed to be negligible.
 
-### Compressible flow
+### 4. Compressible flows
 #### Features
 The application includes a 2D/3D explicit compressible solver implementing a **VMS and OSS stabilized full Navier-Stokes formulations** written in **conservative variables** (momentum, density and total energy).
 
@@ -52,7 +52,7 @@ By doing so, the potential solution can be used as initial condition to ease and
 - [Supersonic flow in Woodward and Colella's Mach 3 step](https://github.com/KratosMultiphysics/Examples/tree/master/fluid_dynamics/validation/compressible_step_woodward_colella/README.md)
 - [Supersonic flow over a wedge](https://github.com/KratosMultiphysics/Examples/tree/master/fluid_dynamics/validation/compressible_Wedge/README.md)
 
-### Unfitted mesh methods
+### 5. Unfitted mesh methods
 #### Features
 The embedded solver allows the resolution of problems with **unffitted boundaries**, including flows around volumetric and volumeless (i.e. shell-like) bodies.
 Starting from a distance field, either analytical or obtained with any of the levelset algorithms in _KratosCore_, the embedded solver uses a **Cut-FEM** approach to solve the problem. Nevertheless, current research on this topic include the development of **Shifted Boundary Method (SBM)** solvers.
@@ -62,7 +62,7 @@ The unfitted solvers can be used in combination with all the formulations descri
 #### Examples
 - [Embedded moving cylinder](https://github.com/KratosMultiphysics/Examples/tree/master/fluid_dynamics/validation/embedded_moving_cylinder/README.md)
 
-### Two-phase flow
+### 6. Two-phase flows
 #### Features
 The _FluidDynamicsApplication_ includes a solver for the resolution of **biphasic (Newtonian-air) viscous incompressible flows**.
 This solver uses a **levelset based approach** which combines the **implicit** fluid solver with a convection and redistancing ones (see the _KratosCore_ for more information about these).
@@ -73,10 +73,10 @@ Besides, the solver is also equipped with a strategy to revert the mass losses i
 - [Two-fluids dam break scenario](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/two_fluid_dam_break/README.md)
 - [Two-fluids wave propagation](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/two_fluid_wave/README.md)
 
-### Multiscale modelling
+### 7. Multiscale modelling
 The application also includes limited support for the multiscale modelling following the **Representative Volume Element (RVE)** approach.
 
-### Multiphysics
+### 8. Multiphysics problems
 #### Features
 The _FluidDynamicsApplication_ can be coupled with other applications to solve multiphysics problems such as **Fluid-Structure Interaction (FSI)** (see _FSIApplication_) or **thermally-coupled** flows (buoyancy and Conjugate Heat Transfer (CHT)) (see _ConvectionDiffusionApplication_).
 
