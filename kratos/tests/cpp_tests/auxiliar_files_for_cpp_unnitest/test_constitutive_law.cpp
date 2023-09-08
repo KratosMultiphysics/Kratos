@@ -4,7 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Alejandro Cornejo
 //
@@ -15,7 +16,7 @@
 
 // Project includes
 #include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_constitutive_law.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 
 
 namespace Kratos

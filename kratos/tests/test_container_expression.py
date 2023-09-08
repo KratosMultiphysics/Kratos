@@ -520,6 +520,16 @@ class TestContainerExpression(ABC):
             new_matrix[1, 2] = original_value[5]
             self.assertMatrixAlmostEqual(self._GetValue(entity, Kratos.PK2_STRESS_TENSOR), new_matrix * 2, 12)
 
+    def test_CornerCaseReshape(self) -> None:
+        # Reshape a single scalar expression to itself
+        input_expression = self._GetContainerExpression()
+        self._Read(input_expression, Kratos.PRESSURE)
+        combed = input_expression.Reshape([])
+        array = Kratos.Vector(input_expression.GetExpression().NumberOfEntities() * input_expression.GetItemComponentCount())
+        Kratos.Expression.CArrayExpressionIO.Write(combed, array)
+        for i_entity, entity in enumerate(combed.GetContainer()):
+            self.assertAlmostEqual(array[i_entity], self._GetValue(entity, Kratos.PRESSURE), 12)
+
     def test_Comb(self):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.PRESSURE)
@@ -555,6 +565,16 @@ class TestContainerExpression(ABC):
             new_vector[4] = original_p
             self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.PENALTY), new_vector * 2, 12)
 
+    def test_CornerCaseComb(self) -> None:
+        # Comb from a single scalar expression
+        input_expression = self._GetContainerExpression()
+        self._Read(input_expression, Kratos.PRESSURE)
+        combed = input_expression.Comb([])
+        array = Kratos.Vector(input_expression.GetExpression().NumberOfEntities() * input_expression.GetItemComponentCount())
+        Kratos.Expression.CArrayExpressionIO.Write(combed, array)
+        for i_entity, entity in enumerate(combed.GetContainer()):
+            self.assertAlmostEqual(array[i_entity], self._GetValue(entity, Kratos.PRESSURE), 12)
+
     def test_SliceCombReshape(self):
         a = self._GetContainerExpression()
         self._Read(a, Kratos.INITIAL_STRAIN)
@@ -579,6 +599,71 @@ class TestContainerExpression(ABC):
     def test_GetContainer(self):
         a = self._GetContainerExpression()
         self.assertEqual(self._GetContainer(), a.GetContainer())
+
+    def test_EmptyContainer(self):
+        model_part = self.model.CreateModelPart("empty_model_part")
+        a = type(self._GetContainerExpression())(model_part)
+        self._Read(a, Kratos.VELOCITY)
+
+        a *= 3
+        self._Evaluate(a, Kratos.ACCELERATION)
+        self.assertEqual(a.Evaluate().shape, (0, ))
+
+    def test_VectorRead(self):
+        a = self._GetContainerExpression()
+
+        total_size = len(a.GetContainer()) * 3
+        vector = Kratos.Vector(total_size)
+        for i, entity in enumerate(a.GetContainer()):
+            velocity = self._GetValue(entity, Kratos.VELOCITY)
+            vector[i * 3] = velocity[0]
+            vector[i * 3 + 1] = velocity[1]
+            vector[i * 3 + 2] = velocity[2]
+
+        Kratos.Expression.CArrayExpressionIO.Read(a, vector, [3])
+        a *= 4.3
+        self._Evaluate(a, Kratos.ACCELERATION)
+
+        for entity in a.GetContainer():
+            self.assertVectorAlmostEqual(self._GetValue(entity, Kratos.VELOCITY) * 4.3, self._GetValue(entity, Kratos.ACCELERATION))
+
+    def test_VectorMove(self):
+        a = self._GetContainerExpression()
+
+        total_size = len(a.GetContainer()) * 3
+        vector = Kratos.Vector(total_size)
+        for i, entity in enumerate(a.GetContainer()):
+            velocity = self._GetValue(entity, Kratos.VELOCITY)
+            vector[i * 3] = velocity[0]
+            vector[i * 3 + 1] = velocity[1]
+            vector[i * 3 + 2] = velocity[2]
+
+        Kratos.Expression.CArrayExpressionIO.Move(a, vector, [3])
+        a *= 4.3
+        self._Evaluate(a, Kratos.ACCELERATION)
+
+        for i, entity in enumerate(a.GetContainer()):
+            velocity = Kratos.Array3([vector[i * 3], vector[i * 3 + 1], vector[i * 3 + 2]])
+            self.assertVectorAlmostEqual(velocity * 4.3, self._GetValue(entity, Kratos.ACCELERATION))
+
+        for i in range(total_size):
+            vector[i] *= 2
+
+        self._Evaluate(a, Kratos.ACCELERATION)
+        for i, entity in enumerate(a.GetContainer()):
+            velocity = Kratos.Array3([vector[i * 3], vector[i * 3 + 1], vector[i * 3 + 2]])
+            self.assertVectorAlmostEqual(velocity * 4.3, self._GetValue(entity, Kratos.ACCELERATION))
+
+    def test_VectorWrite(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.VELOCITY)
+
+        vector = Kratos.Vector()
+        Kratos.Expression.CArrayExpressionIO.Write(a, vector)
+
+        for i, entity in enumerate(a.GetContainer()):
+            velocity = Kratos.Array3([vector[i * 3], vector[i * 3 + 1], vector[i * 3 + 2]])
+            self.assertVectorAlmostEqual(velocity, self._GetValue(entity, Kratos.VELOCITY))
 
     @abstractmethod
     def _GetContainerExpression(self) -> Union[Kratos.Expression.NodalExpression, Kratos.Expression.ElementExpression, Kratos.Expression.ConditionExpression]:
@@ -650,8 +735,6 @@ class TestNodalContainerExpression(kratos_unittest.TestCase, TestContainerExpres
     def _Evaluate(self, container_expression, variable):
         Kratos.Expression.VariableExpressionIO.Write(container_expression, variable, False)
 
-#This test does not work when using more than 7 cores, because then some partitions do not have conditions
-@kratos_unittest.skipIf( Kratos.Testing.GetDefaultDataCommunicator().Size() > 7, "This test does not work for more than 7 cores.")
 class TestConditionContainerExpression(kratos_unittest.TestCase, TestContainerExpression):
     @classmethod
     def setUpClass(cls):
@@ -680,9 +763,6 @@ class TestElementContainerExpression(kratos_unittest.TestCase, TestContainerExpr
     def setUpClass(cls):
         cls.CreateEntities()
 
-    def _GetSpecializedContainerExpression(self):
-        return Kratos.Expression.ElementExpression(self.model_part)
-
     def _GetContainerExpression(self):
         return Kratos.Expression.ElementExpression(self.model_part)
 
@@ -700,6 +780,66 @@ class TestElementContainerExpression(kratos_unittest.TestCase, TestContainerExpr
 
     def _Evaluate(self, container_expression, variable):
         Kratos.Expression.VariableExpressionIO.Write(container_expression, variable)
+
+class TestNodalPositionExpressionIO(kratos_unittest.TestCase):
+    @classmethod
+    def setUpClass(cls) -> None:
+        cls.model = Kratos.Model()
+        cls.model_part = cls.model.CreateModelPart("test")
+
+        with kratos_unittest.WorkFolderScope(".", __file__, True):
+            ReadModelPart("auxiliar_files_for_python_unittest/mdpa_files/two_dim_symmetrical_square", cls.model_part)
+
+        for node in cls.model_part.Nodes:
+            node.SetValue(Kratos.VELOCITY, Kratos.Array3([node.Id, node.Id + 1, node.Id + 2]))
+
+    def test_WriteInitial(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(a, Kratos.VELOCITY, False)
+
+        a *= 3
+
+        Kratos.Expression.NodalPositionExpressionIO.Write(a, Kratos.Configuration.Initial)
+
+        node: Kratos.Node
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(Kratos.Array3([node.X0, node.Y0, node.Z0]), node.GetValue(Kratos.VELOCITY) * 3)
+
+    def test_WriteCurrent(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.VariableExpressionIO.Read(a, Kratos.VELOCITY, False)
+
+        a *= 4
+
+        Kratos.Expression.NodalPositionExpressionIO.Write(a, Kratos.Configuration.Current)
+
+        node: Kratos.Node
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(Kratos.Array3([node.X, node.Y, node.Z]), node.GetValue(Kratos.VELOCITY) * 4)
+
+    def test_ReadInitial(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.NodalPositionExpressionIO.Read(a, Kratos.Configuration.Initial)
+
+        a *= 5
+        Kratos.Expression.VariableExpressionIO.Write(a, Kratos.VELOCITY, False)
+
+
+        node: Kratos.Node
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(Kratos.Array3([node.X0, node.Y0, node.Z0]) * 5, node.GetValue(Kratos.VELOCITY))
+
+    def test_ReadCurrent(self):
+        a = Kratos.Expression.NodalExpression(self.model_part)
+        Kratos.Expression.NodalPositionExpressionIO.Read(a, Kratos.Configuration.Current)
+
+        a *= 6
+        Kratos.Expression.VariableExpressionIO.Write(a, Kratos.VELOCITY, False)
+
+        node: Kratos.Node
+        for node in self.model_part.Nodes:
+            self.assertVectorAlmostEqual(Kratos.Array3([node.X0, node.Y0, node.Z0]) * 6, node.GetValue(Kratos.VELOCITY))
+
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

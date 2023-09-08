@@ -19,9 +19,9 @@
 #include "spaces/ublas_space.h"
 #include "spatial_containers/spatial_containers.h"
 #include "expression/container_expression.h"
+#include "collective_expression.h"
 
 // Application includes
-#include "custom_utilities/collective_expressions.h"
 
 namespace Kratos
 {
@@ -74,7 +74,7 @@ public:
      * @param rContainer                Collective expressions.
      * @return double                   Infinity norm.
      */
-    static double NormInf(const CollectiveExpressions& rContainer);
+    static double NormInf(const CollectiveExpression& rContainer);
 
     /**
      * @brief Calculate L2 norm of the evaluated expression for each entitiy.
@@ -105,7 +105,7 @@ public:
      * @param rContainer                Collective expressions.
      * @return double                   L2 norm
      */
-    static double NormL2(const CollectiveExpressions& rContainer);
+    static double NormL2(const CollectiveExpression& rContainer);
 
     /**
      * @brief Calculate max L2 norm of the evaluated expression for each entitiy.
@@ -153,8 +153,8 @@ public:
      * @return double                   Output of the inner product.
      */
     static double InnerProduct(
-        const CollectiveExpressions& rContainer1,
-        const CollectiveExpressions& rContainer2);
+        const CollectiveExpression& rContainer1,
+        const CollectiveExpression& rContainer2);
 
     /**
      * @brief Calculates matrix vector product for container variable data

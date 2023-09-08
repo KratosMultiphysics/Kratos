@@ -138,9 +138,9 @@ namespace Kratos
             prism_neighbours_process.Execute();
 
             auto pneigh = (this_model_part.Elements().begin())->GetValue(NEIGHBOUR_NODES);
-            KRATOS_CHECK_EQUAL(pneigh[0].Id(), 7);
-            KRATOS_CHECK_EQUAL(pneigh[1].Id(), 9);
-            KRATOS_CHECK_EQUAL(pneigh[2].Id(), 8);
+            KRATOS_EXPECT_EQ(pneigh[0].Id(), 7);
+            KRATOS_EXPECT_EQ(pneigh[1].Id(), 9);
+            KRATOS_EXPECT_EQ(pneigh[2].Id(), 8);
         }
 
         /**
@@ -159,9 +159,9 @@ namespace Kratos
             prism_neighbours_process.Execute();
 
             auto pneigh = (this_model_part.Elements().begin())->GetValue(NEIGHBOUR_NODES);
-            KRATOS_CHECK_EQUAL(pneigh[0].Id(), 7);
-            KRATOS_CHECK_EQUAL(pneigh[1].Id(), 2);
-            KRATOS_CHECK_EQUAL(pneigh[2].Id(), 8);
+            KRATOS_EXPECT_EQ(pneigh[0].Id(), 7);
+            KRATOS_EXPECT_EQ(pneigh[1].Id(), 2);
+            KRATOS_EXPECT_EQ(pneigh[2].Id(), 8);
         }
 
         /**
@@ -180,9 +180,9 @@ namespace Kratos
             prism_neighbours_process.Execute();
 
             auto pneigh = (this_model_part.Elements().begin())->GetValue(NEIGHBOUR_NODES);
-            KRATOS_CHECK_EQUAL(pneigh[0].Id(), 7);
-            KRATOS_CHECK_EQUAL(pneigh[1].Id(), 2);
-            KRATOS_CHECK_EQUAL(pneigh[2].Id(), 3);
+            KRATOS_EXPECT_EQ(pneigh[0].Id(), 7);
+            KRATOS_EXPECT_EQ(pneigh[1].Id(), 2);
+            KRATOS_EXPECT_EQ(pneigh[2].Id(), 3);
         }
 
         /**
@@ -201,9 +201,9 @@ namespace Kratos
             prism_neighbours_process.Execute();
 
             auto pneigh = (this_model_part.Elements().begin())->GetValue(NEIGHBOUR_NODES);
-            KRATOS_CHECK_EQUAL(pneigh[0].Id(), 1);
-            KRATOS_CHECK_EQUAL(pneigh[1].Id(), 2);
-            KRATOS_CHECK_EQUAL(pneigh[2].Id(), 3);
+            KRATOS_EXPECT_EQ(pneigh[0].Id(), 1);
+            KRATOS_EXPECT_EQ(pneigh[1].Id(), 2);
+            KRATOS_EXPECT_EQ(pneigh[2].Id(), 3);
         }
 
     } // namespace Testing

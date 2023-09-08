@@ -18,17 +18,17 @@
 
 // Project includes
 #include "add_expression_io_to_python.h"
-#include "includes/define_python.h"
+#include "expression/arithmetic_operators.h"
+#include "expression/c_array_expression_io.h"
 #include "expression/expression.h"
 #include "expression/expression_io.h"
-#include "expression/variable_expression_io.h"
-#include "expression/c_array_expression_io.h"
-#include "expression/literal_expression_input.h"
 #include "expression/literal_expression.h"
+#include "expression/literal_expression_input.h"
 #include "expression/literal_flat_expression.h"
-#include "expression/arithmetic_operators.h"
+#include "expression/nodal_position_expression_io.h"
+#include "expression/variable_expression_io.h"
 #include "expression/view_operators.h"
-
+#include "includes/define_python.h"
 
 namespace Kratos::Python {
 
@@ -171,6 +171,12 @@ void AddCArrayExpressionIOMethods(pybind11::module& rModule)
         },
         pybind11::arg(expression_name.c_str()),
         pybind11::arg("target_array").noconvert());
+
+    if constexpr(std::is_same_v<TRawDataType, double>) {
+        rModule.def("Read", &CArrayExpressionIO::Read<TContainerType, MeshType::Local>, pybind11::arg(expression_name.c_str()), pybind11::arg("kratos_vector").noconvert(), pybind11::arg("component_shape"));
+        rModule.def("Move", &CArrayExpressionIO::Move<TContainerType, MeshType::Local>, pybind11::arg(expression_name.c_str()), pybind11::arg("kratos_vector").noconvert(), pybind11::arg("component_shape"));
+        rModule.def("Write", &CArrayExpressionIO::Write<TContainerType, MeshType::Local>, pybind11::arg(expression_name.c_str()), pybind11::arg("kratos_vector").noconvert());
+    }
 }
 
 
@@ -356,6 +362,17 @@ void AddExpressionIOToPython(pybind11::module& rModule)
              pybind11::arg("variable"),
              pybind11::arg("container_type"))
         ;
+
+    auto nodal_expression_io = rModule.def_submodule("NodalPositionExpressionIO");
+    pybind11::class_<NodalPositionExpressionIO::NodalPositionExpressionInput, NodalPositionExpressionIO::NodalPositionExpressionInput::Pointer, ExpressionInput>(
+        nodal_expression_io, "Input")
+        .def(pybind11::init<const ModelPart&,
+                            const NodalPositionExpressionIO::Configuration&>(),
+             pybind11::arg("model_part"),
+             pybind11::arg("configuration"))
+        ;
+    nodal_expression_io.def("Read", &NodalPositionExpressionIO::Read<MeshType::Local>, pybind11::arg("nodal_expression"), pybind11::arg("configuration"));
+    nodal_expression_io.def("Write", &NodalPositionExpressionIO::Write<MeshType::Local>, pybind11::arg("nodal_expression"), pybind11::arg("configuration"));
 }
 
 

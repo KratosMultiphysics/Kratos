@@ -11,7 +11,7 @@ import KratosMultiphysics.GeoMechanicsApplication.geomechanics_analysis as analy
 
 def get_file_path(fileName):
     import os
-    return os.path.dirname(__file__) + "/" + fileName
+    return os.path.join(os.path.dirname(__file__), fileName)
 
 
 def run_kratos(file_path, model=None):
@@ -20,7 +20,7 @@ def run_kratos(file_path, model=None):
     :param file_path:
     :return:
     """
-    currentWorking = os.getcwd()
+    cwd = os.getcwd()
 
     parameter_file_name = os.path.join(file_path, 'ProjectParameters.json')
     os.chdir(file_path)
@@ -33,7 +33,7 @@ def run_kratos(file_path, model=None):
     simulation = analysis.GeoMechanicsAnalysis(model, parameters)
     simulation.Run()
 
-    os.chdir(currentWorking)
+    os.chdir(cwd)
     return simulation
 
 def run_stages(project_path,n_stages):
@@ -44,10 +44,10 @@ def run_stages(project_path,n_stages):
     :param n_stages:
     :return:
     """
-    currentWorking = os.getcwd()
+    cwd = os.getcwd()
     stages = get_stages(project_path,n_stages)
     [stage.Run() for stage in stages]
-    os.chdir(currentWorking)
+    os.chdir(cwd)
     return stages
 
 def get_stages(project_path,n_stages):
@@ -422,3 +422,94 @@ def find_closest_index_greater_than_value(input_list, value):
         if value < list_value:
             return index
     return None
+
+
+def read_numerical_results_from_post_res(project_path):
+    """
+    Reads the numerical results from a Kratos "post.res" output file
+    :param project_path: path to the result file
+    :return: Puts the nodal and gauss point results into a dictionary sorted by result name for every time step
+
+    """
+    output_data = {"GaussPoints": {},
+                   "results": {}}
+    with open(project_path, "r") as result_file:
+        gauss_points_name = None
+        result_name = None
+        result_type = None
+        current_block_name = None
+        result_location = None
+        current_integration_point = 0
+        for line in result_file:
+            line = line.strip()
+            if line.startswith("GaussPoints"):
+                current_block_name = "GaussPoints"
+                words = line.split()
+                gauss_points_name = words[1][1:-1]  # strip off enclosing double quotes
+                output_data["GaussPoints"][gauss_points_name] = {}
+                continue
+
+            if line == "End GaussPoints":
+                current_block_name = None
+                gauss_points_name = None
+                continue
+
+            if line.startswith("Result"):
+                words = line.split()
+                result_name = words[1][1:-1]  # strip off enclosing double quotes
+                if result_name not in output_data["results"]:
+                    output_data["results"][result_name] = []
+                result_type = words[4]
+                result_location = words[5]
+                this_result = {"time": float(words[3]),
+                               "location": result_location,
+                               "values": []}
+                output_data["results"][result_name].append(this_result)
+                if result_location == "OnGaussPoints":
+                    current_integration_point = 0
+                    gauss_points_name = words[6][1:-1]  # strip off enclosing double quotes
+                continue
+
+            if line == "Values":
+                current_block_name = "Values"
+                continue
+
+            if line == "End Values":
+                current_block_name = None
+                continue
+
+            if current_block_name == "GaussPoints":
+                if line.startswith("Number Of Gauss Points:"):
+                    pos = line.index(":")
+                    num_gauss_points = int(line[pos+1:].strip())
+                    output_data["GaussPoints"][gauss_points_name]["size"] = num_gauss_points
+                continue
+
+            if current_block_name == "Values":
+                words = line.split()
+
+                if result_location == "OnNodes":
+                    value = {"node": int(words[0])}
+                    if result_type == "Scalar":
+                        value["value"] = float(words[1])
+                    elif result_type == "Vector":
+                        value["value"] = [float(x) for x in words[1:]]
+
+                    output_data["results"][result_name][-1]["values"].append(value)
+                elif result_location == "OnGaussPoints":
+                    current_integration_point %= output_data["GaussPoints"][gauss_points_name]["size"]
+                    current_integration_point += 1
+                    if current_integration_point == 1:
+                        value = {"element": int(words[0]),
+                                 "value": []}
+                        output_data["results"][result_name][-1]["values"].append(value)
+                        words.pop(0)
+
+                    value = output_data["results"][result_name][-1]["values"][-1]["value"]
+                    if result_type == "Scalar":
+                        value.append(float(words[0]))
+                    elif result_type == "Matrix":
+                        value.append([float(v) for v in words])
+
+                continue
+    return output_data

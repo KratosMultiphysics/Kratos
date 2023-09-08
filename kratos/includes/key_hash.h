@@ -446,3 +446,35 @@ namespace Kratos
 ///@{
 
 } // namespace Kratos.
+
+/**
+ * @brief This defines the missing hashs for the std namespace
+*/
+namespace std 
+{
+    /**
+     * @brief This is a hasher for pairs
+     * @details Used for example for edges ids
+     * @tparam T1 The first type of the pair
+     * @tparam T2 The second type of the pair
+     * @note This is needed to use pairs as keys in unordered maps
+     */
+    template<typename T1, typename T2>
+    struct hash<std::pair<T1, T2>> 
+    {
+        /**
+         * @brief Calculates the hash value of a given pair of values in a way that combines the hash values of the individual elements
+         * @param p the pair of values to be hashed.
+         * @return the resulting hash value.
+         */
+        size_t operator()(const std::pair<T1, T2>& p) const 
+        {
+            size_t seed = 0;
+            const size_t h1 = std::hash<T1>()(p.first);
+            const size_t h2 = std::hash<T2>()(p.second);
+            Kratos::HashCombine(seed, h1);
+            Kratos::HashCombine(seed, h2);
+            return seed;
+        }
+    };
+} // namespace std.

@@ -21,31 +21,8 @@
 namespace Kratos
 {
 
-template<>
-void PointObject<Node>::UpdatePoint()
-{
-    noalias(this->Coordinates()) = mpObject->Coordinates();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void PointObject<Condition>::UpdatePoint()
-{
-    noalias(this->Coordinates()) = mpObject->GetGeometry().Center().Coordinates();
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<>
-void PointObject<Element>::UpdatePoint()
-{
-    noalias(this->Coordinates()) = mpObject->GetGeometry().Center().Coordinates();
-}
-
 template class PointObject<Node>;
+template class PointObject<GeometricalObject>;
 template class PointObject<Condition>;
 template class PointObject<Element>;
 
