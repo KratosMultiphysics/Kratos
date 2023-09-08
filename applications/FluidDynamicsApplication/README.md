@@ -5,6 +5,10 @@ The Fluid Dynamics Application contains the core developments in Computational F
 - Stabilized FEM solvers for incompressible, weakly-compressible and compressible flow problems.
 - Support for MPI parallelization (with _MetisApplication_ and _TrilinosApplication_).
 - Arbitrary Lagrangian-Eulerian (ALE) formulation allows for mesh deformation during the simulation (see _MeshMovingApplication_).
+- Compatible with meshes made up with linear elements.
+
+![Barcelona model scalability.](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/use_cases/barcelona_wind/resources/Scalability.png)
+_Wind flow over Barcelona scalability test. More info [here](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/use_cases/barcelona_wind/README.md)._
 
 ### 2. Incompressible flows
 #### Features
@@ -44,6 +48,13 @@ Two different **shock capturing** techniques are provided
 This solver can be combined in a multistage fashion with the ones in the [_CompressiblePotentialFlowApplication_](https://github.com/KratosMultiphysics/Kratos/tree/master/applications/CompressiblePotentialFlowApplication).
 By doing so, the potential solution can be used as initial condition to ease and accelerate the convergence of the full Navier-Stokes simulation.
 
+As a final note, we shall remark that at current date this solver only supports shared memory parallelism (OpenMP).
+
+<p align="center">
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/compressible_step_woodward_colella/data/step_woodward.gif" alt="Woodward and Colella's Mach 3 step density field." style="width: 600px;"/>
+</p>
+_Woodward and Colella's Mach 3 step density field._
+
 #### Examples
 - [Transonic flow around a NACA0012 profile](https://github.com/KratosMultiphysics/Examples/tree/master/fluid_dynamics/validation/compressible_naca_0012_Ma_0.8/README.md)
 - [Multistage transonic flow around a NACA0012 profile](https://github.com/KratosMultiphysics/Examples/tree/master/fluid_dynamics/validation/multistage_compressible_naca_0012_Ma_0.8/README.md)
@@ -55,9 +66,16 @@ By doing so, the potential solution can be used as initial condition to ease and
 ### 5. Unfitted mesh methods
 #### Features
 The embedded solver allows the resolution of problems with **unffitted boundaries**, including flows around volumetric and volumeless (i.e. shell-like) bodies.
-Starting from a distance field, either analytical or obtained with any of the levelset algorithms in _KratosCore_, the embedded solver uses a **Cut-FEM** approach to solve the problem. Nevertheless, current research on this topic include the development of **Shifted Boundary Method (SBM)** solvers.
-This makes possible to efficiently solve flows around non-watertight or poorly defined geometries (e.g. STL) as well as cases involving arbitrary large boundary displacements and rotations.
-The unfitted solvers can be used in combination with all the formulations described in the incompressible flow section.
+Starting from a distance field, either analytical or obtained with any of the levelset algorithms in _KratosCore_, the embedded solver uses a **Cut-FEM** approach to solve the problem.
+This approach only supports simplicial meshes. (linear triangle and tetrahedron).
+This solver, which can be used in combination with all the formulations described in the incompressible flow section, makes possible to efficiently solve flows around non-watertight or poorly defined geometries (e.g. STL) as well as cases involving arbitrary large boundary displacements and rotations.
+
+Current research on this topic include the development of **Shifted Boundary Method (SBM)** solvers.
+
+<p align="center">
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/embedded_moving_cylinder/data/embedded_moving_cylinder_p.gif" alt="Embedded moving cylinder velocity field [m/s]." style="width: 600px;"/>
+</p>
+_Embedded moving cylinder example velocity field._
 
 #### Examples
 - [Embedded moving cylinder](https://github.com/KratosMultiphysics/Examples/tree/master/fluid_dynamics/validation/embedded_moving_cylinder/README.md)
