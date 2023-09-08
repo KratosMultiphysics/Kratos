@@ -63,10 +63,12 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     reader.ReadModelPart(model_part);
     KRATOS_INFO("KratosGeoSettlement") << "Read the mesh data from " << mesh_file_path << std::endl;
 
-    const auto material_file_name = project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
-    const auto material_file_path = rWorkingDirectory / material_file_name;
-    InputUtilities::AddMaterialsFrom(material_file_path.generic_string(), mModel);
-    KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
+    if (project_parameters["solver_settings"].Has("material_import_settings")) {
+        const auto material_file_name = project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
+        const auto material_file_path = rWorkingDirectory / material_file_name;
+        InputUtilities::AddMaterialsFrom(material_file_path.generic_string(), mModel);
+        KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
+    }
 
     return 0;
 }
