@@ -44,24 +44,12 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     const auto project_parameters = InputUtilities::ProjectParametersFrom(project_parameters_file_path.generic_string());
     KRATOS_INFO("KratosGeoSettlement") << "Parsed project parameters file " << project_parameters_file_path << std::endl;
 
-    const auto model_part_name = project_parameters["solver_settings"]["model_part_name"].GetString();
-    ModelPart& model_part = mModel.CreateModelPart(model_part_name);
-    model_part.SetBufferSize(2);
-    KRATOS_INFO("KratosGeoSettlement") << "Created a model part" << std::endl;
+    auto& model_part = GetOrCreateModelPart(project_parameters["solver_settings"]["model_part_name"].GetString());
 
-    AddNodalSolutionStepVariablesTo(model_part);
-    KRATOS_INFO("KratosGeoSettlement") << "Added nodal solution step variables" << std::endl;
-
-    AddDegreesOfFreedomTo(model_part);
-    KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
-
-    // Don't include the file extension of the mesh file name, since that is automatically appended by the
-    // constructor of class ModelPartIO
-    const auto mesh_file_name = project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString();
-    const auto mesh_file_path = rWorkingDirectory / mesh_file_name;
-    ModelPartIO reader{mesh_file_path.generic_string()};
-    reader.ReadModelPart(model_part);
-    KRATOS_INFO("KratosGeoSettlement") << "Read the mesh data from " << mesh_file_path << std::endl;
+    if (project_parameters["solver_settings"].Has("model_import_settings")) {
+        const auto mesh_file_name = project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString();
+        ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
+    }
 
     if (project_parameters["solver_settings"].Has("material_import_settings")) {
         const auto material_file_name = project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
@@ -71,6 +59,36 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     }
 
     return 0;
+}
+
+ModelPart& KratosGeoSettlement::GetOrCreateModelPart(const std::string &rModelPartName)
+{
+    if (mModel.HasModelPart(rModelPartName)) {
+        return mModel.GetModelPart(rModelPartName);
+    }
+
+    auto& result = mModel.CreateModelPart(rModelPartName);
+    KRATOS_INFO("KratosGeoSettlement") << "Created a model part" << std::endl;
+
+    result.SetBufferSize(2);
+
+    AddNodalSolutionStepVariablesTo(result);
+    KRATOS_INFO("KratosGeoSettlement") << "Added nodal solution step variables" << std::endl;
+
+    AddDegreesOfFreedomTo(result);
+    KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
+
+    return result;
+}
+
+void KratosGeoSettlement::ReadModelFromFile(const std::filesystem::path& rModelPartFilePath,
+                                            Kratos::ModelPart&           rModelPart)
+{
+    // Note that the file extension of the model part file must be excluded, since that is automatically appended by the
+    // constructor of class ModelPartIO
+    ModelPartIO reader{rModelPartFilePath.generic_string()};
+    reader.ReadModelPart(rModelPart);
+    KRATOS_INFO("KratosGeoSettlement") << "Read the mesh data from " << rModelPartFilePath << std::endl;
 }
 
 void KratosGeoSettlement::AddNodalSolutionStepVariablesTo(ModelPart& rModelPart)

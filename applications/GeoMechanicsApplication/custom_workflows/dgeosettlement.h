@@ -37,6 +37,10 @@ public:
                  const std::function<bool()>&            rShouldCancel);
 
 private:
+    ModelPart& GetOrCreateModelPart(const std::string& rModelPartName);
+    static void ReadModelFromFile(const std::filesystem::path& rModelPartFilePath,
+                                  ModelPart&                   rModelPart);
+
     static void AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
 
