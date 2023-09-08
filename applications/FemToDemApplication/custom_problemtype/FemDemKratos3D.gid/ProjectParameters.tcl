@@ -19,11 +19,21 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "        \"time_step\":            [GiD_AccessValue get gendata Delta_Time],"
 	puts $FileVar "        \"echo_level\":           0"
     puts $FileVar "    \},"
-    puts $FileVar "  \"DEM_FEM_contact\":                 true,"
-    puts $FileVar "  \"tangent_operator\":                 2,"
-    puts $FileVar "  \"create_initial_skin\":             false,"
+
     ## solver_settings
+    puts $FileVar "   \"fem_dem_settings\": \{"
+    puts $FileVar "      \"DEM_FEM_contact\"             :  true,"
+    puts $FileVar "      \"tangent_operator\"            :  1,"
+    puts $FileVar "      \"create_initial_skin\"         :  false,"
+    puts $FileVar "      \"transfer_dem_contact_forces\" :  true,"
+    puts $FileVar "      \"pressure_load_extrapolation\" :  false,"
+    puts $FileVar "      \"do_stabilization_solve\"      :  false,"
+    puts $FileVar "      \"smoothing_of_stresses\"       :  true,"
+    puts $FileVar "      \"maximum_damage_erase\"        :  0.98"
+    puts $FileVar "    \},"
+
     puts $FileVar "   \"solver_settings\": \{"
+
     if {[GiD_AccessValue get gendata Solution_Type] eq "Static"} {
         puts $FileVar "            \"solver_type\":                       \"FemDemStaticSolver\","
         puts $FileVar "            \"solution_type\":                     \"Static\","
@@ -208,64 +218,7 @@ proc WriteProjectParameters { basename dir problemtypedir TableDict} {
     puts $FileVar "            \"gauss_point_results\": $PutStrings"
     puts $FileVar "        \},"
     puts $FileVar "        \"point_data_configuration\":  \[\]"
-    puts $FileVar "    \},"
-
-    # print the two lists to plot the displ-reaction
-    set Groups [GiD_Info conditions list_of_nodes_displacement groups]
-    set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups 0] 1] nodes]
-    set MyString \[
-    for {set j 0} {$j < [llength $Entities]} {incr j} {
-        if {$j eq [llength $Entities]-1} {
-            append MyString      [lindex $Entities $j]
-        } else {
-            append MyString      [lindex $Entities $j],
-        }
-    }
-    append MyString \],
-
-    puts $FileVar "    \"list_of_nodes_displacement\":  $MyString"
-
-
-    # print Reaction nodes to plot
-    set Groups [GiD_Info conditions list_of_nodes_reaction groups]
-    set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups 0] 1] nodes]
-    set MyString \[
-    for {set j 0} {$j < [llength $Entities]} {incr j} {
-        if {$j eq [llength $Entities]-1} {
-            append MyString      [lindex $Entities $j]
-        } else {
-            append MyString      [lindex $Entities $j],
-        }
-    }
-    append MyString \],
-    puts $FileVar "    \"list_of_nodes_reaction\":      $MyString"
-    puts $FileVar "    \"interval_of_watching\"  :      0.0,"
-    puts $FileVar "    \"watch_nodes_list\"      :      \[\],"
-    puts $FileVar "    \"watch_elements_list\"   :      \[\],"
-
-
-
-    # list of initial skin DEM's
-    set DEMGroups [GiD_Info conditions Initial_DEM_Part groups]
-    if {[lindex [lindex $DEMGroups 0] 3] eq true} {
-
-        set Groups [GiD_Info conditions Initial_DEM_Part groups]
-        set Entities [GiD_EntitiesGroups get [lindex [lindex $Groups 0] 1] nodes]
-        set MyString \[
-        for {set j 0} {$j < [llength $Entities]} {incr j} {
-            if {$j eq [llength $Entities]-1} {
-                append MyString      [lindex $Entities $j]
-            } else {
-                append MyString      [lindex $Entities $j],
-            }
-        }
-        append MyString \]
-        puts $FileVar "    \"initial_DEM_skin_list\" :  $MyString"
-
-    } else {
-
-        puts $FileVar "    \"initial_DEM_skin_list\" :      \[\]"
-    }
+    puts $FileVar "    \}"
 
     puts $FileVar "\}"
     close $FileVar

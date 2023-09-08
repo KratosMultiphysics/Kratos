@@ -78,10 +78,10 @@ KRATOS_TEST_CASE_IN_SUITE(HelmholtzSolidElement, KratosOptimizationFastSuite)
     ref_lhs(3, 2) = 1.041666666667e-02;
     ref_lhs(3, 3) = 4.177083333333e+00;
 
-    KRATOS_CHECK_MATRIX_NEAR(lhs, ref_lhs, 1e-9);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs, ref_lhs, 1e-9);
 
     Vector ref_rhs(4, -4.166666666667e-02);
-    KRATOS_CHECK_VECTOR_NEAR(rhs, ref_rhs, 1e-9);
+    KRATOS_EXPECT_VECTOR_NEAR(rhs, ref_rhs, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HelmholtzVectorSolidElement, KratosOptimizationFastSuite)
@@ -183,10 +183,10 @@ KRATOS_TEST_CASE_IN_SUITE(HelmholtzVectorSolidElement, KratosOptimizationFastSui
     ref_lhs(11, 8) = 1.041666666667e-02;
     ref_lhs(11, 11) = 4.177083333333e+00;
 
-    KRATOS_CHECK_MATRIX_NEAR(lhs, ref_lhs, 1e-9);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs, ref_lhs, 1e-9);
 
     Vector ref_rhs(12, -4.166666666667e-02);
-    KRATOS_CHECK_VECTOR_NEAR(rhs, ref_rhs, 1e-9);
+    KRATOS_EXPECT_VECTOR_NEAR(rhs, ref_rhs, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HelmholtzSurfaceElement, KratosOptimizationFastSuite)
@@ -248,10 +248,10 @@ KRATOS_TEST_CASE_IN_SUITE(HelmholtzSurfaceElement, KratosOptimizationFastSuite)
     ref_lhs(3, 2) = -4.111111111111e+00;
     ref_lhs(3, 3) = 1.677777777778e+01;
 
-    KRATOS_CHECK_MATRIX_NEAR(lhs, ref_lhs, 1e-9);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs, ref_lhs, 1e-9);
 
     Vector ref_rhs(4, -2.500000000000e-01);
-    KRATOS_CHECK_VECTOR_NEAR(rhs, ref_rhs, 1e-9);
+    KRATOS_EXPECT_VECTOR_NEAR(rhs, ref_rhs, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HelmholtzVectorSurfaceElement, KratosOptimizationFastSuite)
@@ -352,10 +352,10 @@ KRATOS_TEST_CASE_IN_SUITE(HelmholtzVectorSurfaceElement, KratosOptimizationFastS
     ref_lhs(11, 8) = -4.111111111111e+00;
     ref_lhs(11, 11) = 1.677777777778e+01;
 
-    KRATOS_CHECK_MATRIX_NEAR(lhs, ref_lhs, 1e-9);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs, ref_lhs, 1e-9);
 
     Vector ref_rhs(12, -2.500000000000e-01);
-    KRATOS_CHECK_VECTOR_NEAR(rhs, ref_rhs, 1e-9);
+    KRATOS_EXPECT_VECTOR_NEAR(rhs, ref_rhs, 1e-9);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(HelmholtzSolidShapeElement, KratosOptimizationFastSuite)
@@ -502,10 +502,10 @@ KRATOS_TEST_CASE_IN_SUITE(HelmholtzSolidShapeElement, KratosOptimizationFastSuit
     ref_lhs(11, 8) = 1.041666666667e-02;
     ref_lhs(11, 11) = 4.780982756410e-02;
 
-    KRATOS_CHECK_MATRIX_NEAR(lhs, ref_lhs, 1e-9);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs, ref_lhs, 1e-9);
 
     Vector ref_rhs(12, -4.166666666667e-02);
-    KRATOS_CHECK_VECTOR_NEAR(rhs, ref_rhs, 1e-9);
+    KRATOS_EXPECT_VECTOR_NEAR(rhs, ref_rhs, 1e-9);
 }
 
 } // namespace Kratos::Testing
