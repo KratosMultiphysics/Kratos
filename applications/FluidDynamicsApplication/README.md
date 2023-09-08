@@ -7,7 +7,10 @@ The Fluid Dynamics Application contains the core developments in Computational F
 - Arbitrary Lagrangian-Eulerian (ALE) formulation allows for mesh deformation during the simulation (see _MeshMovingApplication_).
 - Compatible with meshes made up with linear elements.
 
-![Barcelona model scalability.](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/use_cases/barcelona_wind/resources/Scalability.png)
+<p align="center">
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/use_cases/barcelona_wind/resources/Scalability.png?raw=true" alt="Wind flow over Barcelona scalability test" style="width: 600px;"/>
+</p>
+
 _Wind flow over Barcelona scalability test. More info [here](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/use_cases/barcelona_wind/README.md)._
 
 ### 2. Incompressible flows
@@ -51,8 +54,9 @@ By doing so, the potential solution can be used as initial condition to ease and
 As a final note, we shall remark that at current date this solver only supports shared memory parallelism (OpenMP).
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/compressible_step_woodward_colella/data/step_woodward.gif" alt="Woodward and Colella's Mach 3 step density field." style="width: 600px;"/>
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/compressible_step_woodward_colella/data/step_woodward.gif?raw=true" alt="Woodward and Colella's Mach 3 step density field." style="width: 600px;"/>
 </p>
+
 _Woodward and Colella's Mach 3 step density field._
 
 #### Examples
@@ -73,8 +77,9 @@ This solver, which can be used in combination with all the formulations describe
 Current research on this topic include the development of **Shifted Boundary Method (SBM)** solvers.
 
 <p align="center">
-  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/embedded_moving_cylinder/data/embedded_moving_cylinder_p.gif" alt="Embedded moving cylinder velocity field [m/s]." style="width: 600px;"/>
+  <img src="https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/embedded_moving_cylinder/data/embedded_moving_cylinder_p.gif?raw=true" alt="Embedded moving cylinder velocity field [m/s]." style="width: 600px;"/>
 </p>
+
 _Embedded moving cylinder example velocity field._
 
 #### Examples
@@ -99,9 +104,10 @@ The application also includes limited support for the multiscale modelling follo
 The _FluidDynamicsApplication_ can be coupled with other applications to solve multiphysics problems such as **Fluid-Structure Interaction (FSI)** (see _FSIApplication_) or **thermally-coupled** flows (buoyancy and Conjugate Heat Transfer (CHT)) (see _ConvectionDiffusionApplication_).
 
 #### Examples
-CHT:
+Conjugate Heat Transfer:
 - [Cylinder cooling Re = 100 and Pr = 2](https://github.com/KratosMultiphysics/Examples/blob/master/conjugate_heat_transfer/validation/cylinder_cooling_Re100_Pr2/README.md)
-FSI:
+
+Fluid-Structure Interaction:
 - [FSI lid driven cavity](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_structure_interaction/validation/fsi_lid_driven_cavity/README.md)
 - [Mixer with flexible blades (embedded)](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_structure_interaction/validation/embedded_fsi_mixer_Y/README.md)
 - [Mok benchmark](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_structure_interaction/validation/fsi_mok/README.md)
