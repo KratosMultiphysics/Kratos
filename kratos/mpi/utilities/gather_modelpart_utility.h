@@ -10,6 +10,7 @@
 //  Main authors:    Riccardo Rossi
 //                   Michael Andre, https://github.com/msandre
 //                   Jordi Cotela Dalmau
+//                   Vicente Mataix Ferrandiz
 //
 
 #pragma once
@@ -131,6 +132,70 @@ public:
     template <class TDataType>
     void ScatterFromMaster(const Variable<TDataType>& rVariable);
 
+    /**
+     * @brief Function to gather entities from other partitions
+     * @details This function is intended to gather entities from other partitions. The map indicates the partitions to gather and the vector the entities to gather from each partition. In the current serial case it does nothing. The map represents the following. The key (int) the rank where to bring the entities, and the vector of indexes, the ids of the entities to bring
+     * @param rModelPart Model part to gather entities from other partitions
+     * @param rNodesToBring Nodes to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented.
+     * @param rElementsToBring Elements to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented.
+     * @param rConditionsToBring Conditions to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented.
+     * @param CallExecuteAfterBringingEntities Call Execute after gathering entities
+     * @param EchoLevel The verbosity level
+     */
+    static void GatherEntitiesFromOtherPartitions(
+        ModelPart& rModelPart,
+        const std::map<int, std::vector<std::size_t>>& rNodesToBring,
+        const std::map<int, std::vector<std::size_t>>& rElementsToBring,
+        const std::map<int, std::vector<std::size_t>>& rConditionsToBring,
+        const bool CallExecuteAfterBringingEntities = true,
+        const int EchoLevel = 0
+        );
+
+    /**
+     * @brief Function to gather nodes from other partitions
+     * @details This function is intended to gather nodes from other partitions. The map indicates the partitions to gather and the vector the nodes to gather from each partition. In the current serial case it does nothing.
+     * @param rModelPart Model part to gather nodes from other partitions
+     * @param rNodesToBring Nodes to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented. The map represents the following. The key (int) the rank where to bring the nodes, and the vector of indexes, the ids of the nodes to bring
+     * @param CallExecuteAfterBringingEntities Call Execute after gathering nodes
+     * @param EchoLevel The verbosity level
+     */
+    static void GatherNodesFromOtherPartitions(
+        ModelPart& rModelPart,
+        const std::map<int, std::vector<std::size_t>>& rNodesToBring,
+        const bool CallExecuteAfterBringingEntities = true,
+        const int EchoLevel = 0
+        );
+
+    /**
+     * @brief Function to gather elements from other partitions
+     * @details This function is intended to gather elements from other partitions. The map indicates the partitions to gather and the vector the elements to gather from each partition. In the current serial case it does nothing.
+     * @param rModelPart Model part to gather elements from other partitions
+     * @param rElementsToBring Elements to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented. The map represents the following. The key (int) the rank where to bring the elements, and the vector of indexes, the ids of the elements to bring
+     * @param CallExecuteAfterBringingEntities Call Execute after gathering elements
+     * @param EchoLevel The verbosity level
+     */
+    static void GatherElementsFromOtherPartitions(
+        ModelPart& rModelPart,
+        const std::map<int, std::vector<std::size_t>>& rElementsToBring,
+        const bool CallExecuteAfterBringingEntities = true,
+        const int EchoLevel = 0
+        );
+
+    /**
+     * @brief Function to gather conditions from other partitions
+     * @details This function is intended to gather conditions from other partitions. The map indicates the partitions to gather and the vector the conditions to gather from each partition. In the current serial case it does nothing.
+     * @param rModelPart Model part to gather entities from other partitions
+     * @param rConditionsToBring Conditions to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented. The map represents the following. The key (int) the rank where to bring the conditions, and the vector of indexes, the ids of the conditions to bring
+     * @param CallExecuteAfterBringingEntities Call Execute after gathering conditions
+     * @param EchoLevel The verbosity level
+     */
+    static void GatherConditionsFromOtherPartitions(
+        ModelPart& rModelPart,
+        const std::map<int, std::vector<std::size_t>>& rConditionsToBring,
+        const bool CallExecuteAfterBringingEntities = true,
+        const int EchoLevel = 0
+        );
+
     ///@}
     ///@name Access
     ///@{
@@ -176,6 +241,20 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Function to gather entities from other partitions
+     * @details This function is intended to gather entities from other partitions. The map indicates the partitions to gather and the vector the entities to gather from each partition. In the current serial case it does nothing.
+     * @param rModelPart Model part to gather entities from other partitions
+     * @param rEntitiesToBring Entities to gather from other partitions. It must be an ordered map to ensure the order of the ranks. This is a synchronous MPI implementation, and order matters until asynchronous is implemented.
+     * @param EchoLevel The verbosity level
+     */
+    template <class TObjectType>
+    static void GatherEntityFromOtherPartitions(
+        ModelPart& rModelPart,
+        const std::map<int, std::vector<std::size_t>>& rEntitiesToBring,
+        const int EchoLevel = 0
+        );
+
     ///@}
     ///@name Private  Access
     ///@{
@@ -200,9 +279,36 @@ private:
 
 }; // Class GatherModelPartUtility
 
+///@}
+///@name Type Definitions
+///@{
+
 extern template void GatherModelPartUtility::GatherOnMaster(const Variable<double>&);
 extern template void GatherModelPartUtility::GatherOnMaster(const Variable<array_1d<double, 3>>&);
 extern template void GatherModelPartUtility::ScatterFromMaster(const Variable<double>&);
 extern template void GatherModelPartUtility::ScatterFromMaster(const Variable<array_1d<double, 3>>&);
+
+///@}
+///@name Input and output
+///@{
+
+/// input stream function
+inline std::istream & operator >>(std::istream& rIStream,
+                                  GatherModelPartUtility& rThis)
+{
+    return rIStream;
+}
+
+/// output stream function
+inline std::ostream & operator <<(std::ostream& rOStream,
+                                  const GatherModelPartUtility& rThis)
+{
+    rThis.PrintInfo(rOStream);
+    rOStream << std::endl;
+    rThis.PrintData(rOStream);
+
+    return rOStream;
+}
+///@}
 
 } // namespace Kratos.

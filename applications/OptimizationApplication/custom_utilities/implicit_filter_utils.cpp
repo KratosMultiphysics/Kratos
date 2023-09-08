@@ -19,7 +19,7 @@
 #include "utilities/variable_utils.h"
 
 // Application includes
-#include "optimization_application.h"
+#include "optimization_application_variables.h"
 
 // Include base h
 #include "implicit_filter_utils.h"
@@ -98,17 +98,17 @@ void ImplicitFilterUtils::AssignProperties(
             const auto variable_value_param = *itr;
 
             if (KratosComponents<Variable<int>>::Has(r_variable_name)) {
-                p_properties->SetValue(KratosComponents<Variable<int>>::Get(r_variable_name), variable_value_param.Get<int>());
+                p_properties->SetValue(KratosComponents<Variable<int>>::Get(r_variable_name), variable_value_param.GetInt());
             } else if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
-                p_properties->SetValue(KratosComponents<Variable<double>>::Get(r_variable_name), variable_value_param.Get<double>());
+                p_properties->SetValue(KratosComponents<Variable<double>>::Get(r_variable_name), variable_value_param.GetDouble());
             } else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(r_variable_name)) {
-                p_properties->SetValue(KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name), variable_value_param.Get<Vector>());
+                p_properties->SetValue(KratosComponents<Variable<array_1d<double, 3>>>::Get(r_variable_name), variable_value_param.GetVector());
             } else if (KratosComponents<Variable<array_1d<double, 4>>>::Has(r_variable_name)) {
-                p_properties->SetValue(KratosComponents<Variable<array_1d<double, 4>>>::Get(r_variable_name), variable_value_param.Get<Vector>());
+                p_properties->SetValue(KratosComponents<Variable<array_1d<double, 4>>>::Get(r_variable_name), variable_value_param.GetVector());
             } else if (KratosComponents<Variable<array_1d<double, 6>>>::Has(r_variable_name)) {
-                p_properties->SetValue(KratosComponents<Variable<array_1d<double, 6>>>::Get(r_variable_name), variable_value_param.Get<Vector>());
+                p_properties->SetValue(KratosComponents<Variable<array_1d<double, 6>>>::Get(r_variable_name), variable_value_param.GetVector());
             } else if (KratosComponents<Variable<array_1d<double, 9>>>::Has(r_variable_name)) {
-                p_properties->SetValue(KratosComponents<Variable<array_1d<double, 9>>>::Get(r_variable_name), variable_value_param.Get<Vector>());
+                p_properties->SetValue(KratosComponents<Variable<array_1d<double, 9>>>::Get(r_variable_name), variable_value_param.GetVector());
             }
         }
     }

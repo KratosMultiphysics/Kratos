@@ -343,9 +343,16 @@ void KratosConstitutiveLawsApplication::Register()
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DModifiedMohrCoulomb", mAssociativePlasticDamageModel3DModifiedMohrCoulomb);
     KRATOS_REGISTER_CONSTITUTIVE_LAW("AssociativePlasticDamageModel3DRankine", mAssociativePlasticDamageModel3DRankine);
 
+    // Thermal CL
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ThermalElasticIsotropic3D", mThermalElasticIsotropic3D);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ThermalLinearPlaneStrain", mThermalLinearPlaneStrain);
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("ThermalLinearPlaneStress", mThermalLinearPlaneStress);
+
     // Constitutive laws variables
 
     //Faituge variables
+    KRATOS_REGISTER_VARIABLE(TOTAL_OR_PLASTIC_STRAIN_SPACE)
+    KRATOS_REGISTER_VARIABLE(TOTAL_STRAIN_VECTOR_PLASTICITY_POINT_CURVE)
     KRATOS_REGISTER_VARIABLE(IS_PRESTRESSED)
     KRATOS_REGISTER_VARIABLE(HIGH_CYCLE_FATIGUE_COEFFICIENTS)
     KRATOS_REGISTER_VARIABLE(STRESS_LIMITS)

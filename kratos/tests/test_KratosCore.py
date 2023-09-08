@@ -85,6 +85,11 @@ import test_kratos_globals
 import test_container_expression
 import test_model_part_operation_utilities
 import test_spatial_search
+import test_sequential_orchestrator
+import test_controllers
+
+# Import modules required for sequential orchestrator test
+from test_sequential_orchestrator import EmptyAnalysisStage
 
 if sympy_available:
     import test_sympy_fe_utilities
@@ -191,6 +196,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestNodalPositionExpressionIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_operation_utilities.TestModelPartOperationUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_spatial_search.TestSpatialSearchSphere]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sequential_orchestrator.TestSequentialOrchestrator]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_controllers.TestControllers]))
 
     if sympy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))

@@ -84,47 +84,47 @@ namespace Kratos {
 
             p_coupling_geometry->SetId(1);
 
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->WorkingSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->LocalSpaceDimension(), 2);
 
-            KRATOS_CHECK_NEAR(p_coupling_geometry->DomainSize(), 1.375, TOLERANCE);
-            KRATOS_CHECK_NEAR(p_coupling_geometry->Center()[0], 2.1666666667, TOLERANCE);
+            KRATOS_EXPECT_NEAR(p_coupling_geometry->DomainSize(), 1.375, TOLERANCE);
+            KRATOS_EXPECT_NEAR(p_coupling_geometry->Center()[0], 2.1666666667, TOLERANCE);
 
             // Check if master geometry can be found.
-            KRATOS_CHECK_NEAR(p_coupling_geometry->GetGeometryPart(CouplingGeometry<Node>::Master).DomainSize(), 1.375, TOLERANCE);
+            KRATOS_EXPECT_NEAR(p_coupling_geometry->GetGeometryPart(CouplingGeometry<Node>::Master).DomainSize(), 1.375, TOLERANCE);
             // Check if geometry 2 can be found.
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->GetGeometryPart(CouplingGeometry<Node>::Slave).LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->GetGeometryPart(CouplingGeometry<Node>::Slave).LocalSpaceDimension(), 2);
 
-            KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(
+            KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(
                 p_coupling_geometry->GetGeometryPart(2),
                 "Index 2 out of range. CouplingGeometry #1 has 2 geometries.")
 
             std::size_t index = p_coupling_geometry->AddGeometryPart(p_triangle_second_slave);
             p_coupling_geometry->SetGeometryPart(index, p_triangle_third_slave);
 
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 3);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->NumberOfGeometryParts(), 3);
 
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(0), true);
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(1), true);
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(2), true);
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->HasGeometryPart(3), false);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->HasGeometryPart(0), true);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->HasGeometryPart(1), true);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->HasGeometryPart(2), true);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->HasGeometryPart(3), false);
 
             // Check the nodes are preserved
             auto& r_geometry_master = *p_triangle_master;
             auto& r_geometry_0 = p_coupling_geometry->GetGeometryPart(0);
             for (std::size_t i = 0; i < r_geometry_master.size(); ++i) {
-                KRATOS_CHECK_EQUAL(r_geometry_0[i].Id(), r_geometry_master[i].Id());
-                KRATOS_CHECK_LESS(r_geometry_0[i].Distance(r_geometry_master[i]), 1.0e-6);
+                KRATOS_EXPECT_EQ(r_geometry_0[i].Id(), r_geometry_master[i].Id());
+                KRATOS_EXPECT_LT(r_geometry_0[i].Distance(r_geometry_master[i]), 1.0e-6);
             }
             auto& r_geometry_slave = *p_triangle_slave;
             auto& r_geometry_1 = p_coupling_geometry->GetGeometryPart(1);
             for (std::size_t i = 0; i < r_geometry_slave.size(); ++i) {
-                KRATOS_CHECK_EQUAL(r_geometry_1[i].Id(), r_geometry_slave[i].Id());
-                KRATOS_CHECK_LESS(r_geometry_1[i].Distance(r_geometry_slave[i]), 1.0e-6);
+                KRATOS_EXPECT_EQ(r_geometry_1[i].Id(), r_geometry_slave[i].Id());
+                KRATOS_EXPECT_LT(r_geometry_1[i].Distance(r_geometry_slave[i]), 1.0e-6);
             }
 
             p_coupling_geometry->RemoveGeometryPart(p_triangle_second_slave);
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 2);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->NumberOfGeometryParts(), 2);
         }
 
         /**
@@ -149,29 +149,29 @@ namespace Kratos {
             // Checking it works
             auto& r_coupling_geometry = p_element->GetGeometry();
 
-            KRATOS_CHECK_EQUAL(r_coupling_geometry.WorkingSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(r_coupling_geometry.LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(r_coupling_geometry.WorkingSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(r_coupling_geometry.LocalSpaceDimension(), 2);
 
-            KRATOS_CHECK_NEAR(r_coupling_geometry.DomainSize(), 1.375, TOLERANCE);
-            KRATOS_CHECK_NEAR(r_coupling_geometry.Center()[0], 2.1666666667, TOLERANCE);
+            KRATOS_EXPECT_NEAR(r_coupling_geometry.DomainSize(), 1.375, TOLERANCE);
+            KRATOS_EXPECT_NEAR(r_coupling_geometry.Center()[0], 2.1666666667, TOLERANCE);
 
             // Check if master geometry can be found.
-            KRATOS_CHECK_NEAR(r_coupling_geometry.GetGeometryPart(0).DomainSize(), 1.375, TOLERANCE);
+            KRATOS_EXPECT_NEAR(r_coupling_geometry.GetGeometryPart(0).DomainSize(), 1.375, TOLERANCE);
             // Check if geometry 2 can be found.
-            KRATOS_CHECK_EQUAL(r_coupling_geometry.GetGeometryPart(1).LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(r_coupling_geometry.GetGeometryPart(1).LocalSpaceDimension(), 2);
 
             // Check the nodes are preserved
             auto& r_geometry_master = *p_triangle_master;
             auto& r_geometry_0 = r_coupling_geometry.GetGeometryPart(0);
             for (std::size_t i = 0; i < r_geometry_master.size(); ++i) {
-                KRATOS_CHECK_EQUAL(r_geometry_0[i].Id(), r_geometry_master[i].Id());
-                KRATOS_CHECK_LESS(r_geometry_0[i].Distance(r_geometry_master[i]), 1.0e-6);
+                KRATOS_EXPECT_EQ(r_geometry_0[i].Id(), r_geometry_master[i].Id());
+                KRATOS_EXPECT_LT(r_geometry_0[i].Distance(r_geometry_master[i]), 1.0e-6);
             }
             auto& r_geometry_slave = *p_triangle_slave;
             auto& r_geometry_1 = r_coupling_geometry.GetGeometryPart(1);
             for (std::size_t i = 0; i < r_geometry_slave.size(); ++i) {
-                KRATOS_CHECK_EQUAL(r_geometry_1[i].Id(), r_geometry_slave[i].Id());
-                KRATOS_CHECK_LESS(r_geometry_1[i].Distance(r_geometry_slave[i]), 1.0e-6);
+                KRATOS_EXPECT_EQ(r_geometry_1[i].Id(), r_geometry_slave[i].Id());
+                KRATOS_EXPECT_LT(r_geometry_1[i].Distance(r_geometry_slave[i]), 1.0e-6);
             }
         }
 
@@ -186,7 +186,7 @@ namespace Kratos {
             auto p_coupling_geometry = CouplingGeometry<Point>::Pointer(
                 new CouplingGeometry<Point>(p_triangle_master, p_triangle_slave));
 
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->NumberOfGeometryParts(), 2);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->NumberOfGeometryParts(), 2);
         }
 
         /**
@@ -202,13 +202,13 @@ namespace Kratos {
             auto p_coupling_geometry = CouplingGeometry<Point>::Pointer(
                 new CouplingGeometry<Point>(p_triangle_master, p_triangle_slave));
 
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 2);
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->WorkingSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->LocalSpaceDimension(), 2);
 
             p_coupling_geometry->SetGeometryPart(CouplingGeometry<Point>::Master, p_triangle_master_2);
 
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->WorkingSpaceDimension(), 3);
-            KRATOS_CHECK_EQUAL(p_coupling_geometry->LocalSpaceDimension(), 2);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->WorkingSpaceDimension(), 3);
+            KRATOS_EXPECT_EQ(p_coupling_geometry->LocalSpaceDimension(), 2);
         }
     } // namespace Testing.
 } // namespace Kratos.
