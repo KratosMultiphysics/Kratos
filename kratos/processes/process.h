@@ -53,6 +53,7 @@ public:
 
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(Process);
+    KRATOS_REGISTRY_ADD_BASE()
 
     ///@}
     ///@name Life Cycle

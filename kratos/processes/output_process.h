@@ -82,14 +82,14 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "OutputProcess" ;
+        buffer << "INFO: OutputProcess" ;
         return buffer.str();
     }
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "OutputProcess";
+        rOStream << "PRINTINFO: OutputProcess";
     }
 
     /// Print object's data.

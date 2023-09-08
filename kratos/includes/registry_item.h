@@ -242,6 +242,8 @@ public:
     {
         KRATOS_TRY
 
+        std::cout << "GetValueFromRegistryItem: " << typeid(TDataType).name() << std::endl;
+
         return *(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
 
         KRATOS_CATCH("");
