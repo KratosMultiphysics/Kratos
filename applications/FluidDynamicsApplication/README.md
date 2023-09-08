@@ -1,33 +1,35 @@
 ## Fluid Dynamics Application
-
 The Fluid Dynamics Application contains the core developments in Computational Fluid Dynamics (CFD) within Kratos Multiphysics.
 
 ### General features:
-
-- Stabilized FEM solvers for incompressible and compressible flow problems.
-
-- Support for MPI parallelization (with Trilinos Application).
-
-- Embedded formulation for flows around non-watertight or poorly defined geometries (STL) or for problems with fixed mesh and deforming domains.
-
-- Arbitrary Lagrangian-Eulerian (ALE) formulation allows for mesh deformation during the simulation (see MeshMovingApplication).
-
-- Support for Fluid-Structure Interaction (see FSIApplication).
-
-- Thermally-coupled flows (with ConvectionDiffusionApplication).
+- Stabilized FEM solvers for incompressible, weakly-compressible and compressible flow problems.
+- Support for MPI parallelization (with _MetisApplication_ and _TrilinosApplication_).
+- Arbitrary Lagrangian-Eulerian (ALE) formulation allows for mesh deformation during the simulation (see _MeshMovingApplication_).
 
 ### Incompressible flow
+#### Features
+The simulation of viscous incompressible flows is the main capability of this application.
+The application includes a variety of stabilized 2D/3D **Navier-Stokes** and **Stokes** solvers.
+Among the wide variety of stabilization techniques present in the literature, in this application the **Variational MultiScale (VMS)** (both with quasi-static and dynamic subscales), **Orthogonal SubScales (OSS)** and **Finite Increment Calculus (FIC)** methods are implemented.
+All the incompressible flow elements of the application support both **Newtonian** and **non-Newtonian** (Bingham, Herschel-Bulkley) constitutive models.
 
+A set of **boundary conditions** are included in the application. On top of the standard fixed velocity/pressure there exists the possibility to impose slip boundary conditions using MultiFreedom Constraints (MFCs) or periodic conditions using MultiPoint Constraints (MPCs).
+Concerning the wall modelling, the application features linear-log and Navier-slip wall models, with the possibility to easily extend to other models.
 
+The application also includes two different solution strategies. First one is the standard **monolithic** one in which both velocity and pressure equations are solved at once using a Newton-Raphson solver. Second one is a segregated **fractional step** strategy that accelerates the solution procedure (we note that this is only compatible with the VMS formulation).
+
+#### Examples
+- [Body-fitted 100 Re cylinder](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/body_fitted_cylinder_100Re/README.md)
 
 ### Weakly-compressible flow
+#### Features
 Similar to the described above incompressible solver, the application also includes a **VMS stabilized weakly compressible Navier-Stokes** formulation.
 This solver modifies the mass conservation equation to add a slight compressibility which relates the pressure to the volume variation thanks to the inclusion of a pressure-density equation of state.
 The energy equation remains uncoupled so thermal effects are assummed to be negligible.
 
 ### Compressible flow
 #### Features
-The application includes a 2D/3D explicit compressible solver implementing a **VMS stabilized full Navier-Stokes formulation** written in **conservative variables** (momentum, density and total energy).
+The application includes a 2D/3D explicit compressible solver implementing a **VMS and OSS stabilized full Navier-Stokes formulations** written in **conservative variables** (momentum, density and total energy).
 
 A set of **explicit strategies** can be used
 - Forward Euler
@@ -50,17 +52,40 @@ By doing so, the potential solution can be used as initial condition to ease and
 - [Supersonic flow in Woodward and Colella's Mach 3 step](https://github.com/KratosMultiphysics/Examples/tree/master/fluid_dynamics/validation/compressible_step_woodward_colella/README.md)
 - [Supersonic flow over a wedge](https://github.com/KratosMultiphysics/Examples/tree/master/fluid_dynamics/validation/compressible_Wedge/README.md)
 
-### Two-phase flow
-
 ### Unfitted mesh methods
+#### Features
+The embedded solver allows the resolution of problems with **unffitted boundaries**, including flows around volumetric and volumeless (i.e. shell-like) bodies.
+Starting from a distance field, either analytical or obtained with any of the levelset algorithms in _KratosCore_, the embedded solver uses a **Cut-FEM** approach to solve the problem. Nevertheless, current research on this topic include the development of **Shifted Boundary Method (SBM)** solvers.
+This makes possible to efficiently solve flows around non-watertight or poorly defined geometries (e.g. STL) as well as cases involving arbitrary large boundary displacements and rotations.
+The unfitted solvers can be used in combination with all the formulations described in the incompressible flow section.
 
+#### Examples
+- [Embedded moving cylinder](https://github.com/KratosMultiphysics/Examples/tree/master/fluid_dynamics/validation/embedded_moving_cylinder/README.md)
+
+### Two-phase flow
+#### Features
+The _FluidDynamicsApplication_ includes a solver for the resolution of **biphasic (Newtonian-air) viscous incompressible flows**.
+This solver uses a **levelset based approach** which combines the **implicit** fluid solver with a convection and redistancing ones (see the _KratosCore_ for more information about these).
+The solver is able to account for the pressure discontinuities thanks to a local enrichment plus an element-by-element static condensation, which avoids the need to reform the sparse matrix graph at each time step.
+Besides, the solver is also equipped with a strategy to revert the mass losses introduced by the levelset approach.
+
+#### Examples
+- [Two-fluids dam break scenario](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/two_fluid_dam_break/README.md)
+- [Two-fluids wave propagation](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_dynamics/validation/two_fluid_wave/README.md)
 
 ### Multiscale modelling
+The application also includes limited support for the multiscale modelling following the **Representative Volume Element (RVE)** approach.
 
+### Multiphysics
+#### Features
+The _FluidDynamicsApplication_ can be coupled with other applications to solve multiphysics problems such as **Fluid-Structure Interaction (FSI)** (see _FSIApplication_) or **thermally-coupled** flows (buoyancy and Conjugate Heat Transfer (CHT)) (see _ConvectionDiffusionApplication_).
 
-### Coupling
-- Buoyancy
-- CHT
-- FSI
-
-
+#### Examples
+CHT:
+- [Cylinder cooling Re = 100 and Pr = 2](https://github.com/KratosMultiphysics/Examples/blob/master/conjugate_heat_transfer/validation/cylinder_cooling_Re100_Pr2/README.md)
+FSI:
+- [FSI lid driven cavity](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_structure_interaction/validation/fsi_lid_driven_cavity/README.md)
+- [Mixer with flexible blades (embedded)](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_structure_interaction/validation/embedded_fsi_mixer_Y/README.md)
+- [Mok benchmark](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_structure_interaction/validation/fsi_mok/README.md)
+- [Mok benchmark (embedded)](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_structure_interaction/validation/embedded_fsi_mok/README.md)
+- [Turek benchmark - FSI2](https://github.com/KratosMultiphysics/Examples/blob/master/fluid_structure_interaction/validation/fsi_turek_FSI2/README.md)
