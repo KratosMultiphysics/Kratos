@@ -79,16 +79,16 @@ namespace Testing
         const std::array<double, 75> expected_RHS{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(72,i), expected_LHS_row_72[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(72,i), expected_LHS_row_72[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(73,i), expected_LHS_row_73[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(73,i), expected_LHS_row_73[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(74,i), expected_LHS_row_74[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(74,i), expected_LHS_row_74[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 
@@ -123,16 +123,16 @@ namespace Testing
         const std::array<double, 108> expected_RHS{0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0};
 
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(105,i), expected_LHS_row_105[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(105,i), expected_LHS_row_105[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(106,i), expected_LHS_row_106[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(106,i), expected_LHS_row_106[i], tolerance);
         }
         for (unsigned int i = 0; i < left_hand_side_matrix.size1(); i++) {
-          KRATOS_CHECK_NEAR(left_hand_side_matrix(107,i), expected_LHS_row_107[i], tolerance);
+          KRATOS_EXPECT_NEAR(left_hand_side_matrix(107,i), expected_LHS_row_107[i], tolerance);
         }
         for (unsigned int i = 0; i < right_hand_side_vector.size(); i++) {
-          KRATOS_CHECK_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
+          KRATOS_EXPECT_NEAR(right_hand_side_vector(i), expected_RHS[i], tolerance);
         }
     }
 }

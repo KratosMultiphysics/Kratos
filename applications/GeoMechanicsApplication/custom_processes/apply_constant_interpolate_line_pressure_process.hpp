@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_APPLY_CONSTANT_INTERPOLATE_LINE_PRESSURE_PROCESS )
-#define  KRATOS_GEO_APPLY_CONSTANT_INTERPOLATE_LINE_PRESSURE_PROCESS
+#pragma once
 
 #include <algorithm>
 #include "includes/kratos_flags.h"
@@ -30,9 +29,6 @@ public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantInterpolateLinePressureProcess);
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Constructor
     ApplyConstantInterpolateLinePressureProcess(ModelPart& model_part,
                                                 Parameters rParameters
                                                 ) : Process(Flags()) , mrModelPart(model_part)
@@ -52,23 +48,23 @@ public:
                 "table" : 1
             }  )" );
 
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
+        // Some values need to be mandatory prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
         rParameters["variable_name"];
         rParameters["model_part_name"];
 
         mIsFixedProvided = rParameters.Has("is_fixed");
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
 
         FindBoundaryNodes();
 
-        mIsFixed = rParameters["is_fixed"].GetBool();
-        mIsSeepage = rParameters["is_seepage"].GetBool();
-        mGravityDirection = rParameters["gravity_direction"].GetInt();
+        mIsFixed             = rParameters["is_fixed"].GetBool();
+        mIsSeepage           = rParameters["is_seepage"].GetBool();
+        mGravityDirection    = rParameters["gravity_direction"].GetInt();
         mOutOfPlaneDirection = rParameters["out_of_plane_direction"].GetInt();
         if (mGravityDirection == mOutOfPlaneDirection)
             KRATOS_ERROR << "Gravity direction cannot be the same as Out-of-Plane directions"
@@ -79,20 +75,16 @@ public:
         for (unsigned int i=0; i<N_DIM_3D; ++i)
            if (i!=mGravityDirection && i!=mOutOfPlaneDirection) mHorizontalDirection = i;
 
-        if (rParameters.Has("pressure_tension_cut_off"))
-          mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
-        else
-          mPressureTensionCutOff = 0.0;
+        mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
 
         KRATOS_CATCH("")
     }
 
-    ///------------------------------------------------------------------------------------
-
-    /// Destructor
-    ~ApplyConstantInterpolateLinePressureProcess() override {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    ~ApplyConstantInterpolateLinePressureProcess() override = default;
+    ApplyConstantInterpolateLinePressureProcess(const ApplyConstantInterpolateLinePressureProcess&) = delete;
+    ApplyConstantInterpolateLinePressureProcess& operator=(const ApplyConstantInterpolateLinePressureProcess&) = delete;
+    ApplyConstantInterpolateLinePressureProcess(ApplyConstantInterpolateLinePressureProcess&&) = delete;
+    ApplyConstantInterpolateLinePressureProcess& operator=(ApplyConstantInterpolateLinePressureProcess&&) = delete;
 
     /// Execute method is used to execute the ApplyConstantInterpolateLinePressureProcess algorithms.
     void Execute() override
@@ -105,35 +97,23 @@ public:
     {
         KRATOS_TRY
 
-        if (mrModelPart.NumberOfNodes() > 0) {
-            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
+        block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
+            const double pressure = CalculatePressure(rNode);
             if (mIsSeepage) {
-                block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
-                    const double pressure = CalculatePressure(rNode);
-
-                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0.0) {
-                        rNode.FastGetSolutionStepValue(var) = pressure;
-                        if (mIsFixed) rNode.Fix(var);
-                    } else {
-                        rNode.Free(var);
-                    }
-                });
-            } else {
-                block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
+                if (pressure < PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff) {
+                    rNode.FastGetSolutionStepValue(var) = pressure;
                     if (mIsFixed) rNode.Fix(var);
-                    else if (mIsFixedProvided) rNode.Free(var);
-
-                    const double pressure = CalculatePressure(rNode);
-
-                    if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < mPressureTensionCutOff) {
-                        rNode.FastGetSolutionStepValue(var) = pressure;
-                    } else {
-                        rNode.FastGetSolutionStepValue(var) = mPressureTensionCutOff;
-                    }
-                });
+                } else {
+                    rNode.Free(var);
+                }
+            } else {
+                rNode.FastGetSolutionStepValue(var) = std::min(pressure,PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
+                if (mIsFixed) rNode.Fix(var);
+                else if (mIsFixedProvided) rNode.Free(var);
             }
-        }
+        });
 
         KRATOS_CATCH("")
     }
@@ -144,23 +124,8 @@ public:
         return "ApplyConstantInterpolateLinePressureProcess";
     }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ApplyConstantInterpolateLinePressureProcess";
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-protected:
-
+private:
     /// Member Variables
-
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
@@ -190,23 +155,12 @@ protected:
 
         // calculate pressure
         if (std::abs(CoordinateTop - CoordinateBottom) > TINY) {
-            const double slopeP = (PressureTop - PressureBottom) / (CoordinateTop - CoordinateBottom);
-            const double pressure = slopeP * (rNode.Coordinates()[mGravityDirection] - CoordinateBottom ) + PressureBottom;
-            return pressure;
+            const double slopeP   = (PressureTop - PressureBottom) / (CoordinateTop - CoordinateBottom);
+            return slopeP * (rNode.Coordinates()[mGravityDirection] - CoordinateBottom ) + PressureBottom;
         } else {
             return PressureBottom;
         }
     }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-private:
-
-    /// Assignment operator.
-    ApplyConstantInterpolateLinePressureProcess& operator=(ApplyConstantInterpolateLinePressureProcess const& rOther);
-
-    /// Copy constructor.
-    //ApplyConstantInterpolateLinePressureProcess(ApplyConstantInterpolateLinePressureProcess const& rOther);
 
     void CalculateBoundaryPressure( const Node &rNode,
                                     const std::vector< Node*> &BoundaryNodes,
@@ -221,20 +175,18 @@ private:
         std::vector< Node*> RightBoundaryNodes;
         FindRightBoundaryNodes(rNode, BoundaryNodes, RightBoundaryNodes);
 
-        if (LeftBoundaryNodes.size() > 0 && RightBoundaryNodes.size() > 0) {
-            Node *LeftNode;
-            LeftNode = FindClosestNodeOnBoundaryNodes(rNode, LeftBoundaryNodes, isBottom);
-            Node *RightNode;
-            RightNode = FindClosestNodeOnBoundaryNodes(rNode, RightBoundaryNodes, isBottom);
+        if (!LeftBoundaryNodes.empty() && !RightBoundaryNodes.empty()) {
+            const Node *LeftNode  = FindClosestNodeOnBoundaryNodes(rNode, LeftBoundaryNodes,  isBottom);
+            const Node *RightNode = FindClosestNodeOnBoundaryNodes(rNode, RightBoundaryNodes, isBottom);
 
             InterpolateBoundaryPressure(rNode, LeftNode, RightNode, pressure, coordinate);
             return;
 
-        } else if (LeftBoundaryNodes.size() > 0) {
+        } else if (!LeftBoundaryNodes.empty()) {
             InterpolateBoundaryPressureWithOneContainer(rNode, LeftBoundaryNodes, pressure, coordinate);
             return;
 
-        } else if (RightBoundaryNodes.size() > 0) {
+        } else if (!RightBoundaryNodes.empty()) {
             InterpolateBoundaryPressureWithOneContainer(rNode, RightBoundaryNodes, pressure, coordinate);
             return;
 
@@ -308,7 +260,7 @@ private:
                                            const std::vector< Node*> &BoundaryNodes,
                                            std::vector< Node*> &FoundNodes)
     {
-        const double HorizontalCoordiante = rNode.Coordinates()[mHorizontalDirection];
+        const double HorizontalCoordinate = rNode.Coordinates()[mHorizontalDirection];
         FoundNodes.resize(2);
 
         unsigned int nFound = 0;
@@ -317,8 +269,8 @@ private:
             Vector3 CoordinatesBoundary;
             noalias(CoordinatesBoundary) = BoundaryNodes[i]->Coordinates();
 
-            if (std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordiante) <= horizontalDistanceClosest_1) {
-                horizontalDistanceClosest_1 = std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordiante);
+            if (std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordinate) <= horizontalDistanceClosest_1) {
+                horizontalDistanceClosest_1 = std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordinate);
                 FoundNodes[0] = BoundaryNodes[i];
                 nFound++;
             }
@@ -329,9 +281,9 @@ private:
             Vector3 CoordinatesBoundary;
             noalias(CoordinatesBoundary) = BoundaryNodes[i]->Coordinates();
 
-            if (std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordiante) <= horizontalDistanceClosest_2 &&
-                std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordiante) > horizontalDistanceClosest_1) {
-                horizontalDistanceClosest_2 = std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordiante);
+            if (std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordinate) <= horizontalDistanceClosest_2 &&
+                std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordinate) > horizontalDistanceClosest_1) {
+                horizontalDistanceClosest_2 = std::abs(CoordinatesBoundary[mHorizontalDirection] - HorizontalCoordinate);
                 FoundNodes[1] = BoundaryNodes[i];
                 nFound++;
             }
@@ -341,19 +293,18 @@ private:
     }
 
 
-    Node* 
-        FindClosestNodeOnBoundaryNodes(const Node &rNode,
-                                       const std::vector< Node* > &BoundaryNodes,
-                                       const bool isBottom)
+    Node* FindClosestNodeOnBoundaryNodes(const Node &rNode,
+                                         const std::vector< Node* > &BoundaryNodes,
+                                         const bool isBottom)
     {
-        const double HorizontalCoordiante = rNode.Coordinates()[mHorizontalDirection];
+        const double HorizontalCoordinate = rNode.Coordinates()[mHorizontalDirection];
         Node *pNode;
         std::vector< Node*> FoundNodes;
 
         double horizontalDistance = LARGE;
         for (unsigned int i = 0; i < BoundaryNodes.size(); ++i) {
-            if (std::abs(BoundaryNodes[i]->Coordinates()[mHorizontalDirection] - HorizontalCoordiante) <= horizontalDistance) {
-                horizontalDistance = std::abs(BoundaryNodes[i]->Coordinates()[mHorizontalDirection] - HorizontalCoordiante);
+            if (std::abs(BoundaryNodes[i]->Coordinates()[mHorizontalDirection] - HorizontalCoordinate) <= horizontalDistance) {
+                horizontalDistance = std::abs(BoundaryNodes[i]->Coordinates()[mHorizontalDirection] - HorizontalCoordinate);
                 FoundNodes.push_back(BoundaryNodes[i]);
             }
         }
@@ -514,7 +465,7 @@ private:
                 if (!IsMoreThanOneElementWithThisEdgeFast(FaceID, ELementsOfNodes, ELementsOfNodesSize)) {
                     // boundary nodes:
                     for (unsigned int iPoint = 0; iPoint < nPoints; ++iPoint) {
-                        std::vector<int>::iterator it = std::find(BoundaryNodes.begin(), BoundaryNodes.end(), FaceID[iPoint]);
+                        auto it = std::find(BoundaryNodes.begin(), BoundaryNodes.end(), FaceID[iPoint]);
                         if (it == BoundaryNodes.end()) {
                             BoundaryNodes.push_back(FaceID[iPoint]);
                         }
@@ -522,9 +473,8 @@ private:
                 }
             }
         }
-        // KRATOS_INFO("FillListOfBoundaryNodesFast:BoundaryNodes") << BoundaryNodes << std::endl;
 
-        KRATOS_ERROR_IF(BoundaryNodes.size()==0)
+        KRATOS_ERROR_IF(BoundaryNodes.empty())
             << "No boundary node is found for interpolate line pressure process" << std::endl;
 
     }
@@ -549,7 +499,6 @@ private:
                 ElementIDs[i].resize(nMaxElements);
                 std::fill(ElementIDs[i].begin(), ElementIDs[i].end(), ID_UNDEFINED);
             }
-            
 
             for (unsigned int iPoint = 0; iPoint < FaceID.size(); ++iPoint) {
                 int NodeID = FaceID[iPoint];
@@ -560,7 +509,6 @@ private:
                 }
             }
 
-
             std::vector<int> SharedElementIDs;
             for (unsigned int iPoint = 0; iPoint < FaceID.size(); ++iPoint) {
                 for (unsigned int i=0; i < ElementIDs[iPoint].size(); ++i) {
@@ -569,6 +517,7 @@ private:
                     if (iElementID !=ID_UNDEFINED) {
                         for (unsigned int iPointInner = 0; iPointInner < FaceID.size(); ++iPointInner) {
                             if (iPointInner != iPoint) {
+                                //std::any_of followed by breaking out of 2 for loops
                                 for (unsigned int j = 0; j < ElementIDs[iPointInner].size(); ++j) {
                                     if (ElementIDs[iPointInner][j]==iElementID) found = true;
                                 }
@@ -585,10 +534,7 @@ private:
                 }
             }
 
-            if (SharedElementIDs.size() > 1)
-                return true;
-            else
-                return false;
+            return SharedElementIDs.size() > 1;
         }
 
         return false;
@@ -611,6 +557,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
     return rOStream;
 }
 
-} // namespace Kratos.
-
-#endif /* KRATOS_GEO_APPLY_CONSTANT_INTERPOLATE_LINE_PRESSURE_PROCESS defined */
+}

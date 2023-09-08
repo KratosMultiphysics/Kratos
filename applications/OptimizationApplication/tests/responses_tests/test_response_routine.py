@@ -79,30 +79,30 @@ class TestResponseRoutine(kratos_unittest.TestCase):
 
     def test_CalculateValue(self):
         control_field = self.master_control.GetEmptyField()
-        control_field.Read(Kratos.DENSITY)
+        KratosOA.CollectiveExpressionIO.Read(control_field, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 84)
 
         # now change the control field where response does not depend on
         # changing a variable such as YOUNG_MODULUS
-        control_field.GetContainerExpressions()[1].SetData(2.0)
+        Kratos.Expression.LiteralExpressionIO.SetData(control_field.GetContainerExpressions()[1], 2.0)
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 84)
 
         # now change a dependent variable where the domain is not having intersection
         # changing DENSITY variable
-        control_field.GetContainerExpressions()[3].SetData(3.0)
+        Kratos.Expression.LiteralExpressionIO.SetData(control_field.GetContainerExpressions()[3], 3.0)
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 84)
 
         # now change a dependent field
-        control_field.GetContainerExpressions()[0].SetData(3.0)
+        Kratos.Expression.LiteralExpressionIO.SetData(control_field.GetContainerExpressions()[0], 3.0)
         value = self.response_routine.CalculateValue(control_field)
         self.assertEqual(value, 66)
 
     def test_CalculateGradient(self):
         control_field = self.master_control.GetEmptyField()
-        control_field.Read(Kratos.DENSITY)
+        KratosOA.CollectiveExpressionIO.Read(control_field, KratosOA.CollectiveExpressionIO.PropertiesVariable(Kratos.DENSITY))
 
         # Calculate value should always be called once before the calculate gradient
         _ = self.response_routine.CalculateValue(control_field)
@@ -112,19 +112,19 @@ class TestResponseRoutine(kratos_unittest.TestCase):
 
         # mass response has gradients w.r.t. control1.
         control_1_gradient = gradient.GetContainerExpressions()[0]
-        self.assertEqual(KratosOA.ContainerExpressionUtils.NormL2(control_1_gradient), 20.09975124224178)
+        self.assertEqual(KratosOA.ExpressionUtils.NormL2(control_1_gradient), 20.09975124224178)
 
         # mass response has gradients w.r.t. YOUNG_MODULUS even the response evaluated in the same control2 domain (same model part).
         control_2_gradient = gradient.GetContainerExpressions()[1]
-        self.assertEqual(KratosOA.ContainerExpressionUtils.NormInf(control_2_gradient), 0.0)
+        self.assertEqual(KratosOA.ExpressionUtils.NormInf(control_2_gradient), 0.0)
 
         # mass response has gradients w.r.t. control3.
         control_3_gradient = gradient.GetContainerExpressions()[2]
-        self.assertEqual(KratosOA.ContainerExpressionUtils.NormL2(control_3_gradient), 20.09975124224178)
+        self.assertEqual(KratosOA.ExpressionUtils.NormL2(control_3_gradient), 20.09975124224178)
 
         # mass response has gradients w.r.t. DENSITY because evaluation and control domains does not have an intersection.
         control_4_gradient = gradient.GetContainerExpressions()[3]
-        self.assertEqual(KratosOA.ContainerExpressionUtils.NormInf(control_4_gradient), 0.0)
+        self.assertEqual(KratosOA.ExpressionUtils.NormInf(control_4_gradient), 0.0)
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS

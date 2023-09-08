@@ -10,6 +10,7 @@ import numpy as np
 
 from glob import glob
 from os import remove
+from pathlib import Path
 
 def CreateRomAnalysisInstance(cls, global_model, parameters):
     class RomAnalysis(cls):
@@ -20,8 +21,20 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
         def _CreateSolver(self):
             """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
+            # Assign rom basis output folder and file name
+            self.rom_basis_output_name = 'RomParameters' #Default
+            self.rom_basis_output_folder = 'rom_data' #Default
+            if self.project_parameters.Has("output_processes"):
+                for name in self.project_parameters["output_processes"].keys():
+                    if name=="rom_output":
+                        rom_output_paramaters = self.project_parameters["output_processes"]["rom_output"]
+                        self.rom_basis_output_name = rom_output_paramaters[0]["Parameters"]["rom_basis_output_name"].GetString()
+                        self.rom_basis_output_folder = rom_output_paramaters[0]["Parameters"]["rom_basis_output_folder"].GetString()
+            self.rom_basis_output_name = Path(self.rom_basis_output_name)
+            self.rom_basis_output_folder = Path(self.rom_basis_output_folder)
+
             # Get the ROM settings from the RomParameters.json input file
-            with open('RomParameters.json') as rom_parameters:
+            with open(self.rom_basis_output_folder / self.rom_basis_output_name.with_suffix('.json')) as rom_parameters:
                 self.rom_parameters = KratosMultiphysics.Parameters(rom_parameters.read())
 
             # Set the ROM settings in the "solver_settings" of the solver introducing the physics
@@ -64,6 +77,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             # ROM assembling strategy
             self.assembling_strategy = self.rom_parameters["assembling_strategy"].GetString() if self.rom_parameters.Has("assembling_strategy") else "global"
             self.project_parameters["solver_settings"].AddString("assembling_strategy",self.assembling_strategy)
+
+            # Monotonicity preserving flag
+            self.monotonicity_preserving = self.rom_parameters["monotonicity_preserving"].GetBool() if self.rom_parameters.Has("monotonicity_preserving") else False
+            self.project_parameters["solver_settings"].AddBool("monotonicity_preserving", self.monotonicity_preserving)
 
             # Create the ROM solver
             return new_python_solvers_wrapper_rom.CreateSolver(
@@ -139,27 +156,31 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                         node.SetValue(KratosROM.ROM_LEFT_BASIS, aux)
 
             elif self.rom_parameters["rom_format"].GetString() == "numpy":
-                #### Set the nodal ROM basis ####
-                node_ids = np.load("NodeIds.npy")
-                right_modes = np.load("RightBasisMatrix.npy")
+                # Set the nodal ROM basis
+                node_ids = np.load(self.rom_basis_output_folder / "NodeIds.npy")
+                right_modes = np.load(self.rom_basis_output_folder / "RightBasisMatrix.npy")
                 if right_modes.ndim ==1: #check if matrix contains a single mode (a 1D numpy array)
                     right_modes.reshape(-1,1)
                 right_modes = right_modes[:,:rom_dofs]
                 if (self.solving_strategy == "petrov_galerkin"):
                     petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
-                    left_modes = np.load("LeftBasisMatrix.npy")
+                    left_modes = np.load(self.rom_basis_output_folder / "LeftBasisMatrix.npy")
                     if left_modes.ndim ==1:
                         left_modes.reshape(-1,1)
                     left_modes = left_modes[:,:petrov_galerkin_rom_dofs]
 
                 for node in computing_model_part.Nodes:
                     offset = np.where(node_ids == node.Id)[0][0]*nodal_dofs
-                    node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset+nodal_dofs, :]) ) # ROM basis
+                    node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset+nodal_dofs, :])) # ROM basis
                     if (self.solving_strategy == "petrov_galerkin"):
-                        node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset+nodal_dofs, :]) ) # ROM basis
+                        node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset+nodal_dofs, :])) # ROM basis
+
 
             # Check for HROM stages
             if self.train_hrom:
+                # Pass the name of the Rom Parameters file and folder
+                self.rom_parameters.AddString("rom_basis_output_name", str(self.rom_basis_output_name))
+                self.rom_parameters.AddString("rom_basis_output_folder", str(self.rom_basis_output_folder))
                 # Create the training utility to calculate the HROM weights
                 self.__hrom_training_utility = HRomTrainingUtility(
                     self._GetSolver(),
@@ -175,10 +196,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                         computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
                 elif self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "numpy":
                     # Set the HROM weights in elements and conditions
-                    element_indexes = np.load("HROM_ElementIds.npy")
-                    element_weights = np.load("HROM_ElementWeights.npy")
-                    condition_indexes = np.load("HROM_ConditionIds.npy")
-                    conditon_weights = np.load("HROM_ConditionWeights.npy")
+                    element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
+                    element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
+                    condition_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
+                    conditon_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
                     for i in range(np.size(element_indexes)):
                         computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
                     for i in range(np.size(condition_indexes)):
@@ -187,6 +208,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
             # Check and Initialize Petrov Galerkin Training stage
             if self.train_petrov_galerkin:
+                # Pass the name of the Rom Parameters file and folder
+                self.rom_parameters.AddString("rom_basis_output_name", str(self.rom_basis_output_name))
+                self.rom_parameters.AddString("rom_basis_output_folder", str(self.rom_basis_output_folder))
                 self.__petrov_galerkin_training_utility = PetrovGalerkinTrainingUtility(
                     self._GetSolver(),
                     self.rom_parameters)
@@ -232,9 +256,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             if self.train_hrom and not self.rom_manager:
                 self.__hrom_training_utility.CalculateAndSaveHRomWeights()
                 self.__hrom_training_utility.CreateHRomModelParts()
-                # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
-                if self.train_petrov_galerkin:
-                    self.__petrov_galerkin_training_utility.CalculateAndSaveBasis()
+                
+            # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
+            if self.train_petrov_galerkin and not self.rom_manager:
+                self.__petrov_galerkin_training_utility.CalculateAndSaveBasis()
 
     return RomAnalysis(global_model, parameters)
 

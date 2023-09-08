@@ -60,9 +60,6 @@ public:
                           PropertiesType::Pointer pProperties ) :
                         UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
-    // Destructor
-    ~UPwFaceLoadCondition() override {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,
