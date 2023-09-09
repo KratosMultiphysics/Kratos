@@ -24,5 +24,5 @@ std::string CodeLocation::GetCleanFileName() const
     return fs::canonical(fs::path(GetFileName())).lexically_relative(fs::absolute(".")).string();
 }
 
-} // namespace Interals
+} // namespace Internals
 } // namespace CoSimIO
