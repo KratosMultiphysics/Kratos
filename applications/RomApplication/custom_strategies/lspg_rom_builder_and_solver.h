@@ -138,8 +138,8 @@ public:
     {
         // Validate and assign defaults
         Parameters this_parameters_copy = ThisParameters.Clone();
-        this_parameters_copy = this->ValidateAndAssignParameters(this_parameters_copy, this->GetDefaultParameters());
-        this->AssignSettings(this_parameters_copy);
+        this_parameters_copy = BaseType::ValidateAndAssignParameters(this_parameters_copy, GetDefaultParameters());
+        AssignSettings(this_parameters_copy);
     } 
 
     ~LeastSquaresPetrovGalerkinROMBuilderAndSolver() = default;
@@ -171,22 +171,10 @@ public:
 
         BuildAndApplyDirichletConditions(pScheme, rModelPart, rA, rb, rDx);
 
-        // if (rA.size1() != BaseType::mEquationSystemSize || rA.size2() != BaseType::mEquationSystemSize) {
-        //     rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
-        //     BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
-        // }
-
-        // this->Build(pScheme, rModelPart, rA, rb);
-
-        // BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
-
-        // Initialize the mask vector with zeros
-        Vector hrom_dof_mask_vector = ZeroVector(BaseType::GetEquationSystemSize());
-
         ProjectROM(rModelPart, rA, rb);
 
         double time = assembling_timer.ElapsedSeconds();
-        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build and project time: " << time << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 0)) << "Build and project time: " << time << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -198,22 +186,22 @@ public:
         TSystemVectorType &rb,
         TSystemVectorType &rDx
     ){
-        if (rA.size1() != BaseType::mEquationSystemSize || rA.size2() != BaseType::mEquationSystemSize) {
-            rA.resize(BaseType::mEquationSystemSize, BaseType::mEquationSystemSize, false);
+        if (rA.size1() != BaseBuilderAndSolverType::mEquationSystemSize || rA.size2() != BaseBuilderAndSolverType::mEquationSystemSize) {
+            rA.resize(BaseBuilderAndSolverType::mEquationSystemSize, BaseBuilderAndSolverType::mEquationSystemSize, false);
             BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
         }
 
-        this->Build(pScheme, rModelPart, rA, rb);
+        BaseType::Build(pScheme, rModelPart, rA, rb);
 
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
     }
 
-    void BuildRightRomBasis(
+    void GetRightROMBasis(
         const ModelPart& rModelPart,
         Matrix& rPhiGlobal
     )
     {
-        this->BuildRightROMBasis(rModelPart, rPhiGlobal);
+        BaseType::BuildRightROMBasis(rModelPart, rPhiGlobal);
     }
 
     /**
@@ -227,27 +215,26 @@ public:
         KRATOS_TRY
 
         if (mRightRomBasisInitialized==false){
-            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), this->GetNumberOfROMModes());
+            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::mEquationSystemSize, BaseType::GetNumberOfROMModes());
             mRightRomBasisInitialized = true;
         }
 
-        this->BuildRightROMBasis(rModelPart, mPhiGlobal);
-
+        BaseType::BuildRightROMBasis(rModelPart, mPhiGlobal);
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
         Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
-        
+
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
         if (mSolvingTechnique == "normal_equations"){
             // Compute the matrix multiplication
-            this->mEigenRomA = eigen_rA_times_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
-            this->mEigenRomB = eigen_rA_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+            mEigenRomA = eigen_rA_times_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
+            mEigenRomB = eigen_rA_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
         }
         else if (mSolvingTechnique == "qr_decomposition") {
-            this->mEigenRomA = eigen_rA_times_mPhiGlobal; 
-            this->mEigenRomB = eigen_rb;
+            mEigenRomA = eigen_rA_times_mPhiGlobal; 
+            mEigenRomB = eigen_rb;
         }
 
         KRATOS_CATCH("")
@@ -271,10 +258,12 @@ public:
             SparseSpaceType::WriteMatrixMarketVector((matrix_market_vector_name.str()).c_str(), b);
         }
         
-        if (mSolvingTechnique == "normal_equations")
-            this->SolveROM(rModelPart, this->mEigenRomA, this->mEigenRomB, Dx);
-        else if (mSolvingTechnique == "qr_decomposition")
-            SolveROM(rModelPart, this->mEigenRomA, this->mEigenRomB, Dx);
+        if (mSolvingTechnique == "normal_equations"){
+            BaseType::SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
+        }
+        else if (mSolvingTechnique == "qr_decomposition"){
+            SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
+        }
 
         KRATOS_CATCH("")
     }
@@ -351,11 +340,6 @@ protected:
     ///@name Protected member variables
     ///@{
     
-    SizeType mNodalDofs;
-    ElementsArrayType mComplementaryElements;
-    ConditionsArrayType mComplementaryConditions;
-    ElementsArrayType mNeighbouringAndSelectedElements;
-    ConditionsArrayType mNeighbouringAndSelectedConditions;
     EigenDynamicMatrix mEigenRomA;
     EigenDynamicVector mEigenRomB;
     Matrix mPhiGlobal;
@@ -405,7 +389,7 @@ protected:
         
         const auto solving_timer = BuiltinTimer();
 
-        LocalSystemVectorType dxrom(this->GetNumberOfROMModes());
+        LocalSystemVectorType dxrom(BaseType::GetNumberOfROMModes());
 
         using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
         Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
@@ -413,7 +397,7 @@ protected:
         KRATOS_WATCH(rEigenRomA)
         KRATOS_WATCH(rEigenRomB)
         KRATOS_WATCH(dxrom_eigen)
-        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
         // Save the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
@@ -421,9 +405,9 @@ protected:
 
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
-        this->ProjectToFineBasis(dxrom, rModelPart, rDx);
+        BaseType::ProjectToFineBasis(dxrom, rModelPart, rDx);
         KRATOS_WATCH(rDx)
-        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         KRATOS_CATCH("")
     }
