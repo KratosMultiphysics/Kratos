@@ -370,7 +370,7 @@ void Communication::MakeFileVisible(
     CO_SIM_IO_TRY
 
     if (!UseAuxFileForFileAvailability) {
-        const fs::path tmp_file_name = GetTempFileName(rPath, UseAuxFileForFileAvailability);
+        const fs::path tmp_file_name = this->GetTempFileName(rPath, UseAuxFileForFileAvailability);
         AddFilePermissions(tmp_file_name);
         std::error_code ec;
         fs::rename(tmp_file_name, rPath, ec);
@@ -417,9 +417,9 @@ void Communication::SynchronizeAll(const std::string& rTag) const
 
         if (GetIsPrimaryConnection()) {
             std::ofstream sync_file;
-            sync_file.open(GetTempFileName(file_name_primary));
+            sync_file.open(this->GetTempFileName(file_name_primary));
             sync_file.close();
-            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_primary))) << "Primary sync file " << file_name_primary << " could not be created!" << std::endl;
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(this->GetTempFileName(file_name_primary))) << "Primary sync file " << file_name_primary << " could not be created!" << std::endl;
             MakeFileVisible(file_name_primary);
 
             WaitForPath(file_name_secondary, true, 2);
@@ -431,9 +431,9 @@ void Communication::SynchronizeAll(const std::string& rTag) const
             RemovePath(file_name_primary);
 
             std::ofstream sync_file;
-            sync_file.open(GetTempFileName(file_name_secondary));
+            sync_file.open(this->GetTempFileName(file_name_secondary));
             sync_file.close();
-            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_secondary))) << "Secondary sync file " << file_name_secondary << " could not be created!" << std::endl;
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(this->GetTempFileName(file_name_secondary))) << "Secondary sync file " << file_name_secondary << " could not be created!" << std::endl;
             MakeFileVisible(file_name_secondary);
 
             WaitUntilFileIsRemoved(file_name_secondary, 2);
@@ -485,7 +485,7 @@ void Communication::HandShake(const Info& I_Info)
             WaitUntilFileIsRemoved(rMyFileName,1); // in case of leftovers
 
             { // necessary as FileSerializer releases resources on destruction!
-                FileSerializer serializer_save(GetTempFileName(rMyFileName).string(), mSerializerTraceType);
+                FileSerializer serializer_save(this->GetTempFileName(rMyFileName).string(), mSerializerTraceType);
                 serializer_save.save("info", GetMyInfo());
             }
 
