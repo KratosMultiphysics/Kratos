@@ -16,7 +16,6 @@
 /* System includes */
 
 /* External includes */
-#include "concurrentqueue/concurrentqueue.h"
 #include <Eigen/Core>
 #include <Eigen/Dense>
 
@@ -26,7 +25,6 @@
 #include "solving_strategies/schemes/scheme.h"
 #include "custom_strategies/global_rom_builder_and_solver.h"
 #include "utilities/builtin_timer.h"
-#include "utilities/reduction_utilities.h"
 #include "utilities/dense_householder_qr_decomposition.h"
 
 /* Application includes */
@@ -103,16 +101,6 @@ public:
     using TSchemeType = typename BaseType::TSchemeType;
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
     using TSystemVectorType = typename BaseType::TSystemVectorType;
-    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
-    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
-    using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
-    using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
-    using ElementsArrayType = typename BaseType::ElementsArrayType;
-    using ConditionsArrayType = typename BaseType::ConditionsArrayType;
-
-    /// Additional definitions
-    using MasterSlaveConstraintContainerType = typename ModelPart::MasterSlaveConstraintContainerType;
-    using EquationIdVectorType = Element::EquationIdVectorType;
 
     // Eigen definitions
     using EigenDynamicMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
@@ -121,10 +109,6 @@ public:
 
     /// DoF types definition
     using NodeType = Node;
-    using DofType = typename NodeType::DofType;
-    using DofPointerType = typename DofType::Pointer;
-    using DofQueue = moodycamel::ConcurrentQueue<DofType::Pointer>;
-    using DofsVectorType = Element::DofsVectorType;
 
 
     ///@}
