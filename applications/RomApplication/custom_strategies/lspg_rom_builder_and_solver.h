@@ -28,7 +28,6 @@
 #include "utilities/builtin_timer.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/dense_householder_qr_decomposition.h"
-#include "processes/find_nodal_neighbours_process.h"
 
 /* Application includes */
 #include "rom_application_variables.h"
@@ -171,6 +170,10 @@ public:
 
         BuildAndApplyDirichletConditions(pScheme, rModelPart, rA, rb, rDx);
 
+        if (BaseType::GetMonotonicityPreservingFlag()) {
+            BaseType::MonotonicityPreserving(rA, rb);
+        }
+
         ProjectROM(rModelPart, rA, rb);
 
         double time = assembling_timer.ElapsedSeconds();
@@ -262,7 +265,7 @@ public:
             BaseType::SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
         }
         else if (mSolvingTechnique == "qr_decomposition"){
-            SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
+            BaseType::SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
         }
 
         KRATOS_CATCH("")
@@ -339,11 +342,6 @@ protected:
     ///@}
     ///@name Protected member variables
     ///@{
-    
-    EigenDynamicMatrix mEigenRomA;
-    EigenDynamicVector mEigenRomB;
-    Matrix mPhiGlobal;
-    bool mRightRomBasisInitialized = false;
 
     ///@}
     ///@name Protected operators
@@ -364,50 +362,6 @@ protected:
         mSolvingTechnique = ThisParameters["inner_rom_settings"]["solving_technique"].GetString();
     }
 
-    /**
-     * Resizes a Matrix if it's not the right size
-     */
-    template<typename TMatrix>
-    static void ResizeIfNeeded(TMatrix& rMat, const SizeType Rows, const SizeType Cols)
-
-    {
-        if(rMat.size1() != Rows || rMat.size2() != Cols) {
-            rMat.resize(Rows, Cols, false);
-        }
-    };
-
-    /**
-     * Solves reduced system of equations and broadcasts it
-     */
-    void SolveROM(
-        ModelPart &rModelPart,
-        EigenDynamicMatrix &rEigenRomA,
-        EigenDynamicVector &rEigenRomB,
-        TSystemVectorType &rDx) override
-    {
-        KRATOS_TRY
-        
-        const auto solving_timer = BuiltinTimer();
-
-        LocalSystemVectorType dxrom(BaseType::GetNumberOfROMModes());
-
-        using EigenDynamicVector = Eigen::Matrix<double, Eigen::Dynamic, 1>;
-        Eigen::Map<EigenDynamicVector> dxrom_eigen(dxrom.data().begin(), dxrom.size());
-        dxrom_eigen = rEigenRomA.colPivHouseholderQr().solve(rEigenRomB);
-        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
-
-        // Save the ROM solution increment in the root modelpart database
-        auto& r_root_mp = rModelPart.GetRootModelPart();
-        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
-
-        // project reduced solution back to full order model
-        const auto backward_projection_timer = BuiltinTimer();
-        BaseType::ProjectToFineBasis(dxrom, rModelPart, rDx);
-        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
-
-        KRATOS_CATCH("")
-    }
-
     ///@}
     ///@name Protected access
     ///@{
@@ -426,6 +380,10 @@ private:
     bool mTrainPetrovGalerkinFlag = false;
     std::string mBasisStrategy;
     std::string mSolvingTechnique;
+    EigenDynamicMatrix mEigenRomA;
+    EigenDynamicVector mEigenRomB;
+    Matrix mPhiGlobal;
+    bool mRightRomBasisInitialized = false;
 
     ///@}
     ///@name Private operations 

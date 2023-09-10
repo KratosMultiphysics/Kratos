@@ -235,6 +235,11 @@ public:
         return mNumberOfRomModes;
     } 
 
+    bool GetMonotonicityPreservingFlag() const noexcept
+    {
+        return mMonotonicityPreservingFlag;
+    }
+
     void ProjectToFineBasis(
         const TSystemVectorType& rRomUnkowns,
         const ModelPart& rModelPart,
@@ -454,9 +459,6 @@ protected:
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
     bool mRightRomBasisInitialized = false;
-    EigenDynamicMatrix mEigenRomA;
-    EigenDynamicVector mEigenRomB;
-    Matrix mPhiGlobal;
 
     ///@}
     ///@name Protected operators
@@ -822,6 +824,9 @@ private:
     ///@{
         
     SizeType mNumberOfRomModes;
+    EigenDynamicMatrix mEigenRomA;
+    EigenDynamicVector mEigenRomB;
+    Matrix mPhiGlobal;
     bool mMonotonicityPreservingFlag;
 
     ///@}
