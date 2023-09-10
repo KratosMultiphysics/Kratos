@@ -81,7 +81,7 @@ class TestThermalLSPGRom(KratosUnittest.TestCase):
                 snapshot_i= np.array(self.simulation.selected_time_step_solution_container[i])
                 obtained_snapshot_matrix[:,i] = snapshot_i.transpose()
             nodal_area = rom_testing_utilities.GetNodalAreaVector(self.simulation._GetSolver().GetComputingModelPart())
-            
+
             for i in range (n_snapshots):
                 l2 = np.sqrt((sum(nodal_area*((1 - obtained_snapshot_matrix[:,i]/expected_output[:,i] )**2)))/(sum(nodal_area)))*100
                 self.assertLess(l2, self.relative_tolerance)
