@@ -80,9 +80,6 @@ def CreateSolver(cls, model, custom_settings):
                     raise ValueError(err_msg)
                 
             self._AssignMissingInnerRomParameters(projection_strategy)
-            
-            # if projection_strategy=="global_galerkin": #TODO: Do it for all global rom B&Ss.
-            #     self.settings["rom_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
                 
             # Return the validated ROM parameters
             return self.settings["rom_settings"], projection_strategy
