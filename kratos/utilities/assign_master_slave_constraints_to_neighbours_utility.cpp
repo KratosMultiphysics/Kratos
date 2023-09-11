@@ -130,28 +130,25 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForCl
     rCloudOfNodesCoordinates.resize(CloudOfNodesArray.size(), 3);
 
     // Loop over the cloud of nodes
-    for (int i = 0; i < static_cast<int>(CloudOfNodesArray.size()); i++)
-    {
-        NodeType::Pointer pSlaveNode = CloudOfNodesArray[i];
+    for (std::size_t i = 0; i < CloudOfNodesArray.size(); i++) {
+        auto p_slave_node = CloudOfNodesArray[i];
 
         // Loop over the variable list
-        for (int j = 0; j < static_cast<int>(rVariableList.size()); j++)
-        {
+        for (std::size_t j = 0; j < rVariableList.size(); j++) {
             const auto& r_variable = rVariableList[j];
 
             // Check if the slave node has the required DOF for the current variable
-            if (pSlaveNode->HasDofFor(r_variable.get()))
-                rCloudOfDofs[j][i] = pSlaveNode->pGetDof(r_variable.get()); // Assign the DOF pointer to the corresponding position in rCloudOfDofs
-            else
-            {
+            if (p_slave_node->HasDofFor(r_variable.get())) {
+                rCloudOfDofs[j][i] = p_slave_node->pGetDof(r_variable.get()); // Assign the DOF pointer to the corresponding position in rCloudOfDofs
+            } else {
                 std::stringstream variable_str;
                 variable_str << r_variable.get();
-                KRATOS_ERROR << "The node with ID " << pSlaveNode->Id() << " does not have the required DOF for the variable " << variable_str.str() << std::endl;
+                KRATOS_ERROR << "The node with ID " << p_slave_node->Id() << " does not have the required DOF for the variable " << variable_str.str() << std::endl;
             }
         }
 
         // Assign the coordinates of the slave node to the corresponding row in rCloudOfNodesCoordinates
-        noalias(row(rCloudOfNodesCoordinates, i)) = pSlaveNode->Coordinates();
+        noalias(row(rCloudOfNodesCoordinates, i)) = p_slave_node->Coordinates();
     }
 
     KRATOS_CATCH("");
@@ -180,8 +177,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
 
     int prev_num_mscs = rComputingModelPart.NumberOfMasterSlaveConstraints();
 
-    if (prev_num_mscs > 0)
-        KRATOS_WARNING("AssignMasterSlaveConstraintsToNeighboursUtility") << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
+    KRATOS_WARNING_IF("AssignMasterSlaveConstraintsToNeighboursUtility", prev_num_mscs > 0) << "Previous Master-Slave Constraints exist in the ModelPart. The new Constraints may interact with the existing ones." << std::endl;
 
     auto& p_nodes_array = pSlaveNodes.GetContainer();  // Get the container of slave nodes
 
@@ -220,8 +216,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
         constant_vector.resize(r_n_container.size());
         IndexType it = i.fetch_add(1) * rVariableList.size(); // Atomically increment the counter and get the previous value
 
-        for (std::size_t j = 0; j < rVariableList.size(); ++j)
-        {
+        for (std::size_t j = 0; j < rVariableList.size(); ++j) {
             concurrent_constraints.enqueue(r_clone_constraint.Create(prev_num_mscs + it + j + 1, const_cast<DofPointerVectorType&>(r_cloud_of_dofs[j]), r_slave_dofs[j], shape_matrix, constant_vector));
         }
     });
