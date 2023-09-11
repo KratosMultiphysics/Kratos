@@ -350,11 +350,13 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, BaseLoadCondition );
+        rSerializer.save("mIsMovingLoad", mIsMovingLoad);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
+        rSerializer.save("mIsMovingLoad", mIsMovingLoad);
     }
 
     ///@}
