@@ -22,7 +22,7 @@ class PetrovGalerkinTrainingUtility(object):
 
     def __init__(self, solver, custom_settings):
         # Validate and assign the HROM training settings
-        settings = custom_settings["rom_settings"]["inner_rom_settings"]
+        settings = custom_settings["rom_settings"]["rom_bns_settings"]
         settings.ValidateAndAssignDefaults(self.__GetPetrovGalerkinTrainingDefaultSettings())
 
         # Auxiliary member variables
@@ -30,7 +30,7 @@ class PetrovGalerkinTrainingUtility(object):
         self.time_step_snapshots_matrix_container = [] ## J@Phi or R
         self.echo_level = settings["echo_level"].GetInt()
         self.rom_settings = custom_settings["rom_settings"].Clone()
-        self.rom_settings.RemoveValue("inner_rom_settings") #Removing because the inner rom settings are specific for each builder and solver.
+        self.rom_settings.RemoveValue("rom_bns_settings") #Removing because the inner rom settings are specific for each builder and solver.
         self.basis_strategy = settings["basis_strategy"].GetString()
         self.include_phi = settings["include_phi"].GetBool()
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()

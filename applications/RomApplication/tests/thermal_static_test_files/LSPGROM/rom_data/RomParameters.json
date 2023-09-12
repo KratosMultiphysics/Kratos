@@ -9,7 +9,7 @@
             "TEMPERATURE"
         ],
         "number_of_rom_dofs": 7,
-        "inner_rom_settings":{
+        "rom_bns_settings":{
             "train_petrov_galerkin": false,
             "basis_strategy": "residuals",
             "include_phi": false,

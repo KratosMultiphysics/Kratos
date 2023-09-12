@@ -342,7 +342,7 @@ public:
             "name" : "rom_builder_and_solver",
             "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10,
-            "inner_rom_settings" : {}
+            "rom_bns_settings" : {}
         })");
         default_parameters.AddMissingParameters(BaseType::GetDefaultParameters());
 

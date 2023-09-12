@@ -11,7 +11,7 @@
         ],
         "number_of_rom_dofs": 10,
         "petrov_galerkin_number_of_rom_dofs": 0,
-        "inner_rom_settings":{
+        "rom_bns_settings":{
             "monotonicity_preserving": true
         }
     },

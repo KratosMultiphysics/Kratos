@@ -10,7 +10,7 @@
             "VELOCITY_POTENTIAL"
         ],
         "number_of_rom_dofs": 1,
-        "inner_rom_settings":{}
+        "rom_bns_settings":{}
     },
     "hrom_settings": {},
     "nodal_modes": {

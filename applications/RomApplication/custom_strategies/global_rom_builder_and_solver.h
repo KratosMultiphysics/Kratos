@@ -394,7 +394,7 @@ public:
             "name" : "global_rom_builder_and_solver",
             "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10,
-            "inner_rom_settings" : {
+            "rom_bns_settings" : {
                 "monotonicity_preserving": false
             }
         })");
@@ -475,7 +475,7 @@ protected:
         // Set member variables
         mNodalDofs = ThisParameters["nodal_unknowns"].size();
         mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
-        mMonotonicityPreservingFlag = ThisParameters["inner_rom_settings"]["monotonicity_preserving"].GetBool();
+        mMonotonicityPreservingFlag = ThisParameters["rom_bns_settings"]["monotonicity_preserving"].GetBool();
 
         // Set up a map with key the variable key and value the correct row in ROM basis
         IndexType k = 0;

@@ -10,7 +10,7 @@
             "DISPLACEMENT_Y"
         ],
         "number_of_rom_dofs": 2,
-        "inner_rom_settings": {}
+        "rom_bns_settings": {}
     },
     "hrom_settings": {
         "hrom_format":"numpy"

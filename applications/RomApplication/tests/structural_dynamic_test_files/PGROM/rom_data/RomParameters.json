@@ -11,7 +11,7 @@
         ],
         "number_of_rom_dofs": 11,
         "petrov_galerkin_number_of_rom_dofs": 20,
-        "inner_rom_settings": {}
+        "rom_bns_settings": {}
     },
     "hrom_settings": {},
     "nodal_modes": {

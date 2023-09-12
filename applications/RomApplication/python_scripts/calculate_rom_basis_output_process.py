@@ -145,7 +145,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "assembling_strategy": "global",
             "rom_format": "numpy",
             "rom_settings": {
-                "inner_rom_settings": {}
+                "rom_bns_settings": {}
             },
             "hrom_settings": {},
             "nodal_modes": {},

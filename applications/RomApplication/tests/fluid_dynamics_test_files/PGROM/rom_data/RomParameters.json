@@ -12,7 +12,7 @@
         ],
         "number_of_rom_dofs": 3,
         "petrov_galerkin_number_of_rom_dofs": 6,
-        "inner_rom_settings":{
+        "rom_bns_settings":{
             "train_petrov_galerkin": false,
             "basis_strategy": "residuals",
             "include_phi": false,

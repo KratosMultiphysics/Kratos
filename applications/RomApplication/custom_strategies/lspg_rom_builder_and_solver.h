@@ -262,7 +262,7 @@ public:
             "name" : "lspg_rom_builder_and_solver",
             "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10,
-            "inner_rom_settings": {
+            "rom_bns_settings": {
                 "train_petrov_galerkin" : false,
                 "solving_technique" : "normal_equations",
                 "basis_strategy" : "residuals",
@@ -341,9 +341,9 @@ protected:
         BaseType::AssignSettings(ThisParameters);
 
         // // Set member variables
-        mTrainPetrovGalerkinFlag = ThisParameters["inner_rom_settings"]["train_petrov_galerkin"].GetBool();
-        mBasisStrategy = ThisParameters["inner_rom_settings"]["basis_strategy"].GetString();
-        mSolvingTechnique = ThisParameters["inner_rom_settings"]["solving_technique"].GetString();
+        mTrainPetrovGalerkinFlag = ThisParameters["rom_bns_settings"]["train_petrov_galerkin"].GetBool();
+        mBasisStrategy = ThisParameters["rom_bns_settings"]["basis_strategy"].GetString();
+        mSolvingTechnique = ThisParameters["rom_bns_settings"]["solving_technique"].GetString();
     }
 
     ///@}
