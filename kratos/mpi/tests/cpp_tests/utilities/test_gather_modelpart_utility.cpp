@@ -17,7 +17,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "mpi/utilities/mpi_cpp_test_utilities.h"
+#include "mpi/tests/test_utilities/mpi_cpp_test_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "mpi/utilities/gather_modelpart_utility.h"
 
