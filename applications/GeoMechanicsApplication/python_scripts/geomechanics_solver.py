@@ -205,6 +205,9 @@ class GeoMechanicalSolver(PythonSolver):
         """This function prepares the ModelPart for being used by the PythonSolver
         """
         # Set ProcessInfo variables
+        # NB:This line of reading time_step is necessary for CoSim application
+        self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
+                                                  self.settings["time_stepping"]["time_step"].GetDouble())
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.TIME_UNIT_CONVERTER, 1.0)
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.NODAL_SMOOTHING,
                                                   self.settings["nodal_smoothing"].GetBool())
