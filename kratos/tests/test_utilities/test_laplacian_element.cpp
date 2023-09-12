@@ -20,7 +20,7 @@
 #include "includes/variables.h"
 #include "utilities/math_utils.h"
 #include "utilities/geometry_utilities.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_laplacian_element.h"
+#include "tests/test_utilities/test_laplacian_element.h"
 
 namespace Kratos::Testing
 {
