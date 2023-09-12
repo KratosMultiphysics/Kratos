@@ -13,8 +13,6 @@
 // System includes
 #include <iostream>
 
-// External includes
-
 // Project includes
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
 
@@ -23,37 +21,10 @@
 namespace Kratos
 {
 
-//******************************CONSTRUCTOR*******************************************
-/***********************************************************************************/
-
-LinearElastic2DBeamLaw::
-    LinearElastic2DBeamLaw()
-    : GeoLinearElasticPlaneStrain2DLaw()
-{
-}
-
-//******************************COPY CONSTRUCTOR**************************************
-/***********************************************************************************/
-
-LinearElastic2DBeamLaw::
-    LinearElastic2DBeamLaw(const LinearElastic2DBeamLaw& rOther)
-    : GeoLinearElasticPlaneStrain2DLaw(rOther) {}
-
-//********************************CLONE***********************************************
-/***********************************************************************************/
-
 ConstitutiveLaw::Pointer LinearElastic2DBeamLaw::Clone() const
 {
     return Kratos::make_shared< LinearElastic2DBeamLaw>(*this);
 }
-
-//*******************************DESTRUCTOR*******************************************
-/***********************************************************************************/
-
-    LinearElastic2DBeamLaw::~LinearElastic2DBeamLaw() {}
-
-//*************************CONSTITUTIVE LAW GENERAL FEATURES *************************
-/***********************************************************************************/
 
 void LinearElastic2DBeamLaw::GetLawFeatures(Features& rFeatures)
 {
@@ -67,39 +38,34 @@ void LinearElastic2DBeamLaw::GetLawFeatures(Features& rFeatures)
     rFeatures.mStrainMeasures.push_back(StrainMeasure_Deformation_Gradient);
 
     //Set the strain size
-    // for the time being
     rFeatures.mStrainSize = GetStrainSize();
 
-    //Set the spacedimension
+    //Set the space dimension
     rFeatures.mSpaceDimension = WorkingSpaceDimension();
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-void LinearElastic2DBeamLaw::
-    CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
+void LinearElastic2DBeamLaw::CalculateElasticMatrix(Matrix& C, ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
     // Stiffness of beams is based on Eq.16b and 17c of the following paper:
     // Pica, Wood, Hinton (1980) "Finite element analysis of geometrically 
     //                            nonlinear plate behaviour using a 
-    //                            mindlin formulation"
+    //                            Mindlin formulation"
 
     const Properties& rMaterialProperties = rValues.GetMaterialProperties();
-    const double E = rMaterialProperties[YOUNG_MODULUS];
+    const double E  = rMaterialProperties[YOUNG_MODULUS];
     const double NU = rMaterialProperties[POISSON_RATIO];
 
-    double K = 1.2; // assuming rectangular cross section
+    double K = 1.2; // assuming rectangular crosssection
     if (rMaterialProperties.Has(PLATE_SHAPE_CORRECTION_FACTOR) && rMaterialProperties[PLATE_SHAPE_CORRECTION_FACTOR] > 0.0) {
         K = rMaterialProperties[PLATE_SHAPE_CORRECTION_FACTOR];
     }
 
     this->CheckClearElasticMatrix(C);
 
-    const double c0 = E / (1.00 - NU*NU);
-    const double G  = E / (2.0*(1.00 + NU));
+    const double c0 = E / (1.0 - NU*NU);
+    const double G  = E / (2.0 * (1.0 + NU));
 
     C(INDEX_2D_PLANE_STRESS_XX, INDEX_2D_PLANE_STRESS_XX) = c0;
     C(INDEX_2D_PLANE_STRESS_YY, INDEX_2D_PLANE_STRESS_YY) = c0;
@@ -110,11 +76,9 @@ void LinearElastic2DBeamLaw::
     KRATOS_CATCH("")
 }
 
-//-------------------------------------------------------------------------------------------------
-void LinearElastic2DBeamLaw::
-    CalculatePK2Stress(const Vector& rStrainVector,
-                       Vector& rStressVector,
-                       ConstitutiveLaw::Parameters& rValues)
+void LinearElastic2DBeamLaw::CalculatePK2Stress(const Vector& rStrainVector,
+                                                Vector& rStressVector,
+                                                ConstitutiveLaw::Parameters& rValues)
 {
     KRATOS_TRY
 
@@ -125,8 +89,4 @@ void LinearElastic2DBeamLaw::
     KRATOS_CATCH("")
 }
 
-/***********************************************************************************/
-/***********************************************************************************/
-
-
-} // Namespace Kratos
+}

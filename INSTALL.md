@@ -74,7 +74,7 @@ Additionaly, Visual Studio is required to compile in *Windows*.
 
     - Visual Studio
 
-        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is *Visual Studio 2017*, but we recommend to use *Visual Studio 2019* or higher.
+        *Visual Studio* is the only compiler officially supported to build *Kratos* under *Windows*. The minimium required version is *Visual Studio 2019* or higher (please ensure that version is at least 16.8 or MSVC version is at least 19.24).
 
         * [Download Visual Studio](https://visualstudio.microsoft.com/en/thank-you-downloading-visual-studio/?sku=Community&rel=16)
 
@@ -156,6 +156,19 @@ Additionaly, Visual Studio is required to compile in *Windows*.
       ```Shell
       pacman -S mingw64/mingw-w64-x86_64-boost
       ```
+
+  ##### Using UCRT64
+
+  UCRT (Universal C Runtime) is a newer version which is also used by Microsoft Visual Studio by default, see https://www.msys2.org/docs/environments/. It should work and behave as if the code was compiled with MSVC.
+
+  - Better compatibility with MSVC, both at build time and at run time.
+  - It only ships by default on Windows 10 and for older versions you have to provide it yourself or depend on the user having it installed.
+
+  If using UCRT64 the dependencies will be like:
+
+  ```Shell
+  pacman -S ucrt64/mingw-w64-ucrt-x86_64-lapack ucrt64/mingw-w64-ucrt-x86_64-openblas ucrt64/mingw-w64-ucrt-x86_64-cmake ucrt64/mingw-w64-ucrt-x86_64-clang ucrt64/mingw-w64-ucrt-x86_64-gcc ucrt64/mingw-w64-ucrt-x86_64-gcc-fortran mingw-w64-ucrt-x86_64-make ucrt64/mingw-w64-ucrt-x86_64-openmp ucrt64/mingw-w64-ucrt-x86_64-dlfcn ucrt64/mingw-w64-ucrt-x86_64-boost
+  ```
 
 ### Specific Application Dependencies
 
