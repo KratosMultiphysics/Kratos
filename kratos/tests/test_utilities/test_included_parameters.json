@@ -4,5 +4,5 @@
     "list_value":[ 3, "hi", false],
     "tmp" : 5.0
     },
-    "@include_json" : "testing_utilities/test_included_parameters_level2.json"
+    "@include_json" : "test_utilities/test_included_parameters_level2.json"
 }
