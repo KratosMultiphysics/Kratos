@@ -347,9 +347,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
 
         double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);        
 
-        // int time = rValues.GetProcessInfo()[TIME];
-        // const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
-        // int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];  
+        int time = rValues.GetProcessInfo()[TIME];
+        const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
+        int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];  
 
         if (F <= threshold_tolerance || sign_factor < 0.0) { // Elastic case
             noalias(r_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
@@ -509,9 +509,9 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
         const double F = uniaxial_stress - threshold;
 
-        // int time = rValues.GetProcessInfo()[TIME];
-        // const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
-        // int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];  
+        int time = rValues.GetProcessInfo()[TIME];
+        const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
+        int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];  
 
         if (F > threshold_tolerance && sign_factor > 0.0 ) {
                 const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
