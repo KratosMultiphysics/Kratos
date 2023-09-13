@@ -27,7 +27,7 @@ void DerivativeRecovery<TDim>::AddTimeDerivative(ModelPart& r_model_part, Variab
     const double delta_time_inv = 1.0 / r_model_part.GetProcessInfo()[DELTA_TIME];
     for (NodeIteratorType inode = r_model_part.NodesBegin(); inode != r_model_part.NodesEnd(); ++inode){
         array_1d <double, 3>& material_derivative = inode->FastGetSolutionStepValue(material_derivative_container);
-        const array_1d <double, 3> eulerian_rate_of_change = delta_time_inv * (inode->FastGetSolutionStepValue(VELOCITY) - inode->FastGetSolutionStepValue(VELOCITY, 1));
+        const array_1d <double, 3> eulerian_rate_of_change = inode->FastGetSolutionStepValue(ACCELERATION);
         noalias(material_derivative) += eulerian_rate_of_change;
     }
 }
