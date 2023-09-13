@@ -76,27 +76,27 @@ namespace Kratos
             process.Execute();
 
             std::size_t count = 0;
-            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfNodes(), r_destination_model_part.NumberOfNodes());
+            KRATOS_EXPECT_EQ(r_origin_model_part.NumberOfNodes(), r_destination_model_part.NumberOfNodes());
             for (auto& r_node : r_origin_model_part.Nodes()) {
                 ++count;
-                KRATOS_CHECK_EQUAL(r_node.Id(), r_destination_model_part.GetNode(count).Id());
+                KRATOS_EXPECT_EQ(r_node.Id(), r_destination_model_part.GetNode(count).Id());
             }
 
             // Number of geometries (not ordered)
-            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfGeometries(), r_destination_model_part.NumberOfGeometries());
+            KRATOS_EXPECT_EQ(r_origin_model_part.NumberOfGeometries(), r_destination_model_part.NumberOfGeometries());
 
             count = 0;
-            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfElements(), r_destination_model_part.NumberOfElements());
+            KRATOS_EXPECT_EQ(r_origin_model_part.NumberOfElements(), r_destination_model_part.NumberOfElements());
             for (auto& r_elem : r_origin_model_part.Elements()) {
                 ++count;
-                KRATOS_CHECK_EQUAL(r_elem.Id(), r_destination_model_part.GetElement(count).Id());
+                KRATOS_EXPECT_EQ(r_elem.Id(), r_destination_model_part.GetElement(count).Id());
             }
 
             count = 0;
-            KRATOS_CHECK_EQUAL(r_origin_model_part.NumberOfConditions(), r_destination_model_part.NumberOfConditions());
+            KRATOS_EXPECT_EQ(r_origin_model_part.NumberOfConditions(), r_destination_model_part.NumberOfConditions());
             for (auto& r_cond : r_origin_model_part.Conditions()) {
                 ++count;
-                KRATOS_CHECK_EQUAL(r_cond.Id(), r_destination_model_part.GetCondition(count).Id());
+                KRATOS_EXPECT_EQ(r_cond.Id(), r_destination_model_part.GetCondition(count).Id());
             }
         }
 
@@ -163,14 +163,14 @@ namespace Kratos
             for (auto& r_node : r_origin_model_part.Nodes()) {
                 ++count;
                 if (r_node.Is(MASTER))
-                    KRATOS_CHECK_EQUAL(r_node.Id(), r_destination_model_part.GetNode(count).Id());
+                    KRATOS_EXPECT_EQ(r_node.Id(), r_destination_model_part.GetNode(count).Id());
             }
 
             count = 0;
             for (auto& cond : r_origin_model_part.Conditions()) {
                 ++count;
                 if (cond.Is(MASTER))
-                    KRATOS_CHECK_EQUAL(cond.Id(), r_destination_model_part.GetCondition(count).Id());
+                    KRATOS_EXPECT_EQ(cond.Id(), r_destination_model_part.GetCondition(count).Id());
             }
         }
 
@@ -216,13 +216,13 @@ namespace Kratos
             std::size_t count = 0;
             for (auto& r_node : r_destination_model_part.Nodes()) {
                 ++count;
-                KRATOS_CHECK_EQUAL(r_node.Id(), r_origin_model_part.GetNode(count).Id() + 6);
+                KRATOS_EXPECT_EQ(r_node.Id(), r_origin_model_part.GetNode(count).Id() + 6);
             }
 
             count = 0;
             for (auto& r_cond : r_destination_model_part.Conditions()) {
                 ++count;
-                KRATOS_CHECK_EQUAL(r_cond.Id(), r_origin_model_part.GetCondition(count).Id() + 2);
+                KRATOS_EXPECT_EQ(r_cond.Id(), r_origin_model_part.GetCondition(count).Id() + 2);
             }
         }
 
@@ -289,14 +289,14 @@ namespace Kratos
             for (auto& r_node : r_origin_model_part.Nodes()) {
                 ++count;
                 if (r_node.Is(MASTER))
-                    KRATOS_CHECK_EQUAL(r_node.Id() + 6, r_destination_model_part.GetNode(count + 6).Id());
+                    KRATOS_EXPECT_EQ(r_node.Id() + 6, r_destination_model_part.GetNode(count + 6).Id());
             }
 
             count = 0;
             for (auto& r_cond : r_origin_model_part.Conditions()) {
                 ++count;
                 if (r_cond.Is(MASTER))
-                    KRATOS_CHECK_EQUAL(r_cond.Id() + 2, r_destination_model_part.GetCondition(count  + 2).Id());
+                    KRATOS_EXPECT_EQ(r_cond.Id() + 2, r_destination_model_part.GetCondition(count  + 2).Id());
             }
         }
 

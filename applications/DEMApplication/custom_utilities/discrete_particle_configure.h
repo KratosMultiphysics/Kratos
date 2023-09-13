@@ -64,7 +64,6 @@ public:
     typedef SearchType::ElementsContainerType                       ElementsContainerType;
     typedef SearchType::NodesContainerType                          NodesContainerType;
 
-    typedef SearchType::ElementType                                 ElementType;
     typedef ContainerType::value_type                               PointerType;
     typedef ContainerType::iterator                                 IteratorType;
     typedef ElementsContainerType::iterator                         ElementIteratorType;

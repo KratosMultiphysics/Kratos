@@ -13,7 +13,10 @@
 // Application includes
 #include "custom_elements/steady_state_Pw_piping_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include "utilities/math_utils.h"
 #include <cmath>
+
+
 namespace Kratos
 {
 
@@ -119,7 +122,6 @@ void SteadyStatePwPipingElement<3, 8>::CalculateLength(const GeometryType& Geom)
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyStatePwPipingElement<TDim, TNumNodes>::
 CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
@@ -127,8 +129,6 @@ CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-
-    // KRATOS_INFO("0-TransientPwInterfaceElement:::CalculateOnIntegrationPoints<double>()") << std::endl;
 
     if (rVariable == PIPE_ACTIVE)
     {
@@ -142,6 +142,7 @@ CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
             rValues[GPoint] = pipe_active;
         }
     }
+
     KRATOS_CATCH("")
 }
 
@@ -171,7 +172,6 @@ CalculateOnIntegrationPoints(const Variable<double>& rVariable,
     }
     KRATOS_CATCH("")
 }
-
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
@@ -328,7 +328,7 @@ double SteadyStatePwPipingElement<TDim,TNumNodes>:: CalculateEquilibriumPipeHeig
         return 1e10;
     }
 	
-    return modelFactor * M_PI / 3.0 * particle_d * (SolidDensity / FluidDensity - 1) * eta  * sin((theta  + pipeSlope) * M_PI / 180.0) / cos(theta * M_PI / 180.0) / dhdx;
+    return modelFactor * Globals::Pi / 3.0 * particle_d * (SolidDensity / FluidDensity - 1) * eta  * std::sin(MathUtils<>::DegreesToRadians(theta  + pipeSlope)) / std::cos(MathUtils<>::DegreesToRadians(theta)) / dhdx;
 
 }
 

@@ -54,7 +54,7 @@ CalculateTangentTensorIsotropicDamage(
   const double Young = r_props[YOUNG_MODULUS];
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   double threshold;
   YieldSurfaceType::GetInitialUniaxialThreshold(rValues, threshold);
   auto &r_Ct = rValues.GetConstitutiveMatrix();
@@ -256,7 +256,7 @@ CalculateTangentTensorIsotropicDamage(
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
   const double phi = r_props[FRICTION_ANGLE] * Globals::Pi / 180.0;
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();
 
@@ -577,7 +577,7 @@ CalculateTangentTensorIsotropicDamage(
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
   const double phi = r_props[FRICTION_ANGLE];
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   const double threshold = r_props[YIELD_STRESS];
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();
@@ -763,7 +763,7 @@ CalculateTangentTensorIsotropicDamage(
   const double Young = r_props[YOUNG_MODULUS];
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   const double threshold = r_props[YIELD_STRESS];
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();
@@ -1241,7 +1241,7 @@ CalculateTangentTensorIsotropicDamage(
   const double Young = r_props[YOUNG_MODULUS];
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   double threshold;
   YieldSurfaceType::GetInitialUniaxialThreshold(rValues, threshold);
   auto &r_Ct = rValues.GetConstitutiveMatrix();
@@ -1420,7 +1420,7 @@ CalculateTangentTensorIsotropicDamage(
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
   const double phi = r_props[FRICTION_ANGLE] * Globals::Pi / 180.0;
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();
 
@@ -1745,7 +1745,7 @@ CalculateTangentTensorIsotropicDamage(
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
   const double phi = r_props[FRICTION_ANGLE];
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   const double threshold = r_props[YIELD_STRESS];
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();
@@ -1936,7 +1936,7 @@ CalculateTangentTensorIsotropicDamage(
   const double Young = r_props[YOUNG_MODULUS];
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   const double threshold = r_props[YIELD_STRESS];
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();
@@ -2471,7 +2471,7 @@ CalculateTangentTensorIsotropicDamage(
     const double Young = r_props[YOUNG_MODULUS];
     const double nu = r_props[POISSON_RATIO];
     const double Gf = r_props[FRACTURE_ENERGY];
-    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+    const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
     double threshold;
     YieldSurfaceType::GetInitialUniaxialThreshold(rValues, threshold);
     auto &r_Ct = rValues.GetConstitutiveMatrix();
@@ -2565,7 +2565,7 @@ CalculateTangentTensorIsotropicDamage(
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
   const double phi = r_props[FRICTION_ANGLE] * Globals::Pi / 180.0;
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();
 
@@ -2779,7 +2779,7 @@ CalculateTangentTensorIsotropicDamage(
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
   const double phi = r_props[FRICTION_ANGLE];
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   const double threshold = r_props[YIELD_STRESS];
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();
@@ -2890,7 +2890,7 @@ CalculateTangentTensorIsotropicDamage(
   const double Young = r_props[YOUNG_MODULUS];
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   const double threshold = r_props[YIELD_STRESS];
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();
@@ -3002,7 +3002,7 @@ CalculateTangentTensorIsotropicDamage(
   const double Young = r_props[YOUNG_MODULUS];
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   double threshold;
   YieldSurfaceType::GetInitialUniaxialThreshold(rValues, threshold);
   auto &r_Ct = rValues.GetConstitutiveMatrix();
@@ -3089,7 +3089,7 @@ CalculateTangentTensorIsotropicDamage(
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
   const double phi = r_props[FRICTION_ANGLE] * Globals::Pi / 180.0;
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();
 
@@ -3292,7 +3292,7 @@ CalculateTangentTensorIsotropicDamage(
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
   const double phi = r_props[FRICTION_ANGLE];
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   const double threshold = r_props[YIELD_STRESS];
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();
@@ -3392,7 +3392,7 @@ CalculateTangentTensorIsotropicDamage(
   const double Young = r_props[YOUNG_MODULUS];
   const double nu = r_props[POISSON_RATIO];
   const double Gf = r_props[FRACTURE_ENERGY];
-  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLength(rValues.GetElementGeometry());
+  const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
   const double threshold = r_props[YIELD_STRESS];
   auto &r_Ct = rValues.GetConstitutiveMatrix();
   const auto &r_strain = rValues.GetStrainVector();

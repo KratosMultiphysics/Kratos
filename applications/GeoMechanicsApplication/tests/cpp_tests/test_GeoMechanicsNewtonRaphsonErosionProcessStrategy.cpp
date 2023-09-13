@@ -36,10 +36,11 @@ namespace Kratos
             auto projectFile = "ProjectParameters.json";
 
             auto execute = KratosExecute();
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", 
-            &flow_stubs::emptyLog, &flow_stubs::emptyProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
-            KRATOS_CHECK_EQUAL(status, 0);
+            KRATOS_EXPECT_EQ(status, 0);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeoMechanicsFastSuite)
@@ -53,7 +54,7 @@ namespace Kratos
             bool finalMessageFound = false;
             int messageCount = 0;
 
-            std::function<void(char*)> reportTextualProgress = [&firstMessageFound, &finalMessageFound, &messageCount](char* message) 
+            std::function<void(const char*)> reportTextualProgress = [&firstMessageFound, &finalMessageFound, &messageCount](const char* message)
             {
                 messageCount++;
                 std::cout << "Captured: " << message << std::endl;
@@ -67,13 +68,14 @@ namespace Kratos
                 }
             };
             
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head", 
-            &flow_stubs::emptyLog, &flow_stubs::emptyProgress, reportTextualProgress, &flow_stubs::emptyCancel);
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
+                                                     &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
+                                                     reportTextualProgress, &flow_stubs::emptyCancel);
 
-            KRATOS_CHECK_EQUAL(status, 0);
-            KRATOS_CHECK_EQUAL(firstMessageFound, true);
-            KRATOS_CHECK_EQUAL(finalMessageFound, true);
-            KRATOS_CHECK_EQUAL(messageCount, 9);
+            KRATOS_EXPECT_EQ(status, 0);
+            KRATOS_EXPECT_EQ(firstMessageFound, true);
+            KRATOS_EXPECT_EQ(finalMessageFound, true);
+            KRATOS_EXPECT_EQ(messageCount, 9);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyProgressReport, KratosGeoMechanicsFastSuite)
@@ -101,13 +103,14 @@ namespace Kratos
                 }
             };
             
-            int status = execute.execute_flow_analysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
-            &flow_stubs::emptyLog, reportProgress, &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
+            int status = execute.ExecuteFlowAnalysis(workingDirectory, projectFile, 3, 4, 0.1, "PorousDomain.Left_head",
+                                                     &flow_stubs::emptyLog, reportProgress, &flow_stubs::emptyLog,
+                                                     &flow_stubs::emptyCancel);
 
-            KRATOS_CHECK_EQUAL(status, 0);
-            KRATOS_CHECK_EQUAL(startProgressFound, true);
-            KRATOS_CHECK_EQUAL(endProgressFound, true);
-            KRATOS_CHECK_EQUAL(progressUpdates, 10);
+            KRATOS_EXPECT_EQ(status, 0);
+            KRATOS_EXPECT_EQ(startProgressFound, true);
+            KRATOS_EXPECT_EQ(endProgressFound, true);
+            KRATOS_EXPECT_EQ(progressUpdates, 10);
         }
     }
 }

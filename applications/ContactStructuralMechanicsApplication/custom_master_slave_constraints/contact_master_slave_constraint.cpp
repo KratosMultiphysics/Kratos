@@ -43,9 +43,9 @@ ContactMasterSlaveConstraint::ContactMasterSlaveConstraint(
 
 ContactMasterSlaveConstraint::ContactMasterSlaveConstraint(
     IndexType Id,
-    NodeType& rMasterNode,
+    Node& rMasterNode,
     const VariableType& rMasterVariable,
-    NodeType& rSlaveNode,
+    Node& rSlaveNode,
     const VariableType& rSlaveVariable,
     const double Weight,
     const double Constant
@@ -98,9 +98,9 @@ MasterSlaveConstraint::Pointer ContactMasterSlaveConstraint::Create(
 
 MasterSlaveConstraint::Pointer ContactMasterSlaveConstraint::Create(
     IndexType Id,
-    NodeType& rMasterNode,
+    Node& rMasterNode,
     const VariableType& rMasterVariable,
-    NodeType& rSlaveNode,
+    Node& rSlaveNode,
     const VariableType& rSlaveVariable,
     const double Weight,
     const double Constant
