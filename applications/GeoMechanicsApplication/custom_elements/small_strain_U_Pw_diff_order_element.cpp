@@ -17,6 +17,10 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
+#include "geometries/point.h"
+#include "geometries/geometry.h"
+#include "integration/line_gauss_legendre_integration_points.h"
+#include "utilities/integration_utilities.h"
 
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
@@ -219,7 +223,34 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
                 mpPressureGeometry = make_shared<Triangle2D6<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5));
             break;
         case 15: //2D T15P10
-            mpPressureGeometry = make_shared<Triangle2D10<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7), rGeom(8), rGeom(9));
+        {
+            //typename PointType::Pointer p1 = rGeom(0);
+            auto p0 = rGeom(0)->Clone();
+            auto p1 = rGeom(1)->Clone();
+            auto p2 = rGeom(2)->Clone();
+            auto p3 = rGeom(3)->Clone();
+            auto p4 = rGeom(5)->Clone();
+            auto p5 = rGeom(6)->Clone();
+            auto p6 = rGeom(8)->Clone();
+            auto p7 = rGeom(9)->Clone();
+            auto p8 = rGeom(11)->Clone();
+            auto p9 = rGeom(12)->Clone();
+            p3->X() = (2.0 * rGeom(3)->X() + rGeom(4)->X()) / 3.0;
+            p3->Y() = (2.0 * rGeom(3)->Y() + rGeom(4)->Y()) / 3.0;
+            p4->X() = (2.0 * rGeom(5)->X() + rGeom(4)->X()) / 3.0;
+            p4->Y() = (2.0 * rGeom(5)->Y() + rGeom(4)->Y()) / 3.0;
+            p5->X() = (2.0 * rGeom(6)->X() + rGeom(7)->X()) / 3.0;
+            p5->Y() = (2.0 * rGeom(6)->Y() + rGeom(7)->Y()) / 3.0;
+            p6->X() = (2.0 * rGeom(8)->X() + rGeom(7)->X()) / 3.0;
+            p6->Y() = (2.0 * rGeom(8)->Y() + rGeom(7)->Y()) / 3.0;
+            p7->X() = (2.0 * rGeom(9)->X() + rGeom(10)->X()) / 3.0;
+            p7->Y() = (2.0 * rGeom(9)->Y() + rGeom(10)->Y()) / 3.0;
+            p8->X() = (2.0 * rGeom(11)->X() + rGeom(10)->X()) / 3.0;
+            p8->Y() = (2.0 * rGeom(11)->Y() + rGeom(10)->Y()) / 3.0;
+            p9->X() = (rGeom(12)->X() + rGeom(13)->X() + rGeom(14)->X()) / 3.0;
+            p9->Y() = (rGeom(12)->Y() + rGeom(13)->Y() + rGeom(14)->Y()) / 3.0;
+            mpPressureGeometry = make_shared<Triangle2D10<Node>>(p0, p1, p2, p3, p4, p5, p6, p7, p8, p9);
+        }
             break;
         case 20: //3D H20P8
             mpPressureGeometry = make_shared<Hexahedra3D8<Node>>(rGeom(0), rGeom(1), rGeom(2), rGeom(3), rGeom(4), rGeom(5), rGeom(6), rGeom(7));
@@ -909,35 +940,34 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
         }
         case 15: //2D T15P10
         {
-            constexpr double c1 = 0.0390625;
-            const double p0 = rGeom[0].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p1 = rGeom[1].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p2 = rGeom[2].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p3 = rGeom[3].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p4 = rGeom[4].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p5 = rGeom[5].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p6 = rGeom[6].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p7 = rGeom[7].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p8 = rGeom[8].FastGetSolutionStepValue(WATER_PRESSURE);
-            const double p9 = rGeom[9].FastGetSolutionStepValue(WATER_PRESSURE);
-            ThreadSafeNodeWrite(rGeom[0], WATER_PRESSURE, p0);
-            ThreadSafeNodeWrite(rGeom[1], WATER_PRESSURE, p1);
-            ThreadSafeNodeWrite(rGeom[2], WATER_PRESSURE, p2);
-            ThreadSafeNodeWrite(rGeom[3], WATER_PRESSURE, (3.0 * p0 + p1 + 27.0 * p3 - 5.4 * p4) * c1);
-            ThreadSafeNodeWrite(rGeom[4], WATER_PRESSURE, (14.4 * (p3 + p4) - 1.6 * (p0 + p1)) * c1);
-            ThreadSafeNodeWrite(rGeom[5], WATER_PRESSURE, (3.0 * p1 + p0 + 27.0 * p4 - 5.4 * p3) * c1);
-            ThreadSafeNodeWrite(rGeom[6], WATER_PRESSURE, (3.0 * p1 + p2 + 27.0 * p5 - 5.4 * p6) * c1);
-            ThreadSafeNodeWrite(rGeom[7], WATER_PRESSURE, (14.4 * (p5 + p6) - 1.6 * (p1 + p2)) * c1);
-            ThreadSafeNodeWrite(rGeom[8], WATER_PRESSURE, (3.0 * p2 + p1 + 27.0 * p6 - 5.4 * p5) * c1);
-            ThreadSafeNodeWrite(rGeom[9], WATER_PRESSURE, (3.0 * p2 + p0 + 27.0 * p7 - 5.4 * p8) * c1);
-            ThreadSafeNodeWrite(rGeom[10], WATER_PRESSURE, (14.4 * (p7 + p8) - 1.6 * (p0 + p2)) * c1);
-            ThreadSafeNodeWrite(rGeom[11], WATER_PRESSURE, (3.0 * p0 + p2 + 27.0 * p8 - 5.4 * p7) * c1);
-            ThreadSafeNodeWrite(rGeom[12], WATER_PRESSURE, (p1 + p2 + 7.2 * (p3 + p8) - 3.6 * (p4 + p7)
-                                                        - 1.8 * (p5 + p6) + 21.6 * p9 - 1.6 * p0) * c1);
-            ThreadSafeNodeWrite(rGeom[13], WATER_PRESSURE, (p0 + p2 + 7.2 * (p4 + p5) - 3.6 * (p3 + p6)
-                                                        - 1.8 * (p7 + p8) + 21.6 * p9 - 1.6 * p1) * c1);
-            ThreadSafeNodeWrite(rGeom[14], WATER_PRESSURE, (p0 + p1 + 7.2 * (p6 + p7) - 3.6 * (p5 + p8)
-                                                        - 1.8 * (p3 + p4) + 21.6 * p9 - 1.6 * p2) * c1);
+            const double p0 = (*mpPressureGeometry)[0].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p1 = (*mpPressureGeometry)[1].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p2 = (*mpPressureGeometry)[2].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p3 = (*mpPressureGeometry)[3].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p4 = (*mpPressureGeometry)[4].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p5 = (*mpPressureGeometry)[5].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p6 = (*mpPressureGeometry)[6].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p7 = (*mpPressureGeometry)[7].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p8 = (*mpPressureGeometry)[8].FastGetSolutionStepValue(WATER_PRESSURE);
+            const double p9 = (*mpPressureGeometry)[9].FastGetSolutionStepValue(WATER_PRESSURE);
+            ThreadSafeNodeWrite(rGeom[ 0], WATER_PRESSURE, p0);
+            ThreadSafeNodeWrite(rGeom[ 1], WATER_PRESSURE, p1);
+            ThreadSafeNodeWrite(rGeom[ 2], WATER_PRESSURE, p2);
+            ThreadSafeNodeWrite(rGeom[ 3], WATER_PRESSURE, (15.0 * p0 + 5.0 * p1 + 135.0 * p3 - 27.0 * p4) / 128.0);
+            ThreadSafeNodeWrite(rGeom[ 4], WATER_PRESSURE, (9.0 * p3 + 9.0 * p4 - p0 - p1) / 16.0);
+            ThreadSafeNodeWrite(rGeom[ 5], WATER_PRESSURE, (15.0 * p1 + 5.0 * p0 + 135.0 * p4 - 27.0 * p3) / 128.0);
+            ThreadSafeNodeWrite(rGeom[ 6], WATER_PRESSURE, (15.0 * p1 + 5.0 * p2 + 135.0 * p5 - 27.0 * p6) / 128.0);
+            ThreadSafeNodeWrite(rGeom[ 7], WATER_PRESSURE, (9.0 * p5 + 9.0 * p6 - p1 - p2) / 16.0);
+            ThreadSafeNodeWrite(rGeom[ 8], WATER_PRESSURE, (15.0 * p2 + 5.0 * p1 + 135.0 * p6 - 27.0 * p5) / 128.0);
+            ThreadSafeNodeWrite(rGeom[ 9], WATER_PRESSURE, (15.0 * p2 + 5.0 * p0 + 135.0 * p7 - 27.0 * p8) / 128.0);
+            ThreadSafeNodeWrite(rGeom[10], WATER_PRESSURE, (9.0 * p7 + 9.0 * p8 - p0 - p2) / 16.0);
+            ThreadSafeNodeWrite(rGeom[11], WATER_PRESSURE, (15.0 * p0 + 5.0 * p2 + 135.0 * p8 - 27.0 * p7) / 128.0);
+            ThreadSafeNodeWrite(rGeom[12], WATER_PRESSURE, (- 8.0 * p0 + 5.0 * p1 + 5.0 * p2 + 36.0 * p3 - 18.0 * p4
+                                                            - 9.0 * p5 - 9.0 * p6 - 18.0 * p7 + 36.0 * p8 + 108.8 * p9) / 128.0);
+            ThreadSafeNodeWrite(rGeom[13], WATER_PRESSURE, (5.0 * p0 - 8.0 * p1 + 5.0 * p2 - 18.0 * p3 + 36.0 * p4
+                                                          + 36.0 * p5 - 18.0 * p6 - 9.0 * p7 - 9.0 * p8 + 108.0 * p9) / 128.0);
+            ThreadSafeNodeWrite(rGeom[14], WATER_PRESSURE, (5.0 * p0 + 5.0 * p1 - 8.0 * p2 - 9.0 * p3 - 9.0 * p4
+                                                          - 18.0 * p5 + 36.0 * p6 + 36.0 * p7 - 18.0 * p8 + 108.0 * p9) / 128.0);
             break;
         }
         case 20: //3D H20P8
