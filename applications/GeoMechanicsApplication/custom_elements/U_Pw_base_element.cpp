@@ -132,7 +132,6 @@ void UPwBaseElement<TDim,TNumNodes>::
     Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-UPwBaseElement::Initialize()") << this->Id() << std::endl;
 
     const PropertiesType &rProp = this->GetProperties();
     const GeometryType &rGeom = this->GetGeometry();
@@ -190,8 +189,6 @@ void UPwBaseElement<TDim,TNumNodes>::
     mIsInitialised = true;
 
     KRATOS_CATCH( "" )
-
-    // KRATOS_INFO("1-UPwBaseElement::Initialize()") << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -200,7 +197,6 @@ void UPwBaseElement<TDim,TNumNodes>::
     ResetConstitutiveLaw()
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-UPwBaseElement::ResetConstitutiveLaw()") << this->Id() << std::endl;
 
     // erasing stress vectors
     for (unsigned int i=0; i < mStressVector.size(); ++i) {
@@ -213,10 +209,7 @@ void UPwBaseElement<TDim,TNumNodes>::
     }
     mStateVariablesFinalized.clear();
 
-
     KRATOS_CATCH( "" )
-
-    // KRATOS_INFO("1-UPwBaseElement::ResetConstitutiveLaw()") << this->Id() << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -682,7 +675,7 @@ CalculateOnIntegrationPoints(const Variable<double>& rVariable,
 
     KRATOS_CATCH("")
 }
-//-------------------------------------------------------------------------------------------------------------------------------------------
+//----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
 void UPwBaseElement<TDim,TNumNodes>::
     CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,
@@ -733,7 +726,6 @@ void UPwBaseElement<TDim,TNumNodes>::
                                                unsigned int GPoint) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-UPwBaseElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( mThisIntegrationMethod );
@@ -743,7 +735,6 @@ void UPwBaseElement<TDim,TNumNodes>::
     MathUtils<double>::InvertMatrix( J0, InvJ0, detJ );
     GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
 
-    // KRATOS_INFO("1-UPwBaseElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -756,14 +747,11 @@ void UPwBaseElement<TDim,TNumNodes>::
                                             unsigned int GPoint) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
-
     rJ = rGeom.Jacobian( rJ, GPoint, mThisIntegrationMethod );
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
 
-    // KRATOS_INFO("1-UPwBaseElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -818,8 +806,7 @@ unsigned int UPwBaseElement<TDim,TNumNodes>::GetNumberOfDOF() const
     return TNumNodes * (TDim + 1);
 }
 
-//-------------------------------------------------------------------------------------------------------------------------------------------
-
+//----------------------------------------------------------------------------------------
 template class UPwBaseElement<2,3>;
 template class UPwBaseElement<2,4>;
 template class UPwBaseElement<3,4>;

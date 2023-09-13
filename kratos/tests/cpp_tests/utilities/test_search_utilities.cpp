@@ -33,11 +33,11 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesPointIsInsideBoundingBox, KratosCoreFas
     const Point p_out_z(10.1, 1.0, -3.8);
     const Point p_in(10.0, -30.78, 3.7);
 
-    KRATOS_CHECK_IS_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_x));
-    KRATOS_CHECK_IS_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_y));
-    KRATOS_CHECK_IS_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_z));
+    KRATOS_EXPECT_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_x));
+    KRATOS_EXPECT_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_y));
+    KRATOS_EXPECT_FALSE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_out_z));
 
-    KRATOS_CHECK(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_in));
+    KRATOS_EXPECT_TRUE(SearchUtilities::PointIsInsideBoundingBox(bounding_box, p_in));
 }
 
 double GetBBoxValue(const int Index, const double Factor, const double Offset)
@@ -50,7 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithTolerance, Krat
     std::vector<double> bboxes_wrong_size(5);
     std::vector<double> bboxes_with_tol;
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithTolerance(bboxes_wrong_size, 1.235, bboxes_with_tol),
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Cretae a vector containing the fake bboxes
@@ -70,10 +70,10 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithTolerance, Krat
                                                        bboxes_with_tol);
 
     for (int i=0; i<num_entries; i+=2)
-        KRATOS_CHECK_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) + tolerance), 1e-12);
+        KRATOS_EXPECT_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) + tolerance), 1e-12);
 
     for (int i=1; i<num_entries; i+=2)
-        KRATOS_CHECK_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) - tolerance), 1e-12);
+        KRATOS_EXPECT_NEAR(bboxes_with_tol[i], (GetBBoxValue(i, factor, offset) - tolerance), 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithToleranceCheckingNullBB, KratosCoreFastSuite)
@@ -81,7 +81,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithToleranceChecki
     std::vector<double> bboxes_wrong_size(5);
     std::vector<double> bboxes_with_tol;
 
-    KRATOS_DEBUG_CHECK_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(bboxes_wrong_size, 1.235, bboxes_with_tol),
+    KRATOS_DEBUG_EXCEPT_EXCEPTION_IS_THROWN(SearchUtilities::ComputeBoundingBoxesWithToleranceCheckingNullBB(bboxes_wrong_size, 1.235, bboxes_with_tol),
         "Error: Bounding Boxes size has to be a multiple of 6!");
 
     // Cretae a vector containing the fake bboxes
@@ -95,7 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchUtilitiesComputeBoundingBoxesWithToleranceChecki
                                                        bboxes_with_tol);
     // Check that the bboxes are all zero
     for (int i=0; i<num_entries; ++i) {
-        KRATOS_CHECK_DOUBLE_EQUAL(bboxes_with_tol[i], 0.0);
+        KRATOS_EXPECT_DOUBLE_EQ(bboxes_with_tol[i], 0.0);
     }
 }
 
