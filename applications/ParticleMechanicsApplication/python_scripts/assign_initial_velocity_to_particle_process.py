@@ -34,9 +34,13 @@ class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
 
         # Detect if variable_name is MP_VELOCITY
         if(settings.Has("variable_name")):
-            if(settings["variable_name"].GetString() != "MP_VELOCITY"):
+            if settings["variable_name"].GetString() == "MP_VELOCITY":
+                self.variable = KratosParticle.MP_VELOCITY
+            elif settings["variable_name"].GetString() == "MP_ACCELERATION":
+                self.variable = KratosParticle.MP_ACCELERATION
+            else:
                 KratosMultiphysics.Logger.PrintInfo("Warning in apply velocity to particle", "Error in determining variable_name")
-                raise Exception('The assign_initial_velocity_to_particle_process only accepts \"MP_VELOCITY\" as variable_name.')
+                raise Exception('The assign_initial_velocity_to_particle_process only accepts \"MP_VELOCITY\" or \"MP_ACCELERATION\" as variable_name.')
 
         settings.ValidateAndAssignDefaults(default_settings)
 
@@ -62,4 +66,4 @@ class AssignInitialVelocityToParticleProcess(KratosMultiphysics.Process):
         # the model part is identified here, AFTER it has been transferred to the MPM_material part!
         if not model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             for element in model_part.Elements:
-                element.SetValuesOnIntegrationPoints(KratosParticle.MP_VELOCITY,[self.velocity],model_part.ProcessInfo)
+                element.SetValuesOnIntegrationPoints(self.variable, [self.velocity], model_part.ProcessInfo)
