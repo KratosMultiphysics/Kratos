@@ -33,6 +33,9 @@ namespace Kratos {
             mOldVelocity[0] = 0.0;
             mOldVelocity[1] = 0.0;
             mOldVelocity[2] = 0.0;
+            mOldForce[0] = 0.0;
+            mOldForce[1] = 0.0;
+            mOldForce[2] = 0.0;
         }
 
         /// Destructor.
@@ -100,6 +103,7 @@ namespace Kratos {
         }
 
         array_1d<double, 3 > mOldVelocity;
+        array_1d<double, 3 > mOldForce;
 
         ///@}
 
