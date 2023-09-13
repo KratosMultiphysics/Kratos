@@ -1,5 +1,5 @@
 import KratosMultiphysics as Kratos
-import KratosMultiphysics.KratosUnittest as kratos_unittest
+import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
@@ -7,9 +7,9 @@ from KratosMultiphysics.compare_two_files_check_process import CompareTwoFilesCh
 
 # Temporaly failing
 @KratosUnittest.skipIf(True, "Temporaly Failing")
-class TestGradientProjectionAnalysis(kratos_unittest.TestCase):
+class TestGradientProjectionAnalysis(KratosUnittest.TestCase):
     def test_gradient_projection_analysis(self):
-        with kratos_unittest.WorkFolderScope(".", __file__):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             with open("optimization_parameters.json", "r") as file_input:
                 parameters = Kratos.Parameters(file_input.read())
 
@@ -29,10 +29,10 @@ class TestGradientProjectionAnalysis(kratos_unittest.TestCase):
 
     @classmethod
     def tearDownClass(cls) -> None:
-        with kratos_unittest.WorkFolderScope(".", __file__):
+        with KratosUnittest.WorkFolderScope(".", __file__):
             DeleteFileIfExisting("Structure.time")
 
 if __name__ == "__main__":
     Kratos.Tester.SetVerbosity(Kratos.Tester.Verbosity.PROGRESS)  # TESTS_OUTPUTS
-    kratos_unittest.main()
+    KratosUnittest.main()
 
