@@ -351,7 +351,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
         const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
         int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];  
 
-        if (F <= threshold_tolerance || sign_factor < 0.0) { // Elastic case
+        if (F <= threshold_tolerance || (sign_factor < 0.0 && time != load_increments_per_cycle + time_offset)) { // Elastic case
             noalias(r_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -513,7 +513,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
         int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];  
 
-        if (F > threshold_tolerance && sign_factor > 0.0 ) {
+        if (F > threshold_tolerance && (sign_factor > 0.0 || time == load_increments_per_cycle + time_offset)) {
                 const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
                 // This routine updates the PredictiveStress to verify the yield surface
                 TConstLawIntegratorType::IntegrateStressVector(
