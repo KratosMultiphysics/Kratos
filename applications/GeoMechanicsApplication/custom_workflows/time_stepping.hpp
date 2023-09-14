@@ -32,6 +32,14 @@ public:
 
     ConvergenceState Run()
     {
+        mStrategy->Initialize();
+        mStrategy->InitializeSolutionStep();
+
+        mStrategy->Predict();
+        mStrategy->SolveSolutionStep();
+
+        mStrategy->FinalizeSolutionStep();
+
         return mStrategy->IsConverged() ? ConvergenceState::converged : ConvergenceState::non_converged;
     }
 
