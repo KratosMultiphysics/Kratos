@@ -28,23 +28,24 @@ permissions:
   contents: read
 
 jobs:
+  # Free disk space from the github ubuntu image, as is very bloated (Android and DotNet are safe and about ~11G)
+  # Task is overlaped with other runs but should not cause a problem
   free-disk:
     runs-on: ubuntu-latest
     steps:
-    - shell: bash
+    - name: Free Runner Disk
+      shell: bash
       run: |
         sudo rm -rf /usr/share/dotnet
         sudo rm -rf /usr/local/lib/android
-        du -h -s /usr/
 
   ubuntu:
-    needs: free-disk
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        build-type: [FullDebug]
-        compiler: [clang]
+        build-type: [Custom, FullDebug]
+        compiler: [gcc, clang]
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
