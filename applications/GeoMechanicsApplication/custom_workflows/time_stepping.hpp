@@ -13,6 +13,9 @@
 
 #pragma once
 
+#include "processes/process.h"
+
+#include <functional>
 #include <memory>
 
 
@@ -25,9 +28,17 @@ class TimeStepExecuter
 public:
     enum class ConvergenceState {converged, non_converged};
 
+    using ProcessRef    = std::reference_wrapper<Process>;
+    using ProcessRefVec = std::vector<ProcessRef>;
+
     void SetSolverStrategy(std::shared_ptr<StrategyType> SolverStrategy)
     {
         mStrategy = std::move(SolverStrategy);
+    }
+
+    void SetProcessReferences(ProcessRefVec ProcessRefs)
+    {
+        mProcessRefs = std::move(ProcessRefs);
     }
 
     ConvergenceState Run()
@@ -35,8 +46,18 @@ public:
         mStrategy->Initialize();
         mStrategy->InitializeSolutionStep();
 
+        for (auto& process : mProcessRefs)
+        {
+            process.get().ExecuteInitializeSolutionStep();
+        }
+
         mStrategy->Predict();
         mStrategy->SolveSolutionStep();
+
+        for (auto& process : mProcessRefs)
+        {
+            process.get().ExecuteFinalizeSolutionStep();
+        }
 
         mStrategy->FinalizeSolutionStep();
 
@@ -45,6 +66,7 @@ public:
 
 private:
     std::shared_ptr<StrategyType> mStrategy;
+    ProcessRefVec                 mProcessRefs;
 };
 
 }
