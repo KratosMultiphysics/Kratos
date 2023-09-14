@@ -26,6 +26,8 @@
 #include "custom_python/add_custom_utilities_to_python.h"
 #include "custom_utilities/rom_residuals_utility.h"
 #include "custom_utilities/rom_auxiliary_utilities.h"
+#include "custom_utilities/base_encoder_decoder.h"
+#include "custom_utilities/global_linear_encoder_decoder.h"
 
 namespace Kratos {
 namespace Python {
@@ -56,6 +58,15 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("GetHRomMinimumConditionsIds", &RomAuxiliaryUtilities::GetHRomMinimumConditionsIds)
         .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
         ;
+
+    class_<BaseEncoderDecoder, typename BaseEncoderDecoder::Pointer>(m, "BaseEncoderDecoder")
+    .def(init<Parameters>()) //
+    ;
+
+    class_<GlobalLinearEncoderDecoder, typename GlobalLinearEncoderDecoder::Pointer, BaseEncoderDecoder>(m, "GlobalLinearEncoderDecoder")
+    .def(init<Parameters>()) //
+    ;
+
 }
 
 } // namespace Python.
