@@ -45,7 +45,19 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v4
+    - name: Free Disk Space
+      uses: jlumbroso/free-disk-space@main
+      with:
+        tool-cache: false
+        android: true
+        dotnet: true
+        haskell: true
+        large-packages: true
+        docker-images: true
+        swap-storage: true
+
+    - name: Checkout
+      uses: actions/checkout@v4
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
@@ -205,7 +217,6 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3.8 kratos/python_scripts/testing/run_tests.py -l nightly -c python3.8
 
-
   ubuntu-core-without-unity:
     runs-on: ubuntu-latest
     env:
@@ -328,7 +339,6 @@ jobs:
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
 
-
   windows-core-without-unity:
     runs-on: windows-2022
     env:
@@ -397,7 +407,6 @@ jobs:
         set PYTHONPATH=%PYTHONPATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/testing/run_tests.py -l nightly -c python
-
 
   ubuntu-intel-legacy:
     runs-on: ubuntu-latest
@@ -483,7 +492,6 @@ jobs:
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
-
 
   ubuntu-intel:
     runs-on: ubuntu-latest
