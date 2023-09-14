@@ -20,14 +20,16 @@
 
 #include "geo_mechanics_application.h"
 
-
 namespace Kratos
 {
+
+class ProcessFactory;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 {
 public:
     KratosGeoSettlement();
+    ~KratosGeoSettlement();
 
     int RunStage(const std::string&                      rWorkingDirectory,
                  const std::string&                      rProjectParametersFileName,
@@ -39,10 +41,13 @@ public:
 private:
     static void AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
+    void InitializeProcessFactory();
 
     Kernel mKernel;
     Model mModel;
+    std::string mModelPartName;
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
+    std::unique_ptr<ProcessFactory> mProcessFactory;
 };
 
 }

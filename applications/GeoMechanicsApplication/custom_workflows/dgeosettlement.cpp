@@ -12,14 +12,21 @@
 #include "dgeosettlement.h"
 #include "input_output/logger.h"
 #include "custom_utilities/input_utilities.h"
+#include "custom_utilities/process_factory.hpp"
 #include "utilities/variable_utils.h"
 #include "includes/model_part_io.h"
 
+#include "custom_processes/apply_vector_constraints_table_process.hpp"
+#include "custom_processes/set_parameter_field_process.hpp"
+#include "custom_processes/apply_k0_procedure_process.hpp"
+#include "custom_processes/apply_excavation_process.hpp"
+#include "processes/apply_constant_scalarvalue_process.h"
 
 namespace Kratos
 {
 
-KratosGeoSettlement::KratosGeoSettlement()
+KratosGeoSettlement::KratosGeoSettlement() :
+    mProcessFactory{std::make_unique<ProcessFactory>()}
 {
     KRATOS_INFO("KratosGeoSettlement") << "Setting up Kratos" << std::endl;
 
@@ -29,6 +36,19 @@ KratosGeoSettlement::KratosGeoSettlement()
         mpGeoApp = Kratos::make_shared<KratosGeoMechanicsApplication>();
         mKernel.ImportApplication(mpGeoApp);
     }
+
+    InitializeProcessFactory();
+}
+
+void KratosGeoSettlement::InitializeProcessFactory() {
+    mProcessFactory->AddCreator("ApplyVectorConstraintsTableProcess", [this](const Parameters& rParameters){return std::make_unique<ApplyVectorConstraintsTableProcess>(
+            mModel.GetModelPart(mModelPartName), rParameters);});
+    mProcessFactory->AddCreator("SetParameterFieldProcess", [this](const Parameters& rParameters){return std::make_unique<SetParameterFieldProcess>(
+            mModel.GetModelPart(mModelPartName), rParameters);});
+    mProcessFactory->AddCreator("ApplyExcavationProcess", [this](const Parameters& rParameters){return std::make_unique<ApplyExcavationProcess>(
+            mModel.GetModelPart(mModelPartName), rParameters);});
+    mProcessFactory->AddCreator("ApplyK0ProcedureProcess", [this](const Parameters& rParameters){return std::make_unique<ApplyK0ProcedureProcess>(
+            mModel.GetModelPart(mModelPartName), rParameters);});
 }
 
 int KratosGeoSettlement::RunStage(const std::string&                      rWorkingDirectory,
@@ -44,10 +64,12 @@ int KratosGeoSettlement::RunStage(const std::string&                      rWorki
     const auto project_parameters = InputUtilities::ProjectParametersFrom(project_parameters_file_path);
     KRATOS_INFO("KratosGeoSettlement") << "Parsed project parameters file " << project_parameters_file_path << std::endl;
 
-    const auto model_part_name = project_parameters["solver_settings"]["model_part_name"].GetString();
-    ModelPart& model_part = mModel.CreateModelPart(model_part_name);
+    mModelPartName = project_parameters["solver_settings"]["model_part_name"].GetString();
+    ModelPart& model_part = mModel.CreateModelPart(mModelPartName);
     model_part.SetBufferSize(2);
     KRATOS_INFO("KratosGeoSettlement") << "Created a model part" << std::endl;
+
+    auto process = mProcessFactory->Create("ApplyVectorConstraintsTableProcess", project_parameters);
 
     AddNodalSolutionStepVariablesTo(model_part);
     KRATOS_INFO("KratosGeoSettlement") << "Added nodal solution step variables" << std::endl;
@@ -106,5 +128,8 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_Y, rModelPart);
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
 }
+
+// Default destructor needs to be in the cpp to be able to forward declare the mProcessFactory, since it's a unique_ptr
+KratosGeoSettlement::~KratosGeoSettlement() = default;
 
 }
