@@ -13,16 +13,30 @@
 
 #pragma once
 
+#include <memory>
+
 
 namespace Kratos
 {
 
+template <typename StrategyType>
 class TimeStepExecuter
 {
 public:
     enum class ConvergenceState {converged, non_converged};
 
-    ConvergenceState Run();
+    void SetSolverStrategy(std::shared_ptr<StrategyType> SolverStrategy)
+    {
+        mStrategy = std::move(SolverStrategy);
+    }
+
+    ConvergenceState Run()
+    {
+        return mStrategy->IsConverged() ? ConvergenceState::converged : ConvergenceState::non_converged;
+    }
+
+private:
+    std::shared_ptr<StrategyType> mStrategy;
 };
 
 }
