@@ -129,7 +129,7 @@ public:
     
     // virtual void ComputeDistanceField();
 
-    virtual void ComputeHeatField(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver);
+    virtual void ComputeHeatField(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver, ModelPart& rOriginModelPart);
 
     double cotan(const double& alfa) {
         return cos(alfa)/sin(alfa);
@@ -138,8 +138,6 @@ public:
     double dot(const Vector& a, const Vector& b) {
         return MathUtils<double>::Dot3(a, b);
     }
-
-    void hmt();
 
     // etc....
 

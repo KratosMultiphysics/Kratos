@@ -10,7 +10,6 @@
 
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
-from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_factory
 import KratosMultiphysics.python_linear_solver_factory as linear_solver_factory
 
 class CenterlineVertexMorphingMapper():
@@ -61,7 +60,7 @@ class CenterlineVertexMorphingMapper():
 
     def Update(self):
 
-        self.vm_mapper.Update(self.linear_solver)
+        self.vm_mapper.Update(self.linear_solver, self.origin_model_part)
 
     def Map(self, origin_variable, destination_variable):
         self.vm_mapper.Map(origin_variable, destination_variable)

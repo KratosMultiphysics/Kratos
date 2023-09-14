@@ -24,6 +24,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/key_hash.h"
+#include "utilities/builtin_timer.h"
 #include "shape_optimization_application.h"
 #include "utilities/variable_utils.h"
 #include "utilities/parallel_utilities.h"
@@ -44,10 +45,7 @@
 
 namespace Kratos
 {
-void test_function();
-void HeatMethodUtilities::hmt() {
-    std::cout << "hmt worked!" << std::endl;
-}
+    
 Vector HeatMethodUtilities::row(Matrix M, unsigned int i)
 {
     Vector A = ZeroVector(M.size2());
@@ -298,24 +296,27 @@ void HeatMethodUtilities::ComputeHeatGradient (Matrix& heat_gradient, Matrix V, 
     for (SizeType i = 0; i < heat_gradient.size1(); ++i) {
         int i1 = F(i, 0), i2 = F(i, 1), i3 = F(i, 2);
         array_1d<Vector, 3> vertices, edges;
-        vertices(0) = HeatMethodUtilities::row(V, i1);
-		vertices(1) = HeatMethodUtilities::row(V, i2);
-		vertices(2) = HeatMethodUtilities::row(V, i3);
+        vertices(0) = row(V, i1);
+		vertices(1) = row(V, i2);
+		vertices(2) = row(V, i3);
 		Vector elementCenter = (vertices(0) + vertices(1) + vertices(2)) / 3;
 		edges(0) = vertices(2) - vertices(1);
 		edges(1) = vertices(0) - vertices(2);
 		edges(2) = vertices(1) - vertices(0);
-        Vector normal_vector = MathUtils<double>::CrossProduct(edges(0), edges(1));
+        Vector normal_vector = MathUtils<double>::CrossProduct(edges(2), edges(0));
         normal_vector /= norm_2(normal_vector);
         Vector normal_vector_at_vertice_1 = mrModelPart.Nodes()[i1 + 1].FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
-        if (MathUtils<double>::Dot3(normal_vector, normal_vector_at_vertice_1) < 0)
+        Vector normal_vector_at_vertice_2 = mrModelPart.Nodes()[i2 + 1].FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+        Vector normal_vector_at_vertice_3 = mrModelPart.Nodes()[i3 + 1].FastGetSolutionStepValue(NORMALIZED_SURFACE_NORMAL);
+        Vector normal_vector_at_vertices = (normal_vector_at_vertice_1 + normal_vector_at_vertice_2 + normal_vector_at_vertice_3) / 3;
+        if (MathUtils<double>::Dot3(normal_vector, normal_vector_at_vertices) < 0)
         {
             normal_vector *= -1;
         }
         for (int j = 0; j < 3; ++j) {
             Vector vec = vertices(j) - elementCenter;
             Vector test_edge = MathUtils<double>::CrossProduct(edges(j), vec);
-			if (MathUtils<double>::Dot3(normal_vector, edges(j)) < 0)
+			if (MathUtils<double>::Dot3(normal_vector, test_edge) < 0)
 			{
                 edges(j) *= -1;
             }
@@ -358,7 +359,7 @@ void HeatMethodUtilities::ComputeHeatDivergence (Vector& heat_divergence, Matrix
 	}
 }
 
-void HeatMethodUtilities::ComputeHeatField(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver) {
+void HeatMethodUtilities::ComputeHeatField(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver, ModelPart& rOriginModelPart) {
     KRATOS_TRY
 
     // checks if object is constructed
@@ -401,13 +402,15 @@ void HeatMethodUtilities::ComputeHeatField(LinearSolver<SparseSpaceType, LocalSp
     Vector U0;
     HeatMethodUtilities::ConstructU0(U0, heat_equation_mapping, nodes_label);
 
-    double t = 100000;
+    double t = 10;
     CompressedMatrix K = M - t * K0;
 
     Vector U(U0.size());
 
     std::cout << "SOLVER INFO:  " <<rSolver.Info() << std::endl;
+    BuiltinTimer timer;
     rSolver.Solve(K, U, U0);
+    KRATOS_INFO("ShapeOpt") << "Finished solving in " << timer.ElapsedSeconds() << " s." << std::endl;
     
     Vector heat_field = ZeroVector(V.size1());
 
@@ -444,25 +447,12 @@ void HeatMethodUtilities::ComputeHeatField(LinearSolver<SparseSpaceType, LocalSp
 		heat_distance(i) -= s;
 	}
 
-    for (SizeType i = 0; i < nodes_label.size(); ++i)
-    {
-        std::cout << "heat_distance " << i << ":  " << heat_distance(i) << std::endl;
-    }
-
-    for (SizeType i = 0; i < source_nodes.size(); ++i)
-    {
-        std::cout << "source nodes:  " << source_nodes(i) << std::endl;
-    }
-
-    for (SizeType i = 0; i < source_nodes.size(); ++i)
-    {
-        std::cout << "heat at source:  " << heat_field(source_nodes(i)) << std::endl;
-    }
-
     for (SizeType i = 0; i < source_nodes.size(); ++i)
     {
         std::cout << "distance at source:  " << heat_distance(source_nodes(i)) << std::endl;
     }
+
+    std::cout << "max distance" << *max_element(heat_distance.begin(), heat_distance.end()) << std::endl;
 
     block_for_each(mrModelPart.Nodes(), [&](NodeType &rNode) {
         double& r_heat_distance = rNode.FastGetSolutionStepValue(HEAT_DISTANCE);
@@ -474,9 +464,60 @@ void HeatMethodUtilities::ComputeHeatField(LinearSolver<SparseSpaceType, LocalSp
         // r_heat_gradient(2) = 3;
     });
 
-    test_function();
-    HeatMethodUtilities aa(mrModelPart);
-    aa.hmt();
+    double t1 = 50;
+
+    double min_distance = *min_element(heat_distance.begin(), heat_distance.end());
+    double max_distance = *max_element(heat_distance.begin(), heat_distance.end());
+
+    int center_line_nodes = (int)((max_distance - min_distance) / t1);
+
+    std::cout << "center line nodes: " << center_line_nodes << std::endl;
+
+    Matrix node_sum = ZeroMatrix(center_line_nodes, 3);
+    Vector_int node_count = ZeroVector_int(center_line_nodes);
+
+    int d = 0;
+
+    for (SizeType i = 0; i < V.size1(); ++i)
+    {
+        d = (int)((heat_distance(i) - min_distance) / t1);
+        if (d == center_line_nodes)
+        {
+            d -= 1;
+        }
+        node_count(d) += 1;
+        node_sum(d, 0) += V(i,0);
+        node_sum(d, 1) += V(i,1);
+        node_sum(d, 2) += V(i,2);
+    }
+
+    int d1 = 0;
+    for (int i = 0; i < center_line_nodes; ++i)
+    {
+        if (node_sum(i) != 0)
+        {
+            d1 += 1;
+        }
+    }
+
+    Matrix center_line = ZeroMatrix(d1, 3);
+
+    int d2 = 0;
+    for (int i = 0; i < center_line_nodes; ++i)
+    {
+        if (node_sum(i) != 0)
+        {
+            center_line(d2, 0) = node_sum(i, 0) / node_count(i);
+            center_line(d2, 1) = node_sum(i, 1) / node_count(i);
+            center_line(d2, 2) = node_sum(i, 2) / node_count(i);
+            d2 += 1;
+        }
+    }
+
+    for (SizeType i = 0; i < center_line.size1(); ++i) {
+        rOriginModelPart.CreateNewNode(i+1, center_line(i,0), center_line(i,1), center_line(i,2));    
+    }
+
     KRATOS_CATCH("");
 }
 

@@ -72,6 +72,10 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
         self.optimization_model_part = model_part_controller.GetOptimizationModelPart()
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.SEARCH_DIRECTION)
 
+        #centerline stuff
+        self.control_mesh = None
+
+
     # --------------------------------------------------------------------------
     def CheckApplicability(self):
         if self.objectives.size() > 1:
@@ -87,7 +91,13 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
 
         self.design_surface = self.model_part_controller.GetDesignSurface()
 
-        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
+        if self.mapper_settings["centerline_morphing"].GetBool():
+            self.control_mesh = self.model_part_controller.model.CreateModelPart(self.design_surface.Name + "_centerline")
+            self.mapper = mapper_factory.CreateMapper(self.control_mesh, self.design_surface, self.mapper_settings)
+            #self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
+        else:
+            self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.mapper_settings)
+
         self.mapper.Initialize()
 
         self.model_part_controller.InitializeDamping()
@@ -200,7 +210,8 @@ class AlgorithmSteepestDescent(OptimizationAlgorithm):
     def __computeShapeUpdate(self):
         self.mapper.Update()
         self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
-
+        if self.mapper_settings["centerline_morphing"].GetBool():
+            print('TODO: computeShapeUpdate of centerline opt!!!')
         self.optimization_utilities.ComputeSearchDirectionSteepestDescent(self.design_surface)
         normalize = self.algorithm_settings["line_search"]["normalize_search_direction"].GetBool()
         self.optimization_utilities.ComputeControlPointUpdate(self.design_surface, self.step_size, normalize)

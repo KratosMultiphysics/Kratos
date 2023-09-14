@@ -131,7 +131,7 @@ public:
     void InverseMap( const Variable<double> &rDestinationVariable, const Variable<double> &rOriginVariable ) override;
 
     // --------------------------------------------------------------------------
-    void Update(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver);
+    void Update(LinearSolver<SparseSpaceType, LocalSpaceType>& rSolver, ModelPart& rOriginModelPart);
 
     // --------------------------------------------------------------------------
 
