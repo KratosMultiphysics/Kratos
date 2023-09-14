@@ -163,6 +163,7 @@ def GetDefaultInputParameters():
             "PostFailureCriterionState"        : false,
             "PostContactFailureId"             : false,
             "PostMeanContactArea"              : false,
+            "PostContactRadius"                : false,
             "PostRHS"                          : false,
             "PostDampForces"                   : false,
             "PostAppliedForces"                : false,

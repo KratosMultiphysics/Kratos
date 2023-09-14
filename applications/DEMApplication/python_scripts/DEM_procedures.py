@@ -1298,6 +1298,7 @@ class DEMIo():
         self.PostContactTau = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactTau")
         self.PostContactSigma = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactSigma")
         self.PostMeanContactArea = GetBoolParameterIfItExists(self.DEM_parameters, "PostMeanContactArea")
+        self.PostContactRadius = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactRadius")
         self.PostElasticForces = self.DEM_parameters["PostElasticForces"].GetBool()
         self.PostContactForces = self.DEM_parameters["PostContactForces"].GetBool()
         self.PostRigidElementForces = self.DEM_parameters["PostRigidElementForces"].GetBool()
@@ -1529,6 +1530,7 @@ class DEMIo():
                 self.PushPrintVar(self.PostContactTau, CONTACT_TAU, self.contact_variables)
                 self.PushPrintVar(self.PostContactSigma, CONTACT_SIGMA, self.contact_variables)
                 self.PushPrintVar(self.PostMeanContactArea, MEAN_CONTACT_AREA, self.contact_variables)
+                self.PushPrintVar(self.PostContactRadius, CONTACT_RADIUS, self.contact_variables)
 
     def AddMpiVariables(self):
         pass

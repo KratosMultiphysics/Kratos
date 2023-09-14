@@ -51,7 +51,7 @@ class VtkOutput():
         self.PostContactFailureId = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactFailureId")
         self.PostContactTau = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactTau")
         self.PostContactSigma = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactSigma")
-        self.PostMeanContactArea = GetBoolParameterIfItExists(self.DEM_parameters, "PostMeanContactArea")
+        self.PostContactRadius = GetBoolParameterIfItExists(self.DEM_parameters, "PostContactRadius")
         
         #TODO: those variables need to be added
         ''' 
@@ -265,9 +265,9 @@ class VtkOutput():
             self.contact_sigma = np.empty(number_of_elements)
             self.contact_sigma_point = np.empty(number_of_nodes)
 
-        if self.PostMeanContactArea:
-            self.mean_contact_area = np.empty(number_of_elements)
-            self.mean_contact_area_point = np.empty(number_of_nodes)
+        if self.PostContactRadius:
+            self.contact_radius = np.empty(number_of_elements)
+            self.contact_radius_point = np.empty(number_of_nodes)
 
         i_point= 0
         i_contact = 0
@@ -307,10 +307,10 @@ class VtkOutput():
                 self.contact_sigma_point[i_point] = element.GetValue(CONTACT_SIGMA)
                 self.contact_sigma_point[i_point+1] = element.GetValue(CONTACT_SIGMA)
 
-            if self.PostMeanContactArea:
-                self.mean_contact_area[i_contact] = element.GetValue(MEAN_CONTACT_AREA)
-                self.mean_contact_area_point[i_point] = element.GetValue(MEAN_CONTACT_AREA)
-                self.mean_contact_area_point[i_point+1] = element.GetValue(MEAN_CONTACT_AREA)
+            if self.PostContactRadius:
+                self.contact_radius[i_contact] = element.GetValue(CONTACT_RADIUS)
+                self.contact_radius_point[i_point] = element.GetValue(CONTACT_RADIUS)
+                self.contact_radius_point[i_point+1] = element.GetValue(CONTACT_RADIUS)
 
             i_point += 2
             i_contact += 1
@@ -413,7 +413,7 @@ class VtkOutput():
         #   To display force chain with tube of different radius,
         #       1. Import the 'Contacts'.vtu file to Paraview;
         #       2. Apply 'Extract Surface' filter;
-        #       3. Apply 'Tube' filter, and select 'Vary radius'->'By Scalar'.
+        #       3. Apply 'Tube' filter, and select 'Vary radius'->'By Ansolute Scalar', and set the 'Radius factor' as 1.
         #----------------------------------------------------------------------
         self.ConvertContactsToNumpyArrays()
         contacts_filename = self.problem_name + "_Contacts_" + str(self.counter)
@@ -440,9 +440,9 @@ class VtkOutput():
             contacts_output_dict_cell['contact_sigma'] = self.contact_sigma
             contacts_output_dict_point['contact_sigma'] = self.contact_sigma_point
 
-        if self.PostMeanContactArea:
-            contacts_output_dict_cell['mean_contact_area'] = self.mean_contact_area
-            contacts_output_dict_point['mean_contact_area'] = self.mean_contact_area_point
+        if self.PostContactRadius:
+            contacts_output_dict_cell['contact_radius'] = self.contact_radius
+            contacts_output_dict_point['contact_radius'] = self.contact_radius_point
 
         hl.linesToVTK(path, self.start_and_end_points_X, self.start_and_end_points_Y, self.start_and_end_points_Z, contacts_output_dict_cell, contacts_output_dict_point)
         
