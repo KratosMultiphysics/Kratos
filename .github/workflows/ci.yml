@@ -33,12 +33,9 @@ jobs:
     steps:
     - shell: bash
       run: |
+        sudo rm -rf /usr/share/dotnet
+        sudo rm -rf /usr/local/lib/android
         du -h -s /usr/
-        rm -rf /usr/share/dotnet
-        rm -rf /usr/local/lib/android
-        du -h -s /usr/
-        echo "Done"
-        stopme
 
   ubuntu:
     needs: free-disk
