@@ -4,18 +4,14 @@
     "run_hrom": false,
     "rom_format":"numpy",
     "projection_strategy": "petrov_galerkin",
-    "train_petrov_galerkin": {
-        "train": false,
-        "basis_strategy": "residuals",
-        "include_phi": false
-    },
     "rom_settings": {
         "nodal_unknowns": [
             "DISPLACEMENT_X",
             "DISPLACEMENT_Y"
         ],
         "number_of_rom_dofs": 2,
-        "petrov_galerkin_number_of_rom_dofs": 2
+        "petrov_galerkin_number_of_rom_dofs": 2,
+        "rom_bns_settings": {}
     },
     "hrom_settings": {},
     "nodal_modes": {
