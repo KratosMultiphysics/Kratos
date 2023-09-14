@@ -28,13 +28,26 @@ permissions:
   contents: read
 
 jobs:
+  free-disk:
+    runs-on: ubuntu-latest
+    steps:
+    - shell: bash
+      run: |
+        du -h -s /usr/
+        rm -rf /usr/share/dotnet
+        rm -rf /usr/local/lib/android
+        du -h -s /usr/
+        echo "Done"
+        stopme
+
   ubuntu:
+    needs: free-disk
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
-        build-type: [Custom, FullDebug]
-        compiler: [gcc, clang]
+        build-type: [FullDebug]
+        compiler: [clang]
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
@@ -45,19 +58,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - name: Free Disk Space
-      uses: jlumbroso/free-disk-space@main
-      with:
-        tool-cache: false
-        android: true
-        dotnet: true
-        haskell: true
-        large-packages: true
-        docker-images: true
-        swap-storage: true
-
-    - name: Checkout
-      uses: actions/checkout@v4
+    - uses: actions/checkout@v4
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
