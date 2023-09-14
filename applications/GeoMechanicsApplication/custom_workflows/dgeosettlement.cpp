@@ -20,7 +20,6 @@
 #include "custom_processes/set_parameter_field_process.hpp"
 #include "custom_processes/apply_k0_procedure_process.hpp"
 #include "custom_processes/apply_excavation_process.hpp"
-#include "processes/apply_constant_scalarvalue_process.h"
 
 namespace Kratos
 {
