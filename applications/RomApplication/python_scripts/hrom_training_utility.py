@@ -105,7 +105,7 @@ class HRomTrainingUtility(object):
         self.solver._GetBuilderAndSolver().BuildAndApplyDirichletConditions(self.solver._GetScheme(), computing_model_part, jacobian_matrix, residual_vector, delta_x_vector)
         
         right_rom_basis = KratosMultiphysics.Matrix(self.solver._GetBuilderAndSolver().GetEquationSystemSize(), self.num_of_right_rom_dofs)
-        self.solver._GetBuilderAndSolver().GetRightRomBasis(computing_model_part, right_rom_basis)
+        self.solver._GetBuilderAndSolver().GetRightROMBasis(computing_model_part, right_rom_basis)
         
         jacobian_scipy_format = KratosMultiphysics.scipy_conversion_tools.to_csr(jacobian_matrix)
         jacobian_phi_product = jacobian_scipy_format @ right_rom_basis
