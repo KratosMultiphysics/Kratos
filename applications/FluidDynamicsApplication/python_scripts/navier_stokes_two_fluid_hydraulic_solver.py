@@ -32,13 +32,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             "material_import_settings": {
                 "materials_filename": ""
             },
-            "distance_reading_settings"    : {
-                "import_mode"         : "from_mdpa",
-                "distance_file_name"  : "no_distance_file"
-            },
             "maximum_iterations": 7,
             "echo_level": 0,
-            "time_order": 2,
+            "compute_reactions": false,
             "analysis_type": "non_linear",
             "reform_dofs_at_each_step": false,
             "consider_periodic_conditions": false,
@@ -60,7 +56,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
                 "maximum_delta_time"  : 1.0,
                 "time_step"           : 0.0
             },
-            "periodic": "periodic",
             "move_mesh_flag": false,
             "formulation": {
                 "dynamic_tau": 1.0,
@@ -70,7 +65,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             "artificial_visocosity_settings":{
                 "limiter_coefficient": 1000
             },
-            "time_order": 2,
             "time_scheme": "NEEDS TO BE FIXED --> PROBLEMS CONVERGENCE CRITERIO",
             "eulerian_fm_ale": true,
             "eulerian_fm_ale_settings":{
@@ -111,22 +105,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         return default_settings
 
     def __init__(self, model, custom_settings):
-        # TODO: DO SOMETHING IN HERE TO REMOVE THE "time_order" FROM THE DEFAULT SETTINGS BUT KEEPING THE BACKWARDS COMPATIBILITY
-
-        if custom_settings.Has("levelset_convection_settings"):
-            if custom_settings["levelset_convection_settings"].Has("levelset_splitting"):
-                custom_settings["levelset_convection_settings"].RemoveValue("levelset_splitting")
-                KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsHydraulicSolver", "\'levelset_splitting\' has been temporarily deactivated. Using the standard levelset convection with no splitting.")
-
-        #TODO: Remove this after the retrocompatibility period
-        if custom_settings.Has("bfecc_convection"):
-            KratosMultiphysics.Logger.PrintWarning("NavierStokesTwoFluidsHydraulicSolver", "the semi-Lagrangian \'bfecc_convection\' is no longer supported. Using the standard Eulerian levelset convection.")
-            custom_settings.RemoveValue("bfecc_convection")
-            if custom_settings.Has("bfecc_number_substeps"):
-                custom_settings.RemoveValue("bfecc_number_substeps")
-
-        super(NavierStokesTwoFluidsHydraulicSolver,self).__init__(model,custom_settings)
-
+        super().__init__(model,custom_settings)
 
         self.element_name = "TwoFluidNavierStokesAlphaMethod"
         self.rho_inf = 0.0
@@ -134,7 +113,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.condition_name = "TwoFluidNavierStokesWallCondition"
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
-
         self.min_buffer_size = 2
 
         # Set the levelset characteristic variables and add them to the convection settings
@@ -188,6 +166,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_H)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NODAL_AREA)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION)
+
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.REACTION_WATER_PRESSURE)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.NORMAL)
         self.main_model_part.AddNodalSolutionStepVariable(KratosMultiphysics.EXTERNAL_PRESSURE)
@@ -246,12 +225,10 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         if self.eulerian_fm_ale:
             self._GetEulerianFmAleProcess()
 
-        self.mass_source = False
         if self.settings["formulation"].Has("mass_source"):
             self.mass_source = self.settings["formulation"]["mass_source"].GetBool()
 
         # Non historical variable are initilized in order to avoid memory problems
-
         KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosMultiphysics.ACCELERATION, self.main_model_part.Nodes)
         if self.artificial_viscosity:
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
@@ -262,7 +239,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         # Inlet and outlet water discharge is calculated for current time step, first discharge and the considering the time step inlet and outlet volume is calculated
         if self.mass_source:
-            self._ComputeInitialStepWaterVolume()
+            self._ComputeStepInitialWaterVolume()
 
         # Perform the convection of the historical database (Eulerian FM-ALE)
         if self.eulerian_fm_ale:
@@ -310,7 +287,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Acceleration for generalised alpha time integration method.
         self.__CalculateTimeIntegrationAcceleration()
 
-    def _ComputeInitialStepWaterVolume(self):
+    def _ComputeStepInitialWaterVolume(self):
 
         # Here the initial water volume of the system is calculated without considering inlet and outlet flow rate
         if self.__initial_system_volume is None:
@@ -382,13 +359,13 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             element.SetValue(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, elem_artificial_viscosity)
 
     def __PerformLevelSetConvection(self):
+
         # Solve the levelset convection problem
         self._GetLevelSetConvectionProcess().Execute()
 
     def __PerformEulerianFmAleVelocity(self):
 
         # Solve the historical data convection problem
-
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         velocity_components = [KratosMultiphysics.VELOCITY_X,KratosMultiphysics.VELOCITY_Y,KratosMultiphysics.VELOCITY_Z]
         auxiliar_velocity_componentes = [KratosCFD.AUXILIAR_VECTOR_VELOCITY_X, KratosCFD.AUXILIAR_VECTOR_VELOCITY_Y, KratosCFD.AUXILIAR_VECTOR_VELOCITY_Z]
@@ -539,13 +516,6 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             self._levelset_linear_solver = self._CreateLinearSolver() # TODO: add customized configuration
         return self._levelset_linear_solver
 
-    #TODO: Leave it like this to remove it when its working
-    def _GetEulerianFmAleLinearSolver(self):
-        # A linear solver configured specifically for the level-set convection process
-        if not hasattr(self, '_eulerian_fm_ale_linear_solver'):
-            self._eulerian_fm_ale_linear_solver = self._CreateLinearSolver() # TODO: add customized configuration
-        return self._eulerian_fm_ale_linear_solver
-
     def _GetLevelSetConvectionProcess(self):
         if not hasattr(self, '_level_set_convection_process'):
             self._level_set_convection_process = self._CreateLevelSetConvectionProcess()
@@ -589,7 +559,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Construct the level set convection process
         domain_size = self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
         computing_model_part = self.GetComputingModelPart()
-        linear_solver = self._GetEulerianFmAleLinearSolver()
+        linear_solver = self._GetLevelsetLinearSolver()
         eulerian_fm_ale_settings = self.settings["eulerian_fm_ale_settings"]
         if domain_size == 2:
             eulerian_fm_ale_process = KratosMultiphysics.LevelSetConvectionProcess2D(
