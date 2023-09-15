@@ -210,11 +210,17 @@ public:
 
         BuildAndApplyDirichletConditions(pScheme, rModelPart, rA, rb, rDx);
 
+        TSystemMatrixType r_a_comp = ZeroMatrix(0,0);
+        TSystemVectorType r_b_comp = ZeroVector(0);
+        if (BaseType::mHromSimulation) {
+            BuildWithComplementaryMeshAndApplyDirichletConditions(pScheme, rModelPart, r_a_comp, r_b_comp, rDx);
+        }
+
         if (BaseType::GetMonotonicityPreservingFlag()) {
             BaseType::MonotonicityPreserving(rA, rb);
         }
 
-        ProjectROM(rModelPart, rA, rb);
+        ProjectROM(rModelPart, rA, rb, r_a_comp);
 
         double time = assembling_timer.ElapsedSeconds();
         KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 0)) << "Build and project time: " << time << std::endl;
@@ -239,6 +245,23 @@ public:
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
     }
 
+    void BuildWithComplementaryMeshAndApplyDirichletConditions(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart &rModelPart,
+        TSystemMatrixType &rA,
+        TSystemVectorType &rb,
+        TSystemVectorType &rDx
+    ){
+        if (rA.size1() != BaseBuilderAndSolverType::mEquationSystemSize || rA.size2() != BaseBuilderAndSolverType::mEquationSystemSize) {
+            rA.resize(BaseBuilderAndSolverType::mEquationSystemSize, BaseBuilderAndSolverType::mEquationSystemSize, false);
+            BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
+        }
+
+        BuildWithComplementaryMesh(pScheme, rModelPart, rA, rb);
+
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+    }
+
     void GetRightROMBasis(
         const ModelPart& rModelPart,
         Matrix& rPhiGlobal
@@ -253,7 +276,9 @@ public:
     virtual void ProjectROM(
         ModelPart &rModelPart,
         TSystemMatrixType &rA,
-        TSystemVectorType &rb) override
+        TSystemVectorType &rb,
+        TSystemMatrixType &rAComp
+        )
     {
         KRATOS_TRY
 
@@ -270,14 +295,31 @@ public:
 
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
-        if (mSolvingTechnique == "normal_equations"){
-            // Compute the matrix multiplication
-            mEigenRomA = eigen_rA_times_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
-            mEigenRomB = eigen_rA_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+        if (BaseType::mHromSimulation) {
+            if (mSolvingTechnique != "normal_equations") {
+                KRATOS_ERROR << "LeastSquaresPetrovGalerkinHROM is only valid for 'normal_equations'. The provided solving technique is '" << mSolvingTechnique << "'." << std::endl;
+            }
+
+            auto a_comp_wrapper = UblasWrapper<double>(rAComp);
+            const auto& eigen_rAComp = a_comp_wrapper.matrix();
+
+            if (mSolvingTechnique == "normal_equations") {
+                // Compute the matrix multiplication
+                mEigenRomA = eigen_rAComp.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
+                mEigenRomB = eigen_rAComp.transpose() * eigen_rb; //TODO: Make it in parallel.
+            }
         }
-        else if (mSolvingTechnique == "qr_decomposition") {
-            mEigenRomA = eigen_rA_times_mPhiGlobal; 
-            mEigenRomB = eigen_rb;
+        else {
+
+            if (mSolvingTechnique == "normal_equations"){
+                // Compute the matrix multiplication
+                mEigenRomA = eigen_rA_times_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
+                mEigenRomB = eigen_rA_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
+            }
+            else if (mSolvingTechnique == "qr_decomposition") {
+                mEigenRomA = eigen_rA_times_mPhiGlobal; 
+                mEigenRomB = eigen_rb;
+            }
         }
 
         KRATOS_CATCH("")
@@ -437,7 +479,6 @@ protected:
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
-        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
         //vector containing the localization in the system of the different terms
         Element::EquationIdVectorType EquationId;
@@ -445,7 +486,7 @@ protected:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
-        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, EquationId )
         {
             # pragma omp for  schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++) {
@@ -453,10 +494,10 @@ protected:
 
                 if (it_elem->IsActive()) {
                     // Calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateLHSContribution(*it_elem, LHS_Contribution, EquationId, CurrentProcessInfo);
 
-                    // Assemble the elemental contribution
-                    BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                    // Assemble lhs the elemental contribution
+                    BaseType::AssembleLHS(A, LHS_Contribution, EquationId);
                 }
 
             }
@@ -467,10 +508,10 @@ protected:
 
                 if (it_cond->IsActive()) {
                     // Calculate elemental contribution
-                    pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateLHSContribution(*it_cond, LHS_Contribution, EquationId, CurrentProcessInfo);
 
-                    // Assemble the elemental contribution
-                    BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                    // Assemble lhs the elemental contribution
+                    BaseType::AssembleLHS(A, LHS_Contribution, EquationId);
                 }
             }
         }
