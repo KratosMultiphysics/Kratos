@@ -140,6 +140,58 @@ public:
     ///@name Operations
     ///@{
 
+    void SetUpDofSet(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart &rModelPart) override
+    {
+        KRATOS_TRY;
+
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+
+        // Get model part data
+        if (this->mHromWeightsInitialized == false) {
+            this->InitializeHROMWeights(rModelPart);
+        }
+
+        // Compute the complementary mesh for HROM
+        if (this->mHromSimulation){
+            FindNeighbouringElementsAndConditions(rModelPart);
+        }
+
+        auto dof_queue = this->ExtractDofSet(pScheme, rModelPart);
+        
+        // Fill a sorted auxiliary array of with the DOFs set
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+        auto dof_array = this->SortAndRemoveDuplicateDofs(dof_queue);
+
+        // Update base builder and solver DOFs array and set corresponding flag
+        BaseType::GetDofSet().swap(dof_array);
+        BaseType::SetDofSetIsInitializedFlag(true);
+
+        // Throw an exception if there are no DOFs involved in the analysis
+        KRATOS_ERROR_IF(BaseType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::GetDofSet().size() << std::endl;
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
+
+#ifdef KRATOS_DEBUG
+        // If reactions are to be calculated, we check if all the dofs have reactions defined
+        if (BaseType::GetCalculateReactionsFlag())
+        {
+            for (const auto& r_dof: BaseType::GetDofSet())
+            {
+                KRATOS_ERROR_IF_NOT(r_dof.HasReaction())
+                    << "Reaction variable not set for the following :\n"
+                    << "Node : " << r_dof.Id() << '\n'
+                    << "Dof  : " << r_dof      << '\n'
+                    << "Not possible to calculate reactions." << std::endl;
+            }
+        }
+#endif
+        KRATOS_CATCH("");
+    } 
+
     /**
      * Builds and projects the reduced system of equations 
      */
