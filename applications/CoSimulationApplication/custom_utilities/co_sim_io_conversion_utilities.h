@@ -45,6 +45,8 @@ public:
     /// Pointer definition of CoSimIOConversionUtilities
     KRATOS_CLASS_POINTER_DEFINITION(CoSimIOConversionUtilities);
 
+    using DataLocation = Globals::DataLocation;
+
     ///@}
     ///@name Life Cycle
     ///@{

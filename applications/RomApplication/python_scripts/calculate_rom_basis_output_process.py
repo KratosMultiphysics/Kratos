@@ -1,6 +1,7 @@
 # Import Python modules
 import json
 import numpy
+from pathlib import Path
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -65,6 +66,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         self.rom_basis_output_name = settings["rom_basis_output_name"].GetString()
 
+        self.rom_basis_output_folder = Path(settings["rom_basis_output_folder"].GetString())
+
         # Get the SVD truncation tolerance
         self.svd_truncation_tolerance = settings["svd_truncation_tolerance"].GetDouble()
 
@@ -89,6 +92,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "nodal_unknowns": [],
             "rom_basis_output_format": "numpy",
             "rom_basis_output_name": "RomParameters",
+            "rom_basis_output_folder" : "rom_data",
             "svd_truncation_tolerance": 1.0e-6
         }""")
 
@@ -138,14 +142,11 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "train_hrom": False,
             "run_hrom": False,
             "projection_strategy": "galerkin",
+            "assembling_strategy": "global",
             "rom_format": "numpy",
-            "train_petrov_galerkin": {
-                "train": False,
-                "basis_strategy": "residuals",
-                "include_phi": False,
-                "svd_truncation_tolerance": 1e-6
+            "rom_settings": {
+                "rom_bns_settings": {}
             },
-            "rom_settings": {},
             "hrom_settings": {},
             "nodal_modes": {},
             "elements_and_weights" : {}
@@ -164,9 +165,14 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         rom_basis_dict["rom_settings"]["nodal_unknowns"] = [var.Name() for var in self.snapshot_variables_list]
         rom_basis_dict["rom_settings"]["number_of_rom_dofs"] = numpy.shape(u)[1] #TODO: This is way misleading. I'd call it number_of_basis_modes or number_of_rom_modes
         rom_basis_dict["projection_strategy"] = "galerkin" # Galerkin: (Phi.T@K@Phi dq= Phi.T@b), LSPG = (K@Phi dq= b), Petrov-Galerkin = (Psi.T@K@Phi dq = Psi.T@b)
+        rom_basis_dict["assembling_strategy"] = "global" # Assemble the ROM globally or element by element: "global" (Phi_g @ J_g @ Phi_g), "element by element" sum(Phi_e^T @ K_e @ Phi_e)
         rom_basis_dict["rom_format"] = self.rom_basis_output_format
         rom_basis_dict["rom_settings"]["petrov_galerkin_number_of_rom_dofs"] = 0
         #NOTE "petrov_galerkin_number_of_rom_dofs" is not used unless a Petrov-Galerkin simulation is called, in which case it shall be modified either manually or from the RomManager
+
+        # Create the folder if it doesn't already exist
+        if not self.rom_basis_output_folder.exists():
+            self.rom_basis_output_folder.mkdir(parents=True)
 
         if self.rom_basis_output_format == "json":
             # Storing modes in JSON format
@@ -177,15 +183,15 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
 
         elif self.rom_basis_output_format == "numpy":
             # Storing modes in Numpy format
-            numpy.save('RightBasisMatrix.npy', u)
-            numpy.save('NodeIds.npy',  numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int)   )
+            numpy.save(self.rom_basis_output_folder / "RightBasisMatrix.npy", u)
+            numpy.save(self.rom_basis_output_folder / "NodeIds.npy", numpy.arange(1,((u.shape[0]+1)/n_nodal_unknowns), 1, dtype=int))
         else:
             err_msg = "Unsupported output format {}.".format(self.rom_basis_output_format)
             raise Exception(err_msg)
 
         # Creating the ROM JSON file containing or not the modes depending on "self.rom_basis_output_format"
-        output_filename = self.rom_basis_output_name + ".json"
-        with open(output_filename, 'w') as f:
+        output_filename = self.rom_basis_output_folder / f"{self.rom_basis_output_name}.json"
+        with output_filename.open('w') as f:
             json.dump(rom_basis_dict, f, indent = 4)
 
 

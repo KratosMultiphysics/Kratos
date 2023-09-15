@@ -44,7 +44,7 @@ namespace Kratos
     // Absorbing boundaries variables
     KRATOS_CREATE_VARIABLE(double, ABSORBING_DISTANCE)
     KRATOS_CREATE_VARIABLE(double, DISSIPATION)
-    KRATOS_CREATE_VARIABLE(Node<3>::Pointer, BOUNDARY_NODE)
+    KRATOS_CREATE_VARIABLE(Node::Pointer, BOUNDARY_NODE)
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BOUNDARY_VELOCITY)
 
     // Post-process variables

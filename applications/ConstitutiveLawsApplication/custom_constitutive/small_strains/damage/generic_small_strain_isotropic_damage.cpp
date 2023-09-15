@@ -75,7 +75,6 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
 {
     // Integrate Stress Damage
     Vector& integrated_stress_vector = rValues.GetStressVector();
-    array_1d<double, VoigtSize> auxiliary_integrated_stress_vector = integrated_stress_vector;
     Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
@@ -120,8 +119,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
         const double F = uniaxial_stress - threshold;
 
         if (F <= threshold_tolerance) { // Elastic case
-            noalias(auxiliary_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
-			noalias(integrated_stress_vector) = auxiliary_integrated_stress_vector;
+            noalias(integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
@@ -132,12 +130,11 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
             TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
 
             // Updated Values
-            noalias(auxiliary_integrated_stress_vector) = predictive_stress_vector;
+            noalias(integrated_stress_vector) = predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
                 this->CalculateTangentTensor(rValues);
             }
-            noalias(integrated_stress_vector) = auxiliary_integrated_stress_vector;
         }
     }
 } // End CalculateMaterialResponseCauchy
@@ -368,8 +365,6 @@ double& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
         rValue = mDamage;
     } else if (rThisVariable == THRESHOLD) {
         rValue = mThreshold;
-    } else {
-        return BaseType::GetValue(rThisVariable, rValue);
     }
 
     return rValue;
@@ -390,18 +385,6 @@ Vector& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
         rValue[1] = mThreshold;
     }
     return rValue;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TConstLawIntegratorType>
-Matrix& GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::GetValue(
-    const Variable<Matrix>& rThisVariable,
-    Matrix& rValue
-    )
-{
-    return BaseType::GetValue(rThisVariable, rValue);
 }
 
 /***********************************************************************************/

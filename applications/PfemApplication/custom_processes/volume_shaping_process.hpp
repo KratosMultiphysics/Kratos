@@ -775,7 +775,7 @@ class VolumeShapingProcess : public Process
   //*******************************************************************************************
 
 
-  bool MatchControlFlags(const Node<3>::Pointer& pNode)
+  bool MatchControlFlags(const Node::Pointer& pNode)
   {
 
     for(unsigned int i = 0; i<mControlFlags.size(); i++)

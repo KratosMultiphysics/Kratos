@@ -43,7 +43,7 @@ public:
     /// The base class RetentionLaw type definition
     using BaseType = RetentionLaw;
 
-    using GeometryType = Geometry<Node<3>>;
+    using GeometryType = Geometry<Node>;
 
     /// The size type definition
     using SizeType = std::size_t;
@@ -51,13 +51,7 @@ public:
     /// Counted pointer of SaturatedLaw
     KRATOS_CLASS_POINTER_DEFINITION( SaturatedLaw );
 
-    SaturatedLaw();
-
     RetentionLaw::Pointer Clone() const override;
-
-    SaturatedLaw(const SaturatedLaw& rOther);
-
-    ~SaturatedLaw() override;
 
     void InitializeMaterial(const Properties& rMaterialProperties,
                             const GeometryType& rElementGeometry,

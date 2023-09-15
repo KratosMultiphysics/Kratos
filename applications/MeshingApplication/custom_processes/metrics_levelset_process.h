@@ -62,7 +62,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ComputeLevelSetSolMetricProcess);
 
     /// Node definition
-    typedef Node <3>                                                   NodeType;
+    typedef Node                                                   NodeType;
 
     /// Containers definition
     typedef ModelPart::NodesContainerType                        NodesArrayType;

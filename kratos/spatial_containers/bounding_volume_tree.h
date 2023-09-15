@@ -40,7 +40,7 @@ class kDOP
 public:
     KRATOS_CLASS_POINTER_DEFINITION(kDOP);
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef NodeType::PointType PointType;
     typedef const double ArrayType[3];
@@ -375,7 +375,7 @@ public:
     ~BoundingVolumePartitioner() {}
 
     typedef ModelPart::ConditionsContainerType ConditionsContainerType;
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef NodeType::PointType PointType;
 

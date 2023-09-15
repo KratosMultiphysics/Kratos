@@ -40,12 +40,14 @@
      #define KRATOS_ENV64BIT
    #else
      #define KRATOS_ENV32BIT
+     #error 32 bit system are not supported anymore. Please consider a 64 bits system
   #endif
 #else // It is POSIX (Linux, MacOSX, BSD...)
   #if defined(__x86_64__) || defined(__ppc64__) || defined(__aarch64__)
     #define KRATOS_ENV64BIT
   #else // This includes __arm__ and __x86__
     #define KRATOS_ENV32BIT
+     #error 32 bit system are not supported anymore. Please consider a 64 bits system
   #endif
 #endif
 
@@ -695,7 +697,7 @@ catch(...) { Block KRATOS_THROW_ERROR(std::runtime_error, "Unknown error", MoreI
 #undef KRATOS_REGISTER_GEOMETRY
 #endif
 #define KRATOS_REGISTER_GEOMETRY(name, reference) \
-    KratosComponents<Geometry<Node<3>>>::Add(name, reference); \
+    KratosComponents<Geometry<Node>>::Add(name, reference); \
     Serializer::Register(name, reference);
 
 #ifdef KRATOS_REGISTER_ELEMENT

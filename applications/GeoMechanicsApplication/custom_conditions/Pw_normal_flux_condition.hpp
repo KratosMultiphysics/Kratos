@@ -39,7 +39,7 @@ public:
     
     using IndexType = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType = Vector;
@@ -55,9 +55,6 @@ public:
     
     // Constructor 2
     PwNormalFluxCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : PwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
-
-    // Destructor
-    ~PwNormalFluxCondition() override {}
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -84,9 +81,7 @@ protected:
     
     void CalculateAndAddRHS(VectorType& rRightHandSideVector, NormalFluxVariables& rVariables);
 
-    virtual void CalculateIntegrationCoefficient(double& rIntegrationCoefficient,
-        const Matrix& Jacobian,
-        const double& Weight);
+    virtual double CalculateIntegrationCoefficient(const Matrix& Jacobian, const double& Weight);
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

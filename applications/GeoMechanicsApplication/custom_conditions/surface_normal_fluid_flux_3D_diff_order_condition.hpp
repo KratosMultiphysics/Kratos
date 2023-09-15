@@ -33,7 +33,7 @@ public:
 
     using IndexType = std::size_t;
     using PropertiesType = Properties;
-    using NodeType = Node<3>;
+    using NodeType = Node;
     using GeometryType = Geometry<NodeType>;
     using NodesArrayType = GeometryType::PointsArrayType;
     using VectorType = Vector;
@@ -53,9 +53,6 @@ public:
     SurfaceNormalFluidFlux3DDiffOrderCondition( IndexType NewId,
                                                 GeometryType::Pointer pGeometry,
                                                 PropertiesType::Pointer pProperties );
-
-    // Destructor
-    ~SurfaceNormalFluidFlux3DDiffOrderCondition() override;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

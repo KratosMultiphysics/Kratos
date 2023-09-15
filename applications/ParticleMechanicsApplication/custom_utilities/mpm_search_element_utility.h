@@ -31,7 +31,7 @@ namespace Kratos::MPMSearchElementUtility
     // Standard types
     typedef std::size_t IndexType;
     typedef std::size_t SizeType;
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef typename ModelPart::GeometryType GeometryType;
 
 
@@ -61,7 +61,7 @@ namespace Kratos::MPMSearchElementUtility
         const ModelPart& rBackgroundGridModelPart
         )
     {
-        std::vector<typename Geometry<Node<3>>::Pointer> geometry_neighbours;
+        std::vector<typename Geometry<Node>::Pointer> geometry_neighbours;
         for (IndexType j = 0; j < rBackgroundGridModelPart.NumberOfElements(); j++)
         {
             auto p_geometry_neighbour = (rBackgroundGridModelPart.ElementsBegin() + j)->pGetGeometry();
@@ -192,7 +192,7 @@ namespace Kratos::MPMSearchElementUtility
                     PQMPMPartitionUtilities::PartitionMasterMaterialPointsIntoSubPoints(rBackgroundGridModelPart, xg[0],
                         local_coordinates, *element_itr, element_itr->pGetGeometry(), Tolerance);
                 } else {
-                    CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                         element_itr->pGetGeometry(), local_coordinates,
                         element_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
                 }
@@ -233,7 +233,7 @@ namespace Kratos::MPMSearchElementUtility
                     rMPMModelPart.GetProcessInfo(), is_found);
 
                 if (is_found) {
-                    CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                    CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                         condition_itr->pGetGeometry(), local_coordinates,
                         condition_itr->GetGeometry().IntegrationPoints()[0].Weight(), r_found_geom);
 
@@ -332,7 +332,7 @@ namespace Kratos::MPMSearchElementUtility
                         auto p_quadrature_point_geometry = element_itr->pGetGeometry();
                         array_1d<double, 3> local_coordinates;
                         pelem->pGetGeometry()->PointLocalCoordinates(local_coordinates, xg[0]);
-                        CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                        CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                             p_quadrature_point_geometry, local_coordinates,
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
                     }
@@ -369,7 +369,7 @@ namespace Kratos::MPMSearchElementUtility
                         auto p_quadrature_point_geometry = condition_itr->pGetGeometry();
                         array_1d<double, 3> local_coordinates;
                         pelem->pGetGeometry()->PointLocalCoordinates(local_coordinates, xg[0]);
-                        CreateQuadraturePointsUtility<Node<3>>::UpdateFromLocalCoordinates(
+                        CreateQuadraturePointsUtility<Node>::UpdateFromLocalCoordinates(
                             p_quadrature_point_geometry, local_coordinates,
                             p_quadrature_point_geometry->IntegrationPoints()[0].Weight(), pelem->GetGeometry());
 

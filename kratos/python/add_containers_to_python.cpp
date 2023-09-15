@@ -93,7 +93,7 @@ void  AddContainersToPython(pybind11::module& m)
     .def("Name", &VariableData::Name, py::return_value_policy::copy)
     .def("Key", &VariableData::Key)
     .def("GetSourceVariable", &VariableData::GetSourceVariable)
-    .def("GetComponentIndex()", &VariableData::GetComponentIndex)
+    .def("GetComponentIndex", &VariableData::GetComponentIndex)
     .def("IsComponent", &VariableData::IsComponent)
     .def("__str__", PrintObject<VariableData>)
     ;

@@ -14,7 +14,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/tetrahedra_3d_4.h"
@@ -27,12 +27,12 @@ namespace Kratos {
 	KRATOS_TEST_CASE_IN_SUITE(RayCastingProcessQuadrilateral2D, KratosCoreFastSuite)
 	{
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-		Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 10.00, 0.00, 0.00);
+		Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+		Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
+		Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+		Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
 
-		Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+		Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
 		Parameters mesher_parameters(R"(
 		{
@@ -82,21 +82,21 @@ namespace Kratos {
 		// gid_io_skin.InitializeResults(0, skin_part.GetMesh());
 		// gid_io_skin.FinalizeResults();
 
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(21))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(22))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(30))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(21))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(22))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(30))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
 	}
 
 	KRATOS_TEST_CASE_IN_SUITE(RayCastingProcessSquareRing2D, KratosCoreFastSuite)
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node<3>::Pointer p_point_1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-		Node<3>::Pointer p_point_2 = Kratos::make_intrusive<Node<3>>(2, 0.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
-		Node<3>::Pointer p_point_4 = Kratos::make_intrusive<Node<3>>(4, 10.00, 0.00, 0.00);
+		Node::Pointer p_point_1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+		Node::Pointer p_point_2 = Kratos::make_intrusive<Node>(2, 0.00, 10.00, 0.00);
+		Node::Pointer p_point_3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+		Node::Pointer p_point_4 = Kratos::make_intrusive<Node>(4, 10.00, 0.00, 0.00);
 
-		Quadrilateral2D4<Node<3>> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
+		Quadrilateral2D4<Node> geometry(p_point_1, p_point_2, p_point_3, p_point_4);
 
 		Parameters mesher_parameters(R"(
 		{
@@ -139,26 +139,26 @@ namespace Kratos {
 		// Compute distance
 		ApplyRayCastingProcess<2>(surface_part, skin_part).Execute();
 
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(86))->FastGetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(88))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(112))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
-		KRATOS_CHECK_NEAR((surface_part.pGetNode(138))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(86))->FastGetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(88))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(112))->FastGetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+		KRATOS_EXPECT_NEAR((surface_part.pGetNode(138))->FastGetSolutionStepValue(DISTANCE),  1.00, 1e-6);
 	}
 
 	KRATOS_TEST_CASE_IN_SUITE(TetrahedraInCubeRayCastingProcess, KratosCoreFastSuite)
 	{
 
 		// Generate a volume mesh (done with the StructuredMeshGeneratorProcess)
-		Node<3>::Pointer p_point1 = Kratos::make_intrusive<Node<3>>(1, 0.00, 0.00, 0.00);
-		Node<3>::Pointer p_point2 = Kratos::make_intrusive<Node<3>>(2, 10.00, 0.00, 0.00);
-		Node<3>::Pointer p_point3 = Kratos::make_intrusive<Node<3>>(3, 10.00, 10.00, 0.00);
-		Node<3>::Pointer p_point4 = Kratos::make_intrusive<Node<3>>(4, 0.00, 10.00, 0.00);
-		Node<3>::Pointer p_point5 = Kratos::make_intrusive<Node<3>>(5, 0.00, 0.00, 10.00);
-		Node<3>::Pointer p_point6 = Kratos::make_intrusive<Node<3>>(6, 10.00, 0.00, 10.00);
-		Node<3>::Pointer p_point7 = Kratos::make_intrusive<Node<3>>(7, 10.00, 10.00, 10.00);
-		Node<3>::Pointer p_point8 = Kratos::make_intrusive<Node<3>>(8, 0.00, 10.00, 10.00);
+		Node::Pointer p_point1 = Kratos::make_intrusive<Node>(1, 0.00, 0.00, 0.00);
+		Node::Pointer p_point2 = Kratos::make_intrusive<Node>(2, 10.00, 0.00, 0.00);
+		Node::Pointer p_point3 = Kratos::make_intrusive<Node>(3, 10.00, 10.00, 0.00);
+		Node::Pointer p_point4 = Kratos::make_intrusive<Node>(4, 0.00, 10.00, 0.00);
+		Node::Pointer p_point5 = Kratos::make_intrusive<Node>(5, 0.00, 0.00, 10.00);
+		Node::Pointer p_point6 = Kratos::make_intrusive<Node>(6, 10.00, 0.00, 10.00);
+		Node::Pointer p_point7 = Kratos::make_intrusive<Node>(7, 10.00, 10.00, 10.00);
+		Node::Pointer p_point8 = Kratos::make_intrusive<Node>(8, 0.00, 10.00, 10.00);
 
-		Hexahedra3D8<Node<3> > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
+		Hexahedra3D8<Node > geometry(p_point1, p_point2, p_point3, p_point4, p_point5, p_point6, p_point7, p_point8);
 
 		Parameters mesher_parameters(R"(
 		{
@@ -194,21 +194,21 @@ namespace Kratos {
 		ApplyRayCastingProcess<3>(volume_part, skin_part).Execute();
 
 
-		Tetrahedra3D4<Node<3>> tetrahedra(skin_part.pGetNode(901), skin_part.pGetNode(902), skin_part.pGetNode(903), skin_part.pGetNode(904));
+		Tetrahedra3D4<Node> tetrahedra(skin_part.pGetNode(901), skin_part.pGetNode(902), skin_part.pGetNode(903), skin_part.pGetNode(904));
 
 	Point dummy(0.00,0.00,0.00);
 	for(auto& node : volume_part.Nodes()){
 		if(tetrahedra.IsInside(node.Coordinates(),dummy)){
-			KRATOS_CHECK_NEAR(node.GetSolutionStepValue(DISTANCE), -1.00, 1e-6);
+			KRATOS_EXPECT_NEAR(node.GetSolutionStepValue(DISTANCE), -1.00, 1e-6);
 		}
 	}
 		// Note that we cannot check the outside because on the interface is not well defined
-		KRATOS_CHECK_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
-		KRATOS_CHECK_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(135).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(136).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(137).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(256).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(257).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
+		KRATOS_EXPECT_NEAR(volume_part.GetNode(258).GetSolutionStepValue(DISTANCE), 1.00, 1e-6);
 
 
 		//GidIO<> gid_io_fluid("C:/Temp/Tests/distance_test_fluid", GiD_PostAscii, SingleFile, WriteDeformed, WriteConditions);

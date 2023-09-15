@@ -44,14 +44,14 @@ namespace Kratos {
         virtual void SetTranslationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const;
         virtual void SetRotationalIntegrationSchemeInProperties(Properties::Pointer pProp, bool verbose = true) const;
 
-        virtual void Move(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
-        virtual void Rotate(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
-        virtual void MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
-        virtual void RotateRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void Move(Node & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void Rotate(Node & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void MoveRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void RotateRigidBodyElement(RigidBodyElement3D* rigid_body_element, Node & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
 
         virtual void UpdateTranslationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 array_1d<double, 3 >& coor,
                 array_1d<double, 3 >& displ,
                 array_1d<double, 3 >& delta_displ,
@@ -63,13 +63,13 @@ namespace Kratos {
                 const double delta_t,
                 const bool Fix_vel[3]);
 
-        virtual void CalculateTranslationalMotionOfNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
-        virtual void CalculateRotationalMotionOfSphereNode(Node<3> & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
-        virtual void CalculateRotationalMotionOfRigidBodyElementNode(Node<3> & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
+        virtual void CalculateTranslationalMotionOfNode(Node & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void CalculateRotationalMotionOfSphereNode(Node & i, const double delta_t, const double force_reduction_factor, const int StepFlag);
+        virtual void CalculateRotationalMotionOfRigidBodyElementNode(Node & i, const double delta_t, const double moment_reduction_factor, const int StepFlag);
 
         virtual void CalculateNewRotationalVariablesOfSpheres(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const double moment_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
@@ -81,7 +81,7 @@ namespace Kratos {
 
         virtual void CalculateNewRotationalVariablesOfRigidBodyElements(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const array_1d<double, 3 > moments_of_inertia,
                 array_1d<double, 3 >& angular_velocity,
                 array_1d<double, 3 >& torque,
@@ -94,7 +94,7 @@ namespace Kratos {
 
         virtual void UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
                 array_1d<double, 3 >& angular_velocity,
@@ -104,7 +104,7 @@ namespace Kratos {
 
         virtual void UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const double& moment_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,
@@ -116,7 +116,7 @@ namespace Kratos {
 
         virtual void UpdateRotationalVariables(
                 int StepFlag,
-                Node < 3 >& i,
+                Node& i,
                 const array_1d<double, 3 >& moments_of_inertia,
                 array_1d<double, 3 >& rotated_angle,
                 array_1d<double, 3 >& delta_rotation,

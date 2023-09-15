@@ -21,9 +21,11 @@ def CreateSolver(cls, model, custom_settings):
         def GetDefaultParameters(cls):
             default_settings = KratosMultiphysics.Parameters("""{
                 "projection_strategy" : "galerkin",
+                "assembling_strategy" : "global",
                 "rom_settings": {
                     "nodal_unknowns": [],
-                    "number_of_rom_dofs": 0
+                    "number_of_rom_dofs": 0,
+                    "rom_bns_settings": {}
                 }
             }""")
             default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -33,7 +35,8 @@ def CreateSolver(cls, model, custom_settings):
             linear_solver = self._GetLinearSolver()
             rom_parameters, solving_strategy = self._ValidateAndReturnRomParameters()
             available_solving_strategies = {
-                "galerkin": KratosROM.ROMBuilderAndSolver, 
+                "elemental_galerkin": KratosROM.ROMBuilderAndSolver, 
+                "global_galerkin": KratosROM.GlobalROMBuilderAndSolver, 
                 "lspg": KratosROM.LeastSquaresPetrovGalerkinROMBuilderAndSolver,
                 "petrov_galerkin": KratosROM.PetrovGalerkinROMBuilderAndSolver
             }
@@ -62,8 +65,28 @@ def CreateSolver(cls, model, custom_settings):
                     err_msg += " Please manually set \'nodal_unknowns\' in \'rom_settings\'."
                     raise Exception(err_msg)
             projection_strategy = self.settings["projection_strategy"].GetString()
-
+            assembling_strategy = self.settings["assembling_strategy"].GetString()
+            # For now, only Galerkin projection has the elemental or global approach option
+            if projection_strategy=="galerkin": #TODO: Possibility of doing elemental lspg and petrov_galerkin
+                available_assembling_strategies = {
+                    "global",
+                    "elemental"
+                }
+                if assembling_strategy in available_assembling_strategies:
+                    # Add the assembling strategy prefix to the projection strategy
+                    projection_strategy = f"{assembling_strategy}_{projection_strategy}"
+                else:
+                    err_msg = f"'Assembling_strategy': '{assembling_strategy}' is not available. Please select one of the following: {list(available_assembling_strategies)}."
+                    raise ValueError(err_msg)
+                
+            self._AssignMissingInnerRomParameters(projection_strategy)
+                
             # Return the validated ROM parameters
             return self.settings["rom_settings"], projection_strategy
+        
+        def _AssignMissingInnerRomParameters(self, projection_strategy):
+            monotonicity_preserving = self.settings["rom_settings"]["rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.settings["rom_settings"]["rom_bns_settings"].Has("monotonicity_preserving") else False
+            if projection_strategy=="global_galerkin" or projection_strategy=="lspg": #TODO: Do it for all global rom B&Ss.
+                self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
 
     return ROMSolver(model, custom_settings)

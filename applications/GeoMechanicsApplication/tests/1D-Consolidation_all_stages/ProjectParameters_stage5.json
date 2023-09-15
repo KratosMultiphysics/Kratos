@@ -11,7 +11,6 @@
         "solver_type":                        "U_Pw",
         "model_part_name":                    "PorousDomain",
         "domain_size":                        2,
-        "start_time":                         43201,
         "model_import_settings":              {
             "input_type":       "mdpa",
             "input_filename":   "1D-Consolidationtest_stage5"
@@ -48,7 +47,6 @@
         "number_cycles":                      10,
         "reduction_factor":                   0.5,
         "increase_factor":                    2.0,
-        "realised_factor":                    0.9999,
         "desired_iterations":                 4,
         "max_radius_factor":                  10.0,
         "min_radius_factor":                  0.1,

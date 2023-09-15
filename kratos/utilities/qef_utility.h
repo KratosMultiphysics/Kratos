@@ -60,8 +60,8 @@ public:
     ///@name Type Definitions
     ///@{
 
-    using NodeType = Node<3>;
-    using NodePtrType = Node<3>::Pointer;
+    using NodeType = Node;
+    using NodePtrType = Node::Pointer;
     using GeometryType = Geometry<NodeType>;
     using GeometryPtrType = GeometryType::Pointer;
     using GeometryArrayType = GeometryType::GeometriesArrayType;

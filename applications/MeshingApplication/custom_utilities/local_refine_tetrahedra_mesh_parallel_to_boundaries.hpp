@@ -74,12 +74,12 @@ public:
 
         //using the conditions to mark the boundary with the flag boundary
         //note that we DO NOT add the conditions to the model part
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
+        block_for_each(mModelPart.Nodes(), [&](Node& rNode) {
             rNode.Set(BOUNDARY,false);
         });
 
         block_for_each(mModelPart.Conditions(), [&](ModelPart::ConditionType& rCondition) {
-            Geometry< Node<3> >& geom = rCondition.GetGeometry();
+            Geometry< Node >& geom = rCondition.GetGeometry();
             for(unsigned int i=0; i<geom.size(); i++){
                 geom[i].SetLock();
                 geom[i].Set(BOUNDARY,true);
@@ -101,9 +101,9 @@ public:
 
     void ResetFatherNodes(ModelPart &rModelPart) override
     {
-        block_for_each(mModelPart.Nodes(), [&](Node<3>& rNode) {
+        block_for_each(mModelPart.Nodes(), [&](Node& rNode) {
             if(rNode.GetValue(REFINEMENT_LEVEL)==0){
-                GlobalPointersVector<Node<3>> empty_father_vector;
+                GlobalPointersVector<Node> empty_father_vector;
                 rNode.SetValue(FATHER_NODES, empty_father_vector);
             }
         });
@@ -119,10 +119,10 @@ public:
             if (r_elem.GetValue(SPLIT_ELEMENT)) {
                 Element::GeometryType& r_geom = r_elem.GetGeometry(); // Nodes of the element
                 for (unsigned int i = 0; i < r_geom.size(); i++) {
-                    int index_i = r_geom[i].Id() - 1;
+                    int index_i = mMapNodeIdToPos[r_geom[i].Id()];
                     bool is_boundary_i = r_geom[i].Is(BOUNDARY);
                     for (unsigned int j = 0; j < r_geom.size(); j++) {
-                        int index_j = r_geom[j].Id() - 1;
+                        int index_j = mMapNodeIdToPos[r_geom[j].Id()];
                         bool is_boundary_j = r_geom[j].Is(BOUNDARY);
                         if (index_j > index_i && (is_boundary_j||is_boundary_i)) {
                             rCoord(index_i, index_j) = -2;
@@ -136,9 +136,9 @@ public:
         for (auto& r_cond : rThisModelPart.Conditions()) {
             auto& r_geom = r_cond.GetGeometry(); // Nodes of the condition
             for (unsigned int i = 0; i < r_geom.size(); i++) {
-                int index_i = r_geom[i].Id() - 1;
+                int index_i = mMapNodeIdToPos[r_geom[i].Id()];
                 for (unsigned int j = 0; j < r_geom.size(); j++) {
-                    int index_j = r_geom[j].Id() - 1;
+                    int index_j = mMapNodeIdToPos[r_geom[j].Id()];
                     if (index_j > index_i)  {
                         rCoord(index_i, index_j) = -1;
                     }

@@ -667,6 +667,8 @@ public:
         return CalculateShapeFunctionValue(ShapeFunctionIndex, rPoint);
     }
 
+    using Geometry<TPointType>::ShapeFunctionsValues;
+
     /** This method gives gradient of all shape functions evaluated
      * in given point.
      * There is no calculation and it just give it from
@@ -721,11 +723,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
 private:

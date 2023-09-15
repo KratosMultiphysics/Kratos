@@ -23,13 +23,13 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
         # Set default settings
         # Note the trick to allow scalar, function and table values of the parabola maximum value
         default_settings = self.GetDefaultParameters()
-        if settings.Has("parabola_vertex_value"):
-            if settings["parabola_vertex_value"].IsString():
-                default_settings["parabola_vertex_value"].SetString("0.0")
-            elif settings["parabola_vertex_value"].IsDouble():
-                default_settings["parabola_vertex_value"].SetDouble(0.0)
+        if settings.Has("value"):
+            if settings["value"].IsString():
+                default_settings["value"].SetString("0.0")
+            elif settings["value"].IsDouble():
+                default_settings["value"].SetDouble(0.0)
         else:
-            raise Exception("'parabola_vertex_value' not found. It needs to be user-provided.")
+            raise Exception("'value' not found. It needs to be user-provided.")
 
         # Assign this here since it will change the "interval" prior to validation
         self.interval = KratosMultiphysics.IntervalUtility(settings)
@@ -48,17 +48,18 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
         self.max_value_is_numeric = False
         self.max_value_is_function = False
         self.max_value_is_table = False
-        if settings["parabola_vertex_value"].IsNumber():
+        if settings["value"].IsNumber():
             self.max_value_is_numeric = True
-            self.max_value = settings["parabola_vertex_value"].GetDouble()
-        elif settings["parabola_vertex_value"].IsString():
+            self.max_value = settings["value"].GetDouble()
+        elif settings["value"].IsString():
             self.max_value_is_function = True
-            self.function_string = settings["parabola_vertex_value"].GetString()
+            self.function_string = settings["value"].GetString()
             self.max_value_function = KratosMultiphysics.GenericFunctionUtility(self.function_string, settings["local_axes"])
         else:
             self.max_value_is_table = True
             inlet_model_part = model.GetModelPart(settings["inlet_model_part_name"].GetString())
-            self.table = ReadCsvTableUtility(settings["parabola_vertex_value"]).Read(inlet_model_part)
+            self.table = ReadCsvTableUtility(settings["value"]).Read(inlet_model_part)
+        self.value_is_average = settings["value_is_average"].GetBool()
         self.value_is_flow_rate = settings["value_is_flow_rate"].GetBool()
 
         # Save model and settings containers
@@ -70,8 +71,9 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
         default_settings = KratosMultiphysics.Parameters("""{
             "wall_model_part_name": "",
             "inlet_model_part_name": "",
-            "parabola_vertex_value" : {},
-            "value_is_flow_rate" : false,
+            "value" : {},
+            "value_is_average" : true,
+            "value_is_flow_rate" : true,
             "interval" : [0.0,"End"],
             "local_axes" : {},
             "parallel_distance_max_levels" : 25
@@ -118,10 +120,12 @@ class ApplyParabolicInletProcess(KratosMultiphysics.Process):
     def ExecuteInitializeSolutionStep(self):
         # Set the max value factor as the area quotient if the max value is a flow rate
         # Otherwise, if the max value is already a velocity set the max value factor to one
+        # Also check if the provided value is the peak or the average value of the parabola
+        value_is_average_factor = 2.0 if self.value_is_average else 1.0
         if self.value_is_flow_rate:
-            max_value_factor = 1.0/self.inlet_area
+            max_value_factor = value_is_average_factor / self.inlet_area
         else:
-            max_value_factor = 1.0
+            max_value_factor = value_is_average_factor
 
         # Set the parabolic inlet values
         inlet_model_part = self.model.GetModelPart(self.settings["inlet_model_part_name"].GetString())

@@ -103,8 +103,8 @@ namespace Kratos
     /// Pointer definition of UpdatedLagrangianElement
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(UpdatedLagrangianElement);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -255,16 +255,20 @@ namespace Kratos
        * @param rResult A vector containing the global Id of each row
        * @param rCurrentProcessInfo the current process info object (unused)
        */
-    virtual void EquationIdVector(EquationIdVectorType &rResult,
-                                  const ProcessInfo &rCurrentProcessInfo){};
+    void EquationIdVector(
+        EquationIdVectorType &rResult,
+        const ProcessInfo &rCurrentProcessInfo) const override
+    {};
 
     /// Returns a list of the element's Dofs
     /**
        * @param ElementalDofList the list of DOFs
        * @param rCurrentProcessInfo the current process info instance
        */
-    virtual void GetDofList(DofsVectorType &rElementalDofList,
-                            const ProcessInfo &rCurrentProcessInfo){};
+    void GetDofList(
+        DofsVectorType &rElementalDofList,
+        const ProcessInfo &rCurrentProcessInfo) const override
+    {};
 
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
@@ -536,9 +540,15 @@ namespace Kratos
     bool CheckStrain3(VectorType &SpatialDefRate,
                       MatrixType &SpatialVelocityGrad);
 
-    virtual void CalcElasticPlasticCauchySplitted(ElementalVariables &rElementalVariables, double TimeStep,
-                                                  unsigned int g, const ProcessInfo &rCurrentProcessInfo, double &Density,
-                                                  double &DeviatoricCoeff, double &VolumetricCoeff){};
+    virtual void CalcElasticPlasticCauchySplitted(
+        ElementalVariables &rElementalVariables,
+        const unsigned int g,
+        const Vector& rN,
+        const ProcessInfo &rCurrentProcessInfo,
+        double &Density,
+        double &DeviatoricCoeff,
+        double &VolumetricCoeff)
+    {};
 
     void ComputeMechanicalDissipation(ElementalVariables &rElementalVariables);
 
