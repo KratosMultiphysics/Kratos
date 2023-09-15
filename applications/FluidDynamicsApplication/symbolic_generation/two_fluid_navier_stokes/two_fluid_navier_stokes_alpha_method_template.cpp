@@ -84,18 +84,50 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateOnIntegrationPoints
         rOutput.resize(number_of_gauss_points);
     }
 
-    if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY){
+    if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY)
+    {
         // Iterate over integration points to evaluate the artificial viscosity at each Gauss point
-        for (unsigned int g = 0; g < number_of_gauss_points; ++g){
+        for (unsigned int g = 0; g < number_of_gauss_points; ++g)
+        {
             this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
-            rOutput[g] = CalculateArtificialDynamicViscositySpecialization(data);
+            rOutput[g] = this->GetValue(ARTIFICIAL_DYNAMIC_VISCOSITY);
         }
     }
-    else{
+    else
+    {
         BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 }
+template <class TElementData>
+void TwoFluidNavierStokesAlphaMethod<TElementData>::Calculate(
+    const Variable<double> &rVariable,
+    double &rOutput,
+    const ProcessInfo &rCurrentProcessInfo)
+{
+    // Create new temporary data container
+    TElementData data;
+    data.Initialize(*this, rCurrentProcessInfo);
 
+    // Get Shape function data
+    Vector gauss_weights;
+    Matrix shape_functions;
+    ShapeFunctionDerivativesArrayType shape_derivatives;
+    this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
+    const unsigned int number_of_gauss_points = gauss_weights.size();
+
+    if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY)
+    {
+
+        // Iterate over integration points to evaluate the artificial viscosity at each Gauss point
+        for (unsigned int g = 0; g < number_of_gauss_points; ++g)
+        {
+            this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
+            rOutput += CalculateArtificialDynamicViscositySpecialization(data);
+        }
+
+        rOutput /= number_of_gauss_points;
+    }
+}
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 
