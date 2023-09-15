@@ -46,6 +46,7 @@ class HRomTrainingUtility(object):
         self.hrom_output_format = settings["hrom_format"].GetString()
         self.include_minimum_condition = settings["include_minimum_condition"].GetBool()
         self.include_condition_parents = settings["include_condition_parents"].GetBool()
+        self.num_of_right_rom_dofs = self.rom_settings["number_of_rom_dofs"].GetInt()
 
         # Retrieve list of model parts from settings
         self.include_conditions_model_parts_list = settings["include_conditions_model_parts_list"].GetStringArray()
