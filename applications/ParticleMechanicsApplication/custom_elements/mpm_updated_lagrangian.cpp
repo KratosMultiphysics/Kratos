@@ -981,10 +981,13 @@ void MPMUpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, cons
             if (r_geometry[i].SolutionStepsDataHas(ACCELERATION))
                 nodal_acceleration = r_geometry[i].FastGetSolutionStepValue(ACCELERATION);
 
+            array_1d<double, 3 > nodal_velocity = r_geometry[i].FastGetSolutionStepValue(VELOCITY);
+
             for ( unsigned int j = 0; j < dimension; j++ )
             {
                 delta_xg[j] += r_N(0, i) * rVariables.CurrentDisp(i,j);
                 MP_acceleration[j] += r_N(0, i) * nodal_acceleration[j];
+                MP_velocity[j]      += r_N(0, i) * nodal_velocity[j];
 
                 /* NOTE: The following interpolation techniques have been tried:
                     MP_velocity[j]      += rVariables.N[i] * nodal_velocity[j];
@@ -997,11 +1000,6 @@ void MPMUpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, cons
 
     }
 
-    /* NOTE:
-    Another way to update the MP velocity (see paper Guilkey and Weiss, 2003).
-    This assume newmark (or trapezoidal, since n.gamma=0.5) rule of integration*/
-    mMP.velocity = MP_PreviousVelocity + 0.5 * delta_time * (MP_acceleration + MP_PreviousAcceleration);
-
     /* NOTE: The following interpolation techniques have been tried:
         MP_acceleration = 4/(delta_time * delta_time) * delta_xg - 4/delta_time * MP_PreviousVelocity;
         MP_velocity = 2.0/delta_time * delta_xg - MP_PreviousVelocity;
@@ -1013,6 +1011,7 @@ void MPMUpdatedLagrangian::UpdateGaussPoint( GeneralVariables & rVariables, cons
 
     // Update the MP Acceleration
     mMP.acceleration = MP_acceleration;
+    mMP.velocity = MP_velocity;
 
     // Update the MP total displacement
     mMP.displacement += delta_xg;
