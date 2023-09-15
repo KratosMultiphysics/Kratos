@@ -215,7 +215,7 @@ public:
         if (BaseType::mHromSimulation) {
             BuildWithComplementaryMeshAndApplyDirichletConditions(pScheme, rModelPart, r_a_comp, r_b_comp, rDx);
         }
-
+        
         if (BaseType::GetMonotonicityPreservingFlag()) {
             BaseType::MonotonicityPreserving(rA, rb);
         }
@@ -257,9 +257,78 @@ public:
             BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
         }
 
+        if (rb.size() != BaseBuilderAndSolverType::mEquationSystemSize)
+            rb.resize(BaseBuilderAndSolverType::mEquationSystemSize, false);
+
         BuildWithComplementaryMesh(pScheme, rModelPart, rA, rb);
 
         BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+
+        // Initialize the mask vector with zeros
+        Vector hrom_dof_mask_vector = ZeroVector(BaseBuilderAndSolverType::mEquationSystemSize);
+
+        // Build the mask vector for selected elements and conditions
+        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
+        BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
+
+        // Zero out rows in the matrix that correspond to zero in the mask vector
+        ApplyMaskToMatrixRows(rA, hrom_dof_mask_vector);
+    }
+
+    void BuildHromDofMaskVector(
+        Vector& rHromDofMaskVector,
+        const ProcessInfo& rCurrentProcessInfo)
+    {
+        const auto& r_hrom_elements = this->mSelectedElements;
+        const auto& r_hrom_conditions = this->mSelectedConditions;
+
+        // Ensuring the vector has the correct type for atomic operations.
+        std::vector<std::atomic<int>> atomicHromDofMaskVector(rHromDofMaskVector.size());
+
+        block_for_each(r_hrom_elements, [&](Element& r_element)
+        {
+            Element::DofsVectorType hrom_dofs;
+            r_element.GetDofList(hrom_dofs, rCurrentProcessInfo);
+            for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
+            {
+                const Dof<double>& r_dof = *hrom_dofs[i];
+                std::atomic_fetch_or(&atomicHromDofMaskVector[r_dof.EquationId()], 1);
+            }
+        });
+
+        block_for_each(r_hrom_conditions, [&](Condition& r_condition)
+        {
+            Condition::DofsVectorType hrom_dofs;
+            r_condition.GetDofList(hrom_dofs, rCurrentProcessInfo);
+            for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
+            {
+                const Dof<double>& r_dof = *hrom_dofs[i];
+                std::atomic_fetch_or(&atomicHromDofMaskVector[r_dof.EquationId()], 1);
+            }
+        });
+
+        // Copy back the atomic vector to the original one after all threads have finished their work.
+        for(std::size_t i = 0; i < atomicHromDofMaskVector.size(); ++i)
+        {
+            rHromDofMaskVector[i] = atomicHromDofMaskVector[i].load();
+        }
+    }
+
+    void ApplyMaskToMatrixRows(TSystemMatrixType& rA, 
+        const Vector& hrom_dof_mask_vector)
+    {
+        if(rA.size1() != hrom_dof_mask_vector.size()) 
+        {
+            throw std::invalid_argument("Matrix and vector sizes do not match");
+        }
+        
+        for(std::size_t i = 0; i < hrom_dof_mask_vector.size(); ++i)
+        {
+            if(hrom_dof_mask_vector[i] == 0)
+            {
+                row(rA, i) = zero_vector<double>(rA.size2());
+            }
+        }
     }
 
     void GetRightROMBasis(
@@ -303,10 +372,12 @@ public:
             auto a_comp_wrapper = UblasWrapper<double>(rAComp);
             const auto& eigen_rAComp = a_comp_wrapper.matrix();
 
+            EigenDynamicMatrix eigen_rAComp_times_mPhiGlobal = eigen_rAComp * eigen_mPhiGlobal; //TODO: Make it in parallel.
+
             if (mSolvingTechnique == "normal_equations") {
                 // Compute the matrix multiplication
-                mEigenRomA = eigen_rAComp.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
-                mEigenRomB = eigen_rAComp.transpose() * eigen_rb; //TODO: Make it in parallel.
+                mEigenRomA = eigen_rAComp_times_mPhiGlobal.transpose() * eigen_rA_times_mPhiGlobal; //TODO: Make it in parallel.
+                mEigenRomB = eigen_rAComp_times_mPhiGlobal.transpose() * eigen_rb; //TODO: Make it in parallel.
             }
         }
         else {
@@ -479,6 +550,7 @@ protected:
 
         //contributions to the system
         LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
 
         //vector containing the localization in the system of the different terms
         Element::EquationIdVectorType EquationId;
@@ -486,7 +558,7 @@ protected:
         // Assemble all elements
         const auto timer = BuiltinTimer();
 
-        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, EquationId )
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId)
         {
             # pragma omp for  schedule(guided, 512) nowait
             for (int k = 0; k < nelements; k++) {
@@ -494,10 +566,10 @@ protected:
 
                 if (it_elem->IsActive()) {
                     // Calculate elemental contribution
-                    pScheme->CalculateLHSContribution(*it_elem, LHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     // Assemble lhs the elemental contribution
-                    BaseType::AssembleLHS(A, LHS_Contribution, EquationId);
+                    BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
 
             }
@@ -508,10 +580,10 @@ protected:
 
                 if (it_cond->IsActive()) {
                     // Calculate elemental contribution
-                    pScheme->CalculateLHSContribution(*it_cond, LHS_Contribution, EquationId, CurrentProcessInfo);
+                    pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
 
                     // Assemble lhs the elemental contribution
-                    BaseType::AssembleLHS(A, LHS_Contribution, EquationId);
+                    BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }
             }
         }
