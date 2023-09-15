@@ -40,8 +40,12 @@ KratosGeoSettlement::KratosGeoSettlement() :
 }
 
 void KratosGeoSettlement::InitializeProcessFactory() {
-    mProcessFactory->AddCreator("ApplyVectorConstraintsTableProcess", [this](const Parameters& rParameters){return std::make_unique<ApplyVectorConstraintsTableProcess>(
-            mModel.GetModelPart(mModelPartName), rParameters);});
+    mProcessFactory->AddCreator("ApplyVectorConstraintsTableProcess",
+                                [this](const Parameters& rParameters)
+                                {
+                                    return std::make_unique<ApplyVectorConstraintsTableProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                                rParameters);
+                                });
     mProcessFactory->AddCreator("SetParameterFieldProcess", [this](const Parameters& rParameters){return std::make_unique<SetParameterFieldProcess>(
             mModel.GetModelPart(mModelPartName), rParameters);});
     mProcessFactory->AddCreator("ApplyExcavationProcess", [this](const Parameters& rParameters){return std::make_unique<ApplyExcavationProcess>(

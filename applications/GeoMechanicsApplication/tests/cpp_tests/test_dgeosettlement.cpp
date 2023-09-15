@@ -17,16 +17,23 @@ using namespace Kratos;
 
 namespace Kratos::Testing {
 
-KRATOS_TEST_CASE_IN_SUITE(TestCreatingKratosGeoSettlementDoesNotThrow, WorkInProgress) {
+KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, WorkInProgress) {
     KratosGeoSettlement settlement;
-
-//    settlement.RunStage("",
-//                        "",
-//                        [](const char*){},
-//                        [](const double){},
-//                        [](const char*){},
-//                        [](){return true;});
-
     KRATOS_EXPECT_TRUE(true); // No other way to check that the constructor does not throw
 }
+
+KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotThrow, WorkInProgress) {
+    KratosGeoSettlement settlement;
+
+    settlement.RunStage("",
+                        "",
+                        [](const char*){},
+                        [](const double){},
+                        [](const char*){},
+                        [](){return true;});
+
+    KRATOS_EXPECT_TRUE(true); // No other way to check that there is no throw
+}
+
+
 }
