@@ -31,7 +31,7 @@ class FluidDynamicsAnalysisHydraulic(FluidDynamicsAnalysis):
 class TwoFluidHydraulicSolverTest(UnitTest.TestCase):
 
     def setUp(self):
-        self.work_folder = "TwoFluidMassHydraulicTest"
+        self.work_folder = "two_fluid_hydraulic_solver_test"
         self.check_absolute_tolerance = 1.0e-7
         self.check_relative_tolerance = 1.0e-5
         self.print_output = False
