@@ -21,7 +21,7 @@
 #include "input_output/logger_table_output.h"
 #include "includes/model_part_io.h"
 #include "write_output.h"
-#include "custom_utilities/input_utilities.h"
+#include "custom_utilities/input_utility.h"
 
 
 class GeoFlowApplyConstantScalarValueProcess : public Kratos::ApplyConstantScalarValueProcess
@@ -300,7 +300,8 @@ namespace Kratos
             rReportProgress(0.0);
 
             std::string projectpath = rWorkingDirectory + "/" + rProjectParamsFileName;
-            auto projectfile = InputUtilities::ProjectParametersFrom(projectpath);
+            const InputUtility input_utility;
+            auto projectfile = input_utility.ProjectParametersFrom(projectpath);
 
             auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
             std::string materialpath = rWorkingDirectory + "/" + materialname;
@@ -358,7 +359,7 @@ namespace Kratos
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Mesh" << std::endl;
 
-            InputUtilities::AddMaterialsFrom(materialpath, current_model);
+            input_utility.AddMaterialsFrom(materialpath, current_model);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Material" << std::endl;
 

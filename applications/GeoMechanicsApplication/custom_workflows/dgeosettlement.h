@@ -21,15 +21,15 @@
 
 #include "geo_mechanics_application.h"
 
-#include "custom_utilities/interface_input_utility.h"
-
 namespace Kratos
 {
+
+class InterfaceInputUtility;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 {
 public:
-    KratosGeoSettlement();
+    explicit KratosGeoSettlement(const InterfaceInputUtility& rInputUtility);
 
     int RunStage(const std::filesystem::path&            rWorkingDirectory,
                  const std::filesystem::path&            rProjectParametersFile,
@@ -40,8 +40,6 @@ public:
 
 private:
     ModelPart& AddNewModelPart(const std::string& rModelPartName);
-    static void ReadModelFromFile(const std::filesystem::path& rModelPartFilePath,
-                                  ModelPart&                   rModelPart);
 
     static void AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
@@ -49,6 +47,7 @@ private:
     Kernel mKernel;
     Model mModel;
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
+    const InterfaceInputUtility& mrInputUtility;
 };
 
 }

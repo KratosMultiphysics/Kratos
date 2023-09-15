@@ -38,10 +38,10 @@ extern "C"
 
 
 
-    EXPORT Kratos::KratosGeoSettlement* KratosGeoSettlement_CreateInstance()
-    {
-        return new Kratos::KratosGeoSettlement{};
-    }
+//    EXPORT Kratos::KratosGeoSettlement* KratosGeoSettlement_CreateInstance()
+//    {
+//        return new Kratos::KratosGeoSettlement{};
+//    }
 
     EXPORT int __stdcall runSettlementStage(Kratos::KratosGeoSettlement* instance,
                                             const char*                  workingDirectory,

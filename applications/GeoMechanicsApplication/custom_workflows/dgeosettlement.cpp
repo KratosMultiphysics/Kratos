@@ -11,15 +11,14 @@
 //
 #include "dgeosettlement.h"
 #include "input_output/logger.h"
-#include "custom_utilities/input_utilities.h"
 #include "utilities/variable_utils.h"
-#include "includes/model_part_io.h"
-
+#include "custom_utilities/interface_input_utility.h"
 
 namespace Kratos
 {
 
-KratosGeoSettlement::KratosGeoSettlement()
+KratosGeoSettlement::KratosGeoSettlement(const InterfaceInputUtility &rInputUtility) :
+    mrInputUtility{rInputUtility}
 {
     KRATOS_INFO("KratosGeoSettlement") << "Setting up Kratos" << std::endl;
 
@@ -41,20 +40,20 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     KRATOS_INFO("KratosGeoSettlement") << "About to run a stage..." << std::endl;
 
     const auto project_parameters_file_path = rWorkingDirectory / rProjectParametersFile;
-    const auto project_parameters = InputUtilities::ProjectParametersFrom(project_parameters_file_path.generic_string());
+    const auto project_parameters = mrInputUtility.ProjectParametersFrom(project_parameters_file_path.generic_string());
     KRATOS_INFO("KratosGeoSettlement") << "Parsed project parameters file " << project_parameters_file_path << std::endl;
 
     if (const auto model_part_name = project_parameters["solver_settings"]["model_part_name"].GetString();
         !mModel.HasModelPart(model_part_name)) {
         auto& model_part = AddNewModelPart(model_part_name);
         const auto mesh_file_name = project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString();
-        ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
+        mrInputUtility.ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
     }
 
     if (project_parameters["solver_settings"].Has("material_import_settings")) {
         const auto material_file_name = project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
         const auto material_file_path = rWorkingDirectory / material_file_name;
-        InputUtilities::AddMaterialsFrom(material_file_path.generic_string(), mModel);
+        mrInputUtility.AddMaterialsFrom(material_file_path.generic_string(), mModel);
         KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
     }
 
@@ -75,16 +74,6 @@ ModelPart& KratosGeoSettlement::AddNewModelPart(const std::string& rModelPartNam
     KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
 
     return result;
-}
-
-void KratosGeoSettlement::ReadModelFromFile(const std::filesystem::path& rModelPartFilePath,
-                                            Kratos::ModelPart&           rModelPart)
-{
-    // Note that the file extension of the model part file must be excluded, since that is automatically appended by the
-    // constructor of class ModelPartIO
-    ModelPartIO reader{rModelPartFilePath.generic_string()};
-    reader.ReadModelPart(rModelPart);
-    KRATOS_INFO("KratosGeoSettlement") << "Read the mesh data from " << rModelPartFilePath << std::endl;
 }
 
 void KratosGeoSettlement::AddNodalSolutionStepVariablesTo(ModelPart& rModelPart)
