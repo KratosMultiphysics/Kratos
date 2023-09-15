@@ -1,0 +1,14 @@
+//
+// Created by faasse on 15-9-2023.
+//
+
+#ifndef KRATOSMULTIPHYSICS_INTERFACE_INPUT_UTILITY_H
+#define KRATOSMULTIPHYSICS_INTERFACE_INPUT_UTILITY_H
+
+
+class interface_input_utility {
+
+};
+
+
+#endif //KRATOSMULTIPHYSICS_INTERFACE_INPUT_UTILITY_H
