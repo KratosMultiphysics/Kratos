@@ -84,7 +84,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::CalculateOnIntegrationPoints
         rOutput.resize(number_of_gauss_points);
     }
 
-    if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY) {
+    if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY){
         // Iterate over integration points to evaluate the artificial viscosity at each Gauss point
         for (unsigned int g = 0; g < number_of_gauss_points; ++g){
             this->UpdateIntegrationPointData(data, g, gauss_weights[g], row(shape_functions, g), shape_derivatives[g]);
