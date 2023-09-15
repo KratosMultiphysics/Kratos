@@ -10,12 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined (KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED)
-#define  KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED
-
-// System includes
-
-// External includes
+#pragma once
 
 // Project includes
 #include "custom_constitutive/elastic_isotropic_K0_3d_law.h"
@@ -79,23 +74,7 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /**
-     * Default constructor.
-     */
-    GeoLinearElasticPlaneStress2DLaw();
-
     ConstitutiveLaw::Pointer Clone() const override;
-
-    /**
-     * Copy constructor.
-     */
-    GeoLinearElasticPlaneStress2DLaw (const GeoLinearElasticPlaneStress2DLaw& rOther);
-
-
-    /**
-     * Destructor.
-     */
-    ~GeoLinearElasticPlaneStress2DLaw() override;
 
     ///@}
     ///@name Operators
@@ -183,21 +162,19 @@ protected:
     * @param rStressVector The stress vector in Voigt notation
     * @param rValues Parameters of the constitutive law
     */
-    void CalculatePK2Stress(
-        const Vector& rStrainVector,
-        Vector& rStressVector,
-        ConstitutiveLaw::Parameters& rValues
-        ) override;
+    void CalculatePK2Stress(const Vector& rStrainVector,
+                            Vector& rStressVector,
+                            ConstitutiveLaw::Parameters& rValues
+                           ) override;
 
     /**
     * It calculates the strain vector
     * @param rValues The internal values of the law
     * @param rStrainVector The strain vector in Voigt notation
     */
-    void CalculateCauchyGreenStrain(
-        ConstitutiveLaw::Parameters& rValues,
-        Vector& rStrainVector
-        ) override;
+    void CalculateCauchyGreenStrain(ConstitutiveLaw::Parameters& rValues,
+                                    Vector& rStrainVector
+                                   ) override;
 
     ///@}
 
@@ -241,5 +218,5 @@ private:
 
 
 }; // Class GeoLinearElasticPlaneStress2DLaw
-}  // namespace Kratos.
-#endif // KRATOS_GEO_LINEAR_ELASTIC_PLANE_STRESS_LAW_H_INCLUDED  defined
+
+}

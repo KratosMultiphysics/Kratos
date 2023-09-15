@@ -91,10 +91,10 @@ namespace Testing
         ExpSS_result[2] = ExpSS_hl_pointer->CalculateHardening(ExpSS_result[2], alpha, INTERNAL_DILATANCY_ANGLE, material_properties);
 
         // Check results
-        KRATOS_CHECK_NEAR(CC_result, CC_analytical, 1.e-3);
-        KRATOS_CHECK_NEAR(ExpSS_result[0], ExpSS_analytical[0], 1e-6);
-        KRATOS_CHECK_NEAR(ExpSS_result[1], ExpSS_analytical[1], 1e-6);
-        KRATOS_CHECK_NEAR(ExpSS_result[2], ExpSS_analytical[2], 1e-6);
+        KRATOS_EXPECT_NEAR(CC_result, CC_analytical, 1.e-3);
+        KRATOS_EXPECT_NEAR(ExpSS_result[0], ExpSS_analytical[0], 1e-6);
+        KRATOS_EXPECT_NEAR(ExpSS_result[1], ExpSS_analytical[1], 1e-6);
+        KRATOS_EXPECT_NEAR(ExpSS_result[2], ExpSS_analytical[2], 1e-6);
 
     }
 

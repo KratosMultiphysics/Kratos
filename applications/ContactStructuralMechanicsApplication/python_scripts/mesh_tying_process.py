@@ -37,18 +37,19 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         # Settings string in json format
         default_parameters = KM.Parameters("""
         {
-            "help"                        : "This class is used in order to compute the a mortar mesh tying formulation. This class constructs the model parts containing the mesh tying conditions and initializes parameters and variables related with the mesh tying. The class creates search utilities to be used to create the tying pairs",
-            "model_part_name"             : "Structure",
-            "mesh_tying_model_part"       : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
-            "assume_master_slave"         : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
-            "mesh_tying_property_ids"     : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
-            "interval"                    : [0.0,"End"],
-            "variable_name"               : "DISPLACEMENT",
-            "zero_tolerance_factor"       : 1.0,
-            "integration_order"           : 2,
-            "consider_tessellation"       : true,
-            "normal_check_proportion"     : 0.1,
-            "search_parameters" : {
+            "help"                         : "This class is used in order to compute the a mortar mesh tying formulation. This class constructs the model parts containing the mesh tying conditions and initializes parameters and variables related with the mesh tying. The class creates search utilities to be used to create the tying pairs",
+            "model_part_name"              : "Structure",
+            "mesh_tying_model_part"        : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "assume_master_slave"          : {"0":[],"1":[],"2":[],"3":[],"4":[],"5":[],"6":[],"7":[],"8":[],"9":[]},
+            "mesh_tying_property_ids"      : {"0": 0,"1": 0,"2": 0,"3": 0,"4": 0,"5": 0,"6": 0,"7": 0,"8": 0,"9": 0},
+            "interval"                     : [0.0,"End"],
+            "variable_name"                : "DISPLACEMENT",
+            "consider_static_condensation" : false,
+            "zero_tolerance_factor"        : 1.0,
+            "integration_order"            : 2,
+            "consider_tessellation"        : true,
+            "normal_check_proportion"      : 0.1,
+            "search_parameters"            : {
                 "type_search"                 : "in_radius_with_obb",
                 "search_factor"               : 3.5,
                 "active_check_factor"         : 0.01,
@@ -58,7 +59,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                 "database_step_update"        : 999999999,
                 "debug_mode"                  : false,
                 "check_gap"                   : "check_mapping",
-                "octree_search_parameters" : {
+                "octree_search_parameters"    : {
                     "bounding_box_factor"             : 0.1,
                     "debug_obb"                       : false,
                     "OBB_intersection_type"           : "SeparatingAxisTheorem",
@@ -66,7 +67,7 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                     "higher_bounding_box_coefficient" : 1.0
                 }
             },
-            "scale_factor_parameters" : {
+            "scale_factor_parameters"      : {
                 "manual_scale_factor"         : false,
                 "stiffness_factor"            : 1.0,
                 "scale_factor"                : 1.0e0
@@ -101,6 +102,9 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
                 raise Exception("Variable " + self.variable_name + " not compatible")
         else:
             raise Exception("Variable " + self.variable_name + " not registered")
+        
+        # If we consider static condensation
+        self.consider_static_condensation = self.mesh_tying_settings["consider_static_condensation"].GetBool()
 
     def ExecuteInitialize(self):
         """ This method is executed at the begining to initialize the process
@@ -123,6 +127,12 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
             self.scale_factor_process = CSMA.ALMVariablesCalculationProcess(self._get_process_model_part(), KM.NODAL_H, scale_factor_var_parameters)
             self.scale_factor_process.Execute()
 
+        # If we consider static condensation
+        if self.consider_static_condensation:
+            computing_contact_model_part = self.main_model_part.GetSubModelPart("ComputingContact")
+            self.assign_elements_conditions_process = CSMA.AssignParentElementConditionsProcess(computing_contact_model_part, self.main_model_part)
+            self.assign_elements_conditions_process.ExecuteInitialize()
+
     def ExecuteBeforeSolutionLoop(self):
         """ This method is executed before starting the time loop
 
@@ -140,6 +150,10 @@ class MeshTyingProcess(search_base_process.SearchBaseProcess):
         """
         # We call to the base process
         super().ExecuteInitializeSolutionStep()
+
+        # If we consider static condensation
+        if self.consider_static_condensation:
+            self.assign_elements_conditions_process.ExecuteInitializeSolutionStep()
 
     def ExecuteFinalizeSolutionStep(self):
         """ This method is executed in order to finalize the current step

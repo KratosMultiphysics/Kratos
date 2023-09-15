@@ -16,6 +16,7 @@ import KratosMultiphysics.CoSimulationApplication.co_simulation_tools as cs_tool
 import numpy as np
 from copy import deepcopy
 from collections import deque
+import typing
 
 def Create(settings):
     cs_tools.SettingsTypeCheck(settings)
@@ -36,8 +37,8 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
         self.R = deque( maxlen = horizon )
         self.X = deque( maxlen = horizon )
-        self.J = [] # size will be determined when first time get the input vector
-        self.J_hat = []
+        self.J: typing.Optional[np.ndarray] = None # size will be determined when first time get the input vector
+        self.J_hat: typing.Optional[np.ndarray] = None
 
     ## UpdateSolution(r, x)
     # @param r residual r_k
@@ -54,13 +55,13 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
 
         ## For the first iteration
         if k == 0:
-            if len(self.J) == 0:
+            if self.J is None:
                 return self.alpha * r  # if no Jacobian, do relaxation
             else:
                 return np.linalg.solve( self.J, -r ) # use the Jacobian from previous step
 
         ## Let the initial Jacobian correspond to a constant relaxation
-        if len(self.J) == 0:
+        if self.J is None:
             self.J = - np.identity( row ) / self.alpha # correspongding to constant relaxation
 
         ## Construct matrix V (differences of residuals)
@@ -89,15 +90,13 @@ class MVQNConvergenceAccelerator(CoSimulationConvergenceAccelerator):
     ## FinalizeSolutionStep()
     # Finalizes the current time step and initializes the next time step.
     def FinalizeSolutionStep( self ):
-        if len(self.J) == 0:
+        if self.J is None:
             return
 
         row = self.J.shape[0]
         col = self.J.shape[1]
         ## Assign J=J_hat
-        for i in range(0, row):
-            for j in range(0, col):
-                self.J[i][j] = self.J_hat[i][j]
+        self.J[:row,:col] = self.J_hat[:row,:col]
         if self.echo_level > 3:
             cs_tools.cs_print_info(self._ClassName(), "Jacobian matrix updated!")
         ## Clear the buffer

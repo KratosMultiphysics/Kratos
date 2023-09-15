@@ -335,6 +335,74 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetHRomConditionParentsIds(
     return parent_ids;
 }
 
+std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotInHRom(
+    ModelPart& rModelPart,
+    ModelPart& rGivenModelPart,
+    const std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
+{
+    std::vector<IndexType> new_element_ids;
+    const auto& r_elem_weights = rHRomWeights.at("Elements");
+    
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    for (const auto& r_node : rGivenModelPart.Nodes()) {
+        const auto& r_neigh = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+
+        // Add the neighbour elements to the HROM weights
+        for (size_t i = 0; i < r_neigh.size(); ++i) {
+            const auto& r_elem = r_neigh[i];
+
+            // Note that we check if the element has been already added by the HROM element selection strategy
+            if (r_elem_weights.find(r_elem.Id() - 1) == r_elem_weights.end()) { //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+                new_element_ids.push_back(r_elem.Id() - 1); //FIXME: FIX THE + 1 --> WE NEED TO WRITE REAL IDS IN THE WEIGHTS!!
+            }
+        }
+    }
+
+    return new_element_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
+    const ModelPart& rModelPart,
+    const ModelPart& rModelPartWithElementsToInclude,
+    std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
+{
+    std::vector<IndexType> new_element_ids;
+    auto& r_elem_weights = rHRomWeights["Elements"];
+
+    for (const auto& r_elem : rModelPartWithElementsToInclude.Elements()) {
+        IndexType element_id = r_elem.Id();
+        
+        // Check if the element is already added
+        if (r_elem_weights.find(element_id - 1) == r_elem_weights.end()) {
+            new_element_ids.push_back(element_id - 1);
+        }
+    }
+
+    return new_element_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart(
+    const ModelPart& rModelPart,
+    const ModelPart& rModelPartWithConditionsToInclude,
+    std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
+{
+    std::vector<IndexType> new_condition_ids;
+    auto& r_cond_weights = rHRomWeights["Conditions"];
+
+    for (const auto& r_cond : rModelPartWithConditionsToInclude.Conditions()) {
+        IndexType condition_id = r_cond.Id();
+        
+        // Check if the condition is already added
+        if (r_cond_weights.find(condition_id - 1) == r_cond_weights.end()) {
+            new_condition_ids.push_back(condition_id - 1);
+        }
+    }
+
+    return new_condition_ids;
+}
+
 std::vector<IndexType> RomAuxiliaryUtilities::GetHRomMinimumConditionsIds(
     const ModelPart& rModelPart,
     const std::map<IndexType, double>& rHRomConditionWeights)

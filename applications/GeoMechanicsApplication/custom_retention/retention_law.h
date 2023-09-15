@@ -63,10 +63,6 @@ public:
         *** NOTE: Pointers are used only to point to a certain variable, 
         *   no "new" or "malloc" can be used for this Parameters ***
 
-        * @param mVolumetricStrain copy of the determinant of the Current DeformationGradient (although Current F  is also included as a matrix) (input data)
-        * @param mMeanStress pointer to the current stresses (*OUTPUT with COMPUTE_STRESS flag)
-        * @param mpConstitutiveMatrix pointer to the material tangent matrix (*OUTPUT with COMPUTE_CONSTITUTIVE_TENSOR flag)
-
         * GEOMETRIC PARAMETERS:
         * @param mrElementGeometry reference to the element's geometry (input data)
 
@@ -79,12 +75,7 @@ public:
         */
 
     private:
-
         double mFluidPressure = 0.0;
-        double mMeanStress = 0.0;
-        double mTemperature = 0.0;
-        double mVolumetricStrain = 0.0;
-
         const ProcessInfo &mrCurrentProcessInfo;
         const Properties &mrMaterialProperties;
         const GeometryType &mrElementGeometry;
@@ -100,15 +91,9 @@ public:
 
         ~Parameters() = default;
 
-        void SetVolumetricStrain(const double rVolumetricStrain) { mVolumetricStrain = rVolumetricStrain; };
-        void SetMeanStress      (const double rMeanStress)       { mMeanStress = rMeanStress; };
         void SetFluidPressure   (const double rFluidPressure)    { mFluidPressure = rFluidPressure; };
-        void SetTemperature     (const double rTemperature)      { mTemperature = rTemperature; };
 
-        double GetVolumetricStrain() const { return mVolumetricStrain; }
-        double GetMeanStress()       const { return mMeanStress;       }
         double GetFluidPressure()    const { return mFluidPressure;    }
-        double GetTemperature()      const { return mTemperature;      }
 
         const ProcessInfo &GetProcessInfo() const
         {
@@ -238,15 +223,13 @@ public:
     /// Turn back information as a string.
     virtual std::string Info() const
     {
-        std::stringstream buffer;
-        buffer << "RetentionLaw";
-        return buffer.str();
+        return "RetentionLaw";
     }
 
     /// Print information about this object.
     virtual void PrintInfo(std::ostream &rOStream) const
     {
-        rOStream << "RetentionLaw";
+        rOStream << Info();
     }
 
     /// Print object's data.

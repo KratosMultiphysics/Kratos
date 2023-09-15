@@ -14,7 +14,7 @@
 #include "containers/model.h"
 #include "geometries/hexahedra_3d_8.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 // #include "includes/gid_io.h" // Include this for debugging
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/parallel_distance_calculation_process.h"
@@ -124,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateral2D, KratosCoreFast
         const auto& r_node = r_model_part.GetNode(nodal_ids[i]);
         const double dist = r_node.FastGetSolutionStepValue(DISTANCE);
         // std::cout << std::setprecision(12) << dist << std::endl; // Output to update test values
-        KRATOS_CHECK_NEAR(dist, exact_dist[i], tolerance);
+        KRATOS_EXPECT_NEAR(dist, exact_dist[i], tolerance);
     }
 }
 
@@ -170,7 +170,7 @@ KRATOS_TEST_CASE_IN_SUITE(ParallelDistanceProcessQuadrilateralNonHistorical2D, K
     for (std::size_t i = 0; i < nodal_ids.size(); ++i) {
         const auto& r_node = r_model_part.GetNode(nodal_ids[i]);
         const double dist = r_node.GetValue(DISTANCE);
-        KRATOS_CHECK_NEAR(dist, exact_dist[i], tolerance);
+        KRATOS_EXPECT_NEAR(dist, exact_dist[i], tolerance);
     }
 }
 
