@@ -52,7 +52,7 @@ namespace Kratos
 /// Short class definition.
 /** Detail class definition.
 */
-class AdjointSmallDisplacementElement
+class KRATOS_API(OPTIMIZATION_APPLICATION) AdjointSmallDisplacementElement
     : public Element
 {
 public:

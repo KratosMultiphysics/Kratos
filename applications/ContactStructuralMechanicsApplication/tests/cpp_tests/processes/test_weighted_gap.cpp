@@ -818,7 +818,7 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap1, KratosContactStructuralMechanicsFastSuit
             if (std::abs(r_node.FastGetSolutionStepValue(WEIGHTED_GAP)) > 0.0) {
                 const double normal_gap = r_node.GetValue(NORMAL_GAP);
                 const double weighted_gap_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_GAP)/r_node.GetValue(NODAL_AREA);
-                KRATOS_CHECK_LESS_EQUAL(std::abs(weighted_gap_corrected - normal_gap)/std::abs(normal_gap), tolerance);
+                KRATOS_EXPECT_LE(std::abs(weighted_gap_corrected - normal_gap)/std::abs(normal_gap), tolerance);
             }
         }
     }
@@ -877,9 +877,9 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap2, KratosContactStructuralMechanicsFastSuit
             if (std::abs(r_node.FastGetSolutionStepValue(WEIGHTED_GAP)) > 0.0) {
                 const double normal_gap = r_node.GetValue(NORMAL_GAP);
                 const double weighted_gap_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_GAP)/r_node.GetValue(NODAL_AREA);
-                KRATOS_CHECK_LESS_EQUAL(std::abs(weighted_gap_corrected - normal_gap)/std::abs(normal_gap), tolerance);
+                KRATOS_EXPECT_LE(std::abs(weighted_gap_corrected - normal_gap)/std::abs(normal_gap), tolerance);
             }
-            KRATOS_CHECK_LESS_EQUAL(norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)), tolerance);
+            KRATOS_EXPECT_LE(norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)), tolerance);
         }
     }
 }
@@ -933,12 +933,12 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap3, KratosContactStructuralMechanicsFastSuit
         if (r_node.Is(SLAVE)) {
             if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                 const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.25;
-                KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
+                KRATOS_EXPECT_LE(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                 ++counter;
             }
         }
     }
-    KRATOS_CHECK(counter != 0);
+    KRATOS_EXPECT_TRUE(counter != 0);
 }
 
 /**
@@ -990,12 +990,12 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap3b, KratosContactStructuralMechanicsFastSui
         if (r_node.Is(SLAVE)) {
             if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                 const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/r_node.GetValue(NODAL_AREA);
-                KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
+                KRATOS_EXPECT_LE(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                 ++counter;
             }
         }
     }
-    //KRATOS_CHECK(counter != 0);
+    //KRATOS_EXPECT_TRUE(counter != 0);
 }
 
 /**
@@ -1048,12 +1048,12 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap4, KratosContactStructuralMechanicsFastSuit
         if (r_node.Is(SLAVE)) {
             if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                 const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.25;
-                KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
+                KRATOS_EXPECT_LE(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                 ++counter;
             }
         }
     }
-    KRATOS_CHECK(counter != 0);
+    KRATOS_EXPECT_TRUE(counter != 0);
 }
 
 /**
@@ -1106,12 +1106,12 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap4b, KratosContactStructuralMechanicsFastSui
         if (r_node.Is(SLAVE)) {
             if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                 const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/r_node.GetValue(NODAL_AREA);
-                KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
+                KRATOS_EXPECT_LE(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                 ++counter;
             }
         }
     }
-    //KRATOS_CHECK(counter != 0);
+    //KRATOS_EXPECT_TRUE(counter != 0);
 }
 
 /**
@@ -1170,12 +1170,12 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap5, KratosContactStructuralMechanicsFastSuit
         if (r_node.Is(SLAVE)) {
             if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0 && r_node.GetValue(NODAL_VOLUME) > 0.0) {
                 const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/r_node.GetValue(NODAL_VOLUME);
-                KRATOS_CHECK_LESS_EQUAL(norm_2(weighted_slip_corrected - slip)/norm_2(slip), tolerance);
+                KRATOS_EXPECT_LE(norm_2(weighted_slip_corrected - slip)/norm_2(slip), tolerance);
                 ++counter;
             }
         }
     }
-    //KRATOS_CHECK(counter != 0);
+    //KRATOS_EXPECT_TRUE(counter != 0);
 }
 
 /**
@@ -1238,13 +1238,13 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap6, KratosContactStructuralMechanicsFastSuit
             if (std::abs(weighted_gap_corrected - normal_gap)/std::abs(normal_gap) < tolerance) {
                 if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                     const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/r_node.GetValue(NODAL_AREA);
-                    KRATOS_CHECK_LESS_EQUAL(norm_2(weighted_slip_corrected - slip)/norm_2(slip), tolerance);
+                    KRATOS_EXPECT_LE(norm_2(weighted_slip_corrected - slip)/norm_2(slip), tolerance);
                     ++counter;
                 }
             }
         }
     }
-    KRATOS_CHECK(counter != 0);
+    KRATOS_EXPECT_TRUE(counter != 0);
 }
 
 /**
@@ -1307,13 +1307,13 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap7, KratosContactStructuralMechanicsFastSuit
             if (std::abs(weighted_gap_corrected - normal_gap)/std::abs(normal_gap) < tolerance) {
                 if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                     const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/r_node.GetValue(NODAL_AREA);
-                    KRATOS_CHECK_LESS_EQUAL(norm_2(weighted_slip_corrected - slip)/norm_2(slip), tolerance);
+                    KRATOS_EXPECT_LE(norm_2(weighted_slip_corrected - slip)/norm_2(slip), tolerance);
                     ++counter;
                 }
             }
         }
     }
-    KRATOS_CHECK(counter != 0);
+    KRATOS_EXPECT_TRUE(counter != 0);
 }
 
 /**
@@ -1364,12 +1364,12 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap8, KratosContactStructuralMechanicsFastSuit
             if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                 const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
 
-                KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
+                KRATOS_EXPECT_LE(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                 ++counter;
             }
         }
     }
-    KRATOS_CHECK(counter != 0);
+    KRATOS_EXPECT_TRUE(counter != 0);
 }
 
 /**
@@ -1421,12 +1421,12 @@ KRATOS_TEST_CASE_IN_SUITE(WeightedGap9, KratosContactStructuralMechanicsFastSuit
             if (norm_2(r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)) > 0.0) {
                 const array_1d<double, 3> weighted_slip_corrected = r_node.FastGetSolutionStepValue(WEIGHTED_SLIP)/0.5;
 
-                KRATOS_CHECK_LESS_EQUAL(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
+                KRATOS_EXPECT_LE(std::abs((weighted_slip_corrected[0] - slip[0])/slip[0]), tolerance);
                 ++counter;
             }
         }
     }
-    KRATOS_CHECK(counter != 0);
+    KRATOS_EXPECT_TRUE(counter != 0);
 }
 
 }  // namespace Kratos::Testing.

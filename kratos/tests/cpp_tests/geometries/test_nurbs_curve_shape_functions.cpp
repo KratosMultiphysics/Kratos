@@ -88,53 +88,53 @@ namespace Testing {
         NurbsCurveShapeFunction shape_functions = GenerateReferenceNurbsCurveShapeFunction();
 
         // Check the Nurbs basis functions
-        KRATOS_CHECK_NEAR(shape_functions(0, 0), 0.040341356830719, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(1, 0), 0.418263605320343, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(2, 0), 0.388566516226091, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(3, 0), 0.144677667136296, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(4, 0), 0.008150854486552, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(0, 0), 0.040341356830719, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(1, 0), 0.418263605320343, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(2, 0), 0.388566516226091, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(3, 0), 0.144677667136296, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(4, 0), 0.008150854486552, TOLERANCE);
 
         // Check the first derivatives of the Nurbs basis functions
-        KRATOS_CHECK_NEAR(shape_functions(0, 1), -0.058116523341430, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(1, 1), -0.281332029339492, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(2, 1), 0.139643440454173, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(3, 1), 0.182204311552113, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(4, 1), 0.017600800674635, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(0, 1), -0.058116523341430, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(1, 1), -0.281332029339492, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(2, 1), 0.139643440454173, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(3, 1), 0.182204311552113, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(4, 1), 0.017600800674635, TOLERANCE);
 
         // Check the second derivatives of the Nurbs basis functions
-        KRATOS_CHECK_NEAR(shape_functions(0, 2), 0.063998870285300, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(1, 2), -0.005001367942227, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(2, 2), -0.209746254260036, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(3, 2), 0.119661582154355, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(4, 2), 0.031087169762608, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(0, 2), 0.063998870285300, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(1, 2), -0.005001367942227, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(2, 2), -0.209746254260036, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(3, 2), 0.119661582154355, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(4, 2), 0.031087169762608, TOLERANCE);
 
         // Check the third derivatives of the Nurbs basis functions
-        KRATOS_CHECK_NEAR(shape_functions(0, 3), -0.053270373094405, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(1, 3), 0.174241510932662, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(2, 3), -0.140906951084536, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(3, 3), -0.026015381549528, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(4, 3), 0.045951194795806, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(0, 3), -0.053270373094405, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(1, 3), 0.174241510932662, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(2, 3), -0.140906951084536, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(3, 3), -0.026015381549528, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(4, 3), 0.045951194795806, TOLERANCE);
 
         // Check the fourth derivatives of the Nurbs basis functions
-        KRATOS_CHECK_NEAR(shape_functions(0, 4), 0.039072547258617, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(1, 4), -0.129109960704594, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(2, 4), 0.125067122234968, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(3, 4), -0.099987226672343, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(4, 4), 0.064957517883351, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(0, 4), 0.039072547258617, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(1, 4), -0.129109960704594, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(2, 4), 0.125067122234968, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(3, 4), -0.099987226672343, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(4, 4), 0.064957517883351, TOLERANCE);
 
         // Check the fifth derivatives of the Nurbs basis functions
-        KRATOS_CHECK_NEAR(shape_functions(0, 5), -0.035796024935348, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(1, 5), 0.116042517778655, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(2, 5), -0.077380079426900, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(3, 5), -0.112368141670365, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(4, 5), 0.109501728253958, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(0, 5), -0.035796024935348, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(1, 5), 0.116042517778655, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(2, 5), -0.077380079426900, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(3, 5), -0.112368141670365, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(4, 5), 0.109501728253958, TOLERANCE);
 
         // Check the sixth derivatives of the Nurbs basis functions
-        KRATOS_CHECK_NEAR(shape_functions(0, 6), 0.039409546074973, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(1, 6), -0.132366199073095, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(2, 6), 0.161718941270974, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(3, 6), -0.295903990157367, TOLERANCE);
-        KRATOS_CHECK_NEAR(shape_functions(4, 6), 0.227141701884515, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(0, 6), 0.039409546074973, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(1, 6), -0.132366199073095, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(2, 6), 0.161718941270974, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(3, 6), -0.295903990157367, TOLERANCE);
+        KRATOS_EXPECT_NEAR(shape_functions(4, 6), 0.227141701884515, TOLERANCE);
     }
 
 } // namespace Testing.
