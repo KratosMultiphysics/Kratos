@@ -9,9 +9,6 @@ def CreateSolverByParameters(model, custom_settings, parallelism):
     if (type(custom_settings) != KratosMultiphysics.Parameters):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
-    default_settings = KratosMultiphysics.Parameters("""{ "end_time" : 1.0 }""")
-    end_time = default_settings["end_time"]
-
     if custom_settings.Has("solver_settings"):
         params = custom_settings["solver_settings"]
         #To conform with other apps where only the "solver_settings" are passed
