@@ -101,6 +101,10 @@ public:
     using TSchemeType = typename BaseType::TSchemeType;
     using TSystemMatrixType = typename BaseType::TSystemMatrixType;
     using TSystemVectorType = typename BaseType::TSystemVectorType;
+    using ElementsArrayType = typename BaseType::ElementsArrayType;
+    using ConditionsArrayType = typename BaseType::ConditionsArrayType;
+    using LocalSystemVectorType = typename BaseBuilderAndSolverType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseBuilderAndSolverType::LocalSystemMatrixType;
 
     // Eigen definitions
     using EigenDynamicMatrix = Eigen::Matrix<double, Eigen::Dynamic, Eigen::Dynamic, Eigen::RowMajor>;
@@ -326,6 +330,8 @@ protected:
     ///@}
     ///@name Protected member variables
     ///@{
+    ElementsArrayType mNeighbouringAndSelectedElements;
+    ConditionsArrayType mNeighbouringAndSelectedConditions;
 
     ///@}
     ///@name Protected operators
@@ -344,6 +350,171 @@ protected:
         mTrainPetrovGalerkinFlag = ThisParameters["rom_bns_settings"]["train_petrov_galerkin"].GetBool();
         mBasisStrategy = ThisParameters["rom_bns_settings"]["basis_strategy"].GetString();
         mSolvingTechnique = ThisParameters["rom_bns_settings"]["solving_technique"].GetString();
+    }
+
+    /**
+     * @brief Function to perform the build of the LHS and RHS on the selected elements and the corresponding complementary mesh. 
+     * @param pScheme The integration scheme considered
+     * @param rModelPart The model part of the problem to solve
+     * @param A The LHS matrix
+     * @param b The RHS vector
+     */
+    void BuildWithComplementaryMesh(
+        typename TSchemeType::Pointer pScheme,
+        ModelPart& rModelPart,
+        TSystemMatrixType& A,
+        TSystemVectorType& b)
+    {
+        KRATOS_TRY
+
+        KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
+
+        // // Getting the neighbouring (complementary mesh) and selected elements from the model
+        auto& r_neighboring_and_selected_elems = mNeighbouringAndSelectedElements;
+
+        const int nelements = r_neighboring_and_selected_elems.size();
+
+        // // Getting the neighbouring (complementary mesh) and selected conditions from the model
+        auto& r_neighboring_and_selected_conditions = mNeighbouringAndSelectedConditions;
+
+        const int nconditions = r_neighboring_and_selected_conditions.size();
+
+        const ProcessInfo& CurrentProcessInfo = rModelPart.GetProcessInfo();
+        ModelPart::ElementsContainerType::iterator el_begin = mNeighbouringAndSelectedElements.begin();
+        ModelPart::ConditionsContainerType::iterator cond_begin = mNeighbouringAndSelectedConditions.begin();
+
+        //contributions to the system
+        LocalSystemMatrixType LHS_Contribution = LocalSystemMatrixType(0, 0);
+        LocalSystemVectorType RHS_Contribution = LocalSystemVectorType(0);
+
+        //vector containing the localization in the system of the different terms
+        Element::EquationIdVectorType EquationId;
+
+        // Assemble all elements
+        const auto timer = BuiltinTimer();
+
+        #pragma omp parallel firstprivate(nelements,nconditions, LHS_Contribution, RHS_Contribution, EquationId )
+        {
+            # pragma omp for  schedule(guided, 512) nowait
+            for (int k = 0; k < nelements; k++) {
+                auto it_elem = el_begin + k;
+
+                if (it_elem->IsActive()) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    // Assemble the elemental contribution
+                    BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                }
+
+            }
+
+            #pragma omp for  schedule(guided, 512)
+            for (int k = 0; k < nconditions; k++) {
+                auto it_cond = cond_begin + k;
+
+                if (it_cond->IsActive()) {
+                    // Calculate elemental contribution
+                    pScheme->CalculateSystemContributions(*it_cond, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
+
+                    // Assemble the elemental contribution
+                    BaseType::Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
+                }
+            }
+        }
+
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
+
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+
+        KRATOS_CATCH("")
+    }
+
+    void FindNeighbouringElementsAndConditions(ModelPart& rModelPart) 
+    {
+        mNeighbouringAndSelectedElements.clear();
+        mNeighbouringAndSelectedConditions.clear();
+
+        // Create sets for storing Ids
+        std::set<int> selected_element_ids;
+        std::set<int> selected_condition_ids;
+
+        FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+        find_nodal_elements_neighbours_process.Execute();
+        FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rModelPart);
+        find_nodal_conditions_neighbours_process.Execute();
+
+        for (auto it_elem = this->mSelectedElements.ptr_begin(); it_elem != this->mSelectedElements.ptr_end(); ++it_elem) {
+            mNeighbouringAndSelectedElements.push_back(*it_elem);
+            selected_element_ids.insert((*it_elem)->Id());
+
+            const auto& r_geom = (*it_elem)->GetGeometry();
+            const SizeType n_nodes = r_geom.PointsNumber();
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                NodeType::Pointer p_node = r_geom(i_node);
+                auto& neighbour_elements = p_node->GetValue(NEIGHBOUR_ELEMENTS);
+                for (auto& neighbor_elem : neighbour_elements.GetContainer()) {
+                    if(selected_element_ids.find(neighbor_elem->Id()) == selected_element_ids.end()) {
+                        mNeighbouringAndSelectedElements.push_back(&*neighbor_elem);
+                        selected_element_ids.insert(neighbor_elem->Id());
+                    }
+                }
+
+                // Check and add neighbouring conditions
+                auto& neighbour_conditions = p_node->GetValue(NEIGHBOUR_CONDITIONS);
+                for (auto& neighbor_cond : neighbour_conditions.GetContainer()) {
+                    if(selected_condition_ids.find(neighbor_cond->Id()) == selected_condition_ids.end()) {
+                        mNeighbouringAndSelectedConditions.push_back(&*neighbor_cond);
+                        selected_condition_ids.insert(neighbor_cond->Id());
+                    }
+                }
+            }
+        }
+
+        for (auto it_cond = this->mSelectedConditions.ptr_begin(); it_cond != this->mSelectedConditions.ptr_end(); ++it_cond) {
+            mNeighbouringAndSelectedConditions.push_back(*it_cond);
+            selected_condition_ids.insert((*it_cond)->Id());
+
+            const auto& r_geom = (*it_cond)->GetGeometry();
+            const SizeType n_nodes = r_geom.PointsNumber();
+            for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+                NodeType::Pointer p_node = r_geom(i_node);
+                auto& neighbour_conditions = p_node->GetValue(NEIGHBOUR_CONDITIONS);
+                for (auto& neighbor_cond : neighbour_conditions.GetContainer()) {
+                    if(selected_condition_ids.find(neighbor_cond->Id()) == selected_condition_ids.end()) {
+                        mNeighbouringAndSelectedConditions.push_back(&*neighbor_cond);
+                        selected_condition_ids.insert(neighbor_cond->Id());
+                    }
+                }
+
+                // Check and add neighbouring elements
+                auto& neighbour_elements = p_node->GetValue(NEIGHBOUR_ELEMENTS);
+                for (auto& neighbor_elem : neighbour_elements.GetContainer()) {
+                    if(selected_element_ids.find(neighbor_elem->Id()) == selected_element_ids.end()) {
+                        mNeighbouringAndSelectedElements.push_back(&*neighbor_elem);
+                        selected_element_ids.insert(neighbor_elem->Id());
+                    }
+                }
+            }
+        }
+
+        std::unordered_map<int, Element::Pointer> unique_elements_map;
+        for (const auto& elem : mNeighbouringAndSelectedElements) {
+            unique_elements_map[elem.Id()] = intrusive_ptr<Element>(const_cast<Element*>(&elem));
+        }
+        mNeighbouringAndSelectedElements.clear();
+        for (const auto& pair : unique_elements_map) {
+            mNeighbouringAndSelectedElements.push_back(pair.second);
+        }
+
+        std::unordered_map<int, Condition::Pointer> unique_conditions_map;
+        for (const auto& cond : mNeighbouringAndSelectedConditions) {
+            unique_conditions_map[cond.Id()] = intrusive_ptr<Condition>(const_cast<Condition*>(&cond));
+        }
+        mNeighbouringAndSelectedConditions.clear();
+        for (const auto& pair : unique_conditions_map) {
+            mNeighbouringAndSelectedConditions.push_back(pair.second);
+        }
     }
 
     ///@}
