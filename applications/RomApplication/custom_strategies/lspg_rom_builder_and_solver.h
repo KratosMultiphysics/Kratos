@@ -146,25 +146,25 @@ public:
     {
         KRATOS_TRY;
 
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 1)) << "Setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 2)) << "Number of threads" << ParallelUtilities::GetNumThreads() << "\n" << std::endl;
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 2)) << "Initializing element loop" << std::endl;
 
         // Get model part data
-        if (this->mHromWeightsInitialized == false) {
-            this->InitializeHROMWeights(rModelPart);
+        if (BaseType::mHromWeightsInitialized == false) {
+            BaseType::InitializeHROMWeights(rModelPart);
         }
 
         // Compute the complementary mesh for HROM
-        if (this->mHromSimulation){
+        if (BaseType::mHromSimulation){
             FindNeighbouringElementsAndConditions(rModelPart);
         }
 
-        auto dof_queue = this->ExtractDofSet(pScheme, rModelPart);
+        auto dof_queue = BaseType::ExtractDofSet(pScheme, rModelPart);
         
         // Fill a sorted auxiliary array of with the DOFs set
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
-        auto dof_array = this->SortAndRemoveDuplicateDofs(dof_queue);
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 2)) << "Initializing ordered array filling\n" << std::endl;
+        auto dof_array = BaseType::SortAndRemoveDuplicateDofs(dof_queue);
 
         // Update base builder and solver DOFs array and set corresponding flag
         BaseType::GetDofSet().swap(dof_array);
@@ -172,8 +172,8 @@ public:
 
         // Throw an exception if there are no DOFs involved in the analysis
         KRATOS_ERROR_IF(BaseType::GetDofSet().size() == 0) << "No degrees of freedom!" << std::endl;
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::GetDofSet().size() << std::endl;
-        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 2)) << "Number of degrees of freedom:" << BaseType::GetDofSet().size() << std::endl;
+        KRATOS_INFO_IF("GlobalLeastSquaresPetrovGalerkinROMBuilderAndSolver", (BaseType::GetEchoLevel() > 2)) << "Finished setting up the dofs" << std::endl;
 
 #ifdef KRATOS_DEBUG
         // If reactions are to be calculated, we check if all the dofs have reactions defined
@@ -475,9 +475,9 @@ protected:
             }
         }
 
-        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMResidualBasedBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time: " << timer.ElapsedSeconds() << std::endl;
 
-        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
+        KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMResidualBasedBlockBuilderAndSolver", (BaseType::GetEchoLevel() > 2 && rModelPart.GetCommunicator().MyPID() == 0)) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -496,7 +496,7 @@ protected:
         FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rModelPart);
         find_nodal_conditions_neighbours_process.Execute();
 
-        for (auto it_elem = this->mSelectedElements.ptr_begin(); it_elem != this->mSelectedElements.ptr_end(); ++it_elem) {
+        for (auto it_elem = BaseType::mSelectedElements.ptr_begin(); it_elem != BaseType::mSelectedElements.ptr_end(); ++it_elem) {
             mNeighbouringAndSelectedElements.push_back(*it_elem);
             selected_element_ids.insert((*it_elem)->Id());
 
@@ -523,7 +523,7 @@ protected:
             }
         }
 
-        for (auto it_cond = this->mSelectedConditions.ptr_begin(); it_cond != this->mSelectedConditions.ptr_end(); ++it_cond) {
+        for (auto it_cond = BaseType::mSelectedConditions.ptr_begin(); it_cond != BaseType::mSelectedConditions.ptr_end(); ++it_cond) {
             mNeighbouringAndSelectedConditions.push_back(*it_cond);
             selected_condition_ids.insert((*it_cond)->Id());
 
