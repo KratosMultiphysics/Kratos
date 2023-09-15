@@ -17,8 +17,8 @@
 namespace Kratos
 {
 
-KratosGeoSettlement::KratosGeoSettlement(const InterfaceInputUtility &rInputUtility) :
-    mrInputUtility{rInputUtility}
+KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InterfaceInputUtility> pInputUtility) :
+        mpInputUtility{std::move(pInputUtility)}
 {
     KRATOS_INFO("KratosGeoSettlement") << "Setting up Kratos" << std::endl;
 
@@ -40,20 +40,20 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     KRATOS_INFO("KratosGeoSettlement") << "About to run a stage..." << std::endl;
 
     const auto project_parameters_file_path = rWorkingDirectory / rProjectParametersFile;
-    const auto project_parameters = mrInputUtility.ProjectParametersFrom(project_parameters_file_path.generic_string());
+    const auto project_parameters = mpInputUtility->ProjectParametersFrom(project_parameters_file_path.generic_string());
     KRATOS_INFO("KratosGeoSettlement") << "Parsed project parameters file " << project_parameters_file_path << std::endl;
 
     if (const auto model_part_name = project_parameters["solver_settings"]["model_part_name"].GetString();
         !mModel.HasModelPart(model_part_name)) {
         auto& model_part = AddNewModelPart(model_part_name);
         const auto mesh_file_name = project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString();
-        mrInputUtility.ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
+        mpInputUtility->ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
     }
 
     if (project_parameters["solver_settings"].Has("material_import_settings")) {
         const auto material_file_name = project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
         const auto material_file_path = rWorkingDirectory / material_file_name;
-        mrInputUtility.AddMaterialsFrom(material_file_path.generic_string(), mModel);
+        mpInputUtility->AddMaterialsFrom(material_file_path.generic_string(), mModel);
         KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
     }
 
@@ -111,5 +111,13 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_Y, rModelPart);
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
 }
+
+const InterfaceInputUtility* KratosGeoSettlement::GetInterfaceInputUtility() const
+{
+    return mpInputUtility.get();
+}
+
+// This default destructor is added in the cpp to be able to forward member variables in a unique_ptr
+KratosGeoSettlement::~KratosGeoSettlement() = default;
 
 }

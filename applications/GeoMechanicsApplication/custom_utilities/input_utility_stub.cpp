@@ -15,32 +15,50 @@
 
 namespace Kratos {
 
+InputUtilityStub::InputUtilityStub()
+        : mNumberOfReadCalls{0},
+        mNumberOfMaterialCalls{0}
+{
+    mParameterJsonString = "{"
+                           "\"solver_settings\":"
+                           "{"
+                           "\"model_part_name\":\"test\","
+                           "\"model_import_settings\":"
+                           "{"
+                           "\"input_type\": \"mdpa\","
+                           "\"input_filename\": \"mesh_stage1\""
+                           "},"
+                           "\"material_import_settings\": "
+                           "{"
+                           "\"materials_filename\": \"MaterialParameters1.json\""
+                           "}"
+                           "}"
+                           "}";
+}
+
 Parameters InputUtilityStub::ProjectParametersFrom(const std::string& rProjectFilePath) const
 {
-    const std::string jsonString = "{"
-                                   "\"solver_settings\":"
-                                   "{"
-                                   "\"model_part_name\":\"test\","
-                                   "\"model_import_settings\":"
-                                   "{"
-                                   "\"input_type\": \"mdpa\","
-                                   "\"input_filename\": \"mesh_stage1\""
-                                   "}"
-                                   "}"
-                                   "}";
-    Parameters result(jsonString);
+    Parameters result(mParameterJsonString);
 
     return result;
 }
 
 void InputUtilityStub::ReadModelFromFile(const std::filesystem::path& rModelPartFilePath, ModelPart& rModelPart) const
 {
-
+    mNumberOfReadCalls++;
 }
 
 void InputUtilityStub::AddMaterialsFrom(const std::string& rMaterialFilePath, Model& rModel) const
 {
+    mNumberOfMaterialCalls++;
+}
 
+int InputUtilityStub::numberOfReadCalls() const {
+    return mNumberOfReadCalls;
+}
+
+int InputUtilityStub::numberOfMaterialCalls() const {
+    return mNumberOfMaterialCalls;
 }
 
 } // Kratos

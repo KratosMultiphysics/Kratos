@@ -29,7 +29,8 @@ class InterfaceInputUtility;
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 {
 public:
-    explicit KratosGeoSettlement(const InterfaceInputUtility& rInputUtility);
+    explicit KratosGeoSettlement(std::unique_ptr<InterfaceInputUtility> pInputUtility);
+    ~KratosGeoSettlement();
 
     int RunStage(const std::filesystem::path&            rWorkingDirectory,
                  const std::filesystem::path&            rProjectParametersFile,
@@ -38,16 +39,17 @@ public:
                  const std::function<void(const char*)>& rReportTextualProgress,
                  const std::function<bool()>&            rShouldCancel);
 
+    const InterfaceInputUtility* GetInterfaceInputUtility() const;
+
 private:
     ModelPart& AddNewModelPart(const std::string& rModelPartName);
-
     static void AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
 
     Kernel mKernel;
     Model mModel;
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
-    const InterfaceInputUtility& mrInputUtility;
+    std::unique_ptr<InterfaceInputUtility> mpInputUtility;
 };
 
 }
