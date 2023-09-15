@@ -55,15 +55,29 @@ class TestDofs(KratosUnittest.TestCase):
         dz = n.GetDof(KratosMultiphysics.DISPLACEMENT_Z)
         p2 = n2.GetDof(KratosMultiphysics.PRESSURE)
 
+        # Fixing only displacement in X
         n.Fix(KratosMultiphysics.DISPLACEMENT_X)
         self.assertTrue(n.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
         self.assertFalse(n.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
         self.assertFalse(n.IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
         self.assertFalse(n.IsFixed(KratosMultiphysics.PRESSURE))
+
+        # Release the displacement in X and checking again
+        n.Free(KratosMultiphysics.DISPLACEMENT_X)
+        self.assertFalse(n.IsFixed(KratosMultiphysics.DISPLACEMENT_X))
+        self.assertFalse(n.IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
+        self.assertFalse(n.IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
+        self.assertFalse(n.IsFixed(KratosMultiphysics.PRESSURE))
+
+        # Fixing again dof
+        n.Fix(KratosMultiphysics.DISPLACEMENT_X)
+
+        # Assign equation Id
         dx.EquationId = 5
         dy.EquationId = 6
         dz.EquationId = 7
 
+        # Checks
         self.assertEqual(p.GetVariable(), KratosMultiphysics.PRESSURE)
         self.assertEqual(dx.GetVariable(), KratosMultiphysics.DISPLACEMENT_X)
         self.assertEqual(dx.GetReaction(), KratosMultiphysics.REACTION_X)
