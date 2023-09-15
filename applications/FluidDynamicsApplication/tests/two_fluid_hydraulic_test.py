@@ -11,21 +11,13 @@ import KratosMultiphysics.kratos_utilities as KratosUtilities
 
 class FluidDynamicsAnalysisHydraulic(FluidDynamicsAnalysis):
 
-    def __init__(self,model,project_parameters,flush_frequency=10.0):
-        super().__init__(model,project_parameters)
-
-        self.flush_frequency = flush_frequency
-        self.last_flush = time.time()
-
     def ModifyInitialGeometry(self):
-
             h0=0.5
             hmax=0.1
             for node in self._GetSolver().GetComputingModelPart().Nodes:
                 d0=node.Y-(h0+hmax*math.cos(math.pi*(1-node.X)))
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,1,d0)
-
 
 # Class derived from the UnitTest (KratosMultiphysics.KratosUnittest) class
 class TwoFluidHydraulicSolverTest(UnitTest.TestCase):
@@ -42,48 +34,56 @@ class TwoFluidHydraulicSolverTest(UnitTest.TestCase):
         self._artificial_viscosity = True
         self._eulerian_fm_ale_correction = False
         self._mass_source = False
+        self.problem_data ="artificial_viscosity"
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
     def testTwoFluidMassHydraulicSolverTestEulerianFmALE2D(self):
         self._artificial_viscosity = False
         self._eulerian_fm_ale_correction = True
         self._mass_source = False
+        self.problem_data ="eularian_fm_ale"
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
     def testTwoFluidMassHydraulicSolverTestMassSource2D(self):
         self._artificial_viscosity = False
         self._eulerian_fm_ale_correction = False
         self._mass_source = True
+        self.problem_data = "mass_conservation"
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
     def testTwoFluidMassHydraulicSolverTestTotal2D(self):
         self._artificial_viscosity = True
         self._eulerian_fm_ale_correction = True
         self._mass_source = True
+        self.problem_data = "all_activated"
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
     def testTwoFluidMassHydraulicSolverTestArtificialViscosity3D(self):
         self._artificial_viscosity = True
         self._eulerian_fm_ale_correction = False
         self._mass_source = False
+        self.problem_data ="artificial_viscosity"
         self._AuxiliaryRunTest("ProjectParameters3D.json")
 
     def testTwoFluidMassHydraulicSolverTestEulerianFmALE3D(self):
         self._artificial_viscosity = False
         self._eulerian_fm_ale_correction = True
         self._mass_source = False
+        self.problem_data ="eularian_fm_ale"
         self._AuxiliaryRunTest("ProjectParameters3D.json")
 
     def testTwoFluidMassHydraulicSolverTestMassSource3D(self):
         self._artificial_viscosity = False
         self._eulerian_fm_ale_correction = False
         self._mass_source = True
+        self.problem_data = "mass_conservation"
         self._AuxiliaryRunTest("ProjectParameters3D.json")
 
     def testTwoFluidMassHydraulicSolverTestTotal3D(self):
         self._artificial_viscosity = True
         self._eulerian_fm_ale_correction = True
         self._mass_source = True
+        self.problem_data = "all_activated"
         self._AuxiliaryRunTest("ProjectParameters3D.json")
 
 
@@ -101,6 +101,7 @@ class TwoFluidHydraulicSolverTest(UnitTest.TestCase):
                 self.parameters["solver_settings"]["artificial_viscosity"].SetBool(self._artificial_viscosity)
                 self.parameters["solver_settings"]["eulerian_fm_ale"].SetBool(self._eulerian_fm_ale_correction)
                 self.parameters["solver_settings"]["formulation"]["mass_source"].SetBool(self._mass_source)
+                self.parameters["problem_data"]["problem_name"].SetString(self.problem_data)
 
                 if self.print_output:
                     self._AddOutput()

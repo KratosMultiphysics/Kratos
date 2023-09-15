@@ -22,7 +22,6 @@
         },
         "maximum_iterations"			: 5,
         "echo_level"					: 0,
-        "time_order"					: 2,
         "compute_reactions"				: false,
         "reform_dofs_at_each_step"		: false,
         "relative_velocity_tolerance"	: 0.001,
