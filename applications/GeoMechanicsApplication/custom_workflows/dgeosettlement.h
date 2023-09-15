@@ -20,6 +20,7 @@
 
 #include "geo_mechanics_application.h"
 
+#include "custom_utilities/interface_input_utility.h"
 
 namespace Kratos
 {
