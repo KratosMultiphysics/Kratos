@@ -975,7 +975,7 @@ bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesValues(
     GeometryType& rGeometry,
     GeometryType::CoordinatesArrayType& rGlobalCoordinates,
     std::stringstream& rErrorMessage
-    )
+    ) const
 {
     GeometryType::CoordinatesArrayType local_coordinates;
     rGeometry.PointLocalCoordinates( local_coordinates, rGlobalCoordinates );
@@ -1037,7 +1037,7 @@ bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesValues(
 bool GeometryTesterUtility::VerifyShapeFunctionsSecondDerivativesInterpolation(
     GeometryType& rGeometry,
     std::stringstream& rErrorMessage
-    )
+    ) const
 {
     DenseVector<DenseVector<Matrix>> DDN_DDX;
     DenseVector<Matrix> DN_DX;

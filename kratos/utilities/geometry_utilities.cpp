@@ -518,7 +518,7 @@ void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoin
 /***********************************************************************************/
 
 void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
-      Matrix DN_DX,
+      const Matrix DN_DX,
       const GeometryType& rGeometry,
       const GeometryType::CoordinatesArrayType& rLocalIntegrationPointCoordinates,
       DenseVector<Matrix>& rResult)
@@ -535,6 +535,15 @@ void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
         rGeometry.Jacobian(J,rLocalIntegrationPointCoordinates);
 
         DenseVector<Matrix> aux(rGeometry.PointsNumber());
+        Vector rhs, result;
+        if (rGeometry.WorkingSpaceDimension() == 2){
+            rhs.resize(3, false);
+            result.resize(3, false);
+        }
+        else if (rGeometry.WorkingSpaceDimension() == 3){
+            rhs.resize(6, false);
+            result.resize(6, false);
+        }
 
         for (IndexType i = 0; i < rGeometry.PointsNumber(); i++) {
             aux[i].resize(rGeometry.WorkingSpaceDimension(), rGeometry.WorkingSpaceDimension(), false);
@@ -618,19 +627,13 @@ void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
                     }
                 }
             }
-
             for (IndexType p = 0; p < rGeometry.PointsNumber(); ++p) {
-                Vector rhs, result;
                 if (rGeometry.WorkingSpaceDimension() == 2){
-                    rhs.resize(3);
-                    result.resize(3);
                     rhs[0] = DDN_DDe[p](0,0) - DN_DX(p,0) * H[0](0,0) - DN_DX(p,1) * H[1](0,0);
                     rhs[1] = DDN_DDe[p](1,1) - DN_DX(p,0) * H[0](1,1) - DN_DX(p,1) * H[1](1,1);
                     rhs[2] = DDN_DDe[p](0,1) - DN_DX(p,0) * H[0](0,1) - DN_DX(p,1) * H[1](0,1);
                 }
                 else if (rGeometry.WorkingSpaceDimension() == 3){
-                    rhs.resize(6);
-                    result.resize(6);
                     rhs[0] = DDN_DDe[p](0,0) - DN_DX(p,0) * H[0](0,0) - DN_DX(p,1) * H[1](0,0) - DN_DX(p,2) * H[2](0,0);
                     rhs[1] = DDN_DDe[p](1,1) - DN_DX(p,0) * H[0](1,1) - DN_DX(p,1) * H[1](1,1) - DN_DX(p,2) * H[2](0,0);
                     rhs[2] = DDN_DDe[p](2,2) - DN_DX(p,0) * H[0](2,2) - DN_DX(p,1) * H[1](2,2) - DN_DX(p,2) * H[2](2,2);
@@ -641,7 +644,7 @@ void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
 
                 aux[p].resize(rGeometry.WorkingSpaceDimension(), rGeometry.WorkingSpaceDimension(), false );
 
-                result = prod(Ainv, rhs);
+                noalias(result) = prod(Ainv, rhs);
 
                 aux[p](0,0) = result[0];
                 aux[p](1,1) = result[1];
@@ -659,7 +662,7 @@ void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
                     aux[p](1,2) = result[4];
                 }
             }
-            rResult = aux;
+            noalias(rResult) = aux;
 }
 
 /***********************************************************************************/

@@ -519,7 +519,7 @@ private:
         GeometryType& rGeometry,
         GeometryType::CoordinatesArrayType& rGlobalCoordinates,
         std::stringstream& rErrorMessage
-        );
+        ) const;
 
     /**
      * @brief This function verifies the shape functions second derivatives interpolations
@@ -530,7 +530,7 @@ private:
     bool VerifyShapeFunctionsSecondDerivativesInterpolation(
     GeometryType& rGeometry,
     std::stringstream& rErrorMessage
-    );
+    ) const;
 
     /**
      * @brief Get the name of the intergration method
