@@ -26,13 +26,6 @@ class FluidDynamicsAnalysisHydraulic(FluidDynamicsAnalysis):
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,d0)
                 node.SetSolutionStepValue(KratosMultiphysics.DISTANCE,1,d0)
 
-    def FinalizeSolutionStep(self):
-        super().FinalizeSolutionStep()
-        if self.parallel_type == "OpenMP":
-            now = time.time()
-            if now - self.last_flush > self.flush_frequency:
-                sys.stdout.flush()
-                self.last_flush = now
 
 # Class derived from the UnitTest (KratosMultiphysics.KratosUnittest) class
 class TwoFluidHydraulicSolverTest(UnitTest.TestCase):
