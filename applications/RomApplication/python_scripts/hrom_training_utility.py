@@ -84,6 +84,9 @@ class HRomTrainingUtility(object):
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
         if (self.projection_strategy=="galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
+        elif (self.projection_strategy=="lspg"):
+                jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
+                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhiJ(jacobian_phi_product)
         elif (self.projection_strategy=="petrov_galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
         else:
@@ -92,6 +95,21 @@ class HRomTrainingUtility(object):
 
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
+    
+    def GetJacobianPhiMultiplication(self, computing_model_part):
+        jacobian_matrix = KratosMultiphysics.CompressedMatrix()
+        residual_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
+        delta_x_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
+        
+        self.solver._GetBuilderAndSolver().BuildAndApplyDirichletConditions(self.solver._GetScheme(), computing_model_part, jacobian_matrix, residual_vector, delta_x_vector)
+        
+        right_rom_basis = KratosMultiphysics.Matrix(self.solver._GetBuilderAndSolver().GetEquationSystemSize(), self.num_of_right_rom_dofs)
+        self.solver._GetBuilderAndSolver().GetRightRomBasis(computing_model_part, right_rom_basis)
+        
+        jacobian_scipy_format = KratosMultiphysics.scipy_conversion_tools.to_csr(jacobian_matrix)
+        jacobian_phi_product = jacobian_scipy_format @ right_rom_basis
+
+        return jacobian_phi_product
 
     def CalculateAndSaveHRomWeights(self):
         # Calculate the residuals basis and compute the HROM weights from it
@@ -128,7 +146,10 @@ class HRomTrainingUtility(object):
                 hrom_info = rom_parameters["elements_and_weights"]
 
         # Get the weights and fill the HROM computing model part
-        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
+        if (self.projection_strategy=="lspg"):
+            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPartWithNeighbours(hrom_info,computing_model_part,hrom_main_model_part)
+        else:
+            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
         if self.echo_level > 0:
             KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
 
