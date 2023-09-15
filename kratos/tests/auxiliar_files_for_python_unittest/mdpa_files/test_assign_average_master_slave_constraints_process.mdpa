@@ -1,0 +1,285 @@
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    1   0.0000000000   1.0000000000   0.0
+    2   0.1859127640   0.8191095601   0.0
+    3   0.3333333333   1.0000000000   0.0
+    4   0.0000000000   0.6666666667   0.0
+    5   0.1939305190   0.6267781305   0.0
+    6   0.4022999678   0.8021030033   0.0
+    7   0.3585786439   0.6414213563   0.0
+    8   0.3592857506   0.6407142496   0.0
+    9   0.3000000000   0.5000000004   0.0
+   10   0.5000000000   0.7000000000   0.0
+   11   0.3010000000   0.5000000003   0.0
+   12   0.5000000000   0.6990000000   0.0
+   13   0.6267781305   0.8060694814   0.0
+   14   0.1939305417   0.3732218627   0.0
+   15   0.6666666667   1.0000000000   0.0
+   16   0.0000000000   0.3333333333   0.0
+   17   0.5000000000   0.5000071599   0.0
+   18   0.3592857505   0.3592857506   0.0
+   19   0.6407142497   0.6407142492   0.0
+   20   0.3585786437   0.3585786438   0.0
+   21   0.6414213565   0.6414213560   0.0
+   22   0.1800971475   0.1800971477   0.0
+   23   0.8429667447   0.8429667439   0.0
+   24   0.4999999998   0.3010000000   0.0
+   25   0.6990000000   0.4999999999   0.0
+   26   0.4999999998   0.3000000000   0.0
+   27   0.7000000000   0.4999999999   0.0
+   28   0.3732218623   0.1939305422   0.0
+   29   0.8024622414   0.5948113490   0.0
+   30   0.6407142492   0.3592857503   0.0
+   31   0.6414213560   0.3585786435   0.0
+   32   0.0000000000   0.0000000000   0.0
+   33   1.0000000000   1.0000000000   0.0
+   34   0.5977000253   0.1978969990   0.0
+   35   0.8060694580   0.3732218620   0.0
+   36   1.0000000000   0.6666666667   0.0
+   37   0.3333333333   0.0000000000   0.0
+   38   0.8140872300   0.1808904389   0.0
+   39   1.0000000000   0.3333333333   0.0
+   40   0.6666666667   0.0000000000   0.0
+   41   1.0000000000   0.0000000000   0.0
+End Nodes
+
+
+Begin Elements Element2D3N// GUI group identifier: Body
+        1    0    10    21    13 
+        2    0    27    31    35 
+        3    0    26    20    28 
+        4    0     9     7     5 
+        5    0    21    27    29 
+        6    0    31    26    34 
+        7    0    20     9    14 
+        8    0     7    10     6 
+        9    0    13    21    29 
+       10    0    28    20    14 
+       11    0    29    27    35 
+       12    0    14     9     5 
+       13    0    35    31    34 
+       14    0     5     7     6 
+       15    0    34    26    28 
+       16    0     6    10    13 
+       17    0    13    29    23 
+       18    0    23    29    36 
+       19    0    36    29    39 
+       20    0    13    23    15 
+       21    0    13    15     6 
+       22    0    23    36    33 
+       23    0    15    23    33 
+       24    0    29    35    39 
+       25    0    39    35    38 
+       26    0    38    35    34 
+       27    0    39    38    41 
+       28    0    38    34    40 
+       29    0    40    34    37 
+       30    0    41    38    40 
+       31    0    34    28    37 
+       32    0    37    28    22 
+       33    0    22    28    14 
+       34    0    37    22    32 
+       35    0    22    14    16 
+       36    0    16     5     4 
+       37    0    32    22    16 
+       38    0    14     5    16 
+       39    0     4     5     2 
+       40    0     2     5     6 
+       41    0     4     2     1 
+       42    0     2     6     3 
+       43    0     3     6    15 
+       44    0     1     2     3 
+       45    0    12     8    17 
+       46    0    11    18    17 
+       47    0    24    30    17 
+       48    0    25    19    17 
+       49    0     8    11    17 
+       50    0    18    24    17 
+       51    0    30    25    17 
+       52    0    19    12    17 
+End Elements
+
+Begin SubModelPart GENERIC_Slave // Group Slave // Subtree GENERIC
+    Begin SubModelPartNodes
+            8
+           11
+           12
+           18
+           19
+           24
+           25
+           30
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart GENERIC_Master // Group Master // Subtree GENERIC
+    Begin SubModelPartNodes
+            7
+            9
+           10
+           20
+           21
+           26
+           27
+           31
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart CNVDFFParts_Body // Group Body // Subtree CNVDFFParts
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+           41
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+           41
+           42
+           43
+           44
+           45
+           46
+           47
+           48
+           49
+           50
+           51
+           52
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart TEMPERATURE_Body // Group Body // Subtree TEMPERATURE
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+           41
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

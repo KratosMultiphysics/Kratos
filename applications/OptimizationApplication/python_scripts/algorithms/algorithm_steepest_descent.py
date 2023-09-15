@@ -10,6 +10,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.opt_line_search import
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import OptimizationAlgorithmTimeLogger
 
+
 def Factory(model: Kratos.Model, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     return AlgorithmSteepestDescent(model, parameters, optimization_problem)
 
@@ -88,8 +89,12 @@ class AlgorithmSteepestDescent(Algorithm):
         return search_direction
 
     @time_decorator()
-    def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
-        update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
+    def ComputeControlUpdate(self, alpha):
+        search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
+        if isinstance(alpha, float):
+            update = search_direction * alpha
+        elif isinstance(alpha, KratosOA.CollectiveExpression):
+            update = search_direction.Scale(alpha)
         self.algorithm_data.GetBufferedData()["control_field_update"] = update.Clone()
 
     @time_decorator()

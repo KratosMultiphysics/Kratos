@@ -853,7 +853,7 @@ namespace Kratos
         {
             const double area = MathUtils<double>::Heron<false>(std::sqrt(2.0), 1.0, 1.0);
 
-            KRATOS_CHECK_NEAR(area, 0.5, TOLERANCE);
+            KRATOS_EXPECT_NEAR(area, 0.5, TOLERANCE);
         }
     } // namespace Testing
 }  // namespace Kratos.
@@ -883,9 +883,9 @@ It is recommended to put the tests files in a folder called `cpp_tests` inside t
 
 The following are the most common and essential commands in Kratos Unittest:
 
-* `KRATOS_CHECK`/`KRATOS_CHECK_IS_FALSE`:They check if the input is true or false
+* `KRATOS_EXPECT_TRUE`/`KRATOS_EXPECT_FALSE`:They check if the input is true or false
 * `KRATOS_CHECK_EXCEPTION_RAISED`: Check if an exception is raised
-* `KRATOS_CHECK_C_STRING_EQUAL`/`KRATOS_CHECK_C_STRING__NOT_EQUAL`/`KRATOS_CHECK_STRING_CONTAIN_SUB_STRING`: Check if the string is the same, or not, or a substring
-* `KRATOS_CHECK_EQUAL`: Check if the two inputs are exactly equal, if the inputs are doubles it is recommended to use the next assert, in order to avoid precision errors.
-* `KRATOS_CHECK_NEAR`: Check if the solution is almost equal in the two inputs, with a certain precision 
-* `KRATOS_CHECK_LESS`/`KRATOS_CHECK_GREATER`/`KRATOS_CHECK_LESS_EQUAL`/`KRATOS_CHECK_GREATER_EQUAL`:  It checks if the value is <, <=, > or >= than the other 
+* `KRATOS_EXPECT_STREQ`/`KRATOS_CHECK_C_STRING__NOT_EQUAL`/`KRATOS_EXPECT_HAS_SUBSTRING`: Check if the string is the same, or not, or a substring
+* `KRATOS_EXPECT_EQ`: Check if the two inputs are exactly equal, if the inputs are doubles it is recommended to use the next assert, in order to avoid precision errors.
+* `KRATOS_EXPECT_NEAR`: Check if the solution is almost equal in the two inputs, with a certain precision 
+* `KRATOS_EXPECT_LT`/`KRATOS_EXPECT_GT`/`KRATOS_EXPECT_LE`/`KRATOS_EXPECT_GE`:  It checks if the value is <, <=, > or >= than the other 

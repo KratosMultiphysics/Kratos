@@ -25,22 +25,20 @@
 #include "custom_processes/set_automated_initial_damage_process.h"
 #include "custom_processes/element_deactivation_process.h"
 
-namespace Kratos {
-    namespace Python {
-        void  AddCustomProcessesToPython(pybind11::module& m)
-        {
-            namespace py = pybind11;
+namespace Kratos::Python {
+    void  AddCustomProcessesToPython(pybind11::module& m)
+    {
+        namespace py = pybind11;
 
-            /// Processes
-            py::class_<AdvanceInTimeHighCycleFatigueProcess, AdvanceInTimeHighCycleFatigueProcess::Pointer, Process>(m, "AdvanceInTimeHighCycleFatigueProcess")
-                .def(py::init< ModelPart&, Parameters >());
+        /// Processes
+        py::class_<AdvanceInTimeHighCycleFatigueProcess, AdvanceInTimeHighCycleFatigueProcess::Pointer, Process>(m, "AdvanceInTimeHighCycleFatigueProcess")
+            .def(py::init< ModelPart&, Parameters >());
 
-            py::class_<SetAutomatedInitialDamageProcess, SetAutomatedInitialDamageProcess::Pointer, Process>(m, "SetAutomatedInitialDamageProcess")
-                .def(py::init<ModelPart&, Parameters>());
+        py::class_<SetAutomatedInitialDamageProcess, SetAutomatedInitialDamageProcess::Pointer, Process>(m, "SetAutomatedInitialDamageProcess")
+            .def(py::init<ModelPart&, Parameters>());
 
-            py::class_<ElementDeactivationProcess, ElementDeactivationProcess::Pointer, Process>(m, "ElementDeactivationProcess")
-                .def(py::init<ModelPart&, Parameters>());
-        }
-    } // namespace Python.
-} // Namespace Kratos
+        py::class_<ElementDeactivationProcess, ElementDeactivationProcess::Pointer, Process>(m, "ElementDeactivationProcess")
+            .def(py::init<ModelPart&, Parameters>());
+    }
+} // namespace Kratos::Python..
 
