@@ -211,8 +211,8 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseCa
 
     noalias(integrated_stress_vector) = r_previous_stress * std::exp(-time_step / delay_time) + prod(constitutive_matrix, r_auxiliary_strain);
 
-    noaias(mPrevStressVector) = integrated_stress_vector;
-    noaias(mPrevStrainVector) = r_strain_vector;
+    noalias(mPrevStressVector) = integrated_stress_vector;
+    noalias(mPrevStrainVector) = r_strain_vector;
 }
 
 /***********************************************************************************/
