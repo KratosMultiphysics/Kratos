@@ -106,8 +106,7 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ComputeViscoElasticity(Con
 {
     const Properties& material_props = rValues.GetMaterialProperties();
     Vector& integrated_stress_vector = rValues.GetStressVector(); // To be updated
-    const ProcessInfo& process_info = rValues.GetProcessInfo();
-    const double time_step = process_info[DELTA_TIME];
+    const double time_step = rValues.GetProcessInfo()[DELTA_TIME];
     const Flags& r_flags = rValues.GetOptions();
 
     // We compute the strain in case not provided
@@ -190,8 +189,8 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseCa
     const Flags& r_flags = rValues.GetOptions();
 
     // We compute the strain in case not provided
+    Vector& r_strain_vector = rValues.GetStrainVector();
     if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        Vector& r_strain_vector = rValues.GetStrainVector();
         BaseType::CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
@@ -203,7 +202,6 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseCa
     Matrix constitutive_matrix;
     BaseType::CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
 
-    const Vector& r_strain_vector = rValues.GetStrainVector();
     const Vector& r_previous_strain = this->GetPreviousStrainVector();
     const Vector& r_previous_stress = this->GetPreviousStressVector();
     const Vector& r_strain_increment = r_strain_vector - r_previous_strain;
@@ -213,8 +211,8 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseCa
 
     noalias(integrated_stress_vector) = r_previous_stress * std::exp(-time_step / delay_time) + prod(constitutive_matrix, r_auxiliary_strain);
 
-    mPrevStressVector = integrated_stress_vector;
-    mPrevStrainVector = r_strain_vector;
+    noaias(mPrevStressVector) = integrated_stress_vector;
+    noaias(mPrevStrainVector) = r_strain_vector;
 }
 
 /***********************************************************************************/
