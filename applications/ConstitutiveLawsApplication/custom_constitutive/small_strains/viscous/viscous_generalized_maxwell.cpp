@@ -102,19 +102,6 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::CalculateMaterialResponseC
 /***********************************************************************************/
 
 template <class TElasticBehaviourLaw>
-void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeSolutionStep(
-    const Properties &rMaterialProperties,
-    const GeometryType &rElementGeometry,
-    const Vector& rShapeFunctionsValues,
-    const ProcessInfo &rCurrentProcessInfo)
-{
-    // Deprecated
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TElasticBehaviourLaw>
 void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ComputeViscoElasticity(ConstitutiveLaw::Parameters& rValues)
 {
     const Properties& material_props = rValues.GetMaterialProperties();
@@ -124,9 +111,9 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ComputeViscoElasticity(Con
     const Flags& r_flags = rValues.GetOptions();
 
     // We compute the strain in case not provided
+    Vector& r_strain_vector = rValues.GetStrainVector();
     if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        Vector& r_strain_vector = rValues.GetStrainVector();
-        this->CalculateValue(rValues, STRAIN, r_strain_vector);
+        BaseType::CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
     // We compute the stress
@@ -136,9 +123,8 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ComputeViscoElasticity(Con
 
         // Elastic Matrix
         Matrix constitutive_matrix;
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
+        BaseType::CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
 
-        const Vector& r_strain_vector = rValues.GetStrainVector();
         const Vector& r_previous_strain = this->GetPreviousStrainVector();
         const Vector& r_previous_stress = this->GetPreviousStressVector();
         const Vector& r_strain_increment = r_strain_vector - r_previous_strain;
@@ -155,7 +141,7 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::ComputeViscoElasticity(Con
         // Elastic Matrix
         if( r_flags.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
             Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-            this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
+            BaseType::CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
         }
     }
 }
@@ -205,7 +191,7 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseCa
     // We compute the strain in case not provided
     if (r_flags.IsNot( ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         Vector& r_strain_vector = rValues.GetStrainVector();
-        this->CalculateValue(rValues, STRAIN, r_strain_vector);
+        BaseType::CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
 
@@ -214,7 +200,7 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseCa
 
     // Elastic Matrix
     Matrix constitutive_matrix;
-    this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
+    BaseType::CalculateValue(rValues, CONSTITUTIVE_MATRIX, constitutive_matrix);
 
     const Vector& r_strain_vector = rValues.GetStrainVector();
     const Vector& r_previous_strain = this->GetPreviousStrainVector();
@@ -228,19 +214,6 @@ void ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::FinalizeMaterialResponseCa
 
     mPrevStressVector = integrated_stress_vector;
     mPrevStrainVector = r_strain_vector;
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TElasticBehaviourLaw>
-Vector& ViscousGeneralizedMaxwell<TElasticBehaviourLaw>::CalculateValue(
-    ConstitutiveLaw::Parameters& rParameterValues,
-    const Variable<Vector>& rThisVariable,
-    Vector& rValue
-    )
-{
-    return BaseType::CalculateValue(rParameterValues, rThisVariable, rValue);
 }
 
 /***********************************************************************************/
