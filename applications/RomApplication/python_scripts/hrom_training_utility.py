@@ -87,7 +87,7 @@ class HRomTrainingUtility(object):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
         elif (self.projection_strategy=="lspg"):
                 jacobian_phi_product = self.GetJacobianPhiMultiplication(computing_model_part)
-                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhiJ(jacobian_phi_product)
+                res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoJPhi(jacobian_phi_product)
         elif (self.projection_strategy=="petrov_galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
         else:

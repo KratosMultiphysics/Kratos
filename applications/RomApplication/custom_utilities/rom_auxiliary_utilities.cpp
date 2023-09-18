@@ -733,15 +733,15 @@ void RomAuxiliaryUtilities::GetPsiElemental(
         }
     } 
 
-void RomAuxiliaryUtilities::GetPhiJElemental(
-    Matrix &rPhiJElemental,
+void RomAuxiliaryUtilities::GetJPhiElemental(
+    Matrix &rJPhiElemental,
     const Element::DofsVectorType& rDofs,
-    const Matrix &rPhiJ)
+    const Matrix &rJPhi)
     {
         for(std::size_t i = 0; i < rDofs.size(); ++i)
         {
             const Dof<double>& r_dof = *rDofs[i];
-            noalias(row(rPhiJElemental, i)) = row(rPhiJ, r_dof.EquationId());
+            noalias(row(rJPhiElemental, i)) = row(rJPhi, r_dof.EquationId());
         }
     }
 

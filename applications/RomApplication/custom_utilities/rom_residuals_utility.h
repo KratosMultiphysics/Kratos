@@ -220,8 +220,8 @@ namespace Kratos
         return matrix_residuals;
         }
 
-        Matrix GetProjectedResidualsOntoPhiJ(
-            Matrix& rPhiJ
+        Matrix GetProjectedResidualsOntoJPhi(
+            Matrix& rJPhi
         )
         {
             const int n_elements = static_cast<int>(mrModelPart.Elements().size());
@@ -255,7 +255,7 @@ namespace Kratos
 
                     const std::size_t ndofs = elem_dofs.size();
                     ResizeIfNeeded(phi_j_elemental, ndofs, mRomDofs);
-                    RomAuxiliaryUtilities::GetPhiJElemental(phi_j_elemental, elem_dofs, rPhiJ);
+                    RomAuxiliaryUtilities::GetJPhiElemental(phi_j_elemental, elem_dofs, rJPhi);
 
                     #pragma omp critical
                     {
@@ -273,7 +273,7 @@ namespace Kratos
 
                     const std::size_t ndofs = cond_dofs.size();
                     ResizeIfNeeded(phi_j_elemental, ndofs, mRomDofs);
-                    RomAuxiliaryUtilities::GetPhiJElemental(phi_j_elemental, cond_dofs, rPhiJ);
+                    RomAuxiliaryUtilities::GetJPhiElemental(phi_j_elemental, cond_dofs, rJPhi);
 
                     #pragma omp critical
                     {
