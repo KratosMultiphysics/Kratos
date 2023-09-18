@@ -16,6 +16,7 @@
 
 // Project includes
 #include "utilities/atomic_utilities.h"
+#include "utilities/element_size_calculator.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/integration_utilities.h"
 #include "utilities/math_utils.h"
@@ -1437,12 +1438,16 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateTau1(
         }
         noalias(aux) += prod(trans(B_i), Matrix(prod(rThisConstitutiveVariables.D, B_i)));
     }
-    double det;
+    // double det;
     const double c_1 = 1.0;
-    Matrix tau_1_mat(dim, dim);
-    MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
-    const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
-    const double m_T_tau_1 = c_1*inner_prod(rVoigtIdAnysotropyMatrixProd, tau_1_vect);
+    // Matrix tau_1_mat(dim, dim);
+    // MathUtils<double>::InvertMatrix(aux, tau_1_mat, det);
+    // const Vector tau_1_vect = MathUtils<double>::SymmetricTensorToVector(tau_1_mat);
+    // const double m_T_tau_1 = c_1*inner_prod(rVoigtIdAnysotropyMatrixProd, tau_1_vect);
+
+    const double G = CalculateShearModulus(rThisConstitutiveVariables.D);
+    const double h = n_nodes == 3 ? ElementSizeCalculator<2, 3>::AverageElementSize(this->GetGeometry()) : ElementSizeCalculator<2, 4>::AverageElementSize(this->GetGeometry());
+    const double m_T_tau_1 = c_1 * std::pow(h,2) / G;
 
     double tau_1;
     if (mIsDynamic) {
@@ -1465,7 +1470,8 @@ double SmallDisplacementMixedVolumetricStrainElement::CalculateTau2(const Consti
     const double max_tau_2 = 1.0e-2;
     const double bulk_modulus = CalculateBulkModulus(rThisConstitutiveVariables.D);
     const double shear_modulus = CalculateShearModulus(rThisConstitutiveVariables.D);
-    return std::min(max_tau_2, c_2 * shear_modulus / bulk_modulus);
+    // return std::min(max_tau_2, c_2 * shear_modulus / bulk_modulus);
+    return c_2 * shear_modulus / (shear_modulus + bulk_modulus);
 }
 
 /***********************************************************************************/

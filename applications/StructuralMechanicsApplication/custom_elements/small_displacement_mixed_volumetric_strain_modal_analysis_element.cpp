@@ -192,7 +192,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLocalS
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType block_size = dim + 1;
     const SizeType block_size_full = 2.0 * block_size;
-    const SizeType matrix_size = block_size * n_nodes;
+    // const SizeType matrix_size = block_size * n_nodes;
     const SizeType matrix_size_full = block_size_full * n_nodes;
 
     // Check RHS size
@@ -206,50 +206,13 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLocalS
     }
     rLeftHandSideMatrix.clear();
 
+    //TODO: Update these two to avoid building the LHS matrices twice
+
     // Calculate the LHS matrix
     CalculateLeftHandSide(rLeftHandSideMatrix, rCurrentProcessInfo);
 
     // Calculate the RHS vector
-    // IndexType count = 0;
-    // VectorType aux_data(matrix_size_full);
-    // for (const auto& r_node : r_geometry) {
-    //     const auto& r_disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
-    //     const auto& r_disp_proj = r_node.FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
-    //     aux_data[count++] = r_disp[0];
-    //     aux_data[count++] = r_disp[1];
-    //     if (dim == 3) {
-    //         aux_data[count++] = r_disp[2];
-    //     }
-    //     aux_data[count++] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-    //     aux_data[count++] = r_disp_proj[0];
-    //     aux_data[count++] = r_disp_proj[1];
-    //     if (dim == 3) {
-    //         aux_data[count++] = r_disp_proj[2];
-    //     }
-    //     aux_data[count++] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
-    // }
-
-    VectorType aux_data(matrix_size_full);
-    if (dim == 2) {
-        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
-            IndexType i_row_dof = i_node * block_size;
-            IndexType i_row_proj = matrix_size + i_node * block_size;
-            const auto& r_node = r_geometry[i_node];
-            const auto& r_disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
-            const auto& r_disp_proj = r_node.FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
-            aux_data[i_row_dof] = r_disp[0];
-            aux_data[i_row_dof + 1] = r_disp[1];
-            aux_data[i_row_dof + 2] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
-            aux_data[i_row_proj] = r_disp_proj[0];
-            aux_data[i_row_proj + 1] = r_disp_proj[1];
-            aux_data[i_row_proj + 2] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
-        }
-    } else {
-        KRATOS_ERROR << "No 3D implementation yet." << std::endl;
-    }
-
-    rRightHandSideVector = prod(rLeftHandSideMatrix, aux_data);
-    rRightHandSideVector *= -1.0;
+    CalculateRightHandSide(rRightHandSideVector, rCurrentProcessInfo);
 }
 
 /***********************************************************************************/
@@ -302,8 +265,8 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateLeftHa
         for (IndexType j = 0; j < matrix_size; ++j) {
             rLeftHandSideMatrix(i,j) = aux_stiffnes(i,j);
             rLeftHandSideMatrix(i, matrix_size + j) = aux_oss_stab_operator(i,j);
-            // rLeftHandSideMatrix(matrix_size + i, j) = aux_oss_operator(i,j);
-            rLeftHandSideMatrix(matrix_size + j, i) = aux_oss_stab_operator(i,j);
+            rLeftHandSideMatrix(matrix_size + i, j) = aux_oss_operator(i,j);
+            // rLeftHandSideMatrix(matrix_size + j, i) = aux_oss_stab_operator(i,j);
             rLeftHandSideMatrix(matrix_size + i, matrix_size + j) = aux_lumped_mass_operator(i,j);
         }
     }
@@ -321,6 +284,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateRightH
     const SizeType n_nodes = r_geometry.PointsNumber();
     const SizeType block_size = dim + 1;
     const SizeType block_size_full = 2.0 * block_size;
+    const SizeType matrix_size = block_size * n_nodes;
     const SizeType matrix_size_full = block_size_full * n_nodes;
 
     // Check RHS size
@@ -328,8 +292,56 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateRightH
         rRightHandSideVector.resize(matrix_size_full, false);
     }
 
-    MatrixType aux_LHS(matrix_size_full, matrix_size_full);
-    CalculateLocalSystem(aux_LHS, rRightHandSideVector, rCurrentProcessInfo);
+    // MatrixType aux_LHS(matrix_size_full, matrix_size_full);
+    // CalculateLocalSystem(aux_LHS, rRightHandSideVector, rCurrentProcessInfo);
+
+    // Call the base element to get the standard residual matrix
+    VectorType aux_rhs(block_size * n_nodes);
+    BaseType::CalculateRightHandSide(
+        aux_rhs,
+        rCurrentProcessInfo);
+
+    // Call the base element OSS operator
+    MatrixType aux_oss_stab_operator(matrix_size, matrix_size);
+    CalculateOrthogonalSubScalesStabilizationOperator(
+        aux_oss_stab_operator,
+        rCurrentProcessInfo);
+
+    // Call the base element OSS lumped projection operator
+    MatrixType aux_lumped_mass_operator(matrix_size, matrix_size);
+    CalculateOrthogonalSubScalesLumpedProjectionOperator(
+        aux_lumped_mass_operator,
+        rCurrentProcessInfo);
+
+    // Get nodal values auxiliary arrays
+    VectorType aux_unk(matrix_size);
+    VectorType aux_projection(matrix_size);
+    if (dim == 2) {
+        for (IndexType i_node = 0; i_node < n_nodes; ++i_node) {
+            const auto& r_node = r_geometry[i_node];
+            const auto& r_disp = r_node.FastGetSolutionStepValue(DISPLACEMENT);
+            const auto& r_disp_proj = r_node.FastGetSolutionStepValue(DISPLACEMENT_PROJECTION);
+            aux_unk[i_node * block_size] = r_disp[0];
+            aux_unk[i_node * block_size + 1] = r_disp[1];
+            aux_unk[i_node * block_size + 2] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN);
+            aux_projection[i_node * block_size] = r_disp_proj[0];
+            aux_projection[i_node * block_size + 1] = r_disp_proj[1];
+            aux_projection[i_node * block_size + 2] = r_node.FastGetSolutionStepValue(VOLUMETRIC_STRAIN_PROJECTION);
+        }
+    } else {
+        KRATOS_ERROR << "No 3D implementation yet." << std::endl;
+    }
+
+    // Calculate auxiliary arrays
+    const VectorType oss_stab_times_unk = prod(trans(aux_oss_stab_operator), aux_unk);
+    const VectorType oss_stab_times_proj = prod(aux_oss_stab_operator, aux_projection);
+    const VectorType lumped_mass_times_proj = prod(aux_lumped_mass_operator, aux_projection);
+
+    // Assemble the extended modal analysis RHS
+    for (IndexType i = 0; i < matrix_size; ++i) {
+        rRightHandSideVector(i) = aux_rhs(i) - oss_stab_times_proj(i);
+        rRightHandSideVector(matrix_size + i) = - oss_stab_times_unk(i) - lumped_mass_times_proj(i);
+    }
 }
 
 /***********************************************************************************/
@@ -527,15 +539,15 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthog
             r_geometry.IntegrationPoints(this->GetIntegrationMethod()),
             ConstitutiveLaw::StressMeasure_Cauchy);
 
-        // // Calculate tau_1 stabilization constant
-        // const double tau_1 = CalculateTau1(m_T, kinematic_variables, constitutive_variables, rProcessInfo);
+        // Calculate tau_1 stabilization constant
+        const double tau_1 = CalculateTau1(m_T, kinematic_variables, constitutive_variables, rProcessInfo);
 
-        // // Calculate tau_2 stabilization constant
-        // const double tau_2 = CalculateTau2(constitutive_variables);
+        // Calculate tau_2 stabilization constant
+        const double tau_2 = CalculateTau2(constitutive_variables);
 
         const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
-        // const double aux_w_kappa_tau_1 = w_gauss * bulk_modulus * tau_1;
-        // const double aux_w_kappa_tau_2 = w_gauss * bulk_modulus * tau_2;
+        const double aux_w_kappa_tau_1 = w_gauss * bulk_modulus * tau_1;
+        const double aux_w_kappa_tau_2 = w_gauss * bulk_modulus * tau_2;
 
         for (IndexType j = 0; j < n_nodes; ++j) {
             const double N_j = kinematic_variables.N[j];
@@ -549,10 +561,13 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthog
 
             for (IndexType i = 0; i < n_nodes; ++i) {
                 const double N_i = kinematic_variables.N[i];
-                rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) += w_gauss * N_i * N_j;
+                // rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + dim) += w_gauss * N_i * N_j;
+                rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + dim) += aux_w_kappa_tau_2 * N_i * N_j;
                 for (IndexType d = 0; d < dim; ++d) {
-                    rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) -= w_gauss * bulk_modulus * N_i * G_j[d] ;
-                    rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + d) -= w_gauss * N_i * psi_j[d];
+                    // rOrthogonalSubScalesOperator(i*block_size + d, j*block_size + dim) -= w_gauss * bulk_modulus * N_i * G_j[d] ;
+                    // rOrthogonalSubScalesOperator(i*block_size + dim, j*block_size + d) -= w_gauss * N_i * psi_j[d];
+                    rOrthogonalSubScalesOperator(i * block_size + d, j * block_size + dim) -= aux_w_kappa_tau_1 * N_i * G_j[d];
+                    rOrthogonalSubScalesOperator(i * block_size + dim, j * block_size + d) -= aux_w_kappa_tau_2 * N_i * psi_j[d];
                 }
             }
         }
@@ -737,7 +752,8 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthog
 
         double sum_N_j;
         const double bulk_modulus = CalculateBulkModulus(constitutive_variables.D);
-        const double aux_w_kappa_tau_1 = w_gauss * bulk_modulus * tau_1;
+        // const double aux_w_kappa_tau_1 = w_gauss * bulk_modulus * tau_1;
+        const double aux_w_tau_1 = w_gauss * tau_1;
         const double aux_w_kappa_tau_2 = w_gauss * bulk_modulus * tau_2;
         for (IndexType i = 0; i < n_nodes; ++i) {
             sum_N_j = 0.0;
@@ -746,7 +762,7 @@ void SmallDisplacementMixedVolumetricStrainModalAnalysisElement::CalculateOrthog
                 sum_N_j += kinematic_variables.N[j];
             }
             for (IndexType d = 0; d < dim; ++d) {
-                rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) += aux_w_kappa_tau_1 * N_i * sum_N_j;
+                rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) += aux_w_tau_1 * N_i * sum_N_j;
                 // rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + d, i*block_size + d) += w_gauss * N_i * sum_N_j;
             }
             rOrthogonalSubScalesLumpedProjectionOperator(i*block_size + dim, i*block_size + dim) += aux_w_kappa_tau_2 * N_i * sum_N_j;
