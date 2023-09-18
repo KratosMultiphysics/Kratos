@@ -831,13 +831,14 @@ template<>
 double ElementSizeCalculator<2,4>::AverageElementSize(const Geometry<Node >& rGeometry)
 {
 
-    const double x10 = rGeometry[1].X() - rGeometry[0].X();
-    const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
+    // const double x10 = rGeometry[1].X() - rGeometry[0].X();
+    // const double y10 = rGeometry[1].Y() - rGeometry[0].Y();
 
-    const double x30 = rGeometry[3].X() - rGeometry[0].X();
-    const double y30 = rGeometry[3].Y() - rGeometry[0].Y();
+    // const double x30 = rGeometry[3].X() - rGeometry[0].X();
+    // const double y30 = rGeometry[3].Y() - rGeometry[0].Y();
 
-    return std::sqrt(x10*y30-x30*y10);
+    // return std::sqrt(x10*y30-x30*y10);
+    return std::sqrt(rGeometry.Area());
 }
 
 template<>
