@@ -18,7 +18,9 @@ class EmpiricalCubatureMethod():
         self,
         ECM_tolerance = 0,
         Filter_tolerance = 1e-16,
-        Plotting = False):
+        Plotting = False,
+        MaximumNumberUnsuccesfulIterations = 100
+    ):
         """
         Constructor setting up the parameters for the Element Selection Strategy
             ECM_tolerance: approximation tolerance for the element selection algorithm
@@ -35,7 +37,8 @@ class EmpiricalCubatureMethod():
         ResidualsBasis,
         constrain_sum_of_weights=True,
         constrain_conditions = False,
-        number_of_conditions = 0):
+        number_of_conditions = 0
+    ):
         """
         Method for setting up the element selection
         input:  - ResidualsBasis: numpy array containing a basis to the residuals projected
