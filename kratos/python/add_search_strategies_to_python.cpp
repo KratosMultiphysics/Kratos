@@ -25,6 +25,7 @@
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "spatial_containers/spatial_search_result.h"
 #include "spatial_containers/spatial_search_result_container.h"
+#include "spatial_containers/spatial_search_result_container_map.h"
 
 namespace Kratos::Python
 {
