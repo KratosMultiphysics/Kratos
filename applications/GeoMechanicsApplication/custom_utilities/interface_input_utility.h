@@ -20,6 +20,8 @@ namespace Kratos {
 
 class InterfaceInputUtility {
 public:
+    virtual ~InterfaceInputUtility() = default;
+
     [[nodiscard]] virtual Parameters ProjectParametersFrom(const std::string &rProjectFilePath) const = 0;
     virtual void ReadModelFromFile(const std::filesystem::path& rModelPartFilePath, ModelPart& rModelPart) const = 0;
     virtual void AddMaterialsFrom(const std::string& rMaterialFilePath, Model& rModel) const = 0;
