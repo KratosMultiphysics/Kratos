@@ -31,10 +31,12 @@ class EmpiricalCubatureMethod():
         self.Filter_tolerance = Filter_tolerance
         self.Name = "EmpiricalCubature"
         self.Plotting = Plotting
+        self.MaximumNumberUnsuccesfulIterations = MaximumNumberUnsuccesfulIterations
 
     def SetUp(
         self,
         ResidualsBasis,
+        InitialCandidatesSet = None,
         constrain_sum_of_weights=True,
         constrain_conditions = False,
         number_of_conditions = 0
@@ -47,6 +49,7 @@ class EmpiricalCubatureMethod():
         """
         self.W = np.ones(np.shape(ResidualsBasis)[0])
         self.G = ResidualsBasis.T
+        self.y = InitialCandidatesSet
         self.add_constrain_count = None
         total_number_of_entities = np.shape(self.G)[1]
         elements_constraint = np.ones(total_number_of_entities)
