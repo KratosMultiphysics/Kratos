@@ -15,11 +15,13 @@
 
 // Project includes
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "containers/model.h"
 #include "spaces/ublas_space.h"
 
 //Utilities
 #include "custom_utilities/rayleigh_damping_coefficients_utilities.h"
 #include "custom_utilities/explicit_integration_utilities.h"
+#include "custom_utilities/gauss_point_error_utility.h"
 #include "custom_utilities/project_vector_on_surface_utility.h"
 #include "custom_utilities/perturb_geometry_sparse_utility.h"
 #include "custom_utilities/perturb_geometry_subgrid_utility.h"
@@ -60,6 +62,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def("CreateRandomFieldVectors", &PerturbGeometrySubgridUtility::CreateRandomFieldVectors)
         .def("ApplyRandomFieldVectorsToGeometry", &PerturbGeometrySubgridUtility::ApplyRandomFieldVectorsToGeometry)
         ;
+
+    py::class_<GaussPointErrorUtility, GaussPointErrorUtility::Pointer>(m, "GaussPointErrorUtility")
+        .def(py::init<Model&, Parameters>())
+        .def("Execute", &GaussPointErrorUtility::Execute);
 }
 
 }  // namespace Kratos::Python.
