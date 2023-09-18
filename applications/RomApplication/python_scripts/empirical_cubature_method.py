@@ -135,7 +135,7 @@ class EmpiricalCubatureMethod():
                 i = self.y
             else:
                 ObjFun = self.G[:,self.y].T @ self.r.T
-                ObjFun = ObjFun.T / self.Gnorm[self.y]
+                ObjFun = ObjFun.T / self.GnormNOONE[self.y]
                 indSORT = np.argmax(ObjFun)
                 i = self.y[indSORT]
             if k==1:
