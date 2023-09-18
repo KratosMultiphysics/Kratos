@@ -116,7 +116,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         min_stress = (1 - reference_damage) * mMinStress;
 
         const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
-        const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);  
+        double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);  
 
         if (std::abs(min_stress) < 0.001) {
             reversion_factor_relative_error = std::abs(reversion_factor - previous_reversion_factor);
@@ -192,7 +192,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         max_stress = (1 - reference_damage) * mMaxStress;
         min_stress = (1 - reference_damage) * mMinStress;
 
-        const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+        double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
 
         double alphat;
         HighCycleFatigueLawIntegrator<6>::CalculateUltimateStress(ultimate_stress, rValues.GetMaterialProperties());
@@ -235,7 +235,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     
     
     HighCycleFatigueLawIntegrator<6>::CalculateUltimateStress(ultimate_stress, rValues.GetMaterialProperties());
-    const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
+    double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
 
     if (max_indicator && std::abs(reversion_factor) < 1.0 && max_stress >= ultimate_stress && !mReferenceDamage) {
         mReferenceDamage = 1 - (ultimate_stress / max_stress);
@@ -347,11 +347,11 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::CalculateMa
 
         double sign_factor = HighCycleFatigueLawIntegrator<6>::CalculateTensionCompressionFactor(predictive_stress_vector);        
 
-        int time = rValues.GetProcessInfo()[TIME];
-        const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
-        int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];  
+        // int time = rValues.GetProcessInfo()[TIME];
+        // const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
+        // int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];  
 
-        if (F <= threshold_tolerance || (sign_factor < 0.0 && time != load_increments_per_cycle + time_offset)) { // Elastic case
+        if (F <= threshold_tolerance || sign_factor < 0.0) { // Elastic case
             noalias(r_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
@@ -509,11 +509,11 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
 
         const double F = uniaxial_stress - threshold;
 
-        int time = rValues.GetProcessInfo()[TIME];
-        const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
-        int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];  
+        // int time = rValues.GetProcessInfo()[TIME];
+        // const int load_increments_per_cycle = rValues.GetProcessInfo()[LOAD_INCREMENTS_PER_CYCLE];
+        // int time_offset = rValues.GetProcessInfo()[NEW_MODEL_PART_START_TIME];  
 
-        if (F > threshold_tolerance && (sign_factor > 0.0 || time == load_increments_per_cycle + time_offset)) {
+        if (F > threshold_tolerance && sign_factor > 0.0) {
                 const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
                 // This routine updates the PredictiveStress to verify the yield surface
                 TConstLawIntegratorType::IntegrateStressVector(

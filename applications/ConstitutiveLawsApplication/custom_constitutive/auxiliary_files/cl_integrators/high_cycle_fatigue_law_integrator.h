@@ -248,9 +248,9 @@ public:
 
     /**
      * @brief This method computes internal variables (B0, Sth and ALPHAT) of the CL
-     * @param MaxStress Signed maximum stress in the current cycle.
+     * @param rMaxStress Signed maximum stress in the current cycle.
      * @param UltimateStress Material ultimate stress.
-     * @param ReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle.
+     * @param rReversionFactor Ratio between the minimum and maximum signed equivalent stresses for the current load cycle.
      * @param ReferenceDamage Reference damage for Fred calculation
      * @param ReferenceNumberOfCycles Number of cycle at EFred begins the calculation
      * @param MaterialParameters Material properties.
@@ -258,10 +258,10 @@ public:
      * @param rSth Endurance limit of the fatigue model.
      * @param rAlphat Internal variable of the fatigue model.
      */
-    static void CalculateFatigueParameters(const double MaxStress,
+    static void CalculateFatigueParameters(double& rMaxStress,
                                             const double UniaxialResidualStress,
                                             const double UltimateStress,
-                                            double ReversionFactor,
+                                            double& rReversionFactor,
                                             double ReferenceDamage,
                                             unsigned int ReferenceNumberOfCycles,
                                             const Properties& rMaterialParameters,
@@ -284,26 +284,26 @@ public:
         const double FatigueReductionFactorSmoothness = r_fatigue_coefficients[7];
         const double MonotonicReductionFactorSmoothness = r_fatigue_coefficients[8];
 
-        if (std::abs(ReversionFactor) < 1.0) {
-            rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (ReversionFactor)), STHR1);
-			rAlphat = ALFAF + (0.5 + 0.5 * (ReversionFactor)) * AUXR1;
+        if (std::abs(rReversionFactor) < 1.0) {
+            rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 * (rReversionFactor)), STHR1);
+			rAlphat = ALFAF + (0.5 + 0.5 * (rReversionFactor)) * AUXR1;
         } else {
-            rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 / (ReversionFactor)), STHR2);
-			rAlphat = ALFAF - (0.5 + 0.5 / (ReversionFactor)) * AUXR2;
+            rSth = Se + (UltimateStress - Se) * std::pow((0.5 + 0.5 / (rReversionFactor)), STHR2);
+			rAlphat = ALFAF - (0.5 + 0.5 / (rReversionFactor)) * AUXR2;
         }
 
         const double square_betaf = std::pow(BETAF, 2.0);
 
-        if (MaxStress > rSth) {
-          if(std::abs(ReversionFactor) < 1.0){
-                rN_f = std::pow(10.0,std::pow(-std::log((MaxStress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
-                rB0 = -(std::log(MaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
+        if (rMaxStress > rSth) {
+          if(std::abs(rReversionFactor) < 1.0){
+                rN_f = std::pow(10.0,std::pow(-std::log((rMaxStress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
+                rB0 = -(std::log(rMaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
 
-                const double stress_relative_error = std::abs(MaxStress - UltimateStress) / UltimateStress;         
+                const double stress_relative_error = std::abs(rMaxStress - UltimateStress) / UltimateStress;         
                 if (stress_relative_error <= 1.0e-3){
                     rN_f = ReferenceNumberOfCycles;
-                    if (ReversionFactor > 0.1){
-                        rB0 = (ReversionFactor / (MonotonicReductionFactorSmoothness * (1 - ReferenceDamage)));
+                    if (rReversionFactor > 0.1){
+                        rB0 = (rReversionFactor / (MonotonicReductionFactorSmoothness * (1 - ReferenceDamage)));
                     } else {
                         rB0 = (0.1 / (MonotonicReductionFactorSmoothness * (1 - ReferenceDamage)));
                     }
@@ -312,7 +312,19 @@ public:
                 if (std::isnan(rN_f)) {
                     rN_f = 1.0e15;
                 }
-            }
+        } else if (rReversionFactor < -1.0) {
+                    const double aux_max_stress = (UltimateStress * rMaxStress * (1 - rReversionFactor)) / (2 * UltimateStress - rMaxStress * (1 + rReversionFactor));
+                    if (aux_max_stress > Se) {
+                        rMaxStress = aux_max_stress;
+                        rReversionFactor = - 0.999;
+           
+                        rSth = Se;
+                        rAlphat = ALFAF + (0.5 + 0.5 * (rReversionFactor)) * AUXR1;
+                        
+                        rN_f = std::pow(10.0,std::pow(-std::log((rMaxStress - rSth) / (UltimateStress - rSth)) / rAlphat,(1.0 / BETAF)));
+                        rB0 = -(std::log(rMaxStress / UltimateStress) / std::pow((std::log10(rN_f)), FatigueReductionFactorSmoothness * square_betaf));
+                    }
+                }
         // }else {
         //     rN_f = 1.0e15;
         //     // rB0 = -(std::log(MaxStress / ultimate_stress) / std::pow((std::log10(rN_f)), square_betaf));
