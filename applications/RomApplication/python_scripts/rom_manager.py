@@ -504,40 +504,51 @@ class RomManager(object):
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=False
+                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='trainHROMGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
+                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='runHROMGalerkin':
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=True
+                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='lspg':
                 f['train_hrom']=False
                 f['run_hrom']=False
                 f['projection_strategy']="lspg"
+                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["train_petrov_galerkin"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("train_petrov_galerkin") else False
+                f["rom_settings"]['rom_bns_settings']['basis_strategy'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("basis_strategy") else "residuals"
+                f["rom_settings"]['rom_bns_settings']['include_phi'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("include_phi") else False
+                f["rom_settings"]['rom_bns_settings']['svd_truncation_tolerance'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("svd_truncation_tolerance") else 1e-4
+                f["rom_settings"]['rom_bns_settings']['solving_technique'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("solving_technique") else "normal_equations"
+                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='TrainPG':
                 f['train_hrom']=False
                 f['run_hrom']=False
                 f['projection_strategy']="lspg"
-                f['train_petrov_galerkin']['train'] = True
-                f['train_petrov_galerkin']['basis_strategy'] = self.general_rom_manager_parameters["ROM"]["petrov_galerkin_training_parameters"]["basis_strategy"].GetString()
-                f['train_petrov_galerkin']['include_phi'] = self.general_rom_manager_parameters["ROM"]["petrov_galerkin_training_parameters"]["include_phi"].GetBool()
-                f['train_petrov_galerkin']['svd_truncation_tolerance'] = self.general_rom_manager_parameters["ROM"]["petrov_galerkin_training_parameters"]["svd_truncation_tolerance"].GetDouble()
+                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = True
+                f["rom_settings"]['rom_bns_settings']['basis_strategy'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("basis_strategy") else "residuals"
+                f["rom_settings"]['rom_bns_settings']['include_phi'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("include_phi") else False
+                f["rom_settings"]['rom_bns_settings']['svd_truncation_tolerance'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("svd_truncation_tolerance") else 1e-4
+                f["rom_settings"]['rom_bns_settings']['solving_technique'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("solving_technique") else "normal_equations"
+                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='PG':
                 f['train_hrom']=False
                 f['run_hrom']=False
                 f['projection_strategy']="petrov_galerkin"
-                f['train_petrov_galerkin']['train'] = False
+                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = False
             elif simulation_to_run=='trainHROMPetrovGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
                 f['projection_strategy']="petrov_galerkin"
-                f['train_petrov_galerkin']['train'] = False
+                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = False
             elif simulation_to_run=='runHROMPetrovGalerkin':
                 f['train_hrom']=False
                 f['run_hrom']=True
                 f['projection_strategy']="petrov_galerkin"
-                f['train_petrov_galerkin']['train'] = False
+                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = False
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
             parameter_file.seek(0)
