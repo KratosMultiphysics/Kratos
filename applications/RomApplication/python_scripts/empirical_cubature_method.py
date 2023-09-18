@@ -82,18 +82,29 @@ class EmpiricalCubatureMethod():
         """
         Method performing calculations required before launching the Calculate method
         """
-        self.Gnorm = np.sqrt(sum(np.multiply(self.G, self.G), 0))
+        self.GnormNOONE = np.linalg.norm(self.G[:self.add_constrain_count,:], axis = 0)
         M = np.shape(self.G)[1]
         normB = np.linalg.norm(self.b)
-        self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
-        GnormNOONE = np.sqrt(sum(np.multiply(self.G[:self.add_constrain_count,:], self.G[:self.add_constrain_count,:]), 0))
-        if self.Filter_tolerance > 0:
-            TOL_REMOVE = self.Filter_tolerance * normB
-            rmvpin = np.where(GnormNOONE[self.y] < TOL_REMOVE)
-            self.y = np.delete(self.y,rmvpin)
+
+        if self.y is None:
+            self.y = np.arange(0,M,1) # Set of candidate points (those whose associated column has low norm are removed)
+
+            if self.Filter_tolerance > 0:
+                TOL_REMOVE = self.Filter_tolerance * normB
+                rmvpin = np.where(self.GnormNOONE[self.y] < TOL_REMOVE)
+                #self.y_complement = self.y[rmvpin]
+                self.y = np.delete(self.y,rmvpin)
+        else:
+            self.y_complement = np.arange(0,M,1)
+            self.y_complement = np.delete(self.y_complement, self.y)# Set of candidate points (those whose associated column has low norm are removed)
+            if self.Filter_tolerance > 0:
+                TOL_REMOVE = self.Filter_tolerance * normB
+                rmvpin = np.where(self.GnormNOONE[self.y_complement] < TOL_REMOVE)
+                self.y_complement = np.delete(self.y_complement,rmvpin)
+
         self.z = {}  # Set of intergration points
         self.mPOS = 0 # Number of nonzero weights
-        self.r = self.b # residual vector
+        self.r = self.b.copy() # residual vector
         self.m = len(self.b) # Default number of points
         self.nerror = np.linalg.norm(self.r)/normB
         self.nerrorACTUAL = self.nerror
@@ -102,18 +113,31 @@ class EmpiricalCubatureMethod():
         self.Initialize()
         self.Calculate()
 
+    def expand_candidates_with_complement(self):
+        self.y = np.union1d(self.y, self.y_complement)
+        print('expanding set to include the complement...')
+        ExpandedSetFlag = True
+        return ExpandedSetFlag
+
     def Calculate(self):
         """
         Method launching the element selection algorithm to find a set of elements: self.z, and wiegths: self.w
         """
+        MaximumLengthZ = 0
+        ExpandedSetFlag = False
         k = 1 # number of iterations
         while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and len(self.y) != 0:
 
             #Step 1. Compute new point
-            ObjFun = self.G[:,self.y].T @ self.r.T
-            ObjFun = ObjFun.T / self.Gnorm[self.y]
-            indSORT = np.argmax(ObjFun)
-            i = self.y[indSORT]
+            if isinstance(self.y, np.int64) or isinstance(self.y, np.int32):
+                #candidate set consists of a single element
+                indSORT = 0
+                i = self.y
+            else:
+                ObjFun = self.G[:,self.y].T @ self.r.T
+                ObjFun = ObjFun.T / self.Gnorm[self.y]
+                indSORT = np.argmax(ObjFun)
+                i = self.y[indSORT]
             if k==1:
                 alpha = np.linalg.lstsq(self.G[:, [i]], self.b)[0]
                 H = 1/(self.G[:,i] @ self.G[:,i].T)
@@ -137,9 +161,15 @@ class EmpiricalCubatureMethod():
                 alpha = H @ (self.G[:, self.z].T @ self.b)
                 alpha = alpha.reshape(len(alpha),1)
 
+            if np.size(self.z) > MaximumLengthZ :
+                self.UnsuccesfulIterations = 0
+            else:
+                self.UnsuccesfulIterations += 1
+
             #Step 6 Update the residual
-            if len(alpha)==1:
-                self.r = self.b - (self.G[:,self.z] * alpha)
+            if np.size(alpha)==1:
+                self.r = self.b.reshape(-1,1) - (self.G[:,self.z] * alpha).reshape(-1,1)
+                self.r = np.squeeze(self.r)
             else:
                 Aux = self.G[:,self.z] @ alpha
                 self.r = np.squeeze(self.b - Aux.T)
@@ -158,6 +188,15 @@ class EmpiricalCubatureMethod():
                 NPOINTS = np.c_[ NPOINTS , np.size(self.z)]
 
             k = k+1
+
+            if k>1000:
+                """
+                this means using the initial candidate set, it was impossible to obtain a set of positive weights.
+                Try again without constraints!!!
+                TODO: incorporate this into greater workflow
+                """
+                self.success = False
+                break
 
         self.w = alpha.T * np.sqrt(self.W[self.z]) #TODO FIXME cope with weights vectors different from 1
 
