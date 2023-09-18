@@ -39,7 +39,7 @@ extern "C"
 
     EXPORT Kratos::KratosGeoSettlement* KratosGeoSettlement_CreateInstance()
     {
-        return Kratos::CustomWorkflowFactory::createKratosGeoSettlement();
+        return Kratos::CustomWorkflowFactory::CreateKratosGeoSettlement();
     }
 
     EXPORT int __stdcall runSettlementStage(Kratos::KratosGeoSettlement* instance,

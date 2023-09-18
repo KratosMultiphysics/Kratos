@@ -19,7 +19,7 @@ namespace Kratos {
 
 class InputUtility : public InterfaceInputUtility {
 public:
-    [[nodiscard]] Parameters ProjectParametersFrom(const std::string &rProjectFilePath) const override;
+    [[nodiscard]] Parameters ProjectParametersFrom(const std::string& rProjectFilePath) const override;
     void ReadModelFromFile(const std::filesystem::path& rModelPartFilePath, ModelPart& rModelPart) const override;
     void AddMaterialsFrom(const std::string& rMaterialFilePath, Model& rModel) const override;
 };

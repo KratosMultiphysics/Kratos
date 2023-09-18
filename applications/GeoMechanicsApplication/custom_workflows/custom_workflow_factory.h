@@ -18,7 +18,7 @@ class KratosGeoSettlement;
 
 class CustomWorkflowFactory{
 public:
-    static KratosGeoSettlement* createKratosGeoSettlement();
+    static KratosGeoSettlement* CreateKratosGeoSettlement();
 };
 
 }

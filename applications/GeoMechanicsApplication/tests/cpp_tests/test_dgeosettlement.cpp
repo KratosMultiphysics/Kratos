@@ -35,41 +35,41 @@ const std::string parameter_json_settings = "{"
                                             "}"; // these have material_import settings
 
 
-void RunStage(KratosGeoSettlement &settlement) {
-    settlement.RunStage("",
-                        "",
-                        [](const char *) {}, // kept empty as a stub method
+void RunStage(KratosGeoSettlement& rSettlement) {
+    rSettlement.RunStage("",
+                         "",
+                         [](const char *) {}, // kept empty as a stub method
                         [](const double) {}, // kept empty as a stub method
                         [](const char *) {}, // kept empty as a stub method
                         []() { return true; });
 }
 
-void ExpectNumberOfReadCallsIsEqualToOne(const KratosGeoSettlement &settlement) {
-    const auto inputUtilityFromSettlement = dynamic_cast<const InputUtilityStub*>(settlement.GetInterfaceInputUtility());
-    KRATOS_EXPECT_NE(inputUtilityFromSettlement, nullptr);
-    KRATOS_EXPECT_EQ(inputUtilityFromSettlement->NumberOfReadCalls(), 1);
+void ExpectNumberOfReadCallsIsEqualToOne(const KratosGeoSettlement &rSettlement) {
+    const auto input_utility_from_settlement = dynamic_cast<const InputUtilityStub*>(rSettlement.GetInterfaceInputUtility());
+    KRATOS_EXPECT_NE(input_utility_from_settlement, nullptr);
+    KRATOS_EXPECT_EQ(input_utility_from_settlement->NumberOfReadCalls(), 1);
 }
 
 void ExpectNumberOfMaterialCallsEqualTo(const int expectedNumberOfMaterialCalls, const KratosGeoSettlement& rSettlement) {
-    const auto inputUtilityFromSettlement = dynamic_cast<const InputUtilityStub*>(rSettlement.GetInterfaceInputUtility());
-    KRATOS_EXPECT_NE(inputUtilityFromSettlement, nullptr);
-    KRATOS_EXPECT_EQ(inputUtilityFromSettlement->NumberOfMaterialCalls(), expectedNumberOfMaterialCalls);
+    const auto input_utility_from_settlement = dynamic_cast<const InputUtilityStub*>(rSettlement.GetInterfaceInputUtility());
+    KRATOS_EXPECT_NE(input_utility_from_settlement, nullptr);
+    KRATOS_EXPECT_EQ(input_utility_from_settlement->NumberOfMaterialCalls(), expectedNumberOfMaterialCalls);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, KratosGeoMechanicsFastSuite) {
     auto input_utility = std::make_unique<InputUtilityStub>(parameter_json_settings);
 
-    bool hasThrown = false;
+    bool has_thrown = false;
     try
     {
         KratosGeoSettlement settlement(std::move(input_utility));
     }
     catch (...)
     {
-        hasThrown = true;
+        has_thrown = true;
     }
 
-    KRATOS_EXPECT_FALSE(hasThrown); // No other way to check that the constructor does not throw
+    KRATOS_EXPECT_FALSE(has_thrown); // No other way to check that the constructor does not throw
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RunStageMakesRelevantCallsOnce, KratosGeoMechanicsFastSuite) {

@@ -18,7 +18,7 @@
 namespace Kratos
 {
 
-KratosGeoSettlement* CustomWorkflowFactory::createKratosGeoSettlement()
+KratosGeoSettlement* CustomWorkflowFactory::CreateKratosGeoSettlement()
 {
     auto inputUtility = std::make_unique<InputUtility>();
     return new KratosGeoSettlement(std::move(inputUtility));

@@ -19,7 +19,7 @@ namespace Kratos {
 class InputUtilityStub : public InterfaceInputUtility
 {
 public:
-    explicit InputUtilityStub(const std::string& parameter_json_string);
+    explicit InputUtilityStub(const std::string& rParameterJsonString);
 
     [[nodiscard]] Parameters ProjectParametersFrom(const std::string& rProjectFilePath) const override;
     void ReadModelFromFile(const std::filesystem::path& rModelPartFilePath, ModelPart& rModelPart) const override;
