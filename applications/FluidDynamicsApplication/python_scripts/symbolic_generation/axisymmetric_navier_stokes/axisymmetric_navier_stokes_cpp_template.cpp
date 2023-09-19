@@ -31,26 +31,26 @@ namespace Kratos
 
 template <class TElementData>
 AxisymmetricNavierStokes<TElementData>::AxisymmetricNavierStokes(IndexType NewId)
-    : FluidElement<TElementData>(NewId) {}
+    : BaseType(NewId) {}
 
 template <class TElementData>
 AxisymmetricNavierStokes<TElementData>::AxisymmetricNavierStokes(
     IndexType NewId,
     const NodesArrayType& ThisNodes)
-    : FluidElement<TElementData>(NewId, ThisNodes) {}
+    : BaseType(NewId, ThisNodes) {}
 
 template <class TElementData>
 AxisymmetricNavierStokes<TElementData>::AxisymmetricNavierStokes(
     IndexType NewId,
     typename GeometryType::Pointer pGeometry)
-    : FluidElement<TElementData>(NewId, pGeometry) {}
+    : BaseType(NewId, pGeometry) {}
 
 template <class TElementData>
 AxisymmetricNavierStokes<TElementData>::AxisymmetricNavierStokes(
     IndexType NewId,
     typename GeometryType::Pointer pGeometry,
     Properties::Pointer pProperties)
-    : FluidElement<TElementData>(NewId, pGeometry, pProperties) {}
+    : BaseType(NewId, pGeometry, pProperties) {}
 
 template <class TElementData>
 AxisymmetricNavierStokes<TElementData>::~AxisymmetricNavierStokes() {}
@@ -84,10 +84,18 @@ template <class TElementData>
 int AxisymmetricNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentProcessInfo) const
 {
     KRATOS_TRY;
-    int out = FluidElement<TElementData>::Check(rCurrentProcessInfo);
+
+    // Perform base fluid element check
+    int out = BaseType::Check(rCurrentProcessInfo);
     KRATOS_ERROR_IF_NOT(out == 0)
         << "Error in base class Check for Element " << this->Info() << std::endl
         << "Error code is " << out << std::endl;
+
+    // Check that there are no negative y-coordinates (radius is always positive)
+    const auto& r_geom = this->GetGeometry();
+    for (const auto& r_node : r_geom) {
+        KRATOS_ERROR_IF(r_node.Y() < 0.0) << "Negative y-coordinate found in node " << r_node.Id() << ". Axisymmetric radius must be positive." << std::endl;
+    }
 
     return 0;
 
@@ -234,25 +242,29 @@ void AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,3> >::ComputeGauss
     AxisymmetricNavierStokesData<2,3>& rData,
     MatrixType& rLHS)
 {
-    const array_1d<double,3>& rho = rData.Density;
+    // Axisymmetric formulation radius
+    const double y = this->CalculateGaussPointRadius(rData);
+
+    // Material parameters
+    const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
-    const double h = rData.ElementSize;
-
+    // Dynamic parameters
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
 
-    const double dyn_tau = rData.DynamicTau;
-
-    const BoundedMatrix<double,2,3> vconv = rData.Velocity - rData.MeshVelocity;
+    // Nodal data
+    const BoundedMatrix<double,2,3> v_conv = rData.Velocity - rData.MeshVelocity;
 
     // Get shape function values
-    const array_1d<double,3>& N = rData.N;
-    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
+    const auto& N = rData.N;
+    const auto& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    const double h = rData.ElementSize;
+    const double dyn_tau = rData.DynamicTau;
 
     //TODO: Optimize this to directly add to the rLeftHandSideMatrix
     auto& lhs = rData.lhs;
@@ -268,25 +280,29 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,4>>::ComputeGaussPo
     AxisymmetricNavierStokesData<2,4>& rData,
     MatrixType& rLHS)
 {
-    const array_1d<double,3>& rho = rData.Density;
+    // Axisymmetric formulation radius
+    const double y = this->CalculateGaussPointRadius(rData);
+
+    // Material parameters
+    const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
-    const double h = rData.ElementSize;
-
+    // Dynamic parameters
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
 
-    const double dyn_tau = rData.DynamicTau;
-
-    const BoundedMatrix<double,2,4> vconv = rData.Velocity - rData.MeshVelocity;
+    // Nodal data
+    const BoundedMatrix<double,2,4> v_conv = rData.Velocity - rData.MeshVelocity;
 
     // Get shape function values
-    const array_1d<double,4>& N = rData.N;
-    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+    const auto& N = rData.N;
+    const auto& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    const double h = rData.ElementSize;
+    const double dyn_tau = rData.DynamicTau;
 
     //TODO: Optimize this to directly add to the rLeftHandSideMatrix
     auto& lhs = rData.lhs;
@@ -302,33 +318,37 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,3>>::ComputeGaussPo
     AxisymmetricNavierStokesData<2,3>& rData,
     VectorType& rRHS)
 {
-    const array_1d<double,3>& rho = rData.Density;
+    // Axisymmetric formulation radius
+    const double y = this->CalculateGaussPointRadius(rData);
+
+    // Material parameters
+    const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
-    const double h = rData.ElementSize;
-
+    // Dynamic parameters
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
     const double bdf1 = rData.bdf1;
     const double bdf2 = rData.bdf2;
 
-    const double dyn_tau = rData.DynamicTau;
-
-    const BoundedMatrix<double,2,3>& v = rData.Velocity;
-    const BoundedMatrix<double,2,3>& vn = rData.Velocity_OldStep1;
-    const BoundedMatrix<double,2,3>& vnn = rData.Velocity_OldStep2;
-    const BoundedMatrix<double,2,3>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,3> vconv = v - vmesh;
-    const BoundedMatrix<double,2,3>& f = rData.BodyForce;
-    const array_1d<double,3>& p = rData.Pressure;
+    // Nodal data
+    const auto& p = rData.Pressure;
+    const auto& v = rData.Velocity;
+    const auto& v_n = rData.Velocity_OldStep1;
+    const auto& v_nn = rData.Velocity_OldStep2;
+    const auto& v_mesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,3> v_conv = v - v_mesh;
+    const auto& f = rData.BodyForce;
 
     // Get shape function values
-    const array_1d<double,3>& N = rData.N;
-    const BoundedMatrix<double,3,2>& DN = rData.DN_DX;
+    const auto& N = rData.N;
+    const auto& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    const double h = rData.ElementSize;
+    const double dyn_tau = rData.DynamicTau;
 
     //TODO: Optimize this to directly add to the rRightHandSideVector
     auto& rhs = rData.rhs;
@@ -343,33 +363,37 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,4>>::ComputeGaussPo
     AxisymmetricNavierStokesData<2,4>& rData,
     VectorType& rRHS)
 {
-    const array_1d<double,4>& rho = rData.Density;
+    // Axisymmetric formulation radius
+    const double y = this->CalculateGaussPointRadius(rData);
+
+    // Material parameters
+    const double rho = rData.Density;
     const double mu = rData.EffectiveViscosity;
 
-    const double h = rData.ElementSize;
-
+    // Dynamic parameters
     const double dt = rData.DeltaTime;
     const double bdf0 = rData.bdf0;
     const double bdf1 = rData.bdf1;
     const double bdf2 = rData.bdf2;
 
-    const double dyn_tau = rData.DynamicTau;
-
-    const BoundedMatrix<double,2,4>& v = rData.Velocity;
-    const BoundedMatrix<double,2,4>& vn = rData.Velocity_OldStep1;
-    const BoundedMatrix<double,2,4>& vnn = rData.Velocity_OldStep2;
-    const BoundedMatrix<double,2,4>& vmesh = rData.MeshVelocity;
-    const BoundedMatrix<double,2,4> vconv = v - vmesh;
-    const BoundedMatrix<double,2,4>& f = rData.BodyForce;
-    const array_1d<double,4>& p = rData.Pressure;
+    // Nodal data
+    const auto& p = rData.Pressure;
+    const auto& v = rData.Velocity;
+    const auto& v_n = rData.Velocity_OldStep1;
+    const auto& v_nn = rData.Velocity_OldStep2;
+    const auto& v_mesh = rData.MeshVelocity;
+    const BoundedMatrix<double,2,4> v_conv = v - v_mesh;
+    const auto& f = rData.BodyForce;
 
     // Get shape function values
-    const array_1d<double,4>& N = rData.N;
-    const BoundedMatrix<double,4,2>& DN = rData.DN_DX;
+    const auto& N = rData.N;
+    const auto& DN = rData.DN_DX;
 
     // Stabilization parameters
     constexpr double stab_c1 = 4.0;
     constexpr double stab_c2 = 2.0;
+    const double h = rData.ElementSize;
+    const double dyn_tau = rData.DynamicTau;
 
     //TODO: Optimize this to directly add to the rRightHandSideVector
     auto& rhs = rData.rhs;
@@ -380,20 +404,33 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,4>>::ComputeGaussPo
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
+// Private operations
+
+template< class TElementData >
+double AxisymmetricNavierStokes<TElementData>::CalculateGaussPointRadius(const TElementData& rData) const
+{
+    double radius = 0.0;
+    const auto& r_N = rData.N;
+    const auto& r_geom = this->GetGeometry();
+    for (IndexType i = 0; i < NumNodes; ++i) {
+        radius += r_N[i] * r_geom[i].Y();
+    }
+    return radius;
+}
+
+///////////////////////////////////////////////////////////////////////////////////////////////////
 // Private serialization
 
 template< class TElementData >
 void AxisymmetricNavierStokes<TElementData>::save(Serializer& rSerializer) const
 {
-    using BaseType = FluidElement<TElementData>;
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, BaseType);
 }
 
 
 template< class TElementData >
 void AxisymmetricNavierStokes<TElementData>::load(Serializer& rSerializer)
 {
-    using BaseType = FluidElement<TElementData>;
     KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, BaseType);
 }
 

@@ -296,6 +296,7 @@ private:
     ///@name Private Operations
     ///@{
 
+    double CalculateGaussPointRadius(const TElementData& rData) const;
 
     ///@}
     ///@name Private  Access

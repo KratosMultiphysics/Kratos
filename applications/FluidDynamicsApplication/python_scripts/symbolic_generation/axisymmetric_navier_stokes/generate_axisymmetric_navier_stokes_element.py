@@ -152,8 +152,8 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
 
     ## Replace the computed RHS and LHS in the template outstring
-    outstring = outstring.replace(f"//substitute_lhs_{dim}D_{n_nodes}N", lhs_out)
-    outstring = outstring.replace(f"//substitute_rhs_{dim}D_{n_nodes}N", rhs_out)
+    outstring = outstring.replace(f"//substitute_lhs_{dim}D{n_nodes}N", lhs_out)
+    outstring = outstring.replace(f"//substitute_rhs_{dim}D{n_nodes}N", rhs_out)
 
 ## Write the modified template
 print("Writing output file \'" + output_filename + "\'")

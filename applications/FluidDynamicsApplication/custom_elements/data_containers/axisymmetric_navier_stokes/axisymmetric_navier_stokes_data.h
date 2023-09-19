@@ -10,7 +10,6 @@
 //  Main authors:    Ruben Zorrilla
 //
 
-
 #pragma once
 
 // System includes
@@ -20,7 +19,6 @@
 
 
 // Project includes
-#include "includes/constitutive_law.h"
 
 // Application includes
 #include "fluid_dynamics_application_variables.h"
@@ -61,11 +59,8 @@ NodalVectorData MeshVelocity;
 NodalVectorData BodyForce;
 
 NodalScalarData Pressure;
-NodalScalarData Pressure_OldStep1;
-NodalScalarData Pressure_OldStep2;
-NodalScalarData Density;
-NodalScalarData SoundVelocity;
 
+double Density;
 double DynamicViscosity;
 double DeltaTime;      // Time increment
 double DynamicTau;     // Dynamic tau considered in ASGS stabilization coefficients
@@ -89,26 +84,25 @@ void Initialize(const Element& rElement, const ProcessInfo& rProcessInfo) overri
     // Base class Initialize manages constitutive law parameters
     FluidElementData<TDim,TNumNodes, true>::Initialize(rElement,rProcessInfo);
 
-    const Geometry< Node >& r_geometry = rElement.GetGeometry();
-    const Properties& r_properties = rElement.GetProperties();
-    this->FillFromHistoricalNodalData(Velocity,VELOCITY,r_geometry);
-    this->FillFromHistoricalNodalData(Velocity_OldStep1,VELOCITY,r_geometry,1);
-    this->FillFromHistoricalNodalData(Velocity_OldStep2,VELOCITY,r_geometry,2);
-    this->FillFromHistoricalNodalData(MeshVelocity,MESH_VELOCITY,r_geometry);
-    this->FillFromHistoricalNodalData(BodyForce,BODY_FORCE,r_geometry);
-    this->FillFromHistoricalNodalData(Pressure,PRESSURE,r_geometry);
-    this->FillFromHistoricalNodalData(Density,DENSITY,r_geometry);
-    this->FillFromHistoricalNodalData(Pressure_OldStep1,PRESSURE,r_geometry,1);
-    this->FillFromHistoricalNodalData(Pressure_OldStep2,PRESSURE,r_geometry,2);
-    this->FillFromNonHistoricalNodalData(SoundVelocity, SOUND_VELOCITY, r_geometry);
-    this->FillFromProperties(DynamicViscosity,DYNAMIC_VISCOSITY,r_properties); //TODO: This needs to be retrieved from the EffectiveViscosity of the constitutive law
-    this->FillFromProcessInfo(DeltaTime,DELTA_TIME,rProcessInfo);
-    this->FillFromProcessInfo(DynamicTau,DYNAMIC_TAU,rProcessInfo);
+    const auto& r_geometry = rElement.GetGeometry();
+    this->FillFromHistoricalNodalData(Velocity, VELOCITY, r_geometry);
+    this->FillFromHistoricalNodalData(Velocity_OldStep1, VELOCITY, r_geometry,1);
+    this->FillFromHistoricalNodalData(Velocity_OldStep2, VELOCITY, r_geometry,2);
+    this->FillFromHistoricalNodalData(MeshVelocity, MESH_VELOCITY, r_geometry);
+    this->FillFromHistoricalNodalData(BodyForce, BODY_FORCE, r_geometry);
+    this->FillFromHistoricalNodalData(Pressure, PRESSURE, r_geometry);
 
-    const Vector& BDFVector = rProcessInfo[BDF_COEFFICIENTS];
-    bdf0 = BDFVector[0];
-    bdf1 = BDFVector[1];
-    bdf2 = BDFVector[2];
+    const auto& r_properties = rElement.GetProperties();
+    this->FillFromProperties(Density, DENSITY, r_properties);
+    this->FillFromProperties(DynamicViscosity, DYNAMIC_VISCOSITY, r_properties);
+
+    this->FillFromProcessInfo(DeltaTime, DELTA_TIME, rProcessInfo);
+    this->FillFromProcessInfo(DynamicTau, DYNAMIC_TAU, rProcessInfo);
+
+    const auto& r_BDF_vector = rProcessInfo[BDF_COEFFICIENTS];
+    bdf0 = r_BDF_vector[0];
+    bdf1 = r_BDF_vector[1];
+    bdf2 = r_BDF_vector[2];
 
     ElementSize = ElementSizeCalculator<TDim,TNumNodes>::MinimumElementSize(r_geometry);
 
@@ -122,19 +116,19 @@ void UpdateGeometryValues(
     const MatrixRowType& rN,
     const BoundedMatrix<double, TNumNodes, TDim>& rDN_DX) override
 {
-    FluidElementData<TDim,TNumNodes, true>::UpdateGeometryValues(IntegrationPointIndex,NewWeight,rN,rDN_DX);
+    FluidElementData<TDim,TNumNodes,true>::UpdateGeometryValues(IntegrationPointIndex,NewWeight,rN,rDN_DX);
+
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)
 {
-    const Geometry< Node >& r_geometry = rElement.GetGeometry();
-
+    const auto& r_geometry = rElement.GetGeometry();
     for (unsigned int i = 0; i < TNumNodes; i++)
     {
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY,r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY,r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE,r_geometry[i]);
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE,r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(VELOCITY, r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(MESH_VELOCITY, r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(BODY_FORCE, r_geometry[i]);
+        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(PRESSURE, r_geometry[i]);
     }
 
     return 0;
