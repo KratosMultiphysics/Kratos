@@ -94,8 +94,8 @@ if(${INSTALL_TESTING_FILES} MATCHES ON )
     install(DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}/tests DESTINATION applications/${CURRENT_DIR_NAME}
         PATTERN "*.git" EXCLUDE
         PATTERN "*.c" EXCLUDE
-        PATTERN "*.h" EXCLUDE
-        PATTERN "*.cpp" EXCLUDE
+        # PATTERN "*.h" EXCLUDE
+        # PATTERN "*.cpp" EXCLUDE
         PATTERN "*.hpp" EXCLUDE
   )
 endif(${INSTALL_TESTING_FILES} MATCHES ON)
