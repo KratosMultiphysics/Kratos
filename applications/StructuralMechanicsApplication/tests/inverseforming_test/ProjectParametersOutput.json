@@ -1,0 +1,205 @@
+{
+    "analysis_stage": "KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis",
+    "output_processes": {
+        "gid_output": [
+            {
+                "Parameters": {
+                    "model_part_name": "Structure",
+                    "output_name": "gid_output/sphere_small",
+                    "postprocess_parameters": {
+                        "point_data_configuration": [],
+                        "result_file_configuration": {
+                            "additional_list_files": [],
+                            "body_output": true,
+                            "elemental_conditional_flags_results": [],
+                            "file_label": "step",
+                            "flush_after_output": false,
+                            "gauss_point_results": [],
+                            "gidpost_flags": {
+                                "GiDPostMode": "GiD_PostBinary",
+                                "MultiFileFlag": "SingleFile",
+                                "WriteConditionsFlag": "WriteConditions",
+                                "WriteDeformedMeshFlag": "WriteDeformed"
+                            },
+                            "nodal_flags_results": [],
+                            "nodal_nonhistorical_results": [
+                                "NORMAL"
+                            ],
+                            "nodal_results": [
+                                "DISPLACEMENT",
+                                "REACTION"
+                            ],
+                            "node_output": false,
+                            "output_control_type": "step",
+                            "output_interval": 1,
+                            "plane_output": [],
+                            "skin_output": false,
+                            "time_label_format": "{:.12f}"
+                        }
+                    }
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "GiDOutputProcess",
+                "python_module": "gid_output_process"
+            }
+        ],
+        "vtk_output": [
+            {
+                "Parameters": {
+                    "condition_data_value_variables": [],
+                    "condition_flags": [],
+                    "custom_name_postfix": "",
+                    "custom_name_prefix": "",
+                    "element_data_value_variables": [],
+                    "element_flags": [],
+                    "entity_type": "automatic",
+                    "file_format": "ascii",
+                    "gauss_point_variables_extrapolated_to_nodes": [],
+                    "gauss_point_variables_in_elements": [],
+                    "model_part_name": "Structure",
+                    "nodal_data_value_variables": [
+                        "NORMAL"
+                    ],
+                    "nodal_flags": [],
+                    "nodal_solution_step_data_variables": [
+                        "DISPLACEMENT",
+                        "REACTION"
+                    ],
+                    "output_control_type": "step",
+                    "output_interval": 1,
+                    "output_path": "vtk_output",
+                    "output_precision": 7,
+                    "output_sub_model_parts": false,
+                    "save_output_files_in_folder": true,
+                    "write_deformed_configuration": false,
+                    "write_ids": false
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "VtkOutputProcess",
+                "python_module": "vtk_output_process"
+            }
+        ]
+    },
+    "problem_data": {
+        "echo_level": 3,
+        "end_time": 1.0,
+        "parallel_type": "OpenMP",
+        "problem_name": "sphere_small",
+        "start_time": 0.0
+    },
+    "processes": {
+        "constraints_process_list": [
+            {
+                "Parameters": {
+                    "constrained": [
+                        false,
+                        true,
+                        true
+                    ],
+                    "help": "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "local_axes": {},
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.DISPLACEMENT_Displacement_Auto1",
+                    "value": [
+                        null,
+                        0.0,
+                        0.0
+                    ],
+                    "variable_name": "DISPLACEMENT"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "python_module": "assign_vector_variable_process"
+            },
+            {
+                "Parameters": {
+                    "constrained": [
+                        true,
+                        true,
+                        false
+                    ],
+                    "help": "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
+                    "interval": [
+                        0.0,
+                        "End"
+                    ],
+                    "local_axes": {},
+                    "mesh_id": 0,
+                    "model_part_name": "Structure.DISPLACEMENT_Displacement_Auto2",
+                    "value": [
+                        0.0,
+                        0.0,
+                        null
+                    ],
+                    "variable_name": "DISPLACEMENT"
+                },
+                "kratos_module": "KratosMultiphysics",
+                "process_name": "AssignVectorVariableProcess",
+                "python_module": "assign_vector_variable_process"
+            }
+        ],
+        "list_other_processes": []
+    },
+    "solver_settings": {
+        "analysis_type": "non_linear",
+        "auxiliary_dofs_list": [],
+        "auxiliary_reaction_list": [],
+        "auxiliary_variables_list": [],
+        "buffer_size": 2,
+        "builder_and_solver_settings": {
+            "advanced_settings": {
+                "block_builder": true,
+                "diagonal_values_for_dirichlet_dofs": "use_max_diagonal",
+                "echo_level": 1,
+                "name": "block_builder_and_solver",
+                "silent_warnings": false
+            },
+            "use_block_builder": true,
+            "use_lagrange_BS": false
+        },
+        "clear_storage": false,
+        "compute_reactions": true,
+        "computing_sub_model_part_name": "",
+        "convergence_criterion": "residual_criterion",
+        "displacement_absolute_tolerance": 1e-09,
+        "displacement_control": false,
+        "displacement_relative_tolerance": 0.0001,
+        "domain_size": 3,
+        "echo_level": 1,
+        "linear_solver_settings": {},
+        "material_import_settings": {
+            "materials_filename": "StructuralMaterials.json"
+        },
+        "max_iteration": 10,
+        "model_import_settings": {
+            "ignore_variables_not_in_solution_step_data": false,
+            "input_filename": "sphere_small",
+            "input_type": "mdpa",
+            "reorder": false,
+            "reorder_consecutive": false,
+            "skip_timer": true
+        },
+        "model_part_name": "Structure",
+        "move_mesh_flag": true,
+        "multi_point_constraints_used": true,
+        "pressure_dofs": false,
+        "reform_dofs_at_each_step": false,
+        "residual_absolute_tolerance": 1e-09,
+        "residual_relative_tolerance": 0.0001,
+        "rotation_dofs": false,
+        "solver_type": "Static",
+        "solving_strategy_settings": {
+            "advanced_settings": {},
+            "type": "newton_raphson"
+        },
+        "time_stepping": {
+            "time_step": 0.1
+        },
+        "use_old_stiffness_in_first_iteration": false,
+        "volumetric_strain_dofs": false
+    }
+}
