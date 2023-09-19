@@ -134,10 +134,10 @@ class EmpiricalCubatureMethod():
                 ExpandedSetFlag = self.expand_candidates_with_complement()
 
             #Step 1. Compute new point
-            if isinstance(self.y, np.int64) or isinstance(self.y, np.int32):
+            if np.size(self.y)==1:
                 #candidate set consists of a single element
                 indSORT = 0
-                i = self.y
+                i = int(self.y)
             else:
                 ObjFun = self.G[:,self.y].T @ self.r.T
                 ObjFun = ObjFun.T / self.GnormNOONE[self.y]
@@ -156,7 +156,7 @@ class EmpiricalCubatureMethod():
                 self.z = np.r_[self.z,i]
 
             #self.y = np.delete(self.y,indSORT)
-            if isinstance(self.y, np.int64) or isinstance(self.y, np.int32):
+            if np.size(self.y)==1:
                 self.expand_candidates_with_complement()
                 self.y = np.delete(self.y,indSORT)
             else:

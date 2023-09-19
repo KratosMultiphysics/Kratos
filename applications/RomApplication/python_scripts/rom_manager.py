@@ -313,7 +313,7 @@ class RomManager(object):
         simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
         if not simulation.GetHROM_utility().hyper_reduction_element_selector.success:
             #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
-            self.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+            self.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
             self.hyper_reduction_element_selector.Run()
         simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
         simulation.GetHROM_utility().CreateHRomModelParts()
