@@ -309,8 +309,12 @@ class RomManager(object):
             self._StoreSnapshotsMatrix('residuals_projected',RedidualsSnapshotsMatrix)
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
         self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
-        simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u)
+        simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = simulation.GetHROM_utility().candidate_ids)
         simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
+        if not simulation.GetHROM_utility().hyper_reduction_element_selector.success:
+            #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
+            self.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+            self.hyper_reduction_element_selector.Run()
         simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
         simulation.GetHROM_utility().CreateHRomModelParts()
 
@@ -482,6 +486,16 @@ class RomManager(object):
             simulation.Run()
 
 
+    def _AddHromParametersToRomParameters(self,f):
+        f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
+        f["hrom_settings"]["element_selection_type"] = self.general_rom_manager_parameters["HROM"]["element_selection_type"].GetString()
+        f["hrom_settings"]["element_selection_svd_truncation_tolerance"] = self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
+        f["hrom_settings"]["create_hrom_visualization_model_part"] = self.general_rom_manager_parameters["HROM"]["create_hrom_visualization_model_part"].GetBool()
+        f["hrom_settings"]["echo_level"] = self.general_rom_manager_parameters["HROM"]["echo_level"].GetInt()
+        f["hrom_settings"]["include_condition_parents"] = self.general_rom_manager_parameters["HROM"]["include_condition_parents"].GetBool()
+        f["hrom_settings"]["initial_candidate_elements_model_part_list"] = self.general_rom_manager_parameters["HROM"]["initial_candidate_elements_model_part_list"].GetStringArray()
+        f["hrom_settings"]["initial_candidate_conditions_model_part_list"] = self.general_rom_manager_parameters["HROM"]["initial_candidate_conditions_model_part_list"].GetStringArray()
+
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
         """
         This method updates the Flags present in the RomParameters.json file
@@ -500,6 +514,7 @@ class RomManager(object):
         with parameters_file_path.open('r+') as parameter_file:
             f=json.load(parameter_file)
             f['assembling_strategy'] = self.general_rom_manager_parameters['assembling_strategy'].GetString() if self.general_rom_manager_parameters.Has('assembling_strategy') else 'global'
+            self._AddHromParametersToRomParameters(f)
             if simulation_to_run=='GalerkinROM':
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
@@ -663,10 +678,19 @@ class RomManager(object):
 
     def _GetDefaulHromTrainingParameters(self):
         hrom_training_parameters = KratosMultiphysics.Parameters("""{
+                "hrom_format": "numpy",
                 "element_selection_type": "empirical_cubature",
-                "element_selection_svd_truncation_tolerance": 0,
+                "element_selection_svd_truncation_tolerance": 1.0e-6,
                 "echo_level" : 0,
-                "create_hrom_visualization_model_part" : true
+                "create_hrom_visualization_model_part" : true,
+                "projection_strategy": "galerkin",
+                "include_conditions_model_parts_list": [],
+                "include_elements_model_parts_list": [],
+                "initial_candidate_elements_model_part_list" : [],
+                "initial_candidate_conditions_model_part_list" : [],
+                "include_nodal_neighbouring_elements_model_parts_list":[],
+                "include_minimum_condition": false,
+                "include_condition_parents": false
             }""")
         return hrom_training_parameters
 
