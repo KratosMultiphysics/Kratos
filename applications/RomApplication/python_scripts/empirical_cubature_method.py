@@ -115,7 +115,7 @@ class EmpiricalCubatureMethod():
         self.Calculate()
 
     def expand_candidates_with_complement(self):
-        self.y = np.union1d(self.y, self.y_complement)
+        self.y = np.r_[self.y,self.y_complement]
         print('expanding set to include the complement...')
         ExpandedSetFlag = True
         return ExpandedSetFlag
