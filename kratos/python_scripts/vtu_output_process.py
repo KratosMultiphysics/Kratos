@@ -33,7 +33,7 @@ class VtuOutputProcess(Kratos.OutputProcess):
 
         }""")
 
-    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters):
+    def __init__(self, model: Kratos.Model, parameters: Kratos.Parameters) -> None:
         super().__init__()
 
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
@@ -71,15 +71,7 @@ class VtuOutputProcess(Kratos.OutputProcess):
 
         self.vtu_output_ios: 'list[Kratos.VtuOutput]' = []
 
-        output_control_type = parameters["output_control_type"].GetString()
-        if output_control_type == "time":
-            self.output_control_variable = Kratos.TIME
-            self.output_control_utility = Kratos.DoubleFixedIntervalRecurringEventUtility(self.model_part.ProcessInfo[self.output_control_variable], parameters["output_interval"].GetDouble())
-        elif output_control_type == "step":
-            self.output_control_variable = Kratos.STEP
-            self.output_control_utility = Kratos.IntegerFixedIntervalRecurringEventUtility(self.model_part.ProcessInfo[self.output_control_variable], parameters["output_interval"].GetInt())
-        else:
-            raise RuntimeError(f"Unsupported output control type = \"{output_control_type}\" requested. Supported control types are:\n\ttime\n\tstep")
+        self.__controller = Kratos.OutputController(model, parameters)
 
     def ExecuteInitialize(self) -> None:
         # check and create all the vtu outputs
@@ -93,16 +85,15 @@ class VtuOutputProcess(Kratos.OutputProcess):
             self.__AddData(vtu_output_io)
 
     def PrintOutput(self) -> None:
-        current_control_value = self.model_part.ProcessInfo[self.output_control_variable]
-        current_suffix = str(current_control_value)
+        current_suffix = self.__controller.GetCurrentControlValue()
 
         for vtu_output in self.vtu_output_ios:
             vtu_output.PrintOutput(str(self.output_path / vtu_output.GetModelPart().FullName()) + "_" + current_suffix)
 
-        self.output_control_utility.ScheduleNextEvent(current_control_value)
+        self.__controller.Update()
 
     def IsOutputStep(self) -> bool:
-        return self.output_control_utility.IsEventExpected(self.model_part.ProcessInfo[self.output_control_variable])
+        return self.__controller.Evaluate()
 
     def __AddData(self, vtu_output_io: Kratos.VtuOutput) -> None:
         for variable in self.nodal_solution_step_data_variables:

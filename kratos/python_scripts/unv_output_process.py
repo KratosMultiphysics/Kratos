@@ -2,7 +2,9 @@ import KratosMultiphysics
 from KratosMultiphysics import kratos_utilities
 from  KratosMultiphysics.deprecation_management import DeprecationManager
 
-def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model):
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object, encapsulating a json string")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     if not isinstance(model, KratosMultiphysics.Model):
@@ -10,9 +12,10 @@ def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.M
 
     return UnvOutputProcess(model, settings["Parameters"])
 
-class UnvOutputProcess(KratosMultiphysics.Process):
-    def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters ):
-        KratosMultiphysics.Process.__init__(self)
+
+class UnvOutputProcess(KratosMultiphysics.OutputProcess):
+    def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
+        KratosMultiphysics.OutputProcess.__init__(self)
 
         # IMPORTANT: when "output_control_type" is "time",
         # then paraview will not be able to group them
@@ -48,18 +51,10 @@ class UnvOutputProcess(KratosMultiphysics.Process):
         self.unv_io.InitializeMesh()
         self.unv_io.WriteMesh()
 
-        output_control_type = settings["output_control_type"].GetString()
-        if output_control_type == "time":
-            self.output_control_variable = KratosMultiphysics.TIME
-            self.output_control_utility = KratosMultiphysics.DoubleFixedIntervalRecurringEventUtility(self.model_part.ProcessInfo[self.output_control_variable], settings["output_interval"].GetDouble())
-        elif output_control_type == "step":
-            self.output_control_variable = KratosMultiphysics.STEP
-            self.output_control_utility = KratosMultiphysics.IntegerFixedIntervalRecurringEventUtility(self.model_part.ProcessInfo[self.output_control_variable], settings["output_interval"].GetInt())
-        else:
-            raise RuntimeError(f"Unsupported output control type = \"{output_control_type}\" requested. Supported control types are:\n\ttime\n\tstep")
+        self.controller = KratosMultiphysics.OutputController(model, settings)
 
     # This function can be extended with new deprecated variables as they are generated
-    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings: KratosMultiphysics.Parameters) -> None:
 
         context_string = type(self).__name__
 
@@ -69,14 +64,15 @@ class UnvOutputProcess(KratosMultiphysics.Process):
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
-    def ExecuteInitialize(self):
+    def ExecuteInitialize(self) -> None:
         self.nodal_variables = kratos_utilities.GenerateVariableListFromInput(self.settings["nodal_results"])
 
-    def PrintOutput(self):
-        current_control_value = self.model_part.ProcessInfo[self.output_control_variable]
+    def PrintOutput(self) -> None:
         for variable in self.nodal_variables:
-            self.unv_io.PrintOutput(variable, current_control_value)
-        self.output_control_utility.ScheduleNextEvent(current_control_value)
+            self.unv_io.PrintOutput(variable, self.controller.GetCurrentControlValue())
 
-    def IsOutputStep(self):
-        return self.output_control_utility.IsEventExpected(self.model_part.ProcessInfo[self.output_control_variable])
+        # Schedule next output
+        self.controller.Update()
+
+    def IsOutputStep(self) -> bool:
+        return self.controller.Evaluate()

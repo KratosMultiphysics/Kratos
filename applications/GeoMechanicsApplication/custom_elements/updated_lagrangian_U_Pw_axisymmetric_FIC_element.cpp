@@ -46,7 +46,6 @@ void UPwUpdatedLagrangianAxisymmetricFICElement<TDim,TNumNodes>::
                      const Vector& Np)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-UPwUpdatedLagrangianAxisymmetricFICElement::CalculateBMatrix()") << std::endl;
 
     const double radius = GeoElementUtilities::CalculateRadius(Np, this->GetGeometry());
 

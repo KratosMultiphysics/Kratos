@@ -2,7 +2,9 @@ import KratosMultiphysics
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from  KratosMultiphysics.deprecation_management import DeprecationManager
 
-def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model):
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object, encapsulating a json string")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     if not isinstance(model, KratosMultiphysics.Model):
@@ -11,8 +13,8 @@ def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.M
     return VtkOutputProcess(model, settings["Parameters"])
 
 class VtkOutputProcess(KratosMultiphysics.OutputProcess):
-    def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters):
-        super().__init__()
+    def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
+        KratosMultiphysics.OutputProcess.__init__(self)
 
         model_part_name = settings["model_part_name"].GetString()
         self.model_part = model[model_part_name]
@@ -35,18 +37,10 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
                     kratos_utils.DeleteDirectoryIfExisting(output_path)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
-        output_control_type = settings["output_control_type"].GetString()
-        if output_control_type == "time":
-            self.output_control_variable = KratosMultiphysics.TIME
-            self.output_control_utility = KratosMultiphysics.DoubleFixedIntervalRecurringEventUtility(self.model_part.ProcessInfo[self.output_control_variable], settings["output_interval"].GetDouble())
-        elif output_control_type == "step":
-            self.output_control_variable = KratosMultiphysics.STEP
-            self.output_control_utility = KratosMultiphysics.IntegerFixedIntervalRecurringEventUtility(self.model_part.ProcessInfo[self.output_control_variable], settings["output_interval"].GetInt())
-        else:
-            raise RuntimeError(f"Unsupported output control type = \"{output_control_type}\" requested. Supported control types are:\n\ttime\n\tstep")
+        self.__controller = KratosMultiphysics.OutputController(model, settings)
 
     # This function can be extended with new deprecated variables as they are generated
-    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings: KratosMultiphysics.Parameters) -> None:
         # Defining a string to help the user understand where the warnings come from (in case any is thrown)
         context_string = type(self).__name__
 
@@ -68,10 +62,12 @@ class VtkOutputProcess(KratosMultiphysics.OutputProcess):
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
-    def PrintOutput(self):
+    def Check(self) -> int:
+        return self.__controller.Check()
+
+    def PrintOutput(self) -> None:
         self.vtk_io.PrintOutput()
-        self.output_control_utility.ScheduleNextEvent(self.model_part.ProcessInfo[self.output_control_variable])
+        self.__controller.Update()
 
-    def IsOutputStep(self):
-        return self.output_control_utility.IsEventExpected(self.model_part.ProcessInfo[self.output_control_variable])
-
+    def IsOutputStep(self) -> bool:
+        return self.__controller.Evaluate()

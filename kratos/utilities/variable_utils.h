@@ -1557,14 +1557,14 @@ public:
     /// @param rEntity @ref Node, @ref Element, @ref Condition, @ref ProcessInfo, or @ref ModelPart to fetch data from.
     /// @param rVariable @ref Variable to fetch the value of.
     template <Globals::DataLocation TLocation, class TEntity, class TValue>
-    static std::conditional_t<std::is_integral_v<TValue> || std::is_floating_point_v<TValue>,
+    static std::conditional_t<std::is_arithmetic_v<TValue>,
                               TValue,             // <== return by value if scalar type
                               const TValue&>      // <== return by reference if non-scalar type
     GetValue(const TEntity& rEntity, const Variable<TValue>& rVariable)
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
             static_assert(std::is_same_v<TEntity,Node>);
-            return rEntity.GetSolutionStepValue(rVariable);
+            return rEntity.FastGetSolutionStepValue(rVariable);
         } else if constexpr (TLocation == Globals::DataLocation::NodeNonHistorical) {
             static_assert(std::is_same_v<TEntity,Node>);
             return rEntity.GetValue(rVariable);
@@ -1593,7 +1593,7 @@ public:
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
             static_assert(std::is_same_v<TEntity,Node>);
-            return rEntity.GetSolutionStepValue(rVariable);
+            return rEntity.FastGetSolutionStepValue(rVariable);
         } else if constexpr (TLocation == Globals::DataLocation::NodeNonHistorical) {
             static_assert(std::is_same_v<TEntity,Node>);
             return rEntity.GetValue(rVariable);
@@ -1621,13 +1621,13 @@ public:
     template <Globals::DataLocation TLocation, class TEntity, class TValue>
     static void SetValue(TEntity& rEntity,
                          const Variable<TValue>& rVariable,
-                         std::conditional_t<std::is_integral_v<TValue> || std::is_floating_point_v<TValue>,
+                         std::conditional_t<std::is_arithmetic_v<TValue>,
                                             TValue,         /*pass scalar types by value*/
                                             const TValue&>  /*pass non-scalar types by reference*/ Value)
     {
         if constexpr (TLocation == Globals::DataLocation::NodeHistorical) {
             static_assert(std::is_same_v<TEntity,Node>);
-            rEntity.GetSolutionStepValue(rVariable) = Value;
+            rEntity.FastGetSolutionStepValue(rVariable) = Value;
         } else if constexpr (TLocation == Globals::DataLocation::NodeNonHistorical) {
             static_assert(std::is_same_v<TEntity,Node>);
             rEntity.SetValue(rVariable, Value);

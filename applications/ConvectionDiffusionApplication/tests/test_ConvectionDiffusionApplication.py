@@ -20,6 +20,7 @@ from convection_diffusion_test_factory import BasicConvectionDiffusionTransientT
 from convection_diffusion_test_factory import BasicConvectionDiffusionTransientSemiImplicitTest as TBasicConvectionDiffusionTransientSemiImplicitTest
 from convection_diffusion_test_factory import BasicDiffusionStationaryTest as TBasicDiffusionStationaryTest
 from convection_diffusion_test_factory import SimpleThermoMechanicalTest as TSimpleThermoMechanicalTest
+from convection_diffusion_test_factory import SimpleThermoMechanicalTableAccessorTest as TSimpleThermoMechanicalTableAccessorTest
 from test_convection_diffusion_bar import TestConvectionDiffusionBar
 from test_convection_diffusion_embedded_solver import TestEmbeddedSolver
 
@@ -61,6 +62,7 @@ def AssembleTestSuites():
     smallSuite.addTest(TBasicConvectionDiffusionTransientSemiImplicitTest('test_execution'))
     smallSuite.addTest(TBasicDiffusionStationaryTest('test_execution'))
     smallSuite.addTest(TSimpleThermoMechanicalTest('test_execution'))
+    smallSuite.addTest(TSimpleThermoMechanicalTableAccessorTest('test_execution'))
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarSemiImplicit'))
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyDOSS'))
     smallSuite.addTest(TestConvectionDiffusionBar('testConvectionDiffusionBarExplicitElementUnsteadyQOSS'))

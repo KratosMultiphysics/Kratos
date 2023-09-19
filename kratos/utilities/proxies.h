@@ -49,7 +49,7 @@ class ContainerProxy;
  *  @throws if member functions of a default constructed instance are called.
  */
 template <Globals::DataLocation TLocation, bool TMutable>
-class KRATOS_API(KRATOS_CORE) EntityProxy
+class EntityProxy
 {
 private:
     constexpr static Globals::DataLocation Location = TLocation;
@@ -88,10 +88,8 @@ private:
     friend class ContainerProxy<EntityProxy>;
 
 public:
-    /// @brief Default constructor that leaves the instance in an invalid state.
-    /// @throws if any member function is called without reassigning this instance
-    ///         with a valid one.
-    EntityProxy() noexcept = default;
+    /// @brief Delete the default constructor to prevent storing nullptr.
+    EntityProxy() = delete;
 
     /// @brief Constructor creating a valid proxy, wrapping the input entity.
     /// @param rEntity Entity that will be accessed when member functions are called.
@@ -103,7 +101,7 @@ public:
     template <class TValue>
     bool HasValue(const Variable<TValue>& rVariable) const noexcept
     {
-        return VariableUtils::HasValue<TLocation>(*mpEntity.value(), rVariable);
+        return VariableUtils::HasValue<TLocation>(*mpEntity, rVariable);
     }
 
     /// @brief Fetch the value corresponding to the input variable in the wrapped entity.
@@ -113,14 +111,14 @@ public:
                        const TValue&>    // <== return by reference in non-scalar type
     GetValue(const Variable<TValue>& rVariable) const
     {
-        return VariableUtils::GetValue<TLocation>(*mpEntity.value(), rVariable);
+        return VariableUtils::GetValue<TLocation>(*mpEntity, rVariable);
     }
 
     /// @brief Fetch the value corresponding to the input variable in the wrapped entity.
     template <class TValue, std::enable_if_t</*this is required for SFINAE*/!std::is_same_v<TValue,void> && TMutable,bool> = true>
     TValue& GetValue(const Variable<TValue>& rVariable)
     {
-        return VariableUtils::GetValue<TLocation>(*mpEntity.value(), rVariable);
+        return VariableUtils::GetValue<TLocation>(*mpEntity, rVariable);
     }
 
     /// @brief Overwrite the value corresponding to the input variable in the wrapped entity.
@@ -130,23 +128,23 @@ public:
                                      TValue,         /*pass scalar types by value*/
                                      const TValue&>  /*pass non-scalar types by reference*/ Value)
     {
-        VariableUtils::SetValue<TLocation>(*mpEntity.value(), rVariable, Value);
+        VariableUtils::SetValue<TLocation>(*mpEntity, rVariable, Value);
     }
 
     /// @brief Immutable access to the wrapped entity.
     const UnqualifiedEntity& GetEntity() const
     {
-        return *mpEntity.value();
+        return *mpEntity;
     }
 
     /// @brief Mutable or immutable access to the wrapped entity, depending on @a TMutable.
     QualifiedEntity& GetEntity()
     {
-        return *mpEntity.value();
+        return *mpEntity;
     }
 
 private:
-    std::optional<QualifiedEntity*> mpEntity;
+    QualifiedEntity* mpEntity;
 }; // class EntityProxy
 
 
@@ -160,7 +158,7 @@ private:
  *         - a @ref Condition (@ref Globals::DataLocation::Condition)
  */
 template <class TEntityProxy>
-class KRATOS_API(KRATOS_CORE) ContainerProxy
+class ContainerProxy
 {
 private:
     using UnqualifiedContainer = std::conditional_t<
