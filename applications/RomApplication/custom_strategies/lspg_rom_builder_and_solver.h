@@ -114,6 +114,8 @@ public:
     /// DoF types definition
     using NodeType = Node;
 
+    // Bring the base class function into scope
+    using BaseType::ProjectROM;
 
     ///@}
     ///@name Life cycle
@@ -336,7 +338,7 @@ public:
         TSystemMatrixType &rA,
         TSystemVectorType &rb,
         TSystemMatrixType &rAComp
-        ) override
+        )
     {
         KRATOS_TRY
 
