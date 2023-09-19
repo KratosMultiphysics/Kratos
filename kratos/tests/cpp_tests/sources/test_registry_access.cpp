@@ -44,7 +44,7 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryItemGetValueDerivedasDerived, KratosCoreFastSu
 {
     auto pProcess = Registry::GetValueAs<Process, OutputProcess>("Processes.KratosMultiphysics.OutputProcess.Prototype");
 
-    KRATOS_EXPECT_TRUE((std::is_base_of<OutputProcess,decltype(pProcess)>::value))
+    KRATOS_EXPECT_TRUE((std::is_same<OutputProcess,decltype(pProcess)>::value))
 }
 
 }  // namespace Kratos::Testing.
