@@ -336,7 +336,7 @@ public:
         TSystemMatrixType &rA,
         TSystemVectorType &rb,
         TSystemMatrixType &rAComp
-        )
+        ) override
     {
         KRATOS_TRY
 
