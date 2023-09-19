@@ -169,11 +169,11 @@ public:
         const std::map<IndexType, double>& rHRomConditionWeights);
 
 
-    std::vector<IndexType> GetElementIdsInModelPart(
+    static std::vector<IndexType> GetElementIdsInModelPart(
         const ModelPart& rModelPart
     );
 
-    std::vector<IndexType> GetConditionIdsInModelPart(
+    static std::vector<IndexType> GetConditionIdsInModelPart(
         const ModelPart& rModelPart
     );
 
