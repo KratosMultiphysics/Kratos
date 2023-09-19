@@ -78,6 +78,8 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::Initialize(const
 
     // We get the unkown variable
     const std::string r_variable_name = GetProperties().Has(TYING_VARIABLE) ? GetProperties().GetValue(TYING_VARIABLE) : "DISPLACEMENT";
+    mpDoFVariables.clear();
+    mpLMVariables.clear();
     if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
         mpDoFVariables.push_back(&KratosComponents<Variable<double>>::Get(r_variable_name));
         mpLMVariables.push_back(&SCALAR_LAGRANGE_MULTIPLIER);
@@ -548,10 +550,10 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLH
     const IndexType initial_column_index = dof_size * (TNumNodes + TNumNodesMaster);
 
     // Iterate over the number of dofs on master side
-    for (IndexType i = 0; i < dof_size; ++i) {
-        for (IndexType j = 0; j < TNumNodesMaster; ++j) {
-            for (IndexType k = 0; k < TNumNodes; ++k) {
-                const double value = - scale_factor * r_MOperator(k, j);
+    for (IndexType j = 0; j < TNumNodesMaster; ++j) {
+        for (IndexType k = 0; k < TNumNodes; ++k) {
+            const double value = - scale_factor * r_MOperator(k, j);
+            for (IndexType i = 0; i < dof_size; ++i) {
                 rLocalLHS(initial_row_index + j * dof_size + i, initial_column_index + k * dof_size + i) = value;
                 rLocalLHS(initial_column_index + k * dof_size + i, initial_row_index + j * dof_size + i) = value;
             }
@@ -562,10 +564,10 @@ void MeshTyingMortarCondition<TDim,TNumNodes, TNumNodesMaster>::CalculateLocalLH
     initial_row_index = dof_size * TNumNodesMaster;
 
     // Iterate over the number of dofs on slave side
-    for (IndexType i = 0; i < dof_size; ++i) {
-        for (IndexType j = 0; j < TNumNodes; ++j) {
-            for (IndexType k = 0; k < TNumNodes; ++k) {
-                const double value = scale_factor * r_DOperator(k, j);
+    for (IndexType j = 0; j < TNumNodes; ++j) {
+        for (IndexType k = 0; k < TNumNodes; ++k) {
+            const double value = scale_factor * r_DOperator(k, j);
+            for (IndexType i = 0; i < dof_size; ++i) {
                 rLocalLHS(initial_row_index + j * dof_size + i, initial_column_index + k * dof_size + i) = value;
                 rLocalLHS(initial_column_index + k * dof_size + i, initial_row_index + j * dof_size + i) = value;
             }

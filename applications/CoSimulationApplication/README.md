@@ -2,25 +2,26 @@
 
 The CoSimulation Application contains the core developments in coupling black-box solvers and other software-tools within Kratos Multiphysics.
 
-
 <a name="overview"></a>
 
 
 ## Overview
-
-- [List of features](#list-of-features)
-- [Dependencies](#dependencies)
-- [Examples](#examples)
-- [User Guide](#user-guide)
-  - [Setting up a coupled simulation](#user-guide-setting-up-a-coupled-simulation)
-  - [The JSON configuration file](#user-guide-the-json-configuration-file)
-  - [Basic FSI example](#user-guide-basic-fsi-example)
-- [Developer Guide](#developer-guide)
-  - [Structure of the Application](#developer-guide_structure-of-the-application)
-  - [How to couple a new solver / software-tool?](#developer-guide_how-to-couple-a-new-solver--software-tool)
-  - [Using a solver in MPI](#developer-guide_using-a-solver-in-mpi)
-- [References](#references)
-
+- [CoSimulation Application](#cosimulation-application)
+  - [Overview](#overview)
+  - [List of features](#list-of-features)
+  - [Dependencies](#dependencies)
+  - [Examples](#examples)
+  - [User Guide](#user-guide)
+    - [Setting up a coupled simulation](#setting-up-a-coupled-simulation)
+    - [The JSON configuration file](#the-json-configuration-file)
+    - [Basic FSI example](#basic-fsi-example)
+  - [Developer Guide](#developer-guide)
+    - [Structure of the Application](#structure-of-the-application)
+    - [How to couple a new solver / software-tool?](#how-to-couple-a-new-solver--software-tool)
+      - [Interface of SolverWrapper](#interface-of-solverwrapper)
+      - [Remote controlled CoSimulation](#remote-controlled-cosimulation)
+    - [Using a solver in MPI](#using-a-solver-in-mpi)
+  - [References](#references)
 
 <a name="list-of-features"></a>
 
@@ -271,7 +272,7 @@ This example is the Wall FSI benchmark, see [1], chapter 7.5.3. The Kratos solve
 
 The _CoSimulationApplication_ consists of the following main components (taken from [2]):
 - **SolverWrapper**: Baseclass and CoSimulationApplication-interface for all solvers/codes participating in the coupled simulation, each solver/code has its own specific version.
-- **CoupledSolver**: Implements coupling schemes such as weak/strong coupling with Gauss-Seidel/Jacobi pattern. It derives from SolverWrapper such that it can beused in nested coupled simulations.
+- **CoupledSolver**: Implements coupling schemes such as weak/strong coupling with *Gauss-Seidel/Jacobi* pattern. It derives from SolverWrapper such that it can beused in nested coupled simulations.
 - **IO**: Responsible for communicating and data exchange with external solvers/codes
 - **DataTransferOperator**: Transfers data from one discretization to another, e.g. by use of mapping techniques
 - **CouplingOperation**: Tool for customizing coupled simulations
@@ -297,7 +298,7 @@ The _CoSimulationApplication_ is very modular and designed to be extended to cou
 
 The interface between the _CoSimulationApplication_ and a solver is done with the [**SolverWrapper**](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/CoSimulationApplication/python_scripts/base_classes/co_simulation_solver_wrapper.py). This wrapper is specific to every solver and calls the solver-custom methods based on the input of CoSimulation.
 
-The second component necessary is an [**IO**](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/CoSimulationApplication/python_scripts/base_classes/co_simulation_io.py). This component is used by the SolverWrapper and is responsible for the exchange of data (e.g. mesh, field-quantities, geomety etc) between the solver and the _CoSimulationApplication_.
+The second component necessary is an [**IO**](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/CoSimulationApplication/python_scripts/base_classes/co_simulation_io.py). This component is used by the SolverWrapper and is responsible for the exchange of data (e.g. mesh, field-quantities, geometry etc) between the solver and the _CoSimulationApplication_.
 
 In principle three different options are possible for exchanging data with CoSimulation:
 
@@ -351,7 +352,7 @@ while time < end_time:
 
 An example for an FSI problem where the structural solver of Kratos is used as an external solver can be found [here](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/CoSimulationApplication/tests/structural_mechanics_analysis_with_co_sim_io.py). The _CoSimIO_ is used for communicating between the _CoSimulationApplication_ and the structural solver
 
-While this approach is commonly used, it has the significant drawback that the coupling sequence has to be duplicated, which not only has the potential for bugs and deadlocks but also severly limits the useability when it comes to trying different coupling algorithms. Then not only the input for the _CoSimulationApplication_ has to be changed but also the source code in the external solver!
+While this approach is commonly used, it has the significant drawback that the coupling sequence has to be duplicated, which not only has the potential for bugs and deadlocks but also severely limits the useability when it comes to trying different coupling algorithms. Then not only the input for the _CoSimulationApplication_ has to be changed but also the source code in the external solver!
 
 Hence a better solution is proposed in the next section:
 
@@ -453,13 +454,11 @@ Nevertheless both approaches are possible with the _CoSimulationApplication_.
 ### Using a solver in MPI
 By default, each _SolverWrapper_ makes use of all ranks in MPI. This can be changed if e.g. the solver that is wrapped by the _SolverWrapper_ does not support MPI or to specify to use less rank.
 
-The base _SolverWrapper_ provides the `_GetDataCommunicator` funciton for this purpose. In the baseclass, the default _DataCommunicator_ (which contains all ranks in MPI) is returned. The _SolverWrapper_ will be instantiated on all the ranks on which this _DataCommunicator_ is defined (i.e. on the ranks where `data_communicator.IsDefinedOnThisRank() == True`).
+The base _SolverWrapper_ provides the `_GetDataCommunicator` function for this purpose. In the baseclass, the default _DataCommunicator_ (which contains all ranks in MPI) is returned. The _SolverWrapper_ will be instantiated on all the ranks on which this _DataCommunicator_ is defined (i.e. on the ranks where `data_communicator.IsDefinedOnThisRank() == True`).
 
 If a solver does not support MPI-parallelism then it can only run on one rank. In such cases it should return a _DataCommunicator_ which contains only one rank. For this purpose the function `KratosMultiphysics.CoSimulationApplication.utilities.data_communicator_utilities.GetRankZeroDataCommunicator` can be used. Other custom solutions are also possible, see for example the [structural_solver_wrapper](https://github.com/KratosMultiphysics/Kratos/blob/master/applications/CoSimulationApplication/python_scripts/solver_wrappers/kratos/structural_mechanics_wrapper.py).
 
-
 <a name="references"></a>
-
 
 ## References
 

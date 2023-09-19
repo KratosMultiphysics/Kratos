@@ -14,7 +14,7 @@
 // Project includes
 #include "containers/model.h"
 #include "geometries/quadrilateral_2d_4.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "linear_solvers/linear_solver.h"
 #include "processes/structured_mesh_generator_process.h"
 #include "processes/calculate_distance_to_skin_process.h"
@@ -92,7 +92,7 @@ namespace Testing {
         std::vector<double> expected_values = {0.883925, 1.42073, 1.69546, 2.57927, 3.11607, 3.47553};
         for (std::size_t i_node = 0; i_node < check_nodes_ids.size(); ++i_node) {
             const auto p_node = surface_part.pGetNode(check_nodes_ids[i_node]);
-            KRATOS_CHECK_NEAR(p_node->FastGetSolutionStepValue(TEMPERATURE), expected_values[i_node], 1e-5);
+            KRATOS_EXPECT_NEAR(p_node->FastGetSolutionStepValue(TEMPERATURE), expected_values[i_node], 1e-5);
         }
     }
 
@@ -157,8 +157,8 @@ namespace Testing {
         const std::vector<double> expected_values_y = {0.539057, -0.416819, 0.132631, -0.416819, 0.539057, 1.72279};
         for (std::size_t i_node = 0; i_node < check_nodes_ids.size(); ++i_node) {
             const auto p_node = surface_part.pGetNode(check_nodes_ids[i_node]);
-            KRATOS_CHECK_NEAR(p_node->FastGetSolutionStepValue(DISPLACEMENT_X), expected_values_x[i_node], 1e-5);
-            KRATOS_CHECK_NEAR(p_node->FastGetSolutionStepValue(DISPLACEMENT_Y), expected_values_y[i_node], 1e-5);
+            KRATOS_EXPECT_NEAR(p_node->FastGetSolutionStepValue(DISPLACEMENT_X), expected_values_x[i_node], 1e-5);
+            KRATOS_EXPECT_NEAR(p_node->FastGetSolutionStepValue(DISPLACEMENT_Y), expected_values_y[i_node], 1e-5);
         }
     }
 
