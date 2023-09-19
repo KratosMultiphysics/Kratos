@@ -63,6 +63,17 @@ class AnalysisStage(object):
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
+
+            ##########################################################
+            modelcoord = []
+            print("/n ::TESTING:: START Calculate normals /n")
+            normal_calculation_utils = KratosMultiphysics.NormalCalculationUtils()
+            normal_calculation_utils.CalculateUnitNormalsNonHistorical(self._GetSolver().GetComputingModelPart(), 0)
+            for node in self._GetSolver().GetComputingModelPart().Nodes:
+                normal = node.GetValue(KratosMultiphysics.NORMAL)
+                print(node.Id, normal)
+            print("/n ::TESTING:: FINISH Calculate normals /n")
+            
             self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
