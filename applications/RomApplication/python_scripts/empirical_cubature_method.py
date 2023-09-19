@@ -77,6 +77,7 @@ class EmpiricalCubatureMethod():
             self.G = np.vstack([ self.G , projection_of_constant_vector_conditions ] )
             self.add_constrain_count = -2
         self.b = self.G @ self.W
+        self.UnsuccesfulIterations = 0
 
     def Initialize(self):
         """
@@ -127,6 +128,9 @@ class EmpiricalCubatureMethod():
         ExpandedSetFlag = False
         k = 1 # number of iterations
         while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and len(self.y) != 0:
+
+            if  self.UnsuccesfulIterations >  self.MaximumNumberUnsuccesfulIterations and not ExpandedSetFlag:
+                ExpandedSetFlag = self.expand_candidates_with_complement()
 
             #Step 1. Compute new point
             if isinstance(self.y, np.int64) or isinstance(self.y, np.int32):
