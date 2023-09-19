@@ -125,7 +125,10 @@ class HRomTrainingUtility(object):
         n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
         self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
         self.hyper_reduction_element_selector.Run()
-
+        if not self.hyper_reduction_element_selector.success:
+            #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
+            self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = None, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+            self.hyper_reduction_element_selector.Run()
         # Save the HROM weights in the RomParameters.json
         # Note that in here we are assuming this naming convention for the ROM json file
         self.AppendHRomWeightsToRomParameters()
