@@ -27,13 +27,13 @@
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
-#include "mpi/utilities/mpi_cpp_test_utilities.h"
+#include "mpi/tests/test_utilities/mpi_cpp_test_utilities.h"
 
 /* Element include */
 #include "geometries/line_2d_2.h"
 #include "geometries/triangle_2d_3.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_bar_element.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
+#include "tests/test_utilities/test_bar_element.h"
+#include "tests/test_utilities/test_element.h"
 
 /* Linear solvers */
 #include "linear_solvers/linear_solver.h"
@@ -473,12 +473,12 @@ namespace Kratos::Testing
 
         // Fill model part
         MPICppTestUtilities::GenerateDistributedBarStructure(rModelPart, rDataCommunicator);
-   
+
         // Create properties
         auto p_prop = rModelPart.pGetProperties(1, 0);
         p_prop->SetValue(YOUNG_MODULUS, 206900000000.0);
         p_prop->SetValue(NODAL_AREA, 0.01);
-      
+
         /// Add dof
         for (auto& r_node : rModelPart.Nodes()) {
             r_node.AddDof(DISPLACEMENT_X, REACTION_X);
@@ -656,9 +656,9 @@ namespace Kratos::Testing
         // DebugLHS(rA);
 
         // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 6);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 6);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 28);
+        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 6);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 6);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 28);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 2, 3, 4, 4, 5};
@@ -678,9 +678,9 @@ namespace Kratos::Testing
         // // To create the solution of reference
         // DebugLHS(rA_scale);
 
-        KRATOS_CHECK_EQUAL(rA_scale.NumGlobalRows(), 6);
-        KRATOS_CHECK_EQUAL(rA_scale.NumGlobalCols(), 6);
-        KRATOS_CHECK_EQUAL(rA_scale.NumGlobalNonzeros(), 28);
+        KRATOS_EXPECT_EQ(rA_scale.NumGlobalRows(), 6);
+        KRATOS_EXPECT_EQ(rA_scale.NumGlobalCols(), 6);
+        KRATOS_EXPECT_EQ(rA_scale.NumGlobalNonzeros(), 28);
 
         // Values to check
         row_indexes = {0, 1, 2, 2, 3, 4, 4, 5};
@@ -728,9 +728,9 @@ namespace Kratos::Testing
         // DebugLHS(rA);
 
         // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 6);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 6);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 28);
+        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 6);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 6);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 28);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5};
@@ -750,9 +750,9 @@ namespace Kratos::Testing
         // // To create the solution of reference
         // DebugLHS(rA_scale);
 
-        KRATOS_CHECK_EQUAL(rA_scale.NumGlobalRows(), 6);
-        KRATOS_CHECK_EQUAL(rA_scale.NumGlobalCols(), 6);
-        KRATOS_CHECK_EQUAL(rA_scale.NumGlobalNonzeros(), 28);
+        KRATOS_EXPECT_EQ(rA_scale.NumGlobalRows(), 6);
+        KRATOS_EXPECT_EQ(rA_scale.NumGlobalCols(), 6);
+        KRATOS_EXPECT_EQ(rA_scale.NumGlobalNonzeros(), 28);
 
         // Values to check
         row_indexes = {0, 1, 2, 3, 4, 5};
@@ -800,9 +800,9 @@ namespace Kratos::Testing
         // DebugLHS(rA);
 
         // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 6);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 6);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 28);
+        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 6);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 6);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 28);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5};
@@ -818,9 +818,9 @@ namespace Kratos::Testing
         // // To create the solution of reference
         // DebugLHS(r_T);
 
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 6);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 6);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 7);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalRows(), 6);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalCols(), 6);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalNonzeros(), 7);
 
         // Values to check
         row_indexes = {0, 1, 2, 3, 4, 4, 5};
@@ -871,9 +871,9 @@ namespace Kratos::Testing
         // DebugLHS(rA);
 
         // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 6);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 6);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 28);
+        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 6);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 6);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 28);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 2, 3, 4, 4, 5};
@@ -889,9 +889,9 @@ namespace Kratos::Testing
         // // To create the solution of reference
         // DebugLHS(r_T);
 
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 6);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 6);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 7);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalRows(), 6);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalCols(), 6);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalNonzeros(), 7);
 
         // Values to check
         row_indexes = {0, 1, 2, 3, 4, 4, 5};
@@ -939,9 +939,9 @@ namespace Kratos::Testing
         // DebugLHS(rA);
 
         // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 8);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 8);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 32);
+        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 8);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 8);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 32);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7};
@@ -957,9 +957,9 @@ namespace Kratos::Testing
         // // To create the solution of reference
         // DebugLHS(r_T);
 
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 8);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 8);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 11);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalRows(), 8);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalCols(), 8);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalNonzeros(), 11);
 
         // Values to check
         row_indexes = {0, 1, 2, 3, 4, 5, 6, 7};
@@ -1007,9 +1007,9 @@ namespace Kratos::Testing
         // DebugLHS(rA);
 
         // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 8);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 8);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 38);
+        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 8);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 8);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 38);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 6, 7, 7};
@@ -1025,9 +1025,9 @@ namespace Kratos::Testing
         // // To create the solution of reference
         // DebugLHS(r_T);
 
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 8);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 8);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 11);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalRows(), 8);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalCols(), 8);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalNonzeros(), 11);
 
         // Values to check
         row_indexes = {0, 1, 2, 3, 4, 4, 4, 5, 6, 7};
@@ -1075,9 +1075,9 @@ namespace Kratos::Testing
         // DebugLHS(rA);
 
         // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 12);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 12);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 43);
+        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 12);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 12);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 43);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
@@ -1093,9 +1093,9 @@ namespace Kratos::Testing
         // // To create the solution of reference
         // DebugLHS(r_T);
 
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 12);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 12);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 21);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalRows(), 12);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalCols(), 12);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalNonzeros(), 21);
 
         // Values to check
         row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
@@ -1143,9 +1143,9 @@ namespace Kratos::Testing
         // DebugLHS(rA);
 
         // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 12);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 12);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 39);
+        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 12);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 12);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 39);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
@@ -1161,9 +1161,9 @@ namespace Kratos::Testing
         // // To create the solution of reference
         // DebugLHS(r_T);
 
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 12);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 12);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 21);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalRows(), 12);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalCols(), 12);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalNonzeros(), 21);
 
         // Values to check
         row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11};
@@ -1206,9 +1206,9 @@ namespace Kratos::Testing
     //     // DebugLHS(rA);
 
     //     // The solution check
-    //     KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 2);
-    //     KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 2);
-    //     KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 4);
+    //     KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 2);
+    //     KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 2);
+    //     KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 4);
 
     //     // Values to check
     //     std::vector<int> row_indexes = {0, 0, 1, 1};
@@ -1251,9 +1251,9 @@ namespace Kratos::Testing
     //     // DebugLHS(rA);
 
     //     // The solution check
-    //     KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 2);
-    //     KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 2);
-    //     KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 4);
+    //     KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 2);
+    //     KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 2);
+    //     KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 4);
 
     //     // Values to check
     //     std::vector<int> row_indexes = {0};
@@ -1301,8 +1301,8 @@ namespace Kratos::Testing
         // DebugLHS(rA);
 
         // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 22);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 196);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 22);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 196);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 1, 1, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 19, 19, 20, 20, 20, 20, 20, 21, 21, 21, 21};
@@ -1351,9 +1351,9 @@ namespace Kratos::Testing
         // DebugLHS(rA);
 
         // The solution check
-        KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 22);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 22);
-        KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 204);
+        KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 22);
+        KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 22);
+        KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 204);
 
         // Values to check
         std::vector<int> row_indexes = {0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 6, 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 15, 15, 15, 15, 15, 16, 16, 16, 16, 16, 16, 16, 16, 17, 17, 17, 17, 17, 17, 17, 17, 17, 18, 18, 18, 19, 19, 20, 20, 20, 20, 20, 21, 21, 21, 21};
@@ -1369,9 +1369,9 @@ namespace Kratos::Testing
         // // To create the solution of reference
         // DebugLHS(r_T);
 
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalRows(), 22);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalCols(), 22);
-        KRATOS_CHECK_EQUAL(r_T.NumGlobalNonzeros(), 23);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalRows(), 22);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalCols(), 22);
+        KRATOS_EXPECT_EQ(r_T.NumGlobalNonzeros(), 23);
 
         // Values to check
         row_indexes = {0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21};
@@ -1414,9 +1414,9 @@ namespace Kratos::Testing
     //     // DebugLHS(rA);
 
     //     // The solution check
-    //     KRATOS_CHECK_EQUAL(rA.NumGlobalRows(), 19);
-    //     KRATOS_CHECK_EQUAL(rA.NumGlobalCols(), 19);
-    //     KRATOS_CHECK_EQUAL(rA.NumGlobalNonzeros(), 161);
+    //     KRATOS_EXPECT_EQ(rA.NumGlobalRows(), 19);
+    //     KRATOS_EXPECT_EQ(rA.NumGlobalCols(), 19);
+    //     KRATOS_EXPECT_EQ(rA.NumGlobalNonzeros(), 161);
 
     //     // Values to check
     //     std::vector<int> row_indexes = {0, 0, 0, 1, 1, 1, 1, 1, 2, 2, 2, 2, 2, 2, 3, 3, 3, 3, 3, 3, 3, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 5, 5, 5, 5, 5, 6, 6, 6, 6, 6, 7, 7, 7, 7, 7, 7, 8, 8, 8, 8, 8, 9, 9, 9, 9, 9, 9, 9, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 11, 11, 11, 11, 11, 11, 12, 12, 12, 12, 12, 13, 13, 13, 13, 13, 13, 13, 13, 14, 14, 14, 14, 14, 14, 14, 14, 14, 15, 15, 15, 16, 16, 17, 17, 17, 17, 17, 18, 18, 18, 18};

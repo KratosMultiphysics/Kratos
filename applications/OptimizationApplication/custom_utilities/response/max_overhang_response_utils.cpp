@@ -84,7 +84,7 @@ double MaxOverhangAngleResponseUtils::CalculateConditionValue(
     const double area = rCondition.GetGeometry().Area();
     const double ratio = -inner_prod(print_direction, normal)/sin_max_angle;
     double pow_val = -2.0 * heaviside_beta * (ratio-1);
-    std::clamp(pow_val, -700.0, 700.0);
+    pow_val = std::clamp(pow_val, -700.0, 700.0);
 
     return area * (1.0/(1+std::exp(pow_val))) * std::pow(ratio,penalty_factor);
 }

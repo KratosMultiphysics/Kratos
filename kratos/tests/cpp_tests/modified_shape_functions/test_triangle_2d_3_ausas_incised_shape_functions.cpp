@@ -13,7 +13,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "containers/model.h"
-#include "includes/checks.h"
+#include "includes/expect.h"
 #include "utilities/divide_triangle_2d_3.h"
 #include "modified_shape_functions/triangle_2d_3_ausas_incised_shape_functions.h"
 
@@ -99,7 +99,7 @@ namespace Kratos
 
             // Check shape functions values
             const std::vector<double> ref_pos_sh_func = {0.0, 1.0/6.0, 5.0/6.0};
-            KRATOS_CHECK_VECTOR_NEAR(row(positive_side_sh_func, 0), ref_pos_sh_func, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(row(positive_side_sh_func, 0), ref_pos_sh_func, tolerance);
 
             Matrix ref_neg_sh_func(2, 3);
             const std::array<double, 6> ref_neg_sh_func_array = {1.0/3.0, 1.0/2.0, 1.0/6.0,
@@ -109,12 +109,12 @@ namespace Kratos
                     ref_neg_sh_func(i, j) = ref_neg_sh_func_array[i * ref_neg_sh_func.size2() + j];
                 }
             }
-            KRATOS_CHECK_MATRIX_NEAR(negative_side_sh_func, ref_neg_sh_func, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(negative_side_sh_func, ref_neg_sh_func, tolerance);
 
             // Check Gauss pts. weights
-            KRATOS_CHECK_NEAR(positive_side_weights(0), 1.0/8.0, tolerance);
+            KRATOS_EXPECT_NEAR(positive_side_weights(0), 1.0/8.0, tolerance);
             const std::vector<double> ref_neg_weights = {1.0/8.0, 1.0/4.0};
-            KRATOS_CHECK_VECTOR_NEAR(negative_side_weights, ref_neg_weights, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(negative_side_weights, ref_neg_weights, tolerance);
 
             // Check Gauss pts. shape functions gradients values
             Matrix ref_pos_sh_func_grad_0(3, 2);
@@ -130,19 +130,19 @@ namespace Kratos
                     ref_neg_sh_func_grad_1(i, j) = ref_neg_sh_func_grad_1_array[i * ref_pos_sh_func_grad_0.size2() + j];
                 }
             }
-            KRATOS_CHECK_MATRIX_NEAR(positive_side_sh_func_gradients[0], ref_pos_sh_func_grad_0, tolerance);
-            KRATOS_CHECK_MATRIX_NEAR(negative_side_sh_func_gradients[0], ref_neg_sh_func_grad_0, tolerance);
-            KRATOS_CHECK_MATRIX_NEAR(negative_side_sh_func_gradients[1], ref_neg_sh_func_grad_1, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(positive_side_sh_func_gradients[0], ref_pos_sh_func_grad_0, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(negative_side_sh_func_gradients[0], ref_neg_sh_func_grad_0, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(negative_side_sh_func_gradients[1], ref_neg_sh_func_grad_1, tolerance);
 
             // Check interface shape function values
             const std::vector<double> ref_pos_interface_sh_func = {    0.0, 1.0/4.0, 3.0/4.0};
             const std::vector<double> ref_neg_interface_sh_func = {1.0/2.0, 1.0/4.0, 1.0/4.0};
-            KRATOS_CHECK_VECTOR_NEAR(row(positive_interface_side_sh_func, 0), ref_pos_interface_sh_func, tolerance);
-            KRATOS_CHECK_VECTOR_NEAR(row(negative_interface_side_sh_func, 0), ref_neg_interface_sh_func, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(row(positive_interface_side_sh_func, 0), ref_pos_interface_sh_func, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(row(negative_interface_side_sh_func, 0), ref_neg_interface_sh_func, tolerance);
 
             // Check interface Gauss pts. weights
-            KRATOS_CHECK_NEAR(positive_interface_side_weights(0), 0.50, tolerance);
-            KRATOS_CHECK_NEAR(negative_interface_side_weights(0), 0.50, tolerance);
+            KRATOS_EXPECT_NEAR(positive_interface_side_weights(0), 0.50, tolerance);
+            KRATOS_EXPECT_NEAR(negative_interface_side_weights(0), 0.50, tolerance);
 
             // Check Gauss pts. interface shape function gradients values
             Matrix ref_pos_interface_sh_func_grad_0(3, 2);
@@ -155,14 +155,14 @@ namespace Kratos
                     ref_neg_interface_sh_func_grad_0(i, j) = ref_neg_interface_sh_func_grad_0_array[i * ref_pos_interface_sh_func_grad_0.size2() + j];
                 }
             }
-            KRATOS_CHECK_MATRIX_NEAR(positive_interface_side_sh_func_gradients[0], ref_pos_interface_sh_func_grad_0, tolerance);
-            KRATOS_CHECK_MATRIX_NEAR(negative_interface_side_sh_func_gradients[0], ref_neg_interface_sh_func_grad_0, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(positive_interface_side_sh_func_gradients[0], ref_pos_interface_sh_func_grad_0, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(negative_interface_side_sh_func_gradients[0], ref_neg_interface_sh_func_grad_0, tolerance);
 
             // Check Gauss pts. outwards unit normal values
             const std::vector<double> ref_pos_area_normals = {0.0, -0.5, 0.0};
             const std::vector<double> ref_neg_area_normals = {0.0,  0.5, 0.0};
-            KRATOS_CHECK_VECTOR_NEAR(positive_side_area_normals[0], ref_pos_area_normals, tolerance);
-            KRATOS_CHECK_VECTOR_NEAR(negative_side_area_normals[0], ref_neg_area_normals, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(positive_side_area_normals[0], ref_pos_area_normals, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(negative_side_area_normals[0], ref_neg_area_normals, tolerance);
         }
 
 
@@ -243,7 +243,7 @@ namespace Kratos
 
             // Check shape functions values
             const std::vector<double> ref_pos_sh_func = {0.0, 5.0/6.0, 1.0/6.0};
-            KRATOS_CHECK_VECTOR_NEAR(row(positive_side_sh_func, 0), ref_pos_sh_func, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(row(positive_side_sh_func, 0), ref_pos_sh_func, tolerance);
 
             Matrix ref_neg_sh_func(2, 3);
             const std::array<double, 6> ref_neg_sh_func_array = {1.0/3.0, 1.0/6.0, 1.0/2.0,
@@ -253,12 +253,12 @@ namespace Kratos
                     ref_neg_sh_func(i, j) = ref_neg_sh_func_array[i * ref_neg_sh_func.size2() + j];
                 }
             }
-            KRATOS_CHECK_MATRIX_NEAR(negative_side_sh_func, ref_neg_sh_func, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(negative_side_sh_func, ref_neg_sh_func, tolerance);
 
             // Check Gauss pts. weights
-            KRATOS_CHECK_NEAR(positive_side_weights(0), 1.0/8.0, tolerance);
+            KRATOS_EXPECT_NEAR(positive_side_weights(0), 1.0/8.0, tolerance);
             const std::vector<double> ref_neg_weights = {1.0/8.0, 1.0/4.0};
-            KRATOS_CHECK_VECTOR_NEAR(negative_side_weights, ref_neg_weights, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(negative_side_weights, ref_neg_weights, tolerance);
 
             // Check Gauss pts. shape functions gradients values
             Matrix ref_pos_sh_func_grad_0(3, 2);
@@ -274,19 +274,19 @@ namespace Kratos
                     ref_neg_sh_func_grad_1(i, j) = ref_neg_sh_func_grad_1_array[i * ref_pos_sh_func_grad_0.size2() + j];
                 }
             }
-            KRATOS_CHECK_MATRIX_NEAR(positive_side_sh_func_gradients[0], ref_pos_sh_func_grad_0, tolerance);
-            KRATOS_CHECK_MATRIX_NEAR(negative_side_sh_func_gradients[0], ref_neg_sh_func_grad_0, tolerance);
-            KRATOS_CHECK_MATRIX_NEAR(negative_side_sh_func_gradients[1], ref_neg_sh_func_grad_1, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(positive_side_sh_func_gradients[0], ref_pos_sh_func_grad_0, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(negative_side_sh_func_gradients[0], ref_neg_sh_func_grad_0, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(negative_side_sh_func_gradients[1], ref_neg_sh_func_grad_1, tolerance);
 
             // Check interface shape function values
             const std::vector<double> ref_pos_interface_sh_func = {    0.0, 3.0/4.0, 1.0/4.0};
             const std::vector<double> ref_neg_interface_sh_func = {1.0/2.0, 1.0/4.0, 1.0/4.0};
-            KRATOS_CHECK_VECTOR_NEAR(row(positive_interface_side_sh_func, 0), ref_pos_interface_sh_func, tolerance);
-            KRATOS_CHECK_VECTOR_NEAR(row(negative_interface_side_sh_func, 0), ref_neg_interface_sh_func, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(row(positive_interface_side_sh_func, 0), ref_pos_interface_sh_func, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(row(negative_interface_side_sh_func, 0), ref_neg_interface_sh_func, tolerance);
 
             // Check interface Gauss pts. weights
-            KRATOS_CHECK_NEAR(positive_interface_side_weights(0), 0.50, tolerance);
-            KRATOS_CHECK_NEAR(negative_interface_side_weights(0), 0.50, tolerance);
+            KRATOS_EXPECT_NEAR(positive_interface_side_weights(0), 0.50, tolerance);
+            KRATOS_EXPECT_NEAR(negative_interface_side_weights(0), 0.50, tolerance);
 
             // Check Gauss pts. interface shape function gradients values
             Matrix ref_pos_interface_sh_func_grad_0(3, 2);
@@ -299,14 +299,14 @@ namespace Kratos
                     ref_neg_interface_sh_func_grad_0(i, j) = ref_neg_interface_sh_func_grad_0_array[i * ref_pos_interface_sh_func_grad_0.size2() + j];
                 }
             }
-            KRATOS_CHECK_MATRIX_NEAR(positive_interface_side_sh_func_gradients[0], ref_pos_interface_sh_func_grad_0, tolerance);
-            KRATOS_CHECK_MATRIX_NEAR(negative_interface_side_sh_func_gradients[0], ref_neg_interface_sh_func_grad_0, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(positive_interface_side_sh_func_gradients[0], ref_pos_interface_sh_func_grad_0, tolerance);
+            KRATOS_EXPECT_MATRIX_NEAR(negative_interface_side_sh_func_gradients[0], ref_neg_interface_sh_func_grad_0, tolerance);
 
             // Check Gauss pts. outwards unit normal values
             const std::vector<double> ref_pos_area_normals = {-0.5, 0.0, 0.0};
             const std::vector<double> ref_neg_area_normals = { 0.5, 0.0, 0.0};
-            KRATOS_CHECK_VECTOR_NEAR(positive_side_area_normals[0], ref_pos_area_normals, tolerance);
-            KRATOS_CHECK_VECTOR_NEAR(negative_side_area_normals[0], ref_neg_area_normals, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(positive_side_area_normals[0], ref_pos_area_normals, tolerance);
+            KRATOS_EXPECT_VECTOR_NEAR(negative_side_area_normals[0], ref_neg_area_normals, tolerance);
         }
     }   // namespace Testing.
 }  // namespace Kratos.

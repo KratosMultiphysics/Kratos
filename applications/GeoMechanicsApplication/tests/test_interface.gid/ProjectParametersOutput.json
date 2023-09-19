@@ -260,10 +260,8 @@
         "second_alpha_value": 1.0,
         "solution_type": "Quasi-Static",
         "solver_type": "geomechanics_U_Pw_solver",
-        "start_time": 0.0,
         "strategy_type": "newton_raphson",
         "time_stepping": {
-            "end_time": 1.0,
             "time_step": 0.25
         }
     }

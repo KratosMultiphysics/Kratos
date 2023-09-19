@@ -28,7 +28,7 @@ KRATOS_TEST_CASE_IN_SUITE(TestSuite, KratosCoreFastSuite) {
 
     std::stringstream info;
     info << Tester::GetTestSuite("MyTestTestSuite");
-    KRATOS_CHECK_NOT_EQUAL(
+    KRATOS_EXPECT_NE(
         info.str().find("MyTestTestSuite"), std::string::npos);
 }
 }
