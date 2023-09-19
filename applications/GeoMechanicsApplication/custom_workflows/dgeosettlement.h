@@ -24,12 +24,12 @@
 namespace Kratos
 {
 
-class InterfaceInputUtility;
+class InputUtility;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 {
 public:
-    explicit KratosGeoSettlement(std::unique_ptr<InterfaceInputUtility> pInputUtility);
+    explicit KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility);
     ~KratosGeoSettlement();
 
     int RunStage(const std::filesystem::path&            rWorkingDirectory,
@@ -39,7 +39,7 @@ public:
                  const std::function<void(const char*)>& rReportTextualProgress,
                  const std::function<bool()>&            rShouldCancel);
 
-    const InterfaceInputUtility* GetInterfaceInputUtility() const;
+    const InputUtility* GetInterfaceInputUtility() const;
 
 private:
     ModelPart& AddNewModelPart(const std::string& rModelPartName);
@@ -49,7 +49,7 @@ private:
     Kernel mKernel;
     Model mModel;
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
-    std::unique_ptr<InterfaceInputUtility> mpInputUtility;
+    std::unique_ptr<InputUtility> mpInputUtility;
 };
 
 }

@@ -12,18 +12,18 @@
 
 #pragma once
 
-#include "custom_utilities/interface_input_utility.h"
+#include "custom_utilities/input_utility.h"
 
 namespace Kratos {
 
-class InputUtilityStub : public InterfaceInputUtility
+class StubInputUtility : public InputUtility
 {
 public:
-    explicit InputUtilityStub(const std::string& rParameterJsonString);
+    explicit StubInputUtility(const std::string& rParameterJsonString);
 
-    [[nodiscard]] Parameters ProjectParametersFrom(const std::string& rProjectFilePath) const override;
+    [[nodiscard]] Parameters ProjectParametersFromFile(const std::filesystem::path& rProjectFilePath) const override;
     void ReadModelFromFile(const std::filesystem::path& rModelPartFilePath, ModelPart& rModelPart) const override;
-    void AddMaterialsFrom(const std::string& rMaterialFilePath, Model& rModel) const override;
+    void AddMaterialsFromFile(const std::filesystem::path& rMaterialFilePath, Model& rModel) const override;
 
     int NumberOfReadCalls() const;
     int NumberOfMaterialCalls() const;

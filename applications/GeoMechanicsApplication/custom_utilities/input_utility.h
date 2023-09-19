@@ -7,21 +7,24 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Anne van de Graaf
-//                   Richard Faasse
+//  Main authors:    Richard Faasse
 //
 
 #pragma once
 
-#include "interface_input_utility.h"
+#include <string>
+#include <includes/kratos_parameters.h>
+#include "containers/model.h"
 
 namespace Kratos {
 
-class InputUtility : public InterfaceInputUtility {
+class InputUtility {
 public:
-    [[nodiscard]] Parameters ProjectParametersFrom(const std::string& rProjectFilePath) const override;
-    void ReadModelFromFile(const std::filesystem::path& rModelPartFilePath, ModelPart& rModelPart) const override;
-    void AddMaterialsFrom(const std::string& rMaterialFilePath, Model& rModel) const override;
+    virtual ~InputUtility() = default;
+
+    [[nodiscard]] virtual Parameters ProjectParametersFromFile(const std::filesystem::path& rProjectFilePath) const = 0;
+    virtual void ReadModelFromFile(const std::filesystem::path& rModelPartFilePath, ModelPart& rModelPart) const = 0;
+    virtual void AddMaterialsFromFile(const std::filesystem::path& rMaterialFilePath, Model& rModel) const = 0;
 };
 
 }

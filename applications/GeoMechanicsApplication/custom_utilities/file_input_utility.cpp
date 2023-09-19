@@ -10,13 +10,13 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "input_utility.h"
+#include "file_input_utility.h"
 #include "includes/model_part_io.h"
 #include "utilities/read_materials_utility.h"
 
 namespace Kratos {
 
-Parameters InputUtility::ProjectParametersFrom(const std::string& rProjectFilePath) const {
+Parameters FileInputUtility::ProjectParametersFromFile(const std::filesystem::path& rProjectFilePath) const {
     std::ifstream t(rProjectFilePath);
     std::stringstream buffer;
     buffer << t.rdbuf();
@@ -24,19 +24,19 @@ Parameters InputUtility::ProjectParametersFrom(const std::string& rProjectFilePa
     return projFile;
 }
 
-void InputUtility::ReadModelFromFile(const std::filesystem::path& rModelPartFilePath,
-                                            Kratos::ModelPart& rModelPart) const
+void FileInputUtility::ReadModelFromFile(const std::filesystem::path& rModelPartFilePath,
+                                         Kratos::ModelPart& rModelPart) const
 {
     // Note that the file extension of the model part file must be excluded, since that is automatically appended by the
     // constructor of class ModelPartIO
     ModelPartIO reader{rModelPartFilePath.generic_string()};
     reader.ReadModelPart(rModelPart);
-    KRATOS_INFO("KratosGeoSettlement") << "Read the mesh data from " << rModelPartFilePath << std::endl;
+    KRATOS_INFO("FileInputUtility::ReadModelFromFile") << "Read the mesh data from " << rModelPartFilePath << std::endl;
 }
 
-void InputUtility::AddMaterialsFrom(const std::string& rMaterialFilePath, Model& rModel) const
+void FileInputUtility::AddMaterialsFromFile(const std::filesystem::path& rMaterialFilePath, Model& rModel) const
 {
-    const std::string parameters = R"({ "Parameters" : { "materials_filename" :")" + rMaterialFilePath + R"("}})";
+    const std::string parameters = R"({ "Parameters" : { "materials_filename" :")" + rMaterialFilePath.generic_string() + R"("}})";
     Parameters material_file{parameters};
     ReadMaterialsUtility reader{material_file, rModel};
 }
