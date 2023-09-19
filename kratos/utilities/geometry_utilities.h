@@ -691,7 +691,7 @@ public:
      *  @param rResult the transform of the second derivative of the shape function on the integration point
      */
     static void ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
-        const Matrix DN_DX,
+        const Matrix& DN_DX,
         const GeometryType& rGeometry,
         const GeometryType::CoordinatesArrayType& rLocalIntegrationPointCoordinates,
         DenseVector<Matrix>& rResult);

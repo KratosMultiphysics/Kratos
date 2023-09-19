@@ -518,7 +518,7 @@ void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoin
 /***********************************************************************************/
 
 void GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
-      const Matrix DN_DX,
+      const Matrix& DN_DX,
       const GeometryType& rGeometry,
       const GeometryType::CoordinatesArrayType& rLocalIntegrationPointCoordinates,
       DenseVector<Matrix>& rResult)
