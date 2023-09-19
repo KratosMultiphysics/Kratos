@@ -127,7 +127,8 @@ class EmpiricalCubatureMethod():
         MaximumLengthZ = 0
         ExpandedSetFlag = False
         k = 1 # number of iterations
-        while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and len(self.y) != 0:
+        self.success = True
+        while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and np.size(self.y) != 0:
 
             if  self.UnsuccesfulIterations >  self.MaximumNumberUnsuccesfulIterations and not ExpandedSetFlag:
                 ExpandedSetFlag = self.expand_candidates_with_complement()
@@ -153,7 +154,13 @@ class EmpiricalCubatureMethod():
                 self.z = i
             else:
                 self.z = np.r_[self.z,i]
-            self.y = np.delete(self.y,indSORT)
+
+            #self.y = np.delete(self.y,indSORT)
+            if isinstance(self.y, np.int64) or isinstance(self.y, np.int32):
+                self.expand_candidates_with_complement()
+                self.y = np.delete(self.y,indSORT)
+            else:
+                self.y = np.delete(self.y,indSORT)
 
             # Step 4. Find possible negative weights
             if any(alpha < 0):
@@ -191,6 +198,7 @@ class EmpiricalCubatureMethod():
                 ERROR_GLO = np.c_[ ERROR_GLO , self.nerrorACTUAL]
                 NPOINTS = np.c_[ NPOINTS , np.size(self.z)]
 
+            MaximumLengthZ = max(MaximumLengthZ, np.size(self.z))
             k = k+1
 
             if k>1000:
@@ -222,6 +230,7 @@ class EmpiricalCubatureMethod():
         s = np.dot(a.T, a) - np.dot(c.T, d)
         aux1 = np.hstack([Aast + np.outer(d, d) / s, -d / s])
         if np.shape(-d.T / s)[1]==1:
+            s = s.reshape(1,-1)
             aux2 = np.squeeze(np.hstack([-d.T / s, 1 / s]))
         else:
             aux2 = np.hstack([np.squeeze(-d.T / s), 1 / s])
