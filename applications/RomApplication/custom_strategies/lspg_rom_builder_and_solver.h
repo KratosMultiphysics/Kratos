@@ -248,87 +248,76 @@ public:
     void BuildWithComplementaryMeshAndApplyDirichletConditions(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
-        TSystemMatrixType &rA,
-        TSystemVectorType &rb,
+        TSystemMatrixType &rAComp,
+        TSystemVectorType &rBComp,
         TSystemVectorType &rDx
     ){
-        if (rA.size1() != BaseBuilderAndSolverType::mEquationSystemSize || rA.size2() != BaseBuilderAndSolverType::mEquationSystemSize) {
-            rA.resize(BaseBuilderAndSolverType::mEquationSystemSize, BaseBuilderAndSolverType::mEquationSystemSize, false);
-            BaseType::ConstructMatrixStructure(pScheme, rA, rModelPart);
+        if (rAComp.size1() != BaseBuilderAndSolverType::mEquationSystemSize || rAComp.size2() != BaseBuilderAndSolverType::mEquationSystemSize) {
+            rAComp.resize(BaseBuilderAndSolverType::mEquationSystemSize, BaseBuilderAndSolverType::mEquationSystemSize, false);
+            BaseType::ConstructMatrixStructure(pScheme, rAComp, rModelPart);
         }
 
-        if (rb.size() != BaseBuilderAndSolverType::mEquationSystemSize)
-            rb.resize(BaseBuilderAndSolverType::mEquationSystemSize, false);
+        if (rBComp.size() != BaseBuilderAndSolverType::mEquationSystemSize)
+            rBComp.resize(BaseBuilderAndSolverType::mEquationSystemSize, false);
 
-        BuildWithComplementaryMesh(pScheme, rModelPart, rA, rb);
+        BuildWithComplementaryMesh(pScheme, rModelPart, rAComp, rBComp);
 
-        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+        BaseType::ApplyDirichletConditions(pScheme, rModelPart, rAComp, rDx, rBComp);
 
-        // Initialize the mask vector with zeros
-        Vector hrom_dof_mask_vector = ZeroVector(BaseBuilderAndSolverType::mEquationSystemSize);
+        // Check if the selected DOFs have been initialized
+        if (!mIsSelectedDofsInitialized) {
+            InitializeSelectedDofs(rModelPart);
+            mIsSelectedDofsInitialized = true;
+        }
 
-        // Build the mask vector for selected elements and conditions
-        const ProcessInfo& r_current_process_info = rModelPart.GetProcessInfo();
-        BuildHromDofMaskVector(hrom_dof_mask_vector, r_current_process_info);
-
-        // Zero out rows in the matrix that correspond to zero in the mask vector
-        ApplyMaskToMatrixRows(rA, hrom_dof_mask_vector);
+        // Zero out rows in 'rA' for DOFs not in selected elements/conditions and without overlap.
+        ZeroOutUnselectedComplementaryMeshRows(rAComp);
     }
 
-    void BuildHromDofMaskVector(
-        Vector& rHromDofMaskVector,
-        const ProcessInfo& rCurrentProcessInfo)
-    {
-        const auto& r_hrom_elements = this->mSelectedElements;
-        const auto& r_hrom_conditions = this->mSelectedConditions;
-
-        // Ensuring the vector has the correct type for atomic operations.
-        std::vector<std::atomic<int>> atomicHromDofMaskVector(rHromDofMaskVector.size());
-
-        block_for_each(r_hrom_elements, [&](Element& r_element)
-        {
-            Element::DofsVectorType hrom_dofs;
-            r_element.GetDofList(hrom_dofs, rCurrentProcessInfo);
-            for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
-            {
-                const Dof<double>& r_dof = *hrom_dofs[i];
-                std::atomic_fetch_or(&atomicHromDofMaskVector[r_dof.EquationId()], 1);
+    /**
+     * @brief Initializes the selected DOFs based on the selected elements and conditions.
+     * 
+     * This function populates the mSelectedDofs set with the DOFs that are part of the
+     * selected elements and conditions. This set is then used to determine which rows
+     * of the system matrix should be zeroed out in subsequent time steps.
+     */
+    void InitializeSelectedDofs(
+        ModelPart& rModelPart
+    ) {
+        auto add_selected_dofs = [&](auto& rEntityContainer) {
+            for (auto& rEntity : rEntityContainer) {
+                typename std::remove_reference<decltype(rEntity)>::type::DofsVectorType dofs;
+                rEntity.GetDofList(dofs, rModelPart.GetProcessInfo());
+                for (const auto& dof : dofs) {
+                    mSelectedDofs.insert(dof->EquationId());
+                }
             }
-        });
+        };
 
-        block_for_each(r_hrom_conditions, [&](Condition& r_condition)
-        {
-            Condition::DofsVectorType hrom_dofs;
-            r_condition.GetDofList(hrom_dofs, rCurrentProcessInfo);
-            for(std::size_t i = 0; i < hrom_dofs.size(); ++i)
-            {
-                const Dof<double>& r_dof = *hrom_dofs[i];
-                std::atomic_fetch_or(&atomicHromDofMaskVector[r_dof.EquationId()], 1);
-            }
-        });
-
-        // Copy back the atomic vector to the original one after all threads have finished their work.
-        for(std::size_t i = 0; i < atomicHromDofMaskVector.size(); ++i)
-        {
-            rHromDofMaskVector[i] = atomicHromDofMaskVector[i].load();
-        }
+        // Populate the selected DOFs set.
+        add_selected_dofs(BaseType::mSelectedElements);
+        add_selected_dofs(BaseType::mSelectedConditions);
     }
 
-    void ApplyMaskToMatrixRows(TSystemMatrixType& rA, 
-        const Vector& hrom_dof_mask_vector)
+    /**
+     * @brief Zeroes out the rows of the system matrix that correspond to the complementary mesh.
+     * 
+     * This function zeroes out the rows of the system matrix 'rA' that correspond to the DOFs 
+     * of the complementary mesh, i.e., those not part of the selected elements and conditions 
+     * and do not overlap with them. It uses the mSelectedDofs set to determine which rows 
+     * should remain non-zero.
+     * 
+     * @param rA System matrix
+     */
+    void ZeroOutUnselectedComplementaryMeshRows(
+        TSystemMatrixType& rA) 
     {
-        if(rA.size1() != hrom_dof_mask_vector.size()) 
-        {
-            throw std::invalid_argument("Matrix and vector sizes do not match");
-        }
-        
-        for(std::size_t i = 0; i < hrom_dof_mask_vector.size(); ++i)
-        {
-            if(hrom_dof_mask_vector[i] == 0)
-            {
+        // Use parallel utilities to zero out the rows of the system matrix that are not part of the selected DOFs.
+        IndexPartition<std::size_t>(rA.size1()).for_each([&](std::size_t i) {
+            if (mSelectedDofs.find(i) == mSelectedDofs.end()) {
                 row(rA, i) = zero_vector<double>(rA.size2());
             }
-        }
+        });
     }
 
     void GetRightROMBasis(
@@ -704,6 +693,8 @@ private:
     EigenDynamicVector mEigenRomB;
     Matrix mPhiGlobal;
     bool mRightRomBasisInitialized = false;
+    std::unordered_set<std::size_t> mSelectedDofs;
+    bool mIsSelectedDofsInitialized = false;
 
     ///@}
     ///@name Private operations 
