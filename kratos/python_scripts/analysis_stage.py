@@ -2,7 +2,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
-import numpy
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
