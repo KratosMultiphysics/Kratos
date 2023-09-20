@@ -1071,7 +1071,7 @@ class DEMAnalysisStage(AnalysisStage):
                         theta_index = int(theta / (np.pi) * 18)
                         phi_index = int(phi / (2 * np.pi) * 36)
                         
-                        number_of_contacts_in_a_direction[phi_index, theta_index] += 1
+                        number_of_contacts_in_a_direction[theta_index, phi_index] += 1
 
                         
                         vector2 = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
@@ -1085,7 +1085,7 @@ class DEMAnalysisStage(AnalysisStage):
                         theta_index = int(theta / (np.pi) * 18)
                         phi_index = int(phi / (2 * np.pi) * 36)
                         
-                        number_of_contacts_in_a_direction[phi_index, theta_index] += 1
+                        number_of_contacts_in_a_direction[theta_index, phi_index] += 1
                         
                 
                 if total_contact_number:
