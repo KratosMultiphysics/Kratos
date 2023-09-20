@@ -41,7 +41,7 @@ class TwoFluidHydraulicSolverTest(UnitTest.TestCase):
         self._artificial_viscosity = False
         self._eulerian_fm_ale_correction = True
         self._mass_source = False
-        self.problem_data ="eularian_fm_ale"
+        self.problem_data ="eulerian_fm_ale"
         self._AuxiliaryRunTest("ProjectParameters2D.json")
 
     def testTwoFluidMassHydraulicSolverTestMassSource2D(self):
@@ -69,7 +69,7 @@ class TwoFluidHydraulicSolverTest(UnitTest.TestCase):
         self._artificial_viscosity = False
         self._eulerian_fm_ale_correction = True
         self._mass_source = False
-        self.problem_data ="eularian_fm_ale"
+        self.problem_data ="eulerian_fm_ale"
         self._AuxiliaryRunTest("ProjectParameters3D.json")
 
     def testTwoFluidMassHydraulicSolverTestMassSource3D(self):
