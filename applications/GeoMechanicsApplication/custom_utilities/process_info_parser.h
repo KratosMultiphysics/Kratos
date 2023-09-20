@@ -12,23 +12,21 @@
 
 #pragma once
 
-#include "includes/kratos_parameters.h"
-
-#include <string>
+#include "process_info.h"
 #include <vector>
 
 namespace Kratos {
 
-class ProcessNameParser {
+class ProcessInfoParser {
 public:
-    std::vector<std::string> GetProcessNames(const Parameters& processParameters);
-
+    explicit ProcessInfoParser(const Parameters& rProcessParameters);
+    std::vector<ProcessInfo> GetProcessList();
 
 private:
-    std::vector<std::string> mProcessNames;
+    std::vector<ProcessInfo> mProcessNames;
+    const Parameters mProcessParameters;
 
-
-    void AddConstraintsProcesses(const Parameters& processParameters);
+    void AddProcessesForList(const std::string& rProcessListName);
 };
 
 }
