@@ -19,12 +19,11 @@ namespace Kratos {
 
 class ProcessInfoParser {
 public:
-    explicit ProcessInfoParser(const Parameters& rProcessParameters);
-    std::vector<ProcessInfo> GetProcessList();
+    std::vector<ProcessInfo> GetProcessList(const Parameters& rProcessParameters);
 
 private:
     std::vector<ProcessInfo> mProcessNames;
-    const Parameters mProcessParameters;
+    Parameters mProcessParameters;
 
     void AddProcessesForList(const std::string& rProcessListName);
 };

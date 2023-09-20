@@ -14,16 +14,13 @@
 namespace Kratos
 {
 
-ProcessInfoParser::ProcessInfoParser(const Parameters& rProcessParameters) :
-    mProcessParameters{rProcessParameters}
+std::vector<ProcessInfo> ProcessInfoParser::GetProcessList(const Parameters& rProcessParameters)
 {
-}
-
-std::vector<ProcessInfo> ProcessInfoParser::GetProcessList()
-{
+    mProcessParameters = rProcessParameters;
     const std::vector<std::string> process_list_names = {"constraints_process_list",
                                                          "loads_process_list",
-                                                         "auxiliar_process_list"};
+                                                         "auxiliar_process_list",
+                                                         "gid_output"};
 
     for (const auto& process_list_name : process_list_names)
     {
