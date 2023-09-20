@@ -311,11 +311,7 @@ public:
 
     ~MedFileHandler()
     {
-        KRATOS_TRY
-
         KRATOS_WARNING_IF("MedModelPartIO", MEDfileClose(mFileHandle) < 0) << "Closing of file " << mFileName << " failed!" << std::endl;
-
-        KRATOS_CATCH("")
     }
 
 private:
@@ -339,8 +335,6 @@ MedModelPartIO::MedModelPartIO(const std::filesystem::path& rFileName, const Fla
 void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 {
     KRATOS_TRY
-
-    using NodePointerType = ModelPart::NodeType::Pointer;
 
     KRATOS_ERROR_IF_NOT(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in read mode to read a ModelPart!" << std::endl;
 
@@ -430,7 +424,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
         std::vector<IndexType> geom_node_ids(num_nodes_geo_type);
 
-        for (std::size_t i=0; i<num_geometries; ++i) {
+        for (std::size_t i=0; i<static_cast<std::size_t>(num_geometries); ++i) {
             for (int j=0; j<num_nodes_geo_type; ++j) {
                 const int node_idx = i*num_nodes_geo_type + j;
                 geom_node_ids[j] = connectivity[node_idx];
