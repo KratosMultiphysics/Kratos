@@ -32,6 +32,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosMPICoreFa
 
     IndexType total_size =numbering.Size();
     DistributedSystemVector<double,IndexType> x(numbering);
+    x.SetValue(0.0)
 
     //test exporting
     std::vector<IndexType> indices_to_export;
