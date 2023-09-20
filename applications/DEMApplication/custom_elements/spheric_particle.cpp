@@ -2111,9 +2111,9 @@ void SphericParticle::TransformNeighbourCoorsToClosestInPeriodicDomain(const Pro
     const array_1d<double,3>& domain_min = r_process_info[DOMAIN_MIN_CORNER];
     const array_1d<double,3>& domain_max = r_process_info[DOMAIN_MAX_CORNER];
 
-    const double periods[3] = {domain_min[0] - domain_max[0],
-                               domain_min[1] - domain_max[1],
-                               domain_min[2] - domain_max[2]};
+    const double periods[3] = {domain_max[0] - domain_min[0],
+                               domain_max[1] - domain_min[1],
+                               domain_max[2] - domain_min[2]};
 
     DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(coors, neighbour_coors, periods);
 }
