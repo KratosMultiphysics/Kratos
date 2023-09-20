@@ -14,8 +14,8 @@
 
 // Those dummy structs are necessary when the MED-library is compiled with MPI support.
 // Then the header also contains functions which use those MPI-types
-struct MPI_Comm{};
-struct MPI_Info{};
+//struct MPI_Comm;
+//struct MPI_Info;
 
 // External includes
 #include "med.h"
