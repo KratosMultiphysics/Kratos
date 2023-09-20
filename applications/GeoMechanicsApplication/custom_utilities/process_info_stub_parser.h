@@ -12,14 +12,14 @@
 
 #pragma once
 
-#include <vector>
-#include "process_parameters.h"
+#include "process_info_parser.h"
 
 namespace Kratos {
 
-class ProcessInfoParser {
+class ProcessInfoStubParser : public ProcessInfoParser {
+
 public:
-    virtual std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) = 0;
+    std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) override;
 };
 
 } // Kratos

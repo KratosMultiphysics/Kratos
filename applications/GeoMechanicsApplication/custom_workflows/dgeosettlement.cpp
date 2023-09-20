@@ -20,12 +20,16 @@
 #include "custom_processes/apply_excavation_process.hpp"
 #include "custom_utilities/input_utility.h"
 
+#include "custom_utilities/process_info_parser.h"
+
 namespace Kratos
 {
 
-KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility) :
+KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility,
+                                         std::unique_ptr<ProcessInfoParser> pProcessInfoParser) :
     mpInputUtility{std::move(pInputUtility)},
-    mProcessFactory{std::make_unique<ProcessFactory>()}
+    mProcessFactory{std::make_unique<ProcessFactory>()},
+    mpProcessInfoParser{std::move(pProcessInfoParser)}
 {
     KRATOS_INFO("KratosGeoSettlement") << "Setting up Kratos" << std::endl;
     KRATOS_ERROR_IF_NOT(mpInputUtility) << "Invalid Input Utility";
@@ -82,6 +86,15 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         const auto material_file_path = rWorkingDirectory / material_file_name;
         mpInputUtility->AddMaterialsFromFile(material_file_path.generic_string(), mModel);
         KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
+    }
+
+    if (project_parameters.Has("processes"))
+    {
+        const auto processes = mpProcessInfoParser->GetProcessList(project_parameters["processes"]);
+    }
+    if (project_parameters.Has("output_processes"))
+    {
+        const auto output_processes = mpProcessInfoParser->GetProcessList(project_parameters["output_processes"]);
     }
 
     return 0;

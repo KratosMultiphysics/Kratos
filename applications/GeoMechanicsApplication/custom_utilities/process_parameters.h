@@ -17,17 +17,17 @@
 namespace Kratos
 {
 
-struct ProcessInfo
+struct ProcessParameters
 {
     Parameters parameters;
     std::string name;
 
-    ProcessInfo(const Parameters& rParameters, const std::string& rName) :
+    ProcessParameters(const Parameters& rParameters, const std::string& rName) :
             parameters{rParameters},
             name{rName}
     {}
 
-    bool operator==(const ProcessInfo& rhs) const
+    bool operator==(const ProcessParameters& rhs) const
     {
         return name == rhs.name && parameters.WriteJsonString() == rhs.parameters.WriteJsonString();
     }

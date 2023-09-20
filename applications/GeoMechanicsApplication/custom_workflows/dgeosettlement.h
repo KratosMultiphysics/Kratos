@@ -26,11 +26,13 @@ namespace Kratos
 
 class ProcessFactory;
 class InputUtility;
+class ProcessInfoParser;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 {
 public:
-    explicit KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility);
+    explicit KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility,
+                                 std::unique_ptr<ProcessInfoParser> pProcessInfoParser);
     ~KratosGeoSettlement();
 
     int RunStage(const std::filesystem::path&            rWorkingDirectory,
@@ -54,6 +56,7 @@ private:
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
     std::unique_ptr<ProcessFactory> mProcessFactory;
     std::unique_ptr<InputUtility> mpInputUtility;
+    std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;
 };
 
 }

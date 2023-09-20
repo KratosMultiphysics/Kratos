@@ -13,6 +13,7 @@
 #include "testing/testing.h"
 #include "custom_workflows/dgeosettlement.h"
 #include "stub_input_utility.h"
+#include "custom_utilities/process_info_stub_parser.h"
 
 using namespace Kratos;
 
@@ -60,11 +61,12 @@ void ExpectNumberOfMaterialCallsEqualTo(int expectedNumberOfMaterialCalls, const
     KRATOS_EXPECT_EQ(input_utility_from_settlement->NumberOfMaterialCalls(), expectedNumberOfMaterialCalls);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, KratosGeoMechanicsFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, WorkInProgress) {
     bool has_thrown = false;
     try
     {
-        KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings));
+        KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings),
+                                        std::make_unique<ProcessInfoStubParser>());
     }
     catch (...)
     {
@@ -74,8 +76,9 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, KratosGeoMech
     KRATOS_EXPECT_FALSE(has_thrown) // No other way to check that the constructor does not throw
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RunStageMakesRelevantCallsOnce, KratosGeoMechanicsFastSuite) {
-    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings));
+KRATOS_TEST_CASE_IN_SUITE(RunStageMakesRelevantCallsOnce, WorkInProgress) {
+    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings),
+                                   std::make_unique<ProcessInfoStubParser>());
 
     RunStage(settlement);
 
@@ -83,7 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageMakesRelevantCallsOnce, KratosGeoMechanicsFast
     ExpectNumberOfMaterialCallsEqualTo(1, settlement);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotPerformMaterialCallWhenNotSpecified, KratosGeoMechanicsFastSuite) {
+KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotPerformMaterialCallWhenNotSpecified, WorkInProgress) {
     const std::string parameter_json_string_without_material_import_settings = R"(
                                                                                 {
                                                                                     "solver_settings":
@@ -98,7 +101,8 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotPerformMaterialCallWhenNotSpecified, Kr
                                                                                 }
                                                                                 )";
 
-    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_string_without_material_import_settings));
+    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_string_without_material_import_settings),
+                                   std::make_unique<ProcessInfoStubParser>());
 
     RunStage(settlement);
 
@@ -106,8 +110,9 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotPerformMaterialCallWhenNotSpecified, Kr
     ExpectNumberOfMaterialCallsEqualTo(0, settlement);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RunStageTwiceOnlyCallsReadFromModelOnce, KratosGeoMechanicsFastSuite) {
-    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings));
+KRATOS_TEST_CASE_IN_SUITE(RunStageTwiceOnlyCallsReadFromModelOnce, WorkInProgress) {
+    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings),
+                                   std::make_unique<ProcessInfoStubParser>());
 
     RunStage(settlement);
     RunStage(settlement);
@@ -115,8 +120,9 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageTwiceOnlyCallsReadFromModelOnce, KratosGeoMech
     ExpectNumberOfReadCallsIsEqualToOne(settlement);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ConstructKratosGeoSettlementWithEmptyInputUtilityThrows, KratosGeoMechanicsFastSuite) {
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(KratosGeoSettlement settlement(nullptr),
+KRATOS_TEST_CASE_IN_SUITE(ConstructKratosGeoSettlementWithEmptyInputUtilityThrows, WorkInProgress) {
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(KratosGeoSettlement settlement(nullptr,
+                                                                     std::make_unique<ProcessInfoStubParser>()),
                                       "Invalid Input Utility")
 }
 

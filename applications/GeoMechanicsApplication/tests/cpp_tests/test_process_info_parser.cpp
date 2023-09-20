@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_utilities/process_info_parser.h"
+#include "custom_utilities/process_info_json_parser.h"
 #include "testing/testing.h"
 
 using namespace Kratos;
@@ -64,16 +64,16 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListType
     )";
 
     // When
-    ProcessInfoParser parser;
+    ProcessInfoJsonParser parser;
     const auto actual_result = parser.GetProcessList(process_list);
 
     // Then
-    const std::vector<ProcessInfo> expected_result = {ProcessInfo{Parameters{parameterString}, "ConstraintProcess1"},
-                                                      ProcessInfo{Parameters{parameterString}, "ConstraintProcess2"},
-                                                      ProcessInfo{Parameters{parameterString}, "LoadProcess1"},
-                                                      ProcessInfo{Parameters{parameterString}, "LoadProcess2"},
-                                                      ProcessInfo{Parameters{parameterString}, "AuxiliarProcess1"},
-                                                      ProcessInfo{Parameters{parameterString}, "AuxiliarProcess2"}};
+    const std::vector<ProcessParameters> expected_result = {ProcessParameters{Parameters{parameterString}, "ConstraintProcess1"},
+                                                      ProcessParameters{Parameters{parameterString}, "ConstraintProcess2"},
+                                                      ProcessParameters{Parameters{parameterString}, "LoadProcess1"},
+                                                      ProcessParameters{Parameters{parameterString}, "LoadProcess2"},
+                                                      ProcessParameters{Parameters{parameterString}, "AuxiliarProcess1"},
+                                                      ProcessParameters{Parameters{parameterString}, "AuxiliarProcess2"}};
 
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
@@ -98,12 +98,12 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdentic
     )";
 
     // When
-    ProcessInfoParser parser;
+    ProcessInfoJsonParser parser;
     const auto actual_result = parser.GetProcessList(process_list_with_duplicate_names);
 
     // Then
-    const std::vector<ProcessInfo> expected_result = {ProcessInfo{Parameters{parameterString}, "ApplyVectorConstraintTableProcess"},
-                                                      ProcessInfo{Parameters{parameterString}, "ApplyVectorConstraintTableProcess"}};
+    const std::vector<ProcessParameters> expected_result = {ProcessParameters{Parameters{parameterString}, "ApplyVectorConstraintTableProcess"},
+                                                            ProcessParameters{Parameters{parameterString}, "ApplyVectorConstraintTableProcess"}};
 
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
@@ -123,13 +123,13 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters
     )";
 
     // When
-    ProcessInfoParser parser;
+    ProcessInfoJsonParser parser;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(parser.GetProcessList(process_without_parameters), "Getting a value that does not exist. entry string : Parameters")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsEmptyString_WhenNoProcessesAreDefined, WorkInProgress)
 {
-    ProcessInfoParser parser;
+    ProcessInfoJsonParser parser;
     KRATOS_EXPECT_EQ(parser.GetProcessList(Parameters{}).size(), 0);
 }
 
@@ -146,10 +146,10 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsCorrectList_ForOutputProcess, Wo
         }]
     }
     )";
-    ProcessInfoParser parser;
+    ProcessInfoJsonParser parser;
     const auto actual_result = parser.GetProcessList(output_process_list);
 
-    const std::vector<ProcessInfo> expected_result = {ProcessInfo{Parameters{parameterString}, "GiDOutputProcess"}};
+    const std::vector<ProcessParameters> expected_result = {ProcessParameters{Parameters{parameterString}, "GiDOutputProcess"}};
 
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }

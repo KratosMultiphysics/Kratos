@@ -9,17 +9,13 @@
 //
 //  Main authors:    Richard Faasse
 //
+#include "process_info_stub_parser.h"
 
-#pragma once
+namespace Kratos
+{
 
-#include <vector>
-#include "process_parameters.h"
+std::vector<ProcessParameters> ProcessInfoStubParser::GetProcessList(const Kratos::Parameters &rProcessParameters) {
+    return std::vector<ProcessParameters>();
+}
 
-namespace Kratos {
-
-class ProcessInfoParser {
-public:
-    virtual std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) = 0;
-};
-
-} // Kratos
+}
