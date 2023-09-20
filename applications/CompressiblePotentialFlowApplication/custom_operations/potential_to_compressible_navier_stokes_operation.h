@@ -45,8 +45,8 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(PotentialToCompressibleNavierStokesOperation);
 
     /// Registry current operation
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.KratosMultiphysics.CompressiblePotentialFlowApplication", PotentialToCompressibleNavierStokesOperation)
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.All", PotentialToCompressibleNavierStokesOperation)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.KratosMultiphysics.CompressiblePotentialFlowApplication", Operation, PotentialToCompressibleNavierStokesOperation)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Operations.All", Operation, PotentialToCompressibleNavierStokesOperation)
 
     ///@}
     ///@name Life Cycle

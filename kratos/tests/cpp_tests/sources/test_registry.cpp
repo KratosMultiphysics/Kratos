@@ -301,9 +301,6 @@ KRATOS_TEST_CASE_IN_SUITE(RegistryParallelAddAndRemove, KratosCoreFastSuite)
                 KRATOS_EXPECT_FALSE(Registry::HasItem(item_name));
             }
         );
-
-        
-
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RegistrySomeRegisteredVariables, KratosCoreFastSuite){
