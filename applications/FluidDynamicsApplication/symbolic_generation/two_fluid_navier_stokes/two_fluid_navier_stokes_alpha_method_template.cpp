@@ -112,7 +112,7 @@ void TwoFluidNavierStokesAlphaMethod<TElementData>::Calculate(
     ShapeFunctionDerivativesArrayType shape_derivatives;
     this->CalculateGeometryData(gauss_weights, shape_functions, shape_derivatives);
     const unsigned int number_of_gauss_points = gauss_weights.size();
-
+    rOutput = 0.0; 
     if (rVariable == ARTIFICIAL_DYNAMIC_VISCOSITY)
     {
 
