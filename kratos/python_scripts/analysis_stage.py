@@ -2,6 +2,7 @@
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+import numpy as np
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -80,17 +81,35 @@ class AnalysisStage(object):
         It can be overridden by derived classes
         """
 
-        print("/n ::TESTING:: START Calculate normals /n")
-        normal_calculation_utils = KratosMultiphysics.NormalCalculationUtils()
-        normal_calculation_utils.CalculateUnitNormalsNonHistorical(self._GetSolver().GetComputingModelPart(), 0)
-        for node in self._GetSolver().GetComputingModelPart().Nodes:
-            normal = node.GetValue(KratosMultiphysics.NORMAL)
-            # print(node.Id, normal)
-        print("/n ::TESTING:: FINISH Calculate normals /n")
 
         while self.KeepAdvancingSolutionLoop():
             self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
+
+            imposed_strain = KratosMultiphysics.Vector(3)
+            imposed_stress = KratosMultiphysics.Vector(3)
+            imposed_def_grad = KratosMultiphysics.Matrix(2,2)
+
+            imposed_strain[0] = 0.01
+            imposed_strain[1] = 0.01
+            imposed_strain[2] = 0.0
+
+            imposed_stress[0] = 0
+            imposed_stress[1] = 0
+            imposed_stress[2] = 0.0
+
+            imposed_def_grad[0,0] = 0.0
+            imposed_def_grad[1,0] = 0.0
+            imposed_def_grad[0,1] = 0.0
+            imposed_def_grad[1,1] = 0.0
+
+            # create process
+            KratosMultiphysics.SetInitialStateProcess2D(self._GetSolver().GetComputingModelPart(),
+                                                        imposed_strain,
+                                                        imposed_stress,
+                                                        imposed_def_grad).ExecuteInitializeSolutionStep()
+
+
             self._GetSolver().Predict()
             is_converged = self._GetSolver().SolveSolutionStep()
 
@@ -122,108 +141,153 @@ class AnalysisStage(object):
             # print("/n ::TESTING:: FINISH Calculate Jacobian /n")
             # hehehehe
 
-            DN1DXI = -1.0
-            DN2DXI = 1.0
-            DN3DXI = 0.0
+            # DN1DXI = -1.0
+            # DN2DXI = 1.0
+            # DN3DXI = 0.0
             
-            DNXI = KratosMultiphysics.Matrix(3,9)
-            # DN1X1
-            DNXI[0,0] = DN1DXI
-            DNXI[0,1] = 0.0
-            DNXI[0,2] = 0.0
-            DNXI[1,0] = 0.0
-            DNXI[1,1] = DN1DXI
-            DNXI[1,2] = 0.0
-            DNXI[2,0] = 0.0
-            DNXI[2,1] = 0.0
-            DNXI[2,2] = DN1DXI
-            # DN2XI
-            DNXI[0,3] = DN2DXI
-            DNXI[0,4] = 0.0
-            DNXI[0,5] = 0.0
-            DNXI[1,3] = 0.0
-            DNXI[1,4] = DN2DXI
-            DNXI[1,5] = 0.0
-            DNXI[2,3] = 0.0
-            DNXI[2,4] = 0.0
-            DNXI[2,5] = DN2DXI
-            # DN3XI
-            DNXI[0,6] = DN3DXI
-            DNXI[0,7] = 0.0
-            DNXI[0,8] = 0.0
-            DNXI[1,6] = 0.0
-            DNXI[1,7] = DN3DXI
-            DNXI[1,8] = 0.0
-            DNXI[2,6] = 0.0
-            DNXI[2,7] = 0.0
-            DNXI[2,8] = DN3DXI
+            # DNXI = KratosMultiphysics.Matrix(3,9)
+            # # DN1X1
+            # DNXI[0,0] = DN1DXI
+            # DNXI[0,1] = 0.0
+            # DNXI[0,2] = 0.0
+            # DNXI[1,0] = 0.0
+            # DNXI[1,1] = DN1DXI
+            # DNXI[1,2] = 0.0
+            # DNXI[2,0] = 0.0
+            # DNXI[2,1] = 0.0
+            # DNXI[2,2] = DN1DXI
+            # # DN2XI
+            # DNXI[0,3] = DN2DXI
+            # DNXI[0,4] = 0.0
+            # DNXI[0,5] = 0.0
+            # DNXI[1,3] = 0.0
+            # DNXI[1,4] = DN2DXI
+            # DNXI[1,5] = 0.0
+            # DNXI[2,3] = 0.0
+            # DNXI[2,4] = 0.0
+            # DNXI[2,5] = DN2DXI
+            # # DN3XI
+            # DNXI[0,6] = DN3DXI
+            # DNXI[0,7] = 0.0
+            # DNXI[0,8] = 0.0
+            # DNXI[1,6] = 0.0
+            # DNXI[1,7] = DN3DXI
+            # DNXI[1,8] = 0.0
+            # DNXI[2,6] = 0.0
+            # DNXI[2,7] = 0.0
+            # DNXI[2,8] = DN3DXI
 
-            # DNXI[0] = [DN1DXI,      0,       0,   DN2DXI,      0,       0,   DN3DXI,   0,     0]
-            # DNXI[1] = [     0,  DN1DXI,      0,        0,  DN2DXI,      0,       0,   DN3DXI, 0]
-            # DNXI[2] = [     0,       0, DN1DXI,        0,       0, DN2DXI,       0,   0, DN3DXI]
+            # # DNXI[0] = [DN1DXI,      0,       0,   DN2DXI,      0,       0,   DN3DXI,   0,     0]
+            # # DNXI[1] = [     0,  DN1DXI,      0,        0,  DN2DXI,      0,       0,   DN3DXI, 0]
+            # # DNXI[2] = [     0,       0, DN1DXI,        0,       0, DN2DXI,       0,   0, DN3DXI]
 
-            DN1DETA = -1.0
-            DN2DETA = 0.0
-            DN3DETA = 1.0
+            # DN1DETA = -1.0
+            # DN2DETA = 0.0
+            # DN3DETA = 1.0
             
-            DNETA = KratosMultiphysics.Matrix(3,9)
-            # DN1X1
-            DNETA[0,0] = DN1DETA
-            DNETA[0,1] = 0.0
-            DNETA[0,2] = 0.0
-            DNETA[1,0] = 0.0
-            DNETA[1,1] = DN1DETA
-            DNETA[1,2] = 0.0
-            DNETA[2,0] = 0.0
-            DNETA[2,1] = 0.0
-            DNETA[2,2] = DN1DETA
-            # DN2XI
-            DNETA[0,3] = DN2DETA
-            DNETA[0,4] = 0.0
-            DNETA[0,5] = 0.0
-            DNETA[1,3] = 0.0
-            DNETA[1,4] = DN2DETA
-            DNETA[1,5] = 0.0
-            DNETA[2,3] = 0.0
-            DNETA[2,4] = 0.0
-            DNETA[2,5] = DN2DETA
-            # DN3XI
-            DNETA[0,6] = DN3DETA
-            DNETA[0,7] = 0.0
-            DNETA[0,8] = 0.0
-            DNETA[1,6] = 0.0
-            DNETA[1,7] = DN3DETA
-            DNETA[1,8] = 0.0
-            DNETA[2,6] = 0.0
-            DNETA[2,7] = 0.0
-            DNETA[2,8] = DN3DETA
+            # DNETA = KratosMultiphysics.Matrix(3,9)
+            # # DN1X1
+            # DNETA[0,0] = DN1DETA
+            # DNETA[0,1] = 0.0
+            # DNETA[0,2] = 0.0
+            # DNETA[1,0] = 0.0
+            # DNETA[1,1] = DN1DETA
+            # DNETA[1,2] = 0.0
+            # DNETA[2,0] = 0.0
+            # DNETA[2,1] = 0.0
+            # DNETA[2,2] = DN1DETA
+            # # DN2XI
+            # DNETA[0,3] = DN2DETA
+            # DNETA[0,4] = 0.0
+            # DNETA[0,5] = 0.0
+            # DNETA[1,3] = 0.0
+            # DNETA[1,4] = DN2DETA
+            # DNETA[1,5] = 0.0
+            # DNETA[2,3] = 0.0
+            # DNETA[2,4] = 0.0
+            # DNETA[2,5] = DN2DETA
+            # # DN3XI
+            # DNETA[0,6] = DN3DETA
+            # DNETA[0,7] = 0.0
+            # DNETA[0,8] = 0.0
+            # DNETA[1,6] = 0.0
+            # DNETA[1,7] = DN3DETA
+            # DNETA[1,8] = 0.0
+            # DNETA[2,6] = 0.0
+            # DNETA[2,7] = 0.0
+            # DNETA[2,8] = DN3DETA
             
-            # DNETA[0] = [DN1DETA,      0,       0,   DN2DETA,      0,       0,   DN3DETA,   0,     0]
-            # DNETA[1] = [     0,  DN1DETA,      0,        0,  DN2DETA,      0,       0,   DN3DETA, 0]
-            # DNETA[2] = [     0,       0, DN1DETA,        0,       0, DN2DETA,       0,   0, DN3DETA]
+            # # DNETA[0] = [DN1DETA,      0,       0,   DN2DETA,      0,       0,   DN3DETA,   0,     0]
+            # # DNETA[1] = [     0,  DN1DETA,      0,        0,  DN2DETA,      0,       0,   DN3DETA, 0]
+            # # DNETA[2] = [     0,       0, DN1DETA,        0,       0, DN2DETA,       0,   0, DN3DETA]
 
-            print("DNXI: ", DNXI)
-            print("DNETA: ", DNETA)
+            # print("DNXI: ", DNXI)
+            # print("DNETA: ", DNETA)
 
+            # for element in self._GetSolver().GetComputingModelPart().Elements:
+            #     # Jacob = KratosMultiphysics.Matrix([DNXI * element.GetNodes().GetCoordinates()], [DNETA * element.GetNodes().GetCoordinates()])
+            #     # for node in element.GetNodes():
+            #     #     node.X = node.X0
+            #     #     node.Y = node.Y0
+            #     #     node.Z = node.Z0
+            #     # element.GetNodes()[0].X += 0.1
+            #     # element.GetNodes()[0].Y += 0.3
+            #     # element.GetNodes()[0].Z += 0.5
+            #     coordinates = [element.GetNodes()[0].X, element.GetNodes()[0].Y, element.GetNodes()[0].Z,
+            #                    element.GetNodes()[1].X, element.GetNodes()[1].Y, element.GetNodes()[1].Z,
+            #                    element.GetNodes()[2].X, element.GetNodes()[2].Y, element.GetNodes()[2].Z,]
+            #     # print("ELEMENT:", coordinates)
+
+            #     Jac_xi = DNXI * coordinates
+            #     Jac_eta = DNETA * coordinates
+            #     J_total = KratosMultiphysics.Matrix([Jac_xi,Jac_eta])
+            #     J_total = J_total.transpose()
+            #     # print(element.Id, "J_xi: ", Jac_xi)
+            #     # print(element.Id, "J_eta: ", Jac_eta)
+            #     # print(element.Id, "J_tot: ", J_total)
+            #     J_X = element.GetGeometry().Jacobian(0)
+            #     print(element.Id, "J_X : ", J_X)
+            #     for node in element.GetNodes():
+            #         # node.X = node.X0
+            #         # node.Y = node.Y0
+            #         node.Z = 0.0
+            #     J_X0 = element.GetGeometry().Jacobian(0)
+            #     # print(element.Id, "J_X : ", J_X)
+            #     print(element.Id, "J_X0: ", J_X0)
+            #     # J_diff = J_total - J_X
+            #     # print(element.Id, "J_diff = ", J_diff)
+
+            # Calculate Jacobian for CURRENT flat configuration
+            self.flatted_config_jacobians = []
+            
             for element in self._GetSolver().GetComputingModelPart().Elements:
-                # Jacob = KratosMultiphysics.Matrix([DNXI * element.GetNodes().GetCoordinates()], [DNETA * element.GetNodes().GetCoordinates()])
-                coordinates = [element.GetNodes()[0].X, element.GetNodes()[0].Y, element.GetNodes()[0].Z,
-                               element.GetNodes()[1].X, element.GetNodes()[1].Y, element.GetNodes()[1].Z,
-                               element.GetNodes()[2].X, element.GetNodes()[2].Y, element.GetNodes()[2].Z,]
-                # print("ELEMENT:", coordinates)
-
-                Jac_xi = DNXI * coordinates
-                Jac_eta = DNETA * coordinates
-                J_total = KratosMultiphysics.Matrix([Jac_xi,Jac_eta])
-                J_total = J_total.transpose()
-                # print(element.Id, "J_xi: ", Jac_xi)
-                # print(element.Id, "J_eta: ", Jac_eta)
-                # print(element.Id, "J_tot: ", J_total)
-                J_Kratos = element.GetGeometry().Jacobian(0)
-                # print(element.Id, "J_Kratos: ", J_Kratos)
-                J_diff = J_total - J_Kratos
-                print(element.Id, "J_diff = ", J_diff)
+                H0 = element.Properties[KratosMultiphysics.THICKNESS]
+                extracolumn = np.array( [[0.0, 0.0, H0/2.0]] )
+                elm_Jacobian = np.array(element.GetGeometry().Jacobian(0))
+                J_X0 = np.concatenate( (elm_Jacobian, extracolumn.T), axis= 1 )
+                self.flatted_config_jacobians.append(J_X0)
+            print("J_X0:", self.flatted_config_jacobians[1])
             
+            Fs = []
+            for J,J0 in zip(self.deformed_config_jacobians,self.flatted_config_jacobians):
+                J0_inv= np.linalg.inv(J0)
+                # F3D = J@J0_inv
+                # C3D = F3D.T * F3D
+                # E3D = 0.5 * (C3D - np.eye(3))
+                # print("E3D: ", E3D)
+
+                JJT = J * J.T
+                G = J0_inv[0:2,0:2]
+                g = JJT[0:2,0:2]
+                C2D = G.T * g * G
+                E2D = 0.5 * (C2D - np.eye(2))
+                print("E2D: ", E2D)
+                E_v = np.array([E2D[0,0], E2D[1,1], E2D[0,1]])
+                print("E_v: ", E_v)
+
+            # G_hat = np.inv(J_X0)
+            # g_hat
+
 
 
             ##########################################################
@@ -358,13 +422,44 @@ class AnalysisStage(object):
 
     def ModifyInitialGeometry(self):
         """this is the place to eventually modify geometry (for example moving nodes) in the stage """
-        for elm in self._GetSolver().GetComputingModelPart().Elements:
-            for node in elm.GetNodes():
-                node.X0 = node.X
-                node.Y0 = node.Y
-                node.Z0 = 0.0
-                print(node.Id, node.X0, node.Y0, node.Z0) 
+        # save deformed configuration nodal positions
+        var_utils = KratosMultiphysics.VariableUtils()
+        self.initial_unmodified_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
+    
+        # Calculate Jacobians from deformed configuration
+        self.deformed_config_jacobians = []
+        for elem in self._GetSolver().GetComputingModelPart().Elements:
+            H0 = elem.Properties[KratosMultiphysics.THICKNESS]
+            extracolumn = np.array( [[0.0, 0.0, H0/2.0]] )
+            elm_Jacobian = np.array(elem.GetGeometry().Jacobian(0))
+            J_X = np.concatenate( (elm_Jacobian, extracolumn.T), axis= 1 )
+            # J = np.array(elem.GetGeometry().Jacobian(0))
+            self.deformed_config_jacobians.append(J_X)
+        print("J_X: ", self.deformed_config_jacobians[1])
+
+        # Calculate normals from deformed configuration
+        print("/n ::TESTING:: START Calculate normals /n")
+        self.deformed_config_normals = []
+        normal_calculation_utils = KratosMultiphysics.NormalCalculationUtils()
+        normal_calculation_utils.CalculateUnitNormalsNonHistorical(self._GetSolver().GetComputingModelPart(), 0)
+    
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            self.deformed_config_normals.append(np.array(node.GetValue(KratosMultiphysics.NORMAL)))
+            # print(node.Id, normal)
+        print("normals:", self.deformed_config_normals)
+        print("/n ::TESTING:: FINISH Calculate normals /n")
+
+        # flatten geometry
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            node.Z0 = 0.0
+            node.Z  = 0.0
         
+        # save flat configuration nodal positions
+        self.flattened_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
+        self.initial_displacements = self.initial_unmodified_coordinates - self.flattened_coordinates
+        print("initial_displacements:", self.initial_displacements)
+
+
 
     def ModifyAfterSolverInitialize(self):
         """this is the place to eventually do any modification that requires the solver to be initialized """
