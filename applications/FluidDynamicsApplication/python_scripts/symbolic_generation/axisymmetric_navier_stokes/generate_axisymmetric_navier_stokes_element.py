@@ -90,12 +90,12 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
 
     ## Compute galerkin functional
     # Navier-Stokes functional
-    galerkin_functional = rho*w_gauss[0]*f_gauss[0] - rho*w_gauss[0]*accel_gauss[0] - rho*w_gauss[0]*v_conv_gauss[1]*grad_v[1,0] - rho*w_gauss[0]*v_conv_gauss[0]*grad_v[0,0] - w_gauss[0]*grad_p[0] - mu*grad_w[1,0]*grad_v[1,0] - (mu/y)*w_gauss[0]*grad_v[1,0] - mu*grad_w[0,0]*grad_v[0,0]
-    galerkin_functional += rho*w_gauss[1]*f_gauss[1] - rho*w_gauss[1]*accel_gauss[1] - rho*w_gauss[1]*v_conv_gauss[1]*grad_v[1,1] - rho*w_gauss[1]*v_conv_gauss[0]*grad_v[0,1] - w_gauss[0]*grad_p[1] - (mu/y**2)*w_gauss[1]*v_gauss[1] - mu*grad_w[1,1]*grad_v[1,1] - (mu/y)*w_gauss[1]*grad_v[1,1] - mu*grad_w[0,0]*grad_v[0,1]
+    galerkin_functional = rho*w_gauss[0]*f_gauss[0] - rho*w_gauss[0]*accel_gauss[0] - rho*w_gauss[0]*v_conv_gauss[1]*grad_v[1,0] - rho*w_gauss[0]*v_conv_gauss[0]*grad_v[0,0] - w_gauss[0]*grad_p[0] - mu*grad_w[1,0]*grad_v[1,0] + (mu/y)*w_gauss[0]*grad_v[1,0] - mu*grad_w[0,0]*grad_v[0,0]
+    galerkin_functional += rho*w_gauss[1]*f_gauss[1] - rho*w_gauss[1]*accel_gauss[1] - rho*w_gauss[1]*v_conv_gauss[1]*grad_v[1,1] - rho*w_gauss[1]*v_conv_gauss[0]*grad_v[0,1] - w_gauss[0]*grad_p[1] - (mu/y**2)*w_gauss[1]*v_gauss[1] - mu*grad_w[1,1]*grad_v[1,1] + (mu/y)*w_gauss[1]*grad_v[1,1] - mu*grad_w[1,1]*grad_v[1,1] - mu*grad_w[0,1]*grad_v[0,1]
     if divide_by_rho:
-        galerkin_functional += - q_gauss[0]*(v_gauss[1]/y + grad_v[1,1]) - q_gauss[0]*grad_v[0,0]
+        galerkin_functional += - q_gauss[0]*v_gauss[1]/y - q_gauss[0]*grad_v[1,1] - q_gauss[0]*grad_v[0,0]
     else:
-        galerkin_functional += - rho*q_gauss[0]*(v_gauss[1]/y + grad_v[1,1]) - rho*q_gauss[0]*grad_v[0,0]
+        galerkin_functional += - rho*q_gauss[0]*v_gauss[1]/y - rho*q_gauss[0]*grad_v[1,1] - rho*q_gauss[0]*grad_v[0,0]
 
     ##  Stabilization functional terms
     # Momentum conservation residual
@@ -116,11 +116,11 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
 
     # Compute the ASGS stabilization terms using the momentum and mass conservation residuals above
     if divide_by_rho:
-        stabilization_functional = - q_gauss[0]*vel_subscale_y/y + y*grad_q[1]*vel_subscale_y + grad_q[0]*vel_subscale_x
+        stabilization_functional = - q_gauss[0]*vel_subscale_y/y + grad_q[1]*vel_subscale_y + grad_q[0]*vel_subscale_x
     else:
-        stabilization_functional = - rho*q_gauss[0]*vel_subscale_y/y + rho*y*grad_q[1]*vel_subscale_y + rho*grad_q[0]*vel_subscale_x
-    stabilization_functional += rho*(grad_w[1,0]*v_conv_gauss[1]+w_gauss[0]*grad_v_conv[1,1])*vel_subscale_x + rho*(grad_w[0,0]*v_conv_gauss[0]+w_gauss[0]*grad_v_conv[0,0])*vel_subscale_x + grad_w[0,0]*pres_subscale
-    stabilization_functional += rho*(grad_w[1,1]*v_conv_gauss[1]+w_gauss[1]*grad_v_conv[1,1])*vel_subscale_y + rho*(grad_w[0,1]*v_conv_gauss[0]+w_gauss[1]*grad_v_conv[0,0])*vel_subscale_y + grad_w[0,0]*pres_subscale - (mu/y**2)*w_gauss[1]*vel_subscale_y
+        stabilization_functional = - rho*q_gauss[0]*vel_subscale_y/y + rho*grad_q[1]*vel_subscale_y + rho*grad_q[0]*vel_subscale_x
+    stabilization_functional += rho*(grad_w[1,0]*v_conv_gauss[1]+w_gauss[0]*grad_v_conv[1,1])*vel_subscale_x + rho*(grad_w[0,0]*v_conv_gauss[0]+w_gauss[0]*grad_v_conv[0,0])*vel_subscale_x + grad_w[0,0]*pres_subscale - (grad_w[1,0]*mu/y - w_gauss[0]*mu/y**2)*vel_subscale_x
+    stabilization_functional += rho*(grad_w[1,1]*v_conv_gauss[1]+w_gauss[1]*grad_v_conv[1,1])*vel_subscale_y + rho*(grad_w[0,1]*v_conv_gauss[0]+w_gauss[1]*grad_v_conv[0,0])*vel_subscale_y + grad_w[1,1]*pres_subscale - (mu/y**2)*w_gauss[1]*vel_subscale_y - (grad_w[1,1]*mu/y - w_gauss[1]*mu/y**2)*vel_subscale_y
 
     ## Add the stabilization terms to the original residual terms
     functional = galerkin_functional
