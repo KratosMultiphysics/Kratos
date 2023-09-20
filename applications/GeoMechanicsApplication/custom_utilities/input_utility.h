@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include <string>
+#include <filesystem>
 #include <includes/kratos_parameters.h>
 #include "containers/model.h"
 

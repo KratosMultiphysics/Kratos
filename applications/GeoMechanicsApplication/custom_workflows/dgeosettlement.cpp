@@ -13,7 +13,6 @@
 #include "input_output/logger.h"
 #include "utilities/variable_utils.h"
 #include "custom_utilities/input_utility.h"
-#include <iostream>
 
 namespace Kratos
 {
