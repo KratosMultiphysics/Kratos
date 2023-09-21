@@ -14,8 +14,44 @@
 namespace Kratos
 {
 
-std::vector<ProcessParameters> ProcessInfoStubParser::GetProcessList(const Kratos::Parameters &rProcessParameters) {
-    return std::vector<ProcessParameters>();
+const std::string vector_parameter_string =
+R"({
+    "model_part_name": "PorousDomain.Body_Acceleration-auto-1",
+    "variable_name":   "VOLUME_ACCELERATION",
+    "active":          [false,true,false],
+    "value":           [0.0,-10,0.0],
+    "table":           [0,0,0]
+})";
+
+const std::string parameter_field_string =
+R"({
+    "model_part_name": "PorousDomain.Initial_OCR_field",
+    "variable_name":   "OCR",
+    "func_type":       "input",
+    "function":        "1.5",
+    "dataset":         "empty"
+})";
+
+const std::string excavation_string =
+R"({
+    "model_part_name": "PorousDomain.Excavation-auto-1",
+    "variable_name": "EXCAVATION",
+    "deactivate_soil_part": false
+})";
+
+const std::string k0_string =
+R"({
+    "model_part_name": "PorousDomain.porous_computational_model_part",
+    "variable_name": "CAUCHY_STRESS_TENSOR"
+})";
+
+
+std::vector<ProcessParameters> ProcessInfoStubParser::GetProcessList(const Kratos::Parameters& rProcessParameters)
+{
+    return {ProcessParameters{Parameters{vector_parameter_string}, "ApplyVectorConstraintsTableProcess"},
+            ProcessParameters{Parameters{parameter_field_string}, "SetParameterFieldProcess"},
+            ProcessParameters{Parameters{excavation_string}, "ApplyExcavationProcess"},
+            ProcessParameters{Parameters{k0_string}, "ApplyK0ProcedureProcess"}};
 }
 
 }
