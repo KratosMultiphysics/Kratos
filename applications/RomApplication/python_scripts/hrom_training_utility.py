@@ -317,6 +317,8 @@ class HRomTrainingUtility(object):
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
         if self.include_condition_parents:
+            KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", 'Make sure you set "assign_neighbour_elements_to_conditions": true in the solver_settings to have a parent element for each condition.')
+
             # Get the HROM condition parents from the current HROM weights
             missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
                 self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
