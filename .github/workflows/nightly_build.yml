@@ -104,7 +104,8 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: Nightly-Ubuntu
-        path: ${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
+        if: ${{ matrix.compiler == clang }}
+        path: ${{ github.workspace }}/bin/${{ env.KRATOS_BUILD_TYPE }}
 
 
   windows-nightly:
@@ -148,6 +149,11 @@ jobs:
         set PATH=%PATH%;%GITHUB_WORKSPACE%/bin/%KRATOS_BUILD_TYPE%/libs
         python kratos/python_scripts/testing/run_tests.py -l nightly -c python
 
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Nightly-Windows
+        path: ${{ github.workspace }}/bin/${{ env.KRATOS_BUILD_TYPE }}
+
   centos-nightly:
     runs-on: ubuntu-latest
     env:
@@ -175,8 +181,3 @@ jobs:
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3.8 kratos/python_scripts/testing/run_tests.py -l nightly -c python3.8
-
-    - uses: actions/upload-artifact@v3
-      with:
-        name: Nightly-Windows
-        path: ${GITHUB_WORKSPACE}/bin/Custom
