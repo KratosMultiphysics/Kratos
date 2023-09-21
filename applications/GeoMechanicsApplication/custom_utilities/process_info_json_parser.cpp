@@ -14,9 +14,9 @@
 namespace Kratos
 {
 
-std::vector<Kratos::ProcessParameters> ProcessInfoJsonParser::GetProcessList(const Parameters& rProcessParameters)
+std::vector<ProcessParameters> ProcessInfoJsonParser::GetProcessList(const Parameters& rProcessParameters)
 {
-    ProcessInfoJsonParser::mProcessParameters = rProcessParameters;
+    mProcessParameters = rProcessParameters;
     const std::vector<std::string> process_list_names = {"constraints_process_list",
                                                          "loads_process_list",
                                                          "auxiliar_process_list",
@@ -27,7 +27,7 @@ std::vector<Kratos::ProcessParameters> ProcessInfoJsonParser::GetProcessList(con
         ProcessInfoJsonParser::AddProcessesForList(process_list_name);
     }
 
-    return ProcessInfoJsonParser::mProcessNames;
+    return mProcessNames;
 }
 
 void ProcessInfoJsonParser::AddProcessesForList(const std::string& rProcessListName) {

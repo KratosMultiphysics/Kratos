@@ -16,8 +16,8 @@
 
 namespace Kratos {
 
-class ProcessInfoStubParser : public ProcessInfoParser {
-
+class ProcessInfoStubParser : public ProcessInfoParser
+{
 public:
     std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) override;
 };

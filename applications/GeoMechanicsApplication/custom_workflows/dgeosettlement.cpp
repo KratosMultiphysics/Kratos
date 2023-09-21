@@ -11,16 +11,17 @@
 //
 #include "dgeosettlement.h"
 #include "input_output/logger.h"
-#include "custom_utilities/process_factory.hpp"
+#include "time_loop_executor.h"
+
 #include "utilities/variable_utils.h"
 
 #include "custom_processes/apply_vector_constraints_table_process.hpp"
 #include "custom_processes/set_parameter_field_process.hpp"
 #include "custom_processes/apply_k0_procedure_process.hpp"
 #include "custom_processes/apply_excavation_process.hpp"
-#include "custom_utilities/input_utility.h"
-#include "custom_workflows/time_loop_executor.h"
 
+#include "custom_utilities/input_utility.h"
+#include "custom_utilities/process_factory.hpp"
 #include "custom_utilities/process_info_parser.h"
 
 namespace Kratos
@@ -91,7 +92,6 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
     }
 
-
     std::vector<std::reference_wrapper<Process>> processReferences;
     std::vector<std::unique_ptr<Process>> test;
     if (project_parameters.Has("processes"))
@@ -100,7 +100,6 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         for (const auto& process : processes)
         {
             test.push_back(std::move(mProcessFactory->Create(process.name, process.parameters)));
-//            processReferences.push_back(*test.end());
         }
         for (const auto& tmp : test)
         {

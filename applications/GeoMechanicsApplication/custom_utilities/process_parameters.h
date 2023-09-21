@@ -12,6 +12,7 @@
 #pragma once
 
 #include "includes/kratos_parameters.h"
+
 #include <string>
 
 namespace Kratos
@@ -31,7 +32,6 @@ struct ProcessParameters
     {
         return name == rhs.name && parameters.WriteJsonString() == rhs.parameters.WriteJsonString();
     }
-
 };
 
 }

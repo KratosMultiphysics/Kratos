@@ -12,9 +12,11 @@
 
 #include "custom_workflow_factory.h"
 #include "dgeosettlement.h"
+#include "time_loop_executor.h"
+
 #include "custom_utilities/file_input_utility.h"
 #include "custom_utilities/process_info_json_parser.h"
-#include "time_loop_executor.h"
+
 #include <memory>
 
 namespace Kratos
@@ -24,4 +26,5 @@ KratosGeoSettlement* CustomWorkflowFactory::CreateKratosGeoSettlement()
 {
     return new KratosGeoSettlement{std::make_unique<FileInputUtility>(), std::make_unique<ProcessInfoJsonParser>(), {}};
 }
+
 }

@@ -12,8 +12,9 @@
 
 #pragma once
 
-#include <vector>
 #include "process_parameters.h"
+
+#include <vector>
 
 namespace Kratos {
 
