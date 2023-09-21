@@ -3139,23 +3139,12 @@ namespace Kratos {
       }
 
       if (mRVE_FileFKS.is_open()) {
-        mRVE_FileConductivityTensorInner << time_step << " " << time << " "
-                                         << "[[" << mRVE_ConductivityTensorInner(0, 0) << "],[" << mRVE_ConductivityTensorInner(0, 1) << "]]" << " "
-                                         << "[[" << mRVE_ConductivityTensorInner(1, 0) << "],[" << mRVE_ConductivityTensorInner(1, 1) << "]]"
-                                         << std::endl;
-
-
         mRVE_FileFKS << time_step << " " << time << " "
-                     << mRVE_FabricTensorInner(0,0)       << " "
-                     << mRVE_FabricTensorInner(1,1)       << " "
-                     << mRVE_FabricTensorInner(1,0)       << " "
+                     << mRVE_FabricTensorInner(1,0) << " "
+                     << mRVE_FabricTensorInner(0,0)-mRVE_FabricTensorInner(1,1) << " "
                      << mRVE_ConductivityTensorInner(0,0) << " "
                      << mRVE_ConductivityTensorInner(1,1) << " "
-                     << mRVE_ConductivityTensorInner(1,0) << " "
-                     << mRVE_CauchyTensorInner(0,0)       << " "
-                     << mRVE_CauchyTensorInner(1,1)       << " "
-                     << mRVE_CauchyTensorInner(1,0)       << " "
-                     << mRVE_CauchyTensorInner(0,1)
+                     << mRVE_ConductivityTensorInner(1,0)
                      << std::endl;
       }
     }
@@ -3394,9 +3383,9 @@ namespace Kratos {
         KRATOS_ERROR_IF_NOT(mRVE_FileFKS) << "Could not open file rve_KFS.txt!" << std::endl;
         mRVE_FileFKS << "1 - STEP | ";
         mRVE_FileFKS << "2 - TIME | ";
-        mRVE_FileFKS << "3 - Fxx Fyy Fxy | ";
-        mRVE_FileFKS << "4 - Kxx Kyy Kxy | ";
-        mRVE_FileFKS << "5 - Sxx Syy Sxy Syx";
+        mRVE_FileFKS << "3 - Fxy | ";
+        mRVE_FileFKS << "4 - Fxx-Fyy | ";
+        mRVE_FileFKS << "5 - Kxx Kyy Kxy";
         mRVE_FileFKS << std::endl;
       }
     }
