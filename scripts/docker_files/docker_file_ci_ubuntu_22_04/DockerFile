@@ -64,14 +64,6 @@ RUN apt-get update -y && apt-get upgrade -y && \
     cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_5_1" -DUSE_SCOTCH=OFF -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
     make -j2 install && \
     cd / && \
-    # install MMG v5.6.0
-    git clone -b 'v5.6.0' --depth 1 https://github.com/MmgTools/mmg /tmp/mmg_5_6_0 && \
-    mkdir /tmp/mmg_5_6_0/build && \
-    mkdir -p /external_libraries/mmg/mmg_5_6_0 && \
-    cd /tmp/mmg_5_6_0/build && \
-    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/external_libraries/mmg/mmg_5_6_0" -DUSE_SCOTCH=OFF -DLIBMMG3D_SHARED=ON -DLIBMMG2D_SHARED=ON -DLIBMMGS_SHARED=ON -DLIBMMG_SHARED=ON && \
-    make -j2 install && \
-    cd / && \
     # install PARMMG
     git clone https://github.com/MmgTools/ParMmg /tmp/ParMmg_5ffc6ad && \
     mkdir /tmp/ParMmg_5ffc6ad/build && \
@@ -81,16 +73,6 @@ RUN apt-get update -y && apt-get upgrade -y && \
     make -j2 install && \
     rm -r /tmp/mmg_5_5_1 && \
     rm -r /tmp/ParMmg_5ffc6ad && \
-    cd / && \
-    # install ParMmg v1.4.0
-    git clone -b 'v1.4.0' --depth 1 https://github.com/MmgTools/ParMmg /tmp/ParMmg_1_4_0 && \
-    mkdir /tmp/ParMmg_1_4_0/build && \
-    mkdir -p /external_libraries/ParMmg_1_4_0 && \
-    cd /tmp/ParMmg_1_4_0/build && \
-    cmake .. -DCMAKE_RULE_MESSAGES=OFF -DCMAKE_C_FLAGS="-w" -DCMAKE_CXX_FLAGS="-w" -DCMAKE_INSTALL_PREFIX="/external_libraries/ParMmg_1_4_0" -DUSE_SCOTCH=OFF -DLIBPARMMG_SHARED=ON -DDOWNLOAD_MMG=OFF -DMMG_DIR="/tmp/mmg_5_6_0" -DMMG_BUILDDIR="/tmp/mmg_5_6_0/build" -DDOWNLOAD_METIS=OFF -DMETIS_DIR="/usr/include" && \
-    make -j2 install && \
-    rm -r /tmp/mmg_5_6_0 && \
-    rm -r /tmp/ParMmg_1_4_0 && \
     cd / && \
     # remove some now unnecessary packages
     apt-get -y remove \
