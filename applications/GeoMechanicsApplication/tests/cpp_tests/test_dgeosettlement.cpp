@@ -14,6 +14,7 @@
 #include "custom_workflows/dgeosettlement.h"
 #include "stub_input_utility.h"
 #include "custom_utilities/process_info_stub_parser.h"
+#include "stub_time_loop_executor.h"
 
 using namespace Kratos;
 
@@ -66,7 +67,8 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, WorkInProgres
     try
     {
         KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings),
-                                        std::make_unique<ProcessInfoStubParser>());
+                                       std::make_unique<ProcessInfoStubParser>(),
+                                       std::make_unique<StubTimeLoopExecutor>());
     }
     catch (...)
     {
@@ -78,7 +80,8 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, WorkInProgres
 
 KRATOS_TEST_CASE_IN_SUITE(RunStageMakesRelevantCallsOnce, WorkInProgress) {
     KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings),
-                                   std::make_unique<ProcessInfoStubParser>());
+                                   std::make_unique<ProcessInfoStubParser>(),
+                                   std::make_unique<StubTimeLoopExecutor>());
 
     RunStage(settlement);
 
@@ -102,7 +105,8 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotPerformMaterialCallWhenNotSpecified, Wo
                                                                                 )";
 
     KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_string_without_material_import_settings),
-                                   std::make_unique<ProcessInfoStubParser>());
+                                   std::make_unique<ProcessInfoStubParser>(),
+                                   std::make_unique<StubTimeLoopExecutor>());
 
     RunStage(settlement);
 
@@ -112,7 +116,8 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotPerformMaterialCallWhenNotSpecified, Wo
 
 KRATOS_TEST_CASE_IN_SUITE(RunStageTwiceOnlyCallsReadFromModelOnce, WorkInProgress) {
     KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings),
-                                   std::make_unique<ProcessInfoStubParser>());
+                                   std::make_unique<ProcessInfoStubParser>(),
+                                   std::make_unique<StubTimeLoopExecutor>());
 
     RunStage(settlement);
     RunStage(settlement);
@@ -122,8 +127,41 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageTwiceOnlyCallsReadFromModelOnce, WorkInProgres
 
 KRATOS_TEST_CASE_IN_SUITE(ConstructKratosGeoSettlementWithEmptyInputUtilityThrows, WorkInProgress) {
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(KratosGeoSettlement settlement(nullptr,
-                                                                     std::make_unique<ProcessInfoStubParser>()),
+                                                                     std::make_unique<ProcessInfoStubParser>(),
+                                                                     std::make_unique<StubTimeLoopExecutor>()),
                                       "Invalid Input Utility")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RunStage_PassesTheCorrectProcessReferences, WorkInProgress) {
+    const std::string process_parameters_in_json_settings =
+    R"(
+    {
+        "solver_settings":
+        {
+            "model_part_name":"test",
+            "model_import_settings":
+            {
+            "input_type": "mdpa",
+            "input_filename": "mesh_stage1"
+            }
+        },
+
+        "processes" :
+        [
+            { "test" : "test" }
+        ]
+
+    }
+    )";
+
+    auto process_info_stub_parser = std::make_unique<ProcessInfoStubParser>();
+    const auto number_of_expected_processes = process_info_stub_parser->GetProcessList(Parameters{}).size();
+
+    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(process_parameters_in_json_settings),
+                                   std::move(process_info_stub_parser),
+                                   std::make_unique<StubTimeLoopExecutor>(number_of_expected_processes)); // The ProcessInfoStubParser returns 4
+
+    RunStage(settlement);
 }
 
 }

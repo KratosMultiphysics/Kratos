@@ -19,6 +19,7 @@
 #include "custom_processes/apply_k0_procedure_process.hpp"
 #include "custom_processes/apply_excavation_process.hpp"
 #include "custom_utilities/input_utility.h"
+#include "custom_workflows/time_loop_executor.h"
 
 #include "custom_utilities/process_info_parser.h"
 
@@ -26,10 +27,12 @@ namespace Kratos
 {
 
 KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility,
-                                         std::unique_ptr<ProcessInfoParser> pProcessInfoParser) :
-    mpInputUtility{std::move(pInputUtility)},
+                                         std::unique_ptr<ProcessInfoParser> pProcessInfoParser,
+                                         std::unique_ptr<TimeLoopExecutor> pTimeLoopExecutor) :
     mProcessFactory{std::make_unique<ProcessFactory>()},
-    mpProcessInfoParser{std::move(pProcessInfoParser)}
+    mpInputUtility{std::move(pInputUtility)},
+    mpProcessInfoParser{std::move(pProcessInfoParser)},
+    mpTimeLoopExecutor{std::move(pTimeLoopExecutor)}
 {
     KRATOS_INFO("KratosGeoSettlement") << "Setting up Kratos" << std::endl;
     KRATOS_ERROR_IF_NOT(mpInputUtility) << "Invalid Input Utility";
@@ -88,14 +91,29 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
     }
 
+
+    std::vector<std::reference_wrapper<Process>> processReferences;
+    std::vector<std::unique_ptr<Process>> test;
     if (project_parameters.Has("processes"))
     {
         const auto processes = mpProcessInfoParser->GetProcessList(project_parameters["processes"]);
+        for (const auto& process : processes)
+        {
+            test.push_back(std::move(mProcessFactory->Create(process.name, process.parameters)));
+//            processReferences.push_back(*test.end());
+        }
+        for (const auto& tmp : test)
+        {
+            processReferences.push_back(*tmp);
+        }
+
     }
     if (project_parameters.Has("output_processes"))
     {
         const auto output_processes = mpProcessInfoParser->GetProcessList(project_parameters["output_processes"]);
     }
+
+    mpTimeLoopExecutor->SetProcessReferences(processReferences);
 
     return 0;
 }
