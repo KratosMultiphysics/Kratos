@@ -96,12 +96,29 @@ class EmpiricalCubatureMethod():
                 #self.y_complement = self.y[rmvpin]
                 self.y = np.delete(self.y,rmvpin)
         else:
-            self.y_complement = np.arange(0,M,1)
-            self.y_complement = np.delete(self.y_complement, self.y)# Set of candidate points (those whose associated column has low norm are removed)
+            self.y_complement = np.arange(0, M, 1)  # Initialize complement with all points
+            self.y_complement = np.delete(self.y_complement, self.y)  # Remove candidates from complement
+
             if self.Filter_tolerance > 0:
-                TOL_REMOVE = self.Filter_tolerance * normB
-                rmvpin = np.where(self.GnormNOONE[self.y_complement] < TOL_REMOVE)
-                self.y_complement = np.delete(self.y_complement,rmvpin)
+                TOL_REMOVE = self.Filter_tolerance * normB  # Compute removal tolerance
+
+                # Filter out low-norm columns from complement
+                rmvpin_complement = np.where(self.GnormNOONE[self.y_complement] < TOL_REMOVE)
+                self.y_complement = np.delete(self.y_complement, rmvpin_complement)
+
+                # Filter out low-norm columns from candidates
+                rmvpin = np.where(self.GnormNOONE[self.y] < TOL_REMOVE)
+                removed_count = np.size(rmvpin)
+                self.y = np.delete(self.y, rmvpin)
+
+                # Warning if some candidates were removed
+                if removed_count > 0:
+                    Logger.PrintWarning("EmpiricalCubatureMethod", f"Some of the candidates were removed ({removed_count} removed). To include all candidates (with 0 weights in the HROM model part) for visualization and projection, consider using 'include_elements_model_parts_list' and 'include_conditions_model_parts_list' in the 'hrom_settings'.")
+
+                # Warning if all candidates were removed
+                if np.size(self.y) == 0:
+                    Logger.PrintWarning("EmpiricalCubatureMethod", "All candidates were removed because they have no contribution to the residual. To include them all (with 0 weights in the HROM model part) for visualization and projection, use 'include_elements_model_parts_list' and 'include_conditions_model_parts_list' in the 'hrom_settings'.")
+                    self.y = self.y_complement  # Set candidates to complement
 
         self.z = {}  # Set of intergration points
         self.mPOS = 0 # Number of nonzero weights
