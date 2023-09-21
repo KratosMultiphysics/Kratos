@@ -100,6 +100,11 @@ jobs:
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}/libs
         python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
+      
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Nightly-Ubuntu
+        path: ${GITHUB_WORKSPACE}/bin/${KRATOS_BUILD_TYPE}
 
 
   windows-nightly:
@@ -170,3 +175,8 @@ jobs:
         export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
         export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
         python3.8 kratos/python_scripts/testing/run_tests.py -l nightly -c python3.8
+
+    - uses: actions/upload-artifact@v3
+      with:
+        name: Nightly-Windows
+        path: ${GITHUB_WORKSPACE}/bin/Custom
