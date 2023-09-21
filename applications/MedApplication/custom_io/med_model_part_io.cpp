@@ -430,10 +430,13 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
                 geom_node_ids[j] = connectivity[node_idx];
             }
             reorder_fct(geom_node_ids);
-            rThisModelPart.CreateNewGeometry(kratos_geo_name, geom_node_ids);
-        }
 
-        num_geometries_total += num_geometries;
+            KRATOS_ERROR_IF(std::numeric_limits<decltype(num_geometries_total)>::max() == num_geometries_total)
+                << "number of geometries read (" << num_geometries_total << ") exceeds the capacity of the index type";
+            rThisModelPart.CreateNewGeometry(kratos_geo_name,
+                                             num_geometries_total++,
+                                             geom_node_ids);
+        }
 
         KRATOS_INFO("MedModelPartIO") << "Read " << num_geometries << " geometries of type " << kratos_geo_name << std::endl;
     }
