@@ -294,10 +294,6 @@ class MPMSolver(PythonSolver):
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_MOMENTUM)
         model_part.AddNodalSolutionStepVariable(KratosParticle.NODAL_INERTIA)
 
-        # For friction
-        # TODO: distinguish between cases where friction is not applied to avoid adding this unnecessarily
-        model_part.AddNodalSolutionStepVariable(KratosParticle.FRICTION_CONTACT_FORCE)
-
         # Add variables that the user defined in the ProjectParameters
         auxiliary_solver_utilities.AddVariables(model_part, self.settings["auxiliary_variables_list"])
 
