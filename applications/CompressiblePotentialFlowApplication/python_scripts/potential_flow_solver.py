@@ -160,7 +160,6 @@ class PotentialFlowSolver(FluidSolver):
             "absolute_tolerance": 1e-12,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
-            "calculate_solution_norm": false,
             "linear_solver_settings": {
                 "solver_type": "amgcl"
             },
@@ -275,50 +274,19 @@ class PotentialFlowSolver(FluidSolver):
     def _CreateSolutionStrategy(self):
         strategy_type = self._GetStrategyType()
         if strategy_type == "linear":
-            solution_strategy = self._CreatePotentialFlowLinearStrategy()
+            solution_strategy = self._CreateLinearStrategy()
         elif strategy_type == "non_linear":
             # Create strategy
             if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
-                solution_strategy = self._CreatePotentialFlowNewtonRaphsonStrategy()
+                solution_strategy = self._CreateNewtonRaphsonStrategy()
             elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
-                solution_strategy = self._CreatePotentialFlowLineSearchStrategy()
+                solution_strategy = self._CreateLineSearchStrategy()
         else:
             err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
             raise Exception(err_msg)
         return solution_strategy
 
-    def _CreatePotentialFlowLinearStrategy(self):
-        computing_model_part = self.GetComputingModelPart()
-        time_scheme = self._GetScheme()
-        linear_solver = self._GetLinearSolver()
-        builder_and_solver = self._GetBuilderAndSolver()
-        solution_strategy =  KratosMultiphysics.ResidualBasedLinearStrategy(computing_model_part,
-            time_scheme,
-            linear_solver,
-            builder_and_solver,
-            self.settings["compute_reactions"].GetBool(),
-            self.settings["reform_dofs_at_each_step"].GetBool(),
-            self.settings["calculate_solution_norm"].GetBool(),
-            self.settings["move_mesh_flag"].GetBool())
-        return solution_strategy
-
-    def _CreatePotentialFlowNewtonRaphsonStrategy(self):
-        computing_model_part = self.GetComputingModelPart()
-        time_scheme = self._GetScheme()
-        convergence_criterion = self._GetConvergenceCriterion()
-        builder_and_solver = self._GetBuilderAndSolver()
-        solution_strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
-            computing_model_part,
-            time_scheme,
-            convergence_criterion,
-            builder_and_solver,
-            self.settings["maximum_iterations"].GetInt(),
-            self.settings["compute_reactions"].GetBool(),
-            self.settings["reform_dofs_at_each_step"].GetBool(),
-            self.settings["move_mesh_flag"].GetBool())
-        return solution_strategy
-
-    def _CreatePotentialFlowLineSearchStrategy(self):
+    def _CreateLineSearchStrategy(self):
         if self.settings["solving_strategy_settings"].Has("advanced_settings"):
             settings = self.settings["solving_strategy_settings"]["advanced_settings"]
             settings.AddMissingParameters(self._GetDefaultLineSearchParameters())
