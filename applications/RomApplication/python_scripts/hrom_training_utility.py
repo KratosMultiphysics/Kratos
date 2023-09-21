@@ -39,7 +39,8 @@ class HRomTrainingUtility(object):
         self.solver = solver
         self.time_step_residual_matrix_container = []
         self.echo_level = settings["echo_level"].GetInt()
-        self.rom_settings = custom_settings["rom_settings"]
+        self.rom_settings = custom_settings["rom_settings"].Clone()
+        self.rom_settings.RemoveValue("rom_bns_settings") #Removing because the inner rom settings are specific for each builder and solver.
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
         self.projection_strategy = settings["projection_strategy"].GetString()
         self.hrom_output_format = settings["hrom_format"].GetString()

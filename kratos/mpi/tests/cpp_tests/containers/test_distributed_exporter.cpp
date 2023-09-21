@@ -32,6 +32,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosMPICoreFa
 
     IndexType total_size =numbering.Size();
     DistributedSystemVector<double,IndexType> x(numbering);
+    x.SetValue(0.0);
 
     //test exporting
     std::vector<IndexType> indices_to_export;
@@ -51,10 +52,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(DistributedVectorExporter, KratosMPICoreFa
     if(x.GetNumbering().IsLocal(0))
         KRATOS_EXPECT_NEAR(x[x.GetNumbering().LocalId(0)], 5.0, 1e-14);
     // TODO: These checks are failing, to be fixed by @riccardorossi
-    // if(x.GetNumbering().IsLocal(total_size/2))
-    //     KRATOS_EXPECT_NEAR(x[x.GetNumbering().LocalId(total_size/2)], 9.0, 1e-14);
-    // if(x.GetNumbering().IsLocal(total_size-1))
-    //     KRATOS_EXPECT_NEAR(x[x.GetNumbering().LocalId(total_size-1)], 15.0, 1e-14);
+    if(x.GetNumbering().IsLocal(total_size/2))
+        KRATOS_EXPECT_NEAR(x[x.GetNumbering().LocalId(total_size/2)], 9.0, 1e-14);
+    if(x.GetNumbering().IsLocal(total_size-1))
+        KRATOS_EXPECT_NEAR(x[x.GetNumbering().LocalId(total_size-1)], 15.0, 1e-14);
 }
 
 } // namespace Kratos::Testing

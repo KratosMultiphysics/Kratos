@@ -1,5 +1,6 @@
 #define EXPORT __declspec(dllexport)
 #include "kratos_external_bindings.h"
+#include "custom_workflows/custom_workflow_factory.h"
 
 extern "C"
 {
@@ -36,11 +37,9 @@ extern "C"
         return errorCode;
     }
 
-
-
     EXPORT Kratos::KratosGeoSettlement* KratosGeoSettlement_CreateInstance()
     {
-        return new Kratos::KratosGeoSettlement{};
+        return Kratos::CustomWorkflowFactory::CreateKratosGeoSettlement();
     }
 
     EXPORT int __stdcall runSettlementStage(Kratos::KratosGeoSettlement* instance,
