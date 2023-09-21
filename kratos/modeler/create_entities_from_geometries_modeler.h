@@ -127,8 +127,8 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.KratosMultiphysics", CreateEntitiesFromGeometriesModeler)
-    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.All", CreateEntitiesFromGeometriesModeler)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.KratosMultiphysics", Modeler, CreateEntitiesFromGeometriesModeler)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.All", Modeler, CreateEntitiesFromGeometriesModeler)
 
     ///@name Private members
     ///@{
