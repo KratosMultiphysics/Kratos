@@ -240,7 +240,7 @@ void SmallStrainPlasticity3DAth::CalculateStressResponse(
     Vector& rPlasticStrain,
     double& rAccumulatedPlasticStrain,
     double& rhmax,
-    double& rhmin)    
+    double& rhmin)
 {
     KRATOS_TRY
 
@@ -248,13 +248,8 @@ void SmallStrainPlasticity3DAth::CalculateStressResponse(
     const Properties& r_material_properties = rValues.GetMaterialProperties();
     Flags& r_constitutive_law_options = rValues.GetOptions();
     Vector& r_strain_vector = rValues.GetStrainVector();
-    KRATOS_WATCH(r_strain_vector);
     if (rValues.GetProcessInfo().Has(INITIAL_STRAIN)) {
         noalias(r_strain_vector) += rValues.GetProcessInfo()[INITIAL_STRAIN];
-    }
-
-    if( r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-        //this->CalculateValue(rValues, STRAIN, r_strain_vector);
     }
 
     // If we compute the tangent moduli or the stress
@@ -264,38 +259,26 @@ void SmallStrainPlasticity3DAth::CalculateStressResponse(
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         double trial_yield_function;
         rPlasticStrain = mPlasticStrain;
-        KRATOS_WATCH(rPlasticStrain);
         rAccumulatedPlasticStrain = mAccumulatedPlasticStrain;
-        KRATOS_WATCH(rAccumulatedPlasticStrain);
         rhmax = mhmax;
         rhmin = mhmin;
-        KRATOS_WATCH(rhmax);
-        KRATOS_WATCH(rhmin);
 
         Matrix elastic_tensor;
         elastic_tensor.resize(6, 6, false);
         CalculateElasticMatrix(r_material_properties, elastic_tensor);
         Vector trial_stress(6);
         noalias(trial_stress) = prod(elastic_tensor, (r_strain_vector - mPlasticStrain));
-        KRATOS_WATCH(trial_stress);
-        trial_yield_function = this->YieldFunction(trial_stress, r_material_properties, mhmax, mhmin); 
-        KRATOS_WATCH(trial_yield_function);
+        trial_yield_function = this->YieldFunction(trial_stress, r_material_properties, mhmax, mhmin);
         if (trial_yield_function <= 0.) {
             // ELASTIC
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-                
                 r_stress_vector = trial_stress;
-                KRATOS_WATCH(r_stress_vector);
-                KRATOS_WATCH("elastic");
             }
             if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR ) ) {
                 r_constitutive_matrix = elastic_tensor;
-                KRATOS_WATCH(r_constitutive_matrix);
-                KRATOS_WATCH("elastic");
             }
         } else {
             // INELASTIC
-            KRATOS_WATCH("inelastic");
             Vector r = ZeroVector(7);
             Vector r1;
             Vector dv = ZeroVector(7);
@@ -304,7 +287,7 @@ void SmallStrainPlasticity3DAth::CalculateStressResponse(
             Matrix drdv = ZeroMatrix(7,7);
             Matrix inverse_drdv = ZeroMatrix(7,7);
             v = AddSegmentToVector(v, trial_stress, 0);
-            v[6] = mAccumulatedPlasticStrain; 
+            v[6] = mAccumulatedPlasticStrain;
             const int maxiter = 100;
             const double eps = 1e-8;
             double dFdlam;
@@ -314,21 +297,11 @@ void SmallStrainPlasticity3DAth::CalculateStressResponse(
             double hmax = mhmax;
             double hmin = mhmin;
             Vector PlasticStrain = mPlasticStrain;
-            KRATOS_WATCH(hmax);
-            KRATOS_WATCH(hmin);
-            KRATOS_WATCH(PlasticStrain);
             Matrix rhsC = ZeroMatrix(7,6);
             for(int i=0; i<6; ++i) {rhsC(i,i) = -1.0;}
             //NR iterations
             for(int n = 0; n < maxiter; ++n){
-                KRATOS_WATCH("*****************************************NRstart************************************************");
-                KRATOS_WATCH(trial_stress);
-                GetDerivatives(trial_stress, r_material_properties, PlasticStrain, dlamda, dQdS, dQ2ddS, dFdS, dFdlam, hmax, hmin);    
-                KRATOS_WATCH(PlasticStrain);
-                KRATOS_WATCH(dlamda);
-                KRATOS_WATCH(hmax);
-                KRATOS_WATCH(hmin);
-
+                GetDerivatives(trial_stress, r_material_properties, PlasticStrain, dlamda, dQdS, dQ2ddS, dFdS, dFdlam, hmax, hmin);
                 double det, det_drdv;
                 Matrix inverse_C_tensor, drdv1;
                 MathUtils<double>::InvertMatrix(elastic_tensor, inverse_C_tensor, det);
@@ -343,11 +316,9 @@ void SmallStrainPlasticity3DAth::CalculateStressResponse(
                 drdv(6,6) = dFdlam;
                 MathUtils<double>::InvertMatrix(drdv, inverse_drdv, det_drdv);
                 dv = prod(inverse_drdv, r);
-                KRATOS_WATCH(dv);
                 dlamda = dv[6];
                 v -= dv;
-                KRATOS_WATCH(v);
-                for (size_t i = 0; i < trial_stress.size(); ++i) {trial_stress(i) = v(i);} 
+                for (size_t i = 0; i < trial_stress.size(); ++i) {trial_stress(i) = v(i);}
                 mAccumulatedPlasticStrain = v[6];
 
                 double norm1 = MathUtils<double>::Norm(dv);
@@ -363,8 +334,7 @@ void SmallStrainPlasticity3DAth::CalculateStressResponse(
                         }
                     }
                     if( r_constitutive_law_options.Is( ConstitutiveLaw::COMPUTE_STRESS ) ) {
-                        for (size_t i = 0; i < r_stress_vector.size(); ++i) {r_stress_vector(i) = v(i);} 
-                        KRATOS_WATCH(r_stress_vector);
+                        for (size_t i = 0; i < r_stress_vector.size(); ++i) {r_stress_vector(i) = v(i);}
                     }
                 }
                 if( ((norm1/norm2)< eps) ||(norm1< eps ))  break;
@@ -372,16 +342,9 @@ void SmallStrainPlasticity3DAth::CalculateStressResponse(
             // // We update the stress tensor
             rAccumulatedPlasticStrain = v[6];
             rPlasticStrain = PlasticStrain;
-            KRATOS_WATCH(PlasticStrain);
             rhmax = hmax;
-            KRATOS_WATCH(hmax);
             rhmin = hmin;
-            KRATOS_WATCH(hmin);
         }
-        KRATOS_WATCH(rPlasticStrain);
-        KRATOS_WATCH(rAccumulatedPlasticStrain);
-        KRATOS_WATCH(rValues.GetProcessInfo()[TIME]);
-        KRATOS_WATCH("-------------------------------------------");
     }
 
     KRATOS_CATCH("");
@@ -395,7 +358,7 @@ double& SmallStrainPlasticity3DAth::CalculateValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
-{    
+{
     return(rValue);
 }
 
@@ -466,14 +429,14 @@ double SmallStrainPlasticity3DAth::YieldFunction(
     const Properties& rMaterialProperties,
     const double hmax,
     const double hmin)
-{   
+{
     const double eps = 1e-8;
     const double fck = rMaterialProperties[YIELD_STRESS_COMPRESSION];
     const double ft  = rMaterialProperties[YIELD_STRESS_TENSION];
     const double Hc = rMaterialProperties[HARDENING_MODULUS_COMPRESSION];
     const double Ht = rMaterialProperties[HARDENING_MODULUS_TENSION];
     const double fc0 =  1.0/3.0 * fck;
-    const double fcb = 1.16 * fc0;  
+    const double fcb = 1.16 * fc0;
     const double alphaL = (((fcb/fc0)-1.0)/(2.0*(fcb/fc0)-1.0));
     Vector Spr = ZeroVector(3);
     double pr_str_max, pr_str_min;
@@ -482,11 +445,11 @@ double SmallStrainPlasticity3DAth::YieldFunction(
     if(pr_str_max < eps){
         H = 0.0;
     }else{
-        H = 1.0;   
+        H = 1.0;
     }
     double fbarc  = fc0  + Hc * hmin;
     double fbart  = ft   + Ht * hmax;
-    double betaL  = ((1.0 - alphaL) * (fbarc/(fbart))) - (1.0 + alphaL); 
+    double betaL  = ((1.0 - alphaL) * (fbarc/(fbart))) - (1.0 + alphaL);
     GetInvariants(StressVector, I1, J2);
     return std::sqrt( 3.0 * J2 ) + alphaL * I1 + betaL * H * pr_str_max - fbarc * (1.0 - alphaL);
 }
@@ -530,7 +493,7 @@ void SmallStrainPlasticity3DAth::GetInvariants(
 {
     I1 = StressVector(0)+StressVector(1)+StressVector(2);
     double I2 = (StressVector(0)*StressVector(1) + StressVector(1)*StressVector(2) + StressVector(2)* StressVector(0)) - ( StressVector(3)*StressVector(3) + StressVector(4)*StressVector(4) + StressVector(5)*StressVector(5) );
-    J2 = (1.0/3.0)*(std::pow(I1,2.0))-I2;   
+    J2 = (1.0/3.0)*(std::pow(I1,2.0))-I2;
 }
 
 //************************************************************************************
@@ -568,16 +531,16 @@ void SmallStrainPlasticity3DAth::ComputedSprdS(
     const Vector StressVector,
     const Vector Spr,
     Matrix& dSprdS)
-{   
+{
     Matrix indx = ZeroMatrix(3, 3);
     Vector stress2(6);
     Vector dSprdS_entries(6);
     Vector dI1dS = ZeroVector(6);
-    dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0; 
+    dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0;
 
     indx(0,1)= indx(1,0)= indx(2,2)=1.0;
     indx(0,2)= indx(1,1)= indx(2,0)=2.0;
-   
+
     Matrix stress_matrix = ZeroMatrix(3, 3);
     stress_matrix(0,1)= stress_matrix(1,0)= StressVector[5];
     stress_matrix(0,2)= stress_matrix(2,0)= StressVector[4];
@@ -589,13 +552,13 @@ void SmallStrainPlasticity3DAth::ComputedSprdS(
     Matrix stress(stress_matrix);
     stress = prod(stress, stress);
     stress2[0]= stress(0,0);
-    stress2[1]= stress(1,1); 
+    stress2[1]= stress(1,1);
     stress2[2]= stress(2,2);
     stress2[3]= stress(1,2);
-    stress2[4]= stress(0,2); 
+    stress2[4]= stress(0,2);
     stress2[5]= stress(0,1);
-    
-    for(int i=0; i<3; ++i){  
+
+    for(int i=0; i<3; ++i){
         dSprdS_entries  = stress2 - ( Spr(indx(1,i)) + Spr(indx(2,i)) )*(StressVector) + Spr(indx(1,i)) * Spr(indx(2,i)) * dI1dS;
         dSprdS_entries /=  (Spr(indx(0,i)) - Spr(indx(1,i)) ) * ( Spr(indx(0,i)) - Spr(indx(2,i)) );
         for(int j=0; j<6; ++j){
@@ -603,15 +566,15 @@ void SmallStrainPlasticity3DAth::ComputedSprdS(
         }
         for(int k=3; k<6; ++k){
             dSprdS(i,k) *= 2.;
-        }   
+        }
     }
-}   
+}
 
 //************************************************************************************
 //************************************************************************************
 Vector& SmallStrainPlasticity3DAth::AddSegmentToVector(
-    Vector& rOutput, 
-    const Vector& rInput, 
+    Vector& rOutput,
+    const Vector& rInput,
     const size_t StartRowIndex)
 {
     KRATOS_TRY
@@ -625,24 +588,24 @@ Vector& SmallStrainPlasticity3DAth::AddSegmentToVector(
 //************************************************************************************
 //************************************************************************************
 void SmallStrainPlasticity3DAth::GetDerivatives(
-    const Vector StressVector, 
+    const Vector StressVector,
     const Properties &rMaterialProperties,
     Vector& PlasticStrain,
     const double& DelLamda,
-    Vector& dQdS, 
+    Vector& dQdS,
     Matrix& dQ2ddS,
-    Vector& dFdS, 
+    Vector& dFdS,
     double& dFdlam,
     double& hmax,
     double& hmin)
-{   
+{
     const double eps  = 1e-8;
     const double fck = rMaterialProperties[YIELD_STRESS_COMPRESSION];
     const double ft  = rMaterialProperties[YIELD_STRESS_TENSION];
     const double Hc = rMaterialProperties[HARDENING_MODULUS_COMPRESSION];
     const double Ht = rMaterialProperties[HARDENING_MODULUS_TENSION];
     const double fc0 =  1.0/3.0 * fck;
-    const double fcb = 1.16 * fc0;  
+    const double fcb = 1.16 * fc0;
     const double alphaL = (((fcb/fc0)-1.0)/(2.0*(fcb/fc0)-1.0));
     const double alphaQ = 0.15 * alphaL;
 
@@ -658,7 +621,7 @@ void SmallStrainPlasticity3DAth::GetDerivatives(
     Matrix dSprdS = ZeroMatrix(3,6);
     double H, I1, J2, SprMax, SprMin, w, EinprMax, EinprMin, dEinprMax, dEinprMin;
 
-    dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0; 
+    dI1dS[0] = dI1dS[1] = dI1dS[2]= 1.0;
     dJ2ddS(0,0) = dJ2ddS(1,1) = dJ2ddS(2,2) =  2.0/3.0;
     dJ2ddS(0,1) = dJ2ddS(0,2) = dJ2ddS(1,0) = dJ2ddS(1,2) = dJ2ddS(2,0) = dJ2ddS(2,1)= -1.0/3.0;
     dJ2ddS(3,3) = dJ2ddS(4,4) = dJ2ddS(5,5) =  2.0;
@@ -673,9 +636,9 @@ void SmallStrainPlasticity3DAth::GetDerivatives(
     if(SprMax < eps){
         H = 0.0;
     }else{
-        H = 1.0;   
+        H = 1.0;
     }
-    
+
     //check and manipulate principal stresses
     if( ( std::abs(Spr(0)-Spr(1)) < 2.0*eps ) && ( std::abs(Spr(0)-Spr(2)) < 2.0*eps ) && ( std::abs(Spr(1)-Spr(2)) < 2.0*eps ) ){
         dSprdS(0,0) = dSprdS(1,1) = dSprdS(2,2) = 1.0;
@@ -686,7 +649,7 @@ void SmallStrainPlasticity3DAth::GetDerivatives(
     }
     Vector dSmaxdSig(6);
     for(int i=0; i<6; ++i){
-        dSmaxdSig[i]= dSprdS(0,i); 
+        dSmaxdSig[i]= dSprdS(0,i);
     }
     GetStressWeightFactor(w, Spr);
     Vector dPlasticStrain = (DelLamda * dQdS);
@@ -695,9 +658,9 @@ void SmallStrainPlasticity3DAth::GetDerivatives(
     hmin -= ((1-w ) * dEinprMin);
     double fbarc  = fc0  + Hc * hmin;
     double fbart  = ft   + Ht * hmax;
-    double betaL  = ((1.0 - alphaL) * (fbarc/(fbart))) - (1.0 + alphaL); 
+    double betaL  = ((1.0 - alphaL) * (fbarc/(fbart))) - (1.0 + alphaL);
 
-    PlasticStrain -= dPlasticStrain;  
+    PlasticStrain -= dPlasticStrain;
     GetEigenValues(PlasticStrain, Einpr, EinprMax, EinprMin);
     //check and manipulate principal strains
     if( ( std::abs(Einpr(0)-Einpr(1)) < 2.0*eps ) && ( std::abs(Einpr(0)-Einpr(2)) < 2.0*eps ) && ( std::abs(Einpr(1)-Einpr(2)) < 2.0*eps ) ){
@@ -709,14 +672,14 @@ void SmallStrainPlasticity3DAth::GetDerivatives(
     }
 
     for(int i=0; i<6; ++i){
-        dEinprmaxdEpsin[i]= dEinprdEps(0,i); 
-        dEinprmindEpsin[i]= dEinprdEps(2,i); 
+        dEinprmaxdEpsin[i]= dEinprdEps(0,i);
+        dEinprmindEpsin[i]= dEinprdEps(2,i);
     }
 
     dEinprmaxdS = prod(dEinprmaxdEpsin, (DelLamda * dQ2ddS));
     dEinprmindS = prod(dEinprmindEpsin, (DelLamda * dQ2ddS));
     dbetaLdS = ((1.0-alphaL) * (Hc/fbart))*dEinprmindS;
-    dbetaLdS -= (1.0-alphaL)*( (Ht*fbarc)/(fbart*fbart) )* dEinprmaxdS; 
+    dbetaLdS -= (1.0-alphaL)*( (Ht*fbarc)/(fbart*fbart) )* dEinprmaxdS;
     dFdS = alphaL * dI1dS + 0.5  * (3.0/std::sqrt(3.0 * J2)) * dJ2dS + H * SprMax * dbetaLdS + betaL * H * dSmaxdSig  - (1.0- alphaL) * Hc * dEinprmindS;
     dFdlam  = H * SprMax * (1-alphaL) * Hc / fbart * inner_prod(dEinprmindEpsin, dQdS);
     dFdlam += H * SprMax * (1-alphaL) * (fbarc / (fbart*fbart)) * (-Ht) * inner_prod(dEinprmaxdEpsin,dQdS);
@@ -741,9 +704,9 @@ void SmallStrainPlasticity3DAth::GetStressWeightFactor( double &w, const Vector 
 //************************************************************************************
 
 void SmallStrainPlasticity3DAth::AssembleSubMatrixToMatrix(
-    Matrix& rOutput, 
-    const Matrix& rInput, 
-    const int StartRowIndex, 
+    Matrix& rOutput,
+    const Matrix& rInput,
+    const int StartRowIndex,
     const int StartColIndex)
 {
     KRATOS_TRY
@@ -764,30 +727,30 @@ void SmallStrainPlasticity3DAth::AssembleSubMatrixToMatrix(
 //************************************************************************************
 //************************************************************************************
 void SmallStrainPlasticity3DAth::AddColumnToMatrix(
-    Matrix& rOutput, 
-    const Vector& rInput, 
-    const int StartRowIndex, 
+    Matrix& rOutput,
+    const Vector& rInput,
+    const int StartRowIndex,
     const int StartColIndex)
 {
     KRATOS_TRY
     for (std::size_t i = 0; i < rInput.size(); ++i) {
         rOutput(StartRowIndex+i, StartColIndex) = rInput[i] ;
     }
-    KRATOS_CATCH("") 
+    KRATOS_CATCH("")
 }
 //************************************************************************************
 //************************************************************************************
 void SmallStrainPlasticity3DAth::AddRowToMatrix(
-    Matrix& rOutput, 
-    const Vector& rInput, 
-    const int StartRowIndex, 
+    Matrix& rOutput,
+    const Vector& rInput,
+    const int StartRowIndex,
     const int StartColIndex)
 {
     KRATOS_TRY
     for (std::size_t i = 0; i < rInput.size(); ++i) {
         rOutput(StartRowIndex, StartColIndex+i) = rInput[i] ;
     }
-    KRATOS_CATCH("") 
+    KRATOS_CATCH("")
 }
 
 //************************************************************************************
