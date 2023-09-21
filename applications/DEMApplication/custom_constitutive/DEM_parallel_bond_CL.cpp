@@ -163,7 +163,6 @@ void DEM_parallel_bond::Check(Properties::Pointer pProp) const {
     }
 } // CHECK()
 
-// TODO: Calculate Contact Area = Calculate Bond area? --> Yes
 void DEM_parallel_bond::CalculateContactArea(double radius, double other_radius, double& calculation_area) {
 
     KRATOS_TRY
@@ -175,6 +174,7 @@ void DEM_parallel_bond::CalculateContactArea(double radius, double other_radius,
     KRATOS_CATCH("")
 }
 
+//TODO: it seems this function never been called?
 double DEM_parallel_bond::CalculateContactArea(double radius, double other_radius, Vector& v) {
     
     KRATOS_TRY
@@ -193,16 +193,11 @@ double DEM_parallel_bond::CalculateContactArea(double radius, double other_radiu
     KRATOS_CATCH("")
 }
 
-void DEM_parallel_bond::GetcontactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) {
+void DEM_parallel_bond::GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) {
     
     KRATOS_TRY
 
-    if(vector_of_initial_areas.size()){
-        calculation_area = vector_of_initial_areas[neighbour_position];
-    }
-    else{
-        CalculateContactArea(radius, other_radius, calculation_area);
-    }
+    CalculateContactArea(radius, other_radius, calculation_area);
 
     KRATOS_CATCH("")
 }

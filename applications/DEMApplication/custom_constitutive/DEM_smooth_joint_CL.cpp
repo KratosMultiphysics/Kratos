@@ -201,16 +201,11 @@ double DEM_smooth_joint::CalculateContactArea(double radius, double other_radius
     KRATOS_CATCH("")
 }
 
-void DEM_smooth_joint::GetcontactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) {
+void DEM_smooth_joint::GetContactArea(const double radius, const double other_radius, const Vector& vector_of_initial_areas, const int neighbour_position, double& calculation_area) {
     
     KRATOS_TRY
 
-    if(vector_of_initial_areas.size()){
-        calculation_area = vector_of_initial_areas[neighbour_position];
-    }
-    else{
-        CalculateContactArea(radius, other_radius, calculation_area);
-    }
+    CalculateContactArea(radius, other_radius, calculation_area);
 
     KRATOS_CATCH("")
 }
