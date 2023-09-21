@@ -120,7 +120,7 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     else:
         stabilization_functional = - rho*q_gauss[0]*vel_subscale_y/y + rho*grad_q[1]*vel_subscale_y + rho*grad_q[0]*vel_subscale_x
     stabilization_functional += rho*(grad_w[1,0]*v_conv_gauss[1]+w_gauss[0]*grad_v_conv[1,1])*vel_subscale_x + rho*(grad_w[0,0]*v_conv_gauss[0]+w_gauss[0]*grad_v_conv[0,0])*vel_subscale_x + grad_w[0,0]*pres_subscale - (grad_w[1,0]*mu/y - w_gauss[0]*mu/y**2)*vel_subscale_x
-    stabilization_functional += rho*(grad_w[1,1]*v_conv_gauss[1]+w_gauss[1]*grad_v_conv[1,1])*vel_subscale_y + rho*(grad_w[0,1]*v_conv_gauss[0]+w_gauss[1]*grad_v_conv[0,0])*vel_subscale_y + grad_w[1,1]*pres_subscale - (mu/y**2)*w_gauss[1]*vel_subscale_y - (grad_w[1,1]*mu/y - w_gauss[1]*mu/y**2)*vel_subscale_y
+    stabilization_functional += rho*(grad_w[1,1]*v_conv_gauss[1]+w_gauss[1]*grad_v_conv[1,1])*vel_subscale_y + rho*(grad_w[0,1]*v_conv_gauss[0]+w_gauss[1]*grad_v_conv[0,0])*vel_subscale_y + grad_w[1,1]*pres_subscale - grad_w[1,1]*mu*vel_subscale_y/y
 
     ## Add the stabilization terms to the original residual terms
     functional = galerkin_functional
