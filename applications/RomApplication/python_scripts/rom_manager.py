@@ -70,14 +70,14 @@ class RomManager(object):
                 # Change the flags to train the HROM for LSPG
                 self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
                 self.__LaunchTrainHROM(mu_train, store_residuals_projected)
-                
+
                 # Change the flags to run the HROM for LSPG
                 self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
                 hrom_snapshots = self.__LaunchHROM(mu_train)
-                
+
                 if store_all_snapshots or store_hrom_snapshots:
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
-                
+
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
                 #######################################
 
