@@ -312,6 +312,7 @@ class RomManager(object):
         simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = simulation.GetHROM_utility().candidate_ids)
         simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
         if not simulation.GetHROM_utility().hyper_reduction_element_selector.success:
+            KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
             #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
             self.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
             self.hyper_reduction_element_selector.Run()

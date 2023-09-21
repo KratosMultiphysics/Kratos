@@ -148,7 +148,6 @@ class EmpiricalCubatureMethod():
         while self.nerrorACTUAL > self.ECM_tolerance and self.mPOS < self.m and np.size(self.y) != 0:
 
             if  self.UnsuccesfulIterations >  self.MaximumNumberUnsuccesfulIterations and not ExpandedSetFlag:
-                Logger.PrintWarning("EmpiricalCubatureMethod", "The Empirical Cubature Method did not converge using the initial set of candidates.")
                 ExpandedSetFlag = self.expand_candidates_with_complement()
 
             #Step 1. Compute new point
