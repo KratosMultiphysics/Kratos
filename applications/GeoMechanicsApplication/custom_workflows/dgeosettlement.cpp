@@ -113,7 +113,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         const auto processes = mpProcessInfoParser->GetProcessList(project_parameters["processes"]);
         for (const auto& process : processes)
         {
-            process_unique_ptrs.emplace_back(std::move(mProcessFactory->Create(process.name, process.parameters)));
+            process_unique_ptrs.emplace_back(mProcessFactory->Create(process.name, process.parameters));
         }
         for (const auto& process_unique_ptr : process_unique_ptrs)
         {
