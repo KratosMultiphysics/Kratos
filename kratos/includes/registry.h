@@ -143,6 +143,12 @@ public:
         return GetItem(rItemFullName).GetValue<TDataType>();
     }
 
+    template<typename TDataType, typename TCastType>
+    static typename std::enable_if<std::is_base_of<TDataType, TCastType>::value, TCastType>::type const GetValueAs(std::string const& rItemFullName)
+    {
+        return GetItem(rItemFullName).GetValueAs<TDataType, TCastType>();
+    }
+
     static void RemoveItem(std::string const& ItemName);
 
     ///@}
