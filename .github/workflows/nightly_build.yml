@@ -104,7 +104,7 @@ jobs:
     - uses: actions/upload-artifact@v3
       with:
         name: Nightly-Ubuntu
-        if: ${{ matrix.compiler == clang }}
+        if: ${{ matrix.compiler == 'clang' }}
         path: ${{ github.workspace }}/bin/${{ env.KRATOS_BUILD_TYPE }}
 
 
