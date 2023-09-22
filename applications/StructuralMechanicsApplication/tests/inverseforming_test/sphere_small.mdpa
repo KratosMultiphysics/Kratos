@@ -448,7 +448,6 @@ End SubModelPart
 Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
     Begin SubModelPartNodes
             2
-           59
     End SubModelPartNodes
 End SubModelPart
 Begin SubModelPart DISPLACEMENT_Displacement_Auto2 // Group Displacement Auto2 // Subtree DISPLACEMENT

@@ -14,10 +14,14 @@
                             "elemental_conditional_flags_results": [],
                             "file_label": "step",
                             "flush_after_output": false,
-                            "gauss_point_results": [],
+                            "gauss_point_results": [
+                                "INITIAL_STRAIN_VECTOR",
+                                "GREEN_LAGRANGE_STRAIN_VECTOR",
+                                "LOCAL_AXIS_1"
+                            ],
                             "gidpost_flags": {
                                 "GiDPostMode": "GiD_PostBinary",
-                                "MultiFileFlag": "SingleFile",
+                                "MultiFileFlag": "MultipleFiles",
                                 "WriteConditionsFlag": "WriteConditions",
                                 "WriteDeformedMeshFlag": "WriteDeformed"
                             },
@@ -54,11 +58,16 @@
                     "element_flags": [],
                     "entity_type": "automatic",
                     "file_format": "ascii",
-                    "gauss_point_variables_extrapolated_to_nodes": [],
+                    "gauss_point_variables_extrapolated_to_nodes": [
+                        "INITIAL_STRAIN_VECTOR",
+                        "LOCAL_AXIS_1"
+                    ],
                     "gauss_point_variables_in_elements": [],
                     "model_part_name": "Structure",
                     "nodal_data_value_variables": [
-                        "NORMAL"
+                        "NORMAL",
+                        "INITIAL_STRAIN_VECTOR",
+                        "LOCAL_AXIS_1"
                     ],
                     "nodal_flags": [],
                     "nodal_solution_step_data_variables": [
@@ -71,7 +80,7 @@
                     "output_precision": 7,
                     "output_sub_model_parts": false,
                     "save_output_files_in_folder": true,
-                    "write_deformed_configuration": false,
+                    "write_deformed_configuration": true,
                     "write_ids": false
                 },
                 "kratos_module": "KratosMultiphysics",
@@ -120,7 +129,7 @@
                     "constrained": [
                         true,
                         true,
-                        false
+                        true
                     ],
                     "help": "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
                     "interval": [
@@ -133,7 +142,8 @@
                     "value": [
                         0.0,
                         0.0,
-                        null
+                        0,
+                        0
                     ],
                     "variable_name": "DISPLACEMENT"
                 },
@@ -165,16 +175,16 @@
         "compute_reactions": true,
         "computing_sub_model_part_name": "",
         "convergence_criterion": "residual_criterion",
-        "displacement_absolute_tolerance": 1e-09,
+        "displacement_absolute_tolerance": 1e-15,
         "displacement_control": false,
-        "displacement_relative_tolerance": 0.0001,
+        "displacement_relative_tolerance": 1e-15,
         "domain_size": 3,
         "echo_level": 1,
         "linear_solver_settings": {},
         "material_import_settings": {
             "materials_filename": "StructuralMaterials.json"
         },
-        "max_iteration": 10,
+        "max_iteration": 30,
         "model_import_settings": {
             "ignore_variables_not_in_solution_step_data": false,
             "input_filename": "sphere_small",
@@ -188,16 +198,15 @@
         "multi_point_constraints_used": true,
         "pressure_dofs": false,
         "reform_dofs_at_each_step": false,
-        "residual_absolute_tolerance": 1e-09,
+        "residual_absolute_tolerance": 1e-07,
         "residual_relative_tolerance": 0.0001,
         "rotation_dofs": false,
         "solver_type": "Static",
         "solving_strategy_settings": {
-            "advanced_settings": {},
-            "type": "newton_raphson"
+            "type": "line_search"
         },
         "time_stepping": {
-            "time_step": 0.1
+            "time_step": 0.25
         },
         "use_old_stiffness_in_first_iteration": false,
         "volumetric_strain_dofs": false
