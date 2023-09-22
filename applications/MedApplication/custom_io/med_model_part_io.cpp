@@ -86,7 +86,11 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
         };
 
     case MED_TRIA6:
-        KRATOS_ERROR << "MED_TRIA6 is not implemented!" << std::endl;
+        return [](auto& rConnectivities) -> void {
+            CheckConnectivitiesSize(6, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[2]);
+            std::swap(rConnectivities[3], rConnectivities[5]);
+        };
 
     case MED_QUAD4:
         return [](auto& Connectivities){
@@ -99,6 +103,14 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
 
     case MED_QUAD9: // should be same as MED_QUAD8
         KRATOS_ERROR << "MED_QUAD9 is not implemented!" << std::endl;
+
+    case MED_TETRA10:
+        return [](auto& rConnectivities) -> void {
+            CheckConnectivitiesSize(10, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[2]);
+            std::swap(rConnectivities[4], rConnectivities[6]);
+            std::swap(rConnectivities[8], rConnectivities[9]);
+        };
 
     case MED_PYRA5:
         KRATOS_ERROR << "MED_PYRA5 is not implemented!" << std::endl;
