@@ -30,7 +30,6 @@ namespace Kratos
 KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility,
                                          std::unique_ptr<ProcessInfoParser> pProcessInfoParser,
                                          std::unique_ptr<TimeLoopExecutor> pTimeLoopExecutor) :
-    mProcessFactory{std::make_unique<ProcessFactory>()},
     mpInputUtility{std::move(pInputUtility)},
     mpProcessInfoParser{std::move(pProcessInfoParser)},
     mpTimeLoopExecutor{std::move(pTimeLoopExecutor)}
@@ -55,12 +54,27 @@ void KratosGeoSettlement::InitializeProcessFactory() {
                                     return std::make_unique<ApplyVectorConstraintsTableProcess>(mModel.GetModelPart(mModelPartName),
                                                                                                 rParameters);
                                 });
-    mProcessFactory->AddCreator("SetParameterFieldProcess", [this](const Parameters& rParameters){return std::make_unique<SetParameterFieldProcess>(
-            mModel.GetModelPart(mModelPartName), rParameters);});
-    mProcessFactory->AddCreator("ApplyExcavationProcess", [this](const Parameters& rParameters){return std::make_unique<ApplyExcavationProcess>(
-            mModel.GetModelPart(mModelPartName), rParameters);});
-    mProcessFactory->AddCreator("ApplyK0ProcedureProcess", [this](const Parameters& rParameters){return std::make_unique<ApplyK0ProcedureProcess>(
-            mModel.GetModelPart(mModelPartName), rParameters);});
+
+    mProcessFactory->AddCreator("SetParameterFieldProcess",
+                                [this](const Parameters& rParameters)
+                                {
+                                    return std::make_unique<SetParameterFieldProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                      rParameters);
+                                });
+
+    mProcessFactory->AddCreator("ApplyExcavationProcess",
+                                [this](const Parameters& rParameters)
+                                {
+                                    return std::make_unique<ApplyExcavationProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                    rParameters);
+                                });
+
+    mProcessFactory->AddCreator("ApplyK0ProcedureProcess",
+                                [this](const Parameters& rParameters)
+                                {
+                                    return std::make_unique<ApplyK0ProcedureProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                     rParameters);
+                                });
 }
 
 int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorkingDirectory,
@@ -92,27 +106,21 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
     }
 
-    std::vector<std::reference_wrapper<Process>> processReferences;
-    std::vector<std::unique_ptr<Process>> test;
+    std::vector<std::reference_wrapper<Process>> process_references;
+    std::vector<std::unique_ptr<Process>> process_unique_ptrs;
     if (project_parameters.Has("processes"))
     {
         const auto processes = mpProcessInfoParser->GetProcessList(project_parameters["processes"]);
         for (const auto& process : processes)
         {
-            test.push_back(std::move(mProcessFactory->Create(process.name, process.parameters)));
+            process_unique_ptrs.emplace_back(std::move(mProcessFactory->Create(process.name, process.parameters)));
         }
-        for (const auto& tmp : test)
+        for (const auto& process_unique_ptr : process_unique_ptrs)
         {
-            processReferences.push_back(*tmp);
+            process_references.emplace_back(*process_unique_ptr);
         }
-
     }
-    if (project_parameters.Has("output_processes"))
-    {
-        const auto output_processes = mpProcessInfoParser->GetProcessList(project_parameters["output_processes"]);
-    }
-
-    mpTimeLoopExecutor->SetProcessReferences(processReferences);
+    mpTimeLoopExecutor->SetProcessReferences(process_references);
 
     return 0;
 }

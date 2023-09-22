@@ -15,18 +15,18 @@
 
 namespace Kratos {
 
-void StubTimeLoopExecutor::SetProcessReferences(std::vector<std::reference_wrapper<Process>> ProcessRefs)
+StubTimeLoopExecutor::StubTimeLoopExecutor(int NumberOfExpectedProcesses) :
+        mNumberOfExpectedProcesses{NumberOfExpectedProcesses}
 {
-    KRATOS_EXPECT_EQ(ProcessRefs.size(), mNumberOfExpectedProcesses);
-    for (const auto process_ref : ProcessRefs)
+}
+
+void StubTimeLoopExecutor::SetProcessReferences(const std::vector<std::reference_wrapper<Process>>& rProcessRefs)
+{
+    KRATOS_EXPECT_EQ(rProcessRefs.size(), mNumberOfExpectedProcesses);
+    for (const auto process_ref : rProcessRefs)
     {
         KRATOS_EXPECT_EQ(process_ref.get().Check(), 0);
     }
-}
-
-StubTimeLoopExecutor::StubTimeLoopExecutor(const int NumberOfExpectedProcesses) :
-    mNumberOfExpectedProcesses{NumberOfExpectedProcesses}
-{
 }
 
 }

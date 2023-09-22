@@ -9,28 +9,27 @@
 //
 //  Main authors:    Richard Faasse
 //
-#include "process_info_json_parser.h"
+#include "json_process_info_parser.h"
 
 namespace Kratos
 {
 
-std::vector<ProcessParameters> ProcessInfoJsonParser::GetProcessList(const Parameters& rProcessParameters)
+std::vector<ProcessParameters> JsonProcessInfoParser::GetProcessList(const Parameters& rProcessParameters)
 {
     mProcessParameters = rProcessParameters;
     const std::vector<std::string> process_list_names = {"constraints_process_list",
                                                          "loads_process_list",
-                                                         "auxiliar_process_list",
-                                                         "gid_output"};
+                                                         "auxiliar_process_list"};
 
     for (const auto& process_list_name : process_list_names)
     {
-        ProcessInfoJsonParser::AddProcessesForList(process_list_name);
+        JsonProcessInfoParser::AddProcessesForList(process_list_name);
     }
 
     return mProcessNames;
 }
 
-void ProcessInfoJsonParser::AddProcessesForList(const std::string& rProcessListName) {
+void JsonProcessInfoParser::AddProcessesForList(const std::string& rProcessListName) {
     if (!mProcessParameters.Has(rProcessListName))
     {
         return;
@@ -43,7 +42,7 @@ void ProcessInfoJsonParser::AddProcessesForList(const std::string& rProcessListN
         const std::string process_name_entry = "process_name";
         if (process.Has(process_name_entry))
         {
-            mProcessNames.push_back({process["Parameters"], process[process_name_entry].GetString()});
+            mProcessNames.emplace_back(process["Parameters"], process[process_name_entry].GetString());
         }
     }
 }

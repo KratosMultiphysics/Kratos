@@ -10,7 +10,7 @@
 //  Main authors:    Richard Faasse
 //
 
-#include "custom_utilities/process_info_json_parser.h"
+#include "custom_utilities/json_process_info_parser.h"
 #include "testing/testing.h"
 
 using namespace Kratos;
@@ -22,7 +22,7 @@ const std::string parameterString = R"(
     "key" : "value"
 })";
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListTypes, WorkInProgress)
+KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListTypes, KratosGeoMechanicsFastSuite)
 {
     // Given
     const std::string process_list = R"(
@@ -64,7 +64,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListType
     )";
 
     // When
-    ProcessInfoJsonParser parser;
+    JsonProcessInfoParser parser;
     const auto actual_result = parser.GetProcessList(process_list);
 
     // Then
@@ -78,7 +78,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListType
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdenticalNames, WorkInProgress)
+KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdenticalNames, KratosGeoMechanicsFastSuite)
 {
     // Given
     const std::string process_list_with_duplicate_names = R"(
@@ -98,7 +98,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdentic
     )";
 
     // When
-    ProcessInfoJsonParser parser;
+    JsonProcessInfoParser parser;
     const auto actual_result = parser.GetProcessList(process_list_with_duplicate_names);
 
     // Then
@@ -108,7 +108,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdentic
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters, WorkInProgress)
+KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters, KratosGeoMechanicsFastSuite)
 {
     // Given
     const std::string process_without_parameters = R"(
@@ -123,37 +123,14 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters
     )";
 
     // When
-    ProcessInfoJsonParser parser;
+    JsonProcessInfoParser parser;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(parser.GetProcessList(process_without_parameters), "Getting a value that does not exist. entry string : Parameters")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsEmptyString_WhenNoProcessesAreDefined, WorkInProgress)
+KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsEmptyString_WhenNoProcessesAreDefined, KratosGeoMechanicsFastSuite)
 {
-    ProcessInfoJsonParser parser;
+    JsonProcessInfoParser parser;
     KRATOS_EXPECT_EQ(parser.GetProcessList(Parameters{}).size(), 0);
 }
-
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsCorrectList_ForOutputProcess, WorkInProgress)
-{
-    const std::string output_process_list = R"(
-    {
-        "gid_output":
-        [{
-            "python_module": "gid_output_process",
-            "kratos_module": "KratosMultiphysics",
-            "process_name": "GiDOutputProcess",
-            "Parameters":)" + parameterString + R"(
-        }]
-    }
-    )";
-    ProcessInfoJsonParser parser;
-    const auto actual_result = parser.GetProcessList(output_process_list);
-
-    const std::vector<ProcessParameters> expected_result = {ProcessParameters{Parameters{parameterString}, "GiDOutputProcess"}};
-
-    KRATOS_EXPECT_EQ(expected_result, actual_result);
-}
-
-
 
 }

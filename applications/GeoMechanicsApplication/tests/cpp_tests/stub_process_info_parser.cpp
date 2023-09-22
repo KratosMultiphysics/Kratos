@@ -9,7 +9,7 @@
 //
 //  Main authors:    Richard Faasse
 //
-#include "process_info_stub_parser.h"
+#include "stub_process_info_parser.h"
 
 namespace Kratos
 {
@@ -45,13 +45,20 @@ R"({
     "variable_name": "CAUCHY_STRESS_TENSOR"
 })";
 
+const std::vector<ProcessParameters> process_list =
+{ProcessParameters{Parameters{vector_parameter_string}, "ApplyVectorConstraintsTableProcess"},
+ ProcessParameters{Parameters{parameter_field_string}, "SetParameterFieldProcess"},
+ ProcessParameters{Parameters{excavation_string}, "ApplyExcavationProcess"},
+ ProcessParameters{Parameters{k0_string}, "ApplyK0ProcedureProcess"}};
 
-std::vector<ProcessParameters> ProcessInfoStubParser::GetProcessList(const Kratos::Parameters& rProcessParameters)
+std::vector<ProcessParameters> StubProcessInfoParser::GetProcessList(const Kratos::Parameters& rProcessParameters)
 {
-    return {ProcessParameters{Parameters{vector_parameter_string}, "ApplyVectorConstraintsTableProcess"},
-            ProcessParameters{Parameters{parameter_field_string}, "SetParameterFieldProcess"},
-            ProcessParameters{Parameters{excavation_string}, "ApplyExcavationProcess"},
-            ProcessParameters{Parameters{k0_string}, "ApplyK0ProcedureProcess"}};
+    return process_list;
+}
+
+size_t StubProcessInfoParser::NumberOfProcesses()
+{
+    return process_list.size();
 }
 
 }

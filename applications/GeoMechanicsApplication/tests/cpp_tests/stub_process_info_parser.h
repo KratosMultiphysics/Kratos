@@ -12,23 +12,16 @@
 
 #pragma once
 
-#include "process_info_parser.h"
-#include "process_parameters.h"
-
-#include <vector>
+#include "custom_utilities/process_info_parser.h"
 
 namespace Kratos {
 
-class ProcessInfoJsonParser : public ProcessInfoParser
+class StubProcessInfoParser : public ProcessInfoParser
 {
 public:
     std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) override;
 
-private:
-    std::vector<ProcessParameters> mProcessNames;
-    Parameters mProcessParameters;
-
-    void AddProcessesForList(const std::string& rProcessListName);
+    static size_t NumberOfProcesses();
 };
 
-}
+} // Kratos

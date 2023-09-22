@@ -21,7 +21,8 @@ class Process;
 
 class TimeLoopExecutor {
 public :
-    virtual void SetProcessReferences(std::vector<std::reference_wrapper<Process>> ProcessRefs) = 0;
+    virtual ~TimeLoopExecutor() = default;
+    virtual void SetProcessReferences(const std::vector<std::reference_wrapper<Process>>& rProcessRefs) = 0;
 };
 
 }
