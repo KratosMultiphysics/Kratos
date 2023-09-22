@@ -178,6 +178,8 @@ protected:
         const Variable<array_1d<double,3>>& rVariable,
         const Geometry<Node>& rGeometry);
 
+    void FillFromProcessInfo(bool& rData, const Variable<bool>& rVariable, const ProcessInfo& rProcessInfo);
+
     void FillFromProcessInfo(double& rData, const Variable<double>& rVariable, const ProcessInfo& rProcessInfo);
 
     void FillFromProcessInfo(int& rData, const Variable<int>& rVariable, const ProcessInfo& rProcessInfo);

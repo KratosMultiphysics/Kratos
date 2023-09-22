@@ -45,6 +45,9 @@ constexpr static std::size_t NumEdges = (TFluidData::NumNodes == 3) ? 3 : 6;
 ///@name Public Members
 ///@{
 
+bool ApplyNitscheBoundaryImposition;
+bool UseEmbeddedBCForIntersections;
+
 double SlipLength;
 double PenaltyCoefficient;
 
@@ -110,6 +113,8 @@ void InitializeBoundaryConditionData(const ProcessInfo& rProcessInfo)
 {
     this->FillFromProcessInfo(SlipLength, SLIP_LENGTH, rProcessInfo);
     this->FillFromProcessInfo(PenaltyCoefficient, PENALTY_COEFFICIENT, rProcessInfo);
+    this->FillFromProcessInfo(ApplyNitscheBoundaryImposition, APPLY_NITSCHE_BOUNDARY_IMPOSITION, rProcessInfo);
+    this->FillFromProcessInfo(UseEmbeddedBCForIntersections, USE_EMBEDDED_BC_FOR_INTERSECTIONS, rProcessInfo);
 }
 
 /**

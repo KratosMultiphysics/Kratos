@@ -154,12 +154,14 @@ void EmbeddedFluidElementDiscontinuous<TBaseElement>::CalculateLocalSystem(
             this->AddBoundaryTraction(data, data.NegativeInterfaceUnitNormals[g], rLeftHandSideMatrix, rRightHandSideVector);
         }
 
-        // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
         data.InitializeBoundaryConditionData(rCurrentProcessInfo);
-        AddNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-        AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
-        AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-        AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+        // Add the Nitsche Navier boundary condition implementation (Winter, 2018)
+        if (data.ApplyNitscheBoundaryImposition){
+            AddNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+            AddTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            AddTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+        }
     }
 }
 
