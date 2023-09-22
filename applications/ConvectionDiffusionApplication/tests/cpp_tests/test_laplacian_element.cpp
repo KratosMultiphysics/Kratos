@@ -103,8 +103,8 @@ namespace Testing
         expected_LHS(2, 1) = 0.0;
         expected_LHS(2, 2) = 0.5;
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
-        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
+        KRATOS_EXPECT_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
     }
 
     KRATOS_TEST_CASE_IN_SUITE(LaplacianElement3D4N, KratosConvectionDiffusionFastSuite)
@@ -149,8 +149,8 @@ namespace Testing
         expected_LHS(3, 0) = -0.166667;
         expected_LHS(3, 3) = 0.166667;
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
-        KRATOS_CHECK_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, expected_RHS, 1.0e-4)
+        KRATOS_EXPECT_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
     }
 
 } // namespace Testing

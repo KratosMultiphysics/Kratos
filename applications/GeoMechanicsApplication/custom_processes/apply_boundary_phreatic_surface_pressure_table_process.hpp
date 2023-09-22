@@ -28,7 +28,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(ApplyBoundaryPhreaticSurfacePressureTableProcess);
 
     /// Defining a table with double argument and result type as table type.
-    typedef Table<double,double> TableType;
+    using TableType = Table<double,double>;
 
     ApplyBoundaryPhreaticSurfacePressureTableProcess(ModelPart& model_part,
                                                  Parameters rParameters

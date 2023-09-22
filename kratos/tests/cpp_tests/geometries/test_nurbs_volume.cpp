@@ -98,9 +98,9 @@ namespace Testing {
                 knot_vector_u, knot_vector_v, knot_vector_w);
     }
 
-    NurbsVolumeGeometry<PointerVector<Point>> GenerateDistortedCube() {
+    NurbsVolumeGeometry<PointerVector<NodeType>> GenerateDistortedCube() {
         // Construct a distroted cube.
-        PointerVector<Point> points(100);
+        PointerVector<NodeType> points(100);
         std::vector<double> y_direction = {-1.0, -1.0/3.0, 1.0/3.0, 1.0};
         int index = 0;
         for( int i = 0; i <=4; ++i){
@@ -113,7 +113,7 @@ namespace Testing {
                         y = j*std::max(i,2);
                     if( j == 0)
                         x = k*std::max(i,2);
-                    points(index) = Kratos::make_shared<Point>(x, y, z);
+                    points(index) = Kratos::make_intrusive<NodeType>(index, x, y, z);
                     index++;
                 }
             }
@@ -161,7 +161,7 @@ namespace Testing {
         knot_vector_w[8] = 1.0;
         knot_vector_w[9] = 1.0;
 
-        return NurbsVolumeGeometry<PointerVector<Point>>(
+        return NurbsVolumeGeometry<PointerVector<NodeType>>(
             points, polynomial_degree_u, polynomial_degree_v, polynomial_degree_w,
                 knot_vector_u, knot_vector_v, knot_vector_w);
     }
@@ -169,26 +169,26 @@ namespace Testing {
     KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryIntegrationPoints1, KratosCoreNurbsGeometriesFastSuite) {
             NurbsVolumeGeometry<PointerVector<NodeType>> TruncatedPyramid = GenerateTruncatedPyramid();
 
-            KRATOS_CHECK_EQUAL(TruncatedPyramid.WorkingSpaceDimension(), 3);
-            KRATOS_CHECK_EQUAL(TruncatedPyramid.LocalSpaceDimension(), 3);
-            KRATOS_CHECK_EQUAL(TruncatedPyramid.IsRational(), false);
-            KRATOS_CHECK_EQUAL(TruncatedPyramid.PointsNumber(), 196 );
+            KRATOS_EXPECT_EQ(TruncatedPyramid.WorkingSpaceDimension(), 3);
+            KRATOS_EXPECT_EQ(TruncatedPyramid.LocalSpaceDimension(), 3);
+            KRATOS_EXPECT_EQ(TruncatedPyramid.IsRational(), false);
+            KRATOS_EXPECT_EQ(TruncatedPyramid.PointsNumber(), 196 );
 
             typename Geometry<NodeType>::IntegrationPointsArrayType integration_points;
             IntegrationInfo integration_info = TruncatedPyramid.GetDefaultIntegrationInfo();
             TruncatedPyramid.CreateIntegrationPoints(integration_points, integration_info);
-            KRATOS_CHECK_EQUAL( integration_points.size(), 1440);
+            KRATOS_EXPECT_EQ( integration_points.size(), 1440);
             // Compute and check volume
             double volume = 0;
             for (IndexType i = 0; i < integration_points.size(); ++i) {
                 volume += integration_points[i].Weight() * TruncatedPyramid.DeterminantOfJacobian(integration_points[i].Coordinates());
             }
-            KRATOS_CHECK_NEAR(volume, 32.21333333333333, TOLERANCE);
+            KRATOS_EXPECT_NEAR(volume, 32.21333333333333, TOLERANCE);
 
             const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
             const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
-            KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryFamily(), geometry_family);
-            KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryType(), geometry_type);
+            KRATOS_EXPECT_EQ(TruncatedPyramid.GetGeometryFamily(), geometry_family);
+            KRATOS_EXPECT_EQ(TruncatedPyramid.GetGeometryType(), geometry_type);
         }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryEvaluation1, KratosCoreNurbsGeometriesFastSuite) {
@@ -204,120 +204,120 @@ namespace Testing {
         // Check results. All values are compared to the Python NURBS library geomdl.
         // https://nurbs-python.readthedocs.io/en/latest/module_nurbs.html
         // Check Coordinates
-        KRATOS_CHECK_NEAR(global_coordinates[0],1.8,TOLERANCE);
-        KRATOS_CHECK_NEAR(global_coordinates[1],1.8,TOLERANCE);
-        KRATOS_CHECK_NEAR(global_coordinates[2],4,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[0],1.8,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[1],1.8,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[2],4,TOLERANCE);
 
         std::vector<Point::CoordinatesArrayType> derivatives;
         TruncatedPyramid.GlobalSpaceDerivatives(derivatives, parameter, 4);
         // First order
         // Check dN/dx
-        KRATOS_CHECK_NEAR(derivatives[1][0], 12.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[1][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[1][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[1][0], 12.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[1][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[1][2], 0.0, TOLERANCE);
         // Check dN/dy
-        KRATOS_CHECK_NEAR(derivatives[2][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[2][1], 4.8, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[2][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[2][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[2][1], 4.8, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[2][2], 0.0, TOLERANCE);
         // Check dN/dz
-        KRATOS_CHECK_NEAR(derivatives[3][0], 1.6, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[3][1], 1.6, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[3][2], 8.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[3][0], 1.6, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[3][1], 1.6, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[3][2], 8.0, TOLERANCE);
         // Second Order
         // Check dN2/dx2
-        KRATOS_CHECK_NEAR(derivatives[4][0], 100, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[4][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[4][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[4][0], 100, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[4][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[4][2], 0.0, TOLERANCE);
         // Check dN2/dx dy
-        KRATOS_CHECK_NEAR(derivatives[5][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[5][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[5][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[5][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[5][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[5][2], 0.0, TOLERANCE);
         // Check dN2/dx dz
-        KRATOS_CHECK_NEAR(derivatives[6][0], 10.6666666667, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[6][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[6][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[6][0], 10.6666666667, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[6][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[6][2], 0.0, TOLERANCE);
         // Check dN2/dy2
-        KRATOS_CHECK_NEAR(derivatives[7][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[7][1], 4.8, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[7][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[7][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[7][1], 4.8, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[7][2], 0.0, TOLERANCE);
         // Check dN2/dy dz
-        KRATOS_CHECK_NEAR(derivatives[8][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[8][1], 4.266666666667, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[8][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[8][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[8][1], 4.266666666667, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[8][2], 0.0, TOLERANCE);
         // Check dN2/dz2
-        KRATOS_CHECK_NEAR(derivatives[9][0], 7.2, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[9][1], 7.2, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[9][2], 36.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[9][0], 7.2, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[9][1], 7.2, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[9][2], 36.0, TOLERANCE);
         // Third order
         // Check dN3/dx3
-        KRATOS_CHECK_NEAR(derivatives[10][0], 596.666666666667, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[10][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[10][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[10][0], 596.666666666667, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[10][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[10][2], 0.0, TOLERANCE);
         // Check dN3/dx2 dy
-        KRATOS_CHECK_NEAR(derivatives[11][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[11][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[11][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[11][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[11][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[11][2], 0.0, TOLERANCE);
         // Check dN3/dx2 dz
-        KRATOS_CHECK_NEAR(derivatives[12][0], 88.8888888888887, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[12][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[12][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[12][0], 88.8888888888887, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[12][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[12][2], 0.0, TOLERANCE);
         // Check dN3/dx dz2
-        KRATOS_CHECK_NEAR(derivatives[15][0], 48.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[15][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[15][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[15][0], 48.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[15][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[15][2], 0.0, TOLERANCE);
         // Check dN3/dy2 dz
-        KRATOS_CHECK_NEAR(derivatives[17][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[17][1], 4.2666666666667, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[17][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[17][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[17][1], 4.2666666666667, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[17][2], 0.0, TOLERANCE);
         // Check dN3/dy dz2
-        KRATOS_CHECK_NEAR(derivatives[18][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[18][1], 19.2, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[18][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[18][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[18][1], 19.2, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[18][2], 0.0, TOLERANCE);
         // Check dN3/dz3
-        KRATOS_CHECK_NEAR(derivatives[19][0], 36.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[19][1], 36.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[19][2], 180.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[19][0], 36.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[19][1], 36.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[19][2], 180.0, TOLERANCE);
         // Remaining derivative on this level must be zero:
         std::vector<int> third_order_zero_derivatives = {13, 14, 16};
         for( auto index : third_order_zero_derivatives){
             for( std::size_t i = 0; i < 3; ++i){
-                KRATOS_CHECK_NEAR(derivatives[index][i], 0.0, TOLERANCE);
+                KRATOS_EXPECT_NEAR(derivatives[index][i], 0.0, TOLERANCE);
             }
         }
         // Fourth Order
         // Check dN4/dx4
-        KRATOS_CHECK_NEAR(derivatives[20][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[20][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[20][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[20][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[20][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[20][2], 0.0, TOLERANCE);
         // Check dN4/dx3 dz
-        KRATOS_CHECK_NEAR(derivatives[22][0], 530.37037037037, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[22][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[22][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[22][0], 530.37037037037, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[22][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[22][2], 0.0, TOLERANCE);
         // Check dN4/dx2 dz2
-        KRATOS_CHECK_NEAR(derivatives[25][0], 400.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[25][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[25][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[25][0], 400.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[25][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[25][2], 0.0, TOLERANCE);
         // Check dN4/dx dz3
-        KRATOS_CHECK_NEAR(derivatives[29][0], 240.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[29][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[29][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[29][0], 240.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[29][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[29][2], 0.0, TOLERANCE);
         // Check dN4/dy2 dz2
-        KRATOS_CHECK_NEAR(derivatives[32][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[32][1], 19.2, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[32][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[32][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[32][1], 19.2, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[32][2], 0.0, TOLERANCE);
         // Check dN4/dy dz3
-        KRATOS_CHECK_NEAR(derivatives[33][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[33][1], 96.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[33][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[33][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[33][1], 96.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[33][2], 0.0, TOLERANCE);
         // Check dN4/dz4
-        KRATOS_CHECK_NEAR(derivatives[34][0], 97.2, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[34][1], 97.2, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[34][2], 486.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[34][0], 97.2, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[34][1], 97.2, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[34][2], 486.0, TOLERANCE);
         // Remaining derivative on this level must be zero:
         std::vector<int> fourth_order_zero_derivatives = {23, 24, 26, 27, 28, 30, 31};
         for( auto index : fourth_order_zero_derivatives){
             for( std::size_t i = 0; i < 3; ++i){
-                KRATOS_CHECK_NEAR(derivatives[index][i], 0.0, TOLERANCE);
+                KRATOS_EXPECT_NEAR(derivatives[index][i], 0.0, TOLERANCE);
             }
         }
         // Check another point inside the volume
@@ -327,43 +327,43 @@ namespace Testing {
 
         TruncatedPyramid.GlobalCoordinates(global_coordinates, parameter);
         // Check Coordinates
-        KRATOS_CHECK_NEAR(global_coordinates[0], 0.7776905789441982,TOLERANCE);
-        KRATOS_CHECK_NEAR(global_coordinates[1], -0.6794661290038271,TOLERANCE);
-        KRATOS_CHECK_NEAR(global_coordinates[2], 2.4642328320000004,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[0], 0.7776905789441982,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[1], -0.6794661290038271,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[2], 2.4642328320000004,TOLERANCE);
 
         // Check kratos geometry family
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
-        KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryFamily(), geometry_family);
-        KRATOS_CHECK_EQUAL(TruncatedPyramid.GetGeometryType(), geometry_type);
+        KRATOS_EXPECT_EQ(TruncatedPyramid.GetGeometryFamily(), geometry_family);
+        KRATOS_EXPECT_EQ(TruncatedPyramid.GetGeometryType(), geometry_type);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryIntegrationPoints2, KratosCoreNurbsGeometriesFastSuite) {
-        NurbsVolumeGeometry<PointerVector<Point>> DistortedCube = GenerateDistortedCube();
+        NurbsVolumeGeometry<PointerVector<NodeType>> DistortedCube = GenerateDistortedCube();
 
         typename Geometry<Point>::IntegrationPointsArrayType integration_points;
         IntegrationInfo integration_info = DistortedCube.GetDefaultIntegrationInfo();
         DistortedCube.CreateIntegrationPoints(integration_points, integration_info);
-        KRATOS_CHECK_EQUAL(DistortedCube.WorkingSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL(DistortedCube.LocalSpaceDimension(), 3);
-        KRATOS_CHECK_EQUAL(DistortedCube.IsRational(), false);
-        KRATOS_CHECK_EQUAL(DistortedCube.PointsNumber(), 100 );
+        KRATOS_EXPECT_EQ(DistortedCube.WorkingSpaceDimension(), 3);
+        KRATOS_EXPECT_EQ(DistortedCube.LocalSpaceDimension(), 3);
+        KRATOS_EXPECT_EQ(DistortedCube.IsRational(), false);
+        KRATOS_EXPECT_EQ(DistortedCube.PointsNumber(), 100 );
         // Compute and check volume
         double volume = 0;
         for (IndexType i = 0; i < integration_points.size(); ++i) {
             volume += integration_points[i].Weight() * DistortedCube.DeterminantOfJacobian(integration_points[i].Coordinates());
         }
-        KRATOS_CHECK_NEAR(volume, 44.3259259259, TOLERANCE);
+        KRATOS_EXPECT_NEAR(volume, 44.3259259259, TOLERANCE);
 
         // Check kratos geometry family
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
-        KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryFamily(), geometry_family);
-        KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryType(), geometry_type);
+        KRATOS_EXPECT_EQ(DistortedCube.GetGeometryFamily(), geometry_family);
+        KRATOS_EXPECT_EQ(DistortedCube.GetGeometryType(), geometry_type);
     }
 
     KRATOS_TEST_CASE_IN_SUITE(NurbsVolumeGeometryEvaluation2, KratosCoreNurbsGeometriesFastSuite) {
-        NurbsVolumeGeometry<PointerVector<Point>> DistortedCube = GenerateDistortedCube();
+        NurbsVolumeGeometry<PointerVector<NodeType>> DistortedCube = GenerateDistortedCube();
 
         // Check the local to global space mapping.
         array_1d<double, 3> parameter(0.0);
@@ -373,18 +373,18 @@ namespace Testing {
         array_1d<double, 3> global_coordinates(0.0);
         DistortedCube.GlobalCoordinates(global_coordinates, parameter);
         // Check Coordinates
-        KRATOS_CHECK_NEAR(global_coordinates[0],1.2490666666666668,TOLERANCE);
-        KRATOS_CHECK_NEAR(global_coordinates[1],-0.5280889485640089,TOLERANCE);
-        KRATOS_CHECK_NEAR(global_coordinates[2],1.32,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[0],1.2490666666666668,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[1],-0.5280889485640089,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[2],1.32,TOLERANCE);
 
         parameter[0] = 0.5;
         parameter[1] = 1.0;
         parameter[2] = 0.5;
         DistortedCube.GlobalCoordinates(global_coordinates, parameter);
         // Check Coordinates
-        KRATOS_CHECK_NEAR(global_coordinates[0],0.0,TOLERANCE);
-        KRATOS_CHECK_NEAR(global_coordinates[1],1.9166666666667,TOLERANCE);
-        KRATOS_CHECK_NEAR(global_coordinates[2],1.9999999999999,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[0],0.0,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[1],1.9166666666667,TOLERANCE);
+        KRATOS_EXPECT_NEAR(global_coordinates[2],1.9999999999999,TOLERANCE);
 
         // Check derivatives
         std::vector<Point::CoordinatesArrayType> derivatives;
@@ -392,48 +392,48 @@ namespace Testing {
 
         // First Order
         // Check dN/dx
-        KRATOS_CHECK_NEAR(derivatives[1][0], 2.666666666667, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[1][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[1][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[1][0], 2.666666666667, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[1][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[1][2], 0.0, TOLERANCE);
         // Check dN/dy
-        KRATOS_CHECK_NEAR(derivatives[2][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[2][1], 5.111111111111, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[2][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[2][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[2][1], 5.111111111111, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[2][2], 0.0, TOLERANCE);
         // Check dN/dz
-        KRATOS_CHECK_NEAR(derivatives[3][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[3][1], 1.333333333333, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[3][2], 4.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[3][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[3][1], 1.333333333333, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[3][2], 4.0, TOLERANCE);
         // Second Order
         // Check dN2/dx2
-        KRATOS_CHECK_NEAR(derivatives[4][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[4][1], -14.66666666667, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[4][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[4][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[4][1], -14.66666666667, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[4][2], 0.0, TOLERANCE);
         // Check dN2/ dx dy
-        KRATOS_CHECK_NEAR(derivatives[5][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[5][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[5][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[5][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[5][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[5][2], 0.0, TOLERANCE);
         // Check dN2/ dx dz
-        KRATOS_CHECK_NEAR(derivatives[6][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[6][1], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[6][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[6][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[6][1], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[6][2], 0.0, TOLERANCE);
         // Check dN2/ dy2
-        KRATOS_CHECK_NEAR(derivatives[7][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[7][1], 5.1111111111, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[7][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[7][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[7][1], 5.1111111111, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[7][2], 0.0, TOLERANCE);
         // Check dN2/ dy dz
-        KRATOS_CHECK_NEAR(derivatives[8][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[8][1], 3.55555555556, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[8][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[8][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[8][1], 3.55555555556, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[8][2], 0.0, TOLERANCE);
         // Check dN2/ dz2
-        KRATOS_CHECK_NEAR(derivatives[9][0], 0.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[9][1], 4.0, TOLERANCE);
-        KRATOS_CHECK_NEAR(derivatives[9][2], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[9][0], 0.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[9][1], 4.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(derivatives[9][2], 0.0, TOLERANCE);
 
         // Check kratos geometry family
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
-        KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryFamily(), geometry_family);
-        KRATOS_CHECK_EQUAL(DistortedCube.GetGeometryType(), geometry_type);
+        KRATOS_EXPECT_EQ(DistortedCube.GetGeometryFamily(), geometry_family);
+        KRATOS_EXPECT_EQ(DistortedCube.GetGeometryType(), geometry_type);
     }
 
     /// Check quadrature point geometries of nurbs volume.
@@ -447,31 +447,31 @@ namespace Testing {
         typename Geometry<NodeType>::GeometriesArrayType quadrature_points;
         pyramid.CreateQuadraturePointGeometries(quadrature_points, 3, integration_info);
 
-        KRATOS_CHECK_EQUAL(quadrature_points.size(), 1440);
+        KRATOS_EXPECT_EQ(quadrature_points.size(), 1440);
         double sum = 0;
         for (IndexType i = 0; i < quadrature_points.size(); ++i) {
             for (IndexType j = 0; j < quadrature_points[i].IntegrationPointsNumber(); ++j) {
                 sum += quadrature_points[i].IntegrationPoints()[j].Weight();
             }
         }
-        KRATOS_CHECK_NEAR(sum, 1.0, TOLERANCE);
+        KRATOS_EXPECT_NEAR(sum, 1.0, TOLERANCE);
 
         auto element = Element(0, quadrature_points(2));
 
         // Check shape functions
-        KRATOS_CHECK_MATRIX_NEAR(
+        KRATOS_EXPECT_MATRIX_NEAR(
             element.pGetGeometry()->ShapeFunctionsValues(),
             quadrature_points(2)->ShapeFunctionsValues(),
             TOLERANCE);
 
         // Check first derivatives
-        KRATOS_CHECK_MATRIX_NEAR(
+        KRATOS_EXPECT_MATRIX_NEAR(
             element.GetGeometry().ShapeFunctionDerivatives(1, 0),
             quadrature_points(2)->ShapeFunctionLocalGradient(0),
             TOLERANCE);
 
         // Check second derivatives
-        KRATOS_CHECK_MATRIX_NEAR(
+        KRATOS_EXPECT_MATRIX_NEAR(
             element.GetGeometry().ShapeFunctionDerivatives(2, 0),
             quadrature_points(2)->ShapeFunctionDerivatives(2, 0),
             TOLERANCE);
@@ -479,8 +479,8 @@ namespace Testing {
         // Check kratos geometry family
         const auto geometry_family = GeometryData::KratosGeometryFamily::Kratos_Nurbs;
         const auto geometry_type = GeometryData::KratosGeometryType::Kratos_Nurbs_Volume;
-        KRATOS_CHECK_EQUAL(pyramid.GetGeometryFamily(), geometry_family);
-        KRATOS_CHECK_EQUAL(pyramid.GetGeometryType(), geometry_type);
+        KRATOS_EXPECT_EQ(pyramid.GetGeometryFamily(), geometry_family);
+        KRATOS_EXPECT_EQ(pyramid.GetGeometryType(), geometry_type);
     }
 
 } // End namespace Testsing

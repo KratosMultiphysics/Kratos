@@ -177,15 +177,29 @@ class AnalysisStage(object):
 
     def Check(self):
         """This function checks the AnalysisStage
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
         """
+        # Checking solver
         self._GetSolver().Check()
+
+        # Checking processes
         for process in self._GetListOfProcesses():
             process.Check()
 
     def Clear(self):
         """This function clears the AnalysisStage
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
         """
+        # Clearing solver
         self._GetSolver().Clear()
+
+        # Clearing processes
+        for process in self._GetListOfProcesses():
+            process.Clear()
 
     def ModifyInitialProperties(self):
         """this is the place to eventually modify material properties in the stage """

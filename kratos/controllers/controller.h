@@ -84,7 +84,7 @@ public:
         Parameters ThisParameters) const = 0;
 
     /**
-     * @brief Checks that input conditions are correct. 
+     * @brief Checks that input conditions are correct.
      */
     virtual int Check() const
     {
@@ -94,7 +94,12 @@ public:
     /**
      * @brief Using input data, returns bool.
      */
-    virtual bool Evaluate() = 0;
+    virtual bool Evaluate() const = 0;
+
+    /**
+     * @brief Update the controller parameters
+    */
+    virtual void Update() {}
 
     /**
      * @brief This method provides the defaults parameters to avoid conflicts between the different constructors
@@ -109,19 +114,19 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    std::string Info() const
+    virtual std::string Info() const
     {
         return "Controller";
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const
+    virtual void PrintInfo(std::ostream& rOStream) const
     {
         rOStream << "Controller";
     }
 
     /// Print object's data.
-    void PrintData(std::ostream& rOStream) const
+    virtual void PrintData(std::ostream& rOStream) const
     {
     }
 

@@ -53,7 +53,7 @@ Number_of_Segments_1.SetNumberOfSegments( 3 )
 isDone = Mesh_1.Compute()
 smesh.SetName(Mesh_1, 'Mesh_1')
 try:
-  Mesh_1.ExportMED(r'/home/philipp/software/Kratos_master/applications/MedApplication/tests/med_files/hexahedral_8N/mesh.med',auto_groups=0,version=41,overwrite=1,meshPart=None,autoDimension=1)
+  Mesh_1.ExportMED(r'applications/MedApplication/tests/med_files/hexahedral_8N/mesh.med',auto_groups=0,version=41,overwrite=1,meshPart=None,autoDimension=1)
   pass
 except:
   print('ExportMED() failed. Invalid file name?')

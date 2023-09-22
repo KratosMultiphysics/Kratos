@@ -241,12 +241,12 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_RemoveNodesFromSubModeParts
     r_sub.AddNode(r_model_part.pGetNode(1));
     r_sub.AddNode(r_model_part.pGetNode(2));
 
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 2);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfNodes(), 2);
 
     auto utilities = AuxiliarModelPartUtilities(r_model_part);
     utilities.RemoveOrphanNodesFromSubModelParts();
 
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 0);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfNodes(), 0);
 
     r_sub.AddNode(r_model_part.pGetNode(1));
     r_sub.AddNode(r_model_part.pGetNode(2));
@@ -254,30 +254,30 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_RemoveNodesFromSubModeParts
     r_sub.AddNode(r_model_part.pGetNode(4));
     r_sub.AddElement(r_model_part.pGetElement(1));
 
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 4);
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 1);
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 0);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfNodes(), 4);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfElements(), 1);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfGeometries(), 0);
 
     utilities.RemoveOrphanNodesFromSubModelParts();
 
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 1);
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 0);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfElements(), 1);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfGeometries(), 0);
 
     // Replace element by geometry
     r_sub.AddNode(r_model_part.pGetNode(4));
     r_sub.AddGeometry(r_model_part.pGetElement(1)->pGetGeometry());
     r_sub.RemoveElement(1);
 
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 4);
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 0);
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfNodes(), 4);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfElements(), 0);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfGeometries(), 1);
 
     utilities.RemoveOrphanNodesFromSubModelParts();
 
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfElements(), 0);
-    KRATOS_CHECK_EQUAL(r_sub.NumberOfGeometries(), 1);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfElements(), 0);
+    KRATOS_EXPECT_EQ(r_sub.NumberOfGeometries(), 1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_CopySubModelPartStructure, KratosCoreFastSuite)
@@ -290,10 +290,10 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_CopySubModelPartStructure, 
     r_sub.CreateSubModelPart("SubSubModel");
     AuxiliarModelPartUtilities::CopySubModelPartStructure(this_model_part, this_copy_model_part);
 
-    KRATOS_CHECK_EQUAL(this_model_part.HasSubModelPart("Pikachu,pika,pika,pi"), this_copy_model_part.HasSubModelPart("Pikachu,pika,pika,pi"));
-    KRATOS_CHECK_EQUAL(this_model_part.HasSubModelPart("SubModel"), this_copy_model_part.HasSubModelPart("SubModel"));
+    KRATOS_EXPECT_EQ(this_model_part.HasSubModelPart("Pikachu,pika,pika,pi"), this_copy_model_part.HasSubModelPart("Pikachu,pika,pika,pi"));
+    KRATOS_EXPECT_EQ(this_model_part.HasSubModelPart("SubModel"), this_copy_model_part.HasSubModelPart("SubModel"));
     auto& r_sub_copy = this_copy_model_part.GetSubModelPart("SubModel");
-    KRATOS_CHECK_EQUAL(r_sub.HasSubModelPart("SubSubModel"), r_sub_copy.HasSubModelPart("SubSubModel"));
+    KRATOS_EXPECT_EQ(r_sub.HasSubModelPart("SubSubModel"), r_sub_copy.HasSubModelPart("SubSubModel"));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCoreFastSuite)
@@ -360,72 +360,72 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_DeepCopyModelPart, KratosCo
     ModelPart& r_copy_model_part = AuxiliarModelPartUtilities(r_origin_model_part).DeepCopyModelPart("MainCopied");
 
     // Check the structure of the copied model part
-    KRATOS_CHECK(r_copy_model_part.HasSubModelPart("SubModel"));
+    KRATOS_EXPECT_TRUE(r_copy_model_part.HasSubModelPart("SubModel"));
     auto& r_sub_copy = r_copy_model_part.GetSubModelPart("SubModel");
-    KRATOS_CHECK(r_sub_copy.HasSubModelPart("SubSubModel"));
-    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfNodes(), 0);
-    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfGeometries(), 0);
-    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfElements(), 1);
-    KRATOS_CHECK_EQUAL(r_sub_copy.Elements().begin()->Id(), 2);
-    KRATOS_CHECK_EQUAL(r_sub_copy.NumberOfConditions(), 0);
+    KRATOS_EXPECT_TRUE(r_sub_copy.HasSubModelPart("SubSubModel"));
+    KRATOS_EXPECT_EQ(r_sub_copy.NumberOfNodes(), 0);
+    KRATOS_EXPECT_EQ(r_sub_copy.NumberOfGeometries(), 0);
+    KRATOS_EXPECT_EQ(r_sub_copy.NumberOfElements(), 1);
+    KRATOS_EXPECT_EQ(r_sub_copy.Elements().begin()->Id(), 2);
+    KRATOS_EXPECT_EQ(r_sub_copy.NumberOfConditions(), 0);
 
     // Verify it is the same pointer
-    KRATOS_CHECK_EQUAL(p_prop.get(), r_origin_model_part.pGetProperties(0).get());
-    KRATOS_CHECK_EQUAL(p_node_1.get(), r_origin_model_part.pGetNode(1).get());
-    KRATOS_CHECK_EQUAL(p_node_2.get(), r_origin_model_part.pGetNode(2).get());
-    KRATOS_CHECK_EQUAL(p_node_3.get(), r_origin_model_part.pGetNode(3).get());
-    KRATOS_CHECK_EQUAL(p_node_4.get(), r_origin_model_part.pGetNode(4).get());
-    KRATOS_CHECK_EQUAL(p_node_5.get(), r_origin_model_part.pGetNode(5).get());
-    KRATOS_CHECK_EQUAL(p_node_6.get(), r_origin_model_part.pGetNode(6).get());
+    KRATOS_EXPECT_EQ(p_prop.get(), r_origin_model_part.pGetProperties(0).get());
+    KRATOS_EXPECT_EQ(p_node_1.get(), r_origin_model_part.pGetNode(1).get());
+    KRATOS_EXPECT_EQ(p_node_2.get(), r_origin_model_part.pGetNode(2).get());
+    KRATOS_EXPECT_EQ(p_node_3.get(), r_origin_model_part.pGetNode(3).get());
+    KRATOS_EXPECT_EQ(p_node_4.get(), r_origin_model_part.pGetNode(4).get());
+    KRATOS_EXPECT_EQ(p_node_5.get(), r_origin_model_part.pGetNode(5).get());
+    KRATOS_EXPECT_EQ(p_node_6.get(), r_origin_model_part.pGetNode(6).get());
 
-    KRATOS_CHECK_EQUAL(p_geom_1.get(), r_origin_model_part.pGetGeometry(1).get());
-    KRATOS_CHECK_EQUAL(p_geom_2.get(), r_origin_model_part.pGetGeometry(2).get());
+    KRATOS_EXPECT_EQ(p_geom_1.get(), r_origin_model_part.pGetGeometry(1).get());
+    KRATOS_EXPECT_EQ(p_geom_2.get(), r_origin_model_part.pGetGeometry(2).get());
 
-    KRATOS_CHECK_EQUAL(p_elem_1.get(), r_origin_model_part.pGetElement(1).get());
-    KRATOS_CHECK_EQUAL(p_elem_2.get(), r_origin_model_part.pGetElement(2).get());
+    KRATOS_EXPECT_EQ(p_elem_1.get(), r_origin_model_part.pGetElement(1).get());
+    KRATOS_EXPECT_EQ(p_elem_2.get(), r_origin_model_part.pGetElement(2).get());
 
-    KRATOS_CHECK_EQUAL(p_cond_1.get(), r_origin_model_part.pGetCondition(1).get());
-    KRATOS_CHECK_EQUAL(p_cond_2.get(), r_origin_model_part.pGetCondition(2).get());
+    KRATOS_EXPECT_EQ(p_cond_1.get(), r_origin_model_part.pGetCondition(1).get());
+    KRATOS_EXPECT_EQ(p_cond_2.get(), r_origin_model_part.pGetCondition(2).get());
 
     // Check it is a different pointer
-    KRATOS_CHECK_NOT_EQUAL(p_prop.get(), r_copy_model_part.pGetProperties(0).get());
-    KRATOS_CHECK_NOT_EQUAL(p_node_1.get(), r_copy_model_part.pGetNode(1).get());
-    KRATOS_CHECK_NOT_EQUAL(p_node_2.get(), r_copy_model_part.pGetNode(2).get());
-    KRATOS_CHECK_NOT_EQUAL(p_node_3.get(), r_copy_model_part.pGetNode(3).get());
-    KRATOS_CHECK_NOT_EQUAL(p_node_4.get(), r_copy_model_part.pGetNode(4).get());
-    KRATOS_CHECK_NOT_EQUAL(p_node_5.get(), r_copy_model_part.pGetNode(5).get());
-    KRATOS_CHECK_NOT_EQUAL(p_node_6.get(), r_copy_model_part.pGetNode(6).get());
+    KRATOS_EXPECT_NE(p_prop.get(), r_copy_model_part.pGetProperties(0).get());
+    KRATOS_EXPECT_NE(p_node_1.get(), r_copy_model_part.pGetNode(1).get());
+    KRATOS_EXPECT_NE(p_node_2.get(), r_copy_model_part.pGetNode(2).get());
+    KRATOS_EXPECT_NE(p_node_3.get(), r_copy_model_part.pGetNode(3).get());
+    KRATOS_EXPECT_NE(p_node_4.get(), r_copy_model_part.pGetNode(4).get());
+    KRATOS_EXPECT_NE(p_node_5.get(), r_copy_model_part.pGetNode(5).get());
+    KRATOS_EXPECT_NE(p_node_6.get(), r_copy_model_part.pGetNode(6).get());
 
-    KRATOS_CHECK_NOT_EQUAL(p_geom_1.get(), r_copy_model_part.pGetGeometry(1).get());
-    KRATOS_CHECK_NOT_EQUAL(p_geom_2.get(), r_copy_model_part.pGetGeometry(2).get());
+    KRATOS_EXPECT_NE(p_geom_1.get(), r_copy_model_part.pGetGeometry(1).get());
+    KRATOS_EXPECT_NE(p_geom_2.get(), r_copy_model_part.pGetGeometry(2).get());
 
-    KRATOS_CHECK_NOT_EQUAL(p_elem_1.get(), r_copy_model_part.pGetElement(1).get());
-    KRATOS_CHECK_NOT_EQUAL(p_elem_2.get(), r_copy_model_part.pGetElement(2).get());
+    KRATOS_EXPECT_NE(p_elem_1.get(), r_copy_model_part.pGetElement(1).get());
+    KRATOS_EXPECT_NE(p_elem_2.get(), r_copy_model_part.pGetElement(2).get());
 
-    KRATOS_CHECK_NOT_EQUAL(p_cond_1.get(), r_copy_model_part.pGetCondition(1).get());
-    KRATOS_CHECK_NOT_EQUAL(p_cond_2.get(), r_copy_model_part.pGetCondition(2).get());
+    KRATOS_EXPECT_NE(p_cond_1.get(), r_copy_model_part.pGetCondition(1).get());
+    KRATOS_EXPECT_NE(p_cond_2.get(), r_copy_model_part.pGetCondition(2).get());
 
     // Verify values set
     auto& r_new_properties = r_copy_model_part.GetProperties(0);
-    KRATOS_CHECK(p_prop->Has(DENSITY));
-    KRATOS_CHECK(r_new_properties.Has(DENSITY));
-    KRATOS_CHECK_EQUAL(r_new_properties.GetValue(DENSITY), p_prop->GetValue(DENSITY));
+    KRATOS_EXPECT_TRUE(p_prop->Has(DENSITY));
+    KRATOS_EXPECT_TRUE(r_new_properties.Has(DENSITY));
+    KRATOS_EXPECT_EQ(r_new_properties.GetValue(DENSITY), p_prop->GetValue(DENSITY));
     auto& r_copy_process_info = r_copy_model_part.GetProcessInfo();
-    KRATOS_CHECK(r_process_info.Has(STEP));
-    KRATOS_CHECK(r_copy_process_info.Has(STEP));
-    KRATOS_CHECK_EQUAL(r_copy_process_info.GetValue(STEP),r_process_info.GetValue(STEP));
-    KRATOS_CHECK_IS_FALSE(r_copy_process_info.Has(NL_ITERATION_NUMBER));
-    KRATOS_CHECK_EQUAL(p_node_1->Is(RIGID), r_copy_model_part.pGetNode(1)->Is(RIGID));
-    KRATOS_CHECK_EQUAL(p_node_1->Is(ACTIVE), r_copy_model_part.pGetNode(1)->Is(ACTIVE));
-    KRATOS_CHECK(r_copy_model_part.pGetNode(1)->Has(PRESSURE));
-    KRATOS_CHECK_EQUAL(p_node_1->GetValue(PRESSURE), r_copy_model_part.pGetNode(1)->GetValue(PRESSURE));
-    KRATOS_CHECK_IS_FALSE(r_copy_model_part.pGetNode(1)->Has(TEMPERATURE));
+    KRATOS_EXPECT_TRUE(r_process_info.Has(STEP));
+    KRATOS_EXPECT_TRUE(r_copy_process_info.Has(STEP));
+    KRATOS_EXPECT_EQ(r_copy_process_info.GetValue(STEP),r_process_info.GetValue(STEP));
+    KRATOS_EXPECT_FALSE(r_copy_process_info.Has(NL_ITERATION_NUMBER));
+    KRATOS_EXPECT_EQ(p_node_1->Is(RIGID), r_copy_model_part.pGetNode(1)->Is(RIGID));
+    KRATOS_EXPECT_EQ(p_node_1->Is(ACTIVE), r_copy_model_part.pGetNode(1)->Is(ACTIVE));
+    KRATOS_EXPECT_TRUE(r_copy_model_part.pGetNode(1)->Has(PRESSURE));
+    KRATOS_EXPECT_EQ(p_node_1->GetValue(PRESSURE), r_copy_model_part.pGetNode(1)->GetValue(PRESSURE));
+    KRATOS_EXPECT_FALSE(r_copy_model_part.pGetNode(1)->Has(TEMPERATURE));
     for (auto& r_node : r_copy_model_part.Nodes()) {
-        KRATOS_CHECK_DOUBLE_EQUAL(r_node.FastGetSolutionStepValue(TEMPERATURE), static_cast<double>(r_node.Id()));
+        KRATOS_EXPECT_DOUBLE_EQ(r_node.FastGetSolutionStepValue(TEMPERATURE), static_cast<double>(r_node.Id()));
     }
 
-    KRATOS_CHECK_DOUBLE_EQUAL(p_elem_1->GetValue(TEMPERATURE), r_copy_model_part.pGetElement(1)->GetValue(TEMPERATURE));
-    KRATOS_CHECK_IS_FALSE(r_copy_model_part.pGetElement(2)->Has(TEMPERATURE));
+    KRATOS_EXPECT_DOUBLE_EQ(p_elem_1->GetValue(TEMPERATURE), r_copy_model_part.pGetElement(1)->GetValue(TEMPERATURE));
+    KRATOS_EXPECT_FALSE(r_copy_model_part.pGetElement(2)->Has(TEMPERATURE));
 }
 
 /******************************************************************************************/
@@ -442,7 +442,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_historic
 
     auto test_values = ComputationGetData(DataLocation::NodeHistorical, this_model_part, 1);
     AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 
 }
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_historical_ublas_vector, KratosCoreFastSuite)
@@ -454,7 +454,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_historic
 
     auto test_values = ComputationGetData<Vector>(DataLocation::NodeHistorical, this_model_part, 1);
     AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //2. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Node_NonHistorical Datalocation
@@ -467,7 +467,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Node_Nonhisto
 
     auto test_values = ComputationGetData(DataLocation::NodeNonHistorical, this_model_part, 1);
     AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::NodeNonHistorical, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //3. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Element Datalocation
@@ -480,7 +480,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Element, Krat
 
     auto test_values = ComputationGetData(DataLocation::Element, this_model_part, 1);
     AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::Element, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //4. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Condition Datalocation
@@ -493,7 +493,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_Condition, Kr
 
     auto test_values = ComputationGetData(DataLocation::Condition, this_model_part, 1);
     AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::Condition, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //5. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on ModelPart Datalocation
@@ -506,7 +506,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_ModelPart, Kr
 
     auto test_values = ComputationGetData(DataLocation::ModelPart, this_model_part, 1);
     AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::ModelPart, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //6. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on ProcessInfo Datalocation
@@ -519,7 +519,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetScalarData_ProcessInfo, 
 
     auto test_values = ComputationGetData(DataLocation::ProcessInfo, this_model_part, 1);
     AuxiliarModelPartUtilities(this_model_part).GetScalarData(DISPLACEMENT_X, DataLocation::ProcessInfo, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //7. Checks the correct work of the Auxiliar model parts utility GetData for vector data on Node_historicalDatalocation
@@ -532,7 +532,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Node_historic
 
     auto test_values = ComputationGetData(DataLocation::NodeHistorical, this_model_part, 3);
     AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::NodeHistorical, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Node_historical_ublas_vector, KratosCoreFastSuite)
@@ -544,7 +544,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Node_historic
 
     auto test_values = ComputationGetData<Vector>(DataLocation::NodeHistorical, this_model_part, 3);
     AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::NodeHistorical, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //8. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on Node_NonHistorical Datalocation
@@ -557,7 +557,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Node_Nonhisto
 
     auto test_values = ComputationGetData(DataLocation::NodeNonHistorical, this_model_part, 3);
     AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::NodeNonHistorical, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //9. Checks the correct work of the Auxiliar model parts utility GetData for scalar data on Element Datalocation
@@ -570,7 +570,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Element, Krat
 
     auto test_values = ComputationGetData(DataLocation::Element, this_model_part, 3);
     AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::Element, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //10. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on Condition Datalocation
@@ -583,7 +583,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_Condition, Kr
 
     auto test_values = ComputationGetData(DataLocation::Condition, this_model_part, 3);
     AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::Condition, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //11. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on ModelPart Datalocation
@@ -596,7 +596,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_ModelPart, Kr
 
     auto test_values = ComputationGetData(DataLocation::ModelPart, this_model_part, 3);
     AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::ModelPart, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //12. Checks the correct work of the Auxiliar model parts utility GetData for Vector data on ProcessInfo Datalocation
@@ -609,7 +609,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_GetVectorData_ProcessInfo, 
 
     auto test_values = ComputationGetData(DataLocation::ProcessInfo, this_model_part, 3);
     AuxiliarModelPartUtilities(this_model_part).GetVectorData(DISPLACEMENT, DataLocation::ProcessInfo, data);
-    KRATOS_CHECK_VECTOR_NEAR(test_values, data, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(test_values, data, 1e-15);
 }
 
 //13. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on NodeHistorical Datalocation
@@ -623,7 +623,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_historic
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::NodeHistorical, this_model_part, 1);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_historical_ublas_vector, KratosCoreFastSuite)
@@ -636,7 +636,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_historic
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::NodeHistorical, this_model_part, 1);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //14. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Node_NonHistorical Datalocation
@@ -650,7 +650,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Node_Nonhisto
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::NodeNonHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::NodeNonHistorical, this_model_part, 1);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //15. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Element Datalocation
@@ -664,7 +664,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Element, Krat
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::Element, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::Element, this_model_part, 1);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //16. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on Condition Datalocation
@@ -678,7 +678,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_Condition, Kr
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::Condition, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::Condition, this_model_part, 1);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //17. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on ModelPart Datalocation
@@ -692,7 +692,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_ModelPart, Kr
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::ModelPart, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::ModelPart, this_model_part, 1);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //18. Checks the correct work of the Auxiliar model parts utility SetData for Scalar data on ProcessInfo Datalocation
@@ -706,7 +706,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetScalarData_ProcessInfo, 
     AuxiliarModelPartUtilities(this_model_part).SetScalarData(DISPLACEMENT_X, DataLocation::ProcessInfo, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::ProcessInfo, this_model_part, 1);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //19. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on NodeHistorical Datalocation
@@ -720,7 +720,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_historic
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::NodeHistorical, this_model_part, 3);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_historical_ublas_vector, KratosCoreFastSuite)
@@ -733,7 +733,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_historic
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::NodeHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::NodeHistorical, this_model_part, 3);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //20. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Node_NonHistorical Datalocation
@@ -747,7 +747,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Node_Nonhisto
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::NodeNonHistorical, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::NodeNonHistorical, this_model_part, 3);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //21. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Element Datalocation
@@ -761,7 +761,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Element, Krat
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::Element, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::Element, this_model_part, 3);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //22. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on Condition Datalocation
@@ -775,7 +775,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_Condition, Kr
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::Condition, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::Condition, this_model_part, 3);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //23. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on ModelPart Datalocation
@@ -789,7 +789,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_ModelPart, Kr
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::ModelPart, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::ModelPart, this_model_part, 3);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 //24. Checks the correct work of the Auxiliar model parts utility SetData for Vector data on ProcessInfo Datalocation
@@ -803,7 +803,7 @@ KRATOS_TEST_CASE_IN_SUITE(AuxiliarModelPartUtilities_SetVectorData_ProcessInfo, 
     AuxiliarModelPartUtilities(this_model_part).SetVectorData(DISPLACEMENT, DataLocation::ProcessInfo, rData); //Run the Function SetVariable to Import a "rData" into the Model
     auto output_values = PostComputeSetData(DataLocation::ProcessInfo, this_model_part, 3);
 
-    KRATOS_CHECK_VECTOR_NEAR(rData, output_values, 1e-15);
+    KRATOS_EXPECT_VECTOR_NEAR(rData, output_values, 1e-15);
 }
 
 } // namespace Kratos::Testing.

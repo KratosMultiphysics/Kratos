@@ -11,8 +11,7 @@
 //                   Vicente Mataix Ferrandiz
 //                   Alejandro Cornejo
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_FEMDEM_ELEMENT_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_FEMDEM_ELEMENT_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -302,4 +301,3 @@ template<unsigned int TDim, unsigned int TyieldSurf> constexpr SizeType GenericS
 ///@}
 
 } // namespace Kratos.
-#endif

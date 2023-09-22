@@ -29,16 +29,16 @@ void CheckEntitiesAreEqual(
 {
     KRATOS_TRY
 
-    KRATOS_CHECK_EQUAL(rKratosNode.Id(), static_cast<std::size_t>(rCoSimIONode.Id()));
+    KRATOS_EXPECT_EQ(rKratosNode.Id(), static_cast<std::size_t>(rCoSimIONode.Id()));
 
-    KRATOS_CHECK_DOUBLE_EQUAL(rKratosNode.X(),  rCoSimIONode.X());
-    KRATOS_CHECK_DOUBLE_EQUAL(rKratosNode.X0(), rCoSimIONode.X());
+    KRATOS_EXPECT_DOUBLE_EQ(rKratosNode.X(),  rCoSimIONode.X());
+    KRATOS_EXPECT_DOUBLE_EQ(rKratosNode.X0(), rCoSimIONode.X());
 
-    KRATOS_CHECK_DOUBLE_EQUAL(rKratosNode.Y(),  rCoSimIONode.Y());
-    KRATOS_CHECK_DOUBLE_EQUAL(rKratosNode.Y0(), rCoSimIONode.Y());
+    KRATOS_EXPECT_DOUBLE_EQ(rKratosNode.Y(),  rCoSimIONode.Y());
+    KRATOS_EXPECT_DOUBLE_EQ(rKratosNode.Y0(), rCoSimIONode.Y());
 
-    KRATOS_CHECK_DOUBLE_EQUAL(rKratosNode.Z(),  rCoSimIONode.Z());
-    KRATOS_CHECK_DOUBLE_EQUAL(rKratosNode.Z0(), rCoSimIONode.Z());
+    KRATOS_EXPECT_DOUBLE_EQ(rKratosNode.Z(),  rCoSimIONode.Z());
+    KRATOS_EXPECT_DOUBLE_EQ(rKratosNode.Z0(), rCoSimIONode.Z());
 
     KRATOS_CATCH("")
 }
@@ -50,9 +50,9 @@ void CheckEntitiesAreEqual(
     KRATOS_TRY
 
     // basic checks
-    KRATOS_CHECK_EQUAL(rKratosElement.Id(), static_cast<std::size_t>(rCoSimIOElement.Id()));
-    // KRATOS_CHECK_EQUAL(rKratosElement.Type(), rCoSimIOElement.Type());
-    KRATOS_CHECK_EQUAL(rKratosElement.GetGeometry().PointsNumber(), rCoSimIOElement.NumberOfNodes());
+    KRATOS_EXPECT_EQ(rKratosElement.Id(), static_cast<std::size_t>(rCoSimIOElement.Id()));
+    // KRATOS_EXPECT_EQ(rKratosElement.Type(), rCoSimIOElement.Type());
+    KRATOS_EXPECT_EQ(rKratosElement.GetGeometry().PointsNumber(), rCoSimIOElement.NumberOfNodes());
 
     // check nodes
     for (std::size_t i=0; i<rCoSimIOElement.NumberOfNodes(); ++i) {
@@ -70,7 +70,7 @@ void CheckUnorderedEntitiesAreEqual(
     KRATOS_TRY
 
     // basic checks
-    KRATOS_CHECK_EQUAL(rKratosEntities.size(), rCoSimIOEntities.size());
+    KRATOS_EXPECT_EQ(rKratosEntities.size(), rCoSimIOEntities.size());
 
     // check entities
     for (const auto& r_cosimio_entity : rCoSimIOEntities) {
@@ -97,11 +97,11 @@ void CheckNumberOfGhostNodes(
     for (int part_index=0; part_index<rKratosModelPart.GetCommunicator().TotalProcesses(); ++part_index) {
         const std::size_t num_kratos_nodes_this_rank = kratos_ghost_nodes_per_rank[part_index];
         if (num_kratos_nodes_this_rank > 0) {
-            KRATOS_CHECK_EQUAL(rCoSimIOModelPart.GetPartitionModelParts().count(part_index), 1);
+            KRATOS_EXPECT_EQ(rCoSimIOModelPart.GetPartitionModelParts().count(part_index), 1);
             CoSimIO::ModelPart& r_cosimio_part_mp = *rCoSimIOModelPart.GetPartitionModelParts().at(part_index);
-            KRATOS_CHECK_EQUAL(num_kratos_nodes_this_rank, r_cosimio_part_mp.NumberOfNodes());
+            KRATOS_EXPECT_EQ(num_kratos_nodes_this_rank, r_cosimio_part_mp.NumberOfNodes());
         } else {
-            KRATOS_CHECK_EQUAL(rCoSimIOModelPart.GetPartitionModelParts().count(part_index), 0);
+            KRATOS_EXPECT_EQ(rCoSimIOModelPart.GetPartitionModelParts().count(part_index), 0);
         }
     }
 
@@ -139,8 +139,8 @@ void CheckModelPartsAreEqual(
     KRATOS_TRY
 
     // basic checks
-    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfNodes(),      rCoSimIOModelPart.NumberOfNodes());
-    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfElements(),   rCoSimIOModelPart.NumberOfElements());
+    KRATOS_EXPECT_EQ(rKratosModelPart.NumberOfNodes(),      rCoSimIOModelPart.NumberOfNodes());
+    KRATOS_EXPECT_EQ(rKratosModelPart.NumberOfElements(),   rCoSimIOModelPart.NumberOfElements());
 
     // check nodes
     for (std::size_t i=0; i<rCoSimIOModelPart.NumberOfNodes(); ++i) {
@@ -161,18 +161,18 @@ void CheckModelPartsAreEqualButEntitiesAreOrderedDifferently(
 {
     KRATOS_TRY
 
-    KRATOS_CHECK(rKratosModelPart.Has(NODES_ID_INDEX_MAP));
-    KRATOS_CHECK(rKratosModelPart.Has(ELEMENTS_ID_INDEX_MAP));
+    KRATOS_EXPECT_TRUE(rKratosModelPart.Has(NODES_ID_INDEX_MAP));
+    KRATOS_EXPECT_TRUE(rKratosModelPart.Has(ELEMENTS_ID_INDEX_MAP));
 
     // basic checks
-    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfNodes(),      rCoSimIOModelPart.NumberOfNodes());
-    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfElements(),   rCoSimIOModelPart.NumberOfElements());
+    KRATOS_EXPECT_EQ(rKratosModelPart.NumberOfNodes(),      rCoSimIOModelPart.NumberOfNodes());
+    KRATOS_EXPECT_EQ(rKratosModelPart.NumberOfElements(),   rCoSimIOModelPart.NumberOfElements());
 
     const auto& r_nodes_id_map = rKratosModelPart[NODES_ID_INDEX_MAP];
     const auto& r_elements_id_map = rKratosModelPart[ELEMENTS_ID_INDEX_MAP];
 
-    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfNodes(),    r_nodes_id_map.size());
-    KRATOS_CHECK_EQUAL(rKratosModelPart.NumberOfElements(), r_elements_id_map.size());
+    KRATOS_EXPECT_EQ(rKratosModelPart.NumberOfNodes(),    r_nodes_id_map.size());
+    KRATOS_EXPECT_EQ(rKratosModelPart.NumberOfElements(), r_elements_id_map.size());
 
     // check nodes
     CheckUnorderedEntitiesAreEqual(rKratosModelPart.Nodes(), rCoSimIOModelPart.Nodes());
@@ -182,10 +182,10 @@ void CheckModelPartsAreEqualButEntitiesAreOrderedDifferently(
 
     // check that orderings are created correctly
     for (std::size_t i=0; i<rCoSimIOModelPart.NumberOfNodes(); ++i) {
-        KRATOS_CHECK_EQUAL(r_nodes_id_map[i], static_cast<std::size_t>((**(rCoSimIOModelPart.NodesBegin()+i)).Id()));
+        KRATOS_EXPECT_EQ(r_nodes_id_map[i], static_cast<std::size_t>((**(rCoSimIOModelPart.NodesBegin()+i)).Id()));
     }
     for (std::size_t i=0; i<rCoSimIOModelPart.NumberOfElements(); ++i) {
-        KRATOS_CHECK_EQUAL(r_elements_id_map[i], static_cast<std::size_t>((**(rCoSimIOModelPart.ElementsBegin()+i)).Id()));
+        KRATOS_EXPECT_EQ(r_elements_id_map[i], static_cast<std::size_t>((**(rCoSimIOModelPart.ElementsBegin()+i)).Id()));
     }
 
     KRATOS_CATCH("")
@@ -197,15 +197,15 @@ void CheckDistributedModelPartsAreEqual(
 {
     KRATOS_TRY
 
-    KRATOS_CHECK(rKratosModelPart.IsDistributed());
-    KRATOS_CHECK(rKratosModelPart.HasNodalSolutionStepVariable(PARTITION_INDEX));
+    KRATOS_EXPECT_TRUE(rKratosModelPart.IsDistributed());
+    KRATOS_EXPECT_TRUE(rKratosModelPart.HasNodalSolutionStepVariable(PARTITION_INDEX));
 
     // serial checks
     CheckModelPartsAreEqual(rKratosModelPart, rCoSimIOModelPart);
 
     // check local nodes
-    KRATOS_CHECK_EQUAL(rKratosModelPart.GetCommunicator().LocalMesh().NumberOfNodes(), rCoSimIOModelPart.NumberOfLocalNodes());
-    KRATOS_CHECK_EQUAL(rKratosModelPart.GetCommunicator().GhostMesh().NumberOfNodes(), rCoSimIOModelPart.NumberOfGhostNodes());
+    KRATOS_EXPECT_EQ(rKratosModelPart.GetCommunicator().LocalMesh().NumberOfNodes(), rCoSimIOModelPart.NumberOfLocalNodes());
+    KRATOS_EXPECT_EQ(rKratosModelPart.GetCommunicator().GhostMesh().NumberOfNodes(), rCoSimIOModelPart.NumberOfGhostNodes());
 
     for (std::size_t i=0; i<rKratosModelPart.GetCommunicator().LocalMesh().NumberOfNodes(); ++i) {
         CheckNodesAreEqual(*(rKratosModelPart.GetCommunicator().LocalMesh().NodesBegin()+i), **(rCoSimIOModelPart.GetLocalModelPart().NodesBegin()+i));
@@ -236,17 +236,17 @@ void CheckDistributedModelPartsAreEqualButEntitiesAreOrderedDifferently(
 {
     KRATOS_TRY
 
-    KRATOS_CHECK(rKratosModelPart.IsDistributed());
-    KRATOS_CHECK(rKratosModelPart.HasNodalSolutionStepVariable(PARTITION_INDEX));
-    KRATOS_CHECK(rKratosModelPart.Has(NODES_ID_INDEX_MAP));
-    KRATOS_CHECK(rKratosModelPart.Has(ELEMENTS_ID_INDEX_MAP));
+    KRATOS_EXPECT_TRUE(rKratosModelPart.IsDistributed());
+    KRATOS_EXPECT_TRUE(rKratosModelPart.HasNodalSolutionStepVariable(PARTITION_INDEX));
+    KRATOS_EXPECT_TRUE(rKratosModelPart.Has(NODES_ID_INDEX_MAP));
+    KRATOS_EXPECT_TRUE(rKratosModelPart.Has(ELEMENTS_ID_INDEX_MAP));
 
     // serial checks
     CheckModelPartsAreEqualButEntitiesAreOrderedDifferently(rKratosModelPart, rCoSimIOModelPart);
 
     // check local nodes
-    KRATOS_CHECK_EQUAL(rKratosModelPart.GetCommunicator().LocalMesh().NumberOfNodes(), rCoSimIOModelPart.NumberOfLocalNodes());
-    KRATOS_CHECK_EQUAL(rKratosModelPart.GetCommunicator().GhostMesh().NumberOfNodes(), rCoSimIOModelPart.NumberOfGhostNodes());
+    KRATOS_EXPECT_EQ(rKratosModelPart.GetCommunicator().LocalMesh().NumberOfNodes(), rCoSimIOModelPart.NumberOfLocalNodes());
+    KRATOS_EXPECT_EQ(rKratosModelPart.GetCommunicator().GhostMesh().NumberOfNodes(), rCoSimIOModelPart.NumberOfGhostNodes());
 
     // check local nodes
     CheckUnorderedEntitiesAreEqual(rKratosModelPart.GetCommunicator().LocalMesh().Nodes(), rCoSimIOModelPart.LocalNodes());
@@ -269,7 +269,7 @@ void CheckDistributedModelPartsAreEqualButEntitiesAreOrderedDifferently(
             KRATOS_ERROR_IF(it_kratos_node == r_kratos_ghost_nodes.end()) << "Ghost node with Id " << r_cosimio_node.Id() << " is not in the Kratos ModelPart!" << std::endl;
             const auto& r_kratos_node = *it_kratos_node;
             CheckNodesAreEqual(r_kratos_node, r_cosimio_node);
-            KRATOS_CHECK_EQUAL(partition_index, r_kratos_node.FastGetSolutionStepValue(PARTITION_INDEX));
+            KRATOS_EXPECT_EQ(partition_index, r_kratos_node.FastGetSolutionStepValue(PARTITION_INDEX));
         }
     }
 

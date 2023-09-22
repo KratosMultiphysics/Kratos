@@ -5,7 +5,7 @@ from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition i
 import numpy as np
 import importlib
 import json
-import os
+from pathlib import Path
 
 
 
@@ -273,6 +273,7 @@ class RomManager(object):
         PetrovGalerkinTrainMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._AddBasisCreationToProjectParameters(parameters)
             parameters = self._StoreNoResults(parameters)
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -294,6 +295,7 @@ class RomManager(object):
         RedidualsSnapshotsMatrix = []
         for mu in mu_train:
             parameters = self.UpdateProjectParameters(parameters, mu)
+            parameters = self._AddBasisCreationToProjectParameters(parameters)
             parameters = self._StoreNoResults(parameters)
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
@@ -307,8 +309,13 @@ class RomManager(object):
             self._StoreSnapshotsMatrix('residuals_projected',RedidualsSnapshotsMatrix)
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(RedidualsSnapshotsMatrix,
         self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble())
-        simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u)
+        simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = simulation.GetHROM_utility().candidate_ids)
         simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
+        if not simulation.GetHROM_utility().hyper_reduction_element_selector.success:
+            KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
+            #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
+            self.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
+            self.hyper_reduction_element_selector.Run()
         simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
         simulation.GetHROM_utility().CreateHRomModelParts()
 
@@ -480,55 +487,84 @@ class RomManager(object):
             simulation.Run()
 
 
+    def _AddHromParametersToRomParameters(self,f):
+        f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
+        f["hrom_settings"]["element_selection_type"] = self.general_rom_manager_parameters["HROM"]["element_selection_type"].GetString()
+        f["hrom_settings"]["element_selection_svd_truncation_tolerance"] = self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
+        f["hrom_settings"]["create_hrom_visualization_model_part"] = self.general_rom_manager_parameters["HROM"]["create_hrom_visualization_model_part"].GetBool()
+        f["hrom_settings"]["echo_level"] = self.general_rom_manager_parameters["HROM"]["echo_level"].GetInt()
+        f["hrom_settings"]["include_condition_parents"] = self.general_rom_manager_parameters["HROM"]["include_condition_parents"].GetBool() if self.general_rom_manager_parameters["HROM"].Has("include_condition_parents") else False
+        f["hrom_settings"]["initial_candidate_elements_model_part_list"] = self.general_rom_manager_parameters["HROM"]["initial_candidate_elements_model_part_list"].GetStringArray() if self.general_rom_manager_parameters["HROM"].Has("initial_candidate_elements_model_part_list") else []
+        f["hrom_settings"]["initial_candidate_conditions_model_part_list"] = self.general_rom_manager_parameters["HROM"]["initial_candidate_conditions_model_part_list"].GetStringArray() if self.general_rom_manager_parameters["HROM"].Has("initial_candidate_conditions_model_part_list") else []
+
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
         """
         This method updates the Flags present in the RomParameters.json file
         for launching the correct part of the ROM workflow
         """
         #other options: "trainHROM", "runHROM"
-        #taken from code by Philipa & Catharina
-        parameters_file_name = './RomParameters.json'
-        with open(parameters_file_name, 'r+') as parameter_file:
+        parameters_file_folder = self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder") else "rom_data"
+        parameters_file_name = self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString() if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name") else "RomParameters"
+
+        # Convert to Path objects
+        parameters_file_folder = Path(parameters_file_folder)
+        parameters_file_name = Path(parameters_file_name)
+
+        parameters_file_path = parameters_file_folder / parameters_file_name.with_suffix('.json')
+
+        with parameters_file_path.open('r+') as parameter_file:
             f=json.load(parameter_file)
             f['assembling_strategy'] = self.general_rom_manager_parameters['assembling_strategy'].GetString() if self.general_rom_manager_parameters.Has('assembling_strategy') else 'global'
+            self._AddHromParametersToRomParameters(f)
             if simulation_to_run=='GalerkinROM':
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=False
+                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='trainHROMGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
+                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='runHROMGalerkin':
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=True
+                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='lspg':
                 f['train_hrom']=False
                 f['run_hrom']=False
                 f['projection_strategy']="lspg"
+                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["train_petrov_galerkin"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("train_petrov_galerkin") else False
+                f["rom_settings"]['rom_bns_settings']['basis_strategy'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("basis_strategy") else "residuals"
+                f["rom_settings"]['rom_bns_settings']['include_phi'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("include_phi") else False
+                f["rom_settings"]['rom_bns_settings']['svd_truncation_tolerance'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("svd_truncation_tolerance") else 1e-4
+                f["rom_settings"]['rom_bns_settings']['solving_technique'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("solving_technique") else "normal_equations"
+                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='TrainPG':
                 f['train_hrom']=False
                 f['run_hrom']=False
                 f['projection_strategy']="lspg"
-                f['train_petrov_galerkin']['train'] = True
-                f['train_petrov_galerkin']['basis_strategy'] = self.general_rom_manager_parameters["ROM"]["petrov_galerkin_training_parameters"]["basis_strategy"].GetString()
-                f['train_petrov_galerkin']['include_phi'] = self.general_rom_manager_parameters["ROM"]["petrov_galerkin_training_parameters"]["include_phi"].GetBool()
-                f['train_petrov_galerkin']['svd_truncation_tolerance'] = self.general_rom_manager_parameters["ROM"]["petrov_galerkin_training_parameters"]["svd_truncation_tolerance"].GetDouble()
+                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = True
+                f["rom_settings"]['rom_bns_settings']['basis_strategy'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("basis_strategy") else "residuals"
+                f["rom_settings"]['rom_bns_settings']['include_phi'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("include_phi") else False
+                f["rom_settings"]['rom_bns_settings']['svd_truncation_tolerance'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("svd_truncation_tolerance") else 1e-4
+                f["rom_settings"]['rom_bns_settings']['solving_technique'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("solving_technique") else "normal_equations"
+                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
             elif simulation_to_run=='PG':
                 f['train_hrom']=False
                 f['run_hrom']=False
                 f['projection_strategy']="petrov_galerkin"
-                f['train_petrov_galerkin']['train'] = False
+                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = False
             elif simulation_to_run=='trainHROMPetrovGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
                 f['projection_strategy']="petrov_galerkin"
-                f['train_petrov_galerkin']['train'] = False
+                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = False
             elif simulation_to_run=='runHROMPetrovGalerkin':
                 f['train_hrom']=False
                 f['run_hrom']=True
                 f['projection_strategy']="petrov_galerkin"
-                f['train_petrov_galerkin']['train'] = False
+                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = False
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
             parameter_file.seek(0)
@@ -587,6 +623,8 @@ class RomManager(object):
             defaults["Parameters"]["rom_basis_output_format"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_format"].GetString())
         if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name"):
             defaults["Parameters"]["rom_basis_output_name"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString())
+        if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder"):
+            defaults["Parameters"]["rom_basis_output_folder"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
         if self.general_rom_manager_parameters["ROM"].Has("nodal_unknowns"):
             defaults["Parameters"]["nodal_unknowns"].SetStringArray(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
         if self.general_rom_manager_parameters["ROM"].Has("snapshots_interval"):
@@ -631,6 +669,7 @@ class RomManager(object):
                     "nodal_unknowns":  [],
                     "rom_basis_output_format": "json",
                     "rom_basis_output_name": "RomParameters",
+                    "rom_basis_output_folder": "rom_data",
                     "svd_truncation_tolerance": 1e-3
                 }
             }""")
@@ -640,10 +679,19 @@ class RomManager(object):
 
     def _GetDefaulHromTrainingParameters(self):
         hrom_training_parameters = KratosMultiphysics.Parameters("""{
+                "hrom_format": "numpy",
                 "element_selection_type": "empirical_cubature",
-                "element_selection_svd_truncation_tolerance": 0,
+                "element_selection_svd_truncation_tolerance": 1.0e-6,
                 "echo_level" : 0,
-                "create_hrom_visualization_model_part" : true
+                "create_hrom_visualization_model_part" : true,
+                "projection_strategy": "galerkin",
+                "include_conditions_model_parts_list": [],
+                "include_elements_model_parts_list": [],
+                "initial_candidate_elements_model_part_list" : [],
+                "initial_candidate_conditions_model_part_list" : [],
+                "include_nodal_neighbouring_elements_model_parts_list":[],
+                "include_minimum_condition": false,
+                "include_condition_parents": false
             }""")
         return hrom_training_parameters
 
@@ -652,12 +700,12 @@ class RomManager(object):
     def _StoreSnapshotsMatrix(self, string_numpy_array_name, numpy_array):
 
         # Define the directory and file path
-        directory = './SnapshotsMatrices'
-        file_path = os.path.join(directory, f'{string_numpy_array_name}.npy')
+        rom_output_folder_name = self.rom_training_parameters["Parameters"]["rom_basis_output_folder"].GetString()
+        directory = Path(rom_output_folder_name) / 'SnapshotsMatrices'
+        file_path = directory / f'{string_numpy_array_name}.npy'
 
         # Create the directory if it doesn't exist
-        if not os.path.exists(directory):
-            os.makedirs(directory)
+        directory.mkdir(parents=True, exist_ok=True)
 
         #save the array inside the chosen directory
         np.save(file_path, numpy_array)
