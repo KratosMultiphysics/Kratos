@@ -915,7 +915,26 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
                 rOutput[point_number] = stress;
             }
         }
-    }
+    } else if (rVariable == INITIAL_STRAIN_VECTOR) {
+            const SizeType strain_size = 6;
+            for ( IndexType point_number = 0; point_number < 1; ++point_number ) {
+                if (mConstitutiveLawVector[point_number]->HasInitialState()) {
+                    const Vector& r_initial_strain = mConstitutiveLawVector[point_number]->GetInitialState().GetInitialStrainVector();
+
+                    if ( rOutput[point_number].size() != 6)
+                        rOutput[point_number].resize( 6, false );
+
+                    // noalias(rOutput[point_number]) = r_initial_strain;
+                    noalias(rOutput[point_number]) = ZeroVector(6);
+                    rOutput[point_number][0] = r_initial_strain[0];
+                    rOutput[point_number][1] = r_initial_strain[1];
+                    rOutput[point_number][3] = r_initial_strain[2];
+                    KRATOS_WATCH(rOutput[point_number])
+                } else {
+                    noalias(rOutput[point_number]) = ZeroVector(6);
+                }
+            }
+        } 
 }
 
 
@@ -1007,6 +1026,24 @@ void MembraneElement::CalculateOnIntegrationPoints(
 
     KRATOS_CATCH("")
 }
+
+void MembraneElement::CalculateOnIntegrationPoints(
+    const Variable<ConstitutiveLaw::Pointer>& rVariable,
+    std::vector<ConstitutiveLaw::Pointer>& rValues,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rVariable == CONSTITUTIVE_LAW) {
+        const SizeType integration_points_number = mConstitutiveLawVector.size();
+        if (rValues.size() != integration_points_number) {
+            rValues.resize(integration_points_number);
+        }
+        for (IndexType point_number = 0; point_number < integration_points_number; ++point_number) {
+            rValues[point_number] = mConstitutiveLawVector[point_number];
+        }
+    }
+}
+
 
 void MembraneElement::Calculate(const Variable<Matrix>& rVariable, Matrix& rOutput, const ProcessInfo& rCurrentProcessInfo)
 {
