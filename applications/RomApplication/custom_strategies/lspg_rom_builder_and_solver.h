@@ -405,6 +405,7 @@ protected:
         KRATOS_TRY
 
         LSPGSystemVectorType dxrom(this->GetNumberOfROMModes());
+        //KRATOS_WATCH(dxrom)
         
         const auto solving_timer = BuiltinTimer();
         // Calculate the QR decomposition
@@ -414,13 +415,44 @@ protected:
         qr_decomposition.Solve(rb, dxrom);
         KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
+        // ----------------------------------------------------------------
         // Save the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
         noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
-
+        // -----------------------------------------------------------------
+        // If this is not commented out, linear won't work        
+        
+        // saves projection using current increments, saves current q to qn
+        
+        //Append dxrom to Qs
+        //for (int j = 0; j < 31; j++) {
+        //    this->qs(j, this->time_step_iterations) = dxrom(j);
+        //}
+        
+        this->ProjectToFineBasis(this->qn, rModelPart, rDx);
+        this->Un_plus_1_k = rDx;
+        //KRATOS_WATCH(this->Un_plus_1_k)
+        this->qn += dxrom;
+        //KRATOS_WATCH(this->qn)
+        // ----------------------------------------------------------------
         // project reduced solution back to full order model
         const auto backward_projection_timer = BuiltinTimer();
-        this->ProjectToFineBasis(dxrom, rModelPart, rDx);
+        
+        // ----------------------------------------------------------------
+        //KRATOS_WATCH(rDx)
+        this->ProjectToFineBasis(this->qn, rModelPart, rDx);
+        rDx -= this->Un_plus_1_k;
+        //KRATOS_WATCH(rDx)
+        // ----------------------------------------------------------------
+        
+        //Append rDx to Us
+        for (int j = 0; j < 9216; j++) {
+                this->us(j, this->time_step_iterations) = rDx(j);
+        }
+        
+        // Increase time step interations counter
+        this->time_step_iterations += 1;        
+        
         KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
         KRATOS_CATCH("")
@@ -513,7 +545,6 @@ private:
         const ProcessInfo& rCurrentProcessInfo)
     {
         if (rEntity.IsDefined(ACTIVE) && rEntity.IsNot(ACTIVE)) return;
-
         // Calculate elemental contribution
         rScheme.CalculateSystemContributions(rEntity, rPreAlloc.lhs, rPreAlloc.romB, rPreAlloc.eq_id, rCurrentProcessInfo);
         rEntity.GetDofList(rPreAlloc.dofs, rCurrentProcessInfo);

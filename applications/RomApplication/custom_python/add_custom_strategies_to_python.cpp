@@ -57,6 +57,13 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
 
      py::class_<ROMBuilderAndSolverType, typename ROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "ROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        .def("getqn", &ROMBuilderAndSolverType::getqn)    // for testing purposes, remove before release
+        .def("setqn", &ROMBuilderAndSolverType::setqn)    // for testing purposes, remove before release
+        .def("GetQs", &ROMBuilderAndSolverType::GetQs)    // for testing purposes, remove before release
+        .def("GetUs", &ROMBuilderAndSolverType::GetUs)    // for testing purposes, remove before release
+        .def("TestProjectToFineBasis", &ROMBuilderAndSolverType::TestProjectToFineBasis)   //// for testing purposes, remove before release
+        .def("setQuadratic", &ROMBuilderAndSolverType::setQuadratic)   //// for testing purposes, remove before release
+        .def("getQuadratic", &ROMBuilderAndSolverType::getQuadratic)   //// for testing purposes, remove before release
         ;
 
     typedef LeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> LeastSquaresPetrovGalerkinROMBuilderAndSolverType;
@@ -76,7 +83,14 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
     
     py::class_<GlobalROMBuilderAndSolverType, typename GlobalROMBuilderAndSolverType::Pointer, ResidualBasedBlockBuilderAndSolverType>(m, "GlobalROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
+        .def("getqn", &GlobalROMBuilderAndSolverType::getqn)    // for testing purposes, remove before release
+        .def("setqn", &GlobalROMBuilderAndSolverType::setqn)    // for testing purposes, remove before release
+        .def("setQuadratic", &GlobalROMBuilderAndSolverType::setQuadratic)   //// for testing purposes, remove before release
+        .def("getQuadratic", &GlobalROMBuilderAndSolverType::getQuadratic)   //// for testing purposes, remove before release
+        .def("GetQs", &GlobalROMBuilderAndSolverType::GetQs)    // for testing purposes
+        .def("GetUs", &GlobalROMBuilderAndSolverType::GetUs)    // for testing purposes
         ;
+
 
 }
 
