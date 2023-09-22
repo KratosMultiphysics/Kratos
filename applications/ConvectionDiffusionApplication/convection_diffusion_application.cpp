@@ -32,6 +32,8 @@ namespace Kratos {
 
 KratosConvectionDiffusionApplication::KratosConvectionDiffusionApplication()
     : KratosApplication("ConvectionDiffusionApplication"),
+      mAxisymmetricEulerianConvectionDiffusion2D3N(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
+      mAxisymmetricEulerianConvectionDiffusion2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       mEulerianConvDiff2D(0, Element::GeometryType::Pointer(new Triangle2D3<Node >(Element::GeometryType::PointsArrayType(3)))),
       mEulerianConvDiff2D4N(0, Element::GeometryType::Pointer(new Quadrilateral2D4<Node >(Element::GeometryType::PointsArrayType(4)))),
       mEulerianConvDiff3D(0, Element::GeometryType::Pointer(new Tetrahedra3D4<Node >(Element::GeometryType::PointsArrayType(4)))),
@@ -90,6 +92,8 @@ void KratosConvectionDiffusionApplication::Register() {
     KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(CONVECTION_VELOCITY)
 
     // Registering elements and conditions here
+    KRATOS_REGISTER_ELEMENT("AxisymmetricEulerianConvectionDiffusion2D3N", mAxisymmetricEulerianConvectionDiffusion2D3N);
+    KRATOS_REGISTER_ELEMENT("AxisymmetricEulerianConvectionDiffusion2D4N", mAxisymmetricEulerianConvectionDiffusion2D4N);
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff2D", mEulerianConvDiff2D);
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff2D4N", mEulerianConvDiff2D4N);
     KRATOS_REGISTER_ELEMENT("EulerianConvDiff3D", mEulerianConvDiff3D);

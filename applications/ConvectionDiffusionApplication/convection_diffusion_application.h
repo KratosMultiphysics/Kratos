@@ -24,6 +24,7 @@
 #include "includes/kratos_application.h"
 #include "convection_diffusion_application_variables.h"
 
+#include "custom_elements/axisymmetric_eulerian_convection_diffusion.h"
 #include "custom_elements/conv_diff_2d.h"
 #include "custom_elements/conv_diff_3d.h"
 #include "custom_elements/eulerian_diff.h"
@@ -78,6 +79,7 @@ namespace Kratos
     * Laplacian embedded element (both 2D/3D)
     * Mixed Laplacian element (both 2D/3D)
     * Eulerian convection-diffusion (both 2D/3D)
+    * Axisymmetric Eulerian convection-diffusion
     * Convection-diffusion (both 2D/3D)
     * Convection-diffusion with change of phase (2D)
 - Strategies:
@@ -95,6 +97,7 @@ namespace Kratos
  * @author Riccardo Rossi
  * @author Pablo Becker
  * @author Jordi Cotela
+ * @author Ruben Zorrilla
  * @see KratosApplication
 */
 class KRATOS_API(CONVECTION_DIFFUSION_APPLICATION) KratosConvectionDiffusionApplication : public KratosApplication
@@ -225,6 +228,9 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
+
+    const AxisymmetricEulerianConvectionDiffusionElement<2,3>  mAxisymmetricEulerianConvectionDiffusion2D3N;
+    const AxisymmetricEulerianConvectionDiffusionElement<2,4>  mAxisymmetricEulerianConvectionDiffusion2D4N;
 
     const EulerianConvectionDiffusionElement<2,3>  mEulerianConvDiff2D;
     const EulerianConvectionDiffusionElement<2,4>  mEulerianConvDiff2D4N;
