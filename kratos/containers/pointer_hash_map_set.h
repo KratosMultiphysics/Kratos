@@ -2,13 +2,13 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
-//                    
+//
 //
 
 
@@ -53,7 +53,7 @@ namespace Kratos
 ///@{
 
 /// PointerHashMapSet is a hash implemenetation of the PointerVectorSet.
-/** This container is like a set but is built over a hash map in order 
+/** This container is like a set but is built over a hash map in order
 	to allow the key to be a part of the value. It is important to mention
 	that the value is not constant and if the key inside the value changed
 	outside results in inconsistence condition.
@@ -108,7 +108,7 @@ private:
         using value_type        = data_type;
         using pointer           = data_type*;
         using reference         = data_type&;
-        
+
 		iterator_adaptor(ptr_iterator it) :map_iterator(it) {}
 		iterator_adaptor(const iterator_adaptor& it) : map_iterator(it.map_iterator) {}
 		iterator_adaptor& operator++() { map_iterator++; return *this; }
@@ -250,41 +250,10 @@ public:
         return mData.end();
     }
 
-    reference        front()       /* nothrow */
-    {
-        //assert( !empty() );
-        return *(mData.front().second);
-    }
-    const_reference  front() const /* nothrow */
-    {
-        //assert( !empty() );
-        return *(mData.front().second);
-    }
-    reference        back()        /* nothrow */
-    {
-        //assert( !empty() );
-        return *(mData.back().second);
-    }
-    const_reference  back() const  /* nothrow */
-    {
-        //assert( !empty() );
-        return *(mData.back().second);
-    }
-
     size_type size() const
     {
         return mData.size();
     }
-
-    //size_type max_size() const
-    //{
-    //    return mData.max_size();
-    //}
-
-    //key_compare key_comp() const
-    //{
-    //    return TCompareType();
-    //}
 
     void swap(PointerHashMapSet& rOther)
     {
@@ -361,7 +330,7 @@ public:
         return mData.capacity();
     }
 
- 
+
     ///@}
     ///@name Access
     ///@{
@@ -379,7 +348,7 @@ public:
     }
 
 
- 
+
     ///@}
     ///@name Inquiry
     ///@{
@@ -592,4 +561,4 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 }  // namespace Kratos.
 
-#endif // KRATOS_POINTER_HASH_MAP_SET_H_INCLUDED  defined 
+#endif // KRATOS_POINTER_HASH_MAP_SET_H_INCLUDED  defined
