@@ -54,9 +54,9 @@ namespace Kratos
 
 /// PointerHashMapSet is a hash implemenetation of the PointerVectorSet.
 /** This container is like a set but is built over a hash map in order
-	to allow the key to be a part of the value. It is important to mention
-	that the value is not constant and if the key inside the value changed
-	outside results in inconsistence condition.
+    to allow the key to be a part of the value. It is important to mention
+    that the value is not constant and if the key inside the value changed
+    outside results in inconsistence condition.
 
     This Container does not free the memory by
     itself and relies on using of counted pointers or manual
@@ -86,7 +86,7 @@ public:
     typedef TPointerType pointer_type;
     typedef TDataType& reference;
     typedef const TDataType& const_reference;
-	// typedef std::unordered_map<key_type, TPointerType, THashType> ContainerType;
+    // typedef std::unordered_map<key_type, TPointerType, THashType> ContainerType;
     typedef std::unordered_map<typename std::remove_reference<key_type>::type, TPointerType, THashType> ContainerType;
 
     typedef typename ContainerType::size_type size_type;
@@ -94,66 +94,66 @@ public:
     typedef typename ContainerType::const_iterator ptr_const_iterator;
     typedef typename ContainerType::difference_type difference_type;
 
-	///@}
+    ///@}
 
 private:
-	///@name Nested clases
-	///@{
-	class iterator_adaptor
-	{
-		ptr_iterator map_iterator;
-	public:
+    ///@name Nested clases
+    ///@{
+    class iterator_adaptor
+    {
+        ptr_iterator map_iterator;
+    public:
         using iterator_category = std::forward_iterator_tag;
         using difference_type   = std::ptrdiff_t;
         using value_type        = data_type;
         using pointer           = data_type*;
         using reference         = data_type&;
 
-		iterator_adaptor(ptr_iterator it) :map_iterator(it) {}
-		iterator_adaptor(const iterator_adaptor& it) : map_iterator(it.map_iterator) {}
-		iterator_adaptor& operator++() { map_iterator++; return *this; }
-		iterator_adaptor operator++(int) { iterator_adaptor tmp(*this); operator++(); return tmp; }
-		bool operator==(const iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
-		bool operator!=(const iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
-		data_type& operator*() const { return *(map_iterator->second); }
-		pointer_type operator->() const { return map_iterator->second; }
-		ptr_iterator& base() { return map_iterator; }
-		ptr_iterator const& base() const { return map_iterator; }
-	};
+        iterator_adaptor(ptr_iterator it) :map_iterator(it) {}
+        iterator_adaptor(const iterator_adaptor& it) : map_iterator(it.map_iterator) {}
+        iterator_adaptor& operator++() { map_iterator++; return *this; }
+        iterator_adaptor operator++(int) { iterator_adaptor tmp(*this); operator++(); return tmp; }
+        bool operator==(const iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
+        bool operator!=(const iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
+        data_type& operator*() const { return *(map_iterator->second); }
+        pointer_type operator->() const { return map_iterator->second; }
+        ptr_iterator& base() { return map_iterator; }
+        ptr_iterator const& base() const { return map_iterator; }
+    };
 
-	class const_iterator_adaptor
-	{
-		ptr_const_iterator map_iterator;
-	public:
+    class const_iterator_adaptor
+    {
+        ptr_const_iterator map_iterator;
+    public:
         using iterator_category = std::forward_iterator_tag;
         using difference_type   = std::ptrdiff_t;
         using value_type        = data_type;
         using pointer           = data_type*;
         using reference         = data_type&;
 
-		const_iterator_adaptor(ptr_const_iterator it) :map_iterator(it) {}
-		const_iterator_adaptor(const const_iterator_adaptor& it) : map_iterator(it.map_iterator) {}
-		const_iterator_adaptor& operator++() { map_iterator++; return *this; }
-		const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp(*this); operator++(); return tmp; }
-		bool operator==(const const_iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
-		bool operator!=(const const_iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
-		data_type const& operator*() const { return *(map_iterator->second); }
-		pointer_type operator->() const { return map_iterator->second; }
-		ptr_const_iterator& base() { return map_iterator; }
-		ptr_const_iterator const& base() const { return map_iterator; }
-	};
+        const_iterator_adaptor(ptr_const_iterator it) :map_iterator(it) {}
+        const_iterator_adaptor(const const_iterator_adaptor& it) : map_iterator(it.map_iterator) {}
+        const_iterator_adaptor& operator++() { map_iterator++; return *this; }
+        const_iterator_adaptor operator++(int) { const_iterator_adaptor tmp(*this); operator++(); return tmp; }
+        bool operator==(const const_iterator_adaptor& rhs) const { return map_iterator == rhs.map_iterator; }
+        bool operator!=(const const_iterator_adaptor& rhs) const { return map_iterator != rhs.map_iterator; }
+        data_type const& operator*() const { return *(map_iterator->second); }
+        pointer_type operator->() const { return map_iterator->second; }
+        ptr_const_iterator& base() { return map_iterator; }
+        ptr_const_iterator const& base() const { return map_iterator; }
+    };
 
-	///@}
+    ///@}
 
 public:
-	///@name Type Definitions
-	///@{
+    ///@name Type Definitions
+    ///@{
 
 
-	typedef iterator_adaptor iterator;
-	typedef const_iterator_adaptor const_iterator;
+    typedef iterator_adaptor iterator;
+    typedef const_iterator_adaptor const_iterator;
 
-	///@}
+    ///@}
     ///@name Life Cycle
     ///@{
 
@@ -187,30 +187,30 @@ public:
     {
         mData = rOther.mData;
 
-		return *this;
+        return *this;
     }
 
     TDataType& operator[](const key_type& Key)
     {
-		KRATOS_DEBUG_ERROR_IF(mData.find(Key) == mData.end()) << "The key: " << Key << " is not available in the map" << std::endl;
-		return *(mData.find(Key)->second);
+        KRATOS_DEBUG_ERROR_IF(mData.find(Key) == mData.end()) << "The key: " << Key << " is not available in the map" << std::endl;
+        return *(mData.find(Key)->second);
     }
 
     pointer_type& operator()(const key_type& Key)
     {
-		KRATOS_DEBUG_ERROR_IF(mData.find(Key) == mData.end()) << "The key: " << Key << " is not available in the map" << std::endl;
-		return mData.find(Key)->second;
-	}
+        KRATOS_DEBUG_ERROR_IF(mData.find(Key) == mData.end()) << "The key: " << Key << " is not available in the map" << std::endl;
+        return mData.find(Key)->second;
+    }
 
     bool operator==( const PointerHashMapSet& r ) const // nothrow
     {
        return (mData == r.mData);
     }
 
-	bool operator!=(const PointerHashMapSet& r) const // nothrow
-	{
-		return (mData != r.mData);
-	}
+    bool operator!=(const PointerHashMapSet& r) const // nothrow
+    {
+        return (mData != r.mData);
+    }
 
 
     ///@}
@@ -263,8 +263,8 @@ public:
     template<class TOtherDataType>
     iterator insert(const TOtherDataType& rData)
     {
-		TDataType* p_new_data = new TDataType(rData);
-		return mData.insert(ContainerType::value_type(TGetKeyOf(rData), p_new_data));
+        TDataType* p_new_data = new TDataType(rData);
+        return mData.insert(ContainerType::value_type(TGetKeyOf(rData), p_new_data));
     }
 
     iterator insert(TPointerType pData)
@@ -274,7 +274,7 @@ public:
         std::pair<typename ContainerType::iterator, bool> result = mData.insert(item);
         // TODO: I should enable this after adding the KRATOS_ERROR to define.h. Pooyan.
         //if(result.second != true)
-        //	KRATOS_ERROR << "Error in adding the new item" << std::endl
+        //    KRATOS_ERROR << "Error in adding the new item" << std::endl
         return result.first;
     }
 
@@ -286,17 +286,17 @@ public:
     }
 
 
-	iterator erase(iterator pos)
-	{
-		return mData.erase(pos.base());
-	}
+    iterator erase(iterator pos)
+    {
+        return mData.erase(pos.base());
+    }
 
-	size_type erase(key_type const& Key)
-	{
-		return mData.erase(Key);
-	}
+    size_type erase(key_type const& Key)
+    {
+        return mData.erase(Key);
+    }
 
-	iterator erase( iterator first, iterator last )
+    iterator erase( iterator first, iterator last )
     {
         return mData.erase( first.base(), last.base() );
     }
@@ -313,8 +313,8 @@ public:
 
     const_iterator find(const key_type& Key) const
     {
-		return mData.find(Key);
-	}
+        return mData.find(Key);
+    }
 
     size_type count(const key_type& Key)
     {
@@ -481,7 +481,7 @@ private:
 
         rSerializer.save("size", size);
 
-		for (ptr_const_iterator i = ptr_begin(); i != ptr_end(); i++)
+        for (ptr_const_iterator i = ptr_begin(); i != ptr_end(); i++)
             rSerializer.save("E", i->second);
     }
 
@@ -491,12 +491,12 @@ private:
 
         rSerializer.load("size", size);
 
-		for (size_type i = 0; i < size; i++)
-		{
- 		        pointer_type p = nullptr;// new TDataType;
-			rSerializer.load("E", p);
-			insert(p);
-		}
+        for (size_type i = 0; i < size; i++)
+        {
+                 pointer_type p = nullptr;// new TDataType;
+            rSerializer.load("E", p);
+            insert(p);
+        }
     }
 
 
