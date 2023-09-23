@@ -542,8 +542,8 @@ template<class TDataType,
          class TEqualType,
          class TPointerType,
          class ContainerType>
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const PointerHashMapSet<TDataType, TGetKeyType, TCompareType, TPointerType>& rThis)
+std::ostream& operator << (std::ostream& rOStream,
+                           const PointerHashMapSet<TDataType, TGetKeyType, TCompareType, TPointerType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
