@@ -31,7 +31,7 @@ using GeometryContainerType = ModelPart::GeometryContainerType;
 
 template<class T>
 bool contains(
-    const std::vector<T> rVec,
+    const std::vector<T>& rVec,
     const T& rValue)
 {
     return std::find(rVec.begin(), rVec.end(), rValue) != rVec.end();
