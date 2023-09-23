@@ -18,6 +18,7 @@
 
 
 // Project includes
+#include "geometries/geometry_data.h"
 #include "includes/define.h"
 #include "includes/serializer.h"
 
@@ -84,6 +85,9 @@ public:
 
     /// Nodes array type
     using NodesArrayType = typename BaseType::NodesArrayType;
+
+    /// Shape functions gradient container type
+    using ShapeFunctionsGradientsType = typename GeometryType::ShapeFunctionsGradientsType;
 
     ///@}
     ///@name Life Cycle
@@ -180,6 +184,7 @@ private:
     ///@name Static Member Variables
     ///@{
 
+    static constexpr GeometryData::IntegrationMethod mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
     ///@}
     ///@name Member Variables

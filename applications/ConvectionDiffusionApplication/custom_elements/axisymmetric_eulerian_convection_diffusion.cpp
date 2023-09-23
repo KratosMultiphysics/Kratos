@@ -37,16 +37,52 @@ void AxisymmetricEulerianConvectionDiffusionElement<TDim,TNumNodes>::CalculateLo
 {
     KRATOS_TRY
 
-    // // Resize of the Left and Right Hand side
-    // if (rLeftHandSideMatrix.size1() != TNumNodes)
-    //     rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false); //false says not to preserve existing storage!!
+    // Resize of LHS and RHS arrays
+    if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes) {
+        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+    }
 
-    // if (rRightHandSideVector.size() != TNumNodes)
-    //     rRightHandSideVector.resize(TNumNodes, false); //false says not to preserve existing storage!!
+    if (rRightHandSideVector.size() != TNumNodes) {
+        rRightHandSideVector.resize(TNumNodes, false);
+    }
 
-    // //Element variables
-    // ElementVariables Variables;
-    // this->InitializeEulerianElement(Variables,rCurrentProcessInfo);
+    // Initialize LHS and RHS arrays
+    rLeftHandSideMatrix.clear();
+    rRightHandSideVector.clear();
+
+    // Initialize element data container
+    typename BaseType::ElementVariables Variables;
+    this->InitializeEulerianElement(Variables,rCurrentProcessInfo);
+
+    // Fill element data container with nodal data
+    this->GetNodalValues(Variables, rCurrentProcessInfo);
+
+    // Calculate kinematics
+    Vector det_J_vect;
+    ShapeFunctionsGradientsType DN_DX;
+    const auto& r_geom = this->GetGeometry();
+    const auto N = r_geom.ShapeFunctionsValues(mIntegrationMethod);
+    r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, det_J_vect, mIntegrationMethod);
+
+    // Gauss points loop
+    array_1d<double,TNumNodes> N_g;
+    BoundedMatrix<double, TNumNodes, TDim> DN_DX_g;
+    const auto integration_points = r_geom.IntegrationPoints(mIntegrationMethod);
+    for (IndexType g = 0; g < integration_points.size(); ++g) {
+        // Get Gauss point data
+        noalias(N_g) = row(N, g);
+        noalias(DN_DX_g) = DN_DX[g];
+        const double w_g = integration_points[g].Weight() * det_J_vect[g];
+
+        // Assemble Gauss point LHS and RHS contributions
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            for (IndexType j = 0; j < TNumNodes; ++j) {
+                rRightHandSideVector(i) += w_g * Variables.theta * N_g[i] * N_g[j] * Variables.volumetric_source[j];
+                rRightHandSideVector(i) -= w_g * (1.0 - Variables.theta) * N_g[i] * N_g[j] * Variables.volumetric_source[j];
+            }
+        }
+    }
+
 
     // // Compute the geometry
     // BoundedMatrix<double,TNumNodes, TDim> DN_DX;
