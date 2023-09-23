@@ -12,6 +12,7 @@
 
 // System includes
 #include <optional>
+#include <limits>
 
 // External includes
 
@@ -20,6 +21,7 @@
 #include "med_model_part_io.h"
 #include "includes/model_part_io.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos {
@@ -366,11 +368,28 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         num_nodes,
         dimension);
 
+    // Get an available range of node IDs
+    // (start after the hightest existing ID in the root part)
+    std::size_t id_begin = 1;
+    if (!rThisModelPart.GetRootModelPart().Nodes().empty()) {
+        // Assume that the nodes are ordered => get the ID of the last one in the list
+        // (this should be the case but the current implementation of PointerVectorSet doesn't guarantee it)
+        id_begin = rThisModelPart.GetRootModelPart().Nodes().back().Id();
+
+        // Check for integer overflow
+        KRATOS_ERROR_IF(id_begin == std::numeric_limits<std::size_t>::max()) << "Node ID overflow while reading " << mFileName << " into " << rThisModelPart.Name() << '\n';
+         ++id_begin;
+    }
+    // Check for integer overflow while reading
+    KRATOS_ERROR_IF(id_begin + static_cast<std::size_t>(num_nodes) < std::max(static_cast<std::size_t>(num_nodes), id_begin))
+        << "Node ID overflow while reading " << num_nodes << " nodes from " << mFileName << " to " << rThisModelPart.Name()
+        << " starting at ID " << id_begin << '\n';
+
     for (int i=0; i<num_nodes; ++i) {
         std::array<double, 3> coords{0,0,0};
         for (int j=0; j<dimension; ++j) {coords[j] = node_coords[i*dimension+j];}
         rThisModelPart.CreateNewNode(
-            i+1,
+            id_begin + static_cast<std::size_t>(i),
             coords[0],
             coords[1],
             coords[2]
@@ -390,9 +409,25 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         MED_CONNECTIVITY, MED_NODAL,
         &coordinatechangement, &geotransformation); // TODO error if smaller zero, holds probably for the other functions too that return med_int
 
+    // Get an available range of geometry IDs
+    // (start after the hightest existing ID in the root part)
+    id_begin = 1;
+    if (!rThisModelPart.GetRootModelPart().Geometries().empty()) {
+        const auto& r_geometries = rThisModelPart.GetRootModelPart().Geometries();
+        id_begin = IndexPartition<std::size_t>(r_geometries.size())
+                    .for_each<MaxReduction<std::size_t>>([](const GeometryType& rGeometry) -> std::size_t {
+                        return rGeometry.Id();
+                    });
+
+        // Check for integer overflow
+        KRATOS_ERROR_IF(id_begin == std::numeric_limits<std::size_t>::max()) << "Geometry ID overflow while reading " << mFileName << " into " << rThisModelPart.Name() << '\n';
+         ++id_begin;
+    }
+
     int num_geometries_total = 0;
 
     // looping geometry types
+    std::vector<IndexType> geom_node_ids;
     for (int it_geo=1; it_geo<=num_geometry_types; ++it_geo) {
         med_geometry_type geo_type;
 
@@ -434,7 +469,12 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         const std::string kratos_geo_name = GetKratosGeometryName(geo_type, dimension);
         const auto reorder_fct = GetReorderFunction<IndexType>(geo_type);
 
-        std::vector<IndexType> geom_node_ids(num_nodes_geo_type);
+        geom_node_ids.resize(num_nodes_geo_type);
+
+        // Check for integer overflow
+        KRATOS_ERROR_IF(id_begin + static_cast<std::size_t>(num_geometries) < std::max(static_cast<std::size_t>(num_geometries), id_begin))
+            << "Geometry ID overflow while reading " << num_geometries << " geometries from " << mFileName << " to " << rThisModelPart.Name()
+            << " starting at ID " << id_begin << '\n';
 
         for (std::size_t i=0; i<static_cast<std::size_t>(num_geometries); ++i) {
             for (int j=0; j<num_nodes_geo_type; ++j) {
@@ -443,12 +483,14 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             }
             reorder_fct(geom_node_ids);
 
-            KRATOS_ERROR_IF(std::numeric_limits<decltype(num_geometries_total)>::max() == num_geometries_total)
-                << "number of geometries read (" << num_geometries_total << ") exceeds the capacity of the index type";
             rThisModelPart.CreateNewGeometry(kratos_geo_name,
-                                             num_geometries_total++,
+                                             id_begin++,
                                              geom_node_ids);
         }
+
+        KRATOS_ERROR_IF(num_geometries_total + num_geometries < std::max(num_geometries_total, num_geometries))
+            << "number of geometries read (" << num_geometries_total << " + " << num_geometries << ") exceeds the capacity of the index type";
+        num_geometries_total += num_geometries;
 
         KRATOS_INFO("MedModelPartIO") << "Read " << num_geometries << " geometries of type " << kratos_geo_name << std::endl;
     }
