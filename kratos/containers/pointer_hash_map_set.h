@@ -11,15 +11,9 @@
 //
 //
 
-
-
-#if !defined(KRATOS_POINTER_HASH_MAP_SET_H_INCLUDED )
-#define  KRATOS_POINTER_HASH_MAP_SET_H_INCLUDED
-
-
+#pragma once
 
 // System includes
-
 
 // External includes
 #include <utility>
@@ -30,6 +24,7 @@
 #include "includes/define.h"
 #include "includes/serializer.h"
 #include "containers/set_identity_function.h"
+
 
 namespace Kratos
 {
@@ -560,5 +555,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_POINTER_HASH_MAP_SET_H_INCLUDED  defined
