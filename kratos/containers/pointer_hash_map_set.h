@@ -26,24 +26,8 @@
 #include "containers/set_identity_function.h"
 
 
-namespace Kratos
-{
-///@name Kratos Globals
-///@{
+namespace Kratos {
 
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
 ///@name Kratos Classes
 ///@{
 
@@ -342,8 +326,6 @@ public:
         return mData;
     }
 
-
-
     ///@}
     ///@name Inquiry
     ///@{
@@ -382,66 +364,12 @@ public:
 
 
     ///@}
-    ///@name Friends
-    ///@{
-
-
-    ///@}
-
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
 
 private:
-
-
-    ///@name Static Member Variables
-    ///@{
-
-
-    ///@}
     ///@name Member Variables
     ///@{
 
     ContainerType mData;
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
 
     ///@}
     ///@name Private Operations
@@ -496,44 +424,12 @@ private:
 
 
     ///@}
-    ///@name Private  Access
-    ///@{
-
-
-    ///@}
-    ///@name Private Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Un accessible methods
-    ///@{
-
-
-    ///@}
-
 }; // Class PointerHashMapSet
-
-///@}
-
-///@name Type Definitions
-///@{
-
 
 ///@}
 ///@name Input and output
 ///@{
 
-
-/// input stream function
-//template<class TDataType,
-//         class TGetKeyType,
-//         class TCompareType,
-//         class TEqualType,
-//         class TPointerType,
-//         class ContainerType>
-//inline std::istream& operator >> (std::istream& rIStream,
-//                                  PointerHashMapSet<TDataType, TGetKeyType, TCompareType, TEqualType, TPointerType, ContainerType>& rThis);
 
 /// output stream function
 template<class TDataType,
