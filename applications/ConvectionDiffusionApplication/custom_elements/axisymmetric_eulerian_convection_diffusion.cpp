@@ -65,100 +65,80 @@ void AxisymmetricEulerianConvectionDiffusionElement<TDim,TNumNodes>::CalculateLo
     r_geom.ShapeFunctionsIntegrationPointsGradients(DN_DX, det_J_vect, mIntegrationMethod);
 
     // Gauss points loop
+    double y_g;
+    array_1d<double,TDim> v_g_th;
     array_1d<double,TNumNodes> N_g;
+    array_1d<double,TNumNodes> v_g_th_dot_grad;
+    BoundedMatrix<double, TDim, TDim> grad_v_g_th;
     BoundedMatrix<double, TNumNodes, TDim> DN_DX_g;
     const auto integration_points = r_geom.IntegrationPoints(mIntegrationMethod);
-    for (IndexType g = 0; g < integration_points.size(); ++g) {
+    const SizeType n_gauss = integration_points.size();
+    for (IndexType g = 0; g < n_gauss; ++g) {
         // Get Gauss point data
         noalias(N_g) = row(N, g);
         noalias(DN_DX_g) = DN_DX[g];
         const double w_g = integration_points[g].Weight() * det_J_vect[g];
 
+        // Calculate Gauss point values
+        y_g = 0.0;
+        noalias(v_g_th) = ZeroVector(TDim);
+        noalias(grad_v_g_th) = ZeroMatrix(TDim, TDim);
+        for (IndexType i = 0; i < TNumNodes; ++i) {
+            // Gauss point radius
+            y_g += N_g[i] * r_geom[i].Y();
+            // Gauss point velocity and velocity gradient
+            for (IndexType d1 = 0; d1 < TDim; ++d1) {
+                // Gauss point velocity
+                v_g_th[d1] += N_g[i] * (Variables.theta * Variables.v[i][d1] + (1.0 - Variables.theta) * Variables.vold[i][d1]);
+                // Gauss point velocity gradient (stored as Dv_j/Dx_i)
+                for (IndexType d2 = 0; d2 < TDim; ++d2) {
+                    grad_v_g_th(d1, d2) += DN_DX_g(i, d1) * (Variables.theta * Variables.v[i][d2] + (1.0 - Variables.theta) * Variables.vold[i][d2]);
+                }
+            }
+        }
+        noalias(v_g_th_dot_grad) = prod(DN_DX_g, v_g_th);
+
+        // Calculate stabilization constant
+        const double norm_v = norm_2(v_g_th);
+        const double h = this->ComputeH(DN_DX_g) / n_gauss;
+        const double tau = this->CalculateTau(Variables, norm_v, h);
+
         // Assemble Gauss point LHS and RHS contributions
         for (IndexType i = 0; i < TNumNodes; ++i) {
             for (IndexType j = 0; j < TNumNodes; ++j) {
+                // Source term
                 rRightHandSideVector(i) += w_g * Variables.theta * N_g[i] * N_g[j] * Variables.volumetric_source[j];
                 rRightHandSideVector(i) -= w_g * (1.0 - Variables.theta) * N_g[i] * N_g[j] * Variables.volumetric_source[j];
+
+                // Dynamic term
+                const double aux_dyn = w_g * Variables.density * Variables.specific_heat * Variables.dt_inv * N_g[i] * N_g[j];
+                rLeftHandSideMatrix(i, j) += aux_dyn;
+                rRightHandSideVector(i) -= aux_dyn * (Variables.phi[j] - Variables.phi_old[j]);
+
+                // Convective terms
+                const double aux_conv_1 = w_g * Variables.density * Variables.specific_heat * N_g[i] * v_g_th_dot_grad[j];
+                rLeftHandSideMatrix(i,j) += aux_conv_1 * Variables.theta;
+                rRightHandSideVector(i) -= aux_conv_1 * Variables.theta * Variables.phi[j];
+                rRightHandSideVector(i) += aux_conv_1 * (1.0 - Variables.theta) *Variables.phi_old[j];
+
+                const double aux_conv_2 = w_g * Variables.density * Variables.specific_heat * Variables.beta *(v_g_th[1]/y_g + grad_v_g_th(0,0) + grad_v_g_th(1,1));
+                rLeftHandSideMatrix(i,j) += aux_conv_2 * Variables.theta;
+                rRightHandSideVector(i) -= aux_conv_2 * Variables.theta * Variables.phi[j];
+                rRightHandSideVector(i) += aux_conv_2 * (1.0 - Variables.theta) * Variables.phi_old[j];
+
+                // Diffusive terms
+                const double aux_diff_1 = w_g * Variables.conductivity * N_g[i] * DN_DX_g(j,1) / y_g;
+                rLeftHandSideMatrix(i,j) -= aux_diff_1 * Variables.theta;
+                rRightHandSideVector(i) += aux_diff_1 * Variables.theta * Variables.phi[j];
+                rRightHandSideVector(i) -= aux_diff_1 * (1.0 - Variables.theta) * Variables.phi_old[j];
+
+                const double aux_diff_2 = w_g * Variables.conductivity * (DN_DX_g(i, 0) * DN_DX_g(j, 0) + DN_DX_g(i, 1) * DN_DX_g(j, 1));
+                rLeftHandSideMatrix(i, j) += aux_diff_2 * Variables.theta;
+                rRightHandSideVector(i) -= aux_diff_2 * Variables.theta * Variables.phi[j];
+                rRightHandSideVector(i) += aux_diff_2 * (1.0 - Variables.theta) * Variables.phi_old[j];
             }
         }
     }
-
-
-    // // Compute the geometry
-    // BoundedMatrix<double,TNumNodes, TDim> DN_DX;
-    // array_1d<double,TNumNodes > N;
-    // double Volume;
-    // this-> CalculateGeometry(DN_DX,Volume);
-
-    // // Getting the values of shape functions on Integration Points
-    // BoundedMatrix<double,TNumNodes, TNumNodes> Ncontainer;
-    // const GeometryType& Geom = this->GetGeometry();
-    // Ncontainer = Geom.ShapeFunctionsValues( GeometryData::IntegrationMethod::GI_GAUSS_2 );
-
-    // // Getting the values of Current Process Info and computing the value of h
-    // this-> GetNodalValues(Variables,rCurrentProcessInfo);
-    // double h = this->ComputeH(DN_DX);
-
-    // //Computing the divergence
-    // for (unsigned int i = 0; i < TNumNodes; i++)
-    // {
-    //     for(unsigned int k=0; k<TDim; k++)
-    //     {
-    //         Variables.div_v += DN_DX(i,k)*(Variables.v[i][k]*Variables.theta + Variables.vold[i][k]*(1.0-Variables.theta));
-    //     }
-    // }
-
-    // //Some auxilary definitions
-    // BoundedMatrix<double,TNumNodes, TNumNodes> aux1 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying dphi/dt
-    // BoundedMatrix<double,TNumNodes, TNumNodes> aux2 = ZeroMatrix(TNumNodes, TNumNodes); //terms multiplying phi
-    // bounded_matrix<double,TNumNodes, TDim> tmp;
-
-    // // Gauss points and Number of nodes coincides in this case.
-    // for(unsigned int igauss=0; igauss<TNumNodes; igauss++)
-    // {
-    //     noalias(N) = row(Ncontainer,igauss);
-
-    //     //obtain the velocity in the middle of the tiem step
-    //     array_1d<double, TDim > vel_gauss=ZeroVector(TDim);
-    //     for (unsigned int i = 0; i < TNumNodes; i++)
-    //     {
-    //             for(unsigned int k=0; k<TDim; k++)
-    //             vel_gauss[k] += N[i]*(Variables.v[i][k]*Variables.theta + Variables.vold[i][k]*(1.0-Variables.theta));
-    //     }
-    //     const double norm_vel = norm_2(vel_gauss);
-    //     array_1d<double, TNumNodes > a_dot_grad = prod(DN_DX, vel_gauss);
-
-    //     const double tau = this->CalculateTau(Variables,norm_vel,h);
-
-    //     //terms multiplying dphi/dt (aux1)
-    //     noalias(aux1) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, N);
-    //     noalias(aux1) +=  tau*outer_prod(a_dot_grad, N);
-
-    //     //terms which multiply the gradient of phi
-    //     noalias(aux2) += (1.0+tau*Variables.beta*Variables.div_v)*outer_prod(N, a_dot_grad);
-    //     noalias(aux2) += tau*outer_prod(a_dot_grad, a_dot_grad);
-    // }
-
-    // //adding the second and third term in the formulation
-    // noalias(rLeftHandSideMatrix)  = (Variables.dt_inv*Variables.density*Variables.specific_heat + Variables.theta*Variables.beta*Variables.div_v)*aux1;
-    // noalias(rRightHandSideVector) = (Variables.dt_inv*Variables.density*Variables.specific_heat - (1.0-Variables.theta)*Variables.beta*Variables.div_v)*prod(aux1,Variables.phi_old);
-
-    // //adding the diffusion
-    // noalias(rLeftHandSideMatrix)  += (Variables.conductivity * Variables.theta * prod(DN_DX, trans(DN_DX)))*static_cast<double>(TNumNodes);
-    // noalias(rRightHandSideVector) -= prod((Variables.conductivity * (1.0-Variables.theta) * prod(DN_DX, trans(DN_DX))),Variables.phi_old)*static_cast<double>(TNumNodes) ;
-
-    // //terms in aux2
-    // noalias(rLeftHandSideMatrix) += Variables.density*Variables.specific_heat*Variables.theta*aux2;
-    // noalias(rRightHandSideVector) -= Variables.density*Variables.specific_heat*(1.0-Variables.theta)*prod(aux2,Variables.phi_old);
-
-    // // volume source terms (affecting the RHS only)
-    // noalias(rRightHandSideVector) += prod(aux1, Variables.volumetric_source);
-
-    // //take out the dirichlet part to finish computing the residual
-    // noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, Variables.phi);
-
-    // rRightHandSideVector *= Volume/static_cast<double>(TNumNodes);
-    // rLeftHandSideMatrix *= Volume/static_cast<double>(TNumNodes);
 
     KRATOS_CATCH("")
 }
