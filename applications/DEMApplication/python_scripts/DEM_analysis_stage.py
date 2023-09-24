@@ -1021,7 +1021,7 @@ class DEMAnalysisStage(AnalysisStage):
                 
                 total_tensor = np.empty((3, 3))
                 total_contact_number  = 0
-                number_of_contacts_in_a_direction = np.zeros((18, 36))
+                number_of_contacts_in_a_direction = np.zeros((36, 36))
 
                 for element in self.contact_model_part.Elements:
             
@@ -1065,27 +1065,34 @@ class DEMAnalysisStage(AnalysisStage):
                         vector_length = np.linalg.norm(vector1)
                         theta = np.arccos(y / vector_length)
                         phi = np.arctan2(z, x)
-                        if z < 0:
-                            phi += 2 * np.pi
+                        #if z < 0:
+                        #    phi += 2 * np.pi
 
-                        theta_index = int(theta / (np.pi) * 18)
+                        theta_index = int(theta / (2 * np.pi) * 36)
+                        phi_index = int(phi / (2 * np.pi) * 36)
+                        
+                        number_of_contacts_in_a_direction[theta_index, phi_index] += 1
+
+                        theta_index = int((theta + np.pi) / (2 * np.pi) * 36)
                         phi_index = int(phi / (2 * np.pi) * 36)
                         
                         number_of_contacts_in_a_direction[theta_index, phi_index] += 1
 
                         
+                        '''
                         vector2 = np.array([x_0 - x_1 , y_0 - y_1, z_0 - z_1])
                         x, y, z = vector2
                         vector_length = np.linalg.norm(vector1)
                         theta = np.arccos(y / vector_length)
                         phi = np.arctan2(z, x)
-                        if z < 0:
-                            phi += 2 * np.pi
+                        #if z < 0:
+                        #    phi += 2 * np.pi
                         
-                        theta_index = int(theta / (np.pi) * 18)
+                        theta_index = int(theta / np.pi * 18)
                         phi_index = int(phi / (2 * np.pi) * 36)
                         
                         number_of_contacts_in_a_direction[theta_index, phi_index] += 1
+                        '''
                         
                 
                 if total_contact_number:
