@@ -115,7 +115,7 @@ class ExplicitStrategy():
             self.search_increment = 0.01 * 0.0001 #DEM_parameters-MeanRadius
 
         elif DEM_parameters["DeltaOption"].GetString() == "Relative":
-            # "Relative" means you will set a neighbour_search_radius = DEM_parameters["SearchToleranceMultiplier"] * particle_radius
+            # "Relative" means you will set a added_search_distance = DEM_parameters["SearchToleranceMultiplier"] * particle_radius
             self.delta_option = 3  ##this variable is not so important
             self.search_increment = DEM_parameters["SearchToleranceMultiplier"].GetDouble()
             if not "SearchToleranceForBondsCreationMultiplier" in DEM_parameters.keys():

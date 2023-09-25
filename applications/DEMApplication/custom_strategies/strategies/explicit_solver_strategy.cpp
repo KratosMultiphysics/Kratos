@@ -1292,10 +1292,10 @@ namespace Kratos {
 
         int number_of_elements = r_model_part.GetCommunicator().LocalMesh().ElementsArray().end() - r_model_part.GetCommunicator().LocalMesh().ElementsArray().begin();
         if (GetDeltaOption() == 3){
-            // In this case, the parameter "added_search_distance" is actually a multiplier for getting the search distance
+            // In this case, the parameter "added_search_distance" is actually a multiplier for getting the added_search_distance
             const double search_radius_multiplier = added_search_distance;
             IndexPartition<unsigned int>(number_of_elements).for_each([&](unsigned int i) {
-                mListOfSphericParticles[i]->SetSearchRadius(amplification * (search_radius_multiplier *  mListOfSphericParticles[i]->GetRadius()));
+                mListOfSphericParticles[i]->SetSearchRadius(amplification * ((1 + search_radius_multiplier) *  mListOfSphericParticles[i]->GetRadius()));
             });
         }
         else{

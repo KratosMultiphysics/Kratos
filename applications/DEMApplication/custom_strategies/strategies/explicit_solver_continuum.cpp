@@ -655,11 +655,11 @@ namespace Kratos {
         KRATOS_TRY
         const int number_of_elements = r_model_part.GetCommunicator().LocalMesh().NumberOfElements();
         if (GetDeltaOption() == 3){
-            // In this case, the parameter "added_search_distance" is actually a multiplier for getting the search distance
+            // In this case, the parameter "added_search_distance" is actually a multiplier for getting the added_search_distance
             const double search_radius_multiplier = added_search_distance;
             #pragma omp parallel for
             for (int i = 0; i < number_of_elements; i++) {
-                mListOfSphericContinuumParticles[i]->SetSearchRadius(amplification * mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor * (search_radius_multiplier * mListOfSphericContinuumParticles[i]->GetRadius()));
+                mListOfSphericContinuumParticles[i]->SetSearchRadius(amplification * mListOfSphericContinuumParticles[i]->mLocalRadiusAmplificationFactor * ((1 + search_radius_multiplier) * mListOfSphericContinuumParticles[i]->GetRadius()));
             }
         }
         else{
