@@ -19,10 +19,7 @@
 #include "geometries/quadrilateral_2d_4.h"
 #include "geometries/hexahedra_3d_8.h"
 
-
-namespace Kratos
-{
-namespace Testing
+namespace Kratos::Testing
 {
 
 KRATOS_TEST_CASE_IN_SUITE(IntegrationUtilitiesComputeArea2DGeometry, KratosCoreFastSuite)
