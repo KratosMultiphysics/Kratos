@@ -215,6 +215,30 @@ auto GetNodeCoordinates(
     KRATOS_CATCH("")
 }
 
+auto GetFamilyNumbers(
+    const med_idt FileHandle,
+	const char* pMeshName,
+    const int NumberOfEntities,
+    med_entity_type EntityTpe)
+{
+    KRATOS_TRY
+
+    std::vector<med_int> family_numbers(NumberOfEntities);
+
+    const auto err = MEDmeshEntityFamilyNumberRd(
+        mpFileHandler->GetFileHandle(),
+        mpFileHandler->GetMeshName(), 
+        MED_NO_DT, MED_NO_IT,
+        EntityTpe, MED_NONE, 
+        family_numbers.data());
+
+    CheckMEDErrorCode(err, "MEDmeshEntityFamilyNumberRd");
+
+    return family_numbers;
+
+    KRATOS_CATCH("")
+}
+
 } // anonymous namespace
 
 class MedModelPartIO::MedFileHandler
@@ -370,6 +394,13 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             rThisModelPart.CreateSubModelPart(r_smp_name);
         }
     }
+
+    // get node family numbers
+    const auto node_family_numbers = GetFamilyNumbers(
+        mpFileHandler->GetFileHandle(), 
+        mpFileHandler->GetMeshName(), 
+        num_nodes, 
+        med_entity_type::MED_NODE);
 
     std::unordered_map<std::string, std::vector<IndexType>> smp_nodes; 
 
