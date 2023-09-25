@@ -261,9 +261,13 @@ auto GetGroupsByFamily(
 
         MEDfamilyInfo(FileHandle, pMeshName, i, family_name.data(), &family_number, c_group_names.data());
 
-        std::vector<std::string> group_names; //= helpers::SplitString(c_group_names, num_groups, MED_LNAME_SIZE);
-        // helpers::RemoveTrailingNullCharacters(familyName);
-        // TODO check that the family number is not yet present!
+        std::vector<std::string> group_names(num_groups);
+        // split the goup names
+        // TODO maybe requires to trim some whitespaces
+        for (int i = 0; i < num_groups; i++) {
+            group_names[i] = std::string(Input.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE));
+        }
+
         groups_by_family[family_number] = group_names;
     }
 
