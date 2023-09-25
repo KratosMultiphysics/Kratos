@@ -85,9 +85,9 @@ KRATOS_TEST_CASE_IN_SUITE(IntegrationUtilitiesComputeVolume3DGeometryDerivative,
     KRATOS_EXPECT_NEAR(ref_value, 27.0, 1e-9);
 
     // now calculate the derivatives
-    for (IndexType i = 0; i < 4; ++i) {
+    for (IndexType i = 0; i < 8; ++i) {
         auto& coordinates = r_geometry[i].Coordinates();
-        for (IndexType j = 0; j < 2; ++j) {
+        for (IndexType j = 0; j < 3; ++j) {
             const double analytical_derivative = IntegrationUtilities::ComputeVolume3DGeometryDerivative(i, j, r_geometry);
 
             // finite difference derivative
