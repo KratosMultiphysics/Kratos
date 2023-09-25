@@ -102,5 +102,4 @@ KRATOS_TEST_CASE_IN_SUITE(IntegrationUtilitiesComputeVolume3DGeometryDerivative,
     }
 }
 
-}  // namespace Testing.
-}  // namespace Kratos.
+}  // namespace Kratos::Testing.
