@@ -92,17 +92,13 @@ public:
     /**
      * @brief This method checks and saves the previous stress state if it was a maximum or a minimum.
      * @param CurrentStress Equivalent stress in the current step.
+     * @param PreviousStresses Equivalent stresses in the two previous steps.
      * @param rMaximumStress Maximum stress.
      * @param rMinimumStress Minimum stress.
-     * @param rMaximumStressLocal Maximum stress.
-     * @param rMinimumStressLocal Minimum stress.
-     * @param PreviousStresses Equivalent stresses in the two previous steps.
-     * @param rPreviousMaxStress Previous maximum stress.
-     * @param rPreviousMinStress Previous minimum stress.
-     * @param rFirstMaxIndicator Indicator of a maximum in the current cycle.
-     * @param rFirstMinIndicator Indicator of a minimum in the current cycle.
-     * @param rCycleIndicator Indicator of a new cycle.
-     * @param rFirstCycleIndicator Indicator of the first cycle.   
+     * @param rFirstMaxIndicator Indicator of the first maximun stress found in current cycle.
+     * @param rFirstMinIndicator Indicator of the first minimum stress found in current cycle.
+     * @param MaxIndicator Indicator of a maximum in the current cycle.
+     * @param MinIndicator Indicator of a minimum in the current cycle.
      */
     static void CalculateMaximumAndMinimumStresses(
         const double CurrentStress,
