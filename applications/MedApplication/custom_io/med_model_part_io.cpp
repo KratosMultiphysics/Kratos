@@ -265,7 +265,7 @@ auto GetGroupsByFamily(
         // split the goup names
         // TODO maybe requires to trim some whitespaces
         for (int i = 0; i < num_groups; i++) {
-            group_names[i] = std::string(Input.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE));
+            group_names[i] = std::string(c_group_names.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE));
         }
 
         groups_by_family[family_number] = group_names;
@@ -461,7 +461,8 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         const int fam_num = node_family_numbers[i];
         if (fam_num == 0) {continue;} // node does not belong to a SubModelPart
 
-        for (const auto& r_smp_name : groups_by_fam[fam_num]) {
+        // TODO add check to ensure fam-num exists in map
+        for (const auto& r_smp_name : groups_by_fam.at(fam_num)) {
             smp_nodes[r_smp_name].push_back(new_node_id);
         }
     }
@@ -555,7 +556,8 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             const int fam_num = geom_family_numbers[i];
             if (fam_num == 0) {continue;} // geometrx does not belong to a SubModelPart
 
-            for (const auto& r_smp_name : groups_by_fam[fam_num]) {
+            // TODO add check to ensure fam-num exists in map
+            for (const auto& r_smp_name : groups_by_fam.at(fam_num)) {
                 smp_geoms[r_smp_name].push_back(num_geometries_total);
             }
         }
