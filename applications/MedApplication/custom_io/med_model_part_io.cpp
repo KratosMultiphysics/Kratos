@@ -480,7 +480,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         MED_CONNECTIVITY, MED_NODAL,
         &coordinatechangement, &geotransformation); // TODO error if smaller zero, holds probably for the other functions too that return med_int
 
-    int num_geometries_total = 0;
+    IndexType num_geometries_total = 0;
 
     std::unordered_map<std::string, std::vector<IndexType>> smp_geoms;
 
@@ -545,7 +545,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             KRATOS_ERROR_IF(std::numeric_limits<decltype(num_geometries_total)>::max() == num_geometries_total)
                 << "number of geometries read (" << num_geometries_total << ") exceeds the capacity of the index type";
             rThisModelPart.CreateNewGeometry(kratos_geo_name,
-                                             num_geometries_total++,
+                                             ++num_geometries_total,
                                              geom_node_ids);
 
             const int fam_num = geom_family_numbers[i];
