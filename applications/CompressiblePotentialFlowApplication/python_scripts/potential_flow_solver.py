@@ -152,11 +152,14 @@ class PotentialFlowSolver(FluidSolver):
             "echo_level": 0,
             "potential_application_echo_level": 0,
             "convergence_criterion": "residual_criterion",
+            "solving_strategy_settings": {
+                "type" : "newton_raphson",
+                "advanced_settings" : {}
+            },
             "relative_tolerance": 1e-12,
             "absolute_tolerance": 1e-12,
             "compute_reactions": false,
             "reform_dofs_at_each_step": false,
-            "calculate_solution_norm": false,
             "linear_solver_settings": {
                 "solver_type": "amgcl"
             },
@@ -270,36 +273,51 @@ class PotentialFlowSolver(FluidSolver):
 
     def _CreateSolutionStrategy(self):
         strategy_type = self._GetStrategyType()
-        computing_model_part = self.GetComputingModelPart()
-        time_scheme = self._GetScheme()
-        linear_solver = self._GetLinearSolver()
-        builder_and_solver = self._GetBuilderAndSolver()
         if strategy_type == "linear":
-            solution_strategy = KratosMultiphysics.ResidualBasedLinearStrategy(
-                computing_model_part,
-                time_scheme,
-                linear_solver,
-                builder_and_solver,
-                self.settings["compute_reactions"].GetBool(),
-                self.settings["reform_dofs_at_each_step"].GetBool(),
-                self.settings["calculate_solution_norm"].GetBool(),
-                self.settings["move_mesh_flag"].GetBool())
+            solution_strategy = self._CreateLinearStrategy()
         elif strategy_type == "non_linear":
-            convergence_criterion = self._GetConvergenceCriterion()
-            solution_strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(
-                computing_model_part,
-                time_scheme,
-                linear_solver,
-                convergence_criterion,
-                builder_and_solver,
-                self.settings["maximum_iterations"].GetInt(),
-                self.settings["compute_reactions"].GetBool(),
-                self.settings["reform_dofs_at_each_step"].GetBool(),
-                self.settings["move_mesh_flag"].GetBool())
+            # Create strategy
+            if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
+                solution_strategy = self._CreateNewtonRaphsonStrategy()
+            elif self.settings["solving_strategy_settings"]["type"].GetString() == "line_search":
+                solution_strategy = self._CreateLineSearchStrategy()
         else:
             err_msg = "Unknown strategy type: \'" + strategy_type + "\'. Valid options are \'linear\' and \'non_linear\'."
             raise Exception(err_msg)
         return solution_strategy
+
+    def _CreateLineSearchStrategy(self):
+        if self.settings["solving_strategy_settings"].Has("advanced_settings"):
+            settings = self.settings["solving_strategy_settings"]["advanced_settings"]
+            settings.AddMissingParameters(self._GetDefaultLineSearchParameters())
+        else:
+            settings = self._GetDefaultLineSearchParameters()
+        settings.AddValue("max_iteration", self.settings["maximum_iterations"])
+        settings.AddValue("compute_reactions", self.settings["compute_reactions"])
+        settings.AddValue("reform_dofs_at_each_step", self.settings["reform_dofs_at_each_step"])
+        settings.AddValue("move_mesh_flag", self.settings["move_mesh_flag"])
+        computing_model_part = self.GetComputingModelPart()
+        time_scheme = self._GetScheme()
+        convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
+        solution_strategy = KratosMultiphysics.LineSearchStrategy(computing_model_part,
+            time_scheme,
+            convergence_criterion,
+            builder_and_solver,
+            settings)
+        return solution_strategy
+
+    @classmethod
+    def _GetDefaultLineSearchParameters(self):
+        default_line_search_parameters = KratosMultiphysics.Parameters(r"""{
+                "max_line_search_iterations" : 5,
+                "first_alpha_value"          : 0.5,
+                "second_alpha_value"         : 1.0,
+                "min_alpha"                  : 0.1,
+                "max_alpha"                  : 2.0,
+                "line_search_tolerance"      : 0.5                                    
+            }""")
+        return default_line_search_parameters
 
     def _SetPhysicalProperties(self):
         # There are no properties in the potential flow solver. Free stream quantities are defined in the apply_far_field_process.py

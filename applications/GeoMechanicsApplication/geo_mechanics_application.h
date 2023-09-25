@@ -11,9 +11,7 @@
 //
 
 
-#if !defined(KRATOS_GEO_MECHANICS_APPLICATION_H_INCLUDED )
-#define  KRATOS_GEO_MECHANICS_APPLICATION_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <string>
@@ -172,12 +170,12 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Default constructor.
     KratosGeoMechanicsApplication();
-
-    /// Destructor.
-    virtual ~KratosGeoMechanicsApplication(){}
-
+    ~KratosGeoMechanicsApplication() override = default;
+    KratosGeoMechanicsApplication(const KratosGeoMechanicsApplication&) = delete;
+    KratosGeoMechanicsApplication& operator=(const KratosGeoMechanicsApplication&) = delete;
+    KratosGeoMechanicsApplication(KratosGeoMechanicsApplication&&) = delete;
+    KratosGeoMechanicsApplication& operator=(KratosGeoMechanicsApplication&&) = delete;
 
     ///@}
     ///@name Operators
@@ -188,7 +186,7 @@ public:
     ///@name Operations
     ///@{
 
-    virtual void Register() override;
+    void Register() override;
 
 
 
@@ -207,20 +205,20 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const override
+    std::string Info() const override
     {
         return "KratosGeoMechanicsApplication";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const override
+    void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
         PrintData(rOStream);
     }
 
     ///// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
+    void PrintData(std::ostream& rOStream) const override
     {
         KRATOS_WATCH("in KratosGeoMechanicsApplication")
         KRATOS_WATCH(KratosComponents<VariableData>::GetComponents().size() )
@@ -243,43 +241,6 @@ public:
 
     ///@}
 
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-
-    ///@}
-    ///@name Protected LifeCycle
-    ///@{
-
-
-    ///@}
-
 private:
     ///@name Static Member Variables
     ///@{
@@ -289,9 +250,6 @@ private:
     ///@}
     ///@name Member Variables
     ///@{
-
-    // const Elem2D   mElem2D;
-    // const Elem3D   mElem3D;
 
     ///@}
     ///@name Private Operators
@@ -455,7 +413,7 @@ private:
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D20N{ 0, Kratos::make_shared< Hexahedra3D20    <NodeType> >(Element::GeometryType::PointsArrayType(20)) };
     const UpdatedLagrangianUPwDiffOrderElement mUpdatedLagrangianUPwDiffOrderElement3D27N{ 0, Kratos::make_shared< Hexahedra3D27    <NodeType> >(Element::GeometryType::PointsArrayType(27)) };
 
-    // Update-Lagrangian axisymmetric elements
+    // Updated-Lagrangian axisymmetric elements
     const UPwUpdatedLagrangianAxisymmetricElement<2, 3> mUPwUpdatedLagrangianAxisymmetricElement2D3N { 0, Kratos::make_shared< Triangle2D3      <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
     const UPwUpdatedLagrangianAxisymmetricElement<2, 4> mUPwUpdatedLagrangianAxisymmetricElement2D4N { 0, Kratos::make_shared< Quadrilateral2D4 <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
     const UPwUpdatedLagrangianAxisymmetricElement<2, 6> mUPwUpdatedLagrangianAxisymmetricElement2D6N { 0, Kratos::make_shared< Triangle2D6      <NodeType> >(Element::GeometryType::PointsArrayType(6)) };
@@ -563,26 +521,20 @@ private:
     const ElasticIsotropicK03DLaw           mElasticIsotropicK03DLaw;
     const GeoLinearElasticPlaneStress2DLaw  mLinearElasticPlaneStress2DLaw;
 
-    const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw;
-    const SmallStrainUDSM2DPlaneStrainLaw mSmallStrainUDSM2DPlaneStrainLaw;
-    const SmallStrainUDSM2DInterfaceLaw   mSmallStrainUDSM2DInterfaceLaw;
-    const SmallStrainUDSM3DInterfaceLaw   mSmallStrainUDSM3DInterfaceLaw;
+    const SmallStrainUDSM3DLaw            mSmallStrainUDSM3DLaw{};
+    const SmallStrainUDSM2DPlaneStrainLaw mSmallStrainUDSM2DPlaneStrainLaw{};
+    const SmallStrainUDSM2DInterfaceLaw   mSmallStrainUDSM2DInterfaceLaw{};
+    const SmallStrainUDSM3DInterfaceLaw   mSmallStrainUDSM3DInterfaceLaw{};
 
-    const SmallStrainUMAT3DLaw            mSmallStrainUMAT3DLaw;
-    const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw;
-    const SmallStrainUMAT2DInterfaceLaw   mSmallStrainUMAT2DInterfaceLaw;
-    const SmallStrainUMAT3DInterfaceLaw   mSmallStrainUMAT3DInterfaceLaw;
+    const SmallStrainUMAT3DLaw            mSmallStrainUMAT3DLaw{};
+    const SmallStrainUMAT2DPlaneStrainLaw mSmallStrainUMAT2DPlaneStrainLaw{};
+    const SmallStrainUMAT2DInterfaceLaw   mSmallStrainUMAT2DInterfaceLaw{};
+    const SmallStrainUMAT3DInterfaceLaw   mSmallStrainUMAT3DInterfaceLaw{};
 
     const LinearElastic2DInterfaceLaw     mLinearElastic2DInterfaceLaw;
     const LinearElastic3DInterfaceLaw     mLinearElastic3DInterfaceLaw;
 
     const LinearElastic2DBeamLaw          mLinearElastic2DBeamLaw;
-
-    /// Assignment operator.
-    KratosGeoMechanicsApplication& operator=(KratosGeoMechanicsApplication const& rOther);
-
-    /// Copy constructor.
-    KratosGeoMechanicsApplication(KratosGeoMechanicsApplication const& rOther);
 
 
     ///@}
@@ -603,6 +555,4 @@ private:
 ///@}
 
 
-}  // namespace Kratos.
-
-#endif // KRATOS_GEO_MECHANICS_APPLICATION_H_INCLUDED  defined
+}
