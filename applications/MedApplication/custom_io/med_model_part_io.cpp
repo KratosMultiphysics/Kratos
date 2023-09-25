@@ -360,6 +360,19 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     const int dimension = mpFileHandler->GetDimension();
 
+    // read family info => Map from family number to group names aka SubModelPart names
+    std::unordered_map<int, std::vector<std::string>> family_to_groups;
+    // ...
+
+    // create SubModelPart hierarchy
+    for (const auto& r_map : family_to_groups) {
+        for (const auto& r_smp_name : r_map.second) {
+            rThisModelPart.CreateSubModelPart(r_smp_name);
+        }
+    }
+
+    std::unordered_map<std::string, std::vector<IndexType>> smp_nodes; 
+
     const auto node_coords = GetNodeCoordinates(
         mpFileHandler->GetFileHandle(),
         mpFileHandler->GetMeshName(),
@@ -369,12 +382,26 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     for (int i=0; i<num_nodes; ++i) {
         std::array<double, 3> coords{0,0,0};
         for (int j=0; j<dimension; ++j) {coords[j] = node_coords[i*dimension+j];}
+        IndexType new_node_id = i+1;
+
         rThisModelPart.CreateNewNode(
-            i+1,
+            new_node_id,
             coords[0],
             coords[1],
             coords[2]
         );
+
+        fam_num = node_family_numbers[i];
+        if (fam_num == 0) {continue;} // node does not belong to a SubModelPart
+
+        for (const auto& r_smp_name : family_to_groups[fam_num]) {
+            smp_nodes[r_smp_name].push_back(new_node_id);
+        }
+    }
+
+    for (const auto& r_map : smp_nodes) {
+        // TODO maybe required to make it unique?
+        rThisModelPart.GetSubModelPart(r_map.first).AddNodes(r_map.second);
     }
 
     KRATOS_INFO("MedModelPartIO") << "Read " << num_nodes << " nodes" << std::endl;
