@@ -19,11 +19,11 @@ namespace Kratos {
 class StubTimeLoopExecutor : public TimeLoopExecutor
 {
 public:
-    explicit StubTimeLoopExecutor(int NumberOfExpectedProcesses = 0);
+    explicit StubTimeLoopExecutor(size_t NumberOfExpectedProcesses = 0);
     void SetProcessReferences(const std::vector<std::reference_wrapper<Process>>& rProcessRefs) override;
 
 private:
-    int mNumberOfExpectedProcesses;
+    size_t mNumberOfExpectedProcesses;
 };
 
 }

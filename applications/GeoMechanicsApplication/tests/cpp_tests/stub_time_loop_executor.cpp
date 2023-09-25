@@ -15,7 +15,7 @@
 
 namespace Kratos {
 
-StubTimeLoopExecutor::StubTimeLoopExecutor(int NumberOfExpectedProcesses) :
+StubTimeLoopExecutor::StubTimeLoopExecutor(size_t NumberOfExpectedProcesses) :
         mNumberOfExpectedProcesses{NumberOfExpectedProcesses}
 {
 }
