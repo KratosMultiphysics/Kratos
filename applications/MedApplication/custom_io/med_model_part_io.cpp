@@ -226,10 +226,9 @@ auto GetFamilyNumbers(
     std::vector<med_int> family_numbers(NumberOfEntities);
 
     const auto err = MEDmeshEntityFamilyNumberRd(
-        mpFileHandler->GetFileHandle(),
-        mpFileHandler->GetMeshName(), 
+        FileHandle, pMeshName,
         MED_NO_DT, MED_NO_IT,
-        EntityTpe, MED_NONE, 
+        EntityTpe, MED_NONE,
         family_numbers.data());
 
     CheckMEDErrorCode(err, "MEDmeshEntityFamilyNumberRd");
@@ -237,6 +236,38 @@ auto GetFamilyNumbers(
     return family_numbers;
 
     KRATOS_CATCH("")
+}
+
+auto GetGroupsByFamily(
+    const med_idt FileHandle,
+	const char* pMeshName)
+{
+    std::unordered_map<int, std::vector<std::string>> groups_by_family;
+
+    const int num_families = MEDnFamily(FileHandle, pMeshName);
+
+    std::string c_group_names;
+
+    std::string family_name;
+    family_name.resize(MED_NAME_SIZE + 1);
+
+    med_int family_number;
+
+    for (int i=1; i<num_families; ++i) {
+        const int num_groups = MEDnFamilyGroup(FileHandle, pMeshName, i);
+        if (num_groups == 0) {continue;} // this family has no groups assigned
+
+        c_group_names.resize(MED_LNAME_SIZE * num_groups + 1);
+
+        MEDfamilyInfo(FileHandle, pMeshName, i, family_name.data(), &family_number, c_group_names.data());
+
+        std::vector<std::string> group_names; //= helpers::SplitString(c_group_names, num_groups, MED_LNAME_SIZE);
+        // helpers::RemoveTrailingNullCharacters(familyName);
+        // TODO check that the family number is not yet present!
+        groups_by_family[family_number] = group_names;
+    }
+
+    return groups_by_family;
 }
 
 } // anonymous namespace
@@ -385,11 +416,12 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     const int dimension = mpFileHandler->GetDimension();
 
     // read family info => Map from family number to group names aka SubModelPart names
-    std::unordered_map<int, std::vector<std::string>> family_to_groups;
-    // ...
+    const auto groups_by_fam = GetGroupsByFamily(
+        mpFileHandler->GetFileHandle(),
+        mpFileHandler->GetMeshName());
 
     // create SubModelPart hierarchy
-    for (const auto& r_map : family_to_groups) {
+    for (const auto& r_map : groups_by_fam) {
         for (const auto& r_smp_name : r_map.second) {
             rThisModelPart.CreateSubModelPart(r_smp_name);
         }
@@ -397,12 +429,12 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     // get node family numbers
     const auto node_family_numbers = GetFamilyNumbers(
-        mpFileHandler->GetFileHandle(), 
-        mpFileHandler->GetMeshName(), 
-        num_nodes, 
+        mpFileHandler->GetFileHandle(),
+        mpFileHandler->GetMeshName(),
+        num_nodes,
         med_entity_type::MED_NODE);
 
-    std::unordered_map<std::string, std::vector<IndexType>> smp_nodes; 
+    std::unordered_map<std::string, std::vector<IndexType>> smp_nodes;
 
     const auto node_coords = GetNodeCoordinates(
         mpFileHandler->GetFileHandle(),
@@ -422,10 +454,10 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             coords[2]
         );
 
-        fam_num = node_family_numbers[i];
+        const int fam_num = node_family_numbers[i];
         if (fam_num == 0) {continue;} // node does not belong to a SubModelPart
 
-        for (const auto& r_smp_name : family_to_groups[fam_num]) {
+        for (const auto& r_smp_name : groups_by_fam[fam_num]) {
             smp_nodes[r_smp_name].push_back(new_node_id);
         }
     }
@@ -450,8 +482,17 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     int num_geometries_total = 0;
 
+    std::unordered_map<std::string, std::vector<IndexType>> smp_geoms;
+
     // looping geometry types
     for (int it_geo=1; it_geo<=num_geometry_types; ++it_geo) {
+        // get geometry family numbers
+        const auto geom_family_numbers = GetFamilyNumbers(
+            mpFileHandler->GetFileHandle(),
+            mpFileHandler->GetMeshName(),
+            num_nodes,
+            med_entity_type::MED_CELL);
+
         med_geometry_type geo_type;
 
         std::string geotypename;
@@ -506,12 +547,25 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             rThisModelPart.CreateNewGeometry(kratos_geo_name,
                                              num_geometries_total++,
                                              geom_node_ids);
+
+            const int fam_num = geom_family_numbers[i];
+            if (fam_num == 0) {continue;} // geometrx does not belong to a SubModelPart
+
+            for (const auto& r_smp_name : groups_by_fam[fam_num]) {
+                smp_geoms[r_smp_name].push_back(num_geometries_total);
+            }
         }
 
         KRATOS_INFO("MedModelPartIO") << "Read " << num_geometries << " geometries of type " << kratos_geo_name << std::endl;
+
     }
 
     KRATOS_INFO_IF("MedModelPartIO", num_geometries_total > 0) << "Read " << num_geometries_total << " geometries in total" << std::endl;
+
+    for (const auto& r_map : smp_geoms) {
+        // TODO maybe required to make it unique?
+        rThisModelPart.GetSubModelPart(r_map.first).AddGeometries(r_map.second);
+    }
 
     KRATOS_CATCH("")
 }
