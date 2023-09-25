@@ -72,7 +72,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAll(
 
     //Containers of variables at all integration points
     const unsigned int LocalDim = Geom.LocalSpaceDimension();
-    const Matrix& NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
     GeometryType::JacobiansType JContainer(NumGPoints);
     for (unsigned int i = 0; i < NumGPoints; ++i)
         (JContainer[i]).resize(TDim, LocalDim, false);
@@ -174,7 +173,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddRHS(
 
     rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
     Matrix TTMatrix = ZeroMatrix(TNumNodes, TNumNodes);
-    for (int i = 0; i < TNumNodes; ++i)
+    for (unsigned int i = 0; i < TNumNodes; ++i)
     {
         TTMatrix(i, i) = rVariables.leftHandSideFlux[i];
     }
@@ -196,7 +195,7 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateAndAddLHS(
     rVariables.TMatrix = outer_prod(rVariables.Np, rVariables.Np) * rVariables.IntegrationCoefficient;
 
     Matrix TTMatrix = ZeroMatrix(TNumNodes, TNumNodes);
-    for (int i = 0; i < TNumNodes; ++i)
+    for (unsigned int i = 0; i < TNumNodes; ++i)
     {
         TTMatrix(i, i) = rVariables.leftHandSideFlux[i];
     }
@@ -268,7 +267,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
     {
         const double initialSoilTemperature = Geom[i].FastGetSolutionStepValue(TEMPERATURE, 1);
 
-        double atmosphericStabilityFactor = 0.0;
         double surfaceRoughnessFactor = 0.0;
 
         currentWindSpeed = std::max(currentWindSpeed, 1.0e-3);
@@ -285,13 +283,11 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateRoughness(
             // Eq 5.27
             cof = richardsonBulkModulus / (1.0 + 75.0 * frictionDragCoefficient * frictionDragCoefficient *
                 std::sqrt(measurementHeight / roughnessHeight * std::fabs(richardsonBulkModulus)));
-            atmosphericStabilityFactor = 1.0 - 10.0 * cof;
             surfaceRoughnessFactor = 1.0 - 15.0 * cof;
         }
         else {
             // Eq 5.28
             cof = std::sqrt(1.0 + 5.0 * richardsonBulkModulus);
-            atmosphericStabilityFactor = 1.0 / (1.0 + 10.0 * richardsonBulkModulus / cof);
             surfaceRoughnessFactor = 1.0 / (1.0 + 15.0 * richardsonBulkModulus * cof);
         }
 
@@ -350,7 +346,6 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateNodalFluxes(
         const double initialSoilTemperature = Geom[i].FastGetSolutionStepValue(TEMPERATURE, 1);
 
         // Eq 5.22
-        const double soilRoughnessHeatFlux = airHeatCapacity * airDensity * (initialSoilTemperature - rVariables.roughnessTemperature) / roughnessLayerResistance;
         const double sensibleHeatFluxLeft = airHeatCapacity * airDensity / roughnessLayerResistance;
         const double sensibleHeatFluxRight = -airHeatCapacity * airDensity * rVariables.roughnessTemperature / roughnessLayerResistance;
 
