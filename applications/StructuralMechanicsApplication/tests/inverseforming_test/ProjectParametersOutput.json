@@ -60,14 +60,18 @@
                     "file_format": "ascii",
                     "gauss_point_variables_extrapolated_to_nodes": [
                         "INITIAL_STRAIN_VECTOR",
-                        "LOCAL_AXIS_1"
+                        "LOCAL_AXIS_1",
+                        "LOCAL_AXIS_2",
+                        "LOCAL_AXIS_3"
                     ],
                     "gauss_point_variables_in_elements": [],
                     "model_part_name": "Structure",
                     "nodal_data_value_variables": [
                         "NORMAL",
                         "INITIAL_STRAIN_VECTOR",
-                        "LOCAL_AXIS_1"
+                        "LOCAL_AXIS_1",
+                        "LOCAL_AXIS_2",
+                        "LOCAL_AXIS_3"
                     ],
                     "nodal_flags": [],
                     "nodal_solution_step_data_variables": [

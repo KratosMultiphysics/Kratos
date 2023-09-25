@@ -135,7 +135,22 @@ class AnalysisStage(object):
             element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_v_Kratos)
             # TODO: CHECK STRAINS      
             local_axis_1 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
-            print(local_axis_1[0])
+            local_axis_2 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
+            local_axis_3 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, self._GetSolver().GetComputingModelPart().ProcessInfo)
+            print("local_axis_1:", local_axis_1[0])
+            print("local_axis_2:", local_axis_2[0])
+            print("local_axis_3:", local_axis_3[0])
+            T_elm = KratosMultiphysics.Matrix(3,3)
+            T_elm[0,0] = local_axis_1[0][0]
+            T_elm[0,1] = local_axis_1[0][1]
+            T_elm[0,2] = local_axis_1[0][2]
+            T_elm[1,0] = local_axis_2[0][0]
+            T_elm[1,1] = local_axis_2[0][1]
+            T_elm[1,2] = local_axis_2[0][2]
+            T_elm[2,0] = local_axis_3[0][0]
+            T_elm[2,1] = local_axis_3[0][1]
+            T_elm[2,2] = local_axis_3[0][2]
+            print("T_elemental :",T_elm)
             print("-----------")
             # print(element.Properties[StructuralMechanics.LOCAL_AXES_VECTOR])
             # print(element.Properties[StructuralMechanics.LOCAL_MATERIAL_AXIS_2])

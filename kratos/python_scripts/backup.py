@@ -151,3 +151,55 @@
             # new_imposed_strain[2] = 0.0
             # for element in self._GetSolver().GetComputingModelPart().Elements:
             #     element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, new_imposed_strain)
+
+####################################################################################
+# import numpy as np
+# def ModifyInitialGeometry(self):
+#     var_utils = KratosMultiphysics.VariableUtils()
+#     self.initial_unmodified_coordinates = var_utils.GetInitialPositionsVector(mp.Nodes, 3)
+    
+#     self.deformed_config_jacobians = []
+#     for elem in elements:
+#         J = np.array(elem.GetGeometry().Jacobian())
+#         self.deformed_config_jacobians.append(J)
+        
+#     #calculate normals
+    
+#     for node in mp.Nodes:
+#         node.Z0 = 0.0
+#         node.Z = 0.0
+#     self.flattened_coordinates = var_utils.GetInitialPositionsVector(mp.Nodes, 3)
+#     self.initial_displacements = self.initial_unmodified_coordinates - self.deformed_config_jacobians
+    
+#     self.flatted_config_jacobians = []
+#     for elem in elements:
+#         J = np.array(elem.GetGeometry().Jacobian())
+#         self.flatted_config_jacobians.append(J)
+        
+#     Fs = []
+#     for J,J0 in zip(self.deformed_config_jacobians,self.flatted_config_jacobians):
+#         J0_mod #append a column with h/h0
+#         J_mod
+#         F3D = J_mod@np.inv(J0_mod)
+#         F = F3D[0:2,0:2]
+        
+#         Fs.append(F)
+        
+
+
+# element.SetValue[VARIABLE, [0,0,0]]
+####################################################################################
+# "loads_process_list"       : [{
+#     "python_module" : "assign_vector_by_direction_to_condition_process",
+#     "kratos_module" : "KratosMultiphysics",
+#     "check"         : "DirectorVectorNonZero direction",
+#     "process_name"  : "AssignVectorByDirectionToConditionProcess",
+#     "Parameters"    : {
+#         "model_part_name" : "Structure.PointLoad3D_Load_on_points_Auto1",
+#         "variable_name"   : "POINT_LOAD",
+#         "interval"        : [0.0,"End"],
+#         "modulus"         : 1000.0,
+#         "direction"       : [0.0,0.0,-1.0]
+#     }
+# }],
+####################################################################################
