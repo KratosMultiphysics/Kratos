@@ -116,16 +116,16 @@ void AxisymmetricEulerianConvectionDiffusionElement<TDim,TNumNodes>::CalculateLo
                 rLeftHandSideMatrix(i, j) += aux_dyn;
                 rRightHandSideVector(i) -= aux_dyn * (Variables.phi[j] - Variables.phi_old[j]);
 
-                // // Convective terms
-                // const double aux_conv_1 = w_g * Variables.density * Variables.specific_heat * N_g[i] * v_g_th_dot_grad[j];
-                // rLeftHandSideMatrix(i,j) += aux_conv_1 * Variables.theta;
-                // rRightHandSideVector(i) -= aux_conv_1 * Variables.theta * Variables.phi[j];
-                // rRightHandSideVector(i) -= aux_conv_1 * (1.0 - Variables.theta) * Variables.phi_old[j];
+                // Convective terms
+                const double aux_conv_1 = w_g * Variables.density * Variables.specific_heat * N_g[i] * v_g_th_dot_grad[j];
+                rLeftHandSideMatrix(i,j) += aux_conv_1 * Variables.theta;
+                rRightHandSideVector(i) -= aux_conv_1 * Variables.theta * Variables.phi[j];
+                rRightHandSideVector(i) -= aux_conv_1 * (1.0 - Variables.theta) * Variables.phi_old[j];
 
-                // const double aux_conv_2 = w_g * Variables.density * Variables.specific_heat * Variables.beta * N_g[i] * (v_g_th[1]/y_g + grad_v_g_th(0,0) + grad_v_g_th(1,1));
-                // rLeftHandSideMatrix(i,j) += aux_conv_2 * Variables.theta;
-                // rRightHandSideVector(i) -= aux_conv_2 * Variables.theta * Variables.phi[j];
-                // rRightHandSideVector(i) -= aux_conv_2 * (1.0 - Variables.theta) * Variables.phi_old[j];
+                const double aux_conv_2 = w_g * Variables.density * Variables.specific_heat * Variables.beta * N_g[i] * (v_g_th[1]/y_g + grad_v_g_th(0,0) + grad_v_g_th(1,1));
+                rLeftHandSideMatrix(i,j) += aux_conv_2 * Variables.theta;
+                rRightHandSideVector(i) -= aux_conv_2 * Variables.theta * Variables.phi[j];
+                rRightHandSideVector(i) -= aux_conv_2 * (1.0 - Variables.theta) * Variables.phi_old[j];
 
                 // Diffusive terms
                 const double aux_diff_1 = w_g * Variables.conductivity * N_g[i] * DN_DX_g(j,1) / y_g;
@@ -139,26 +139,32 @@ void AxisymmetricEulerianConvectionDiffusionElement<TDim,TNumNodes>::CalculateLo
                 rRightHandSideVector(i) -= aux_diff_2 * (1.0 - Variables.theta) * Variables.phi_old[j];
 
                 // Stabilization terms
-                const double aux_div_stab = Variables.density * Variables.specific_heat * Variables.beta * N_g[i] * (v_g_th[1] / y_g + grad_v_g_th(0, 0) + grad_v_g_th(1, 1));
-                // const double aux_conv_stab = Variables.density * Variables.specific_heat * (DN_DX_g(i,0)*v_g_th[0] + N_g[i]*grad_v_g_th(0,0) + DN_DX_g(i,1)*v_g_th[1] + N_g[i]*grad_v_g_th(1,1));
-                const double aux_conv_stab = 0.0;
-                const double aux_diff_stab = (DN_DX_g(i,1) / y_g - N_g[i] / std::pow(y_g, 2)) * Variables.conductivity;
-                const double aux_stab = tau * w_g * (aux_conv_stab - aux_div_stab - aux_diff_stab);
-
-                rLeftHandSideMatrix(i, j) += aux_stab * N_g[j] * Variables.density * Variables.specific_heat * Variables.dt_inv;
-                // rLeftHandSideMatrix(i, j) += aux_stab * N_g[j] * Variables.density * Variables.specific_heat * (v_g_th_dot_grad[0] + v_g_th_dot_grad[1]) * Variables.theta;
-                rLeftHandSideMatrix(i, j) += aux_stab * N_g[j] * Variables.density * Variables.specific_heat * Variables.beta * (v_g_th[1]/y_g + grad_v_g_th(0,0) + grad_v_g_th(1,1)) * Variables.theta * Variables.phi[j];
-                rLeftHandSideMatrix(i, j) -= aux_stab * DN_DX_g(j, 1) * Variables.conductivity * Variables.theta / y_g;
+                const double aux_div_stab_op = Variables.density * Variables.specific_heat * Variables.beta * N_g[i] * (v_g_th[1] / y_g + grad_v_g_th(0, 0) + grad_v_g_th(1, 1));
+                const double aux_conv_stab_op = Variables.density * Variables.specific_heat * (DN_DX_g(i,0)*v_g_th[0] + N_g[i]*grad_v_g_th(0,0) + DN_DX_g(i,1)*v_g_th[1] + N_g[i]*grad_v_g_th(1,1));
+                const double aux_diff_stab_op = Variables.conductivity * (DN_DX_g(i, 1) / y_g - N_g[i] / std::pow(y_g, 2));
+                const double aux_stab = tau * w_g * (aux_conv_stab_op - aux_div_stab_op - aux_diff_stab_op);
 
                 rRightHandSideVector(i) += aux_stab * N_g[j] * Variables.theta * Variables.volumetric_source[j];
                 rRightHandSideVector(i) += aux_stab * N_g[j] * (1.0 - Variables.theta) * Variables.volumetric_source[j]; // In case we make the body force time dependent
-                rRightHandSideVector(i) -= aux_stab * N_g[j] * Variables.density * Variables.specific_heat * Variables.dt_inv * (Variables.phi[j] - Variables.phi_old[j]);
-                // rRightHandSideVector(i) -= aux_stab * N_g[j] * Variables.density * Variables.specific_heat * (v_g_th_dot_grad[0] + v_g_th_dot_grad[1]) * Variables.theta * Variables.phi[j];
-                // rRightHandSideVector(i) -= aux_stab * N_g[j] * Variables.density * Variables.specific_heat * (v_g_th_dot_grad[0] + v_g_th_dot_grad[1]) * (1.0 - Variables.theta) * Variables.phi_old[j];
-                rRightHandSideVector(i) -= aux_stab * N_g[j] * Variables.density * Variables.specific_heat * Variables.beta * (v_g_th[1]/y_g + grad_v_g_th(0,0) + grad_v_g_th(1,1)) * Variables.theta * Variables.phi[j];
-                rRightHandSideVector(i) -= aux_stab * N_g[j] * Variables.density * Variables.specific_heat * Variables.beta * (v_g_th[1]/y_g + grad_v_g_th(0,0) + grad_v_g_th(1,1)) * (1.0 - Variables.theta) * Variables.phi_old[j];
-                rRightHandSideVector(i) += aux_stab * DN_DX_g(j,1) * Variables.conductivity * Variables.theta * Variables.phi[j] / y_g;
-                rRightHandSideVector(i) += aux_stab * DN_DX_g(j,1) * Variables.conductivity * (1.0 - Variables.theta) * Variables.phi_old[j] / y_g;
+
+                const double aux_dyn_stab = aux_stab * Variables.density * Variables.specific_heat * Variables.dt_inv * N_g[j];
+                rLeftHandSideMatrix(i, j) += aux_dyn_stab;
+                rRightHandSideVector(i) -= aux_dyn_stab * (Variables.phi[j] - Variables.phi_old[j]);
+
+                const double aux_conv_stab = aux_stab * Variables.density * Variables.specific_heat * v_g_th_dot_grad[j];
+                rLeftHandSideMatrix(i, j) += aux_conv_stab * Variables.theta;
+                rRightHandSideVector(i) -= aux_conv_stab * Variables.theta * Variables.phi[j];
+                rRightHandSideVector(i) -= aux_conv_stab * (1.0 - Variables.theta) * Variables.phi_old[j];
+
+                const double aux_div_stab = aux_stab * Variables.density * Variables.specific_heat * Variables.beta * (v_g_th[1] / y_g + grad_v_g_th(0, 0) + grad_v_g_th(1, 1)) * N_g[j];
+                rLeftHandSideMatrix(i, j) += aux_div_stab * Variables.theta;
+                rRightHandSideVector(i) -= aux_div_stab * Variables.theta * Variables.phi[j];
+                rRightHandSideVector(i) -= aux_div_stab * (1.0 - Variables.theta) * Variables.phi_old[j];
+
+                const double aux_diff_stab = aux_stab * DN_DX_g(j, 1) * Variables.conductivity / y_g;
+                rLeftHandSideMatrix(i, j) -= aux_diff_stab * Variables.theta;
+                rRightHandSideVector(i) += aux_diff_stab * Variables.theta * Variables.phi[j];
+                rRightHandSideVector(i) += aux_diff_stab * (1.0 - Variables.theta) * Variables.phi_old[j];
             }
         }
     }
