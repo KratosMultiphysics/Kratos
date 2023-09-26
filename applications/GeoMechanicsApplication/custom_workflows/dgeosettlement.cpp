@@ -75,6 +75,11 @@ void KratosGeoSettlement::InitializeProcessFactory() {
                                     return std::make_unique<ApplyK0ProcedureProcess>(mModel.GetModelPart(mModelPartName),
                                                                                      rParameters);
                                 });
+
+    mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName)
+    {
+        KRATOS_ERROR << "Unexpected process (" << rProcessName << "), calculation is aborted";
+    });
 }
 
 int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorkingDirectory,
