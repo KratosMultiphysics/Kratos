@@ -64,7 +64,6 @@ Element::Pointer SmallStrainUPwDiffOrderElement::Create(IndexType NewId,
 int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::Check()") << this->Id() << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
 
@@ -155,8 +154,6 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
         << this->Id() << std::endl;
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::Check()") << this->Id() << std::endl;
-
     return 0;
 
     KRATOS_CATCH( "" )
@@ -166,7 +163,6 @@ int  SmallStrainUPwDiffOrderElement::Check( const ProcessInfo& rCurrentProcessIn
 void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::Initialize()") << this->Id() << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const GeometryType::IntegrationPointsArrayType&
@@ -257,7 +253,6 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
     }
 
     mIsInitialised = true;
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::Initialize()") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -267,7 +262,6 @@ void SmallStrainUPwDiffOrderElement::
     ResetConstitutiveLaw()
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::ResetConstitutiveLaw()") << std::endl;
 
     // erasing stress vectors
     for (unsigned int i=0; i < mStressVector.size(); ++i) {
@@ -281,8 +275,6 @@ void SmallStrainUPwDiffOrderElement::
     mStateVariablesFinalized.clear();
 
     KRATOS_CATCH( "" )
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::ResetConstitutiveLaw()") << std::endl;
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -290,7 +282,6 @@ void SmallStrainUPwDiffOrderElement::
     InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeSolutionStep()") << std::endl;
 
     if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
 
@@ -329,7 +320,6 @@ void SmallStrainUPwDiffOrderElement::
         mRetentionLawVector[GPoint]->InitializeSolutionStep(RetentionParameters);
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeSolutionStep()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -339,7 +329,6 @@ void SmallStrainUPwDiffOrderElement::
                 const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::GetDofList()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -373,8 +362,6 @@ void SmallStrainUPwDiffOrderElement::
             rElementalDofList[Index++] = GetGeometry()[i].pGetDof( WATER_PRESSURE );
     // }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::GetDofList()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -385,7 +372,6 @@ void SmallStrainUPwDiffOrderElement::
                           const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateLocalSystem()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -416,8 +402,6 @@ void SmallStrainUPwDiffOrderElement::
                  CalculateStiffnessMatrixFlag,
                  CalculateResidualVectorFlag);
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateLocalSystem()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -427,7 +411,6 @@ void SmallStrainUPwDiffOrderElement::
                            const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateLeftHandSide()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -454,8 +437,6 @@ void SmallStrainUPwDiffOrderElement::
                  CalculateStiffnessMatrixFlag,
                  CalculateResidualVectorFlag);
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateLeftHandSide()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -465,7 +446,6 @@ void SmallStrainUPwDiffOrderElement::
                             const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateRightHandSide()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -492,8 +472,6 @@ void SmallStrainUPwDiffOrderElement::
                  CalculateStiffnessMatrixFlag,
                  CalculateResidualVectorFlag);
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateRightHandSide()") << std::endl;
-
     KRATOS_CATCH( "" )
 
 }
@@ -504,7 +482,6 @@ void SmallStrainUPwDiffOrderElement::
                          const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateMassMatrix()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -583,8 +560,6 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateMassMatrix()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -594,10 +569,8 @@ void SmallStrainUPwDiffOrderElement::
                            const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateDampingMatrix()") << std::endl;
 
     // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
-
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -634,8 +607,6 @@ void SmallStrainUPwDiffOrderElement::
     else
         noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateDampingMatrix()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -645,7 +616,6 @@ void SmallStrainUPwDiffOrderElement::
                      const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::EquationIdVector()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -679,10 +649,6 @@ void SmallStrainUPwDiffOrderElement::
             rResult[Index++] = rGeom[i].GetDof( WATER_PRESSURE ).EquationId();
     // }
 
-
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::EquationIdVector()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -691,7 +657,6 @@ void SmallStrainUPwDiffOrderElement::
     GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::GetFirstDerivativesVector()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -721,8 +686,6 @@ void SmallStrainUPwDiffOrderElement::
     for ( SizeType i = 0; i < NumPNodes; ++i )
         rValues[Index++] = 0.0;
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -730,8 +693,6 @@ void SmallStrainUPwDiffOrderElement::
 void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
-
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -762,8 +723,6 @@ void SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector( Vector& rValues
     for ( SizeType i = 0; i < NumPNodes; ++i )
         rValues[Index++] = 0.0;
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::GetSecondDerivativesVector()") << std::endl;
-
     KRATOS_CATCH( "" )
 
 }
@@ -773,8 +732,6 @@ void SmallStrainUPwDiffOrderElement::
     FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
 
     //Definition of variables
     ElementVariables Variables;
@@ -816,8 +773,6 @@ void SmallStrainUPwDiffOrderElement::
     //Assign pressure values to the intermediate nodes for post-processing
     if (!IgnoreUndrained) AssignPressureToIntermediateNodes();
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::FinalizeSolutionStep()") << std::endl;
-
     KRATOS_CATCH( "" )
 
 }
@@ -827,7 +782,6 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
 {
     //Assign pressure values to the intermediate nodes for post-processing
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()") << std::endl;
 
     GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -1007,8 +961,6 @@ void SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()
             KRATOS_ERROR << "Unexpected geometry type for different order interpolation element" << this->Id() << std::endl;
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::AssignPressureToIntermediateNodes()") << std::endl;
-
     KRATOS_CATCH( "" )
 
 }
@@ -1021,15 +973,11 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-        // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints()") << std::endl;
-
-        for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint )
-            mConstitutiveLawVector[GPoint]->SetValue( rVariable, rValues[GPoint], rCurrentProcessInfo );
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints()") << std::endl;
+    for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+         mConstitutiveLawVector[GPoint]->SetValue(rVariable, rValues[GPoint], rCurrentProcessInfo);
+    }
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1040,20 +988,17 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::1-SetValuesOnIntegrationPoints()") << std::endl;
-
-          if (rVariable == CAUCHY_STRESS_VECTOR) {
-              KRATOS_ERROR_IF (rValues.size() != mStressVector.size()) <<
-                  "Unexpected number of values for SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints" << std::endl;
-              std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
-          } else {
-              KRATOS_ERROR_IF (rValues.size() < mConstitutiveLawVector.size()) <<
-                  "Insufficient number of values for SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints" << std::endl;
-              for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
-                  mConstitutiveLawVector[GPoint]->SetValue(rVariable, rValues[GPoint], rCurrentProcessInfo);
-              }
-          }
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::1-SetValuesOnIntegrationPoints()") << std::endl;
+    if (rVariable == CAUCHY_STRESS_VECTOR) {
+        KRATOS_ERROR_IF (rValues.size() != mStressVector.size()) <<
+            "Unexpected number of values for SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints" << std::endl;
+        std::copy(rValues.begin(), rValues.end(), mStressVector.begin());
+    } else {
+        KRATOS_ERROR_IF (rValues.size() < mConstitutiveLawVector.size()) <<
+            "Insufficient number of values for SmallStrainUPwDiffOrderElement::SetValuesOnIntegrationPoints" << std::endl;
+        for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+            mConstitutiveLawVector[GPoint]->SetValue(rVariable, rValues[GPoint], rCurrentProcessInfo);
+        }
+    }
 
     KRATOS_CATCH( "" )
 }
@@ -1066,15 +1011,13 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::2-SetValuesOnIntegrationPoints()") << std::endl;
-
-    for ( unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint )
-        mConstitutiveLawVector[GPoint]->SetValue( rVariable, rValues[GPoint], rCurrentProcessInfo );
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::2-SetValuesOnIntegrationPoints()") << std::endl;
+    for (unsigned int GPoint = 0; GPoint < mConstitutiveLawVector.size(); ++GPoint) {
+        mConstitutiveLawVector[GPoint]->SetValue(rVariable, rValues[GPoint], rCurrentProcessInfo);
+    }
 
     KRATOS_CATCH( "" )
 }
+
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
     CalculateOnIntegrationPoints( const Variable<int>& rVariable,
@@ -1083,20 +1026,16 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints()") << std::endl;
-
     const unsigned int& IntegrationPointsNumber = GetGeometry().IntegrationPointsNumber( this->GetIntegrationMethod() );
 
-    if ( rValues.size() != IntegrationPointsNumber )
-        rValues.resize( IntegrationPointsNumber );
-
-    for ( unsigned int i = 0; i < IntegrationPointsNumber; ++i )
-        rValues[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rValues[i] );
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints()") << std::endl;
+    if (rValues.size() != IntegrationPointsNumber) {
+        rValues.resize(IntegrationPointsNumber);
+    }
+    for (unsigned int i = 0; i < IntegrationPointsNumber; ++i) {
+        rValues[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rValues[i]);
+    }
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1107,17 +1046,14 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::3-CalculateOnIntegrationPoints()") << std::endl;
-
     if (rVariable == CONSTITUTIVE_LAW) {
-        if ( rValues.size() != mConstitutiveLawVector.size() )
+        if (rValues.size() != mConstitutiveLawVector.size()) {
             rValues.resize(mConstitutiveLawVector.size());
-
-        for (unsigned int i=0; i<rValues.size(); ++i)
+        }
+        for (unsigned int i = 0; i < rValues.size(); ++i) {
             rValues[i] = mConstitutiveLawVector[i];
+        }
     }
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::3-CalculateOnIntegrationPoints()") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -1129,7 +1065,6 @@ void SmallStrainUPwDiffOrderElement::
                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const unsigned int& IntegrationPointsNumber = rGeom.IntegrationPointsNumber( this->GetIntegrationMethod() );
@@ -1263,8 +1198,6 @@ void SmallStrainUPwDiffOrderElement::
             rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable, rOutput[i] );
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateOnIntegrationPoints()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1275,7 +1208,6 @@ void SmallStrainUPwDiffOrderElement::
                                  const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::1-CalculateOnIntegrationPoints(array_1d)") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const unsigned int& IntegrationPointsNumber = rGeom.IntegrationPointsNumber( this->GetIntegrationMethod() );
@@ -1341,7 +1273,6 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::1-CalculateOnIntegrationPoints(array_1d)") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -1352,8 +1283,6 @@ void SmallStrainUPwDiffOrderElement::
                                  const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::1-CalculateOnIntegrationPoints()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const unsigned int& IntegrationPointsNumber = rGeom.IntegrationPointsNumber( this->GetIntegrationMethod() );
@@ -1466,17 +1395,16 @@ void SmallStrainUPwDiffOrderElement::
                                          * Variables.FluidPressure
                                          * VoigtVector;
 
-            if ( rOutput[GPoint].size() != TotalStressVector.size() )
-                rOutput[GPoint].resize( TotalStressVector.size(), false );
-
+            if (rOutput[GPoint].size() != TotalStressVector.size()) {
+                rOutput[GPoint].resize(TotalStressVector.size(), false);
+            }
             rOutput[GPoint] = TotalStressVector;
         }
-    } else {
-        for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
-            rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable , rOutput[i] );
+    } 
+    else {
+        for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i)
+            rOutput[i] = mConstitutiveLawVector[i]->GetValue(rVariable, rOutput[i]);
     }
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::1-CalculateOnIntegrationPoints()") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -1488,7 +1416,6 @@ void SmallStrainUPwDiffOrderElement::
                                  const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::-CalculateOnIntegrationPoints()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const unsigned int& IntegrationPointsNumber = rGeom.IntegrationPointsNumber( this->GetIntegrationMethod() );
@@ -1552,8 +1479,6 @@ void SmallStrainUPwDiffOrderElement::
             rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable , rOutput[i] );
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::-CalculateOnIntegrationPoints()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1566,7 +1491,6 @@ void SmallStrainUPwDiffOrderElement::
                   bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAll") << this->Id() << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const PropertiesType& rProp = this->GetProperties();
@@ -1628,8 +1552,6 @@ void SmallStrainUPwDiffOrderElement::
         if (CalculateResidualVectorFlag) this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAll") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1639,7 +1561,6 @@ void SmallStrainUPwDiffOrderElement::
                                       const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
 
@@ -1678,10 +1599,8 @@ void SmallStrainUPwDiffOrderElement::
 
         //Contributions of material stiffness to the left hand side
         this->CalculateAndAddStiffnessMatrix(rStiffnessMatrix, Variables);
-
     }
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateMaterialStiffnessMatrix") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -1690,16 +1609,13 @@ double SmallStrainUPwDiffOrderElement::
     CalculateBulkModulus(const Matrix &ConstitutiveMatrix) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateBulkModulus") << std::endl;
 
     const int IndexG = ConstitutiveMatrix.size1() - 1;
     const double M = ConstitutiveMatrix(0, 0);
     const double G = ConstitutiveMatrix(IndexG, IndexG);
     const double BulkModulus = M - (4.0/3.0)*G;
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateBulkModulus") << BulkModulus << std::endl;
-
     return BulkModulus;
+
     KRATOS_CATCH( "" )
 }
 
@@ -1709,7 +1625,6 @@ void SmallStrainUPwDiffOrderElement::
                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeElementVariables") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -1800,7 +1715,6 @@ void SmallStrainUPwDiffOrderElement::
     // permeability change
     rVariables.PermeabilityUpdateFactor = 1.0;
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeElementVariables") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -1808,7 +1722,6 @@ void SmallStrainUPwDiffOrderElement::
 void SmallStrainUPwDiffOrderElement::InitializeNodalVariables( ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeNodalVariables") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -1862,7 +1775,6 @@ void SmallStrainUPwDiffOrderElement::InitializeNodalVariables( ElementVariables&
                                             - rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE, 1);
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeNodalVariables") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -1872,7 +1784,6 @@ double SmallStrainUPwDiffOrderElement::
                               const bool &hasBiotCoefficient) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-UPwSmallStrainElement::CalculateBiotCoefficient()") << std::endl;
 
     const PropertiesType& rProp = this->GetProperties();
 
@@ -1885,7 +1796,6 @@ double SmallStrainUPwDiffOrderElement::
         return 1.0 - BulkModulus / rProp[BULK_MODULUS_SOLID];
     }
 
-    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateBiotCoefficient()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -1896,7 +1806,6 @@ void SmallStrainUPwDiffOrderElement::
                                 const bool &hasBiotCoefficient )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients") << std::endl;
 
     const PropertiesType& rProp = this->GetProperties();
 
@@ -1915,7 +1824,6 @@ void SmallStrainUPwDiffOrderElement::
     rVariables.BiotModulusInverse *= rVariables.DegreeOfSaturation;
     rVariables.BiotModulusInverse -= rVariables.DerivativeOfSaturation*rProp[POROSITY];
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeBiotCoefficients") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -1938,7 +1846,6 @@ void SmallStrainUPwDiffOrderElement::
         rVariables.PermeabilityUpdateFactor = 1.0;
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculatePermeabilityUpdateFactor") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -1946,7 +1853,6 @@ void SmallStrainUPwDiffOrderElement::
 void SmallStrainUPwDiffOrderElement::InitializeProperties( ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::InitializeProperties") << std::endl;
 
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const PropertiesType& rProp = this->GetProperties();
@@ -1976,7 +1882,6 @@ void SmallStrainUPwDiffOrderElement::InitializeProperties( ElementVariables& rVa
         rVariables.IntrinsicPermeability(2,1) = rVariables.IntrinsicPermeability(1,2);
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::InitializeProperties") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -1987,7 +1892,6 @@ void SmallStrainUPwDiffOrderElement::
 
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
 
     //Setting the vector of shape functions and the matrix of the shape functions global gradients
     noalias(rVariables.Nu) = row(rVariables.NuContainer, GPoint);
@@ -2008,9 +1912,6 @@ void SmallStrainUPwDiffOrderElement::
                                                      rVariables.DNu_DXInitialConfiguration,
                                                      GPoint);
 
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2024,8 +1925,6 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
-
     const GeometryType& rGeom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = rGeom.IntegrationPoints( this->GetIntegrationMethod() );
 
@@ -2033,8 +1932,6 @@ void SmallStrainUPwDiffOrderElement::
     const Matrix& DN_De = rGeom.ShapeFunctionsLocalGradients(this->GetIntegrationMethod())[GPoint];
     MathUtils<double>::InvertMatrix( J0, InvJ0, detJ );
     GeometryUtils::ShapeFunctionsGradients(DN_De, InvJ0, DNu_DX0);
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateDerivativesOnInitialConfiguration()") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -2046,7 +1943,6 @@ void SmallStrainUPwDiffOrderElement::
                      const Vector& Np)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateBMatrix()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -2080,7 +1976,6 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateBMatrix()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -2090,7 +1985,6 @@ void SmallStrainUPwDiffOrderElement::
                           ConstitutiveLaw::Parameters& rConstitutiveParameters)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::SetConstitutiveParameters") << std::endl;
 
     rConstitutiveParameters.SetStrainVector(rVariables.StrainVector);
     rConstitutiveParameters.SetConstitutiveMatrix(rVariables.ConstitutiveMatrix);
@@ -2101,8 +1995,6 @@ void SmallStrainUPwDiffOrderElement::
 
     rConstitutiveParameters.SetDeterminantF(rVariables.detF);
     rConstitutiveParameters.SetDeformationGradientF(rVariables.F);
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::SetConstitutiveParameters") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -2122,7 +2014,6 @@ void SmallStrainUPwDiffOrderElement::
                        ElementVariables& rVariables)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddLHS") << std::endl;
 
     this->CalculateAndAddStiffnessMatrix(rLeftHandSideMatrix,rVariables);
     this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix,rVariables);
@@ -2132,11 +2023,8 @@ void SmallStrainUPwDiffOrderElement::
         this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix,rVariables);
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddLHS") << std::endl;
-
     KRATOS_CATCH( "" )
 }
-
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 void SmallStrainUPwDiffOrderElement::
@@ -2144,15 +2032,12 @@ void SmallStrainUPwDiffOrderElement::
                                     ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix") << std::endl;
 
     Matrix StiffnessMatrix =  prod( trans(rVariables.B), Matrix(prod(rVariables.ConstitutiveMatrix, rVariables.B)) )
                             * rVariables.IntegrationCoefficient;
 
     //Distribute stiffness block matrix into the elemental matrix
     this->AssembleUBlockMatrix(rLeftHandSideMatrix,StiffnessMatrix);
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessMatrix") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -2163,7 +2048,6 @@ void SmallStrainUPwDiffOrderElement::
                         const Matrix &StiffnessMatrix) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -2184,8 +2068,6 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::AssembleUBlockMatrix") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2195,7 +2077,6 @@ void SmallStrainUPwDiffOrderElement::
                                    ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -2242,9 +2123,7 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingMatrix") << std::endl;
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2253,7 +2132,6 @@ void SmallStrainUPwDiffOrderElement::
                                           ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix") << std::endl;
 
     Matrix CompressibilityMatrix = - PORE_PRESSURE_SIGN_FACTOR 
                                    * rVariables.DtPressureCoefficient
@@ -2272,10 +2150,8 @@ void SmallStrainUPwDiffOrderElement::
             rLeftHandSideMatrix(NumUNodes*Dim+i,NumUNodes*Dim+j) += CompressibilityMatrix(i,j);
         }
     }
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityMatrix") << std::endl;
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2284,7 +2160,6 @@ void SmallStrainUPwDiffOrderElement::
                                        ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityMatrix") << std::endl;
 
     Matrix PermeabilityMatrix = - PORE_PRESSURE_SIGN_FACTOR
                                 * rVariables.DynamicViscosityInverse
@@ -2304,10 +2179,8 @@ void SmallStrainUPwDiffOrderElement::
             rLeftHandSideMatrix(NumUNodes*Dim+i,NumUNodes*Dim+j) += PermeabilityMatrix(i,j);
         }
     }
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityMatrix") << std::endl;
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2317,7 +2190,6 @@ void SmallStrainUPwDiffOrderElement::
                         unsigned int GPoint )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddRHS") << std::endl;
 
     this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
 
@@ -2333,8 +2205,6 @@ void SmallStrainUPwDiffOrderElement::
         this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddRHS") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2345,7 +2215,6 @@ void SmallStrainUPwDiffOrderElement::
                                    unsigned int GPoint )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -2362,10 +2231,8 @@ void SmallStrainUPwDiffOrderElement::
             rRightHandSideVector[Index+idim] -= StiffnessForce[Index+idim];
         }
     }
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddStiffnessForce") << std::endl;
 
     KRATOS_CATCH( "" )
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2374,7 +2241,6 @@ void SmallStrainUPwDiffOrderElement::
                                  ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -2400,8 +2266,6 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2410,7 +2274,7 @@ void SmallStrainUPwDiffOrderElement::
     CalculateSoilDensity(ElementVariables &rVariables)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-UPwSmallStrainElement::CalculateSoilDensity()") << std::endl;
+
     const PropertiesType& rProp = this->GetProperties();
 
     rVariables.Density = (  rVariables.DegreeOfSaturation
@@ -2418,9 +2282,7 @@ void SmallStrainUPwDiffOrderElement::
                           * rProp[DENSITY_WATER] )
                          + (1.0 - rProp[POROSITY] )*rProp[DENSITY_SOLID];
 
-    // KRATOS_INFO("1-UPwSmallStrainElement::CalculateSoilDensity()") << std::endl;
     KRATOS_CATCH("")
-
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -2429,7 +2291,6 @@ void SmallStrainUPwDiffOrderElement::
                                   ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -2470,8 +2331,6 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddCouplingTerms") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2481,7 +2340,6 @@ void SmallStrainUPwDiffOrderElement::
                                         ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow") << std::endl;
 
     Matrix CompressibilityMatrix = - PORE_PRESSURE_SIGN_FACTOR
                                    * rVariables.BiotModulusInverse
@@ -2500,8 +2358,6 @@ void SmallStrainUPwDiffOrderElement::
         rRightHandSideVector[NumUNodes*Dim+i] += CompressibilityFlow[i];
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddCompressibilityFlow") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2511,7 +2367,6 @@ void SmallStrainUPwDiffOrderElement::
                                      ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow") << std::endl;
 
     Matrix PermeabilityMatrix = - PORE_PRESSURE_SIGN_FACTOR
                                 * rVariables.DynamicViscosityInverse
@@ -2532,8 +2387,6 @@ void SmallStrainUPwDiffOrderElement::
         rRightHandSideVector[NumUNodes*Dim+i] += PermeabilityFlow[i];
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddPermeabilityFlow") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2543,7 +2396,6 @@ void SmallStrainUPwDiffOrderElement::
                                   ElementVariables& rVariables )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow") << std::endl;
 
     Matrix GradNpTPerm =  rVariables.DynamicViscosityInverse
                         * GetProperties()[DENSITY_WATER]
@@ -2569,8 +2421,6 @@ void SmallStrainUPwDiffOrderElement::
     for (SizeType i = 0; i < NumPNodes; ++i) {
         rRightHandSideVector[NumUNodes*Dim+i] += inner_prod(row(GradNpTPerm,i),BodyAcceleration);
     }
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateAndAddFluidBodyFlow") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -2630,8 +2480,6 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateCauchyGreenStrain()") << std::endl;
-
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
 
@@ -2656,8 +2504,6 @@ void SmallStrainUPwDiffOrderElement::
         noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
     }
 
-    // KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateCauchyGreenStrain()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -2667,7 +2513,6 @@ void SmallStrainUPwDiffOrderElement::
                                   unsigned int GPoint)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateDeformationGradient()") << std::endl;
 
     // calculation of derivative of shape function with respect to reference configuration
     // derivative of shape function (displacement)
@@ -2699,7 +2544,6 @@ void SmallStrainUPwDiffOrderElement::
     noalias(rVariables.F) = prod( J, InvJ0 );
     rVariables.detF = MathUtils<double>::Det(rVariables.F);
 
-    // KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateDeformationGradient()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -2708,8 +2552,6 @@ void SmallStrainUPwDiffOrderElement::
     CalculateCauchyAlmansiStrain(ElementVariables& rVariables )
 {
     KRATOS_TRY
-
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType Dim = rGeom.WorkingSpaceDimension();
@@ -2740,7 +2582,6 @@ void SmallStrainUPwDiffOrderElement::
         noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateCauchyAlmansiStrain()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -2799,13 +2640,10 @@ void SmallStrainUPwDiffOrderElement::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
     const GeometryType& rGeom = this->GetGeometry();
 
     rJ = rGeom.Jacobian( rJ, GPoint, this->GetIntegrationMethod() );
     MathUtils<double>::InvertMatrix( rJ, rInvJ, detJ );
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateJacobianOnCurrentConfiguration()") << std::endl;
 
     KRATOS_CATCH( "" )
 }

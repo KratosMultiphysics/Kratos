@@ -26,7 +26,7 @@
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "spaces/ublas_space.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_element.h"
+#include "tests/test_utilities/test_element.h"
 #include "solving_strategies/builder_and_solvers/residualbased_block_builder_and_solver.h"
 #include "solving_strategies/strategies/explicit_solving_strategy.h"
 #include "utilities/math_utils.h"
@@ -228,7 +228,7 @@ inline void RunTest(const double tolerance)
     p_explicit_strategy->FinalizeSolutionStep();
 
     double analytical_1 = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * delta_time);
-    KRATOS_CHECK_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), analytical_1, tolerance);
+    KRATOS_EXPECT_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), analytical_1, tolerance);
     // 2nd step
     r_model_part.CloneTimeStep(2.0 * delta_time);
     p_explicit_strategy->InitializeSolutionStep();
@@ -236,7 +236,7 @@ inline void RunTest(const double tolerance)
     p_explicit_strategy->FinalizeSolutionStep();
 
     double analytical_2 = (37.5 / 3.5) + (50 - 37.5/3.5) * std::exp(- 3.5 * 2.0 * delta_time);
-    KRATOS_CHECK_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), analytical_2, tolerance);
+    KRATOS_EXPECT_NEAR(p_test_node->FastGetSolutionStepValue(TEMPERATURE), analytical_2, tolerance);
 
     KRATOS_CATCH("");
 }
@@ -281,7 +281,7 @@ inline void ConvergenceTest(const unsigned int ExpectedOrder)
 
     const double convergence_rate = LogFittingSlope<n_testpoints>(delta_time, error);
 
-    KRATOS_CHECK_NEAR(convergence_rate, ExpectedOrder, 0.1);
+    KRATOS_EXPECT_NEAR(convergence_rate, ExpectedOrder, 0.1);
 
     KRATOS_CATCH("");
 }

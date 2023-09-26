@@ -195,6 +195,11 @@ namespace Kratos {
 
         AttachSpheresToStickyWalls();
 
+        if (r_process_info[CONTACT_MESH_OPTION] == 1) {
+            CreateContactElements();
+            InitializeContactElements();
+        }
+
         //set flag to 2 (search performed this timestep)
         mSearchControl = 2;
 

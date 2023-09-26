@@ -54,7 +54,7 @@ namespace Kratos
                         rGeometry[c].Coordinates()[k] -= Delta;
                         const double fd_derivative = (fd_value - fd_ref_value) / Delta;
 
-                        KRATOS_CHECK_NEAR(analytical_derivative, fd_derivative, Tolerance);
+                        KRATOS_EXPECT_NEAR(analytical_derivative, fd_derivative, Tolerance);
                     }
                 }
             }
@@ -72,8 +72,8 @@ namespace Kratos
             const auto prism1 = *GeometryType::Pointer(new Prism3D6<NodeType>(nodes));
             const double minimum_size = ElementSizeCalculator<3, 6>::MinimumElementSize(prism1);
             const double average_size = ElementSizeCalculator<3, 6>::AverageElementSize(prism1);
-            KRATOS_CHECK_NEAR(minimum_size, std::sqrt(0.5), TOLERANCE);
-            KRATOS_CHECK_NEAR(average_size, std::pow(0.5, 1.0 / 3.0), TOLERANCE);
+            KRATOS_EXPECT_NEAR(minimum_size, std::sqrt(0.5), TOLERANCE);
+            KRATOS_EXPECT_NEAR(average_size, std::pow(0.5, 1.0 / 3.0), TOLERANCE);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(Prism3D6ElementSizeCase2, KratosCoreFastSuite)
@@ -88,8 +88,8 @@ namespace Kratos
             const auto prism2 = *GeometryType::Pointer(new Prism3D6<NodeType>(nodes));
             const double minimum_size = ElementSizeCalculator<3, 6>::MinimumElementSize(prism2);
             const double average_size = ElementSizeCalculator<3, 6>::AverageElementSize(prism2);
-            KRATOS_CHECK_NEAR(minimum_size, 0.5, TOLERANCE);
-            KRATOS_CHECK_NEAR(average_size, std::pow(0.25, 1.0 / 3.0), TOLERANCE); //
+            KRATOS_EXPECT_NEAR(minimum_size, 0.5, TOLERANCE);
+            KRATOS_EXPECT_NEAR(average_size, std::pow(0.25, 1.0 / 3.0), TOLERANCE); //
         }
 
         KRATOS_TEST_CASE_IN_SUITE(Triangle2D3MinimumElementSizeDerivatives, KratosCoreFastSuite)
