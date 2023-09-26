@@ -295,7 +295,7 @@ void ComputingConvergenceRate(
                 if (Debug) {
                     KRATOS_WATCH(slope)
                 } else { // Check
-                    KRATOS_CHECK_GREATER_EQUAL(slope, quadratic_threshold);
+                    KRATOS_EXPECT_GE(slope, quadratic_threshold);
                 }
             }
         }
@@ -306,7 +306,7 @@ void ComputingConvergenceRate(
             if (Debug) {
                 KRATOS_WATCH(slope)
             } else { // Check
-                KRATOS_CHECK_GREATER_EQUAL(slope, quadratic_threshold);
+                KRATOS_EXPECT_GE(slope, quadratic_threshold);
             }
         }
     }
@@ -339,7 +339,7 @@ KRATOS_TEST_CASE_IN_SUITE(LinearElasticCasePertubationTensorUtility, KratosConst
     for (std::size_t i = 0; i < 6; ++i) {
         for (std::size_t j = 0; j < 6; ++j) {
             if (std::abs(C(i, j)) > 0.0) {
-                KRATOS_CHECK_LESS_EQUAL((tangent_moduli(i, j) - C(i, j))/C(i, j), tolerance);
+                KRATOS_EXPECT_LE((tangent_moduli(i, j) - C(i, j))/C(i, j), tolerance);
             } else if (std::abs(tangent_moduli(i, j)) > 1.0e-6) {
                 KRATOS_WARNING("LinearElasticCasePertubationTensorUtility") << "Be careful tangent_moduli(" << i << " ," << j << ") is greater than 0: " <<  tangent_moduli(i, j) << std::endl;
             }
@@ -374,7 +374,7 @@ KRATOS_TEST_CASE_IN_SUITE(HyperElasticCasePertubationTensorUtility, KratosConsti
     for (std::size_t i = 0; i < 6; ++i) {
         for (std::size_t j = 0; j < 6; ++j) {
             if (std::abs(C(i, j)) > 0.0) {
-                KRATOS_CHECK_LESS_EQUAL((tangent_moduli(i, j) - C(i, j))/C(i, j), tolerance);
+                KRATOS_EXPECT_LE((tangent_moduli(i, j) - C(i, j))/C(i, j), tolerance);
             } else if (std::abs(tangent_moduli(i, j)) > 1.0e-6) {
                 KRATOS_WARNING("HyperElasticCasePertubationTensorUtility") << "Be careful tangent_moduli(" << i << " ," << j << ") is greater than 0: " <<  tangent_moduli(i, j) << std::endl;
             }

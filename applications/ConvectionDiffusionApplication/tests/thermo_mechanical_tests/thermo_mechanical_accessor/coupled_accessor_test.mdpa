@@ -1,0 +1,310 @@
+Begin Properties 0
+End Properties
+Begin Nodes
+    1   0.0   1.0   0.0
+    2   0.0   0.75   0.0
+    3   0.2724446074   0.8812979471   0.0
+    4   0.2724446074   0.6683923387   0.0
+    5   0.0   0.5   0.0
+    6   0.2724446074   0.5   0.0
+    7   0.5574032085   0.7972372338   0.0
+    8   0.5574032085   0.6106005982   0.0
+    9   0.2724446074   0.3316076613   0.0
+   10   0.5574032085   0.5   0.0
+   11   0.0   0.2500000000   0.0
+   12   0.5574032085   0.3893994018   0.0
+   13   0.8514492163   0.7550361746   0.0
+   14   0.2724446074   0.1187020529   0.0
+   15   0.8514492163   0.5815873701   0.0
+   16   0.5574032085   0.2027627662   0.0
+   17   0.8514492163   0.5   0.0
+   18   0.0   0.0   0.0
+   19   0.8514492163   0.4184126299   0.0
+   20   0.8514492163   0.2449638254   0.0
+   21   1.1485508274   0.7550361776   0.0
+   22   1.1485508274   0.5815873721   0.0
+   23   1.1485508274   0.5   0.0
+   24   1.1485508274   0.4184126279   0.0
+   25   1.1485508274   0.2449638224   0.0
+   26   1.4425968416   0.7972372448   0.0
+   27   1.4425968416   0.6106006058   0.0
+   28   1.4425968416   0.5   0.0
+   29   1.4425968416   0.3893993942   0.0
+   30   1.4425968416   0.2027627552   0.0
+   31   1.7275554362   0.8812979632   0.0
+   32   1.7275554362   0.6683923497   0.0
+   33   1.7275554362   0.5   0.0
+   34   1.7275554362   0.3316076503   0.0
+   35   1.7275554362   0.1187020368   0.0
+   36   2.0   1.00   0.0
+   37   2.0   0.75   0.0
+   38   2.0   0.50   0.0
+   39   2.0   0.25   0.0
+   40   2.0   0.00   0.0
+End Nodes
+
+
+Begin Elements SmallDisplacementElement2D4N// GUI group identifier: Solid Auto1
+        1          0     2     4     3     1 
+        2          0     5     6     4     2 
+        3          0    11     9     6     5 
+        4          0    18    14     9    11 
+        5          0     4     8     7     3 
+        6          0     6    10     8     4 
+        7          0     9    12    10     6 
+        8          0    14    16    12     9 
+        9          0     8    15    13     7 
+       10          0    10    17    15     8 
+       11          0    12    19    17    10 
+       12          0    16    20    19    12 
+       13          0    15    22    21    13 
+       14          0    17    23    22    15 
+       15          0    19    24    23    17 
+       16          0    20    25    24    19 
+       17          0    22    27    26    21 
+       18          0    23    28    27    22 
+       19          0    24    29    28    23 
+       20          0    25    30    29    24 
+       21          0    27    32    31    26 
+       22          0    28    33    32    27 
+       23          0    29    34    33    28 
+       24          0    30    35    34    29 
+       25          0    32    37    36    31 
+       26          0    33    38    37    32 
+       27          0    34    39    38    33 
+       28          0    35    40    39    34 
+End Elements
+
+Begin SubModelPart Parts_Solid_Solid_Auto1 // Group Solid Auto1 // Subtree Parts_Solid
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto1 // Group Displacement Auto1 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+            1
+            2
+            5
+           11
+           18
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Auto2 // Group Displacement Auto2 // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           36
+           37
+           38
+           39
+           40
+    End SubModelPartNodes
+    Begin SubModelPartElements
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+
+
+Begin SubModelPart CNVDFFParts_Parts_Auto1 // Group Parts Auto1 // Subtree CNVDFFParts
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart TEMPERATURE_Temperature_Auto1 // Group Temperature Auto1 // Subtree TEMPERATURE
+    Begin SubModelPartNodes
+            1
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+           33
+           34
+           35
+           36
+           37
+           38
+           39
+           40
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart ImposedTemperature2D_Imposed_temperature_Auto1 // Group Imposed temperature Auto1 // Subtree ImposedTemperature2D
+    Begin SubModelPartNodes
+           36
+           37
+           38
+           39
+           40
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart

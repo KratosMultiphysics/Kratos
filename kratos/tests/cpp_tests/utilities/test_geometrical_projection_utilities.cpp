@@ -114,10 +114,10 @@ void TestFastProjectDirection(const TGeometryType& rGeom)
         normal_vector,
         dir_vector);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), y_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), x_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), y_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), 0.0);
 }
 
 template<class TGeometryType>
@@ -136,10 +136,10 @@ void TestFastProjectOnGeometry(TGeometryType& rGeom)
         point_to_proj,
         projected_point);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), y_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), x_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), y_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), 0.0);
 }
 
 template<class TGeometryType>
@@ -157,20 +157,20 @@ void TestFastProjectOnLine2D(TGeometryType& rGeom)
         point_to_proj,
         projected_point);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), 0.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), x_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), 0.0);
 
     proj_distance = GeometricalProjectionUtilities::FastProjectOnLine2D(
         rGeom,
         point_to_proj,
         projected_point);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), 0.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), x_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), 0.0);
 }
 
 template<class TGeometryType>
@@ -191,10 +191,10 @@ void TestFastProjectOnLine3D(TGeometryType& rGeom)
     const double expected_coord_y = 27.0/14.0;
     const double expected_coord_z = -19.0/14.0;
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), expected_coord_x);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), expected_coord_y);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), expected_coord_z);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), expected_coord_x);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), expected_coord_y);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), expected_coord_z);
 }
 
 template<class TGeometryType>
@@ -207,7 +207,7 @@ void TestFastMinimalDistanceOnLine(TGeometryType& rGeom)
     Point projected_point;
     const double expected_proj_dist = GeometricalProjectionUtilities::FastProjectOnLine(rGeom,point, projected_point);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
 
     const Point non_inside_projected_point(-2.0, 4.0, -3.0);
 
@@ -215,7 +215,7 @@ void TestFastMinimalDistanceOnLine(TGeometryType& rGeom)
 
     const double expected_non_inside_projected_dist = 3.74166;
 
-    KRATOS_CHECK_RELATIVE_NEAR(expected_non_inside_projected_dist, non_inside_projected_distance, 1.0e-4);
+    KRATOS_EXPECT_RELATIVE_NEAR(expected_non_inside_projected_dist, non_inside_projected_distance, 1.0e-4);
 
     const Point far_point(100.0, 100.0, 100.0);
 
@@ -223,7 +223,7 @@ void TestFastMinimalDistanceOnLine(TGeometryType& rGeom)
 
     const double expected_far_dist = 168.062;
 
-    KRATOS_CHECK_RELATIVE_NEAR(expected_far_dist, far_distance, 1.0e-4);
+    KRATOS_EXPECT_RELATIVE_NEAR(expected_far_dist, far_distance, 1.0e-4);
 }
 
 }
@@ -304,10 +304,10 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalProjectionUtilitiesFastProject, KratosCoreF
         normal_vector,
         proj_distance);
 
-    KRATOS_CHECK_DOUBLE_EQUAL(expected_proj_dist, proj_distance);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.X(), x_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Y(), y_coord);
-    KRATOS_CHECK_DOUBLE_EQUAL(projected_point.Z(), 0.0);
+    KRATOS_EXPECT_DOUBLE_EQ(expected_proj_dist, proj_distance);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.X(), x_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Y(), y_coord);
+    KRATOS_EXPECT_DOUBLE_EQ(projected_point.Z(), 0.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(FastMinimalDistanceOnLineWithRadius, KratosCoreFastSuite)
@@ -323,28 +323,28 @@ KRATOS_TEST_CASE_IN_SUITE(FastMinimalDistanceOnLineWithRadius, KratosCoreFastSui
     Point point1(0.0,0.0,0.1);
     distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point1);
     auto distance_computed_type = GeometricalProjectionUtilities::GeometricalProjectionUtilities::FastMinimalDistanceOnLineWithRadius(distance, *line, point1, radius);
-    KRATOS_CHECK_NEAR(distance, 0.1, TOLERANCE_DISTANCE_PATH);
-    KRATOS_CHECK_EQUAL(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::NO_RADIUS);
+    KRATOS_EXPECT_NEAR(distance, 0.1, TOLERANCE_DISTANCE_PATH);
+    KRATOS_EXPECT_EQ(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::NO_RADIUS);
 
     radius = 0.01;
     Point point2(0.0,0.0,0.1);
     distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point2);
     distance_computed_type = GeometricalProjectionUtilities::GeometricalProjectionUtilities::FastMinimalDistanceOnLineWithRadius(distance, *line, point2, radius);
-    KRATOS_CHECK_NEAR(distance, 0.09, TOLERANCE_DISTANCE_PATH);
-    KRATOS_CHECK_EQUAL(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::RADIUS_PROJECTED);
+    KRATOS_EXPECT_NEAR(distance, 0.09, TOLERANCE_DISTANCE_PATH);
+    KRATOS_EXPECT_EQ(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::RADIUS_PROJECTED);
 
     Point point3(-0.1,0.0,0.1);
     distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point3);
     distance_computed_type = GeometricalProjectionUtilities::GeometricalProjectionUtilities::FastMinimalDistanceOnLineWithRadius(distance, *line, point3, radius);
-    KRATOS_CHECK_NEAR(distance, std::sqrt(std::pow(0.09, 2) * 2), TOLERANCE_DISTANCE_PATH);
-    KRATOS_CHECK_EQUAL(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::RADIUS_NOT_PROJECTED_OUTSIDE);
+    KRATOS_EXPECT_NEAR(distance, std::sqrt(std::pow(0.09, 2) * 2), TOLERANCE_DISTANCE_PATH);
+    KRATOS_EXPECT_EQ(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::RADIUS_NOT_PROJECTED_OUTSIDE);
 
     radius = 0.1;
     Point point4(-0.1,0.0,0.09);
     distance = GeometricalProjectionUtilities::FastMinimalDistanceOnLine(*line, point4);
     distance_computed_type = GeometricalProjectionUtilities::GeometricalProjectionUtilities::FastMinimalDistanceOnLineWithRadius(distance, *line, point4, radius);
-    KRATOS_CHECK_NEAR(distance, -(std::sqrt(std::pow(0.01, 2) + std::pow(0.1, 2))), TOLERANCE_DISTANCE_PATH);
-    KRATOS_CHECK_EQUAL(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::RADIUS_NOT_PROJECTED_INSIDE);
+    KRATOS_EXPECT_NEAR(distance, -(std::sqrt(std::pow(0.01, 2) + std::pow(0.1, 2))), TOLERANCE_DISTANCE_PATH);
+    KRATOS_EXPECT_EQ(distance_computed_type, GeometricalProjectionUtilities::DistanceComputed::RADIUS_NOT_PROJECTED_INSIDE);
 }
 
 } // namespace Kratos::Testing.

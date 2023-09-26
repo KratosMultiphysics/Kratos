@@ -40,7 +40,7 @@ namespace Kratos
                                                      &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
                                                      &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
-            KRATOS_CHECK_EQUAL(status, 0);
+            KRATOS_EXPECT_EQ(status, 0);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyTextualProgressReport, KratosGeoMechanicsFastSuite)
@@ -72,10 +72,10 @@ namespace Kratos
                                                      &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
                                                      reportTextualProgress, &flow_stubs::emptyCancel);
 
-            KRATOS_CHECK_EQUAL(status, 0);
-            KRATOS_CHECK_EQUAL(firstMessageFound, true);
-            KRATOS_CHECK_EQUAL(finalMessageFound, true);
-            KRATOS_CHECK_EQUAL(messageCount, 9);
+            KRATOS_EXPECT_EQ(status, 0);
+            KRATOS_EXPECT_EQ(firstMessageFound, true);
+            KRATOS_EXPECT_EQ(finalMessageFound, true);
+            KRATOS_EXPECT_EQ(messageCount, 9);
         }
 
         KRATOS_TEST_CASE_IN_SUITE(ErosionProcessStrategyProgressReport, KratosGeoMechanicsFastSuite)
@@ -107,10 +107,10 @@ namespace Kratos
                                                      &flow_stubs::emptyLog, reportProgress, &flow_stubs::emptyLog,
                                                      &flow_stubs::emptyCancel);
 
-            KRATOS_CHECK_EQUAL(status, 0);
-            KRATOS_CHECK_EQUAL(startProgressFound, true);
-            KRATOS_CHECK_EQUAL(endProgressFound, true);
-            KRATOS_CHECK_EQUAL(progressUpdates, 10);
+            KRATOS_EXPECT_EQ(status, 0);
+            KRATOS_EXPECT_EQ(startProgressFound, true);
+            KRATOS_EXPECT_EQ(endProgressFound, true);
+            KRATOS_EXPECT_EQ(progressUpdates, 10);
         }
     }
 }

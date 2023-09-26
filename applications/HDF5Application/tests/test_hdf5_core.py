@@ -88,7 +88,7 @@ class TestFileIO(KratosUnittest.TestCase):
         io = file_io._HDF5SerialFileIO()
         self._BuildTestFileIOObject(io)
         obj = io.Get('kratos.h5')
-        self.assertIsInstance(obj, KratosHDF5.HDF5FileSerial)
+        self.assertIsInstance(obj, KratosHDF5.HDF5File)
 
     def test_SetDefaults(self):
         settings = ParametersWrapper()
@@ -685,7 +685,7 @@ class TestControllers(KratosUnittest.TestCase):
         mock_instance.GetFileName.return_value = 'kratos.h5'
         _, model_part = _SurrogateModelPart()
         controller_settings = ParametersWrapper()
-        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True):
+        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5File', autospec=True):
             operation = MagicMock(spec = operations.AggregateOperation)
             controller = controllers.Factory(
                 model_part, operation, controller_settings.Get())
@@ -778,7 +778,7 @@ class TestControllers(KratosUnittest.TestCase):
         operation = MagicMock(spec = operations.AggregateOperation)
         controller = controllers.Factory(
             model_part, operation, controller_settings)
-        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True):
+        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5File', autospec=True):
             for _ in range(10):
                 model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
                 model_part.ProcessInfo[KratosMultiphysics.TIME] += model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
@@ -837,7 +837,7 @@ class TestFactory(KratosUnittest.TestCase):
             }''')
         parent_settings = ParametersWrapper(parent_settings)
         process = core.Factory(parent_settings['list_of_controllers'], model, KratosMultiphysics.Process)
-        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True) as MockedFileSerial:
+        with patch('KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5File', autospec=True) as MockedFileSerial:
             with patch('KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ModelPartIO', autospec=True) as MockedModelPartIO:
                 process.ExecuteInitialize()
                 model_part_io = MockedModelPartIO.return_value

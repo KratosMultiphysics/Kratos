@@ -83,7 +83,7 @@ namespace Testing
         for (unsigned int i=0; i<number_of_dofs;++i){
             double diagonal_entry = 0.0;
             for (unsigned int j=0; j<number_of_dofs;++j) diagonal_entry += mm_consistent(i,j);
-            KRATOS_CHECK_NEAR(mm_lumped(i,i),diagonal_entry,1.0e-10);
+            KRATOS_EXPECT_NEAR(mm_lumped(i,i),diagonal_entry,1.0e-10);
         }
 
 
@@ -104,7 +104,7 @@ namespace Testing
 
         mm_consistent_analytical *= density*area*length / 6.0;
 
-        KRATOS_CHECK_MATRIX_NEAR(mm_consistent_analytical, mm_consistent, 1e-10);
+        KRATOS_EXPECT_MATRIX_NEAR(mm_consistent_analytical, mm_consistent, 1e-10);
 
 
         Vector lumped_mass_vector = ZeroVector(number_of_dofs);
@@ -113,8 +113,8 @@ namespace Testing
         const double lumped_mass = area*length*density*0.5;
         for (unsigned int i=0;i<number_of_dofs;++i)
         {
-            KRATOS_CHECK_NEAR(mm_lumped(i,i),lumped_mass_vector[i],1.0e-10);
-            KRATOS_CHECK_NEAR(lumped_mass,lumped_mass_vector[i],1.0e-10);
+            KRATOS_EXPECT_NEAR(mm_lumped(i,i),lumped_mass_vector[i],1.0e-10);
+            KRATOS_EXPECT_NEAR(lumped_mass,lumped_mass_vector[i],1.0e-10);
         }
 
     }
@@ -179,7 +179,7 @@ namespace Testing
         for (unsigned int i=0;i<number_of_nodes;++i){
             for (unsigned int j=0;j<dimension;++j){
                 const unsigned int index = (i*dimension)+j;
-                KRATOS_CHECK_NEAR(
+                KRATOS_EXPECT_NEAR(
                     rhs[index],
                     m1*gravity[j],
                     1.0e-10);

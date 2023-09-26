@@ -17,11 +17,6 @@
 #include "includes/model_part.h"
 #include "fem_to_dem_application_variables.h"
 #include "custom_python/add_custom_processes_to_python.h"
-#include "custom_processes/stress_to_nodes_process.hpp"
-#include "custom_processes/compute_normalized_free_energy_on_nodes_process.h"
-#include "custom_processes/damage_to_nodes_process.hpp"
-#include "custom_processes/dem_after_remesh_identificator_process.hpp"
-#include "custom_processes/initial_dem_skin_process.hpp"
 #include "custom_processes/extend_pressure_condition_process.h"
 #include "custom_processes/assign_pressure_id_process.h"
 #include "custom_processes/expand_wet_nodes_process.h"
@@ -30,7 +25,6 @@
 #include "custom_processes/generate_dem_process.h"
 #include "custom_processes/update_dem_kinematics_process.h"
 #include "custom_processes/transfer_nodal_forces_to_fem.h"
-#include "custom_processes/compute_sand_production.h"
 #include "custom_processes/regenerate_pfem_pressure_conditions_process.h"
 #include "custom_processes/update_pressure_value_pfem_conditions_process.h"
 #include "custom_processes/fix_free_velocity_on_nodes_process.h"
@@ -79,8 +73,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
       .def(init<ModelPart&, const Variable<array_1d<double,3> >&, array_1d<double,3>&>())
       .def("Execute", &AssignVectorVariableToConditionsProcess::Execute);
 
-
-
   class_<FixScalarDofProcess, FixScalarDofProcess::Pointer, Process>(m,"FixScalarDofProcess")
       .def(init<ModelPart&, Parameters>())
       .def(init<ModelPart&, Parameters&>())
@@ -89,7 +81,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
       .def(init<ModelPart&, const Variable<bool>&>())
       .def("Execute", &FixScalarDofProcess::Execute);
 
-
   class_<FreeScalarDofProcess, FreeScalarDofProcess::Pointer, Process>(m,"FreeScalarDofProcess")
       .def(init<ModelPart&, Parameters>())
       .def(init<ModelPart&, Parameters&>())
@@ -97,24 +88,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
       .def(init<ModelPart&, const Variable<int>&>())
       .def(init<ModelPart&, const Variable<bool>&>())
       .def("Execute", &FreeScalarDofProcess::Execute);
-
-    // Stress extrapolation to Nodes
-    class_<StressToNodesProcess, StressToNodesProcess::Pointer, Process>(m, "StressToNodesProcess")
-        .def(init<ModelPart &, unsigned int>())
-        .def("Execute", &StressToNodesProcess::Execute);
-
-    // Damage extrapolation to Nodes
-    class_<DamageToNodesProcess, DamageToNodesProcess::Pointer, Process>(m, "DamageToNodesProcess")
-        .def(init<ModelPart &, unsigned int>())
-        .def("Execute", &DamageToNodesProcess::Execute);
-
-    class_<DemAfterRemeshIdentificatorProcess, DemAfterRemeshIdentificatorProcess::Pointer, Process>(m, "DemAfterRemeshIdentificatorProcess")
-        .def(init<ModelPart &, const double >())
-        .def("Execute", &DemAfterRemeshIdentificatorProcess::Execute);
-
-    class_<InitialDemSkinProcess, InitialDemSkinProcess::Pointer, Process>(m, "InitialDemSkinProcess")
-        .def(init<ModelPart &>())
-        .def("Execute", &InitialDemSkinProcess::Execute);
 
     class_<ExtendPressureConditionProcess<2>, ExtendPressureConditionProcess<2>::Pointer, Process>(m, "ExtendPressureConditionProcess2D")
         .def(init<ModelPart &>())
@@ -131,11 +104,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
     class_<ExpandWetNodesProcess, ExpandWetNodesProcess::Pointer, Process>(m, "ExpandWetNodesProcess")
         .def(init<ModelPart &>())
         .def("Execute", &ExpandWetNodesProcess::Execute);
-
-    // Normalized Free Energy extrapolation to Nodes
-    class_<ComputeNormalizedFreeEnergyOnNodesProcess, ComputeNormalizedFreeEnergyOnNodesProcess::Pointer, Process>(m, "ComputeNormalizedFreeEnergyOnNodesProcess")
-        .def(init<ModelPart &, Parameters>())
-        .def("Execute", &ComputeNormalizedFreeEnergyOnNodesProcess::Execute);
 
     class_<ApplyComponentTableProcess, ApplyComponentTableProcess::Pointer, Process> (m, "ApplyComponentTableProcess")
         .def(init< ModelPart&, Parameters>());
@@ -154,10 +122,6 @@ void AddCustomProcessesToPython(pybind11::module &m)
     class_<TransferNodalForcesToFem, TransferNodalForcesToFem::Pointer, Process>(m, "TransferNodalForcesToFem")
         .def(init<ModelPart &, bool>())
         .def("Execute", &TransferNodalForcesToFem::Execute);
-
-    class_<ComputeSandProduction, ComputeSandProduction::Pointer, Process>(m, "ComputeSandProduction")
-        .def(init<ModelPart &>())
-        .def("Execute", &ComputeSandProduction::Execute);
 
     class_<RegeneratePfemPressureConditionsProcess<3>, RegeneratePfemPressureConditionsProcess<3>::Pointer, Process>(m, "RegeneratePfemPressureConditionsProcess3D")
         .def(init<ModelPart &>())

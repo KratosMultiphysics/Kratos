@@ -29,9 +29,7 @@ ConstitutiveLaw::Pointer LinearPlaneStrainK0Law::Clone() const
 bool& LinearPlaneStrainK0Law::GetValue(const Variable<bool>& rThisVariable, bool& rValue)
 {
     // This Constitutive Law has been checked with Stenberg Stabilization
-    if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE) {
-        rValue = true;
-    }
+    if (rThisVariable == STENBERG_SHEAR_STABILIZATION_SUITABLE) rValue = true;
 
     return rValue;
 }
@@ -134,7 +132,6 @@ void LinearPlaneStrainK0Law::CalculatePK2Stress(const Vector& rStrainVector,
 
 void LinearPlaneStrainK0Law::CalculateCauchyGreenStrain(Parameters& rValues, Vector& rStrainVector)
 {
-
     //1.-Compute total deformation gradient
     const Matrix& F = rValues.GetDeformationGradientF();
 
