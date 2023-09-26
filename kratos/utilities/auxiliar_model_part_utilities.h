@@ -103,7 +103,7 @@ public:
     template<class TIteratorType >
     void AddElementsWithNodesToSubModelParts(
         TIteratorType ItElementsBegin,
-        TIteratorType ItElementsEnd,
+        TIteratorType ItElementsEnd
         )
     {
         KRATOS_TRY
