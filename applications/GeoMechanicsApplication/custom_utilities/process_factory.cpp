@@ -22,9 +22,7 @@ ProcessFactory::ProductType ProcessFactory::Create(const std::string& rProcessCl
                                                    const Parameters&  rProcessSettings) const
 {
     auto pos = mCreatorMap.find(rProcessClassName);
-    if (pos == mCreatorMap.end()) {
-        return nullptr;
-    }
+    KRATOS_ERROR_IF(pos == mCreatorMap.end()) << "Unexpected process (" << rProcessClassName << "), calculation is aborted";
 
     return pos->second ? pos->second(rProcessSettings) : nullptr;
 }

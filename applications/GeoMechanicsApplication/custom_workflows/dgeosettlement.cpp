@@ -110,7 +110,10 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     std::vector<std::weak_ptr<Process>> process_observables;
     process_observables.insert(process_observables.end(), processes.begin(), processes.end());
 
-    mpTimeLoopExecutor->SetProcessReferences(process_observables);
+    if (mpTimeLoopExecutor != nullptr)
+    {
+        mpTimeLoopExecutor->SetProcessReferences(process_observables);
+    }
 
     return 0;
 }
