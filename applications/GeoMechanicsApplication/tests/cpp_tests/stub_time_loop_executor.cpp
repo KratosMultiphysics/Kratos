@@ -23,7 +23,7 @@ StubTimeLoopExecutor::StubTimeLoopExecutor(std::size_t NumberOfExpectedProcesses
 void StubTimeLoopExecutor::SetProcessReferences(const std::vector<std::weak_ptr<Process>>& rProcessRefs)
 {
     KRATOS_EXPECT_EQ(rProcessRefs.size(), mNumberOfExpectedProcesses);
-    for (const auto process_ref : rProcessRefs)
+    for (const auto& process_ref : rProcessRefs)
     {
         KRATOS_EXPECT_FALSE(process_ref.expired())
 
