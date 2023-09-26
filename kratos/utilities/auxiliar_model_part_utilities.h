@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -32,7 +32,7 @@ namespace Kratos
 ///@{
 
     /// The index type definition
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
 ///@}
 ///@name  Functions
@@ -85,35 +85,25 @@ public:
     /**
      * @brief This method adds the given element and the belonging nodes
      * @param pNewElement The new element added
-     * @param ThisIndex The mesh index
      */
-    void AddElementWithNodesToSubModelParts(
-        Element::Pointer pNewElement,
-        IndexType ThisIndex = 0
-        );
+    void AddElementWithNodesToSubModelParts(Element::Pointer pNewElement);
 
     /**
      * @brief Inserts a list of elements and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
      * @param rElementIds The ids of the elements
-     * @param ThisIndex The mesh index
      */
-    void AddElementsWithNodesToSubModelParts(
-        const std::vector<IndexType>& rElementIds,
-        IndexType ThisIndex = 0
-        );
+    void AddElementsWithNodesToSubModelParts(const std::vector<IndexType>& rElementIds);
 
     /**
      * @brief Inserts a list of pointers to elements and the belonging nodes
      * @param ItElementsBegin The begin iterator
      * @param ItElementsEnd The end iterator
-     * @param ThisIndex The mesh index
      * @tparam TIteratorType The class of iterator considered
      */
     template<class TIteratorType >
     void AddElementsWithNodesToSubModelParts(
         TIteratorType ItElementsBegin,
         TIteratorType ItElementsEnd,
-        IndexType ThisIndex = 0
         )
     {
         KRATOS_TRY
@@ -122,7 +112,7 @@ public:
         ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
         std::vector<IndexType> list_of_nodes;
         ModelPart::ElementsContainerType aux;
-        AuxiliaryAddEntitiesWithNodes<ModelPart::ElementsContainerType, TIteratorType>(p_root_model_part->Elements(), aux, list_of_nodes, ItElementsBegin, ItElementsEnd, ThisIndex);
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ElementsContainerType, TIteratorType>(p_root_model_part->Elements(), aux, list_of_nodes, ItElementsBegin, ItElementsEnd);
 
         // Add to all of the leaves
         ModelPart* p_current_part = &mrModelPart;
@@ -142,35 +132,25 @@ public:
     /**
      * @brief This method adds the given condition and the belonging nodes
      * @param pNewCondition The new condition added
-     * @param ThisIndex The mesh index
      */
-    void AddConditionWithNodesToSubModelParts(
-        Condition::Pointer pNewCondition,
-        IndexType ThisIndex = 0
-        );
+    void AddConditionWithNodesToSubModelParts(Condition::Pointer pNewCondition);
 
     /**
      * @brief Inserts a list of conditions and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
      * @param rConditionIds The ids of the conditions
-     * @param ThisIndex The mesh index
      */
-    void AddConditionsWithNodesToSubModelParts(
-        const std::vector<IndexType>& rConditionIds,
-        IndexType ThisIndex = 0
-        );
+    void AddConditionsWithNodesToSubModelParts(const std::vector<IndexType>& rConditionIds);
 
     /**
      * @brief Inserts a list of pointers to conditions and the belonging nodes
      * @param ItConditionsBegin The begin iterator
      * @param ItConditionsEnd The end iterator
-     * @param ThisIndex The mesh index
      * @tparam TIteratorType The class of iterator considered
      */
     template<class TIteratorType >
     void AddConditionsWithNodesToSubModelParts(
         TIteratorType ItConditionsBegin,
-        TIteratorType ItConditionsEnd,
-        IndexType ThisIndex = 0
+        TIteratorType ItConditionsEnd
         )
     {
         KRATOS_TRY
@@ -179,7 +159,7 @@ public:
         ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
         std::vector<IndexType> list_of_nodes;
         ModelPart::ConditionsContainerType aux;
-        AuxiliaryAddEntitiesWithNodes<ModelPart::ConditionsContainerType, TIteratorType>(p_root_model_part->Conditions(), aux, list_of_nodes, ItConditionsBegin, ItConditionsEnd, ThisIndex);
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ConditionsContainerType, TIteratorType>(p_root_model_part->Conditions(), aux, list_of_nodes, ItConditionsBegin, ItConditionsEnd);
 
         // Add to all of the leaves
         ModelPart* p_current_part = &mrModelPart;

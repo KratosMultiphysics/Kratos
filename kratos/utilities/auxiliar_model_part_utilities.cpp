@@ -24,16 +24,19 @@
 
 namespace Kratos
 {
-void AuxiliarModelPartUtilities::AddElementWithNodesToSubModelParts(
-    Element::Pointer pNewElement,
-    IndexType ThisIndex
-    )
+void AuxiliarModelPartUtilities::AddElementWithNodesToSubModelParts(Element::Pointer pNewElement)
 {
     const auto& r_geom = pNewElement->GetGeometry();
-    std::vector<IndexType> list_of_nodes(r_geom.size());
+    std::vector<IndexType> list_of_nodes;
+    list_of_nodes.reserve(r_geom.size());
+    IndexType id;
     for (IndexType i = 0; i < r_geom.size(); ++i) {
-        list_of_nodes[i] = r_geom[i].Id();
+        id = r_geom[i].Id();
+        if (!mrModelPart.HasNode(id)) {
+            list_of_nodes.push_back(id);
+        }
     }
+    std::sort(list_of_nodes.begin(), list_of_nodes.end());
     mrModelPart.AddNodes(list_of_nodes);
     mrModelPart.AddElement(pNewElement);
 }
@@ -41,19 +44,16 @@ void AuxiliarModelPartUtilities::AddElementWithNodesToSubModelParts(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::AddElementsWithNodesToSubModelParts(
-    const std::vector<IndexType>& rElementIds,
-    IndexType ThisIndex
-    )
+void AuxiliarModelPartUtilities::AddElementsWithNodesToSubModelParts(const std::vector<IndexType>& rElementIds)
 {
     KRATOS_TRY
-    mrModelPart.AddElements(rElementIds, ThisIndex);
+    mrModelPart.AddElements(rElementIds);
     if(mrModelPart.IsSubModelPart()) { // Does nothing if we are on the root model part, the root model part already contains all the nodes
         // Obtain from the root model part the corresponding list of nodes
         ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
-        AuxiliaryAddEntitiesWithNodes<ModelPart::ElementsContainerType>(p_root_model_part->Elements(), rElementIds, ThisIndex);
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ElementsContainerType>(p_root_model_part->Elements(), rElementIds);
     } else {
-        KRATOS_WARNING("AuxiliarModelPartUtilities") << "Does nothing appart of adding the elements as we are on the root model part, the root model part already contains all the nodes" << std::endl;
+        KRATOS_WARNING("AuxiliarModelPartUtilities") << "Does nothing appart of adding the nodes and elements as we are on the root model part, the root model part already contains all the nodes" << std::endl;
     }
 
     KRATOS_CATCH("");
@@ -62,16 +62,19 @@ void AuxiliarModelPartUtilities::AddElementsWithNodesToSubModelParts(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::AddConditionWithNodesToSubModelParts(
-    Condition::Pointer pNewCondition,
-    IndexType ThisIndex
-    )
+void AuxiliarModelPartUtilities::AddConditionWithNodesToSubModelParts(Condition::Pointer pNewCondition)
 {
     const auto& r_geom = pNewCondition->GetGeometry();
-    std::vector<IndexType> list_of_nodes(r_geom.size());
+    std::vector<IndexType> list_of_nodes;
+    list_of_nodes.reserve(r_geom.size());
+    IndexType id;
     for (IndexType i = 0; i < r_geom.size(); ++i) {
-        list_of_nodes[i] = r_geom[i].Id();
+        id = r_geom[i].Id();
+        if (!mrModelPart.HasNode(id)) {
+            list_of_nodes.push_back(id);
+        }
     }
+    std::sort(list_of_nodes.begin(), list_of_nodes.end());
     mrModelPart.AddNodes(list_of_nodes);
     mrModelPart.AddCondition(pNewCondition);
 }
@@ -79,18 +82,15 @@ void AuxiliarModelPartUtilities::AddConditionWithNodesToSubModelParts(
 /***********************************************************************************/
 /***********************************************************************************/
 
-void AuxiliarModelPartUtilities::AddConditionsWithNodesToSubModelParts(
-    const std::vector<IndexType>& rConditionIds,
-    IndexType ThisIndex
-    )
+void AuxiliarModelPartUtilities::AddConditionsWithNodesToSubModelParts(const std::vector<IndexType>& rConditionIds)
 {
     KRATOS_TRY
-    mrModelPart.AddConditions(rConditionIds, ThisIndex);
+    mrModelPart.AddConditions(rConditionIds);
     if(mrModelPart.IsSubModelPart()) { // Does nothing if we are on the top model part
         ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
-        AuxiliaryAddEntitiesWithNodes<ModelPart::ConditionsContainerType>(p_root_model_part->Conditions(), rConditionIds, ThisIndex);
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ConditionsContainerType>(p_root_model_part->Conditions(), rConditionIds);
     } else {
-        KRATOS_WARNING("AuxiliarModelPartUtilities") << "Does nothing appart of adding the conditions as we are on the root model part, the root model part already contains all the nodes" << std::endl;
+        KRATOS_WARNING("AuxiliarModelPartUtilities") << "Does nothing appart of adding the nodes and conditions as we are on the root model part, the root model part already contains all the nodes" << std::endl;
     }
 
     KRATOS_CATCH("");
