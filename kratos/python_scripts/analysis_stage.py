@@ -64,7 +64,7 @@ class AnalysisStage(object):
         Ainv[1,0] = -A[1,0]/det
         Ainv[1,1] = A[0,0]/det
         return Ainv
-    
+
     def RunSolutionLoop(self):
         """This function executes the solution loop of the AnalysisStage
         It can be overridden by derived classes
@@ -95,7 +95,7 @@ class AnalysisStage(object):
             self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
             self._GetSolver().Predict()
-            is_converged = self._GetSolver().SolveSolutionStep()     
+            is_converged = self._GetSolver().SolveSolutionStep()
             self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
@@ -104,65 +104,55 @@ class AnalysisStage(object):
         self.flatted_config_jacobians = []
         for element in self._GetSolver().GetComputingModelPart().Elements:
             H0 = element.Properties[KratosMultiphysics.THICKNESS]
-            extracolumn = np.array( [[0.0, 0.0, H0/2.0]] )
+            extracolumn = np.array([[0.0, 0.0, H0/2.0]])
             elm_Jacobian = np.array(element.GetGeometry().Jacobian(0))
-            J_X0 = np.concatenate( (elm_Jacobian, extracolumn.T), axis= 1 )
+            J_X0 = np.concatenate((elm_Jacobian, extracolumn.T), axis=1)
             self.flatted_config_jacobians.append(J_X0)
-            
-        Fs = []
-        for J,J0,element in zip(self.deformed_config_jacobians,self.flatted_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
-            J0_inv= np.linalg.inv(J0)
 
-            JJT = J.T * J
-            G_hat = J0_inv
-            g_hat = JJT
-            C3D = G_hat.T * g_hat * G_hat
-            E3D = 0.5 * (C3D - np.eye(3))
+        for J, J0, element in zip(self.deformed_config_jacobians,self.flatted_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
 
-            JJT = J.T * J
-            G = J0_inv[0:2,0:2]
-            g = JJT[0:2,0:2]
-            C2D = G.T * g * G
-            E2D = 0.5 * (C2D - np.eye(2))
-            print("element:", element.Id)
-            
-            E_v_Kratos = KratosMultiphysics.Vector(3)
-            E_v_Kratos[0] = -E2D[0,0]
-            E_v_Kratos[1] = -E2D[1,1]
-            E_v_Kratos[2] = 2.0 * E2D[1,0]
-            # print("E_v: ", E_v)
-            # print(E_v_Kratos)
-            # element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_v_Kratos)
-            # TODO: CHECK STRAINS      
             local_axis_1 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_2 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_3 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, self._GetSolver().GetComputingModelPart().ProcessInfo)
-            print("local_axis_1:", local_axis_1[0])
-            print("local_axis_2:", local_axis_2[0])
-            print("local_axis_3:", local_axis_3[0])
-            T_elm = KratosMultiphysics.Matrix(3,3)
-            T_elm[0,0] = local_axis_1[0][0]
-            T_elm[0,1] = local_axis_1[0][1]
-            T_elm[0,2] = local_axis_1[0][2]
-            T_elm[1,0] = local_axis_2[0][0]
-            T_elm[1,1] = local_axis_2[0][1]
-            T_elm[1,2] = local_axis_2[0][2]
-            T_elm[2,0] = local_axis_3[0][0]
-            T_elm[2,1] = local_axis_3[0][1]
-            T_elm[2,2] = local_axis_3[0][2]
-            print("T_elemental :",T_elm)
-            print("T_elemtrans :",T_elm.transpose())
-            E_new = T_elm * E3D
+
+            T0_elm = KratosMultiphysics.Matrix(3, 3)
+            T0_elm[0, 0] = local_axis_1[0][0]
+            T0_elm[0, 1] = local_axis_1[0][1]
+            T0_elm[0, 2] = local_axis_1[0][2]
+            T0_elm[1, 0] = local_axis_2[0][0]
+            T0_elm[1, 1] = local_axis_2[0][1]
+            T0_elm[1, 2] = local_axis_2[0][2]
+            T0_elm[2, 0] = local_axis_3[0][0]
+            T0_elm[2, 1] = local_axis_3[0][1]
+            T0_elm[2, 2] = local_axis_3[0][2]
+
+            J0 = T0_elm.transpose() * J0
+            J0_inv = np.linalg.inv(J0)
+
+            JTJ = J.T * J
+            G_hat = J0_inv
+            g_hat = JTJ
+            C3D = G_hat.T * g_hat * G_hat
+            E3D = 0.5 * (C3D - np.eye(3))
+
+            JTJ = J.T * J
+            G = J0_inv[0:2, 0:2]
+            g = JTJ[0:2, 0:2]
+            C2D = G.T * g * G
+            E2D = 0.5 * (C2D - np.eye(2))
+
+            if element.Id == 2 or element.Id == 35:
+                print("element:", element.Id)
+                print(J * J0_inv)
+
+            E3D = T0_elm * (E3D * T0_elm.transpose())
+
             E_voigt = KratosMultiphysics.Vector(3)
-            E_voigt[0] = -E_new[0,0]
-            E_voigt[1] = -E_new[1,1]
-            E_voigt[2] = 2.0 * E_new[1,0]
-            print(E3D)
-            print(E_new)
+            E_voigt[0] = -E3D[0, 0]
+            E_voigt[1] = -E3D[1, 1]
+            E_voigt[2] = 0.0
+
             element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
-            print("-----------")
-            # print(element.Properties[StructuralMechanics.LOCAL_AXES_VECTOR])
-            # print(element.Properties[StructuralMechanics.LOCAL_MATERIAL_AXIS_2])
             # TODO later - Create condition for PointLoad, reference command:
             # self._GetSolver().GetComputingModelPart().CreateCondition()
 
@@ -297,24 +287,40 @@ class AnalysisStage(object):
         # save deformed configuration nodal positions
         var_utils = KratosMultiphysics.VariableUtils()
         self.initial_unmodified_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
-    
+
         # Calculate Jacobians from deformed configuration
         self.deformed_config_jacobians = []
         for elem in self._GetSolver().GetComputingModelPart().Elements:
             H0 = elem.Properties[KratosMultiphysics.THICKNESS]
-            extracolumn = np.array( [[0.0, 0.0, H0/2.0]] )
+            extracolumn = np.array([[0.0, 0.0, H0/2.0]])
             elm_Jacobian = np.array(elem.GetGeometry().Jacobian(0))
-            J_X = np.concatenate( (elm_Jacobian, extracolumn.T), axis= 1 )
-            # J = np.array(elem.GetGeometry().Jacobian(0))
+            J_X = np.concatenate((elm_Jacobian, extracolumn.T), axis=1)
+
+            local_axis_1 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
+            local_axis_2 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
+            local_axis_3 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, self._GetSolver().GetComputingModelPart().ProcessInfo)
+
+            T_elm = np.zeros((3, 3))
+            T_elm[0, 0] = local_axis_1[0][0]
+            T_elm[0, 1] = local_axis_1[0][1]
+            T_elm[0, 2] = local_axis_1[0][2]
+            T_elm[1, 0] = local_axis_2[0][0]
+            T_elm[1, 1] = local_axis_2[0][1]
+            T_elm[1, 2] = local_axis_2[0][2]
+            T_elm[2, 0] = local_axis_3[0][0]
+            T_elm[2, 1] = local_axis_3[0][1]
+            T_elm[2, 2] = local_axis_3[0][2]
+
+            J_X = T_elm.transpose() * J_X
+
             self.deformed_config_jacobians.append(J_X)
-            # print("J[",elem.Id,"]:", J_X)
 
         # Calculate normals from deformed configuration
         print("\n ::TESTING:: START Calculate normals \n")
         self.deformed_config_normals = []
         normal_calculation_utils = KratosMultiphysics.NormalCalculationUtils()
         normal_calculation_utils.CalculateUnitNormalsNonHistorical(self._GetSolver().GetComputingModelPart(), 0)
-    
+
         print("nodal normals (deformed configuration):")
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             self.deformed_config_normals.append(np.array(node.GetValue(KratosMultiphysics.NORMAL)))
@@ -322,20 +328,11 @@ class AnalysisStage(object):
         # print(self.deformed_config_normals)
         print("\n ::TESTING:: FINISH Calculate normals \n")
 
-        print("elemental local axis DEFORMED configuration")
-        for element in self._GetSolver().GetComputingModelPart().Elements:
-            local_axis_1 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
-            local_axis_2 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
-            local_axis_3 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, self._GetSolver().GetComputingModelPart().ProcessInfo)
-            print("local_axis_1:", local_axis_1[0])
-            print("local_axis_2:", local_axis_2[0])
-            print("local_axis_3:", local_axis_3[0])
-
         # flatten geometry
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             node.Z0 = 0.0
             node.Z  = 0.0
-        
+
         # save flat configuration nodal positions
         self.flattened_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
         self.initial_displacements = self.initial_unmodified_coordinates - self.flattened_coordinates
