@@ -113,13 +113,13 @@ class AnalysisStage(object):
         for J,J0,element in zip(self.deformed_config_jacobians,self.flatted_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
             J0_inv= np.linalg.inv(J0)
 
-            JJT = J * J.T
+            JJT = J.T * J
             G_hat = J0_inv
             g_hat = JJT
             C3D = G_hat.T * g_hat * G_hat
             E3D = 0.5 * (C3D - np.eye(3))
 
-            JJT = J * J.T
+            JJT = J.T * J
             G = J0_inv[0:2,0:2]
             g = JJT[0:2,0:2]
             C2D = G.T * g * G
@@ -129,10 +129,10 @@ class AnalysisStage(object):
             E_v_Kratos = KratosMultiphysics.Vector(3)
             E_v_Kratos[0] = -E2D[0,0]
             E_v_Kratos[1] = -E2D[1,1]
-            E_v_Kratos[2] = 0.0#2.0 * E2D[1,0]
+            E_v_Kratos[2] = 2.0 * E2D[1,0]
             # print("E_v: ", E_v)
-            print(E_v_Kratos)
-            element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_v_Kratos)
+            # print(E_v_Kratos)
+            # element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_v_Kratos)
             # TODO: CHECK STRAINS      
             local_axis_1 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_2 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
@@ -151,6 +151,15 @@ class AnalysisStage(object):
             T_elm[2,1] = local_axis_3[0][1]
             T_elm[2,2] = local_axis_3[0][2]
             print("T_elemental :",T_elm)
+            print("T_elemtrans :",T_elm.transpose())
+            E_new = T_elm * E3D
+            E_voigt = KratosMultiphysics.Vector(3)
+            E_voigt[0] = -E_new[0,0]
+            E_voigt[1] = -E_new[1,1]
+            E_voigt[2] = 2.0 * E_new[1,0]
+            print(E3D)
+            print(E_new)
+            element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
             print("-----------")
             # print(element.Properties[StructuralMechanics.LOCAL_AXES_VECTOR])
             # print(element.Properties[StructuralMechanics.LOCAL_MATERIAL_AXIS_2])
@@ -298,19 +307,29 @@ class AnalysisStage(object):
             J_X = np.concatenate( (elm_Jacobian, extracolumn.T), axis= 1 )
             # J = np.array(elem.GetGeometry().Jacobian(0))
             self.deformed_config_jacobians.append(J_X)
-        print("J_X: ", self.deformed_config_jacobians[1])
+            # print("J[",elem.Id,"]:", J_X)
 
         # Calculate normals from deformed configuration
-        print("/n ::TESTING:: START Calculate normals /n")
+        print("\n ::TESTING:: START Calculate normals \n")
         self.deformed_config_normals = []
         normal_calculation_utils = KratosMultiphysics.NormalCalculationUtils()
         normal_calculation_utils.CalculateUnitNormalsNonHistorical(self._GetSolver().GetComputingModelPart(), 0)
     
+        print("nodal normals (deformed configuration):")
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             self.deformed_config_normals.append(np.array(node.GetValue(KratosMultiphysics.NORMAL)))
-            # print(node.Id, normal)
-        print("normals:", self.deformed_config_normals)
-        print("/n ::TESTING:: FINISH Calculate normals /n")
+            print(node.Id, self.deformed_config_normals[node.Id - 1])
+        # print(self.deformed_config_normals)
+        print("\n ::TESTING:: FINISH Calculate normals \n")
+
+        print("elemental local axis DEFORMED configuration")
+        for element in self._GetSolver().GetComputingModelPart().Elements:
+            local_axis_1 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
+            local_axis_2 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
+            local_axis_3 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, self._GetSolver().GetComputingModelPart().ProcessInfo)
+            print("local_axis_1:", local_axis_1[0])
+            print("local_axis_2:", local_axis_2[0])
+            print("local_axis_3:", local_axis_3[0])
 
         # flatten geometry
         for node in self._GetSolver().GetComputingModelPart().Nodes:
