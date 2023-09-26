@@ -122,17 +122,17 @@ class HRomTrainingUtility(object):
 
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
-    
+
     def GetJacobianPhiMultiplication(self, computing_model_part):
         jacobian_matrix = KratosMultiphysics.CompressedMatrix()
         residual_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
         delta_x_vector = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
-        
+
         self.solver._GetBuilderAndSolver().BuildAndApplyDirichletConditions(self.solver._GetScheme(), computing_model_part, jacobian_matrix, residual_vector, delta_x_vector)
-        
+
         right_rom_basis = KratosMultiphysics.Matrix(self.solver._GetBuilderAndSolver().GetEquationSystemSize(), self.num_of_right_rom_dofs)
         self.solver._GetBuilderAndSolver().GetRightROMBasis(computing_model_part, right_rom_basis)
-        
+
         jacobian_scipy_format = KratosMultiphysics.scipy_conversion_tools.to_csr(jacobian_matrix)
         jacobian_phi_product = jacobian_scipy_format @ right_rom_basis
 
