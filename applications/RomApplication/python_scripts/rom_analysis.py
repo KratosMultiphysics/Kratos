@@ -76,7 +76,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 #Adding the basis strategy for generating the left ROB for the Petrov-Galerkin ROM.
                 petrov_galerkin_basis_strategy = self.rom_bns_settings["basis_strategy"].GetString() if self.rom_parameters["rom_settings"].Has("basis_strategy") else "residuals"
                 self.project_parameters["solver_settings"]["rom_settings"]["rom_bns_settings"].AddString("basis_strategy", petrov_galerkin_basis_strategy)
-            
+
             ##Petrov Galerkin
             if self.solving_strategy=="petrov_galerkin":
                 self.petrov_galerkin_rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["petrov_galerkin_number_of_rom_dofs"].GetInt()
@@ -176,9 +176,9 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
                 for node in computing_model_part.Nodes:
                     offset = np.where(node_ids == node.Id)[0][0]*nodal_dofs
-                    node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset+nodal_dofs, :])) # ROM basis
+                    node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset+nodal_dofs, :].copy())) # FIXME avoid copying ROM basis
                     if (self.solving_strategy == "petrov_galerkin"):
-                        node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset+nodal_dofs, :])) # ROM basis
+                        node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset+nodal_dofs, :].copy())) # FIXME avoid copying ROM basis
 
 
             # Check for HROM stages
@@ -261,7 +261,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             if self.train_hrom and not self.rom_manager:
                 self.__hrom_training_utility.CalculateAndSaveHRomWeights()
                 self.__hrom_training_utility.CreateHRomModelParts()
-                
+
             # Once simulation is completed, calculate and save the Petrov Galerkin ROM basis
             if self.train_petrov_galerkin and not self.rom_manager:
                 self.__petrov_galerkin_training_utility.CalculateAndSaveBasis()
