@@ -139,7 +139,9 @@ class RomManager(object):
                 rom_snapshots = self.__LaunchTestROM(mu_test)
                 self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in testing_stages):
-                raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
+                self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+                hrom_snapshots = self.__LaunchTestHROM(mu_test)
+                self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         #######################################
 
 
@@ -195,7 +197,7 @@ class RomManager(object):
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
-            raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
+            self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
