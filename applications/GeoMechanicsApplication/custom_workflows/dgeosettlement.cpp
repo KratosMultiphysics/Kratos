@@ -112,10 +112,9 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     }
 
     std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
-    std::vector<std::weak_ptr<Process>> process_observables;
-    process_observables.insert(process_observables.end(), processes.begin(), processes.end());
+    std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
 
-    if (mpTimeLoopExecutor != nullptr)
+    if (mpTimeLoopExecutor)
     {
         mpTimeLoopExecutor->SetProcessReferences(process_observables);
     }

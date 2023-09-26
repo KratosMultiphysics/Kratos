@@ -37,8 +37,7 @@ std::vector<ProcessParameters> JsonProcessInfoParser::AddProcessesForList(const 
     }
 
     std::vector<ProcessParameters> result;
-    const auto processes_in_list = rProcessParameters[rProcessListName];
-    for (Parameters process : processes_in_list)
+    for (Parameters process : rProcessParameters[rProcessListName])
     {
         const std::string process_name_entry = "process_name";
         if (process.Has(process_name_entry))
