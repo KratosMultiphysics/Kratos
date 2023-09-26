@@ -46,17 +46,17 @@ R"({
 })";
 
 const std::vector<ProcessParameters> process_list =
-{ProcessParameters{Parameters{vector_parameter_string}, "ApplyVectorConstraintsTableProcess"},
- ProcessParameters{Parameters{parameter_field_string}, "SetParameterFieldProcess"},
- ProcessParameters{Parameters{excavation_string}, "ApplyExcavationProcess"},
- ProcessParameters{Parameters{k0_string}, "ApplyK0ProcedureProcess"}};
+{ProcessParameters{"ApplyVectorConstraintsTableProcess", Parameters{vector_parameter_string}},
+ ProcessParameters{"SetParameterFieldProcess", Parameters{parameter_field_string}},
+ ProcessParameters{"ApplyExcavationProcess", Parameters{excavation_string}},
+ ProcessParameters{"ApplyK0ProcedureProcess", Parameters{k0_string}}};
 
 std::vector<ProcessParameters> StubProcessInfoParser::GetProcessList(const Kratos::Parameters& rProcessParameters)
 {
     return process_list;
 }
 
-size_t StubProcessInfoParser::NumberOfProcesses()
+std::size_t StubProcessInfoParser::NumberOfProcesses()
 {
     return process_list.size();
 }

@@ -21,7 +21,7 @@ class StubProcessInfoParser : public ProcessInfoParser
 public:
     std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) override;
 
-    static size_t NumberOfProcesses();
+    static std::size_t NumberOfProcesses();
 };
 
 } // Kratos

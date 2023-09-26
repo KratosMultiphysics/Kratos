@@ -25,10 +25,7 @@ public:
     std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) override;
 
 private:
-    std::vector<ProcessParameters> mProcessNames;
-    Parameters mProcessParameters;
-
-    void AddProcessesForList(const std::string& rProcessListName);
+    std::vector<ProcessParameters> AddProcessesForList(const std::string& rProcessListName, const Parameters& rProcessParameters) const;
 };
 
 }

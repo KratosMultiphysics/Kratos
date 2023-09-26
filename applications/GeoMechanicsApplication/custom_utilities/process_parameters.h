@@ -20,15 +20,15 @@ namespace Kratos
 
 struct ProcessParameters
 {
-    Parameters parameters;
     std::string name;
+    Parameters parameters;
 
-    ProcessParameters(const Parameters& rParameters, const std::string& rName) :
-            parameters{rParameters},
-            name{rName}
+    ProcessParameters(const std::string &rName, const Parameters &rParameters) :
+        name{rName},
+        parameters{rParameters}
     {}
 
-    bool operator==(const ProcessParameters& rhs) const
+    bool operator==(const ProcessParameters &rhs) const
     {
         return name == rhs.name && parameters.WriteJsonString() == rhs.parameters.WriteJsonString();
     }

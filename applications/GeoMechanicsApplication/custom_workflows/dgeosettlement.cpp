@@ -106,21 +106,11 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
     }
 
-    std::vector<std::reference_wrapper<Process>> process_references;
-    std::vector<std::unique_ptr<Process>> process_unique_ptrs;
-    if (project_parameters.Has("processes"))
-    {
-        const auto processes = mpProcessInfoParser->GetProcessList(project_parameters["processes"]);
-        for (const auto& process : processes)
-        {
-            process_unique_ptrs.emplace_back(mProcessFactory->Create(process.name, process.parameters));
-        }
-        for (const auto& process_unique_ptr : process_unique_ptrs)
-        {
-            process_references.emplace_back(*process_unique_ptr);
-        }
-    }
-    mpTimeLoopExecutor->SetProcessReferences(process_references);
+    std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
+    std::vector<std::weak_ptr<Process>> process_observables;
+    process_observables.insert(process_observables.end(), processes.begin(), processes.end());
+
+    mpTimeLoopExecutor->SetProcessReferences(process_observables);
 
     return 0;
 }
@@ -180,6 +170,20 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
 const InputUtility* KratosGeoSettlement::GetInterfaceInputUtility() const
 {
     return mpInputUtility.get();
+}
+
+std::vector<std::shared_ptr<Process>> KratosGeoSettlement::GetProcesses(const Parameters& project_parameters)
+{
+    std::vector<std::shared_ptr<Process>> result;
+    if (project_parameters.Has("processes")) {
+        const auto processes = mpProcessInfoParser->GetProcessList(project_parameters["processes"]);
+        for (const auto &process: processes) {
+            result.emplace_back(mProcessFactory->Create(process.name, process.parameters));
+        }
+
+    }
+
+    return result;
 }
 
 // This default destructor is added in the cpp to be able to forward member variables in a unique_ptr

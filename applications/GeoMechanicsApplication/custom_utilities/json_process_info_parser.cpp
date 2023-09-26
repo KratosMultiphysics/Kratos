@@ -16,35 +16,38 @@ namespace Kratos
 
 std::vector<ProcessParameters> JsonProcessInfoParser::GetProcessList(const Parameters& rProcessParameters)
 {
-    mProcessParameters = rProcessParameters;
+    std::vector<ProcessParameters> result;
     const std::vector<std::string> process_list_names = {"constraints_process_list",
                                                          "loads_process_list",
                                                          "auxiliar_process_list"};
 
     for (const auto& process_list_name : process_list_names)
     {
-        JsonProcessInfoParser::AddProcessesForList(process_list_name);
+        const auto processes_for_list = AddProcessesForList(process_list_name, rProcessParameters);
+        result.insert(result.end(), processes_for_list.begin(), processes_for_list.end());
     }
 
-    return mProcessNames;
+    return result;
 }
 
-void JsonProcessInfoParser::AddProcessesForList(const std::string& rProcessListName) {
-    if (!mProcessParameters.Has(rProcessListName))
+std::vector<ProcessParameters> JsonProcessInfoParser::AddProcessesForList(const std::string& rProcessListName, const Parameters& rProcessParameters) const {
+    if (!rProcessParameters.Has(rProcessListName))
     {
-        return;
+        return {};
     }
 
-    const auto processes_in_list = mProcessParameters[rProcessListName];
-
+    std::vector<ProcessParameters> result;
+    const auto processes_in_list = rProcessParameters[rProcessListName];
     for (Parameters process : processes_in_list)
     {
         const std::string process_name_entry = "process_name";
         if (process.Has(process_name_entry))
         {
-            mProcessNames.emplace_back(process["Parameters"], process[process_name_entry].GetString());
+            result.emplace_back(process[process_name_entry].GetString(), process["Parameters"]);
         }
     }
+
+    return result;
 }
 
 }

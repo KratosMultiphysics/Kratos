@@ -68,12 +68,12 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsExpectedProcesses_ForAllListType
     const auto actual_result = parser.GetProcessList(process_list);
 
     // Then
-    const std::vector<ProcessParameters> expected_result = {ProcessParameters{Parameters{parameterString}, "ConstraintProcess1"},
-                                                      ProcessParameters{Parameters{parameterString}, "ConstraintProcess2"},
-                                                      ProcessParameters{Parameters{parameterString}, "LoadProcess1"},
-                                                      ProcessParameters{Parameters{parameterString}, "LoadProcess2"},
-                                                      ProcessParameters{Parameters{parameterString}, "AuxiliarProcess1"},
-                                                      ProcessParameters{Parameters{parameterString}, "AuxiliarProcess2"}};
+    const std::vector<ProcessParameters> expected_result = {ProcessParameters{"ConstraintProcess1", Parameters{parameterString}},
+                                                          ProcessParameters{"ConstraintProcess2", Parameters{parameterString}},
+                                                          ProcessParameters{"LoadProcess1", Parameters{parameterString}},
+                                                          ProcessParameters{"LoadProcess2", Parameters{parameterString}},
+                                                          ProcessParameters{"AuxiliarProcess1", Parameters{parameterString}},
+                                                          ProcessParameters{"AuxiliarProcess2", Parameters{parameterString}}};
 
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
@@ -102,8 +102,8 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_GivesDuplicates_ForProcessesWithIdentic
     const auto actual_result = parser.GetProcessList(process_list_with_duplicate_names);
 
     // Then
-    const std::vector<ProcessParameters> expected_result = {ProcessParameters{Parameters{parameterString}, "ApplyVectorConstraintTableProcess"},
-                                                            ProcessParameters{Parameters{parameterString}, "ApplyVectorConstraintTableProcess"}};
+    const std::vector<ProcessParameters> expected_result = {ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{parameterString}},
+                                                            ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{parameterString}}};
 
     KRATOS_EXPECT_EQ(expected_result, actual_result);
 }
@@ -127,10 +127,10 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(parser.GetProcessList(process_without_parameters), "Getting a value that does not exist. entry string : Parameters")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsEmptyString_WhenNoProcessesAreDefined, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsEmptyList_WhenNoProcessesAreDefined, KratosGeoMechanicsFastSuite)
 {
     JsonProcessInfoParser parser;
-    KRATOS_EXPECT_EQ(parser.GetProcessList(Parameters{}).size(), 0);
+    KRATOS_EXPECT_TRUE(parser.GetProcessList(Parameters{}).empty());
 }
 
 }
