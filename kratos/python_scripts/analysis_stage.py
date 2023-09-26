@@ -141,16 +141,16 @@ class AnalysisStage(object):
             C2D = G.T * g * G
             E2D = 0.5 * (C2D - np.eye(2))
 
-            if element.Id == 2 or element.Id == 35:
+            if element.Id == 14 or element.Id == 48:
                 print("element:", element.Id)
                 print(J * J0_inv)
 
-            E3D = T0_elm * (E3D * T0_elm.transpose())
+            #E3D = T0_elm * (E3D * T0_elm.transpose())
 
             E_voigt = KratosMultiphysics.Vector(3)
             E_voigt[0] = -E3D[0, 0]
             E_voigt[1] = -E3D[1, 1]
-            E_voigt[2] = 0.0
+            E_voigt[2] = -2.0 * E3D[0, 1]
 
             element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
             # TODO later - Create condition for PointLoad, reference command:
