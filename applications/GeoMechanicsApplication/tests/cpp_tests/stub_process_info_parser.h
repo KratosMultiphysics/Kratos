@@ -19,7 +19,7 @@ namespace Kratos {
 class StubProcessInfoParser : public ProcessInfoParser
 {
 public:
-    std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) override;
+    std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) const override;
 
     static std::size_t NumberOfProcesses();
 };

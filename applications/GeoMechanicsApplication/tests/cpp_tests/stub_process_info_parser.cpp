@@ -51,7 +51,7 @@ const std::vector<ProcessParameters> process_list =
  ProcessParameters{"ApplyExcavationProcess", Parameters{excavation_string}},
  ProcessParameters{"ApplyK0ProcedureProcess", Parameters{k0_string}}};
 
-std::vector<ProcessParameters> StubProcessInfoParser::GetProcessList(const Kratos::Parameters& rProcessParameters)
+std::vector<ProcessParameters> StubProcessInfoParser::GetProcessList(const Kratos::Parameters& rProcessParameters) const
 {
     return process_list;
 }

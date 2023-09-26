@@ -22,7 +22,7 @@ namespace Kratos {
 class JsonProcessInfoParser : public ProcessInfoParser
 {
 public:
-    std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) override;
+    std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) const override;
 
 private:
     std::vector<ProcessParameters> AddProcessesForList(const std::string& rProcessListName, const Parameters& rProcessParameters) const;

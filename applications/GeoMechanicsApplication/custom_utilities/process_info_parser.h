@@ -21,7 +21,7 @@ namespace Kratos {
 class ProcessInfoParser {
 public:
     virtual ~ProcessInfoParser() = default;
-    virtual std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) = 0;
+    virtual std::vector<ProcessParameters> GetProcessList(const Parameters& rProcessParameters) const = 0;
 };
 
 } // Kratos
