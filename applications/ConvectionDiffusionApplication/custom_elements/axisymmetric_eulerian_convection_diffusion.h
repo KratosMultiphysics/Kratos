@@ -180,10 +180,51 @@ public:
 
 
     ///@}
+protected:
+    ///@name Protected static Member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected member Variables
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operators
+    ///@{
+
+
+    ///@}
+    ///@name Protected Operations
+    ///@{
+
+    double CalculateTau(
+        const typename BaseType::ElementVariables &rVariables,
+        const double NormVelocity,
+        const double ElementSize);
+
+    ///@}
+    ///@name Protected  Access
+    ///@{
+
+
+    ///@}
+    ///@name Protected Inquiry
+    ///@{
+
+
+    ///@}
+    ///@name Protected LifeCycle
+    ///@{
+
+
+    ///@}
 private:
     ///@name Static Member Variables
     ///@{
 
+    /// Integration rule to be employed
     static constexpr GeometryData::IntegrationMethod mIntegrationMethod = GeometryData::IntegrationMethod::GI_GAUSS_2;
 
     ///@}
@@ -221,6 +262,26 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Calculates values at current Gauss point
+     * This method calculates some values at current Gauss point
+     * Note that the evaluation of these terms is already done at n+\theta
+     * @param rN Current Gauss point shape functions values
+     * @param rDNDX Current Gauss point shape functions gradients values
+     * @param rVariables Elemental data container
+     * @param rRadius Current Gauss point radius
+     * @param rVelocity Current Gauss point velocity at n+\theta
+     * @param rConvectionOperator Current Gauss point evaluation of the convection operator at n+\theta
+     * @param rVelocityGradient Current Gauss point velocity gradient
+     */
+    void CalculateGaussPointData(
+        const array_1d<double, TNumNodes> &rN,
+        const BoundedMatrix<double, TNumNodes, TDim> &rDNDX,
+        typename BaseType::ElementVariables &rVariables,
+        double &rRadius,
+        array_1d<double, TDim> &rVelocity,
+        array_1d<double, TNumNodes> &rConvectionOperator,
+        BoundedMatrix<double, TDim, TDim> &rVelocityGradient) const;
 
     ///@}
     ///@name Private  Access
