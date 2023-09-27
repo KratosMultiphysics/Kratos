@@ -22,8 +22,6 @@
 #include "includes/define_python.h"
 #include "neural_network_application.h"
 #include "neural_network_application_variables.h"
-#include "custom_python/add_custom_strategies_to_python.h"
-#include "custom_python/add_custom_utilities_to_python.h"
 
 namespace Kratos::Python {
 
@@ -36,14 +34,6 @@ PYBIND11_MODULE(KratosNeuralNetworkApplication,m)
         KratosApplication>(m, "KratosNeuralNetworkApplication")
         .def(py::init<>())
         ;
-
-    AddCustomStrategiesToPython(m);
-    AddCustomUtilitiesToPython(m);
-
-    //registering variables in python
-
-    //	KRATOS_REGISTER_IN_PYTHON_VARIABLE(NODAL_AREA);
-
 }
 
 } // namespace Kratos::Python.
