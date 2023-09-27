@@ -175,8 +175,6 @@ public:
 
     void Initialize(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void GetShapeSecondDerivatives(DenseVector<DenseVector<Matrix>> &rDDN_DDX) const;
-
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     void CalculateOnIntegrationPoints(

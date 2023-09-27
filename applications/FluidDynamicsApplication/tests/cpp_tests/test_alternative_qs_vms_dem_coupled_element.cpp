@@ -210,7 +210,9 @@ KRATOS_TEST_CASE_IN_SUITE(SecondShapeDerivativesInterpolation3D, FluidDynamicsAp
         AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<3, 27>>* p_element = dynamic_cast<AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<3, 27>>*>(&rElement);
         const Geometry<Node>::IntegrationMethod integration_method = p_element->GetIntegrationMethod();
 
-        p_element->GetShapeSecondDerivatives(DDN_DDX);
+
+        GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+            DDN_DDX,rElement.GetGeometry(),rElement.GetIntegrationMethod());
 
         Matrix NContainer = p_element->GetGeometry().ShapeFunctionsValues(integration_method);
 
@@ -299,7 +301,8 @@ KRATOS_TEST_CASE_IN_SUITE(SecondShapeDerivativesInterpolation, FluidDynamicsAppl
         AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<Dim, 9>>* p_element = dynamic_cast<AlternativeQSVMSDEMCoupled<QSVMSDEMCoupledData<Dim, 9>>*>(&rElement);
         const Geometry<Node>::IntegrationMethod integration_method = p_element->GetIntegrationMethod();
 
-        p_element->GetShapeSecondDerivatives(DDN_DDX);
+        GeometryUtils::ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+            DDN_DDX, p_element->GetGeometry(), p_element->GetIntegrationMethod());
 
         Matrix NContainer = p_element->GetGeometry().ShapeFunctionsValues(integration_method);
 

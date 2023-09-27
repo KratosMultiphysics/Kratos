@@ -206,7 +206,6 @@ public:
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override;
-    void GetShapeSecondDerivatives(DenseVector<DenseVector<Matrix>> &rDDN_DDX) const;
 
 
     ///@}
@@ -305,13 +304,6 @@ protected:
     void CalculateResistanceTensor(
         const TElementData& rData);
 
-    void CalculateSpectralRadius(
-        const TElementData& rData,
-        double& spectral_radius,
-        double tau_one_NS,
-        const double c1,
-        MatrixType matrix) const;
-
     void MassProjTerm(
         const TElementData& rData,
         double &rMassRHS) const override;
@@ -342,14 +334,6 @@ protected:
         Variable<Matrix> const& rVariable,
         std::vector<Matrix>& rValues,
         ProcessInfo const& rCurrentProcessInfo) override;
-
-    bool GaussSeidelEigenSystem(
-        MatrixType& rA,
-        MatrixType& rEigenVectorsMatrix,
-        MatrixType& rEigenValuesMatrix,
-        const double Tolerance = 1.0e-18,
-        const SizeType MaxIterations = 20
-        ) const;
 
     void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 

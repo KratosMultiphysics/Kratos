@@ -195,7 +195,6 @@ public:
 
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override;
-    void GetShapeSecondDerivatives(DenseVector<DenseVector<Matrix>> &rDDN_DDX) const;
 
 
     ///@}
@@ -264,13 +263,6 @@ protected:
     void CalculateResistanceTensor(
         const TElementData& rData);
 
-    void CalculateSpectralRadius(
-        const TElementData& rData,
-        double& spectral_radius,
-        double tau_one_NS,
-        const double c1,
-        MatrixType matrix) const;
-
     void AddMassStabilization(
         TElementData& rData,
         MatrixType& rMassMatrix) override;
@@ -309,14 +301,6 @@ protected:
     void SubscalePressure(
         const TElementData& rData,
         double& rPressureSubscale) const override;
-
-    bool GaussSeidelEigenSystem(
-        MatrixType& rA,
-        MatrixType& rEigenVectorsMatrix,
-        MatrixType& rEigenValuesMatrix,
-        const double Tolerance = 1.0e-18,
-        const SizeType MaxIterations = 20
-        ) const;
 
     array_1d<double,3> FullConvectiveVelocity(
         const TElementData& rData) const override;
