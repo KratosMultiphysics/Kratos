@@ -51,7 +51,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateThrowsForUnknownProcess_WhenCallbackFunctionThro
 
     const Parameters process_settings;
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(const auto process = factory.Create("UnknownProcess", process_settings),
-                                      "Unexpected process (UnknownProcess), calculation is aborted");
+                                      "Unexpected process (UnknownProcess), calculation is aborted")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreateNothingWhenTheAddedCreatorIsEmpty, KratosGeoMechanicsFastSuite)

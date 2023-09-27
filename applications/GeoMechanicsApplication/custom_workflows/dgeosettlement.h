@@ -53,7 +53,7 @@ private:
     static void AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
     void InitializeProcessFactory();
-    std::vector<std::shared_ptr<Process>> GetProcesses(const Parameters& project_parameters);
+    std::vector<std::shared_ptr<Process>> GetProcesses(const Parameters& project_parameters) const;
 
     Kernel mKernel;
     Model mModel;

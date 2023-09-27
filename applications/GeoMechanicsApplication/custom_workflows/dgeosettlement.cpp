@@ -179,7 +179,7 @@ const InputUtility* KratosGeoSettlement::GetInterfaceInputUtility() const
     return mpInputUtility.get();
 }
 
-std::vector<std::shared_ptr<Process>> KratosGeoSettlement::GetProcesses(const Parameters& project_parameters)
+std::vector<std::shared_ptr<Process>> KratosGeoSettlement::GetProcesses(const Parameters& project_parameters) const
 {
     std::vector<std::shared_ptr<Process>> result;
     if (project_parameters.Has("processes")) {

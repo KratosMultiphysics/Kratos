@@ -130,7 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetProcessList_Throws_WhenProcessDoesNotHaveParameters
 KRATOS_TEST_CASE_IN_SUITE(GetProcessList_ReturnsEmptyList_WhenNoProcessesAreDefined, KratosGeoMechanicsFastSuite)
 {
     JsonProcessInfoParser parser;
-    KRATOS_EXPECT_TRUE(parser.GetProcessList(Parameters{}).empty());
+    KRATOS_EXPECT_TRUE(parser.GetProcessList(Parameters{}).empty())
 }
 
 }
