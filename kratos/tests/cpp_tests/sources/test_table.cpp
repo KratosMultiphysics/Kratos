@@ -52,7 +52,22 @@ KRATOS_TEST_CASE_IN_SUITE(BaseTable, KratosCoreFastSuite)
 
 KRATOS_TEST_CASE_IN_SUITE(NamesOfXAndYInTable, KratosCoreFastSuite)
 {
-    Table<double, double> table;
+    Table<double> table; // uses the class template
+
+    // New tables shouldn't have any names set
+    KRATOS_EXPECT_TRUE(table.NameOfX().empty());
+    KRATOS_EXPECT_TRUE(table.NameOfY().empty());
+
+    table.SetNameOfX("Foo");
+    KRATOS_EXPECT_EQ(table.NameOfX(), "Foo");
+
+    table.SetNameOfY("Bar");
+    KRATOS_EXPECT_EQ(table.NameOfY(), "Bar");
+}
+
+KRATOS_TEST_CASE_IN_SUITE(NamesOfXAndYInTableSpecialization, KratosCoreFastSuite)
+{
+    Table<double, double> table; // uses the template specialization
 
     // New tables shouldn't have any names set
     KRATOS_EXPECT_TRUE(table.NameOfX().empty());

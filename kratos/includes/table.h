@@ -289,6 +289,26 @@ public:
     {
     }
 
+    const std::string& NameOfX() const
+    {
+        return mNameOfX;
+    }
+
+    const std::string& NameOfY() const
+    {
+        return mNameOfY;
+    }
+
+    void SetNameOfX(const std::string& name)
+    {
+        mNameOfX = name;
+    }
+
+    void SetNameOfY(const std::string& name)
+    {
+        mNameOfY = name;
+    }
+
     ///@}
     ///@name Friends
     ///@{
@@ -343,6 +363,8 @@ private:
     ///@{
 
     TableContainerType mData;
+    std::string mNameOfX;
+    std::string mNameOfY;
 
     ///@}
     ///@name Private Operators
