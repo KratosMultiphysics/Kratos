@@ -21,9 +21,7 @@
 #include "includes/data_communicator.h"
 #include "includes/parallel_environment.h"
 
-namespace Kratos {
-
-namespace Python {
+namespace Kratos::Python {
 
 template<class TValue>
 std::vector<TValue> VectorBroadcastWrapper(
@@ -172,6 +170,4 @@ void AddDataCommunicatorToPython(pybind11::module &m)
     .def("__str__", PrintObject<DataCommunicator>);
 }
 
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.
