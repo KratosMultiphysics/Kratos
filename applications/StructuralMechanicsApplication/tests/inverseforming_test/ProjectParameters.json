@@ -8,7 +8,7 @@
     },
     "solver_settings"  : {
         "time_stepping"                        : {
-            "time_step" : 0.25
+            "time_step" : 0.10
         },
         "solver_type"                          : "Static",
         "model_part_name"                      : "Structure",
