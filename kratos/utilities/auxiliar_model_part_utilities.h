@@ -852,15 +852,13 @@ private:
 
     /**
      * @brief Inserts a list of entities and the belonging nodes to a submodelpart provided their Id. Does nothing if applied to the top model part
-	   * @param rEntitiesContainer The entities to be added
+	 * @param rEntitiesContainer The entities to be added
      * @param rEntitiesIds The ids of the entities
-     * @param ThisIndex The mesh index
      */
     template<class TEntitiesContainer>
     void AuxiliaryAddEntitiesWithNodes(
         TEntitiesContainer& rEntitiesContainer,
-        const std::vector<IndexType>& rEntitiesIds,
-        IndexType ThisIndex = 0
+        const std::vector<IndexType>& rEntitiesIds
         )
     {
         KRATOS_TRY
@@ -900,7 +898,6 @@ private:
      * @param rEntitiesContainer The entities to be added
      * @param ItElementsBegin The begin iterator
      * @param ItElementsEnd The end iterator
-     * @param ThisIndex The mesh index
      * @tparam TEntitiesContainer The class of entities considered
      * @tparam TIteratorType The class of iterator considered
      */
@@ -910,8 +907,7 @@ private:
         TEntitiesContainer& rAux,
         std::vector<IndexType>& rListOfNodes,
         TIteratorType ItEntitiesBegin,
-        TIteratorType ItEntitiesEnd,
-        IndexType ThisIndex = 0
+        TIteratorType ItEntitiesEnd
         )
     {
         KRATOS_TRY
