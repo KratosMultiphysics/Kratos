@@ -26,10 +26,7 @@
 #include "modeler/copy_properties_modeler.h"
 #include "modeler/combine_model_part_modeler.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 namespace py = pybind11;
@@ -111,6 +108,4 @@ void  AddModelerToPython(pybind11::module& m)
 
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

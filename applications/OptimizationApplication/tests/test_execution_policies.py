@@ -10,13 +10,17 @@ class TestExecutionPolicies(kratos_unittest.TestCase):
     def test_IndependentAnalysisExecutionPolicy(self):
         model = Kratos.Model()
         parameters = Kratos.Parameters("""{
-            "name"                 : "test",
-            "type": "independent_analysis_execution_policy",
+            "name"    : "test",
+            "type"    : "independent_analysis_execution_policy",
             "settings": {
-                "analysis_type"    : "MultistageAnalysis",
+                "analysis_type"    : "orchestrators.SequentialOrchestrator",
                 "analysis_settings": {
-                    "stages": [],
-                    "execution_list":[]
+                    "orchestrator": {
+                        "settings": {
+                            "stage_checkpoints": false
+                        }
+                    },
+                    "stages":[]
                 }
             }
         }""")

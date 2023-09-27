@@ -126,7 +126,7 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeDVMSDEMCoupled2D4N, FluidDynamicsApplicatio
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
 
         for (unsigned int j = 0; j < output.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-5);
+            KRATOS_EXPECT_NEAR(RHS[j], output[j], 1e-5);
         }
     }
     double porosity = 0.5;

@@ -24,7 +24,8 @@ def CreateSolver(cls, model, custom_settings):
                 "assembling_strategy" : "global",
                 "rom_settings": {
                     "nodal_unknowns": [],
-                    "number_of_rom_dofs": 0
+                    "number_of_rom_dofs": 0,
+                    "rom_bns_settings": {}
                 }
             }""")
             default_settings.AddMissingParameters(super().GetDefaultParameters())
@@ -77,7 +78,15 @@ def CreateSolver(cls, model, custom_settings):
                 else:
                     err_msg = f"'Assembling_strategy': '{assembling_strategy}' is not available. Please select one of the following: {list(available_assembling_strategies)}."
                     raise ValueError(err_msg)
+                
+            self._AssignMissingInnerRomParameters(projection_strategy)
+                
             # Return the validated ROM parameters
             return self.settings["rom_settings"], projection_strategy
+        
+        def _AssignMissingInnerRomParameters(self, projection_strategy):
+            monotonicity_preserving = self.settings["rom_settings"]["rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.settings["rom_settings"]["rom_bns_settings"].Has("monotonicity_preserving") else False
+            if projection_strategy=="global_galerkin" or projection_strategy=="lspg": #TODO: Do it for all global rom B&Ss.
+                self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
 
     return ROMSolver(model, custom_settings)

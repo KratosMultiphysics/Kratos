@@ -17,11 +17,13 @@
 #pragma once
 
 // System includes
+#include <numeric>
 
 // External includes
 
 // Project includes
 #include "geometries/quadrilateral_3d_9.h"
+#include "geometries/triangle_3d_3.h"
 #include "utilities/integration_utilities.h"
 #include "integration/hexahedron_gauss_legendre_integration_points.h"
 
@@ -623,6 +625,23 @@ public:
         return edges;
     }
 
+    /** This method calculates and returns the average edge length of the geometry
+    *
+    * @return double value with the average edge length
+    *
+    */
+    double AverageEdgeLength() const override
+    {
+        constexpr double w = 1.0/12.0;
+        const GeometriesArrayType edges = this->GenerateEdges();
+        return std::accumulate(
+            edges.begin(),
+            edges.end(),
+            0.0,
+            [](double sum, const auto& rEdge) {return sum + rEdge.Length();}
+        ) * w;
+    }
+
     ///@}
     ///@name Face
     ///@{
@@ -687,8 +706,8 @@ public:
                                               this->pGetPoint( 6 ),
                                               this->pGetPoint( 2 ),
                                               this->pGetPoint( 3 ),
-                                              this->pGetPoint( 14 ),
                                               this->pGetPoint( 18 ),
+                                              this->pGetPoint( 14 ),
                                               this->pGetPoint( 10 ),
                                               this->pGetPoint( 15 ),
                                               this->pGetPoint( 23 ) ) ) );
@@ -862,6 +881,29 @@ public:
 
         return rResult;
     }
+
+    bool HasIntersection(const Point& rLowPoint, const Point& rHighPoint) const override
+    {
+        constexpr std::array<std::array<std::size_t, 3>, 48> triangle_faces{{
+            { 0, 11,  8}, {11, 20,  8}, { 8, 20,  1}, {20,  9,  1}, {11,  3, 20}, { 3, 10, 20}, {20, 10,  9}, {10,  2,  9},
+            { 0, 12, 24}, {24, 11,  0}, {11, 24, 15}, {15,  3, 11}, {12,  4, 19}, {19, 24, 12}, {24, 19,  7}, { 7, 15, 24},
+            { 3, 15, 23}, {23, 10,  3}, {10, 23, 14}, {14,  2, 10}, {15,  7, 18}, {18, 23, 15}, {23, 18,  6}, { 6, 14, 23},
+            { 2, 14, 22}, {22,  9,  2}, { 9, 22, 13}, {13,  1,  9}, {14,  6, 17}, {17, 22, 14}, {22, 17,  5}, { 5, 13, 22},
+            {12,  0,  8}, {21, 12,  8}, {21,  8,  1}, {13, 21,  1}, { 4, 12, 21}, {21, 16,  4}, {16, 21, 13}, {13,  5, 16},
+            { 4, 16, 19}, {16, 25, 19}, {16,  5, 25}, { 5, 17, 25}, {19, 25,  7}, {25, 18,  7}, {25, 17, 18}, {17,  6, 18}
+        }};
+
+        for (const auto& r_nodes: triangle_faces) {
+            // TODO: Replace the construction of a heavy object defining the HasIntersection method externally as a static method
+            auto face = Triangle3D3<TPointType>(this->pGetPoint(r_nodes[0]), this->pGetPoint(r_nodes[1]),  this->pGetPoint(r_nodes[2]));
+            if (face.HasIntersection(rLowPoint, rHighPoint)) return true;
+        }
+
+        // if there are no faces intersecting the box then or the box is inside the tetrahedron or it does not have intersection
+        CoordinatesArrayType local_coordinates;
+        return IsInside(rLowPoint,local_coordinates);
+    }
+
     /**
      * Input and output
      */
@@ -901,11 +943,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     /**

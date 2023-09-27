@@ -2092,7 +2092,7 @@ void ModelPart::RemoveSubModelPart(std::string const& ThisSubModelPartName)
                     << "\" in model part \"" << FullName() << "\" which does not exist.\n"
                     << "The the following sub model parts are available:";
             for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
-                warning_msg << "\n\t" << r_avail_smp_name;
+                warning_msg << "\n\t" "\"" << r_avail_smp_name << "\"";
             }
             KRATOS_WARNING("ModelPart") << warning_msg.str() << std::endl;
         } else {
@@ -2393,7 +2393,7 @@ void ModelPart::ErrorNonExistingSubModelPart(const std::string& rSubModelPartNam
             << "\" in model part \"" << FullName() << "\"\n"
             << "The following sub model parts are available:";
     for (const auto& r_avail_smp_name : GetSubModelPartNames()) {
-        err_msg << "\n\t" << r_avail_smp_name;
+        err_msg << "\n\t" << "\""<<r_avail_smp_name << "\"";
     }
     KRATOS_ERROR << err_msg.str() << std::endl;
 }
