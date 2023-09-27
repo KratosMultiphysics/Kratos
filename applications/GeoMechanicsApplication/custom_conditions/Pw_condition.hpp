@@ -13,9 +13,7 @@
 //                   Aron Noordam
 //
 
-
-#if !defined(KRATOS_GEO_PW_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_PW_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 #include <cmath>
@@ -112,5 +110,3 @@ private:
 }; // class PwCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_PW_CONDITION_H_INCLUDED defined 

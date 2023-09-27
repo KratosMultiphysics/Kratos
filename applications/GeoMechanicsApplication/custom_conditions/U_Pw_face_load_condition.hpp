@@ -12,9 +12,7 @@
 //                   Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_U_PW_FACE_LOAD_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_FACE_LOAD_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -104,5 +102,3 @@ private:
 }; // class UPwFaceLoadCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_U_PW_FACE_LOAD_CONDITION_H_INCLUDED defined 

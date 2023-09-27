@@ -510,7 +510,7 @@ private:
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };
     const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D9N{ 0, Kratos::make_shared< Quadrilateral3D9 <NodeType> >(Condition::GeometryType::PointsArrayType(9)) };
 
-    const AxisymmetricUPwNormalFaceLoadCondition<2, 2> mAxisymmetricUPwNormalFaceLoadCondition2D2N{ 0, Kratos::make_shared< Line2D2 <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const AxisymmetricUPwNormalFaceLoadCondition<2,2> mAxisymmetricUPwNormalFaceLoadCondition2D2N{ 0, Kratos::make_shared< Line2D2 <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
 
     const AxisymmetricLineNormalLoad2DDiffOrderCondition mAxisymmetricLineNormalLoadDiffOrderCondition2D3N{ 0, Kratos::make_shared< Line2D3<NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
 

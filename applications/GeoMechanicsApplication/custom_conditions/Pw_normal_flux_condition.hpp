@@ -13,9 +13,7 @@
 //                   Aron Noordam
 //
 
-
-#if !defined(KRATOS_GEO_PW_NORMAL_FLUX_CONDITION_H_INCLUDED )
-#define  KRATOS_GEO_PW_NORMAL_FLUX_CONDITION_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -108,5 +106,3 @@ private:
 }; // class PwNormalFluxCondition.
 
 } // namespace Kratos.
-
-#endif // KRATOS_GEO_PW_NORMAL_FLUX_CONDITION_H_INCLUDED defined 
