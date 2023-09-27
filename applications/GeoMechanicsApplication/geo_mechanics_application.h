@@ -449,6 +449,9 @@ private:
     const UPwForceCondition<3,1> mUPwForceCondition3D1N{ 0, Kratos::make_shared< Point3D <NodeType> >(Condition::GeometryType::PointsArrayType(1)) };
 
     const UPwFaceLoadCondition<2,2> mUPwFaceLoadCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const UPwFaceLoadCondition<2,3> mUPwFaceLoadCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const UPwFaceLoadCondition<2,4> mUPwFaceLoadCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const UPwFaceLoadCondition<2,5> mUPwFaceLoadCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
     const UPwFaceLoadCondition<3,3> mUPwFaceLoadCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const UPwFaceLoadCondition<3,4> mUPwFaceLoadCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
 
@@ -463,10 +466,6 @@ private:
     const PwNormalFluxCondition<2,2> mPwNormalFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
     const PwNormalFluxCondition<3,3> mPwNormalFluxCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const PwNormalFluxCondition<3,4> mPwNormalFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
-
-    const UPwFaceLoadCondition<2,3> mUPwFaceLoadCondition2D3N{ 0, Kratos::make_shared< Line2D3 <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
-    const UPwFaceLoadCondition<2,4> mUPwFaceLoadCondition2D4N{ 0, Kratos::make_shared< Line2D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
-    const UPwFaceLoadCondition<2,5> mUPwFaceLoadCondition2D5N{ 0, Kratos::make_shared< Line2D5 <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
 
     const UPwFaceLoadInterfaceCondition<2,2> mUPwFaceLoadInterfaceCondition2D2N{ 0, Kratos::make_shared< Line2D2                   <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
     const UPwFaceLoadInterfaceCondition<3,4> mUPwFaceLoadInterfaceCondition3D4N{ 0, Kratos::make_shared< QuadrilateralInterface3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
