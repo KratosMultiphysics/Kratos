@@ -101,16 +101,10 @@ void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateTractionVector(
     const unsigned int& GPoint)
 {
     Vector NormalVector = ZeroVector(TDim);
-    double NormalStress = 0.0;
-    for (unsigned int i = 0; i < TNumNodes; ++i) {
-        NormalStress += NContainer(GPoint, i) * Variables.NormalStressVector[i];
-    }
+    double NormalStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.NormalStressVector);
     //
     if (TDim == 2) {
-        double TangentialStress = 0.0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            TangentialStress += NContainer(GPoint, i) * Variables.TangentialStressVector[i];
-        }
+        double TangentialStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.TangentialStressVector);
         NormalVector = column(Jacobian, 0);
         rTractionVector[0] = TangentialStress * NormalVector[0] - NormalStress * NormalVector[1];
         rTractionVector[1] = NormalStress * NormalVector[0] + TangentialStress * NormalVector[1];
