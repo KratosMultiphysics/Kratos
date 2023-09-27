@@ -52,24 +52,24 @@ namespace Kratos
         struct ElementVariables
         {
             ///Properties variables
-            double WaterDensity;
-            double SolidDensity;
-            double WaterHeatCapacity;
-            double SolidHeatCapacity;
-            double WaterThermalConductivity;
-            double SolidThermalConductivityXX;
-            double SolidThermalConductivityXY;
-            double SolidThermalConductivityYX;
-            double SolidThermalConductivityYY;
-            double Porosity;
-            double Saturation;
-            double LongitudinalDispersivity;
-            double TransverseDispersivity;
-            double SolidCompressibility;
-            double DynamicViscosityInverse;
+            double WaterDensity = 0.0;
+            double SolidDensity = 0.0;
+            double WaterHeatCapacity = 0.0;
+            double SolidHeatCapacity = 0.0;
+            double WaterThermalConductivity = 0.0;
+            double SolidThermalConductivityXX = 0.0;
+            double SolidThermalConductivityXY = 0.0;
+            double SolidThermalConductivityYX = 0.0;
+            double SolidThermalConductivityYY = 0.0;
+            double Porosity = 0.0;
+            double Saturation = 1.0;
+            double LongitudinalDispersivity = 0.0;
+            double TransverseDispersivity = 0.0;
+            double SolidCompressibility = 0.0;
+            double DynamicViscosityInverse = 0.0;
 
             ///ProcessInfo variables
-            double DtTemperatureCoefficient;
+            double DtTemperatureCoefficient = 0.0;
 
             ///Nodal variables
             array_1d<double, TNumNodes> TemperatureVector;
@@ -81,15 +81,13 @@ namespace Kratos
             Vector N;
             Matrix GradNT;
             Matrix GradNTInitialConfiguration;
-            BoundedMatrix<double, TDim, TDim> PermiabilityMatrix;
+            BoundedMatrix<double, TDim, TDim> PermeabilityMatrix;
 
             Vector detJContainer;
             Matrix NContainer;
             GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
-
-            // needed for updated Lagrangian:
-            double detJ;
-            double IntegrationCoefficient;
+            double detJ = 0.0;
+            double IntegrationCoefficient = 0.0;
 
             //Auxiliary Variables
             BoundedMatrix<double, TNumNodes, TNumNodes> TMatrix;
@@ -194,7 +192,7 @@ namespace Kratos
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override;
 
-        void CalculatePermiabilityMatrix(BoundedMatrix<double, TDim, TDim>& C, ElementVariables& rVariables);
+        void CalculatePermeabilityMatrix(BoundedMatrix<double, TDim, TDim>& C, ElementVariables& rVariables);
 
         GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 

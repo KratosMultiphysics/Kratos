@@ -156,12 +156,11 @@ void PwCondition<TDim,TNumNodes>::
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 template class PwCondition<2,1>;
 template class PwCondition<2,2>;
-template class PwCondition<3,1>;
-template class PwCondition<3,3>;
-template class PwCondition<3,4>;
-
 template class PwCondition<2,3>;
 template class PwCondition<2,4>;
 template class PwCondition<2,5>;
+template class PwCondition<3,1>;
+template class PwCondition<3,3>;
+template class PwCondition<3,4>;
 
 } // Namespace Kratos.

@@ -1,16 +1,16 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ `
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics
+// KRATOS___
+//     //   ) )
+//    //         ___      ___
+//   //  ____  //___) ) //   ) )
+//  //    / / //       //   / /
+// ((____/ / ((____   ((___/ /  MECHANICS
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Mohamed Nabi
 //                   
 
-
+#pragma once
 
 // System includes
 #include "includes/node.h"
@@ -67,9 +67,7 @@ public:
         double c1 = 247.8 / (temp + 133.0);
         return 1.0 / (2.4318e-5 * std::pow(10.0, c1));
     }
-	
-	
 
-}; // class StructuralMechanicsElementUtilities.
+}; // class ThermalUtilities
 }
 

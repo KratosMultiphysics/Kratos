@@ -53,48 +53,47 @@ Condition::Pointer TCondition<TDim,TNumNodes>::Create(
 // ============================================================================================
 // ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim,TNumNodes>::GetDofList(
+void TCondition<TDim, TNumNodes>::GetDofList(
     DofsVectorType& rConditionDofList,
     const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
 
-    unsigned int conditionSize = TNumNodes;
+    if (rConditionDofList.size() != TNumNodes) {
+        rConditionDofList.resize(TNumNodes);
+    }
     const GeometryType& rGeom = GetGeometry();
-    if (rConditionDofList.size() != conditionSize)
-        rConditionDofList.resize( conditionSize );
-
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rConditionDofList[i] = rGeom[i].pGetDof(TEMPERATURE);
     }
 
-    KRATOS_CATCH( "" )
+    KRATOS_CATCH("")
 }
 
 // ============================================================================================
 // ============================================================================================
 template<unsigned int TDim, unsigned int TNumNodes>
-void TCondition<TDim,TNumNodes>::CalculateLocalSystem(
+void TCondition<TDim, TNumNodes>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
 
-    unsigned int conditionSize = TNumNodes;
     //Resetting the LHS
-    if ( rLeftHandSideMatrix.size1() != conditionSize )
-        rLeftHandSideMatrix.resize( conditionSize, conditionSize, false );
-    noalias( rLeftHandSideMatrix ) = ZeroMatrix( conditionSize, conditionSize );
+    if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes) {
+        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
+    }
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
     //Resetting the RHS
-    if ( rRightHandSideVector.size() != conditionSize )
-        rRightHandSideVector.resize( conditionSize, false );
-    noalias( rRightHandSideVector ) = ZeroVector( conditionSize );
+    if (rRightHandSideVector.size() != TNumNodes)
+        rRightHandSideVector.resize(TNumNodes, false);
+    noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
     this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
-        
-    KRATOS_CATCH( "" )
+
+    KRATOS_CATCH("")
 }
 
 // ============================================================================================
@@ -148,10 +147,9 @@ void TCondition<TDim,TNumNodes>::CalculateRHS(
 // ============================================================================================
 template class TCondition<2,1>;
 template class TCondition<2,2>;
+template class TCondition<2,3>;
 template class TCondition<3,1>;
 template class TCondition<3,3>;
 template class TCondition<3,4>;
-
-template class TCondition<2,3>;
 
 } // Namespace Kratos.

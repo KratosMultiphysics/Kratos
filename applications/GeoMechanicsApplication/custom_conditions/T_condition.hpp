@@ -10,14 +10,8 @@
 //
 //  Main authors:    Mohamed Nabi
 //                   
-//                   
-//
-
 
 #pragma once
-
-// System includes
-#include <cmath>
 
 // Project includes
 #include "includes/define.h"

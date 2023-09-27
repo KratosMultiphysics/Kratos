@@ -35,7 +35,7 @@ void KratosGeoMechanicsApplication::Register() {
 
 
     //Register Elements
-    // transient one-phase flow elements:
+    // Transient one-phase flow elements:
     KRATOS_REGISTER_ELEMENT("TransientPwElement2D3N", mTransientPwElement2D3N)
     KRATOS_REGISTER_ELEMENT("TransientPwElement2D4N", mTransientPwElement2D4N)
     KRATOS_REGISTER_ELEMENT("TransientPwElement3D4N", mTransientPwElement3D4N)
@@ -120,7 +120,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement3D20N", mSmallStrainUPwDiffOrderElement3D20N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement3D27N", mSmallStrainUPwDiffOrderElement3D27N)
 
-    // small strain axisymmtric elements:
+    // Small strain axisymmtric elements:
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainAxisymmetricElement2D3N", mUPwSmallStrainAxisymmetricElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainAxisymmetricElement2D4N", mUPwSmallStrainAxisymmetricElement2D4N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainAxisymmetricElement2D6N", mUPwSmallStrainAxisymmetricElement2D6N)
@@ -194,7 +194,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D3N", mUPwUpdatedLagrangianAxisymmetricFICElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D4N", mUPwUpdatedLagrangianAxisymmetricFICElement2D4N)
 
-    // Register geo structural elements
+    // Geo-structural elements
     KRATOS_REGISTER_ELEMENT("GeoTrussElement2D2N", mGeoTrussElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoTrussElement3D2N", mGeoTrussElement3D2N)
     KRATOS_REGISTER_ELEMENT("GeoLinearTrussElement2D2N", mGeoLinearTrussElement2D2N)
@@ -207,7 +207,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear3D2N", mGeoCrBeamElementLinear3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCurvedBeamElement2D3N", mGeoCurvedBeamElement2D3N)
 
-    // Updated-Lagrangian elements
+    // Transient thermal elements
     KRATOS_REGISTER_ELEMENT("TransientThermalElement2D3N", mTransientThermalElement2D3N)
     KRATOS_REGISTER_ELEMENT("TransientThermalElement2D4N", mTransientThermalElement2D4N)
     KRATOS_REGISTER_ELEMENT("TransientThermalElement3D4N", mTransientThermalElement3D4N)
@@ -223,6 +223,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("UPwForceCondition2D1N", mUPwForceCondition2D1N)
     KRATOS_REGISTER_CONDITION("UPwForceCondition3D1N", mUPwForceCondition3D1N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D2N", mUPwFaceLoadCondition2D2N)
+    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D3N", mUPwFaceLoadCondition2D3N)
+    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D4N", mUPwFaceLoadCondition2D4N)
+    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D5N", mUPwFaceLoadCondition2D5N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D3N", mUPwFaceLoadCondition3D3N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D4N", mUPwFaceLoadCondition3D4N)
     KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition2D2N", mUPwNormalFaceLoadCondition2D2N)
@@ -243,10 +246,6 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D5N", mPwNormalFluxCondition2D5N)
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D3N", mPwNormalFluxCondition3D3N)
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
-
-    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D3N", mUPwFaceLoadCondition2D3N)
-    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D4N", mUPwFaceLoadCondition2D4N)
-    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D5N", mUPwFaceLoadCondition2D5N)
 
     KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D2N", mTNormalFluxCondition2D2N)
     KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D3N", mTNormalFluxCondition2D3N)

@@ -17,7 +17,7 @@ def Create(settings, model, solver_name):
     return GeoMechanicsWrapper(settings, model, solver_name)
 
 class GeoMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
-    """This class is the interface to the StructuralMechanicsApplication of Kratos"""
+    """This class is the interface to the GeoMechanicsApplication of Kratos"""
 
     def _CreateAnalysisStage(self):
         return GeoMechanicsAnalysis(self.model, self.project_parameters)

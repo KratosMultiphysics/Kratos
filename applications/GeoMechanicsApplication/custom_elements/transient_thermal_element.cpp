@@ -77,14 +77,13 @@ namespace Kratos
     {
         KRATOS_TRY
 
-    	const GeometryType& rGeom = this->GetGeometry();
         const unsigned int N_DOF = this->GetNumberOfDOF();
-
-        if (rElementalDofList.size() != N_DOF)
+        if (rElementalDofList.size() != N_DOF) {
             rElementalDofList.resize(N_DOF);
+        }
 
-        for (unsigned int i = 0; i < N_DOF; ++i)
-        {
+        const GeometryType& rGeom = this->GetGeometry();
+        for (unsigned int i = 0; i < N_DOF; ++i) {
             rElementalDofList[i] = rGeom[i].pGetDof(TEMPERATURE);
         }
 
@@ -100,15 +99,14 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const GeometryType& rGeom = this->GetGeometry();
         const unsigned int N_DOF = this->GetNumberOfDOF();
-        unsigned int index = 0;
-
-        if (rResult.size() != N_DOF)
+        if (rResult.size() != N_DOF) {
             rResult.resize(N_DOF, false);
+        }
 
-        for (unsigned int i = 0; i < TNumNodes; ++i)
-        {
+        unsigned int index = 0;
+        const GeometryType& rGeom = this->GetGeometry();
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(TEMPERATURE).EquationId();
         }
 
@@ -127,17 +125,15 @@ namespace Kratos
         const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
         // pointer to constitutive laws
-        if (mConstitutiveLawVector.size() != NumGPoints)
+        if (mConstitutiveLawVector.size() != NumGPoints) {
             mConstitutiveLawVector.resize(NumGPoints);
+        }
 
         for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
             mConstitutiveLawVector[i] = nullptr;
         }
 
-        if (rGeom[0].SolutionStepsDataHas(WATER_PRESSURE))
-        {
-            mIsPressureCoupled = true;
-        }
+        mIsPressureCoupled = rGeom[0].SolutionStepsDataHas(WATER_PRESSURE);
 
         mIsInitialised = true;
 
@@ -166,7 +162,7 @@ namespace Kratos
                 KRATOS_ERROR << "missing variable DT_TEMPERATURE on node " << Geom[i].Id() << std::endl;
 
             if (!Geom[i].HasDofFor(TEMPERATURE))
-                KRATOS_ERROR << "missing variable TEMPERATURE on node " << Geom[i].Id() << std::endl;
+                KRATOS_ERROR << "missing degree of freedom for TEMPERATURE on node " << Geom[i].Id() << std::endl;
         }
 
         // Verify properties
@@ -211,6 +207,11 @@ namespace Kratos
 
         if (!Prop.Has(SOLID_COMPRESSIBILITY) || Prop[SOLID_COMPRESSIBILITY] < 0.0)
             KRATOS_ERROR << "SOLID_COMPRESSIBILITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
+
+        if (mIsPressureCoupled) {
+            if (!Prop.Has(DYNAMIC_VISCOSITY) || Prop[DYNAMIC_VISCOSITY] <= 0.0)
+                KRATOS_ERROR << "DYNAMIC_VISCOSITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
+        }
 
         if (TDim == 2) {
             auto pos = std::find_if(Geom.begin(), Geom.end(),
@@ -324,8 +325,8 @@ namespace Kratos
 
         this->CalculateAndAddConductivityMatrix(rLeftHandSideMatrix, rVariables);
         this->CalculateAndAddCapacityMatrix(rLeftHandSideMatrix, rVariables);
-        if (mIsPressureCoupled) 
-        {
+
+        if (mIsPressureCoupled) {
             this->CalculateAndAddConvectionMatrix(rLeftHandSideMatrix, rVariables);
         }
 
@@ -343,7 +344,7 @@ namespace Kratos
 
         this->CalculateConductivityMatrix(rVariables.TMatrix, rVariables);
 
-        //Distribute compressibility block matrix into the elemental matrix
+        //Distribute conductivity block matrix into the elemental matrix
         GeoElementUtilities::
             AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.TMatrix);
 
@@ -361,7 +362,7 @@ namespace Kratos
 
         this->CalculateCapacityMatrix(rVariables.TMatrix, rVariables);
 
-        //Distribute permeability block matrix into the elemental matrix
+        //Distribute capacity block matrix into the elemental matrix
         GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.TMatrix);
 
         KRATOS_CATCH("")
@@ -378,7 +379,7 @@ namespace Kratos
 
         this->CalculateConvectionMatrix(rVariables.TMatrix, rVariables);
 
-        //Distribute compressibility block matrix into the elemental matrix
+        //Distribute convection block matrix into the elemental matrix
         GeoElementUtilities::
             AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.TMatrix);
 
@@ -506,8 +507,8 @@ namespace Kratos
         KRATOS_TRY
 
         array_1d<double, TNumNodes> Temp = prod(rVariables.GradNT, rVariables.DischargeVector);
-        TMatrix = outer_prod(rVariables.N, Temp) * rVariables.IntegrationCoefficient
-            * rVariables.WaterDensity * rVariables.WaterHeatCapacity;
+        TMatrix = outer_prod(rVariables.N, Temp) * rVariables.WaterHeatCapacity
+            * rVariables.WaterDensity * rVariables.IntegrationCoefficient;
 
         KRATOS_CATCH("");
     }
@@ -523,7 +524,7 @@ namespace Kratos
 
         this->CalculateCapacityVector(rVariables.TMatrix, rVariables.TVector, rVariables);
 
-        //Distribute permeability block vector into elemental vector
+        //Distribute capacity block vector into elemental vector
         GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
 
         KRATOS_CATCH("")
@@ -562,7 +563,7 @@ namespace Kratos
 
         this->CalculateConductivityVector(rVariables.TDimMatrix, rVariables.TMatrix, rVariables.TVector, rVariables);
 
-        //Distribute permeability block vector into elemental vector
+        //Distribute conductivity block vector into elemental vector
         GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
 
         KRATOS_CATCH("")
@@ -614,8 +615,9 @@ namespace Kratos
         rVariables.LongitudinalDispersivity = rProp[LONGITUDINAL_DISPERSIVITY];
         rVariables.TransverseDispersivity = rProp[TRANSVERSE_DISPERSIVITY];
         rVariables.SolidCompressibility = rProp[SOLID_COMPRESSIBILITY];
-
-        rVariables.DynamicViscosityInverse = 1.0 / rProp[DYNAMIC_VISCOSITY];
+        if (mIsPressureCoupled) {
+            rVariables.DynamicViscosityInverse = 1.0 / rProp[DYNAMIC_VISCOSITY];
+        }
 
         KRATOS_CATCH("")
     }
@@ -641,8 +643,8 @@ namespace Kratos
             * rVariables.WaterDensity;
         PressureGrad = PressureGrad - gravityVector;
 
-        this->CalculatePermiabilityMatrix(rVariables.PermiabilityMatrix, rVariables);
-        rVariables.DischargeVector = -prod(rVariables.PermiabilityMatrix, PressureGrad);
+        this->CalculatePermeabilityMatrix(rVariables.PermeabilityMatrix, rVariables);
+        rVariables.DischargeVector = -prod(rVariables.PermeabilityMatrix, PressureGrad);
 
         KRATOS_CATCH("")
     }
@@ -650,7 +652,7 @@ namespace Kratos
     // ============================================================================================
     // ============================================================================================
     template<unsigned int TDim, unsigned int TNumNodes>
-    void TransientThermalElement<TDim, TNumNodes>::CalculatePermiabilityMatrix(
+    void TransientThermalElement<TDim, TNumNodes>::CalculatePermeabilityMatrix(
         BoundedMatrix<double, TDim, TDim>& C,
         ElementVariables& rVariables)
     {
@@ -658,10 +660,11 @@ namespace Kratos
 
         const PropertiesType& rProp = this->GetProperties();
 
-        C(0, 0) = rProp[PERMEABILITY_XX] * rVariables.DynamicViscosityInverse;
-        C(0, 1) = rProp[PERMEABILITY_XY] * rVariables.DynamicViscosityInverse;
-        C(1, 0) = rProp[PERMEABILITY_XY] * rVariables.DynamicViscosityInverse;
-        C(1, 1) = rProp[PERMEABILITY_YY] * rVariables.DynamicViscosityInverse;
+        C(0, 0) = rProp[PERMEABILITY_XX];
+        C(0, 1) = rProp[PERMEABILITY_XY];
+        C(1, 0) = rProp[PERMEABILITY_XY];
+        C(1, 1) = rProp[PERMEABILITY_YY];
+        C *= rVariables.DynamicViscosityInverse;
 
         KRATOS_CATCH("")
     }
@@ -676,16 +679,18 @@ namespace Kratos
     {
         KRATOS_TRY
 
-    	const unsigned int N_DOF = this->GetNumberOfDOF();
+        const unsigned int N_DOF = this->GetNumberOfDOF();
 
         //Resetting the LHS
-        if (rLeftHandSideMatrix.size1() != N_DOF)
+        if (rLeftHandSideMatrix.size1() != N_DOF) {
             rLeftHandSideMatrix.resize(N_DOF, N_DOF, false);
+        }
         noalias(rLeftHandSideMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
         //Resetting the RHS
-        if (rRightHandSideVector.size() != N_DOF)
+        if (rRightHandSideVector.size() != N_DOF) {
             rRightHandSideVector.resize(N_DOF, false);
+        }
         noalias(rRightHandSideVector) = ZeroVector(N_DOF);
 
         //calculation flags
@@ -732,12 +737,11 @@ namespace Kratos
     // ============================================================================================
     template class TransientThermalElement<2,3>;
     template class TransientThermalElement<2,4>;
-    template class TransientThermalElement<3,4>;
-    template class TransientThermalElement<3,8>;
-
     template class TransientThermalElement<2,6>;
     template class TransientThermalElement<2,8>;
     template class TransientThermalElement<2,9>;
+    template class TransientThermalElement<3,4>;
+    template class TransientThermalElement<3,8>;
     template class TransientThermalElement<3,10>;
     template class TransientThermalElement<3,20>;
     template class TransientThermalElement<3,27>;
