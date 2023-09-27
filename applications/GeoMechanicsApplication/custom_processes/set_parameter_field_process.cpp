@@ -119,7 +119,7 @@ namespace Kratos
         for (Element& r_element : mrModelPart.Elements()) {
             Vector sub_vector;
             sub_vector.resize(vector_size);
-            for (int j = 0; j < vector_size; j++) {
+            for (IndexType j = 0; j < vector_size; j++) {
                 sub_vector[j] = r_data_matrix(i, j);
             }
 
