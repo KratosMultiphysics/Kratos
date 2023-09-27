@@ -1,5 +1,6 @@
 import KratosMultiphysics
 from KratosMultiphysics.RomApplication.rom_testing_utilities import SetUpSimulationInstance
+from KratosMultiphysics.RomApplication.residual_output_analysis import GetResidualOutputAnalysisClass
 from KratosMultiphysics.RomApplication.calculate_rom_basis_output_process import CalculateRomBasisOutputProcess
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
 import numpy as np
@@ -26,19 +27,18 @@ class RomManager(object):
         self.UpdateMaterialParametersFile = UpdateMaterialParametersFile
 
 
-
-    def Fit(self, mu_train=[None], store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals_projected = False):
+    def Fit(self, mu_train=[None], store_all_snapshots=False, store_fom_snapshots=False, store_rom_snapshots=False, store_hrom_snapshots=False, store_residuals=False, store_residuals_projected = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
         training_stages = self.general_rom_manager_parameters["rom_stages_to_train"].GetStringArray()
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.__LaunchTrainROM(mu_train)
+                fom_snapshots = self.__LaunchTrainROM(mu_train, store_residuals)
                 if store_all_snapshots or store_fom_snapshots:
                     self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "GalerkinROM")
-                rom_snapshots = self.__LaunchROM(mu_train)
+                rom_snapshots = self.__LaunchROM(mu_train, store_residuals)
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
@@ -48,7 +48,7 @@ class RomManager(object):
                 self._ChangeRomFlags(simulation_to_run = "trainHROMGalerkin")
                 self.__LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMGalerkin")
-                hrom_snapshots = self.__LaunchHROM(mu_train)
+                hrom_snapshots = self.__LaunchHROM(mu_train, store_residuals)
                 if store_all_snapshots or store_hrom_snapshots:
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
@@ -58,11 +58,11 @@ class RomManager(object):
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.__LaunchTrainROM(mu_train)
+                fom_snapshots = self.__LaunchTrainROM(mu_train, store_residuals)
                 if store_all_snapshots or store_fom_snapshots:
                     self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "lspg")
-                rom_snapshots = self.__LaunchROM(mu_train)
+                rom_snapshots = self.__LaunchROM(mu_train, store_residuals)
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
@@ -74,13 +74,13 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             if any(item == "ROM" for item in training_stages):
-                fom_snapshots = self.__LaunchTrainROM(mu_train)
+                fom_snapshots = self.__LaunchTrainROM(mu_train, store_residuals)
                 if store_all_snapshots or store_fom_snapshots:
                     self._StoreSnapshotsMatrix('fom_snapshots', fom_snapshots)
                 self._ChangeRomFlags(simulation_to_run = "TrainPG")
                 self.__LaunchTrainPG(mu_train)
                 self._ChangeRomFlags(simulation_to_run = "PG")
-                rom_snapshots = self.__LaunchROM(mu_train)
+                rom_snapshots = self.__LaunchROM(mu_train, store_residuals)
                 if store_all_snapshots or store_rom_snapshots:
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
@@ -89,7 +89,7 @@ class RomManager(object):
                 self._ChangeRomFlags(simulation_to_run = "trainHROMPetrovGalerkin")
                 self.__LaunchTrainHROM(mu_train, store_residuals_projected)
                 self._ChangeRomFlags(simulation_to_run = "runHROMPetrovGalerkin")
-                hrom_snapshots = self.__LaunchHROM(mu_train)
+                hrom_snapshots = self.__LaunchHROM(mu_train, store_residuals)
                 if store_all_snapshots or store_hrom_snapshots:
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
@@ -209,13 +209,14 @@ class RomManager(object):
             print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
 
 
-    def __LaunchTrainROM(self, mu_train):
+    def __LaunchTrainROM(self, mu_train, store_residuals=False):
         """
         This method should be parallel capable
         """
         with open(self.project_parameters_name,'r') as parameter_file:
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         SnapshotsMatrix = []
+        ResidualsMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
@@ -224,19 +225,26 @@ class RomManager(object):
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = self._GetAnalysisStageClass(parameters)
+            if store_residuals:
+                analysis_stage_class = GetResidualOutputAnalysisClass(analysis_stage_class)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+            if store_residuals:
+                ResidualsMatrix.append(simulation.GetResiduals())
         SnapshotsMatrix = np.block(SnapshotsMatrix)
+        if store_residuals:
+            ResidualsMatrix = np.block(ResidualsMatrix)
+            self._StoreResidualsMatrix('fom_residuals', ResidualsMatrix)
         BasisOutputProcess._PrintRomBasis(SnapshotsMatrix) #Calling the RomOutput Process for creating the RomParameter.json
 
         return SnapshotsMatrix
 
 
-    def __LaunchROM(self, mu_train):
+    def __LaunchROM(self, mu_train, store_residuals=False):
         """
         This method should be parallel capable
         """
@@ -244,6 +252,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         SnapshotsMatrix = []
+        ResidualsMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
@@ -252,13 +261,20 @@ class RomManager(object):
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            if store_residuals:
+                analysis_stage_class = GetResidualOutputAnalysisClass(analysis_stage_class)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+            if store_residuals:
+                ResidualsMatrix.append(simulation.GetResiduals())
         SnapshotsMatrix = np.block(SnapshotsMatrix)
+        if store_residuals:
+            ResidualsMatrix = np.block(ResidualsMatrix)
+            self._StoreResidualsMatrix('rom_residuals', ResidualsMatrix)
 
         return SnapshotsMatrix
 
@@ -320,7 +336,7 @@ class RomManager(object):
         simulation.GetHROM_utility().CreateHRomModelParts()
 
 
-    def __LaunchHROM(self, mu_train):
+    def __LaunchHROM(self, mu_train, store_residuals=False):
         """
         This method should be parallel capable
         """
@@ -328,6 +344,7 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         SnapshotsMatrix = []
+        ResidualsMatrix = []
         for Id, mu in enumerate(mu_train):
             parameters = self.UpdateProjectParameters(parameters, mu)
             parameters = self._AddBasisCreationToProjectParameters(parameters)
@@ -336,13 +353,20 @@ class RomManager(object):
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
             analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
+            if store_residuals:
+                analysis_stage_class = GetResidualOutputAnalysisClass(analysis_stage_class)
             simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
                     BasisOutputProcess = process
             SnapshotsMatrix.append(BasisOutputProcess._GetSnapshotsMatrix()) #TODO add a CustomMethod() as a standard method in the Analysis Stage to retrive some solution
+            if store_residuals:
+                ResidualsMatrix.append(simulation.GetResiduals())
         SnapshotsMatrix = np.block(SnapshotsMatrix)
+        if store_residuals:
+            ResidualsMatrix = np.block(ResidualsMatrix)
+            self._StoreResidualsMatrix('hrom_residuals', ResidualsMatrix)
 
         return SnapshotsMatrix
 
@@ -706,6 +730,19 @@ class RomManager(object):
 
         # Create the directory if it doesn't exist
         directory.mkdir(parents=True, exist_ok=True)
+
+        #save the array inside the chosen directory
+        np.save(file_path, numpy_array)
+
+    def _StoreResidualsMatrix(self, string_numpy_array_name, numpy_array):
+
+        # Define the directory and file path
+        directory = './ResidualsMatrices'
+        file_path = os.path.join(directory, f'{string_numpy_array_name}.npy')
+
+        # Create the directory if it doesn't exist
+        if not os.path.exists(directory):
+            os.makedirs(directory)
 
         #save the array inside the chosen directory
         np.save(file_path, numpy_array)
