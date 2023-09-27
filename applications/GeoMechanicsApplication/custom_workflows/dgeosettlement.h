@@ -24,12 +24,19 @@
 namespace Kratos
 {
 
+class ProcessFactory;
 class InputUtility;
+class ProcessInfoParser;
+class TimeLoopExecutor;
+class Process;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 {
 public:
-    explicit KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility);
+    KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility,
+                        std::unique_ptr<ProcessInfoParser> pProcessInfoParser,
+                        std::unique_ptr<TimeLoopExecutor> pTimeLoopExecutor);
+
     ~KratosGeoSettlement();
 
     int RunStage(const std::filesystem::path&            rWorkingDirectory,
@@ -45,11 +52,17 @@ private:
     ModelPart& AddNewModelPart(const std::string& rModelPartName);
     static void AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
+    void InitializeProcessFactory();
+    std::vector<std::shared_ptr<Process>> GetProcesses(const Parameters& project_parameters) const;
 
     Kernel mKernel;
     Model mModel;
+    std::string mModelPartName;
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
+    std::unique_ptr<ProcessFactory> mProcessFactory = std::make_unique<ProcessFactory>();
     std::unique_ptr<InputUtility> mpInputUtility;
+    std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;
+    std::unique_ptr<TimeLoopExecutor> mpTimeLoopExecutor;
 };
 
 }
