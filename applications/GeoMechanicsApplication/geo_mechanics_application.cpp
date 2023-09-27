@@ -228,6 +228,9 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition3D3N", mUPwNormalFluxCondition3D3N)
     KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition3D4N", mUPwNormalFluxCondition3D4N)
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D2N", mPwNormalFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D3N", mPwNormalFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D4N", mPwNormalFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D5N", mPwNormalFluxCondition2D5N)
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D3N", mPwNormalFluxCondition3D3N)
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
 
