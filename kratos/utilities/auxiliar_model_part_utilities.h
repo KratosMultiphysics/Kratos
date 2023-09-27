@@ -31,9 +31,6 @@ namespace Kratos
 ///@name Type Definitions
 ///@{
 
-    /// The index type definition
-    using IndexType = std::size_t;
-
 ///@}
 ///@name  Functions
 ///@{
@@ -54,6 +51,9 @@ class KRATOS_API(KRATOS_CORE) AuxiliarModelPartUtilities
 public:
     ///@name Type Definitions
     ///@{
+
+    /// The index type definition
+    using IndexType = std::size_t;
 
     /// Counted pointer of AuxiliarModelPartUtilities
     KRATOS_CLASS_POINTER_DEFINITION( AuxiliarModelPartUtilities );
@@ -111,13 +111,13 @@ public:
         // Using auxiliay method
         ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
         std::vector<IndexType> list_of_nodes;
-        ModelPart::ElementsContainerType aux;
-        AuxiliaryAddEntitiesWithNodes<ModelPart::ElementsContainerType, TIteratorType>(p_root_model_part->Elements(), aux, list_of_nodes, ItElementsBegin, ItElementsEnd);
+        ModelPart::ElementsContainerType new_elements_to_add ;
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ElementsContainerType, TIteratorType>(p_root_model_part->Elements(), new_elements_to_add , list_of_nodes, ItElementsBegin, ItElementsEnd);
 
         // Add to all of the leaves
         ModelPart* p_current_part = &mrModelPart;
         while(p_current_part->IsSubModelPart()) {
-            for(auto it_elem = aux.begin(); it_elem!=aux.end(); ++it_elem) {
+            for(auto it_elem = new_elements_to_add.begin(); it_elem!=new_elements_to_add.end(); ++it_elem) {
                 p_current_part->Elements().push_back( *(it_elem.base()) );
             }
             p_current_part->AddNodes(list_of_nodes);
@@ -158,13 +158,13 @@ public:
         // Using auxiliay method
         ModelPart* p_root_model_part = &mrModelPart.GetRootModelPart();
         std::vector<IndexType> list_of_nodes;
-        ModelPart::ConditionsContainerType aux;
-        AuxiliaryAddEntitiesWithNodes<ModelPart::ConditionsContainerType, TIteratorType>(p_root_model_part->Conditions(), aux, list_of_nodes, ItConditionsBegin, ItConditionsEnd);
+        ModelPart::ConditionsContainerType new_conditions_to_add ;
+        AuxiliaryAddEntitiesWithNodes<ModelPart::ConditionsContainerType, TIteratorType>(p_root_model_part->Conditions(), new_conditions_to_add, list_of_nodes, ItConditionsBegin, ItConditionsEnd);
 
         // Add to all of the leaves
         ModelPart* p_current_part = &mrModelPart;
         while(p_current_part->IsSubModelPart()) {
-            for(auto it_cond = aux.begin(); it_cond!=aux.end(); ++it_cond) {
+            for(auto it_cond = new_conditions_to_add.begin(); it_cond!=new_conditions_to_add.end(); ++it_cond) {
                 p_current_part->Conditions().push_back( *(it_cond.base()) );
             }
             p_current_part->AddNodes(list_of_nodes);
