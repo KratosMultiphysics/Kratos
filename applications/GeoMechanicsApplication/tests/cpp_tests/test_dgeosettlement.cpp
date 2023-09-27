@@ -13,6 +13,8 @@
 #include "testing/testing.h"
 #include "custom_workflows/dgeosettlement.h"
 #include "stub_input_utility.h"
+#include "stub_process_info_parser.h"
+#include "stub_time_loop_executor.h"
 
 using namespace Kratos;
 
@@ -64,7 +66,9 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, KratosGeoMech
     bool has_thrown = false;
     try
     {
-        KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings));
+        KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings),
+                                       std::make_unique<StubProcessInfoParser>(),
+                                       std::make_unique<StubTimeLoopExecutor>());
     }
     catch (...)
     {
@@ -75,7 +79,9 @@ KRATOS_TEST_CASE_IN_SUITE(CreatingKratosGeoSettlementDoesNotThrow, KratosGeoMech
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RunStageMakesRelevantCallsOnce, KratosGeoMechanicsFastSuite) {
-    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings));
+    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings),
+                                   std::make_unique<StubProcessInfoParser>(),
+                                   std::make_unique<StubTimeLoopExecutor>());
 
     RunStage(settlement);
 
@@ -98,7 +104,9 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotPerformMaterialCallWhenNotSpecified, Kr
                                                                                 }
                                                                                 )";
 
-    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_string_without_material_import_settings));
+    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_string_without_material_import_settings),
+                                   std::make_unique<StubProcessInfoParser>(),
+                                   std::make_unique<StubTimeLoopExecutor>());
 
     RunStage(settlement);
 
@@ -107,7 +115,9 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageDoesNotPerformMaterialCallWhenNotSpecified, Kr
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RunStageTwiceOnlyCallsReadFromModelOnce, KratosGeoMechanicsFastSuite) {
-    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings));
+    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(parameter_json_settings),
+                                   std::make_unique<StubProcessInfoParser>(),
+                                   std::make_unique<StubTimeLoopExecutor>());
 
     RunStage(settlement);
     RunStage(settlement);
@@ -116,8 +126,38 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageTwiceOnlyCallsReadFromModelOnce, KratosGeoMech
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConstructKratosGeoSettlementWithEmptyInputUtilityThrows, KratosGeoMechanicsFastSuite) {
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(KratosGeoSettlement settlement(nullptr),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(KratosGeoSettlement settlement(nullptr,
+                                                                     std::make_unique<StubProcessInfoParser>(),
+                                                                     std::make_unique<StubTimeLoopExecutor>()),
                                       "Invalid Input Utility")
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RunStage_PassesTheCorrectProcessReferences, KratosGeoMechanicsFastSuite) {
+    const std::string process_parameters_in_json_settings =
+    R"(
+    {
+        "solver_settings":
+        {
+            "model_part_name":"test",
+            "model_import_settings":
+            {
+            "input_type": "mdpa",
+            "input_filename": "mesh_stage1"
+            }
+        },
+
+        "processes" :
+        [
+            { "input" : "true" }
+        ]
+    }
+    )";
+
+    KratosGeoSettlement settlement(std::make_unique<StubInputUtility>(process_parameters_in_json_settings),
+                                   std::make_unique<StubProcessInfoParser>(),
+                                   std::make_unique<StubTimeLoopExecutor>(StubProcessInfoParser::NumberOfProcesses()));
+
+    RunStage(settlement);
 }
 
 }
