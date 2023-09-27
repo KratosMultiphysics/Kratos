@@ -82,8 +82,7 @@ void AxisymmetricEulerianConvectionDiffusionElement<TDim,TNumNodes>::CalculateLo
         CalculateGaussPointData(N_g, DN_DX_g, Variables, y_g, v_g_th, v_g_th_dot_grad, grad_v_g_th);
 
         // Calculate axisymmetric integration weight
-        // Note that we avoiding the multiplicatin by 2*pi as it is constant in the entire domain
-        const double w_g = y_g * integration_points[g].Weight() * det_J_vect[g];
+        const double w_g = 2.0 * Globals::Pi * y_g * integration_points[g].Weight() * det_J_vect[g];
 
         // Calculate stabilization constant
         const double norm_v = norm_2(v_g_th);
@@ -204,8 +203,7 @@ void AxisymmetricEulerianConvectionDiffusionElement< TDim, TNumNodes >::Calculat
         CalculateGaussPointData(N_g, DN_DX_g, Variables, y_g, v_g_th, v_g_th_dot_grad, grad_v_g_th);
 
         // Calculate axisymmetric integration weight
-        // Note that we avoiding the multiplicatin by 2*pi as it is constant in the entire domain
-        const double w_g = y_g * integration_points[g].Weight() * det_J_vect[g];
+        const double w_g = 2.0 * Globals::Pi * y_g * integration_points[g].Weight() * det_J_vect[g];
 
         // Calculate stabilization constant
         const double norm_v = norm_2(v_g_th);

@@ -36,6 +36,7 @@
 #include "custom_elements/qs_convection_diffusion_explicit.h"
 #include "custom_elements/d_convection_diffusion_explicit.h"
 
+#include "custom_conditions/axisymmetric_thermal_face.h"
 #include "custom_conditions/thermal_face.h"
 #include "custom_conditions/flux_condition.h"
 #include "custom_conditions/adjoint_thermal_face.h"
@@ -253,6 +254,7 @@ private:
     const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement2D3N;
     const AdjointDiffusionElement<LaplacianElement> mAdjointDiffusionElement3D4N;
 
+    const AxisymmetricThermalFace mAxisymmetricThermalFace2D2N;
     const ThermalFace mThermalFace2D2N;
     const ThermalFace mThermalFace3D3N;
     const ThermalFace mThermalFace3D4N;
