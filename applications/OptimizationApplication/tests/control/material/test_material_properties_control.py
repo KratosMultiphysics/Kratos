@@ -65,7 +65,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
     def test_PropertiesControlUpdate(self):
         self.properties_control.Initialize()
 
-        control_model_part = self.model_part.GetSubModelPart("Union_Structure#structure_EN")
+        control_model_part = self.model_part.GetSubModelPart("structure")
 
         with self.assertRaises(RuntimeError):
             self.properties_control.Update(Kratos.Expression.ConditionExpression(control_model_part))
@@ -84,7 +84,7 @@ class TestMaterialPropertiesControl(kratos_unittest.TestCase):
     def test_PropertiesControlMapGradient(self):
         self.properties_control.Initialize()
 
-        control_model_part = self.model_part.GetSubModelPart("Union_Structure#structure_EN")
+        control_model_part = self.model_part.GetSubModelPart("structure")
 
         with self.assertRaises(RuntimeError):
             self.properties_control.MapGradient({Kratos.DENSITY: Kratos.Expression.NodalExpression(control_model_part)})

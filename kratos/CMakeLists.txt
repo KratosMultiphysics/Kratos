@@ -62,7 +62,10 @@ file(GLOB KRATOS_EXPRESSION_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/expression/*.cpp
 
 ## Kratos tests sources. Enabled by default
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/*.cpp)
+    file(GLOB_RECURSE KRATOS_TEST_SOURCES 
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp 
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+    )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ## Define KratosVersion object
@@ -129,6 +132,11 @@ endif()
 ## Define library Kratos which defines the basic python interface
 pybind11_add_module(Kratos MODULE THIN_LTO ${KRATOS_PYTHON_SOURCES})
 target_link_libraries(Kratos PRIVATE ${KRATOS_TEST_LIBRARIES} KratosCore)
+
+# Precompile most demanding / widely included headers
+if(KRATOS_USE_PCH MATCHES ON)
+    target_precompile_headers(KratosCore PRIVATE "$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_CURRENT_SOURCE_DIR}/includes/model_part.h>")
+endif(KRATOS_USE_PCH MATCHES ON)
 
 # Pass python version flags ONLY TO THE INTERFACE
 target_compile_definitions(Kratos PRIVATE

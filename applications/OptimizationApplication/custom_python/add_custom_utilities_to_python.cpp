@@ -18,7 +18,7 @@
 #include <pybind11/numpy.h>
 
 // Project includes
-#include "python/add_container_expression_to_python_utils.h"
+#include "python/numpy_utils.h"
 
 // Application includes
 #include "custom_utilities/collective_expression.h"
@@ -130,6 +130,9 @@ void  AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
     m.def_submodule("ModelPartUtils")
+        .def("LogModelPartStatus", &ModelPartUtils::LogModelPartStatus, py::arg("model_part"), py::arg("status_to_log"))
+        .def("GetModelPartStatusLog", &ModelPartUtils::GetModelPartStatusLog, py::arg("model_part"))
+        .def("CheckModelPartStatus", &ModelPartUtils::CheckModelPartStatus, py::arg("model_part"), py::arg("status_to_check"))
         .def("GetModelPartsWithCommonReferenceEntities", [](
             const std::vector<ModelPart*>& rEvaluatedModelPartsList,
             const std::vector<ModelPart*>& rReferenceModelPartsList,

@@ -55,7 +55,7 @@ namespace Kratos::Testing {
             } else if (r_node.Id() == 5) {
                 theoretical_distance = 1.0;
             }
-            KRATOS_CHECK_NEAR(r_node.GetValue(DISTANCE),theoretical_distance,1e-10);
+            KRATOS_EXPECT_NEAR(r_node.GetValue(DISTANCE),theoretical_distance,1e-10);
         }
     }
     KRATOS_TEST_CASE_IN_SUITE(ApplyRayCastingInterfaceRecognitionProcess2D, KratosCoreFastSuite)
@@ -99,7 +99,7 @@ namespace Kratos::Testing {
             } else if (r_node.Id() == 4) {
                 theoretical_distance = 1.0;
             }
-            KRATOS_CHECK_NEAR(r_node.GetValue(DISTANCE),theoretical_distance,1e-10);
+            KRATOS_EXPECT_NEAR(r_node.GetValue(DISTANCE),theoretical_distance,1e-10);
         }
     }
 }

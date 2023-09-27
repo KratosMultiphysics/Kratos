@@ -18,7 +18,8 @@
 // External includes
 
 // Project includes
-#include "containers/array_1d.h"
+#include "geometries/bounding_box.h"
+#include "geometries/point.h"
 
 namespace Kratos
 {
@@ -73,6 +74,19 @@ public:
 
     /**
      * @brief Check if a point is inside a bounding box
+     * @details Bounding box class implementation
+     * @param rBoundingBox The bounding box
+     * @param rCoords The point
+     * @return true if the point is inside the bounding box
+     */
+    static bool PointIsInsideBoundingBox(
+        const BoundingBox<Point>& rBoundingBox,
+        const array_1d<double, 3>& rCoords
+        );
+
+    /**
+     * @brief Check if a point is inside a bounding box
+     * @details Bounding box array of 6 doubles implementation
      * @param rBoundingBox The bounding box
      * @param rCoords The point
      * @return true if the point is inside the bounding box
@@ -89,6 +103,19 @@ public:
                     return true;
         return false;
     }
+
+    /**
+     * @brief This method checks if a point is inside a bounding box considering a certain tolerance
+     * @param rBoundingBox The bounding box
+     * @param rCoords The coordinates of the point
+     * @param Tolerance The tolerance
+     * @return True if the point is inside the bounding box
+     */
+    static bool PointIsInsideBoundingBox(
+        const BoundingBox<Point>& rBoundingBox,
+        const array_1d<double, 3>& rCoords,
+        const double Tolerance
+        );
 
     /**
      * @brief Compute the bounding boxes of the given bounding boxes from a given tolerance

@@ -11,7 +11,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
 #include <pybind11/stl.h>
 
@@ -70,8 +69,7 @@
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 /**
  * @brief A thin wrapper for GetSortedListOfFileNameData. The reason for having the wrapper is to replace the original lambda implementation as it causes gcc 4.8 to generate bad code on Centos7 which leads to memory corruption.
@@ -670,6 +668,13 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("__eq__", &FileNameDataCollector::FileNameData::operator==)
         ;
 
+    py::enum_<FillCommunicator::FillCommunicatorEchoLevel>(m, "FillCommunicatorEchoLevel")
+        .value("NO_PRINTING", FillCommunicator::FillCommunicatorEchoLevel::NO_PRINTING)
+        .value("INFO", FillCommunicator::FillCommunicatorEchoLevel::INFO)
+        .value("DEBUG_INFO", FillCommunicator::FillCommunicatorEchoLevel::DEBUG_INFO)
+        .export_values()
+        ;
+
     py::class_<FillCommunicator, FillCommunicator::Pointer>(m,"FillCommunicator")
         .def(py::init([](ModelPart& rModelPart){
             KRATOS_WARNING("FillCommunicator") << "Using deprecated constructor. Please use constructor with data communicator!";
@@ -678,7 +683,10 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def(py::init<ModelPart&, const DataCommunicator& >() )
         .def("Execute", &FillCommunicator::Execute)
         .def("PrintDebugInfo", &FillCommunicator::PrintDebugInfo)
-    ;
+        .def("SetEchoLevel", &FillCommunicator::SetEchoLevel)
+        .def("GetEchoLevel", &FillCommunicator::GetEchoLevel)
+        .def("__str__", PrintObject<FillCommunicator>)
+        ;
 
     typedef DenseQRDecomposition<LocalSpaceType> DenseQRDecompositionType;
     py::class_<DenseQRDecompositionType, DenseQRDecompositionType::Pointer>(m,"DenseQRDecompositionType")
@@ -806,13 +814,12 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
 
     m.def_submodule("ModelPartOperationUtilities", "Free-floating utility functions for model part operations.")
         .def("CheckValidityOfModelPartsForOperations", &ModelPartOperationUtilities::CheckValidityOfModelPartsForOperations, py::arg("main_model_part"), py::arg("list_of_checking_model_parts"), py::arg("thow_error"))
-        .def("Union", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartUnionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_merge"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
-        .def("Substract", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartSubstractionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_substract"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
-        .def("Intersect", &ModelPartOperationUtilities::CreateModelPartWithOperation<ModelPartIntersectionOperator>, py::arg("output_model_part_name"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"), py::return_value_policy::reference_internal)
+        .def("Union", &ModelPartOperationUtilities::FillSubModelPart<ModelPartUnionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_merge"), py::arg("add_neighbours"))
+        .def("Substract", &ModelPartOperationUtilities::FillSubModelPart<ModelPartSubstractionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_substract"), py::arg("add_neighbours"))
+        .def("Intersect", &ModelPartOperationUtilities::FillSubModelPart<ModelPartIntersectionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"))
         .def("HasIntersection", &ModelPartOperationUtilities::HasIntersection, py::arg("model_parts_to_intersect"))
     ;
 
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

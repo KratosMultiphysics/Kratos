@@ -44,9 +44,9 @@ KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTL, KratosCoreFastSuite)
     StlIO stl_io(p_input);
     stl_io.ReadModelPart(r_model_part);
 
-    KRATOS_CHECK(r_model_part.HasSubModelPart("1_triangle"));
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1_triangle").NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1_triangle").NumberOfGeometries(), 1);
+    KRATOS_EXPECT_TRUE(r_model_part.HasSubModelPart("1_triangle"));
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("1_triangle").NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("1_triangle").NumberOfGeometries(), 1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTLAsElement, KratosCoreFastSuite)
@@ -72,10 +72,10 @@ KRATOS_TEST_CASE_IN_SUITE(ReadTriangleFromSTLAsElement, KratosCoreFastSuite)
     StlIO stl_io(p_input,settings);
     stl_io.ReadModelPart(r_model_part);
 
-    KRATOS_CHECK(r_model_part.HasSubModelPart("1_triangle"));
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1_triangle").NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1_triangle").NumberOfGeometries(), 0);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("1_triangle").NumberOfElements(), 1);
+    KRATOS_EXPECT_TRUE(r_model_part.HasSubModelPart("1_triangle"));
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("1_triangle").NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("1_triangle").NumberOfGeometries(), 0);
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("1_triangle").NumberOfElements(), 1);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadSolidNameWithComments, KratosCoreFastSuite)
@@ -101,7 +101,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadSolidNameWithComments, KratosCoreFastSuite)
 
     StlIO stl_io(p_input,settings);
     stl_io.ReadModelPart(r_model_part);
-    KRATOS_CHECK(r_model_part.HasSubModelPart("triangle_1"));
+    KRATOS_EXPECT_TRUE(r_model_part.HasSubModelPart("triangle_1"));
 
     Kratos::shared_ptr<std::stringstream> p_input2 = Kratos::make_shared<std::stringstream>(R"input(
     solid triangle_2    COMMENT: This should be skipped
@@ -117,7 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadSolidNameWithComments, KratosCoreFastSuite)
 
     StlIO stl_io2(p_input2,settings);
     stl_io2.ReadModelPart(r_model_part);
-    KRATOS_CHECK(r_model_part.HasSubModelPart("triangle_2"));
+    KRATOS_EXPECT_TRUE(r_model_part.HasSubModelPart("triangle_2"));
 
     Kratos::shared_ptr<std::stringstream> p_input3 = Kratos::make_shared<std::stringstream>(R"input(
     solid triangle _ 3    COMMENT: This should be skipped
@@ -133,7 +133,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadSolidNameWithComments, KratosCoreFastSuite)
 
     StlIO stl_io3(p_input3,settings);
     stl_io3.ReadModelPart(r_model_part);
-    KRATOS_CHECK(r_model_part.HasSubModelPart("triangle_3"));
+    KRATOS_EXPECT_TRUE(r_model_part.HasSubModelPart("triangle_3"));
 
     Kratos::shared_ptr<std::stringstream> p_input4 = Kratos::make_shared<std::stringstream>(R"input(
     solid core_851 COMMENT: Exported from Inspire HWVERSION_2023.0.0.21_Jun  6 2023_09:37:24 Build 4500, Altair Inc. Unit : mm
@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReadSolidNameWithComments, KratosCoreFastSuite)
 
     StlIO stl_io4(p_input4,settings);
     stl_io4.ReadModelPart(r_model_part);
-    KRATOS_CHECK(r_model_part.HasSubModelPart("core_851"));
+    KRATOS_EXPECT_TRUE(r_model_part.HasSubModelPart("core_851"));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ReadMultipleTrianglesFromSTL, KratosCoreFastSuite)
@@ -186,9 +186,9 @@ KRATOS_TEST_CASE_IN_SUITE(ReadMultipleTrianglesFromSTL, KratosCoreFastSuite)
     StlIO stl_io(p_input);
     stl_io.ReadModelPart(r_model_part);
 
-    KRATOS_CHECK(r_model_part.HasSubModelPart("3_triangles"));
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3_triangles").NumberOfNodes(), 9);
-    KRATOS_CHECK_EQUAL(r_model_part.GetSubModelPart("3_triangles").NumberOfGeometries(), 3);
+    KRATOS_EXPECT_TRUE(r_model_part.HasSubModelPart("3_triangles"));
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("3_triangles").NumberOfNodes(), 9);
+    KRATOS_EXPECT_EQ(r_model_part.GetSubModelPart("3_triangles").NumberOfGeometries(), 3);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
@@ -227,17 +227,17 @@ KRATOS_TEST_CASE_IN_SUITE(WriteTriangleToSTL, KratosCoreFastSuite)
     }
 
     // ... and check
-    KRATOS_CHECK(r_output_model_part.HasSubModelPart("Main"));
-    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfProperties(), 1);
-    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfSubModelParts() ,1);
-    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfGeometries(), 1);
-    KRATOS_CHECK_EQUAL(r_output_model_part.NumberOfConditions(), 0);
+    KRATOS_EXPECT_TRUE(r_output_model_part.HasSubModelPart("Main"));
+    KRATOS_EXPECT_EQ(r_output_model_part.NumberOfProperties(), 1);
+    KRATOS_EXPECT_EQ(r_output_model_part.NumberOfSubModelParts() ,1);
+    KRATOS_EXPECT_EQ(r_output_model_part.NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(r_output_model_part.NumberOfGeometries(), 1);
+    KRATOS_EXPECT_EQ(r_output_model_part.NumberOfConditions(), 0);
 
-    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfNodes(), 3);
-    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfGeometries(), 1);
-    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfElements(), 0);
-    KRATOS_CHECK_EQUAL(r_output_model_part.GetSubModelPart("Main").NumberOfConditions(), 0);
+    KRATOS_EXPECT_EQ(r_output_model_part.GetSubModelPart("Main").NumberOfNodes(), 3);
+    KRATOS_EXPECT_EQ(r_output_model_part.GetSubModelPart("Main").NumberOfGeometries(), 1);
+    KRATOS_EXPECT_EQ(r_output_model_part.GetSubModelPart("Main").NumberOfElements(), 0);
+    KRATOS_EXPECT_EQ(r_output_model_part.GetSubModelPart("Main").NumberOfConditions(), 0);
 
     // remove the generated files
     if (std::filesystem::remove(filename) != true) {
