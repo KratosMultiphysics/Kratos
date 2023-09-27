@@ -12,11 +12,11 @@ this_working_dir_backup = os.getcwd()
 def GetFilePath(fileName):
     return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
-class ParallelBondModelTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
+class MovingPeriodicBoundaryTestSolution(KratosMultiphysics.DEMApplication.DEM_analysis_stage.DEMAnalysisStage, KratosUnittest.TestCase):
 
     @classmethod
     def GetMainPath(self):
-        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "dem_3d_parallel_bond_model_tests_files")
+        return os.path.join(os.path.dirname(os.path.realpath(__file__)), "moving_periodic_boundary_tests_files")
 
     def GetProblemNameWithPath(self):
         return os.path.join(self.main_path, self.DEM_parameters["problem_name"].GetString())
@@ -28,16 +28,16 @@ class ParallelBondModelTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
             velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
             if node.Id == 1:
-                if self.time > 0.0098 and self.time < 0.00981:
-                    expected_value = -3.365862016784862e-05
+                if self.time >= 0.000005 and self.time < 0.0000051:
+                    expected_value = 2.1177075701906707e-06
                     self.CheckValues(velocity, 0, expected_value, tolerance)
-                    expected_value = 0.0
+                    expected_value = 1.8578612376954684e-06
                     self.CheckValues(velocity, 1, expected_value, tolerance)
-                    expected_value = 3.345233292428133e-05
+                    expected_value = 4.827815628977769e-06
                     self.CheckValues(velocity, 2, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValues(angular_velocity, 0, expected_value, tolerance)
-                    expected_value = 4.011134246117183e-05
+                    expected_value = 0.0
                     self.CheckValues(angular_velocity, 1, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValues(angular_velocity, 2, expected_value, tolerance)
@@ -49,17 +49,17 @@ class ParallelBondModelTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
         self.procedures.RemoveFoldersWithResults(str(self.main_path), str(self.problem_name), '')
         super().Finalize()
 
-class TestParallelBondModel(KratosUnittest.TestCase):
+class TestMovingPeriodicBoundary(KratosUnittest.TestCase):
 
     def setUp(self):
         pass
 
     @classmethod
-    def test_ParallelBondModel_1(self):
-        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "dem_3d_parallel_bond_model_tests_files")
+    def test_MovingPeriodicBoundary(self):
+        path = os.path.join(os.path.dirname(os.path.realpath(__file__)), "moving_periodic_boundary_tests_files")
         parameters_file_name = os.path.join(path, "ProjectParametersDEM.json")
         model = Kratos.Model()
-        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(ParallelBondModelTestSolution, model, parameters_file_name, 1)
+        auxiliary_functions_for_tests.CreateAndRunStageInSelectedNumberOfOpenMPThreads(MovingPeriodicBoundaryTestSolution, model, parameters_file_name, 1)
 
 if __name__ == "__main__":
     Kratos.Logger.GetDefaultOutput().SetSeverity(Logger.Severity.WARNING)
