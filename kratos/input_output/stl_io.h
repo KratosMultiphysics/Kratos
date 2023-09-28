@@ -104,12 +104,12 @@ public:
     /** 
      * @brief Constructs a StlIO object using a filename.
      * @details This constructor will create a StlIO object and open a file with the provided filename and open options. The default open option is read mode.
-     * @param Filename The path of the file to open.
+     * @param rFilename The path of the file to open.
      * @param ThisParameters Optional. Additional parameters for the StlIO object.
      *                       Defaults to an empty Parameters object.
      */
     StlIO(
-        const std::filesystem::path& Filename,
+        const std::filesystem::path& rFilename,
         Parameters ThisParameters = Parameters()
         );
 
