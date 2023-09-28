@@ -219,7 +219,8 @@ auto GetFamilyNumbers(
     const med_idt FileHandle,
 	const char* pMeshName,
     const int NumberOfEntities,
-    med_entity_type EntityTpe)
+    med_entity_type EntityTpe,
+    med_geometry_type GeomType = MED_NONE)
 {
     KRATOS_TRY
 
@@ -228,7 +229,7 @@ auto GetFamilyNumbers(
     const auto err = MEDmeshEntityFamilyNumberRd(
         FileHandle, pMeshName,
         MED_NO_DT, MED_NO_IT,
-        EntityTpe, MED_NONE,
+        EntityTpe, GeomType,
         family_numbers.data());
 
     CheckMEDErrorCode(err, "MEDmeshEntityFamilyNumberRd");
@@ -491,13 +492,6 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
     // looping geometry types
     for (int it_geo=1; it_geo<=num_geometry_types; ++it_geo) {
-        // get geometry family numbers
-        const auto geom_family_numbers = GetFamilyNumbers(
-            mpFileHandler->GetFileHandle(),
-            mpFileHandler->GetMeshName(),
-            num_nodes,
-            med_entity_type::MED_CELL);
-
         med_geometry_type geo_type;
 
         std::string geotypename;
@@ -520,6 +514,14 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             MED_CELL, geo_type,
             MED_CONNECTIVITY, MED_NODAL,
             &coordinatechangement, &geotransformation);
+
+        // get geometry family numbers
+        const auto geom_family_numbers = GetFamilyNumbers(
+            mpFileHandler->GetFileHandle(),
+            mpFileHandler->GetMeshName(),
+            num_geometries,
+            med_entity_type::MED_CELL,
+            geo_type);
 
         // read cells connectivity in the mesh
         const int num_nodes_geo_type = geo_type%100;
@@ -578,6 +580,9 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 
 void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
+    // TODO most probably need to write zero family numbers until proper support for SubModelParts is implemented
+    // otherwise it crashes while reading the families
+
     KRATOS_TRY
 
     // TODO what happens if this function is called multiple times?
