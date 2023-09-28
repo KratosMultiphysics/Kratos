@@ -223,24 +223,26 @@ void StlIO::WriteEntityBlockMPI(
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 
     // Retrieve rank and pass to rank 0
-    const int rank = rDataCommunicator.Rank();
-    const int tag = 0;
-    if (rank == 0) {
-        // Retrieve reference of the stream
-        auto& r_stream = *mpInputStream;
+    if (rThisEntities.size() > 0) {
+        const int rank = rDataCommunicator.Rank();
+        const int tag = 0;
+        if (rank == 0) {
+            // Retrieve reference of the stream
+            auto& r_stream = *mpInputStream;
 
-        // Add the corresponding 0 rank string
-        r_stream << ss.str();
+            // Add the corresponding 0 rank string
+            r_stream << ss.str();
 
-        // Now receive from other partitions
-        for (int i = 1; i < rDataCommunicator.Size(); ++i) {
-            std::string recv_string;
-            rDataCommunicator.Recv(recv_string, i, tag);
-            r_stream << recv_string;
+            // Now receive from other partitions
+            for (int i = 1; i < rDataCommunicator.Size(); ++i) {
+                std::string recv_string;
+                rDataCommunicator.Recv(recv_string, i, tag);
+                r_stream << recv_string;
+            }
+        } else {
+            // Send the stream to rank 0
+            rDataCommunicator.Send(ss.str(), 0, tag);
         }
-    } else {
-        // Send the stream to rank 0
-        rDataCommunicator.Send(ss.str(), 0, tag);
     }
 }
 
@@ -268,24 +270,26 @@ void StlIO::WriteGeometryBlockMPI(
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 
     // Retrieve rank and pass to rank 0
-    const int rank = rDataCommunicator.Rank();
-    const int tag = 0;
-    if (rank == 0) {
-        // Retrieve reference of the stream
-        auto& r_stream = *mpInputStream;
+    if (rThisGeometries.size() > 0) {
+        const int rank = rDataCommunicator.Rank();
+        const int tag = 0;
+        if (rank == 0) {
+            // Retrieve reference of the stream
+            auto& r_stream = *mpInputStream;
 
-        // Add the corresponding 0 rank string
-        r_stream << ss.str();
+            // Add the corresponding 0 rank string
+            r_stream << ss.str();
 
-        // Now receive from other partitions
-        for (int i = 1; i < rDataCommunicator.Size(); ++i) {
-            std::string recv_string;
-            rDataCommunicator.Recv(recv_string, i, tag);
-            r_stream << recv_string;
+            // Now receive from other partitions
+            for (int i = 1; i < rDataCommunicator.Size(); ++i) {
+                std::string recv_string;
+                rDataCommunicator.Recv(recv_string, i, tag);
+                r_stream << recv_string;
+            }
+        } else {
+            // Send the stream to rank 0
+            rDataCommunicator.Send(ss.str(), 0, tag);
         }
-    } else {
-        // Send the stream to rank 0
-        rDataCommunicator.Send(ss.str(), 0, tag);
     }
 }
 
