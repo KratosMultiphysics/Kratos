@@ -298,11 +298,41 @@ private:
     void WriteGeometryBlock(const GeometriesMapType& rThisGeometries);
 
     /**
+     * @brief Writes an entity block (MPI version).
+     * @details Writes an entity block of a given type to the destination.
+     * @tparam TContainerType The type of the container for entities.
+     * @param rThisEntities Reference to the entities to write.
+     * @param rDataCommunicator The data communicator considered for MPI.
+     */
+    template<class TContainerType>
+    void WriteEntityBlockMPI(
+        const TContainerType& rThisEntities,
+        const DataCommunicator& rDataCommunicator
+        );
+
+    /**
+     * @brief Writes a geometry block (MPI version).
+     * @details Writes a geometry block to the destination.
+     * @param rThisGeometries Reference to the geometries to write.
+     * @param rDataCommunicator The data communicator considered for MPI.
+     */
+    void WriteGeometryBlockMPI(
+        const GeometriesMapType& rThisGeometries,
+        const DataCommunicator& rDataCommunicator
+        );
+
+    /**
      * @brief Writes a facet.
      * @details Writes a facet to the destination.
      * @param rGeom Reference to the geometry to write.
+     * @param rStream The stream considered
+     * @tparam TStreamType The stream type considered.
      */
-    void WriteFacet(const GeometryType & rGeom);
+    template<class TStreamType>
+    void WriteFacet(
+        const GeometryType& rGeom,
+        TStreamType& rStream
+        );
 
     /**
      * @brief Checks the validity of a geometry.
