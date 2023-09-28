@@ -74,7 +74,7 @@ class HRomTrainingUtility(object):
             if candidate_elements_model_part.NumberOfElements() == 0:
                 KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility",
                     f"The model part named '{model_part_name}' has no associated elements. Fetching the associated neighboring elements to the model part's nodes.")
-                this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIds(candidate_elements_model_part)
+                this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIds(self.solver.GetComputingModelPart(), candidate_elements_model_part)
             else:
                 this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetElementIdsInModelPart(candidate_elements_model_part)
             if len(this_modelpart_element_ids)>0:
