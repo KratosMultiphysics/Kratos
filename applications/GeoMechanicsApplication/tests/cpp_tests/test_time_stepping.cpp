@@ -75,7 +75,8 @@ KRATOS_TEST_CASE_IN_SUITE(RunReturnsNonConvergedWhenStrategyDoesNotConverge, Kra
     TimeStepExecuter<NeverConvergingSolverStrategy> executer;
     auto nonconverging_strategy = std::make_shared<NeverConvergingSolverStrategy>();
     executer.SetSolverStrategy(nonconverging_strategy);
-    KRATOS_EXPECT_EQ(TimeStepEndState::ConvergenceState::non_converged, executer.Run().convergence_state);
+    const auto time = 0.0;
+    KRATOS_EXPECT_EQ(TimeStepEndState::ConvergenceState::non_converged, executer.Run(time).convergence_state);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMechanicsWip)
@@ -83,7 +84,8 @@ KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMec
     TimeStepExecuter<AlwaysConvergingSolverStrategy> executer;
     auto converging_strategy = std::make_shared<AlwaysConvergingSolverStrategy>();
     executer.SetSolverStrategy(converging_strategy);
-    KRATOS_EXPECT_EQ(TimeStepEndState::ConvergenceState::converged, executer.Run().convergence_state);
+    const auto time = 0.0;
+    KRATOS_EXPECT_EQ(TimeStepEndState::ConvergenceState::converged, executer.Run(time).convergence_state);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ProcessSolutionStepWasInitializedAndFinalized, KratosGeoMechanicsWip)
@@ -94,11 +96,21 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessSolutionStepWasInitializedAndFinalized, KratosG
     ProcessSpy spy;
     TimeStepExecuter<AlwaysConvergingSolverStrategy>::ProcessRefVec process_refs{spy};
     executer.SetProcessReferences(process_refs);
+    const auto time = 0.0;
 
-    executer.Run();
+    executer.Run(time);
 
     KRATOS_EXPECT_TRUE(spy.WasSolutionStepInitialized());
     KRATOS_EXPECT_TRUE(spy.WasSolutionStepFinalized());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TimeStepExecutionReturnsGivenTime, KratosGeoMechanicsWip)
+{
+    TimeStepExecuter<AlwaysConvergingSolverStrategy> executer;
+    auto converging_strategy = std::make_shared<AlwaysConvergingSolverStrategy>();
+    executer.SetSolverStrategy(converging_strategy);
+    const auto time = 2.0;
+    KRATOS_EXPECT_DOUBLE_EQ(time, executer.Run(time).time);
 }
 
 }

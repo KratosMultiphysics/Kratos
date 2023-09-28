@@ -40,7 +40,7 @@ public:
         mProcessRefs = std::move(ProcessRefs);
     }
 
-    TimeStepEndState Run()
+    TimeStepEndState Run(double Time)
     {
         mStrategy->Initialize();
         mStrategy->InitializeSolutionStep();
@@ -61,6 +61,7 @@ public:
         mStrategy->FinalizeSolutionStep();
 
         TimeStepEndState result;
+        result.time = Time;
         result.convergence_state = mStrategy->IsConverged() ? TimeStepEndState::ConvergenceState::converged :
                                                               TimeStepEndState::ConvergenceState::non_converged;
         return result;
