@@ -11,17 +11,31 @@
 //
 #include "dgeosettlement.h"
 #include "input_output/logger.h"
-#include "custom_utilities/input_utilities.h"
-#include "utilities/variable_utils.h"
-#include "includes/model_part_io.h"
+#include "time_loop_executor.h"
 
+#include "utilities/variable_utils.h"
+
+#include "custom_processes/apply_vector_constraints_table_process.hpp"
+#include "custom_processes/set_parameter_field_process.hpp"
+#include "custom_processes/apply_k0_procedure_process.hpp"
+#include "custom_processes/apply_excavation_process.hpp"
+
+#include "custom_utilities/input_utility.h"
+#include "custom_utilities/process_factory.hpp"
+#include "custom_utilities/process_info_parser.h"
 
 namespace Kratos
 {
 
-KratosGeoSettlement::KratosGeoSettlement()
+KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility,
+                                         std::unique_ptr<ProcessInfoParser> pProcessInfoParser,
+                                         std::unique_ptr<TimeLoopExecutor> pTimeLoopExecutor) :
+    mpInputUtility{std::move(pInputUtility)},
+    mpProcessInfoParser{std::move(pProcessInfoParser)},
+    mpTimeLoopExecutor{std::move(pTimeLoopExecutor)}
 {
     KRATOS_INFO("KratosGeoSettlement") << "Setting up Kratos" << std::endl;
+    KRATOS_ERROR_IF_NOT(mpInputUtility) << "Invalid Input Utility";
 
     if (!mKernel.IsImported("GeoMechanicsApplication"))
     {
@@ -29,6 +43,43 @@ KratosGeoSettlement::KratosGeoSettlement()
         mpGeoApp = Kratos::make_shared<KratosGeoMechanicsApplication>();
         mKernel.ImportApplication(mpGeoApp);
     }
+
+    InitializeProcessFactory();
+}
+
+void KratosGeoSettlement::InitializeProcessFactory() {
+    mProcessFactory->AddCreator("ApplyVectorConstraintsTableProcess",
+                                [this](const Parameters& rParameters)
+                                {
+                                    return std::make_unique<ApplyVectorConstraintsTableProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                                rParameters);
+                                });
+
+    mProcessFactory->AddCreator("SetParameterFieldProcess",
+                                [this](const Parameters& rParameters)
+                                {
+                                    return std::make_unique<SetParameterFieldProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                      rParameters);
+                                });
+
+    mProcessFactory->AddCreator("ApplyExcavationProcess",
+                                [this](const Parameters& rParameters)
+                                {
+                                    return std::make_unique<ApplyExcavationProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                    rParameters);
+                                });
+
+    mProcessFactory->AddCreator("ApplyK0ProcedureProcess",
+                                [this](const Parameters& rParameters)
+                                {
+                                    return std::make_unique<ApplyK0ProcedureProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                     rParameters);
+                                });
+
+    mProcessFactory->SetCallBackWhenProcessIsUnknown([](const std::string& rProcessName)
+    {
+        KRATOS_ERROR << "Unexpected process (" << rProcessName << "), calculation is aborted";
+    });
 }
 
 int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorkingDirectory,
@@ -41,21 +92,31 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     KRATOS_INFO("KratosGeoSettlement") << "About to run a stage..." << std::endl;
 
     const auto project_parameters_file_path = rWorkingDirectory / rProjectParametersFile;
-    const auto project_parameters = InputUtilities::ProjectParametersFrom(project_parameters_file_path.generic_string());
+    const auto project_parameters = mpInputUtility->ProjectParametersFromFile(
+            project_parameters_file_path.generic_string());
     KRATOS_INFO("KratosGeoSettlement") << "Parsed project parameters file " << project_parameters_file_path << std::endl;
 
+    mModelPartName = project_parameters["solver_settings"]["model_part_name"].GetString();
     if (const auto model_part_name = project_parameters["solver_settings"]["model_part_name"].GetString();
         !mModel.HasModelPart(model_part_name)) {
         auto& model_part = AddNewModelPart(model_part_name);
         const auto mesh_file_name = project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString();
-        ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
+        mpInputUtility->ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
     }
 
     if (project_parameters["solver_settings"].Has("material_import_settings")) {
         const auto material_file_name = project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
         const auto material_file_path = rWorkingDirectory / material_file_name;
-        InputUtilities::AddMaterialsFrom(material_file_path.generic_string(), mModel);
+        mpInputUtility->AddMaterialsFromFile(material_file_path.generic_string(), mModel);
         KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
+    }
+
+    std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
+    std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
+
+    if (mpTimeLoopExecutor)
+    {
+        mpTimeLoopExecutor->SetProcessReferences(process_observables);
     }
 
     return 0;
@@ -75,16 +136,6 @@ ModelPart& KratosGeoSettlement::AddNewModelPart(const std::string& rModelPartNam
     KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
 
     return result;
-}
-
-void KratosGeoSettlement::ReadModelFromFile(const std::filesystem::path& rModelPartFilePath,
-                                            Kratos::ModelPart&           rModelPart)
-{
-    // Note that the file extension of the model part file must be excluded, since that is automatically appended by the
-    // constructor of class ModelPartIO
-    ModelPartIO reader{rModelPartFilePath.generic_string()};
-    reader.ReadModelPart(rModelPart);
-    KRATOS_INFO("KratosGeoSettlement") << "Read the mesh data from " << rModelPartFilePath << std::endl;
 }
 
 void KratosGeoSettlement::AddNodalSolutionStepVariablesTo(ModelPart& rModelPart)
@@ -122,5 +173,27 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_Y, rModelPart);
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
 }
+
+const InputUtility* KratosGeoSettlement::GetInterfaceInputUtility() const
+{
+    return mpInputUtility.get();
+}
+
+std::vector<std::shared_ptr<Process>> KratosGeoSettlement::GetProcesses(const Parameters& project_parameters) const
+{
+    std::vector<std::shared_ptr<Process>> result;
+    if (project_parameters.Has("processes")) {
+        const auto processes = mpProcessInfoParser->GetProcessList(project_parameters["processes"]);
+        for (const auto &process: processes) {
+            result.emplace_back(mProcessFactory->Create(process.name, process.parameters));
+        }
+
+    }
+
+    return result;
+}
+
+// This default destructor is added in the cpp to be able to forward member variables in a unique_ptr
+KratosGeoSettlement::~KratosGeoSettlement() = default;
 
 }

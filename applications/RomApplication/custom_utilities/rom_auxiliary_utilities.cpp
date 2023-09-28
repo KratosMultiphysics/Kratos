@@ -342,7 +342,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotI
 {
     std::vector<IndexType> new_element_ids;
     const auto& r_elem_weights = rHRomWeights.at("Elements");
-    
+
     FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
     find_nodal_elements_neighbours_process.Execute();
 
@@ -373,7 +373,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
 
     for (const auto& r_elem : rModelPartWithElementsToInclude.Elements()) {
         IndexType element_id = r_elem.Id();
-        
+
         // Check if the element is already added
         if (r_elem_weights.find(element_id - 1) == r_elem_weights.end()) {
             new_element_ids.push_back(element_id - 1);
@@ -382,6 +382,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
 
     return new_element_ids;
 }
+
 
 std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart(
     const ModelPart& rModelPart,
@@ -393,7 +394,7 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart(
 
     for (const auto& r_cond : rModelPartWithConditionsToInclude.Conditions()) {
         IndexType condition_id = r_cond.Id();
-        
+
         // Check if the condition is already added
         if (r_cond_weights.find(condition_id - 1) == r_cond_weights.end()) {
             new_condition_ids.push_back(condition_id - 1);
@@ -401,6 +402,28 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart(
     }
 
     return new_condition_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsInModelPart(
+    const ModelPart& rModelPart)
+{
+    std::vector<IndexType> element_ids;
+
+    for (const auto& r_elem : rModelPart.Elements()) {
+        element_ids.push_back(r_elem.Id());
+    }
+    return element_ids;
+}
+
+std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsInModelPart(
+    const ModelPart& rModelPart)
+{
+    std::vector<IndexType> condition_ids;
+
+    for (const auto& r_cond : rModelPart.Conditions()) {
+        condition_ids.push_back(r_cond.Id());
+    }
+    return condition_ids;
 }
 
 std::vector<IndexType> RomAuxiliaryUtilities::GetHRomMinimumConditionsIds(
@@ -567,6 +590,6 @@ void RomAuxiliaryUtilities::GetPsiElemental(
                 noalias(row(rPsiElemental, i)) = row(r_nodal_rom_basis, row_id);
             }
         }
-    } 
+    }
 
 } // namespace Kratos
