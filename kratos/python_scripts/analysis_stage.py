@@ -65,11 +65,8 @@ class AnalysisStage(object):
         Ainv[1,1] = A[0,0]/det
         return Ainv
     
-    def RunSolutionLoop(self):
-        """This function executes the solution loop of the AnalysisStage
-        It can be overridden by derived classes
-        """
-        ######################################################################################################
+    ######################################################################################################
+    def ImposeInitialStateProcess(self):
         imposed_strain = KratosMultiphysics.Vector(3)
         imposed_stress = KratosMultiphysics.Vector(3)
         imposed_def_grad = KratosMultiphysics.Matrix(2,2)
@@ -89,7 +86,36 @@ class AnalysisStage(object):
                                                     imposed_strain,
                                                     imposed_stress,
                                                     imposed_def_grad).ExecuteInitializeSolutionStep()
-        ######################################################################################################
+    ######################################################################################################
+    
+    def RunSolutionLoop(self):
+        """This function executes the solution loop of the AnalysisStage
+        It can be overridden by derived classes
+        """
+
+        # initialize InitialState
+        self.ImposeInitialStateProcess()
+        # ######################################################################################################
+        # imposed_strain = KratosMultiphysics.Vector(3)
+        # imposed_stress = KratosMultiphysics.Vector(3)
+        # imposed_def_grad = KratosMultiphysics.Matrix(2,2)
+        # imposed_strain[0] = 0.0
+        # imposed_strain[1] = 0.0
+        # imposed_strain[2] = 0.0
+        # imposed_stress[0] = 0.0
+        # imposed_stress[1] = 0.0
+        # imposed_stress[2] = 0.0
+        # imposed_def_grad[0,0] = 0.0
+        # imposed_def_grad[0,1] = 0.0
+        # imposed_def_grad[1,0] = 0.0
+        # imposed_def_grad[1,1] = 0.0
+
+        # # create process
+        # KratosMultiphysics.SetInitialStateProcess2D(self._GetSolver().GetComputingModelPart(),
+        #                                             imposed_strain,
+        #                                             imposed_stress,
+        #                                             imposed_def_grad).ExecuteInitializeSolutionStep()
+        # ######################################################################################################
 
         while self.KeepAdvancingSolutionLoop():
             self.time = self._AdvanceTime()
@@ -129,17 +155,17 @@ class AnalysisStage(object):
             J0 = T0_elm.transpose() * J0
             J0_inv = np.linalg.inv(J0)
 
-            JTJ = J.T * J
+            JTJ = J.transpose() * J
             G_hat = J0_inv
             g_hat = JTJ
             C3D = G_hat.T * g_hat * G_hat
             E3D = 0.5 * (C3D - np.eye(3))
 
-            JTJ = J.T * J
-            G = J0_inv[0:2, 0:2]
-            g = JTJ[0:2, 0:2]
-            C2D = G.T * g * G
-            E2D = 0.5 * (C2D - np.eye(2))
+            # JTJ = J.transpose() * J
+            # G = J0_inv[0:2, 0:2]
+            # g = JTJ[0:2, 0:2]
+            # C2D = G.T * g * G
+            # E2D = 0.5 * (C2D - np.eye(2))
 
             if element.Id == 14 or element.Id == 48:
                 print("element:", element.Id)
@@ -149,9 +175,9 @@ class AnalysisStage(object):
             #E3D = T0_elm * (E3D * T0_elm.transpose())
 
             E_voigt = KratosMultiphysics.Vector(3)
-            E_voigt[0] = -E3D[0, 0]
-            E_voigt[1] = -E3D[1, 1]
-            E_voigt[2] = -2.0 * E3D[0, 1]
+            E_voigt[0] = E3D[0, 0]
+            E_voigt[1] = E3D[1, 1]
+            E_voigt[2] = E3D[0, 1]
 
             element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
             # TODO later - Create condition for PointLoad, reference command:
@@ -301,7 +327,7 @@ class AnalysisStage(object):
             local_axis_2 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_3 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, self._GetSolver().GetComputingModelPart().ProcessInfo)
             
-            T_elm = np.zeros((3, 3))
+            T_elm = KratosMultiphysics.Matrix(3, 3)
             T_elm[0, 0] = local_axis_1[0][0]
             T_elm[0, 1] = local_axis_1[0][1]
             T_elm[0, 2] = local_axis_1[0][2]
@@ -325,7 +351,7 @@ class AnalysisStage(object):
         print("nodal normals (deformed configuration):")
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             self.deformed_config_normals.append(np.array(node.GetValue(KratosMultiphysics.NORMAL)))
-            print(node.Id, self.deformed_config_normals[node.Id - 1])
+            # print(node.Id, self.deformed_config_normals[node.Id - 1])
         print("\n ::TESTING:: FINISH Calculate normals \n")
 
         # flatten geometry
@@ -336,7 +362,7 @@ class AnalysisStage(object):
         # save flat configuration nodal positions
         self.flattened_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
         self.initial_displacements = self.initial_unmodified_coordinates - self.flattened_coordinates
-        print("initial_displacements:", self.initial_displacements)
+        # print("initial_displacements:", self.initial_displacements)
 
         # assign initial strains
         self.InitializeMyStrains()
