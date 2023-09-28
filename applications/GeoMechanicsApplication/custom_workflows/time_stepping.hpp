@@ -14,6 +14,7 @@
 #pragma once
 
 #include "processes/process.h"
+#include "time_step_end_state.hpp"
 
 #include <functional>
 #include <memory>
@@ -26,8 +27,6 @@ template <typename StrategyType>
 class TimeStepExecuter
 {
 public:
-    enum class ConvergenceState {converged, non_converged};
-
     using ProcessRef    = std::reference_wrapper<Process>;
     using ProcessRefVec = std::vector<ProcessRef>;
 
@@ -41,7 +40,7 @@ public:
         mProcessRefs = std::move(ProcessRefs);
     }
 
-    ConvergenceState Run()
+    TimeStepEndState Run()
     {
         mStrategy->Initialize();
         mStrategy->InitializeSolutionStep();
@@ -61,7 +60,10 @@ public:
 
         mStrategy->FinalizeSolutionStep();
 
-        return mStrategy->IsConverged() ? ConvergenceState::converged : ConvergenceState::non_converged;
+        TimeStepEndState result;
+        result.convergence_state = mStrategy->IsConverged() ? TimeStepEndState::ConvergenceState::converged :
+                                                              TimeStepEndState::ConvergenceState::non_converged;
+        return result;
     }
 
 private:
