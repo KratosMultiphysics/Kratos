@@ -128,6 +128,23 @@ public:
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
     /**
+     * @brief Retrieve the IDs of elements neighboring nodes in a given sub-model part.
+     *
+     * This function iterates over all the nodes in the provided sub-model part (`rGivenModelPart`) and collects
+     * the IDs of the elements neighboring each node. The neighboring elements are determined using the
+     * 'NEIGHBOUR_ELEMENTS' value attached to each node. The function automatically ensures that each element ID
+     * is unique, avoiding duplicates in the return vector. It's important to note that this function assumes that
+     * the 'NEIGHBOUR_ELEMENTS' values are already computed for the nodes in the model part.
+     *
+     * @param rModelPart The complete model part which houses all the elements.
+     * @param rGivenModelPart The sub-model part with nodes for which neighboring elements should be fetched.
+     * @return std::vector<IndexType> A list of unique neighboring element IDs.
+     */
+    static std::vector<IndexType> GetNodalNeighbouringElementIds(
+        ModelPart& rModelPart,
+        ModelPart& rGivenModelPart);
+
+    /**
      * @brief Identifies condition IDs from a given ModelPart that are not in the HROM weights
      * This function iterates through the conditions in the provided ModelPart, checks if their IDs exist in the HROM weights,
      * and includes them in a list if they are missing. The IDs of the absent conditions are returned.

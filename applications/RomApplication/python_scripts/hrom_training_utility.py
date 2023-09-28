@@ -70,7 +70,13 @@ class HRomTrainingUtility(object):
         for model_part_name in initial_candidate_elements_model_part_list:
             if not self.solver.model.HasModelPart(model_part_name):
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
-            this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetElementIdsInModelPart(self.solver.model.GetModelPart(model_part_name))
+            candidate_elements_model_part = self.solver.model.GetModelPart(model_part_name)
+            if candidate_elements_model_part.NumberOfElements() == 0:
+                KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility",
+                    f"The model part named '{model_part_name}' has no associated elements. Fetching the associated neighboring elements to the model part's nodes.")
+                this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIds(candidate_elements_model_part)
+            else:
+                this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetElementIdsInModelPart(candidate_elements_model_part)
             if len(this_modelpart_element_ids)>0:
                 candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_element_ids)]
 

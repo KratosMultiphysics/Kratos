@@ -363,6 +363,31 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotI
     return new_element_ids;
 }
 
+std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
+    ModelPart& rModelPart,
+    ModelPart& rGivenModelPart)
+{
+    std::unordered_set<IndexType> new_element_ids_set;
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    for (const auto& r_node : rGivenModelPart.Nodes()) {
+        const auto& r_neigh = r_node.GetValue(NEIGHBOUR_ELEMENTS);
+
+        // Add the neighbour elements to new_element_ids_set
+        for (size_t i = 0; i < r_neigh.size(); ++i) {
+            const auto& r_elem = r_neigh[i];
+            new_element_ids_set.insert(r_elem.Id());
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> new_element_ids(new_element_ids_set.begin(), new_element_ids_set.end());
+
+    return new_element_ids;
+}
+
 std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
     const ModelPart& rModelPart,
     const ModelPart& rModelPartWithElementsToInclude,
