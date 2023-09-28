@@ -17,10 +17,11 @@ def WriteModelPartToSTL(model_part, stl_file):
     stl_io = KratosMultiphysics.StlIO(stl_file, write_settings)
     stl_io.WriteModelPart(model_part)
 
-def ReadModelPartFromSTL(model_part, stl_file):
-    read_settings = KratosMultiphysics.Parameters("""{"open_mode" : "read", "new_entity_type" : "element"}""")
-    stl_io = KratosMultiphysics.StlIO(stl_file, read_settings)
-    stl_io.ReadModelPart(model_part)
+def ReadModelPartFromSTL(model_part, data_comm, stl_file):
+    if data_comm.Rank() == 0:
+        read_settings = KratosMultiphysics.Parameters("""{"open_mode" : "read", "new_entity_type" : "element"}""")
+        stl_io = KratosMultiphysics.StlIO(stl_file, read_settings)
+        stl_io.ReadModelPart(model_part)
 
 class TestStlIO(KratosUnittest.TestCase):
     @classmethod
@@ -40,25 +41,28 @@ class TestStlIO(KratosUnittest.TestCase):
     def test_WriteStlIO(self):
         mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_skin")
         ReadModelPart(mdpa_name, self.model_part)
+        data_comm = self.model_part.GetCommunicator().GetDataCommunicator()
 
         # Compute area of given 
         area_1 = 0.0
         for cond in self.model_part.Conditions:
             geom = cond.GetGeometry()
             area_1 += geom.Area()
+        area_1 = data_comm.SumAll(area_1)
 
         # Write current mesh into STL
         WriteModelPartToSTL(self.model_part, self.stl_file)
 
         # Read it back
         stl_model_part = self.current_model.CreateModelPart("STL")
-        ReadModelPartFromSTL(stl_model_part, self.stl_file)
+        ReadModelPartFromSTL(stl_model_part, data_comm, self.stl_file)
 
         # Compute resulting area
         area_2 = 0.0
         for elem in stl_model_part.Elements:
             geom = elem.GetGeometry()
             area_2 += geom.Area()
+        area_2 = data_comm.SumAll(area_2)
 
         self.assertAlmostEqual(area_1, area_2)
 
