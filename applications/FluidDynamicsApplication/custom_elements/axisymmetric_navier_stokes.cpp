@@ -77,6 +77,18 @@ Element::Pointer AxisymmetricNavierStokes<TElementData>::Create(
     return Kratos::make_intrusive<AxisymmetricNavierStokes>(NewId, pGeometry, pProperties);
 }
 
+template <class TElementData>
+void AxisymmetricNavierStokes<TElementData>::Initialize(const ProcessInfo &rCurrentProcessInfo)
+{
+    KRATOS_TRY;
+
+    // Set the constitutive law pointer to null as the axisymmetric element hardcodes a Newtonian fluid viscous behavior
+    // Note that to use a constitutive law the gradient in cylindrical coordinates together with the corresponding cylindrical stress implementation needs to be done
+    mpConstitutiveLaw = nullptr;
+
+    KRATOS_CATCH("");
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Public Inquiry
 

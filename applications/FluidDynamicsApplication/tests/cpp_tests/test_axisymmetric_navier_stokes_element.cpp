@@ -23,6 +23,7 @@
 #include "includes/cfd_variables.h"
 
 // Application includes
+#include "custom_constitutive/newtonian_2d_law.h"
 
 
 namespace Kratos::Testing {
@@ -43,10 +44,15 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricNavierStokes2D4N, FluidDynamicsApplication
     r_model_part.AddNodalSolutionStepVariable(REACTION);
     r_model_part.AddNodalSolutionStepVariable(REACTION_WATER_PRESSURE);
 
-    // Process info creation
+    // ProcessInfo container fill
     double delta_time = 0.1;
     r_model_part.GetProcessInfo().SetValue(DYNAMIC_TAU, 1.0);
     r_model_part.GetProcessInfo().SetValue(DELTA_TIME, delta_time);
+    Vector bdf_coefs(3);
+    bdf_coefs[0] = 3.0 / (2.0 * delta_time);
+    bdf_coefs[1] = -2.0 / delta_time;
+    bdf_coefs[2] = 0.5 * delta_time;
+    r_model_part.GetProcessInfo().SetValue(BDF_COEFFICIENTS, bdf_coefs);
 
     // Set the element properties
     auto p_properties = r_model_part.CreateNewProperties(0);
@@ -91,13 +97,13 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricNavierStokes2D4N, FluidDynamicsApplication
     // RHS and LHS
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
-    std::vector<double> output = {9.376483795,11.14606971,0.02355466714,-11.20950888,0.5781319784,-0.05329831623,-31.70716762,-31.05070337,-0.1055647269,-14.12647396,-28.34016499,-0.06469162397}; // AxisymmetricNavierStokes2D4N
+    std::vector<double> output = {0.27135187532, 0.321417186061, -0.667228287967, 0.0791105100096, 0.319417165341, -0.55512927092, 0.313146202129, 0.513991841144, -0.40650859968, 0.718638363596, 0.511647522403, -0.710300820189}; // AxisymmetricNavierStokes2D4N
     const auto& r_process_info = r_model_part.GetProcessInfo();
     p_elem->Initialize(r_process_info);
     p_elem->CalculateLocalSystem(LHS, RHS, r_process_info);
 
-    std::cout << p_elem->Info() << std::setprecision(12) << std::endl;
-    KRATOS_WATCH(RHS);
+    // std::cout << p_elem->Info() << std::setprecision(12) << std::endl;
+    // KRATOS_WATCH(RHS)
 
     for (unsigned int j = 0; j < output.size(); j++) {
         KRATOS_EXPECT_NEAR(RHS[j], output[j], 1e-6);

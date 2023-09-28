@@ -166,31 +166,17 @@ public:
     ///@name Operations
     ///@{
 
-    /// Create a new element of this type
-    /**
-     * Returns a pointer to a new AxisymmetricNavierStokes element, created using given input.
-     * @param NewId the ID of the new element
-     * @param ThisNodes the nodes of the new element
-     * @param pProperties the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     Element::Pointer Create(
         IndexType NewId,
         NodesArrayType const& ThisNodes,
         Properties::Pointer pProperties) const override;
 
-    /// Create a new element of this type using given geometry
-    /**
-     * Returns a pointer to a new FluidElement element, created using given input.
-     * @param NewId the ID of the new element
-     * @param pGeometry a pointer to the geomerty to be used to create the element
-     * @param pProperties the properties assigned to the new element
-     * @return a Pointer to the new element
-     */
     Element::Pointer Create(
         IndexType NewId,
         typename GeometryType::Pointer pGeometry,
         Properties::Pointer pProperties) const override;
+
+    void Initialize(const ProcessInfo &rCurrentProcessInfo) override;
 
     ///@}
     ///@name Inquiry
