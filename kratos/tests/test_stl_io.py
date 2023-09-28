@@ -12,6 +12,16 @@ def GetFilePath(fileName):
 def RemoveFiles(mdpa_name):
     kratos_utils.DeleteFileIfExisting(mdpa_name + ".time")
 
+def WriteModelPartToSTL(model_part, stl_file):
+    write_settings = KratosMultiphysics.Parameters("""{"open_mode" : "write"}""")
+    stl_io = KratosMultiphysics.StlIO(stl_file, write_settings)
+    stl_io.WriteModelPart(model_part)
+
+def ReadModelPartFromSTL(model_part, stl_file):
+    read_settings = KratosMultiphysics.Parameters("""{"open_mode" : "read", "new_entity_type" : "element"}""")
+    stl_io = KratosMultiphysics.StlIO(stl_file, read_settings)
+    stl_io.ReadModelPart(model_part)
+
 class TestStlIO(KratosUnittest.TestCase):
     @classmethod
     def setUpClass(cls):
@@ -38,15 +48,11 @@ class TestStlIO(KratosUnittest.TestCase):
             area_1 += geom.Area()
 
         # Write current mesh into STL
-        write_settings = KratosMultiphysics.Parameters("""{"open_mode" : "write"}""")
-        stl_io_1 = KratosMultiphysics.StlIO(self.stl_file, write_settings)
-        stl_io_1.WriteModelPart(self.model_part)
+        WriteModelPartToSTL(self.model_part, self.stl_file)
 
         # Read it back
         stl_model_part = self.current_model.CreateModelPart("STL")
-        read_settings = KratosMultiphysics.Parameters("""{"open_mode" : "read", "new_entity_type" : "element"}""")
-        stl_io_2 = KratosMultiphysics.StlIO(self.stl_file, read_settings)
-        stl_io_2.ReadModelPart(stl_model_part)
+        ReadModelPartFromSTL(stl_model_part, self.stl_file)
 
         # Compute resulting area
         area_2 = 0.0
