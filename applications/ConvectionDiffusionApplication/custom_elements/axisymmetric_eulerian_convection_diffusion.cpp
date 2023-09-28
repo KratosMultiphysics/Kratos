@@ -113,22 +113,16 @@ void AxisymmetricEulerianConvectionDiffusionElement<TDim,TNumNodes>::CalculateLo
                 rRightHandSideVector(i) -= aux_conv_2 * Variables.theta * Variables.phi[j];
                 rRightHandSideVector(i) -= aux_conv_2 * (1.0 - Variables.theta) * Variables.phi_old[j];
 
-                // Diffusive terms
-                const double aux_diff_1 = w_g * Variables.conductivity * N_g[i] * DN_DX_g(j,1) / y_g;
-                rLeftHandSideMatrix(i,j) -= aux_diff_1 * Variables.theta;
-                rRightHandSideVector(i) += aux_diff_1 * Variables.theta * Variables.phi[j];
-                rRightHandSideVector(i) += aux_diff_1 * (1.0 - Variables.theta) * Variables.phi_old[j];
-
-                const double aux_diff_2 = w_g * Variables.conductivity * (DN_DX_g(i, 0) * DN_DX_g(j, 0) + DN_DX_g(i, 1) * DN_DX_g(j, 1));
-                rLeftHandSideMatrix(i, j) += aux_diff_2 * Variables.theta;
-                rRightHandSideVector(i) -= aux_diff_2 * Variables.theta * Variables.phi[j];
-                rRightHandSideVector(i) -= aux_diff_2 * (1.0 - Variables.theta) * Variables.phi_old[j];
+                // Diffusive term
+                const double aux_diff = w_g * Variables.conductivity * (DN_DX_g(i, 0) * DN_DX_g(j, 0) + DN_DX_g(i, 1) * DN_DX_g(j, 1));
+                rLeftHandSideMatrix(i, j) += aux_diff * Variables.theta;
+                rRightHandSideVector(i) -= aux_diff * Variables.theta * Variables.phi[j];
+                rRightHandSideVector(i) -= aux_diff * (1.0 - Variables.theta) * Variables.phi_old[j];
 
                 // Stabilization terms
                 const double aux_div_stab_op = Variables.density * Variables.specific_heat * Variables.beta * N_g[i] * Variables.div_v;
                 const double aux_conv_stab_op = Variables.density * Variables.specific_heat * (DN_DX_g(i,0)*v_g_th[0] + N_g[i]*grad_v_g_th(0,0) + DN_DX_g(i,1)*v_g_th[1] + N_g[i]*grad_v_g_th(1,1));
-                const double aux_diff_stab_op = Variables.conductivity * (DN_DX_g(i, 1) / y_g - N_g[i] / std::pow(y_g, 2));
-                const double aux_stab = tau * w_g * (aux_conv_stab_op - aux_div_stab_op - aux_diff_stab_op);
+                const double aux_stab = tau * w_g * (aux_conv_stab_op - aux_div_stab_op);
 
                 rRightHandSideVector(i) += aux_stab * N_g[j] * Variables.theta * Variables.volumetric_source[j];
                 rRightHandSideVector(i) += aux_stab * N_g[j] * (1.0 - Variables.theta) * Variables.volumetric_source[j]; // In case we make the body force time dependent
