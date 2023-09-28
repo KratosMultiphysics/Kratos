@@ -232,7 +232,7 @@ void AxisymmetricNavierStokes<TElementData>::AddBoundaryTraction(
     // array_1d<double,LocalSize> values;
     // this->GetCurrentValuesVector(rData,values);
 
-    // rData.lhs *= rData.Weight;
+    // rData.lhs *= 2.0 * Globals::Pi * y * rData.Weight;
     // noalias(rLHS) -= rData.lhs;
     // noalias(rRHS) += prod(rData.lhs,values);
 }
@@ -272,7 +272,7 @@ void AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,3> >::ComputeGauss
     //substitute_lhs_2D3N
 
     // Add intermediate results to local system
-    noalias(rLHS) += lhs * rData.Weight;
+    noalias(rLHS) += 2.0 * Globals::Pi * y * rData.Weight * lhs;
 }
 
 template <>
@@ -310,7 +310,7 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,4>>::ComputeGaussPo
     //substitute_lhs_2D4N
 
     // Add intermediate results to local system
-    noalias(rLHS) += lhs * rData.Weight;
+    noalias(rLHS) += 2.0 * Globals::Pi * y * rData.Weight * lhs;
 }
 
 template <>
@@ -355,7 +355,7 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,3>>::ComputeGaussPo
 
     //substitute_rhs_2D3N
 
-    noalias(rRHS) += rData.Weight * rhs;
+    noalias(rRHS) += 2.0 * Globals::Pi * y * rData.Weight * rhs;
 }
 
 template <>
@@ -400,7 +400,7 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,4>>::ComputeGaussPo
 
     //substitute_rhs_2D4N
 
-    noalias(rRHS) += rData.Weight * rhs;
+    noalias(rRHS) += 2.0 * Globals::Pi * y * rData.Weight * rhs;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
