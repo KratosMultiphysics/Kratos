@@ -185,6 +185,17 @@ class TestMatrixInterface(KratosUnittest.TestCase):
         self.assertEqual(kratos_matrix[1, 1], 10.0)
         self.assertEqual(kratos_matrix[2, 1], 14.0)
 
+        # Test slicing with steps
+        # + ----- +
+        # |  1  3 |
+        # | 13 15 |
+        # + ----- +
+        sliced_numpy_matrix = numpy_matrix[0::3, 1::2]
+        kratos_matrix = KM.Matrix(sliced_numpy_matrix)
+        reference_matrix = KM.Matrix([[ 1.0,  3.0],
+                                      [13.0, 15.0]])
+        self.assertMatrixAlmostEqual(kratos_matrix, reference_matrix)
+
         # Test empty slice
         # ++
         # ++
