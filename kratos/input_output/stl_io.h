@@ -85,8 +85,14 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// Geometries map type definition
     using GeometriesMapType = ModelPart::GeometriesMapType;
+
+    /// The nodes array type definition
     using NodesArrayType = Element::NodesArrayType;
+
+    /// The index type definition
+    using IndexType = std::size_t;
 
     /// Pointer definition of StlIO
     KRATOS_CLASS_POINTER_DEFINITION(StlIO);
@@ -116,11 +122,25 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Retrieves the default parameters.
+     * @return The default parameters.
+     */
     static Parameters GetDefaultParameters();
 
-    void ReadModelPart(ModelPart & rThisModelPart) override;
+    /**
+     * @brief Reads a model part.
+     * @details Reads a model part from the source and stores it in the provided model part object.
+     * @param rThisModelPart Reference to the model part to read into.
+     */
+    void ReadModelPart(ModelPart& rThisModelPart) override;
 
-    void WriteModelPart(const ModelPart & rThisModelPart) override;
+    /**
+     * @brief Writes a model part.
+     * @details Writes the provided model part to the destination.
+     * @param rThisModelPart Const reference to the model part to write from.
+     */
+    void WriteModelPart(const ModelPart& rThisModelPart) override;
 
     ///@}
     ///@name Access
@@ -156,11 +176,11 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    Parameters mParameters;
+    Parameters mParameters;         /// The configuration parameters
 
-    std::size_t mNextNodeId = 0;
-    std::size_t mNextElementId = 0;
-    std::size_t mNextConditionId = 0;
+    IndexType mNextNodeId = 0;      /// The next node ID
+    IndexType mNextElementId = 0;   /// The next element ID
+    IndexType mNextConditionId = 0; /// The next condition ID
 
     ///@}
     ///@name Protected Operators
@@ -191,8 +211,8 @@ private:
     ///@name Member Variables
     ///@{
 
-    Kratos::shared_ptr<std::iostream> mpInputStream;
-    Flags mOptions;
+    Kratos::shared_ptr<std::iostream> mpInputStream; /// The input stream
+    Flags mOptions; /// The flags of the IO
 
     ///@}
     ///@name Private Operators
@@ -202,32 +222,85 @@ private:
     ///@name Private Operations
     ///@{
 
+    /**
+     * @brief Read a solid object from a model part.
+     * @details This function reads a solid object from the given model part using the provided function to create the entity.
+     * @param rThisModelPart Reference to the model part to read the solid from.
+     * @param rCreateEntityFunctor A functor to create entities.
+     */
     void ReadSolid(
-        ModelPart & rThisModelPart,
-        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor );
+        ModelPart& rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor 
+        );
 
+    /**
+     * @brief Read a facet from a model part.
+     * @details This function reads a facet from the given model part using the provided function to create the entity.
+     * @param rThisModelPart Reference to the model part to read the facet from.
+     * @param rCreateEntityFunctor A functor to create entities.
+     */
     void ReadFacet(
-        ModelPart & rThisModelPart,
-        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor);
+        ModelPart& rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+        );
 
+    /**
+     * @brief Read a loop from a model part.
+     * @details This function reads a loop from the given model part using the provided function to create the entity.
+     * @param rThisModelPart Reference to the model part to read the loop from.
+     * @param rCreateEntityFunctor A functor to create entities.
+     */
     void ReadLoop(
-        ModelPart & rThisModelPart,
-        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor);
+        ModelPart& rThisModelPart,
+        const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+        );
 
+    /**
+     * @brief Reads a point.
+     * @return A point read from the source.
+    */
     Point ReadPoint();
 
-    void ReadKeyword(std::string const& Keyword);
+    /**
+     * @brief Reads a keyword.
+     * @param Keyword A string reference containing the keyword to read.
+     */
+    void ReadKeyword(conststd::string& Keyword);
 
+    /**
+     * @brief Writes an entity block.
+     * @details Writes an entity block of a given type to the destination.
+     * @tparam TContainerType The type of the container for entities.
+     * @param rThisEntities Reference to the entities to write.
+     */
     template<class TContainerType>
     void WriteEntityBlock(const TContainerType& rThisEntities);
 
+    /**
+     * @brief Writes a geometry block.
+     * @details Writes a geometry block to the destination.
+     * @param rThisGeometries Reference to the geometries to write.
+     */
     void WriteGeometryBlock(const GeometriesMapType& rThisGeometries);
 
+    /**
+     * @brief Writes a facet.
+     * @details Writes a facet to the destination.
+     * @param rGeom Reference to the geometry to write.
+     */
     void WriteFacet(const GeometryType & rGeom);
 
+    /**
+     * @brief Checks the validity of a geometry.
+     * @details Checks if a given geometry is valid or not.
+     * @param rGeometry Reference to the geometry to check.
+     * @param rNumDegenerateGeos Reference to store the number of degenerate geometries.
+     * @return True if the geometry is valid, false otherwise.
+     */
     bool IsValidGeometry(
         const Geometry<Node>& rGeometry,
-        std::size_t& rNumDegenerateGeos) const;
+        IndexType& rNumDegenerateGeos
+        ) const;
 
     ///@}
     ///@name Private  Access
