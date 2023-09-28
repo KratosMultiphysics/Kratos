@@ -101,15 +101,29 @@ public:
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with filename, and open option with default being read mode
+    /** 
+     * @brief Constructs a StlIO object using a filename.
+     * @details This constructor will create a StlIO object and open a file with the provided filename and open options. The default open option is read mode.
+     * @param Filename The path of the file to open.
+     * @param ThisParameters Optional. Additional parameters for the StlIO object.
+     *                       Defaults to an empty Parameters object.
+     */
     StlIO(
-        std::filesystem::path const& Filename,
-        Parameters ThisParameters = Parameters());
+        const std::filesystem::path& Filename,
+        Parameters ThisParameters = Parameters()
+        );
 
-    /// Constructor with stream.
+    /** 
+     * @brief Constructs a StlIO object using an input/output stream.
+     * @details This constructor will create a StlIO object using a provided input/output stream.
+     * @param pInputStream A shared pointer to the input/output stream to use.
+     * @param ThisParameters Optional. Additional parameters for the StlIO object.
+     *                       Defaults to an empty Parameters object.
+     */
     StlIO(
         Kratos::shared_ptr<std::iostream> pInputStream,
-        Parameters ThisParameters = Parameters());
+        Parameters ThisParameters = Parameters()
+        );
 
     /// Destructor.
     virtual ~StlIO(){}
@@ -265,7 +279,7 @@ private:
      * @brief Reads a keyword.
      * @param Keyword A string reference containing the keyword to read.
      */
-    void ReadKeyword(conststd::string& Keyword);
+    void ReadKeyword(const std::string& Keyword);
 
     /**
      * @brief Writes an entity block.

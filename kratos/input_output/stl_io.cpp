@@ -23,11 +23,17 @@
 namespace Kratos
 {
 
-StlIO::StlIO(std::filesystem::path const& Filename, Parameters ThisParameters):
-    mParameters(ThisParameters)
+StlIO::StlIO(const std::filesystem::path& rFilename, Parameters ThisParameters)
+    : mParameters(ThisParameters)
 {
     mParameters.ValidateAndAssignDefaults(GetDefaultParameters());
     Kratos::shared_ptr<std::fstream> p_file = Kratos::make_shared<std::fstream>();
+
+    // Check if the file extension is .stl, if not add it
+    std::filesystem::path filePath = rFilename;
+    if(filePath.extension() != ".stl") {
+        filePath += ".stl";
+    }
 
     // set default mode to read
     std::fstream::openmode open_mode;
@@ -44,9 +50,9 @@ StlIO::StlIO(std::filesystem::path const& Filename, Parameters ThisParameters):
         KRATOS_ERROR << "Unsupported open mode: " << open_mode_str << std::endl;
     }
 
-    p_file->open(Filename.c_str(), open_mode);
+    p_file->open(filePath.c_str(), open_mode);
 
-    KRATOS_ERROR_IF_NOT(p_file->is_open()) << "Could not open the input file  : " << Filename << std::endl;
+    KRATOS_ERROR_IF_NOT(p_file->is_open()) << "Could not open the input file  : " << filePath << std::endl;
 
     // Store the pointer as a regular std::iostream
     mpInputStream = p_file;
@@ -307,6 +313,5 @@ void StlIO::ReadKeyword(std::string const& Keyword)
     *mpInputStream >> word; // Reading keyword
     KRATOS_ERROR_IF(word != Keyword) << "Invalid stl file. Looking for  \"" << Keyword << "\" keyword but \"" << word << "\" were found." << std::endl;
 }
+
 }  // namespace Kratos.
-
-
