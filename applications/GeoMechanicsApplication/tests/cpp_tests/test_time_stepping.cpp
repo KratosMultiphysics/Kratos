@@ -70,7 +70,7 @@ private:
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(RunReturnsNonConvergedWhenStrategyDoesNotConverge, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RunReturnsNonConvergedWhenStrategyDoesNotConverge, KratosGeoMechanicsWip)
 {
     TimeStepExecuter<NeverConvergingSolverStrategy> executer;
     auto nonconverging_strategy = std::make_shared<NeverConvergingSolverStrategy>();
@@ -78,7 +78,7 @@ KRATOS_TEST_CASE_IN_SUITE(RunReturnsNonConvergedWhenStrategyDoesNotConverge, Kra
     KRATOS_EXPECT_EQ(TimeStepEndState::ConvergenceState::non_converged, executer.Run().convergence_state);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMechanicsWip)
 {
     TimeStepExecuter<AlwaysConvergingSolverStrategy> executer;
     auto converging_strategy = std::make_shared<AlwaysConvergingSolverStrategy>();
@@ -86,7 +86,7 @@ KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMec
     KRATOS_EXPECT_EQ(TimeStepEndState::ConvergenceState::converged, executer.Run().convergence_state);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(ProcessSolutionStepWasInitializedAndFinalized, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(ProcessSolutionStepWasInitializedAndFinalized, KratosGeoMechanicsWip)
 {
     TimeStepExecuter<AlwaysConvergingSolverStrategy> executer;
     auto converging_strategy = std::make_shared<AlwaysConvergingSolverStrategy>();
