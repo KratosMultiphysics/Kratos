@@ -71,12 +71,12 @@ StlIO::StlIO(
 Parameters StlIO::GetDefaultParameters()
 {
     return Parameters(R"({
-        "open_mode" : "read",
+        "open_mode"       : "read",
         "new_entity_type" : "geometry"
     })" );
 }
 
-void StlIO::ReadModelPart(ModelPart & rThisModelPart)
+void StlIO::ReadModelPart(ModelPart& rThisModelPart)
 {
     if(!rThisModelPart.RecursivelyHasProperties(0)) {
         rThisModelPart.CreateNewProperties(0);
@@ -124,7 +124,7 @@ void StlIO::ReadModelPart(ModelPart & rThisModelPart)
 }
 
 
-void StlIO::WriteModelPart(const ModelPart & rThisModelPart)
+void StlIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
     // write the solid block
     (*mpInputStream) << "solid " << rThisModelPart.Name() << "\n";
@@ -162,7 +162,6 @@ void StlIO::WriteGeometryBlock(const GeometriesMapType& rThisGeometries)
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 }
 
-
 void StlIO::WriteFacet(const GeometryType& rGeom) 
 {
     const auto & rUnitNormal = rGeom.UnitNormal(rGeom.Center());
@@ -194,10 +193,10 @@ void StlIO::PrintData(std::ostream& rOStream) const{
 
 }
 
-
 bool StlIO::IsValidGeometry(
     const Geometry<Node>& rGeometry,
-    std::size_t& rNumDegenerateGeos) const 
+    IndexType& rNumDegenerateGeos
+    ) const 
 {
     // restrict to triangles only for now
     const bool is_triangle = (
@@ -211,8 +210,9 @@ bool StlIO::IsValidGeometry(
 }
 
 void StlIO::ReadSolid(
-    ModelPart & rThisModelPart,
-    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor)
+    ModelPart& rThisModelPart,
+    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+    )
 {
     std::string word;
 
@@ -255,8 +255,9 @@ void StlIO::ReadSolid(
 }
 
 void StlIO::ReadFacet(
-    ModelPart & rThisModelPart,
-    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor)
+    ModelPart& rThisModelPart,
+    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+    )
 {
     std::string word;
 
@@ -276,7 +277,8 @@ void StlIO::ReadFacet(
 
 void StlIO::ReadLoop(
     ModelPart & rThisModelPart,
-    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor)
+    const std::function<void(ModelPart&, NodesArrayType&)>& rCreateEntityFunctor
+    )
 {
     std::string word;
 
