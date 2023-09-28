@@ -294,6 +294,129 @@ class AnalysisStage(object):
             H0 = elem.Properties[KratosMultiphysics.THICKNESS]
             extracolumn = np.array([[0.0, 0.0, H0/2.0]])
             elm_Jacobian = np.array(elem.GetGeometry().Jacobian(0))
+            ####################################TESTING JACOBIAN#######################################
+            # DN1DXI = -1.0
+            # DN2DXI = 1.0
+            # DN3DXI = 0.0
+
+            # DNXI = KratosMultiphysics.Matrix(3, 9)
+
+            # DNXI[0, 0] = DN1DXI
+            # DNXI[0, 1] = 0.0
+            # DNXI[0, 2] = 0.0
+            # DNXI[1, 0] = 0.0
+            # DNXI[1, 1] = DN1DXI
+            # DNXI[1, 2] = 0.0
+            # DNXI[2, 0] = 0.0
+            # DNXI[2, 1] = 0.0
+            # DNXI[2, 2] = DN1DXI
+
+            # DNXI[0, 3] = DN2DXI
+            # DNXI[0, 4] = 0.0
+            # DNXI[0, 5] = 0.0
+            # DNXI[1, 3] = 0.0
+            # DNXI[1, 4] = DN2DXI
+            # DNXI[1, 5] = 0.0
+            # DNXI[2, 3] = 0.0
+            # DNXI[2, 4] = 0.0
+            # DNXI[2, 5] = DN2DXI
+
+            # DNXI[0, 6] = DN3DXI
+            # DNXI[0, 7] = 0.0
+            # DNXI[0, 8] = 0.0
+            # DNXI[1, 6] = 0.0
+            # DNXI[1, 7] = DN3DXI
+            # DNXI[1, 8] = 0.0
+            # DNXI[2, 6] = 0.0
+            # DNXI[2, 7] = 0.0
+            # DNXI[2, 8] = DN3DXI
+
+            # # DNXI[0] = [DN1DXI,      0,       0,   DN2DXI,      0,       0,   DN3DXI,   0,     0]
+            # # DNXI[1] = [     0,  DN1DXI,      0,        0,  DN2DXI,      0,       0,   DN3DXI, 0]
+            # # DNXI[2] = [     0,       0, DN1DXI,        0,       0, DN2DXI,       0,   0, DN3DXI]
+
+            # DN1DETA = -1.0
+            # DN2DETA = 0.0
+            # DN3DETA = 1.0
+
+            # DNETA = KratosMultiphysics.Matrix(3,9)
+            # # DN1X1
+            # DNETA[0,0] = DN1DETA
+            # DNETA[0,1] = 0.0
+            # DNETA[0,2] = 0.0
+            # DNETA[1,0] = 0.0
+            # DNETA[1,1] = DN1DETA
+            # DNETA[1,2] = 0.0
+            # DNETA[2,0] = 0.0
+            # DNETA[2,1] = 0.0
+            # DNETA[2,2] = DN1DETA
+            # # DN2XI
+            # DNETA[0,3] = DN2DETA
+            # DNETA[0,4] = 0.0
+            # DNETA[0,5] = 0.0
+            # DNETA[1,3] = 0.0
+            # DNETA[1,4] = DN2DETA
+            # DNETA[1,5] = 0.0
+            # DNETA[2,3] = 0.0
+            # DNETA[2,4] = 0.0
+            # DNETA[2,5] = DN2DETA
+            # # DN3XI
+            # DNETA[0,6] = DN3DETA
+            # DNETA[0,7] = 0.0
+            # DNETA[0,8] = 0.0
+            # DNETA[1,6] = 0.0
+            # DNETA[1,7] = DN3DETA
+            # DNETA[1,8] = 0.0
+            # DNETA[2,6] = 0.0
+            # DNETA[2,7] = 0.0
+            # DNETA[2,8] = DN3DETA
+
+            # # DNETA[0] = [DN1DETA,      0,       0,   DN2DETA,      0,       0,   DN3DETA,   0,     0]
+            # # DNETA[1] = [     0,  DN1DETA,      0,        0,  DN2DETA,      0,       0,   DN3DETA, 0]
+            # # DNETA[2] = [     0,       0, DN1DETA,        0,       0, DN2DETA,       0,   0, DN3DETA]
+
+            # coordinates = [elem.GetNodes()[0].X, elem.GetNodes()[0].Y, elem.GetNodes()[0].Z,
+            #                elem.GetNodes()[1].X, elem.GetNodes()[1].Y, elem.GetNodes()[1].Z,
+            #                elem.GetNodes()[2].X, elem.GetNodes()[2].Y, elem.GetNodes()[2].Z,]
+
+            # local_axis_1 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
+            # local_axis_2 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
+            # local_axis_3 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, self._GetSolver().GetComputingModelPart().ProcessInfo)
+
+            # T_elm = np.zeros((3, 3))
+            # T_elm[0, 0] = local_axis_1[0][0]
+            # T_elm[0, 1] = local_axis_1[0][1]
+            # T_elm[0, 2] = local_axis_1[0][2]
+            # T_elm[1, 0] = local_axis_2[0][0]
+            # T_elm[1, 1] = local_axis_2[0][1]
+            # T_elm[1, 2] = local_axis_2[0][2]
+            # T_elm[2, 0] = local_axis_3[0][0]
+            # T_elm[2, 1] = local_axis_3[0][1]
+            # T_elm[2, 2] = local_axis_3[0][2]
+
+            # print("local_axis_1:", local_axis_1[0])
+            # print("local_axis_1:", local_axis_2[0])
+
+            # T_elm_9x9 = np.zeros((9, 9))
+            # T_elm_9x9[0:3,0:3] = T_elm
+            # T_elm_9x9[3:6,3:6] = T_elm
+            # T_elm_9x9[6:9,6:9] = T_elm
+
+            # print(T_elm_9x9)
+
+            # #coordinates = np.dot(T_elm_9x9, coordinates)
+
+            # print("ELEMENT:", coordinates)
+
+            # Jac_xi = DNXI * coordinates
+            # Jac_eta = DNETA * coordinates
+            # J_total = KratosMultiphysics.Matrix([Jac_xi,Jac_eta])
+            # J_total = J_total.transpose()
+
+            # print(elem.Id, "J_total : ", J_total)
+            # print(elem.Id, "J_manual: ", elm_Jacobian)
+
+            #######################################################################################
             J_X = np.concatenate((elm_Jacobian, extracolumn.T), axis=1)
 
             local_axis_1 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
