@@ -24,7 +24,7 @@ namespace Kratos
 {
 
 template <typename StrategyType>
-class TimeStepExecuter
+class TimeStepExecutor
 {
 public:
     using ProcessRef    = std::reference_wrapper<Process>;

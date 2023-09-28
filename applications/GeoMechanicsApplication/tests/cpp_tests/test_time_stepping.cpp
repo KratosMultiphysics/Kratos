@@ -72,33 +72,33 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(RunReturnsNonConvergedWhenStrategyDoesNotConverge, KratosGeoMechanicsWip)
 {
-    TimeStepExecuter<NeverConvergingSolverStrategy> executer;
+    TimeStepExecutor<NeverConvergingSolverStrategy> executor;
     auto nonconverging_strategy = std::make_shared<NeverConvergingSolverStrategy>();
-    executer.SetSolverStrategy(nonconverging_strategy);
+    executor.SetSolverStrategy(nonconverging_strategy);
     const auto time = 0.0;
-    KRATOS_EXPECT_EQ(TimeStepEndState::ConvergenceState::non_converged, executer.Run(time).convergence_state);
+    KRATOS_EXPECT_EQ(TimeStepEndState::ConvergenceState::non_converged, executor.Run(time).convergence_state);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RunReturnsConvergedWhenStrategyConverged, KratosGeoMechanicsWip)
 {
-    TimeStepExecuter<AlwaysConvergingSolverStrategy> executer;
+    TimeStepExecutor<AlwaysConvergingSolverStrategy> executor;
     auto converging_strategy = std::make_shared<AlwaysConvergingSolverStrategy>();
-    executer.SetSolverStrategy(converging_strategy);
+    executor.SetSolverStrategy(converging_strategy);
     const auto time = 0.0;
-    KRATOS_EXPECT_EQ(TimeStepEndState::ConvergenceState::converged, executer.Run(time).convergence_state);
+    KRATOS_EXPECT_EQ(TimeStepEndState::ConvergenceState::converged, executor.Run(time).convergence_state);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ProcessSolutionStepWasInitializedAndFinalized, KratosGeoMechanicsWip)
 {
-    TimeStepExecuter<AlwaysConvergingSolverStrategy> executer;
+    TimeStepExecutor<AlwaysConvergingSolverStrategy> executor;
     auto converging_strategy = std::make_shared<AlwaysConvergingSolverStrategy>();
-    executer.SetSolverStrategy(converging_strategy);
+    executor.SetSolverStrategy(converging_strategy);
     ProcessSpy spy;
-    TimeStepExecuter<AlwaysConvergingSolverStrategy>::ProcessRefVec process_refs{spy};
-    executer.SetProcessReferences(process_refs);
+    TimeStepExecutor<AlwaysConvergingSolverStrategy>::ProcessRefVec process_refs{spy};
+    executor.SetProcessReferences(process_refs);
     const auto time = 0.0;
 
-    executer.Run(time);
+    executor.Run(time);
 
     KRATOS_EXPECT_TRUE(spy.WasSolutionStepInitialized());
     KRATOS_EXPECT_TRUE(spy.WasSolutionStepFinalized());
@@ -106,11 +106,11 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessSolutionStepWasInitializedAndFinalized, KratosG
 
 KRATOS_TEST_CASE_IN_SUITE(TimeStepExecutionReturnsGivenTime, KratosGeoMechanicsWip)
 {
-    TimeStepExecuter<AlwaysConvergingSolverStrategy> executer;
+    TimeStepExecutor<AlwaysConvergingSolverStrategy> executor;
     auto converging_strategy = std::make_shared<AlwaysConvergingSolverStrategy>();
-    executer.SetSolverStrategy(converging_strategy);
+    executor.SetSolverStrategy(converging_strategy);
     const auto time = 2.0;
-    KRATOS_EXPECT_DOUBLE_EQ(time, executer.Run(time).time);
+    KRATOS_EXPECT_DOUBLE_EQ(time, executor.Run(time).time);
 }
 
 }
