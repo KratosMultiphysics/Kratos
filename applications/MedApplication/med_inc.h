@@ -14,8 +14,10 @@
 
 // Those dummy structs are necessary when the MED-library is compiled with MPI support.
 // Then the header also contains functions which use those MPI-types
+#ifndef KRATOS_USING_MPI
 struct MPI_Comm;
 struct MPI_Info;
+#endif
 
 // External includes
 #include "med.h"
