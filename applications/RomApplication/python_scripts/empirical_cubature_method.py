@@ -218,7 +218,7 @@ class EmpiricalCubatureMethod():
             MaximumLengthZ = max(MaximumLengthZ, np.size(self.z))
             k = k+1
 
-            if k>1000:
+            if k-MaximumLengthZ>1000:
                 """
                 this means using the initial candidate set, it was impossible to obtain a set of positive weights.
                 Try again without constraints!!!
