@@ -66,6 +66,13 @@ void CheckMEDErrorCode(const int ierr, const std::string& MEDCallName)
     KRATOS_ERROR_IF(ierr < 0) << MEDCallName << " failed with error code " << ierr << "." << std::endl;
 }
 
+// The names in the MED-file often have trailing null-chars, which need to be removed
+// this can otherwise make debugging very tricky
+void RemoveTrailingNullChars(std::string& rInput)
+{
+    rInput.erase(std::find(rInput.begin(), rInput.end(), '\0'), rInput.end());
+}
+
 template<typename T>
 void CheckConnectivitiesSize(
     const std::size_t ExpectedSize,
@@ -270,9 +277,9 @@ auto GetGroupsByFamily(
 
         std::vector<std::string> group_names(num_groups);
         // split the goup names
-        // TODO maybe requires to trim some whitespaces
         for (int i = 0; i < num_groups; i++) {
             group_names[i] = std::string(c_group_names.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE));
+            RemoveTrailingNullChars(group_names[i]);
         }
 
         groups_by_family[family_number] = group_names;
@@ -361,7 +368,7 @@ public:
                 axis_unit.data());
             CheckMEDErrorCode(err, "MEDmeshInfo");
 
-            mMeshName.erase(std::find(mMeshName.begin(), mMeshName.end(), '\0'), mMeshName.end());
+            RemoveTrailingNullChars(mMeshName);
             mDimension = space_dim;
         }
 
