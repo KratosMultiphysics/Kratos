@@ -207,7 +207,7 @@ void StlIO::WriteEntityBlockMPI(
     std::stringstream ss;
 
     // Write facets
-    unsigned int num_degenerate_geometries = 0;
+    std::size_t num_degenerate_geometries = 0;
     for (auto& r_entity : rThisEntities) {
         const auto& r_geometry = r_entity.GetGeometry();
         if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
@@ -216,10 +216,11 @@ void StlIO::WriteEntityBlockMPI(
     }
 
     // Sum all partitions
-    num_degenerate_geometries = rDataCommunicator.SumAll(num_degenerate_geometries);
-
-    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
-        << "Model part contained " << num_degenerate_geometries
+    unsigned int converted_num_degenerate_geometries(num_degenerate_geometries); 
+    converted_num_degenerate_geometries = rDataCommunicator.SumAll(converted_num_degenerate_geometries);
+    
+    KRATOS_WARNING_IF("STL-IO", converted_num_degenerate_geometries > 0) 
+        << "Model part contained " << converted_num_degenerate_geometries
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 
     // Retrieve rank and pass to rank 0
@@ -255,7 +256,7 @@ void StlIO::WriteGeometryBlockMPI(
     std::stringstream ss;
 
     // Write facets
-    unsigned int num_degenerate_geometries = 0;
+    std::size_t num_degenerate_geometries = 0;
     for (auto& r_geometry : rThisGeometries) {
         if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
             WriteFacet(r_geometry, ss);
@@ -263,10 +264,11 @@ void StlIO::WriteGeometryBlockMPI(
     }
     
     // Sum all partitions
-    num_degenerate_geometries = rDataCommunicator.SumAll(num_degenerate_geometries);
+    unsigned int converted_num_degenerate_geometries(num_degenerate_geometries); 
+    converted_num_degenerate_geometries = rDataCommunicator.SumAll(converted_num_degenerate_geometries);
     
-    KRATOS_WARNING_IF("STL-IO", num_degenerate_geometries > 0) 
-        << "Model part contained " << num_degenerate_geometries
+    KRATOS_WARNING_IF("STL-IO", converted_num_degenerate_geometries > 0) 
+        << "Model part contained " << converted_num_degenerate_geometries
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 
     // Retrieve rank and pass to rank 0
