@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "includes/kratos_filesystem.h"
 #include "input_output/stl_io.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
@@ -46,6 +47,15 @@ StlIO::StlIO(const std::filesystem::path& rFilename, Parameters ThisParameters)
         open_mode = std::fstream::in | std::fstream::app;
     } else if (open_mode_str == "write") {
         open_mode = std::fstream::out;
+        if (std::filesystem::exists(filePath)) {
+            try {
+                // Remove the file
+                std::filesystem::remove(filePath);
+                KRATOS_WARNING("StlIO") << "Trying to write an already existing file: " << filePath.c_str() << ". File removed successfully." << std::endl;
+            } catch (const std::exception& e) {
+                KRATOS_ERROR << "Error removing file: " << filePath.c_str() << std::endl;
+            }
+        }
     } else {
         KRATOS_ERROR << "Unsupported open mode: " << open_mode_str << std::endl;
     }
