@@ -18,6 +18,7 @@
 
 #include "includes/kernel.h"
 #include "includes/kratos_export_api.h"
+#include "time_loop_executor.hpp"
 
 #include "geo_mechanics_application.h"
 
@@ -27,7 +28,6 @@ namespace Kratos
 class ProcessFactory;
 class InputUtility;
 class ProcessInfoParser;
-class TimeLoopExecutor;
 class Process;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement

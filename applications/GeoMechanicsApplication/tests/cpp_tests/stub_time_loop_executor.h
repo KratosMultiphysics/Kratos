@@ -12,7 +12,7 @@
 
 #pragma once
 
-#include "custom_workflows/time_loop_executor.h"
+#include "custom_workflows/time_loop_executor.hpp"
 
 namespace Kratos {
 
