@@ -13,7 +13,7 @@
         "solver_type"                          : "Static",
         "model_part_name"                      : "Structure",
         "domain_size"                          : 3,
-        "echo_level"                           : 2,
+        "echo_level"                           : 1,
         "analysis_type"                        : "non_linear",
         "model_import_settings"                : {
             "input_type"     : "mdpa",
@@ -23,7 +23,7 @@
             "materials_filename" : "StructuralMaterials.json"
         },
         "line_search"                          : true,
-        "convergence_criterion"                : "residual_criterion",
+        "convergence_criterion"                : "displacement_criterion",
         "displacement_relative_tolerance"      : 1e-15,
         "displacement_absolute_tolerance"      : 1e-15,
         "residual_relative_tolerance"          : 0.0001,
