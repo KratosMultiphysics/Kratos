@@ -83,8 +83,9 @@ void AxisymmetricNavierStokes<TElementData>::Initialize(const ProcessInfo &rCurr
     KRATOS_TRY;
 
     // Set the constitutive law pointer to null as the axisymmetric element hardcodes a Newtonian fluid viscous behavior
-    // Note that to use a constitutive law the gradient in cylindrical coordinates together with the corresponding cylindrical stress implementation needs to be done
-    mpConstitutiveLaw = nullptr;
+    // Note that to use a constitutive law the gradient in cylindrical coordinates would require the corresponding stress
+    // implementation in cylindrical coordinates within the mechanical response calculation
+    this->GetConstitutiveLaw() = nullptr;
 
     KRATOS_CATCH("");
 }
