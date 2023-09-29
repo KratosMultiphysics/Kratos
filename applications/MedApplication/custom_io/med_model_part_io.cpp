@@ -243,9 +243,12 @@ auto GetGroupsByFamily(
     const med_idt FileHandle,
 	const char* pMeshName)
 {
+    KRATOS_TRY
+
     std::unordered_map<int, std::vector<std::string>> groups_by_family;
 
     const int num_families = MEDnFamily(FileHandle, pMeshName);
+    CheckMEDErrorCode(num_families, "MEDnFamily");
 
     std::string c_group_names;
 
@@ -256,11 +259,14 @@ auto GetGroupsByFamily(
 
     for (int i=1; i<num_families+1; ++i) {
         const int num_groups = MEDnFamilyGroup(FileHandle, pMeshName, i);
+        CheckMEDErrorCode(num_groups, "MEDnFamilyGroup");
+
         if (num_groups == 0) {continue;} // this family has no groups assigned
 
         c_group_names.resize(MED_LNAME_SIZE * num_groups + 1);
 
-        MEDfamilyInfo(FileHandle, pMeshName, i, family_name.data(), &family_number, c_group_names.data());
+        const med_err err = MEDfamilyInfo(FileHandle, pMeshName, i, family_name.data(), &family_number, c_group_names.data());
+        CheckMEDErrorCode(err, "MEDfamilyInfo");
 
         std::vector<std::string> group_names(num_groups);
         // split the goup names
@@ -273,6 +279,8 @@ auto GetGroupsByFamily(
     }
 
     return groups_by_family;
+
+    KRATOS_CATCH("")
 }
 
 } // anonymous namespace
@@ -337,7 +345,7 @@ public:
             std::string axis_name(MED_SNAME_SIZE*space_dim+1, '\0');
             std::string axis_unit(MED_SNAME_SIZE*space_dim+1, '\0');
 
-            med_err err = MEDmeshInfo(
+            const med_err err = MEDmeshInfo(
                 mFileHandle,
                 1,
                 mMeshName.data(),
@@ -558,7 +566,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
                                              geom_node_ids);
 
             const int fam_num = geom_family_numbers[i];
-            if (fam_num == 0) {continue;} // geometrx does not belong to a SubModelPart
+            if (fam_num == 0) {continue;} // geometry does not belong to a SubModelPart
 
             const auto it_groups = groups_by_fam.find(fam_num);
             KRATOS_ERROR_IF(it_groups == groups_by_fam.end()) << "Missing geometry family with number " << fam_num << "!" << std::endl;
