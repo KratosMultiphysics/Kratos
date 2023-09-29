@@ -12,6 +12,8 @@
 #include "solving_strategy_factory.h"
 #include "factories/standard_linear_solver_factory.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
+#include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
+#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
 
 namespace Kratos
 {
@@ -30,75 +32,63 @@ const Parameters default_linear_solver_settings(
     )");
 
 unique_ptr<SolvingStrategy<SolvingStrategyFactory::SparseSpaceType, SolvingStrategyFactory::LocalSpaceType>>
-SolvingStrategyFactory::Create(const Parameters& rSolverSettings) const
+SolvingStrategyFactory::Create(Parameters& rSolverSettings, ModelPart& rModelPart) const
 {
-    auto solver = LinearSolverFactory<SolvingStrategyFactory::SparseSpaceType, SolvingStrategyFactory::LocalSpaceType>().Create(default_linear_solver_settings);
+    auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(default_linear_solver_settings);
     KRATOS_ERROR_IF(solver == nullptr);
 
-    if (rSolverSettings["strategy_type"].GetString() == ResidualBasedLinearStrategy<SolvingStrategyFactory::SparseSpaceType,
-            SolvingStrategyFactory::LocalSpaceType,
-            SolvingStrategyFactory::LinearSolverType>::Name())
+
+    Scheme<SparseSpaceType, LocalSpaceType>::Pointer scheme = Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
+    auto builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(solver);
+
+    const double rel_tol = 1.0e-4;
+    const double abs_tol = 1.0e-9;
+    VariableData *p_water_pres = &WATER_PRESSURE;
+    ConvergenceVariableListType convergence_settings{std::make_tuple(p_water_pres, rel_tol, abs_tol)};
+    auto criteria = std::make_shared<ConvergenceCriteriaType>(MixedGenericCriteriaType(convergence_settings));
+
+
+    if (rSolverSettings["strategy_type"].GetString() == ResidualBasedLinearStrategy<SparseSpaceType,
+            LocalSpaceType,
+            LinearSolverType>::Name())
     {
-        return std::make_unique<ResidualBasedLinearStrategy<SolvingStrategyFactory::SparseSpaceType,
-                SolvingStrategyFactory::LocalSpaceType,
-                SolvingStrategyFactory::LinearSolverType>>();
+        return std::make_unique<ResidualBasedLinearStrategy<SparseSpaceType,
+                LocalSpaceType,
+                LinearSolverType>>();
     }
+    else if (rSolverSettings["strategy_type"].GetString() == GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType,
+            LocalSpaceType,
+            LinearSolverType>::Name())
+    {
+        Parameters p_parameters(R"(
+    {
+        "min_iteration":    6,
+        "number_cycles":    100,
+        "increase_factor":  2.0,
+        "reduction_factor": 0.5,
+		"max_piping_iterations": 500,
+        "desired_iterations": 4,
+        "max_radius_factor": 10.0,
+        "min_radius_factor": 0.1,
+        "search_neighbours_step": false,
+        "body_domain_sub_model_part_list": [],
+        "loads_sub_model_part_list": [],
+        "loads_variable_list" : []
+    }  )");
+        return std::make_unique<GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType,
+                LocalSpaceType,
+                LinearSolverType>>(rModelPart,
+                        scheme,
+                        solver,
+                        criteria,
+                        builder_and_solver,
+                                                           p_parameters);
+    }
+
+
+
 
     return nullptr;
 }
-
-//SolvingStrategyFactory::LinearSolverType::Pointer SolvingStrategyFactory::setup_solver_dgeoflow()
-//{
-//    return Kratos::make_shared<SkylineLUFactorizationSolverType>();
-//}
-//
-//SolvingStrategyFactory::ResidualBasedLinearStrategy::Pointer SolvingStrategyFactory::setup_strategy_dgeoflow(ModelPart &model_part)
-//{
-//    // Create the linear strategy
-//    auto p_solver = setup_solver_dgeoflow();
-//
-//    Scheme<SparseSpaceType, LocalSpaceType>::Pointer p_scheme = Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
-//
-//    auto p_builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(p_solver);
-//    p_builder_and_solver->SetEchoLevel(0);
-//
-//    auto p_criteria = setup_criteria_dgeoflow();
-//    p_criteria->SetEchoLevel(0);
-//
-//    Parameters p_parameters(R"(
-//    {
-//        "min_iteration":    6,
-//        "number_cycles":    100,
-//        "increase_factor":  2.0,
-//        "reduction_factor": 0.5,
-//		"max_piping_iterations": 500,
-//        "desired_iterations": 4,
-//        "max_radius_factor": 10.0,
-//        "min_radius_factor": 0.1,
-//        "search_neighbours_step": false,
-//        "body_domain_sub_model_part_list": [],
-//        "loads_sub_model_part_list": [],
-//        "loads_variable_list" : []
-//    }  )");
-//
-//    int MaxIterations = 15;
-//    bool CalculateReactions = true;
-//    bool ReformDofSetAtEachStep = false;
-//    bool MoveMeshFlag = false;
-//
-//    auto p_solving_strategy = Kratos::make_unique<GeoMechanicsNewtonRaphsonErosionProcessStrategy<SparseSpaceType, LocalSpaceType, KratosExecute::LinearSolverType>>(
-//            model_part,
-//                    p_scheme,
-//                    p_solver,
-//                    p_criteria,
-//                    p_builder_and_solver,
-//                    p_parameters,
-//                    MaxIterations, CalculateReactions, ReformDofSetAtEachStep, MoveMeshFlag);
-//
-//    p_solving_strategy->Check();
-//    return p_solving_strategy;
-//}
-
-
 
 }
