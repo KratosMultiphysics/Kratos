@@ -72,119 +72,47 @@ void UPwNormalFaceLoadCondition<TDim,TNumNodes>::
     }
 }
 
-//----------------------------------------------------------------------------------------
-template< >
-void UPwNormalFaceLoadCondition<2,2>::
-    InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
-                                 const GeometryType& rGeom)
+// ============================================================================================
+// ============================================================================================
+template<unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFaceLoadCondition<TDim, TNumNodes>::InitializeConditionVariables(
+    NormalFaceLoadVariables& rVariables,
+    const GeometryType& rGeom)
 {
-    for (unsigned int i=0; i<2; ++i) {
-        rVariables.NormalStressVector[i]     = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
-        rVariables.TangentialStressVector[i] = rGeom[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
-    }
-}
-
-//----------------------------------------------------------------------------------------
-template< >
-void UPwNormalFaceLoadCondition<3,3>::
-    InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
-                                 const GeometryType& rGeom)
-{
-    for (unsigned int i=0; i<3; ++i) {
+    for (unsigned int i = 0; i < TNumNodes; ++i) {
         rVariables.NormalStressVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
     }
-}
-
-//----------------------------------------------------------------------------------------
-template< >
-void UPwNormalFaceLoadCondition<3,4>::
-    InitializeConditionVariables(NormalFaceLoadVariables& rVariables,
-                                 const GeometryType& rGeom)
-{
-    for (unsigned int i=0; i<4; ++i) {
-        rVariables.NormalStressVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_CONTACT_STRESS);
+    //
+    if (TDim == 2) {
+        for (unsigned int i = 0; i < TNumNodes; ++i) {
+            rVariables.TangentialStressVector[i] = rGeom[i].FastGetSolutionStepValue(TANGENTIAL_CONTACT_STRESS);
+        }
     }
 }
 
-//----------------------------------------------------------------------------------------
-template< >
-void UPwNormalFaceLoadCondition<2,2>::
-    CalculateTractionVector(array_1d<double,2>& rTractionVector,
-                            const Matrix& Jacobian,
-                            const Matrix& NContainer,
-                            const NormalFaceLoadVariables& Variables,
-                            const unsigned int& GPoint)
+// ============================================================================================
+// ============================================================================================
+template<unsigned int TDim, unsigned int TNumNodes>
+void UPwNormalFaceLoadCondition<TDim, TNumNodes>::CalculateTractionVector(
+    array_1d<double, TDim>& rTractionVector,
+    const Matrix& Jacobian,
+    const Matrix& NContainer,
+    const NormalFaceLoadVariables& Variables,
+    const unsigned int& GPoint)
 {
-    double NormalStress = 0.0;
-    double TangentialStress = 0.0;
-
-    for (unsigned int i=0; i<2; ++i) {
-        NormalStress     += NContainer(GPoint,i)*Variables.NormalStressVector[i];
-        TangentialStress += NContainer(GPoint,i)*Variables.TangentialStressVector[i];
+    Vector NormalVector = ZeroVector(TDim);
+    double NormalStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.NormalStressVector);
+    //
+    if (TDim == 2) {
+        double TangentialStress = MathUtils<>::Dot(row(NContainer, GPoint), Variables.TangentialStressVector);
+        NormalVector = column(Jacobian, 0);
+        rTractionVector[0] = TangentialStress * NormalVector[0] - NormalStress * NormalVector[1];
+        rTractionVector[1] = NormalStress * NormalVector[0] + TangentialStress * NormalVector[1];
     }
-
-    double dx_dxi = Jacobian(0,0);
-    double dy_dxi = Jacobian(1,0);
-
-    rTractionVector[0] = TangentialStress * dx_dxi - NormalStress     * dy_dxi;
-    rTractionVector[1] = NormalStress     * dx_dxi + TangentialStress * dy_dxi;
-}
-
-//----------------------------------------------------------------------------------------
-template< >
-void UPwNormalFaceLoadCondition<3,3>::
-    CalculateTractionVector(array_1d<double,3>& rTractionVector,
-                            const Matrix& Jacobian,
-                            const Matrix& NContainer,
-                            const NormalFaceLoadVariables& Variables,
-                            const unsigned int& GPoint)
-{
-    double NormalStress = 0.0;
-
-    for(unsigned int i=0; i<3; ++i) {
-        NormalStress += NContainer(GPoint,i)*Variables.NormalStressVector[i];
+    else if (TDim == 3) {
+        MathUtils<double>::CrossProduct(NormalVector, column(Jacobian, 0), column(Jacobian, 1));
+        rTractionVector = NormalStress * NormalVector;
     }
-
-    double NormalVector[3];
-
-    NormalVector[0] = Jacobian(1,0) * Jacobian(2,1) - Jacobian(2,0) * Jacobian(1,1);
-
-    NormalVector[1] = Jacobian(2,0) * Jacobian(0,1) - Jacobian(0,0) * Jacobian(2,1);
-
-    NormalVector[2] = Jacobian(0,0) * Jacobian(1,1) - Jacobian(1,0) * Jacobian(0,1);
-
-    rTractionVector[0] = NormalStress * NormalVector[0];
-    rTractionVector[1] = NormalStress * NormalVector[1];
-    rTractionVector[2] = NormalStress * NormalVector[2];
-}
-
-//----------------------------------------------------------------------------------------
-
-template< >
-void UPwNormalFaceLoadCondition<3,4>::
-    CalculateTractionVector(array_1d<double,3>& rTractionVector,
-                            const Matrix& Jacobian,
-                            const Matrix& NContainer,
-                            const NormalFaceLoadVariables& Variables,
-                            const unsigned int& GPoint)
-{
-    double NormalStress = 0.0;
-
-    for (unsigned int i=0; i<4; ++i) {
-        NormalStress += NContainer(GPoint,i)*Variables.NormalStressVector[i];
-    }
-
-    double NormalVector[3];
-
-    NormalVector[0] = Jacobian(1,0) * Jacobian(2,1) - Jacobian(2,0) * Jacobian(1,1);
-
-    NormalVector[1] = Jacobian(2,0) * Jacobian(0,1) - Jacobian(0,0) * Jacobian(2,1);
-
-    NormalVector[2] = Jacobian(0,0) * Jacobian(1,1) - Jacobian(1,0) * Jacobian(0,1);
-
-    rTractionVector[0] = NormalStress * NormalVector[0];
-    rTractionVector[1] = NormalStress * NormalVector[1];
-    rTractionVector[2] = NormalStress * NormalVector[2];
 }
 
 //----------------------------------------------------------------------------------------
@@ -202,5 +130,8 @@ double UPwNormalFaceLoadCondition<TDim,TNumNodes>::
 template class UPwNormalFaceLoadCondition<2,2>;
 template class UPwNormalFaceLoadCondition<3,3>;
 template class UPwNormalFaceLoadCondition<3,4>;
+template class UPwNormalFaceLoadCondition<3,6>;
+template class UPwNormalFaceLoadCondition<3,8>;
+template class UPwNormalFaceLoadCondition<3,9>;
 
 } // Namespace Kratos.

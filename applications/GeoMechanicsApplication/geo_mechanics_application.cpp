@@ -209,18 +209,34 @@ void KratosGeoMechanicsApplication::Register() {
     //Register Conditions
     KRATOS_REGISTER_CONDITION("UPwForceCondition2D1N", mUPwForceCondition2D1N)
     KRATOS_REGISTER_CONDITION("UPwForceCondition3D1N", mUPwForceCondition3D1N)
+
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D2N", mUPwFaceLoadCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D3N", mUPwFaceLoadCondition3D3N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D4N", mUPwFaceLoadCondition3D4N)
+    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D6N", mUPwFaceLoadCondition3D6N)
+    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D8N", mUPwFaceLoadCondition3D8N)
+    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D9N", mUPwFaceLoadCondition3D9N)
+
     KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition2D2N", mUPwNormalFaceLoadCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition3D3N", mUPwNormalFaceLoadCondition3D3N)
     KRATOS_REGISTER_CONDITION("UpwNormalFaceLoadCondition3D4N", mUPwNormalFaceLoadCondition3D4N)
+    KRATOS_REGISTER_CONDITION("UpwNormalFaceLoadCondition3D6N", mUPwNormalFaceLoadCondition3D6N)
+    KRATOS_REGISTER_CONDITION("UpwNormalFaceLoadCondition3D8N", mUPwNormalFaceLoadCondition3D8N)
+    KRATOS_REGISTER_CONDITION("UpwNormalFaceLoadCondition3D9N", mUPwNormalFaceLoadCondition3D9N)
+
     KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition2D2N", mUPwNormalFluxCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition3D3N", mUPwNormalFluxCondition3D3N)
     KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition3D4N", mUPwNormalFluxCondition3D4N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition3D6N", mUPwNormalFluxCondition3D6N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition3D8N", mUPwNormalFluxCondition3D8N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition3D9N", mUPwNormalFluxCondition3D9N)
+
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D2N", mPwNormalFluxCondition2D2N)
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D3N", mPwNormalFluxCondition3D3N)
     KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D6N", mPwNormalFluxCondition3D6N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D8N", mPwNormalFluxCondition3D8N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D9N", mPwNormalFluxCondition3D9N)
 
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D3N", mUPwFaceLoadCondition2D3N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D4N", mUPwFaceLoadCondition2D4N)
