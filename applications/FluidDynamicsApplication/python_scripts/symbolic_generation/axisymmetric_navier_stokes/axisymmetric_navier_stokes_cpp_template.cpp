@@ -83,8 +83,9 @@ void AxisymmetricNavierStokes<TElementData>::Initialize(const ProcessInfo &rCurr
     KRATOS_TRY;
 
     // Set the constitutive law pointer to null as the axisymmetric element hardcodes a Newtonian fluid viscous behavior
-    // Note that to use a constitutive law the gradient in cylindrical coordinates together with the corresponding cylindrical stress implementation needs to be done
-    mpConstitutiveLaw = nullptr;
+    // Note that to use a constitutive law the gradient in cylindrical coordinates would require the corresponding stress
+    // implementation in cylindrical coordinates within the mechanical response calculation
+    this->GetConstitutiveLaw() = nullptr;
 
     KRATOS_CATCH("");
 }
@@ -97,15 +98,29 @@ int AxisymmetricNavierStokes<TElementData>::Check(const ProcessInfo &rCurrentPro
 {
     KRATOS_TRY;
 
-    // Perform base fluid element check
-    int out = BaseType::Check(rCurrentProcessInfo);
-    KRATOS_ERROR_IF_NOT(out == 0)
-        << "Error in base class Check for Element " << this->Info() << std::endl
-        << "Error code is " << out << std::endl;
+    // Generic geometry check
+    int out = Element::Check(rCurrentProcessInfo);
+    if (out != 0) {
+        return out;
+    }
 
-    // Check that there are no negative y-coordinates (radius is always positive)
-    const auto& r_geom = this->GetGeometry();
-    for (const auto& r_node : r_geom) {
+    // Check variables used by TElementData
+    out = TElementData::Check(*this, rCurrentProcessInfo);
+    KRATOS_ERROR_IF_NOT(out == 0)
+        << "Something is wrong with the elemental data of Element "
+        << this->Info() << std::endl;
+
+    // Check nodes
+    const double check_tolerance = 1.0e-8;
+    const auto& r_geometry = this->GetGeometry();
+    for (const auto& r_node : r_geometry) {
+        // Check nodal DOFs
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_X,r_node);
+        KRATOS_CHECK_DOF_IN_NODE(VELOCITY_Y,r_node);
+        KRATOS_CHECK_DOF_IN_NODE(PRESSURE,r_node);
+        // Axisymmetry: nodes are in XY plane
+        KRATOS_ERROR_IF(std::abs(r_node.Z()) > check_tolerance ) << "Node " << r_node.Id() << "has non-zero Z coordinate." << std::endl;
+        // Axisymmetry: check that there are no negative y-coordinates (radius is always positive)
         KRATOS_ERROR_IF(r_node.Y() < 0.0) << "Negative y-coordinate found in node " << r_node.Id() << ". Axisymmetric radius must be positive." << std::endl;
     }
 

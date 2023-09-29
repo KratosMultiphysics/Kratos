@@ -6,14 +6,17 @@ from KratosMultiphysics.sympy_fe_utilities import *
 mode = "c"
 divide_by_rho = True                # Divide the mass conservation equation by rho
 ASGS_stabilization = True           # Consider ASGS stabilization terms
+add_incompressibility_error = False     # Add the incompressibility error to the viscous stress response
+
 do_simplifications = False
 output_filename = "axisymmetric_navier_stokes.cpp"
 template_filename = "axisymmetric_navier_stokes_cpp_template.cpp"
 
-info_msg = "\n"
-info_msg += "Element generator settings:\n"
-info_msg += "\t - ASGS stabilization: " + str(ASGS_stabilization) + "\n"
-info_msg += "\t - Divide mass conservation by rho: " + str(divide_by_rho) + "\n"
+info_msg = f"\n"
+info_msg += f"Element generator settings:\n"
+info_msg += f"\t - ASGS stabilization: {ASGS_stabilization}\n"
+info_msg += f"\t - Divide mass conservation by rho: {divide_by_rho}\n"
+info_msg += f"\t - Add incompressibility error to viscous stress: {add_incompressibility_error}\n"
 print(info_msg)
 
 dim_vector = [2, 2]
@@ -92,6 +95,9 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     # Navier-Stokes functional
     galerkin_functional = rho*w_gauss[0]*f_gauss[0] - rho*w_gauss[0]*accel_gauss[0] - rho*w_gauss[0]*v_conv_gauss[1]*grad_v[1,0] - rho*w_gauss[0]*v_conv_gauss[0]*grad_v[0,0] + grad_w[0,0]*p_gauss[0] - mu*grad_w[1,0]*grad_v[1,0] - mu*grad_w[0,0]*grad_v[0,0]
     galerkin_functional += rho*w_gauss[1]*f_gauss[1] - rho*w_gauss[1]*accel_gauss[1] - rho*w_gauss[1]*v_conv_gauss[1]*grad_v[1,1] - rho*w_gauss[1]*v_conv_gauss[0]*grad_v[0,1] + (w_gauss[1]/y + grad_w[1,1])*p_gauss[0] - mu*grad_w[1,1]*grad_v[1,1] - mu*grad_w[0,1]*grad_v[0,1]
+    if add_incompressibility_error:
+        galerkin_functional -= 2.0*mu*grad_w[0,0]*grad_v[0,0]
+        galerkin_functional -= 2.0*mu*(grad_w[1,1]*grad_v[1,1] + w_gauss[1]*v_gauss[1]/y**2)
     if divide_by_rho:
         galerkin_functional += - q_gauss[0]*v_gauss[1]/y - q_gauss[0]*grad_v[1,1] - q_gauss[0]*grad_v[0,0]
     else:
@@ -99,7 +105,7 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
 
     ##  Stabilization functional terms
     # Momentum conservation residual
-    # Note that the viscous stress term is dropped since linear elements are used
+    # Note that the second order viscous stress terms are dropped since linear elements are used
     vel_residual_x = rho*f_gauss[0] - rho*accel_gauss[0] - rho*v_conv_gauss[1]*grad_v[1,0] - rho*v_conv_gauss[0]*grad_v[0,0] - grad_p[0] + (mu/y)*grad_v[1,0]
     vel_residual_y = rho*f_gauss[1] - rho*accel_gauss[1] - rho*v_conv_gauss[1]*grad_v[1,1] - rho*v_conv_gauss[0]*grad_v[0,1] - grad_p[1] - mu*v_gauss[1]/y**2 + (mu/y)*grad_v[1,1]
 
@@ -121,6 +127,8 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
         stabilization_functional = - rho*q_gauss[0]*vel_subscale_y/y + rho*grad_q[1]*vel_subscale_y + rho*grad_q[0]*vel_subscale_x
     stabilization_functional += rho*(grad_w[1,0]*v_conv_gauss[1]+w_gauss[0]*grad_v_conv[1,1])*vel_subscale_x + rho*(grad_w[0,0]*v_conv_gauss[0]+w_gauss[0]*grad_v_conv[0,0])*vel_subscale_x + grad_w[0,0]*pres_subscale
     stabilization_functional += rho*(grad_w[1,1]*v_conv_gauss[1]+w_gauss[1]*grad_v_conv[1,1])*vel_subscale_y + rho*(grad_w[0,1]*v_conv_gauss[0]+w_gauss[1]*grad_v_conv[0,0])*vel_subscale_y + grad_w[1,1]*pres_subscale + (w_gauss[1]/y)*pres_subscale
+    if add_incompressibility_error:
+        stabilization_functional -= 2.0*mu*w_gauss[1]*vel_subscale_y/y**2
 
     ## Add the stabilization terms to the original residual terms
     functional = galerkin_functional
