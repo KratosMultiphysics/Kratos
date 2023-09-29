@@ -76,8 +76,14 @@ const std::string testParameters = R"(
         "line_search_tolerance":              0.5,
         "rotation_dofs":                      true,
         "linear_solver_settings":             {
-            "solver_type":   "LinearSolversApplication.sparse_lu",
-            "scaling":       true
+            "solver_type":     "amgcl",
+            "smoother_type":   "ilu0",
+            "krylov_type":     "gmres",
+            "coarsening_type": "aggregation",
+            "max_iteration":   100,
+            "verbosity":       0,
+            "tolerance":       1.0e-6,
+            "scaling":         false
         },
         "problem_domain_sub_model_part_list": ["Clay_after_excavation","Excavated_clay"],
         "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","Gravitational_load"],

@@ -17,35 +17,11 @@
 
 namespace Kratos
 {
-const Parameters default_linear_solver_settings(
-        R"(
-    {
-            "solver_type":     "amgcl",
-            "smoother_type":   "ilu0",
-            "krylov_type":     "gmres",
-            "coarsening_type": "aggregation",
-            "max_iteration":   100,
-            "verbosity":       0,
-            "tolerance":       1.0e-6,
-            "scaling":         false
-        }
-    )");
 
 unique_ptr<SolvingStrategy<SolvingStrategyFactory::SparseSpaceType, SolvingStrategyFactory::LocalSpaceType>>
 SolvingStrategyFactory::Create(Parameters& rSolverSettings, ModelPart& rModelPart) const
 {
-    auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(default_linear_solver_settings);
-    KRATOS_ERROR_IF(solver == nullptr);
 
-
-    Scheme<SparseSpaceType, LocalSpaceType>::Pointer scheme = Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
-    auto builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(solver);
-
-    const double rel_tol = 1.0e-4;
-    const double abs_tol = 1.0e-9;
-    VariableData *p_water_pres = &WATER_PRESSURE;
-    ConvergenceVariableListType convergence_settings{std::make_tuple(p_water_pres, rel_tol, abs_tol)};
-    auto criteria = std::make_shared<ConvergenceCriteriaType>(MixedGenericCriteriaType(convergence_settings));
 
 
     if (rSolverSettings["strategy_type"].GetString() == ResidualBasedLinearStrategy<SparseSpaceType,
@@ -60,21 +36,41 @@ SolvingStrategyFactory::Create(Parameters& rSolverSettings, ModelPart& rModelPar
             LocalSpaceType,
             LinearSolverType>::Name())
     {
-        Parameters p_parameters(R"(
-    {
-        "min_iteration":    6,
-        "number_cycles":    100,
-        "increase_factor":  2.0,
-        "reduction_factor": 0.5,
-		"max_piping_iterations": 500,
-        "desired_iterations": 4,
-        "max_radius_factor": 10.0,
-        "min_radius_factor": 0.1,
-        "search_neighbours_step": false,
-        "body_domain_sub_model_part_list": [],
-        "loads_sub_model_part_list": [],
-        "loads_variable_list" : []
-    }  )");
+        auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(rSolverSettings["linear_solver_settings"]);
+        KRATOS_ERROR_IF(solver == nullptr);
+
+        Scheme<SparseSpaceType, LocalSpaceType>::Pointer scheme = Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
+        auto builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(solver);
+
+        const double rel_tol = 1.0e-4;
+        const double abs_tol = 1.0e-9;
+        VariableData *p_water_pres = &WATER_PRESSURE;
+        ConvergenceVariableListType convergence_settings{std::make_tuple(p_water_pres, rel_tol, abs_tol)};
+        auto criteria = std::make_shared<ConvergenceCriteriaType>(MixedGenericCriteriaType(convergence_settings));
+        std::vector<std::string> strategy_entries = {"min_iteration",
+                                                     "number_cycles",
+                                                     "increase_factor",
+                                                     "reduction_factor",
+                                                     "max_piping_iterations",
+                                                     "desired_iterations",
+                                                     "max_radius_factor",
+                                                     "min_radius_factor",
+                                                     "search_neighbours_step",
+                                                     "body_domain_sub_model_part_list",
+                                                     "loads_sub_model_part_list",
+                                                     "loads_variable_list",
+                                                     "rebuild_level"};
+
+        Parameters parameters;
+        for (const std::string& entry : strategy_entries)
+        {
+            if (rSolverSettings.Has(entry))
+            {
+                parameters.AddValue(entry, rSolverSettings[entry]);
+            }
+        }
+
+
         return std::make_unique<GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType,
                 LocalSpaceType,
                 LinearSolverType>>(rModelPart,
@@ -82,7 +78,7 @@ SolvingStrategyFactory::Create(Parameters& rSolverSettings, ModelPart& rModelPar
                         solver,
                         criteria,
                         builder_and_solver,
-                                                           p_parameters);
+                                   parameters);
     }
 
 
