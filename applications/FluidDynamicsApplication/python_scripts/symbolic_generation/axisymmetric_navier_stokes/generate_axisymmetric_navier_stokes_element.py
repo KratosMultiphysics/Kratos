@@ -28,8 +28,9 @@ templatefile = open(template_filename)
 outstring = templatefile.read()
 
 for dim, n_nodes in zip(dim_vector, n_nodes_vector):
-    ## Define shape functions and gradients
+    ## Define shape functions, shape function gradients and integration weight
     impose_partion_of_unity = False
+    gauss_weight = sympy.Symbol('w_gauss', positive = True) # Integration weight defined at cpp
     N,DN = DefineShapeFunctions(n_nodes, dim, impose_partion_of_unity)
 
     ## Unknown fields definition
@@ -152,12 +153,12 @@ for dim, n_nodes in zip(dim_vector, n_nodes_vector):
     print(f"Computing {dim}D{n_nodes}N RHS Gauss point contribution\n")
     aux_functional = sympy.Matrix([[functional]])
     rhs = Compute_RHS(aux_functional.copy(), test_func, do_simplifications)
-    rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+    rhs_out = OutputVector_CollectingFactors(gauss_weight * rhs, "rRHS", mode, assignment_op='+=')
 
     # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)
     print(f"Computing {dim}D{n_nodes}N LHS Gauss point contribution\n")
     lhs = Compute_LHS(rhs, test_func, dofs, do_simplifications)
-    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+    lhs_out = OutputMatrix_CollectingFactors(gauss_weight * lhs, "rLHS", mode, assignment_op='+=')
 
     ## Replace the computed RHS and LHS in the template outstring
     outstring = outstring.replace(f"//substitute_lhs_{dim}D{n_nodes}N", lhs_out)

@@ -293,13 +293,10 @@ void AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,3> >::ComputeGauss
     const double h = rData.ElementSize;
     const double dyn_tau = rData.DynamicTau;
 
-    //TODO: Optimize this to directly add to the rLeftHandSideMatrix
-    auto& lhs = rData.lhs;
+    // Add LHS Gauss point contribution
+    const double w_gauss = 2.0 * Globals::Pi * y * rData.Weight;
 
     //substitute_lhs_2D3N
-
-    // Add intermediate results to local system
-    noalias(rLHS) += 2.0 * Globals::Pi * y * rData.Weight * lhs;
 }
 
 template <>
@@ -331,13 +328,10 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,4>>::ComputeGaussPo
     const double h = rData.ElementSize;
     const double dyn_tau = rData.DynamicTau;
 
-    //TODO: Optimize this to directly add to the rLeftHandSideMatrix
-    auto& lhs = rData.lhs;
+    // Add LHS Gauss point contribution
+    const double w_gauss = 2.0 * Globals::Pi * y * rData.Weight;
 
     //substitute_lhs_2D4N
-
-    // Add intermediate results to local system
-    noalias(rLHS) += 2.0 * Globals::Pi * y * rData.Weight * lhs;
 }
 
 template <>
@@ -377,12 +371,10 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,3>>::ComputeGaussPo
     const double h = rData.ElementSize;
     const double dyn_tau = rData.DynamicTau;
 
-    //TODO: Optimize this to directly add to the rRightHandSideVector
-    auto& rhs = rData.rhs;
+    // Add RHS Gauss point contribution
+    const double w_gauss = 2.0 * Globals::Pi * y * rData.Weight;
 
     //substitute_rhs_2D3N
-
-    noalias(rRHS) += 2.0 * Globals::Pi * y * rData.Weight * rhs;
 }
 
 template <>
@@ -422,12 +414,10 @@ void AxisymmetricNavierStokes<AxisymmetricNavierStokesData<2,4>>::ComputeGaussPo
     const double h = rData.ElementSize;
     const double dyn_tau = rData.DynamicTau;
 
-    //TODO: Optimize this to directly add to the rRightHandSideVector
-    auto& rhs = rData.rhs;
+    // Add RHS Gauss point contribution
+    const double w_gauss = 2.0 * Globals::Pi * y * rData.Weight;
 
     //substitute_rhs_2D4N
-
-    noalias(rRHS) += 2.0 * Globals::Pi * y * rData.Weight * rhs;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
