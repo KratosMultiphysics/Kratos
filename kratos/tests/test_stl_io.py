@@ -75,16 +75,6 @@ class TestStlIO(KratosUnittest.TestCase):
         cls.model_part = cls.current_model.CreateModelPart("Main")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
         cls.stl_file = GetFilePath("aux.stl")
-        # Check if the path is writable
-        path = Path(cls.stl_file)
-        try:
-            # Try to open the file in write mode.
-            # If this succeeds, the file is writable.
-            with path.open('w') as file:
-                pass
-        except Exception as e:
-            # An exception was raised, so the file is likely not writable.
-            raise PermissionError(f"The path '{path}' is not writable.") from e
 
     @classmethod
     def tearDownClass(cls):
