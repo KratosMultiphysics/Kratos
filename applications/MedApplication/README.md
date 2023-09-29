@@ -21,7 +21,8 @@ sudo pacman -S med-serial med-openmpi
 ```
 
 ## Usage
-In Salome, mesh groups are translated into SubModelParts
+- In Salome, mesh groups are translated into SubModelParts
+- SubSub ... Modelparts can be created by specifying a name with `.`. I.e. like it usually works in Kratos
 
 
 ## Development
