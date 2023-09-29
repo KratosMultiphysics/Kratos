@@ -52,7 +52,14 @@ StlIO::StlIO(const std::filesystem::path& rFilename, Parameters ThisParameters)
 
     p_file->open(filePath.c_str(), open_mode);
 
-    KRATOS_ERROR_IF_NOT(p_file->is_open()) << "Could not open the input file  : " << filePath << std::endl;
+    // Checking read/write status
+    if (open_mode_str == "write") {
+        KRATOS_ERROR_IF_NOT(p_file->is_open()) << "Could not create the output file  : " << filePath << std::endl;
+    } else if (open_mode_str == "append") {
+        KRATOS_ERROR_IF_NOT(p_file->is_open()) << "Could not open the output file  : " << filePath << std::endl;
+    } else {
+        KRATOS_ERROR_IF_NOT(p_file->is_open()) << "Could not open the input file  : " << filePath << std::endl;
+    }
 
     // Store the pointer as a regular std::iostream
     mpInputStream = p_file;
