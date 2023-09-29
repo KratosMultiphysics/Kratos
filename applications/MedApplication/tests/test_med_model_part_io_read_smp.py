@@ -12,7 +12,7 @@ def GetMedPath(med_path, med_name="mesh.med"):
 
 class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
 
-    def test_cube_with_sub_mesh(self):
+    def test_cube_with_groups(self):
         model = KM.Model()
         model_part = model.CreateModelPart("test")
         KratosMed.MedModelPartIO(GetMedPath("cube_with_groups", "cube.med")).ReadModelPart(model_part)
@@ -34,6 +34,14 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
 
         self.assertEqual(smp_interface.NumberOfGeometries(), 36)
         self.assertEqual(smp_interface_nodes.NumberOfGeometries(), 0)
+
+        # check if smp "interface" contains exactly the nodes of its geometries
+        # check coords of the nodes in the smps (x=200, 0<=y<=200, 0<=z<=200)
+        # check that the correct geoms (3D triangles) are in the smp
+        # check how many geoms of each type:
+        #   48 geometries of type Line3D2
+        #   86 geometries of type Tetrahedra3D4
+        #   210 geometries of type Triangle3D3
 
 
 if __name__ == '__main__':
