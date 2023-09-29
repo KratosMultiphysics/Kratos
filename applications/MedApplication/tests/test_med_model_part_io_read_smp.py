@@ -3,6 +3,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 import KratosMultiphysics.MedApplication as KratosMed
 
+from itertools import chain
 from pathlib import Path
 
 
@@ -35,8 +36,33 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
         self.assertEqual(smp_interface.NumberOfGeometries(), 36)
         self.assertEqual(smp_interface_nodes.NumberOfGeometries(), 0)
 
-        # check if smp "interface" contains exactly the nodes of its geometries
-        # check coords of the nodes in the smps (x=200, 0<=y<=200, 0<=z<=200)
+        def get_node_ids(mp):
+            # TODO check that there are no duplicates!
+            return set([node.Id for node in mp.Nodes])
+
+        def get_geom_node_ids(mp):
+            node_ids = []
+            for geom in mp.Geometries:
+                for node in geom:
+                    node_ids.append(node.Id)
+            return set(node_ids)
+
+        smp_interface_node_ids = get_node_ids(smp_interface)
+        smp_interface_geom_node_ids = get_geom_node_ids(smp_interface)
+
+        # make sure that the smp has the nodes of its geometries
+        self.assertEqual(smp_interface_node_ids, smp_interface_geom_node_ids)
+
+        # check if smps have same nodes
+        self.assertEqual(smp_interface_node_ids, get_node_ids(smp_interface_nodes))
+
+        # check node coordinates
+        for node in chain(smp_interface.Nodes, smp_interface_nodes.Nodes):
+            self.assertAlmostEqual(node.X, 200.0)
+            self.assertTrue(0.0 <= node.Y <= 200.0)
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+
+
         # check that the correct geoms (3D triangles) are in the smp
         # check how many geoms of each type:
         #   48 geometries of type Line3D2

@@ -23,6 +23,7 @@ sudo pacman -S med-serial med-openmpi
 ## Usage
 - In Salome, mesh groups are translated into SubModelParts
 - SubSub ... Modelparts can be created by specifying a name with `.`. I.e. like it usually works in Kratos
+- the number of characters is restricted in Med: 64 for main mesh name, and 80 for groups. Everything beyond these limits is cut.
 
 
 ## Development
