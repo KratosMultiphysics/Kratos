@@ -89,7 +89,7 @@ class HRomTrainingUtility(object):
                 candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_condition_ids)+number_of_elements]
 
         if np.size(candidate_ids)>0:
-            self.candidate_ids = np.unique(candidate_ids).astype(int) - 1 # this -1 takes into account the id difference in numpy and Kratos
+            self.candidate_ids = np.unique(candidate_ids).astype(int)
         else:
             self.candidate_ids = None
 
