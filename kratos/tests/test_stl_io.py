@@ -7,6 +7,9 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 # Import the pathlib module
 from pathlib import Path
 
+# Import os module
+import os
+
 # Define a function to get the file path given a file name
 def GetFilePath(fileName):
     """
@@ -18,8 +21,7 @@ def GetFilePath(fileName):
     Returns:
         str: The absolute file path.
     """
-    current_dir = Path(__file__).resolve().parent
-    return str(current_dir / fileName)
+    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
 
 # Define a function to remove files with the given name
 def RemoveFiles(file_name):
@@ -72,8 +74,7 @@ class TestStlIO(KratosUnittest.TestCase):
         cls.current_model = KratosMultiphysics.Model()
         cls.model_part = cls.current_model.CreateModelPart("Main")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
-        file = Path.cwd() / "aux.stl"
-        cls.stl_file = file.as_posix()
+        cls.stl_file = GetFilePath("aux.stl")
         # Check if the path is writable
         path = Path(cls.stl_file)
         try:
