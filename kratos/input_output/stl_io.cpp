@@ -207,7 +207,7 @@ void StlIO::WriteEntityBlockMPI(
     std::stringstream ss;
 
     // Write facets
-    std::size_t num_degenerate_geometries = 0;
+    unsigned int num_degenerate_geometries = 0;
     for (auto& r_entity : rThisEntities) {
         const auto& r_geometry = r_entity.GetGeometry();
         if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
@@ -255,7 +255,7 @@ void StlIO::WriteGeometryBlockMPI(
     std::stringstream ss;
 
     // Write facets
-    std::size_t num_degenerate_geometries = 0;
+    unsigned int num_degenerate_geometries = 0;
     for (auto& r_geometry : rThisGeometries) {
         if (IsValidGeometry(r_geometry, num_degenerate_geometries)) {
             WriteFacet(r_geometry, ss);
