@@ -176,15 +176,16 @@ template <class TElementData>
 void AxisymmetricNavierStokes<TElementData>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << this->Info() << std::endl;
-
-    if (this->GetConstitutiveLaw() != nullptr) {
-        rOStream << "with constitutive law " << std::endl;
-        this->GetConstitutiveLaw()->PrintInfo(rOStream);
-    }
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Protected operations
+
+template <class TElementData>
+void AxisymmetricNavierStokes<TElementData>::CalculateMaterialResponse(TElementData &rData) const
+{
+    rData.EffectiveViscosity = this->GetProperties()[DYNAMIC_VISCOSITY];
+}
 
 template <class TElementData>
 void AxisymmetricNavierStokes<TElementData>::AddTimeIntegratedSystem(

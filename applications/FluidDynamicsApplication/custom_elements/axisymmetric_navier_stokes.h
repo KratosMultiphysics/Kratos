@@ -212,6 +212,8 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    void CalculateMaterialResponse(TElementData &rData) const override;
+
     void AddTimeIntegratedSystem(
         TElementData& rData,
         MatrixType& rLHS,

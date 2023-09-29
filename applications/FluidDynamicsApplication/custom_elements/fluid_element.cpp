@@ -593,24 +593,20 @@ void FluidElement<TElementData>::UpdateIntegrationPointData(
 template <class TElementData>
 void FluidElement<TElementData>::CalculateMaterialResponse(TElementData& rData) const
 {
-    if (mpConstitutiveLaw) {
-        this->CalculateStrainRate(rData);
+    this->CalculateStrainRate(rData);
 
-        auto& Values = rData.ConstitutiveLawValues;
+    auto& Values = rData.ConstitutiveLawValues;
 
-        const Vector& shape_functions_vector = rData.N;
-        const Matrix& shape_functions_derivative_matrix = rData.DN_DX;
-        Values.SetShapeFunctionsValues(shape_functions_vector);
-        Values.SetShapeFunctionsDerivatives(shape_functions_derivative_matrix);
+    const Vector& shape_functions_vector = rData.N;
+    const Matrix& shape_functions_derivative_matrix = rData.DN_DX;
+    Values.SetShapeFunctionsValues(shape_functions_vector);
+    Values.SetShapeFunctionsDerivatives(shape_functions_derivative_matrix);
 
-        //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
-        //this is ok under the hypothesis that no history dependent behavior is employed
-        mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
+    //ATTENTION: here we assume that only one constitutive law is employed for all of the gauss points in the element.
+    //this is ok under the hypothesis that no history dependent behavior is employed
+    mpConstitutiveLaw->CalculateMaterialResponseCauchy(Values);
 
-        mpConstitutiveLaw->CalculateValue(Values,EFFECTIVE_VISCOSITY,rData.EffectiveViscosity);
-    } else {
-        rData.EffectiveViscosity = this->GetProperties()[DYNAMIC_VISCOSITY];
-    }
+    mpConstitutiveLaw->CalculateValue(Values,EFFECTIVE_VISCOSITY,rData.EffectiveViscosity);
 }
 
 template <class TElementData>
