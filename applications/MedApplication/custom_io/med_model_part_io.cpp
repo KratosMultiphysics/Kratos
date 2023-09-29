@@ -219,8 +219,8 @@ auto GetFamilyNumbers(
     const med_idt FileHandle,
 	const char* pMeshName,
     const int NumberOfEntities,
-    med_entity_type EntityTpe,
-    med_geometry_type GeomType = MED_NONE)
+    const med_entity_type EntityTpe,
+    const med_geometry_type GeomType = MED_NONE)
 {
     KRATOS_TRY
 
@@ -254,7 +254,7 @@ auto GetGroupsByFamily(
 
     med_int family_number;
 
-    for (int i=1; i<num_families; ++i) {
+    for (int i=1; i<num_families+1; ++i) {
         const int num_groups = MEDnFamilyGroup(FileHandle, pMeshName, i);
         if (num_groups == 0) {continue;} // this family has no groups assigned
 
@@ -408,7 +408,11 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
+    const bool add_nodes_of_geometries = true; // TODO make this an input parameter
+
     KRATOS_ERROR_IF_NOT(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in read mode to read a ModelPart!" << std::endl;
+    KRATOS_ERROR_IF_NOT(rThisModelPart.NumberOfNodes() == 0) << "ModelPart is not empty, it has Nodes!" << std::endl;
+    KRATOS_ERROR_IF_NOT(rThisModelPart.NumberOfSubModelParts() == 0) << "ModelPart is not empty, it has SubModelParts!" << std::endl;
 
     // reading nodes
     const int num_nodes = GetNumberOfNodes(mpFileHandler->GetFileHandle(), mpFileHandler->GetMeshName());
@@ -428,7 +432,9 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     // create SubModelPart hierarchy
     for (const auto& r_map : groups_by_fam) {
         for (const auto& r_smp_name : r_map.second) {
-            rThisModelPart.CreateSubModelPart(r_smp_name);
+            if (!rThisModelPart.HasSubModelPart(r_smp_name)) {
+                rThisModelPart.CreateSubModelPart(r_smp_name);
+            }
         }
     }
 
@@ -462,15 +468,11 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         const int fam_num = node_family_numbers[i];
         if (fam_num == 0) {continue;} // node does not belong to a SubModelPart
 
-        // TODO add check to ensure fam-num exists in map
-        for (const auto& r_smp_name : groups_by_fam.at(fam_num)) {
+        const auto it_groups = groups_by_fam.find(fam_num);
+        KRATOS_ERROR_IF(it_groups == groups_by_fam.end()) << "Missing node family with number " << fam_num << "!" << std::endl;
+        for (const auto& r_smp_name : it_groups->second) {
             smp_nodes[r_smp_name].push_back(new_node_id);
         }
-    }
-
-    for (const auto& r_map : smp_nodes) {
-        // TODO maybe required to make it unique?
-        rThisModelPart.GetSubModelPart(r_map.first).AddNodes(r_map.second);
     }
 
     KRATOS_INFO("MedModelPartIO") << "Read " << num_nodes << " nodes" << std::endl;
@@ -491,7 +493,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     std::unordered_map<std::string, std::vector<IndexType>> smp_geoms;
 
     // looping geometry types
-    for (int it_geo=1; it_geo<=num_geometry_types; ++it_geo) {
+    for (int it_geo=1; it_geo<=num_geometry_types; ++it_geo) { //TODO +1?
         med_geometry_type geo_type;
 
         std::string geotypename;
@@ -558,20 +560,32 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             const int fam_num = geom_family_numbers[i];
             if (fam_num == 0) {continue;} // geometrx does not belong to a SubModelPart
 
-            // TODO add check to ensure fam-num exists in map
-            for (const auto& r_smp_name : groups_by_fam.at(fam_num)) {
+            const auto it_groups = groups_by_fam.find(fam_num);
+            KRATOS_ERROR_IF(it_groups == groups_by_fam.end()) << "Missing geometry family with number " << fam_num << "!" << std::endl;
+            for (const auto& r_smp_name : it_groups->second) {
                 smp_geoms[r_smp_name].push_back(num_geometries_total);
+            }
+
+            if (add_nodes_of_geometries) {
+                // make sure the nodes of the geometries are also added
+                for (const auto& r_smp_name : it_groups->second) {
+                    smp_nodes[r_smp_name].insert(smp_nodes[r_smp_name].end(), geom_node_ids.begin(), geom_node_ids.end());
+                }
             }
         }
 
         KRATOS_INFO("MedModelPartIO") << "Read " << num_geometries << " geometries of type " << kratos_geo_name << std::endl;
-
     }
 
     KRATOS_INFO_IF("MedModelPartIO", num_geometries_total > 0) << "Read " << num_geometries_total << " geometries in total" << std::endl;
 
+    for (const auto& r_map : smp_nodes) {
+        // TODO making unique is more efficient, as requires less searches!
+        rThisModelPart.GetSubModelPart(r_map.first).AddNodes(r_map.second);
+    }
+
     for (const auto& r_map : smp_geoms) {
-        // TODO maybe required to make it unique?
+        // TODO making unique is more efficient, as requires less searches!
         rThisModelPart.GetSubModelPart(r_map.first).AddGeometries(r_map.second);
     }
 

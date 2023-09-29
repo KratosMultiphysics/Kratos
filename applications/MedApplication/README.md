@@ -19,3 +19,11 @@ Packages related to *Salome* and *MED* for arch-based distros can be installed f
 ```
 sudo pacman -S med-serial med-openmpi
 ```
+
+## Usage
+In Salome, mesh groups are translated into SubModelParts
+
+
+## Development
+- Use HDFView to inspect the med-files
+- Make sure to check the return value of every med-library function call
