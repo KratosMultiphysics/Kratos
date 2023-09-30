@@ -625,6 +625,8 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
+    BuiltinTimer timer;
+
     // TODO what happens if this function is called multiple times?
     // will it overwrite the mesh?
     // or just crash?
@@ -739,6 +741,8 @@ void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
         const auto med_geom_type = KratosToMedGeometryType.at(geom_type);
         write_geometries(med_geom_type, np_map[geom_type], conn);
     }
+
+    KRATOS_INFO("MedModelPartIO") << "Writing file " << mFileName << " took " << timer << std::endl;
 
     KRATOS_CATCH("")
 }
