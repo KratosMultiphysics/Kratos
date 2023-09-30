@@ -107,6 +107,13 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
         self.assertEqual(smp_face_2.NumberOfGeometries(), 16)
         self.assertEqual(smp_edge_1.NumberOfGeometries(), 3)
 
+        smp_face_1_node_ids: Set[int] = set(get_node_ids(smp_face_1))
+        smp_face_2_node_ids: Set[int] = set(get_node_ids(smp_face_2))
+        smp_edge_1_node_ids: Set[int] = set(get_node_ids(smp_edge_1))
+
+        # the common edge is the "Edge_1" SubModelPart
+        self.assertEqual(smp_face_1_node_ids.intersection(smp_face_2_node_ids), smp_edge_1_node_ids)
+
         # check node coordinates
         for node in model_part.Nodes:
             self.assertTrue(0.0 <= node.X <= 200.0)
