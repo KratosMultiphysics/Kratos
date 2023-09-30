@@ -172,6 +172,100 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
         self.assertEqual(sum(exp_geoms.values()), 226)
         self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
+    def test_cube_with_subsub_groups(self):
+        model: KM.Model = KM.Model()
+        model_part: KM.ModelPart = model.CreateModelPart("test")
+        KratosMed.MedModelPartIO(GetMedPath("cube_sub_subgroups", "cube.med")).ReadModelPart(model_part)
+
+        print(model_part)
+
+        self._basic_checks(model_part)
+
+        self.assertEqual(model_part.NumberOfNodes(), 50)
+        self.assertEqual(model_part.NumberOfGeometries(), 226)
+
+        self.assertEqual(model_part.NumberOfSubModelParts(), 3)
+        self.assertTrue(model_part.HasSubModelPart("Face_1"))
+        self.assertTrue(model_part.HasSubModelPart("Face_2"))
+        self.assertTrue(model_part.HasSubModelPart("Edge_1"))
+
+        smp_face_1: KM.ModelPart = model_part.GetSubModelPart("Face_1")
+        smp_face_2: KM.ModelPart = model_part.GetSubModelPart("Face_2")
+        smp_edge_1: KM.ModelPart = model_part.GetSubModelPart("Edge_1")
+
+        self.assertEqual(smp_face_1.NumberOfNodes(), 15)
+        self.assertEqual(smp_face_2.NumberOfNodes(), 15)
+        self.assertEqual(smp_edge_1.NumberOfNodes(), 4)
+
+        self.assertEqual(smp_face_1.NumberOfGeometries(), 16)
+        self.assertEqual(smp_face_2.NumberOfGeometries(), 16)
+        self.assertEqual(smp_edge_1.NumberOfGeometries(), 3)
+
+        smp_face_1_node_ids: Set[int] = set(get_node_ids(smp_face_1))
+        smp_face_2_node_ids: Set[int] = set(get_node_ids(smp_face_2))
+        smp_edge_1_node_ids: Set[int] = set(get_node_ids(smp_edge_1))
+
+        # the common edge is the "Edge_1" SubModelPart
+        self.assertEqual(smp_face_1_node_ids.intersection(smp_face_2_node_ids), smp_edge_1_node_ids)
+
+        # check node coordinates
+        for node in model_part.Nodes:
+            self.assertTrue(0.0 <= node.X <= 200.0)
+            self.assertTrue(0.0 <= node.X0 <= 200.0)
+
+            self.assertTrue(0.0 <= node.Y <= 200.0)
+            self.assertTrue(0.0 <= node.Y0 <= 200.0)
+
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+            self.assertTrue(0.0 <= node.Z0 <= 200.0)
+
+        for node in smp_face_1.Nodes:
+            self.assertAlmostEqual(node.X, 200.0)
+            self.assertAlmostEqual(node.X0, 200.0)
+
+            self.assertTrue(0.0 <= node.Y <= 200.0)
+            self.assertTrue(0.0 <= node.Y0 <= 200.0)
+
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+            self.assertTrue(0.0 <= node.Z0 <= 200.0)
+
+        for node in smp_face_2.Nodes:
+            self.assertTrue(0.0 <= node.X <= 200.0)
+            self.assertTrue(0.0 <= node.X0 <= 200.0)
+
+            self.assertAlmostEqual(node.Y, 0.0)
+            self.assertAlmostEqual(node.Y0, 0.0)
+
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+            self.assertTrue(0.0 <= node.Z0 <= 200.0)
+
+        for node in smp_edge_1.Nodes:
+            self.assertAlmostEqual(node.X, 200.0)
+            self.assertAlmostEqual(node.X0, 200.0)
+
+            self.assertAlmostEqual(node.Y, 0.0)
+            self.assertAlmostEqual(node.Y0, 0.0)
+
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+            self.assertTrue(0.0 <= node.Z0 <= 200.0)
+
+        # check that the correct geoms (3D triangles) are in the smp
+        for geom in chain(smp_face_1.Geometries, smp_face_2.Geometries):
+            self.assertIsInstance(geom, KM.Triangle3D3)
+
+        # check that the correct geoms (3D lines) are in the smp
+        for geom in smp_edge_1.Geometries:
+            self.assertIsInstance(geom, KM.Line3D2)
+
+        # check how many geoms of each type
+        exp_geoms: Dict[Any, int] = {
+            KM.Tetrahedra3D4: 94,
+            KM.Triangle3D3: 96,
+            KM.Line3D2: 36
+        }
+        self.assertEqual(sum(exp_geoms.values()), 226)
+        self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
+
     def _basic_checks(self, model_part):
         # check no elements or conditions are created
         self.assertEqual(model_part.NumberOfElements(), 0)
