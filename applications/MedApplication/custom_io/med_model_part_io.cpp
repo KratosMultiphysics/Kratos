@@ -456,12 +456,15 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         }
     }
 
-    // get node family numbers
-    const auto node_family_numbers = GetFamilyNumbers(
-        mpFileHandler->GetFileHandle(),
-        mpFileHandler->GetMeshName(),
-        num_nodes,
-        med_entity_type::MED_NODE);
+    // get node family numbers, if the file contains them
+    std::vector<med_int> node_family_numbers;
+    if (!groups_by_fam.empty()) {
+        node_family_numbers = GetFamilyNumbers(
+            mpFileHandler->GetFileHandle(),
+            mpFileHandler->GetMeshName(),
+            num_nodes,
+            med_entity_type::MED_NODE);
+    }
 
     std::unordered_map<std::string, std::vector<IndexType>> smp_nodes;
 
@@ -482,6 +485,8 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             coords[1],
             coords[2]
         );
+
+        if (groups_by_fam.empty()) {continue;} // file does not contain families
 
         const int fam_num = node_family_numbers[i];
         if (fam_num == 0) {continue;} // node does not belong to a SubModelPart
@@ -535,13 +540,16 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             MED_CONNECTIVITY, MED_NODAL,
             &coordinatechangement, &geotransformation);
 
-        // get geometry family numbers
-        const auto geom_family_numbers = GetFamilyNumbers(
-            mpFileHandler->GetFileHandle(),
-            mpFileHandler->GetMeshName(),
-            num_geometries,
-            med_entity_type::MED_CELL,
-            geo_type);
+        // get node family numbers, if the file contains them
+        std::vector<med_int> geom_family_numbers;
+        if (!groups_by_fam.empty()) {
+            geom_family_numbers = GetFamilyNumbers(
+                mpFileHandler->GetFileHandle(),
+                mpFileHandler->GetMeshName(),
+                num_geometries,
+                med_entity_type::MED_CELL,
+                geo_type);
+        }
 
         // read cells connectivity in the mesh
         const int num_nodes_geo_type = geo_type%100;
@@ -575,6 +583,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
                                              ++num_geometries_total,
                                              geom_node_ids);
 
+            if (groups_by_fam.empty()) {continue;} // file does not contain families
             const int fam_num = geom_family_numbers[i];
             if (fam_num == 0) {continue;} // geometry does not belong to a SubModelPart
 
@@ -607,16 +616,13 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         rThisModelPart.GetSubModelPart(r_map.first).AddGeometries(r_map.second);
     }
 
-    KRATOS_INFO("MedModelPartIO") << "Reading file " << mFileName << " took " << timer.ElapsedSeconds() << " [s]" << std::endl;
+    KRATOS_INFO("MedModelPartIO") << "Reading file " << mFileName << " took " << timer << std::endl;
 
     KRATOS_CATCH("")
 }
 
 void MedModelPartIO::WriteModelPart(const ModelPart& rThisModelPart)
 {
-    // TODO most probably need to write zero family numbers until proper support for SubModelParts is implemented
-    // otherwise it crashes while reading the families
-
     KRATOS_TRY
 
     // TODO what happens if this function is called multiple times?
