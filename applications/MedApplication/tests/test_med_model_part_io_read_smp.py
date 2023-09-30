@@ -28,8 +28,8 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
         self.assertTrue(model_part.HasSubModelPart("interface"))
         self.assertTrue(model_part.HasSubModelPart("interface_nodes"))
 
-        smp_interface = model_part.GetSubModelPart("interface")
-        smp_interface_nodes = model_part.GetSubModelPart("interface_nodes")
+        smp_interface: KM.ModelPart = model_part.GetSubModelPart("interface")
+        smp_interface_nodes: KM.ModelPart = model_part.GetSubModelPart("interface_nodes")
 
         self.assertEqual(smp_interface.NumberOfNodes(), smp_interface_nodes.NumberOfNodes())
         self.assertEqual(smp_interface.NumberOfNodes(), 27)
@@ -53,9 +53,9 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
         self.assertEqual(smp_interface_node_ids_unique, smp_interface_nodes_node_ids_unique)
 
         # make sure the geometries are unique
-        smp_interface_geom_ids: List[int] = [geom.Id for geom in model_part.Geometries]
-        smp_interface_geom_ids_unique: Set[int] = set(smp_interface_geom_ids)
-        self.assertEqual(len(smp_interface_geom_ids), len(smp_interface_geom_ids_unique))
+        geom_ids: List[int] = [geom.Id for geom in model_part.Geometries]
+        geom_ids_unique: Set[int] = set(geom_ids)
+        self.assertEqual(len(geom_ids), len(geom_ids_unique))
 
         # check increasing node Ids
         for i, node in enumerate(model_part.Nodes):
@@ -63,7 +63,7 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
 
         # check geometries have correct Ids
         # Note: Geometries are not ordered, thus cannot check like nodes
-        self.assertEqual(smp_interface_geom_ids_unique, set(range(1, model_part.NumberOfGeometries()+1)))
+        self.assertEqual(geom_ids_unique, set(range(1, model_part.NumberOfGeometries()+1)))
 
         # check node coordinates
         for node in model_part.Nodes:
@@ -97,6 +97,99 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
             KM.Line3D2: 48
         }
         self.assertEqual(sum(exp_geoms.values()), 644)
+        self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
+
+    def test_cube_with_adjacent_groups(self):
+        model: KM.Model = KM.Model()
+        model_part: KM.ModelPart = model.CreateModelPart("test")
+        KratosMed.MedModelPartIO(GetMedPath("cube_with_adjacent_groups", "cube.med")).ReadModelPart(model_part)
+
+        self.assertEqual(model_part.NumberOfNodes(), 50)
+        self.assertEqual(model_part.NumberOfGeometries(), 226)
+        self.assertEqual(model_part.NumberOfElements(), 0)
+        self.assertEqual(model_part.NumberOfConditions(), 0)
+
+        self.assertEqual(model_part.NumberOfSubModelParts(), 3)
+        self.assertTrue(model_part.HasSubModelPart("Face_1"))
+        self.assertTrue(model_part.HasSubModelPart("Face_2"))
+        self.assertTrue(model_part.HasSubModelPart("Edge_1"))
+
+        smp_face_1: KM.ModelPart = model_part.GetSubModelPart("Face_1")
+        smp_face_2: KM.ModelPart = model_part.GetSubModelPart("Face_2")
+        smp_edge_1: KM.ModelPart = model_part.GetSubModelPart("Edge_1")
+
+        self.assertEqual(smp_face_1.NumberOfNodes(), 15)
+        self.assertEqual(smp_face_2.NumberOfNodes(), 15)
+        self.assertEqual(smp_edge_1.NumberOfNodes(), 4)
+
+        self.assertEqual(smp_face_1.NumberOfGeometries(), 16)
+        self.assertEqual(smp_face_2.NumberOfGeometries(), 16)
+        self.assertEqual(smp_edge_1.NumberOfGeometries(), 3)
+
+        # make sure the nodes are unique
+        smp_interface_node_ids: List[int] = get_node_ids(smp_interface)
+        smp_interface_node_ids_unique: Set[int] = set(smp_interface_node_ids)
+        self.assertEqual(len(smp_interface_node_ids), len(smp_interface_node_ids_unique))
+
+        smp_interface_nodes_node_ids: List[int] = get_node_ids(smp_interface_nodes)
+        smp_interface_nodes_node_ids_unique: Set[int] = set(smp_interface_nodes_node_ids)
+        self.assertEqual(len(smp_interface_nodes_node_ids), len(smp_interface_nodes_node_ids_unique))
+
+        # make sure that the smp has the nodes of its geometries
+        self.assertEqual(smp_interface_node_ids_unique, set(get_geom_node_ids(smp_interface)))
+
+        # check if smps have same nodes
+        self.assertEqual(smp_interface_node_ids_unique, smp_interface_nodes_node_ids_unique)
+
+        # make sure the geometries are unique
+        geom_ids: List[int] = [geom.Id for geom in model_part.Geometries]
+        geom_ids_unique: Set[int] = set(geom_ids)
+        self.assertEqual(len(geom_ids), len(geom_ids_unique))
+
+        # check increasing node Ids
+        for i, node in enumerate(model_part.Nodes):
+            self.assertEqual(node.Id, i+1)
+
+        # check geometries have correct Ids
+        # Note: Geometries are not ordered, thus cannot check like nodes
+        self.assertEqual(geom_ids_unique, set(range(1, model_part.NumberOfGeometries()+1)))
+
+        # check node coordinates
+        for node in model_part.Nodes:
+            self.assertTrue(0.0 <= node.X <= 200.0)
+            self.assertTrue(0.0 <= node.X0 <= 200.0)
+
+            self.assertTrue(0.0 <= node.Y <= 200.0)
+            self.assertTrue(0.0 <= node.Y0 <= 200.0)
+
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+            self.assertTrue(0.0 <= node.Z0 <= 200.0)
+
+        for node in chain(smp_interface.Nodes, smp_interface_nodes.Nodes):
+            self.assertAlmostEqual(node.X, 200.0)
+            self.assertAlmostEqual(node.X0, 200.0)
+
+            self.assertTrue(0.0 <= node.Y <= 200.0)
+            self.assertTrue(0.0 <= node.Y0 <= 200.0)
+
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+            self.assertTrue(0.0 <= node.Z0 <= 200.0)
+
+        # check that the correct geoms (3D triangles) are in the smp
+        for geom in chain(smp_face_1.Geometries, smp_face_2.Geometries):
+            self.assertIsInstance(geom, KM.Triangle3D3)
+
+        # check that the correct geoms (3D lines) are in the smp
+        for geom in smp_edge_1.Geometries:
+            self.assertIsInstance(geom, KM.Line3D2)
+
+        # check how many geoms of each type
+        exp_geoms: Dict[Any, int] = {
+            KM.Tetrahedra3D4: 386,
+            KM.Triangle3D3: 210,
+            KM.Line3D2: 48
+        }
+        self.assertEqual(sum(exp_geoms.values()), 226)
         self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
 
