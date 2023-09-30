@@ -42,6 +42,10 @@ def WriteModelPartToSTL(model_part, stl_file):
         model_part (KratosMultiphysics.ModelPart): The Kratos model part to be written.
         stl_file (str): The name of the STL file to write to.
     """
+    # BEGIN DEBUG
+    model_part_io = KratosMultiphysics.ModelPartIO(stl_file, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+    model_part_io.WriteModelPart(model_part)
+    # END DEBUG
     write_settings = KratosMultiphysics.Parameters("""{"open_mode" : "write"}""")
     stl_io = KratosMultiphysics.StlIO(stl_file, write_settings)
     stl_io.WriteModelPart(model_part)
