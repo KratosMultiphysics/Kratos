@@ -2,17 +2,16 @@
 //    ' /   __| _` | __|  _ \   __|
 //    . \  |   (   | |   (   |\__ `
 //   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics 
+//                   Multi-Physics
 //
-//  License:		 BSD License 
+//  License:		 BSD License
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Michael Andre
 //
 //
 
-#if !defined(KRATOS_BUILTIN_TIMER_H_INCLUDED)
-#define  KRATOS_BUILTIN_TIMER_H_INCLUDED
+#pragma once
 
 // System includes
 #include <chrono>
@@ -58,6 +57,11 @@ private:
 
 ///@} // Kratos Classes
 
-}  // namespace Kratos.
+/// output stream function
+inline std::ostream& operator << (std::ostream& rOStream, const BuiltinTimer& rThis)
+{
+    rOStream << rThis.ElapsedSeconds() << " [s]";
+    return rOStream;
+}
 
-#endif // KRATOS_BUILTIN_TIMER_H_INCLUDED  defined 
+}  // namespace Kratos.
