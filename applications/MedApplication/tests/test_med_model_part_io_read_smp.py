@@ -66,6 +66,16 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
         self.assertEqual(smp_interface_geom_ids_unique, set(range(1, model_part.NumberOfGeometries()+1)))
 
         # check node coordinates
+        for node in model_part.Nodes:
+            self.assertTrue(0.0 <= node.X <= 200.0)
+            self.assertTrue(0.0 <= node.X0 <= 200.0)
+
+            self.assertTrue(0.0 <= node.Y <= 200.0)
+            self.assertTrue(0.0 <= node.Y0 <= 200.0)
+
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+            self.assertTrue(0.0 <= node.Z0 <= 200.0)
+
         for node in chain(smp_interface.Nodes, smp_interface_nodes.Nodes):
             self.assertAlmostEqual(node.X, 200.0)
             self.assertAlmostEqual(node.X0, 200.0)
