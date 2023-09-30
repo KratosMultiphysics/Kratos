@@ -33,6 +33,14 @@ def RemoveFiles(file_name):
     """
     kratos_utils.DeleteFileIfExisting(file_name)
 
+# BEGIN: DEBUG INFO
+class FileCreationError(Exception):
+    def __init__(self, filename, message="Error creating the file."):
+        self.filename = filename
+        self.message = message
+        super().__init__(self.message)
+# END: DEBUG INFO
+
 # Define a function to write a Kratos model part to STL format
 def WriteModelPartToSTL(model_part, stl_file):
     """
@@ -42,7 +50,20 @@ def WriteModelPartToSTL(model_part, stl_file):
         model_part (KratosMultiphysics.ModelPart): The Kratos model part to be written.
         stl_file (str): The name of the STL file to write to.
     """
-    write_settings = KratosMultiphysics.Parameters("""{"open_mode" : "write"}""")
+
+# BEGIN: DEBUG INFO
+    try:
+        # Create an empty file
+        with open(stl_file, 'w'):
+            pass
+        print(f"Empty file '{stl_file}' created successfully.")
+    except IOError as e:
+        raise FileCreationError(stl_file, f"Error creating the file '{stl_file}': {e}")
+
+    write_settings = KratosMultiphysics.Parameters("""{"open_mode" : "append"}""")
+# END: DEBUG INFO
+    
+    #write_settings = KratosMultiphysics.Parameters("""{"open_mode" : "write"}""")
     stl_io = KratosMultiphysics.StlIO(stl_file, write_settings)
     stl_io.WriteModelPart(model_part)
 
