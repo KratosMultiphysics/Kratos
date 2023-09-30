@@ -19,6 +19,7 @@
 #include "med_inc.h"
 #include "med_model_part_io.h"
 #include "includes/model_part_io.h"
+#include "utilities/builtin_timer.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/variable_utils.h"
 
@@ -423,6 +424,8 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
 {
     KRATOS_TRY
 
+    BuiltinTimer timer;
+
     const bool add_nodes_of_geometries = true; // TODO make this an input parameter
 
     KRATOS_ERROR_IF_NOT(mpFileHandler->IsReadMode()) << "MedModelPartIO needs to be created in read mode to read a ModelPart!" << std::endl;
@@ -603,6 +606,8 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
         // TODO making unique is more efficient, as requires less searches!
         rThisModelPart.GetSubModelPart(r_map.first).AddGeometries(r_map.second);
     }
+
+    KRATOS_INFO("MedModelPartIO") << "Reading file " << mFileName << " took " << timer.ElapsedSeconds() << " [s]" << std::endl;
 
     KRATOS_CATCH("")
 }
