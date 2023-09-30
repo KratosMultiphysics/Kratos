@@ -42,25 +42,6 @@ def WriteModelPartToSTL(model_part, stl_file):
         model_part (KratosMultiphysics.ModelPart): The Kratos model part to be written.
         stl_file (str): The name of the STL file to write to.
     """
-    
-    # BEGIN: DEBUG CODE
-    file_name = stl_file
-    try:
-        # Create an empty file
-        with open(file_name, 'w'):
-            pass
-        print(f"Empty file '{file_name}' created successfully.")
-
-        # Attempt to delete the file
-        try:
-            os.remove(file_name)
-            print(f"File '{file_name}' deleted successfully.")
-        except OSError as e:
-            print(f"Error deleting the file '{file_name}': {e}")
-    except IOError as e:
-        print(f"Error creating the file '{file_name}': {e}")
-    # END: DEBUG CODE
-
     write_settings = KratosMultiphysics.Parameters("""{"open_mode" : "write"}""")
     stl_io = KratosMultiphysics.StlIO(stl_file, write_settings)
     stl_io.WriteModelPart(model_part)
