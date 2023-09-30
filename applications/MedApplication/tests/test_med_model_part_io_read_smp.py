@@ -118,15 +118,35 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
             self.assertTrue(0.0 <= node.Z <= 200.0)
             self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
-        # for node in chain(smp_interface.Nodes, smp_interface_nodes.Nodes):
-        #     self.assertAlmostEqual(node.X, 200.0)
-        #     self.assertAlmostEqual(node.X0, 200.0)
+        for node in smp_face_1.Nodes:
+            self.assertAlmostEqual(node.X, 200.0)
+            self.assertAlmostEqual(node.X0, 200.0)
 
-        #     self.assertTrue(0.0 <= node.Y <= 200.0)
-        #     self.assertTrue(0.0 <= node.Y0 <= 200.0)
+            self.assertTrue(0.0 <= node.Y <= 200.0)
+            self.assertTrue(0.0 <= node.Y0 <= 200.0)
 
-        #     self.assertTrue(0.0 <= node.Z <= 200.0)
-        #     self.assertTrue(0.0 <= node.Z0 <= 200.0)
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+            self.assertTrue(0.0 <= node.Z0 <= 200.0)
+
+        for node in smp_face_2.Nodes:
+            self.assertTrue(0.0 <= node.X <= 200.0)
+            self.assertTrue(0.0 <= node.X0 <= 200.0)
+
+            self.assertAlmostEqual(node.Y, 0.0)
+            self.assertAlmostEqual(node.Y0, 0.0)
+
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+            self.assertTrue(0.0 <= node.Z0 <= 200.0)
+
+        for node in smp_edge_1.Nodes:
+            self.assertAlmostEqual(node.X, 200.0)
+            self.assertAlmostEqual(node.X0, 200.0)
+
+            self.assertAlmostEqual(node.Y, 0.0)
+            self.assertAlmostEqual(node.Y0, 0.0)
+
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+            self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
         # check that the correct geoms (3D triangles) are in the smp
         for geom in chain(smp_face_1.Geometries, smp_face_2.Geometries):
@@ -187,6 +207,7 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
 
         node_ids: List[int] = get_node_ids(model_part)
 
+        # there can be nodes that do not belong to geometries, thus geom_node_ids is subset
         self.assertTrue(geom_node_ids_unique.issubset(node_ids))
 
         for smp in model_part.SubModelParts:
