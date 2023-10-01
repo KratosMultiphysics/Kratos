@@ -255,7 +255,7 @@ public:
 
         KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() >= 1) << "Build time: " << timer << std::endl;
 
-        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", (this->GetEchoLevel() > 2) << "Finished parallel building" << std::endl;
+        KRATOS_INFO_IF("ResidualBasedBlockBuilderAndSolver", this->GetEchoLevel() > 2) << "Finished parallel building" << std::endl;
 
         KRATOS_CATCH("")
     }
