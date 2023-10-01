@@ -117,6 +117,10 @@ class TestStlIO(KratosUnittest.TestCase):
             area_2 += geom.Area()
         area_2 = data_comm.SumAll(area_2)
 
+        # Assert number of nodes and elements
+        self.assertEqual(stl_model_part.NumberOfNodes(), 384)
+        self.assertEqual(self.model_part.NumberOfConditions(), stl_model_part.NumberOfElements())
+
         # Assert that the areas match approximately
         self.assertAlmostEqual(area_1, area_2)
 
