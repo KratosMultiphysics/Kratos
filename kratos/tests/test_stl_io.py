@@ -111,18 +111,19 @@ class TestStlIO(KratosUnittest.TestCase):
         ReadModelPartFromSTL(stl_model_part, data_comm, self.stl_file)
 
         # Compute resulting area
-        area_2 = 0.0
-        for elem in stl_model_part.Elements:
-            geom = elem.GetGeometry()
-            area_2 += geom.Area()
-        area_2 = data_comm.SumAll(area_2)
+        number_of_conditions = self.model_part.GetCommunicator().GlobalNumberOfConditions()
+        if data_comm.Rank() == 0:
+            area_2 = 0.0
+            for elem in stl_model_part.Elements:
+                geom = elem.GetGeometry()
+                area_2 += geom.Area()
 
-        # Assert number of nodes and elements
-        self.assertEqual(stl_model_part.NumberOfNodes(), 384)
-        self.assertEqual(self.model_part.NumberOfConditions(), stl_model_part.NumberOfElements())
+            # Assert number of nodes and elements
+            self.assertEqual(stl_model_part.NumberOfNodes(), 384)
+            self.assertEqual(number_of_conditions, stl_model_part.NumberOfElements())
 
-        # Assert that the areas match approximately
-        self.assertAlmostEqual(area_1, area_2)
+            # Assert that the areas match approximately
+            self.assertAlmostEqual(area_1, area_2)
 
 if __name__ == '__main__':
     # Set the logger severity level and run the KratosUnittest
