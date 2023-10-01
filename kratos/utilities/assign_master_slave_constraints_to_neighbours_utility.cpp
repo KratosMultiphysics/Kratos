@@ -20,7 +20,7 @@
 // Project includes
 #include "utilities/assign_master_slave_constraints_to_neighbours_utility.h"
 
-namespace Kratos 
+namespace Kratos
 {
 ///@addtogroup Kratos Core
 ///@{
@@ -43,8 +43,8 @@ AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstraintsToN
     NodesContainerType::ContainerType& nodes_model_part = rMasterStructureNodes.GetContainer();
     mpBins = Kratos::make_unique<NodeBinsType>(nodes_model_part.begin(), nodes_model_part.end());
     mMaxNumberOfNodes = rMasterStructureNodes.size();
-    KRATOS_CATCH(""); 
-} 
+    KRATOS_CATCH("");
+}
 
 // Destructor
 AssignMasterSlaveConstraintsToNeighboursUtility::~AssignMasterSlaveConstraintsToNeighboursUtility() {}
@@ -97,7 +97,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::GetDofsAndCoordinatesForSl
     } else {
         std::stringstream variables_str;
         variables_str << "[";
-        for (const auto& variable : rVariableList) 
+        for (const auto& variable : rVariableList)
             variables_str << variable.get() << ", ";
         variables_str.seekp(-2, std::ios_base::end); // Remove the last ", "
         variables_str << "]";
@@ -206,7 +206,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
         // Get Dofs and Coordinates for the slave node and the cloud of nodes
         GetDofsAndCoordinatesForSlaveNode(p_slave_node, rVariableList, r_slave_dofs, r_slave_coordinates);
         GetDofsAndCoordinatesForCloudOfNodes(r_cloud_of_nodes, rVariableList, r_cloud_of_dofs, r_cloud_of_nodes_coordinates);
-        
+
         // Calculate shape functions
         RBFShapeFunctionsUtility::CalculateShapeFunctions(r_cloud_of_nodes_coordinates, r_slave_coordinates, r_n_container);
 
@@ -232,7 +232,7 @@ void AssignMasterSlaveConstraintsToNeighboursUtility::AssignMasterSlaveConstrain
     // Add the constraints to the rComputingModelPart in a single call
     rComputingModelPart.AddMasterSlaveConstraints(temp_constraints.begin(), temp_constraints.end());
 
-    KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign Master-Slave Constraints Time: " << build_and_assign_mscs.ElapsedSeconds() << std::endl;
+    KRATOS_INFO("AssignMasterSlaveConstraintsToNeighboursUtility") << "Build and Assign Master-Slave Constraints Time: " << build_and_assign_mscs << std::endl;
     KRATOS_CATCH("");
 }
 }  // namespace Kratos.
