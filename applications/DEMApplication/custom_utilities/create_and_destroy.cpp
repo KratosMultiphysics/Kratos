@@ -332,6 +332,27 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
+    double ParticleCreatorDestructor::SelectRadius(Parameters r_sub_model_part_with_parameters,
+                                                   std::map<std::string, std::unique_ptr<RandomVariable>>& r_random_variables_map){
+
+        KRATOS_TRY
+
+        double radius = r_sub_model_part_with_parameters["RADIUS"].GetDouble();
+        const double& max_radius = r_sub_model_part_with_parameters["MAXIMUM_RADIUS"].GetDouble();
+        const std::string& distribution_type = r_sub_model_part_with_parameters["PROBABILITY_DISTRIBUTION"].GetString();
+
+        const double& std_deviation = r_sub_model_part_with_parameters["STANDARD_DEVIATION"].GetDouble();
+        const double& min_radius = r_sub_model_part_with_parameters["MINIMUM_RADIUS"].GetDouble();
+
+        if (distribution_type == "normal") radius = rand_normal(radius, std_deviation, max_radius, min_radius);
+        else if (distribution_type == "lognormal") radius = rand_lognormal(radius, std_deviation, max_radius, min_radius);
+        else if (distribution_type == "piecewise_linear" || distribution_type == "discrete") radius = r_random_variables_map[r_sub_model_part_with_parameters["NAME"].GetString()]->Sample();
+        else KRATOS_ERROR << "Unknown probability distribution in submodelpart " << r_sub_model_part_with_parameters["NAME"].GetString() << std::endl;
+
+        return radius;
+        KRATOS_CATCH("")
+    }
+
     SphericParticle* ParticleCreatorDestructor::ElementCreatorWithPhysicalParameters(ModelPart& r_modelpart,
                                                                         int r_Elem_Id,
                                                                         Node ::Pointer reference_node,
