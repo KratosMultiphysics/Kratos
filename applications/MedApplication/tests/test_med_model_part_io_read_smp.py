@@ -177,14 +177,12 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
         model_part: KM.ModelPart = model.CreateModelPart("test")
         KratosMed.MedModelPartIO(GetMedPath("cube_sub_subgroups", "cube.med")).ReadModelPart(model_part)
 
-        print(model_part)
-
         self._basic_checks(model_part)
 
         self.assertEqual(model_part.NumberOfNodes(), 50)
         self.assertEqual(model_part.NumberOfGeometries(), 226)
 
-        self.assertEqual(model_part.NumberOfSubModelParts(), 3)
+        self.assertEqual(model_part.NumberOfSubModelParts(), 4)
         self.assertTrue(model_part.HasSubModelPart("Face_1"))
         self.assertTrue(model_part.HasSubModelPart("Face_2"))
         self.assertTrue(model_part.HasSubModelPart("Edge_1"))
