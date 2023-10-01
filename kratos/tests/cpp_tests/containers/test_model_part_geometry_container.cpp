@@ -57,7 +57,7 @@ namespace Testing {
         // check correct error if multiple geometries with sam id are added
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             model_part_lines.AddGeometry(p_line_2),
-            "Geometry with Id: 1 exists already.");
+            "Attempting to add Geometry with Id: 1, unfortunately a (different) geometry with the same Id already exists.");
 
         p_line_2->SetId(2);
         model_part_lines.AddGeometry(p_line_2);
