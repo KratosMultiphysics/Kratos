@@ -23,6 +23,7 @@ export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 add_app ${KRATOS_APP_DIR}/LinearSolversApplication;
 add_app ${KRATOS_APP_DIR}/StructuralMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
+add_app ${KRATOS_APP_DIR}/ConstitutiveLawsApplication;
 
 # Clean
 clear
