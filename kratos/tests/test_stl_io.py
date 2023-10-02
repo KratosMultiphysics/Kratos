@@ -7,8 +7,12 @@ from KratosMultiphysics.testing.utilities import ReadModelPart
 # Import os module
 import os
 
+# To detect the os
+import platform
+
 # Temporal file
-import tempfile
+if platform.system() == 'Windows':
+    import tempfile
 
 # Define a function to get the file path given a file name
 def GetFilePath(fileName):
@@ -42,12 +46,16 @@ def WriteModelPartToSTL(model_part, stl_file):
         model_part (KratosMultiphysics.ModelPart): The Kratos model part to be written.
         stl_file (str): The name of the STL file to write to.
     """
-    with tempfile.NamedTemporaryFile(delete=False) as temp:
-        stl_file = temp.name
-        write_settings = KratosMultiphysics.Parameters("""{"open_mode" : "append"}""")
-        stl_io = KratosMultiphysics.StlIO(stl_file, write_settings)
-        stl_io.WriteModelPart(model_part)
-        return stl_file
+    # Check OS (random error in Windows CI)
+    if platform.system() == 'Windows':
+        with tempfile.NamedTemporaryFile(delete=False) as temp:
+            stl_file = temp.name
+    else: # Other OS
+        stl_file = GetFilePath(stl_file)
+    write_settings = KratosMultiphysics.Parameters("""{"open_mode" : "append"}""")
+    stl_io = KratosMultiphysics.StlIO(stl_file, write_settings)
+    stl_io.WriteModelPart(model_part)
+    return stl_file
 
 # Define a function to read a Kratos model part from an STL file
 def ReadModelPartFromSTL(model_part, data_comm, stl_file):
