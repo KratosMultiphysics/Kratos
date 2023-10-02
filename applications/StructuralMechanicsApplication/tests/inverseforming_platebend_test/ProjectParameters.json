@@ -8,7 +8,7 @@
     },
     "solver_settings"  : {
         "time_stepping"                        : {
-            "time_step" : 1.1
+            "time_step" : 0.20
         },
         "solver_type"                          : "Static",
         "model_part_name"                      : "Structure",
@@ -22,13 +22,13 @@
         "material_import_settings"             : {
             "materials_filename" : "StructuralMaterials.json"
         },
-        "line_search"                          : false,
-        "convergence_criterion"                : "residual_criterion",
-        "displacement_relative_tolerance"      : 0.0001,
-        "displacement_absolute_tolerance"      : 1e-9,
+        "line_search"                          : true,
+        "convergence_criterion"                : "displacement_criterion",
+        "displacement_relative_tolerance"      : 1e-15,
+        "displacement_absolute_tolerance"      : 1e-15,
         "residual_relative_tolerance"          : 0.0001,
-        "residual_absolute_tolerance"          : 1e-9,
-        "max_iteration"                        : 10,
+        "residual_absolute_tolerance"          : 1e-7,
+        "max_iteration"                        : 30,
         "use_old_stiffness_in_first_iteration" : false,
         "rotation_dofs"                        : false,
         "volumetric_strain_dofs"               : false
