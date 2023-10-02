@@ -18,7 +18,7 @@
 #include <map>
 #include <memory>
 #include <string>
-
+#include <functional>
 
 namespace Kratos
 {
@@ -35,8 +35,11 @@ public:
     void AddCreator(const std::string&                            rProcessClassName,
                     std::function<ProductType(const Parameters&)> Creator);
 
+    void SetCallBackWhenProcessIsUnknown(const std::function<void(const std::string&)>& function);
+
 private:
     std::map<std::string, std::function<ProductType(const Parameters&)>, std::less<>> mCreatorMap;
+    std::function<void(const std::string&)> mCallBackIfProcessIsUnknown;
 };
 
 }

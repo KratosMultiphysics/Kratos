@@ -217,14 +217,14 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_train):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._AddBasisCreationToProjectParameters(parameters) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'FOM_Fit',mu,Id)
-            materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+            parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Fit',mu,Id)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = self._GetAnalysisStageClass(parameters)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
@@ -245,14 +245,14 @@ class RomManager(object):
 
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_train):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._AddBasisCreationToProjectParameters(parameters)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'ROM_Fit',mu,Id)
-            materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+            parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Fit',mu,Id)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
@@ -272,14 +272,14 @@ class RomManager(object):
 
         PetrovGalerkinTrainMatrix = []
         for Id, mu in enumerate(mu_train):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._AddBasisCreationToProjectParameters(parameters)
-            parameters = self._StoreNoResults(parameters)
-            materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+            parameters_copy = self._StoreNoResults(parameters_copy)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             PetrovGalerkinTrainMatrix.append(simulation.GetPetrovGalerkinTrainUtility()._GetSnapshotsMatrix()) #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
         simulation.GetPetrovGalerkinTrainUtility().CalculateAndSaveBasis(np.block(PetrovGalerkinTrainMatrix))
@@ -294,14 +294,14 @@ class RomManager(object):
 
         RedidualsSnapshotsMatrix = []
         for mu in mu_train:
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._AddBasisCreationToProjectParameters(parameters)
-            parameters = self._StoreNoResults(parameters)
-            materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+            parameters_copy = self._StoreNoResults(parameters_copy)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             RedidualsSnapshotsMatrix.append(simulation.GetHROM_utility()._GetResidualsProjectedMatrix()) #TODO is the best way of extracting the Projected Residuals calling the HROM residuals utility?
         RedidualsSnapshotsMatrix = np.block(RedidualsSnapshotsMatrix)
@@ -314,8 +314,8 @@ class RomManager(object):
         if not simulation.GetHROM_utility().hyper_reduction_element_selector.success:
             KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
             #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
-            self.hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
-            self.hyper_reduction_element_selector.Run()
+            simulation.GetHROM_utility().hyper_reduction_element_selector.SetUp(u, InitialCandidatesSet = None)
+            simulation.GetHROM_utility().hyper_reduction_element_selector.Run()
         simulation.GetHROM_utility().AppendHRomWeightsToRomParameters()
         simulation.GetHROM_utility().CreateHRomModelParts()
 
@@ -329,14 +329,14 @@ class RomManager(object):
 
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_train):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._AddBasisCreationToProjectParameters(parameters)
-            parameters = self._StoreResultsByName(parameters,'HROM_Fit',mu,Id)
-            materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+            parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Fit',mu,Id)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
@@ -356,14 +356,14 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_test):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._AddBasisCreationToProjectParameters(parameters) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'FOM_Test',mu,Id)
-            materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy) #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+            parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Test',mu,Id)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = self._GetAnalysisStageClass(parameters)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
@@ -384,14 +384,14 @@ class RomManager(object):
 
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_test):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._AddBasisCreationToProjectParameters(parameters)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
-            parameters = self._StoreResultsByName(parameters,'ROM_Test',mu,Id)
-            materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)  #TODO stop using the RomBasisOutputProcess to store the snapshots. Use instead the upcoming build-in function
+            parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Test',mu,Id)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
@@ -412,14 +412,14 @@ class RomManager(object):
 
         SnapshotsMatrix = []
         for Id, mu in enumerate(mu_test):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._AddBasisCreationToProjectParameters(parameters)
-            parameters = self._StoreResultsByName(parameters,'HROM_Test',mu,Id)
-            materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._AddBasisCreationToProjectParameters(parameters_copy)
+            parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Test',mu,Id)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
             for process in simulation._GetListOfOutputProcesses():
                 if isinstance(process, CalculateRomBasisOutputProcess):
@@ -438,13 +438,13 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         for Id, mu in enumerate(mu_run):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._StoreResultsByName(parameters,'FOM_Run',mu,Id)
-            materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._StoreResultsByName(parameters_copy,'FOM_Run',mu,Id)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = self._GetAnalysisStageClass(parameters)
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = self._GetAnalysisStageClass(parameters_copy)
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
 
 
@@ -456,13 +456,13 @@ class RomManager(object):
             parameters = KratosMultiphysics.Parameters(parameter_file.read())
 
         for Id, mu in enumerate(mu_run):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._StoreResultsByName(parameters,'ROM_Run',mu,Id)
-            materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._StoreResultsByName(parameters_copy,'ROM_Run',mu,Id)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
 
 
@@ -477,13 +477,13 @@ class RomManager(object):
             parameters["solver_settings"]["model_import_settings"]["input_filename"].SetString(f"{model_part_name}HROM")
 
         for Id, mu in enumerate(mu_run):
-            parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._StoreResultsByName(parameters,'HROM_Run',mu,Id)
-            materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
+            parameters_copy = self.UpdateProjectParameters(parameters.Clone(), mu)
+            parameters_copy = self._StoreResultsByName(parameters_copy,'HROM_Run',mu,Id)
+            materials_file_name = parameters_copy["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters_copy))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters_copy)
             simulation.Run()
 
 
