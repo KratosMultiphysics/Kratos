@@ -52,6 +52,7 @@ add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 add_app ${KRATOS_APP_DIR}/OptimizationApplication;
+add_app ${KRATOS_APP_DIR}/PfemFluidDynamicsApplication;
 
 # Clean
 clear
@@ -71,6 +72,7 @@ ${KRATOS_CMAKE_OPTIONS_FLAGS} \
 -DTRILINOS_LIBRARY_DIR="/usr/lib/x86_64-linux-gnu" \
 -DTRILINOS_LIBRARY_PREFIX="trilinos_" \
 -DCMAKE_UNITY_BUILD=ON \
+-DUSE_TRIANGLE_NONFREE_TPL=ON \
 -DINCLUDE_MMG=ON                                    \
 
 # Build
