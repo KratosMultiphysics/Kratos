@@ -2,6 +2,7 @@
 import KratosMultiphysics
 from KratosMultiphysics.process_factory import KratosProcessFactory
 from KratosMultiphysics.kratos_utilities import IssueDeprecationWarning
+from KratosMultiphysics.model_parameters_factory import KratosModelParametersFactory
 
 class AnalysisStage(object):
     """The base class for the AnalysisStage-classes in the applications
@@ -306,11 +307,9 @@ class AnalysisStage(object):
         self._list_of_modelers = []
 
         if self.project_parameters.Has("modelers"):
-            from KratosMultiphysics.modeler_factory import KratosModelerFactory
-            factory = KratosModelerFactory()
-
+            factory = KratosModelParametersFactory(self.model)
             modelers_list = self.project_parameters["modelers"]
-            self._list_of_modelers = factory.ConstructListOfModelers(self.model, modelers_list)
+            self._list_of_modelers = factory.ConstructListOfItems(modelers_list)
 
     ### Processes
     def _GetListOfProcesses(self):
