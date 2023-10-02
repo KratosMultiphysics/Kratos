@@ -35,7 +35,10 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             solver_module_name = "conjugate_heat_transfer_solver"
 
         elif solver_type == "two_fluids" or solver_type == "TwoFluids":
-            solver_module_name = "navier_stokes_two_fluids_solver"
+            solver_module_name = "navier_stokes_two_fluid_solver"
+
+        elif solver_type == "two_fluid_hydraulic":
+            solver_module_name = "navier_stokes_two_fluid_hydraulic_solver"
 
         else:
             raise Exception("the requested solver type is not in the python solvers wrapper. Solver type is : " + solver_type)
