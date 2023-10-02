@@ -280,7 +280,7 @@ class AnalysisStage(object):
             T_elm[2, 1] = local_axis_3[0][1]
             T_elm[2, 2] = local_axis_3[0][2]
 
-            J_X = T_elm.transpose() * J_X
+            # J_X = T_elm.transpose() * J_X
 
             self.deformed_config_jacobians.append(J_X)
 
@@ -336,7 +336,7 @@ class AnalysisStage(object):
             T0_elm[2, 1] = local_axis_3[0][1]
             T0_elm[2, 2] = local_axis_3[0][2]
 
-            J0 = T0_elm.transpose() * J0
+            # J0 = T0_elm.transpose() * J0
             J0_inv = np.linalg.inv(J0)
 
             JTJ = J.transpose() * J
@@ -359,9 +359,9 @@ class AnalysisStage(object):
             #E3D = T0_elm * (E3D * T0_elm.transpose())
 
             E_voigt = KratosMultiphysics.Vector(3)
-            E_voigt[0] = - E3D[0, 0]
-            E_voigt[1] = - E3D[1, 1]
-            E_voigt[2] = - 2 * E3D[0, 1]
+            E_voigt[0] = E3D[0, 0]
+            E_voigt[1] = E3D[1, 1]
+            E_voigt[2] = 2 * E3D[0, 1]
 
             element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
             # TODO later - Create condition for PointLoad, reference command:
