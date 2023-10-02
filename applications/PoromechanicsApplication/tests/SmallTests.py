@@ -28,7 +28,7 @@ class interface_mc_tension_cutoff(TF.TestFactory):
 
 class nodal_discharge_2D(TF.TestFactory):
     file_name = "element_tests/nodal_discharge/2_NodalDischarge3elem"
-    file_parameters = "element_tests/nodal_discharge/ProjectParameters.json"    
+    file_parameters = "element_tests/nodal_discharge/ProjectParameters.json"
 
 def SetTestSuite(suites):
     small_suite = suites['small']
