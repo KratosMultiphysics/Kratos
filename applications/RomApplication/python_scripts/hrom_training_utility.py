@@ -31,6 +31,8 @@ class HRomTrainingUtility(object):
         if element_selection_type == "empirical_cubature":
             self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
             self.element_selection_svd_truncation_tolerance = settings["element_selection_svd_truncation_tolerance"].GetDouble()
+        elif element_selection_type == "discrete_empirical_interpolation":
+            self.hyper_reduction_element_selector = DiscreteEmpiricalInterpolationMethod()
         else:
             err_msg = "\'{}\' HROM \'element_selection_type\' is not supported.".format(element_selection_type)
             raise Exception(err_msg)
