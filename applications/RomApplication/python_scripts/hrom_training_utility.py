@@ -278,7 +278,6 @@ class HRomTrainingUtility(object):
 
                 # Call the GetElementIdsNotInHRomModelPart function
                 new_elements = KratosROM.RomAuxiliaryUtilities.GetElementIdsNotInHRomModelPart(
-                    root_model_part, # The complete model part
                     elements_to_include_model_part, # The model part containing the elements to be included
                     hrom_weights)
 
@@ -297,7 +296,6 @@ class HRomTrainingUtility(object):
 
                 # Call the GetNodalNeighbouringElementIdsNotInHRom function
                 new_nodal_neighbours = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIdsNotInHRom(
-                    root_model_part, # The complete model part
                     nodal_neighbours_model_part, # The model part containing the nodal neighbouring elements to be included
                     hrom_weights)
 

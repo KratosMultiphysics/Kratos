@@ -389,7 +389,6 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
 }
 
 std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
-    const ModelPart& rModelPart,
     const ModelPart& rModelPartWithElementsToInclude,
     std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
 {
@@ -410,7 +409,6 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
 
 
 std::vector<IndexType> RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart(
-    const ModelPart& rModelPart,
     const ModelPart& rModelPartWithConditionsToInclude,
     std::map<std::string, std::map<IndexType, double>>& rHRomWeights)
 {
