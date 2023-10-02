@@ -8,7 +8,7 @@
     },
     "solver_settings"  : {
         "time_stepping"                        : {
-            "time_step" : 0.25
+            "time_step" : 0.20
         },
         "solver_type"                          : "Static",
         "model_part_name"                      : "Structure",
@@ -39,11 +39,22 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Nodes_Fixed",
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_Node_Center",
                 "variable_name"   : "DISPLACEMENT",
                 "interval"        : [0.0,"End"],
-                "constrained"     : [true,true,true],
-                "value"           : [0.0,0.0,0.0]
+                "constrained"     : [true,true,false],
+                "value"           : [0.0,0.0,null]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_YSYMM_Node_Up",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,null,0.0]
             }
         }],
         "loads_process_list"       : [],
