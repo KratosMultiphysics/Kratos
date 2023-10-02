@@ -149,10 +149,24 @@ Begin SubModelPart Parts_Membrane_Membrane_All_Elements // Group Membrane_All_El
            20
     End SubModelPartElements
 End SubModelPart
-Begin SubModelPart DISPLACEMENT_Displacement_Nodes_Fixed // Group Displacement_Nodes_Fixed // Subtree DISPLACEMENT
+Begin SubModelPart DISPLACEMENT_Displacement_Node_Left_Fixed // Group Displacement_Node_Left_Fixed // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           22
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Node_LeftSupport_X // Group Displacement_Node_LeftSupport_X // Subtree DISPLACEMENT
     Begin SubModelPartNodes
            21
-           22
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Node_Center_Fixed // Group Displacement_Node_Center_Fixed // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           12
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Node_Center_XSYMM // Group Displacement_Node_Center_XSYMM // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           11
     End SubModelPartNodes
 End SubModelPart
 Begin SubModelPart PointLoad3D_PointLoad_Dummy_Zero_AllNodes // Group PointLoad_Dummy_Zero_AllNodes // Subtree PointLoad3D
