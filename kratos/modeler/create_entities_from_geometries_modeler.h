@@ -20,6 +20,7 @@
 // Project includes
 #include "containers/model.h"
 #include "includes/define.h"
+#include "includes/define_registry.h"
 #include "includes/kratos_components.h"
 #include "modeler/modeler.h"
 #include "utilities/parallel_utilities.h"
@@ -53,9 +54,12 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Default constructor
+    CreateEntitiesFromGeometriesModeler() : Modeler() {};
+
     /// Constructor with Model
     CreateEntitiesFromGeometriesModeler(
-        Model& rModel,
+        Model &rModel,
         Parameters Settings)
         : Modeler(rModel, Settings)
     {
@@ -120,6 +124,12 @@ public:
 
     ///@}
 private:
+    ///@name Static Member Variables
+    ///@{
+
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.KratosMultiphysics", Modeler, CreateEntitiesFromGeometriesModeler)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Modelers.All", Modeler, CreateEntitiesFromGeometriesModeler)
+
     ///@name Private members
     ///@{
 
