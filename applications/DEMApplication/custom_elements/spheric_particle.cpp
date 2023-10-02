@@ -1756,6 +1756,7 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
         const double vel_magnitude = DEM_MODULUS_3(vel);
         if (vel_magnitude != 0.0)
         {
+            mGlobalViscousDamping = r_process_info[GLOBAL_VISCOUS_DAMPING]; //update the coefficient of GLOBAL_VISCOUS_DAMPING
             const array_1d<double, 3> viscous_damping_force = -2.0 * mGlobalViscousDamping * sqrt(GetMass() * GetRadius() * GetYoung())  * vel;
             noalias(externally_applied_force)  += viscous_damping_force;
         }
