@@ -15,6 +15,8 @@
 
 #include "processes/process.h"
 #include "time_step_end_state.hpp"
+#include "strategy_wrapper.hpp"
+#include "geo_mechanics_application_variables.h"
 
 #include <functional>
 #include <memory>
@@ -23,16 +25,15 @@
 namespace Kratos
 {
 
-template <typename StrategyType>
 class TimeStepExecutor
 {
 public:
     using ProcessRef    = std::reference_wrapper<Process>;
     using ProcessRefVec = std::vector<ProcessRef>;
 
-    void SetSolverStrategy(std::shared_ptr<StrategyType> SolverStrategy)
+    void SetSolverStrategy(std::shared_ptr<StrategyWrapper> SolverStrategy)
     {
-        mStrategy = std::move(SolverStrategy);
+        mStrategyWrapper = std::move(SolverStrategy);
     }
 
     void SetProcessReferences(ProcessRefVec ProcessRefs)
@@ -42,33 +43,35 @@ public:
 
     TimeStepEndState Run(double Time)
     {
-        mStrategy->Initialize();
-        mStrategy->InitializeSolutionStep();
+        mStrategyWrapper->Initialize();
+        mStrategyWrapper->InitializeSolutionStep();
 
         for (auto& process : mProcessRefs)
         {
             process.get().ExecuteInitializeSolutionStep();
         }
 
-        mStrategy->Predict();
-        mStrategy->SolveSolutionStep();
+        mStrategyWrapper->Predict();
+        mStrategyWrapper->SolveSolutionStep();
 
         for (auto& process : mProcessRefs)
         {
             process.get().ExecuteFinalizeSolutionStep();
         }
 
-        mStrategy->FinalizeSolutionStep();
+        mStrategyWrapper->FinalizeSolutionStep();
 
         TimeStepEndState result;
         result.time = Time;
-        result.convergence_state = mStrategy->IsConverged() ? TimeStepEndState::ConvergenceState::converged :
-                                                              TimeStepEndState::ConvergenceState::non_converged;
+        result.convergence_state = mStrategyWrapper->IsConverged() ? TimeStepEndState::ConvergenceState::converged :
+                                   TimeStepEndState::ConvergenceState::non_converged;
+        //result.number_of_nonlinear_iterations = mStrategyWrapper->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER];
+        result.number_of_nonlinear_iterations = mStrategyWrapper->GetNumberOfIterations();
         return result;
     }
 
 private:
-    std::shared_ptr<StrategyType> mStrategy;
+    std::shared_ptr<StrategyWrapper> mStrategyWrapper;
     ProcessRefVec                 mProcessRefs;
 };
 
