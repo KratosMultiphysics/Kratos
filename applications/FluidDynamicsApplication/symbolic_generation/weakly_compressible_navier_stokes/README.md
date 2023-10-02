@@ -1,4 +1,4 @@
-# Navier-Stokes and Stokes elements automatic differentiation
+# Weakly-compressible Navier-Stokes and Stokes elements automatic differentiation
 
 ## ELEMENT DESCRIPTION:
 Current directory contains the required files for the Automatic Differenctiation (AD) of both the _"symbolic_stokes"_ and _"weakly_compressible_navier_stokes"_ elements of the FluidDynamicsApplication. These elements implement a **Stokes** and a **weakly-compressible Navier-Stokes** formulation for both **2D** and **3D** cases.
@@ -14,6 +14,6 @@ Current directory contains the required files for the Automatic Differenctiation
 ## INSTRUCTIONS
 Run:
 ~~~py
-python generate_navier_stokes_element.py
+python generate_weakly_compressible_navier_stokes_element.py
 ~~~
 Then, depending on the selected formulation, a file "_symbolic_stokes.cpp_" or "_weakly_compressible_navier_stokes.cpp_" is automatically generated. Such file muest be copied within the "_custom_elements_" folder of the **FluidDynamicsApplication**. The corresponding header file ("symbolic_stokes.h" or "weakly_compressible_navier_stokes.h") is already stored in such folder.
