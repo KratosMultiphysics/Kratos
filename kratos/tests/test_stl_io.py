@@ -4,15 +4,11 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 from KratosMultiphysics.testing.utilities import ReadModelPart
 
-# Import os module
-import os
+# Import the pathlib module
+from pathlib import Path
 
 # To detect the os
 import platform
-
-# Temporal file
-if platform.system() == 'Windows':
-    import tempfile
 
 # Define a function to get the file path given a file name
 def GetFilePath(fileName):
@@ -25,7 +21,8 @@ def GetFilePath(fileName):
     Returns:
         str: The absolute file path.
     """
-    return os.path.join(os.path.dirname(os.path.realpath(__file__)), fileName)
+    current_dir = Path(__file__).resolve().parent
+    return str(current_dir / fileName)
 
 # Define a function to remove files with the given name
 def RemoveFiles(file_name):
@@ -46,13 +43,11 @@ def WriteModelPartToSTL(model_part, stl_file):
         model_part (KratosMultiphysics.ModelPart): The Kratos model part to be written.
         stl_file (str): The name of the STL file to write to.
     """
-    # Check OS (random error in Windows CI)
     if platform.system() == 'Windows':
+        import tempfile
         with tempfile.NamedTemporaryFile(delete=False) as temp:
             stl_file = temp.name
-    else: # Other OS
-        stl_file = GetFilePath(stl_file)
-    write_settings = KratosMultiphysics.Parameters("""{"open_mode" : "append"}""")
+    write_settings = KratosMultiphysics.Parameters("""{"open_mode" : "write"}""")
     stl_io = KratosMultiphysics.StlIO(stl_file, write_settings)
     stl_io.WriteModelPart(model_part)
     return stl_file
@@ -85,7 +80,8 @@ class TestStlIO(KratosUnittest.TestCase):
         cls.current_model = KratosMultiphysics.Model()
         cls.model_part = cls.current_model.CreateModelPart("Main")
         cls.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] = 3
-        cls.stl_file = "aux.stl"
+        file = Path.cwd() / "aux.stl"
+        cls.stl_file = file.as_posix()
 
     @classmethod
     def tearDownClass(cls):
