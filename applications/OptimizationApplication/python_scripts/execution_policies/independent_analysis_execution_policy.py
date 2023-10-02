@@ -3,7 +3,8 @@ from importlib import import_module
 
 import KratosMultiphysics as Kratos
 from KratosMultiphysics.analysis_stage import AnalysisStage
-from KratosMultiphysics.multistage_analysis import MultistageAnalysis
+from KratosMultiphysics.project import Project
+from KratosMultiphysics.orchestrators.orchestrator import Orchestrator
 from KratosMultiphysics.OptimizationApplication.execution_policies.execution_policy import ExecutionPolicy
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import GetClassModuleFromKratos
 
@@ -22,9 +23,10 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
         self.model = model
 
         default_settings = Kratos.Parameters("""{
-            "analysis_module"  : "KratosMultiphysics",
-            "analysis_type"    : "",
-            "analysis_settings": {}
+            "analysis_module"         : "KratosMultiphysics",
+            "analysis_type"           : "",
+            "analysis_model_part_name": "",
+            "analysis_settings"       : {}
         }""")
 
         parameters.ValidateAndAssignDefaults(default_settings)
@@ -32,11 +34,13 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
         self.analysis_module = parameters["analysis_module"].GetString()
         self.analysis_type = parameters["analysis_type"].GetString()
         self.analysis_settings = parameters["analysis_settings"]
+        self.analysis_model_part_name = parameters["analysis_model_part_name"].GetString()
 
         if self.analysis_module == "KratosMultiphysics":
-            self.analysis_module = GetClassModuleFromKratos(self.analysis_type)
+            self.analysis_full_module, self.analysis_type = GetClassModuleFromKratos(self.analysis_type)
+        else:
+            self.analysis_full_module = f"{self.analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(self.analysis_type)}"
 
-        self.analysis_full_module = f"{self.analysis_module}.{Kratos.StringUtilities.ConvertCamelCaseToSnakeCase(self.analysis_type)}"
 
     def Initialize(self) -> None:
         pass
@@ -48,11 +52,27 @@ class IndependentAnalysisExecutionPolicy(ExecutionPolicy):
         pass
 
     def Execute(self):
-        self.current_analysis: Union[AnalysisStage, MultistageAnalysis] = getattr(import_module(self.analysis_full_module), self.analysis_type)(self.model, self.analysis_settings.Clone())
+        analysis_type = getattr(import_module(self.analysis_full_module), self.analysis_type)
+        if AnalysisStage in analysis_type.mro():
+            # the analysis type is derrived from AnalysisStage
+            self.current_analysis: AnalysisStage = getattr(import_module(self.analysis_full_module), self.analysis_type)(self.model, self.analysis_settings.Clone())
+        elif Orchestrator in analysis_type.mro():
+            # the analysis type is derrive from the Orchestrator
+            project = Project(self.analysis_settings.Clone())
+            self.current_analysis: Orchestrator = getattr(import_module(self.analysis_full_module), self.analysis_type)(project)
+
         self.current_analysis.Run()
 
     def GetAnalysisModelPart(self):
         if self.current_analysis is not None:
-            return self.current_analysis._GetSolver().GetComputingModelPart()
+            if isinstance(self.current_analysis, AnalysisStage):
+                if self.analysis_model_part_name == "" or self.analysis_model_part_name == self.current_analysis._GetSolver().GetComputingModelPart().FullName():
+                    return self.current_analysis._GetSolver().GetComputingModelPart()
+                else:
+                    raise RuntimeError(f"The specified analysis model part name mismatch [ specified analysis model part name = {self.analysis_model_part_name}, used analysis model part name = {self.current_analysis._GetSolver().GetComputingModelPart().FullName()} ].")
+            elif isinstance(self.current_analysis, Orchestrator):
+                return self.current_analysis.GetProject().GetModel()[self.analysis_model_part_name]
+            else:
+                raise RuntimeError(f"Unsupported analysis type = {self.current_analysis}.")
         else:
             raise RuntimeError("The analysis is not run yet.")

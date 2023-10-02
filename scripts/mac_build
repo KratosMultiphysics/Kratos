@@ -34,7 +34,7 @@ print_help() {
     echo "Recommended build tools:"
     echo " - ccache ('brew install ccache')"
     echo " - ninja ('brew install ccache')"
-    echo 
+    echo
     echo "Caveats:"
     echo "The clang that gets shipped by default lacks OpenMP binaries, so one option is to use another version"
     echo "of the compiler without this shortcoming. Therefore, this script relies on LLVM installed from Homebrew."
@@ -44,7 +44,7 @@ print_help() {
 
 # Require python3
 if ! command -v python3 &> /dev/null; then
-    echo "python3 is not available"
+    echo "Error: python3 is not available"
     exit 1
 fi
 
@@ -88,7 +88,7 @@ add_app() {
     elif [ -d "${app_dir}/$1" ]; then   # <== kratos app name
         export KRATOS_APPLICATIONS="${KRATOS_APPLICATIONS}${app_dir}/$1;"
     else
-        echo "Cannot find application: $1"
+        echo "Error: cannot find application: $1"
         exit 1
     fi
 }
@@ -111,13 +111,13 @@ while getopts "hCb:i:t:a:" arg; do
             ;;
         t)  # Set build type
             build_type="$OPTARG"
-            (("${build_type}" == "FullDebug" || "${build_type}" == "Debug" || "${build_type}" == "RelWithDebInfo" || "${build_type}" == "Release")) || (print_help && echo "Invalid build type: ${build_type}" && exit 1)
+            (("${build_type}" == "FullDebug" || "${build_type}" == "Debug" || "${build_type}" == "RelWithDebInfo" || "${build_type}" == "Release")) || (print_help && echo "Error: invalid build type: ${build_type}" && exit 1)
             ;;
         a)  # Add application
             add_app "$OPTARG"
             ;;
         \?) # Unrecognized argumnet
-            echo "Unrecognized argument: $OPTARG"
+            echo "Error: unrecognized argument: $arg"
             exit 1
     esac
 done
@@ -125,7 +125,7 @@ done
 # Check write access to the build directory
 if [ -d "$build_dir" ]; then
     if ! [[ -w "$build_dir" ]]; then
-        echo "User '$(hostname)' has no write access to the build directory: '$build_dir'"
+        echo "Error: user '$(hostname)' has no write access to the build directory: '$build_dir'"
         exit 1
     fi
 fi
@@ -133,7 +133,7 @@ fi
 # Check write access to the install dir
 if [ -d "$install_dir" ]; then
     if ! [[ -w "$install_dir" ]]; then
-        echo "User '$(hostname)' has no write access to the install directory: '$install_dir'"
+        echo "Error: user '$(hostname)' has no write access to the install directory: '$install_dir'"
         exit 1
     fi
 fi
@@ -154,7 +154,7 @@ fi
 
 # Check whether CMake is available
 if ! command -v cmake &> /dev/null; then
-    echo "$script_name requires CMake"
+    echo "Error: $script_name requires CMake"
     echo "Consider running 'brew install cmake'"
     exit 1
 fi
@@ -165,13 +165,13 @@ fi
 # => this script relies on Homebrew to install
 # and find necessary packages (such as llvm).
 if ! command -v brew &> /dev/null; then
-    echo "$script_name requires Homebrew"
+    echo "Error: $script_name requires Homebrew"
     exit 1
 fi
 
 check_homebrew_package() {
     if ! brew list "$1" >/dev/null 2>&1; then
-        echo "Missing dependency: $1"
+        echo "Error: missing dependency: $1"
         echo "Consider running 'brew install $1'"
         exit 1
     fi
@@ -221,6 +221,7 @@ if ! cmake                                                  \
     "-B$build_dir"                                          \
     "-DCMAKE_INSTALL_PREFIX:STRING=$install_dir"            \
     "-G$generator_target"                                   \
+    "-DCMAKE_BUILD_TYPE:STRING=${build_type}"               \
     "-DCMAKE_C_COMPILER:STRING=${toolchain_bin}/clang"      \
     "-DCMAKE_CXX_COMPILER:STRING=${toolchain_bin}/clang++"  \
     "-DOPENMP_LIBRARIES:STRING=${toolchain_lib}"            \

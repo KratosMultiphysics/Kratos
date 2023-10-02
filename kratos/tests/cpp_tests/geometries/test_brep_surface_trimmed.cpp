@@ -144,7 +144,7 @@ namespace Testing {
                 area += quadrature_points[i].IntegrationPoints()[j].Weight() * quadrature_points[i].DeterminantOfJacobian(0);
             }
         }
-        KRATOS_CHECK_NEAR(area, 25, TOLERANCE);
+        KRATOS_EXPECT_NEAR(area, 25, TOLERANCE);
     }
 } // namespace Testing.
 } // namespace Kratos.

@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Vicente Mataix Ferrandiz
@@ -23,23 +23,20 @@
 #include "factories/preconditioner_factory.h"
 #include "factories/register_factories.h"
 
-namespace Kratos
+namespace Kratos::Python
 {
 
-namespace Python
-{
+using SpaceType = UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>>;
+using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using LinearSolverType = LinearSolver<SpaceType, LocalSpaceType>;
+using ComplexSpaceType = TUblasSparseSpace<std::complex<double>>;
+using ComplexLocalSpaceType = TUblasDenseSpace<std::complex<double>>;
 
-typedef UblasSpace<double, CompressedMatrix, boost::numeric::ublas::vector<double>> SpaceType;
-typedef UblasSpace<double, Matrix, Vector> LocalSpaceType;
-typedef LinearSolver<SpaceType,  LocalSpaceType> LinearSolverType;
-typedef TUblasSparseSpace<std::complex<double>> ComplexSpaceType;
-typedef TUblasDenseSpace<std::complex<double>> ComplexLocalSpaceType;
-
-typedef LinearSolverFactory< SpaceType, LocalSpaceType > LinearSolverFactoryType;
-typedef LinearSolverFactory< ComplexSpaceType, ComplexLocalSpaceType > ComplexLinearSolverFactoryType;
-typedef PreconditionerFactory< SpaceType, LocalSpaceType > PreconditionerFactoryType;
-typedef ExplicitBuilder< SpaceType, LocalSpaceType > ExplicitBuilderType;
-typedef Factory< ExplicitBuilderType > ExplicitBuilderFactoryType;
+using LinearSolverFactoryType = LinearSolverFactory<SpaceType, LocalSpaceType>;
+using ComplexLinearSolverFactoryType = LinearSolverFactory<ComplexSpaceType, ComplexLocalSpaceType>;
+using PreconditionerFactoryType = PreconditionerFactory<SpaceType, LocalSpaceType>;
+using ExplicitBuilderType = ExplicitBuilder<SpaceType, LocalSpaceType>;
+using ExplicitBuilderFactoryType = Factory<ExplicitBuilderType>;
 
 void  AddFactoriesToPython(pybind11::module& m)
 {
@@ -81,6 +78,4 @@ void  AddFactoriesToPython(pybind11::module& m)
 
 }
 
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.

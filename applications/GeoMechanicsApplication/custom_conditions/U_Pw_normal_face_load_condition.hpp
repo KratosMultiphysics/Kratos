@@ -54,9 +54,6 @@ public:
     // Constructor 2
     UPwNormalFaceLoadCondition( IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties ) : UPwCondition<TDim,TNumNodes>(NewId, pGeometry, pProperties) {}
 
-    // Destructor
-    ~UPwNormalFaceLoadCondition() override {}
-
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     Condition::Pointer Create(IndexType NewId,NodesArrayType const& ThisNodes,PropertiesType::Pointer pProperties ) const override;

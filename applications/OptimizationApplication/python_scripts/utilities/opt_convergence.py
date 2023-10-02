@@ -4,6 +4,7 @@ from KratosMultiphysics.OptimizationApplication.utilities.component_data_view im
 import KratosMultiphysics.OptimizationApplication as KratosOA
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 
 def CreateConvergenceCriteria(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
     type = parameters["type"].GetString()
@@ -27,11 +28,11 @@ class MaxIterConvCriterion:
         self.__max_iter = parameters["max_iter"].GetInt()
         self.__optimization_problem = optimization_problem
 
+    @time_decorator()
     def IsConverged(self, search_direction=None) -> bool:
-        with TimeLogger("MaxIterConvCriterion::IsConverged", None, "Finished"):
-            iter = self.__optimization_problem.GetStep()
-            self.conv = True if iter >= self.__max_iter else False
-            DictLogger("Convergence info",self.GetInfo())
+        iter = self.__optimization_problem.GetStep()
+        self.conv = iter >= self.__max_iter
+        DictLogger("Convergence info",self.GetInfo())
         return self.conv
 
     def GetInfo(self) -> dict:
@@ -57,20 +58,20 @@ class L2ConvCriterion:
         self.__optimization_problem = optimization_problem
         self.__tolerance = parameters["tolerance"].GetDouble()
 
+    @time_decorator()
     def IsConverged(self) -> bool:
-        with TimeLogger("L2ConvCriterion::IsConverged", None, "Finished"):
-            iter = self.__optimization_problem.GetStep()
-            self.conv = True if iter >= self.__max_iter else False
+        iter = self.__optimization_problem.GetStep()
+        self.conv = iter >= self.__max_iter
 
-            algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
-            if not algorithm_buffered_data.HasValue("search_direction"):
-                raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_buffered_data}" )
+        algorithm_buffered_data = ComponentDataView("algorithm", self.__optimization_problem).GetBufferedData()
+        if not algorithm_buffered_data.HasValue("search_direction"):
+            raise RuntimeError(f"Algorithm data does not contain computed \"search_direction\".\nData:\n{algorithm_buffered_data}" )
 
-            self.norm = KratosOA.ExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
-            if not self.conv:
-                self.conv = True if self.norm <= self.__tolerance else False
+        self.norm = KratosOA.ExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
+        if not self.conv:
+            self.conv = self.norm <= self.__tolerance
 
-            DictLogger("Convergence info",self.GetInfo())
+        DictLogger("Convergence info",self.GetInfo())
 
         return self.conv
 

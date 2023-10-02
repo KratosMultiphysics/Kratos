@@ -31,6 +31,7 @@ with KratosUnittest.WorkFolderScope("../../tests", __file__, True):
     from test_model_part_io import TestModelPartIOMPI
     import test_variable_redistribution
     import test_container_expression
+    import test_combine_model_part_modeler
     from test_model_part_operation_utilities import TestModelPartOperationUtilities
 
 def AssembleTestSuites():
@@ -68,6 +69,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestNodalContainerExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionContainerExpression]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementContainerExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestNodalPositionExpressionIO]))
 
     # adding non-mpi tests also as mpi tests
     smallSuite.addTest(TestProcesses("test_FindGlobalNodalNeighboursProcess"))
@@ -79,6 +81,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestModelPartIOMPI]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_variable_redistribution.TestVariableRedistributionUtility]))
     smallSuite.addTest(TestModelPartOperationUtilities("test_Sum"))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_combine_model_part_modeler.TestCombineModelPartModeler]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['mpi_nightly']
