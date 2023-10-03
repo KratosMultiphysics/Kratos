@@ -82,7 +82,7 @@ public:
         const unsigned int DomainSize,
 		const unsigned int BlockSize,
 		const Variable<double>& rVariable):
-    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,SLIP), mrFlagVariable(rVariable)
+    CoordinateTransformationUtils<TLocalMatrixType,TLocalVectorType,double>(DomainSize,BlockSize,SLIP), mrFlagVariable(rVariable), mDomainSize(DomainSize)
 	{}
 
 	/// Destructor.
@@ -473,8 +473,10 @@ public:
                 // Limit/zero out tangential forces for friction/slip case resp.
                 if ( mu > 0  && nodal_mass > std::numeric_limits<double>::epsilon() ) {
                     // update nodal normal & tangent forces assoc. with current timestep
-                    // [note: no friction if REACTION[0] > 0 [tensile force, indicate contact lost]]
-                    itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_X, 0) = fmax(-r_reaction[0], 0.0);
+                    // [note: no friction if normal component < 0 [direction chosen to be consistent with contact algo]]
+                    // [since normal point away from the boundary/interface, a normal component < 0 indicates a force
+                    //  pulling towards the normal (i.e. tensile force)]
+                    itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_X, 0) = fmax(r_reaction[0], 0.0);
                     itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Y, 0) = r_reaction[1];
                     itNode->FastGetSolutionStepValue(FRICTION_CONTACT_FORCE_Z, 0) = r_reaction[2];
 
@@ -610,6 +612,9 @@ private:
     const int SLIDING = 0;
     const int STICK = 1;
 
+    /// Number of spatial dimensions
+    const unsigned int mDomainSize;
+
 	///@}
 	///@name Member Variables
 	///@{
@@ -633,13 +638,32 @@ private:
                       const Node& rNode,
                       const bool toGlobalCoordinates = false) const {
 
-        array_1d<double, 3> rotated_nodal_vector = ZeroVector(3);
-        BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3);
+        if(mDomainSize == 3){
+            // 3D case
+            array_1d<double, 3> rotated_nodal_vector = ZeroVector(3);
+            BoundedMatrix<double, 3, 3> rotation_matrix = ZeroMatrix(3);
+            this->LocalRotationOperatorPure(rotation_matrix, rNode);
 
-        this->LocalRotationOperatorPure(rotation_matrix, rNode);
-        noalias(rotated_nodal_vector) = prod(toGlobalCoordinates ? trans(rotation_matrix) : rotation_matrix, rVector);
+            noalias(rotated_nodal_vector) = prod(toGlobalCoordinates ? trans(rotation_matrix) : rotation_matrix, rVector);
 
-        rVector = rotated_nodal_vector;
+            rVector = rotated_nodal_vector;
+        } else {
+            // 2D case
+            array_1d<double, 2> rotated_nodal_vector = ZeroVector(2);
+            BoundedMatrix<double, 2, 2> rotation_matrix = ZeroMatrix(2);
+            this->LocalRotationOperatorPure(rotation_matrix, rNode);
+
+            array_1d<double, 2> tmp = ZeroVector(2);
+            tmp(0) = rVector(0);
+            tmp(1) = rVector(1);
+
+            noalias(rotated_nodal_vector) = prod(toGlobalCoordinates ? trans(rotation_matrix) : rotation_matrix, tmp);
+
+            rVector(0) = rotated_nodal_vector(0);
+            rVector(1) = rotated_nodal_vector(1);
+        }
+
+
     }
 
     /// Additionally normalizes the rotated vector
