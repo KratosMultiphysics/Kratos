@@ -319,10 +319,7 @@ class AnalysisStage(object):
 
     @classmethod
     def __BackwardCompatibleModelersCreation(self, modelers_list):
-        for modeler in modelers_list:
-            if modeler.Has("modeler_name"):
-                return True
-        return False
+        return any([modeler.Has("modeler_name") for modeler in modelers_list])
 
     ### Processes
     def _GetListOfProcesses(self):
