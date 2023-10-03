@@ -119,11 +119,15 @@ class HRomTrainingUtility(object):
             else:
                 err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
                 raise Exception(err_msg)
+            np_res_mat = np.array(res_mat, copy=False)
+            self.time_step_residual_matrix_container.append(np_res_mat)
         elif self.element_selection_type == "discrete_empirical_interpolation":
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of residuals.")
-                res_mat = self.__rom_residuals_utility.GetAssembledResiduals()
-        np_res_mat = np.array(res_mat, copy=False)
-        self.time_step_residual_matrix_container.append(np_res_mat)
+            res_vec = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
+            self.__rom_residuals_utility.GetRHSNoDirichlet(self.solver._GetScheme(), computing_model_part, res_vec)
+            np_res_vec = np.array(res_vec, copy=False)
+            self.time_step_residual_matrix_container.append(np_res_vec)
+
 
     def CalculateAndSaveHRomWeights(self):
         # Calculate the residuals basis and compute the HROM weights from it
