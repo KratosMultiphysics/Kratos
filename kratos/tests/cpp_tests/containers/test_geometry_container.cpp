@@ -49,7 +49,7 @@ namespace Kratos::Testing {
         // check correct error if multiple geometries with sam id are added
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             geometry_container.AddGeometry(p_line_2),
-            "Attempting to add Geometry with Id: 1, unfortunately a (different) geometry with the same Id already exists");
+            "Error: Attempting to add Geometry with Id: 1, unfortunately a (different) geometry with the same Id already exists");
 
         p_line_2->SetId(2);
         geometry_container.AddGeometry(p_line_2);
