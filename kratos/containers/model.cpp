@@ -122,7 +122,7 @@ ModelPart& Model::GetModelPart(const std::string& rFullModelPartName)
 
         //if we are here we did not find it
         KRATOS_ERROR << "The ModelPart named : \"" << root_model_part_name
-                << "\" was not found root-ModelPart. The total input string was \""
+                << "\" was not found as root-ModelPart. The total input string was \""
                 << rFullModelPartName << "\"" << std::endl;
     }
     else //it is a submodelpart with the full name provided
@@ -158,7 +158,7 @@ const ModelPart& Model::GetModelPart(const std::string& rFullModelPartName) cons
 
         //if we are here we did not find it
         KRATOS_ERROR << "The ModelPart named : \"" << root_model_part_name
-                << "\" was not found root-ModelPart. The total input string was \""
+                << "\" was not found as root-ModelPart. The total input string was \""
                 << rFullModelPartName << "\"" << std::endl;
 
     } else { //it is a submodelpart with the full name provided

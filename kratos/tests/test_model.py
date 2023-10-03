@@ -32,7 +32,7 @@ class TestModel(KratosUnittest.TestCase):
             self.assertEqual(aaa, current_model["aaa"]) #search by flat name was removed
 
         #check that a meaningful error is thrown
-        with self.assertRaisesRegex(RuntimeError, "Error: The ModelPart named : \"abc\" was not found either as root-ModelPart or as a flat name. The total input string was \"abc\""):
+        with self.assertRaisesRegex(RuntimeError, "Error: The ModelPart named : \"abc\" was not found as root-ModelPart. The total input string was \"abc\""):
             current_model["abc"]
 
         #check that a meaningful error is thrown
