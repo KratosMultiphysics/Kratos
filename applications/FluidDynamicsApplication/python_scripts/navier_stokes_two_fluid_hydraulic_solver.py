@@ -234,6 +234,11 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             KratosMultiphysics.VariableUtils().SetNonHistoricalVariableToZero(KratosCFD.ARTIFICIAL_DYNAMIC_VISCOSITY, self.main_model_part.Elements)
 
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Solver initialization finished.")
+    def Check(self):
+        super().Check()
+        # Check if Inlet and Outlet boundary conditions are defined
+        self._HydraulicBoundaryConditionCheck(KratosMultiphysics.INLET,"INLET")
+        self._HydraulicBoundaryConditionCheck(KratosMultiphysics.OUTLET,"OUTLET")
 
     def InitializeSolutionStep(self):
 
@@ -653,7 +658,17 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
             domain_size + 1)
 
         return scheme
-
+    
+    def _HydraulicBoundaryConditionCheck(self,boundary,name):
+        # Check if the inlet and outl 
+        computing_model_part = self.GetComputingModelPart()
+        not_boundary_nodes=True
+        for node in computing_model_part.Nodes:
+            if  node.Is(boundary):
+                not_boundary_nodes = False
+                break 
+        if not_boundary_nodes:
+            KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, name +" condition is not defined in the model part.")
 
 
 
