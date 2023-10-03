@@ -81,11 +81,11 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateRHS(
     
     //Loop over integration points
     for(unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        //Obtain Np
-        noalias(Variables.N) = row(NContainer,GPoint);
+        //Obtain N
+        noalias(Variables.N) = row(NContainer, GPoint);
 
         //Compute normal flux 
-        MathUtils<>::Dot(Variables.N, normal_flux_vector);
+        Variables.NormalFlux = MathUtils<>::Dot(Variables.N, normal_flux_vector);
                 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
