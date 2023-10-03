@@ -15,7 +15,6 @@
 #include "custom_workflows/time_stepping.hpp"
 #include "custom_workflows/strategy_wrapper.hpp"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "custom_workflows/strategy_wrapper.hpp"
 
 using namespace Kratos;
 
@@ -56,11 +55,6 @@ public:
     bool SolveSolutionStep()      override {mSolverStrategySolveSolutionsStepCalls += 1;
                                             return true;}
     void FinalizeSolutionStep()   override {mSolverStrategyFinalizeSolutionStepCalls += 1;}
-    unsigned int NumberOfSolverStrategyInitializeCalls()             const {return mSolverStrategyInitializeCalls;}
-    unsigned int NumberOfSolverStrategyInitializeSolutionStepCalls() const {return mSolverStrategyInitializeSolutionStepCalls;}
-    unsigned int NumberOfSolverStrategyPredictCalls()                const {return mSolverStrategyPredictCalls;}
-    unsigned int NumberOfSolverStrategySolveSolutionStepCalls()      const {return mSolverStrategySolveSolutionsStepCalls;}
-    unsigned int NumberOfSolverStrategyFinalizeSolutionStepCalls()   const {return mSolverStrategyFinalizeSolutionStepCalls;}
 
 private:
     unsigned int mSolverStrategyInitializeCalls             = 0;
@@ -120,25 +114,19 @@ public:
     [[nodiscard]] std::size_t GetNumberOfIterations()                                  const override { return 2;};
     [[nodiscard]] double      GetEndTime()                                             const override { return 10.;};
     bool IsConverged() override {return false; }
-
     void Initialize() override {
-
+        // Deliberately empty method for dummy
     }
-
     void InitializeSolutionStep() override {
-
+        // Deliberately empty method for dummy
     }
-
     void Predict() override {
-
+        // Deliberately empty method for dummy
     }
-
     bool SolveSolutionStep() override {return true;}
-
     void FinalizeSolutionStep() override {
-
+        // Deliberately empty method for dummy
     }
-
 };
 
 }

@@ -46,7 +46,7 @@ public:
         mStrategyWrapper->Initialize();
         mStrategyWrapper->InitializeSolutionStep();
 
-        for (auto& process : mProcessRefs)
+        for (const auto& process : mProcessRefs)
         {
             process.get().ExecuteInitializeSolutionStep();
         }
@@ -54,7 +54,7 @@ public:
         mStrategyWrapper->Predict();
         mStrategyWrapper->SolveSolutionStep();
 
-        for (auto& process : mProcessRefs)
+        for (const auto& process : mProcessRefs)
         {
             process.get().ExecuteFinalizeSolutionStep();
         }
@@ -64,8 +64,7 @@ public:
         TimeStepEndState result;
         result.time = Time;
         result.convergence_state = mStrategyWrapper->IsConverged() ? TimeStepEndState::ConvergenceState::converged :
-                                   TimeStepEndState::ConvergenceState::non_converged;
-        //result.number_of_nonlinear_iterations = mStrategyWrapper->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER];
+                                                                     TimeStepEndState::ConvergenceState::non_converged;
         result.number_of_nonlinear_iterations = mStrategyWrapper->GetNumberOfIterations();
         return result;
     }
