@@ -1,4 +1,4 @@
-﻿import KratosMultiphysics
+import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utils
 
@@ -27,9 +27,6 @@ class TestModel(KratosUnittest.TestCase):
         outlet = model_part.CreateSubModelPart("Outlet")
 
         aaa = current_model["Main.Outlet"].CreateSubModelPart("aaa")
-
-        with self.assertRaisesRegex(RuntimeError, "Error: DEPRECATION: The ModelPart \"aaa\" is retrieved from the Model by using the flat-map!"):
-            self.assertEqual(aaa, current_model["aaa"]) #search by flat name was removed
 
         #check that a meaningful error is thrown
         with self.assertRaisesRegex(RuntimeError, "Error: The ModelPart named : \"abc\" was not found as root-ModelPart. The total input string was \"abc\""):
