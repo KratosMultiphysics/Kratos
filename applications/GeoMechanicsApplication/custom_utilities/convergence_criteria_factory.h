@@ -14,6 +14,7 @@
 
 
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
+#include "solving_strategies/convergencecriterias/displacement_criteria.h"
 
 namespace Kratos
 {
@@ -33,20 +34,9 @@ public:
 
         if (rSolverSettings["convergence_criterion"].GetString() == "displacement_criterion")
         {
-            double rel_tol = 0;
-            if (rSolverSettings.Has("displacement_relative_tolerance"))
-            {
-                rel_tol = rSolverSettings["displacement_relative_tolerance"].GetDouble();
-            }
-
-            double abs_tol = 0;
-            if (rSolverSettings.Has("displacement_absolute_tolerance"))
-            {
-                abs_tol = rSolverSettings["displacement_absolute_tolerance"].GetDouble();
-            }
-            VariableData* p_displacement = &DISPLACEMENT;
-            ConvergenceVariableListType convergence_settings{std::make_tuple(p_displacement, rel_tol, abs_tol)};
-            return std::make_shared<MixedGenericCriteriaType>(MixedGenericCriteriaType(convergence_settings));
+            Parameters convergenceInputs;
+            convergenceInputs.CopyValuesFromExistingParameters(rSolverSettings, {"displacement_absolute_tolerance", "displacement_relative_tolerance"});
+            return std::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(convergenceInputs);
         }
 
         KRATOS_ERROR << "The convergence_criterion (" << rSolverSettings["convergence_criterion"].GetString() << ") is unknown, supported criteria are: 'displacement_criterion'";

@@ -33,11 +33,9 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplacement, KratosGeoMechanicsFastSuite)
 {
-    ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType> factory;
-
-    const auto convergence_criteria = factory.Create(Parameters{validParameters});
-    const auto mixed = dynamic_cast<MixedGenericCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
-    KRATOS_EXPECT_NE(mixed, nullptr);
+    const auto convergence_criteria = ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType>::Create(Parameters{validParameters});
+    const auto displacementCriterion = dynamic_cast<DisplacementCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
+    KRATOS_EXPECT_NE(displacementCriterion, nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist, KratosGeoMechanicsFastSuite)
