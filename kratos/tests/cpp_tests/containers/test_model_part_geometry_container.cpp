@@ -50,6 +50,9 @@ namespace Testing {
         p_line_1->SetId(1);
 
         model_part_lines.AddGeometry(p_line_1);
+        KRATOS_EXPECT_EQ(model_part_lines.NumberOfGeometries(), 1);
+        model_part_lines.AddGeometry(p_line_1); // adding same geomerty does not fails
+        KRATOS_EXPECT_EQ(model_part_lines.NumberOfGeometries(), 1);
 
         auto p_line_2 = GenerateLineModelPartGeometryContainer();
         p_line_2->SetId(1);
