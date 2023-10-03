@@ -16,12 +16,12 @@
 #include <iomanip>
 #include "dgeoflow.h"
 #include "processes/apply_constant_scalarvalue_process.h"
-#include "utilities/read_materials_utility.h"
 #include "input_output/logger.h"
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
 #include "includes/model_part_io.h"
 #include "write_output.h"
+#include "custom_utilities/file_input_utility.h"
 
 
 class GeoFlowApplyConstantScalarValueProcess : public Kratos::ApplyConstantScalarValueProcess
@@ -31,8 +31,8 @@ public:
                                            const Kratos::Variable<double>& rVariable,
                                            double                          DoubleValue,
                                            std::size_t                     MeshId,
-                                           const Flags                     Options)
-        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, Options)
+                                           const Flags&                    rOptions)
+        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, rOptions)
     {}
 
     bool hasWaterPressure()
@@ -49,9 +49,9 @@ public:
 class GeoFlowApplyConstantHydrostaticPressureProcess : public Kratos::ApplyConstantHydrostaticPressureProcess
 {
 public:
-    GeoFlowApplyConstantHydrostaticPressureProcess(Kratos::ModelPart& rModelPart,
-                                                   Kratos::Parameters Settings)
-        : Kratos::ApplyConstantHydrostaticPressureProcess(rModelPart, Settings)
+    GeoFlowApplyConstantHydrostaticPressureProcess(Kratos::ModelPart&        rModelPart,
+                                                   const Kratos::Parameters& rSettings)
+        : Kratos::ApplyConstantHydrostaticPressureProcess(rModelPart, rSettings)
     {}
 
     Kratos::ModelPart &GetModelPart()
@@ -147,7 +147,6 @@ namespace Kratos
         "number_cycles":    100,
         "increase_factor":  2.0,
         "reduction_factor": 0.5,
-        "end_time": 1.0,
 		"max_piping_iterations": 500,
         "desired_iterations": 4,
         "max_radius_factor": 10.0,
@@ -174,22 +173,6 @@ namespace Kratos
 
         p_solving_strategy->Check();
         return p_solving_strategy;
-    }
-
-    void KratosExecute::parseMaterial(Model &model, const std::string& rMaterialFilePath)
-    {
-        std::string parameters = R"({ "Parameters" : { "materials_filename" :")" + rMaterialFilePath + R"("}})";
-        Parameters material_file{parameters};
-        ReadMaterialsUtility(material_file, model);
-    }
-
-    Parameters KratosExecute::openProjectParamsFile(const std::string& rProjectParamsFilePath)
-    {
-        std::ifstream t(rProjectParamsFilePath);
-        std::stringstream buffer;
-        buffer << t.rdbuf();
-        Parameters projFile{buffer.str()};
-        return projFile;
     }
 
     std::vector<std::shared_ptr<Process>> KratosExecute::parseProcess(ModelPart &model_part, Parameters projFile)
@@ -317,7 +300,8 @@ namespace Kratos
             rReportProgress(0.0);
 
             std::string projectpath = rWorkingDirectory + "/" + rProjectParamsFileName;
-            auto projectfile = openProjectParamsFile(projectpath);
+            const FileInputUtility input_utility;
+            auto projectfile = input_utility.ProjectParametersFromFile(projectpath);
 
             auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
             std::string materialpath = rWorkingDirectory + "/" + materialname;
@@ -375,7 +359,7 @@ namespace Kratos
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Mesh" << std::endl;
 
-            parseMaterial(current_model, materialpath);
+            input_utility.AddMaterialsFromFile(materialpath, current_model);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Material" << std::endl;
 

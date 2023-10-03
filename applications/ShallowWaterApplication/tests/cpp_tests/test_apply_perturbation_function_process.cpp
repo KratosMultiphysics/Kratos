@@ -84,7 +84,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyPerturbationFunctionProcess, ShallowWaterApplicat
         double x = node.X();
         double exact_value = ((x < 1.0) ? (0.0) : (periodic_function(x)));
         double value = node.FastGetSolutionStepValue(FREE_SURFACE_ELEVATION);
-        KRATOS_CHECK_NEAR(value, exact_value, tolerance);
+        KRATOS_EXPECT_NEAR(value, exact_value, tolerance);
     }
 
     // Creation and execution of the process for component
@@ -99,7 +99,7 @@ KRATOS_TEST_CASE_IN_SUITE(ApplyPerturbationFunctionProcess, ShallowWaterApplicat
         double x = node.X();
         double exact_value = ((x < 1.0) ? (0.0) : (periodic_function(x)));
         double value = node.FastGetSolutionStepValue(VELOCITY_Z);
-        KRATOS_CHECK_NEAR(value, exact_value, tolerance);
+        KRATOS_EXPECT_NEAR(value, exact_value, tolerance);
     }
 }
 

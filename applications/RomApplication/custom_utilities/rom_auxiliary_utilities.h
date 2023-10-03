@@ -26,6 +26,7 @@
 #include "includes/model_part.h"
 #include "includes/ublas_interface.h"
 #include "modified_shape_functions/modified_shape_functions.h"
+#include "processes/find_nodal_neighbours_process.h"
 
 // Application includes
 #include "rom_application_variables.h"
@@ -108,6 +109,25 @@ public:
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
     /**
+     * @brief Retrieve the IDs of elements neighboring nodes in a given sub-model part but not present in HRom weights.
+     *
+     * This function iterates over all the nodes in the provided sub-model part (`rGivenModelPart`) and collects
+     * the IDs of the elements neighboring each node. The neighboring elements are determined using the
+     * 'NEIGHBOUR_ELEMENTS' value attached to each node. The function then checks if these elements are already
+     * present in `rHRomWeights`. If not, their IDs are added to the return vector. It's important to note that
+     * this function assumes that the 'NEIGHBOUR_ELEMENTS' values are already computed for the nodes in the model part.
+     *
+     * @param rModelPart The complete model part which houses all the elements.
+     * @param rGivenModelPart The sub-model part with nodes for which neighboring elements should be fetched.
+     * @param rHRomWeights Map containing the original HROM conditions and elements weights.
+     * @return std::vector<IndexType> A list of unique neighboring element IDs not already present in HRom weights.
+     */
+    static std::vector<IndexType> GetNodalNeighbouringElementIdsNotInHRom(
+        ModelPart& rModelPart,
+        ModelPart& rGivenModelPart,
+        const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
+
+    /**
      * @brief Identifies condition IDs from a given ModelPart that are not in the HROM weights
      * This function iterates through the conditions in the provided ModelPart, checks if their IDs exist in the HROM weights,
      * and includes them in a list if they are missing. The IDs of the absent conditions are returned.
@@ -147,6 +167,15 @@ public:
     static std::vector<IndexType> GetHRomMinimumConditionsIds(
         const ModelPart& rModelPart,
         const std::map<IndexType, double>& rHRomConditionWeights);
+
+
+    static std::vector<IndexType> GetElementIdsInModelPart(
+        const ModelPart& rModelPart
+    );
+
+    static std::vector<IndexType> GetConditionIdsInModelPart(
+        const ModelPart& rModelPart
+    );
 
     /**
      * @brief Project the ROM solution increment onto the nodal basis

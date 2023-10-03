@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                     Kratos default license: kratos/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //
@@ -25,9 +25,7 @@
 #include "python/add_mesh_to_python.h"
 #include "python/containers_interface.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -382,26 +380,9 @@ void EntityGetSecondDerivativesVector2(
 
 void  AddMeshToPython(pybind11::module& m)
 {
-//             typedef Mesh<Node, Properties, Element, Condition> MeshType;
-//             typedef MeshType::NodeType NodeType;
-
-    //     py::class_<Dof, Dof::Pointer>("Dof", init<int, const Dof::VariableType&,  optional<const Dof::VariableType&, const Dof::VariableType&, const Dof::VariableType&> >())
-    //.def("GetVariable", &Dof::GetVariable, py::return_value_policy::reference_internal)
-    //.def("GetReaction", &Dof::GetReaction, py::return_value_policy::reference_internal)
-    //.def("GetTimeDerivative", &Dof::GetTimeDerivative, py::return_value_policy::reference_internal)
-    //.def("GetSecondTimeDerivative", &Dof::GetSecondTimeDerivative, py::return_value_policy::reference_internal)
-    //.def("NodeIndex", &Dof::NodeIndex)
-    //.def_property("EquationId", &Dof::EquationId, &Dof::SetEquationId)
-    //.def("Fix", &Dof::FixDof)
-    //.def("Free", &Dof::FreeDof)
-    //.def("IsFixed", &Dof::IsFixed)
-    //.def("HasTimeDerivative", &Dof::HasTimeDerivative)
-    //.def("HasSecondTimeDerivative", &Dof::HasSecondTimeDerivative)
-    //.def(self_ns::str(self))
-    //      ;
-
     py::class_<GeometricalObject, GeometricalObject::Pointer, IndexedObject, Flags>(m,"GeometricalObject")
     .def(py::init<Kratos::GeometricalObject::IndexType>())
+    .def("IsActive", &GeometricalObject::IsActive)
     ;
 
     py::class_<Element, Element::Pointer, Element::BaseType>(m,"Element")
@@ -707,5 +688,4 @@ void  AddMeshToPython(pybind11::module& m)
     .def("__str__", PrintObject<MeshType>)
     ;
 }
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.
