@@ -24,14 +24,13 @@ namespace Kratos
     public:
         virtual ~StrategyWrapper() = default;
 
-        [[nodiscard]] virtual bool        GetConvergenceState(const TimeStepEndState& rEndState)         = 0;
-        [[nodiscard]] virtual std::size_t GetNumberOfIterations()                                  const = 0;
-        [[nodiscard]] virtual double      GetEndTime()                                             const = 0;
+        [[nodiscard]] virtual TimeStepEndState::ConvergenceState GetConvergenceState(const TimeStepEndState& rEndState)       = 0;
+        [[nodiscard]] virtual std::size_t      GetNumberOfIterations()                                                  const = 0;
+        [[nodiscard]] virtual double           GetEndTime()                                                             const = 0;
         virtual void Initialize()             = 0;
         virtual void InitializeSolutionStep() = 0;
         virtual void Predict()                = 0;
         virtual bool SolveSolutionStep()      = 0;
         virtual void FinalizeSolutionStep()   = 0;
-        virtual bool IsConverged()            = 0;
     };
 }
