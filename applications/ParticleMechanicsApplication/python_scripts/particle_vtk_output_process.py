@@ -32,10 +32,6 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
                     kratos_utils.DeleteDirectoryIfExisting(output_path)
             self.model_part.GetCommunicator().GetDataCommunicator().Barrier()
 
-        self.output_interval = settings["output_interval"].GetDouble()
-        self.output_control = settings["output_control_type"].GetString()
-        self.next_output = 0.0
-
         self.__controller = KratosMultiphysics.OutputController(model, settings)
 
         # Print background grid model part
