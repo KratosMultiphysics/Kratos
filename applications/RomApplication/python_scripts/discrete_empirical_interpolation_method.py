@@ -1,4 +1,5 @@
 import numpy as np
+from scipy.linalg import qr as scipy_qr
 
 class QDiscreteEmpiricalInterpolationMethod():
     def __init__(self, DEIM_tolerance=1e-6):
@@ -29,9 +30,10 @@ class QDiscreteEmpiricalInterpolationMethod():
             B = np.linalg.pinv(self.U_k[self.P, :])
 
     def QDEIM(self):
-        # QR factorization with column pivoting
-        Q, R, P = np.linalg.qr(self.U_k, pivoting=True)
+        # QR factorization with column pivoting using SciPy
+        Q, R, P = scipy_qr(self.U_k, pivoting=True)
         self.P = P[:self.U_k.shape[1]]
+
 
     def Run(self):
         self.Initialize()
