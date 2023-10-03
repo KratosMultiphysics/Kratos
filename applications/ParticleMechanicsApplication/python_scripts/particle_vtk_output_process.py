@@ -36,7 +36,7 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
         self.output_control = settings["output_control_type"].GetString()
         self.next_output = 0.0
 
-        self.__ScheduleNextOutput()
+        self.__controller = KratosMultiphysics.OutputController(model, settings)
 
         # Print background grid model part
         if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
@@ -82,26 +82,12 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
         if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.vtk_io.PrintOutput()
 
+    def Check(self):
+        return self.__controller.Check()
+
     def PrintOutput(self):
         self.vtk_io.PrintOutput()
-        self.__ScheduleNextOutput()
+        self.__controller.Update()
 
     def IsOutputStep(self):
-        if self.output_control == "time":
-            return self.__GetTime() >= self.next_output
-        else:
-            return self.model_part.ProcessInfo[KratosMultiphysics.STEP] >= self.next_output
-
-    def __ScheduleNextOutput(self):
-        if self.output_interval > 0.0: # Note: if == 0, we'll just always print
-            if self.output_control == "time":
-                while self.next_output <= self.__GetTime():
-                    self.next_output += self.output_interval
-            else:
-                while self.next_output <= self.model_part.ProcessInfo[KratosMultiphysics.STEP]:
-                    self.next_output += self.output_interval
-
-    def __GetTime(self):
-        # Remove rounding errors that mess with the comparison
-        # e.g. 1.99999999999999999 => 2.0
-        return float("{0:.12g}".format(self.model_part.ProcessInfo[KratosMultiphysics.TIME]))
+        return self.__controller.Evaluate()
