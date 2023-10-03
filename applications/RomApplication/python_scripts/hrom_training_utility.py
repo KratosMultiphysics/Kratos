@@ -29,9 +29,9 @@ class HRomTrainingUtility(object):
 
         # Create the HROM element selector
         self.element_selection_type = settings["element_selection_type"].GetString()
+        self.element_selection_svd_truncation_tolerance = settings["element_selection_svd_truncation_tolerance"].GetDouble()
         if self.element_selection_type == "empirical_cubature":
             self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
-            self.element_selection_svd_truncation_tolerance = settings["element_selection_svd_truncation_tolerance"].GetDouble()
         elif self.element_selection_type == "discrete_empirical_interpolation":
             self.hyper_reduction_element_selector = QDiscreteEmpiricalInterpolationMethod()
         else:
