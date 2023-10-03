@@ -129,7 +129,7 @@ public:
         } else if (&(*i) == pNewGeometry.get()) { // check if the pointee coincides
             return i;
         } else {
-            KRATOS_ERROR << "Attempting to add Geometry with Id: " << pNewGeometry->Id() << ", unfortunately a (different) geometry with the same Id already exists" << std::endl;
+            KRATOS_ERROR << "Attempting to add Geometry with Id: " << pNewGeometry->Id() << ", unfortunately a (different) geometry with the same Id already exists!" << std::endl;
         }
     }
 

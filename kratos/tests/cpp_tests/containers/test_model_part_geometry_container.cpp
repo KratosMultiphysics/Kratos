@@ -48,8 +48,8 @@ namespace Testing {
 
         auto& model_part_sub_1 = model_part.CreateSubModelPart("sub_1");
         auto& model_part_sub_2 = model_part.CreateSubModelPart("sub_2");
-        auto& model_part_sub_sub_1 = model_part_sub.CreateSubModelPart("subsub_1");
-        auto& model_part_sub_sub_2 = model_part_sub.CreateSubModelPart("subsub_2");
+        auto& model_part_sub_sub_1 = model_part_sub_1.CreateSubModelPart("subsub_1");
+        auto& model_part_sub_sub_2 = model_part_sub_2.CreateSubModelPart("subsub_2");
 
         auto p_line_1 = GenerateLineModelPartGeometryContainer();
         p_line_1->SetId(1);
@@ -65,7 +65,7 @@ namespace Testing {
         // check correct error if multiple geometries with same id are added
         KRATOS_EXPECT_EXCEPTION_IS_THROWN(
             model_part_lines.AddGeometry(p_line_2),
-            "Error: Attempting to add Geometry with Id: 1, unfortunately a (different) geometry with the same Id already exists.");
+            "Error: Attempting to add Geometry with Id: 1, unfortunately a (different) geometry with the same Id already exists!");
 
         p_line_2->SetId(2);
         model_part_lines.AddGeometry(p_line_2);
