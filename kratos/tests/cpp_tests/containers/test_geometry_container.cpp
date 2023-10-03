@@ -40,7 +40,7 @@ namespace Kratos::Testing {
 
         geometry_container.AddGeometry(p_line_1);
         KRATOS_EXPECT_EQ(geometry_container.NumberOfGeometries(), 1);
-        geometry_container.AddGeometry(p_line_1); // adding same geomerty does not fails
+        geometry_container.AddGeometry(p_line_1); // adding same geomerty does not fail
         KRATOS_EXPECT_EQ(geometry_container.NumberOfGeometries(), 1);
 
         auto p_line_2 = GenerateLineGeometry();
