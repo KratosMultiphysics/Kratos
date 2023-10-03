@@ -123,7 +123,7 @@ class HRomTrainingUtility(object):
             self.time_step_residual_matrix_container.append(np_res_mat)
         elif self.element_selection_type == "discrete_empirical_interpolation":
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of residuals.")
-            res_vec = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize())
+            res_vec = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize(), 0.0)
             self.solver._GetBuilderAndSolver().GetRHSNoDirichlet(self.solver._GetScheme(), computing_model_part, res_vec)
             np_res_vec = np.array(res_vec, copy=False)
             self.time_step_residual_matrix_container.append(np_res_vec)
