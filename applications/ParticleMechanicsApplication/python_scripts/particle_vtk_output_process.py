@@ -3,14 +3,16 @@ import KratosMultiphysics.kratos_utilities as kratos_utils
 from  KratosMultiphysics.deprecation_management import DeprecationManager
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
 
-def Factory(settings, model):
+def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.Model) -> KratosMultiphysics.OutputProcess:
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object, encapsulating a json string")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
     return ParticleVtkOutputProcess(model, settings["Parameters"])
 
 class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
 
-    def __init__(self, model, settings):
+    def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
         super().__init__()
 
         model_part_name = settings["model_part_name"].GetString()
@@ -47,7 +49,7 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
             KratosMultiphysics.VtkOutput(background_grid, grid_settings).PrintOutput()
 
     # This function can be extended with new deprecated variables as they are generated
-    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings):
+    def TranslateLegacyVariablesAccordingToCurrentStandard(self, settings: KratosMultiphysics.Parameters) -> None:
         context_string = type(self).__name__
 
         old_name = 'output_frequency'
@@ -74,16 +76,16 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
                 settings.AddEmptyValue("gauss_point_variables_in_elements").SetStringArray(settings["gauss_point_results"].GetStringArray())
             settings.RemoveValue("gauss_point_results")
 
-    def ExecuteBeforeSolutionLoop(self):
+    def ExecuteBeforeSolutionLoop(self) -> None:
         if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
             self.vtk_io.PrintOutput()
 
-    def Check(self):
+    def Check(self) -> int:
         return self.__controller.Check()
 
-    def PrintOutput(self):
+    def PrintOutput(self) -> None:
         self.vtk_io.PrintOutput()
         self.__controller.Update()
 
-    def IsOutputStep(self):
+    def IsOutputStep(self) -> bool:
         return self.__controller.Evaluate()
