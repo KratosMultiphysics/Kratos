@@ -10,6 +10,7 @@ import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
+from KratosMultiphysics.RomApplication.discrete_empirical_interpolation_method import QDiscreteEmpiricalInterpolationMethod
 
 class HRomTrainingUtility(object):
     """Auxiliary utility for the HROM training.
@@ -27,14 +28,14 @@ class HRomTrainingUtility(object):
         settings["projection_strategy"] = custom_settings["projection_strategy"] # To be consistent with the solving strategy
 
         # Create the HROM element selector
-        element_selection_type = settings["element_selection_type"].GetString()
-        if element_selection_type == "empirical_cubature":
+        self.element_selection_type = settings["element_selection_type"].GetString()
+        if self.element_selection_type == "empirical_cubature":
             self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
             self.element_selection_svd_truncation_tolerance = settings["element_selection_svd_truncation_tolerance"].GetDouble()
-        elif element_selection_type == "discrete_empirical_interpolation":
+        elif self.element_selection_type == "discrete_empirical_interpolation":
             self.hyper_reduction_element_selector = DiscreteEmpiricalInterpolationMethod()
         else:
-            err_msg = "\'{}\' HROM \'element_selection_type\' is not supported.".format(element_selection_type)
+            err_msg = "\'{}\' HROM \'element_selection_type\' is not supported.".format(self.element_selection_type)
             raise Exception(err_msg)
 
         # Auxiliary member variables
@@ -125,16 +126,19 @@ class HRomTrainingUtility(object):
         # Calculate the residuals basis and compute the HROM weights from it
         residual_basis = self.__CalculateResidualBasis()
         n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
-        self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
-        self.hyper_reduction_element_selector.Run()
-        if not self.hyper_reduction_element_selector.success:
-            KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
-            #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
-            self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = None, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+        if self.element_selection_type == "empirical_cubature":
+            self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
             self.hyper_reduction_element_selector.Run()
-        # Save the HROM weights in the RomParameters.json
-        # Note that in here we are assuming this naming convention for the ROM json file
-        self.AppendHRomWeightsToRomParameters()
+            if not self.hyper_reduction_element_selector.success:
+                KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
+                #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
+                self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = None, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+                self.hyper_reduction_element_selector.Run()
+            # Save the HROM weights in the RomParameters.json
+            # Note that in here we are assuming this naming convention for the ROM json file
+            self.AppendHRomWeightsToRomParameters()
+        elif self.element_selection_type == "discrete_empirical_interpolation":
+            self.hyper_reduction_element_selector.SetUp(residual_basis
 
     def CreateHRomModelParts(self):
         # Get solver data

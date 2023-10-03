@@ -1,18 +1,12 @@
 import numpy as np
 
-class DiscreteEmpiricalInterpolationMethod():
-    def __init__(self, DEIM_tolerance=1e-6, rank=None):
+class QDiscreteEmpiricalInterpolationMethod():
+    def __init__(self, DEIM_tolerance=1e-6):
         self.DEIM_tolerance = DEIM_tolerance
-        self.rank = rank  # Rank for the reduced basis
         self.P = None  # Interpolation indices
 
-    def SetUp(self, ResidualMatrix):
-        self.ResidualMatrix = ResidualMatrix
-        # Perform SVD
-        U, s, Vt = np.linalg.svd(self.ResidualMatrix)
-        # Select the first k columns of U to form a reduced basis U_k
-        k = self.rank if self.rank else len(U)
-        self.U_k = U[:, :k]
+    def SetUp(self, U_k):
+        self.U_k = U_k
 
     def Initialize(self):
         # Choose the first index by finding the row with the maximum norm
@@ -21,10 +15,9 @@ class DiscreteEmpiricalInterpolationMethod():
         self.P = np.array([index])
 
     def Calculate(self):
-        m, n = self.ResidualMatrix.shape
+        m, n = self.U_k.shape
         P_matrix = np.zeros((len(self.P), m))
-        for i, index in enumerate(self.P):
-            P_matrix[i, index] = 1
+        P_matrix[np.arange(len(self.P)), self.P] = 1  # Use advanced indexing
         B = np.linalg.pinv(self.U_k[self.P, :])
         for _ in range(n - len(self.P)):
             r = P_matrix @ self.U_k @ B - np.eye(len(self.P))
@@ -32,21 +25,27 @@ class DiscreteEmpiricalInterpolationMethod():
             i, j = divmod(q, len(self.P))
             self.P = np.append(self.P, self.P[i])
             P_matrix = np.zeros((len(self.P), m))
-            for i, index in enumerate(self.P):
-                P_matrix[i, index] = 1
+            P_matrix[np.arange(len(self.P)), self.P] = 1  # Use advanced indexing
             B = np.linalg.pinv(self.U_k[self.P, :])
+
+    def QDEIM(self):
+        # QR factorization with column pivoting
+        Q, R, P = np.linalg.qr(self.U_k, pivoting=True)
+        self.P = P[:self.U_k.shape[1]]
 
     def Run(self):
         self.Initialize()
         self.Calculate()
+        self.QDEIM()
         return self.P  # Return the selected indices
 
 # Usage
-ResidualMatrix = np.array([[1, 2], [3, 4], [5, 6]])
-deim = DiscreteEmpiricalInterpolationMethod(DEIM_tolerance=0.01, rank=2)
-deim.SetUp(ResidualMatrix)
-selected_indices = deim.Run()
-print(f"Selected row indices for DEIM: {selected_indices}")
+U_k = np.array([[1, 2], [3, 4], [5, 6]])  # This is an example; replace with your truncated basis
+qdeim = QDiscreteEmpiricalInterpolationMethod(DEIM_tolerance=0.01)
+qdeim.SetUp(U_k)
+selected_indices = qdeim.Run()
+print(f"Selected row indices for Q-DEIM: {selected_indices}")
+
 
 
 
