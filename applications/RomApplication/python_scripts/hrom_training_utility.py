@@ -33,7 +33,7 @@ class HRomTrainingUtility(object):
             self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
             self.element_selection_svd_truncation_tolerance = settings["element_selection_svd_truncation_tolerance"].GetDouble()
         elif self.element_selection_type == "discrete_empirical_interpolation":
-            self.hyper_reduction_element_selector = DiscreteEmpiricalInterpolationMethod()
+            self.hyper_reduction_element_selector = QDiscreteEmpiricalInterpolationMethod()
         else:
             err_msg = "\'{}\' HROM \'element_selection_type\' is not supported.".format(self.element_selection_type)
             raise Exception(err_msg)
@@ -109,24 +109,27 @@ class HRomTrainingUtility(object):
 
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","RomResidualsUtility created.")
 
-        # Generate the matrix of projected residuals
-        if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
-        if (self.projection_strategy=="galerkin"):
+        if self.element_selection_type == "empirical_cubature":
+            # Generate the matrix of projected residuals
+            if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of projected residuals.")
+            if (self.projection_strategy=="galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPhi()
-        elif (self.projection_strategy=="petrov_galerkin"):
+            elif (self.projection_strategy=="petrov_galerkin"):
                 res_mat = self.__rom_residuals_utility.GetProjectedResidualsOntoPsi()
-        else:
-            err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
-            raise Exception(err_msg)
-
+            else:
+                err_msg = f"Projection strategy \'{self.projection_strategy}\' for HROM is not supported."
+                raise Exception(err_msg)
+        elif self.element_selection_type == "discrete_empirical_interpolation":
+            if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of residuals.")
+                res_mat = self.__rom_residuals_utility.GetAssembledResiduals()
         np_res_mat = np.array(res_mat, copy=False)
         self.time_step_residual_matrix_container.append(np_res_mat)
 
     def CalculateAndSaveHRomWeights(self):
         # Calculate the residuals basis and compute the HROM weights from it
         residual_basis = self.__CalculateResidualBasis()
-        n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
         if self.element_selection_type == "empirical_cubature":
+            n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
             self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
             self.hyper_reduction_element_selector.Run()
             if not self.hyper_reduction_element_selector.success:
@@ -138,7 +141,8 @@ class HRomTrainingUtility(object):
             # Note that in here we are assuming this naming convention for the ROM json file
             self.AppendHRomWeightsToRomParameters()
         elif self.element_selection_type == "discrete_empirical_interpolation":
-            self.hyper_reduction_element_selector.SetUp(residual_basis
+            self.hyper_reduction_element_selector.SetUp(residual_basis) # Set up the Q-DEIM method
+            selected_indices = self.hyper_reduction_element_selector.Run() # Run the Q-DEIM method
 
     def CreateHRomModelParts(self):
         # Get solver data
