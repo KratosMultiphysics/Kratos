@@ -50,6 +50,15 @@ public:
     /// Pointer definition of Modeler
     KRATOS_CLASS_POINTER_DEFINITION(CreateEntitiesFromGeometriesModeler);
 
+    /// Size type definition
+    using SizeType = std::size_t;
+
+    /// Elements container type
+    using ElementsContainerType = ModelPart::ElementsContainerType;
+
+    /// Conditions container type
+    using ConditionsContainerType = ModelPart::ConditionsContainerType;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -141,18 +150,18 @@ private:
 
     /**
      * @brief Loops through a list of entities.
-     * @tparam TEntityType The type of entity.
+     * @tparam TEntitiesContainerType The entities container type.
      * @param EntitiesList The list of entities.
      */
-    template <class TEntityType>
+    template <class TEntitytiesContainerType>
     void LoopEntitiesList(Parameters EntitiesList);
 
     /**
      * @brief Removes entities from a model part.
-     * @tparam TEntityType The type of entity.
+     * @tparam TEntitiesContainerType The entities container type.
      * @param rModelPart The model part from which entities will be removed.
      */
-    template <class TEntityType>
+    template <class TEntitiesContainerType>
     void RemoveModelPartEntities(ModelPart& rModelPart);
 
     ///@}

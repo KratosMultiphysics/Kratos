@@ -27,29 +27,27 @@ namespace {
 
 /**
  * @brief Create entities from geometries.
- * @param EntityName the name of the entity
+ * @param rEntityIdentifier the entity identifier (@see EntitiesUtilities)
  * @param rModelPart the model part
  */
 template <class TEntitiesContainerType, class TEntityIdentifier>
 void CreateEntitiesFromGeometries(
     const TEntityIdentifier& rEntityIdentifier,
-    ModelPart& rModelPart
-    )
+    ModelPart& rModelPart)
 {
     // Create the entities container and allocate space
     TEntitiesContainerType entities_to_add;
     entities_to_add.reserve(rModelPart.NumberOfGeometries());
 
     // Get current max element id
-    using SizeType = std::size_t;
-    SizeType max_id;
+    std::size_t max_id;
     const auto& r_root_model_part = rModelPart.GetRootModelPart();
     if constexpr (std::is_same<typename TEntitiesContainerType::value_type, Element>::value) {
-        max_id = block_for_each<MaxReduction<SizeType>>(r_root_model_part.Elements(), [](auto& rElement){
+        max_id = block_for_each<MaxReduction<std::size_t>>(r_root_model_part.Elements(), [](auto& rElement){
             return rElement.Id();
         });
     } else if constexpr (std::is_same<typename TEntitiesContainerType::value_type, Condition>::value) {
-        max_id = block_for_each<MaxReduction<SizeType>>(r_root_model_part.Conditions(), [](auto& rCondition){
+        max_id = block_for_each<MaxReduction<std::size_t>>(r_root_model_part.Conditions(), [](auto& rCondition){
             return rCondition.Id();
         });
     }
@@ -75,65 +73,68 @@ void CreateEntitiesFromGeometries(
 
 }
 
-template <>
-void CreateEntitiesFromGeometriesModeler::RemoveModelPartEntities<Element>(ModelPart &rModelPart)
+template <class TEntitiesContainerType>
+void CreateEntitiesFromGeometriesModeler::RemoveModelPartEntities(ModelPart &rModelPart)
 {
-    const SizeType n_elements = rModelPart.NumberOfElements();
-    KRATOS_WARNING_IF("CreateEntitiesFromGeometriesModeler", n_elements != 0)
-        << "There are " << n_elements << " elements in '" << rModelPart.FullName() << "' model part. These are to be removed." << std::endl;
-    VariableUtils().SetFlag(TO_ERASE, true, rModelPart.Elements());
-    rModelPart.RemoveElementsFromAllLevels(TO_ERASE);
-}
+    using EntityType = typename TEntitiesContainerType::value_type;
 
-template <>
-void CreateEntitiesFromGeometriesModeler::RemoveModelPartEntities<Condition>(ModelPart &rModelPart)
-{
-    const SizeType n_conditions = rModelPart.NumberOfConditions();
-    KRATOS_WARNING_IF("CreateEntitiesFromGeometriesModeler", n_conditions != 0)
-        << "There are " << n_conditions << " conditions in '" << rModelPart.FullName() << "' model part. These are to be removed." << std::endl;
-    VariableUtils().SetFlag(TO_ERASE, true, rModelPart.Conditions());
-    rModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
-}
+    // Get number of entities (elements or conditions)
+    SizeType n_entities;
+    std::string entity_name;
+    if constexpr (std::is_same<EntityType, Element>::value) {
+        entity_name = "elements";
+        n_entities = rModelPart.NumberOfElements();
+    } else if constexpr (std::is_same<EntityType, Condition>::value) {
+        entity_name = "conditions";
+        n_entities = rModelPart.NumberOfConditions();
+    }
 
-template <>
-void CreateEntitiesFromGeometriesModeler::LoopEntitiesList<Element>(Parameters EntitiesList)
-{
-    for (auto& r_data : EntitiesList) {
-        // Get model part in which the entities are to be created
-        const std::string& r_model_part_name = r_data["model_part_name"].GetString();
-        auto& r_model_part = mpModel->GetModelPart(r_model_part_name);
+    // Inform the user of the entities to be removed
+    KRATOS_WARNING_IF("CreateEntitiesFromGeometriesModeler", n_entities != 0)
+        << "There are " << n_entities << " " << entity_name << " in '" << rModelPart.FullName() << "' model part. These are to be removed." << std::endl;
 
-        // Get entities substitution list
-        // Note that the entities identifier allow to substitue different geometry types
-        const std::string& r_element_name = r_data["element_name"].GetString();
-        auto entity_identifier = EntitiesUtilities::EntitityIdentifier<Element>(r_element_name);
-
-        // Wipe current model part entities
-        RemoveModelPartEntities<Element>(r_model_part);
-
-        // Create submodelpart elements from geometries
-        CreateEntitiesFromGeometries<ModelPart::ElementsContainerType, EntitiesUtilities::EntitityIdentifier<Element>>(entity_identifier, r_model_part);
+    // Wipe the corresponding container
+    if (n_entities != 0) {
+        if constexpr (std::is_same<EntityType, Element>::value) {
+            VariableUtils().SetFlag(TO_ERASE, true, rModelPart.Elements());
+            rModelPart.RemoveElementsFromAllLevels(TO_ERASE);
+        } else if constexpr (std::is_same<EntityType, Condition>::value) {
+            VariableUtils().SetFlag(TO_ERASE, true, rModelPart.Conditions());
+            rModelPart.RemoveConditionsFromAllLevels(TO_ERASE);
+        }
     }
 }
 
-template <>
-void CreateEntitiesFromGeometriesModeler::LoopEntitiesList<Condition>(Parameters EntitiesList)
+template <class TEntitiesContainerType>
+void CreateEntitiesFromGeometriesModeler::LoopEntitiesList(Parameters EntitiesList)
 {
+    // Get entity type from container type
+    using EntityType = typename TEntitiesContainerType::value_type;
+
+    // Loop the entities to be created list
     for (auto& r_data : EntitiesList) {
         // Get model part in which the entities are to be created
         const std::string& r_model_part_name = r_data["model_part_name"].GetString();
         auto& r_model_part = mpModel->GetModelPart(r_model_part_name);
 
+        // Get the name of the entity
+        std::string entity_name_key;
+        if constexpr (std::is_same<EntityType, Element>::value) {
+            entity_name_key = "element_name";
+        } else if constexpr (std::is_same<EntityType, Condition>::value) {
+            entity_name_key = "condition_name";
+        }
+
         // Get entities substitution list
         // Note that the entities identifier allow to substitue different geometry types
-        const std::string& r_element_name = r_data["condition_name"].GetString();
-        auto entity_identifier = EntitiesUtilities::EntitityIdentifier<Condition>(r_element_name);
+        const std::string& r_entity_name = r_data[entity_name_key].GetString();
+        auto entity_identifier = EntitiesUtilities::EntitityIdentifier<EntityType>(r_entity_name);
 
         // Wipe current model part entities
-        RemoveModelPartEntities<Condition>(r_model_part);
+        RemoveModelPartEntities<TEntitiesContainerType>(r_model_part);
 
-        // Create submodelpart conditions from geometries
-        CreateEntitiesFromGeometries<ModelPart::ConditionsContainerType, EntitiesUtilities::EntitityIdentifier<Condition>>(entity_identifier, r_model_part);
+        // Create submodelpart elements from geometries
+        CreateEntitiesFromGeometries<TEntitiesContainerType, EntitiesUtilities::EntitityIdentifier<EntityType>>(entity_identifier, r_model_part);
     }
 }
 
@@ -151,7 +152,7 @@ void CreateEntitiesFromGeometriesModeler::SetupModelPart()
         << "No elements found in element list." << std::endl;
 
     // Loop the element list to create the correspoding entities
-    LoopEntitiesList<Element>(r_elements_list);
+    LoopEntitiesList<ElementsContainerType>(r_elements_list);
 
     // Get the conditions list from input settings
     const auto& r_conditions_list = mParameters.GetValue("conditions_list");
@@ -160,7 +161,7 @@ void CreateEntitiesFromGeometriesModeler::SetupModelPart()
         << "No conditions found in condition list." << std::endl;
 
     // Loop the condition list to create the correspoding entities
-    LoopEntitiesList<Condition>(r_conditions_list);
+    LoopEntitiesList<ConditionsContainerType>(r_conditions_list);
 }
 
 }  // namespace Kratos.
