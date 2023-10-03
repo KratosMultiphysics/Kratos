@@ -47,7 +47,8 @@ void UPwNormalFluxInterfaceCondition<TDim,TNumNodes>::CalculateRHS( VectorType& 
     array_1d<double,TNumNodes> NormalFluxVector;
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
+        // Multiplied by -1.0 to indicate that positive value = inlet
+        NormalFluxVector[i] = -1.0*Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
     }
     BoundedMatrix<double,TDim,TDim> RotationMatrix;
     const double& InitialJointWidth = this->GetProperties()[INITIAL_JOINT_WIDTH];
