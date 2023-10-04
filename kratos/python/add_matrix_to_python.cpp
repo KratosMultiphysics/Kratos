@@ -75,12 +75,12 @@ namespace Kratos::Python
           KRATOS_ERROR_IF( info.format != py::format_descriptor<double>::value ) << "Expected a double array\n";
           KRATOS_ERROR_IF( info.ndim != 2 ) << "Buffer dimension of 2 is required, got: " << info.ndim << std::endl;
           DenseMatrix<double> matrix = DenseMatrix<double>(info.shape[0], info.shape[1]);
+          std::array<std::size_t,2> strides {info.strides[0] / static_cast<std::size_t>(info.itemsize),
+                                             info.strides[1] / static_cast<std::size_t>(info.itemsize)};
 
-          std::size_t count = 0;
           for( int i=0; i<info.shape[0]; ++i ) {
             for( int j=0; j<info.shape[1]; ++j ) {
-              matrix(i,j) = static_cast<double *>(info.ptr)[count];
-              count++;
+              matrix(i,j) = static_cast<double *>(info.ptr)[i * strides[0] + j * strides[1]];
             }
           }
 

@@ -45,7 +45,8 @@ void UPwNormalFluxCondition<TDim,TNumNodes>::CalculateRHS( VectorType& rRightHan
     array_1d<double,TNumNodes> NormalFluxVector;
     for(unsigned int i=0; i<TNumNodes; i++)
     {
-        NormalFluxVector[i] = Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
+        // Multiplied by -1.0 to indicate that positive value = inlet
+        NormalFluxVector[i] = -1.0*Geom[i].FastGetSolutionStepValue(NORMAL_FLUID_FLUX);
     }
     NormalFluxVariables Variables;
     
