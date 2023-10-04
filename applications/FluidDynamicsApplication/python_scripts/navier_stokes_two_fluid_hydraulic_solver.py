@@ -663,7 +663,7 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
         # Check if the inlet and outl 
         computing_model_part = self.GetComputingModelPart()
         not_boundary_nodes=any([node.Is(boundary) for node in computing_model_part.Nodes])
-        if not_boundary_nodes:
+        if not not_boundary_nodes:
             KratosMultiphysics.Logger.PrintWarning(self.__class__.__name__, name +" condition is not defined in the model part.")
 
 
