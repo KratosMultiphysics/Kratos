@@ -70,7 +70,13 @@ class HRomTrainingUtility(object):
         for model_part_name in initial_candidate_elements_model_part_list:
             if not self.solver.model.HasModelPart(model_part_name):
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
-            this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetElementIdsInModelPart(self.solver.model.GetModelPart(model_part_name))
+            candidate_elements_model_part = self.solver.model.GetModelPart(model_part_name)
+            if candidate_elements_model_part.NumberOfElements() == 0:
+                KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility",
+                    f"The model part named '{model_part_name}' has no associated elements. Fetching the associated neighboring elements to the model part's nodes.")
+                this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIds(self.solver.GetComputingModelPart(), candidate_elements_model_part)
+            else:
+                this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetElementIdsInModelPart(candidate_elements_model_part)
             if len(this_modelpart_element_ids)>0:
                 candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_element_ids)]
 
@@ -83,7 +89,7 @@ class HRomTrainingUtility(object):
                 candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_condition_ids)+number_of_elements]
 
         if np.size(candidate_ids)>0:
-            self.candidate_ids = np.unique(candidate_ids).astype(int) - 1 # this -1 takes into account the id difference in numpy and Kratos
+            self.candidate_ids = np.unique(candidate_ids).astype(int)
         else:
             self.candidate_ids = None
 
@@ -272,7 +278,6 @@ class HRomTrainingUtility(object):
 
                 # Call the GetElementIdsNotInHRomModelPart function
                 new_elements = KratosROM.RomAuxiliaryUtilities.GetElementIdsNotInHRomModelPart(
-                    root_model_part, # The complete model part
                     elements_to_include_model_part, # The model part containing the elements to be included
                     hrom_weights)
 
@@ -291,7 +296,6 @@ class HRomTrainingUtility(object):
 
                 # Call the GetNodalNeighbouringElementIdsNotInHRom function
                 new_nodal_neighbours = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIdsNotInHRom(
-                    root_model_part, # The complete model part
                     nodal_neighbours_model_part, # The model part containing the nodal neighbouring elements to be included
                     hrom_weights)
 
