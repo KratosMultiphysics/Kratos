@@ -56,7 +56,7 @@ private:
 class DummyStrategyWrapper : public StrategyWrapper
 {
 public:
-    DummyStrategyWrapper::DummyStrategyWrapper(bool convergence_needed) :
+    explicit DummyStrategyWrapper::DummyStrategyWrapper(bool convergence_needed) :
         mConvergenceNeeded ( convergence_needed ? TimeStepEndState::ConvergenceState::converged : TimeStepEndState::ConvergenceState::non_converged) {}
     [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState(const TimeStepEndState& rEndState) override { return mConvergenceNeeded;};
     [[nodiscard]] std::size_t                        GetNumberOfIterations()                                const override { return 4;};
