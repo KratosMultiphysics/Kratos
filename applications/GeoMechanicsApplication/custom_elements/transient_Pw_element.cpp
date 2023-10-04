@@ -185,7 +185,6 @@ void TransientPwElement<TDim,TNumNodes>::
     Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-TransientPwElement::Initialize()") << this->Id() << std::endl;
 
     const PropertiesType &Prop = this->GetProperties();
     const GeometryType &Geom = this->GetGeometry();
@@ -213,8 +212,6 @@ void TransientPwElement<TDim,TNumNodes>::
     mIsInitialised = true;
 
     KRATOS_CATCH( "" )
-
-    // KRATOS_INFO("1-TransientPwElement::Initialize()") << std::endl;
 }
 
 //----------------------------------------------------------------------------------------
@@ -223,7 +220,6 @@ int TransientPwElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-TransientPwElement::Check()") << this->Id() << std::endl;
 
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
@@ -302,13 +298,10 @@ int TransientPwElement<TDim,TNumNodes>::
         return mRetentionLawVector[0]->Check( Prop, rCurrentProcessInfo );
     }
 
-    // KRATOS_INFO("1-TransientPwElement::Check()") << std::endl;
-
     return 0;
 
     KRATOS_CATCH( "" );
 }
-
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
@@ -316,7 +309,6 @@ void TransientPwElement<TDim,TNumNodes>::
     InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-TransientPwElement::InitializeSolutionStep()") << this->Id() << std::endl;
 
     if (!mIsInitialised) this->Initialize(rCurrentProcessInfo);
 
@@ -336,10 +328,8 @@ void TransientPwElement<TDim,TNumNodes>::
     // reset hydraulic discharge
     this->ResetHydraulicDischarge();
 
-    // KRATOS_INFO("1-TransientPwElement::InitializeSolutionStep()") << std::endl;
     KRATOS_CATCH("");
 }
-
 
 //----------------------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
@@ -372,7 +362,6 @@ void TransientPwElement<TDim,TNumNodes>::
     FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-TransientPwElement::FinalizeSolutionStep()") << std::endl;
 
     this->CalculateHydraulicDischarge(rCurrentProcessInfo);
 
@@ -389,8 +378,6 @@ void TransientPwElement<TDim,TNumNodes>::
         mRetentionLawVector[GPoint]->FinalizeSolutionStep(RetentionParameters);
     }
 
-    // KRATOS_INFO("1-TransientPwElement::FinalizeSolutionStep()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -402,7 +389,6 @@ void TransientPwElement<TDim,TNumNodes>::
                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-TransientPwElement::CalculateOnIntegrationPoints()") << std::endl;
 
     if (rVariable == DEGREE_OF_SATURATION     ||
         rVariable == EFFECTIVE_SATURATION     ||
@@ -421,8 +407,6 @@ void TransientPwElement<TDim,TNumNodes>::
         std::fill(rOutput.begin(), rOutput.end(), 0.0);
     }
 
-    // KRATOS_INFO("1-TransientPwElement::CalculateOnIntegrationPoints()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -434,7 +418,6 @@ void TransientPwElement<TDim,TNumNodes>::
                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-TransientPwElement::CalculateOnIntegrationPoints<double,3>()") << std::endl;
 
     if (rVariable == FLUID_FLUX_VECTOR) {
         BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
@@ -447,8 +430,6 @@ void TransientPwElement<TDim,TNumNodes>::
         }
     }
 
-    // KRATOS_INFO("1-TransientPwElement::CalculateOnIntegrationPoints<double,3>()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -460,8 +441,6 @@ void TransientPwElement<TDim,TNumNodes>::
                                  const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-TransientPwElement::CalculateOnIntegrationPoints()") << rVariable << std::endl;
-
 
     if (rVariable == PERMEABILITY_MATRIX) {
         BaseType::CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
@@ -474,8 +453,6 @@ void TransientPwElement<TDim,TNumNodes>::
             noalias(rOutput[i]) = ZeroMatrix(TDim,TDim);
         }
     }
-
-    // KRATOS_INFO("1-TransientPwElement::CalculateOnIntegrationPoints()") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -490,7 +467,6 @@ void TransientPwElement<TDim,TNumNodes>::
                   const bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-TransientPwElement::CalculateAll()") << std::endl;
 
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
@@ -539,7 +515,6 @@ void TransientPwElement<TDim,TNumNodes>::
         if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
     }
 
-    // KRATOS_INFO("1-TransientPwElement::CalculateAll()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -550,7 +525,6 @@ void TransientPwElement<TDim,TNumNodes>::
                                 const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-TransientPwElement::InitializeElementVariables()") << std::endl;
 
     //Properties variables
     this->InitializeProperties( rVariables );
@@ -589,8 +563,6 @@ void TransientPwElement<TDim,TNumNodes>::
     rVariables.RelativePermeability = 1.0;
     rVariables.BishopCoefficient = 1.0;
 
-    // KRATOS_INFO("1-TransientPwElement::InitializeElementVariables()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -600,16 +572,12 @@ void TransientPwElement<TDim,TNumNodes>::
     CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-TransientPwElement::CalculateAndAddLHS()") << std::endl;
+
     this->CalculateAndAddCompressibilityMatrix(rLeftHandSideMatrix,rVariables);
-
     this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix,rVariables);
-
-    // KRATOS_INFO("1-TransientPwElement::CalculateAndAddLHS()") << std::endl;
 
     KRATOS_CATCH("");
 }
-
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
@@ -617,7 +585,6 @@ void TransientPwElement<TDim,TNumNodes>::
     CalculateAndAddCompressibilityMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-TransientPwElement::CalculateAndAddCompressibilityMatrix()") << std::endl;
 
     this->CalculateCompressibilityMatrix(rVariables.PMatrix, rVariables);
 
@@ -625,8 +592,6 @@ void TransientPwElement<TDim,TNumNodes>::
     GeoElementUtilities::
         AssemblePBlockMatrix< 0, TNumNodes >(rLeftHandSideMatrix,
                                              rVariables.PMatrix);
-
-    // KRATOS_INFO("1-TransientPwElement::CalculateAndAddCompressibilityMatrix()") << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -638,7 +603,6 @@ void TransientPwElement<TDim,TNumNodes>::
                                       ElementVariables& rVariables)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-TransientPwElement::CalculateAndAddPermeabilityMatrix()") << std::endl;
 
     this->CalculatePermeabilityMatrix(rVariables.PDimMatrix,
                                       rVariables.PMatrix,
@@ -646,8 +610,6 @@ void TransientPwElement<TDim,TNumNodes>::
 
     //Distribute permeability block matrix into the elemental matrix
     GeoElementUtilities::AssemblePBlockMatrix< 0, TNumNodes >(rLeftHandSideMatrix, rVariables.PMatrix);
-
-    // KRATOS_INFO("1-TransientPwElement::CalculateAndAddPermeabilityMatrix()") << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -658,15 +620,10 @@ void TransientPwElement<TDim,TNumNodes>::
     CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-TransientPwElement::CalculateAndAddRHS()") << std::endl;
 
     this->CalculateAndAddCompressibilityFlow(rRightHandSideVector, rVariables);
-
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
-
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
-
-    // KRATOS_INFO("1-TransientPwElement::CalculateAndAddRHS()") << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -678,7 +635,6 @@ void TransientPwElement<TDim,TNumNodes>::
                                      ElementVariables& rVariables )
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-TransientPwElement::CalculateAndAddPermeabilityFlow()") << std::endl;
 
     this->CalculatePermeabilityFlow(rVariables.PDimMatrix,
                                     rVariables.PMatrix,
@@ -688,7 +644,6 @@ void TransientPwElement<TDim,TNumNodes>::
     //Distribute permeability block vector into elemental vector
     GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
 
-    // KRATOS_INFO("1-TransientPwElement::CalculateAndAddPermeabilityFlow()") << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -699,7 +654,6 @@ void TransientPwElement<TDim,TNumNodes>::
                                  ElementVariables& rVariables)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-TransientPwElement::CalculateAndAddFluidBodyFlow()") << std::endl;
 
     this->CalculateFluidBodyFlow(rVariables.PDimMatrix,
                                  rVariables.PVector,
@@ -709,7 +663,6 @@ void TransientPwElement<TDim,TNumNodes>::
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector,rVariables.PVector);
 
-    // KRATOS_INFO("1-TransientPwElement::CalculateAndAddFluidBodyFlow()") << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -720,7 +673,6 @@ void TransientPwElement<TDim,TNumNodes>::
                                         ElementVariables& rVariables )
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-TransientPwElement::CalculateAndAddCompressibilityFlow()") << std::endl;
 
     this->CalculateCompressibilityFlow(rVariables.PMatrix,
                                        rVariables.PVector,
@@ -730,7 +682,6 @@ void TransientPwElement<TDim,TNumNodes>::
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.PVector);
 
-    // KRATOS_INFO("1-TransientPwElement::CalculateAndAddCompressibilityFlow()") << std::endl;
     KRATOS_CATCH("");
 }
 
@@ -742,15 +693,12 @@ void TransientPwElement<TDim,TNumNodes>::
 
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
 
     //Setting the vector of shape functions and the matrix of the shape functions global gradients
     noalias(rVariables.Np) = row(rVariables.NContainer, PointNumber);
     noalias(rVariables.GradNpT) = rVariables.DN_DXContainer[PointNumber];
 
     rVariables.detJ = rVariables.detJContainer[PointNumber];
-
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderElement::CalculateKinematics") << std::endl;
 
     KRATOS_CATCH( "" )
 }

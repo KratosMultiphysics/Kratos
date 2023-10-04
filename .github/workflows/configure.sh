@@ -52,6 +52,7 @@ add_app ${KRATOS_APP_DIR}/GeoMechanicsApplication;
 add_app ${KRATOS_APP_DIR}/DamApplication;
 add_app ${KRATOS_APP_DIR}/PoromechanicsApplication;
 add_app ${KRATOS_APP_DIR}/OptimizationApplication;
+add_app ${KRATOS_APP_DIR}/MedApplication;
 
 # Clean
 clear

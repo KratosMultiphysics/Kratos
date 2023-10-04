@@ -62,7 +62,7 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
         self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(control_field), 0.5, 4)
 
     def test_GetPhysicalField(self):
-        thickness_field = self.thickness_control.GePhysicalField()
+        thickness_field = self.thickness_control.GetPhysicalField()
         self.assertAlmostEqual(KratosOA.ExpressionUtils.NormL2(thickness_field), 0.03, 4)
 
     def test_MapGradient(self):
@@ -78,7 +78,7 @@ class TestShellThicknessControl(kratos_unittest.TestCase):
         Kratos.Expression.LiteralExpressionIO.SetData(update_field, 0.75)
         self.thickness_control.Update(update_field)
         control_field = self.thickness_control.GetControlField()
-        thickness_field = self.thickness_control.GePhysicalField()
+        thickness_field = self.thickness_control.GetPhysicalField()
         self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(control_field), 0.75, 4)
         self.assertAlmostEqual(KratosOA.ExpressionUtils.NormInf(thickness_field), 0.019999962733607157, 10)
 

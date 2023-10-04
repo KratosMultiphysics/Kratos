@@ -234,7 +234,7 @@ four_levels_defaults = """{
 json_with_includes = """
 {
    "bool_value" : true, "double_value": 2.0, "int_value" : 10,
-   "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/test_included_parameters.json"
+   "@include_json" : "test_utilities/test_included_parameters.json"
 }
 """
 
@@ -243,7 +243,7 @@ more_levels_json_with_includes = """
    "bool_value" : true, "double_value": 2.0, "int_value" : 10,
    "level1":
    {
-     "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/more_levels_test_included_parameters.json"
+     "@include_json" : "test_utilities/more_levels_test_included_parameters.json"
    },
    "string_value" : "hello"
 }
@@ -254,10 +254,10 @@ vector_json_with_includes = """
    "bool_value" : true, "double_value": 2.0, "int_value" : 10,
    "level1": [
     {
-         "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/more_levels_test_included_parameters.json",
+         "@include_json" : "test_utilities/more_levels_test_included_parameters.json",
          "vector": [
             {
-                "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/more_levels_test_included_parameters.json"
+                "@include_json" : "test_utilities/more_levels_test_included_parameters.json"
             }
          ]
     },
@@ -265,7 +265,7 @@ vector_json_with_includes = """
         "hello": 0
     },
     {
-         "@include_json" : "cpp_tests/auxiliar_files_for_cpp_unnitest/more_levels_test_included_parameters.json"
+         "@include_json" : "test_utilities/more_levels_test_included_parameters.json"
     }
    ],
    "string_value" : "hello"
