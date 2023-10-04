@@ -30,4 +30,13 @@ KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenPrescribedTimeIncrementorHasEmptyLis
     KRATOS_EXPECT_FALSE(incrementor.WantNextStep(previous_state));
 }
 
+KRATOS_TEST_CASE_IN_SUITE(WantFirstTimeStepWhenPrescribedTimeIncrementorHasNonEmptyList, KratosGeoMechanicsFastSuite)
+{
+    std::vector<double> increments{0.4, 0.6};
+    PrescribedTimeIncrementor incrementor{increments};
+    TimeStepEndState previous_state;
+
+    KRATOS_EXPECT_TRUE(incrementor.WantNextStep(previous_state));
+}
+
 }
