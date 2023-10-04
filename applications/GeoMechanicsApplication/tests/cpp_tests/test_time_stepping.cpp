@@ -28,8 +28,8 @@ public:
     void ExecuteInitializeSolutionStep() override {++mSolutionStepInitializedCalls;}
     void ExecuteFinalizeSolutionStep()   override {++mSolutionStepFinalizedCalls;}
 
-    unsigned int NumberOfExecuteInitializeSolutionStepCalls() const {return mSolutionStepInitializedCalls;}
-    unsigned int NumberOfExecuteFinalizeSolutionStepCalls()   const {return mSolutionStepFinalizedCalls;}
+    [[nodiscard]] unsigned int NumberOfExecuteInitializeSolutionStepCalls() const {return mSolutionStepInitializedCalls;}
+    [[nodiscard]] unsigned int NumberOfExecuteFinalizeSolutionStepCalls()   const {return mSolutionStepFinalizedCalls;}
 
 private:
     unsigned int mSolutionStepInitializedCalls = 0;
@@ -39,7 +39,7 @@ private:
 class DummyStrategyWrapper : public StrategyWrapper
 {
 public:
-    explicit DummyStrategyWrapper::DummyStrategyWrapper(TimeStepEndState::ConvergenceState ConvergenceState) :
+    explicit DummyStrategyWrapper(TimeStepEndState::ConvergenceState ConvergenceState) :
         mConvergenceState( ConvergenceState ) {}
     [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()         override { return mConvergenceState;};
     [[nodiscard]] std::size_t                        GetNumberOfIterations() const override { return 4;};
@@ -50,11 +50,11 @@ public:
     bool SolveSolutionStep()      override {++mSolverStrategySolveSolutionsStepCalls;
                                             return true;}
     void FinalizeSolutionStep()   override {++mSolverStrategyFinalizeSolutionStepCalls;}
-    unsigned int NumberOfSolverStrategyInitializeCalls()             const {return mSolverStrategyInitializeCalls;}
-    unsigned int NumberOfSolverStrategyInitializeSolutionStepCalls() const {return mSolverStrategyInitializeSolutionStepCalls;}
-    unsigned int NumberOfSolverStrategyPredictCalls()                const {return mSolverStrategyPredictCalls;}
-    unsigned int NumberOfSolverStrategySolveSolutionStepCalls()      const {return mSolverStrategySolveSolutionsStepCalls;}
-    unsigned int NumberOfSolverStrategyFinalizeSolutionStepCalls()   const {return mSolverStrategyFinalizeSolutionStepCalls;}
+    [[nodiscard]] unsigned int NumberOfSolverStrategyInitializeCalls()             const {return mSolverStrategyInitializeCalls;}
+    [[nodiscard]] unsigned int NumberOfSolverStrategyInitializeSolutionStepCalls() const {return mSolverStrategyInitializeSolutionStepCalls;}
+    [[nodiscard]] unsigned int NumberOfSolverStrategyPredictCalls()                const {return mSolverStrategyPredictCalls;}
+    [[nodiscard]] unsigned int NumberOfSolverStrategySolveSolutionStepCalls()      const {return mSolverStrategySolveSolutionsStepCalls;}
+    [[nodiscard]] unsigned int NumberOfSolverStrategyFinalizeSolutionStepCalls()   const {return mSolverStrategyFinalizeSolutionStepCalls;}
 
 private:
     TimeStepEndState::ConvergenceState mConvergenceState;
