@@ -79,7 +79,7 @@ public:
 
     /// Key type for searching in this container.
     typedef typename std::remove_reference<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>::type key_type;
-	
+    
     // Data type stored in this container.
     using data_type = TDataType;
     using value_type = TDataType;
@@ -123,7 +123,7 @@ public:
     for (; First != Last; ++First)
         insert(begin(), *First);
     }
-    
+
     /**
      * @brief Copy constructor for PointerVectorSet.
      * @param rOther The PointerVectorSet to copy from.
@@ -159,10 +159,10 @@ public:
     {
         mData = rOther.mData;
         mSortedPartSize = rOther.mSortedPartSize;
-    
+
         return *this;
     }
-    
+
     /**
      * @brief Accesses an element by key and returns a reference.
      * @details This operator allows you to access an element in the PointerVectorSet by its key. If the key is not found,
@@ -173,27 +173,27 @@ public:
     TDataType& operator[](const key_type& Key)
     {
         ptr_iterator sorted_part_end;
-    
+
         if (mData.size() - mSortedPartSize >= mMaxBufferSize) {
             Sort();
             sorted_part_end = mData.end();
         } else {
             sorted_part_end = mData.begin() + mSortedPartSize;
         }
-    
+
         ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
         if (i == sorted_part_end) {
             mSortedPartSize++;
             return **mData.insert(sorted_part_end, TPointerType(new TDataType(Key)));
         }
-    
+
         if (!EqualKeyTo(Key)(*i)) {
             if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end()) {
                 mData.push_back(TPointerType(new TDataType(Key)));
                 return **(mData.end() - 1);
             }
         }
-    
+
         return **i;
     }
 
@@ -208,28 +208,28 @@ public:
     pointer& operator()(const key_type& Key)
     {
         ptr_iterator sorted_part_end;
-    
+
         if (mData.size() - mSortedPartSize >= mMaxBufferSize) {
             Sort();
             sorted_part_end = mData.end();
         } else
             sorted_part_end = mData.begin() + mSortedPartSize;
-    
+
         ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
         if (i == sorted_part_end) {
             mSortedPartSize++;
             return *mData.insert(sorted_part_end, TPointerType(new TDataType(Key)));
         }
-    
+
         if (!EqualKeyTo(Key)(*i))
             if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end()) {
                 mData.push_back(TPointerType(new TDataType(Key)));
                 return *(mData.end() - 1);
             }
-    
+
         return *i;
     }
-    
+
     /**
      * @brief Equality comparison operator for two PointerVectorSet objects.
      * @details This operator checks if two PointerVectorSet objects are equal by comparing their sizes
@@ -244,7 +244,7 @@ public:
         else
             return std::equal(mData.begin(), mData.end(), r.mData.begin(), EqualKeyTo());
     }
-    
+
     /**
      * @brief Less than comparison operator for two PointerVectorSet objects.
      * @details This operator checks if one PointerVectorSet is less than another by comparing their
@@ -396,7 +396,7 @@ public:
         std::swap(mMaxBufferSize, rOther.mMaxBufferSize);
         mData.swap(rOther.mData);
     }
-    
+
     /**
      * @brief Adds a pointer to the end of the set.
      * @details This function appends a given pointer to the end of the set.
@@ -406,7 +406,7 @@ public:
     {
         mData.push_back(x);
     }
-    
+
     /**
      * @brief Removes the last element from the set.
      * @details This function removes the last element (pointer) from the set and updates mSortedPartSize
@@ -418,7 +418,7 @@ public:
         if (mSortedPartSize > mData.size())
             mSortedPartSize = mData.size();
     }
-    
+
     /**
      * @brief Inserts a pointer at the specified position.
      * @details This function inserts a given pointer at the specified position in the set. It also maintains
@@ -430,27 +430,27 @@ public:
     iterator insert(iterator Position, const TPointerType pData)
     {
         ptr_iterator sorted_part_end;
-    
+
         key_type key = KeyOf(*pData);
-    
+
         if (mData.size() - mSortedPartSize >= mMaxBufferSize) {
             Sort();
             sorted_part_end = mData.end();
         } else
             sorted_part_end = mData.begin() + mSortedPartSize;
-    
+
         ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, key, CompareKey()));
         if (i == sorted_part_end) {
             mSortedPartSize++;
             return mData.insert(sorted_part_end, pData);
         }
-    
+
         if (!EqualKeyTo(key)(*i))
             if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(key))) == mData.end()) {
                 mData.push_back(pData);
                 return iterator(mData.end() - 1);
             }
-    
+
         *i = pData;
         return i;
     }
@@ -468,7 +468,7 @@ public:
         for (; First != Last; ++First)
             insert(begin(), *First);
     }
-    
+
     /**
      * @brief Erase an element at the specified position.
      * @details This function erases the element at the specified position and updates `mSortedPartSize`
@@ -486,7 +486,7 @@ public:
         mSortedPartSize = mData.size();
         return new_end;
     }
-    
+
     /**
      * @brief Erase a range of elements defined by iterators.
      * @details This function erases a range of elements defined by the iterators `first` and `last`
@@ -502,7 +502,7 @@ public:
         mSortedPartSize = mData.size();
         return new_end;
     }
-    
+
     /**
      * @brief Erase an element with the specified key.
      * @details This function erases an element with the specified key by first finding the element using
@@ -515,7 +515,7 @@ public:
     {
         return erase(find(k));
     }
-    
+
     /**
      * @brief Clear the set, removing all elements.
      * @details This function clears the set by removing all elements, resetting `mSortedPartSize` to zero,
@@ -528,7 +528,7 @@ public:
         mMaxBufferSize = 1;
     }
 
-	/**
+    /**
      * @brief Find an element with the specified key.
      * @details This function searches for an element with the specified key in the set. If the element is found,
      * it returns an iterator to the found element. If the element is not found, it returns an iterator
@@ -539,21 +539,21 @@ public:
     iterator find(const key_type& Key)
     {
         ptr_iterator sorted_part_end;
-    
+
         if (mData.size() - mSortedPartSize >= mMaxBufferSize) {
             Sort();
             sorted_part_end = mData.end();
         } else
             sorted_part_end = mData.begin() + mSortedPartSize;
-    
+
         ptr_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
         if (i == sorted_part_end || (!EqualKeyTo(Key)(*i)))
             if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
                 return mData.end();
-    
+
         return i;
     }
-    
+
     /**
      * @brief Find an element with the specified key (const version).
      * @details This function is a const version of find() and searches for an element with the specified key
@@ -565,15 +565,15 @@ public:
     const_iterator find(const key_type& Key) const
     {
         ptr_const_iterator sorted_part_end(mData.begin() + mSortedPartSize);
-    
+
         ptr_const_iterator i(std::lower_bound(mData.begin(), sorted_part_end, Key, CompareKey()));
         if (i == sorted_part_end || (!EqualKeyTo(Key)(*i)))
             if ((i = std::find_if(sorted_part_end, mData.end(), EqualKeyTo(Key))) == mData.end())
                 return mData.end();
-    
+
         return const_iterator(i);
     }
-    
+
     /**
      * @brief Count the number of elements with the specified key.
      * @details This function counts the number of elements with the specified key in the set. It returns 1
@@ -585,7 +585,7 @@ public:
     {
         return find(Key) == mData.end() ? 0 : 1;
     }
-    
+
     /**
      * @brief Reserves memory for a specified number of elements.
      * @details This function reserves memory in the underlying data container for a specified number of elements.
@@ -595,7 +595,7 @@ public:
     {
         mData.reserve(reservedsize);
     }
-    
+
     /**
      * @brief Get the current capacity of the underlying data container.
      * @details This function returns the current capacity of the underlying data container.
@@ -605,7 +605,7 @@ public:
     {
         return mData.capacity();
     }
-    
+
     /**
      * @brief Sort the elements in the set.
      * @details This function sorts the elements in the set using the CompareKey comparison function. After sorting,
@@ -616,7 +616,7 @@ public:
         std::sort(mData.begin(), mData.end(), CompareKey());
         mSortedPartSize = mData.size();
     }
-    
+
     /**
      * @brief Remove duplicate elements from the set.
      * @details This function removes duplicate elements from the set using the EqualKeyTo comparison function. After
