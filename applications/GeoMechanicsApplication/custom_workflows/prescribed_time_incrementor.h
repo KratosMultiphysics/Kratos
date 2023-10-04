@@ -33,7 +33,8 @@ public:
     void PostTimeStepExecution(const TimeStepEndState& rResultantState) override;
 
 private:
-    std::vector<double> mIncrements;
+    std::vector<double>                 mIncrements;
+    std::vector<double>::const_iterator mPos;
 };
 
 }
