@@ -28,12 +28,14 @@ ASGS_stabilization = True           # Consider ASGS stabilization terms
 formulation = "WeaklyCompressibleNavierStokes" # Element type. Options: "WeaklyCompressibleNavierStokes", "Stokes"
 
 if formulation == "WeaklyCompressibleNavierStokes":
+    darcy_term = True
     convective_term = True
     artificial_compressibility = True
     linearisation = "Picard" # Convective term linearisation type. Options: "Picard", "FullNR"
     output_filename = "weakly_compressible_navier_stokes.cpp"
     template_filename = "weakly_compressible_navier_stokes_cpp_template.cpp"
 elif formulation == "Stokes":
+    darcy_term = False
     convective_term = False
     artificial_compressibility = False
     output_filename = "symbolic_stokes.cpp"
@@ -52,14 +54,14 @@ info_msg += "\t - Divide mass conservation by rho: " + str(divide_by_rho) + "\n"
 print(info_msg)
 
 #TODO: DO ALL ELEMENT TYPES FOR N-S TOO
-if formulation == "NavierStokes" or formulation == "WeaklyCompressibleNavierStokes":
-    if (dim_to_compute == "2D"):
+if formulation == "WeaklyCompressibleNavierStokes":
+    if dim_to_compute == "2D":
         dim_vector = [2]
         nnodes_vector = [3] # tria
-    elif (dim_to_compute == "3D"):
+    elif dim_to_compute == "3D":
         dim_vector = [3]
         nnodes_vector = [4] # tet
-    elif (dim_to_compute == "Both"):
+    elif dim_to_compute == "Both":
         dim_vector = [2, 3]
         nnodes_vector = [3, 4] # tria, tet
 elif formulation == "Stokes":
@@ -81,9 +83,9 @@ outstring = templatefile.read()
 
 for dim, nnodes in zip(dim_vector, nnodes_vector):
 
-    if(dim == 2):
+    if dim == 2:
         strain_size = 3
-    elif(dim == 3):
+    elif dim == 3:
         strain_size = 6
 
     impose_partion_of_unity = False
@@ -124,13 +126,17 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     stress = DefineVector('stress',strain_size)
 
     ## Other simbols definition
-    dt  = sympy.Symbol('dt', positive = True)         # Time increment
-    nu  = sympy.Symbol('nu', positive = True)         # Kinematic viscosity (mu/rho)
-    mu  = sympy.Symbol('mu', positive = True)         # Dynamic viscosity
+    dt = sympy.Symbol('dt', positive = True)         # Time increment
+    mu = sympy.Symbol('mu', positive = True)         # Dynamic viscosity
     h = sympy.Symbol('h', positive = True)
     dyn_tau = sympy.Symbol('dyn_tau', positive = True)
     stab_c1 = sympy.Symbol('stab_c1', positive = True)
     stab_c2 = sympy.Symbol('stab_c2', positive = True)
+    gauss_weight = sympy.Symbol('gauss_weight', positive = True)
+
+    ## Symbols for Darcy term
+    sigma = sympy.Symbol('sigma', positive = True) if darcy_term else 0.0 # Resistance (permeability inverse, 1/m^2)
+    stab_c3 = sympy.Symbol('stab_c3', positive = True) if darcy_term else 0.0 # Darcy term stabilization constant
 
     ## Backward differences coefficients
     bdf0 = sympy.Symbol('bdf0')
@@ -158,11 +164,11 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
         for i in range(0, dim):
             stab_norm_a += vconv_gauss[i]**2
         stab_norm_a = sympy.sqrt(stab_norm_a)
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c2*rho*stab_norm_a)/h + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
-        tau2 = mu + (stab_c2*rho*stab_norm_a*h)/stab_c1                                  # Stabilization parameter 2
+        tau1 = 1.0/(rho*dyn_tau/dt + stab_c2*rho*stab_norm_a/h + stab_c1*mu/h**2 + stab_c3*sigma/h**2) # Stabilization parameter 1
+        tau2 = mu + (stab_c2*rho*stab_norm_a*h + stab_c3*sigma)/stab_c1                                # Stabilization parameter 2
     else:
-        tau1 = 1.0/((rho*dyn_tau)/dt + (stab_c1*mu)/(h*h)) # Stabilization parameter 1
-        tau2 = (h*h) / (stab_c1 * tau1)                    # Stabilization parameter 2
+        tau1 = 1.0/(rho*dyn_tau/dt + stab_c1*mu/h**2 + stab_c3*sigma/h**2) # Stabilization parameter 1
+        tau2 = mu + stab_c3*sigma/stab_c1                                  # Stabilization parameter 2
 
     ## Compute the rest of magnitudes at the Gauss points
     accel_gauss = (bdf0*v + bdf1*vn + bdf2*vnn).transpose()*N
@@ -189,7 +195,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     grad_sym_v = grad_sym_voigtform(DN,v)       # Symmetric gradient of v in Voigt notation
     grad_w_voigt = grad_sym_voigtform(DN,w)     # Symmetric gradient of w in Voigt notation
-    # Recall that the grad(w):sigma contraction equals grad_sym(w)*sigma in Voigt notation since sigma is a symmetric tensor.
+    # Recall that the grad(w):stress contraction equals grad_sym(w)*stress in Voigt notation since the stress is a symmetric tensor.
 
     # Convective term definition
     if convective_term:
@@ -198,8 +204,8 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
 
     ## Compute galerkin functional
     # Navier-Stokes functional
-    if (divide_by_rho):
-        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - q_gauss*div_v
+    if divide_by_rho:
+        rv_galerkin = rho*w_gauss.transpose()*f_gauss - rho*w_gauss.transpose()*accel_gauss - grad_w_voigt.transpose()*stress + div_w*p_gauss - sigma*w_gauss.transpose()*v_gauss - q_gauss*div_v
         if artificial_compressibility:
             rv_galerkin -= (1/(rho*c*c))*q_gauss*pder_gauss
             if convective_term:
@@ -218,12 +224,12 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ##  Stabilization functional terms
     # Momentum conservation residual
     # Note that the viscous stress term is dropped since linear elements are used
-    vel_residual = rho*f_gauss - rho*accel_gauss - grad_p
+    vel_residual = rho*f_gauss - rho*accel_gauss - grad_p - sigma*v_gauss
     if convective_term:
         vel_residual -= rho*convective_term_gauss.transpose()
 
     # Mass conservation residual
-    if (divide_by_rho):
+    if divide_by_rho:
         mas_residual = -div_v
         if artificial_compressibility:
             mas_residual -= (1/(rho*c*c))*pder_gauss
@@ -240,17 +246,18 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     mas_subscale = tau2*mas_residual
 
     # Compute the ASGS stabilization terms using the momentum and mass conservation residuals above
-    if (divide_by_rho):
+    if divide_by_rho:
         rv_stab = grad_q.transpose()*vel_subscale
     else:
         rv_stab = rho*grad_q.transpose()*vel_subscale
     if convective_term:
         rv_stab += rho*vconv_gauss.transpose()*grad_w*vel_subscale
         rv_stab += rho*div_vconv*w_gauss.transpose()*vel_subscale
+    rv_stab -= sigma*w_gauss.transpose()*vel_subscale
     rv_stab += div_w*mas_subscale
 
     ## Add the stabilization terms to the original residual terms
-    if (ASGS_stabilization):
+    if ASGS_stabilization:
         rv = rv_galerkin + rv_stab
     else:
         rv = rv_galerkin
@@ -259,7 +266,7 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     dofs = sympy.zeros(nnodes*(dim+1), 1)
     testfunc = sympy.zeros(nnodes*(dim+1), 1)
 
-    for i in range(0,nnodes):
+    for i in range(nnodes):
 
         # Velocity DOFs and test functions
         for k in range(0,dim):
@@ -273,22 +280,22 @@ for dim, nnodes in zip(dim_vector, nnodes_vector):
     ## Compute LHS and RHS
     # For the RHS computation one wants the residual of the previous iteration (residual based formulation). By this reason the stress is
     # included as a symbolic variable, which is assumed to be passed as an argument from the previous iteration database.
-    print("Computing " + str(dim) + "D RHS Gauss point contribution\n")
+    print(f"Computing {dim}D{nnodes}N RHS Gauss point contribution\n")
     rhs = Compute_RHS(rv.copy(), testfunc, do_simplifications)
-    rhs_out = OutputVector_CollectingFactors(rhs, "rhs", mode)
+    rhs_out = OutputVector_CollectingFactors(gauss_weight*rhs, "rRHS", mode, assignment_op='+=')
 
     # Compute LHS (RHS(residual) differenctiation w.r.t. the DOFs)
     # Note that the 'stress' (symbolic variable) is substituted by 'C*grad_sym_v' for the LHS differenctiation. Otherwise the velocity terms
     # within the velocity symmetryc gradient would not be considered in the differenctiation, meaning that the stress would be considered as
     # a velocity independent constant in the LHS.
-    print("Computing " + str(dim) + "D LHS Gauss point contribution\n")
+    print(f"Computing {dim}D{nnodes}N LHS Gauss point contribution\n")
     SubstituteMatrixValue(rhs, stress, C*grad_sym_v)
     lhs = Compute_LHS(rhs, testfunc, dofs, do_simplifications) # Compute the LHS (considering stress as C*(B*v) to derive w.r.t. v)
-    lhs_out = OutputMatrix_CollectingFactors(lhs, "lhs", mode)
+    lhs_out = OutputMatrix_CollectingFactors(gauss_weight*lhs, "rLHS", mode, assignment_op='+=')
 
     ## Replace the computed RHS and LHS in the template outstring
-    outstring = outstring.replace("//substitute_lhs_" + str(dim) + 'D' + str(nnodes) + 'N', lhs_out)
-    outstring = outstring.replace("//substitute_rhs_" + str(dim) + 'D' + str(nnodes) + 'N', rhs_out)
+    outstring = outstring.replace(f"//substitute_lhs_{dim}D{nnodes}N", lhs_out)
+    outstring = outstring.replace(f"//substitute_rhs_{dim}D{nnodes}N", rhs_out)
 
 ## Write the modified template
 print("Writing output file \'" + output_filename + "\'")
