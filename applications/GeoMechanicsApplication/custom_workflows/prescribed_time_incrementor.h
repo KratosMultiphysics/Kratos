@@ -31,6 +31,9 @@ public:
                                      const TimeStepEndState& rPreviousState) const override;
     [[nodiscard]] double GetIncrement() const override;
     void PostTimeStepExecution(const TimeStepEndState& rResultantState) override;
+
+private:
+    std::vector<double> mIncrements;
 };
 
 }

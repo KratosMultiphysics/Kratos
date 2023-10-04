@@ -18,11 +18,12 @@ namespace Kratos
 {
 
 PrescribedTimeIncrementor::PrescribedTimeIncrementor(const std::vector<double>& increments)
+    : mIncrements(increments)
 {}
 
 bool PrescribedTimeIncrementor::WantNextStep(const Kratos::TimeStepEndState& rPreviousState) const
 {
-    return false;
+    return !mIncrements.empty();
 }
 
 bool PrescribedTimeIncrementor::WantRetryStep(std::size_t             CycleNumber,
