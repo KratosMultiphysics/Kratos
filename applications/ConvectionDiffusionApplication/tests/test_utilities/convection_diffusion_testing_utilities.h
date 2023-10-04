@@ -65,7 +65,7 @@ public:
     ///@name Operations
     ///@{
 
-    static void SetEulerianConvectionDiffusionElementTestModelPart(ModelPart &rModelPart);
+    static void SetEntityUnitTestModelPart(ModelPart &rModelPart);
 
     ///@}
     ///@name Access

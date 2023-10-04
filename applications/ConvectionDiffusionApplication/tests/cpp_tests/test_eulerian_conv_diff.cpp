@@ -30,7 +30,7 @@ namespace Kratos::Testing
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        ConvectionDiffusionTestingUtilities::SetEulerianConvectionDiffusionElementTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
 
         // Fill the process info container
         auto &r_process_info = r_test_model_part.GetProcessInfo();
@@ -82,7 +82,7 @@ namespace Kratos::Testing
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        ConvectionDiffusionTestingUtilities::SetEulerianConvectionDiffusionElementTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
 
         // Fill the process info container
         auto &r_process_info = r_test_model_part.GetProcessInfo();
@@ -137,7 +137,7 @@ namespace Kratos::Testing
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        ConvectionDiffusionTestingUtilities::SetEulerianConvectionDiffusionElementTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
 
         // Fill the process info container
         auto &r_process_info = r_test_model_part.GetProcessInfo();
@@ -199,7 +199,7 @@ namespace Kratos::Testing
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        ConvectionDiffusionTestingUtilities::SetEulerianConvectionDiffusionElementTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
 
         // Fill the process info container
         auto &r_process_info = r_test_model_part.GetProcessInfo();
