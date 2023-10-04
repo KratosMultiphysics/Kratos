@@ -48,7 +48,7 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
 
     TimeStepEndState result;
     result.time              = Time;
-    result.convergence_state = mStrategyWrapper->GetConvergenceState(result);
+    result.convergence_state = mStrategyWrapper->GetConvergenceState();
     result.num_of_iterations = mStrategyWrapper->GetNumberOfIterations();
     return result;
 }
