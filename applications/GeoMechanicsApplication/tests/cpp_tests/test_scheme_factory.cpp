@@ -33,7 +33,6 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSolutionTypeIsUndefined, Krato
     }
     )";
 
-
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(factory.Create(Parameters{parameters}),
                                       "scheme_type is not defined, aborting")
 }
