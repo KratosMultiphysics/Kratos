@@ -165,7 +165,7 @@ KRATOS_TEST_CASE_IN_SUITE(TimeStepExecutionReturnsNumberOfIterations, KratosGeoM
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(true);
     executor.SetSolverStrategy(converging_strategy);
     const auto time = 2.0;
-    KRATOS_EXPECT_EQ(4, executor.Run(time).number_of_nonlinear_iterations);
+    KRATOS_EXPECT_EQ(4, executor.Run(time).num_of_iterations);
 }
 
 }
