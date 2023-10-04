@@ -8,13 +8,11 @@ from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from pathlib import Path
 
 
-
 def GetMedPath(med_path, med_name="mesh.med"):
     return Path(__file__).absolute().parent / "med_files" / med_path / med_name
 
 
 class TestMedModelPartIO(KratosUnittest.TestCase):
-
     def setUp(self):
         self.model = KM.Model()
         self.mp_read_1 = self.model.CreateModelPart("read_1")
@@ -29,8 +27,8 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
 
         with self.subTest("read_write_read"):
             med_temp_path = GetMedPath(med_path, "temp.med")
-            DeleteFileIfExisting(med_temp_path) # make sure there are no leftovers from previous tests
-            self.addCleanup(DeleteFileIfExisting, med_temp_path) # clean up after test
+            DeleteFileIfExisting(med_temp_path)  # make sure there are no leftovers from previous tests
+            self.addCleanup(DeleteFileIfExisting, med_temp_path)  # clean up after test
 
             med_io_write = KratosMed.MedModelPartIO(med_temp_path, KM.IO.WRITE)
             med_io_write.WriteModelPart(self.mp_read_1)
@@ -50,9 +48,7 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 4)
 
-            exp_coords = [
-                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
-            ]
+            exp_coords = [(0, 0, 0), (0, 0, 1), (0, 1, 1), (1, 1, 1)]
 
             for coords, node in zip(exp_coords, model_part.Nodes):
                 self.assertAlmostEqual(node.X, coords[0])
@@ -113,5 +109,5 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         raise NotImplementedError
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     KratosUnittest.main()

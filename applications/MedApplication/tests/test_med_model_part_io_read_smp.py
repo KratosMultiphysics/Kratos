@@ -13,7 +13,6 @@ def GetMedPath(med_path, med_name="mesh.med"):
 
 
 class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
-
     def test_cube_with_groups(self):
         model: KM.Model = KM.Model()
         model_part: KM.ModelPart = model.CreateModelPart("test")
@@ -72,11 +71,7 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
             self.assertIsInstance(geom, KM.Triangle3D3)
 
         # check how many geoms of each type
-        exp_geoms: Dict[Any, int] = {
-            KM.Tetrahedra3D4: 386,
-            KM.Triangle3D3: 210,
-            KM.Line3D2: 48
-        }
+        exp_geoms: Dict[Any, int] = {KM.Tetrahedra3D4: 386, KM.Triangle3D3: 210, KM.Line3D2: 48}
         self.assertEqual(sum(exp_geoms.values()), 644)
         self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
@@ -164,11 +159,7 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
             self.assertIsInstance(geom, KM.Line3D2)
 
         # check how many geoms of each type
-        exp_geoms: Dict[Any, int] = {
-            KM.Tetrahedra3D4: 94,
-            KM.Triangle3D3: 96,
-            KM.Line3D2: 36
-        }
+        exp_geoms: Dict[Any, int] = {KM.Tetrahedra3D4: 94, KM.Triangle3D3: 96, KM.Line3D2: 36}
         self.assertEqual(sum(exp_geoms.values()), 226)
         self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
@@ -295,7 +286,8 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
             smp_face_2.Geometries,
             smp_boundary.Geometries,
             ssmp_boundary_top.Geometries,
-            ssmp_boundary_bottom.Geometries):
+            ssmp_boundary_bottom.Geometries,
+        ):
             self.assertIsInstance(geom, KM.Triangle3D3)
 
         # check that the correct geoms (3D lines) are in the smp
@@ -303,11 +295,7 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
             self.assertIsInstance(geom, KM.Line3D2)
 
         # check how many geoms of each type
-        exp_geoms: Dict[Any, int] = {
-            KM.Tetrahedra3D4: 94,
-            KM.Triangle3D3: 96,
-            KM.Line3D2: 36
-        }
+        exp_geoms: Dict[Any, int] = {KM.Tetrahedra3D4: 94, KM.Triangle3D3: 96, KM.Line3D2: 36}
         self.assertEqual(sum(exp_geoms.values()), 226)
         self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
@@ -318,11 +306,11 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
 
         # check increasing node Ids
         for i, node in enumerate(model_part.Nodes):
-            self.assertEqual(node.Id, i+1)
+            self.assertEqual(node.Id, i + 1)
 
         # check geometries have correct Ids
         # Note: Geometries are not ordered, thus cannot check like nodes
-        self.assertEqual(set(get_geometry_ids(model_part)), set(range(1, model_part.NumberOfGeometries()+1)))
+        self.assertEqual(set(get_geometry_ids(model_part)), set(range(1, model_part.NumberOfGeometries() + 1)))
 
         # check that the entities are unique in the ModelParts
         self._check_unique_nodes(model_part)
@@ -385,5 +373,6 @@ def get_geom_node_ids(model_part: KM.ModelPart) -> List[int]:
             node_ids.append(node.Id)
     return node_ids
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     KratosUnittest.main()
