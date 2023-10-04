@@ -28,6 +28,8 @@
 
 
 #include "custom_processes/ed_reinitialization_process.h"
+#include "custom_processes/droplet_dynamics_distance_smoothing_process.h"
+#include "custom_processes/contact_angle_evaluator.h"
 
 namespace Kratos
 {
@@ -60,6 +62,22 @@ void AddCustomProcessesToPython(pybind11::module& m)
     // .def(py::init< ModelPart&, Parameters >())
     // .def(py::init< Model&, Parameters >())
     // ;
+
+    py::class_<DropletDynamicsDistanceSmoothingProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>, DropletDynamicsDistanceSmoothingProcess<2,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"DropletDynamicsDistanceSmoothingProcess2D")
+    .def(py::init< ModelPart&, LinearSolverType::Pointer >())
+    .def(py::init< ModelPart&, Parameters >())
+    .def(py::init< Model&, Parameters >())
+    ;
+
+    py::class_<DropletDynamicsDistanceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>, DropletDynamicsDistanceSmoothingProcess<3,SparseSpaceType,LocalSpaceType,LinearSolverType>::Pointer, Process>(m,"DropletDynamicsDistanceSmoothingProcess3D")
+    .def(py::init< ModelPart&, LinearSolverType::Pointer >())
+    .def(py::init< ModelPart&, Parameters >())
+    .def(py::init< Model&, Parameters >())
+    ;
+
+    py::class_<ContactAngleEvaluator, ContactAngleEvaluator::Pointer, Process>(m,"ContactAngleEvaluatorProcess")
+    .def(py::init<ModelPart&>())
+    ;
 
 }
 

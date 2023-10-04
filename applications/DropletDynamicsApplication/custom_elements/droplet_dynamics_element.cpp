@@ -2260,7 +2260,7 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
 
                 // u_dot_n += rIntShapeFunctions(intgp,i)*rData.Velocity(i,dim)*(rIntNormalsNeg[intgp])[dim];
             }
-            u_dot_n += rIntShapeFunctions(intgp,i)*(*p_geom)[i].GetValue(DISTANCE_AUX2);
+            u_dot_n += rIntShapeFunctions(intgp,i)*(*p_geom)[i].FastGetSolutionStepValue(DISTANCE_AUX2);
         }
         u_dot_n /= rData.DeltaTime;
 
@@ -2344,7 +2344,7 @@ void DropletDynamicsElement<TElementData>::SurfaceTension(
                             (*p_geom)[j].FastGetSolutionStepValue(CONTACT_ANGLE);
 
                 distance_diff_gp += (rCLShapeFunctions[i_cl])(clgp,j)*
-                            ((*p_geom)[j].FastGetSolutionStepValue(DISTANCE) - (*p_geom)[j].GetValue(DISTANCE_AUX));
+                            ((*p_geom)[j].FastGetSolutionStepValue(DISTANCE) - (*p_geom)[j].FastGetSolutionStepValue(DISTANCE_AUX));
             }
             MathUtils<double>::UnitCrossProduct(wall_tangent, wall_normal_gp, rTangential[i_cl]);
             const double element_size = ElementSizeCalculator<3,4>::ProjectedElementSize(*p_geom, wall_normal_gp);

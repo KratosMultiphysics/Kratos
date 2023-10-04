@@ -225,7 +225,7 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.CONVECTIVE_VELOCITY)            # Store conctive velocity for level-set process
         self.main_model_part.AddNodalSolutionStepVariable(KratosCFD.CURVATURE)                      # Store curvature as a nodal variable
         self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.AREA_VARIABLE_AUX)              # Auxiliary area_variable for parallel distance calculator
-        # self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.NORMAL_VECTOR)                  # Auxiliary normal vector at interface
+        self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.NORMAL_VECTOR)                  # Auxiliary normal vector at interface
         self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.TANGENT_VECTOR)                 # Auxiliary tangent vector at contact line
         self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.CONTACT_VECTOR)                 # Auxiliary contact vector
         self.main_model_part.AddNodalSolutionStepVariable(KratosDroplet.CONTACT_ANGLE)                  # Contact angle (may not be needed at nodes)
@@ -346,12 +346,14 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         # filtering noises is necessary for curvature calculation
         # distance gradient is used as a boundary condition for smoothing process
         self._GetDistanceGradientProcess().Execute()
+        self._GetContactAngleEvaluatorProcess().Execute()
+
         self._GetDistanceSmoothingProcess().Execute()
         KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "Smoothing process is finished.")        
 
         # Eliptic distance reinitilization
         TimeStep = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
-        if (TimeStep % 4 == 0):
+        if (TimeStep % 2 == 0):
             KratosMultiphysics.Logger.PrintInfo(self.__class__.__name__, "EDReinitilization process is starting.")
             distance_max=-1.0e+12
             distance_min=1.0e+12
@@ -918,11 +920,11 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
         # construct the distance smoothing process
         linear_solver = self._GetSmoothingLinearSolver()
         if self.main_model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE] == 2:
-            distance_smoothing_process = KratosCFD.DistanceSmoothingProcess2D(
+            distance_smoothing_process = KratosDroplet.DropletDynamicsDistanceSmoothingProcess2D(#KratosCFD.DistanceSmoothingProcess2D(
             self.main_model_part,
             linear_solver)
         else:
-            distance_smoothing_process = KratosCFD.DistanceSmoothingProcess3D(
+            distance_smoothing_process = KratosDroplet.DropletDynamicsDistanceSmoothingProcess3D(#KratosCFD.DistanceSmoothingProcess3D(
             self.main_model_part,
             linear_solver)
 
@@ -975,6 +977,15 @@ class DropletDynamicsSolver(PythonSolver):  # Before, it was derived from Navier
                 self.main_model_part)
 
         return consistent_nodal_pressure_gradient_process
+    
+    def _GetContactAngleEvaluatorProcess(self):
+        if not hasattr(self, '_distance_curvature_process'):
+            self._distance_curvature_process = self._CreateContactAngleEvaluatorProcess()
+        return self._distance_curvature_process
 
+    def _CreateContactAngleEvaluatorProcess(self):
+        contact_angle_evaluator = KratosDroplet.ContactAngleEvaluatorProcess(self.main_model_part)
+
+        return contact_angle_evaluator
 
 

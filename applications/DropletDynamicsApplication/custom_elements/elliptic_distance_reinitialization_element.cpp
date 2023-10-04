@@ -392,6 +392,7 @@ void EDReinitializationElement::CalculateLocalSystem(
             if ((*p_geometry)[i_node].GetValue(IS_STRUCTURE) == 1.0 )
                 structure_node_id.push_back(i_node);
         }
+        
         // KRATOS_INFO("EllipticDistanceReinitialization") << "this is a splited element!" << std::endl;
         CustomModifiedShapeFunctions::Pointer p_modified_sh_func =
             Kratos::make_shared<CustomTetrahedra3D4ModifiedShapeFunctions>(p_geometry, distances0, structure_node_id);
