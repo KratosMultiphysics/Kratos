@@ -32,7 +32,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricEulerianConvectionDiffusion2D3N, KratosCon
     // Create the test element
     Model model;
     auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-    ConvectionDiffusionTestingUtilities::SetEulerianConvectionDiffusionElementTestModelPart(r_test_model_part);
+    ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
 
     // Fill the process info container
     auto &r_process_info = r_test_model_part.GetProcessInfo();
@@ -80,7 +80,7 @@ KRATOS_TEST_CASE_IN_SUITE(AxisymmetricEulerianConvectionDiffusion2D4N, KratosCon
     // Create the test element
     Model model;
     auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-    ConvectionDiffusionTestingUtilities::SetEulerianConvectionDiffusionElementTestModelPart(r_test_model_part);
+    ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
 
     // Fill the process info container
     auto &r_process_info = r_test_model_part.GetProcessInfo();
