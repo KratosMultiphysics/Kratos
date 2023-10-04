@@ -339,10 +339,10 @@ class AnalysisStage(object):
             # J0 = T0_elm.transpose() * J0
             J0_inv = np.linalg.inv(J0)
 
-            JTJ = J.transpose() * J
+            JTJ = J.transpose() @ J
             G_hat = J0_inv
             g_hat = JTJ
-            C3D = G_hat.T * g_hat * G_hat
+            C3D = G_hat.T @ g_hat @ G_hat
             E3D = 0.5 * (C3D - np.eye(3))
 
             # JTJ = J.transpose() * J
@@ -353,7 +353,7 @@ class AnalysisStage(object):
 
             if element.Id == 10 or element.Id == 31:
                 print("element:", element.Id)
-                print(J * J0_inv)
+                print(J @ J0_inv)
             
             # TODO: CHECK STRAINS
             #E3D = T0_elm * (E3D * T0_elm.transpose())
