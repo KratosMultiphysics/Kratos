@@ -100,8 +100,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKCWD2D3N_CalculateLocalSystem, KratosRans
     ref_RHS[2] = 1.6364014138735621e+00;
     ref_LHS = ZeroMatrix(3, 3);
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKCWD2D3N_CalculateRightHandSide, KratosRansFastSuite)
@@ -121,7 +121,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKCWD2D3N_CalculateRightHandSide, KratosRa
     ref_RHS[1] = 1.5697917787021267e+00;
     ref_RHS[2] = 1.6364014138735621e+00;
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKCWD2D3N_CalculateLocalVelocityContribution, KratosRansFastSuite)
@@ -152,8 +152,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKCWD2D3N_CalculateLocalVelocityContributi
     ref_RHS[1] = 9.1585664588081621e+04;
     ref_RHS[2] = -1.4272006927454341e+05;
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKCWD2D3N_CalculateMassMatrix, KratosRansFastSuite)
@@ -179,7 +179,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKCWD2D3N_CalculateMassMatrix, KratosRansF
     ref_M(2, 1) = 4.1782743351944499e-02;
     ref_M(2, 2) = 2.5018882921263130e-01;
 
-    KRATOS_CHECK_MATRIX_NEAR(M, ref_M, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(M, ref_M, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKCWD2D3N_CalculateDampingMatrix, KratosRansFastSuite)
@@ -205,7 +205,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTKCWD2D3N_CalculateDampingMatrix, KratosRa
     ref_D(2, 1) = -8.7521188629191010e+02;
     ref_D(2, 2) = 1.8769558951312886e+03;
 
-    KRATOS_CHECK_MATRIX_NEAR(D, ref_D, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(D, ref_D, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaCWD2D3N_EquationIdVector, KratosRansFastSuite)
@@ -248,8 +248,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaCWD2D3N_CalculateLocalSystem, Kratos
     ref_RHS[2] = -4.5000424077124380e+03;
     ref_LHS = ZeroMatrix(3, 3);
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaCWD2D3N_CalculateRightHandSide, KratosRansFastSuite)
@@ -269,7 +269,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaCWD2D3N_CalculateRightHandSide, Krat
     ref_RHS[1] = -4.4594309354935785e+03;
     ref_RHS[2] = -4.5000424077124380e+03;
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaCWD2D3N_CalculateLocalVelocityContribution, KratosRansFastSuite)
@@ -300,8 +300,8 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaCWD2D3N_CalculateLocalVelocityContri
     ref_RHS[1] = -4.6800235702979070e+05;
     ref_RHS[2] = 2.0254898170882917e+05;
 
-    KRATOS_CHECK_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
-    KRATOS_CHECK_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
+    KRATOS_EXPECT_VECTOR_NEAR(RHS, ref_RHS, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(LHS, ref_LHS, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaCWD2D3N_CalculateMassMatrix, KratosRansFastSuite)
@@ -327,7 +327,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaCWD2D3N_CalculateMassMatrix, KratosR
     ref_M(2, 1) = 4.2008202013356553e-02;
     ref_M(2, 2) = 2.5110068355697002e-01;
 
-    KRATOS_CHECK_MATRIX_NEAR(M, ref_M, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(M, ref_M, 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaCWD2D3N_CalculateDampingMatrix, KratosRansFastSuite)
@@ -353,7 +353,7 @@ KRATOS_TEST_CASE_IN_SUITE(RansKOmegaSSTOmegaCWD2D3N_CalculateDampingMatrix, Krat
     ref_D(2, 1) = -6.8728980065854125e+02;
     ref_D(2, 2) = 9.0674940624315116e+02;
 
-    KRATOS_CHECK_MATRIX_NEAR(D, ref_D, 1e-12);
+    KRATOS_EXPECT_MATRIX_NEAR(D, ref_D, 1e-12);
 }
 
 } // namespace Testing

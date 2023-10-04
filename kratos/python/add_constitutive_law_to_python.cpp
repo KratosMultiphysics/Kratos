@@ -11,8 +11,6 @@
 //                   Riccardo Rossi
 //
 
-
-
 // System includes
 
 // External includes
@@ -25,7 +23,6 @@
 #include "includes/constitutive_law.h"
 
 #include "containers/variable.h"
-
 
 namespace Kratos::Python
 {
@@ -80,7 +77,6 @@ ConstitutiveLaw::DeformationGradientMatrixType& GetDeformationGradientF2(Constit
 
 ConstitutiveLaw::Pointer CreateWithoutProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters){ return rThisConstitutiveLaw.Create(NewParameters);}
 ConstitutiveLaw::Pointer CreateWithProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters, const Properties& rProperties){ return rThisConstitutiveLaw.Create(NewParameters, rProperties);}
-
 
 void  AddConstitutiveLawToPython(pybind11::module& m)
 {

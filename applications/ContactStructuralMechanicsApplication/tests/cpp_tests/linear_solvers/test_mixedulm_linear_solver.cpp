@@ -154,14 +154,14 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestSystem, KratosContactStruc
     pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
     std::size_t counter = 0;
     for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
-        KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
-        KRATOS_CHECK_EQUAL(r_dof.Id(), counter + 1);
-        KRATOS_CHECK_EQUAL(r_dof.GetVariable(), DISPLACEMENT_X);
+        KRATOS_EXPECT_EQ(r_dof.EquationId(), counter);
+        KRATOS_EXPECT_EQ(r_dof.Id(), counter + 1);
+        KRATOS_EXPECT_EQ(r_dof.GetVariable(), DISPLACEMENT_X);
         ++counter;
     }
     pmixed_solver->Solve(A, Dx, b);
 
-    KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(Dx, ref_Dx, tolerance);
 }
 
 /**
@@ -251,14 +251,14 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestWithInactiveSystem, Kratos
     pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
     std::size_t counter = 0;
     for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
-        KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
-        KRATOS_CHECK_EQUAL(r_dof.Id(), counter + 1);
-        KRATOS_CHECK_EQUAL(r_dof.GetVariable(), DISPLACEMENT_X);
+        KRATOS_EXPECT_EQ(r_dof.EquationId(), counter);
+        KRATOS_EXPECT_EQ(r_dof.Id(), counter + 1);
+        KRATOS_EXPECT_EQ(r_dof.GetVariable(), DISPLACEMENT_X);
         ++counter;
     }
     pmixed_solver->Solve(A, Dx, b);
 
-    KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(Dx, ref_Dx, tolerance);
 }
 
 /**
@@ -368,13 +368,13 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverSimplestUnorderedSystem, KratosCon
     pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
     std::size_t counter = 0;
     for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
-        KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
-        KRATOS_CHECK_EQUAL(r_dof.GetVariable(), DISPLACEMENT_X);
+        KRATOS_EXPECT_EQ(r_dof.EquationId(), counter);
+        KRATOS_EXPECT_EQ(r_dof.GetVariable(), DISPLACEMENT_X);
         ++counter;
     }
     pmixed_solver->Solve(A, Dx, b);
 
-    KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(Dx, ref_Dx, tolerance);
 }
 
 /**
@@ -465,13 +465,13 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverTwoDoFSystem, KratosContactStructu
     pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
     std::size_t counter = 0;
     for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
-        KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
-        KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y);
+        KRATOS_EXPECT_EQ(r_dof.EquationId(), counter);
+        KRATOS_EXPECT_TRUE(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y);
         ++counter;
     }
     pmixed_solver->Solve(A, Dx, b);
 
-    KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(Dx, ref_Dx, tolerance);
 }
 
 /**
@@ -605,13 +605,13 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverTwoDoFUnorderedSystem, KratosConta
     pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
     std::size_t counter = 0;
     for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
-        KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
-        KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y);
+        KRATOS_EXPECT_EQ(r_dof.EquationId(), counter);
+        KRATOS_EXPECT_TRUE(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y);
         ++counter;
     }
     pmixed_solver->Solve(A, Dx, b);
 
-    KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
+    KRATOS_EXPECT_VECTOR_NEAR(Dx, ref_Dx, tolerance);
 }
 
 /**
@@ -711,13 +711,13 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverThreeDoFSystem, KratosContactStruc
     pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
     std::size_t counter = 0;
     for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
-        KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
-        KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y || r_dof.GetVariable() == DISPLACEMENT_Z);
+        KRATOS_EXPECT_EQ(r_dof.EquationId(), counter);
+        KRATOS_EXPECT_TRUE(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y || r_dof.GetVariable() == DISPLACEMENT_Z);
         ++counter;
     }
     pmixed_solver->Solve(A, Dx, b);
 
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Dx, ref_Dx, tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Dx, ref_Dx, tolerance);
 }
 
 /**
@@ -875,13 +875,13 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverThreeDoFUnorderedSystem, KratosCon
     pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
     std::size_t counter = 0;
     for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
-        KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
-        KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y || r_dof.GetVariable() == DISPLACEMENT_Z);
+        KRATOS_EXPECT_EQ(r_dof.EquationId(), counter);
+        KRATOS_EXPECT_TRUE(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y || r_dof.GetVariable() == DISPLACEMENT_Z);
         ++counter;
     }
     pmixed_solver->Solve(A, Dx, b);
 
-    KRATOS_CHECK_VECTOR_RELATIVE_NEAR(Dx, ref_Dx, tolerance);
+    KRATOS_EXPECT_VECTOR_RELATIVE_NEAR(Dx, ref_Dx, tolerance);
 }
 
 /**
@@ -997,13 +997,13 @@ KRATOS_TEST_CASE_IN_SUITE(MixedULMLinearSolverRealSystem, KratosContactStructura
         pmixed_solver->ProvideAdditionalData(A, Dx, b, Doftemp, r_model_part);
         std::size_t counter = 0;
         for (auto& r_dof : pmixed_solver->GetDisplacementDofs()) {
-            KRATOS_CHECK_EQUAL(r_dof.EquationId(), counter);
-            KRATOS_CHECK(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y);
+            KRATOS_EXPECT_EQ(r_dof.EquationId(), counter);
+            KRATOS_EXPECT_TRUE(r_dof.GetVariable() == DISPLACEMENT_X || r_dof.GetVariable() == DISPLACEMENT_Y);
             ++counter;
         }
         pmixed_solver->Solve(A, Dx, b);
 
-        KRATOS_CHECK_VECTOR_NEAR(Dx, ref_Dx, tolerance);
+        KRATOS_EXPECT_VECTOR_NEAR(Dx, ref_Dx, tolerance);
     }
 }
 } // namespace Kratos::Testing

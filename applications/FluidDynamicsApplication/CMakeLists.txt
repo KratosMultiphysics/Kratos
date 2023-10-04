@@ -28,6 +28,7 @@ set( KRATOS_FLUID_DYNAMICS_APPLICATION_CORE_SOURCES
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fluid_adjoint_slip_utilities.cpp
 
   # elements
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/axisymmetric_navier_stokes.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/vms.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_element.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_elements/fluid_adjoint_element.cpp

@@ -87,7 +87,7 @@ void CheckDeterminantOfJacobianSensitivityByFiniteDifference(double DetJ_Deriv,
     double detJ_perturbed = rGeom.DeterminantOfJacobian(IntegrationPoint, ThisMethod);
     rGeom[Deriv.NodeIndex].Coordinates()[Deriv.Direction] -= StepSize;
     double finite_difference_detJ_deriv = (detJ_perturbed - detJ) / StepSize;
-    KRATOS_CHECK_NEAR(DetJ_Deriv, finite_difference_detJ_deriv, Tolerance);
+    KRATOS_EXPECT_NEAR(DetJ_Deriv, finite_difference_detJ_deriv, Tolerance);
 }
 
 void CheckShapeFunctionsGradientSensitivityByFiniteDifference(Matrix& DN_DX_Deriv,
@@ -111,13 +111,13 @@ void CheckShapeFunctionsGradientSensitivityByFiniteDifference(Matrix& DN_DX_Deri
     rGeom[Deriv.NodeIndex].Coordinates()[Deriv.Direction] -= StepSize;
 
     // Perform some checks to avoid false positives.
-    KRATOS_CHECK(DN_DX_Deriv.size1() != 0);
-    KRATOS_CHECK(DN_DX_Deriv.size2() != 0);
+    KRATOS_EXPECT_TRUE(DN_DX_Deriv.size1() != 0);
+    KRATOS_EXPECT_TRUE(DN_DX_Deriv.size2() != 0);
     for (unsigned i = 0; i < DN_DX_Deriv.size1(); ++i)
         for (unsigned j = 0; j < DN_DX_Deriv.size2(); ++j)
             {
                 const double finite_difference_ij = (rDN_DX_perturbed(i,j) - rDN_DX(i,j)) / StepSize;
-                KRATOS_CHECK_NEAR(DN_DX_Deriv(i, j), finite_difference_ij, Tolerance);
+                KRATOS_EXPECT_NEAR(DN_DX_Deriv(i, j), finite_difference_ij, Tolerance);
             }
 }
 
