@@ -27,9 +27,9 @@ class ThermalUtilities {
 
 public:
 
-	using NodeType = Node;
-	using GeometryType = Geometry<NodeType>;
-	
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+
     // ============================================================================================
     // ============================================================================================
     template<unsigned int TDim, unsigned int TNumNodes>
@@ -65,7 +65,8 @@ public:
     
         double temp = inner_prod(N, TemperatureVector);
         double c1 = 247.8 / (temp + 133.0);
-        return 1.0 / (2.4318e-5 * std::pow(10.0, c1));
+        double viscosity = 2.4318e-5 * std::pow(10.0, c1);
+        return viscosity;
     }
 
 }; // class ThermalUtilities

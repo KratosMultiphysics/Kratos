@@ -1122,10 +1122,10 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         //Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
 
-        if (rGeom[0].SolutionStepsDataHas(TEMPERATURE))
-        {
+        // Contribute thermal effects if it is a coupled thermo-hydro-mechanical problem
+        if (rGeom[0].SolutionStepsDataHas(TEMPERATURE)) {
             Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, rGeom);
-            Variables.DynamicViscosityInverse = ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, rGeom);
+            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, rGeom);
         }
 
         //Compute infinitessimal strain

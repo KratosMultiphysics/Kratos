@@ -490,6 +490,12 @@ void TransientPwElement<TDim,TNumNodes>::
         //Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
 
+        // Contribute thermal effects if it is a coupled thermo-hydro problem
+        if (Geom[0].SolutionStepsDataHas(TEMPERATURE)) {
+            Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
+            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
+        }
+
         //Compute Nu and BodyAcceleration
         GeoElementUtilities::
             CalculateNuMatrix<TDim, TNumNodes>(Variables.Nu, Variables.NContainer, GPoint);
@@ -508,13 +514,6 @@ void TransientPwElement<TDim,TNumNodes>::
             this->CalculateIntegrationCoefficient(IntegrationPoints,
                                                   GPoint,
                                                   Variables.detJ);
-
-        //
-        if (Geom[0].SolutionStepsDataHas(TEMPERATURE))
-        {
-            Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
-            Variables.DynamicViscosityInverse = ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
-        }
 
         //Contributions to the left hand side
         if (CalculateStiffnessMatrixFlag) this->CalculateAndAddLHS(rLeftHandSideMatrix, Variables);

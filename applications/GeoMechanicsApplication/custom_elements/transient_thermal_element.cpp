@@ -257,10 +257,9 @@ namespace Kratos
                 this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
 
             //
-            if (mIsPressureCoupled)
-            {
+            if (mIsPressureCoupled) {
                 Variables.WaterDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.N, Geom);
-                Variables.DynamicViscosityInverse = ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.N, Geom);
+                Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.N, Geom);
                 this->CalculateDischargeVector(Variables);
             }
 
@@ -301,7 +300,7 @@ namespace Kratos
         const unsigned int NumGPoints = Geom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
         // shape functions
-        (rVariables.NContainer).resize(NumGPoints, TNumNodes, false);
+        rVariables.NContainer.resize(NumGPoints, TNumNodes, false);
         rVariables.NContainer = Geom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
         // gradient of shape functions and determinant of Jacobian
@@ -639,9 +638,9 @@ namespace Kratos
         array_1d<double, TDim> PressureGrad = prod(trans(rVariables.GradNT), PressureVector);
 
         //Add gravity*water_density to PressureGrad
-        array_1d<double, TDim> gravityVector = rGeom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)
+        array_1d<double, TDim> weightVector = rGeom[0].FastGetSolutionStepValue(VOLUME_ACCELERATION)
             * rVariables.WaterDensity;
-        PressureGrad = PressureGrad - gravityVector;
+        PressureGrad = PressureGrad - weightVector;
 
         this->CalculatePermeabilityMatrix(rVariables.PermeabilityMatrix, rVariables);
         rVariables.DischargeVector = -prod(rVariables.PermeabilityMatrix, PressureGrad);
