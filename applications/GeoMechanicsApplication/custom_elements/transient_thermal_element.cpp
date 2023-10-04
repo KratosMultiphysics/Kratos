@@ -488,7 +488,8 @@ namespace Kratos
 
         rVariables.ConstitutiveMatrix = ZeroMatrix(TDim, TDim);
         const Properties& rProp = this->GetProperties();
-        GeoThermalDispersion2DLaw::CalculateThermalDispersionMatrix(rVariables.ConstitutiveMatrix, rProp);
+        GeoThermalDispersion2DLaw::CalculateThermalDispersionMatrix(rVariables.ConstitutiveMatrix, rProp,
+                                                          mIsPressureCoupled, rVariables.DischargeVector);
 
         BoundedMatrix<double, TDim, TNumNodes> Temp = prod(rVariables.ConstitutiveMatrix, trans(rVariables.GradNT));
         noalias(TMatrix) = prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
@@ -611,10 +612,11 @@ namespace Kratos
         rVariables.SolidThermalConductivityYY = rProp[THERMAL_CONDUCTIVITY_SOLID_YY];
         rVariables.Saturation = rProp[SATURATION];
         rVariables.DtTemperatureCoefficient = rProp[DT_TEMPERATURE_COEFFICIENT];
-        rVariables.LongitudinalDispersivity = rProp[LONGITUDINAL_DISPERSIVITY];
-        rVariables.TransverseDispersivity = rProp[TRANSVERSE_DISPERSIVITY];
-        rVariables.SolidCompressibility = rProp[SOLID_COMPRESSIBILITY];
+
         if (mIsPressureCoupled) {
+            rVariables.LongitudinalDispersivity = rProp[LONGITUDINAL_DISPERSIVITY];
+            rVariables.TransverseDispersivity = rProp[TRANSVERSE_DISPERSIVITY];
+            rVariables.SolidCompressibility = rProp[SOLID_COMPRESSIBILITY];
             rVariables.DynamicViscosityInverse = 1.0 / rProp[DYNAMIC_VISCOSITY];
         }
 

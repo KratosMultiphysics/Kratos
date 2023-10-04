@@ -74,7 +74,7 @@ namespace Kratos
             ///Nodal variables
             array_1d<double, TNumNodes> TemperatureVector;
             array_1d<double, TNumNodes> DtTemperatureVector;
-            array_1d<double, TDim> DischargeVector;
+            Vector DischargeVector;
 
             ///Constitutive Law parameters
             Matrix ConstitutiveMatrix;

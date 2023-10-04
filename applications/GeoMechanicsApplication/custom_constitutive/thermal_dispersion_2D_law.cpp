@@ -33,7 +33,9 @@ namespace Kratos
     // ============================================================================================
     void GeoThermalDispersion2DLaw::CalculateThermalDispersionMatrix(
         Matrix& C,
-        const Properties& rProp)
+        const Properties& rProp,
+        const bool isPressureCoupled,
+        const Vector& dischargeVector)
     {
         KRATOS_TRY
 
@@ -46,6 +48,20 @@ namespace Kratos
         C(INDEX_2D_THERMAL_FLUX_Y, INDEX_2D_THERMAL_FLUX_X) = cSolid * rProp[THERMAL_CONDUCTIVITY_SOLID_YX];
         C(INDEX_2D_THERMAL_FLUX_Y, INDEX_2D_THERMAL_FLUX_Y) = cSolid * rProp[THERMAL_CONDUCTIVITY_SOLID_YY]
                                                             + cWater * rProp[THERMAL_CONDUCTIVITY_WATER];
+
+        if (isPressureCoupled) {
+            double totalDischarge = MathUtils<>::Norm(dischargeVector);
+            if (totalDischarge > 0.0) {
+                const double c2 = rProp[DENSITY_WATER] * rProp[SPECIFIC_HEAT_CAPACITY_WATER];
+                const double c3 = (rProp[LONGITUDINAL_DISPERSIVITY] - rProp[TRANSVERSE_DISPERSIVITY]) / totalDischarge;
+                const double c4 = rProp[SOLID_COMPRESSIBILITY] * totalDischarge;
+                C(INDEX_2D_THERMAL_FLUX_X, INDEX_2D_THERMAL_FLUX_X) += c2 * (c3 * dischargeVector[0] * dischargeVector[0] + c4);
+                C(INDEX_2D_THERMAL_FLUX_X, INDEX_2D_THERMAL_FLUX_Y) += c2 * c3 * dischargeVector[0] * dischargeVector[1];
+                C(INDEX_2D_THERMAL_FLUX_Y, INDEX_2D_THERMAL_FLUX_X) += c2 * c3 * dischargeVector[0] * dischargeVector[1];
+                C(INDEX_2D_THERMAL_FLUX_Y, INDEX_2D_THERMAL_FLUX_Y) += c2 * (c3 * dischargeVector[1] * dischargeVector[1] + c4);
+            }
+
+        }
 
         KRATOS_CATCH("")
     }
