@@ -33,7 +33,7 @@ public:
     using ConvergenceVariableListType =  MixedGenericCriteriaType::ConvergenceVariableListType;
     using ConvergenceCriteriaType = ConvergenceCriteria<SparseSpaceType, LocalSpaceType>;
 
-    [[nodiscard]] std::unique_ptr<SolvingStrategy<SparseSpaceType, LocalSpaceType>> Create(Parameters& rSolverSettings, ModelPart& rModelPart) const;
+    static [[nodiscard]] std::unique_ptr<SolvingStrategy<SparseSpaceType, LocalSpaceType>> Create(Parameters& rSolverSettings, ModelPart& rModelPart);
 };
 
 }

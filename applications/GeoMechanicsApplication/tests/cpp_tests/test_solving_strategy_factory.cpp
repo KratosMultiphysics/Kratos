@@ -91,7 +91,7 @@ const std::string testParameters = R"(
     }
 )";
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsNullptr_WhenNoCreatorWasAddedForRequestedStrategy, WorkInProgress)
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsNullptr_WhenNoCreatorWasAddedForRequestedStrategy, KratosGeoMechanicsFastSuite)
 {
     SolvingStrategyFactory factory;
     Model model;
@@ -105,7 +105,7 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsNullptr_WhenNoCreatorWasAddedForRequeste
     KRATOS_EXPECT_EQ(created_strategy, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenCallbackFunctionThrowsAndRequestIsInvalid, WorkInProgress)
+KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenCallbackFunctionThrowsAndRequestIsInvalid, KratosGeoMechanicsFastSuite)
 {
     // still empty
 }
@@ -123,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForLinearStrategy, WorkI
     KRATOS_EXPECT_NE(created_strategy, nullptr);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy, WorkInProgress)
+KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy, KratosGeoMechanicsFastSuite)
 {
     SolvingStrategyFactory factory;
     Model model;
@@ -138,7 +138,5 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy
 
     KRATOS_EXPECT_NE(created_strategy, nullptr);
 }
-
-
 
 }

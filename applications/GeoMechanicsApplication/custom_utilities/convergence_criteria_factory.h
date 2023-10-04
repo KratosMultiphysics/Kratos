@@ -23,8 +23,6 @@ template<class TSparseSpace, class TDenseSpace>
 class ConvergenceCriteriaFactory
 {
 public:
-    using MixedGenericCriteriaType = MixedGenericCriteria<TSparseSpace, TDenseSpace>;
-    using ConvergenceVariableListType = typename MixedGenericCriteriaType::ConvergenceVariableListType;
     using ConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
     static std::shared_ptr<ConvergenceCriteriaType> Create(const Parameters& rSolverSettings)

@@ -13,17 +13,15 @@
 #include "factories/standard_linear_solver_factory.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
-#include "custom_strategies/schemes/backward_euler_quasistatic_Pw_scheme.hpp"
+#include "scheme_factory.h"
+#include "convergence_criteria_factory.h"
 
 namespace Kratos
 {
 
 unique_ptr<SolvingStrategy<SolvingStrategyFactory::SparseSpaceType, SolvingStrategyFactory::LocalSpaceType>>
-SolvingStrategyFactory::Create(Parameters& rSolverSettings, ModelPart& rModelPart) const
+SolvingStrategyFactory::Create(Parameters& rSolverSettings, ModelPart& rModelPart)
 {
-
-
-
     if (rSolverSettings["strategy_type"].GetString() == ResidualBasedLinearStrategy<SparseSpaceType,
             LocalSpaceType,
             LinearSolverType>::Name())
@@ -37,16 +35,10 @@ SolvingStrategyFactory::Create(Parameters& rSolverSettings, ModelPart& rModelPar
             LinearSolverType>::Name())
     {
         auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(rSolverSettings["linear_solver_settings"]);
-        KRATOS_ERROR_IF(solver == nullptr);
-
-        Scheme<SparseSpaceType, LocalSpaceType>::Pointer scheme = Kratos::make_shared<BackwardEulerQuasistaticPwScheme<SparseSpaceType, LocalSpaceType>>();
+        auto scheme = SchemeFactory<SparseSpaceType, LocalSpaceType>::Create(rSolverSettings);
         auto builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(solver);
+        auto criteria = ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType>::Create(rSolverSettings);
 
-        const double rel_tol = 1.0e-4;
-        const double abs_tol = 1.0e-9;
-        VariableData *p_water_pres = &WATER_PRESSURE;
-        ConvergenceVariableListType convergence_settings{std::make_tuple(p_water_pres, rel_tol, abs_tol)};
-        auto criteria = std::make_shared<ConvergenceCriteriaType>(MixedGenericCriteriaType(convergence_settings));
         std::vector<std::string> strategy_entries = {"min_iteration",
                                                      "number_cycles",
                                                      "increase_factor",
@@ -70,7 +62,6 @@ SolvingStrategyFactory::Create(Parameters& rSolverSettings, ModelPart& rModelPar
             }
         }
 
-
         return std::make_unique<GeoMechanicsNewtonRaphsonStrategy<SparseSpaceType,
                 LocalSpaceType,
                 LinearSolverType>>(rModelPart,
@@ -80,9 +71,6 @@ SolvingStrategyFactory::Create(Parameters& rSolverSettings, ModelPart& rModelPar
                         builder_and_solver,
                                    parameters);
     }
-
-
-
 
     return nullptr;
 }
