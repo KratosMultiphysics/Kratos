@@ -26,7 +26,7 @@
 namespace Kratos::Testing
 {
 
-void ConvectionDiffusionTestingUtilities::SetEulerianConvectionDiffusionElementTestModelPart(ModelPart &rModelPart)
+void ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(ModelPart &rModelPart)
 {
     // Set buffer size
     rModelPart.SetBufferSize(2);
