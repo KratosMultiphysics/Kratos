@@ -79,7 +79,7 @@ public:
 
     /// Key type for searching in this container.
     typedef typename std::remove_reference<decltype(std::declval<TGetKeyType>()(std::declval<TDataType>()))>::type key_type;
-    
+
     // Data type stored in this container.
     using data_type = TDataType;
     using value_type = TDataType;
