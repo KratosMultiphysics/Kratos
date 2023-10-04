@@ -39,9 +39,9 @@ private:
 class DummyStrategyWrapper : public StrategyWrapper
 {
 public:
-    explicit DummyStrategyWrapper::DummyStrategyWrapper(TimeStepEndState::ConvergenceState convergence_needed) :
-        mConvergenceNeeded( convergence_needed ) {}
-    [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()         override { return mConvergenceNeeded;};
+    explicit DummyStrategyWrapper::DummyStrategyWrapper(TimeStepEndState::ConvergenceState ConvergenceState) :
+        mConvergenceState( ConvergenceState ) {}
+    [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()         override { return mConvergenceState;};
     [[nodiscard]] std::size_t                        GetNumberOfIterations() const override { return 4;};
     [[nodiscard]] double                             GetEndTime()            const override { return 10.;};
     void Initialize()             override {++mSolverStrategyInitializeCalls;}
@@ -57,7 +57,7 @@ public:
     unsigned int NumberOfSolverStrategyFinalizeSolutionStepCalls()   const {return mSolverStrategyFinalizeSolutionStepCalls;}
 
 private:
-    TimeStepEndState::ConvergenceState mConvergenceNeeded;
+    TimeStepEndState::ConvergenceState mConvergenceState;
     unsigned int mSolverStrategyInitializeCalls             = 0;
     unsigned int mSolverStrategyInitializeSolutionStepCalls = 0;
     unsigned int mSolverStrategyPredictCalls                = 0;
@@ -128,7 +128,6 @@ KRATOS_TEST_CASE_IN_SUITE(ConvergingTimeStepExecutionReturnsGivenTime, KratosGeo
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategy(converging_strategy);
     const auto time = 2.0;
-    //executor.Run(time);
     KRATOS_EXPECT_DOUBLE_EQ(time, executor.Run(time).time);
 }
 
