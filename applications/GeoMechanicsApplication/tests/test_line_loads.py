@@ -79,7 +79,7 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
         simulation = test_helper.run_kratos(file_path)
 
         bottom_node_ids = [1, 2, 6, 11, 17, 25, 34, 46, 59, 75, 90]
-        reactions_y = [value[1] for value in test_helper.get_nodal_variable(simulation, Kratos.REACTION, bottom_node_ids)]
+        reactions_y = [reaction[1] for reaction in test_helper.get_nodal_variable(simulation, Kratos.REACTION, bottom_node_ids)]
 
         self.assertAlmostEqual(20.0, sum(reactions_y), 4)
 
