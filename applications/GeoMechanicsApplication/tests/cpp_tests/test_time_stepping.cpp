@@ -22,23 +22,6 @@ using namespace Kratos;
 namespace
 {
 
-class DummySparseType
-{
-public:
-    struct DataType{};
-    struct MatrixType{};
-    struct VectorType{};
-    struct MatrixPointerType{};
-    struct VectorPointerType{};
-};
-
-class DummyDenseType
-{
-public:
-    struct MatrixType{};
-    struct VectorType{};
-};
-
 class ProcessSpy : public Process
 {
 public:
