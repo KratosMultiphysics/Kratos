@@ -38,13 +38,13 @@ class BaseEncoderDecoder{
 
         ~BaseEncoderDecoder()= default;
 
-        virtual void Encode() = 0;
+        virtual void Encode(){};
 
-        virtual void Decode() = 0;
+        virtual void Decode(){};
 
-        virtual void GetEncoderDerivative() = 0;
+        virtual void GetEncoderDerivative(){};
 
-        virtual Matrix GetDecoderDerivative(int node_id) = 0;
+        virtual Matrix GetDecoderDerivative(int node_id){};
 
     };
 
@@ -70,16 +70,16 @@ class LinearEncoderDecoder: public BaseEncoderDecoder{
 
         ~LinearEncoderDecoder()= default;
 
-        virtual void Encode() {
+        virtual void Encode() override {
         }
 
-        virtual void Decode() {
+        virtual void Decode() override {
         }
 
-        virtual void GetEncoderDerivative() {
+        virtual void GetEncoderDerivative() override {
         }
 
-        virtual Matrix GetDecoderDerivative(int node_id){
+        virtual Matrix GetDecoderDerivative(int node_id) override {
             return mMapPhi[node_id];
         }
 
