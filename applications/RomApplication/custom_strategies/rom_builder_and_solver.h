@@ -253,7 +253,7 @@ public:
     }
 
 
-    void SetUpEncoderDecoder(BaseEncoderDecoder ThisEncodeDecoder){
+    void SetUpEncoderDecoder(GlobalLinearEncoderDecoder &ThisEncodeDecoder){
         mEncoderDecoder = ThisEncodeDecoder;
     }
 
@@ -418,7 +418,7 @@ protected:
 
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
-    BaseEncoderDecoder mEncoderDecoder;
+    GlobalLinearEncoderDecoder mEncoderDecoder;
 
     ///@}
     ///@name Protected operators
