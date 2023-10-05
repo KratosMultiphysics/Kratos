@@ -96,31 +96,31 @@ public:
         ModelPart& rHRomVisualizationModelPart);
 
     /**
-     * @brief Return the missing HROM condition parents element ids
+     * @brief Return the decremented element ids(-1 to account for numpy indexing) of the missing HROM condition parents
      * This function loops the HROM conditions in the HROM weights and searches for their parents in the
      * provided model part. Once these are found, it is checked that they are not already added and returned.
      * Note that this functions requires the NEIGHBOUR_ELEMENTS to be already computed.
      * @param rModelPart Complete model part (all elements and conditions)
      * @param rHRomWeights Map containing the original HROM conditions and elements weights
-     * @return std::vector<IndexType> List containing the ids of the missing parent elements
+     * @return std::vector<IndexType> List containing the decremented element IDs (-1 to account for numpy indexing) of the missing parent elements
      */
     static std::vector<IndexType> GetHRomConditionParentsIds(
         const ModelPart& rModelPart,
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
     /**
-     * @brief Retrieve the IDs of elements neighboring nodes in a given sub-model part but not present in HRom weights.
+     * @brief Retrieve the decremented (-1 to account for numpy indexing) IDs of elements neighboring nodes in a given sub-model part but not present in HRom weights.
      *
      * This function iterates over all the nodes in the provided sub-model part (`rGivenModelPart`) and collects
-     * the IDs of the elements neighboring each node. The neighboring elements are determined using the
+     * the decremented IDs (-1 to account for numpy indexing) of the elements neighboring each node. The neighboring elements are determined using the
      * 'NEIGHBOUR_ELEMENTS' value attached to each node. The function then checks if these elements are already
-     * present in `rHRomWeights`. If not, their IDs are added to the return vector. It's important to note that
+     * present in `rHRomWeights`. If not, their decremented (-1 to account for numpy indexing) IDs are added to the return vector. It's important to note that
      * this function assumes that the 'NEIGHBOUR_ELEMENTS' values are already computed for the nodes in the model part.
      *
      * @param rModelPart The complete model part which houses all the elements.
      * @param rGivenModelPart The sub-model part with nodes for which neighboring elements should be fetched.
      * @param rHRomWeights Map containing the original HROM conditions and elements weights.
-     * @return std::vector<IndexType> A list of unique neighboring element IDs not already present in HRom weights.
+     * @return std::vector<IndexType> A list of unique neighboring decremented element IDs (-1 to account for numpy indexing) not already present in HRom weights.
      */
     static std::vector<IndexType> GetNodalNeighbouringElementIdsNotInHRom(
         ModelPart& rModelPart,
@@ -128,30 +128,43 @@ public:
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
     /**
-     * @brief Identifies condition IDs from a given ModelPart that are not in the HROM weights
+     * @brief Retrieve the decremented (-1 to account for numpy indexing) IDs of elements neighboring nodes in a given sub-model part.
+     *
+     * This function iterates over all the nodes in the provided sub-model part (`rGivenModelPart`) and collects
+     * the decremented (-1 to account for numpy indexing) IDs of the elements neighboring each node. The neighboring elements are determined using the
+     * 'NEIGHBOUR_ELEMENTS' value attached to each node. The function automatically ensures that each element ID
+     * is unique, avoiding duplicates in the return vector. It's important to note that this function assumes that
+     * the 'NEIGHBOUR_ELEMENTS' values are already computed for the nodes in the model part.
+     *
+     * @param rModelPart The complete model part which houses all the elements.
+     * @param rGivenModelPart The sub-model part with nodes for which neighboring elements should be fetched.
+     * @return std::vector<IndexType> A list of unique neighboring decremented element IDs (-1 to account for numpy indexing).
+     */
+    static std::vector<IndexType> GetNodalNeighbouringElementIds(
+        ModelPart& rModelPart,
+        ModelPart& rGivenModelPart);
+
+    /**
+     * @brief Identifies condition decremented (-1 to account for numpy indexing) IDs from a given ModelPart that are not in the HROM weights
      * This function iterates through the conditions in the provided ModelPart, checks if their IDs exist in the HROM weights,
-     * and includes them in a list if they are missing. The IDs of the absent conditions are returned.
+     * and includes them in a list if they are missing. The decremented (-1 to account for numpy indexing) IDs of the absent conditions are returned.
      * @param rModelPart Complete hrom model part (all elements and conditions)
      * @param rModelPartWithConditionsToInclude ModelPart with conditions that should be checked against HROM weights
-     * @param rHRomWeights Map containing the original HROM conditions and elements weights
-     * @return std::vector<IndexType> List containing the IDs of the conditions absent in HROM weights
+     * @return std::vector<IndexType> List containing the decremented condition IDs (-1 to account for numpy indexing) of the conditions absent in HROM weights
      */
     static std::vector<IndexType> GetConditionIdsNotInHRomModelPart(
-        const ModelPart& rModelPart,
         const ModelPart& rModelPartWithConditionsToInclude,
         std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
     /**
-     * @brief Identifies element IDs from a given ModelPart that are not in the HROM weights
-     * This function iterates through the elements in the provided ModelPart, checks if their IDs exist in the HROM weights,
-     * and includes them in a list if they are missing. The IDs of the absent elements are returned.
-     * @param rModelPart Complete hrom model part (all elements and conditions)
+     * @brief Identifies element decremented (-1 to account for numpy indexing) IDs from a given ModelPart that are not in the HROM weights
+     * This function iterates through the elements in the provided ModelPart, checks if their decremented (-1 to account for numpy indexing) IDs exist in the HROM weights,
+     * and includes them in a list if they are missing. The decremented (-1 to account for numpy indexing) IDs of the absent elements are returned.
      * @param rModelPartWithElementsToInclude ModelPart with elements that should be checked against HROM weights
      * @param rHRomWeights Map containing the original HROM elements and conditions weights
-     * @return std::vector<IndexType> List containing the IDs of the elements absent in HROM weights
+     * @return std::vector<IndexType> List containing decremented element IDs (-1 to account for numpy indexing) of the elements absent in HROM weights
      */
     static std::vector<IndexType> GetElementIdsNotInHRomModelPart(
-        const ModelPart& rModelPart,
         const ModelPart& rModelPartWithElementsToInclude,
         std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
 
@@ -160,19 +173,38 @@ public:
      * This function loops the HROM mesh submodelparts and checks if there is at least a minimum condition
      * for each submodelpart in the HROM condition weights. If there are no conditions it adds a null weight
      * condition to the HROM weights. This might be required for the HROM submodelparts visualization or BC imposition
-     * @param rModelPart Complete model part (all elements and conditions)
      * @param rHRomConditionWeights Map containing the original HROM conditions and elements weights
-     * @return std::vector<IndexType> List containing the ids of the missing conditions to be added to the weights
+     * @return std::vector<IndexType> List containing the decremented condition IDs (-1 to account for numpy indexing) of the missing conditions to be added to the weights
      */
     static std::vector<IndexType> GetHRomMinimumConditionsIds(
         const ModelPart& rModelPart,
         const std::map<IndexType, double>& rHRomConditionWeights);
 
 
+    /**
+    * @brief Retrieve the decremented IDs (-1 to account for numpy indexing) of elements present in the provided model part.
+    *
+    * This function iterates over all the elements in the given model part (`rModelPart`) and collects
+    * their IDs after decrementing each by one. The decremented IDs are then added to a vector which
+    * is returned to the caller.
+    *
+    * @param rModelPart The model part containing the elements whose IDs are to be fetched.
+    * @return std::vector<IndexType> A list of decremented element IDs (-1 to account for numpy indexing) from the provided model part.
+    */
     static std::vector<IndexType> GetElementIdsInModelPart(
         const ModelPart& rModelPart
     );
 
+    /**
+    * @brief Retrieve the decremented IDs (-1 to account for numpy indexing) of conditions present in the provided model part.
+    *
+    * This function iterates over all the conditions in the given model part (`rModelPart`) and collects
+    * their IDs after decrementing each by one. The decremented IDs are then added to a vector which
+    * is returned to the caller.
+    *
+    * @param rModelPart The model part containing the conditions whose IDs are to be fetched.
+    * @return std::vector<IndexType> A list of decremented condition IDs (-1 to account for numpy indexing) from the provided model part.
+    */
     static std::vector<IndexType> GetConditionIdsInModelPart(
         const ModelPart& rModelPart
     );
