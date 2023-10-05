@@ -17,6 +17,18 @@
 
 using namespace Kratos;
 
+namespace
+{
+
+TimeStepEndState MakeConvergedEndState()
+{
+    auto result = TimeStepEndState{};
+    result.convergence_state = TimeStepEndState::ConvergenceState::converged;
+    return result;
+}
+
+}
+
 
 namespace Kratos::Testing
 {
@@ -25,7 +37,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenPrescribedTimeIncrementorHasEmptyLis
 {
     std::vector<double> increments;
     PrescribedTimeIncrementor incrementor{increments};
-    TimeStepEndState previous_state;
+    const auto previous_state = MakeConvergedEndState();
 
     KRATOS_EXPECT_FALSE(incrementor.WantNextStep(previous_state))
 }
@@ -34,7 +46,7 @@ KRATOS_TEST_CASE_IN_SUITE(WantFirstTimeStepWhenPrescribedTimeIncrementorHasNonEm
 {
     std::vector<double> increments{0.4, 0.6};
     PrescribedTimeIncrementor incrementor{increments};
-    TimeStepEndState previous_state;
+    const auto previous_state = MakeConvergedEndState();
 
     KRATOS_EXPECT_TRUE(incrementor.WantNextStep(previous_state))
 }
@@ -43,7 +55,7 @@ KRATOS_TEST_CASE_IN_SUITE(WantFirstTwoTimesNewStepWhenPrescribedTimeIncrementorH
 {
     std::vector<double> increments{0.4, 0.6};
     PrescribedTimeIncrementor incrementor{increments};
-    TimeStepEndState previous_state;
+    const auto previous_state = MakeConvergedEndState();
 
     KRATOS_EXPECT_TRUE(incrementor.WantNextStep(previous_state))
     incrementor.PostTimeStepExecution(previous_state);
@@ -65,7 +77,7 @@ KRATOS_TEST_CASE_IN_SUITE(WantRetryStepAlwaysReturnsTrueOnFirstCycle, KratosGeoM
 {
     std::vector<double> increments{0.4, 0.6};
     PrescribedTimeIncrementor incrementor{increments};
-    TimeStepEndState previous_state;
+    const auto previous_state = MakeConvergedEndState();
     const auto cycle_number = std::size_t{0};
 
     KRATOS_EXPECT_TRUE(incrementor.WantRetryStep(cycle_number, previous_state))
@@ -75,7 +87,7 @@ KRATOS_TEST_CASE_IN_SUITE(WantRetryStepAlwaysReturnsFalseOnAnySubsequentCycle, K
 {
     std::vector<double> increments{0.4, 0.6};
     PrescribedTimeIncrementor incrementor{increments};
-    TimeStepEndState previous_state;
+    const auto previous_state = MakeConvergedEndState();
     const auto cycle_number = std::size_t{1};
 
     KRATOS_EXPECT_FALSE(incrementor.WantRetryStep(cycle_number, previous_state))
@@ -85,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementsMustMatchInput, KratosGeoMecha
 {
     std::vector<double> increments{0.4, 0.6};
     PrescribedTimeIncrementor incrementor{increments};
-    TimeStepEndState previous_state;
+    const auto previous_state = MakeConvergedEndState();
 
     KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
     incrementor.PostTimeStepExecution(previous_state);
@@ -96,7 +108,7 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsWhenAskingForIncrementB
 {
     std::vector<double> increments{0.4, 0.6};
     PrescribedTimeIncrementor incrementor{increments};
-    TimeStepEndState previous_state;
+    const auto previous_state = MakeConvergedEndState();
     incrementor.PostTimeStepExecution(previous_state);
     incrementor.PostTimeStepExecution(previous_state);
     // Now we are beyond the end of the increment vector
@@ -112,7 +124,7 @@ KRATOS_TEST_CASE_IN_SUITE(WithoutPostTimeStepExecutionAlwaysGetSameIncrement, Kr
     KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
     KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
 
-    TimeStepEndState previous_state;
+    const auto previous_state = MakeConvergedEndState();
     incrementor.PostTimeStepExecution(previous_state);
 
     KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement());
