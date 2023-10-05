@@ -71,8 +71,12 @@ class BaseEncoderDecoder{
         virtual void GetEncoderDerivative(){
         }
 
-        virtual std::shared_ptr<Matrix> GetDecoderDerivative(int node_id){
+        // virtual Matrix GetDecoderDerivative(int node_id){
+        // }
+
+        virtual Matrix GetDecoderDerivative(int node_id){
         }
+
     };
 
 
@@ -106,31 +110,22 @@ class GlobalLinearEncoderDecoder: public BaseEncoderDecoder{
         virtual void GetEncoderDerivative() {
         }
 
-        virtual std::shared_ptr<Matrix> GetDecoderDerivative(int node_id) {
+        virtual Matrix GetDecoderDerivative(int node_id){
             return mMapPhi[node_id];
         }
 
         void SetNodalBasis(int node_id, Matrix &nodal_basis){
-            //mMapPhi[node_id] = the_basis;
-            std::shared_ptr<Matrix> pnodal_basis{new Matrix{nodal_basis}};
-            mMapPhi[node_id] = pnodal_basis;
-            }
-
-        // std::shared_ptr<Matrix> GetNodalBasis(int node_id){
-        //     return mMapPhi[node_id];
-        // }
+            mMapPhi[node_id] = nodal_basis;
+        }
 
         protected:
-        //std::unordered_map<int, Matrix> mMapPhi;
-        std::unordered_map<int, std::shared_ptr<Matrix>> mMapPhi;
-
+        std::unordered_map<int, Matrix> mMapPhi;
 
     };
-
-
 
 
 }
 
 
 #endif // BASE_ENCODER_DECODER
+
