@@ -15,6 +15,7 @@
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "scheme_factory.h"
 #include "convergence_criteria_factory.h"
+#include "builder_and_solver_factory.hpp"
 
 namespace Kratos
 {
@@ -36,7 +37,7 @@ SolvingStrategyFactory::Create(Parameters& rSolverSettings, ModelPart& rModelPar
     {
         auto solver = LinearSolverFactory<SparseSpaceType, LocalSpaceType>().Create(rSolverSettings["linear_solver_settings"]);
         auto scheme = SchemeFactory<SparseSpaceType, LocalSpaceType>::Create(rSolverSettings);
-        auto builder_and_solver = Kratos::make_shared<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>>(solver);
+        auto builder_and_solver = BuilderAndSolverFactory<SparseSpaceType, LocalSpaceType, LinearSolverType>::Create(rSolverSettings, solver);
         auto criteria = ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType>::Create(rSolverSettings);
 
         std::vector<std::string> strategy_entries = {"min_iteration",
@@ -69,7 +70,7 @@ SolvingStrategyFactory::Create(Parameters& rSolverSettings, ModelPart& rModelPar
                         solver,
                         criteria,
                         builder_and_solver,
-                                   parameters);
+                        parameters);
     }
 
     return nullptr;
