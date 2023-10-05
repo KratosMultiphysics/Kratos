@@ -35,7 +35,7 @@ bool PrescribedTimeIncrementor::WantRetryStep(std::size_t             CycleNumbe
 
 double PrescribedTimeIncrementor::GetIncrement() const
 {
-    return 0.0;
+    return *mPos;
 }
 
 void PrescribedTimeIncrementor::PostTimeStepExecution(const Kratos::TimeStepEndState& rResultantState)

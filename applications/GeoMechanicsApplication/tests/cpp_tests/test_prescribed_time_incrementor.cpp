@@ -72,4 +72,15 @@ KRATOS_TEST_CASE_IN_SUITE(WantRetryStepAlwaysReturnsFalseOnAnySubsequentCycle, K
     KRATOS_EXPECT_FALSE(incrementor.WantRetryStep(cycle_number, previous_state))
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementsMustMatchInput, KratosGeoMechanicsFastSuite)
+{
+    std::vector<double> increments{0.4, 0.6};
+    PrescribedTimeIncrementor incrementor{increments};
+    TimeStepEndState previous_state;
+
+    KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
+    incrementor.PostTimeStepExecution(previous_state);
+    KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement());
+}
+
 }
