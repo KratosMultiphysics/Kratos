@@ -11,13 +11,20 @@
 //
 
 #include "testing/testing.h"
-#include "custom_utilities/solving_strategy_factory.h"
+#include "custom_utilities/solving_strategy_factory.hpp"
 #include "containers/model.h"
 
 using namespace Kratos;
 
+
+
 namespace Kratos::Testing
 {
+
+using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
+using LinearSolverType = LinearSolver<SparseSpaceType, DenseSpaceType>;
+using SolvingStrategyFactoryType = SolvingStrategyFactory<SparseSpaceType, DenseSpaceType, LinearSolverType>;
 
 const std::string testParameters = R"(
     {
@@ -93,13 +100,12 @@ const std::string testParameters = R"(
 
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsNullptr_WhenNoCreatorWasAddedForRequestedStrategy, KratosGeoMechanicsFastSuite)
 {
-    SolvingStrategyFactory factory;
     Model model;
     model.CreateModelPart("test");
 
     Parameters parameters{R"({"strategy_type":"Unknown"})"};
 
-    const auto created_strategy = factory.Create(
+    const auto created_strategy = SolvingStrategyFactoryType::Create(
             parameters, model.GetModelPart("test"));
 
     KRATOS_EXPECT_EQ(created_strategy, nullptr);
@@ -112,12 +118,11 @@ KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenCallbackFunctionThrowsAndRequestIsIn
 
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForLinearStrategy, WorkInProgress)
 {
-    SolvingStrategyFactory factory;
     Model model;
     model.CreateModelPart("test");
     Parameters parameters{R"({"strategy_type":"linear_strategy"})"};
 
-    const auto created_strategy = factory.Create(
+    const auto created_strategy = SolvingStrategyFactoryType::Create(
             parameters, model.GetModelPart("test"));
 
     KRATOS_EXPECT_NE(created_strategy, nullptr);
@@ -125,13 +130,12 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForLinearStrategy, WorkI
 
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy, KratosGeoMechanicsFastSuite)
 {
-    SolvingStrategyFactory factory;
     Model model;
     model.CreateModelPart("test");
     model.GetModelPart("test").SetBufferSize(3);
     Parameters parameters{testParameters};
 
-    const auto created_strategy = factory.Create(
+    const auto created_strategy = SolvingStrategyFactoryType::Create(
             parameters, model.GetModelPart("test"));
 
     created_strategy->Check();
