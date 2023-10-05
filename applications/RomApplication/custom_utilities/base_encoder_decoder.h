@@ -17,30 +17,6 @@
 namespace Kratos{
 
 
-    // class RomBasis
-    // {
-    //     public:
-
-    //     KRATOS_CLASS_POINTER_DEFINITION(RomBasis);
-
-    //     ~RomBasis()= default;
-
-    //     void SetNodalBasis(int node_id, Matrix &nodal_basis){
-    //         //mMapPhi[node_id] = the_basis;
-    //         std::shared_ptr<Matrix> pnodal_basis{new Matrix{nodal_basis}};
-    //         mMapPhi[node_id] = pnodal_basis;
-    //         }
-
-    //     std::shared_ptr<Matrix> GetNodalBasis(int node_id){
-    //         return mMapPhi[node_id];
-    //     }
-
-    //     protected:
-    //     //std::unordered_map<int, Matrix> mMapPhi;
-    //     std::unordered_map<int, std::shared_ptr<Matrix>> mMapPhi;
-
-    // };
-
 class BaseEncoderDecoder{
     public:
 
@@ -62,32 +38,25 @@ class BaseEncoderDecoder{
 
         ~BaseEncoderDecoder()= default;
 
-        virtual void Encode(){
-        }
+        virtual void Encode() = 0;
 
-        virtual void Decode(){
-        }
+        virtual void Decode() = 0;
 
-        virtual void GetEncoderDerivative(){
-        }
+        virtual void GetEncoderDerivative() = 0;
 
-        // virtual Matrix GetDecoderDerivative(int node_id){
-        // }
-
-        virtual Matrix GetDecoderDerivative(int node_id){
-        }
+        virtual Matrix GetDecoderDerivative(int node_id) = 0;
 
     };
 
 
-class GlobalLinearEncoderDecoder: public BaseEncoderDecoder{
+class LinearEncoderDecoder: public BaseEncoderDecoder{
     public:
 
-        KRATOS_CLASS_POINTER_DEFINITION(GlobalLinearEncoderDecoder);
+        KRATOS_CLASS_POINTER_DEFINITION(LinearEncoderDecoder);
 
-        GlobalLinearEncoderDecoder(){}
+        LinearEncoderDecoder(){}
 
-        // GlobalLinearEncoderDecoder(Parameters ThisParameters): BaseEncoderDecoder(ThisParameters)
+        // LinearEncoderDecoder(Parameters ThisParameters): BaseEncoderDecoder(ThisParameters)
         // {
         // // Validate default parameters
         // Parameters default_parameters = Parameters(R"(
@@ -99,7 +68,7 @@ class GlobalLinearEncoderDecoder: public BaseEncoderDecoder{
 
         // }
 
-        ~GlobalLinearEncoderDecoder()= default;
+        ~LinearEncoderDecoder()= default;
 
         virtual void Encode() {
         }
