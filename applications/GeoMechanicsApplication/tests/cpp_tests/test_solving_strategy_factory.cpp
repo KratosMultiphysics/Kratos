@@ -100,7 +100,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateSolvingStrategy_Throws_WhenNoStrategyTypeIsDefin
     Parameters parameters{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(auto test = SolvingStrategyFactoryType::Create(
-            parameters, model.GetModelPart("dummy")), "The parameter strategy_type is undefined, aborting.");
+            parameters, model.GetModelPart("dummy")), "The parameter strategy_type is undefined, aborting.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy, KratosGeoMechanicsFastSuite)
