@@ -91,4 +91,16 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementsMustMatchInput, KratosGeoMecha
     KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsWhenAskingForIncrementBeyondEnd, KratosGeoMechanicsFastSuite)
+{
+    std::vector<double> increments{0.4, 0.6};
+    PrescribedTimeIncrementor incrementor{increments};
+    TimeStepEndState previous_state;
+    incrementor.PostTimeStepExecution(previous_state);
+    incrementor.PostTimeStepExecution(previous_state);
+    // Now we are beyond the end of the increment vector
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(incrementor.GetIncrement(), "Out of increment range");
+}
+
 }
