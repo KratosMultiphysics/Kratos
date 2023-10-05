@@ -52,6 +52,14 @@ KRATOS_TEST_CASE_IN_SUITE(WantFirstTwoTimesNewStepWhenPrescribedTimeIncrementorH
     KRATOS_EXPECT_FALSE(incrementor.WantNextStep(previous_state))
 }
 
+KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsIfAnyIncrementIsNegative, KratosGeoMechanicsFastSuite)
+{
+    std::vector<double> increments{0.4, -0.6};
+
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(PrescribedTimeIncrementor{increments},
+                                      "All prescribed increments must be positive")
+}
+
 KRATOS_TEST_CASE_IN_SUITE(WantRetryStepAlwaysReturnsTrueOnFirstCycle, KratosGeoMechanicsFastSuite)
 {
     std::vector<double> increments{0.4, 0.6};
