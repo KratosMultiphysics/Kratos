@@ -50,6 +50,7 @@ KRATOS_TEST_CASE_IN_SUITE(WantFirstTwoTimesNewStepWhenPrescribedTimeIncrementorH
     KRATOS_EXPECT_TRUE(incrementor.WantNextStep(previous_state))
     incrementor.PostTimeStepExecution(previous_state);
     KRATOS_EXPECT_FALSE(incrementor.WantNextStep(previous_state))
+    KRATOS_EXPECT_FALSE(incrementor.WantNextStep(previous_state))
 }
 
 KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsIfAnyIncrementIsNegative, KratosGeoMechanicsFastSuite)
