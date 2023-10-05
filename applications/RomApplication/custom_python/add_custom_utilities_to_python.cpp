@@ -69,6 +69,7 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     class_<GlobalLinearEncoderDecoder, typename GlobalLinearEncoderDecoder::Pointer, BaseEncoderDecoder>(m, "GlobalLinearEncoderDecoder")
     .def(init<>()) //
     .def("SetNodalBasis",&GlobalLinearEncoderDecoder::SetNodalBasis)
+    .def("GetDecoderDerivative",&GlobalLinearEncoderDecoder::GetDecoderDerivative)
     //.def(init<Parameters>()) //
     ;
 
