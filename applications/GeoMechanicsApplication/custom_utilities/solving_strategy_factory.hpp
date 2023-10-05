@@ -23,7 +23,7 @@
 #include "factories/standard_linear_solver_factory.h"
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
-#include "scheme_factory.h"
+#include "scheme_factory.hpp"
 #include "convergence_criteria_factory.h"
 #include "builder_and_solver_factory.hpp"
 
@@ -34,7 +34,7 @@ template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class SolvingStrategyFactory
 {
 public:
-    static [[nodiscard]] std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> Create(Parameters& rSolverSettings, ModelPart& rModelPart)
+    [[nodiscard]] static std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> Create(Parameters& rSolverSettings, ModelPart& rModelPart)
     {
         if (rSolverSettings["strategy_type"].GetString() == ResidualBasedLinearStrategy<TSparseSpace,
                 TDenseSpace,

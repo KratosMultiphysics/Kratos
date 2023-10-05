@@ -11,7 +11,7 @@
 //
 
 #include "testing/testing.h"
-#include "custom_utilities/scheme_factory.h"
+#include "custom_utilities/scheme_factory.hpp"
 #include "spaces/ublas_space.h"
 
 using namespace Kratos;

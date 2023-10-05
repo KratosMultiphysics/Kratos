@@ -20,7 +20,6 @@
 #include "includes/kratos_export_api.h"
 
 #include "geo_mechanics_application.h"
-#include "../../LinearSolversApplication/linear_solvers_application.h"
 
 namespace Kratos
 {
@@ -60,7 +59,6 @@ private:
     Model mModel;
     std::string mModelPartName;
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
-    KratosLinearSolversApplication::Pointer mpLinSolvApp;
 
     std::unique_ptr<ProcessFactory> mProcessFactory = std::make_unique<ProcessFactory>();
     std::unique_ptr<InputUtility> mpInputUtility;
