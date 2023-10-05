@@ -113,7 +113,7 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsWhenAskingForIncrementB
     incrementor.PostTimeStepExecution(previous_state);
     // Now we are beyond the end of the increment vector
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(incrementor.GetIncrement(), "Out of increment range");
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(const auto increment = incrementor.GetIncrement(), "Out of increment range")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WithoutPostTimeStepExecutionAlwaysGetSameIncrement, KratosGeoMechanicsFastSuite)
@@ -137,7 +137,7 @@ KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenPreviousEndStateDidNotConverge, Krat
     PrescribedTimeIncrementor incrementor{increments};
     TimeStepEndState previous_state;  // contains non-converged state
 
-    KRATOS_EXPECT_FALSE(incrementor.WantNextStep(previous_state));
+    KRATOS_EXPECT_FALSE(incrementor.WantNextStep(previous_state))
 }
 
 }
