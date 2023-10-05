@@ -20,22 +20,27 @@
 
 // Project includes
 #include "includes/define.h"
-
+#include "includes/indexed_object.h"
+#include "input_output/logger.h"
 
 namespace Kratos
 {
-///@addtogroup ApplicationNameApplication
+///@addtogroup KratosCore
 ///@{
 
 ///@name Kratos Classes
 ///@{
 
-/// This class is the result of the spatial searches.
-/** It provides:
+/** 
+ * @class SpatialSearchResult
+ * @brief This class is the result of the spatial searches.
+ * @details It provides:
  *  - A global pointer to the object found.
  *  - Distance to the object if IsDistanceCalculated() is true
  *  - IsObjectFound if for example search nearest fails or not
-*/
+ * @ingroup KratosCore
+ * @author Pooyan Dadvand
+ */
 template <typename TObjectType>
 class SpatialSearchResult
 {
@@ -49,16 +54,19 @@ public:
     /// Global pointer definition of TObjectType
     using TPointerType = GlobalPointer<TObjectType>;
 
+    /// Define index type
+    using IndexType = std::size_t;
+
     ///@}
     ///@name Life Cycle
     ///@{
 
     /// Default constructor.
     SpatialSearchResult()
-    : mpObject(nullptr),
-        mDistance(0.0),
-        mIsObjectFound(false),
-        mIsDistanceCalculated(false)
+        : mpObject(nullptr),
+          mDistance(0.0),
+          mIsObjectFound(false),
+          mIsDistanceCalculated(false)
     {
     }
 
@@ -91,7 +99,6 @@ public:
     /// Assignment operator.
     SpatialSearchResult& operator=(SpatialSearchResult const& /*Other*/) = default;
 
-
     ///@}
     ///@name Operations
     ///@{
@@ -108,6 +115,37 @@ public:
     ///@}
     ///@name Access
     ///@{
+
+    /**
+    * @brief Get the ID of the object.
+    * @details If the object is derived from IndexedObject, retrieves its ID. Otherwise, returns 0.
+    * @return IndexType - The ID of the object or 0 if not derived from IndexedObject.
+    */
+    IndexType Id() const
+    {
+        // Get Id if the object is derived from IndexedObject
+        if constexpr (std::is_base_of_v<IndexedObject, TObjectType>) {
+            return mpObject->Id();
+        } else { // Otherwise 0
+            return 0;
+        }
+    }
+
+    /**
+    * @brief Get the ID of the object.
+    * @details This function essentially performs the same operation as the Id() function. If the object is derived from IndexedObject, retrieves its ID. Otherwise, returns 0.
+    * @note Consider refactoring to avoid redundancy with Id() function.
+    * @return IndexType - The ID of the object or 0 if not derived from IndexedObject.
+    */
+    IndexType GetId() const
+    {
+        // Get Id if the object is derived from IndexedObject
+        if constexpr (std::is_base_of_v<IndexedObject, TObjectType>) {
+            return mpObject->Id();
+        } else { // Otherwise 0
+            return 0;
+        }
+    }
 
     /// Returns the global pointer to the object
     TPointerType Get() {
@@ -175,21 +213,24 @@ public:
     ///@{
 
     /// Turn back information as a string.
-    virtual std::string Info() const
+    std::string Info() const
     {
-        std::stringstream buffer;
-            buffer << "SpatialSearchResult" ;
-            return buffer.str();
+        return "SpatialSearchResult";
     }
 
     /// Print information about this object.
-    virtual void PrintInfo(std::ostream& rOStream) const {rOStream << "SpatialSearchResult";}
+    void PrintInfo(std::ostream& rOStream) const
+    {
+        rOStream << "SpatialSearchResult";
+    }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const {}
+    void PrintData(std::ostream& rOStream) const 
+    {
+
+    }
 
     ///@}
-
 private:
     ///@name Member Variables
     ///@{
@@ -209,6 +250,10 @@ private:
 
     friend class Serializer;
 
+    /**
+     * @brief Saves the object data to a serializer.
+     * @param rSerializer The serializer to save the data to.
+     */
     void save(Serializer& rSerializer) const
     {
         rSerializer.save("Object", mpObject);
@@ -217,6 +262,10 @@ private:
         rSerializer.save("Is Distance Calculated", mIsDistanceCalculated);
     }
 
+    /**
+     * @brief Loads the data of an object from a Serializer.
+     * @param rSerializer The Serializer to load the data from.
+     */
     void load(Serializer& rSerializer)
     {
         rSerializer.load("Object", mpObject);
@@ -260,5 +309,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@} addtogroup block
 
 }  // namespace Kratos.
-
-
