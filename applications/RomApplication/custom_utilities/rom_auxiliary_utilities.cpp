@@ -607,7 +607,7 @@ void RomAuxiliaryUtilities::GetPhiElemental(
                         });
                     KRATOS_DEBUG_ERROR_IF(it_node == rGeom.end());
 
-                    const Matrix& nodal_rom_basis =  *rEncoderDecoder.GetDecoderDerivative(r_dof.Id());//it_node->GetValue(ROM_BASIS);
+                    const Matrix& nodal_rom_basis =  rEncoderDecoder.GetDecoderDerivative(r_dof.Id());//it_node->GetValue(ROM_BASIS);
 
                     const auto variable_key = r_dof.GetVariable().Key();
                     const Matrix::size_type row_id = rVarToRowMapping.at(variable_key);
