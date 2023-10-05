@@ -32,6 +32,8 @@ PrescribedTimeIncrementor::PrescribedTimeIncrementor(const std::vector<double>& 
 
 bool PrescribedTimeIncrementor::WantNextStep(const Kratos::TimeStepEndState& rPreviousState) const
 {
+    if (rPreviousState.NonConverged()) return false;
+
     return mPos != mIncrements.end();
 }
 
