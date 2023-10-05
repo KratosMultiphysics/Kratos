@@ -36,46 +36,21 @@ class SolvingStrategyFactory
 public:
     [[nodiscard]] static std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> Create(Parameters& rSolverSettings, ModelPart& rModelPart)
     {
-        if (rSolverSettings["strategy_type"].GetString() == ResidualBasedLinearStrategy<TSparseSpace,
-                TDenseSpace,
-                TLinearSolver>::Name())
+        const std::string strategy_type = "strategy_type";
+
+        KRATOS_ERROR_IF_NOT(rSolverSettings.Has(strategy_type))
+        << "The parameter strategy_type is undefined, aborting.";
+
+        auto solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(rSolverSettings["linear_solver_settings"]);
+        auto scheme = SchemeFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
+        auto builder_and_solver = BuilderAndSolverFactory<TSparseSpace, TDenseSpace, TLinearSolver>::Create(rSolverSettings, solver);
+        auto criteria = ConvergenceCriteriaFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
+
+        Parameters parameters = ExtractStrategyParameters(rSolverSettings);
+
+        if (rSolverSettings[strategy_type].GetString() ==
+            GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Name())
         {
-            return std::make_unique<ResidualBasedLinearStrategy<TSparseSpace,
-                    TDenseSpace,
-                    TLinearSolver>>();
-        }
-        else if (rSolverSettings["strategy_type"].GetString() == GeoMechanicsNewtonRaphsonStrategy<TSparseSpace,
-                TDenseSpace,
-                TLinearSolver>::Name())
-        {
-            auto solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(rSolverSettings["linear_solver_settings"]);
-            auto scheme = SchemeFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
-            auto builder_and_solver = BuilderAndSolverFactory<TSparseSpace, TDenseSpace, TLinearSolver>::Create(rSolverSettings, solver);
-            auto criteria = ConvergenceCriteriaFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
-
-            std::vector<std::string> strategy_entries = {"min_iteration",
-                                                         "number_cycles",
-                                                         "increase_factor",
-                                                         "reduction_factor",
-                                                         "max_piping_iterations",
-                                                         "desired_iterations",
-                                                         "max_radius_factor",
-                                                         "min_radius_factor",
-                                                         "search_neighbours_step",
-                                                         "body_domain_sub_model_part_list",
-                                                         "loads_sub_model_part_list",
-                                                         "loads_variable_list",
-                                                         "rebuild_level"};
-
-            Parameters parameters;
-            for (const std::string& entry : strategy_entries)
-            {
-                if (rSolverSettings.Has(entry))
-                {
-                    parameters.AddValue(entry, rSolverSettings[entry]);
-                }
-            }
-
             return std::make_unique<GeoMechanicsNewtonRaphsonStrategy<TSparseSpace,
                     TDenseSpace,
                     TLinearSolver>>(rModelPart,
@@ -87,6 +62,33 @@ public:
         }
 
         return nullptr;
+    }
+
+    static Parameters ExtractStrategyParameters(const Parameters &rSolverSettings)
+    {
+        Parameters result;
+        std::vector<std::string> strategy_entries = {"min_iteration",
+                                                     "number_cycles",
+                                                     "increase_factor",
+                                                     "reduction_factor",
+                                                     "max_piping_iterations",
+                                                     "desired_iterations",
+                                                     "max_radius_factor",
+                                                     "min_radius_factor",
+                                                     "search_neighbours_step",
+                                                     "body_domain_sub_model_part_list",
+                                                     "loads_sub_model_part_list",
+                                                     "loads_variable_list",
+                                                     "rebuild_level"};
+        for (const std::string& entry : strategy_entries)
+        {
+            if (rSolverSettings.Has(entry))
+            {
+                result.AddValue(entry, rSolverSettings[entry]);
+            }
+        }
+
+        return result;
     }
 
 };

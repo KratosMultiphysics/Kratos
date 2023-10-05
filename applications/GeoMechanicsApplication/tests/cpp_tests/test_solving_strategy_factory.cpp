@@ -92,45 +92,26 @@ const std::string testParameters = R"(
     }
 )";
 
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsNullptr_WhenNoCreatorWasAddedForRequestedStrategy, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateSolvingStrategy_Throws_WhenNoStrategyTypeIsDefined, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    model.CreateModelPart("test");
+    model.CreateModelPart("dummy");
 
-    Parameters parameters{R"({"strategy_type":"Unknown"})"};
+    Parameters parameters{};
 
-    const auto created_strategy = SolvingStrategyFactoryType::Create(
-            parameters, model.GetModelPart("test"));
-
-    KRATOS_EXPECT_EQ(created_strategy, nullptr);
-}
-
-KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenCallbackFunctionThrowsAndRequestIsInvalid, KratosGeoMechanicsFastSuite)
-{
-    // still empty
-}
-
-KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForLinearStrategy, WorkInProgress)
-{
-    Model model;
-    model.CreateModelPart("test");
-    Parameters parameters{R"({"strategy_type":"linear_strategy"})"};
-
-    const auto created_strategy = SolvingStrategyFactoryType::Create(
-            parameters, model.GetModelPart("test"));
-
-    KRATOS_EXPECT_NE(created_strategy, nullptr);
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(auto test = SolvingStrategyFactoryType::Create(
+            parameters, model.GetModelPart("dummy")), "The parameter strategy_type is undefined, aborting.");
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    model.CreateModelPart("test");
-    model.GetModelPart("test").SetBufferSize(3);
+    model.CreateModelPart("dummy");
+    model.GetModelPart("dummy").SetBufferSize(3);
     Parameters parameters{testParameters};
 
     const auto created_strategy = SolvingStrategyFactoryType::Create(
-            parameters, model.GetModelPart("test"));
+            parameters, model.GetModelPart("dummy"));
 
     created_strategy->Check();
 
