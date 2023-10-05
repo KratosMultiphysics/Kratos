@@ -253,7 +253,7 @@ public:
     }
 
 
-    void SetUpEncoderDecoder(GlobalLinearEncoderDecoder &ThisEncodeDecoder){
+    void SetUpEncoderDecoder(std::shared_ptr<BaseEncoderDecoder> &ThisEncodeDecoder){
         mEncoderDecoder = ThisEncodeDecoder;
     }
 
@@ -418,7 +418,7 @@ protected:
 
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
-    GlobalLinearEncoderDecoder mEncoderDecoder;
+    std::shared_ptr<BaseEncoderDecoder> mEncoderDecoder;
 
     ///@}
     ///@name Protected operators

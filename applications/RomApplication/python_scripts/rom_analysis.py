@@ -143,7 +143,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             """
             Setting up EncoderDecoder
             """
-            encoder_decoder = KratosROM.GlobalLinearEncoderDecoder() #TODO read from somewhere this or another option
+            encoder_decoder = KratosROM.LinearEncoderDecoder() #TODO read from somewhere this or another option
 
             if True: #only option by now is Global Linear Encoder-Decoder. Adding more in a bit
                 # Set the right nodal ROM basis

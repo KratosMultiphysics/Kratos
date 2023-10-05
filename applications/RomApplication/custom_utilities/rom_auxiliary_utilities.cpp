@@ -589,7 +589,7 @@ void RomAuxiliaryUtilities::GetPhiElemental(
         const Element::DofsVectorType& rDofs,
         const Element::GeometryType& rGeom,
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping,
-        BaseEncoderDecoder &rEncoderDecoder)
+        std::shared_ptr<BaseEncoderDecoder> &rEncoderDecoder)
         {
             for(std::size_t i = 0; i < rDofs.size(); ++i)
             {
@@ -607,7 +607,7 @@ void RomAuxiliaryUtilities::GetPhiElemental(
                         });
                     KRATOS_DEBUG_ERROR_IF(it_node == rGeom.end());
 
-                    const Matrix& nodal_rom_basis =  rEncoderDecoder.GetDecoderDerivative(r_dof.Id());//it_node->GetValue(ROM_BASIS);
+                    const Matrix& nodal_rom_basis =  rEncoderDecoder->GetDecoderDerivative(r_dof.Id());//it_node->GetValue(ROM_BASIS);
 
                     const auto variable_key = r_dof.GetVariable().Key();
                     const Matrix::size_type row_id = rVarToRowMapping.at(variable_key);

@@ -61,16 +61,11 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("GetConditionIdsInModelPart", &RomAuxiliaryUtilities::GetConditionIdsInModelPart)
         ;
 
-    class_<BaseEncoderDecoder, typename BaseEncoderDecoder::Pointer>(m, "BaseEncoderDecoder")
-    .def(init<>()) //
-    //.def(init<Parameters>()) //
-    ;
 
-    class_<GlobalLinearEncoderDecoder, typename GlobalLinearEncoderDecoder::Pointer, BaseEncoderDecoder>(m, "GlobalLinearEncoderDecoder")
+    class_<LinearEncoderDecoder, typename LinearEncoderDecoder::Pointer, BaseEncoderDecoder>(m, "LinearEncoderDecoder")
     .def(init<>()) //
-    .def("SetNodalBasis",&GlobalLinearEncoderDecoder::SetNodalBasis)
-    .def("GetDecoderDerivative",&GlobalLinearEncoderDecoder::GetDecoderDerivative)
-    //.def(init<Parameters>()) //
+    .def("SetNodalBasis",&LinearEncoderDecoder::SetNodalBasis)
+    .def("GetDecoderDerivative",&LinearEncoderDecoder::GetDecoderDerivative)
     ;
 
 }
