@@ -30,7 +30,7 @@
 
 // Application includes
 #include "rom_application_variables.h"
-
+#include "custom_utilities/base_encoder_decoder.h"
 
 namespace Kratos
 {
@@ -107,14 +107,14 @@ public:
     static std::vector<IndexType> GetHRomConditionParentsIds(
         const ModelPart& rModelPart,
         const std::map<std::string, std::map<IndexType, double>>& rHRomWeights);
-    
+
     /**
      * @brief Retrieve the IDs of elements neighboring nodes in a given sub-model part but not present in HRom weights.
      *
-     * This function iterates over all the nodes in the provided sub-model part (`rGivenModelPart`) and collects 
-     * the IDs of the elements neighboring each node. The neighboring elements are determined using the 
-     * 'NEIGHBOUR_ELEMENTS' value attached to each node. The function then checks if these elements are already 
-     * present in `rHRomWeights`. If not, their IDs are added to the return vector. It's important to note that 
+     * This function iterates over all the nodes in the provided sub-model part (`rGivenModelPart`) and collects
+     * the IDs of the elements neighboring each node. The neighboring elements are determined using the
+     * 'NEIGHBOUR_ELEMENTS' value attached to each node. The function then checks if these elements are already
+     * present in `rHRomWeights`. If not, their IDs are added to the return vector. It's important to note that
      * this function assumes that the 'NEIGHBOUR_ELEMENTS' values are already computed for the nodes in the model part.
      *
      * @param rModelPart The complete model part which houses all the elements.
@@ -191,6 +191,14 @@ public:
         const Element::DofsVectorType& rDofs,
         const Element::GeometryType& rGeom,
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping);
+
+
+    static void  GetPhiElemental(
+        Matrix &rPhiElemental,
+        const Element::DofsVectorType& rDofs,
+        const Element::GeometryType& rGeom,
+        const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping,
+        BaseEncoderDecoder &rEncoderDecoder);
 
 
     /**
