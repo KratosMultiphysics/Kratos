@@ -20,61 +20,23 @@
 
 // Application includes
 #include "convection_diffusion_application.h"
+#include "../test_utilities/convection_diffusion_testing_utilities.h"
 
-
-namespace Kratos
+namespace Kratos::Testing
 {
-namespace Testing
-{
-    void SetEulerianConvDiffTestModelPart(ModelPart &rModelPart)
-    {
-        // Set buffer size
-        rModelPart.SetBufferSize(2);
-
-        // Set convection diffusion settings
-        ConvectionDiffusionSettings::Pointer p_conv_dff_set = Kratos::make_shared<ConvectionDiffusionSettings>();
-        p_conv_dff_set->SetDensityVariable(DENSITY);
-        p_conv_dff_set->SetDiffusionVariable(CONDUCTIVITY);
-        p_conv_dff_set->SetUnknownVariable(TEMPERATURE);
-        p_conv_dff_set->SetVolumeSourceVariable(HEAT_FLUX);
-        p_conv_dff_set->SetSurfaceSourceVariable(FACE_HEAT_FLUX);
-        p_conv_dff_set->SetProjectionVariable(PROJECTED_SCALAR1);
-        p_conv_dff_set->SetConvectionVariable(CONVECTION_VELOCITY);
-        p_conv_dff_set->SetMeshVelocityVariable(MESH_VELOCITY);
-        p_conv_dff_set->SetVelocityVariable(VELOCITY);
-        p_conv_dff_set->SetSpecificHeatVariable(SPECIFIC_HEAT);
-        p_conv_dff_set->SetReactionVariable(REACTION_FLUX);
-        rModelPart.GetProcessInfo().SetValue(CONVECTION_DIFFUSION_SETTINGS, p_conv_dff_set);
-
-        // Variables addition
-        rModelPart.AddNodalSolutionStepVariable(DENSITY);
-        rModelPart.AddNodalSolutionStepVariable(CONDUCTIVITY);
-        rModelPart.AddNodalSolutionStepVariable(TEMPERATURE);
-        rModelPart.AddNodalSolutionStepVariable(HEAT_FLUX);
-        rModelPart.AddNodalSolutionStepVariable(FACE_HEAT_FLUX);
-        rModelPart.AddNodalSolutionStepVariable(PROJECTED_SCALAR1);
-        rModelPart.AddNodalSolutionStepVariable(CONVECTION_VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(VELOCITY);
-        rModelPart.AddNodalSolutionStepVariable(SPECIFIC_HEAT);
-        rModelPart.AddNodalSolutionStepVariable(REACTION_FLUX);
-
-        // Create a fake properties container
-        auto p_elem_prop = rModelPart.CreateNewProperties(0);
-
-        // Fill the process info container
-        auto &r_process_info = rModelPart.GetProcessInfo();
-        r_process_info.SetValue(TIME_INTEGRATION_THETA, 1.0);
-        r_process_info.SetValue(DELTA_TIME, 0.1);
-        r_process_info.SetValue(DYNAMIC_TAU, 1.0);
-    }
 
     KRATOS_TEST_CASE_IN_SUITE(EulerianConvDiff2D3NNullConvection, KratosConvectionDiffusionFastSuite)
     {
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetEulerianConvDiffTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
+
+        // Fill the process info container
+        auto &r_process_info = r_test_model_part.GetProcessInfo();
+        r_process_info.SetValue(TIME_INTEGRATION_THETA, 1.0);
+        r_process_info.SetValue(DELTA_TIME, 0.1);
+        r_process_info.SetValue(DYNAMIC_TAU, 1.0);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -120,7 +82,13 @@ namespace Testing
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetEulerianConvDiffTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
+
+        // Fill the process info container
+        auto &r_process_info = r_test_model_part.GetProcessInfo();
+        r_process_info.SetValue(TIME_INTEGRATION_THETA, 1.0);
+        r_process_info.SetValue(DELTA_TIME, 0.1);
+        r_process_info.SetValue(DYNAMIC_TAU, 1.0);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -169,7 +137,13 @@ namespace Testing
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetEulerianConvDiffTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
+
+        // Fill the process info container
+        auto &r_process_info = r_test_model_part.GetProcessInfo();
+        r_process_info.SetValue(TIME_INTEGRATION_THETA, 1.0);
+        r_process_info.SetValue(DELTA_TIME, 0.1);
+        r_process_info.SetValue(DYNAMIC_TAU, 1.0);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -225,7 +199,13 @@ namespace Testing
         // Create the test element
         Model model;
         auto &r_test_model_part = model.CreateModelPart("TestModelPart");
-        SetEulerianConvDiffTestModelPart(r_test_model_part);
+        ConvectionDiffusionTestingUtilities::SetEntityUnitTestModelPart(r_test_model_part);
+
+        // Fill the process info container
+        auto &r_process_info = r_test_model_part.GetProcessInfo();
+        r_process_info.SetValue(TIME_INTEGRATION_THETA, 1.0);
+        r_process_info.SetValue(DELTA_TIME, 0.1);
+        r_process_info.SetValue(DYNAMIC_TAU, 1.0);
 
         // Element creation
         r_test_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
@@ -276,5 +256,4 @@ namespace Testing
         KRATOS_EXPECT_MATRIX_NEAR(LHS, expected_LHS, 1.0e-4)
     }
 
-} // namespace Testing
-} // namespace Kratos.
+} // namespace Kratos::Testing.
