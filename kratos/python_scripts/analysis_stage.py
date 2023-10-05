@@ -347,8 +347,10 @@ class AnalysisStage(object):
 
             # Check matrix operations
             defgrad = J @ J0_inv
-            print("F*FT:\n", defgrad.T @ defgrad)
+            C3D_FFT = defgrad.T @ defgrad
+            print("F*FT:\n", C3D_FFT)
             print("C3D:\n", C3D)
+            E3D_FFT = 0.5 * (C3D_FFT - np.eye(3))
 
             # JTJ = J.transpose() * J
             # G = J0_inv[0:2, 0:2]
@@ -364,9 +366,9 @@ class AnalysisStage(object):
             #E3D = T0_elm * (E3D * T0_elm.transpose())
 
             E_voigt = KratosMultiphysics.Vector(3)
-            E_voigt[0] = - E3D[0, 0]
-            E_voigt[1] = - E3D[1, 1]
-            E_voigt[2] = 0.0
+            E_voigt[0] = E3D_FFT[0, 0]
+            E_voigt[1] = E3D_FFT[1, 1]
+            E_voigt[2] = 2 * E3D_FFT[0, 1]
 
             element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
             # TODO later - Create condition for PointLoad, reference command:
