@@ -131,4 +131,13 @@ KRATOS_TEST_CASE_IN_SUITE(WithoutPostTimeStepExecutionAlwaysGetSameIncrement, Kr
     KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement());
 }
 
+KRATOS_TEST_CASE_IN_SUITE(NoNextTimeStepWhenPreviousEndStateDidNotConverge, KratosGeoMechanicsFastSuite)
+{
+    std::vector<double> increments{0.4, 0.6};
+    PrescribedTimeIncrementor incrementor{increments};
+    TimeStepEndState previous_state;  // contains non-converged state
+
+    KRATOS_EXPECT_FALSE(incrementor.WantNextStep(previous_state));
+}
+
 }
