@@ -25,7 +25,7 @@
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "spatial_containers/spatial_search_result.h"
 #include "spatial_containers/spatial_search_result_container.h"
-#include "spatial_containers/spatial_search_result_container_map.h"
+#include "spatial_containers/spatial_search_result_container_vector.h"
 
 namespace Kratos::Python
 {
@@ -125,14 +125,14 @@ void BindSpatialSearchResultContainer(pybind11::module& m, const std::string& rC
 }
 
 /**
- * @brief Binds a SpatialSearchResultContainerMap to a Python module.
- * @tparam T The type parameter of the SpatialSearchResultContainerMap.
+ * @brief Binds a SpatialSearchResultContainerVector to a Python module.
+ * @tparam T The type parameter of the SpatialSearchResultContainerVector.
  * @param m The Python module to bind the class to.
  * @param rClassName The name of the class in Python.
  */
 template<typename T>
-void BindSpatialSearchResultContainerMap(pybind11::module& m, const std::string& rClassName) {
-    using ContainerMapType = SpatialSearchResultContainerMap<T>;
+void BindSpatialSearchResultContainerVector(pybind11::module& m, const std::string& rClassName) {
+    using ContainerMapType = SpatialSearchResultContainerVector<T>;
     pybind11::class_<ContainerMapType, typename ContainerMapType::Pointer>(m, rClassName.c_str())
     .def(pybind11::init<>())
     .def("NumberOfSearchResults", &ContainerMapType::NumberOfSearchResults)
@@ -601,11 +601,11 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     BindSpatialSearchResultContainer<GeometricalObject>(m, "ResultTypeContainerGeometricalObject");
 
     // Containers map
-    BindSpatialSearchResultContainerMap<Node>(m, "ResultTypeContainerMapNode");
-    BindSpatialSearchResultContainerMap<GeometricalObject>(m, "ResultTypeContainerMapGeometricalObject");
+    BindSpatialSearchResultContainerVector<Node>(m, "ResultTypeContainerMapNode");
+    BindSpatialSearchResultContainerVector<GeometricalObject>(m, "ResultTypeContainerMapGeometricalObject");
 
     using ResultTypeContainerGeometricalObject = SpatialSearchResultContainer<GeometricalObject>;
-    using ResultTypeContainerMapGeometricalObject = SpatialSearchResultContainerMap<GeometricalObject>;
+    using ResultTypeContainerMapGeometricalObject = SpatialSearchResultContainerVector<GeometricalObject>;
     using NodesContainerType = ModelPart::NodesContainerType;
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ConditionsContainerType = ModelPart::ConditionsContainerType;

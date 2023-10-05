@@ -19,15 +19,15 @@
 #include "testing/testing.h"
 #include "geometries/line_2d_2.h"
 #include "spatial_containers/spatial_search_result.h"
-#include "spatial_containers/spatial_search_result_container_map.h"
+#include "spatial_containers/spatial_search_result_container_vector.h"
 
 namespace Kratos::Testing 
 {
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerMapInitializeResult, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorInitializeResult, KratosMPICoreFastSuite)
 {    
     // Create a test object
-    SpatialSearchResultContainerMap<GeometricalObject> container_map;
+    SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
     // Initialize result
     Point point = Point(0.5, 0.0, 0.0);
@@ -39,10 +39,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerMapInitiali
     KRATOS_EXPECT_FALSE(container_map.HasResult(fake_point));
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerMapClear, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorClear, KratosMPICoreFastSuite)
 {    
     // Create a test object
-    SpatialSearchResultContainerMap<GeometricalObject> container_map;
+    SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
     // Initialize result
     Point point = Point(0.5, 0.0, 0.0);
@@ -54,10 +54,10 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerMapClear, K
     KRATOS_EXPECT_FALSE(container_map.HasResult(point));
 }
 
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerMapOperators, KratosMPICoreFastSuite)
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorOperators, KratosMPICoreFastSuite)
 {    
     // Create a test object
-    SpatialSearchResultContainerMap<GeometricalObject> container_map;
+    SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
     // Initialize result
     Point point = Point(0.5, 0.0, 0.0);

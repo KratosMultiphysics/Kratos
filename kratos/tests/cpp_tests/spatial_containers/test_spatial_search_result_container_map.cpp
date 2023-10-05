@@ -19,15 +19,15 @@
 #include "testing/testing.h"
 #include "geometries/line_2d_2.h"
 #include "spatial_containers/spatial_search_result.h"
-#include "spatial_containers/spatial_search_result_container_map.h"
+#include "spatial_containers/spatial_search_result_container_vector.h"
 
 namespace Kratos::Testing 
 {
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerMapInitializeResult, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorInitializeResult, KratosCoreFastSuite)
 {
     // Create a test object
-    SpatialSearchResultContainerMap<GeometricalObject> container_map;
+    SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
     // Initialize result
     Point point = Point(0.5, 0.0, 0.0);
@@ -39,10 +39,10 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerMapInitializeResult, Krato
     KRATOS_EXPECT_FALSE(container_map.HasResult(fake_point));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerMapClear, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorClear, KratosCoreFastSuite)
 {
     // Create a test object
-    SpatialSearchResultContainerMap<GeometricalObject> container_map;
+    SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
     // Initialize result
     Point point = Point(0.5, 0.0, 0.0);
@@ -54,10 +54,10 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerMapClear, KratosCoreFastSu
     KRATOS_EXPECT_FALSE(container_map.HasResult(point));
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerMapOperators, KratosCoreFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorOperators, KratosCoreFastSuite)
 {
     // Create a test object
-    SpatialSearchResultContainerMap<GeometricalObject> container_map;
+    SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
     // Initialize result
     Point point = Point(0.5, 0.0, 0.0);

@@ -22,7 +22,7 @@
 #include "geometries/bounding_box.h"
 #include "geometries/point.h"
 #include "spatial_containers/spatial_search_result.h"
-#include "spatial_containers/spatial_search_result_container_map.h"
+#include "spatial_containers/spatial_search_result_container_vector.h"
 
 namespace Kratos
 {
@@ -57,7 +57,7 @@ public:
     using CellType = std::vector<GeometricalObject*>;
     using ResultType = SpatialSearchResult<GeometricalObject>;
     using ResultTypeContainer = SpatialSearchResultContainer<GeometricalObject>;
-    using ResultTypeContainerMap = SpatialSearchResultContainerMap<GeometricalObject>;
+    using ResultTypeContainerMap = SpatialSearchResultContainerVector<GeometricalObject>;
 
     ///@}
     ///@name Life Cycle

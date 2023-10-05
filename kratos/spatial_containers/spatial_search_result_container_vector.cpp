@@ -20,13 +20,13 @@
 #include "includes/data_communicator.h"
 #include "includes/node.h"
 #include "includes/geometrical_object.h"
-#include "spatial_containers/spatial_search_result_container_map.h"
+#include "spatial_containers/spatial_search_result_container_vector.h"
 
 namespace Kratos
 {
 
 template <class TObjectType>
-SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerMap<TObjectType>::InitializeResult(const IndexType Index)
+SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerVector<TObjectType>::InitializeResult(const IndexType Index)
 {
     // If doesn't exists, create it
     if (!HasResult(Index)) {
@@ -39,7 +39,7 @@ SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerMap<TObje
 /***********************************************************************************/
 
 template <class TObjectType>
-SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerMap<TObjectType>::InitializeResult(const array_1d<double, 3>& rCoordinates)
+SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerVector<TObjectType>::InitializeResult(const array_1d<double, 3>& rCoordinates)
 {
     const HashType hash = Hash(rCoordinates);
     // If doesn't exists, create it
@@ -53,7 +53,7 @@ SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerMap<TObje
 /***********************************************************************************/
 
 template <class TObjectType>
-bool SpatialSearchResultContainerMap<TObjectType>::HasResult(const IndexType Index) const
+bool SpatialSearchResultContainerVector<TObjectType>::HasResult(const IndexType Index) const
 {
     if (mPointResults.find(Index) != mPointResults.end()) {
         return true;
@@ -65,7 +65,7 @@ bool SpatialSearchResultContainerMap<TObjectType>::HasResult(const IndexType Ind
 /***********************************************************************************/
 
 template <class TObjectType>
-bool SpatialSearchResultContainerMap<TObjectType>::HasResult(const array_1d<double, 3>& rCoordinates) const
+bool SpatialSearchResultContainerVector<TObjectType>::HasResult(const array_1d<double, 3>& rCoordinates) const
 {
     const HashType hash = Hash(rCoordinates);
     if (mPointResults.find(hash) != mPointResults.end()) {
@@ -78,7 +78,7 @@ bool SpatialSearchResultContainerMap<TObjectType>::HasResult(const array_1d<doub
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainerMap<TObjectType>::Clear()
+void SpatialSearchResultContainerVector<TObjectType>::Clear()
 {
     mPointResults.clear();
 }
@@ -87,7 +87,7 @@ void SpatialSearchResultContainerMap<TObjectType>::Clear()
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainerMap<TObjectType>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
+void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
 {
     // Synchronize all the results
     for (auto& r_point_result : mPointResults) {
@@ -99,7 +99,7 @@ void SpatialSearchResultContainerMap<TObjectType>::SynchronizeAll(const DataComm
 /***********************************************************************************/
 
 template <class TObjectType>
-typename SpatialSearchResultContainerMap<TObjectType>::HashType SpatialSearchResultContainerMap<TObjectType>::Hash(const array_1d<double, 3>& rCoordinates) const
+typename SpatialSearchResultContainerVector<TObjectType>::HashType SpatialSearchResultContainerVector<TObjectType>::Hash(const array_1d<double, 3>& rCoordinates) const
 {
     return reinterpret_cast<std::size_t>(&rCoordinates);
 }
@@ -108,10 +108,10 @@ typename SpatialSearchResultContainerMap<TObjectType>::HashType SpatialSearchRes
 /***********************************************************************************/
 
 template <class TObjectType>
-std::string SpatialSearchResultContainerMap<TObjectType>::Info() const
+std::string SpatialSearchResultContainerVector<TObjectType>::Info() const
 {
     std::stringstream buffer;
-    buffer << "SpatialSearchResultContainerMap" ;
+    buffer << "SpatialSearchResultContainerVector" ;
     return buffer.str();
 }
 
@@ -119,19 +119,19 @@ std::string SpatialSearchResultContainerMap<TObjectType>::Info() const
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainerMap<TObjectType>::PrintInfo(std::ostream& rOStream) const 
+void SpatialSearchResultContainerVector<TObjectType>::PrintInfo(std::ostream& rOStream) const 
 {
-    rOStream << "SpatialSearchResultContainerMap" << "\n";
+    rOStream << "SpatialSearchResultContainerVector" << "\n";
 }
 
 /***********************************************************************************/
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainerMap<TObjectType>::PrintData(std::ostream& rOStream) const
+void SpatialSearchResultContainerVector<TObjectType>::PrintData(std::ostream& rOStream) const
 {
     // Print results
-    rOStream << "SpatialSearchResultContainerMap data summary: " << "\n";
+    rOStream << "SpatialSearchResultContainerVector data summary: " << "\n";
     for (auto it = mPointResults.begin(); it != mPointResults.end(); ++it) {
         rOStream << "Hash " << it->first << ":\n";
         it->second.PrintData(rOStream);
@@ -142,7 +142,7 @@ void SpatialSearchResultContainerMap<TObjectType>::PrintData(std::ostream& rOStr
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainerMap<TObjectType>::save(Serializer& rSerializer) const
+void SpatialSearchResultContainerVector<TObjectType>::save(Serializer& rSerializer) const
 { 
     rSerializer.save("PointResults", mPointResults);
 }
@@ -151,7 +151,7 @@ void SpatialSearchResultContainerMap<TObjectType>::save(Serializer& rSerializer)
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainerMap<TObjectType>::load(Serializer& rSerializer)
+void SpatialSearchResultContainerVector<TObjectType>::load(Serializer& rSerializer)
 {
     rSerializer.load("PointResults", mPointResults);
 }
@@ -160,7 +160,7 @@ void SpatialSearchResultContainerMap<TObjectType>::load(Serializer& rSerializer)
 /***********************************************************************************/
 
 /// Template instantiation
-template class SpatialSearchResultContainerMap<Node>;
-template class SpatialSearchResultContainerMap<GeometricalObject>;
+template class SpatialSearchResultContainerVector<Node>;
+template class SpatialSearchResultContainerVector<GeometricalObject>;
 
 }  // namespace Kratos

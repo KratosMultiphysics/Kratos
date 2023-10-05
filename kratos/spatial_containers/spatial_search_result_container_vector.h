@@ -29,7 +29,7 @@ namespace Kratos
 ///@{
 
 /**
- * @class SpatialSearchResultContainerMap
+ * @class SpatialSearchResultContainerVector
  * @brief Spatial search result container map
  * @details This class is used to store the results of a spatial search, in a map to be identify results for a given coordinates
  * @tparam TObjectType The type of the object
@@ -37,14 +37,14 @@ namespace Kratos
  * @author Vicente Mataix Ferrandiz
  */
 template <class TObjectType>
-class KRATOS_API(KRATOS_CORE) SpatialSearchResultContainerMap
+class KRATOS_API(KRATOS_CORE) SpatialSearchResultContainerVector
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    /// Pointer definition of SpatialSearchResultContainerMap
-    KRATOS_CLASS_POINTER_DEFINITION(SpatialSearchResultContainerMap);
+    /// Pointer definition of SpatialSearchResultContainerVector
+    KRATOS_CLASS_POINTER_DEFINITION(SpatialSearchResultContainerVector);
 
     /// The hash type
     using HashType = std::size_t;
@@ -219,10 +219,10 @@ public:
     ///@{
 
     /// Constructor.
-    SpatialSearchResultContainerMap() = default;
+    SpatialSearchResultContainerVector() = default;
 
     /// Destructor.
-    virtual ~SpatialSearchResultContainerMap() = default;
+    virtual ~SpatialSearchResultContainerVector() = default;
 
     ///@}
     ///@name Operators
@@ -479,12 +479,12 @@ private:
     void load(Serializer& rSerializer);
 
     ///@}
-}; // Class SpatialSearchResultContainerMap
+}; // Class SpatialSearchResultContainerVector
 
 /// input stream function
 template <class TObjectType>
 inline std::istream& operator>>(std::istream& rIStream,
-                                SpatialSearchResultContainerMap<TObjectType>& rThis)
+                                SpatialSearchResultContainerVector<TObjectType>& rThis)
 {
     return rIStream;
 }
@@ -492,7 +492,7 @@ inline std::istream& operator>>(std::istream& rIStream,
 /// output stream function
 template <class TObjectType>
 inline std::ostream& operator<<(std::ostream& rOStream,
-                                const SpatialSearchResultContainerMap<TObjectType>& rThis)
+                                const SpatialSearchResultContainerVector<TObjectType>& rThis)
 {
     rThis.PrintInfo(rOStream);
     rOStream << std::endl;
