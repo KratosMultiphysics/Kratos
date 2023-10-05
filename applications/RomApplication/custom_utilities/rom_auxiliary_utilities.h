@@ -239,7 +239,7 @@ public:
         const Element::DofsVectorType& rDofs,
         const Element::GeometryType& rGeom,
         const std::unordered_map<Kratos::VariableData::KeyType, Matrix::size_type>& rVarToRowMapping,
-        BaseEncoderDecoder &rEncoderDecoder);
+        std::shared_ptr<BaseEncoderDecoder> &rEncoderDecoder);
 
 
     /**
