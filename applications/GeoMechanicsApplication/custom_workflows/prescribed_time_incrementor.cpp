@@ -27,7 +27,7 @@ PrescribedTimeIncrementor::PrescribedTimeIncrementor(const std::vector<double>& 
 {
     KRATOS_ERROR_IF(std::any_of(mIncrements.begin(), mIncrements.end(),
                                 [](auto value){return value < 0.0;}))
-        << "All prescribed increments must be positive";
+        << "All prescribed increments must not be negative";
 }
 
 bool PrescribedTimeIncrementor::WantNextStep(const Kratos::TimeStepEndState& rPreviousState) const

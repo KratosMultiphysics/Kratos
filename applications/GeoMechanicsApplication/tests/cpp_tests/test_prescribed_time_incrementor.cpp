@@ -57,7 +57,7 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsIfAnyIncrementIsNegativ
     std::vector<double> increments{0.4, -0.6};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(PrescribedTimeIncrementor{increments},
-                                      "All prescribed increments must be positive")
+                                      "All prescribed increments must not be negative")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(WantRetryStepAlwaysReturnsTrueOnFirstCycle, KratosGeoMechanicsFastSuite)
