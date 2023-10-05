@@ -62,6 +62,10 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         ;
 
 
+    class_<BaseEncoderDecoder, typename BaseEncoderDecoder::Pointer>(m, "BaseEncoderDecoder")
+    .def(init<>()) //
+    ;
+
     class_<LinearEncoderDecoder, typename LinearEncoderDecoder::Pointer, BaseEncoderDecoder>(m, "LinearEncoderDecoder")
     .def(init<>()) //
     .def("SetNodalBasis",&LinearEncoderDecoder::SetNodalBasis)
