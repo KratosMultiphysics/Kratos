@@ -11,7 +11,7 @@
 //
 
 #include "testing/testing.h"
-#include "custom_utilities/convergence_criteria_factory.h"
+#include "custom_utilities/convergence_criteria_factory.hpp"
 #include "spaces/ublas_space.h"
 #include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 

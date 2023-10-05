@@ -34,7 +34,6 @@ KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBui
     }
     )";
 
-
     auto solver = std::make_shared<DummyLinearSolver<SparseSpaceType, LocalSpaceType>>();
 
     auto builder_and_solver = BuilderAndSolverFactory<SparseSpaceType, LocalSpaceType, LinearSolver<SparseSpaceType, LocalSpaceType>>::Create(Parameters{validBlockParameters}, solver);

@@ -24,7 +24,7 @@
 #include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
 #include "scheme_factory.hpp"
-#include "convergence_criteria_factory.h"
+#include "convergence_criteria_factory.hpp"
 #include "builder_and_solver_factory.hpp"
 
 namespace Kratos

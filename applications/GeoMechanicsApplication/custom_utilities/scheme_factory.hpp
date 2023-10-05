@@ -28,12 +28,10 @@ public:
         KRATOS_ERROR_IF_NOT(rSolverSettings.Has("scheme_type")) << "scheme_type is not defined, aborting";
         KRATOS_ERROR_IF_NOT(rSolverSettings.Has("solution_type")) << "solution_type is not defined, aborting";
 
-        if (rSolverSettings["scheme_type"].GetString() == "Backward_Euler")
+        if (rSolverSettings["scheme_type"].GetString() == "Backward_Euler" &&
+            rSolverSettings["solution_type"].GetString() == "Quasi-Static")
         {
-            if (rSolverSettings["solution_type"].GetString() == "Quasi-Static")
-            {
-                return std::make_shared<BackwardEulerQuasistaticUPwScheme<TSparseSpace, TDenseSpace>>();
-            }
+            return std::make_shared<BackwardEulerQuasistaticUPwScheme<TSparseSpace, TDenseSpace>>();
         }
 
         KRATOS_ERROR << "Specified solution_type/scheme_type is not supported, aborting";
