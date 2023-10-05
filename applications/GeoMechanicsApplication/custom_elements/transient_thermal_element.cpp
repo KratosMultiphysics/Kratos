@@ -256,7 +256,7 @@ namespace Kratos
             Variables.IntegrationCoefficient =
                 this->CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
 
-            //
+            // For thermo_hydro coupled problems 
             if (mIsPressureCoupled) {
                 Variables.WaterDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.N, Geom);
                 Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.N, Geom);

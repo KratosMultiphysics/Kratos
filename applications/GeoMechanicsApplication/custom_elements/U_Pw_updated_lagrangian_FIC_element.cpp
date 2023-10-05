@@ -15,6 +15,7 @@
 // Project includes
 #include "custom_elements/U_Pw_updated_lagrangian_FIC_element.hpp"
 #include "utilities/math_utils.h"
+#include "custom_utilities/thermal_utilities.hpp"
 
 namespace Kratos
 {
@@ -80,6 +81,12 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
     for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint ) {
         // Compute element kinematics B, F, GradNpT ...
         this->CalculateKinematics(Variables, GPoint);
+
+        // Contribute thermal effects if it is a coupled thermo-hydro-mechanical problem
+        if (Geom[0].SolutionStepsDataHas(TEMPERATURE)) {
+            Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
+            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
+        }
 
         // Cauchy strain: This needs to be investigated which strain measure should be used
         // In some references, e.g. Bathe, suggested to use Almansi strain measure

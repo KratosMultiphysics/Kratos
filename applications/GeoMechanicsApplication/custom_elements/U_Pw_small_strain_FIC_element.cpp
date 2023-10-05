@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_FIC_element.hpp"
+#include "custom_utilities/thermal_utilities.hpp"
 
 namespace Kratos
 {
@@ -468,6 +469,12 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
         //Compute Np, GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
+
+        // Contribute thermal effects if it is a coupled thermo-hydro problem
+        if (Geom[0].SolutionStepsDataHas(TEMPERATURE)) {
+            Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
+            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
+        }
 
         //Compute infinitessimal strain
         this->CalculateStrain(Variables, GPoint);

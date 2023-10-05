@@ -60,7 +60,6 @@ namespace Kratos
                 C(INDEX_2D_THERMAL_FLUX_Y, INDEX_2D_THERMAL_FLUX_X) += c2 * c3 * dischargeVector[0] * dischargeVector[1];
                 C(INDEX_2D_THERMAL_FLUX_Y, INDEX_2D_THERMAL_FLUX_Y) += c2 * (c3 * dischargeVector[1] * dischargeVector[1] + c4);
             }
-
         }
 
         KRATOS_CATCH("")
