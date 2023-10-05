@@ -584,7 +584,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
 
     using ResultTypeGeometricalObject = SpatialSearchResult<GeometricalObject>;
 
-    py::class_<ResultTypeGeometricalObject, ResultTypeGeometricalObject::Pointer, IndexedObject>(m, "ResultTypeGeometricalObject")
+    py::class_<ResultTypeGeometricalObject, ResultTypeGeometricalObject::Pointer>(m, "ResultTypeGeometricalObject")
     .def(py::init< >())
     .def(py::init<GeometricalObject*>())
     .def("Reset", &ResultTypeGeometricalObject::Reset)
