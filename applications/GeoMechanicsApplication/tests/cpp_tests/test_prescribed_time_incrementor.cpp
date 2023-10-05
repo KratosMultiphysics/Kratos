@@ -104,4 +104,19 @@ KRATOS_TEST_CASE_IN_SUITE(PrescribedTimeIncrementorThrowsWhenAskingForIncrementB
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(incrementor.GetIncrement(), "Out of increment range");
 }
 
+KRATOS_TEST_CASE_IN_SUITE(WithoutPostTimeStepExecutionAlwaysGetSameIncrement, KratosGeoMechanicsFastSuite)
+{
+    std::vector<double> increments{0.4, 0.6};
+    PrescribedTimeIncrementor incrementor{increments};
+
+    KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(increments.front(), incrementor.GetIncrement());
+
+    TimeStepEndState previous_state;
+    incrementor.PostTimeStepExecution(previous_state);
+
+    KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement());
+    KRATOS_EXPECT_DOUBLE_EQ(increments.back(), incrementor.GetIncrement());
+}
+
 }
