@@ -32,12 +32,13 @@ public:
 
     // ============================================================================================
     // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
     static double CalculateWaterDensityOnIntegrationPoints(
         const Vector& N,
     	const GeometryType& rGeom)
     {
-        array_1d<double, TNumNodes> TemperatureVector;
+        const unsigned int TNumNodes = rGeom.PointsNumber();
+        Vector TemperatureVector;
+        TemperatureVector.resize(TNumNodes);
         //Nodal Variables
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             TemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);
@@ -52,12 +53,13 @@ public:
     
     // ============================================================================================
     // ============================================================================================
-    template<unsigned int TDim, unsigned int TNumNodes>
     static double CalculateWaterViscosityOnIntegrationPoints(
         const Vector& N,
     	const GeometryType& rGeom)
     {
-        array_1d<double, TNumNodes> TemperatureVector;
+        const unsigned int TNumNodes = rGeom.PointsNumber();
+        Vector TemperatureVector;
+        TemperatureVector.resize(TNumNodes);
         //Nodal Variables
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             TemperatureVector[i] = rGeom[i].FastGetSolutionStepValue(TEMPERATURE);

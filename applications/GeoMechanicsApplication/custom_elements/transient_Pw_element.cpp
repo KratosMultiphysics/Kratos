@@ -492,8 +492,8 @@ void TransientPwElement<TDim,TNumNodes>::
 
         // Contribute thermal effects if it is a coupled thermo-hydro problem
         if (Geom[0].SolutionStepsDataHas(TEMPERATURE)) {
-            Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
-            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
+            Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.Np, Geom);
+            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.Np, Geom);
         }
 
         //Compute Nu and BodyAcceleration

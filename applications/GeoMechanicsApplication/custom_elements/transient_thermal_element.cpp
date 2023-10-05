@@ -258,8 +258,8 @@ namespace Kratos
 
             // For thermo_hydro coupled problems 
             if (mIsPressureCoupled) {
-                Variables.WaterDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.N, Geom);
-                Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.N, Geom);
+                Variables.WaterDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.N, Geom);
+                Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.N, Geom);
                 this->CalculateDischargeVector(Variables);
             }
 

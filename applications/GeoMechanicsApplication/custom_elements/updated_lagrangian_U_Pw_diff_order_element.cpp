@@ -15,6 +15,7 @@
 // Project includes
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_element.hpp"
 #include "utilities/math_utils.h"
+#include "custom_utilities/thermal_utilities.hpp"
 
 namespace Kratos
 {
@@ -74,6 +75,12 @@ void UpdatedLagrangianUPwDiffOrderElement::
     for ( IndexType GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint ) {
         // Compute element kinematics B, F, DNu_DX ...
         this->CalculateKinematics(Variables, GPoint);
+
+        // Contribute thermal effects if it is a coupled thermo-hydro-mechanical problem
+        if (rGeom[0].SolutionStepsDataHas(TEMPERATURE)) {
+            Variables.Density = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.Np, rGeom);
+            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.Np, rGeom);
+        }
 
         //Compute strain
         this->CalculateStrain(Variables, GPoint);

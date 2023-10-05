@@ -1124,8 +1124,8 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
         // Contribute thermal effects if it is a coupled thermo-hydro-mechanical problem
         if (rGeom[0].SolutionStepsDataHas(TEMPERATURE)) {
-            Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, rGeom);
-            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, rGeom);
+            Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.Np, rGeom);
+            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.Np, rGeom);
         }
 
         //Compute infinitessimal strain

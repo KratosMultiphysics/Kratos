@@ -97,8 +97,8 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
 
         // Contribute thermal effects if it is a coupled thermo-hydro-mechanical problem
         if (Geom[0].SolutionStepsDataHas(TEMPERATURE)) {
-            Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
-            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints<TDim, TNumNodes>(Variables.Np, Geom);
+            Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.Np, Geom);
+            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.Np, Geom);
         }
 
         // Cauchy strain: This needs to be investigated which strain measure should be used
