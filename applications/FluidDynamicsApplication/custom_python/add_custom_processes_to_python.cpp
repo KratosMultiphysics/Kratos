@@ -29,6 +29,8 @@
 #include "custom_processes/calulate_levelset_consistent_nodal_gradient_process.h"
 #include "custom_processes/compute_pressure_coefficient_process.h"
 #include "custom_processes/distance_modification_process.h"
+#include "custom_processes/embedded_mls_constraint_process.h"
+#include "custom_processes/embedded_local_constraint_process.h"
 #include "custom_processes/distance_smoothing_process.h"
 #include "custom_processes/embedded_nodes_initialization_process.h"
 #include "custom_processes/embedded_postprocess_process.h"
@@ -91,6 +93,14 @@ void AddCustomProcessesToPython(pybind11::module& m)
     .def(py::init < ModelPart&, const double, const double, const bool, const bool, const bool >())
     .def(py::init< ModelPart&, Parameters& >())
     .def(py::init< Model&, Parameters& >())
+    ;
+
+    py::class_<EmbeddedMLSConstraintProcess, EmbeddedMLSConstraintProcess::Pointer, Process>(m,"EmbeddedMLSConstraintProcess")
+    .def(py::init<Model&, Parameters&>())
+    ;
+
+    py::class_<EmbeddedLocalConstraintProcess, EmbeddedLocalConstraintProcess::Pointer, Process>(m,"EmbeddedLocalConstraintProcess")
+    .def(py::init<Model&, Parameters&>())
     ;
 
     py::class_<EmbeddedNodesInitializationProcess, EmbeddedNodesInitializationProcess::Pointer, Process>
