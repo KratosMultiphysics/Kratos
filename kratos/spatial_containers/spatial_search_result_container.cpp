@@ -20,8 +20,9 @@
 #include "includes/data_communicator.h"
 #include "includes/node.h"
 #include "includes/geometrical_object.h"
-#include "utilities/global_pointer_utilities.h"
 #include "spatial_containers/spatial_search_result_container.h"
+// NOTE: GlobalRetrieveGlobalPointers is an expensive function, therefore we will build the global result manually, this way avoiding the problematic coming from the need of a indexed class and the computational cost of the call. This will therefore assume that every local result doesn't have repeated values (aka not including ghost nodes in case nodes are considered)
+// #include "utilities/global_pointer_utilities.h"
 
 namespace Kratos
 {
@@ -105,7 +106,67 @@ template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
 {
     // Synchronize local results to global results
-    mGlobalResults = GlobalPointerUtilities::GlobalRetrieveGlobalPointers(mLocalResults, rDataCommunicator);
+    // NOTE: GlobalRetrieveGlobalPointers is an expensive function, therefore we will build the global result manually, this way avoiding the problematic coming from the need of a indexed class and the computational cost of the call. This will therefore assume that every local result doesn't have repeated values (aka not including ghost nodes in case nodes are considered)
+    //mGlobalResults = GlobalPointerUtilities::GlobalRetrieveGlobalPointers(mLocalResults, rDataCommunicator);
+    // MPI code
+    if(rDataCommunicator.IsDistributed()) {
+        const int local_result_size = mLocalResults.size();
+        const int global_result_size = rDataCommunicator.SumAll(local_result_size);
+        mGlobalResults.reserve(global_result_size);
+        const int world_size = rDataCommunicator.Size();
+        const int rank = rDataCommunicator.Rank();
+        std::vector<int> send_buffer(1, local_result_size);
+        std::vector<int> recv_buffer(world_size);
+        rDataCommunicator.AllGather(send_buffer, recv_buffer);
+        
+        // Create a lambda to generate the vector of indexes greater than zero
+        auto GenerateIndexesLambda = [](const std::vector<int>& rInputVector) {
+            std::vector<int> indexes;
+            for (int i = 0; i < static_cast<int>(rInputVector.size()); ++i) {
+                if (rInputVector[i] > 0) {
+                    indexes.push_back(i);
+                }
+            }
+            return indexes;
+        };
+
+        // Call the lambda to generate the result vector of partitions with results
+        std::vector<int> resultVector = GenerateIndexesLambda(recv_buffer);
+
+        // Iterate over the ranks
+        for (int rank_to_retrieve : resultVector) {
+            if (rank_to_retrieve == rank) {
+                // Fill global vector
+                for (auto& r_value : mLocalResults) {
+                    auto p_result = Kratos::make_shared<SpatialSearchResultType>(r_value);
+                    mGlobalResults.push_back(p_result);
+                }
+                // Send to other partitions
+                for (int rank_to_send : resultVector) {
+                    if (rank_to_send != rank) {
+                        rDataCommunicator.Send(mLocalResults, rank_to_send);
+                    }
+                }
+            } else { // Retrieve from other partitions
+                for (int rank_to_recv : resultVector) {
+                    if (rank_to_recv != rank) {
+                        LocalResultsVector recv_gps;
+                        rDataCommunicator.Recv(recv_gps, rank_to_recv);
+                        for (auto& r_value : recv_gps) {
+                            auto p_result = Kratos::make_shared<SpatialSearchResultType>(r_value);
+                            mGlobalResults.push_back(p_result);
+                        }
+                    }
+                }
+            }
+        }
+    } else { // Serial code
+        // Fill global vector
+        for (auto& r_value : mLocalResults) {
+            auto p_result = Kratos::make_shared<SpatialSearchResultType>(r_value);
+            mGlobalResults.push_back(p_result);
+        }
+    }
 
     // Generate the communicator
     mpGlobalPointerCommunicator = Kratos::make_shared<GlobalPointerCommunicatorType>(rDataCommunicator, mGlobalResults.ptr_begin(), mGlobalResults.ptr_end());
