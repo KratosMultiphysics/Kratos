@@ -80,6 +80,14 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         # Set the flag allowing to run multiple simulations using this process #TODO cope with arbitrarily large cases (parallelism)
         self.rom_manager = settings["rom_manager"].GetBool()
 
+        # Setting flag to indicate the type of solution to be used for building the snapshot matrix in the POD
+        self.snapshot_solution_type = settings["snapshot_solution_type"].GetString() if settings.Has("snapshot_solution_type") else "total"
+
+        # Check if the snapshot_solution_type is either "incremental" or "total"
+        if self.snapshot_solution_type not in ["incremental", "total", "affine"]:
+            raise Exception('Invalid snapshot_solution_type: {}. Expected "incremental" or "total".'.format(self.snapshot_solution_type))
+
+        self.initial_condition_flag = True
 
     @classmethod
     def GetDefaultParameters(self):
@@ -91,6 +99,7 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "snapshots_interval": 1.0,
             "nodal_unknowns": [],
             "rom_basis_output_format": "numpy",
+            "snapshot_solution_type": "total",
             "rom_basis_output_name": "RomParameters",
             "rom_basis_output_folder" : "rom_data",
             "svd_truncation_tolerance": 1.0e-6
@@ -109,9 +118,27 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
     def PrintOutput(self):
         # Save the data in the snapshots data list
         aux_data_array = []
-        for node in self.model_part.Nodes:
-            for snapshot_var in self.snapshot_variables_list:
-                aux_data_array.append(node.GetSolutionStepValue(snapshot_var))
+        if self.snapshot_solution_type=="incremental":
+            for node in self.model_part.Nodes:
+                for snapshot_var in self.snapshot_variables_list:
+                    aux_data_array.append(node.GetSolutionStepValue(snapshot_var)-node.GetSolutionStepValue(snapshot_var, 1))
+        elif self.snapshot_solution_type=="affine":
+            if self.initial_condition_flag:
+                self.initial_condition = []
+                for node in self.model_part.Nodes:
+                    for snapshot_var in self.snapshot_variables_list:
+                        self.initial_condition.append(node.GetSolutionStepValue(snapshot_var, 1))
+                self.initial_condition = numpy.array(self.initial_condition)
+                self.initial_condition_flag = False
+            for node in self.model_part.Nodes:
+                for snapshot_var in self.snapshot_variables_list:
+                    aux_data_array.append(node.GetSolutionStepValue(snapshot_var))
+            aux_data_array = numpy.array(aux_data_array) - self.initial_condition # Convert the lists to NumPy arrays and perform the subtraction
+            aux_data_array = aux_data_array.tolist() # Convert the NumPy array back to a Python list
+        else:
+            for node in self.model_part.Nodes:
+                for snapshot_var in self.snapshot_variables_list:
+                    aux_data_array.append(node.GetSolutionStepValue(snapshot_var))
         self.snapshots_data_list.append(aux_data_array)
 
         # Schedule next snapshot output
