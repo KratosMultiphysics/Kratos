@@ -97,6 +97,10 @@ public:
                 node.FastGetSolutionStepValue(var) = mpTable->GetValue(node.X());
             });
         }
+        else {
+            KRATOS_ERROR << "Failed to initialize ApplyComponentTableProcess: got unknown table variable '"
+                         << variable_name_1 << "'";
+        }
 
         KRATOS_CATCH("")
     }
