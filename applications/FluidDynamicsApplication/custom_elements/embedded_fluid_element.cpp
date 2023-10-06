@@ -124,19 +124,21 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
 
         // Add the boundary condition imposition terms
         data.InitializeBoundaryConditionData(rCurrentProcessInfo);
-        if (this->Is(SLIP)){
-            // Nitsche Navier-Slip boundary condition implementation (Winter, 2018)
-            AddSlipNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-            AddSlipNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
-            AddSlipTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-            AddSlipTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
-        } else {
-            // First, compute and assemble the penalty level set BC imposition contribution
-            // Secondly, compute and assemble the modified Nitsche method level set BC imposition contribution (Codina and Baiges, 2009)
-            // Note that the Nistche contribution has to be computed the last since it drops the outer nodes rows previous constributions
-            AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-            DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
-            AddBoundaryConditionModifiedNitscheContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+        if (data.ApplyNitscheBoundaryImposition){
+            if (this->Is(SLIP)){
+                // Nitsche Navier-Slip boundary condition implementation (Winter, 2018)
+                AddSlipNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+                AddSlipNormalSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+                AddSlipTangentialPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+                AddSlipTangentialSymmetricCounterpartContribution(rLeftHandSideMatrix, rRightHandSideVector, data); // NOTE: IMPLEMENT THE SKEW-SYMMETRIC ADJOINT IF IT IS NEEDED IN THE FUTURE. CREATE A IS_SKEW_SYMMETRIC ELEMENTAL FLAG.
+            } else {
+                // First, compute and assemble the penalty level set BC imposition contribution
+                // Secondly, compute and assemble the modified Nitsche method level set BC imposition contribution (Codina and Baiges, 2009)
+                // Note that the Nistche contribution has to be computed the last since it drops the outer nodes rows previous constributions
+                AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+                DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+                AddBoundaryConditionModifiedNitscheContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
+            }
         }
     }
 }
