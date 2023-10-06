@@ -5,7 +5,6 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.StructuralMechanicsApplication as KratosStructural
 import test_helper
 
-
 class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
     """
     This class contains benchmark tests to test line loads (in 3D). 
@@ -85,12 +84,12 @@ class KratosGeoMechanicsLineLoadTests(KratosUnittest.TestCase):
 
         line_load_y_by_node_id = [( 91,   0.0),
                                   ( 93,   0.0),
-                                  ( 98,   0.0),
-                                  (102,  -5.0),
+                                  ( 98,  -4.0),
+                                  (102,  -9.0),
                                   (106, -10.0),
                                   (111, -10.0),
-                                  (114, -10.0),
-                                  (118,  -5.0),
+                                  (114,  -6.0),
+                                  (118,  -1.0),
                                   (122,   0.0),
                                   (124,   0.0),
                                   (125,   0.0)]
