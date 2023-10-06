@@ -32,24 +32,24 @@ KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainIncompressibleUniaxialElongation, Kra
     KRATOS_EXPECT_DOUBLE_EQ(0.5*std::log(stretch*stretch), Evector[0]);
     KRATOS_EXPECT_DOUBLE_EQ(0.5*std::log(1./stretch), Evector[1]);
     KRATOS_EXPECT_DOUBLE_EQ(0.5*std::log(1./stretch), Evector[2]);
-    KRATOS_EXPECT_DOUBLE_EQ(0., Evector[3]);
-    KRATOS_EXPECT_DOUBLE_EQ(0., Evector[4]);
-    KRATOS_EXPECT_DOUBLE_EQ(0., Evector[5]);
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[3]);
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[4]);
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[5]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainRigidRotation, KratosGeoMechanicsFastSuite)
 {
-    const double RotationAngle = 1.;
+    const double RotationAngle = 1.0;
     Matrix Fmatrix(2,2);
     Fmatrix(0,0) =  std::cos(RotationAngle); Fmatrix(0,1) =  std::sin(RotationAngle);
     Fmatrix(1,0) = -std::sin(RotationAngle); Fmatrix(1,1) =  std::cos(RotationAngle);
 
     // Plane strain has VoigtSize 4, rigid rotation results in all zero strain components
     const Vector Evector = StressStrainUtilities::CalculateHenckyStrain(Fmatrix, 4);
-    KRATOS_EXPECT_DOUBLE_EQ(0., Evector[0]);
-    KRATOS_EXPECT_DOUBLE_EQ(0., Evector[1]);
-    KRATOS_EXPECT_DOUBLE_EQ(0., Evector[2]);
-    KRATOS_EXPECT_DOUBLE_EQ(0., Evector[3]);
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[0]);
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[1]);
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[2]);
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector[3]);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainPureShear, KratosGeoMechanicsFastSuite)
@@ -89,10 +89,10 @@ KRATOS_TEST_CASE_IN_SUITE(CheckHenckyStrainPureShear, KratosGeoMechanicsFastSuit
     const Matrix Eaux = prod(eigV12,EHenckyPrincipal);
     const Matrix EHenckyAnalytical = prod( Eaux, trans(eigV12));
 
-    KRATOS_EXPECT_DOUBLE_EQ(EHenckyAnalytical(0,0),Evector(0));
-    KRATOS_EXPECT_DOUBLE_EQ(EHenckyAnalytical(1,1),Evector(1));
-    KRATOS_EXPECT_DOUBLE_EQ(0.,Evector(2));
-    KRATOS_EXPECT_DOUBLE_EQ(2.*EHenckyAnalytical(1,0),Evector(3));
+    KRATOS_EXPECT_DOUBLE_EQ(EHenckyAnalytical(0,0), Evector(0));
+    KRATOS_EXPECT_DOUBLE_EQ(EHenckyAnalytical(1,1), Evector(1));
+    KRATOS_EXPECT_DOUBLE_EQ(0.0, Evector(2));
+    KRATOS_EXPECT_DOUBLE_EQ(2.0*EHenckyAnalytical(1,0), Evector(3));
 }
 
 }

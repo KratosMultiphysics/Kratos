@@ -2460,8 +2460,7 @@ void SmallStrainUPwDiffOrderElement::
 {
     if (rVariables.UseHenckyStrain) {
         this->CalculateDeformationGradient(rVariables, GPoint);
-        const GeometryType& rGeom = GetGeometry();
-        const SizeType Dim        = rGeom.WorkingSpaceDimension();
+        const SizeType Dim        = GetGeometry().WorkingSpaceDimension();
         const SizeType VoigtSize  = ( Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
         noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
     } else {
