@@ -54,7 +54,7 @@ namespace Kratos
             if (totalDischarge > 0.0) {
                 const double c2 = rProp[DENSITY_WATER] * rProp[SPECIFIC_HEAT_CAPACITY_WATER];
                 const double c3 = (rProp[LONGITUDINAL_DISPERSIVITY] - rProp[TRANSVERSE_DISPERSIVITY]) / totalDischarge;
-                const double c4 = rProp[SOLID_COMPRESSIBILITY] * totalDischarge;
+                const double c4 = rProp[TRANSVERSE_DISPERSIVITY] * totalDischarge;
                 C(INDEX_2D_THERMAL_FLUX_X, INDEX_2D_THERMAL_FLUX_X) += c2 * (c3 * dischargeVector[0] * dischargeVector[0] + c4);
                 C(INDEX_2D_THERMAL_FLUX_X, INDEX_2D_THERMAL_FLUX_Y) += c2 * c3 * dischargeVector[0] * dischargeVector[1];
                 C(INDEX_2D_THERMAL_FLUX_Y, INDEX_2D_THERMAL_FLUX_X) += c2 * c3 * dischargeVector[0] * dischargeVector[1];
