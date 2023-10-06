@@ -548,8 +548,7 @@ namespace Kratos
         const double cSolid = (1.0 - rVariables.Porosity) * rVariables.SolidDensity
             * rVariables.SolidHeatCapacity;
         noalias(TMatrix) = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
-            * rVariables.IntegrationCoefficient
-            * rVariables.DtTemperatureCoefficient;
+            * rVariables.IntegrationCoefficient;
 
         noalias(TVector) = - prod(TMatrix, rVariables.DtTemperatureVector);
 
@@ -604,7 +603,7 @@ namespace Kratos
 
         this->CalculateConvectionVector(rVariables.TMatrix, rVariables.TVector, rVariables);
 
-        //Distribute capacity block vector into elemental vector
+        //Distribute convection block vector into elemental vector
         GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
 
         KRATOS_CATCH("")
@@ -624,7 +623,7 @@ namespace Kratos
         TMatrix = outer_prod(rVariables.N, Temp) * rVariables.WaterHeatCapacity
             * rVariables.WaterDensity * rVariables.IntegrationCoefficient;
 
-        TVector = -prod(TMatrix, rVariables.DtTemperatureVector);
+        TVector = -prod(TMatrix, rVariables.TemperatureVector);
 
         KRATOS_CATCH("");
     }
