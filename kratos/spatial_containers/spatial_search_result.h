@@ -127,6 +127,7 @@ public:
         if constexpr (std::is_base_of_v<IndexedObject, TObjectType>) {
             return mpObject->Id();
         } else { // Otherwise 0
+            KRATOS_WARNING("SpatialSearchResult") << "Object does not provide an ID" << std::endl;
             return 0;
         }
     }
@@ -143,6 +144,7 @@ public:
         if constexpr (std::is_base_of_v<IndexedObject, TObjectType>) {
             return mpObject->Id();
         } else { // Otherwise 0
+            KRATOS_WARNING("SpatialSearchResult") << "Object does not provide an ID" << std::endl;
             return 0;
         }
     }
