@@ -273,13 +273,13 @@ public:
             const auto& r_node = rModelPart.GetNode(r_dof.Id());
             const Matrix& r_rom_nodal_basis = r_node.GetValue(ROM_BASIS);
             const Matrix::size_type row_id = mMapPhi.at(r_dof.GetVariable().Key());
-            if (r_dof.IsFixed())
-            {
-                noalias(row(rPhiGlobal, r_dof.EquationId())) = ZeroVector(r_rom_nodal_basis.size2());
-            }
-            else{
-                noalias(row(rPhiGlobal, r_dof.EquationId())) = row(r_rom_nodal_basis, row_id);
-            }
+            // if (r_dof.IsFixed())
+            // {
+            //     noalias(row(rPhiGlobal, r_dof.EquationId())) = ZeroVector(r_rom_nodal_basis.size2());
+            // }
+            // else{
+            noalias(row(rPhiGlobal, r_dof.EquationId())) = row(r_rom_nodal_basis, row_id);
+            // }
         });
     }
 
@@ -654,7 +654,8 @@ protected:
         Build(pScheme, rModelPart, rA, rb);
 
         if (mMonotonicityPreservingFlag) {
-            BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
+            if (!mHromSimulation)
+                BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
             MonotonicityPreserving(rA, rb);
         }
 
