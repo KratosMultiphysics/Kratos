@@ -106,7 +106,7 @@ public:
         Matrix EigenValuesMatrix, EigenVectorsMatrix;
         MathUtils<double>::GaussSeidelEigenSystem(C, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-16, 20);
         // Compute natural strain == Logarithmic strain == Hencky strain from principal strains
-        for (size_t i = 0; i < DeformationGradient.size1(); ++i){
+        for (std::size_t i = 0; i < DeformationGradient.size1(); ++i){
             EigenValuesMatrix(i,i) = 0.5 * std::log(EigenValuesMatrix(i,i));
         }
 
