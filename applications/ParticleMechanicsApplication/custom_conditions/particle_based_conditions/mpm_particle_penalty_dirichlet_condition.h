@@ -198,7 +198,7 @@ protected:
     ///@}
     ///@name Protected Inquiry
     ///@{
-    virtual void CalculateInterfaceContactForce(array_1d<double, 3 >& rVariable, const ProcessInfo& rCurrentProcessInfo );
+    virtual void CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo );
 
 
     ///@}
@@ -218,7 +218,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    
+    array_1d<double, 3> m_contact_force=ZeroVector(3);
 
     ///@}
     ///@name Private Operators

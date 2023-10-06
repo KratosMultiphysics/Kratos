@@ -171,9 +171,9 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         // If penetrates, apply constraint, otherwise no
         if (penetration >= 0.0)
             apply_constraints = false;
-        
-    }
 
+    }
+ 
     if (apply_constraints)
     {
         // Arrange shape function
@@ -280,11 +280,12 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
             r_geometry[i].UnSetLock();
         }
     }
+    this->CalculateInterfaceContactForce( rCurrentProcessInfo);
 
     KRATOS_CATCH( "" )
 }
 
-void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(array_1d<double, 3 >& rVariable, const ProcessInfo& rCurrentProcessInfo )
+void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo )
 {
     GeometryType& r_geometry = GetGeometry();  
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
@@ -295,7 +296,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(array_
     MPMShapeFunctionPointValues(Variables.N);
 
     // Interpolate the force to mpc_force assuming linear shape function
-    rVariable = ZeroVector(3);
+    array_1d<double, 3 > mpc_force = ZeroVector(3);
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
         // Check whether there is material point inside the node
@@ -308,7 +309,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(array_
 
         if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
         {
-            rVariable += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
+            mpc_force += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
         }
     }
 
@@ -316,18 +317,21 @@ void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(array_
     if (Is(CONTACT))
     {
         // Apply only in the normal direction
-        const double normal_force = MathUtils<double>::Dot(rVariable, m_unit_normal);
+        const double normal_force = MathUtils<double>::Dot(mpc_force, m_unit_normal);
 
         // This check is done to avoid sticking forces
         if (normal_force > 0.0)
-            rVariable = -1.0 * normal_force * m_unit_normal;
+            mpc_force = -1.0 * normal_force * m_unit_normal;
         else
-            rVariable = ZeroVector(3);
+            mpc_force = ZeroVector(3);
     }
     // Apply a sticking contact
     else{
-        rVariable *= -1.0;
+        mpc_force *= -1.0;
     }
+
+    // Set Contact Force
+    m_contact_force = mpc_force;
 }
 
 void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Variable<double>& rVariable,
@@ -360,7 +364,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Va
         rValues[0] = m_unit_normal;
     }
     else if (rVariable == MPC_CONTACT_FORCE) {
-        this->CalculateInterfaceContactForce(rValues[0], rCurrentProcessInfo);
+        rValues[0] = m_contact_force;
     }
     else {
         MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
