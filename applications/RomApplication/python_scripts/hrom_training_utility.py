@@ -134,7 +134,7 @@ class HRomTrainingUtility(object):
         residual_basis = self.__CalculateResidualBasis()
         if self.element_selection_type == "empirical_cubature":
             n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
-            self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+            self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=False, constrain_conditions = False, number_of_conditions = n_conditions)
             self.hyper_reduction_element_selector.Run()
             if not self.hyper_reduction_element_selector.success:
                 KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
