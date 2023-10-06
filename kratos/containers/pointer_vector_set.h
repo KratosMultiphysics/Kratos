@@ -236,11 +236,13 @@ public:
      * @brief Equality comparison operator for two PointerVectorSet objects.
      * @details This operator checks if two PointerVectorSet objects are equal by comparing their sizes
      * and the equality of their elements using the EqualKeyTo comparison function.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
      * @param r The PointerVectorSet to compare with.
      * @return true if the two sets are equal, false otherwise.
      */
-    bool operator==(const PointerVectorSet& r) const // nothrow
+    bool operator==(const PointerVectorSet& r) const noexcept
     {
+        assert( !empty() );
         if (size() != r.size())
             return false;
         else
@@ -251,11 +253,13 @@ public:
      * @brief Less than comparison operator for two PointerVectorSet objects.
      * @details This operator checks if one PointerVectorSet is less than another by comparing their
      * elements using the CompareKey comparison function in a lexicographical order.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
      * @param r The PointerVectorSet to compare with.
      * @return true if this set is less than r, false otherwise.
      */
-    bool operator<(const PointerVectorSet& r) const // nothrow
+    bool operator<(const PointerVectorSet& r) const noexcept
     {
+        assert( !empty() );
         return std::lexicographical_compare(mData.begin(), mData.end(), r.mData.begin(), r.mData.end(), CompareKey());
     }
 
@@ -445,10 +449,10 @@ public:
 
     /**
      * @brief Returns a reference to the first element in the container.
-     * @note This function is marked as "nothrow," and it asserts that the container is not empty.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
      * @return A reference to the first element in the container.
      */
-    reference front() /* nothrow */
+    reference front() noexcept
     {
         assert( !empty() );
         return *(mData.front());
@@ -456,10 +460,10 @@ public:
 
     /**
      * @brief Returns a constant reference to the first element in the container.
-     * @note This function is marked as "nothrow," and it asserts that the container is not empty.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
      * @return A constant reference to the first element in the container.
      */
-    const_reference front() const /* nothrow */
+    const_reference front() const noexcept
     {
         assert( !empty() );
         return *(mData.front());
@@ -467,10 +471,10 @@ public:
 
     /**
      * @brief Returns a reference to the last element in the container.
-     * @note This function is marked as "nothrow," and it asserts that the container is not empty.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
      * @return A reference to the last element in the container.
      */
-    reference back() /* nothrow */
+    reference back() noexcept
     {
         assert( !empty() );
         return *(mData.back());
@@ -478,10 +482,10 @@ public:
 
     /**
      * @brief Returns a constant reference to the last element in the container.
-     * @note This function is marked as "nothrow," and it asserts that the container is not empty.
+     * @note This function is marked as "noexcept," and it asserts that the container is not empty.
      * @return A constant reference to the last element in the container.
      */
-    const_reference back() const /* nothrow */
+    const_reference back() const noexcept
     {
         assert( !empty() );
         return *(mData.back());
