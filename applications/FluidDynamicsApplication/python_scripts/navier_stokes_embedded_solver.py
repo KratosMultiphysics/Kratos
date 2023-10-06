@@ -20,7 +20,11 @@ class EmbeddedFormulation(object):
     """Helper class to define embedded-dependent parameters."""
     def __init__(self, formulation_settings):
         self.element_name = None
+        self.apply_constraints = False
+        self.constraints_type = None
+        self.apply_constraints_to_all_cut_elements = True
         self.condition_name = None
+        self.slip_length = 0.0
         self.process_info_data = {}
         self.element_has_nodal_properties = False
         self.historical_nodal_properties_variables_list = []
@@ -81,25 +85,39 @@ class EmbeddedFormulation(object):
         default_settings = KratosMultiphysics.Parameters(r"""{
             "element_type": "embedded_weakly_compressible_navier_stokes",
             "is_slip": false,
+            "apply_nitsche_boundary_imposition": true,
             "slip_length": 1.0e8,
             "penalty_coefficient": 10.0,
             "dynamic_tau": 1.0,
-            "level_set_type": "continuous"
+            "level_set_type": "continuous",
+            "apply_constraints": false,
+            "constraints_type": "mls",
+            "apply_constraints_to_all_cut_elements": true
         }""")
         formulation_settings.ValidateAndAssignDefaults(default_settings)
 
         self.element_name = "EmbeddedWeaklyCompressibleNavierStokes"
         self.condition_name = "NavierStokesWallCondition"
         self.level_set_type = formulation_settings["level_set_type"].GetString()
+
+        self.apply_constraints = formulation_settings["apply_constraints"].GetBool()
+        self.constraints_type = formulation_settings["constraints_type"].GetString()
+        self.apply_constraints_to_all_cut_elements = formulation_settings["apply_constraints_to_all_cut_elements"].GetBool()
+
         self.element_integrates_in_time = True
         self.element_has_nodal_properties = True
         self.historical_nodal_properties_variables_list = [KratosMultiphysics.DENSITY]
         self.non_historical_nodal_properties_variables_list = [KratosMultiphysics.SOUND_VELOCITY]
 
+        if not self.apply_constraints or not self.apply_constraints_to_all_cut_elements:
+            self.process_info_data[KratosCFD.APPLY_NITSCHE_BOUNDARY_IMPOSITION] = True
+        else:
+            self.process_info_data[KratosCFD.APPLY_NITSCHE_BOUNDARY_IMPOSITION] = formulation_settings["apply_nitsche_boundary_imposition"].GetBool()
         self.process_info_data[KratosMultiphysics.DYNAMIC_TAU] = formulation_settings["dynamic_tau"].GetDouble()
         self.process_info_data[KratosCFD.PENALTY_COEFFICIENT] = formulation_settings["penalty_coefficient"].GetDouble()
         if formulation_settings["is_slip"].GetBool():
-            self.process_info_data[KratosCFD.SLIP_LENGTH] = formulation_settings["slip_length"].GetDouble()
+            self.slip_length = formulation_settings["slip_length"].GetDouble()
+            self.process_info_data[KratosCFD.SLIP_LENGTH] = self.slip_length
 
     def _SetUpClassicEmbeddedAusasNavierStokes(self, formulation_settings):
         default_settings = KratosMultiphysics.Parameters(r"""{
@@ -322,6 +340,10 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         self.element_has_nodal_properties = self.embedded_formulation.element_has_nodal_properties
         self.historical_nodal_properties_variables_list = self.embedded_formulation.historical_nodal_properties_variables_list
         self.non_historical_nodal_properties_variables_list = self.embedded_formulation.non_historical_nodal_properties_variables_list
+        self.apply_constraints = self.embedded_formulation.apply_constraints
+        self.constraints_type = self.embedded_formulation.constraints_type
+        self.apply_constraints_to_all_cut_elements = self.embedded_formulation.apply_constraints_to_all_cut_elements
+        self.slip_length = self.embedded_formulation.slip_length
 
         ## Set the distance reading filename
         # TODO: remove the manual "distance_file_name" set as soon as the problem type one has been tested.
