@@ -397,6 +397,9 @@ namespace Kratos
 
         this->CalculateAndAddCapacityVector(rRightHandSideVector, rVariables);
         this->CalculateAndAddConductivityVector(rRightHandSideVector, rVariables);
+        if (mIsPressureCoupled) {
+            this->CalculateAndAddConvectionVector(rRightHandSideVector, rVariables);
+        }
 
         KRATOS_CATCH("")
     }
@@ -545,7 +548,8 @@ namespace Kratos
         const double cSolid = (1.0 - rVariables.Porosity) * rVariables.SolidDensity
             * rVariables.SolidHeatCapacity;
         noalias(TMatrix) = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
-            * rVariables.IntegrationCoefficient;
+            * rVariables.IntegrationCoefficient
+            * rVariables.DtTemperatureCoefficient;
 
         noalias(TVector) = - prod(TMatrix, rVariables.DtTemperatureVector);
 
@@ -586,6 +590,41 @@ namespace Kratos
             * rVariables.IntegrationCoefficient;
 
         noalias(TVector) = - prod(TMatrix, rVariables.TemperatureVector);
+
+        KRATOS_CATCH("");
+    }
+    // ============================================================================================
+    // ============================================================================================
+    template<unsigned int TDim, unsigned int TNumNodes>
+    void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddConvectionVector(
+        VectorType& rRightHandSideVector,
+        ElementVariables& rVariables)
+    {
+        KRATOS_TRY
+
+        this->CalculateConvectionVector(rVariables.TMatrix, rVariables.TVector, rVariables);
+
+        //Distribute capacity block vector into elemental vector
+        GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
+
+        KRATOS_CATCH("")
+    }
+
+    // ============================================================================================
+    // ============================================================================================
+    template<unsigned int TDim, unsigned int TNumNodes>
+    void TransientThermalElement<TDim, TNumNodes>::CalculateConvectionVector(
+        BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+        array_1d<double, TNumNodes>& TVector,
+        ElementVariables& rVariables)
+    {
+        KRATOS_TRY
+
+        array_1d<double, TNumNodes> Temp = prod(rVariables.GradNT, rVariables.DischargeVector);
+        TMatrix = outer_prod(rVariables.N, Temp) * rVariables.WaterHeatCapacity
+            * rVariables.WaterDensity * rVariables.IntegrationCoefficient;
+
+        TVector = -prod(TMatrix, rVariables.DtTemperatureVector);
 
         KRATOS_CATCH("");
     }
@@ -645,7 +684,8 @@ namespace Kratos
         PressureGrad = PressureGrad - weightVector;
 
         this->CalculatePermeabilityMatrix(rVariables.PermeabilityMatrix, rVariables);
-        rVariables.DischargeVector = -prod(rVariables.PermeabilityMatrix, PressureGrad);
+        rVariables.DischargeVector = -prod(rVariables.PermeabilityMatrix, PressureGrad)
+            * rVariables.DynamicViscosityInverse;
 
         KRATOS_CATCH("")
     }
@@ -665,7 +705,6 @@ namespace Kratos
         C(0, 1) = rProp[PERMEABILITY_XY];
         C(1, 0) = rProp[PERMEABILITY_XY];
         C(1, 1) = rProp[PERMEABILITY_YY];
-        C *= rVariables.DynamicViscosityInverse;
 
         KRATOS_CATCH("")
     }

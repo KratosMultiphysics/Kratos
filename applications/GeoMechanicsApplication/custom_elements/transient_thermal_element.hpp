@@ -163,6 +163,7 @@ namespace Kratos
         void CalculateAndAddConvectionMatrix(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
         void CalculateAndAddConductivityVector(VectorType& rRightHandSideVector, ElementVariables& rVariables);
         void CalculateAndAddCapacityVector(VectorType& rRightHandSideVector, ElementVariables & rVariables);
+        void CalculateAndAddConvectionVector(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
         void InitializeNodalTemperatureVariables(ElementVariables& rVariables);
 
@@ -185,9 +186,12 @@ namespace Kratos
         virtual void CalculateCapacityVector(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
             array_1d<double, TNumNodes>& TVector, ElementVariables& rVariables) const;
 
-        virtual void  CalculateConductivityVector(BoundedMatrix<double, TNumNodes, TDim>& TDimMatrix,
+        virtual void CalculateConductivityVector(BoundedMatrix<double, TNumNodes, TDim>& TDimMatrix,
             BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix, array_1d<double, TNumNodes>& TVector,
             const ElementVariables& rVariables);
+
+        virtual void CalculateConvectionVector(BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
+            array_1d<double, TNumNodes>& TVector, ElementVariables& rVariables);
 
         void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
             const ProcessInfo& rCurrentProcessInfo) override;
