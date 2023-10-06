@@ -39,7 +39,10 @@ set( KRATOS_CONVECTION_DIFFUSION_PYTHON_INTERFACE_SOURCES
 
 ## define test sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-     file(GLOB_RECURSE KRATOS_CONVECTION_DIFFUSION_TESTING_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp)
+    file( GLOB_RECURSE KRATOS_CONVECTION_DIFFUSION_TESTING_SOURCES
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
+    )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################

@@ -33,6 +33,8 @@ import test_DEM_search_flags
 import test_erase_particles
 import test_search_nodes
 import test_dem_3d_parallel_bond_model
+import test_dem_3d_smooth_joint_model
+import test_moving_periodic_boundary
 import sys
 sys.path.append('DEM3D_chung_ooi_tests/test1_data')
 sys.path.append('DEM3D_chung_ooi_tests/test2_data')
@@ -103,6 +105,8 @@ def AssembleTestSuites():
     smallSuite.addTest(test_erase_particles.TestDEMEraseParticlesWithDelay("test_erase_particles_with_delay"))
     smallSuite.addTest(test_search_nodes.TestSearchNodes("test_SearchNodesInTargetModelPart"))
     smallSuite.addTest(test_dem_3d_parallel_bond_model.TestParallelBondModel("test_ParallelBondModel_1"))
+    smallSuite.addTest(test_dem_3d_smooth_joint_model.TestSmoothJointModel("test_SmoothJointModel_1"))
+    smallSuite.addTest(test_moving_periodic_boundary.TestMovingPeriodicBoundary("test_MovingPeriodicBoundary"))
 
     # Create a test suit with the selected tests plus all small tests
     nightSuite = suites['nightly']
