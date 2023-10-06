@@ -342,34 +342,29 @@ class AnalysisStage(object):
             T0_elm[2, 1] = local_axis_3[0][1]
             T0_elm[2, 2] = local_axis_3[0][2]
 
-            # J0 = T0_elm.transpose() * J0
             J0_inv = np.linalg.inv(J0)
 
+            # Calculate strain by Jacobians
             JTJ = J.T @ J
             G_hat = J0_inv
             g_hat = JTJ
             C3D = G_hat.T @ (g_hat @ G_hat)
             E3D = 0.5 * (C3D - np.eye(3))
 
-            # Check matrix operations
+            # Calculate strain by Deformation Gradient F
             defgrad = J @ J0_inv
             C3D_FFT = defgrad.T @ defgrad
-            print("F*FT:\n", C3D_FFT)
-            print("C3D:\n", C3D)
             E3D_FFT = 0.5 * (C3D_FFT - np.eye(3))
-
-            # JTJ = J.transpose() * J
-            # G = J0_inv[0:2, 0:2]
-            # g = JTJ[0:2, 0:2]
-            # C2D = G.T * g * G
-            # E2D = 0.5 * (C2D - np.eye(2))
+            
+            # Check matrix operations
+            print("C3D:\n", C3D)
+            print("F*FT:\n", C3D_FFT)
 
             if element.Id == 10 or element.Id == 31:
                 print("element:", element.Id)
                 print(J @ J0_inv)
             
             # TODO: CHECK STRAINS
-            #E3D = T0_elm * (E3D * T0_elm.transpose())
 
             E_voigt = KratosMultiphysics.Vector(3)
             E_voigt[0] = E3D_FFT[0, 0]
