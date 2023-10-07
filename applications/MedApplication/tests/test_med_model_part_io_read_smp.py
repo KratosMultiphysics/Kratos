@@ -20,6 +20,10 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
 
         self._basic_checks(model_part)
 
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeLength(model_part), 2400)
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeArea(model_part), 240000)
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeVolume(model_part), 8000000)
+
         self.assertEqual(model_part.NumberOfNodes(), 130)
         self.assertEqual(model_part.NumberOfGeometries(), 644)
 
@@ -81,6 +85,10 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
         KratosMed.MedModelPartIO(GetMedPath("cube_with_adjacent_groups", "cube.med")).ReadModelPart(model_part)
 
         self._basic_checks(model_part)
+
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeLength(model_part), 2400)
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeArea(model_part), 240000)
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeVolume(model_part), 8000000)
 
         self.assertEqual(model_part.NumberOfNodes(), 50)
         self.assertEqual(model_part.NumberOfGeometries(), 226)
@@ -169,6 +177,10 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
         KratosMed.MedModelPartIO(GetMedPath("cube_sub_subgroups", "cube.med")).ReadModelPart(model_part)
 
         self._basic_checks(model_part)
+
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeLength(model_part), 2400)
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeArea(model_part), 240000)
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeVolume(model_part), 8000000)
 
         self.assertEqual(model_part.NumberOfNodes(), 50)
         self.assertEqual(model_part.NumberOfGeometries(), 226)
@@ -303,6 +315,11 @@ class TestMedModelPartIOReadSubModelPart(KratosUnittest.TestCase):
         # check no elements or conditions are created
         self.assertEqual(model_part.NumberOfElements(), 0)
         self.assertEqual(model_part.NumberOfConditions(), 0)
+
+        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeLength(model_part), 0.0)
+        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeArea(model_part), 0.0)
+        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeVolume(model_part), 0.0)
+        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeDomainSize(model_part), 0.0)
 
         # check increasing node Ids
         for i, node in enumerate(model_part.Nodes):
