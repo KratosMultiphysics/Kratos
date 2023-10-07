@@ -53,6 +53,14 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                 # Check that train an run HROM are not set at the same time
                 err_msg = "\'run_hrom\' and \'train_hrom\' are both \'true\'. Select either training or running (if training has been already done)."
                 raise Exception(err_msg)
+            # HROM element selection strategy 
+            self.element_selection_type = self.rom_parameters["hrom_settings"]["element_selection_type"].GetString() if self.rom_parameters["hrom_settings"].Has("element_selection_type") else "empirical_cubature"
+
+            # Check if the element_selection_type is one of the expected options
+            valid_selection_types = ["empirical_cubature", "discrete_empirical_interpolation"]
+            if self.element_selection_type not in valid_selection_types:
+                raise ValueError(f"Invalid element_selection_type: {self.element_selection_type}. Expected one of {valid_selection_types}.")
+
 
             # Petrov Galerking Training settings
             self.train_petrov_galerkin = self.rom_bns_settings["train_petrov_galerkin"].GetBool() if self.rom_bns_settings.Has("train_petrov_galerkin") else False
@@ -191,25 +199,28 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     self._GetSolver(),
                     self.rom_parameters)
             elif self.run_hrom:
-                if self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "json":
-                    # Set the HROM weights in elements and conditions
-                    hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
-                    for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
-                        computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
-                    hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
-                    for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
-                        computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
-                elif self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "numpy":
-                    # Set the HROM weights in elements and conditions
-                    element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
-                    element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
-                    condition_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
-                    conditon_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
-                    for i in range(np.size(element_indexes)):
-                        computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
-                    for i in range(np.size(condition_indexes)):
-                        computing_model_part.GetCondition(int( condition_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, conditon_weights[i]  ) #FIXME: FIX THE +1
+                if self.element_selection_type=="empirical_cubature":
+                    if self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "json":
+                        # Set the HROM weights in elements and conditions
+                        hrom_weights_elements = self.rom_parameters["elements_and_weights"]["Elements"]
+                        for key,value in zip(hrom_weights_elements.keys(), hrom_weights_elements.values()):
+                            computing_model_part.GetElement(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
+                        hrom_weights_condtions = self.rom_parameters["elements_and_weights"]["Conditions"]
+                        for key,value in zip(hrom_weights_condtions.keys(), hrom_weights_condtions.values()):
+                            computing_model_part.GetCondition(int(key)+1).SetValue(KratosROM.HROM_WEIGHT, value.GetDouble()) #FIXME: FIX THE +1
+                    elif self.rom_parameters["hrom_settings"]["hrom_format"].GetString() == "numpy":
+                        # Set the HROM weights in elements and conditions
+                        element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
+                        element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
+                        condition_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
+                        conditon_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
+                        for i in range(np.size(element_indexes)):
+                            computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
+                        for i in range(np.size(condition_indexes)):
+                            computing_model_part.GetCondition(int( condition_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, conditon_weights[i]  ) #FIXME: FIX THE +1
 
+                elif self.element_selection_type=="discrete_empirical_interpolation":
+                    self._GetSolver()._GetBuilderAndSolver()
 
             # Check and Initialize Petrov Galerkin Training stage
             if self.train_petrov_galerkin:
