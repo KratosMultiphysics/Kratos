@@ -25,6 +25,7 @@ namespace Kratos
         mResponsePartName = ResponseSettings["response_part_name"].GetString();
         mResponseDirection = ResponseSettings["direction"].GetVector();
         mTracedDofLabel = ResponseSettings["traced_dof"].GetString();
+        mWeight = ResponseSettings["weight"].GetDouble();
 
         if ( norm_2( mResponseDirection ) > 1.0e-7 ) {
             mResponseDirection /= norm_2( mResponseDirection );
@@ -81,6 +82,8 @@ namespace Kratos
                 }
             }
         }
+
+        rResponseGradient /= mWeight;
 
         KRATOS_CATCH("");
     }
@@ -188,7 +191,7 @@ namespace Kratos
             response_value += inner_prod(mResponseDirection, node_i.FastGetSolutionStepValue(r_traced_dof, 0));
         }
 
-        return response_value;
+        return response_value / mWeight;
 
         KRATOS_CATCH("");
     }

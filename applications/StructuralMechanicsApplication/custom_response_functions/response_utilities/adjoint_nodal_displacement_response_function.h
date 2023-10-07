@@ -195,6 +195,7 @@ private:
     std::string mResponsePartName;
     array_1d<double,3> mResponseDirection;
     std::unordered_map<IndexType, std::vector<IndexType>> mElementNodeMap;
+    double mWeight;
 
     ///@}
     ///@name Private Operators

@@ -8,6 +8,7 @@ from KratosMultiphysics.StructuralMechanicsApplication import structural_mechani
 import KratosMultiphysics.kratos_utilities as kratos_utilities
 from KratosMultiphysics import IsDistributedRun
 from structural_mechanics_test_factory import SelectAndVerifyLinearSolver
+import numpy as np
 
 has_hdf5_application = kratos_utilities.CheckIfApplicationsAvailable("HDF5Application")
 
@@ -210,19 +211,243 @@ class TestAdjointSensitivityAnalysisNonLinearTrussStructure(AdjointSensitivityAn
     primal_file_name = "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/nonlinear_truss_test_parameters.json"
     adjoint_file_name = "adjoint_sensitivity_analysis_tests/adjoint_truss_stucture_3d2n/nonlinear_truss_test_local_stress_adjoint_parameters.json"
 
+def testAdjointStrain():
+    model = KratosMultiphysics.Model()
+    model_part = model.CreateModelPart("Structure")
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+    model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
+    sub_model_part = model_part.CreateSubModelPart("Parts_AREAS")
+
+    n1: KratosMultiphysics.Node = model_part.CreateNewNode(1, 0, 0, 0)
+    n2: KratosMultiphysics.Node = model_part.CreateNewNode(2, 1, 0, 0)
+    n3: KratosMultiphysics.Node = model_part.CreateNewNode(3, 1, 1, 0)
+
+    n1.AddDof(KratosMultiphysics.DISPLACEMENT_X)
+    n1.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+    n1.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
+    n2.AddDof(KratosMultiphysics.DISPLACEMENT_X)
+    n2.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+    n2.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
+    n3.AddDof(KratosMultiphysics.DISPLACEMENT_X)
+    n3.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+    n3.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
+
+    n1.AddDof(KratosMultiphysics.ROTATION_X)
+    n1.AddDof(KratosMultiphysics.ROTATION_Y)
+    n1.AddDof(KratosMultiphysics.ROTATION_Z)
+    n2.AddDof(KratosMultiphysics.ROTATION_X)
+    n2.AddDof(KratosMultiphysics.ROTATION_Y)
+    n2.AddDof(KratosMultiphysics.ROTATION_Z)
+    n3.AddDof(KratosMultiphysics.ROTATION_X)
+    n3.AddDof(KratosMultiphysics.ROTATION_Y)
+    n3.AddDof(KratosMultiphysics.ROTATION_Z)
+
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)
+
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X)
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y)
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z)
+
+    p1 = model_part.CreateNewProperties(1)
+    material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+    material_settings["Parameters"]["materials_filename"].SetString("/software/kratos/digital_twin/applications/StructuralMechanicsApplication/tests/adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/StructuralMaterials.json")
+    KratosMultiphysics.ReadMaterialsUtility(material_settings, model)
+
+    elem1: KratosMultiphysics.Element = model_part.CreateNewElement("AdjointFiniteDifferencingShellThinElement3D3N", 1, [1, 2, 3], p1)
+    sub_model_part.AddElements([1])
+
+    for node in model_part.Nodes:
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, node.Id)
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, node.Id + 1)
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, node.Id + 2)
+        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_X, node.Id)
+        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Y, node.Id + 1)
+        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Z, node.Id + 2)
+
+    elem1.Initialize(model_part.ProcessInfo)
+    residuals = KratosMultiphysics.Matrix()
+    lhs = KratosMultiphysics.Matrix()
+    rhs = KratosMultiphysics.Vector()
+    elem1.CalculateLocalSystem(lhs, rhs, model_part.ProcessInfo)
+
+    ref_gp_values = elem1.CalculateOnIntegrationPoints(StructuralMechanicsApplication.SHELL_STRAIN, model_part.ProcessInfo)
+    adjoint_response = StructuralMechanicsApplication.AdjointElementStrainResponseFunction(model_part, KratosMultiphysics.Parameters("""{"weight": 2, "step_size":1e-9, "gradient_mode": "semi_analytic", "strain_type": "y", "element_id": 1}"""))
+    adjoint_response.Initialize()
+
+    ad_sensitivities = KratosMultiphysics.Vector()
+    adjoint_response.CalculateGradient(elem1, lhs, ad_sensitivities, model_part.ProcessInfo)
+    # print(ad_sensitivities)
+
+    ref_value = ref_gp_values[0][1, 1] + ref_gp_values[1][1, 1] + ref_gp_values[2][1, 1]
+    print(adjoint_response.CalculateValue(model_part), ref_value / 6)
+    ref_value = adjoint_response.CalculateValue(model_part)
+
+    dof_order = [
+        KratosMultiphysics.DISPLACEMENT_X,
+        KratosMultiphysics.DISPLACEMENT_Y,
+        KratosMultiphysics.DISPLACEMENT_Z,
+        KratosMultiphysics.ROTATION_X,
+        KratosMultiphysics.ROTATION_Y,
+        KratosMultiphysics.ROTATION_Z
+    ]
+
+    delta = 1e-8
+    fd_sensitiivties = KratosMultiphysics.Vector(18, 0.0)
+    local_index = 0
+    for node in elem1.GetGeometry():
+        for dof in dof_order:
+            node.SetSolutionStepValue(dof, node.GetSolutionStepValue(dof) + delta)
+            value = adjoint_response.CalculateValue(model_part)
+            node.SetSolutionStepValue(dof, node.GetSolutionStepValue(dof) - delta)
+            fd_sensitiivties[local_index] = (value - ref_value) / delta
+            local_index += 1
+
+    print(fd_sensitiivties)
+    print(ad_sensitivities)
+    print(np.linalg.norm(np.array(ad_sensitivities - fd_sensitiivties)))
+
+def testAdjointDisp():
+    model = KratosMultiphysics.Model()
+    model_part = model.CreateModelPart("Structure")
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(KratosMultiphysics.ROTATION)
+    model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT)
+    model_part.AddNodalSolutionStepVariable(StructuralMechanicsApplication.ADJOINT_ROTATION)
+    sub_model_part = model_part.CreateSubModelPart("Parts_AREAS")
+
+    n1: KratosMultiphysics.Node = model_part.CreateNewNode(1, 0, 0, 0)
+    n2: KratosMultiphysics.Node = model_part.CreateNewNode(2, 1, 0, 0)
+    n3: KratosMultiphysics.Node = model_part.CreateNewNode(3, 1, 1, 0)
+
+    n1.AddDof(KratosMultiphysics.DISPLACEMENT_X)
+    n1.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+    n1.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
+    n2.AddDof(KratosMultiphysics.DISPLACEMENT_X)
+    n2.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+    n2.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
+    n3.AddDof(KratosMultiphysics.DISPLACEMENT_X)
+    n3.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+    n3.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
+
+    n1.AddDof(KratosMultiphysics.ROTATION_X)
+    n1.AddDof(KratosMultiphysics.ROTATION_Y)
+    n1.AddDof(KratosMultiphysics.ROTATION_Z)
+    n2.AddDof(KratosMultiphysics.ROTATION_X)
+    n2.AddDof(KratosMultiphysics.ROTATION_Y)
+    n2.AddDof(KratosMultiphysics.ROTATION_Z)
+    n3.AddDof(KratosMultiphysics.ROTATION_X)
+    n3.AddDof(KratosMultiphysics.ROTATION_Y)
+    n3.AddDof(KratosMultiphysics.ROTATION_Z)
+
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_X)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Y)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_DISPLACEMENT_Z)
+
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X)
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y)
+    n1.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y)
+    n2.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_X)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Y)
+    n3.AddDof(StructuralMechanicsApplication.ADJOINT_ROTATION_Z)
+
+    p1 = model_part.CreateNewProperties(1)
+    material_settings = KratosMultiphysics.Parameters("""{"Parameters": {"materials_filename": ""}} """)
+    material_settings["Parameters"]["materials_filename"].SetString("/software/kratos/digital_twin/applications/StructuralMechanicsApplication/tests/adjoint_sensitivity_analysis_tests/adjoint_shell_structure_3d3n/StructuralMaterials.json")
+    KratosMultiphysics.ReadMaterialsUtility(material_settings, model)
+
+    elem1: KratosMultiphysics.Element = model_part.CreateNewElement("AdjointFiniteDifferencingShellThinElement3D3N", 1, [1, 2, 3], p1)
+    sub_model_part.AddElements([1])
+
+    for node in model_part.Nodes:
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, node.Id)
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, node.Id + 1)
+        node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, node.Id + 2)
+        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_X, node.Id)
+        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Y, node.Id + 1)
+        node.SetSolutionStepValue(KratosMultiphysics.ROTATION_Z, node.Id + 2)
+
+    elem1.Initialize(model_part.ProcessInfo)
+    residuals = KratosMultiphysics.Matrix()
+    lhs = KratosMultiphysics.Matrix()
+    rhs = KratosMultiphysics.Vector()
+    elem1.CalculateLocalSystem(lhs, rhs, model_part.ProcessInfo)
+
+    ref_gp_values = elem1.CalculateOnIntegrationPoints(StructuralMechanicsApplication.SHELL_STRAIN, model_part.ProcessInfo)
+    adjoint_response = StructuralMechanicsApplication.AdjointNodalDispResponseFunction(model_part, KratosMultiphysics.Parameters("""{"weight": 2, "step_size":1e-9, "gradient_mode": "semi_analytic", "direction": [0, -1, 0], "node_id": 2}"""))
+    adjoint_response.Initialize()
+
+    ref_value = -n2.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)[1]
+
+    ad_sensitivities = KratosMultiphysics.Vector()
+    adjoint_response.CalculateGradient(elem1, lhs, ad_sensitivities, model_part.ProcessInfo)
+
+    print(adjoint_response.CalculateValue(model_part), ref_value / 2)
+    ref_value = adjoint_response.CalculateValue(model_part)
+
+    dof_order = [
+        KratosMultiphysics.DISPLACEMENT_X,
+        KratosMultiphysics.DISPLACEMENT_Y,
+        KratosMultiphysics.DISPLACEMENT_Z,
+        KratosMultiphysics.ROTATION_X,
+        KratosMultiphysics.ROTATION_Y,
+        KratosMultiphysics.ROTATION_Z
+    ]
+
+    delta = 1e-8
+    fd_sensitiivties = KratosMultiphysics.Vector(18, 0.0)
+    local_index = 0
+    for node in elem1.GetGeometry():
+        for dof in dof_order:
+            node.SetSolutionStepValue(dof, node.GetSolutionStepValue(dof) + delta)
+            value = adjoint_response.CalculateValue(model_part)
+            node.SetSolutionStepValue(dof, node.GetSolutionStepValue(dof) - delta)
+            fd_sensitiivties[local_index] = (value - ref_value) / delta
+            local_index += 1
+
+    print(fd_sensitiivties)
+    print(ad_sensitivities)
+    print(np.linalg.norm(np.array(ad_sensitivities - fd_sensitiivties)))
+
 if __name__ == '__main__':
-    suites = KratosUnittest.KratosSuites
-    smallSuite = suites['small'] # These tests are executed by the continuous integration tool
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisBeamStructureLocalStress]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisBeamStructureNodalDisplacement]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisBeamStructureStrainEnergy]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisBeamStructureNodalReaction]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisShellStructureLocalStress]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisShellStructureNodalDisplacement]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisShellStructureStrainEnergy]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisSpringDamperElement]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisLinearTrussStructure]))
-    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisNonLinearTrussStructure]))
-    allSuite = suites['all']
-    allSuite.addTests(smallSuite)
-    KratosUnittest.runTests(suites)
+    # testAdjointStrain()
+    testAdjointDisp()
+    # suites = KratosUnittest.KratosSuites
+    # smallSuite = suites['small'] # These tests are executed by the continuous integration tool
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisBeamStructureLocalStress]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisBeamStructureNodalDisplacement]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisBeamStructureStrainEnergy]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisBeamStructureNodalReaction]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisShellStructureLocalStress]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisShellStructureNodalDisplacement]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisShellStructureStrainEnergy]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisSpringDamperElement]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisLinearTrussStructure]))
+    # smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestAdjointSensitivityAnalysisNonLinearTrussStructure]))
+    # allSuite = suites['all']
+    # allSuite.addTests(smallSuite)
+    # KratosUnittest.runTests(suites)

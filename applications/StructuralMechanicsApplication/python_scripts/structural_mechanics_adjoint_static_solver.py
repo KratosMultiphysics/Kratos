@@ -63,7 +63,7 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
                     "SmallDisplacementElement3D6N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D6N",
                     "SmallDisplacementElement3D8N"   : "AdjointFiniteDifferencingSmallDisplacementElement3D8N",
                     "SpringDamperElement3D"          : "AdjointFiniteDifferenceSpringDamperElement3D2N",
-                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N" 
+                    "SpringDamperElement3D2N"        : "AdjointFiniteDifferenceSpringDamperElement3D2N"
                 },
                 "condition_name_table" :
                 {
@@ -112,6 +112,10 @@ class StructuralMechanicsAdjointStaticSolver(MechanicalSolver):
             self.response_function = StructuralMechanicsApplication.AdjointLinearStrainEnergyResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         elif response_type == "adjoint_nodal_reaction":
             self.response_function = StructuralMechanicsApplication.AdjointNodalReactionResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_strain":
+            self.response_function = StructuralMechanicsApplication.AdjointElementStrainResponseFunction(self.main_model_part, self.settings["response_function_settings"])
+        elif response_type == "adjoint_disp":
+            self.response_function = StructuralMechanicsApplication.AdjointNodalDispResponseFunction(self.main_model_part, self.settings["response_function_settings"])
         else:
             raise Exception("invalid response_type: " + response_type)
 
