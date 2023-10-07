@@ -112,12 +112,28 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
     case MED_QUAD9: // should be same as MED_QUAD8
         KRATOS_ERROR << "MED_QUAD9 is not implemented!" << std::endl;
 
+    case MED_TETRA4:
+        return [](auto& rConnectivities) -> void {
+            CheckConnectivitiesSize(4, rConnectivities);
+            std::swap(rConnectivities[2], rConnectivities[3]);
+        };
+
     case MED_TETRA10:
         return [](auto& rConnectivities) -> void {
             CheckConnectivitiesSize(10, rConnectivities);
             std::swap(rConnectivities[1], rConnectivities[2]);
             std::swap(rConnectivities[4], rConnectivities[6]);
             std::swap(rConnectivities[8], rConnectivities[9]);
+        };
+
+    case MED_HEXA8:
+        return [](auto& rConnectivities) -> void {
+            // This I think is still wrong
+            CheckConnectivitiesSize(8, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[4]);
+            std::swap(rConnectivities[2], rConnectivities[7]);
+            std::swap(rConnectivities[4], rConnectivities[1]);
+            std::swap(rConnectivities[7], rConnectivities[2]);
         };
 
     case MED_PYRA5:
