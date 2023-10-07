@@ -1,7 +1,7 @@
 import numpy as np
 from scipy.linalg import qr as scipy_qr
 
-class QDiscreteEmpiricalInterpolationMethod():
+class DiscreteEmpiricalInterpolationMethod():
     def __init__(self, DEIM_tolerance=1e-6):
         self.DEIM_tolerance = DEIM_tolerance
         self.P = None  # Interpolation indices
