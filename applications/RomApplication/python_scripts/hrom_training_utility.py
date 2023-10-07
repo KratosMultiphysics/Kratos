@@ -10,7 +10,7 @@ import KratosMultiphysics
 import KratosMultiphysics.RomApplication as KratosROM
 from KratosMultiphysics.RomApplication.empirical_cubature_method import EmpiricalCubatureMethod
 from KratosMultiphysics.RomApplication.randomized_singular_value_decomposition import RandomizedSingularValueDecomposition
-from KratosMultiphysics.RomApplication.discrete_empirical_interpolation_method import QDiscreteEmpiricalInterpolationMethod
+from KratosMultiphysics.RomApplication.discrete_empirical_interpolation_method import DiscreteEmpiricalInterpolationMethod
 
 class HRomTrainingUtility(object):
     """Auxiliary utility for the HROM training.
@@ -33,7 +33,7 @@ class HRomTrainingUtility(object):
         if self.element_selection_type == "empirical_cubature":
             self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
         elif self.element_selection_type == "discrete_empirical_interpolation":
-            self.hyper_reduction_element_selector = QDiscreteEmpiricalInterpolationMethod()
+            self.hyper_reduction_element_selector = DiscreteEmpiricalInterpolationMethod()
         else:
             err_msg = "\'{}\' HROM \'element_selection_type\' is not supported.".format(self.element_selection_type)
             raise Exception(err_msg)
@@ -146,7 +146,7 @@ class HRomTrainingUtility(object):
             self.AppendHRomWeightsToRomParameters()
         elif self.element_selection_type == "discrete_empirical_interpolation":
             self.hyper_reduction_element_selector.SetUp(residual_basis) # Set up the Q-DEIM method
-            selected_indices = self.hyper_reduction_element_selector.Run() # Run the Q-DEIM method
+            self.hyper_reduction_element_selector.Run() # Run the Q-DEIM method
 
     def CreateHRomModelParts(self):
         # Get solver data
