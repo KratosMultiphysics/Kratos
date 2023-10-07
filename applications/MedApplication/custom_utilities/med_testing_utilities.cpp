@@ -209,7 +209,9 @@ double MedTestingUtilities::ComputeLength(const ModelPart& rModelPart)
 {
     double length = 0.0;
     for (const auto& r_geom : rModelPart.Geometries()) {
-        length += r_geom.Length();
+        if (r_geom.LocalSpaceDimension() == 1) {
+            length += r_geom.Length();
+        }
     }
     return length;
 }
@@ -218,7 +220,9 @@ double MedTestingUtilities::ComputeArea(const ModelPart& rModelPart)
 {
     double area = 0.0;
     for (const auto& r_geom : rModelPart.Geometries()) {
-        area += r_geom.Area();
+        if (r_geom.LocalSpaceDimension() == 2) {
+            area += r_geom.Area();
+        }
     }
     return area;
 }
@@ -227,7 +231,9 @@ double MedTestingUtilities::ComputeVolume(const ModelPart& rModelPart)
 {
     double volume = 0.0;
     for (const auto& r_geom : rModelPart.Geometries()) {
-        volume += r_geom.Volume();
+        if (r_geom.LocalSpaceDimension() == 3) {
+            volume += r_geom.Volume();
+        }
     }
     return volume;
 }
