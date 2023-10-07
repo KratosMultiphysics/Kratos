@@ -82,9 +82,19 @@ void CheckGeometriesAreEqual(
 
     // KRATOS_CHECK_EQUAL(rGeom1.Id(), rGeom2.Id()); // the MEDApp deliberately does not care about IDs
 
-    KRATOS_CHECK_EQUAL(rGeom1.PointsNumber(), rGeom2.PointsNumber());
-
+    // make sure to not accidentially compare base-geometries
+    KRATOS_CHECK_NOT_EQUAL(rGeom1.GetGeometryType(), GeometryData::KratosGeometryType::Kratos_generic_type);
     KRATOS_CHECK(GeometryType::IsSame(rGeom1, rGeom2));
+
+    KRATOS_CHECK_DOUBLE_EQUAL(rGeom1.DomainSize(), rGeom2.DomainSize());
+
+    if (rGeom1.PointsNumber() > 1) {
+        KRATOS_CHECK_GREATER(rGeom1.DomainSize(), 0.0);
+    } else if (rGeom1.PointsNumber() == 1) {
+        KRATOS_CHECK_DOUBLE_EQUAL(rGeom1.DomainSize(), 0.0);
+    } else {
+        KRATOS_ERROR << "Geometry with no points found! " << rGeom1 << std::endl;
+    }
 
     for (std::size_t i=0; i<rGeom1.PointsNumber(); ++i) {
         CheckEntitiesAreEqual(rGeom1[i], rGeom2[i]);
@@ -121,14 +131,14 @@ void CheckGeometriesAreEqual(
     KRATOS_CHECK_EQUAL(rModelPart1.NumberOfGeometries(), rModelPart2.NumberOfGeometries());
 
     auto check_geoms = [](const ModelPart& rModelPart1, const ModelPart& rModelPart2){
-        for (auto geom_1 : rModelPart1.Geometries()) {
-            for (auto geom_2 : rModelPart2.Geometries()) {
-                if (have_same_nodes(geom_1, geom_2)) {
-                    CheckGeometriesAreEqual(geom_1, geom_2);
+        for (const auto& r_geom_1 : rModelPart1.Geometries()) {
+            for (const auto& r_geom_2 : rModelPart2.Geometries()) {
+                if (have_same_nodes(r_geom_1, r_geom_2)) {
+                    CheckGeometriesAreEqual(r_geom_1, r_geom_2);
                     goto here;
                 }
             }
-            KRATOS_ERROR << "no match found for geometry " << geom_1 << std::endl;
+            KRATOS_ERROR << "no match found for geometry " << r_geom_1 << std::endl;
             here:;
         }
     };
@@ -192,6 +202,43 @@ void MedTestingUtilities::AddGeometriesFromElements(
     }
 
     KRATOS_CATCH("")
+}
+
+
+double MedTestingUtilities::ComputeLength(const ModelPart& rModelPart)
+{
+    double length = 0.0;
+    for (const auto& r_geom : rModelPart.Geometries()) {
+        length += r_geom.Length();
+    }
+    return length;
+}
+
+double MedTestingUtilities::ComputeArea(const ModelPart& rModelPart)
+{
+    double area = 0.0;
+    for (const auto& r_geom : rModelPart.Geometries()) {
+        area += r_geom.Area();
+    }
+    return area;
+}
+
+double MedTestingUtilities::ComputeVolume(const ModelPart& rModelPart)
+{
+    double volume = 0.0;
+    for (const auto& r_geom : rModelPart.Geometries()) {
+        volume += r_geom.Volume();
+    }
+    return volume;
+}
+
+double MedTestingUtilities::ComputeDomainSize(const ModelPart& rModelPart)
+{
+    double domain_size = 0.0;
+    for (const auto& r_geom : rModelPart.Geometries()) {
+        domain_size += r_geom.DomainSize();
+    }
+    return domain_size;
 }
 
 } // namespace Kratos
