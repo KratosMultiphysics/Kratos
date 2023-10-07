@@ -28,11 +28,15 @@ class HRomTrainingUtility(object):
         settings["projection_strategy"] = custom_settings["projection_strategy"] # To be consistent with the solving strategy
 
         # Create the HROM element selector
+        self.hrom_output_format = settings["hrom_format"].GetString()
         self.element_selection_type = settings["element_selection_type"].GetString()
         self.element_selection_svd_truncation_tolerance = settings["element_selection_svd_truncation_tolerance"].GetDouble()
         if self.element_selection_type == "empirical_cubature":
             self.hyper_reduction_element_selector = EmpiricalCubatureMethod()
         elif self.element_selection_type == "discrete_empirical_interpolation":
+            if self.hrom_output_format != "numpy":
+                err_msg = "The 'discrete_empirical_interpolation' method is only available with 'numpy' format for 'hrom_output_format'."
+                raise Exception(err_msg)
             self.hyper_reduction_element_selector = DiscreteEmpiricalInterpolationMethod()
         else:
             err_msg = "\'{}\' HROM \'element_selection_type\' is not supported.".format(self.element_selection_type)
@@ -46,7 +50,6 @@ class HRomTrainingUtility(object):
         self.rom_settings.RemoveValue("rom_bns_settings") #Removing because the inner rom settings are specific for each builder and solver.
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
         self.projection_strategy = settings["projection_strategy"].GetString()
-        self.hrom_output_format = settings["hrom_format"].GetString()
         self.include_minimum_condition = settings["include_minimum_condition"].GetBool()
         self.include_condition_parents = settings["include_condition_parents"].GetBool()
 

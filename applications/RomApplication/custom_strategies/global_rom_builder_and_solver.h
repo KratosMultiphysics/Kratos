@@ -248,7 +248,7 @@ public:
         BaseType::BuildRHSNoDirichlet(pScheme, rModelPart, rb);
     }
 
-    void SetInterpolationMatrices(const MatrixType& InterpolationWeightsMatrix, const MatrixType& InterpolationIndicesMatrix)
+    void SetInterpolationMatrices(const Matrix& InterpolationWeightsMatrix, const Matrix& InterpolationIndicesMatrix)
     {
         mInterpolationWeightsMatrix = InterpolationWeightsMatrix;
         mInterpolationIndicesMatrix = InterpolationIndicesMatrix;
