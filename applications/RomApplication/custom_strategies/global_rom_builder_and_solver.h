@@ -777,11 +777,75 @@ protected:
 
         BuildRightROMBasis(rModelPart, mPhiGlobal);
 
+        // Extract interpolation indices from mInterpolationIndicesMatrix
+        std::vector<int> interpolation_indices;
+        for (unsigned int i = 0; i < mInterpolationIndicesMatrix.size1(); ++i) {
+            for (unsigned int j = 0; j < mInterpolationIndicesMatrix.size2(); ++j) {
+                if (std::abs(mInterpolationIndicesMatrix(i, j)) > 1e-12) { // or some other tolerance
+                    interpolation_indices.push_back(i);
+                    break; // Move to the next row once a non-zero entry is found
+                }
+            }
+        }
+        KRATOS_WATCH(rb)
+        // Zero out specific elements of rb
+        for (int idx : interpolation_indices) {
+            rb(idx) = 0.0;
+        }
+        KRATOS_WATCH(rb)
+        // Zero out specific rows of mPhiGlobal
+        for (int idx : interpolation_indices) {
+            noalias(row(mPhiGlobal, idx)) = ZeroVector(mPhiGlobal.size2());
+        }
+
+        // Zero out specific rows and columns of rA
+        for (int idx : interpolation_indices) {
+            noalias(row(rA, idx)) = ZeroVector(rA.size2());
+            noalias(column(rA, idx)) = ZeroVector(rA.size1());
+        }
+
+        auto a_wrapper = UblasWrapper<double>(rA);
+        const auto& eigen_rA = a_wrapper.matrix();
+        Eigen::Map<EigenDynamicVector> eigen_rhs_vector(rb.data().begin(), rb.size());
+        Eigen::Map<EigenDynamicMatrix> eigen_global_modes(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_interpolation_weights(mInterpolationWeightsMatrix.data().begin(), mInterpolationWeightsMatrix.size1(), mInterpolationWeightsMatrix.size2());
+        Eigen::Map<EigenDynamicMatrix> eigen_interpolation_indices(mInterpolationIndicesMatrix.data().begin(), mInterpolationIndicesMatrix.size1(), mInterpolationIndicesMatrix.size2());
+
+        EigenDynamicMatrix eigen_A_times_global_modes = eigen_rA * eigen_global_modes; //TODO: Make it in parallel.
+
+        EigenDynamicMatrix eigen_indices_times_A_times_global_modes = eigen_interpolation_indices * eigen_A_times_global_modes;
+        EigenDynamicMatrix eigen_weighted_projection_matrix = eigen_interpolation_weights * eigen_indices_times_A_times_global_modes;
+        EigenDynamicVector eigen_indices_times_rhs_vector = eigen_interpolation_indices * eigen_rhs_vector;
+        EigenDynamicVector eigen_weighted_rhs_vector = eigen_interpolation_weights * eigen_indices_times_rhs_vector;
+        KRATOS_WATCH(eigen_weighted_rhs_vector)
+        // Compute the matrix multiplication
+        mEigenRomA = eigen_global_modes.transpose() * eigen_weighted_projection_matrix; //TODO: Make it in parallel.
+        mEigenRomB = eigen_global_modes.transpose() * eigen_weighted_rhs_vector; //TODO: Make it in parallel.
+
+        KRATOS_CATCH("")
+    }
+
+    /**
+     * Projects the reduced system of equations
+     */
+    virtual void OldProjectROM(
+        ModelPart &rModelPart,
+        TSystemMatrixType &rA,
+        TSystemVectorType &rb)
+    {
+        KRATOS_TRY
+
+        if (mRightRomBasisInitialized==false){
+            mPhiGlobal = ZeroMatrix(BaseBuilderAndSolverType::GetEquationSystemSize(), GetNumberOfROMModes());
+            mRightRomBasisInitialized = true;
+        }
+
+        BuildRightROMBasis(rModelPart, mPhiGlobal);
+
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
         Eigen::Map<EigenDynamicVector> eigen_rb(rb.data().begin(), rb.size());
         Eigen::Map<EigenDynamicMatrix> eigen_mPhiGlobal(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
-
         EigenDynamicMatrix eigen_rA_times_mPhiGlobal = eigen_rA * eigen_mPhiGlobal; //TODO: Make it in parallel.
 
         // Compute the matrix multiplication
