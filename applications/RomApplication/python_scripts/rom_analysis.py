@@ -223,7 +223,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     InterpolationWeights = KratosMultiphysics.Matrix(np.load('InterpolationWeights.npy'))
                     InterpolationIndicesMatrix = KratosMultiphysics.Matrix(np.load('InterpolationIndicesMatrix.npy'))
                     builder_and_solver = self._GetSolver()._GetBuilderAndSolver()
-                    builder_and_solver.SetMatrices(InterpolationWeights, InterpolationIndicesMatrix)
+                    builder_and_solver.SetInterpolationMatrices(InterpolationWeights, InterpolationIndicesMatrix)
 
             # Check and Initialize Petrov Galerkin Training stage
             if self.train_petrov_galerkin:
