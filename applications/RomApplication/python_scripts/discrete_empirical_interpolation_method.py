@@ -41,8 +41,8 @@ class QDiscreteEmpiricalInterpolationMethod():
             self.P_matrix[nmax, jj] = 1
             self.P.append(nmax)
         self.P = np.sort(self.P)  # Ensure self.P is sorted
-        self.__construct_P_matrix()
-        self.compute_W_and_save()
+        self.ConstructInterpolationIndicesMatrix()
+        self.ComputeWeightsAndSave()
 
 
     def DEIM(self):
@@ -59,8 +59,8 @@ class QDiscreteEmpiricalInterpolationMethod():
             max_index = np.unravel_index(np.argmax(np.abs(r), axis=None), r.shape)
             self.P = np.append(self.P, max_index[0])
         self.P = np.sort(self.P)  # Ensure self.P is sorted
-        self.__construct_P_matrix()
-        self.compute_W_and_save()
+        self.ConstructInterpolationIndicesMatrix()
+        self.ComputeWeightsAndSave()
 
     def BruntonQDEIM(self):
         """Calculate the DEIM indices using the Q-DEIM algorithm."""
@@ -77,8 +77,8 @@ class QDiscreteEmpiricalInterpolationMethod():
         # Extract the list of selected indices from the pivot
         self.P = pivot.tolist()
         self.P = np.sort(self.P)  # Ensure self.P is sorted
-        self.__construct_P_matrix()
-        self.compute_W_and_save()
+        self.ConstructInterpolationIndicesMatrix()
+        self.ComputeWeightsAndSave()
 
     def QDEIM(self):
         """Calculate the DEIM indices using the Q-DEIM algorithm."""
@@ -86,8 +86,8 @@ class QDiscreteEmpiricalInterpolationMethod():
         Q, R, P = scipy_qr(self.U_k, pivoting=True)
         self.P = P[:self.U_k.shape[1]]
         self.P = np.sort(self.P)  # Ensure self.P is sorted
-        self.__construct_P_matrix()
-        self.compute_W_and_save()
+        self.ConstructInterpolationIndicesMatrix()
+        self.ComputeWeightsAndSave()
 
     def Calculate(self, method="DEIM"):
         """Calculate the DEIM indices using the specified method."""
@@ -103,21 +103,20 @@ class QDiscreteEmpiricalInterpolationMethod():
         # self.Initialize()
         self.Calculate()
 
-    def __construct_P_matrix(self):
-        """Construct the P_matrix from the self.P indices."""
+    def ConstructInterpolationIndicesMatrix(self):
+        """Construct the InterpolationIndicesMatrix from the self.P indices."""
         m, n = self.U_k.shape
-        self.P_matrix = np.zeros((m, len(self.P)))
-        self.P_matrix[self.P, np.arange(len(self.P))] = 1
+        self.InterpolationIndicesMatrix = np.zeros((m, len(self.P)))
+        self.InterpolationIndicesMatrix[self.P, np.arange(len(self.P))] = 1
 
-    def compute_W_and_save(self):
-        """Compute W matrix and save W and P_matrix."""
-        # Compute W
-        self.W = self.U_k @ np.linalg.pinv(self.P_matrix.T @ self.U_k)
+    def ComputeWeightsAndSave(self):
+        """Compute InterpolationWeights matrix and save InterpolationWeights and InterpolationIndicesMatrix."""
+        # Compute InterpolationWeights
+        self.InterpolationWeights = self.U_k @ np.linalg.pinv(self.InterpolationIndicesMatrix.T @ self.U_k)
         
-        # Save W and P_matrix as numpy arrays
-        np.save('W_matrix.npy', self.W)
-        np.save('P_matrix.npy', self.P_matrix)
-        debug = True
+        # Save InterpolationWeights and InterpolationIndicesMatrix as numpy arrays
+        np.save('InterpolationWeights.npy', self.InterpolationWeights)
+        np.save('InterpolationIndicesMatrix.npy', self.InterpolationIndicesMatrix)
 
 
 
