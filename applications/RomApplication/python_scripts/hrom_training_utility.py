@@ -231,7 +231,7 @@ class HRomTrainingUtility(object):
     def __CalculateResidualBasis(self):
         # Set up the residual snapshots matrix
         residuals_snapshot_matrix = self._GetResidualsProjectedMatrix()
-
+        np.save('ResidualsSnapshot.npy',residuals_snapshot_matrix)
         # Calculate the randomized and truncated SVD of the residual snapshots
         u,_,_,_ = RandomizedSingularValueDecomposition(COMPUTE_V=False).Calculate(
             residuals_snapshot_matrix,
