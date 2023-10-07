@@ -248,6 +248,12 @@ public:
         BaseType::BuildRHSNoDirichlet(pScheme, rModelPart, rb);
     }
 
+    void SetInterpolationMatrices(const MatrixType& InterpolationWeightsMatrix, const MatrixType& InterpolationIndicesMatrix)
+    {
+        mInterpolationWeightsMatrix = InterpolationWeightsMatrix;
+        mInterpolationIndicesMatrix = InterpolationIndicesMatrix;
+    }
+
     void ProjectToFineBasis(
         const TSystemVectorType& rRomUnkowns,
         const ModelPart& rModelPart,
@@ -467,6 +473,8 @@ protected:
     bool mHromSimulation = false;
     bool mHromWeightsInitialized = false;
     bool mRightRomBasisInitialized = false;
+    Matrix mInterpolationWeightsMatrix; //Move to private
+    Matrix mInterpolationIndicesMatrix; //Move to private
 
     ///@}
     ///@name Protected operators
