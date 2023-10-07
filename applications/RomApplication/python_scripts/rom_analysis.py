@@ -220,7 +220,10 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                             computing_model_part.GetCondition(int( condition_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, conditon_weights[i]  ) #FIXME: FIX THE +1
 
                 elif self.element_selection_type=="discrete_empirical_interpolation":
-                    self._GetSolver()._GetBuilderAndSolver()
+                    InterpolationWeights = np.load('InterpolationWeights.npy')
+                    InterpolationIndicesMatrix = np.load('InterpolationIndicesMatrix.npy')
+                    builder_and_solver = self._GetSolver()._GetBuilderAndSolver()
+                    builder_and_solver.SetMatrices(InterpolationWeights, InterpolationIndicesMatrix)
 
             # Check and Initialize Petrov Galerkin Training stage
             if self.train_petrov_galerkin:
