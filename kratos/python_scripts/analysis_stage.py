@@ -288,10 +288,10 @@ class AnalysisStage(object):
             # print(node.Id, self.deformed_config_normals[node.Id - 1])
         print("\n ::TESTING:: FINISH Calculate normals \n")
 
-        # flatten geometry
-        for node in self._GetSolver().GetComputingModelPart().Nodes:
-            node.Z0 = 0.0
-            node.Z  = 0.0
+        # # flatten geometry
+        # for node in self._GetSolver().GetComputingModelPart().Nodes:
+        #     node.Z0 = 0.0
+        #     node.Z  = 0.0
         
         # save flat configuration nodal positions
         self.flattened_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
@@ -308,7 +308,6 @@ class AnalysisStage(object):
 
         # assign initial strains
         self.InitializeMyStrains()
-        dasfsdafsda
         ######################################################################################################
 
     def InitializeMyStrains(self):
