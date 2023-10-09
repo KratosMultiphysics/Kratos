@@ -64,8 +64,8 @@ private:
     std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;
     std::unique_ptr<TimeLoopExecutor> mpTimeLoopExecutor;
 
-    LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream kratosLogBuffer);
-    void KratosGeoSettlement::FlushLoggingOutput(LoggerOutput::Pointer pOutput, std::stringstream kratosLogBuffer);
+    LoggerOutput::Pointer CreateLoggingOutput(std::stringstream kratosLogBuffer);
+    void FlushLoggingOutput(LoggerOutput::Pointer pOutput, std::stringstream kratosLogBuffer);
 
 };
 
