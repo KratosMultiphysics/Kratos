@@ -190,7 +190,9 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
 }
 
-void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer pOutput, std::stringstream kratosLogBuffer)
+void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)> &rLogCallback, 
+                                             LoggerOutput::Pointer& pOutput, 
+                                             std::stringstream &kratosLogBuffer)
 {
     rLogCallback(kratosLogBuffer.str().c_str());
     Logger::RemoveOutput(pOutput);
