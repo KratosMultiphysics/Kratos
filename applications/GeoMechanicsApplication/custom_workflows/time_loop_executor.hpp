@@ -48,6 +48,7 @@ public :
         TimeStepEndState end_state;
         end_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
         while (mTimeIncrementor->WantNextStep(end_state)) {
+            end_state.convergence_state = mSolverStrategy->GetConvergenceState();
             result.emplace_back(end_state);
             mTimeIncrementor->PostTimeStepExecution(end_state);
         }
