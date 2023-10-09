@@ -15,15 +15,15 @@ Lines 450 to 460
 
 - The thermal elements are registered in GeoMechanicsApplication <br>
 applications/GeoMechanicsApplication/geo_mechanics_application.cpp <br>
-Lines 211 to 220
-
+Lines 211 to 220 <br>
+<br>
 - Registered the variables necessary for the thermal element, such as material parameters, time, conditions, etc.... <br>
 applications/GeoMechanicsApplication/geo_mechanics_application_variables.cpp <br>
-Lines 33 to 45
-
+Lines 33 to 45 <br>
+<br>
 applications/GeoMechanicsApplication/geo_mechanics_application.cpp <br>
-lines 324 to 336
-
+lines 324 to 336 <br>
+<br>
 applications/GeoMechanicsApplication/geo_mechanics_application_variables.h <br>
 lines 60 to 72
 
