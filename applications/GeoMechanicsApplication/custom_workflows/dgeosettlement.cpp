@@ -89,7 +89,8 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
                                   const std::function<void(const char*)>& rReportTextualProgress,
                                   const std::function<bool()>&            rShouldCancel)
 {
-    LoggerOutput::Pointer p_output = CreateLoggingOutput(rLogCallback);
+    std::stringstream kratos_log_buffer;
+    LoggerOutput::Pointer output = CreateLoggingOutput(kratos_log_buffer);
 
     try {
         KRATOS_INFO("KratosGeoSettlement") << "About to run a stage..." << std::endl;
@@ -122,15 +123,15 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             mpTimeLoopExecutor->SetProcessReferences(process_observables);
         }
 
-        RemoveLoggingOutput(p_output);
+        FlushLoggingOutput(output, kratos_log_buffer);
 
         return 0;
     }
     catch (const std::exception &exc)
     {
-        KRATOS_INFO("GeoFlowKernel") << exc.what();
+        KRATOS_INFO("GeoSettlementKernel") << exc.what();
 
-        RemoveLoggingOutput(p_output);
+        FlushLoggingOutput(output, kratos_log_buffer);
 
         return 1;
     }
@@ -188,19 +189,18 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
 }
 
-LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput()
+LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream kratosLogBuffer)
 {
-    std::stringstream kratosLogBuffer;
     LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
     Logger::AddOutput(p_output);
 
     return p_output;
 }
 
-void KratosGeoSettlement::RemoveLoggingOutput(LoggerOutput::Pointer p_output)
+void KratosGeoSettlement::FlushLoggingOutput(LoggerOutput::Pointer pOutput, std::stringstream kratosLogBuffer)
 {
     rLogCallback(kratosLogBuffer.str().c_str());
-    Logger::RemoveOutput(p_output);
+    Logger::RemoveOutput(pOutput);
 }
 
 const InputUtility* KratosGeoSettlement::GetInterfaceInputUtility() const
