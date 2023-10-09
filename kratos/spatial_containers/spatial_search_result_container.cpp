@@ -119,45 +119,54 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
         std::vector<int> recv_buffer(world_size);
         rDataCommunicator.AllGather(send_buffer, recv_buffer);
         
-        // Create a lambda to generate the vector of indexes greater than zero
-        auto GenerateIndexesLambda = [](const std::vector<int>& rInputVector) {
-            std::vector<int> indexes;
-            for (int i = 0; i < static_cast<int>(rInputVector.size()); ++i) {
-                if (rInputVector[i] > 0) {
-                    indexes.push_back(i);
-                }
+        // In rank 0
+        if (rank == 0) {
+            // Fill global vector with local result
+            for (auto& r_value : mLocalResults) {
+                auto p_result = Kratos::make_shared<SpatialSearchResultType>(r_value);
+                mGlobalResults.push_back(p_result);
             }
-            return indexes;
-        };
 
-        // Call the lambda to generate the result vector of partitions with results
-        std::vector<int> resultVector = GenerateIndexesLambda(recv_buffer);
+            // Create a lambda to generate the vector of indexes greater than zero
+            auto GenerateIndexesLambda = [](const std::vector<int>& rInputVector) {
+                std::vector<int> indexes;
+                for (int i = 0; i < static_cast<int>(rInputVector.size()); ++i) {
+                    if (rInputVector[i] > 0) {
+                        indexes.push_back(i);
+                    }
+                }
+                return indexes;
+            };
 
-        // Iterate over the ranks
-        for (int rank_to_retrieve : resultVector) {
-            if (rank_to_retrieve == rank) {
-                // Fill global vector
-                for (auto& r_value : mLocalResults) {
+            // Call the lambda to generate the result vector of partitions with results
+            std::vector<int> resultVector = GenerateIndexesLambda(recv_buffer);
+
+            // Iterate over the ranks
+            for (int rank_to_recv : resultVector) {
+                LocalResultsVector recv_gps;
+                rDataCommunicator.Recv(recv_gps, rank_to_recv);
+                for (auto& r_value : recv_gps) {
                     auto p_result = Kratos::make_shared<SpatialSearchResultType>(r_value);
                     mGlobalResults.push_back(p_result);
                 }
-                // Send to other partitions
-                for (int rank_to_send : resultVector) {
-                    if (rank_to_send != rank) {
-                        rDataCommunicator.Send(mLocalResults, rank_to_send);
-                    }
-                }
-            } else { // Retrieve from other partitions
-                for (int rank_to_recv : resultVector) {
-                    if (rank_to_recv != rank) {
-                        LocalResultsVector recv_gps;
-                        rDataCommunicator.Recv(recv_gps, rank_to_recv);
-                        for (auto& r_value : recv_gps) {
-                            auto p_result = Kratos::make_shared<SpatialSearchResultType>(r_value);
-                            mGlobalResults.push_back(p_result);
-                        }
-                    }
-                }
+            }
+
+            // Send now to all ranks
+            for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+                rDataCommunicator.Send(mGlobalResults, i_rank);
+            }
+        } else {
+            // Sending local results if any
+            if (local_result_size > 0) {
+                rDataCommunicator.Send(mLocalResults, 0);
+            }
+
+            // Receiving sync result
+            LocalResultsVector recv_gps;
+            rDataCommunicator.Recv(recv_gps, 0);
+            for (auto& r_value : recv_gps) {
+                auto p_result = Kratos::make_shared<SpatialSearchResultType>(r_value);
+                mGlobalResults.push_back(p_result);
             }
         }
     } else { // Serial code
