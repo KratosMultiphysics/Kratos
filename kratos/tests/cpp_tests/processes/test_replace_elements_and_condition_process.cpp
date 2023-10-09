@@ -126,9 +126,9 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess1, KratosCoreFastSu
     std::string component_name;
     for (auto& r_element : r_model_part.Elements()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
-        KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
-        KRATOS_CHECK_NEAR(r_element.GetValue(PRESSURE), pressure, 1e-6);
-        KRATOS_CHECK(r_element.Is(VISITED));
+        KRATOS_EXPECT_EQ(component_name, "Element2D3N");
+        KRATOS_EXPECT_NEAR(r_element.GetValue(PRESSURE), pressure, 1e-6);
+        KRATOS_EXPECT_TRUE(r_element.Is(VISITED));
     }
 }
 
@@ -157,7 +157,7 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess2, KratosCoreFastSu
     std::string component_name;
     for (auto& r_element : r_model_part.Elements()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
-        KRATOS_CHECK_EQUAL(component_name, "Element3D4N");
+        KRATOS_EXPECT_EQ(component_name, "Element3D4N");
     }
 }
 
@@ -196,14 +196,14 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess3, KratosCoreFastSu
     std::string component_name;
     for (auto& r_element : r_model_part.Elements()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
-        KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
+        KRATOS_EXPECT_EQ(component_name, "Element2D3N");
     }
 
     // Check that conditions were NOT replaced
-    KRATOS_CHECK_EQUAL(r_model_part.pGetCondition(1), p_cond_0);
-    KRATOS_CHECK_EQUAL(r_model_part.pGetCondition(2), p_cond_1);
-    KRATOS_CHECK_EQUAL(r_model_part.pGetCondition(3), p_cond_2);
-    KRATOS_CHECK_EQUAL(r_model_part.pGetCondition(4), p_cond_3);
+    KRATOS_EXPECT_EQ(r_model_part.pGetCondition(1), p_cond_0);
+    KRATOS_EXPECT_EQ(r_model_part.pGetCondition(2), p_cond_1);
+    KRATOS_EXPECT_EQ(r_model_part.pGetCondition(3), p_cond_2);
+    KRATOS_EXPECT_EQ(r_model_part.pGetCondition(4), p_cond_3);
 }
 
 // We check that if a submodelpart is given only specified elements are replaced in the rest
@@ -274,24 +274,24 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess4, KratosCoreFastSu
     std::string component_name;
     for (auto& r_element : r_model_part.Elements()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
-        KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
+        KRATOS_EXPECT_EQ(component_name, "Element2D3N");
     }
 
     for (auto& r_element : r_sister_model_part.Elements()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
         if (std::find(modified_elems_ids.begin(), modified_elems_ids.end(), r_element.Id()) != modified_elems_ids.end()) {
-            KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
+            KRATOS_EXPECT_EQ(component_name, "Element2D3N");
         } else {
-            KRATOS_CHECK_EQUAL(component_name, "DistanceCalculationElementSimplex2D3N");
+            KRATOS_EXPECT_EQ(component_name, "DistanceCalculationElementSimplex2D3N");
         }
     }
 
     for (auto& r_element : r_parent_model_part.Elements()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
         if (std::find(modified_elems_ids.begin(), modified_elems_ids.end(), r_element.Id()) != modified_elems_ids.end()) {
-            KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
+            KRATOS_EXPECT_EQ(component_name, "Element2D3N");
         }else {
-            KRATOS_CHECK_EQUAL(component_name, "DistanceCalculationElementSimplex2D3N");
+            KRATOS_EXPECT_EQ(component_name, "DistanceCalculationElementSimplex2D3N");
         }
     }
 }
@@ -322,14 +322,14 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess5, KratosCoreFastSu
     for (auto& r_element : r_model_part.Elements()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
         if (r_element.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
-            KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
+            KRATOS_EXPECT_EQ(component_name, "Element2D3N");
         } else if (r_element.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) {
-            KRATOS_CHECK_EQUAL(component_name, "Element2D4N");
+            KRATOS_EXPECT_EQ(component_name, "Element2D4N");
         }
     }
     for (auto& r_condition : r_model_part.Conditions()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_condition, component_name);
-        KRATOS_CHECK_EQUAL(component_name, "LineCondition2D2N");
+        KRATOS_EXPECT_EQ(component_name, "LineCondition2D2N");
     }
 }
 
@@ -359,14 +359,14 @@ KRATOS_TEST_CASE_IN_SUITE(ReplaceElementsAndConditionsProcess6, KratosCoreFastSu
     for (auto& r_element : r_model_part.Elements()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_element, component_name);
         if (r_element.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Triangle2D3) {
-            KRATOS_CHECK_EQUAL(component_name, "Element2D3N");
+            KRATOS_EXPECT_EQ(component_name, "Element2D3N");
         } else if (r_element.GetGeometry().GetGeometryType() == GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4) {
-            KRATOS_CHECK_EQUAL(component_name, "Element2D4N");
+            KRATOS_EXPECT_EQ(component_name, "Element2D4N");
         }
     }
     for (auto& r_condition : r_model_part.Conditions()) {
         CompareElementsAndConditionsUtility::GetRegisteredName(r_condition, component_name);
-        KRATOS_CHECK_EQUAL(component_name, "LineCondition2D2N");
+        KRATOS_EXPECT_EQ(component_name, "LineCondition2D2N");
     }
 }
 

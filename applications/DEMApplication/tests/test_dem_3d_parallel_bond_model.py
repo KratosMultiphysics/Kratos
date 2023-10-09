@@ -28,16 +28,16 @@ class ParallelBondModelTestSolution(KratosMultiphysics.DEMApplication.DEM_analys
             velocity = node.GetSolutionStepValue(Kratos.VELOCITY)
             angular_velocity = node.GetSolutionStepValue(Kratos.ANGULAR_VELOCITY)
             if node.Id == 1:
-                if self.time > 0.0098 and self.time < 0.0011:
-                    expected_value = -1.041404e-05
+                if self.time > 0.0098 and self.time < 0.00981:
+                    expected_value = -3.365862016784862e-05
                     self.CheckValues(velocity, 0, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValues(velocity, 1, expected_value, tolerance)
-                    expected_value = 1.041103e-05
+                    expected_value = 3.345233292428133e-05
                     self.CheckValues(velocity, 2, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValues(angular_velocity, 0, expected_value, tolerance)
-                    expected_value = 2.261118e-06
+                    expected_value = 4.011134246117183e-05
                     self.CheckValues(angular_velocity, 1, expected_value, tolerance)
                     expected_value = 0.0
                     self.CheckValues(angular_velocity, 2, expected_value, tolerance)
