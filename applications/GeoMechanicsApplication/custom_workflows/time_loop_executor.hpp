@@ -20,6 +20,7 @@
 #include "time_step_end_state.hpp"
 #include "time_incrementor.h."
 #include "processes/process.h"
+#include "strategy_wrapper.hpp"
 
 namespace Kratos
 {
@@ -36,6 +37,11 @@ public :
         mTimeIncrementor = std::move(ATimeIncrementor);
     }
 
+    void SetSolverStrategyTimeIncrementor(std::unique_ptr<StrategyWrapper> AStrategyWrapper)
+    {
+        mSolverStrategy = std::move(AStrategyWrapper);
+    }
+
     std::vector<TimeStepEndState> Run()
     {
         std::vector<TimeStepEndState> result;
@@ -50,6 +56,7 @@ public :
 
 private:
     std::unique_ptr<TimeIncrementor> mTimeIncrementor;
+    std::unique_ptr<StrategyWrapper> mSolverStrategy;
 };
 
 }

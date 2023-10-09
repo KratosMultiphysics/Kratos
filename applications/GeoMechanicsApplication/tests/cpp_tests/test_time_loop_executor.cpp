@@ -45,16 +45,41 @@ public:
     bool IsConverged() override {return true;}
 };
 
+class DummySolverStrategy : public StrategyWrapper
+{
+public:
+    [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()         override
+    {
+        return mConvergenceState;
+    }
+    [[nodiscard]] std::size_t                        GetNumberOfIterations() const override
+    {
+        return 1;
+    }
+    [[nodiscard]] double                             GetEndTime() const            override
+    {
+        return 0.0;
+    }
+    void Initialize()             override {}
+    void InitializeSolutionStep() override {}
+    void Predict()                override {}
+    bool SolveSolutionStep()      override { return false; }
+    void FinalizeSolutionStep()   override {}
+
+private:
+    TimeStepEndState::ConvergenceState mConvergenceState{TimeStepEndState::ConvergenceState::converged};
+};
 }
 
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsPerformedStatesAfterRunning, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsPerformedStatesAfterRunningAnAlwaysConvergingSolverStrategy, KratosGeoMechanicsFastSuite)
 {
     TimeLoopExecutor executor;
     const auto increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
+    executor.SetSolverStrategyTimeIncrementor(std::make_unique<DummySolverStrategy>());
     const auto step_states = executor.Run();
 
     KRATOS_EXPECT_EQ(increments.size(), step_states.size());
