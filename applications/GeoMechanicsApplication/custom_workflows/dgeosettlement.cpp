@@ -84,10 +84,10 @@ void KratosGeoSettlement::InitializeProcessFactory() {
 
 int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorkingDirectory,
                                   const std::filesystem::path&            rProjectParametersFile,
-                                  const std::function<void(const char*)>& ,
-                                  const std::function<void(double)>&      ,
-                                  const std::function<void(const char*)>& ,
-                                  const std::function<bool()>&            )
+                                  const std::function<void(const char*)>& rLogCallback,
+                                  const std::function<void(double)>&      rReportProgress,
+                                  const std::function<void(const char*)>& rReportTextualProgress,
+                                  const std::function<bool()>&            rShouldCancel)
 {
     this->SetEchoLevel(1);
 
