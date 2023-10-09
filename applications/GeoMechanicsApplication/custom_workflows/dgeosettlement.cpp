@@ -89,9 +89,9 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
                                   const std::function<void(const char*)>& rReportTextualProgress,
                                   const std::function<bool()>&            rShouldCancel)
 {
-    std::stringstream kratosLogBuffer = std::stringstream();
-    LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
-    Logger::AddOutput(p_output);
+    std::stringstream kratos_log_buffer = std::stringstream();
+    LoggerOutput::Pointer loggerOutput(new LoggerOutput(kratos_log_buffer));
+    Logger::AddOutput(loggerOutput);
 
     try {
         KRATOS_INFO("KratosGeoSettlement") << "About to run a stage..." << std::endl;
@@ -124,7 +124,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             mpTimeLoopExecutor->SetProcessReferences(process_observables);
         }
 
-        FlushLoggingOutput(rLogCallback, output, kratos_log_buffer);
+        FlushLoggingOutput(rLogCallback, loggerOutput, kratos_log_buffer);
 
         return 0;
     }
@@ -132,7 +132,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     {
         KRATOS_INFO("GeoSettlementKernel") << exc.what();
 
-        FlushLoggingOutput(rLogCallback, output, kratos_log_buffer);
+        FlushLoggingOutput(rLogCallback, loggerOutput, kratos_log_buffer);
 
         return 1;
     }
