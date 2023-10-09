@@ -18,7 +18,7 @@
 #include <memory>
 
 #include "time_step_end_state.hpp"
-#include "time_incrementor.hpp"
+#include "time_incrementor.h."
 #include "processes/process.h"
 
 namespace Kratos
@@ -26,11 +26,10 @@ namespace Kratos
 
 class Process;
 
-template <typename StrategyType>
 class TimeLoopExecutor{
 public :
     virtual ~TimeLoopExecutor() = default;
-    virtual void SetProcessReferences(const std::vector<std::weak_ptr<Process>>& rProcessRefs) = 0;
+    virtual void SetProcessReferences(const std::vector<std::weak_ptr<Process>>& rProcessRefs) {}
 
     void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> ATimeIncrementor)
     {
@@ -40,27 +39,17 @@ public :
     std::vector<TimeStepEndState> Run()
     {
         std::vector<TimeStepEndState> result;
-        TimeStepEndState              step_state;
-        if (no_previous_step_state_available) {
-            step_state.time = 0.0; // mrModelPart->GetProcessInfo()[TIME];
-            step_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
-            step_state.num_of_iterations = 0;
-            result.push_back(step_state);
+        TimeStepEndState end_state;
+        end_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
+        while (mTimeIncrementor->WantNextStep(end_state)) {
+            result.emplace_back(end_state);
+            mTimeIncrementor->PostTimeStepExecution(end_state);
         }
-        while (mTimeIncrementor->WantNextStep(step_state)) {
-            //mrModelPart->CloneTimeStep();
-            // nodig voor TimeStepExecutor: solving strategy
-            mTimeStepExecutor.run(step_state.time);
-            result.push_back(step_state);
-        }
-
         return result;
     }
 
 private:
     std::unique_ptr<TimeIncrementor> mTimeIncrementor;
-    TimeStepExecutor<StrategyType>   mTimeStepExecutor;
-    ModelPart*                       mrModelPart = nullptr;
 };
 
 }

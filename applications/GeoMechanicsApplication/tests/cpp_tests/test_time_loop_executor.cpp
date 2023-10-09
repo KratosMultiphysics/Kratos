@@ -14,6 +14,7 @@
 #include "testing/testing.h"
 #include "custom_workflows/time_loop_executor.hpp"
 #include "custom_workflows/time_step_end_state.hpp"
+#include "custom_workflows/prescribed_time_incrementor.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 
 using namespace Kratos;
@@ -38,12 +39,6 @@ public:
     struct VectorType{};
 };
 
-class NeverConvergingSolverStrategy : public SolvingStrategy<DummySparseType, DummyDenseType>
-{
-public:
-   bool IsConverged() override {return false;}
-};
-
 class AlwaysConvergingSolverStrategy : public SolvingStrategy<DummySparseType, DummyDenseType>
 {
 public:
@@ -52,31 +47,18 @@ public:
 
 }
 
-class StubFixedSizeStepIncrementor : public TimeIncrementor
-{
-public:
-    double GetIncrement() override {return 1.23;}
-};
-
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsStartStateandPerformedStatesWhenNoStartStateIsGiven, KratosGeoMechanicsWip)
+KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsPerformedStatesAfterRunning, KratosGeoMechanicsFastSuite)
 {
-    TimeLoopExecutor<AlwaysConvergingSolverStrategy> executor;
-    executor.SetTimeIncrementor(std::make_unique<StubFixedSizesStepIncrementor>());
+    TimeLoopExecutor executor;
+    const auto increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
+    executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
     const auto step_states = executor.Run();
 
-    KRATOS_EXPECT_EQ(1, step_states.size());
+    KRATOS_EXPECT_EQ(increments.size(), step_states.size());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsOnlyPerformedStatesWhenStartStateIsGiven, KratosGeoMechanicsWip)
-{
-    TimeLoopExecutor<AlwaysConvergingSolverStrategy> executor;
-    executor.SetTimeIncrementor(std::make_unique<StubFixedSizesStepIncrementor>());
-    const auto step_states = executor.Run();
-
-    KRATOS_EXPECT_EQ(1, step_states.size());
-}
 
 }
