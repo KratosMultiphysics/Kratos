@@ -27,7 +27,7 @@
 #include "custom_processes/apply_constant_phreatic_line_pressure_process.hpp"
 #include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
 #include "custom_processes/apply_phreatic_line_pressure_table_process.hpp"
-#include "custom_processes/apply_phreatic_multi_line_pressure_table_process.hpp"
+#include "custom_processes/apply_phreatic_multi_line_pressure_table_process.h"
 #include "custom_processes/apply_constant_boundary_phreatic_line_pressure_process.hpp"
 #include "custom_processes/apply_boundary_phreatic_line_pressure_table_process.hpp"
 #include "custom_processes/apply_constant_phreatic_surface_pressure_process.hpp"
@@ -45,8 +45,8 @@
 #include "custom_processes/set_multiple_moving_loads.h"
 #include "custom_processes/apply_vector_constraints_table_process.hpp"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python
+{
 
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
@@ -153,5 +153,4 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, const Parameters&>());
 }
 
-} // Namespace Python.
-} // Namespace Kratos
+} // Namespace Kratos::Python.
