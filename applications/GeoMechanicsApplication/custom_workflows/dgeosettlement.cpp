@@ -89,7 +89,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
                                   const std::function<void(const char*)>& rReportTextualProgress,
                                   const std::function<bool()>&            rShouldCancel)
 {
-    std::stringstream kratos_log_buffer = std::stringstream();
+    std::stringstream kratos_log_buffer;
     LoggerOutput::Pointer loggerOutput(new LoggerOutput(kratos_log_buffer));
     Logger::AddOutput(loggerOutput);
 
