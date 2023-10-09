@@ -89,8 +89,9 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
                                   const std::function<void(const char*)>& rReportTextualProgress,
                                   const std::function<bool()>&            rShouldCancel)
 {
-    std::stringstream kratos_log_buffer;
-    LoggerOutput::Pointer output = CreateLoggingOutput(kratos_log_buffer);
+    std::stringstream kratosLogBuffer = std::stringstream();
+    LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
+    Logger::AddOutput(p_output);
 
     try {
         KRATOS_INFO("KratosGeoSettlement") << "About to run a stage..." << std::endl;
@@ -187,12 +188,6 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_X, rModelPart);
     VariableUtils().AddDof(VOLUME_ACCELERATION_Y, rModelPart);
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
-}
-
-LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream kratosLogBuffer)
-{
-    LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
-    return Logger::AddOutput(p_output);
 }
 
 void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer pOutput, std::stringstream kratosLogBuffer)
