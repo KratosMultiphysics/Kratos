@@ -123,7 +123,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             mpTimeLoopExecutor->SetProcessReferences(process_observables);
         }
 
-        FlushLoggingOutput(output, kratos_log_buffer);
+        FlushLoggingOutput(rLogCallback, output, kratos_log_buffer);
 
         return 0;
     }
@@ -131,7 +131,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     {
         KRATOS_INFO("GeoSettlementKernel") << exc.what();
 
-        FlushLoggingOutput(output, kratos_log_buffer);
+        FlushLoggingOutput(rLogCallback, output, kratos_log_buffer);
 
         return 1;
     }
@@ -197,7 +197,7 @@ LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream
     return p_output;
 }
 
-void KratosGeoSettlement::FlushLoggingOutput(LoggerOutput::Pointer pOutput, std::stringstream kratosLogBuffer)
+void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer pOutput, std::stringstream kratosLogBuffer)
 {
     rLogCallback(kratosLogBuffer.str().c_str());
     Logger::RemoveOutput(pOutput);
