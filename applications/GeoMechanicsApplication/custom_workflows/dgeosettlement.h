@@ -68,3 +68,5 @@ private:
     void KratosGeoSettlement::RemoveLoggingOutput(LoggerOutput::Pointer p_output);
 
 }
+
+}
