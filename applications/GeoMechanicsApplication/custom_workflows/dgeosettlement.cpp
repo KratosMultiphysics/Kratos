@@ -192,9 +192,7 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
 LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream kratosLogBuffer)
 {
     LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
-    Logger::AddOutput(p_output);
-
-    return p_output;
+    return Logger::AddOutput(p_output);
 }
 
 void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer pOutput, std::stringstream kratosLogBuffer)
