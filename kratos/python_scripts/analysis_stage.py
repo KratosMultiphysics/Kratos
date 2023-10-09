@@ -288,10 +288,10 @@ class AnalysisStage(object):
             # print(node.Id, self.deformed_config_normals[node.Id - 1])
         print("\n ::TESTING:: FINISH Calculate normals \n")
 
-        # # flatten geometry
-        # for node in self._GetSolver().GetComputingModelPart().Nodes:
-        #     node.Z0 = 0.0
-        #     node.Z  = 0.0
+        # flatten geometry
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            node.Z0 = 0.0
+            node.Z  = 0.0
         
         # save flat configuration nodal positions
         self.flattened_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
@@ -358,17 +358,27 @@ class AnalysisStage(object):
             # Check matrix operations
             print("C3D:\n", C3D)
             print("F*FT:\n", C3D_FFT)
-
-            if element.Id == 10 or element.Id == 31:
-                print("element:", element.Id)
-                print(J @ J0_inv)
             
             # TODO: CHECK STRAINS
 
+            # E_voigt = KratosMultiphysics.Vector(3)
+            # E_voigt[0] = E3D_FFT[0, 0]
+            # E_voigt[1] = E3D_FFT[1, 1]
+            # E_voigt[2] = 2 * E3D_FFT[0, 1]
+
+            # selected elements
             E_voigt = KratosMultiphysics.Vector(3)
-            E_voigt[0] = E3D_FFT[0, 0]
-            E_voigt[1] = E3D_FFT[1, 1]
-            E_voigt[2] = 2 * E3D_FFT[0, 1]
+            E_voigt[0] = 0.0
+            E_voigt[1] = 0.0
+            E_voigt[2] = 0.0
+            if element.Id == 1 or element.Id == 2 or element.Id == 21 or element.Id == 22:
+                E_voigt[0] = 0.01
+                E_voigt[1] = 0.01
+                E_voigt[2] = 0.0
+            if element.Id == 15 or element.Id == 19 or element.Id == 39 or element.Id == 40:
+                E_voigt[0] = 0.01
+                E_voigt[1] = 0.01
+                E_voigt[2] = 0.0
 
             element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
             # TODO later - Create condition for PointLoad, reference command:
