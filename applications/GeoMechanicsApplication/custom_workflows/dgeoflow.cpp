@@ -21,7 +21,7 @@
 #include "input_output/logger_table_output.h"
 #include "includes/model_part_io.h"
 #include "write_output.h"
-#include "custom_utilities/input_utilities.h"
+#include "custom_utilities/file_input_utility.h"
 
 
 class GeoFlowApplyConstantScalarValueProcess : public Kratos::ApplyConstantScalarValueProcess
@@ -31,8 +31,8 @@ public:
                                            const Kratos::Variable<double>& rVariable,
                                            double                          DoubleValue,
                                            std::size_t                     MeshId,
-                                           const Flags                     Options)
-        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, Options)
+                                           const Flags&                    rOptions)
+        : Kratos::ApplyConstantScalarValueProcess(rModelPart, rVariable, DoubleValue, MeshId, rOptions)
     {}
 
     bool hasWaterPressure()
@@ -49,9 +49,9 @@ public:
 class GeoFlowApplyConstantHydrostaticPressureProcess : public Kratos::ApplyConstantHydrostaticPressureProcess
 {
 public:
-    GeoFlowApplyConstantHydrostaticPressureProcess(Kratos::ModelPart& rModelPart,
-                                                   Kratos::Parameters Settings)
-        : Kratos::ApplyConstantHydrostaticPressureProcess(rModelPart, Settings)
+    GeoFlowApplyConstantHydrostaticPressureProcess(Kratos::ModelPart&        rModelPart,
+                                                   const Kratos::Parameters& rSettings)
+        : Kratos::ApplyConstantHydrostaticPressureProcess(rModelPart, rSettings)
     {}
 
     Kratos::ModelPart &GetModelPart()
@@ -300,7 +300,8 @@ namespace Kratos
             rReportProgress(0.0);
 
             std::string projectpath = rWorkingDirectory + "/" + rProjectParamsFileName;
-            auto projectfile = InputUtilities::ProjectParametersFrom(projectpath);
+            const FileInputUtility input_utility;
+            auto projectfile = input_utility.ProjectParametersFromFile(projectpath);
 
             auto materialname = projectfile["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
             std::string materialpath = rWorkingDirectory + "/" + materialname;
@@ -358,7 +359,7 @@ namespace Kratos
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Mesh" << std::endl;
 
-            InputUtilities::AddMaterialsFrom(materialpath, current_model);
+            input_utility.AddMaterialsFromFile(materialpath, current_model);
 
             KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << "Parsed Material" << std::endl;
 

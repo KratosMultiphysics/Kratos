@@ -35,6 +35,7 @@
 
 // Application includes
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
+#include "custom_elements/axisymmetric_navier_stokes.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/qs_vms_dem_coupled.h"
@@ -77,6 +78,7 @@
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
 
+#include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
@@ -287,6 +289,8 @@ private:
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeQSVMSDEMCoupled3D8N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
+    const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,3> > mAxisymmetricNavierStokes2D3N;
+    const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,4> > mAxisymmetricNavierStokes2D4N;
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;
     const DVMS< QSVMSData<3,4> > mDVMS3D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mDVMSDEMCoupled2D3N;
