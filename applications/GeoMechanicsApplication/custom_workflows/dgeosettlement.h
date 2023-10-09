@@ -54,8 +54,8 @@ private:
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
     void InitializeProcessFactory();
     std::vector<std::shared_ptr<Process>> GetProcesses(const Parameters& project_parameters) const;
-    LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream& kratosLogBuffer);
-    void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer& pOutput, std::stringstream& kratosLogBuffer);
+    LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream& rKratosLogBuffer);
+    void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer pOutput, std::stringstream& rKratosLogBuffer);
 
     Kernel mKernel;
     Model mModel;
