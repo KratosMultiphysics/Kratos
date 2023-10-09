@@ -64,8 +64,7 @@ private:
     std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;
     std::unique_ptr<TimeLoopExecutor> mpTimeLoopExecutor;
 
-    void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer& pOutput, std::stringstream% kratosLogBuffer);
-
+    void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer& pOutput, std::stringstream& kratosLogBuffer);
 };
 
 }
