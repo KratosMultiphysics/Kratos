@@ -194,12 +194,12 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
 }
 
-int KratosExecute::GetEchoLevel() const
+int KratosGeoSettlement::GetEchoLevel() const
 {
     return echoLevel;
 }
 
-void KratosExecute::SetEchoLevel(int level)
+void KratosGeoSettlement::SetEchoLevel(int level)
 {
     echoLevel = level;
 }
