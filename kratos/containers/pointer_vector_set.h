@@ -89,7 +89,9 @@ public:
     using const_reference = const TDataType&;
     using ContainerType = TContainerType;
 
-    /// Define the iterators
+    /// @}
+    /// @name Iterators
+    /// @{
     using iterator = boost::indirect_iterator<typename TContainerType::iterator>;
     using const_iterator = boost::indirect_iterator<typename TContainerType::const_iterator>;
     using reverse_iterator = boost::indirect_iterator<typename TContainerType::reverse_iterator>;
