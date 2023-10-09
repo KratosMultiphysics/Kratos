@@ -89,11 +89,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
                                   const std::function<void(const char*)>& rReportTextualProgress,
                                   const std::function<bool()>&            rShouldCancel)
 {
-    this->SetEchoLevel(1);
-
-    std::stringstream kratosLogBuffer;
-    LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
-    Logger::AddOutput(p_output);
+    LoggerOutput::Pointer p_output = CreateLoggingOutput(rLogCallback);
 
     try {
         KRATOS_INFO("KratosGeoSettlement") << "About to run a stage..." << std::endl;
@@ -126,8 +122,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             mpTimeLoopExecutor->SetProcessReferences(process_observables);
         }
 
-        rLogCallback(kratosLogBuffer.str().c_str());
-        Logger::RemoveOutput(p_output);
+        RemoveLoggingOutput(p_output);
 
         return 0;
     }
@@ -135,8 +130,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     {
         KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << exc.what();
 
-        rLogCallback(kratosLogBuffer.str().c_str());
-        Logger::RemoveOutput(p_output);
+        RemoveLoggingOutput(p_output);
 
         return 1;
     }
@@ -202,6 +196,23 @@ int KratosGeoSettlement::GetEchoLevel() const
 void KratosGeoSettlement::SetEchoLevel(int level)
 {
     echoLevel = level;
+}
+
+LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput()
+{
+    this->SetEchoLevel(1);
+
+    std::stringstream kratosLogBuffer;
+    LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
+    Logger::AddOutput(p_output);
+
+    return p_output;
+}
+
+void KratosGeoSettlement::RemoveLoggingOutput(LoggerOutput::Pointer p_output)
+{
+    rLogCallback(kratosLogBuffer.str().c_str());
+    Logger::RemoveOutput(p_output);
 }
 
 const InputUtility* KratosGeoSettlement::GetInterfaceInputUtility() const
