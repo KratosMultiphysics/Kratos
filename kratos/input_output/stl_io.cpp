@@ -135,6 +135,12 @@ void StlIO::WriteModelPart(const ModelPart& rThisModelPart)
     // Get data communicator
     const auto& r_data_communicator = rThisModelPart.GetCommunicator().GetDataCommunicator();
 
+    // If rank is not zeo we remove the stream to avoid conflict
+    if (r_data_communicator.Rank() != 0) {
+        mpInputStream = nullptr;
+    }
+    r_data_communicator.Barrier();
+
     /* Write the solid block */
     // Write header of the file
     if (r_data_communicator.Rank() == 0) {
@@ -230,8 +236,12 @@ void StlIO::WriteEntityBlockMPI(
         << "Model part contained " << converted_num_degenerate_geometries
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 
+    // Getting number of entities
+    unsigned int number_of_entities = rThisEntities.size();
+    number_of_entities = rDataCommunicator.SumAll(number_of_entities);
+
     // Retrieve rank and pass to rank 0
-    if (rThisEntities.size() > 0) {
+    if (number_of_entities > 0) {
         const int rank = rDataCommunicator.Rank();
         const int tag = 0;
         if (rank == 0) {
@@ -278,8 +288,12 @@ void StlIO::WriteGeometryBlockMPI(
         << "Model part contained " << converted_num_degenerate_geometries
         << " geometries with area = 0.0, skipping these geometries." << std::endl;
 
+    // Getting number of entities
+    unsigned int number_of_geometries = rThisGeometries.size();
+    number_of_geometries = rDataCommunicator.SumAll(number_of_geometries);
+
     // Retrieve rank and pass to rank 0
-    if (rThisGeometries.size() > 0) {
+    if (number_of_geometries > 0) {
         const int rank = rDataCommunicator.Rank();
         const int tag = 0;
         if (rank == 0) {
