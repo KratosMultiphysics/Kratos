@@ -974,9 +974,14 @@ private:
     ///@name Member Variables
     ///@{
 
-    TContainerType mData;       /// The data container holding the elements.
-    size_type mSortedPartSize;  /// The size of the sorted portion of the data.
-    size_type mMaxBufferSize;   /// The maximum buffer size for data storage.
+    /// The data container holding the elements.
+    TContainerType mData;
+    
+    /// The size of the sorted portion of the data.
+    size_type mSortedPartSize;
+    
+    /// The maximum buffer size for data storage.
+    size_type mMaxBufferSize;
 
     ///@}
     ///@name Private Operators
