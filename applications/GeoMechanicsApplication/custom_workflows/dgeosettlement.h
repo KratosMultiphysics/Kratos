@@ -64,9 +64,6 @@ private:
     std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;
     std::unique_ptr<TimeLoopExecutor> mpTimeLoopExecutor;
 
-    int echoLevel = 1;
-    [[nodiscard]] int GetEchoLevel() const;
-    void SetEchoLevel(int level);
     LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput();
     void KratosGeoSettlement::RemoveLoggingOutput(LoggerOutput::Pointer p_output);
 

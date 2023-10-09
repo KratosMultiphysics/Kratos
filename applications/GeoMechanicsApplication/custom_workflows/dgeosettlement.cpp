@@ -128,7 +128,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     }
     catch (const std::exception &exc)
     {
-        KRATOS_INFO_IF("GeoFlowKernel", this->GetEchoLevel() > 0) << exc.what();
+        KRATOS_INFO("GeoFlowKernel") << exc.what();
 
         RemoveLoggingOutput(p_output);
 
@@ -188,20 +188,8 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
 }
 
-int KratosGeoSettlement::GetEchoLevel() const
-{
-    return echoLevel;
-}
-
-void KratosGeoSettlement::SetEchoLevel(int level)
-{
-    echoLevel = level;
-}
-
 LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput()
 {
-    this->SetEchoLevel(1);
-
     std::stringstream kratosLogBuffer;
     LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
     Logger::AddOutput(p_output);
