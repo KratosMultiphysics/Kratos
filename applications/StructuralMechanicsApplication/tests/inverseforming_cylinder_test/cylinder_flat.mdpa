@@ -258,9 +258,19 @@ Begin SubModelPart DISPLACEMENT_Displacement_XSYMM_Node_Left // Group Displaceme
             2
     End SubModelPartNodes
 End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_XSYMM_Node_Right // Group Displacement_XSYMM_Node_Right // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           27
+    End SubModelPartNodes
+End SubModelPart
 Begin SubModelPart DISPLACEMENT_Displacement_YSYMM_Node_Up // Group Displacement_YSYMM_Node_Up // Subtree DISPLACEMENT
     Begin SubModelPartNodes
            21
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_YSYMM_Node_Down // Group Displacement_YSYMM_Node_Down // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           15
     End SubModelPartNodes
 End SubModelPart
 Begin SubModelPart PointLoad3D_PointLoad_Dummy_Zero_AllNodes // Group PointLoad_Dummy_Zero_AllNodes // Subtree PointLoad3D

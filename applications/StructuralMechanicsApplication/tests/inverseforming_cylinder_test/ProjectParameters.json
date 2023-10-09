@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "cylinder_flat",
+        "problem_name"  : "cylinder",
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
@@ -8,7 +8,7 @@
     },
     "solver_settings"  : {
         "time_stepping"                        : {
-            "time_step" : 0.20
+            "time_step" : 0.5
         },
         "solver_type"                          : "Static",
         "model_part_name"                      : "Structure",
@@ -17,13 +17,13 @@
         "analysis_type"                        : "non_linear",
         "model_import_settings"                : {
             "input_type"     : "mdpa",
-            "input_filename" : "cylinder_flat"
+            "input_filename" : "cylinder"
         },
         "material_import_settings"             : {
             "materials_filename" : "StructuralMaterials.json"
         },
         "line_search"                          : true,
-        "convergence_criterion"                : "displacement_criterion",
+        "convergence_criterion"                : "residual_criterion",
         "displacement_relative_tolerance"      : 1e-15,
         "displacement_absolute_tolerance"      : 1e-15,
         "residual_relative_tolerance"          : 0.0001,
@@ -55,6 +55,39 @@
                 "interval"        : [0.0,"End"],
                 "constrained"     : [true,false,true],
                 "value"           : [0.0,null,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_YSYMM_Node_Down",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [true,false,true],
+                "value"           : [0.0,null,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_XSYMM_Node_Left",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,true,true],
+                "value"           : [null,0.0,0.0]
+            }
+        },{
+            "python_module" : "assign_vector_variable_process",
+            "kratos_module" : "KratosMultiphysics",
+            "process_name"  : "AssignVectorVariableProcess",
+            "Parameters"    : {
+                "model_part_name" : "Structure.DISPLACEMENT_Displacement_XSYMM_Node_Right",
+                "variable_name"   : "DISPLACEMENT",
+                "interval"        : [0.0,"End"],
+                "constrained"     : [false,true,true],
+                "value"           : [null,0.0,0.0]
             }
         }],
         "loads_process_list"       : [],
@@ -88,7 +121,7 @@
                     },
                     "point_data_configuration"  : []
                 },
-                "output_name"            : "gid_output/cylinder_flat"
+                "output_name"            : "gid_output/cylinder"
             }
         }],
         "vtk_output" : [{
