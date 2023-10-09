@@ -42,13 +42,12 @@ public :
         mSolverStrategy = std::move(AStrategyWrapper);
     }
 
-    std::vector<TimeStepEndState> Run()
+    std::vector<TimeStepEndState> Run(TimeStepEndState end_state)
     {
         std::vector<TimeStepEndState> result;
-        TimeStepEndState end_state;
-        end_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
         while (mTimeIncrementor->WantNextStep(end_state)) {
             end_state.convergence_state = mSolverStrategy->GetConvergenceState();
+            end_state.time              += mTimeIncrementor->GetIncrement();
             result.emplace_back(end_state);
             mTimeIncrementor->PostTimeStepExecution(end_state);
         }

@@ -17,6 +17,8 @@
 #include "custom_workflows/prescribed_time_incrementor.h"
 #include "solving_strategies/strategies/solving_strategy.h"
 
+#include <numeric>
+
 using namespace Kratos;
 
 namespace
@@ -81,7 +83,9 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsPerformedStatesAfterRunningAnAlwaysConv
     const auto increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
     executor.SetSolverStrategyTimeIncrementor(std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
-    const auto step_states = executor.Run();
+    TimeStepEndState start_state;
+    start_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
+    const auto step_states = executor.Run(start_state);
 
     KRATOS_EXPECT_EQ(increments.size(), step_states.size());
     KRATOS_EXPECT_TRUE(std::all_of(step_states.begin(), step_states.end(), [](const auto& step_state) { return step_state.Converged(); }))
@@ -93,10 +97,25 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsOneNonConvergedPerformedStatesAfterRunn
     const auto increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
     executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
     executor.SetSolverStrategyTimeIncrementor(std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::non_converged));
-    const auto step_states = executor.Run();
+    TimeStepEndState start_state;
+    start_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
+    const auto step_states = executor.Run(start_state);
 
     KRATOS_EXPECT_EQ(1, step_states.size());
     KRATOS_EXPECT_TRUE(step_states[0].NonConverged());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsEndTimesAfterRunningAnAlwaysConvergingSolverStrategy, KratosGeoMechanicsFastSuite)
+{
+    TimeLoopExecutor executor;
+    const auto increments = std::vector<double>{1.1, 1.2, 1.3, 1.4};
+    executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
+    executor.SetSolverStrategyTimeIncrementor(std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
+    TimeStepEndState start_state;
+    start_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
+    const auto step_states = executor.Run(start_state);
+
+    KRATOS_EXPECT_DOUBLE_EQ(std::accumulate(increments.begin(), increments.end(), 0.), step_states.back().time);
 }
 
 }
