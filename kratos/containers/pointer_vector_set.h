@@ -97,7 +97,9 @@ public:
     using reverse_iterator = boost::indirect_iterator<typename TContainerType::reverse_iterator>;
     using const_reverse_iterator = boost::indirect_iterator<typename TContainerType::const_reverse_iterator>;
 
-    /// Other definitions
+    /// @}
+    /// @name Other definitions
+    /// @{
     using size_type = typename TContainerType::size_type;
     using ptr_iterator = typename TContainerType::iterator;
     using ptr_const_iterator = typename TContainerType::const_iterator;
