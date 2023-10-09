@@ -129,7 +129,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
     }
     catch (const std::exception &exc)
     {
-        KRATOS_INFO("GeoSettlementKernel") << exc.what();
+        KRATOS_INFO("KratosGeoSettlement") << exc.what();
 
         FlushLoggingOutput(rLogCallback, logger_output, kratos_log_buffer);
 
