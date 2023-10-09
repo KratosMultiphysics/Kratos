@@ -43,18 +43,16 @@ private:
     void MakeInternalProcess(const Parameters& rProcessSettings);
     void MakeProcessForFluidPressureType(const Parameters&        rProcessSettings,
                                          std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForNonFluidPressureType(const Parameters&        rProcessSettings,
-                                            std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForUniformFluidPressure(const Parameters&        rProcessSettings,
-                                            std::vector<std::string> NamesOfSettingsToCopy);
+    void MakeScalarConstraintsProcess(const Parameters&        rProcessSettings,
+                                      std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForHydrostaticFluidPressure(const Parameters&        rProcessSettings,
                                                 std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForPhreaticLine(const Parameters&        rProcessSettings,
                                     std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
-                                        std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForPhreaticSurface(const Parameters&        rProcessSettings,
                                        std::vector<std::string> NamesOfSettingsToCopy);
+    void MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
+                                        std::vector<std::string> NamesOfSettingsToCopy);
 
     ModelPart& mrModelPart;
     ProcessUniquePointer mProcess;

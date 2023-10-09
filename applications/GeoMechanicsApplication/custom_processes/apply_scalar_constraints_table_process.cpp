@@ -44,6 +44,19 @@ void AppendParameterNameIfExists(const std::string&        rParameterName,
     }
 }
 
+bool HasTableAttached(const Parameters& rSettings)
+{
+    if (rSettings["table"].IsNumber()) {
+        return rSettings["table"].GetInt() != 0;
+    }
+
+    KRATOS_ERROR_IF_NOT(rSettings["table"].IsArray()) << "'table' is neither a single number nor an array of numbers";
+
+    const auto& table = rSettings["table"];
+    return std::any_of(table.begin(), table.end(),
+                       [](const auto& value){return value.GetInt() != 0;});
+}
+
 }
 
 namespace Kratos
@@ -69,7 +82,7 @@ void ApplyScalarConstraintsTableProcess::MakeInternalProcess(const Parameters& r
         MakeProcessForFluidPressureType(rProcessSettings, std::move(names_of_settings_to_copy));
     }
     else {
-        MakeProcessForNonFluidPressureType(rProcessSettings, std::move(names_of_settings_to_copy));
+        MakeScalarConstraintsProcess(rProcessSettings, std::move(names_of_settings_to_copy));
     }
 }
 
@@ -78,7 +91,7 @@ void ApplyScalarConstraintsTableProcess::MakeProcessForFluidPressureType(const P
 {
     const auto fluid_pressure_type = rProcessSettings["fluid_pressure_type"].GetString();
     if (fluid_pressure_type == "Uniform") {
-        MakeProcessForUniformFluidPressure(rProcessSettings, std::move(NamesOfSettingsToCopy));
+        MakeScalarConstraintsProcess(rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Hydrostatic") {
         MakeProcessForHydrostaticFluidPressure(rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Phreatic_Line") {
@@ -92,37 +105,20 @@ void ApplyScalarConstraintsTableProcess::MakeProcessForFluidPressureType(const P
     }
 }
 
-void ApplyScalarConstraintsTableProcess::MakeProcessForNonFluidPressureType(const Parameters&        rProcessSettings,
-                                                                            std::vector<std::string> NamesOfSettingsToCopy)
+void ApplyScalarConstraintsTableProcess::MakeScalarConstraintsProcess(const Parameters&        rProcessSettings,
+                                                                      std::vector<std::string> NamesOfSettingsToCopy)
 {
     NamesOfSettingsToCopy.emplace_back("value");
 
-    if (rProcessSettings["table"].GetInt() == 0) {
-        mProcess = std::make_unique<ApplyConstantScalarValueProcess>(mrModelPart,
-                                                                     ExtractParameters(rProcessSettings,
-                                                                                       NamesOfSettingsToCopy));
-    } else {
+    if (HasTableAttached(rProcessSettings)) {
         NamesOfSettingsToCopy.emplace_back("table");
         mProcess = std::make_unique<ApplyComponentTableProcess>(mrModelPart,
                                                                 ExtractParameters(rProcessSettings,
                                                                                   NamesOfSettingsToCopy));
-    }
-}
-
-void ApplyScalarConstraintsTableProcess::MakeProcessForUniformFluidPressure(const Parameters&        rProcessSettings,
-                                                                            std::vector<std::string> NamesOfSettingsToCopy)
-{
-    NamesOfSettingsToCopy.emplace_back("value");
-
-    if (rProcessSettings["table"].GetInt() == 0) {
+    } else {
         mProcess = std::make_unique<ApplyConstantScalarValueProcess>(mrModelPart,
                                                                      ExtractParameters(rProcessSettings,
                                                                                        NamesOfSettingsToCopy));
-    } else {
-        NamesOfSettingsToCopy.emplace_back("table");
-        mProcess = std::make_unique<ApplyComponentTableProcess>(mrModelPart,
-                                                                ExtractParameters(rProcessSettings,
-                                                                                  NamesOfSettingsToCopy));
     }
 }
 
@@ -135,15 +131,15 @@ void ApplyScalarConstraintsTableProcess::MakeProcessForHydrostaticFluidPressure(
     AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings, NamesOfSettingsToCopy);
     AppendParameterNameIfExists("is_seepage", rProcessSettings, NamesOfSettingsToCopy);
 
-    if (rProcessSettings["table"].GetInt() == 0) {
-        mProcess = std::make_unique<ApplyConstantHydrostaticPressureProcess>(mrModelPart,
-                                                                             ExtractParameters(rProcessSettings,
-                                                                                               NamesOfSettingsToCopy));
-    } else {
+    if (HasTableAttached(rProcessSettings)) {
         NamesOfSettingsToCopy.emplace_back("table");
         mProcess = std::make_unique<ApplyHydrostaticPressureTableProcess>(mrModelPart,
                                                                           ExtractParameters(rProcessSettings,
                                                                                             NamesOfSettingsToCopy));
+    } else {
+        mProcess = std::make_unique<ApplyConstantHydrostaticPressureProcess>(mrModelPart,
+                                                                             ExtractParameters(rProcessSettings,
+                                                                                               NamesOfSettingsToCopy));
     }
 }
 
@@ -158,33 +154,15 @@ void ApplyScalarConstraintsTableProcess::MakeProcessForPhreaticLine(const Parame
     AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings, NamesOfSettingsToCopy);
     AppendParameterNameIfExists("is_seepage", rProcessSettings, NamesOfSettingsToCopy);
 
-    if ((rProcessSettings["table"][0].GetInt() == 0) &&
-        (rProcessSettings["table"][1].GetInt() == 0)) {
-        mProcess = std::make_unique<ApplyConstantPhreaticLinePressureProcess>(mrModelPart,
-                                                                              ExtractParameters(rProcessSettings,
-                                                                                                NamesOfSettingsToCopy));
-    } else {
+    if (HasTableAttached(rProcessSettings)) {
         NamesOfSettingsToCopy.emplace_back("table");
         mProcess = std::make_unique<ApplyPhreaticLinePressureTableProcess>(mrModelPart,
                                                                            ExtractParameters(rProcessSettings,
                                                                                              NamesOfSettingsToCopy));
-    }
-}
-
-void ApplyScalarConstraintsTableProcess::MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
-                                                                        std::vector<std::string> NamesOfSettingsToCopy)
-{
-    NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(), {"gravity_direction",
-                                                               "out_of_plane_direction"});
-    AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings, NamesOfSettingsToCopy);
-    AppendParameterNameIfExists("is_seepage", rProcessSettings, NamesOfSettingsToCopy);
-
-    if (rProcessSettings["table"].GetInt() == 0) {
-        mProcess = std::make_unique<ApplyConstantInterpolateLinePressureProcess>(mrModelPart,
-                                                                                 ExtractParameters(rProcessSettings,
-                                                                                                   NamesOfSettingsToCopy));
     } else {
-        KRATOS_ERROR << "No time dependent interpolate line pressure process available" << std::endl;
+        mProcess = std::make_unique<ApplyConstantPhreaticLinePressureProcess>(mrModelPart,
+                                                                              ExtractParameters(rProcessSettings,
+                                                                                                NamesOfSettingsToCopy));
     }
 }
 
@@ -199,19 +177,33 @@ void ApplyScalarConstraintsTableProcess::MakeProcessForPhreaticSurface(const Par
     AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings, NamesOfSettingsToCopy);
     AppendParameterNameIfExists("is_seepage", rProcessSettings, NamesOfSettingsToCopy);
 
-    if ((rProcessSettings["table"][0].GetInt() == 0) &&
-        (rProcessSettings["table"][1].GetInt() == 0) &&
-        (rProcessSettings["table"][2].GetInt() == 0)) {
-        mProcess = std::make_unique<ApplyConstantPhreaticSurfacePressureProcess>(mrModelPart,
-                                                                                 ExtractParameters(rProcessSettings,
-                                                                                                   NamesOfSettingsToCopy));
-    }
-    else {
+    if (HasTableAttached(rProcessSettings)) {
         NamesOfSettingsToCopy.emplace_back("table");
         mProcess = std::make_unique<ApplyPhreaticSurfacePressureTableProcess>(mrModelPart,
                                                                               ExtractParameters(rProcessSettings,
                                                                                                 NamesOfSettingsToCopy));
     }
+    else {
+        mProcess = std::make_unique<ApplyConstantPhreaticSurfacePressureProcess>(mrModelPart,
+                                                                                 ExtractParameters(rProcessSettings,
+                                                                                                   NamesOfSettingsToCopy));
+    }
+}
+
+void ApplyScalarConstraintsTableProcess::MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
+                                                                        std::vector<std::string> NamesOfSettingsToCopy)
+{
+    KRATOS_ERROR_IF(HasTableAttached(rProcessSettings)) << "No time dependent interpolate line pressure process available" << std::endl;
+
+    NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(), {"gravity_direction",
+                                                               "out_of_plane_direction"});
+    AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings, NamesOfSettingsToCopy);
+    AppendParameterNameIfExists("is_seepage", rProcessSettings, NamesOfSettingsToCopy);
+
+    mProcess = std::make_unique<ApplyConstantInterpolateLinePressureProcess>(mrModelPart,
+                                                                             ExtractParameters(rProcessSettings,
+                                                                                               NamesOfSettingsToCopy));
+
 }
 
 void ApplyScalarConstraintsTableProcess::ExecuteInitialize()
