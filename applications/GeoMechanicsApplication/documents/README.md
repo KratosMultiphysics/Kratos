@@ -18,11 +18,14 @@ applications/GeoMechanicsApplication/geo_mechanics_application.cpp <br>
 Lines 211 to 220
 
 - Registered the variables necessary for the thermal element, such as material parameters, time, conditions, etc.... <br>
-  - applications/GeoMechanicsApplication/geo_mechanics_application_variables.cpp <br> Lines 33 to 45 
+  - applications/GeoMechanicsApplication/geo_mechanics_application_variables.cpp <br>
+  Lines 33 to 45 
 
-  - applications/GeoMechanicsApplication/geo_mechanics_application.cpp <br> lines 324 to 336 
+  - applications/GeoMechanicsApplication/geo_mechanics_application.cpp <br> 
+  lines 324 to 336 
 
-  -applications/GeoMechanicsApplication/geo_mechanics_application_variables.h <br> lines 60 to 72
+  - applications/GeoMechanicsApplication/geo_mechanics_application_variables.h <br> 
+  lines 60 to 72
 
 - A new element class is added for heat, TransientThermalElement: includes creat, check, intialize, RHS vectors, LHS matrices, etc.<br>
 applications/GeoMechanicsApplication/custom_elements/transient_thermal_element.hpp <br>
@@ -69,8 +72,8 @@ Whole files
 
 - Three test cases are added
   - applications/GeoMechanicsApplication/tests/test_thermal_fixed_temperature_2D3N.gid <br>
-To test the thermal application with Dirichlet on the boundary on 3 noded triangles.
+  To test the thermal application with Dirichlet on the boundary on 3 noded triangles.
   - applications/GeoMechanicsApplication/tests/test_thermal_fixed_temperature_2D6N.gid <br>
-To test the thermal application with Dirichlet on the boundary on 6 noded triangles.
+  To test the thermal application with Dirichlet on the boundary on 6 noded triangles.
   - applications/GeoMechanicsApplication/tests/test_thermal_heat_flux_2D6N.gid <br>
-To test the heat flus boundary on 6 noded triangles (condition uses 3 noded line element). 
+  To test the heat flus boundary on 6 noded triangles (condition uses 3 noded line element). 
