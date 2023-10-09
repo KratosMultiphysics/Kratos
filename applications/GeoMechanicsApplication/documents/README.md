@@ -9,8 +9,8 @@ To add thermal element to GeoMechanicsApplication. This element is decoupled fro
 Moreover, a condition is added which functions as the normal heat flux condition.
 
 ## Steps undertaken
-- A new block of thermal elements are added to GeoMechanicsApplications (One element but with different geometries, eg. Triangle2D3N, 6N, etc ...).
-applications/GeoMechanicsApplication/geo_mechanics_application.h
+- A new block of thermal elements are added to GeoMechanicsApplications (One element but with different geometries, eg. Triangle2D3N, 6N, etc ...). <br>
+applications/GeoMechanicsApplication/geo_mechanics_application.h <br>
 Lines 450 to 460
 
 - The thermal elements are registered in GeoMechanicsApplication
