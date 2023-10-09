@@ -291,7 +291,7 @@ namespace Kratos
     {
         this->SetEchoLevel(1);
 
-        std::stringstream kratosLogBuffer = std::stringstream();
+        std::stringstream kratosLogBuffer;
         LoggerOutput::Pointer p_output(new LoggerOutput(kratosLogBuffer));
         Logger::AddOutput(p_output);
         
