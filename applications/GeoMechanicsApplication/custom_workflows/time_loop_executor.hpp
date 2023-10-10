@@ -19,6 +19,7 @@
 
 #include "time_step_end_state.hpp"
 #include "time_incrementor.h."
+#include "time_step_executor.h"
 #include "processes/process.h"
 #include "strategy_wrapper.hpp"
 
@@ -29,6 +30,8 @@ class Process;
 
 class TimeLoopExecutor{
 public :
+    TimeLoopExecutor() : mTimeStepExecutor{std::make_unique<TimeStepExecutor>()} {}
+
     virtual ~TimeLoopExecutor() = default;
     virtual void SetProcessReferences(const std::vector<std::weak_ptr<Process>>& rProcessRefs) {}
 
@@ -37,17 +40,16 @@ public :
         mTimeIncrementor = std::move(ATimeIncrementor);
     }
 
-    void SetSolverStrategyTimeIncrementor(std::unique_ptr<StrategyWrapper> AStrategyWrapper)
+    void SetSolverStrategyTimeIncrementor(std::shared_ptr<StrategyWrapper> AStrategyWrapper)
     {
-        mSolverStrategy = std::move(AStrategyWrapper);
+        mTimeStepExecutor->SetSolverStrategy(std::move(AStrategyWrapper));
     }
 
     std::vector<TimeStepEndState> Run(TimeStepEndState end_state)
     {
         std::vector<TimeStepEndState> result;
         while (mTimeIncrementor->WantNextStep(end_state)) {
-            end_state.convergence_state = mSolverStrategy->GetConvergenceState();
-            end_state.time              += mTimeIncrementor->GetIncrement();
+            end_state = mTimeStepExecutor->Run(end_state.time + mTimeIncrementor->GetIncrement());
             result.emplace_back(end_state);
             mTimeIncrementor->PostTimeStepExecution(end_state);
         }
@@ -56,7 +58,7 @@ public :
 
 private:
     std::unique_ptr<TimeIncrementor> mTimeIncrementor;
-    std::unique_ptr<StrategyWrapper> mSolverStrategy;
+    std::unique_ptr<TimeStepExecutor> mTimeStepExecutor;
 };
 
 }
