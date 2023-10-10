@@ -56,28 +56,21 @@ void ApplyPhreaticMultiLinePressureTableProcess::ExecuteInitializeSolutionStep()
         std::transform(mpTable.begin(), mpTable.end(), std::back_inserter(deltaH),
                        [Time](auto element){return element ? element->GetValue(Time) : 0.0;});
 
-        if (IsSeepage()) {
-            block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
-                const double pressure = CalculateTimeDependentPressure(rNode, deltaH);
-
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0) {
+        block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
+            const double pressure = CalculatePressure(rNode, deltaH);
+            if (IsSeepage()) {
+                if (pressure < PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff()) {
                     rNode.FastGetSolutionStepValue(var) = pressure;
                     if (IsFixed()) rNode.Fix(var);
                 } else {
-                    rNode.Free(var);
+                    if (IsFixedProvided()) rNode.Free(var);
                 }
-            });
-        } else {
-            block_for_each(mrModelPart.Nodes(), [&var, &deltaH, this](Node& rNode) {
-                const double pressure = CalculateTimeDependentPressure(rNode, deltaH);
-
-                if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < PressureTensionCutOff()) {
-                    rNode.FastGetSolutionStepValue(var) = pressure;
-                } else {
-                    rNode.FastGetSolutionStepValue(var) = PressureTensionCutOff();
-                }
-            });
-        }
+            } else {
+                if (IsFixed()) rNode.Fix(var);
+                else if (IsFixedProvided()) rNode.Free(var);
+                rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff());
+            }
+        });
 
     KRATOS_CATCH("")
 }
@@ -91,35 +84,5 @@ void ApplyPhreaticMultiLinePressureTableProcess::PrintInfo(std::ostream &rOStrea
 {
     rOStream << "ApplyPhreaticMultiLinePressureTableProcess";
 }
-
-double ApplyPhreaticMultiLinePressureTableProcess::CalculateTimeDependentPressure(const Node &rNode,
-                                                                                  std::vector<double> &deltaH) const
-{
-
-    double height = 0.0;
-    int firstPointIndex;
-    int secondPointIndex;
-    double slope;
-    array_1d<double, 2> y;
-
-    // find nodes in horizontalDirectionCoordinates
-
-    firstPointIndex = findIndex(rNode);
-    secondPointIndex = firstPointIndex + 1;
-
-    y[0] = deltaH[firstPointIndex] + GravityDirectionCoordinates()[firstPointIndex];
-    y[1] = deltaH[secondPointIndex] + GravityDirectionCoordinates()[secondPointIndex];
-
-    slope = (y[1] - y[0])
-            / (HorizontalDirectionCoordinates()[secondPointIndex] - HorizontalDirectionCoordinates()[firstPointIndex]);
-
-
-    height = slope * (rNode.Coordinates()[HorizontalDirection()] - HorizontalDirectionCoordinates()[firstPointIndex]) + y[0];
-
-    const double distance = height - rNode.Coordinates()[GravityDirection()];
-    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * SpecificWeight() * distance;
-    return pressure;
-}
-
 
 }

@@ -52,15 +52,17 @@ public:
     const Vector& YCoordinates() const;
     const Vector& ZCoordinates() const;
     double PressureTensionCutOff() const;
+    bool IsFixedProvided() const;
 
 protected:
     ModelPart& mrModelPart;
     int findIndex(const Node& rNode) const;
-    double CalculatePressure(const Node &rNode) const;
+    double CalculatePressure(const Node& rNode, std::vector<double> deltaH = {}) const;
 
 private:
     std::string mVariableName;
     bool mIsFixed;
+    bool mIsFixedProvided;
     bool mIsSeepage;
     unsigned int mGravityDirection;
     double mSpecificWeight;

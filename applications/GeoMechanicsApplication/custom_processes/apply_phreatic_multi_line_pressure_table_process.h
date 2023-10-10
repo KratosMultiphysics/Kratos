@@ -40,8 +40,6 @@ private:
     using TableType = Table<double, double>;
     std::vector<TableType::Pointer> mpTable;
     double mTimeUnitConverter;
-
-    double CalculateTimeDependentPressure(const Node &rNode, std::vector<double> &deltaH) const;
 }; // Class ApplyPhreaticMultiLinePressureTableProcess
 
 /// input stream function

@@ -25,6 +25,7 @@ ApplyConstantPhreaticMultiLinePressureProcess::ApplyConstantPhreaticMultiLinePre
 
     mVariableName = rParameters["variable_name"].GetString();
     mIsFixed = rParameters["is_fixed"].GetBool();
+    mIsFixedProvided = rParameters.Has("is_fixed");
     mIsSeepage = rParameters["is_seepage"].GetBool();
     mSpecificWeight = rParameters["specific_weight"].GetDouble();
     mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
@@ -140,33 +141,21 @@ void ApplyConstantPhreaticMultiLinePressureProcess::ExecuteInitialize()
 
     const Variable<double> &var = KratosComponents< Variable<double> >::Get(VariableName());
 
-    if (IsSeepage()) {
-        block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
-            const double pressure = CalculatePressure(rNode);
-
-            if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < 0)
-            {
+    block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
+        const double pressure = CalculatePressure(rNode);
+        if (IsSeepage()) {
+            if (pressure < PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff()) {
                 rNode.FastGetSolutionStepValue(var) = pressure;
                 if (IsFixed()) rNode.Fix(var);
+            } else {
+                if (IsFixedProvided()) rNode.Free(var);
             }
-            else {
-                rNode.Free(var);
-            }
-        });
-    } else {
-        block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
+        } else {
             if (IsFixed()) rNode.Fix(var);
-            else           rNode.Free(var);
-
-            const double pressure = CalculatePressure(rNode);
-            if ((PORE_PRESSURE_SIGN_FACTOR * pressure) < PressureTensionCutOff()) {
-                rNode.FastGetSolutionStepValue(var) = pressure;
-            }
-            else {
-                rNode.FastGetSolutionStepValue(var) = PressureTensionCutOff();
-            }
-        });
-    }
+            else if (IsFixedProvided()) rNode.Free(var);
+            rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * PressureTensionCutOff());
+        }
+    });
 
     KRATOS_CATCH("")
 }
@@ -189,6 +178,11 @@ const std::string &ApplyConstantPhreaticMultiLinePressureProcess::VariableName()
 bool ApplyConstantPhreaticMultiLinePressureProcess::IsFixed() const
 {
     return mIsFixed;
+}
+
+bool ApplyConstantPhreaticMultiLinePressureProcess::IsFixedProvided() const
+{
+    return mIsFixedProvided;
 }
 
 bool ApplyConstantPhreaticMultiLinePressureProcess::IsSeepage() const
@@ -261,22 +255,30 @@ int ApplyConstantPhreaticMultiLinePressureProcess::findIndex(const Node &rNode) 
     return number_of_coordinates - 1;
 }
 
-double ApplyConstantPhreaticMultiLinePressureProcess::CalculatePressure(const Node &rNode) const
+double ApplyConstantPhreaticMultiLinePressureProcess::CalculatePressure(const Node &rNode,
+                                                                        std::vector<double> deltaH) const
 {
-    double height = 0.0;
-
     // find nodes in horizontalDirectionCoordinates
     const int firstPointIndex = findIndex(rNode);
     const int secondPointIndex = firstPointIndex + 1;
 
-    const double slope = (GravityDirectionCoordinates()[secondPointIndex] - GravityDirectionCoordinates()[firstPointIndex]) /
-            (HorizontalDirectionCoordinates()[secondPointIndex] - HorizontalDirectionCoordinates()[firstPointIndex]);
+    array_1d<double, 2> y;
+    y[0] = GravityDirectionCoordinates()[firstPointIndex];
+    y[1] = GravityDirectionCoordinates()[secondPointIndex];
 
-    height = slope * (rNode.Coordinates()[HorizontalDirection()] - HorizontalDirectionCoordinates()[firstPointIndex]) + GravityDirectionCoordinates()[firstPointIndex];
+    if (!deltaH.empty())
+    {
+        y[0] += deltaH[firstPointIndex];
+        y[1] += deltaH[secondPointIndex];
+    }
 
+
+    const double slope = (y[1] - y[0])
+                         / (HorizontalDirectionCoordinates()[secondPointIndex] - HorizontalDirectionCoordinates()[firstPointIndex]);
+
+    const double height = slope * (rNode.Coordinates()[HorizontalDirection()] - HorizontalDirectionCoordinates()[firstPointIndex]) + y[0];
     const double distance = height - rNode.Coordinates()[GravityDirection()];
-    const double pressure = - PORE_PRESSURE_SIGN_FACTOR * SpecificWeight() * distance;
-    return pressure;
+    return - PORE_PRESSURE_SIGN_FACTOR * SpecificWeight() * distance;
 }
 
 }
