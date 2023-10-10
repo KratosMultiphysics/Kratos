@@ -34,26 +34,24 @@ namespace Kratos::Testing
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplacement, KratosGeoMechanicsFastSuite)
 {
     const auto convergence_criteria = ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType>::Create(Parameters{validParameters});
-    const auto displacementCriterion = dynamic_cast<DisplacementCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
+    const auto displacementCriterion = dynamic_cast<const DisplacementCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
     KRATOS_EXPECT_NE(displacementCriterion, nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionDoesNotExist, KratosGeoMechanicsFastSuite)
 {
-    ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType> factory;
+    const ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType> factory;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(factory.Create(Parameters{"{}"}), "No convergence_criterion is defined, aborting.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Create_Throws_WhenConvergenceCriterionIsUnknown, KratosGeoMechanicsFastSuite)
 {
-    ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType> factory;
+    const ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType> factory;
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(factory.Create(Parameters{R"({"convergence_criterion" : "something_unknown" })"}),
                                       "The convergence_criterion (something_unknown) is unknown, supported criteria are: 'displacement_criterion'")
 }
-
-
 
 }
 

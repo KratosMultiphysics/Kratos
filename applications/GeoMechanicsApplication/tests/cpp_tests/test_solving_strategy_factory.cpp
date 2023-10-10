@@ -16,8 +16,6 @@
 
 using namespace Kratos;
 
-
-
 namespace Kratos::Testing
 {
 
@@ -95,27 +93,26 @@ const std::string testParameters = R"(
 KRATOS_TEST_CASE_IN_SUITE(CreateSolvingStrategy_Throws_WhenNoStrategyTypeIsDefined, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    model.CreateModelPart("dummy");
+    auto& dummy_model_part = model.CreateModelPart("dummy");
 
     Parameters parameters{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(auto test = SolvingStrategyFactoryType::Create(
-            parameters, model.GetModelPart("dummy")), "The parameter strategy_type is undefined, aborting.")
+            parameters, dummy_model_part), "The parameter strategy_type is undefined, aborting.")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    model.CreateModelPart("dummy");
-    model.GetModelPart("dummy").SetBufferSize(3);
+    const int buffer_size = 3;
+    auto& dummy_model_part = model.CreateModelPart("dummy", buffer_size);
     Parameters parameters{testParameters};
 
     const auto created_strategy = SolvingStrategyFactoryType::Create(
-            parameters, model.GetModelPart("dummy"));
-
-    created_strategy->Check();
+            parameters, dummy_model_part);
 
     KRATOS_EXPECT_NE(created_strategy, nullptr);
+    created_strategy->Check();
 }
 
 }

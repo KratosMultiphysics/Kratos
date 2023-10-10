@@ -18,13 +18,10 @@
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using LinearSolverType = LinearSolver<SparseSpaceType, LocalSpaceType>;
 
 namespace Kratos::Testing
 {
-
-template<class TSparseSpaceType, class TDenseSpaceType>
-class DummyLinearSolver : public LinearSolver<TSparseSpaceType, TDenseSpaceType>
-{};
 
 KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBuilderIsTrue, KratosGeoMechanicsFastSuite)
 {
@@ -34,10 +31,10 @@ KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBui
     }
     )";
 
-    auto solver = std::make_shared<DummyLinearSolver<SparseSpaceType, LocalSpaceType>>();
+    const auto solver = std::make_shared<LinearSolverType>();
 
-    auto builder_and_solver = BuilderAndSolverFactory<SparseSpaceType, LocalSpaceType, LinearSolver<SparseSpaceType, LocalSpaceType>>::Create(Parameters{validBlockParameters}, solver);
-    auto block_builder = dynamic_cast<ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolver<SparseSpaceType, LocalSpaceType>>*>(builder_and_solver.get());
+    const auto builder_and_solver = BuilderAndSolverFactory<SparseSpaceType, LocalSpaceType, LinearSolverType>::Create(Parameters{validBlockParameters}, solver);
+    const auto block_builder = dynamic_cast<const ResidualBasedBlockBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>*>(builder_and_solver.get());
     KRATOS_EXPECT_NE(block_builder, nullptr);
 }
 
@@ -49,21 +46,18 @@ KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_ReturnsCorrectType_WhenBlockBui
     }
     )";
 
-    auto solver = std::make_shared<DummyLinearSolver<SparseSpaceType, LocalSpaceType>>();
-
-    auto builder_and_solver = BuilderAndSolverFactory<SparseSpaceType, LocalSpaceType, LinearSolver<SparseSpaceType, LocalSpaceType>>::Create(Parameters{validBlockParameters}, solver);
-    auto elimination_builder = dynamic_cast<ResidualBasedEliminationBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolver<SparseSpaceType, LocalSpaceType>>*>(builder_and_solver.get());
+    const auto solver = std::make_shared<LinearSolverType>();
+    const auto builder_and_solver = BuilderAndSolverFactory<SparseSpaceType, LocalSpaceType, LinearSolverType>::Create(Parameters{validBlockParameters}, solver);
+    const auto elimination_builder = dynamic_cast<const ResidualBasedEliminationBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType>*>(builder_and_solver.get());
     KRATOS_EXPECT_NE(elimination_builder, nullptr);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreateBuilderAndSolver_Throws_WhenBlockBuilderIsUndefined, KratosGeoMechanicsFastSuite)
 {
-    auto solver = std::make_shared<DummyLinearSolver<SparseSpaceType, LocalSpaceType>>();
-
-    auto factory = BuilderAndSolverFactory<SparseSpaceType, LocalSpaceType, LinearSolver<SparseSpaceType, LocalSpaceType>>();
+    const auto solver = std::make_shared<LinearSolverType>();
+    const auto factory = BuilderAndSolverFactory<SparseSpaceType, LocalSpaceType, LinearSolverType>();
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(factory.Create(Parameters{}, solver),
                                       "the block_builder parameter is not defined, aborting BuilderAndSolverCreation")
 }
-
 
 }

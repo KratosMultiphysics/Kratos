@@ -23,7 +23,9 @@ template<class TSparseSpace, class TDenseSpace>
 class SchemeFactory
 {
 public:
-    static std::shared_ptr<Scheme<TSparseSpace, TDenseSpace>> Create(const Parameters& rSolverSettings)
+    using SchemeType = Scheme<TSparseSpace, TDenseSpace>;
+
+    static std::shared_ptr<SchemeType> Create(const Parameters& rSolverSettings)
     {
         KRATOS_ERROR_IF_NOT(rSolverSettings.Has("scheme_type")) << "scheme_type is not defined, aborting";
         KRATOS_ERROR_IF_NOT(rSolverSettings.Has("solution_type")) << "solution_type is not defined, aborting";

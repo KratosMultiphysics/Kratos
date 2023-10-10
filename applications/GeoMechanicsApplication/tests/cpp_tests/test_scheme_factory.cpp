@@ -22,9 +22,9 @@ namespace Kratos::Testing
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
 
-KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSolutionTypeIsUndefined, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeIsUndefined, KratosGeoMechanicsFastSuite)
 {
-    SchemeFactory<SparseSpaceType, LocalSpaceType> factory;
+    const SchemeFactory<SparseSpaceType, LocalSpaceType> factory;
 
     const auto parameters =
     R"(
@@ -37,9 +37,9 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSolutionTypeIsUndefined, Krato
                                       "scheme_type is not defined, aborting")
 }
 
-KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeIsUndefined, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSolutionTypeIsUndefined, KratosGeoMechanicsFastSuite)
 {
-    SchemeFactory<SparseSpaceType, LocalSpaceType> factory;
+    const SchemeFactory<SparseSpaceType, LocalSpaceType> factory;
 
     const auto parameters =
             R"(
@@ -54,7 +54,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeIsUndefined, KratosG
 
 KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeOrSolutionTypeAreNotSupported, KratosGeoMechanicsFastSuite)
 {
-    SchemeFactory<SparseSpaceType, LocalSpaceType> factory;
+    const SchemeFactory<SparseSpaceType, LocalSpaceType> factory;
 
     const auto parameters =
             R"(
@@ -83,7 +83,6 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_ReturnsCorrectScheme_ForBackwardEulerQuas
 
     KRATOS_EXPECT_NE(backward_euler_scheme, nullptr);
 }
-
 
 }
 

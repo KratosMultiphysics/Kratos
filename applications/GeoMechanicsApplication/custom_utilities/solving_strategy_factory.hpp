@@ -34,7 +34,7 @@ template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class SolvingStrategyFactory
 {
 public:
-    [[nodiscard]] static std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> Create(Parameters& rSolverSettings, ModelPart& rModelPart)
+    [[nodiscard]] static std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> Create(const Parameters& rSolverSettings, ModelPart& rModelPart)
     {
         const std::string strategy_type = "strategy_type";
 
@@ -46,8 +46,6 @@ public:
         auto builder_and_solver = BuilderAndSolverFactory<TSparseSpace, TDenseSpace, TLinearSolver>::Create(rSolverSettings, solver);
         auto criteria = ConvergenceCriteriaFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
 
-        Parameters parameters = ExtractStrategyParameters(rSolverSettings);
-
         if (rSolverSettings[strategy_type].GetString() ==
             GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Name())
         {
@@ -58,7 +56,7 @@ public:
                     solver,
                     criteria,
                     builder_and_solver,
-                    parameters);
+                    ExtractStrategyParameters(rSolverSettings));
         }
 
         return nullptr;
@@ -90,7 +88,6 @@ public:
 
         return result;
     }
-
 };
 
 }

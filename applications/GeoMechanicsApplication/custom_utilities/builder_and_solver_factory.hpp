@@ -23,8 +23,10 @@ class BuilderAndSolverFactory
 {
 
 public:
-    static std::shared_ptr<BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>> Create(const Parameters& rSolverSettings,
-                                                                                              typename TLinearSolver::Pointer pNewLinearSystemSolver)
+    using BuilderAndSolverType = BuilderAndSolver<TSparseSpace, TDenseSpace, TLinearSolver>;
+
+    static std::shared_ptr<BuilderAndSolverType> Create(const Parameters& rSolverSettings,
+                                                        typename TLinearSolver::Pointer pNewLinearSystemSolver)
     {
         const std::string block_builder_entry = "block_builder";
         KRATOS_ERROR_IF_NOT(rSolverSettings.Has(block_builder_entry)) <<

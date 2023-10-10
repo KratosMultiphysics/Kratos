@@ -33,7 +33,14 @@ public:
         if (rSolverSettings["convergence_criterion"].GetString() == "displacement_criterion")
         {
             Parameters convergenceInputs;
-            convergenceInputs.CopyValuesFromExistingParameters(rSolverSettings, {"displacement_absolute_tolerance", "displacement_relative_tolerance"});
+
+            for (const std::string& entry : {"displacement_absolute_tolerance", "displacement_relative_tolerance"})
+            {
+                if (rSolverSettings.Has(entry))
+                {
+                    convergenceInputs.AddValue(entry, rSolverSettings[entry]);
+                }
+            }
             return std::make_shared<DisplacementCriteria<TSparseSpace, TDenseSpace>>(convergenceInputs);
         }
 
