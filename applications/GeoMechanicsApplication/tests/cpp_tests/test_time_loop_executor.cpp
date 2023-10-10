@@ -24,33 +24,10 @@ using namespace Kratos;
 namespace
 {
 
-class DummySparseType
-{
-public:
-    struct DataType{};
-    struct MatrixType{};
-    struct VectorType{};
-    struct MatrixPointerType{};
-    struct VectorPointerType{};
-};
-
-class DummyDenseType
-{
-public:
-    struct MatrixType{};
-    struct VectorType{};
-};
-
-class AlwaysConvergingSolverStrategy : public SolvingStrategy<DummySparseType, DummyDenseType>
-{
-public:
-    bool IsConverged() override {return true;}
-};
-
 class DummySolverStrategy : public StrategyWrapper
 {
 public:
-    DummySolverStrategy(TimeStepEndState::ConvergenceState AConvergenceState) : mConvergenceState{AConvergenceState} {}
+    explicit DummySolverStrategy(TimeStepEndState::ConvergenceState AConvergenceState) : mConvergenceState{AConvergenceState} {}
     [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()         override
     {
         return mConvergenceState;
