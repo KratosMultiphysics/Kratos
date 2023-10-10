@@ -248,6 +248,11 @@ public:
         BaseType::BuildRHSNoDirichlet(pScheme, rModelPart, rb);
     }
 
+    Matrix GetNonConvergedResiduals()
+    {
+        return mSnapshotMatrix;
+    }
+
     void SetInterpolationMatrices(const Matrix& InterpolationWeightsMatrix, const Matrix& InterpolationIndicesMatrix)
     {
         mInterpolationWeightsMatrix = InterpolationWeightsMatrix;
@@ -409,7 +414,8 @@ public:
             "nodal_unknowns" : [],
             "number_of_rom_dofs" : 10,
             "rom_bns_settings" : {
-                "monotonicity_preserving": false
+                "monotonicity_preserving": false,
+                "hrom_flag": false
             }
         })");
         default_parameters.AddMissingParameters(BaseBuilderAndSolverType::GetDefaultParameters());
@@ -471,10 +477,13 @@ protected:
     ElementsArrayType mSelectedElements;
     ConditionsArrayType mSelectedConditions;
     bool mHromSimulation = false;
+    bool mHromFlag = false;
     bool mHromWeightsInitialized = false;
     bool mRightRomBasisInitialized = false;
     Matrix mInterpolationWeightsMatrix; //Move to private
     Matrix mInterpolationIndicesMatrix; //Move to private
+    Kratos::Matrix mSnapshotMatrix;
+    unsigned int mNumSnapshots = 0;
 
     ///@}
     ///@name Protected operators
@@ -492,6 +501,7 @@ protected:
         mNodalDofs = ThisParameters["nodal_unknowns"].size();
         mNumberOfRomModes = ThisParameters["number_of_rom_dofs"].GetInt();
         mMonotonicityPreservingFlag = ThisParameters["rom_bns_settings"]["monotonicity_preserving"].GetBool();
+        mHromFlag = ThisParameters["rom_bns_settings"]["hrom_flag"].GetBool();
 
         // Set up a map with key the variable key and value the correct row in ROM basis
         IndexType k = 0;
@@ -661,18 +671,52 @@ protected:
 
         Build(pScheme, rModelPart, rA, rb);
 
+        SaveSnapshot(rb, rModelPart);  // Pass both rb and rModelPart
+        KRATOS_WATCH(rb)
         if (mMonotonicityPreservingFlag) {
             // if (!mHromSimulation)
             BaseType::ApplyDirichletConditions(pScheme, rModelPart, rA, rDx, rb);
             MonotonicityPreserving(rA, rb);
         }
 
-        ProjectROM(rModelPart, rA, rb);
+
+        if (!mHromFlag)
+            ProjectROM(rModelPart, rA, rb);
+        else
+            DEIMProjectROM(rModelPart, rA, rb);
 
         double time = assembling_timer.ElapsedSeconds();
         KRATOS_INFO_IF("GlobalROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Build and project time: " << time << std::endl;
 
         KRATOS_CATCH("")
+    }
+
+    void SaveSnapshot(
+        const TSystemVectorType& rSnapshotVector, 
+        const Kratos::ModelPart& rModelPart) {
+        // Check the current Newton-Raphson iteration number
+        if (rModelPart.GetProcessInfo()[Kratos::NL_ITERATION_NUMBER] == 0 || rModelPart.GetProcessInfo()[Kratos::NL_ITERATION_NUMBER] == 1) {  // or == 0, depending on your setup
+            // Reset and initialize the mSnapshotMatrix for a new time step
+            mSnapshotMatrix = Kratos::Matrix();  // This will create an empty matrix
+            mNumSnapshots = 0;
+        }
+
+        const std::size_t vector_size = rSnapshotVector.size();
+
+        if (mNumSnapshots == 0) {
+            mSnapshotMatrix.resize(vector_size, 1, false);
+            for (std::size_t i = 0; i < vector_size; ++i) {
+                mSnapshotMatrix(i, 0) = rSnapshotVector[i];
+            }
+        } else {
+            // Resize the matrix to add one more column
+            mSnapshotMatrix.resize(vector_size, mNumSnapshots + 1, true);
+            for (std::size_t i = 0; i < vector_size; ++i) {
+                mSnapshotMatrix(i, mNumSnapshots) = rSnapshotVector[i];
+            }
+        }
+
+        mNumSnapshots++;
     }
 
     /**
@@ -763,7 +807,7 @@ protected:
     /**
      * Projects the reduced system of equations
      */
-    virtual void ProjectROM(
+    virtual void DEIMProjectROM(
         ModelPart &rModelPart,
         TSystemMatrixType &rA,
         TSystemVectorType &rb)
@@ -777,32 +821,32 @@ protected:
 
         BuildRightROMBasis(rModelPart, mPhiGlobal);
 
-        // Extract interpolation indices from mInterpolationIndicesMatrix
-        std::vector<int> interpolation_indices;
-        for (unsigned int i = 0; i < mInterpolationIndicesMatrix.size1(); ++i) {
-            for (unsigned int j = 0; j < mInterpolationIndicesMatrix.size2(); ++j) {
-                if (std::abs(mInterpolationIndicesMatrix(i, j)) > 1e-12) { // or some other tolerance
-                    interpolation_indices.push_back(i);
-                    break; // Move to the next row once a non-zero entry is found
-                }
-            }
-        }
-        KRATOS_WATCH(rb)
-        // Zero out specific elements of rb
-        for (int idx : interpolation_indices) {
-            rb(idx) = 0.0;
-        }
-        KRATOS_WATCH(rb)
-        // Zero out specific rows of mPhiGlobal
-        for (int idx : interpolation_indices) {
-            noalias(row(mPhiGlobal, idx)) = ZeroVector(mPhiGlobal.size2());
-        }
+        // // Extract interpolation indices from mInterpolationIndicesMatrix
+        // std::vector<int> interpolation_indices;
+        // for (unsigned int i = 0; i < mInterpolationIndicesMatrix.size1(); ++i) {
+        //     for (unsigned int j = 0; j < mInterpolationIndicesMatrix.size2(); ++j) {
+        //         if (std::abs(mInterpolationIndicesMatrix(i, j)) > 1e-12) { // or some other tolerance
+        //             interpolation_indices.push_back(i);
+        //             break; // Move to the next row once a non-zero entry is found
+        //         }
+        //     }
+        // }
+        // KRATOS_WATCH(rb)
+        // // Zero out specific elements of rb
+        // for (int idx : interpolation_indices) {
+        //     rb(idx) = 0.0;
+        // }
+        // KRATOS_WATCH(rb)
+        // // Zero out specific rows of mPhiGlobal
+        // for (int idx : interpolation_indices) {
+        //     noalias(row(mPhiGlobal, idx)) = ZeroVector(mPhiGlobal.size2());
+        // }
 
-        // Zero out specific rows and columns of rA
-        for (int idx : interpolation_indices) {
-            noalias(row(rA, idx)) = ZeroVector(rA.size2());
-            noalias(column(rA, idx)) = ZeroVector(rA.size1());
-        }
+        // // Zero out specific rows and columns of rA
+        // for (int idx : interpolation_indices) {
+        //     noalias(row(rA, idx)) = ZeroVector(rA.size2());
+        //     noalias(column(rA, idx)) = ZeroVector(rA.size1());
+        // }
 
         auto a_wrapper = UblasWrapper<double>(rA);
         const auto& eigen_rA = a_wrapper.matrix();
@@ -810,12 +854,13 @@ protected:
         Eigen::Map<EigenDynamicMatrix> eigen_global_modes(mPhiGlobal.data().begin(), mPhiGlobal.size1(), mPhiGlobal.size2());
         Eigen::Map<EigenDynamicMatrix> eigen_interpolation_weights(mInterpolationWeightsMatrix.data().begin(), mInterpolationWeightsMatrix.size1(), mInterpolationWeightsMatrix.size2());
         Eigen::Map<EigenDynamicMatrix> eigen_interpolation_indices(mInterpolationIndicesMatrix.data().begin(), mInterpolationIndicesMatrix.size1(), mInterpolationIndicesMatrix.size2());
-
+        KRATOS_WATCH(eigen_rhs_vector)
         EigenDynamicMatrix eigen_A_times_global_modes = eigen_rA * eigen_global_modes; //TODO: Make it in parallel.
 
-        EigenDynamicMatrix eigen_indices_times_A_times_global_modes = eigen_interpolation_indices * eigen_A_times_global_modes;
+        EigenDynamicMatrix eigen_indices_times_A_times_global_modes = eigen_interpolation_indices.transpose() * eigen_A_times_global_modes;
         EigenDynamicMatrix eigen_weighted_projection_matrix = eigen_interpolation_weights * eigen_indices_times_A_times_global_modes;
-        EigenDynamicVector eigen_indices_times_rhs_vector = eigen_interpolation_indices * eigen_rhs_vector;
+        EigenDynamicVector eigen_indices_times_rhs_vector = eigen_interpolation_indices.transpose() * eigen_rhs_vector;
+        KRATOS_WATCH(eigen_indices_times_rhs_vector)
         EigenDynamicVector eigen_weighted_rhs_vector = eigen_interpolation_weights * eigen_indices_times_rhs_vector;
         KRATOS_WATCH(eigen_weighted_rhs_vector)
         // Compute the matrix multiplication
@@ -828,7 +873,7 @@ protected:
     /**
      * Projects the reduced system of equations
      */
-    virtual void OldProjectROM(
+    virtual void ProjectROM(
         ModelPart &rModelPart,
         TSystemMatrixType &rA,
         TSystemVectorType &rb)
@@ -908,6 +953,7 @@ private:
     EigenDynamicMatrix mEigenRomA;
     EigenDynamicVector mEigenRomB;
     Matrix mPhiGlobal;
+    
     bool mMonotonicityPreservingFlag;
 
     ///@}
