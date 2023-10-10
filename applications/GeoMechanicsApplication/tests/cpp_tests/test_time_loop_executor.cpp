@@ -78,6 +78,13 @@ private:
     double      mEndTime{1.0};
 };
 
+TimeStepEndState MakeConvergedStepState()
+{
+    auto result = TimeStepEndState{};
+    result.convergence_state = TimeStepEndState::ConvergenceState::converged;
+    return result;
+}
+
 }
 
 namespace Kratos::Testing
@@ -154,6 +161,24 @@ KRATOS_TEST_CASE_IN_SUITE(GetFiveCyclesWhenFiveCyclesAreNeeded, KratosGeoMechani
     KRATOS_EXPECT_EQ(wanted_num_of_cycles_per_step, step_states[0].num_of_cycles);
     KRATOS_EXPECT_DOUBLE_EQ(1.0, step_states[1].time);
     KRATOS_EXPECT_EQ(wanted_num_of_cycles_per_step, step_states[1].num_of_cycles);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectOneCyclePerStepWhenUsingAPrescribedTimeIncrementor, KratosGeoMechanicsFastSuite)
+{
+    TimeLoopExecutor executor;
+    const auto increments = std::vector<double>{0.1, 0.2, 0.3, 0.4};
+    executor.SetTimeIncrementor(std::make_unique<PrescribedTimeIncrementor>(increments));
+    executor.SetSolverStrategyTimeIncrementor(std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
+    const auto step_states = executor.Run(MakeConvergedStepState());
+
+    KRATOS_EXPECT_EQ(increments.size(), step_states.size());
+    KRATOS_EXPECT_TRUE(std::all_of(step_states.begin(), step_states.end(),
+                       [](const auto& state) {return state.num_of_cycles == 1;}))
+    auto time = 0.0;
+    for (auto index = std::size_t{0}; index < increments.size(); ++index) {
+        time += increments[index];
+        KRATOS_EXPECT_DOUBLE_EQ(time, step_states[index].time);
+    }
 }
 
 }
