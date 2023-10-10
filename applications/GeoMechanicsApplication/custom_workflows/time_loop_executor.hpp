@@ -49,14 +49,33 @@ public :
     {
         std::vector<TimeStepEndState> result;
         while (mTimeIncrementor->WantNextStep(end_state)) {
-            end_state = mTimeStepExecutor->Run(end_state.time + mTimeIncrementor->GetIncrement());
+            end_state = RunCycleLoop(end_state);
             result.emplace_back(end_state);
-            mTimeIncrementor->PostTimeStepExecution(end_state);
         }
         return result;
     }
 
 private:
+    TimeStepEndState RunCycle(double PreviousTime)
+    {
+        auto end_state = mTimeStepExecutor->Run(PreviousTime + mTimeIncrementor->GetIncrement());
+        mTimeIncrementor->PostTimeStepExecution(end_state);
+        return end_state;
+    }
+
+    TimeStepEndState RunCycleLoop(const TimeStepEndState& previous_state)
+    {
+        auto cycle_number = 0;
+        auto end_state = previous_state;
+        while (mTimeIncrementor->WantRetryStep(cycle_number, end_state)) {
+            end_state = RunCycle(previous_state.time);
+            ++cycle_number;
+        }
+
+        end_state.num_of_cycles = cycle_number;
+        return end_state;
+    }
+
     std::unique_ptr<TimeIncrementor> mTimeIncrementor;
     std::unique_ptr<TimeStepExecutor> mTimeStepExecutor;
 };

@@ -72,6 +72,35 @@ public:
 private:
     TimeStepEndState::ConvergenceState mConvergenceState{TimeStepEndState::ConvergenceState::converged};
 };
+
+class FixedCyclesTimeIncrementor : public TimeIncrementor
+{
+public:
+    explicit FixedCyclesTimeIncrementor(std::size_t DesiredNumOfCyclesPerStep)
+    : mNumCyclesPerStep{DesiredNumOfCyclesPerStep}
+    {}
+
+    [[nodiscard]] bool WantNextStep(const TimeStepEndState& rPreviousState) const override
+    {
+        return rPreviousState.time < mEndTime;
+    }
+    [[nodiscard]] bool WantRetryStep(std::size_t             CycleNumber,
+                                     const TimeStepEndState& rPreviousState) const override
+    {
+        return CycleNumber < mNumCyclesPerStep;
+    }
+    [[nodiscard]] double GetIncrement() const override
+    {
+        return 0.5;
+    }
+    void PostTimeStepExecution(const TimeStepEndState& rResultantState) override
+    {}
+
+private:
+    std::size_t mNumCyclesPerStep;
+    double      mEndTime{1.0};
+};
+
 }
 
 namespace Kratos::Testing
@@ -116,6 +145,38 @@ KRATOS_TEST_CASE_IN_SUITE(TimeLoopReturnsEndTimesAfterRunningAnAlwaysConvergingS
     const auto step_states = executor.Run(start_state);
 
     KRATOS_EXPECT_DOUBLE_EQ(std::accumulate(increments.begin(), increments.end(), 0.), step_states.back().time);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GetThreeCyclesWhenThreeCyclesAreNeeded, KratosGeoMechanicsFastSuite)
+{
+    TimeLoopExecutor executor;
+    const auto wanted_num_of_cycles_per_step = 3;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    executor.SetSolverStrategyTimeIncrementor(std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
+    const auto step_states = executor.Run(TimeStepEndState{});
+
+    // The test time incrementor assumes fixed time increments of 0.5 and an end time of 1.0
+    KRATOS_EXPECT_EQ(2, step_states.size());
+    KRATOS_EXPECT_DOUBLE_EQ(0.5, step_states[0].time);
+    KRATOS_EXPECT_EQ(wanted_num_of_cycles_per_step, step_states[0].num_of_cycles);
+    KRATOS_EXPECT_DOUBLE_EQ(1.0, step_states[1].time);
+    KRATOS_EXPECT_EQ(wanted_num_of_cycles_per_step, step_states[1].num_of_cycles);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GetFiveCyclesWhenFiveCyclesAreNeeded, KratosGeoMechanicsFastSuite)
+{
+    TimeLoopExecutor executor;
+    const auto wanted_num_of_cycles_per_step = 5;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    executor.SetSolverStrategyTimeIncrementor(std::make_unique<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged));
+    const auto step_states = executor.Run(TimeStepEndState{});
+
+    // The test time incrementor assumes fixed time increments of 0.5 and an end time of 1.0
+    KRATOS_EXPECT_EQ(2, step_states.size());
+    KRATOS_EXPECT_DOUBLE_EQ(0.5, step_states[0].time);
+    KRATOS_EXPECT_EQ(wanted_num_of_cycles_per_step, step_states[0].num_of_cycles);
+    KRATOS_EXPECT_DOUBLE_EQ(1.0, step_states[1].time);
+    KRATOS_EXPECT_EQ(wanted_num_of_cycles_per_step, step_states[1].num_of_cycles);
 }
 
 }
