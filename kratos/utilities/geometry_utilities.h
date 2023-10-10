@@ -675,6 +675,28 @@ public:
         const int Step = 0);
 
     /**
+     * @brief This method gives the transform of shape functions second derivatives from isoparametric to natural coordinates evaluated in all integration points
+     *  @param rResult the transform of the second derivative of the shape function on the integration point
+     */
+    static void ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+        DenseVector<DenseVector<Matrix>>& rResult,
+        const GeometryType& rGeometry,
+        const GeometryType::IntegrationMethod& rIntegrationMethod );
+
+
+    /**
+     * @brief This method gives the transform of shape functions second derivatives from isoparametric to natural coordinates evaluated on an integration point.
+     * @details The method used can be found here. https://scicomp.stackexchange.com/questions/25196/implementing-higher-order-derivatives-for-finite-element
+     *  @param rLocalIntegrationPointCoordinates the local coordinates of the integration point
+     *  @param rResult the transform of the second derivative of the shape function on the integration point
+     */
+    static void ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
+        const Matrix& DN_DX,
+        const GeometryType& rGeometry,
+        const GeometryType::CoordinatesArrayType& rLocalIntegrationPointCoordinates,
+        DenseVector<Matrix>& rResult);
+
+    /**
      * @brief Checks if given point in global space coordinates is inside the geometry boundaries.
      * @details This function computes the local coordinates and checks then if this point lays within the boundaries after projecting the points.
      * @param rPointGlobalCoordinates the global coordinates of the external point.

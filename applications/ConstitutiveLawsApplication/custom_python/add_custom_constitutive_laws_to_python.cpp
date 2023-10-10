@@ -97,8 +97,12 @@
 
 #include "custom_constitutive/small_strains/plastic_damage/associative_plastic_damage_model.h"
 
-namespace Kratos {
-namespace Python {
+// Thermal CL's
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_elastic_isotropic_3d.h"
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_strain.h"
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_stress.h"
+
+namespace Kratos::Python {
 
 void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
@@ -1157,7 +1161,18 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     typename AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
     (m,"AssociativePlasticDamageModel3DRankine").def(py::init<>());
+
+    // Thermal CL's
+    py::class_< ThermalElasticIsotropic3D, typename ThermalElasticIsotropic3D::Pointer, ConstitutiveLaw >
+    (m,"ThermalElasticIsotropic3D").def(py::init<>());
+
+    py::class_< ThermalLinearPlaneStrain, typename ThermalLinearPlaneStrain::Pointer, ConstitutiveLaw >
+    (m,"ThermalLinearPlaneStrain").def(py::init<>());
+
+    py::class_< ThermalLinearPlaneStress, typename ThermalLinearPlaneStress::Pointer, ConstitutiveLaw >
+    (m,"ThermalLinearPlaneStress").def(py::init<>());
+
+
 }
 
-}  // namespace Python.
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

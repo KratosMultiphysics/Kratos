@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -19,10 +19,7 @@
 #include "includes/mapping_variables.h"
 #include "python/add_mapping_variables_to_python.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
     namespace py = pybind11;
 
@@ -30,6 +27,5 @@ namespace Python
     {
         KRATOS_REGISTER_IN_PYTHON_VARIABLE(m,TANGENT_FACTOR)
     }
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 
