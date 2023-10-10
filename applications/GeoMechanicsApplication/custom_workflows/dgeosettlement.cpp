@@ -94,9 +94,9 @@ void KratosGeoSettlement::InitializeProcessFactory()
 int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorkingDirectory,
                                   const std::filesystem::path&            rProjectParametersFile,
                                   const std::function<void(const char*)>& rLogCallback,
-                                  const std::function<void(double)>&      rReportProgress,
-                                  const std::function<void(const char*)>& rReportTextualProgress,
-                                  const std::function<bool()>&            rShouldCancel)
+                                  const std::function<void(double)>&      ,
+                                  const std::function<void(const char*)>& ,
+                                  const std::function<bool()>&            )
 {
     std::stringstream kratos_log_buffer;
     LoggerOutput::Pointer logger_output = CreateLoggingOutput(kratos_log_buffer);
@@ -198,16 +198,16 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
 }
 
-LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream& rKratosLogBuffer)
+const LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream& rKratosLogBuffer)
 {
-    LoggerOutput::Pointer logger_output(new LoggerOutput(rKratosLogBuffer));
+    auto logger_output = std::make_shared<LoggerOutput>(rKratosLogBuffer);
     Logger::AddOutput(logger_output);
     return logger_output;
 }
 
-void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)> &rLogCallback, 
-                                             LoggerOutput::Pointer pLoggerOutput, 
-                                             std::stringstream &rKratosLogBuffer)
+const void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)> &rLogCallback, 
+                                                   LoggerOutput::Pointer pLoggerOutput, 
+                                                   const std::stringstream &rKratosLogBuffer)
 {
     rLogCallback(rKratosLogBuffer.str().c_str());
     Logger::RemoveOutput(pLoggerOutput);

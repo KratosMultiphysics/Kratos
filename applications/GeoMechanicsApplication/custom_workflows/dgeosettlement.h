@@ -53,8 +53,8 @@ private:
     static void AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
     void InitializeProcessFactory();
-    std::vector<std::shared_ptr<Process>> GetProcesses(const Parameters& project_parameters) const;
-    LoggerOutput::Pointer CreateLoggingOutput(std::stringstream& rKratosLogBuffer);
+    const std::vector<std::shared_ptr<Process>> GetProcesses(const Parameters& project_parameters) const;
+    const LoggerOutput::Pointer CreateLoggingOutput(std::stringstream& rKratosLogBuffer);
     void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer pOutput, std::stringstream& rKratosLogBuffer);
 
     Kernel mKernel;
