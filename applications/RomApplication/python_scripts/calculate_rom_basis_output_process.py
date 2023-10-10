@@ -183,6 +183,8 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
         if self.rom_manager:
             rom_basis_dict["rom_manager"] = True
         rom_basis_dict["hrom_settings"]["hrom_format"] = self.rom_basis_output_format
+        rom_basis_dict["hrom_settings"]["element_selection_type"] = "discrete_empirical_interpolation"##ERASE
+        rom_basis_dict["hrom_settings"]["element_selection_svd_truncation_tolerance"] = 0.0##ERASE
         n_nodal_unknowns = len(self.snapshot_variables_list)
 
         # Calculate the randomized SVD of the snapshots matrix
