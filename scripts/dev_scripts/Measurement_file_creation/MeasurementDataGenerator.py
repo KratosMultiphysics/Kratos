@@ -6,6 +6,10 @@ import KratosMultiphysics as Kratos
 
 class MeasurementDataGenerator(ABC):
 
+    """_summary_
+    Interface for classes that are capable of writing a measurement.json-file based on the MeasurementFileStructure.py Dataclasses.
+    """
+
     def __init__():
         pass
 

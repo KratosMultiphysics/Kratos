@@ -65,6 +65,8 @@ class MeasurementResidualResponseFunction(ResponseFunction):
         for analysis_set in self.analysis_sets:
             self.primal_analysis_execution_policy_decorators.append(optimization_problem.GetExecutionPolicy(analysis_set["primal_analysis_name"].GetString()))
 
+        self.latest_objective_values = np.zeros(self.analysis_sets.size())
+
     def GetImplementedPhysicalKratosVariables(self) -> list[SupportedSensitivityFieldVariableTypes]:
         return [Kratos.YOUNG_MODULUS]
 
@@ -95,11 +97,15 @@ class MeasurementResidualResponseFunction(ResponseFunction):
     def CalculateValue(self) -> float:
 
         objective_value = 0
+        # max_abs_max_obj = -1
 
         for i, execution_policy in enumerate(self.primal_analysis_execution_policy_decorators):
             execution_policy.Execute()
 
             load_case = self.analysis_sets[i]["load_case_in_measurement_file"].GetInt()
+            temp_objective = 0
+            square_error = 0
+            # abs_max_obj = 0
 
             for sensor in self.measurement_data["load_cases"][load_case]["sensors_infos"]:
                 measured_displacement = sensor["measured_value"]
@@ -110,11 +116,26 @@ class MeasurementResidualResponseFunction(ResponseFunction):
                 node_displacement = mesh_node.GetSolutionStepValue(Kratos.KratosGlobals.GetVariable(sensor["type_of_sensor"]))
                 in_measurement_direction_projected_vector = (measured_direction[0]*node_displacement[0])+(measured_direction[1]*node_displacement[1])+(measured_direction[2]*node_displacement[2])
 
-                objective_value += (measured_displacement-in_measurement_direction_projected_vector)**2
+                square_error = (measured_displacement-in_measurement_direction_projected_vector)**2
 
-        objective_value *= 0.5 * 1/self.measurement_std
+                temp_objective += square_error
 
-        return objective_value
+                # if abs(square_error) > abs_max_obj:
+                #     abs_max_obj = abs(square_error)
+
+            # temp_objective /= abs_max_obj
+            self.latest_objective_values[i]=temp_objective
+
+            # if abs_max_obj > max_abs_max_obj:
+            #     max_abs_max_obj = abs_max_obj
+
+        # input(f"objs: {self.latest_objective_values} | {load_case} | {i}")
+
+        objective_value = np.sum(self.latest_objective_values) * 0.5 * 1/self.measurement_std
+
+        # input(f"objs: {self.latest_objective_values}, obj: {objective_value}")
+
+        return float(objective_value)
 
     def transform_sensitivities_to_continuous_space(self, expression: Kratos.Expression) -> None:
         sensitivities = expression.Evaluate()
@@ -156,7 +177,7 @@ class MeasurementResidualResponseFunction(ResponseFunction):
             summed_gradients: np.ndarray = np.ndarray([])
             current_sensitivities: np.ndarray = np.ndarray([])
 
-            for analysis_set in self.analysis_sets:
+            for i, analysis_set in enumerate(self.analysis_sets):
 
                 with open(analysis_set["adjoint_analysis_settings_file_name"].GetString(), 'r') as parameter_file:
                     self.adjoint_parameters = Kratos.Parameters(parameter_file.read())
@@ -189,6 +210,19 @@ class MeasurementResidualResponseFunction(ResponseFunction):
                 Kratos.Expression.VariableExpressionIO.Read(adjoint_young_modulus_sensitivity, KratosOA.YOUNG_MODULUS_SENSITIVITY)
 
                 current_sensitivities = adjoint_young_modulus_sensitivity.Evaluate()
+
+                # Is stable but not very useful
+                # if i == 2: #self.latest_objective_values[i] == np.max(self.latest_objective_values):
+                #     weight = 1.0
+                # else:
+                #     weight = 0.0
+
+                # Is unstable
+                # weight = self.latest_objective_values[i] / np.sum(self.latest_objective_values)
+
+                # input(f"objs: {self.latest_objective_values} | {weight} | {i}")
+
+                # current_sensitivities *= weight
                 if summed_gradients.size == 1:
                     summed_gradients = current_sensitivities
                 else:

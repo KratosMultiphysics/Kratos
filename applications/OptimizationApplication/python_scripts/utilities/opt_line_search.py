@@ -116,9 +116,11 @@ class StepByPolynomialApproximation(object):
         return self.step
 
     def GetInfo(self) -> dict:
-        info = {'type': 'constant',
+        info = {'type': 'polynomial approximation',
                 'unscaled_step': self.init_step,
-                'scaled_step': self.step}
+                'scaled_step': self.step,
+                'polynomial degree': self.degree_of_polynomial
+                }
 
         return info
 
@@ -130,10 +132,10 @@ class StepByPolynomialApproximation(object):
         update = self.algorithm_buffered_data["search_direction"] * tests_step_size
         self.__control_field = self.__objective.GetMasterControl().GetControlField()
 
-        objective_values[0] = self.__objective.CalculateStandardizedValue(self.__control_field)
+        objective_values[0] = self.__objective.GetStandardizedValue()  # CalculateStandardizedValue(self.__control_field)
         step_values[0] = 0
 
-        for i in range(1,n__steps+1):
+        for i in range(1, n__steps+1):
             self.__control_field += update
 
             objective_values[i] = self.__objective.CalculateStandardizedValue(self.__control_field)

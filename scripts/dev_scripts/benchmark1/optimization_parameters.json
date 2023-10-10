@@ -27,11 +27,10 @@
           "nodal_solution_step_data_variables": [
             "DISPLACEMENT",
             "REACTION",
-            "ROTATION",
-            "VON_MISES_STRESS"
+            "ROTATION"
           ],
           "nodal_data_value_variables": [],
-          "element_data_value_variables": ["YOUNG_MODULUS"],
+          "element_data_value_variables": [],
           "condition_data_value_variables": []
         }
       }
@@ -45,9 +44,9 @@
         "model_part_names": ["Structure"],
         "control_variable_name": "YOUNG_MODULUS",
         "mapping_options": {
-          "technique_sequence": [],
+          "technique_sequence": ["smoothing"],
           "smoothing_technique": "element_node_element",
-          "num_smoothing_iterations": 5,
+          "num_smoothing_iterations": 3,
           "exponential_mapping_exponent": 1.5
         }
       }
@@ -59,8 +58,13 @@
       "type": "measurement_residual_response_function",
       "settings": {
         "evaluated_model_part_names": ["Structure"],
-        "primal_analysis_name": "primal_analysis",
-        "adjoint_analysis_settings_file_name": "adjoint_parameters.json",
+        "analysis_sets": [
+          {
+            "primal_analysis_name": "primal_analysis",
+            "adjoint_analysis_settings_file_name": "adjoint_parameters.json",
+            "load_case_in_measurement_file": 0
+          }
+        ],
         "measurement_data_file": "measurement_data.json",
         "perturbation_size": 1e-8,
         "measurement_standard_deviation": 1.0
@@ -72,13 +76,15 @@
     "settings": {
       "echo_level": 0,
       "line_search": {
-        "type": "const_step",
-        "init_step": 1,
-        "gradient_scaling": "none"
+        "type": "poly_step",
+        "init_step": 100,
+        "gradient_scaling": "none",
+        "degree_of_polynomial": 2,
+        "step_damping": 1.0
       },
       "conv_settings": {
         "type": "max_iter",
-        "max_iter": 300
+        "max_iter": 50
       }
     },
     "controls": ["system_identification_control"],
@@ -118,6 +124,7 @@
           "type": "optimization_problem_plotly_output_process",
           "module": "KratosMultiphysics.OptimizationApplication.processes",
           "settings": {
+            "display_plot": true,
             "write_html_output": true,
             "html_file_name": "iteration_summary",
             "plot_y_log_scale": true

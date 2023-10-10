@@ -25,7 +25,8 @@
       "response_part_name": "all_nodes_elements_model_part",
       "direction": [0.0, 1.0, 0.0],
       "traced_dof": "DISPLACEMENT",
-      "measurement_file_name": "measurement_data.json"
+      "measurement_file_name": "measurement_data.json",
+      "measurement_load_case_to_use":0
     },
     "sensitivity_settings": {
       "sensitivity_model_part_name": "all_nodes_elements_model_part",
@@ -84,7 +85,7 @@
           "mesh_id": 0,
           "model_part_name": "Structure.load_boundary_P2",
           "variable_name": "LINE_LOAD",
-          "modulus": 0.000000001,
+          "modulus": 10000000.0,
           "direction": [0.0, 1.0, 0.0],
           "interval": [0.0, "End"]
         }
@@ -99,6 +100,7 @@
         "Parameters": {
           "model_part_name": "Structure.all_nodes_elements_model_part",
           "file_settings": {
+            "file_name" : "results_primal.h5",
             "file_access_mode": "read_only"
           },
           "nodal_solution_step_data_settings": {

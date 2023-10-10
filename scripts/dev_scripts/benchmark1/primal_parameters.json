@@ -76,7 +76,7 @@
           "mesh_id": 0,
           "model_part_name": "Structure.load_boundary_P2",
           "variable_name": "LINE_LOAD",
-          "modulus": -1000000.0,
+          "modulus": -10000000.0,
           "direction": [0.0, 1.0, 0.0],
           "interval": [0.0, "End"]
         }
@@ -85,12 +85,13 @@
     "list_other_processes": [
       {
         "kratos_module": "KratosMultiphysics.HDF5Application",
-        "python_module": "single_mesh_primal_output_process",
+        "python_module": "single_mesh_temporal_output_process",
         "help": "",
         "process_name": "",
         "Parameters": {
           "model_part_name": "Structure.all_nodes_elements_model_part",
           "file_settings": {
+            "file_name" : "results_primal.h5",
             "file_access_mode": "truncate"
           },
           "model_part_output_settings": {
@@ -103,5 +104,33 @@
       }
     ]
   },
-  "output_processes": {}
+  "output_processes": {
+    "vtk_output": [
+      {
+        "Parameters": {
+          "condition_data_value_variables": [],
+          "element_data_value_variables": [],
+          "file_format": "binary",
+          "model_part_name": "Structure",
+          "nodal_data_value_variables": [],
+          "nodal_solution_step_data_variables": [
+            "DISPLACEMENT",
+            "REACTION",
+            "ROTATION"
+          ],
+          "gauss_point_variables_extrapolated_to_nodes" : ["VON_MISES_STRESS"],
+          "output_control_type": "step",
+          "output_interval": 1,
+          "output_path": "primal_vtk_output",
+          "output_precision": 7,
+          "output_sub_model_parts": false,
+          "save_output_files_in_folder": true
+        },
+        "help": "This process writes postprocessing files for Paraview",
+        "kratos_module": "KratosMultiphysics",
+        "process_name": "VtkOutputProcess",
+        "python_module": "vtk_output_process"
+      }
+    ]
+  }
 }
