@@ -61,11 +61,8 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
 
     using AMGCLSolverType = AMGCLSolver<SpaceType, LocalSpaceType>;
     py::class_<AMGCLSolverType, std::shared_ptr<AMGCLSolverType>, LinearSolverType>(m, "AMGCLSolver")
-        .def(py::init<AMGCLSmoother, AMGCLIterativeSolverType, double, int, int, int>())
-        .def(py::init<AMGCLSmoother, AMGCLIterativeSolverType, AMGCLCoarseningType, double, int, int, int, bool>())
         .def(py::init<>())
         .def(py::init<Parameters>())
-        .def("GetResidualNorm", &AMGCLSolverType::GetResidualNorm)
         ;
 
     using AMGCL_NS_SolverType = AMGCL_NS_Solver<SpaceType, LocalSpaceType>;
