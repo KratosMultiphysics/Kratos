@@ -13,6 +13,7 @@ import os, pathlib, sys
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
+import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
@@ -92,16 +93,16 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
                     communicator.reportValue(identifier, response.GetValue())
 
                 # response gradients
-                if communicator.isRequestingGradientOf(identifier):
+                if communicator.isRequestingGradientOf(identifier) or communicator.isRequestingThicknessGradientOf(identifier):
                     response.CalculateGradient()
+
+                # response shape gradients
+                if communicator.isRequestingGradientOf(identifier):
                     communicator.reportGradient(identifier, response.GetNodalGradient(KM.SHAPE_SENSITIVITY))
 
-                # no thickness gradients available
+                # response thickness gradients
                 if communicator.isRequestingThicknessGradientOf(identifier):
-                    thickness_gradient = {}
-                    for condition in optimization_model_part.Conditions:
-                        thickness_gradient[condition.Properties.Id] = 0.0
-                    communicator.reportThicknessGradient(identifier, thickness_gradient)
+                    communicator.reportThicknessGradient(identifier, response.GetPropertiesGradient(KSO.THICKNESS_SENSITIVITY))
 
                 response.FinalizeSolutionStep()
 
@@ -128,6 +129,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             "mesh_based_packaging",
             "surface_normal_shape_change",
             "face_angle",
+            "directional_derivative",
             "airfoil_angle_of_attack",
             "airfoil_chord_length",
             "airfoil_perimeter"

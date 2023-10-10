@@ -72,6 +72,14 @@ class AngleOfAttackResponseFunction(ResponseFunctionInterface):
 
         return gradient
 
+    def GetPropertiesGradient(self, variable):
+        if variable != KSO.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetPropertiesGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for condition in self.model_part.Conditions:
+            gradient[condition.Id] = 0.0
+        return gradient
+
     def _CalculateAOA(self, te_x, te_y, le_x, le_y):
         ref_dir_norm = KratosMultiphysics.Vector(self.reference_direction).norm_2()
         chord_vector = KratosMultiphysics.Vector(3, 0.0)
@@ -142,6 +150,13 @@ class ChordLengthResponseFunction(ResponseFunctionInterface):
 
         return gradient
 
+    def GetPropertiesGradient(self, variable):
+        if variable != KSO.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetPropertiesGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for condition in self.model_part.Conditions:
+            gradient[condition.Id] = 0.0
+        return gradient
 
 
 class PerimeterResponseFunction(ResponseFunctionInterface):
@@ -186,4 +201,12 @@ class PerimeterResponseFunction(ResponseFunctionInterface):
 
             gradient[node.Id] = shape_gradient
 
+        return gradient
+
+    def GetPropertiesGradient(self, variable):
+        if variable != KSO.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetPropertiesGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for condition in self.model_part.Conditions:
+            gradient[condition.Id] = 0.0
         return gradient

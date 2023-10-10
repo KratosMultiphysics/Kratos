@@ -153,7 +153,7 @@ class Communicator:
 
         for response in response_settings:
             response_id = response["identifier"].GetString()
-            list_of_requests[response_id] = {"calculateValue": False, "calculateGradient": False}
+            list_of_requests[response_id] = {"calculateValue": False, "calculateGradient": False, "calculateThicknessGradient": False}
 
         return list_of_requests
 

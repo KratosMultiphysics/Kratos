@@ -49,6 +49,14 @@ class TotalVolume(ResponseFunctionInterface):
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         return self.gradient
 
+    def GetPropertiesGradient(self, variable):
+        if variable != KSO.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetPropertiesGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for condition in self.model_part.Conditions:
+            gradient[condition.Id] = 0.0
+        return gradient
+
     @staticmethod
     def _GetLabel():
         return "TotalVolume"

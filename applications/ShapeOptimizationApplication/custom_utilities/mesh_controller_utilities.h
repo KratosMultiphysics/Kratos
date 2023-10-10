@@ -114,9 +114,6 @@ public:
                 condition_i.GetProperties()[THICKNESS] += node_i.FastGetSolutionStepValue(rInputVariable) / number_of_nodes;
             }
         }
-        // for(auto & condition_i: mrModelPart.Conditions()) {
-        //     std::cout << "Condition: " << condition_i.Id() << "Thickness: "<< condition_i.GetProperties()[THICKNESS] << std::endl;
-        // }
     }
 
     // --------------------------------------------------------------------------
@@ -129,9 +126,6 @@ public:
                 condition_i.GetProperties()[THICKNESS] += node_i.FastGetSolutionStepValue(rInputVariable) / number_of_nodes;
             }
         }
-        // for(auto & condition_i: mrModelPart.Conditions()) {
-        //     std::cout << "Condition: " << condition_i.Id() << "Thickness: "<< condition_i.GetProperties()[THICKNESS] << std::endl;
-        // }
     }
 
     // --------------------------------------------------------------------------

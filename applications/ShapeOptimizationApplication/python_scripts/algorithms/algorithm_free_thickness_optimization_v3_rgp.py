@@ -272,7 +272,7 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
         self.model_part_controller.UpdateThicknessAccordingInitialAndInputVariable(KSO.THICKNESS_CHANGE)
 
         # update solution step variables
-        for node in self.optimization_model_part.Nodes:
+        for node in self.design_surface.Nodes:
             initial_thickness = node.GetSolutionStepValue(KSO.THICKNESS_INITIAL)
             thickness_change = node.GetSolutionStepValue(KSO.THICKNESS_CHANGE)
 
@@ -321,9 +321,6 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
         self.variable_utils.CopyModelPartNodalVar(KSO.DF1DT, self.model_part_controller.GetOptimizationModelPart(),
                                                   self.initial_model_part_controller.GetOptimizationModelPart(), 0)
 
-        # self.initial_model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DT)
-        # self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DT)
-
         # project and damp constraint gradients
         for constraint in self.constraints:
             con_id = constraint["identifier"].GetString()
@@ -335,9 +332,6 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
 
             self.variable_utils.CopyModelPartNodalVar(gradient_variable, self.model_part_controller.GetOptimizationModelPart(),
                                                       self.initial_model_part_controller.GetOptimizationModelPart(), 0)
-
-            # self.initial_model_part_controller.DampNodalSensitivityVariableIfSpecified(gradient_variable)
-            # self.model_part_controller.DampNodalSensitivityVariableIfSpecified(gradient_variable)
 
     # --------------------------------------------------------------------------
     def __analyzeShape(self):
@@ -353,7 +347,6 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
 
         # project and damp objective gradients
         objGradientDict = self.communicator.getStandardizedGradient(self.objectives[0]["identifier"].GetString())
-        # print(f"shape objGradientDict: {objGradientDict}")
         WriteDictionaryDataOnNodalVariable(objGradientDict, self.optimization_model_part, KSO.DF1DX)
         nabla_f_raw = KM.Vector()
         self.optimization_utilities.AssembleVector(self.design_surface, nabla_f_raw, KSO.DF1DX)
@@ -568,12 +561,6 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
 
             df_dc = KM.Vector(df_dt.Size()+df_dx.Size())
 
-            # TODO: normalisierung experiment
-            normalize = False
-            if normalize:
-                df_dt /= df_dt.norm_inf()
-                df_dx = df_dx.norm_inf()
-
             if self.variable_scaling:
                 df_dt *= self.thickness_scaling_factor
                 df_dx *= self.shape_scaling_factor
@@ -692,9 +679,6 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
             self.variable_utils.CopyModelPartNodalVar(KSO.THICKNESS_CHANGE_CONTROL, self.model_part_controller.GetOptimizationModelPart(),
                                                       self.initial_model_part_controller.GetOptimizationModelPart(), 0)
             self.initial_mapper.Map(KSO.THICKNESS_CHANGE_CONTROL, KSO.THICKNESS_CHANGE)
-
-        # self.initial_model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.THICKNESS_CHANGE)
-        # self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.THICKNESS_CHANGE)
 
         self.variable_utils.CopyModelPartNodalVar(KSO.THICKNESS_CHANGE, self.initial_model_part_controller.GetOptimizationModelPart(),
                                                   self.model_part_controller.GetOptimizationModelPart(), 0)
@@ -865,10 +849,8 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
             additional_values_to_log["c"+str(itr+1)+"_upper_buffer_value"] = self.constraint_buffer_variables[identifier]["upper_buffer_value"]
             itr += 1
 
-        # self.data_logger.LogSensitivityHeatmap(self.optimization_iteration, self.mapper)
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
-        # self.initial_data_logger.LogCurrentDesign(self.optimization_iteration)
 
     # --------------------------------------------------------------------------
     def __isAlgorithmConverged(self):
@@ -902,21 +884,24 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __mapPropertyGradientToElement(self, property_gradient_dict, element_gradient_dict):
 
-        for condition in self.optimization_model_part.Conditions:
-            element_gradient_dict[condition.Id] = property_gradient_dict[condition.Properties.Id]
+        for condition in self.design_surface.Conditions:
+            if condition.Properties.Id in property_gradient_dict:
+                element_gradient_dict[condition.Id] = property_gradient_dict[condition.Properties.Id]
+            else:
+                element_gradient_dict[condition.Id] = 0.0
 
     # --------------------------------------------------------------------------
     def __mapElementGradientToNode(self, element_gradient_dict, gradient_variable):
 
         # reset variables
-        for node in self.optimization_model_part.Nodes:
+        for node in self.design_surface.Nodes:
             node.SetSolutionStepValue(gradient_variable, 0, 0.0)
 
-        for condition in self.optimization_model_part.Conditions:
+        for condition in self.design_surface.Conditions:
             condition.SetValue(gradient_variable, element_gradient_dict[condition.Id])
 
         total_node_areas = dict()
-        for condition in self.optimization_model_part.Conditions:
+        for condition in self.design_surface.Conditions:
             df_dt = condition.GetValue(gradient_variable)
             for node in condition.GetNodes():
                 if node.Id in total_node_areas:
@@ -927,7 +912,7 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
                 df_dt_node += df_dt * condition.GetGeometry().Area()
                 node.SetSolutionStepValue(gradient_variable, 0, df_dt_node)
 
-        for node in self.optimization_model_part.Nodes:
+        for node in self.design_surface.Nodes:
             total_node_area = total_node_areas[node.Id]
             df_dt_node = node.GetSolutionStepValue(gradient_variable)
             df_dt_node /= total_node_area
@@ -950,7 +935,7 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
         if not self.projection:
             return
 
-        for node in self.optimization_model_part.Nodes:
+        for node in self.design_surface.Nodes:
             delta_t_control = node.GetSolutionStepValue(KSO.THICKNESS_CHANGE_CONTROL)
             mapped_gradient = node.GetSolutionStepValue(mapped_gradient_variable)
 
@@ -1015,7 +1000,7 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
         if not self.projection:
             return
 
-        for node in self.optimization_model_part.Nodes:
+        for node in self.design_surface.Nodes:
             delta_t_control = node.GetSolutionStepValue(KSO.THICKNESS_CHANGE_CONTROL)
 
             bound = self.__CheckBounds(node, delta_t_control)

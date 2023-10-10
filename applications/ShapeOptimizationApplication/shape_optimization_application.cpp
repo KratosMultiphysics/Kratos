@@ -67,6 +67,8 @@ namespace Kratos
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);
 
     // For thickness
+    KRATOS_CREATE_VARIABLE(double, THICKNESS_SENSITIVITY);
+
     KRATOS_CREATE_VARIABLE(double, DF1DT);
     KRATOS_CREATE_VARIABLE(double, DF1DT_MAPPED);
     KRATOS_CREATE_VARIABLE(double, DF1DT_PROJECTED);
@@ -165,8 +167,11 @@ namespace Kratos
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(BACKGROUND_NORMAL);
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(OUT_OF_PLANE_DELTA);
 
-        // For face angle response
+    // For face angle response
     KRATOS_CREATE_VARIABLE(bool, CONSIDER_FACE_ANGLE);
+
+    // For directional derivative response
+    KRATOS_CREATE_VARIABLE(GlobalPointersVector<Condition>, ADJACENT_FACES);
 
 	// For sensitivity heatmap
     KRATOS_CREATE_3D_VARIABLE_WITH_COMPONENTS(HEATMAP_DF1DX);
@@ -264,6 +269,8 @@ namespace Kratos
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(MESH_CHANGE);
 
         // For thickness
+        KRATOS_REGISTER_VARIABLE(THICKNESS_SENSITIVITY);
+
         KRATOS_REGISTER_VARIABLE(DF1DT);
         KRATOS_REGISTER_VARIABLE(DF1DT_MAPPED);
         KRATOS_REGISTER_VARIABLE(DF1DT_PROJECTED);
@@ -363,6 +370,9 @@ namespace Kratos
 
         // For face angle response
         KRATOS_REGISTER_VARIABLE(CONSIDER_FACE_ANGLE);
+
+        // For directional derivative response
+        KRATOS_REGISTER_VARIABLE(ADJACENT_FACES);
 
 	    // For sensitivity heatmap
         KRATOS_REGISTER_3D_VARIABLE_WITH_COMPONENTS(HEATMAP_DF1DX);
