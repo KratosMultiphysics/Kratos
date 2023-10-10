@@ -388,6 +388,39 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
     return new_element_ids;
 }
 
+std::vector<IndexType> GetElementsFromEquationIds(ModelPart& rModelPart, const std::vector<std::size_t>& rEquationIds)
+{
+    std::unordered_set<IndexType> element_ids_set;
+
+    // Convert rEquationIds to an unordered_set for faster lookup
+    std::unordered_set<std::size_t> equation_ids_set(rEquationIds.begin(), rEquationIds.end());
+
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
+    find_nodal_elements_neighbours_process.Execute();
+
+    for (auto& node : rModelPart.Nodes())
+    {
+        for (auto& dof : node.GetDofs())
+        {
+            if (equation_ids_set.find(dof->EquationId()) != equation_ids_set.end())
+            {
+                const auto& r_neigh = node.GetValue(NEIGHBOUR_ELEMENTS);
+                // Add the neighbour elements to new_element_ids_set
+                for (size_t i = 0; i < r_neigh.size(); ++i) {
+                    const auto& r_elem = r_neigh[i];
+                    element_ids_set.insert(r_elem.Id() - 1);
+                }
+                break;  // Once a matching DoF is found for the node, move to the next node
+            }
+        }
+    }
+
+    // Convert the unordered_set to a vector
+    std::vector<IndexType> element_ids(element_ids_set.begin(), element_ids_set.end());
+
+    return element_ids;
+}
+
 std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(
     const ModelPart& rModelPartWithElementsToInclude,
     std::map<std::string, std::map<IndexType, double>>& rHRomWeights)

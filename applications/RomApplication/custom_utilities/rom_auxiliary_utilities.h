@@ -144,6 +144,30 @@ public:
         ModelPart& rModelPart,
         ModelPart& rGivenModelPart);
 
+
+    /**
+     * @brief Retrieve the IDs of elements associated with given equation IDs.
+     *
+     * This function identifies the nodes associated with the provided equation IDs (`rEquationIds`) 
+     * and subsequently fetches the neighboring elements of these nodes. The function leverages the 
+     * 'NEIGHBOUR_ELEMENTS' value attached to each node to determine the neighboring elements.
+     * 
+     * Before fetching the neighboring elements, the function ensures that the 'NEIGHBOUR_ELEMENTS' 
+     * values are computed for the nodes in the model part using the `FindGlobalNodalEntityNeighboursProcess`.
+     *
+     * The function returns a list of unique element IDs, adjusted for 0-based indexing (decremented by 1).
+     * It's important to note that this function assumes that the 'NEIGHBOUR_ELEMENTS' values are 
+     * already computed for the nodes in the model part.
+     *
+     * @param rModelPart The complete model part which houses all the nodes and elements.
+     * @param rEquationIds The list of equation IDs for which associated elements should be fetched.
+     * @return std::vector<IndexType> A list of unique element IDs, adjusted for 0-based indexing.
+     */
+    std::vector<IndexType> GetElementsFromEquationIds(
+        ModelPart& rModelPart,
+        const std::vector<std::size_t>& rEquationIds);
+
+
     /**
      * @brief Identifies condition decremented (-1 to account for numpy indexing) IDs from a given ModelPart that are not in the HROM weights
      * This function iterates through the conditions in the provided ModelPart, checks if their IDs exist in the HROM weights,
