@@ -42,6 +42,7 @@
 #include "custom_processes/set_parameter_field_process.hpp"
 #include "custom_processes/set_multiple_moving_loads.h"
 #include "custom_processes/apply_vector_constraints_table_process.hpp"
+#include "custom_processes/apply_scalar_constraints_table_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -140,6 +141,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyVectorConstraintsTableProcess, ApplyVectorConstraintsTableProcess::Pointer, Process>
         (m, "ApplyVectorConstraintsTableProcess")
+        .def(py::init<ModelPart&, const Parameters&>());
+
+    py::class_<ApplyScalarConstraintsTableProcess, ApplyScalarConstraintsTableProcess::Pointer, Process>
+        (m, "ApplyScalarConstraintsTableProcess")
         .def(py::init<ModelPart&, const Parameters&>());
 }
 
