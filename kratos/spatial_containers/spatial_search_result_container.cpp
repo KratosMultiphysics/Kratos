@@ -123,8 +123,7 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
         if (rank == 0) {
             // Fill global vector with local result
             for (auto& r_value : mLocalResults) {
-                auto p_result = Kratos::make_shared<SpatialSearchResultType>(r_value);
-                mGlobalResults.push_back(p_result);
+                mGlobalResults.push_back(&r_value);
             }
 
             // Create a lambda to generate the vector of indexes greater than zero
@@ -146,8 +145,7 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
                 LocalResultsVector recv_gps;
                 rDataCommunicator.Recv(recv_gps, rank_to_recv);
                 for (auto& r_value : recv_gps) {
-                    auto p_result = Kratos::make_shared<SpatialSearchResultType>(r_value);
-                    mGlobalResults.push_back(p_result);
+                    mGlobalResults.push_back(&r_value);
                 }
             }
 
