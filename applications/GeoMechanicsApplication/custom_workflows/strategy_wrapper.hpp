@@ -30,6 +30,8 @@ namespace Kratos
         virtual void SetEndTime(double EndTime) = 0;
         [[nodiscard]] virtual double GetTimeIncrement() const = 0;
         virtual void SetTimeIncrement(double TimeIncrement) = 0;
+        [[nodiscard]] virtual std::size_t GetStepNumber() const = 0;
+        virtual void IncrementStepNumber() = 0;
 
         virtual void Initialize()             = 0;
         virtual void InitializeSolutionStep() = 0;

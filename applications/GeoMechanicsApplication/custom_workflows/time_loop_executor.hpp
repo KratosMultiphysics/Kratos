@@ -42,14 +42,15 @@ public :
 
     void SetSolverStrategyTimeIncrementor(std::shared_ptr<StrategyWrapper> AStrategyWrapper)
     {
-        mStrategyWrapper = AStrategyWrapper;
-        mTimeStepExecutor->SetSolverStrategy(AStrategyWrapper);
+        mStrategyWrapper = std::move(AStrategyWrapper);
+        mTimeStepExecutor->SetSolverStrategy(mStrategyWrapper);
     }
 
     std::vector<TimeStepEndState> Run(TimeStepEndState end_state)
     {
         std::vector<TimeStepEndState> result;
         while (mTimeIncrementor->WantNextStep(end_state)) {
+            mStrategyWrapper->IncrementStepNumber();
             end_state = RunCycleLoop(end_state);
             result.emplace_back(end_state);
         }

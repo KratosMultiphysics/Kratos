@@ -65,6 +65,16 @@ public:
         mrModelPart.GetProcessInfo()[DELTA_TIME] = TimeIncrement;
     }
 
+    [[nodiscard]] std::size_t GetStepNumber() const override
+    {
+        return static_cast<std::size_t>(mrModelPart.GetProcessInfo()[STEP]);
+    }
+
+    void IncrementStepNumber() override
+    {
+        mrModelPart.GetProcessInfo()[STEP] += 1;
+    }
+
     void Initialize()             override {}
     void InitializeSolutionStep() override {}
     void Predict()                override {}
@@ -218,6 +228,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetAfterRunningAStep, KratosGeoMechan
 
     KRATOS_EXPECT_DOUBLE_EQ(1.0, solver_strategy->GetEndTime());
     KRATOS_EXPECT_DOUBLE_EQ(0.5, solver_strategy->GetTimeIncrement());
+    KRATOS_EXPECT_EQ(2, solver_strategy->GetStepNumber());
 }
 
 }
