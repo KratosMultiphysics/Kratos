@@ -42,7 +42,8 @@ public :
 
     void SetSolverStrategyTimeIncrementor(std::shared_ptr<StrategyWrapper> AStrategyWrapper)
     {
-        mTimeStepExecutor->SetSolverStrategy(std::move(AStrategyWrapper));
+        mStrategyWrapper = AStrategyWrapper;
+        mTimeStepExecutor->SetSolverStrategy(AStrategyWrapper);
     }
 
     std::vector<TimeStepEndState> Run(TimeStepEndState end_state)
@@ -58,7 +59,13 @@ public :
 private:
     TimeStepEndState RunCycle(double PreviousTime)
     {
-        auto end_state = mTimeStepExecutor->Run(PreviousTime + mTimeIncrementor->GetIncrement());
+        // Setting the time and time increment may be needed for the processes
+        const auto time_increment = mTimeIncrementor->GetIncrement();
+        mStrategyWrapper->SetTimeIncrement(time_increment);
+        const auto end_time = PreviousTime + time_increment;
+        mStrategyWrapper->SetEndTime(end_time);
+
+        auto end_state = mTimeStepExecutor->Run(end_time);
         mTimeIncrementor->PostTimeStepExecution(end_state);
         return end_state;
     }
@@ -76,8 +83,9 @@ private:
         return end_state;
     }
 
-    std::unique_ptr<TimeIncrementor> mTimeIncrementor;
+    std::unique_ptr<TimeIncrementor>  mTimeIncrementor;
     std::unique_ptr<TimeStepExecutor> mTimeStepExecutor;
+    std::shared_ptr<StrategyWrapper>  mStrategyWrapper;
 };
 
 }

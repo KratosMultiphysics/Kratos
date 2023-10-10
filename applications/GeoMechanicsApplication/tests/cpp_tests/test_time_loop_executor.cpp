@@ -15,7 +15,7 @@
 #include "custom_workflows/time_loop_executor.hpp"
 #include "custom_workflows/time_step_end_state.hpp"
 #include "custom_workflows/prescribed_time_incrementor.h"
-#include "solving_strategies/strategies/solving_strategy.h"
+#include "containers/model.h"
 
 #include <numeric>
 
@@ -24,22 +24,47 @@ using namespace Kratos;
 namespace
 {
 
+Model TestModel;
+
 class DummySolverStrategy : public StrategyWrapper
 {
 public:
-    explicit DummySolverStrategy(TimeStepEndState::ConvergenceState AConvergenceState) : mConvergenceState{AConvergenceState} {}
-    [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()         override
+    explicit DummySolverStrategy(TimeStepEndState::ConvergenceState AConvergenceState)
+    : mConvergenceState{AConvergenceState},
+      mrModelPart{TestModel.CreateModelPart("TestModelPart")}
+    {
+    }
+
+    [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState() override
     {
         return mConvergenceState;
     }
-    [[nodiscard]] std::size_t                        GetNumberOfIterations() const override
+
+    [[nodiscard]] std::size_t GetNumberOfIterations() const override
     {
         return 1;
     }
-    [[nodiscard]] double                             GetEndTime() const            override
+
+    [[nodiscard]] double GetEndTime() const override
     {
-        return 0.0;
+        return mrModelPart.GetProcessInfo()[TIME];
     }
+
+    void SetEndTime(double EndTime) override
+    {
+        mrModelPart.GetProcessInfo()[TIME] = EndTime;
+    }
+
+    [[nodiscard]] double GetTimeIncrement() const override
+    {
+        return mrModelPart.GetProcessInfo()[DELTA_TIME];
+    }
+
+    void SetTimeIncrement(double TimeIncrement) override
+    {
+        mrModelPart.GetProcessInfo()[DELTA_TIME] = TimeIncrement;
+    }
+
     void Initialize()             override {}
     void InitializeSolutionStep() override {}
     void Predict()                override {}
@@ -48,6 +73,7 @@ public:
 
 private:
     TimeStepEndState::ConvergenceState mConvergenceState{TimeStepEndState::ConvergenceState::converged};
+    ModelPart& mrModelPart;
 };
 
 class FixedCyclesTimeIncrementor : public TimeIncrementor
@@ -179,6 +205,19 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOneCyclePerStepWhenUsingAPrescribedTimeIncrement
         time += increments[index];
         KRATOS_EXPECT_DOUBLE_EQ(time, step_states[index].time);
     }
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetAfterRunningAStep, KratosGeoMechanicsFastSuite)
+{
+    TimeLoopExecutor executor;
+    const auto wanted_num_of_cycles_per_step = 1;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    executor.SetSolverStrategyTimeIncrementor(solver_strategy);
+    const auto step_states = executor.Run(TimeStepEndState{});
+
+    KRATOS_EXPECT_DOUBLE_EQ(1.0, solver_strategy->GetEndTime());
+    KRATOS_EXPECT_DOUBLE_EQ(0.5, solver_strategy->GetTimeIncrement());
 }
 
 }

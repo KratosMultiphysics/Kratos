@@ -44,6 +44,9 @@ public:
     [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()         override { return mConvergenceState;};
     [[nodiscard]] std::size_t                        GetNumberOfIterations() const override { return 4;};
     [[nodiscard]] double                             GetEndTime()            const override { return 10.;};
+    void SetEndTime(double EndTime) override {}
+    [[nodiscard]] double GetTimeIncrement() const override {return 0.0; }
+    void SetTimeIncrement(double TimeIncrement) override {}
     void Initialize()             override {++mSolverStrategyInitializeCalls;}
     void InitializeSolutionStep() override {++mSolverStrategyInitializeSolutionStepCalls;}
     void Predict()                override {++mSolverStrategyPredictCalls;}

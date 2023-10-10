@@ -27,6 +27,10 @@ namespace Kratos
         [[nodiscard]] virtual TimeStepEndState::ConvergenceState GetConvergenceState()       = 0;
         [[nodiscard]] virtual std::size_t      GetNumberOfIterations()                 const = 0;
         [[nodiscard]] virtual double           GetEndTime()                            const = 0;
+        virtual void SetEndTime(double EndTime) = 0;
+        [[nodiscard]] virtual double GetTimeIncrement() const = 0;
+        virtual void SetTimeIncrement(double TimeIncrement) = 0;
+
         virtual void Initialize()             = 0;
         virtual void InitializeSolutionStep() = 0;
         virtual void Predict()                = 0;
