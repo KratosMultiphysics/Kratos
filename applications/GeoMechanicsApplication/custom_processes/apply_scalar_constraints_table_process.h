@@ -49,6 +49,8 @@ private:
                                                 std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForPhreaticLine(const Parameters&        rProcessSettings,
                                     std::vector<std::string> NamesOfSettingsToCopy);
+    void MakeProcessForPhreaticMultiLine(const Parameters&        rProcessSettings,
+                                         std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForPhreaticSurface(const Parameters&        rProcessSettings,
                                        std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
