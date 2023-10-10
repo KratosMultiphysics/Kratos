@@ -26,14 +26,9 @@ class GeoMechanicsWrapper(kratos_base_wrapper.KratosBaseWrapper):
         if not KM.IsDistributedRun():
             return KM.ParallelEnvironment.GetDataCommunicator("Serial")
 
-        # now we know that Kratos runs in MPI
+        # check if the solver uses MPI
         parallel_type = self.project_parameters["problem_data"]["parallel_type"].GetString()
-
-        # first check if the solver uses MPI
-        if parallel_type != "MPI":
-            return data_communicator_utilities.GetRankZeroDataCommunicator()
-
-        # now we know that the solver uses MPI, only question left is whether to use all ranks or a subset
-        self._CheckDataCommunicatorIsConsistentlyDefined(self.project_parameters["solver_settings"]["model_import_settings"], self.settings["mpi_settings"])
+        if parallel_type == "MPI":
+            raise RuntimeError("MPI is not supported (yet) by the GeoMechanicsApplication.")
 
         return super()._GetDataCommunicator()
