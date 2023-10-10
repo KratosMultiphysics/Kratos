@@ -673,7 +673,7 @@ namespace Kratos
         array_1d<double, TNumNodes> PressureVector;
         //Nodal Variables
         for (unsigned int i = 0; i < TNumNodes; ++i) {
-            PressureVector[i] = rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
+            PressureVector[i] = -rGeom[i].FastGetSolutionStepValue(WATER_PRESSURE);
         }
         array_1d<double, TDim> PressureGrad = prod(trans(rVariables.GradNT), PressureVector);
 
