@@ -50,28 +50,6 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "AssignVectorVariableProcess",
             "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Displacement_YSYMM_Node_Up",
-                "variable_name"   : "DISPLACEMENT",
-                "interval"        : [0.0,"End"],
-                "constrained"     : [true,false,true],
-                "value"           : [0.0,null,0.0]
-            }
-        },{
-            "python_module" : "assign_vector_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignVectorVariableProcess",
-            "Parameters"    : {
-                "model_part_name" : "Structure.DISPLACEMENT_Displacement_YSYMM_Node_Down",
-                "variable_name"   : "DISPLACEMENT",
-                "interval"        : [0.0,"End"],
-                "constrained"     : [true,false,true],
-                "value"           : [0.0,null,0.0]
-            }
-        },{
-            "python_module" : "assign_vector_variable_process",
-            "kratos_module" : "KratosMultiphysics",
-            "process_name"  : "AssignVectorVariableProcess",
-            "Parameters"    : {
                 "model_part_name" : "Structure.DISPLACEMENT_Displacement_XSYMM_Node_Left",
                 "variable_name"   : "DISPLACEMENT",
                 "interval"        : [0.0,"End"],
