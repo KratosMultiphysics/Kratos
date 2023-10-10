@@ -126,10 +126,14 @@ class HRomTrainingUtility(object):
             self.time_step_residual_matrix_container.append(np_res_mat)
         elif self.element_selection_type == "discrete_empirical_interpolation":
             if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","Generating matrix of residuals.")
-            res_vec = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize(), 0.0)
-            self.solver._GetBuilderAndSolver().GetRHSNoDirichlet(self.solver._GetScheme(), computing_model_part, res_vec)
-            np_res_vec = np.array(res_vec, copy=False)
-            self.time_step_residual_matrix_container.append(np_res_vec)
+            # res_vec = KratosMultiphysics.Vector(self.solver._GetBuilderAndSolver().GetEquationSystemSize(), 0.0)
+            # self.solver._GetBuilderAndSolver().GetRHSNoDirichlet(self.solver._GetScheme(), computing_model_part, res_vec)
+            # np_res_vec = np.array(res_vec, copy=False)
+            # self.time_step_residual_matrix_container.append(np_res_vec)
+            res_mat = self.solver._GetBuilderAndSolver().GetNonConvergedResiduals()
+            np_res_mat = np.array(res_mat, copy=False)
+            print(np_res_mat.shape)
+            self.time_step_residual_matrix_container.append(np_res_mat)
 
 
     def CalculateAndSaveHRomWeights(self):
@@ -150,6 +154,7 @@ class HRomTrainingUtility(object):
         elif self.element_selection_type == "discrete_empirical_interpolation":
             self.hyper_reduction_element_selector.SetUp(residual_basis) # Set up the Q-DEIM method
             self.hyper_reduction_element_selector.Run() # Run the Q-DEIM method
+            self.AppendSelectedDofs()
 
     def CreateHRomModelParts(self):
         # Get solver data
@@ -365,6 +370,9 @@ class HRomTrainingUtility(object):
                 json.dump(updated_rom_parameters, f, indent=4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
+
+    def AppendSelectedDofs(self):
+        selected_dofs = self.hyper_reduction_element_selector.P
 
     def __AddSelectedElementsWithZeroWeights(self, original_weights,original_elements, elements_to_add):
 
