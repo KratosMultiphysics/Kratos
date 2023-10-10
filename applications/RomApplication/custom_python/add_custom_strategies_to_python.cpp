@@ -72,6 +72,7 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
         .def("GetRHSNoDirichlet", &GlobalROMBuilderAndSolverType::GetRHSNoDirichlet)
         .def("SetInterpolationMatrices", &GlobalROMBuilderAndSolverType::SetInterpolationMatrices)
+        .def("GetNonConvergedResiduals", &GlobalROMBuilderAndSolverType::GetNonConvergedResiduals)
         ;
 
     typedef LeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> LeastSquaresPetrovGalerkinROMBuilderAndSolverType;
