@@ -22,6 +22,7 @@ def CreateSolver(cls, model, custom_settings):
             default_settings = KratosMultiphysics.Parameters("""{
                 "projection_strategy" : "galerkin",
                 "assembling_strategy" : "global",
+                "run_hrom" : false,
                 "rom_settings": {
                     "nodal_unknowns": [],
                     "number_of_rom_dofs": 0,
@@ -86,7 +87,9 @@ def CreateSolver(cls, model, custom_settings):
         
         def _AssignMissingInnerRomParameters(self, projection_strategy):
             monotonicity_preserving = self.settings["rom_settings"]["rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.settings["rom_settings"]["rom_bns_settings"].Has("monotonicity_preserving") else False
+            hrom_flag = self.settings["run_hrom"].GetBool()
             if projection_strategy=="global_galerkin" or projection_strategy=="lspg": #TODO: Do it for all global rom B&Ss.
                 self.settings["rom_settings"]["rom_bns_settings"].AddBool("monotonicity_preserving", monotonicity_preserving)
+                self.settings["rom_settings"]["rom_bns_settings"].AddBool("hrom_flag", hrom_flag)
 
     return ROMSolver(model, custom_settings)
