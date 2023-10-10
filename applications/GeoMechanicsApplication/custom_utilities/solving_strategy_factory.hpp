@@ -49,6 +49,7 @@ public:
         if (rSolverSettings[strategy_type].GetString() ==
             GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Name())
         {
+            auto strategy_parameters = ExtractStrategyParameters(rSolverSettings);
             return std::make_unique<GeoMechanicsNewtonRaphsonStrategy<TSparseSpace,
                     TDenseSpace,
                     TLinearSolver>>(rModelPart,
@@ -56,7 +57,7 @@ public:
                     solver,
                     criteria,
                     builder_and_solver,
-                    ExtractStrategyParameters(rSolverSettings));
+                    strategy_parameters);
         }
 
         return nullptr;

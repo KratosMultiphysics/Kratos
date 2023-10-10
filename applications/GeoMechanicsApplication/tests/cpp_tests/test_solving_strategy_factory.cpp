@@ -95,7 +95,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateSolvingStrategy_Throws_WhenNoStrategyTypeIsDefin
     Model model;
     auto& dummy_model_part = model.CreateModelPart("dummy");
 
-    Parameters parameters{};
+    const Parameters parameters{};
 
     KRATOS_EXPECT_EXCEPTION_IS_THROWN(auto test = SolvingStrategyFactoryType::Create(
             parameters, dummy_model_part), "The parameter strategy_type is undefined, aborting.")
@@ -106,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy
     Model model;
     const int buffer_size = 3;
     auto& dummy_model_part = model.CreateModelPart("dummy", buffer_size);
-    Parameters parameters{testParameters};
+    const Parameters parameters{testParameters};
 
     const auto created_strategy = SolvingStrategyFactoryType::Create(
             parameters, dummy_model_part);
