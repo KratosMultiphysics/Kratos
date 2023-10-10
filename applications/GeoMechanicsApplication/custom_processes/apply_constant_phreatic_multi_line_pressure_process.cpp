@@ -27,10 +27,7 @@ ApplyConstantPhreaticMultiLinePressureProcess::ApplyConstantPhreaticMultiLinePre
     mIsFixed = rParameters["is_fixed"].GetBool();
     mIsSeepage = rParameters["is_seepage"].GetBool();
     mSpecificWeight = rParameters["specific_weight"].GetDouble();
-    if (rParameters.Has("pressure_tension_cut_off"))
-        mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
-    else
-        mPressureTensionCutOff = 0.0;
+    mPressureTensionCutOff = rParameters["pressure_tension_cut_off"].GetDouble();
     mOutOfPlaneDirection = rParameters["out_of_plane_direction"].GetInt();
 
     InitializeCoordinates(rParameters);
