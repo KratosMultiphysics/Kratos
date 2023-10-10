@@ -2451,7 +2451,6 @@ GeometryData::IntegrationMethod
         break;
     }
 
-    //return GeometryData::IntegrationMethod::GI_GAUSS_2;
     return GI_GAUSS;
 }
 
@@ -2461,7 +2460,9 @@ void SmallStrainUPwDiffOrderElement::
 {
     if (rVariables.UseHenckyStrain) {
         this->CalculateDeformationGradient(rVariables, GPoint);
-        this->CalculateHenckyStrain( rVariables );
+        const SizeType Dim        = GetGeometry().WorkingSpaceDimension();
+        const SizeType VoigtSize  = ( Dim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+        noalias(rVariables.StrainVector) = StressStrainUtilities::CalculateHenckyStrain(rVariables.F, VoigtSize);
     } else {
         this->CalculateCauchyStrain( rVariables );
     }
@@ -2571,52 +2572,6 @@ void SmallStrainUPwDiffOrderElement::
 
     ETensor *= 0.5;
 
-    if (Dim==2) {
-        Vector StrainVector;
-        StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector[0];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector[1];
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
-        rVariables.StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector[2];
-    } else {
-        noalias(rVariables.StrainVector) = MathUtils<double>::StrainTensorToVector(ETensor);
-    }
-
-    KRATOS_CATCH( "" )
-}
-
-//----------------------------------------------------------------------------------------
-void SmallStrainUPwDiffOrderElement::
-    CalculateHenckyStrain( ElementVariables& rVariables )
-{
-    KRATOS_TRY
-
-    const GeometryType& rGeom = GetGeometry();
-    const SizeType Dim = rGeom.WorkingSpaceDimension();
-
-    //-Compute total deformation gradient
-    const Matrix& F = rVariables.F;
-
-    Matrix CMatrix;
-    CMatrix = prod(trans(F), F);
-
-    // Declare the different matrix
-    Matrix EigenValuesMatrix = ZeroMatrix(Dim, Dim);
-    Matrix EigenVectorsMatrix = ZeroMatrix(Dim, Dim);
-
-    // Decompose matrix
-    MathUtils<double>::GaussSeidelEigenSystem(CMatrix, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-16, 20);
-
-    // Calculate the eigenvalues of the E matrix
-    for (IndexType i = 0; i < Dim; ++i) {
-        EigenValuesMatrix(i, i) = 0.5 * std::log(EigenValuesMatrix(i, i));
-    }
-
-    // Calculate E matrix
-    Matrix ETensor = ZeroMatrix(Dim, Dim);
-    MathUtils<double>::BDBtProductOperation(ETensor, EigenValuesMatrix, EigenVectorsMatrix);
-
-    // Hencky Strain Calculation
     if (Dim==2) {
         Vector StrainVector;
         StrainVector = MathUtils<double>::StrainTensorToVector(ETensor);
