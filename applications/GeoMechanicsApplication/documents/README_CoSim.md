@@ -38,7 +38,7 @@ Lines: 654 to 659
 applications\GeoMechanicsApplication\custom_elements\transient_thermal_element.cpp <br>
 Lines: 211 to 214
 
-The update for density and viscosity to the thermal element is added <br>
+- The update for density and viscosity to the thermal element is added <br>
 applications\GeoMechanicsApplication\custom_elements\transient_thermal_element.cpp <br>
 Lines: 259 to 264
 
@@ -46,7 +46,7 @@ Lines: 259 to 264
 dapplications\GeoMechanicsApplication\custom_utilities\thermal_utilities.hpp <br>
 Whole file
 
-The dispersion matrix is extended to incooperate the effect of water flow <br>
+- The dispersion matrix is extended to incooperate the effect of water flow <br>
 applications\GeoMechanicsApplication\custom_constitutive\thermal_dispersion_2D_law.cpp <br>
 Lines: 52 to 63
 
