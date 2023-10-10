@@ -118,7 +118,7 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
         std::vector<int> send_buffer(1, local_result_size);
         std::vector<int> recv_buffer(world_size);
         rDataCommunicator.AllGather(send_buffer, recv_buffer);
-        
+
         // In rank 0
         if (rank == 0) {
             // Fill global vector with local result
@@ -130,7 +130,7 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
             // Create a lambda to generate the vector of indexes greater than zero
             auto GenerateIndexesLambda = [](const std::vector<int>& rInputVector) {
                 std::vector<int> indexes;
-                for (int i = 0; i < static_cast<int>(rInputVector.size()); ++i) {
+                for (int i = 1; i < static_cast<int>(rInputVector.size()); ++i) {
                     if (rInputVector[i] > 0) {
                         indexes.push_back(i);
                     }
@@ -161,13 +161,8 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
                 rDataCommunicator.Send(mLocalResults, 0);
             }
 
-            // Receiving sync result
-            LocalResultsVector recv_gps;
-            rDataCommunicator.Recv(recv_gps, 0);
-            for (auto& r_value : recv_gps) {
-                auto p_result = Kratos::make_shared<SpatialSearchResultType>(r_value);
-                mGlobalResults.push_back(p_result);
-            }
+            // Receiving synced result
+            rDataCommunicator.Recv(mGlobalResults, 0);
         }
     } else { // Serial code
         // Fill global vector
