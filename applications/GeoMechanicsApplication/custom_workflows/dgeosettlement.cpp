@@ -93,42 +93,57 @@ void KratosGeoSettlement::InitializeProcessFactory()
 
 int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorkingDirectory,
                                   const std::filesystem::path&            rProjectParametersFile,
-                                  const std::function<void(const char*)>& ,
+                                  const std::function<void(const char*)>& rLogCallback,
                                   const std::function<void(double)>&      ,
                                   const std::function<void(const char*)>& ,
                                   const std::function<bool()>&            )
 {
-    KRATOS_INFO("KratosGeoSettlement") << "About to run a stage..." << std::endl;
+    std::stringstream kratos_log_buffer;
+    LoggerOutput::Pointer logger_output = CreateLoggingOutput(kratos_log_buffer);
 
-    const auto project_parameters_file_path = rWorkingDirectory / rProjectParametersFile;
-    const auto project_parameters = mpInputUtility->ProjectParametersFromFile(
-            project_parameters_file_path.generic_string());
-    KRATOS_INFO("KratosGeoSettlement") << "Parsed project parameters file " << project_parameters_file_path << std::endl;
+    try {
+        KRATOS_INFO("KratosGeoSettlement") << "About to run a stage..." << std::endl;
 
-    mModelPartName = project_parameters["solver_settings"]["model_part_name"].GetString();
-    if (const auto model_part_name = project_parameters["solver_settings"]["model_part_name"].GetString();
-        !mModel.HasModelPart(model_part_name)) {
-        auto& model_part = AddNewModelPart(model_part_name);
-        const auto mesh_file_name = project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString();
-        mpInputUtility->ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
+        const auto project_parameters_file_path = rWorkingDirectory / rProjectParametersFile;
+        const auto project_parameters = mpInputUtility->ProjectParametersFromFile(
+                project_parameters_file_path.generic_string());
+        KRATOS_INFO("KratosGeoSettlement") << "Parsed project parameters file " << project_parameters_file_path << std::endl;
+
+        mModelPartName = project_parameters["solver_settings"]["model_part_name"].GetString();
+        if (const auto model_part_name = project_parameters["solver_settings"]["model_part_name"].GetString();
+            !mModel.HasModelPart(model_part_name)) {
+            auto& model_part = AddNewModelPart(model_part_name);
+            const auto mesh_file_name = project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString();
+            mpInputUtility->ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
+        }
+
+        if (project_parameters["solver_settings"].Has("material_import_settings")) {
+            const auto material_file_name = project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
+            const auto material_file_path = rWorkingDirectory / material_file_name;
+            mpInputUtility->AddMaterialsFromFile(material_file_path.generic_string(), mModel);
+            KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
+        }
+
+        std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
+        std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
+
+        if (mpTimeLoopExecutor)
+        {
+            mpTimeLoopExecutor->SetProcessReferences(process_observables);
+        }
+
+        FlushLoggingOutput(rLogCallback, logger_output, kratos_log_buffer);
+
+        return 0;
     }
-
-    if (project_parameters["solver_settings"].Has("material_import_settings")) {
-        const auto material_file_name = project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
-        const auto material_file_path = rWorkingDirectory / material_file_name;
-        mpInputUtility->AddMaterialsFromFile(material_file_path.generic_string(), mModel);
-        KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
-    }
-
-    std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
-    std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
-
-    if (mpTimeLoopExecutor)
+    catch (const std::exception &exc)
     {
-        mpTimeLoopExecutor->SetProcessReferences(process_observables);
-    }
+        KRATOS_INFO("KratosGeoSettlement") << exc.what();
 
-    return 0;
+        FlushLoggingOutput(rLogCallback, logger_output, kratos_log_buffer);
+
+        return 1;
+    }
 }
 
 ModelPart& KratosGeoSettlement::AddNewModelPart(const std::string& rModelPartName)
@@ -181,6 +196,21 @@ void KratosGeoSettlement::AddDegreesOfFreedomTo(Kratos::ModelPart &rModelPart)
     VariableUtils().AddDof(VOLUME_ACCELERATION_X, rModelPart);
     VariableUtils().AddDof(VOLUME_ACCELERATION_Y, rModelPart);
     VariableUtils().AddDof(VOLUME_ACCELERATION_Z, rModelPart);
+}
+
+LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const
+{
+    auto logger_output = std::make_shared<LoggerOutput>(rKratosLogBuffer);
+    Logger::AddOutput(logger_output);
+    return logger_output;
+}
+
+void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, 
+                                             LoggerOutput::Pointer pLoggerOutput, 
+                                             const std::stringstream& rKratosLogBuffer) const
+{
+    rLogCallback(rKratosLogBuffer.str().c_str());
+    Logger::RemoveOutput(pLoggerOutput);
 }
 
 const InputUtility* KratosGeoSettlement::GetInterfaceInputUtility() const
