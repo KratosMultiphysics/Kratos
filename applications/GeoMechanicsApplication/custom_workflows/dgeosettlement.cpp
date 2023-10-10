@@ -206,8 +206,8 @@ LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream
 }
 
 void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)> &rLogCallback, 
-                                                   LoggerOutput::Pointer pLoggerOutput, 
-                                                   const std::stringstream &rKratosLogBuffer) const
+                                             LoggerOutput::Pointer pLoggerOutput, 
+                                             const std::stringstream &rKratosLogBuffer) const
 {
     rLogCallback(rKratosLogBuffer.str().c_str());
     Logger::RemoveOutput(pLoggerOutput);
