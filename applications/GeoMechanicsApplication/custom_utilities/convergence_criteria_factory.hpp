@@ -34,7 +34,8 @@ public:
         {
             Parameters convergenceInputs;
 
-            for (const std::string& entry : {"displacement_absolute_tolerance", "displacement_relative_tolerance"})
+            std::vector<std::string> entries_to_copy = {"displacement_absolute_tolerance", "displacement_relative_tolerance"};
+            for (const std::string& entry : entries_to_copy)
             {
                 if (rSolverSettings.Has(entry))
                 {
