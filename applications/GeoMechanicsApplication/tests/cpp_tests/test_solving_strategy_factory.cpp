@@ -104,7 +104,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateSolvingStrategy_Throws_WhenNoStrategyTypeIsDefin
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    const int buffer_size = 3;
+    const int buffer_size = 2;
     auto& dummy_model_part = model.CreateModelPart("dummy", buffer_size);
     const Parameters parameters{testParameters};
 
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy
             parameters, dummy_model_part);
 
     KRATOS_EXPECT_NE(created_strategy, nullptr);
-    created_strategy->Check();
+    KRATOS_EXPECT_EQ(created_strategy->Check(), 0);
 }
 
 }

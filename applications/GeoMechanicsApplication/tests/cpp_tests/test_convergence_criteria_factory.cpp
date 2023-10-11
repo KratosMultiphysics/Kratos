@@ -13,16 +13,6 @@
 #include "testing/testing.h"
 #include "custom_utilities/convergence_criteria_factory.hpp"
 #include "spaces/ublas_space.h"
-#include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
-
-const std::string validParameters = R"(
-    {
-        "convergence_criterion":              "displacement_criterion",
-        "displacement_relative_tolerance":    1.0E-4,
-        "displacement_absolute_tolerance":    1.0E-9
-    }
-)";
-
 
 using namespace Kratos;
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
@@ -33,6 +23,14 @@ namespace Kratos::Testing
 
 KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsCorrectConvergenceCriteria_ForDisplacement, KratosGeoMechanicsFastSuite)
 {
+    const std::string validParameters = R"(
+    {
+        "convergence_criterion":              "displacement_criterion",
+        "displacement_relative_tolerance":    1.0E-4,
+        "displacement_absolute_tolerance":    1.0E-9
+    }
+    )";
+
     const auto convergence_criteria = ConvergenceCriteriaFactory<SparseSpaceType, LocalSpaceType>::Create(Parameters{validParameters});
     const auto displacementCriterion = dynamic_cast<const DisplacementCriteria<SparseSpaceType, LocalSpaceType>*>(convergence_criteria.get());
     KRATOS_EXPECT_NE(displacementCriterion, nullptr);

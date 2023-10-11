@@ -16,13 +16,8 @@
 #include <string>
 
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "spaces/ublas_space.h"
-#include "linear_solvers/linear_solver.h"
-#include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
-#include "solving_strategy_factory.hpp"
-#include "factories/standard_linear_solver_factory.h"
-#include "solving_strategies/strategies/residualbased_linear_strategy.h"
 #include "custom_strategies/strategies/geo_mechanics_newton_raphson_strategy.hpp"
+#include "factories/standard_linear_solver_factory.h"
 #include "scheme_factory.hpp"
 #include "convergence_criteria_factory.hpp"
 #include "builder_and_solver_factory.hpp"
@@ -63,6 +58,7 @@ public:
         return nullptr;
     }
 
+private:
     static Parameters ExtractStrategyParameters(const Parameters &rSolverSettings)
     {
         Parameters result;

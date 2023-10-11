@@ -12,8 +12,6 @@
 
 #pragma once
 
-
-#include "solving_strategies/convergencecriterias/mixed_generic_criteria.h"
 #include "solving_strategies/convergencecriterias/displacement_criteria.h"
 
 namespace Kratos
