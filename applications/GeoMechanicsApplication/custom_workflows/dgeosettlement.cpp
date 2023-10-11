@@ -226,7 +226,6 @@ std::vector<std::shared_ptr<Process>> KratosGeoSettlement::GetProcesses(const Pa
         for (const auto &process: processes) {
             result.emplace_back(mProcessFactory->Create(process.name, process.parameters));
         }
-
     }
 
     return result;
