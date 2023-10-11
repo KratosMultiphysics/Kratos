@@ -227,6 +227,15 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     InterpolationIndicesMatrix = KratosMultiphysics.Matrix(np.load('InterpolationIndicesMatrix.npy'))
                     builder_and_solver = self._GetSolver()._GetBuilderAndSolver()
                     builder_and_solver.SetInterpolationMatrices(InterpolationWeights, InterpolationIndicesMatrix)
+                    # Set the HROM weights in elements and conditions
+                    element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
+                    element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
+                    condition_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionIds.npy")
+                    conditon_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ConditionWeights.npy")
+                    for i in range(np.size(element_indexes)):
+                        computing_model_part.GetElement(int( element_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, element_weights[i]  ) #FIXME: FIX THE +1
+                    for i in range(np.size(condition_indexes)):
+                        computing_model_part.GetCondition(int( condition_indexes[i])+1).SetValue(KratosROM.HROM_WEIGHT, conditon_weights[i]  ) #FIXME: FIX THE +1
 
             # Check and Initialize Petrov Galerkin Training stage
             if self.train_petrov_galerkin:

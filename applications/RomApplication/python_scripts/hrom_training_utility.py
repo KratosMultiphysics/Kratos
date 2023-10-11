@@ -160,7 +160,7 @@ class HRomTrainingUtility(object):
         elif self.element_selection_type == "discrete_empirical_interpolation":
             self.hyper_reduction_element_selector.SetUp(residual_basis) # Set up the Q-DEIM method
             self.hyper_reduction_element_selector.Run() # Run the Q-DEIM method
-            self.AppendSelectedDofs()
+            self.AppendHRomWeightsToRomParameters()
 
     def CreateHRomModelParts(self):
         # Get solver data
@@ -178,51 +178,46 @@ class HRomTrainingUtility(object):
         aux_model = KratosMultiphysics.Model()
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
-        if self.element_selection_type=="empirical_cubature":
-            if self.hrom_output_format == "numpy":
-                hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
-            elif self.hrom_output_format == "json":
-                with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
-                    rom_parameters = KratosMultiphysics.Parameters(f.read())
-                    hrom_info = rom_parameters["elements_and_weights"]
+        if self.hrom_output_format == "numpy":
+            hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
+        elif self.hrom_output_format == "json":
+            with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
+                rom_parameters = KratosMultiphysics.Parameters(f.read())
+                hrom_info = rom_parameters["elements_and_weights"]
 
-            # Get the weights and fill the HROM computing model part
-            KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
+        # Get the weights and fill the HROM computing model part
+        KratosROM.RomAuxiliaryUtilities.SetHRomComputingModelPart(hrom_info,computing_model_part,hrom_main_model_part)
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
+
+        # Output the HROM model part in mdpa format
+        hrom_output_name = "{}HROM".format(model_part_output_name)
+        model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+        model_part_io.WriteModelPart(hrom_main_model_part)
+        KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
+        if self.echo_level > 0:
+            KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}.mdpa\'".format(hrom_output_name))
+
+        #TODO: Make this optional
+        #TODO: Move this out of here
+        # Create the HROM visualization model parts
+        if self.hrom_visualization_model_part:
+            # Create the HROM visualization mesh from the origin model part
+            hrom_visualization_model_part_name = "{}Visualization".format(hrom_main_model_part.Name)
+            hrom_visualization_model_part = aux_model.CreateModelPart(hrom_visualization_model_part_name)
+            KratosROM.RomAuxiliaryUtilities.SetHRomVolumetricVisualizationModelPart(computing_model_part, hrom_visualization_model_part)
             if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM computing model part \'{}\' created.".format(hrom_main_model_part.FullName()))
+                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization model part \'{}\' created.".format(hrom_visualization_model_part.FullName()))
 
-            # Output the HROM model part in mdpa format
-            hrom_output_name = "{}HROM".format(model_part_output_name)
-            model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
-            model_part_io.WriteModelPart(hrom_main_model_part)
-            KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
+            print(hrom_visualization_model_part)
+
+            # Write the HROM visualization mesh
+            hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
+            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
+            model_part_io.WriteModelPart(hrom_visualization_model_part)
+            KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
             if self.echo_level > 0:
-                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM mesh written in \'{}.mdpa\'".format(hrom_output_name))
-
-            #TODO: Make this optional
-            #TODO: Move this out of here
-            # Create the HROM visualization model parts
-            if self.hrom_visualization_model_part:
-                # Create the HROM visualization mesh from the origin model part
-                hrom_visualization_model_part_name = "{}Visualization".format(hrom_main_model_part.Name)
-                hrom_visualization_model_part = aux_model.CreateModelPart(hrom_visualization_model_part_name)
-                KratosROM.RomAuxiliaryUtilities.SetHRomVolumetricVisualizationModelPart(computing_model_part, hrom_visualization_model_part)
-                if self.echo_level > 0:
-                    KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization model part \'{}\' created.".format(hrom_visualization_model_part.FullName()))
-
-                print(hrom_visualization_model_part)
-
-                # Write the HROM visualization mesh
-                hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
-                model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
-                model_part_io.WriteModelPart(hrom_visualization_model_part)
-                KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
-                if self.echo_level > 0:
-                    KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}.mdpa\'".format(hrom_vis_output_name))
-        
-        elif self.element_selection_type=="discrete_empirical_interpolation":
-            if self.hrom_output_format == "numpy":
-                hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
+                KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}.mdpa\'".format(hrom_vis_output_name))
 
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):
@@ -268,9 +263,14 @@ class HRomTrainingUtility(object):
 
 
     def AppendHRomWeightsToRomParameters(self):
+        if self.element_selection_type=="empirical_cubature":
+            weights = np.squeeze(self.hyper_reduction_element_selector.w)
+            indexes = self.hyper_reduction_element_selector.z
+        
+        elif self.element_selection_type=="discrete_empirical_interpolation":
+            indexes, weights = self.__GetSelectedElements()
+
         number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
-        weights = np.squeeze(self.hyper_reduction_element_selector.w)
-        indexes = self.hyper_reduction_element_selector.z
 
         # Create dictionary with HROM weights (Only used for the expansion of the selected Conditions to include their parent Elements)
         hrom_weights = self.__CreateDictionaryWithRomElementsAndWeights(weights,indexes,number_of_elements)
@@ -379,9 +379,15 @@ class HRomTrainingUtility(object):
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
-    def AppendSelectedDofs(self):
+    def __GetSelectedElements(self):
         selected_dofs = self.hyper_reduction_element_selector.P
-        new_nodal_neighbours = KratosROM.RomAuxiliaryUtilities.GetElementsFromEquationIds(self.solver.GetComputingModelPart(), selected_dofs)
+        selected_elements_and_neighbours = KratosROM.RomAuxiliaryUtilities.GetElementsAndConditionsFromEquationIds(self.solver.GetComputingModelPart(), selected_dofs)
+        
+        # Create a vector of ones for weights based on the length of the selected elements and neighbours
+        ones_weights = np.ones(len(selected_elements_and_neighbours))
+        
+        return np.array(selected_elements_and_neighbours), ones_weights
+
 
     def __AddSelectedElementsWithZeroWeights(self, original_weights,original_elements, elements_to_add):
 
