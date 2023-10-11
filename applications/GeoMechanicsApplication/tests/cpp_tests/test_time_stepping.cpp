@@ -49,6 +49,8 @@ public:
     void SetTimeIncrement(double TimeIncrement) override {}
     [[nodiscard]] std::size_t GetStepNumber() const override {return 0;}
     void IncrementStepNumber() override {}
+    void CloneTimeStep() override {};
+
     void Initialize()             override {++mSolverStrategyInitializeCalls;}
     void InitializeSolutionStep() override {++mSolverStrategyInitializeSolutionStepCalls;}
     void Predict()                override {++mSolverStrategyPredictCalls;}

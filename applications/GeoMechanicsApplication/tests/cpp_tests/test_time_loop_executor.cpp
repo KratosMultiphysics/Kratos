@@ -30,9 +30,11 @@ class DummySolverStrategy : public StrategyWrapper
 {
 public:
     explicit DummySolverStrategy(TimeStepEndState::ConvergenceState AConvergenceState)
-    : mConvergenceState{AConvergenceState},
-      mrModelPart{TestModel.CreateModelPart("TestModelPart")}
+    : mConvergenceState{AConvergenceState}
     {
+        mModel.Reset();
+        mpModelPart = &TestModel.CreateModelPart("TestModelPart");
+        mpModelPart->Reset();
     }
 
     [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState() override
@@ -47,32 +49,42 @@ public:
 
     [[nodiscard]] double GetEndTime() const override
     {
-        return mrModelPart.GetProcessInfo()[TIME];
+        return mpModelPart->GetProcessInfo()[TIME];
     }
 
     void SetEndTime(double EndTime) override
     {
-        mrModelPart.GetProcessInfo()[TIME] = EndTime;
+        mpModelPart->GetProcessInfo()[TIME] = EndTime;
     }
 
     [[nodiscard]] double GetTimeIncrement() const override
     {
-        return mrModelPart.GetProcessInfo()[DELTA_TIME];
+        return mpModelPart->GetProcessInfo()[DELTA_TIME];
     }
 
     void SetTimeIncrement(double TimeIncrement) override
     {
-        mrModelPart.GetProcessInfo()[DELTA_TIME] = TimeIncrement;
+        mpModelPart->GetProcessInfo()[DELTA_TIME] = TimeIncrement;
     }
 
     [[nodiscard]] std::size_t GetStepNumber() const override
     {
-        return static_cast<std::size_t>(mrModelPart.GetProcessInfo()[STEP]);
+        return static_cast<std::size_t>(mpModelPart->GetProcessInfo()[STEP]);
     }
 
     void IncrementStepNumber() override
     {
-        mrModelPart.GetProcessInfo()[STEP] += 1;
+        mpModelPart->GetProcessInfo()[STEP] += 1;
+    }
+
+    void CloneTimeStep() override
+    {
+        mIsCloned = true;
+    }
+
+    bool IsCloned() const
+    {
+        return mIsCloned;
     }
 
     void Initialize()             override {}
@@ -83,7 +95,9 @@ public:
 
 private:
     TimeStepEndState::ConvergenceState mConvergenceState{TimeStepEndState::ConvergenceState::converged};
-    ModelPart& mrModelPart;
+    Model mModel;
+    ModelPart * mpModelPart = nullptr;
+    bool mIsCloned = false;
 };
 
 class FixedCyclesTimeIncrementor : public TimeIncrementor
@@ -221,6 +235,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetAfterRunningAStep, KratosGeoMechan
 {
     TimeLoopExecutor executor;
     const auto wanted_num_of_cycles_per_step = 1;
+    // The FixedClyclesTimeIncrementor takes increments of 0.5
     executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
     auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategyTimeIncrementor(solver_strategy);
@@ -229,6 +244,18 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetAfterRunningAStep, KratosGeoMechan
     KRATOS_EXPECT_DOUBLE_EQ(1.0, solver_strategy->GetEndTime());
     KRATOS_EXPECT_DOUBLE_EQ(0.5, solver_strategy->GetTimeIncrement());
     KRATOS_EXPECT_EQ(2, solver_strategy->GetStepNumber());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectATimeStepCloneAtStartOfStep, KratosGeoMechanicsFastSuite)
+{
+    TimeLoopExecutor executor;
+    const auto wanted_num_of_cycles_per_step = 1;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    executor.SetSolverStrategyTimeIncrementor(solver_strategy);
+    const auto step_states = executor.Run(TimeStepEndState{});
+    // what to test for correct functioning of cloning the time step
+    KRATOS_EXPECT_TRUE(solver_strategy->IsCloned());
 }
 
 }

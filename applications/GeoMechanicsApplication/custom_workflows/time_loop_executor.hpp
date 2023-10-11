@@ -51,6 +51,8 @@ public :
         std::vector<TimeStepEndState> result;
         while (mTimeIncrementor->WantNextStep(end_state)) {
             mStrategyWrapper->IncrementStepNumber();
+            // clone without end time, the end time is overwritten anyway
+            mStrategyWrapper->CloneTimeStep();
             end_state = RunCycleLoop(end_state);
             result.emplace_back(end_state);
         }
