@@ -142,7 +142,7 @@ void DirectionalDerivativeResponseFunctionUtility::CalculateGradient()
 	KRATOS_TRY;
 
 	for (auto& cond_i : mrModelPart.Conditions()){
-		cond_i.GetProperties().SetValue(THICKNESS_SENSITIVITY, 0.0);
+		cond_i.SetValue(THICKNESS_SENSITIVITY, 0.0);
 	}
 
 	double count = 0;
@@ -173,8 +173,8 @@ void DirectionalDerivativeResponseFunctionUtility::CalculateGradient()
 				const double dgj_dtj = inner_prod(mMainDirection, dt_dx_dtj);
 
 				// Add to aggregated sensitivities
-				cond_i.GetProperties().GetValue(THICKNESS_SENSITIVITY) += 1/mValue * g_j * dgj_dti;
-				r_condition_neighbour.GetProperties().GetValue(THICKNESS_SENSITIVITY) += 1/mValue * g_j * dgj_dtj;
+				cond_i.GetValue(THICKNESS_SENSITIVITY) += 1/mValue * g_j * dgj_dti;
+				r_condition_neighbour.GetValue(THICKNESS_SENSITIVITY) += 1/mValue * g_j * dgj_dtj;
 			}
 		}
 		count += 1;

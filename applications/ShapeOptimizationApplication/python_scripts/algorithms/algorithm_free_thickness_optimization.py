@@ -143,22 +143,6 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
         self.model_part_controller.UpdateThicknessAccordingInputVariable(KSO.THICKNESS_UPDATE)
 
-        i = 0
-        for condition in self.optimization_model_part.Conditions:
-            i += 1
-            if i < 11:
-                print(f"Condition: {condition.Id} Thickness: {condition.Properties.GetValue(KM.THICKNESS)}")
-            else:
-                break
-
-        i = 0
-        for property in self.optimization_model_part.Properties:
-            i += 1
-            if i < 11:
-                print(f"Property: {property.Id} Thickness: {property.GetValue(KM.THICKNESS)}")
-            else:
-                break
-
         self.model_part_controller.SetReferenceMeshToMesh()
 
     # --------------------------------------------------------------------------
@@ -178,9 +162,7 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
         self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
 
         # project and damp objective gradients
-        objGradientDict = self.communicator.getStandardizedThicknessGradient(self.objectives[0]["identifier"].GetString())
-        objElementGradientDict = dict()
-        self.__mapPropertyGradientToElement(objGradientDict, objElementGradientDict)
+        objElementGradientDict = self.communicator.getStandardizedThicknessGradient(self.objectives[0]["identifier"].GetString())
         self.__mapElementGradientToNode(objElementGradientDict, KSO.DF1DT)
 
         self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DT)
@@ -188,10 +170,8 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
         # project and damp constraint gradients
         for constraint in self.constraints:
             con_id = constraint["identifier"].GetString()
-            conGradientDict = self.communicator.getStandardizedThicknessGradient(con_id)
+            conElementGradientDict = self.communicator.getStandardizedThicknessGradient(con_id)
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
-            conElementGradientDict = dict()
-            self.__mapPropertyGradientToElement(conGradientDict, conElementGradientDict)
             self.__mapElementGradientToNode(conElementGradientDict, gradient_variable)
 
             self.model_part_controller.DampNodalSensitivityVariableIfSpecified(gradient_variable)
@@ -341,7 +321,6 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges(self):
 
-        # TODO: move to c++
         for node in self.optimization_model_part.Nodes:
             absolute_control_update = node.GetSolutionStepValue(KSO.THICKNESS_CONTROL_CHANGE)
             absolute_control_update += node.GetSolutionStepValue(KSO.THICKNESS_CONTROL_UPDATE)
@@ -355,16 +334,7 @@ class AlgorithmFreeThicknessOptimization(OptimizationAlgorithm):
             thickness += node.GetSolutionStepValue(KSO.THICKNESS_UPDATE)
             node.SetSolutionStepValue(KSO.THICKNESS, 0, thickness)
 
-
-        # self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.THICKNESS_CONTROL_UPDATE, KSO.THICKNESS_CONTROL_CHANGE)
-        # self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.THICKNESS_UPDATE, KSO.THICKNESS_CHANGE)
         return
-
-    # --------------------------------------------------------------------------
-    def __mapPropertyGradientToElement(self, property_gradient_dict, element_gradient_dict):
-
-        for condition in self.optimization_model_part.Conditions:
-            element_gradient_dict[condition.Id] = property_gradient_dict[condition.Properties.Id]
 
     # --------------------------------------------------------------------------
     def __mapElementGradientToNode(self, element_gradient_dict, gradient_variable):

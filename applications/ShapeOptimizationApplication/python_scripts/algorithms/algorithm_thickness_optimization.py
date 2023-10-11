@@ -17,10 +17,8 @@ from KratosMultiphysics.LinearSolversApplication import dense_linear_solver_fact
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.algorithms.algorithm_base import OptimizationAlgorithm
-from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
-from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
 
 import math
 import numpy as np
@@ -89,6 +87,7 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
         self.optimization_model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CORRECTION)
 
         self.number_of_design_variables = None
+        self.property_ids = None
 
         self.thickness_dict = OrderedDict()
         self.thickness_update_dict = OrderedDict()
@@ -99,8 +98,6 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
     def CheckApplicability(self):
         if self.objectives.size() > 1:
             raise RuntimeError("Gradient projection algorithm only supports one objective function!")
-        if self.constraints.size() == 0:
-            raise RuntimeError("Gradient projection algorithm requires definition of at least one constraint!")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):
@@ -110,12 +107,26 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
 
         self.design_surface = self.model_part_controller.GetDesignSurface()
 
-        self.model_part_controller.InitializeDamping()
-
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
         self.data_logger.InitializeDataLogging()
 
         self.optimization_utilities = KSO.OptimizationUtilities
+
+        thickness_dict = dict()
+        for condition in self.design_surface.Conditions:
+            property = condition.Properties
+            if property.Has(KM.THICKNESS):
+                if property.Id not in thickness_dict:
+                    thickness_dict[property.Id] = property.GetValue(KM.THICKNESS)
+
+        self.number_of_design_variables = len(thickness_dict.values())
+
+        self.thickness_dict = OrderedDict(sorted(thickness_dict.items()))
+        self.control_thickness_dict = self.thickness_dict.copy()
+        self.property_ids = list(self.thickness_dict.keys())
+
+        self.__mapPropertyToNode(self.thickness_dict, KSO.THICKNESS)
+        self.__mapPropertyToNode(self.control_thickness_dict, KSO.THICKNESS_CONTROL)
 
     # --------------------------------------------------------------------------
     def RunOptimizationLoop(self):
@@ -130,10 +141,7 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
 
             timer.StartNewLap()
 
-            if self.optimization_iteration == 1:
-                self.__initializeFirstIteration()
-            else:
-                self.__initializeNewThickness()
+            self.__initializeNewThickness()
 
             self.__analyzeThickness()
 
@@ -157,28 +165,11 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
         self.analyzer.FinalizeAfterOptimizationLoop()
 
     # --------------------------------------------------------------------------
-    def __initializeFirstIteration(self):
-        self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
-        self.model_part_controller.SetReferenceMeshToMesh()
-
-        thickness_dict = dict()
-        for property in self.optimization_model_part.Properties:
-            thickness_dict[property.Id] = property.GetValue(KM.THICKNESS)
-
-        self.thickness_dict = OrderedDict(sorted(thickness_dict.items()))
-        self.control_thickness_dict = self.thickness_dict.copy()
-
-        self.__mapPropertyToNode(self.thickness_dict, KSO.THICKNESS)
-        self.__mapPropertyToNode(self.control_thickness_dict, KSO.THICKNESS_CONTROL)
-
-    # --------------------------------------------------------------------------
     def __initializeNewThickness(self):
         self.model_part_controller.UpdateTimeStep(self.optimization_iteration)
 
         for property in self.optimization_model_part.Properties:
             if property.Id in self.thickness_update_dict:
-                # self.thickness_dict[property.Id] += self.thickness_update_dict[property.Id]
-                # self.control_thickness_dict[property.Id] += self.control_update_dict[property.Id]
                 property.SetValue(KM.THICKNESS, self.thickness_dict[property.Id])
 
         self.model_part_controller.SetReferenceMeshToMesh()
@@ -197,49 +188,37 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
         self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
 
         # project and damp objective gradients
-        objGradientDict = self.communicator.getStandardizedThicknessGradient(self.objectives[0]["identifier"].GetString())
+        objElementGradientDict = self.communicator.getStandardizedThicknessGradient(self.objectives[0]["identifier"].GetString())
+        objGradientDict = dict()
+        self.__mapElementToProperty(objElementGradientDict, objGradientDict)
+
         self.objective_gradient_dict["gradient"] = OrderedDict(sorted(objGradientDict.items()))
-        self.property_ids = list(self.objective_gradient_dict["gradient"].keys())
+
         # for visualization on mesh
         self.__mapPropertyToNode(self.objective_gradient_dict["gradient"], KSO.DF1DT)
-
-        self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DT)
-
-        if not self.number_of_design_variables:
-            self.number_of_design_variables = len(self.objective_gradient_dict["gradient"].values())
 
         # project and damp constraint gradients
         for itr, constraint in enumerate(self.constraints):
             con_id = constraint["identifier"].GetString()
-            conGradientDict = self.communicator.getStandardizedThicknessGradient(con_id)
+            conElementGradientDict = self.communicator.getStandardizedThicknessGradient(con_id)
+            conGradientDict = dict()
+            self.__mapElementToProperty(conElementGradientDict, conGradientDict)
             self.constraint_gradients_dict[con_id]["gradient"] = OrderedDict(sorted(conGradientDict.items()))
+
             # for visualization on mesh
             gradient_variable = KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT")
             self.__mapPropertyToNode(self.constraint_gradients_dict[con_id]["gradient"], gradient_variable)
-
-            self.model_part_controller.DampNodalSensitivityVariableIfSpecified(gradient_variable)
 
     # --------------------------------------------------------------------------
     def __computeThicknessUpdate(self):
 
         ### 1. Project gradients to control thickness
         self.objective_gradient_dict["projected_gradient"] = self.__ProjectGradients(self.objective_gradient_dict["gradient"])
-        # print(f"""__computeThicknessUpdate:: gradient objective: {self.objective_gradient_dict["gradient"][100]}""")
-        # print(f"""__computeThicknessUpdate:: projected gradient objective: {self.objective_gradient_dict["projected_gradient"][100]}""")
-        # for visualization on mesh
-        # objGradientDict = self.objective_gradient_dict["projected_gradient"]
-        # self.__mapPropertyToNode(objGradientDict, KSO.DF1DT_PROJECTED)
 
         for itr, constraint in enumerate(self.constraints):
             con_id = constraint["identifier"].GetString()
             self.constraint_gradients_dict[con_id]["projected_gradient"] = self.__ProjectGradients(
                 self.constraint_gradients_dict[con_id]["gradient"])
-            # # for visualization on mesh
-            # gradient_variable = KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DT_PROJECTED")
-            # conGradientDict = self.constraint_gradients_dict[con_id]["projected_gradient"]
-            # self.__mapPropertyToNode(conGradientDict, gradient_variable)
-            # print(f"""__computeThicknessUpdate:: gradient constraint: {self.constraint_gradients_dict[con_id]["gradient"][100]}""")
-            # print(f"""__computeThicknessUpdate:: projected gradient constraint: {self.constraint_gradients_dict[con_id]["projected_gradient"][100]}""")
 
         ### 2. Compute control thickness update via gradient projection
         control_thickness_update = self.__computeControlThicknessUpdate()
@@ -249,17 +228,11 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
 
         ### 3. Project control thickness to obtain physical thickness
         thickness = self.__ProjectThickness(self.control_thickness_dict)
-        # print(f"__computeThicknessUpdate:: thickness: {thickness}")
-        # print(f"__computeThicknessUpdate:: thickness_dict: {self.thickness_dict}")
         for key in self.thickness_dict:
             self.thickness_update_dict[key] = thickness[key] - self.thickness_dict[key]
             self.thickness_dict[key] = thickness[key]
 
-        # print(f"__computeThicknessUpdate:: thickness_update_dict: {self.thickness_update_dict}")
-        # print(f"__computeThicknessUpdate:: thickness_dict: {self.thickness_dict}")
-
         self.__mapPropertyToNode(self.thickness_update_dict, KSO.THICKNESS_UPDATE)
-        # self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.THICKNESS_UPDATE)
 
     # --------------------------------------------------------------------------
     def __computeControlThicknessUpdate(self):
@@ -324,9 +297,7 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
                 solver,
                 s,
                 c)
-            # print(f"GradientProjection:: Vor Skalierung")
-            # print(f"GradientProjection:: search direction: {s}")
-            # print(f"GradientProjection:: correction: {c}")
+
             if self.projection:
                 s = self.__ProjectSearchDirectionAndGradients(s)
 
@@ -345,10 +316,6 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
                 else:
                     if s.norm_inf() > 0:
                         s *= self.step_size / s.norm_inf()
-
-                # print(f"GradientProjection:: search direction: {s}")
-                # print(f"GradientProjection:: correction: {c}")
-                # print(f"GradientProjection:: control update: {s+c}")
 
                 # for visualization
                 self.__mapDesignVariableVectorToNodalVariable(s, KSO.THICKNESS_SEARCH_DIRECTION)
@@ -435,8 +402,7 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges(self):
 
-        # TODO: move to c++
-        for node in self.optimization_model_part.Nodes:
+        for node in self.design_surface.Nodes:
             absolute_control_update = node.GetSolutionStepValue(KSO.THICKNESS_CONTROL_CHANGE)
             absolute_control_update += node.GetSolutionStepValue(KSO.THICKNESS_CONTROL_UPDATE)
             node.SetSolutionStepValue(KSO.THICKNESS_CONTROL_CHANGE, 0, absolute_control_update)
@@ -453,9 +419,6 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
             thickness += node.GetSolutionStepValue(KSO.THICKNESS_UPDATE)
             node.SetSolutionStepValue(KSO.THICKNESS, 0, thickness)
 
-
-        # self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.THICKNESS_CONTROL_UPDATE, KSO.THICKNESS_CONTROL_CHANGE)
-        # self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.THICKNESS_UPDATE, KSO.THICKNESS_CHANGE)
         return
 
     # --------------------------------------------------------------------------
@@ -481,23 +444,31 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
         self.__mapElementDataToNode(element_dict, nodal_variable)
 
     # --------------------------------------------------------------------------
+    def __mapElementToProperty(self, element_dict, property_dict):
+
+        for condition in self.design_surface.Conditions:
+            if condition.Properties.Id not in property_dict:
+                property_dict[condition.Properties.Id] = 0.0
+            property_dict[condition.Properties.Id] += element_dict[condition.Id]
+
+    # --------------------------------------------------------------------------
     def __mapPropertyToElement(self, property_dict, element_dict):
 
-        for condition in self.optimization_model_part.Conditions:
+        for condition in self.design_surface.Conditions:
             element_dict[condition.Id] = property_dict[condition.Properties.Id]
 
     # --------------------------------------------------------------------------
     def __mapElementDataToNode(self, element_data_dict, nodal_variable):
 
         # reset variables
-        for node in self.optimization_model_part.Nodes:
+        for node in self.design_surface.Nodes:
             node.SetSolutionStepValue(nodal_variable, 0, 0.0)
 
-        for condition in self.optimization_model_part.Conditions:
+        for condition in self.design_surface.Conditions:
             condition.SetValue(nodal_variable, element_data_dict[condition.Id])
 
         total_node_areas = dict()
-        for condition in self.optimization_model_part.Conditions:
+        for condition in self.design_surface.Conditions:
             element_data = condition.GetValue(nodal_variable)
             for node in condition.GetNodes():
                 if node.Id in total_node_areas:
@@ -508,7 +479,7 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
                 node_data += element_data * condition.GetGeometry().Area()
                 node.SetSolutionStepValue(nodal_variable, 0, node_data)
 
-        for node in self.optimization_model_part.Nodes:
+        for node in self.design_surface.Nodes:
             total_node_area = total_node_areas[node.Id]
             node_data = node.GetSolutionStepValue(nodal_variable)
             node_data /= total_node_area

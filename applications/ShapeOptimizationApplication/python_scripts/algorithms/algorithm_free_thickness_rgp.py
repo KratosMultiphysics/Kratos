@@ -194,9 +194,7 @@ class AlgorithmFreeThicknessRelaxedGradientProjection(OptimizationAlgorithm):
         self.analyzer.AnalyzeDesignAndReportToCommunicator(self.optimization_model_part, self.optimization_iteration, self.communicator)
 
         # project and damp objective gradients
-        objGradientDict = self.communicator.getStandardizedThicknessGradient(self.objectives[0]["identifier"].GetString())
-        objElementGradientDict = dict()
-        self.__mapPropertyGradientToElement(objGradientDict, objElementGradientDict)
+        objElementGradientDict = self.communicator.getStandardizedThicknessGradient(self.objectives[0]["identifier"].GetString())
         self.__mapElementGradientToNode(objElementGradientDict, KSO.DF1DT)
 
         self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DT)
@@ -204,10 +202,8 @@ class AlgorithmFreeThicknessRelaxedGradientProjection(OptimizationAlgorithm):
         # project and damp constraint gradients
         for constraint in self.constraints:
             con_id = constraint["identifier"].GetString()
-            conGradientDict = self.communicator.getStandardizedThicknessGradient(con_id)
+            conElementGradientDict = self.communicator.getStandardizedThicknessGradient(con_id)
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
-            conElementGradientDict = dict()
-            self.__mapPropertyGradientToElement(conGradientDict, conElementGradientDict)
             self.__mapElementGradientToNode(conElementGradientDict, gradient_variable)
 
             self.model_part_controller.DampNodalSensitivityVariableIfSpecified(gradient_variable)
@@ -634,15 +630,6 @@ class AlgorithmFreeThicknessRelaxedGradientProjection(OptimizationAlgorithm):
             thickness = node.GetSolutionStepValue(KSO.THICKNESS)
             thickness += node.GetSolutionStepValue(KSO.THICKNESS_UPDATE)
             node.SetSolutionStepValue(KSO.THICKNESS, 0, thickness)
-
-        # self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.THICKNESS_CONTROL_UPDATE, KSO.CONTROL_POINT_CHANGE)
-        # self.optimization_utilities.AddFirstVariableToSecondVariable(self.design_surface, KSO.THICKNESS_UPDATE, KSO.THICKNESS_CHANGE)
-
-    # --------------------------------------------------------------------------
-    def __mapPropertyGradientToElement(self, property_gradient_dict, element_gradient_dict):
-
-        for condition in self.optimization_model_part.Conditions:
-            element_gradient_dict[condition.Id] = property_gradient_dict[condition.Properties.Id]
 
     # --------------------------------------------------------------------------
     def __mapElementGradientToNode(self, element_gradient_dict, gradient_variable):

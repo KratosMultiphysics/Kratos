@@ -3,6 +3,10 @@ import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
+try:
+    import KratosMultiphysics.StructuralMechanicsApplication as KSM
+except ImportError:
+    KSM = None
 
 import time as timer
 
@@ -141,12 +145,11 @@ class DirectionalDerivativeResponseFunction(ResponseFunctionInterface):
             gradient[node.Id] = KM.Vector(3, 0.0)
         return gradient
 
-    def GetPropertiesGradient(self, variable):
-        if variable != KSO.THICKNESS_SENSITIVITY:
-            raise RuntimeError("GetPropertiesGradient: No gradient for {}!".format(variable.Name))
+    def GetElementalGradient(self, variable):
+        if variable != KSM.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
-        for property in self.model_part.Properties:
-            gradient[property.Id] = property.GetValue(KSO.THICKNESS_SENSITIVITY)
-            # gradient[property.Id] = 0.0
+        for condition in self.model_part.Conditions:
+            gradient[condition.Id] = condition.GetValue(KSO.THICKNESS_SENSITIVITY)
 
         return gradient

@@ -13,15 +13,16 @@ import os, pathlib, sys
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
-import KratosMultiphysics.ShapeOptimizationApplication as KSO
 
 # Additional imports
 from KratosMultiphysics.ShapeOptimizationApplication.analyzers.analyzer_base import AnalyzerBaseClass
 from KratosMultiphysics.ShapeOptimizationApplication.response_functions import response_function_factory as sho_response_factory
 try:
     from KratosMultiphysics.StructuralMechanicsApplication import structural_response_function_factory as csm_response_factory
+    import KratosMultiphysics.StructuralMechanicsApplication as KSM
 except ImportError:
     csm_response_factory = None
+    KSM = None
 try:
     from KratosMultiphysics.ConvectionDiffusionApplication.response_functions import convection_diffusion_response_function_factory as convdiff_response_factory
 except ImportError:
@@ -102,7 +103,9 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
 
                 # response thickness gradients
                 if communicator.isRequestingThicknessGradientOf(identifier):
-                    communicator.reportThicknessGradient(identifier, response.GetPropertiesGradient(KSO.THICKNESS_SENSITIVITY))
+                    if KSM is None:
+                        raise RuntimeError(f"ThicknessOpt: {identifier} response function requires StructuralMechanicsApplication.")
+                    communicator.reportThicknessGradient(identifier, response.GetElementalGradient(KSM.THICKNESS_SENSITIVITY))
 
                 response.FinalizeSolutionStep()
 

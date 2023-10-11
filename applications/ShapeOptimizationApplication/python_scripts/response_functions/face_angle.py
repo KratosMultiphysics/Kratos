@@ -3,6 +3,10 @@ import KratosMultiphysics as KM
 from KratosMultiphysics import Parameters, Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
+try:
+    import KratosMultiphysics.StructuralMechanicsApplication as KSM
+except ImportError:
+    KSM = None
 
 import time as timer
 
@@ -141,9 +145,9 @@ class FaceAngleResponseFunction(ResponseFunctionInterface):
             gradient[node.Id] = node.GetSolutionStepValue(variable)
         return gradient
 
-    def GetPropertiesGradient(self, variable):
-        if variable != KSO.THICKNESS_SENSITIVITY:
-            raise RuntimeError("GetPropertiesGradient: No gradient for {}!".format(variable.Name))
+    def GetElementalGradient(self, variable):
+        if variable != KSM.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for condition in self.model_part.Conditions:
             gradient[condition.Id] = 0.0

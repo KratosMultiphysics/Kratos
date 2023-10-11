@@ -11,6 +11,10 @@
 import time as timer
 import KratosMultiphysics as KM
 import KratosMultiphysics.ShapeOptimizationApplication as KSO
+try:
+    import KratosMultiphysics.StructuralMechanicsApplication as KSM
+except ImportError:
+    KSM = None
 from KratosMultiphysics import Logger
 from KratosMultiphysics.response_functions.response_function_interface import ResponseFunctionInterface
 
@@ -124,9 +128,9 @@ class SurfaceNormalShapeChange(ResponseFunctionInterface):
             raise RuntimeError("GetNodalGradient: No gradient for {}!".format(variable.Name))
         return self.gradient
 
-    def GetPropertiesGradient(self, variable):
-        if variable != KSO.THICKNESS_SENSITIVITY:
-            raise RuntimeError("GetPropertiesGradient: No gradient for {}!".format(variable.Name))
+    def GetElementalGradient(self, variable):
+        if variable != KSM.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
         gradient = {}
         for condition in self.model_part.Conditions:
             gradient[condition.Id] = 0.0
