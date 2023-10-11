@@ -388,7 +388,9 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
     return new_element_ids;
 }
 
-std::vector<IndexType> GetElementsFromEquationIds(ModelPart& rModelPart, const std::vector<std::size_t>& rEquationIds)
+std::vector<IndexType> RomAuxiliaryUtilities::GetElementsFromEquationIds(
+    ModelPart& rModelPart, 
+    const std::vector<std::size_t>& rEquationIds)
 {
     std::unordered_set<IndexType> element_ids_set;
 
