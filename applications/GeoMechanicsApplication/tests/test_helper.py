@@ -172,33 +172,51 @@ def get_nodal_variable_from_ascii(filename: str, variable: str):
 
     # read data
     with open(filename, "r") as f:
-        all_lines = f.readlines()
+        all_data = f.readlines()
 
-    process_values = False
-    res = {}
+    add_var = False
+
+    data = []
+    time_steps = []
+    all_var_data = []
 
     # read all data at each time step of variable
-    for line in all_lines:
-        if not process_values:
-            if f'"{variable}"' in line:
-                time_step = float(line.split()[3])
-                res[time_step] = {}
-                process_values = True
-            continue
+    for line in all_data:
 
-        if line.startswith("Values"):
-            continue
+        if "End Values" in line and add_var:
+            add_var = False
+            all_var_data.append(data)
+            data = []
+        if add_var:
+            data.append(line)
 
-        if "End Values" in line:
-            process_values = False
-            continue
+        if r'"' + variable + r'"' in line:
+            time_step = float(line.split()[3])
 
-        words = line.split()
-        node_index = int(words[0])
-        values = [float(word) for word in words[1:]]
-        if len(values) == 1:
-            values = values[0]
-        res[time_step][node_index] = values
+            time_steps.append(time_step)
+            add_var=True
+
+    # initialise results dictionary
+    res = {"time": time_steps}
+
+    for var_data in all_var_data:
+        var_data.pop(0)
+
+        # convert var data to floats
+        for i, _ in enumerate(var_data):
+            line = var_data[i].split()
+            line[1] = float(line[1])
+            line[2] = float(line[2])
+            line[3] = float(line[3])
+            var_data[i] = line
+
+    # add node numbers as dict keys
+    for line in var_data:
+        res[line[0]] = []
+
+    for var_data in all_var_data:
+        for line in var_data:
+            res[line[0]].append(line[1:])
 
     return res
 
@@ -510,3 +528,15 @@ class GiDOutputFileReader:
         assert(quoted_string[0] == '"')
         assert(quoted_string[-1] == '"')
         return quoted_string[1:-1]
+
+    @staticmethod
+    def get_values_at_time(time, property_results):
+        for time_results in property_results:
+            if time_results["time"] == time:
+                return time_results["values"]
+
+    @staticmethod
+    def get_value_at_node(node, time_results):
+        for node_results in time_results:
+            if node_results["node"] == node:
+                return node_results["value"]

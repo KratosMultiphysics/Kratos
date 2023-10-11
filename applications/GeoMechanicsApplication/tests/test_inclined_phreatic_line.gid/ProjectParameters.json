@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "test_inclinded_phreatic_multi_line_time_dependent_edges",
+        "problem_name":         "test_inclined_phreatic_line",
         "start_time":           0.0,
-        "end_time":             4.0,
+        "end_time":             1.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -13,14 +13,13 @@
         "domain_size":                        2,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_inclinded_phreatic_multi_line_time_dependent_edges"
+            "input_filename":   "test_inclined_phreatic_line"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":            0.25,
-			"max_delta_time_factor":    1
+            "time_step":            0.25
         },
         "buffer_size":                        2,
         "echo_level":                         1,
@@ -80,13 +79,13 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_inclinded_phreatic_multi_line_time_dependent_edges",
+                "output_name": "test_inclined_phreatic_line",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
                             "WriteDeformedMeshFlag": "WriteUndeformed",
                             "WriteConditionsFlag":   "WriteElementsOnly",
-                            "GiDPostMode":           "GiD_PostAscii",
+                            "GiDPostMode":           "GiD_PostBinary",
                             "MultiFileFlag":         "SingleFile"
                         },
                         "file_label":          "step",
@@ -150,13 +149,12 @@
             "variable_name":        "WATER_PRESSURE",
             "is_fixed":             true,
             "value":                0.0,
-            "table":                [1, 0, 2],
-            "fluid_pressure_type": "Phreatic_Multi_Line",
+            "table":                [0, 0],
+            "fluid_pressure_type": "Phreatic_Line",
             "gravity_direction":    1,
             "out_of_plane_direction":    2,
-            "x_coordinates" :    [0.0,0.5,1.0],
-            "y_coordinates":     [0.5,0.5,0.5],
-			"z_coordinates":     [0.0,0.0,0.0],    
+            "first_reference_coordinate" :    [0.0,1.0,0.0],
+            "second_reference_coordinate":    [1.0,0.5,0.0],
             "specific_weight":      10000.0
         }
     }],

@@ -1,9 +1,9 @@
-import sys
 import os
 
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import test_helper
 
+result_extension = '.post.res'
 
 class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
     """
@@ -20,11 +20,11 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
 
     def test_inclined_phreatic_line(self):
         """
-        test hydrostatic water pressure under an inclided phreatic line ranging over the width of the geometry
+        test hydrostatic water pressure under an inclined phreatic line ranging over the width of the geometry
 
         :return:
         """
-        test_name = 'test_inclinded_phreatic_line'
+        test_name = 'test_inclined_phreatic_line'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
 
@@ -46,50 +46,51 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(0, p_top_middle)
         self.assertAlmostEqual(0, p_top_right)
         
-    
     def test_inclined_phreatic_line_time(self):
         """
-        test hydrostatic water pressure under an inclided phreatic line ranging over the width of the geometry
+        test hydrostatic water pressure under an inclined phreatic line ranging over the width of the geometry
 
         :return:
         """
-        test_name = 'test_inclinded_phreatic_line_time_dependent'
+        test_name = 'test_inclined_phreatic_line_time_dependent'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         test_helper.run_kratos(file_path)
 
-        res_path = os.path.join(file_path, test_name + '.post.res')
-        
-        water_pressures = test_helper.get_nodal_variable_from_ascii(res_path, 'WATER_PRESSURE')
-        
-        # Time = 0.25
+        res_path = os.path.join(file_path, test_name + result_extension)
 
-        # Bottom Row
-        self.assertAlmostEqual(-6250, water_pressures[0.25][1])
-        self.assertAlmostEqual(-3125, water_pressures[0.25][48])
-        self.assertAlmostEqual(0, water_pressures[0.25][186])
+        reader = test_helper.GiDOutputFileReader()
+        simulation_output = reader.read_output_from(res_path)
+        water_pressures = simulation_output["results"]["WATER_PRESSURE"]
 
-        # Top Row
-        self.assertAlmostEqual(0, water_pressures[0.25][187])
-        self.assertAlmostEqual(0, water_pressures[0.25][223])
-        self.assertAlmostEqual(0, water_pressures[0.25][251])
-        
-        # Time = 0.75
-        self.assertAlmostEqual(-8750, water_pressures[0.75][1])
-        self.assertAlmostEqual(-4375, water_pressures[0.75][48])
-        self.assertAlmostEqual(0, water_pressures[0.75][186])
+        bottom_nodes = [1, 48, 186]  # Bottom Left/Middle/Right
+        top_nodes = [187, 223, 251]  # Top Left/Middle/Right
 
-        self.assertAlmostEqual(0, water_pressures[0.75][187])
-        self.assertAlmostEqual(0, water_pressures[0.75][223])
-        self.assertAlmostEqual(0, water_pressures[0.75][251])
-        
-        # Time = 1.0
-        self.assertAlmostEqual(-10000, water_pressures[1.0][1])
-        self.assertAlmostEqual(-5000, water_pressures[1.0][48])
-        self.assertAlmostEqual(0, water_pressures[1.0][186])
+        # Validation for Time = 0.25
+        values_time_0_25 = reader.get_values_at_time(0.25, water_pressures)
+        self.assertAlmostEqual(-6250, reader.get_value_at_node(bottom_nodes[0], values_time_0_25))
+        self.assertAlmostEqual(-3125, reader.get_value_at_node(bottom_nodes[1], values_time_0_25))
+        self.assertAlmostEqual(0, reader.get_value_at_node(bottom_nodes[2], values_time_0_25))
 
-        self.assertAlmostEqual(0, water_pressures[1.0][187])
-        self.assertAlmostEqual(0, water_pressures[1.0][223])
-        self.assertAlmostEqual(0, water_pressures[1.0][251])
+        for top_node in top_nodes:
+            self.assertAlmostEqual(0, reader.get_value_at_node(top_node, values_time_0_25))
+
+        # Validation for Time = 0.75
+        values_t0_75 = reader.get_values_at_time(0.75, water_pressures)
+        self.assertAlmostEqual(-8750, reader.get_value_at_node(bottom_nodes[0], values_t0_75))
+        self.assertAlmostEqual(-4375, reader.get_value_at_node(bottom_nodes[1], values_t0_75))
+        self.assertAlmostEqual(0, reader.get_value_at_node(bottom_nodes[2], values_t0_75))
+
+        for top_node in top_nodes:
+            self.assertAlmostEqual(0, reader.get_value_at_node(top_node, values_t0_75))
+
+        # Validation for Time = 1.0
+        values_t1_0 = reader.get_values_at_time(1.0, water_pressures)
+        self.assertAlmostEqual(-10000, reader.get_value_at_node(bottom_nodes[0], values_t1_0))
+        self.assertAlmostEqual(-5000, reader.get_value_at_node(bottom_nodes[1], values_t1_0))
+        self.assertAlmostEqual(0, reader.get_value_at_node(bottom_nodes[2], values_t1_0))
+
+        for top_node in top_nodes:
+            self.assertAlmostEqual(0, reader.get_value_at_node(top_node, values_t1_0))
 
     def test_phreatic_multi_line_2_points(self):
         """
@@ -146,66 +147,69 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(0, p_top_left)
         self.assertAlmostEqual(0, p_top_middle)
         self.assertAlmostEqual(0, p_top_right)
-        
-    
+
     def test_inclined_phreatic_multi_line_time_centre(self):
         """
-        test hydrostatic water pressure under an inclided phreatic  multi line ranging over the width of the geometry
+        test hydrostatic water pressure under an inclined phreatic multi line ranging over the width of the geometry
 
         :return:
         """
-        test_name = 'test_inclinded_phreatic_multi_line_time_dependent_centre'
+        test_name = 'test_inclined_phreatic_multi_line_time_dependent_centre'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         test_helper.run_kratos(file_path)
 
-        res_path = os.path.join(file_path, test_name + '.post.res')
+        res_path = os.path.join(file_path, test_name + result_extension)
         
-        water_pressures = test_helper.get_nodal_variable_from_ascii(res_path, 'WATER_PRESSURE')
-        
+        reader = test_helper.GiDOutputFileReader()
+        simulation_output = reader.read_output_from(res_path)
+        water_pressures = simulation_output["results"]["WATER_PRESSURE"]
+
         times = [x * 0.25 for x in range(1,16)]
         d_head_centre = [0.5, -0.5, -0.5, 0.5]
         for ind, time in enumerate(times):
             
             # Central Head
-            d_head_ind = int(ind/4) # slope
+            d_head_ind = int(ind/4)  # slope
             if d_head_ind == 0:
                 last_head = -5000
             else:
                 last_head = (sum(d_head_centre[0:d_head_ind]) * -10000) - 5000
             expected_bottom_centre_head = last_head - (d_head_centre[d_head_ind] * 10000) * (time - (4 * d_head_ind * 0.25))
-            
+
+            current_water_pressure = reader.get_values_at_time(time, water_pressures)
       
             # Bottom Row
-            self.assertAlmostEqual(-5000, water_pressures[time][1])
-            self.assertAlmostEqual(expected_bottom_centre_head, water_pressures[time][48])
-            self.assertAlmostEqual(-5000, water_pressures[time][186])
+            self.assertAlmostEqual(-5000, reader.get_value_at_node(1, current_water_pressure))
+            self.assertAlmostEqual(expected_bottom_centre_head, reader.get_value_at_node(48, current_water_pressure))
+            self.assertAlmostEqual(-5000, reader.get_value_at_node(186, current_water_pressure))
 
             # Top Row
-            self.assertAlmostEqual(0, water_pressures[time][187])
-            self.assertAlmostEqual(0, water_pressures[time][223])
-            self.assertAlmostEqual(0, water_pressures[time][251])
+            self.assertAlmostEqual(0, reader.get_value_at_node(187, current_water_pressure))
+            self.assertAlmostEqual(0, reader.get_value_at_node(223, current_water_pressure))
+            self.assertAlmostEqual(0, reader.get_value_at_node(251, current_water_pressure))
             
-        
     def test_inclined_phreatic_multi_line_time_edge(self):
         """
-        test hydrostatic water pressure under an inclided phreatic  multi line ranging over the width of the geometry
+        test hydrostatic water pressure under an inclined phreatic  multi line ranging over the width of the geometry
 
         :return:
         """
-        test_name = 'test_inclinded_phreatic_multi_line_time_dependent_edges'
+        test_name = 'test_inclined_phreatic_multi_line_time_dependent_edges'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         test_helper.run_kratos(file_path)
 
-        res_path = os.path.join(file_path, test_name + '.post.res')
-        
-        water_pressures = test_helper.get_nodal_variable_from_ascii(res_path, 'WATER_PRESSURE')
-        
-        times = [x * 0.25 for x in range(1,16)]
-        d_head_left  = [0.5, -0.5, -0.5, 0.5]
+        res_path = os.path.join(file_path, test_name + result_extension)
+
+        reader = test_helper.GiDOutputFileReader()
+        simulation_output = reader.read_output_from(res_path)
+        water_pressures = simulation_output["results"]["WATER_PRESSURE"]
+
+        times = [x * 0.25 for x in range(1, 16)]
+        d_head_left = [0.5, -0.5, -0.5, 0.5]
         d_head_right = [0.25, -0.25, -0.25, 0.25]
         for ind, time in enumerate(times):
             
-            d_head_ind = int(ind/4) # slope
+            d_head_ind = int(ind/4)  # slope
             
             # Left Head
             if d_head_ind == 0:
@@ -220,20 +224,22 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
             else:
                 last_head = (sum(d_head_right[0:d_head_ind]) * -10000) - 5000
             expected_bottom_right_head = last_head - (d_head_right[d_head_ind] * 10000) * (time - (4 * d_head_ind * 0.25))
-         
+
+            current_water_pressure = reader.get_values_at_time(time, water_pressures)
+
             # Bottom Row
-            self.assertAlmostEqual(expected_bottom_left_head, water_pressures[time][1])
-            self.assertAlmostEqual(-5000, water_pressures[time][48])
-            self.assertAlmostEqual(expected_bottom_right_head, water_pressures[time][186])
+            self.assertAlmostEqual(expected_bottom_left_head, reader.get_value_at_node(1, current_water_pressure))
+            self.assertAlmostEqual(-5000, reader.get_value_at_node(48, current_water_pressure))
+            self.assertAlmostEqual(expected_bottom_right_head, reader.get_value_at_node(186, current_water_pressure))
 
             # Top Row
-            self.assertAlmostEqual(0, water_pressures[time][187])
-            self.assertAlmostEqual(0, water_pressures[time][223])
-            self.assertAlmostEqual(0, water_pressures[time][251])    
+            self.assertAlmostEqual(0, reader.get_value_at_node(187, current_water_pressure))
+            self.assertAlmostEqual(0, reader.get_value_at_node(223, current_water_pressure))
+            self.assertAlmostEqual(0, reader.get_value_at_node(251, current_water_pressure))
 
-    def test_inclinded_phreatic_line_smaller_line(self):
+    def test_inclined_phreatic_line_smaller_line(self):
         """
-        test hydrostatic water pressure under an inclided phreatic line ranging over a part of the geometry
+        test hydrostatic water pressure under an inclined phreatic line ranging over a part of the geometry
 
         :return:
         """
