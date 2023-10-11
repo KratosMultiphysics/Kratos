@@ -248,6 +248,18 @@ public:
     );
 
     /**
+     * @brief Calculates the value of a specified variable (double)
+     * @param rParameterValues the needed parameters for the CL calculation
+     * @param rThisVariable the variable to be returned
+     * @param rValue a reference to the returned value
+     * @param rValue output: the value of the specified variable
+     */
+    double& CalculateValue(
+        Parameters& rParameterValues,
+        const Variable<double>& rThisVariable,
+        double& rValue) override;
+
+    /**
      * @brief Calculates the value of a specified variable (Vector)
      * @param rParameterValues the needed parameters for the CL calculation
      * @param rThisVariable the variable to be returned

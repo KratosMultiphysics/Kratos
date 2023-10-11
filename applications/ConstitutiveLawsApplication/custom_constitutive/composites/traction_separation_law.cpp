@@ -210,6 +210,113 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
 /***********************************************************************************/
 
 template<unsigned int TDim>
+double& TractionSeparationLaw3D<TDim>::CalculateValue(
+    ConstitutiveLaw::Parameters& rValues,
+    const Variable<double>& rThisVariable,
+    double& rValue)
+{
+    if (rThisVariable == MODE_ONE_UNIAXIAL_STRESS || rThisVariable == MODE_TWO_UNIAXIAL_STRESS) {
+        const int interface_identifier = 0;
+
+        // Get Values to compute the constitutive law:
+        Flags& r_flags = rValues.GetOptions();
+
+        // Previous flags saved
+        const bool flag_strain       = r_flags.Is(BaseType::USE_ELEMENT_PROVIDED_STRAIN);
+        const bool flag_const_tensor = r_flags.Is(BaseType::COMPUTE_CONSTITUTIVE_TENSOR);
+        const bool flag_stress       = r_flags.Is(BaseType::COMPUTE_STRESS);
+
+        const Properties& r_material_properties = rValues.GetMaterialProperties();
+
+        // The deformation gradient
+        if (rValues.IsSetDeterminantF()) {
+            const double determinant_f = rValues.GetDeterminantF();
+            KRATOS_ERROR_IF(determinant_f < 0.0) << "Deformation gradient determinant (detF) < 0.0 : " << determinant_f << std::endl;
+        }
+
+        // All the strains must be the same, therefore we can just simply compute the strain in the first layer
+        if (r_flags.IsNot(BaseType::USE_ELEMENT_PROVIDED_STRAIN)) {
+            this->CalculateGreenLagrangeStrain(rValues);
+            r_flags.Set(BaseType::USE_ELEMENT_PROVIDED_STRAIN, true);
+        }
+
+        // The global strain vector, constant
+        const Vector strain_vector = rValues.GetStrainVector();
+
+        // Set new flags
+        r_flags.Set(BaseType::COMPUTE_CONSTITUTIVE_TENSOR, false);
+        r_flags.Set(BaseType::COMPUTE_STRESS, true);
+
+        // Auxiliar stress vector
+        const auto it_prop_begin       = r_material_properties.GetSubProperties().begin();
+
+        // The rotation matrix
+        BoundedMatrix<double, VoigtSize, VoigtSize> voigt_rotation_matrix;
+
+        const auto& r_p_constitutive_law_vector = this->GetConstitutiveLaws();
+        const auto& r_combination_factors = this->GetCombinationFactors();
+
+        std::vector<Vector> layer_stress(r_p_constitutive_law_vector.size());
+        for (IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
+            layer_stress[i].resize(6, false);
+        }
+
+        // for (IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
+        //     rValue[i].resize(3, false);
+        // }
+
+        std::vector<Vector> interfacial_stress(r_p_constitutive_law_vector.size()-1);
+        for (IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
+            interfacial_stress[i].resize(6, false);
+            for (IndexType j=0; j < 6; ++j) {
+                interfacial_stress[i][j] = 0.0;
+            }
+        }
+
+        for (IndexType i_layer = 0; i_layer < r_p_constitutive_law_vector.size(); ++i_layer) {
+            this->CalculateRotationMatrix(r_material_properties, voigt_rotation_matrix, i_layer);
+
+            Properties& r_prop             = *(it_prop_begin + i_layer);
+            ConstitutiveLaw::Pointer p_law = r_p_constitutive_law_vector[i_layer];
+
+            // We rotate to local axes the strain
+            noalias(rValues.GetStrainVector()) = prod(voigt_rotation_matrix, strain_vector);
+
+            rValues.SetMaterialProperties(r_prop);
+            p_law->CalculateMaterialResponsePK2(rValues);
+
+            // we return the stress and constitutive tensor to the global coordinates
+            rValues.GetStressVector()        = prod(trans(voigt_rotation_matrix), rValues.GetStressVector());
+            noalias(layer_stress[i_layer]) = rValues.GetStressVector();
+
+            // we reset the properties and Strain
+            rValues.SetMaterialProperties(r_material_properties);
+            noalias(rValues.GetStrainVector()) = strain_vector;
+        }
+
+        for(IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
+
+            interfacial_stress[i][0] = AdvancedConstitutiveLawUtilities<VoigtSize>::MacaullyBrackets((layer_stress[i][2] + layer_stress[i+1][2]) * 0.5); // interfacial normal stress
+            interfacial_stress[i][1] = (layer_stress[i][4] + layer_stress[i+1][4]) * 0.5; // interfacial shear stress
+            interfacial_stress[i][2] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5; // interfacial shear stress
+        }
+
+        if (rThisVariable == MODE_ONE_UNIAXIAL_STRESS) {
+            rValue = interfacial_stress[interface_identifier][0];
+            return rValue;
+        } else if (rThisVariable == MODE_TWO_UNIAXIAL_STRESS) {
+            rValue = std::sqrt(std::pow(interfacial_stress[interface_identifier][1],2.0)+std::pow(interfacial_stress[interface_identifier][2],2.0));
+            return rValue;
+        }
+
+    }
+
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
 Vector& TractionSeparationLaw3D<TDim>::CalculateValue(
     ConstitutiveLaw::Parameters& rValues,
     const Variable<Vector>& rThisVariable,
@@ -257,7 +364,7 @@ Vector& TractionSeparationLaw3D<TDim>::CalculateValue(
         const auto& r_p_constitutive_law_vector = this->GetConstitutiveLaws();
         const auto& r_combination_factors = this->GetCombinationFactors();
 
-        rValue.resize(3, false);
+        rValue.resize(6, false);
 
         std::vector<Vector> layer_stress(r_p_constitutive_law_vector.size());
         for (IndexType i=0; i < r_p_constitutive_law_vector.size(); ++i) {
@@ -270,7 +377,10 @@ Vector& TractionSeparationLaw3D<TDim>::CalculateValue(
 
         std::vector<Vector> interfacial_stress(r_p_constitutive_law_vector.size()-1);
         for (IndexType i=0; i < r_p_constitutive_law_vector.size()-1; ++i) {
-            interfacial_stress[i].resize(3, false);
+            interfacial_stress[i].resize(6, false);
+            for (IndexType j=0; j < 6; ++j) {
+                interfacial_stress[i][j] = 0.0;
+            }
         }
 
         for (IndexType i_layer = 0; i_layer < r_p_constitutive_law_vector.size(); ++i_layer) {
