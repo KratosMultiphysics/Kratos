@@ -224,9 +224,11 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
 
                 elif self.element_selection_type=="discrete_empirical_interpolation":
                     InterpolationWeights = KratosMultiphysics.Matrix(np.load('InterpolationWeights.npy'))
-                    InterpolationIndicesMatrix = KratosMultiphysics.Matrix(np.load('InterpolationIndicesMatrix.npy'))
+                    # InterpolationIndicesMatrix = KratosMultiphysics.Matrix(np.load('InterpolationIndicesMatrix.npy'))
+                    DEIM_InterpolationIndices = np.load('DEIM_InterpolationIndices.npy')
                     builder_and_solver = self._GetSolver()._GetBuilderAndSolver()
-                    builder_and_solver.SetInterpolationMatrices(InterpolationWeights, InterpolationIndicesMatrix)
+                    # builder_and_solver.SetInterpolationMatrices(InterpolationWeights, InterpolationIndicesMatrix)
+                    builder_and_solver.SetInterpolationMatrices(InterpolationWeights, DEIM_InterpolationIndices)
                     # Set the HROM weights in elements and conditions
                     element_indexes = np.load(f"{self.rom_basis_output_folder}/HROM_ElementIds.npy")
                     element_weights = np.load(f"{self.rom_basis_output_folder}/HROM_ElementWeights.npy")
