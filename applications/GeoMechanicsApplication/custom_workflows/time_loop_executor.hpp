@@ -78,6 +78,11 @@ private:
         auto cycle_number = 0;
         auto end_state = previous_state;
         while (mTimeIncrementor->WantRetryStep(cycle_number, end_state)) {
+            if (cycle_number > 0)
+            {
+                // restore the nodal positions and D.O.F. to start of step state
+                mStrategyWrapper->RestorePositionsAndDOFVectorToStartOfStep();
+            }
             end_state = RunCycle(previous_state.time);
             ++cycle_number;
         }

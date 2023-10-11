@@ -50,6 +50,7 @@ public:
     [[nodiscard]] std::size_t GetStepNumber() const override {return 0;}
     void IncrementStepNumber() override {}
     void CloneTimeStep() override {};
+    void RestorePositionsAndDOFVectorToStartOfStep() {};
 
     void Initialize()             override {++mSolverStrategyInitializeCalls;}
     void InitializeSolutionStep() override {++mSolverStrategyInitializeSolutionStepCalls;}

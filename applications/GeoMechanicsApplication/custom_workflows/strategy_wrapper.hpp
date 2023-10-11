@@ -33,6 +33,7 @@ namespace Kratos
         [[nodiscard]] virtual std::size_t GetStepNumber() const = 0;
         virtual void IncrementStepNumber() = 0;
         virtual void CloneTimeStep() = 0;
+        virtual void RestorePositionsAndDOFVectorToStartOfStep() = 0;
 
         virtual void Initialize()             = 0;
         virtual void InitializeSolutionStep() = 0;

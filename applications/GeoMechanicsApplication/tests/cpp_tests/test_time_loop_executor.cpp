@@ -87,6 +87,16 @@ public:
         return mIsCloned;
     }
 
+    void RestorePositionsAndDOFVectorToStartOfStep()
+    {
+        mIsRestoreCalled = true;
+    }
+
+    bool IsRestoreCalled()
+    {
+        return mIsRestoreCalled;
+    }
+
     void Initialize()             override {}
     void InitializeSolutionStep() override {}
     void Predict()                override {}
@@ -98,6 +108,7 @@ private:
     Model mModel;
     ModelPart * mpModelPart = nullptr;
     bool mIsCloned = false;
+    bool mIsRestoreCalled = false;
 };
 
 class FixedCyclesTimeIncrementor : public TimeIncrementor
@@ -254,8 +265,29 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectATimeStepCloneAtStartOfStep, KratosGeoMechanicsF
     auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategyTimeIncrementor(solver_strategy);
     const auto step_states = executor.Run(TimeStepEndState{});
-    // what to test for correct functioning of cloning the time step
     KRATOS_EXPECT_TRUE(solver_strategy->IsCloned());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectNoRestoreCalledForOneCycle, KratosGeoMechanicsFastSuite)
+{
+    TimeLoopExecutor executor;
+    const auto wanted_num_of_cycles_per_step = 1;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    executor.SetSolverStrategyTimeIncrementor(solver_strategy);
+    const auto step_states = executor.Run(TimeStepEndState{});
+    KRATOS_EXPECT_FALSE(solver_strategy->IsRestoreCalled());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectRestoreCalledForTwoCycles, KratosGeoMechanicsFastSuite)
+{
+    TimeLoopExecutor executor;
+    const auto wanted_num_of_cycles_per_step = 2;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    executor.SetSolverStrategyTimeIncrementor(solver_strategy);
+    const auto step_states = executor.Run(TimeStepEndState{});
+    KRATOS_EXPECT_TRUE(solver_strategy->IsRestoreCalled());
 }
 
 }
