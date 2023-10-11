@@ -21,11 +21,10 @@ namespace Kratos::Testing
 
 using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using LocalSpaceType = UblasSpace<double, Matrix, Vector>;
+using SchemeFactoryType = SchemeFactory<SparseSpaceType, LocalSpaceType>;
 
 KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeIsUndefined, KratosGeoMechanicsFastSuite)
 {
-    const SchemeFactory<SparseSpaceType, LocalSpaceType> factory;
-
     const auto parameters =
     R"(
     {
@@ -33,14 +32,12 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeIsUndefined, KratosG
     }
     )";
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(factory.Create(Parameters{parameters}),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeFactoryType::Create(Parameters{parameters}),
                                       "scheme_type is not defined, aborting")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSolutionTypeIsUndefined, KratosGeoMechanicsFastSuite)
 {
-    const SchemeFactory<SparseSpaceType, LocalSpaceType> factory;
-
     const auto parameters =
             R"(
     {
@@ -48,14 +45,12 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSolutionTypeIsUndefined, Krato
     }
     )";
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(factory.Create(Parameters{parameters}),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeFactoryType::Create(Parameters{parameters}),
                                       "solution_type is not defined, aborting")
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeOrSolutionTypeAreNotSupported, KratosGeoMechanicsFastSuite)
 {
-    const SchemeFactory<SparseSpaceType, LocalSpaceType> factory;
-
     const auto parameters =
             R"(
     {
@@ -64,7 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_Throws_WhenSchemeTypeOrSolutionTypeAreNot
     }
     )";
 
-    KRATOS_EXPECT_EXCEPTION_IS_THROWN(factory.Create(Parameters{parameters}),
+    KRATOS_EXPECT_EXCEPTION_IS_THROWN(SchemeFactoryType::Create(Parameters{parameters}),
                                       "Specified solution_type/scheme_type is not supported, aborting")
 }
 
@@ -78,7 +73,7 @@ KRATOS_TEST_CASE_IN_SUITE(CreateScheme_ReturnsCorrectScheme_ForBackwardEulerQuas
     }
     )";
 
-    const auto scheme = SchemeFactory<SparseSpaceType, LocalSpaceType>::Create(Parameters{parameters});
+    const auto scheme = SchemeFactoryType::Create(Parameters{parameters});
     const auto backward_euler_scheme = dynamic_cast<const BackwardEulerQuasistaticUPwScheme<SparseSpaceType, LocalSpaceType>*>(scheme.get());
 
     KRATOS_EXPECT_NE(backward_euler_scheme, nullptr);
