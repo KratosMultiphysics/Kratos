@@ -15,8 +15,8 @@
 
 #include "utilities/variable_utils.h"
 
-#include "custom_processes/apply_scalar_constraints_table_process.h"
-#include "custom_processes/apply_vector_constraints_table_process.hpp"
+#include "custom_processes/apply_scalar_constraint_table_process.h"
+#include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/set_parameter_field_process.hpp"
 #include "custom_processes/apply_k0_procedure_process.hpp"
 #include "custom_processes/apply_excavation_process.hpp"
@@ -50,18 +50,18 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUti
 
 void KratosGeoSettlement::InitializeProcessFactory()
 {
-    mProcessFactory->AddCreator("ApplyScalarConstraintsTableProcess",
+    mProcessFactory->AddCreator("ApplyScalarConstraintTableProcess",
                                 [this](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<ApplyScalarConstraintsTableProcess>(mModel.GetModelPart(mModelPartName),
-                                                                                                rParameters);
+                                    return std::make_unique<ApplyScalarConstraintTableProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                               rParameters);
                                 });
 
-    mProcessFactory->AddCreator("ApplyVectorConstraintsTableProcess",
+    mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
                                 [this](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<ApplyVectorConstraintsTableProcess>(mModel.GetModelPart(mModelPartName),
-                                                                                                rParameters);
+                                    return std::make_unique<ApplyVectorConstraintTableProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                               rParameters);
                                 });
 
     mProcessFactory->AddCreator("SetParameterFieldProcess",

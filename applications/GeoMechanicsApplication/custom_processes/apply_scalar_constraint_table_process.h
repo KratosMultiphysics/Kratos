@@ -21,18 +21,18 @@ class ModelPart;
 class Parameters;
 
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyScalarConstraintsTableProcess : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyScalarConstraintTableProcess : public Process
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(ApplyScalarConstraintsTableProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyScalarConstraintTableProcess);
 
-    ApplyScalarConstraintsTableProcess(ModelPart&        rModelPart,
-                                       const Parameters& rProcessSettings);
+    ApplyScalarConstraintTableProcess(ModelPart&        rModelPart,
+                                      const Parameters& rProcessSettings);
 
-    ~ApplyScalarConstraintsTableProcess() override;
+    ~ApplyScalarConstraintTableProcess() override;
 
-    ApplyScalarConstraintsTableProcess(const ApplyScalarConstraintsTableProcess&) = delete;
-    ApplyScalarConstraintsTableProcess& operator=(const ApplyScalarConstraintsTableProcess&) = delete;
+    ApplyScalarConstraintTableProcess(const ApplyScalarConstraintTableProcess&) = delete;
+    ApplyScalarConstraintTableProcess& operator=(const ApplyScalarConstraintTableProcess&) = delete;
 
     using ProcessUniquePointer = std::unique_ptr<Process>;
 
@@ -43,8 +43,8 @@ private:
     void MakeInternalProcess(const Parameters& rProcessSettings);
     void MakeProcessForFluidPressureType(const Parameters&        rProcessSettings,
                                          std::vector<std::string> NamesOfSettingsToCopy);
-    void MakeScalarConstraintsProcess(const Parameters&        rProcessSettings,
-                                      std::vector<std::string> NamesOfSettingsToCopy);
+    void MakeScalarConstraintProcess(const Parameters&        rProcessSettings,
+                                     std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForHydrostaticFluidPressure(const Parameters&        rProcessSettings,
                                                 std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForPhreaticLine(const Parameters&        rProcessSettings,

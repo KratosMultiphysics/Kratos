@@ -10,7 +10,7 @@
 //  Main authors:    Anne van de Graaf,
 //                   Marjan Fathian
 //
-#include "apply_scalar_constraints_table_process.h"
+#include "apply_scalar_constraint_table_process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "apply_component_table_process.hpp"
@@ -62,17 +62,17 @@ bool HasTableAttached(const Parameters& rSettings)
 namespace Kratos
 {
 
-ApplyScalarConstraintsTableProcess::ApplyScalarConstraintsTableProcess(ModelPart&        rModelPart,
-                                                                       const Parameters& rProcessSettings)
+ApplyScalarConstraintTableProcess::ApplyScalarConstraintTableProcess(ModelPart&        rModelPart,
+                                                                     const Parameters& rProcessSettings)
         : Process(Flags()),
           mrModelPart{rModelPart}
 {
     MakeInternalProcess(rProcessSettings);
 }
 
-ApplyScalarConstraintsTableProcess::~ApplyScalarConstraintsTableProcess() = default;
+ApplyScalarConstraintTableProcess::~ApplyScalarConstraintTableProcess() = default;
 
-void ApplyScalarConstraintsTableProcess::MakeInternalProcess(const Parameters& rProcessSettings)
+void ApplyScalarConstraintTableProcess::MakeInternalProcess(const Parameters& rProcessSettings)
 {
     auto names_of_settings_to_copy = std::vector<std::string>{"model_part_name",
                                                               "variable_name"};
@@ -82,16 +82,16 @@ void ApplyScalarConstraintsTableProcess::MakeInternalProcess(const Parameters& r
         MakeProcessForFluidPressureType(rProcessSettings, std::move(names_of_settings_to_copy));
     }
     else {
-        MakeScalarConstraintsProcess(rProcessSettings, std::move(names_of_settings_to_copy));
+        MakeScalarConstraintProcess(rProcessSettings, std::move(names_of_settings_to_copy));
     }
 }
 
-void ApplyScalarConstraintsTableProcess::MakeProcessForFluidPressureType(const Parameters&        rProcessSettings,
-                                                                         std::vector<std::string> NamesOfSettingsToCopy)
+void ApplyScalarConstraintTableProcess::MakeProcessForFluidPressureType(const Parameters&        rProcessSettings,
+                                                                        std::vector<std::string> NamesOfSettingsToCopy)
 {
     const auto fluid_pressure_type = rProcessSettings["fluid_pressure_type"].GetString();
     if (fluid_pressure_type == "Uniform") {
-        MakeScalarConstraintsProcess(rProcessSettings, std::move(NamesOfSettingsToCopy));
+        MakeScalarConstraintProcess(rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Hydrostatic") {
         MakeProcessForHydrostaticFluidPressure(rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Phreatic_Line") {
@@ -105,8 +105,8 @@ void ApplyScalarConstraintsTableProcess::MakeProcessForFluidPressureType(const P
     }
 }
 
-void ApplyScalarConstraintsTableProcess::MakeScalarConstraintsProcess(const Parameters&        rProcessSettings,
-                                                                      std::vector<std::string> NamesOfSettingsToCopy)
+void ApplyScalarConstraintTableProcess::MakeScalarConstraintProcess(const Parameters&        rProcessSettings,
+                                                                    std::vector<std::string> NamesOfSettingsToCopy)
 {
     NamesOfSettingsToCopy.emplace_back("value");
 
@@ -122,8 +122,8 @@ void ApplyScalarConstraintsTableProcess::MakeScalarConstraintsProcess(const Para
     }
 }
 
-void ApplyScalarConstraintsTableProcess::MakeProcessForHydrostaticFluidPressure(const Parameters&        rProcessSettings,
-                                                                                std::vector<std::string> NamesOfSettingsToCopy)
+void ApplyScalarConstraintTableProcess::MakeProcessForHydrostaticFluidPressure(const Parameters&        rProcessSettings,
+                                                                               std::vector<std::string> NamesOfSettingsToCopy)
 {
     NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(), {"gravity_direction",
                                                                "reference_coordinate",
@@ -143,8 +143,8 @@ void ApplyScalarConstraintsTableProcess::MakeProcessForHydrostaticFluidPressure(
     }
 }
 
-void ApplyScalarConstraintsTableProcess::MakeProcessForPhreaticLine(const Parameters&        rProcessSettings,
-                                                                    std::vector<std::string> NamesOfSettingsToCopy)
+void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticLine(const Parameters&        rProcessSettings,
+                                                                   std::vector<std::string> NamesOfSettingsToCopy)
 {
     NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(), {"gravity_direction",
                                                                "out_of_plane_direction",
@@ -166,8 +166,8 @@ void ApplyScalarConstraintsTableProcess::MakeProcessForPhreaticLine(const Parame
     }
 }
 
-void ApplyScalarConstraintsTableProcess::MakeProcessForPhreaticSurface(const Parameters&        rProcessSettings,
-                                                                       std::vector<std::string> NamesOfSettingsToCopy)
+void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticSurface(const Parameters&        rProcessSettings,
+                                                                      std::vector<std::string> NamesOfSettingsToCopy)
 {
     NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(), {"gravity_direction",
                                                                "first_reference_coordinate",
@@ -190,8 +190,8 @@ void ApplyScalarConstraintsTableProcess::MakeProcessForPhreaticSurface(const Par
     }
 }
 
-void ApplyScalarConstraintsTableProcess::MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
-                                                                        std::vector<std::string> NamesOfSettingsToCopy)
+void ApplyScalarConstraintTableProcess::MakeProcessForInterpolatedLine(const Parameters&        rProcessSettings,
+                                                                       std::vector<std::string> NamesOfSettingsToCopy)
 {
     KRATOS_ERROR_IF(HasTableAttached(rProcessSettings)) << "No time dependent interpolate line pressure process available" << std::endl;
 
@@ -206,12 +206,12 @@ void ApplyScalarConstraintsTableProcess::MakeProcessForInterpolatedLine(const Pa
 
 }
 
-void ApplyScalarConstraintsTableProcess::ExecuteInitialize()
+void ApplyScalarConstraintTableProcess::ExecuteInitialize()
 {
     mProcess->ExecuteInitialize();
 }
 
-void ApplyScalarConstraintsTableProcess::ExecuteInitializeSolutionStep()
+void ApplyScalarConstraintTableProcess::ExecuteInitializeSolutionStep()
 {
     mProcess->ExecuteInitializeSolutionStep();
 }
