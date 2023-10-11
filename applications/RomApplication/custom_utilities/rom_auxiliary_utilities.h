@@ -163,7 +163,7 @@ public:
      * @param rEquationIds The list of equation IDs for which associated elements should be fetched.
      * @return std::vector<IndexType> A list of unique element IDs, adjusted for 0-based indexing.
      */
-    std::vector<IndexType> GetElementsFromEquationIds(
+    static std::vector<IndexType> GetElementsFromEquationIds(
         ModelPart& rModelPart,
         const std::vector<std::size_t>& rEquationIds);
 
