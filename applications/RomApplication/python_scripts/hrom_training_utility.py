@@ -219,6 +219,10 @@ class HRomTrainingUtility(object):
                 KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
                 if self.echo_level > 0:
                     KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","HROM visualization mesh written in \'{}.mdpa\'".format(hrom_vis_output_name))
+        
+        elif self.element_selection_type=="discrete_empirical_interpolation":
+            if self.hrom_output_format == "numpy":
+                hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
 
     @classmethod
     def __GetHRomTrainingDefaultSettings(cls):
@@ -377,6 +381,7 @@ class HRomTrainingUtility(object):
 
     def AppendSelectedDofs(self):
         selected_dofs = self.hyper_reduction_element_selector.P
+        new_nodal_neighbours = KratosROM.RomAuxiliaryUtilities.GetElementsFromEquationIds(self.solver.GetComputingModelPart(), selected_dofs)
 
     def __AddSelectedElementsWithZeroWeights(self, original_weights,original_elements, elements_to_add):
 
