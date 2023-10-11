@@ -388,17 +388,23 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetNodalNeighbouringElementIds(
     return new_element_ids;
 }
 
-std::vector<IndexType> RomAuxiliaryUtilities::GetElementsFromEquationIds(
+std::vector<IndexType> RomAuxiliaryUtilities::GetElementsAndConditionsFromEquationIds(
     ModelPart& rModelPart, 
     const std::vector<std::size_t>& rEquationIds)
 {
     std::unordered_set<IndexType> element_ids_set;
+    std::unordered_set<IndexType> condition_ids_set;
 
     // Convert rEquationIds to an unordered_set for faster lookup
     std::unordered_set<std::size_t> equation_ids_set(rEquationIds.begin(), rEquationIds.end());
 
     FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elements_neighbours_process(rModelPart);
     find_nodal_elements_neighbours_process.Execute();
+    FindGlobalNodalEntityNeighboursProcess<ModelPart::ConditionsContainerType> find_nodal_conditions_neighbours_process(rModelPart);
+    find_nodal_conditions_neighbours_process.Execute();
+
+    // To be consistent with the __CreateDictionaryWithRomElementsAndWeights
+    auto num_of_elements = rModelPart.NumberOfElements();
 
     for (auto& node : rModelPart.Nodes())
     {
@@ -406,11 +412,17 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementsFromEquationIds(
         {
             if (equation_ids_set.find(dof->EquationId()) != equation_ids_set.end())
             {
-                const auto& r_neigh = node.GetValue(NEIGHBOUR_ELEMENTS);
+                const auto& r_neigh_elem = node.GetValue(NEIGHBOUR_ELEMENTS);
                 // Add the neighbour elements to new_element_ids_set
-                for (size_t i = 0; i < r_neigh.size(); ++i) {
-                    const auto& r_elem = r_neigh[i];
+                for (size_t i = 0; i < r_neigh_elem.size(); ++i) {
+                    const auto& r_elem = r_neigh_elem[i];
                     element_ids_set.insert(r_elem.Id() - 1);
+                }
+                const auto& r_neigh_cond = node.GetValue(NEIGHBOUR_CONDITIONS);
+                // Add the neighbour elements to new_element_ids_set
+                for (size_t i = 0; i < r_neigh_cond.size(); ++i) {
+                    const auto& r_cond = r_neigh_cond[i];
+                    condition_ids_set.insert(num_of_elements + r_cond.Id() - 1);
                 }
                 break;  // Once a matching DoF is found for the node, move to the next node
             }
@@ -419,8 +431,13 @@ std::vector<IndexType> RomAuxiliaryUtilities::GetElementsFromEquationIds(
 
     // Convert the unordered_set to a vector
     std::vector<IndexType> element_ids(element_ids_set.begin(), element_ids_set.end());
+    std::vector<IndexType> condition_ids(condition_ids_set.begin(), condition_ids_set.end());
 
-    return element_ids;
+    // Combine element_ids and condition_ids
+    std::vector<IndexType> elements_and_conditions_ids = element_ids;
+    elements_and_conditions_ids.insert(elements_and_conditions_ids.end(), condition_ids.begin(), condition_ids.end());
+
+    return elements_and_conditions_ids;
 }
 
 std::vector<IndexType> RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart(

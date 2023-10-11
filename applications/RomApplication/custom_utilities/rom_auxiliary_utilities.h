@@ -146,24 +146,27 @@ public:
 
 
     /**
-     * @brief Retrieve the IDs of elements associated with given equation IDs.
+     * @brief Retrieve the IDs of elements and conditions associated with given equation IDs.
      *
      * This function identifies the nodes associated with the provided equation IDs (`rEquationIds`) 
-     * and subsequently fetches the neighboring elements of these nodes. The function leverages the 
-     * 'NEIGHBOUR_ELEMENTS' value attached to each node to determine the neighboring elements.
+     * and subsequently fetches the neighboring elements and conditions of these nodes. The function 
+     * leverages the 'NEIGHBOUR_ELEMENTS' and 'NEIGHBOUR_CONDITIONS' values attached to each node to 
+     * determine the neighboring elements and conditions.
      * 
-     * Before fetching the neighboring elements, the function ensures that the 'NEIGHBOUR_ELEMENTS' 
-     * values are computed for the nodes in the model part using the `FindGlobalNodalEntityNeighboursProcess`.
+     * Before fetching the neighboring elements and conditions, the function ensures that the 
+     * 'NEIGHBOUR_ELEMENTS' and 'NEIGHBOUR_CONDITIONS' values are computed for the nodes in the model 
+     * part using the `FindGlobalNodalEntityNeighboursProcess`.
      *
-     * The function returns a list of unique element IDs, adjusted for 0-based indexing (decremented by 1).
-     * It's important to note that this function assumes that the 'NEIGHBOUR_ELEMENTS' values are 
-     * already computed for the nodes in the model part.
+     * The function returns a list of unique element and condition IDs, adjusted for 0-based indexing 
+     * (decremented by 1 for elements and incremented by the total number of elements for conditions).
+     * It's important to note that this function assumes that the 'NEIGHBOUR_ELEMENTS' and 
+     * 'NEIGHBOUR_CONDITIONS' values are already computed for the nodes in the model part.
      *
-     * @param rModelPart The complete model part which houses all the nodes and elements.
-     * @param rEquationIds The list of equation IDs for which associated elements should be fetched.
-     * @return std::vector<IndexType> A list of unique element IDs, adjusted for 0-based indexing.
+     * @param rModelPart The complete model part which houses all the nodes, elements, and conditions.
+     * @param rEquationIds The list of equation IDs for which associated elements and conditions should be fetched.
+     * @return std::vector<IndexType> A list of unique element and condition IDs, adjusted for 0-based indexing.
      */
-    static std::vector<IndexType> GetElementsFromEquationIds(
+    static std::vector<IndexType> GetElementsAndConditionsFromEquationIds(
         ModelPart& rModelPart,
         const std::vector<std::size_t>& rEquationIds);
 
