@@ -64,13 +64,25 @@
                     "type": "implicit",
                     "radius": 0.2,
                     "linear_solver_settings": {
-                        "solver_type": "LinearSolversApplication.pardiso_lu"
+                            "solver_type": "amgcl",
+                            "smoother_type": "ilu0",
+                            "krylov_type": "gmres",
+                            "coarsening_type": "aggregation",
+                            "max_iteration": 200,
+                            "provide_coordinates": false,
+                            "gmres_krylov_space_dimension": 100,
+                            "verbosity": 0,
+                            "tolerance": 1e-7,
+                            "scaling": false,
+                            "block_size": 1,
+                            "use_block_matrices_if_possible": true,
+                            "coarse_enough": 5000
                     }
                 },
                 "output_all_fields": false,
                 "beta_value": 25.0,
-                "initial_physical_thickness": 0.15,
-                "physical_thicknesses": [0.1,0.2]
+                "initial_physical_thickness": 0.07,
+                "physical_thicknesses": [0.01,0.1]
             }
         }
     ],
@@ -96,11 +108,6 @@
             "scaling": 1.0
         },
         "constraints": [
-            {
-                "response_name": "strain_energy_shell",
-                "type": "<",
-                "ref_value": "initial_value"
-            }
         ]
     },
     "processes": {

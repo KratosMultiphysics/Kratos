@@ -25,14 +25,11 @@ class TestNLOPTOptimizer(kratos_unittest.TestCase):
                 reader = csv.reader(csvfile, delimiter=',')
                 last_line = None
                 for i, row in enumerate(reader):
-                    if i == 15:
+                    if i == 13:
                         last_line = row
 
                 resulting_mass = float(last_line[1].strip())
-                resulting_strain_energy = float(last_line[4].strip())
-
-                self.assertAlmostEqual(resulting_mass, 7278.149435,2)
-                self.assertAlmostEqual(resulting_strain_energy, 5.572267523e-5,2)
+                self.assertAlmostEqual(resulting_mass, 493.6302176,2)
 
             os.remove(optimization_log_filename)
 
