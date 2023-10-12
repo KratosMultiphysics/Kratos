@@ -94,8 +94,7 @@ const std::string testParameters = R"(
     }
 )";
 
-
-SolvingStrategyWrapperType InitializeWrapper()
+KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
 {
     Model model;
     const int buffer_size = 2;
@@ -104,20 +103,20 @@ SolvingStrategyWrapperType InitializeWrapper()
     info[NL_ITERATION_NUMBER] = 5;
     dummy_model_part.SetProcessInfo(info);
     const Parameters parameters{testParameters};
-
     auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
 
-    return SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>(std::move(created_strategy));
+    SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType> wrapper(std::move(created_strategy));
+
+    KRATOS_EXPECT_EQ(wrapper.GetNumberOfIterations(), 5);
 }
 
-
-KRATOS_TEST_CASE_IN_SUITE(InstantiateWrapper, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(GetEndTimeFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
 {
     Model model;
     const int buffer_size = 2;
     auto& dummy_model_part = model.CreateModelPart("dummy", buffer_size);
     ProcessInfo info;
-    info[NL_ITERATION_NUMBER] = 5;
+    info[TIME] = 17;
     dummy_model_part.SetProcessInfo(info);
     const Parameters parameters{testParameters};
 
@@ -125,7 +124,23 @@ KRATOS_TEST_CASE_IN_SUITE(InstantiateWrapper, KratosGeoMechanicsFastSuite)
 
     SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType> wrapper(std::move(created_strategy));
 
-    KRATOS_EXPECT_EQ(wrapper.GetNumberOfIterations(), 5);
+    KRATOS_EXPECT_EQ(wrapper.GetEndTime(), 17);
 }
+
+KRATOS_TEST_CASE_IN_SUITE(GetConvergenceStateFromStrategyWrapper_ReturnsCorrectState, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    const int buffer_size = 2;
+    auto& dummy_model_part = model.CreateModelPart("dummy", buffer_size);
+    const Parameters parameters{testParameters};
+
+    auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
+
+    SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType> wrapper(std::move(created_strategy));
+
+    KRATOS_EXPECT_EQ(wrapper.GetConvergenceState(), TimeStepEndState::ConvergenceState::converged);
+}
+
+
 
 }
