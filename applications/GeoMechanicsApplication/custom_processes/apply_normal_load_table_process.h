@@ -20,15 +20,21 @@
 namespace Kratos
 {
 
+class ModelPart;
+class Parameters;
+
+
 class ApplyNormalLoadTableProcess : public Process
 {
 public:
+    ApplyNormalLoadTableProcess(ModelPart&        rModelPart,
+                                const Parameters& rProcessSettings);
 
     void ExecuteInitialize() override;
-
     void ExecuteInitializeSolutionStep() override;
 
 private:
+    ModelPart& mrModelPart;
     std::vector<std::unique_ptr<Process>> mProcesses;
 };
 
