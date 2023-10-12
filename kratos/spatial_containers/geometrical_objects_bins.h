@@ -376,7 +376,6 @@ protected:
     std::vector<CellType> mCells;                    /// The cells of the domain
     double mTolerance;                               /// The tolerance considered
 
-
     ///@}
     ///@name Protected Operations
     ///@{
