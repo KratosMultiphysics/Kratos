@@ -115,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanic
     KRATOS_EXPECT_EQ(1, spy.NumberOfExecuteFinalizeSolutionStepCalls());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllCalledOnce, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptFinalizeCalledOnce, KratosGeoMechanicsFastSuite)
 {
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
@@ -130,7 +130,7 @@ KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllCalledOnce, KratosGeoM
     KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategyInitializeSolutionStepCalls());
     KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategyPredictCalls());
     KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategySolveSolutionStepCalls());
-    KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategyFinalizeSolutionStepCalls());
+    KRATOS_EXPECT_EQ(0, converging_strategy->NumberOfSolverStrategyFinalizeSolutionStepCalls());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConvergingTimeStepExecutionReturnsGivenTime, KratosGeoMechanicsFastSuite)

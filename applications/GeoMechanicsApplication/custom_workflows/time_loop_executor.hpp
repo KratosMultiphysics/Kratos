@@ -56,6 +56,7 @@ public :
             mStrategyWrapper->CloneTimeStep();
             end_state = RunCycleLoop(end_state);
             mStrategyWrapper->AccumulateTotalDisplacementField();
+            mStrategyWrapper->FinalizeSolutionStep();
             result.emplace_back(end_state);
             mStrategyWrapper->OutputProcess();
         }

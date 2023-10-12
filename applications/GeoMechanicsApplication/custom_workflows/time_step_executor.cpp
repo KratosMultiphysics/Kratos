@@ -44,8 +44,6 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
          process.get().ExecuteFinalizeSolutionStep();
     }
 
-    mStrategyWrapper->FinalizeSolutionStep();
-
     TimeStepEndState result;
     result.time              = Time;
     result.convergence_state = mStrategyWrapper->GetConvergenceState();
