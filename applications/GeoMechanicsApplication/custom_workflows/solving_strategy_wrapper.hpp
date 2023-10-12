@@ -62,6 +62,56 @@ public:
         mpStrategy->Predict();
     }
 
+    void SetEndTime(double EndTime) override
+    {
+
+    }
+
+    double GetTimeIncrement() const override
+    {
+        return 0;
+    }
+
+    void SetTimeIncrement(double TimeIncrement) override
+    {
+
+    }
+
+    size_t GetStepNumber() const override
+    {
+        return 0;
+    }
+
+    void IncrementStepNumber() override
+    {
+
+    }
+
+    void CloneTimeStep() override
+    {
+
+    }
+
+    void RestorePositionsAndDOFVectorToStartOfStep() override
+    {
+
+    }
+
+    void SaveTotalDisplacementFieldAtStartOfStage() override
+    {
+
+    }
+
+    void AccumulateTotalDisplacementField() override
+    {
+
+    }
+
+    void OutputProcess() override
+    {
+
+    }
+
     bool SolveSolutionStep() override
     {
         return mpStrategy->SolveSolutionStep();

@@ -32,5 +32,16 @@ namespace Kratos
         virtual void Predict()                = 0;
         virtual bool SolveSolutionStep()      = 0;
         virtual void FinalizeSolutionStep()   = 0;
+
+        virtual void SetEndTime(double EndTime) = 0;
+        [[nodiscard]] virtual double GetTimeIncrement() const = 0;
+        virtual void SetTimeIncrement(double TimeIncrement) = 0;
+        [[nodiscard]] virtual std::size_t GetStepNumber() const = 0;
+        virtual void IncrementStepNumber() = 0;
+        virtual void CloneTimeStep() = 0;
+        virtual void RestorePositionsAndDOFVectorToStartOfStep() = 0;
+        virtual void SaveTotalDisplacementFieldAtStartOfStage() = 0;
+        virtual void AccumulateTotalDisplacementField() = 0;
+        virtual void OutputProcess() = 0;
     };
 }
