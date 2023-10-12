@@ -160,7 +160,29 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
             }
 
             // Receiving synced result
-            rDataCommunicator.Recv(mGlobalResults, 0);
+            GlobalResultsVector aux_global_results;
+            rDataCommunicator.Recv(aux_global_results, 0);
+
+            // Getting indexes
+            const std::size_t initial_index = std::accumulate(recv_buffer.begin(), recv_buffer.begin() + rank, 0);
+            const std::size_t end_index = std::accumulate(recv_buffer.begin(), recv_buffer.begin() + rank + 1, 0);     
+
+            // Partial fill
+            for (std::size_t i = 0; i < initial_index; ++i) {
+                auto it_global = aux_global_results.begin() + i;
+                mGlobalResults.push_back(&(*it_global));
+            }
+
+            // Adding local results
+            for (auto& r_value : mLocalResults) {
+                mGlobalResults.push_back(&r_value);
+            }
+
+            // Partial fill
+            for (std::size_t i = end_index; i < aux_global_results.size(); ++i) {
+                auto it_global = aux_global_results.begin() + i;
+                mGlobalResults.push_back(&(*it_global));
+            }
         }
     } else { // Serial code
         // Fill global vector
