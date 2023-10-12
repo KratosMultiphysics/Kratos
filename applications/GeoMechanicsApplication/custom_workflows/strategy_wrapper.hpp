@@ -36,6 +36,7 @@ namespace Kratos
         virtual void RestorePositionsAndDOFVectorToStartOfStep() = 0;
         virtual void SaveTotalDisplacementFieldAtStartOfStage() = 0;
         virtual void AccumulateTotalDisplacementField() = 0;
+        virtual void OutputProcess() = 0;
 
         virtual void Initialize()             = 0;
         virtual void InitializeSolutionStep() = 0;

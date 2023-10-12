@@ -53,6 +53,7 @@ public:
     void RestorePositionsAndDOFVectorToStartOfStep() override {};
     void SaveTotalDisplacementFieldAtStartOfStage() override {};
     void AccumulateTotalDisplacementField() override {};
+    void OutputProcess() override {};
 
     void Initialize()             override {++mSolverStrategyInitializeCalls;}
     void InitializeSolutionStep() override {++mSolverStrategyInitializeSolutionStepCalls;}

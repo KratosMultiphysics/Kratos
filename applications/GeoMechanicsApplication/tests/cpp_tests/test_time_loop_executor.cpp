@@ -117,6 +117,16 @@ public:
         return mCountAccumulateTotalDisplacementFieldCalled;
     }
 
+    void OutputProcess() override
+    {
+        mCountOutputProcessCalled += 1;
+    }
+
+    std::size_t GetCountOutputProcessCalled()
+    {
+        return mCountOutputProcessCalled;
+    }
+
     void Initialize()             override {}
     void InitializeSolutionStep() override {}
     void Predict()                override {}
@@ -131,6 +141,7 @@ private:
     bool mIsRestoreCalled = false;
     bool mIsSaveTotalDisplacementFieldCalled = false;
     std::size_t mCountAccumulateTotalDisplacementFieldCalled = 0;
+    std::size_t mCountOutputProcessCalled = 0;
 };
 
 class FixedCyclesTimeIncrementor : public TimeIncrementor
@@ -332,6 +343,17 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMe
     executor.SetSolverStrategyTimeIncrementor(solver_strategy);
     const auto step_states = executor.Run(TimeStepEndState{});
     KRATOS_EXPECT_EQ(2,solver_strategy->GetCountAccumulateTotalDisplacementFieldCalled());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectOutputProcessCalledForEveryStep, KratosGeoMechanicsFastSuite)
+{
+    TimeLoopExecutor executor;
+    const auto wanted_num_of_cycles_per_step = 1;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    executor.SetSolverStrategyTimeIncrementor(solver_strategy);
+    const auto step_states = executor.Run(TimeStepEndState{});
+    KRATOS_EXPECT_EQ(2,solver_strategy->GetCountOutputProcessCalled());
 }
 
 }

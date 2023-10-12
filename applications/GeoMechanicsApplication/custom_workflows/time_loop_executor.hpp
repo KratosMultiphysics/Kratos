@@ -57,6 +57,7 @@ public :
             end_state = RunCycleLoop(end_state);
             mStrategyWrapper->AccumulateTotalDisplacementField();
             result.emplace_back(end_state);
+            mStrategyWrapper->OutputProcess();
         }
         return result;
     }
