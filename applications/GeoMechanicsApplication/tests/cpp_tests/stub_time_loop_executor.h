@@ -20,7 +20,7 @@ class StubTimeLoopExecutor : public TimeLoopExecutor
 {
 public:
     explicit StubTimeLoopExecutor(size_t NumberOfExpectedProcesses = 0);
-    void SetProcessReferences(const std::vector<std::weak_ptr<Process>>& rProcessRefs) override;
+    void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override;
 
 private:
     std::size_t mNumberOfExpectedProcesses;

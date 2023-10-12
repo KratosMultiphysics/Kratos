@@ -116,7 +116,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
 
     if (mpTimeLoopExecutor)
     {
-        mpTimeLoopExecutor->SetProcessReferences(process_observables);
+        mpTimeLoopExecutor->SetProcessObservables(process_observables);
     }
 
     return 0;

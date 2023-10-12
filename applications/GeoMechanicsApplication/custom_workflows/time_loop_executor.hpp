@@ -33,7 +33,10 @@ public :
     TimeLoopExecutor() : mTimeStepExecutor{std::make_unique<TimeStepExecutor>()} {}
 
     virtual ~TimeLoopExecutor() = default;
-    virtual void SetProcessReferences(const std::vector<std::weak_ptr<Process>>& rProcessRefs) {}
+    virtual void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables)
+    {
+        mTimeStepExecutor->SetProcessObservables(rProcessObservables);
+    }
 
     void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor)
     {

@@ -104,15 +104,17 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanic
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategy(converging_strategy);
-    ProcessSpy spy;
-    TimeStepExecutor::ProcessRefVec process_refs{spy};
-    executor.SetProcessReferences(process_refs);
+    auto spy = std::make_shared<ProcessSpy>();
+
+    std::vector<std::shared_ptr<Process>> processes{spy};
+    std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
+    executor.SetProcessObservables(process_observables);
     const auto time = 0.0;
 
     executor.Run(time);
 
-    KRATOS_EXPECT_EQ(1, spy.NumberOfExecuteInitializeSolutionStepCalls());
-    KRATOS_EXPECT_EQ(1, spy.NumberOfExecuteFinalizeSolutionStepCalls());
+    KRATOS_EXPECT_EQ(1, spy->NumberOfExecuteInitializeSolutionStepCalls());
+    KRATOS_EXPECT_EQ(1, spy->NumberOfExecuteFinalizeSolutionStepCalls());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptFinalizeCalledOnce, KratosGeoMechanicsFastSuite)
@@ -120,8 +122,8 @@ KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptFinalizeCalledOn
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategy(converging_strategy);
-    TimeStepExecutor::ProcessRefVec process_refs;
-    executor.SetProcessReferences(process_refs);
+    std::vector<std::weak_ptr<Process>> process_observables;
+    executor.SetProcessObservables(process_observables);
     const auto time = 0.0;
 
     executor.Run(time);
