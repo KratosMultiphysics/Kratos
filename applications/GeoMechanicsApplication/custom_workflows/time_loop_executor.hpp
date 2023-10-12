@@ -18,7 +18,7 @@
 #include <memory>
 
 #include "time_step_end_state.hpp"
-#include "time_incrementor.h."
+#include "time_incrementor.h"
 #include "time_step_executor.h"
 #include "processes/process.h"
 #include "strategy_wrapper.hpp"
@@ -35,29 +35,29 @@ public :
     virtual ~TimeLoopExecutor() = default;
     virtual void SetProcessReferences(const std::vector<std::weak_ptr<Process>>& rProcessRefs) {}
 
-    void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> ATimeIncrementor)
+    void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor)
     {
-        mTimeIncrementor = std::move(ATimeIncrementor);
+        mTimeIncrementor = std::move(pTimeIncrementor);
     }
 
-    void SetSolverStrategyTimeIncrementor(std::shared_ptr<StrategyWrapper> AStrategyWrapper)
+    void SetSolverStrategyTimeStepExecutor(std::shared_ptr<StrategyWrapper> pStrategyWrapper)
     {
-        mStrategyWrapper = std::move(AStrategyWrapper);
+        mStrategyWrapper = std::move(pStrategyWrapper);
         mTimeStepExecutor->SetSolverStrategy(mStrategyWrapper);
     }
 
-    std::vector<TimeStepEndState> Run(TimeStepEndState end_state)
+    std::vector<TimeStepEndState> Run(TimeStepEndState EndState)
     {
         mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfStage();
         std::vector<TimeStepEndState> result;
-        while (mTimeIncrementor->WantNextStep(end_state)) {
+        while (mTimeIncrementor->WantNextStep(EndState)) {
             mStrategyWrapper->IncrementStepNumber();
             // clone without end time, the end time is overwritten anyway
             mStrategyWrapper->CloneTimeStep();
-            end_state = RunCycleLoop(end_state);
+            EndState = RunCycleLoop(EndState);
             mStrategyWrapper->AccumulateTotalDisplacementField();
             mStrategyWrapper->FinalizeSolutionStep();
-            result.emplace_back(end_state);
+            result.emplace_back(EndState);
             mStrategyWrapper->OutputProcess();
         }
         return result;
@@ -82,11 +82,7 @@ private:
         auto cycle_number = 0;
         auto end_state = previous_state;
         while (mTimeIncrementor->WantRetryStep(cycle_number, end_state)) {
-            if (cycle_number > 0)
-            {
-                // restore the nodal positions and D.O.F. to start of step state
-                mStrategyWrapper->RestorePositionsAndDOFVectorToStartOfStep();
-            }
+            if (cycle_number > 0) mStrategyWrapper->RestorePositionsAndDOFVectorToStartOfStep();
             end_state = RunCycle(previous_state.time);
             ++cycle_number;
         }
