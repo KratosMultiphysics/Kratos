@@ -292,6 +292,11 @@ class AnalysisStage(object):
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             node.Z0 = 0.0
             node.Z  = 0.0
+            # stretch flat geometry in x-direction to induce strains
+            if node.X > 0.1:
+                node.X += 0.01
+            if node.X < -0.1:
+                node.X -= 0.01
         
         # save flat configuration nodal positions
         self.flattened_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
@@ -356,15 +361,15 @@ class AnalysisStage(object):
             E3D_FFT = 0.5 * (C3D_FFT - np.eye(3))
             
             # Check matrix operations
-            print("C3D:\n", C3D)
-            print("F*FT:\n", C3D_FFT)
+            # print("C3D:\n", C3D)
+            # print("F*FT:\n", C3D_FFT)
             
             # TODO: CHECK STRAINS
 
             E_voigt = KratosMultiphysics.Vector(3)
-            E_voigt[0] = E3D_FFT[0, 0] * 0.001
-            E_voigt[1] = E3D_FFT[1, 1] * 0.001
-            E_voigt[2] = 2 * E3D_FFT[0, 1] * 0.001
+            E_voigt[0] = E3D_FFT[0, 0]
+            E_voigt[1] = 0.0    #E3D_FFT[1, 1]
+            E_voigt[2] = 0.0    #2 * E3D_FFT[0, 1]
 
             # # selected elements
             # E_voigt = KratosMultiphysics.Vector(3)

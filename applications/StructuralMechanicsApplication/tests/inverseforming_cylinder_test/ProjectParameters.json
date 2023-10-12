@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "cylinder",
+        "problem_name"  : "cylinder_flat",
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
@@ -17,7 +17,7 @@
         "analysis_type"                        : "non_linear",
         "model_import_settings"                : {
             "input_type"     : "mdpa",
-            "input_filename" : "cylinder"
+            "input_filename" : "cylinder_flat"
         },
         "material_import_settings"             : {
             "materials_filename" : "StructuralMaterials.json"
@@ -99,7 +99,7 @@
                     },
                     "point_data_configuration"  : []
                 },
-                "output_name"            : "gid_output/cylinder"
+                "output_name"            : "gid_output/cylinder_flat"
             }
         }],
         "vtk_output" : [{
