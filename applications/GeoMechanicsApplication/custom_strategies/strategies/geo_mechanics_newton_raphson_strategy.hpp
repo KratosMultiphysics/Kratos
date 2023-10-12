@@ -101,8 +101,6 @@ public:
             // Validate agains defaults -- this also ensures no type mismatch
             rParameters.ValidateAndAssignDefaults(default_parameters);
 
-            mpParameters = &rParameters;
-
             // Set Load SubModelParts and Variable names
             if (rParameters["loads_sub_model_part_list"].size() > 0)
             {
@@ -122,7 +120,6 @@ public:
 
 protected:
     /// Member Variables
-    Parameters* mpParameters;
     std::vector<ModelPart*> mSubModelPartList; /// List of every SubModelPart associated to an external load
     std::vector<std::string> mVariableNames; /// Name of the nodal variable associated to every SubModelPart
 
