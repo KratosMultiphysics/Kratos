@@ -185,6 +185,17 @@ TimeStepEndState MakeConvergedStepState()
     return result;
 }
 
+std::shared_ptr<DummySolverStrategy> RunFixedCycleTimeLoop(std::size_t WantedNumOfCyclesPerStep)
+{
+    TimeLoopExecutor executor;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(WantedNumOfCyclesPerStep));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    executor.SetSolverStrategyTimeStepExecutor(solver_strategy);
+    const auto step_states = executor.Run(TimeStepEndState{});
+
+    return solver_strategy;
+}
+
 }
 
 namespace Kratos::Testing
@@ -272,13 +283,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectOneCyclePerStepWhenUsingAPrescribedTimeIncrement
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetOnSolverStrategyAfterRunningAStepLoop, KratosGeoMechanicsFastSuite)
 {
-    TimeLoopExecutor executor;
-    const auto wanted_num_of_cycles_per_step = 1;
-    // The FixedCyclesTimeIncrementor takes increments of 0.5
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
-    executor.SetSolverStrategyTimeStepExecutor(solver_strategy);
-    const auto step_states = executor.Run(TimeStepEndState{});
+    auto solver_strategy = RunFixedCycleTimeLoop(1);
 
     KRATOS_EXPECT_DOUBLE_EQ(1.0, solver_strategy->GetEndTime());
     KRATOS_EXPECT_DOUBLE_EQ(0.5, solver_strategy->GetTimeIncrement());
@@ -287,56 +292,36 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetOnSolverStrategyAfterRunningAStepL
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectATimeStepCloneAtStartOfStep, KratosGeoMechanicsFastSuite)
 {
-    TimeLoopExecutor executor;
-    const auto wanted_num_of_cycles_per_step = 1;
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
-    executor.SetSolverStrategyTimeStepExecutor(solver_strategy);
-    const auto step_states = executor.Run(TimeStepEndState{});
+    auto solver_strategy = RunFixedCycleTimeLoop(1);
+
     KRATOS_EXPECT_TRUE(solver_strategy->IsCloned())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectNoRestoreCalledForOneCycle, KratosGeoMechanicsFastSuite)
 {
-    TimeLoopExecutor executor;
-    const auto wanted_num_of_cycles_per_step = 1;
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
-    executor.SetSolverStrategyTimeStepExecutor(solver_strategy);
-    const auto step_states = executor.Run(TimeStepEndState{});
+    auto solver_strategy = RunFixedCycleTimeLoop(1);
+
     KRATOS_EXPECT_FALSE(solver_strategy->IsRestoreCalled())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectRestoreCalledForTwoCycles, KratosGeoMechanicsFastSuite)
 {
-    TimeLoopExecutor executor;
-    const auto wanted_num_of_cycles_per_step = 2;
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
-    executor.SetSolverStrategyTimeStepExecutor(solver_strategy);
-    const auto step_states = executor.Run(TimeStepEndState{});
+    auto solver_strategy = RunFixedCycleTimeLoop(2);
+
     KRATOS_EXPECT_TRUE(solver_strategy->IsRestoreCalled())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldStoredForResetDisplacements, KratosGeoMechanicsFastSuite)
 {
-    TimeLoopExecutor executor;
-    const auto wanted_num_of_cycles_per_step = 1;
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
-    executor.SetSolverStrategyTimeStepExecutor(solver_strategy);
-    const auto step_states = executor.Run(TimeStepEndState{});
+    auto solver_strategy = RunFixedCycleTimeLoop(1);
+
     KRATOS_EXPECT_TRUE(solver_strategy->IsSaveFieldCalled())
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMechanicsFastSuite)
 {
-    TimeLoopExecutor executor;
-    const auto wanted_num_of_cycles_per_step = 1;
-    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
-    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
-    executor.SetSolverStrategyTimeStepExecutor(solver_strategy);
-    const auto step_states = executor.Run(TimeStepEndState{});
+    auto solver_strategy = RunFixedCycleTimeLoop(1);
+
     KRATOS_EXPECT_EQ(2, solver_strategy->GetCountAccumulateTotalDisplacementFieldCalled());
 }
 
