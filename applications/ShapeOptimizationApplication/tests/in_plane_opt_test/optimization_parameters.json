@@ -30,7 +30,7 @@
             "project_gradient_on_surface_normals" : false
         }],
         "constraints" : [],
-        "design_variables" : {
+        "design_variables" : [{
             "type"   : "vertex_morphing",
             "filter" : {
                 "filter_function_type"       : "linear",
@@ -45,7 +45,7 @@
                     "background_sub_model_part_name" : ""
                 }
             }
-        },
+        }],
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
             "max_iterations"     : 5,

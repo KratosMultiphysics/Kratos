@@ -39,7 +39,7 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
     def __init__(self, optimization_settings, analyzer, communicator, model_part_controller):
         default_algorithm_settings = KM.Parameters("""
         {
-            "name"                    : "free_thickness_optimization",
+            "name"                    : "gradient_projection",
             "max_correction_share"    : 0.75,
             "max_iterations"          : 100,
             "relative_tolerance"      : 1e-3,
@@ -49,36 +49,37 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
                 "step_size"                  : 1.0
             }
         }""")
-        self.shape_opt = True
-        # TODO: make design optimization_settings["design_variables"] a list
-        # for design_variable in optimization_settings["design_variables"]:
-        #     if design_variable["type"].GetString() is "vertex_morphing":
-        #         self.shape_opt = True
-        #         self.shape_mapper_settings = design_variable["filter"]
+        self.shape_opt = False
+        free_thickness_settings = None
+        for design_variable in optimization_settings["design_variables"]:
+            if design_variable["type"].GetString() == "vertex_morphing":
+                self.shape_opt = True
+                self.shape_mapper_settings = design_variable["filter"].Clone()
+            elif design_variable["type"].GetString() == "free_thickness":
+                free_thickness_settings = design_variable.Clone()
 
         self.algorithm_settings =  optimization_settings["optimization_algorithm"]
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
 
         self.optimization_settings = optimization_settings
-        self.mapper_settings = optimization_settings["design_variables"]["filter"]
-        self.shape_mapper_settings = self.mapper_settings
+        self.initial_mapper_settings = free_thickness_settings["filter"]
 
-        if optimization_settings["design_variables"].Has("projection"):
-            self.projection = optimization_settings["design_variables"]["projection"]
+        if free_thickness_settings.Has("projection"):
+            self.projection = free_thickness_settings["projection"]
         else:
             self.projection = False
 
         if self.projection:
-            self.thickness_targets = optimization_settings["design_variables"]["projection_settings"]["available_thicknesses"].GetVector()
-            self.beta = optimization_settings["design_variables"]["projection_settings"]["initial_beta"].GetDouble()
-            self.q = optimization_settings["design_variables"]["projection_settings"]["increase_beta_factor"].GetDouble()
+            self.thickness_targets = free_thickness_settings["projection_settings"]["available_thicknesses"].GetVector()
+            self.beta = free_thickness_settings["projection_settings"]["initial_beta"].GetDouble()
+            self.q = free_thickness_settings["projection_settings"]["increase_beta_factor"].GetDouble()
 
         self.analyzer = analyzer
         self.communicator = communicator
         self.model_part_controller = model_part_controller
 
         self.design_surface = None
-        self.mapper = None
+        self.shape_mapper = None
         self.data_logger = None
         self.optimization_utilities = None
         self.variable_utils = None
@@ -166,13 +167,14 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
             KM.Logger.PrintInfo(f"Opt", f"Shape scaling factor {self.shape_scaling_factor}")
             KM.Logger.PrintInfo(f"Opt", f"Thickness scaling factor {self.thickness_scaling_factor}")
 
-        self.initial_mapper = mapper_factory.CreateMapper(self.initial_design_surface, self.initial_design_surface, self.mapper_settings)
+        self.initial_mapper = mapper_factory.CreateMapper(self.initial_design_surface, self.initial_design_surface, self.initial_mapper_settings)
         self.initial_mapper.Initialize()
         self.initial_model_part_controller.InitializeDamping()
 
-        self.mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.shape_mapper_settings)
-        self.mapper.Initialize()
-        self.model_part_controller.InitializeDamping()
+        if self.shape_opt:
+            self.shape_mapper = mapper_factory.CreateMapper(self.design_surface, self.design_surface, self.shape_mapper_settings)
+            self.shape_mapper.Initialize()
+            self.model_part_controller.InitializeDamping()
 
         optimization_settings = self.optimization_settings.Clone()
         self.data_logger = data_logger_factory.CreateDataLogger(self.model_part_controller, self.communicator, self.optimization_settings)
@@ -377,14 +379,14 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
 
     def __mapShapeGradients(self):
 
-        self.mapper.Update()
-        self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
+        self.shape_mapper.Update()
+        self.shape_mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
 
         for constraint in self.constraints:
             con_id = constraint["identifier"].GetString()
             gradient_variable = self.shape_constraint_gradient_variables[con_id]["gradient"]
             mapped_gradient_variable = self.shape_constraint_gradient_variables[con_id]["mapped_gradient"]
-            self.mapper.InverseMap(gradient_variable, mapped_gradient_variable)
+            self.shape_mapper.InverseMap(gradient_variable, mapped_gradient_variable)
 
     # --------------------------------------------------------------------------
     def __computeControlUpdate(self):
@@ -592,7 +594,7 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
     # --------------------------------------------------------------------------
     def __mapControlShapeUpdate(self):
 
-        self.mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
+        self.shape_mapper.Map(KSO.CONTROL_POINT_UPDATE, KSO.SHAPE_UPDATE)
         self.model_part_controller.DampNodalUpdateVariableIfSpecified(KSO.SHAPE_UPDATE)
 
     # --------------------------------------------------------------------------

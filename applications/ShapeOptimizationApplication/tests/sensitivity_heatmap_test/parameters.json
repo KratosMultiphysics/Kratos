@@ -35,14 +35,14 @@
                 }
             }
         ],
-        "design_variables" : {
+        "design_variables" : [{
             "type"                               : "vertex_morphing",
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 2.0,
                 "max_nodes_in_filter_radius" : 1000
             }
-        },
+        }],
         "optimization_algorithm" : {
             "name"               : "gradient_projection",
             "max_iterations"     : 20,

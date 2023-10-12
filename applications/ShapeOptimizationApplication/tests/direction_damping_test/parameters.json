@@ -33,14 +33,14 @@
             "analyzer"   : "external"
         }],
         "constraints" : [],
-        "design_variables" : {
+        "design_variables" : [{
             "type"                               : "vertex_morphing",
             "filter" : {
                 "filter_function_type"       : "linear",
                 "filter_radius"              : 50.0,
                 "max_nodes_in_filter_radius" : 100
             }
-        },
+        }],
         "optimization_algorithm" : {
             "name"               : "steepest_descent",
             "max_iterations"     : 2,
