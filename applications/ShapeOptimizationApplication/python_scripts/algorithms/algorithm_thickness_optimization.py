@@ -44,15 +44,16 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
         self.algorithm_settings.RecursivelyValidateAndAssignDefaults(default_algorithm_settings)
 
         self.optimization_settings = optimization_settings
-        if optimization_settings["design_variables"].Has("projection"):
-            self.projection = optimization_settings["design_variables"]["projection"]
+        if optimization_settings["design_variables"][0].Has("projection"):
+            self.projection = optimization_settings["design_variables"][0]["projection"]
         else:
             self.projection = False
 
         if self.projection:
-            self.thickness_targets = optimization_settings["design_variables"]["projection_settings"]["available_thicknesses"].GetVector()
-            self.beta = optimization_settings["design_variables"]["projection_settings"]["initial_beta"].GetDouble()
-            self.q = optimization_settings["design_variables"]["projection_settings"]["increase_beta_factor"].GetDouble()
+            self.thickness_targets = optimization_settings["design_variables"][0]["projection_settings"]["available_thicknesses"].GetVector()
+            self.beta = optimization_settings["design_variables"][0]["projection_settings"]["initial_beta"].GetDouble()
+            self.beta_max = optimization_settings["design_variables"][0]["projection_settings"]["max_beta"].GetDouble()
+            self.q = optimization_settings["design_variables"][0]["projection_settings"]["increase_beta_factor"].GetDouble()
 
         self.analyzer = analyzer
         self.communicator = communicator
@@ -398,6 +399,8 @@ class AlgorithmThicknessOptimization(OptimizationAlgorithm):
 
         if self.projection:
             self.beta *= self.q
+            if self.beta > self.beta_max:
+                self.beta = self.beta_max
 
     # --------------------------------------------------------------------------
     def __determineAbsoluteChanges(self):
