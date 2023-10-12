@@ -34,6 +34,8 @@ namespace Kratos
         virtual void IncrementStepNumber() = 0;
         virtual void CloneTimeStep() = 0;
         virtual void RestorePositionsAndDOFVectorToStartOfStep() = 0;
+        virtual void SaveTotalDisplacementFieldAtStartOfStage() = 0;
+        virtual void AccumulateTotalDisplacementField() = 0;
 
         virtual void Initialize()             = 0;
         virtual void InitializeSolutionStep() = 0;

@@ -87,7 +87,7 @@ public:
         return mIsCloned;
     }
 
-    void RestorePositionsAndDOFVectorToStartOfStep()
+    void RestorePositionsAndDOFVectorToStartOfStep() override
     {
         mIsRestoreCalled = true;
     }
@@ -95,6 +95,26 @@ public:
     bool IsRestoreCalled()
     {
         return mIsRestoreCalled;
+    }
+
+    void SaveTotalDisplacementFieldAtStartOfStage() override
+    {
+        mIsSaveTotalDisplacementFieldCalled = true;
+    }
+
+    bool IsSaveFieldCalled()
+    {
+        return mIsSaveTotalDisplacementFieldCalled;
+    }
+
+    void AccumulateTotalDisplacementField() override
+    {
+        mCountAccumulateTotalDisplacementFieldCalled += 1;
+    }
+
+    std::size_t GetCountAccumulateTotalDisplacementFieldCalled()
+    {
+        return mCountAccumulateTotalDisplacementFieldCalled;
     }
 
     void Initialize()             override {}
@@ -109,6 +129,8 @@ private:
     ModelPart * mpModelPart = nullptr;
     bool mIsCloned = false;
     bool mIsRestoreCalled = false;
+    bool mIsSaveTotalDisplacementFieldCalled = false;
+    std::size_t mCountAccumulateTotalDisplacementFieldCalled = 0;
 };
 
 class FixedCyclesTimeIncrementor : public TimeIncrementor
@@ -246,7 +268,7 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectEndTimeToBeSetAfterRunningAStep, KratosGeoMechan
 {
     TimeLoopExecutor executor;
     const auto wanted_num_of_cycles_per_step = 1;
-    // The FixedClyclesTimeIncrementor takes increments of 0.5
+    // The FixedCyclesTimeIncrementor takes increments of 0.5
     executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
     auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategyTimeIncrementor(solver_strategy);
@@ -288,6 +310,28 @@ KRATOS_TEST_CASE_IN_SUITE(ExpectRestoreCalledForTwoCycles, KratosGeoMechanicsFas
     executor.SetSolverStrategyTimeIncrementor(solver_strategy);
     const auto step_states = executor.Run(TimeStepEndState{});
     KRATOS_EXPECT_TRUE(solver_strategy->IsRestoreCalled());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldStoredForResetDisplacements, KratosGeoMechanicsFastSuite)
+{
+    TimeLoopExecutor executor;
+    const auto wanted_num_of_cycles_per_step = 1;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    executor.SetSolverStrategyTimeIncrementor(solver_strategy);
+    const auto step_states = executor.Run(TimeStepEndState{});
+    KRATOS_EXPECT_TRUE(solver_strategy->IsSaveFieldCalled());
+}
+
+KRATOS_TEST_CASE_IN_SUITE(ExpectDisplacementFieldUpdateForEveryStep, KratosGeoMechanicsFastSuite)
+{
+    TimeLoopExecutor executor;
+    const auto wanted_num_of_cycles_per_step = 1;
+    executor.SetTimeIncrementor(std::make_unique<FixedCyclesTimeIncrementor>(wanted_num_of_cycles_per_step));
+    auto solver_strategy = std::make_shared<DummySolverStrategy>(TimeStepEndState::ConvergenceState::converged);
+    executor.SetSolverStrategyTimeIncrementor(solver_strategy);
+    const auto step_states = executor.Run(TimeStepEndState{});
+    KRATOS_EXPECT_EQ(2,solver_strategy->GetCountAccumulateTotalDisplacementFieldCalled());
 }
 
 }
