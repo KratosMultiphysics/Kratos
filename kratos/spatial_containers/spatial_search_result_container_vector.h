@@ -46,11 +46,8 @@ public:
     /// Pointer definition of SpatialSearchResultContainerVector
     KRATOS_CLASS_POINTER_DEFINITION(SpatialSearchResultContainerVector);
 
-    /// The hash type
-    using HashType = std::size_t;
-
     /// The container type
-    using ContainerType = std::unordered_map<HashType, SpatialSearchResultContainer<TObjectType>>;
+    using ContainerType = std::vector<SpatialSearchResultContainer<TObjectType>>;
 
     // Define the iterator class
     class iterator {
@@ -59,7 +56,7 @@ public:
         using iterator_category = std::forward_iterator_tag;
 
         /// The type of the value pointed to by the iterator.
-        using value_type = std::pair<const HashType, SpatialSearchResultContainer<TObjectType>>;
+        using value_type = SpatialSearchResultContainer<TObjectType>;
 
         /// The difference type between two iterators.
         using difference_type = std::ptrdiff_t;
@@ -140,7 +137,7 @@ public:
         using iterator_category = std::forward_iterator_tag;
 
         /// The type of the value pointed to by the iterator.
-        using value_type = std::pair<const HashType, SpatialSearchResultContainer<TObjectType>>;
+        using value_type = SpatialSearchResultContainer<TObjectType>;
 
         /// The difference type between two iterators.
         using difference_type = std::ptrdiff_t;
@@ -235,9 +232,8 @@ public:
      */
     SpatialSearchResultContainer<TObjectType>& operator[](const IndexType Index)
     {
-        const auto it = mPointResults.find(Index);
-        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for index: " << Index << std::endl;
-        return it->second;
+        KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
+        return mPointResults[Index];
     }
 
     /**
@@ -247,9 +243,8 @@ public:
      */
     const SpatialSearchResultContainer<TObjectType>& operator[](const IndexType Index) const
     {
-        const auto it = mPointResults.find(Index);
-        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for index: " << Index << std::endl;
-        return it->second;
+        KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
+        return mPointResults[Index];
     }
 
     /**
@@ -259,9 +254,8 @@ public:
      */
     SpatialSearchResultContainer<TObjectType>& operator()(const IndexType Index)
     {
-        const auto it = mPointResults.find(Index);
-        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for index: " << Index << std::endl;
-        return it->second;
+        KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
+        return mPointResults[Index];
     }
 
     /**
@@ -271,61 +265,8 @@ public:
      */
     const SpatialSearchResultContainer<TObjectType>& operator()(const IndexType Index) const
     {
-        const auto it = mPointResults.find(Index);
-        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for index: " << Index << std::endl;
-        return it->second;
-    }
-
-    /**
-     * @brief Operator []
-     * @param rCoordinates The coordinates
-     * @return The result container
-     */
-    SpatialSearchResultContainer<TObjectType>& operator[](const array_1d<double, 3>& rCoordinates)
-    {
-        const HashType hash = Hash(rCoordinates);
-        const auto it = mPointResults.find(hash);
-        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for point: " << rCoordinates[0] << ", " << rCoordinates[1] << ", " << rCoordinates[2] << std::endl;
-        return it->second;
-    }
-
-    /**
-     * @brief Operator []
-     * @param rCoordinates The coordinates
-     * @return The result container
-     */
-    const SpatialSearchResultContainer<TObjectType>& operator[](const array_1d<double, 3>& rCoordinates) const
-    {
-        const HashType hash = Hash(rCoordinates);
-        const auto it = mPointResults.find(hash);
-        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for point: " << rCoordinates[0] << ", " << rCoordinates[1] << ", " << rCoordinates[2] << std::endl;
-        return it->second;
-    }
-
-    /**
-     * @brief Operator ()
-     * @param rCoordinates The coordinates
-     * @return The result container
-     */
-    SpatialSearchResultContainer<TObjectType>& operator()(const array_1d<double, 3>& rCoordinates)
-    {
-        const HashType hash = Hash(rCoordinates);
-        const auto it = mPointResults.find(hash);
-        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for point: " << rCoordinates[0] << ", " << rCoordinates[1] << ", " << rCoordinates[2] << std::endl;
-        return it->second;
-    }
-
-    /**
-     * @brief Operator ()
-     * @param rCoordinates The coordinates
-     * @return The result container
-     */
-    const SpatialSearchResultContainer<TObjectType>& operator()(const array_1d<double, 3>& rCoordinates) const
-    {
-        const HashType hash = Hash(rCoordinates);
-        const auto it = mPointResults.find(hash);
-        KRATOS_ERROR_IF(it == mPointResults.end()) << "The result container does not exist for point: " << rCoordinates[0] << ", " << rCoordinates[1] << ", " << rCoordinates[2] << std::endl;
-        return it->second;
+        KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
+        return mPointResults[Index];
     }
 
     ///@}
@@ -384,24 +325,11 @@ public:
     SpatialSearchResultContainer<TObjectType>& InitializeResult(const IndexType Index);
 
     /**
-     * @brief Initialize the container
-     * @param rCoordinates The coordinates
-     */
-    SpatialSearchResultContainer<TObjectType>& InitializeResult(const array_1d<double, 3>& rCoordinates);
-
-    /**
      * @brief Check if coordinates are initialized
      * @param Index The index to be initialized
      * @return True if hash is initialized, false otherwise
     */
     bool HasResult(const IndexType Index) const;
-
-    /**
-     * @brief Check if coordinates are initialized
-     * @param rCoordinates The coordinates
-     * @return True if coordinates are initialized, false otherwise
-    */
-    bool HasResult(const array_1d<double, 3>& rCoordinates) const;
 
     /**
      * @brief Clear the containers
@@ -452,13 +380,6 @@ private:
     ///@}
     ///@name Private Operations
     ///@{
-
-    /**
-     * @brief Hash the coordinates
-     * @param rCoordinates The coordinates
-     * @return The hash
-     */
-    HashType Hash(const array_1d<double, 3>& rCoordinates) const;
 
     ///@}
     ///@name Serialization

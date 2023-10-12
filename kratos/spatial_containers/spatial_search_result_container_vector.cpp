@@ -30,7 +30,8 @@ SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerVector<TO
 {
     // If doesn't exists, create it
     if (!HasResult(Index)) {
-        mPointResults.insert({Index, SpatialSearchResultContainer<TObjectType>()});
+        // Resize vector
+        mPointResults.resize(Index + 1);
     }
     return mPointResults[Index];
 }
@@ -39,39 +40,14 @@ SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerVector<TO
 /***********************************************************************************/
 
 template <class TObjectType>
-SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerVector<TObjectType>::InitializeResult(const array_1d<double, 3>& rCoordinates)
-{
-    const HashType hash = Hash(rCoordinates);
-    // If doesn't exists, create it
-    if (!HasResult(rCoordinates)) {
-        mPointResults.insert({hash, SpatialSearchResultContainer<TObjectType>()});
-    }
-    return mPointResults[hash];
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType>
 bool SpatialSearchResultContainerVector<TObjectType>::HasResult(const IndexType Index) const
 {
-    if (mPointResults.find(Index) != mPointResults.end()) {
+    // Check size
+    if (Index >= mPointResults.size()) {
+        return false;
+    } else {
         return true;
-    }
-    return false;       
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType>
-bool SpatialSearchResultContainerVector<TObjectType>::HasResult(const array_1d<double, 3>& rCoordinates) const
-{
-    const HashType hash = Hash(rCoordinates);
-    if (mPointResults.find(hash) != mPointResults.end()) {
-        return true;
-    }
-    return false;       
+    }      
 }
 
 /***********************************************************************************/
@@ -91,17 +67,8 @@ void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataC
 {
     // Synchronize all the results
     for (auto& r_point_result : mPointResults) {
-        r_point_result.second.SynchronizeAll(rDataCommunicator);
+        r_point_result.SynchronizeAll(rDataCommunicator);
     }
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template <class TObjectType>
-typename SpatialSearchResultContainerVector<TObjectType>::HashType SpatialSearchResultContainerVector<TObjectType>::Hash(const array_1d<double, 3>& rCoordinates) const
-{
-    return reinterpret_cast<std::size_t>(&rCoordinates);
 }
 
 /***********************************************************************************/
@@ -132,9 +99,8 @@ void SpatialSearchResultContainerVector<TObjectType>::PrintData(std::ostream& rO
 {
     // Print results
     rOStream << "SpatialSearchResultContainerVector data summary: " << "\n";
-    for (auto it = mPointResults.begin(); it != mPointResults.end(); ++it) {
-        rOStream << "Hash " << it->first << ":\n";
-        it->second.PrintData(rOStream);
+    for (auto& r_point_result : mPointResults) {
+        r_point_result.PrintData(rOStream);
     }
 }
 

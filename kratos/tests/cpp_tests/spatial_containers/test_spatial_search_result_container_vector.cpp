@@ -30,13 +30,13 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorInitializeResult, Kr
     SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
     // Initialize result
-    Point point = Point(0.5, 0.0, 0.0);
-    container_map.InitializeResult(point);
+    const std::size_t index = 0;
+    container_map.InitializeResult(index);
 
     // Check that the result was added correctly
-    KRATOS_EXPECT_TRUE(container_map.HasResult(point));
-    Point fake_point = Point(1.5, 0.0, 0.0);
-    KRATOS_EXPECT_FALSE(container_map.HasResult(fake_point));
+    KRATOS_EXPECT_TRUE(container_map.HasResult(index));
+    const std::size_t fake_index = 1;
+    KRATOS_EXPECT_FALSE(container_map.HasResult(fake_index));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorClear, KratosCoreFastSuite)
@@ -45,13 +45,13 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorClear, KratosCoreFas
     SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
     // Initialize result
-    Point point = Point(0.5, 0.0, 0.0);
-    container_map.InitializeResult(point);
+    const std::size_t index = 0;
+    container_map.InitializeResult(index);
 
     // Check that the result was added correctly
-    KRATOS_EXPECT_TRUE(container_map.HasResult(point));
+    KRATOS_EXPECT_TRUE(container_map.HasResult(index));
     container_map.Clear();
-    KRATOS_EXPECT_FALSE(container_map.HasResult(point));
+    KRATOS_EXPECT_FALSE(container_map.HasResult(index));
 }
 
 KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorOperators, KratosCoreFastSuite)
@@ -60,11 +60,11 @@ KRATOS_TEST_CASE_IN_SUITE(SpatialSearchResultContainerVectorOperators, KratosCor
     SpatialSearchResultContainerVector<GeometricalObject> container_map;
 
     // Initialize result
-    Point point = Point(0.5, 0.0, 0.0);
-    container_map.InitializeResult(point);
+    const std::size_t index = 0;
+    container_map.InitializeResult(index);
 
     // Check that the result was added correctly
-    auto& r_result = container_map[point];
+    auto& r_result = container_map[index];
     auto& r_local_pointers = r_result.GetLocalResults();
     KRATOS_EXPECT_EQ(r_local_pointers.size(), 0);
     KRATOS_EXPECT_EQ(r_local_pointers.size(), r_result.NumberOfLocalResults());
