@@ -1,7 +1,6 @@
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.KratosUnittest as kratos_unittest
 
-from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from KratosMultiphysics.OptimizationApplication.optimization_analysis import OptimizationAnalysis
 import csv, os
 
@@ -14,7 +13,6 @@ except ImportError:
 @kratos_unittest.skipIf(not nlopt_available, "Missing nlopt python libraries ")
 class TestNLOPTOptimizer(kratos_unittest.TestCase):
     def test_MMA_optimizer(self):
-        pass
         with kratos_unittest.WorkFolderScope(".", __file__):
             with open("optimization_parameters.json", "r") as file_input:
                 parameters = Kratos.Parameters(file_input.read())

@@ -6,11 +6,8 @@ from KratosMultiphysics.OptimizationApplication.controls.master_control import M
 from KratosMultiphysics.OptimizationApplication.utilities.component_data_view import ComponentDataView
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import DictLogger
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
-from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 import numpy
 import sys
-import time as timer
-import datetime
 
 class StandardizedNLOPTConstraint(ResponseRoutine):
     """Standardized constraint response function
@@ -26,9 +23,9 @@ class StandardizedNLOPTConstraint(ResponseRoutine):
     """
     def __init__(self, parameters: Kratos.Parameters, master_control: MasterControl, optimization_problem: OptimizationProblem, required_buffer_size: int = 2):
         default_parameters = Kratos.Parameters("""{
-            "response_name"   : "",
-            "type"            : "",
-            "ref_value": "initial_value"
+            "response_name": "",
+            "type"                     : "",
+            "ref_value"             : "initial_value"
         }""")
 
         response_name = str(parameters["response_name"].GetString())
@@ -55,13 +52,11 @@ class StandardizedNLOPTConstraint(ResponseRoutine):
         self.__unbuffered_data = component_data_view.GetUnBufferedData()
 
         if parameters["ref_value"].IsDouble():
-            self.__ref_type = "specified_value"
             self.__reference_value = parameters["ref_value"].GetDouble()
         elif parameters["ref_value"].IsString() and parameters["ref_value"].GetString() == "initial_value":
-            self.__ref_type = "initial_value"
             self.__reference_value = None
         else:
-            raise RuntimeError(f"Provided \"reference_type\" = {self.__ref_type} is not supported for constraint response functions. Followings are supported options: \n\tinitial_value\n\tfloat value")
+            raise RuntimeError("Provided \"reference_type\" is not supported for constraint response functions. Followings are supported options: \n\tinitial_value\n\tfloat value")
 
         self.__constraint_type = parameters["type"].GetString()
         if self.__constraint_type in ["=", "<"]:
@@ -137,7 +132,7 @@ class StandardizedNLOPTConstraint(ResponseRoutine):
 
     def GetAbsoluteViolation(self, step_index: int = 0) -> float:
             ref_value = self.GetReferenceValue()
-            standardized_response_value = self.GetValue() - ref_value
+            standardized_response_value = self.GetValue(step_index) - ref_value
             standardization_factor = self.__scaling
             if abs(ref_value) > self.__zero_threshold:
                 standardization_factor /= abs(ref_value)

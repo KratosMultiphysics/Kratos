@@ -8,7 +8,6 @@ from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities impor
 from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import CallOnAll
 import numpy
-import time as timer
 import datetime
 
 class StandardizedNLOPTObjective(ResponseRoutine):
@@ -80,7 +79,9 @@ class StandardizedNLOPTObjective(ResponseRoutine):
                 DictLogger("Objective info",self.GetInfo())
 
                 # compute standardization factor
-                self.standardization_factor = self.__scaling / abs(self.__unbuffered_data["initial_value"])
+                self.standardization_factor = self.__scaling
+                if abs(self.__unbuffered_data["initial_value"])>1e-15:
+                    self.standardization_factor /= abs(self.__unbuffered_data["initial_value"])
                 self.standardized_response_value = self.standardization_factor * response_value
 
                 # compute gradients

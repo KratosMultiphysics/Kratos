@@ -141,9 +141,9 @@ class NLOPTAlgorithms(Algorithm):
         self.nlopt_optimizer.set_min_objective(self.__objective.CalculateStandardizedValueAndGradients)
         for constraint in self.__constraints:
             if constraint.IsEqualityType():
-                self.nlopt_optimizer.add_equality_constraint(lambda x,grad: constraint.CalculateStandardizedValueAndGradients(x,grad),1e-8)
+                self.nlopt_optimizer.add_equality_constraint(constraint.CalculateStandardizedValueAndGradients,1e-8)
             else:
-                self.nlopt_optimizer.add_inequality_constraint(lambda x,grad: constraint.CalculateStandardizedValueAndGradients(x,grad),1e-8)
+                self.nlopt_optimizer.add_inequality_constraint(constraint.CalculateStandardizedValueAndGradients,1e-8)
 
         # now set stopping criteria
         self.SetOptimizerStoppingCriteria(self.nlopt_optimizer)
