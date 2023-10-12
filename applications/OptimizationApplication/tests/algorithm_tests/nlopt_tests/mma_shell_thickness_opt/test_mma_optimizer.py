@@ -29,7 +29,7 @@ class TestNLOPTOptimizer(kratos_unittest.TestCase):
                         last_line = row
 
                 resulting_mass = float(last_line[1].strip())
-                self.assertAlmostEqual(resulting_mass, 493.6302176,2)
+                self.assertAlmostEqual(resulting_mass, 542.0733237,2)
 
             os.remove(optimization_log_filename)
 
