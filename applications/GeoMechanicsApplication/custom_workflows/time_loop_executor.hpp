@@ -17,10 +17,10 @@
 #include <vector>
 #include <memory>
 
+#include "time_loop_executor_interface.h"
 #include "time_step_end_state.hpp"
 #include "time_incrementor.h"
 #include "time_step_executor.h"
-#include "processes/process.h"
 #include "strategy_wrapper.hpp"
 
 namespace Kratos
@@ -28,28 +28,27 @@ namespace Kratos
 
 class Process;
 
-class TimeLoopExecutor{
+class TimeLoopExecutor : public TimeLoopExecutorInterface{
 public :
     TimeLoopExecutor() : mTimeStepExecutor{std::make_unique<TimeStepExecutor>()} {}
 
-    virtual ~TimeLoopExecutor() = default;
-    virtual void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables)
+    virtual void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override
     {
         mTimeStepExecutor->SetProcessObservables(rProcessObservables);
     }
 
-    void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor)
+    void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) override
     {
         mTimeIncrementor = std::move(pTimeIncrementor);
     }
 
-    void SetSolverStrategyTimeStepExecutor(std::shared_ptr<StrategyWrapper> pStrategyWrapper)
+    void SetSolverStrategyTimeStepExecutor(std::shared_ptr<StrategyWrapper> pStrategyWrapper) override
     {
         mStrategyWrapper = std::move(pStrategyWrapper);
         mTimeStepExecutor->SetSolverStrategy(mStrategyWrapper);
     }
 
-    std::vector<TimeStepEndState> Run(TimeStepEndState EndState)
+    std::vector<TimeStepEndState> Run(TimeStepEndState EndState) override
     {
         mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfStage();
         std::vector<TimeStepEndState> result;

@@ -12,15 +12,21 @@
 
 #pragma once
 
-#include "custom_workflows/time_loop_executor.hpp"
+#include "custom_workflows/time_loop_executor_interface.h"
 
 namespace Kratos {
 
-class StubTimeLoopExecutor : public TimeLoopExecutor
+class StubTimeLoopExecutor : public TimeLoopExecutorInterface
 {
 public:
     explicit StubTimeLoopExecutor(size_t NumberOfExpectedProcesses = 0);
     void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override;
+
+    void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) override;
+
+    void SetSolverStrategyTimeStepExecutor(std::shared_ptr<StrategyWrapper> pStrategyWrapper) override;
+
+    std::vector<TimeStepEndState> Run(TimeStepEndState EndState) override;
 
 private:
     std::size_t mNumberOfExpectedProcesses;

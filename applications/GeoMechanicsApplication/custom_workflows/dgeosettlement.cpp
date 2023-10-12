@@ -11,7 +11,7 @@
 //
 #include "dgeosettlement.h"
 #include "input_output/logger.h"
-#include "time_loop_executor.hpp"
+#include "time_loop_executor_interface.h"
 
 #include "utilities/variable_utils.h"
 
@@ -29,10 +29,10 @@ namespace Kratos
 
 KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility,
                                          std::unique_ptr<ProcessInfoParser> pProcessInfoParser,
-                                         std::unique_ptr<TimeLoopExecutor> pTimeLoopExecutor) :
+                                         std::unique_ptr<TimeLoopExecutorInterface> pTimeLoopExecutorInterface) :
     mpInputUtility{std::move(pInputUtility)},
     mpProcessInfoParser{std::move(pProcessInfoParser)},
-    mpTimeLoopExecutor{std::move(pTimeLoopExecutor)}
+    mpTimeLoopExecutor{std::move(pTimeLoopExecutorInterface)}
 {
     KRATOS_INFO("KratosGeoSettlement") << "Setting up Kratos" << std::endl;
     KRATOS_ERROR_IF_NOT(mpInputUtility) << "Invalid Input Utility";
