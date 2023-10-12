@@ -35,7 +35,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISpatialSearchResultContainerVectorIniti
 
     // Check that the result was added correctly
     KRATOS_EXPECT_TRUE(container_map.HasResult(index));
-    const std::size_t fake_index = 0;
+    const std::size_t fake_index = 1;
     KRATOS_EXPECT_FALSE(container_map.HasResult(fake_index));
 }
 
