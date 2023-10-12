@@ -79,8 +79,8 @@ public:
             for (TIteratorType i_object = GeometricalObjectsBegin ; i_object != GeometricalObjectsEnd ; i_object++){
                 mBoundingBox.Extend(i_object->GetGeometry().begin() , i_object->GetGeometry().end());
             }
+            mBoundingBox.Extend(Tolerance);
         }
-        mBoundingBox.Extend(mTolerance);
         CalculateCellSize(number_of_objects);
         mCells.resize(GetTotalNumberOfCells());
         AddObjectsToCells(GeometricalObjectsBegin, GeometricalObjectsEnd);
@@ -381,10 +381,23 @@ protected:
     ///@name Protected Operations
     ///@{
 
+    /**
+     * @brief This method checks if a point is inside any bounding box of the global bounding boxes
+     * @param rCoords The coordinates of the point
+     * @return True if the point is inside the bounding box
+     */
+    bool PointIsInsideBoundingBox(const array_1d<double, 3>& rCoords);
 
-    ///@}
-    ///@name Private Operations
-    ///@{
+    /**
+     * @brief This method checks if a point is inside any bounding box of the global bounding boxes considering a certain tolerance
+     * @param rCoords The coordinates of the point
+     * @param Tolerance The tolerance
+     * @return True if the point is inside the bounding box
+     */
+    bool PointIsInsideBoundingBoxWithTolerance(
+        const array_1d<double, 3>& rCoords,
+        const double Tolerance
+        );
 
     /**
      * @brief Calculate the cell sizes to be as equilateral as possible and tries to approximate (roughly) the given number of cells
