@@ -18,12 +18,13 @@ from test_structural_lspg_rom import TestStructuralLSPGRom
 from test_fluid_pg_rom import TestFluidPGRom
 from test_thermal_pg_rom import TestThermalPGRom
 from test_structural_pg_rom import TestStructuralPGRom
+from test_monotonicity_preserving_rom import TestMonotonicityPreservingRom
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
     Populates the test suites to run. At least, it should pupulate the suites:
-    "small", "nighlty" and "all"
+    "small", "nightly" and "all"
 
     Return
     ------
@@ -51,7 +52,11 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestFluidPGRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestThermalPGRom]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestStructuralPGRom]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TestMonotonicityPreservingRom]))
 
+    # - testNightly
+    nightlySuite = suites['nightly']
+    nightlySuite.addTests(smallSuite)
 
     # Create a test suit that contains all the tests from every testCase
     # in the list:

@@ -31,7 +31,7 @@ class DEMRestartUtility(RestartUtility):
         self.file_names = []
         self.restart_utilities = dict()
         self.model_parts = dict()
-        for name in settings["input_filenames"]:
+        for name in settings["input_filenames"].values():
             self.file_names.append(name.GetString())
             settings_copy = settings.Clone()
             settings_copy.AddValue("input_filename", name)

@@ -26,10 +26,7 @@
 #include "python/add_model_part_to_python.h"
 #include "python/containers_interface.h"
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 template<class TDataType>
@@ -80,17 +77,17 @@ ModelPart::MeshType::Pointer ModelPartGetMesh2(ModelPart& rModelPart, ModelPart:
     return rModelPart.pGetMesh(MeshIndex);
 }
 
-Node < 3 > ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, double x, double y, double z)
+Node ::Pointer ModelPartCreateNewNode(ModelPart& rModelPart, int Id, double x, double y, double z)
 {
     return rModelPart.CreateNewNode(Id, x, y, z);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry1(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry1(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
-    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    Geometry<Node>::PointsArrayType pGeometryNodeList;
     for (std::size_t i = 0; i < NodeIdList.size(); i++) {
         pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
@@ -98,13 +95,13 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry1(
     return rModelPart.CreateNewGeometry(GeometryTypeName, pGeometryNodeList);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry2(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry2(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     ModelPart::IndexType GeometryId,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
-    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    Geometry<Node>::PointsArrayType pGeometryNodeList;
     for(std::size_t i = 0; i < NodeIdList.size(); i++) {
         pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
@@ -112,13 +109,13 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry2(
     return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryId, pGeometryNodeList);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry3(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry3(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     const std::string& GeometryIdentifierName,
     std::vector< ModelPart::IndexType >& NodeIdList)
 {
-    Geometry<Node<3>>::PointsArrayType pGeometryNodeList;
+    Geometry<Node>::PointsArrayType pGeometryNodeList;
     for (std::size_t i = 0; i < NodeIdList.size(); i++) {
         pGeometryNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
     }
@@ -126,7 +123,7 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry3(
     return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryIdentifierName, pGeometryNodeList);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry4(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry4(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     ModelPart::GeometryType::Pointer pGeometry)
@@ -134,7 +131,7 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry4(
     return rModelPart.CreateNewGeometry(GeometryTypeName, pGeometry);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry5(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry5(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     ModelPart::IndexType GeometryId,
@@ -143,7 +140,7 @@ Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry5(
     return rModelPart.CreateNewGeometry(GeometryTypeName, GeometryId, pGeometry);
 }
 
-Geometry<Node<3>>::Pointer ModelPartCreateNewGeometry6(
+Geometry<Node>::Pointer ModelPartCreateNewGeometry6(
     ModelPart& rModelPart,
     const std::string& GeometryTypeName,
     const std::string& GeometryIdentifierName,
@@ -162,7 +159,7 @@ Element::Pointer ModelPartCreateNewElement(ModelPart& rModelPart, const std::str
         KRATOS_ERROR << "The Element \"" << ElementName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Elements are registered:\n" << msg.str() << std::endl;
     }
 
-    Geometry< Node < 3 > >::PointsArrayType pElementNodeList;
+    Geometry< Node >::PointsArrayType pElementNodeList;
 
     for(unsigned int i = 0; i < NodeIdList.size(); i++) {
         pElementNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
@@ -181,7 +178,7 @@ Condition::Pointer ModelPartCreateNewCondition(ModelPart& rModelPart, const std:
         KRATOS_ERROR << "The Condition \"" << ConditionName << "\" is not registered!\nMaybe you need to import the application where it is defined?\nThe following Conditions are registered:\n" << msg.str() << std::endl;
     }
 
-    Geometry< Node < 3 > >::PointsArrayType pConditionNodeList;
+    Geometry< Node >::PointsArrayType pConditionNodeList;
 
     for(unsigned int i = 0; i <NodeIdList.size(); i++) {
         pConditionNodeList.push_back(rModelPart.pGetNode(NodeIdList[i]));
@@ -876,6 +873,7 @@ void AddModelPartToPython(pybind11::module& m)
         .def("RemoveSubModelPart", RemoveSubModelPart1)
         .def("RemoveSubModelPart", RemoveSubModelPart2)
         .def("HasSubModelPart", &ModelPart::HasSubModelPart)
+        .def("GetSubModelPartNames", &ModelPart::GetSubModelPartNames)
         .def("ConditionsArray", &ModelPart::ConditionsArray, py::return_value_policy::reference_internal)
         .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<bool>)
         .def("AddNodalSolutionStepVariable", AddNodalSolutionStepVariable<int>)
@@ -938,6 +936,9 @@ void AddModelPartToPython(pybind11::module& m)
         .def("GetNonHistoricalVariablesNames", [](ModelPart& rModelPart, ModelPart::ConditionsContainerType& rContainer, bool doFullSearch=false) -> std::unordered_set<std::string> {
             return GetNonHistoricalVariablesNames(rModelPart, rContainer, doFullSearch);
         })
+        .def("HasMasterSlaveConstraint", [](ModelPart& rModelPart, ModelPart::IndexType MasterSlaveConstraintId) -> bool {
+            return rModelPart.HasMasterSlaveConstraint(MasterSlaveConstraintId);
+        })
         .def("GetMasterSlaveConstraint", ModelPartGetMasterSlaveConstraint1)
         .def("GetMasterSlaveConstraints", ModelPartGetMasterSlaveConstraints1)
         .def("RemoveMasterSlaveConstraint", ModelPartRemoveMasterSlaveConstraint1)
@@ -954,6 +955,4 @@ void AddModelPartToPython(pybind11::module& m)
         ;
 }
 
-} // namespace Python.
-
-} // Namespace Kratos
+} // namespace Kratos::Python.

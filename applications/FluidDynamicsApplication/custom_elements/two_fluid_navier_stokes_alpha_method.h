@@ -75,7 +75,7 @@ public:
 
     using BaseType = TwoFluidNavierStokes<TElementData>;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
@@ -165,7 +165,11 @@ public:
         const Variable<double> &rVariable,
         std::vector<double> &rOutput,
         const ProcessInfo &rCurrentProcessInfo) override;
-
+        
+    void Calculate(
+        const Variable<double> &rVariable,
+        double &rOutput,
+        const ProcessInfo &rCurrentProcessInfo) override;
     ///@}
     ///@name Inquiry
     ///@{

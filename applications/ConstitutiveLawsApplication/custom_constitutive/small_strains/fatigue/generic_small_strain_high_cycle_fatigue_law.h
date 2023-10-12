@@ -12,8 +12,8 @@
 //  Collaborator:
 //
 
-#if !defined(KRATOS_GENERIC_SMALL_STRAIN_HIGH_CYCLE_FATIGUE_LAW_H_INCLUDED)
-#define KRATOS_GENERIC_SMALL_STRAIN_HIGH_CYCLE_FATIGUE_LAW_H_INCLUDED
+#pragma once
+
 // System includes
 
 // External includes
@@ -70,7 +70,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainHighCycleFatigueLaw);
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -503,4 +503,3 @@ private:
 }; // Class GenericYieldSurface
 
 } // namespace Kratos
-#endif

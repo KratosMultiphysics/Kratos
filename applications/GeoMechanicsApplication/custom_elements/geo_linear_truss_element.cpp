@@ -84,8 +84,6 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-GeoLinearTrussElement<TDim,TNumNodes>::: Initialize()") << std::endl;
-
     GeoTrussElementLinearBase<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
     if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
@@ -96,8 +94,6 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
             mInternalStressesFinalized = mInternalStressesFinalizedPrevious;
         }
     }
-
-    // KRATOS_INFO("1-GeoLinearTrussElement<TDim,TNumNodes>::: Initialize()") << std::endl;
 
     KRATOS_CATCH("")
 }

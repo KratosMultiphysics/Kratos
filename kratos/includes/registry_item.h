@@ -9,6 +9,7 @@
 //
 //  Main authors:    Pooyan Dadvand
 //                   Ruben Zorrilla
+//                   Carlos Roig
 //
 
 #pragma once
@@ -149,6 +150,15 @@ public:
           mpValue(Kratos::make_shared<SubRegistryItemType>()),
           mGetValueStringMethod(&RegistryItem::GetRegistryItemType) {}
 
+    /// Constructor with the name and lambda
+    template <typename TItemType, typename... TArgs>
+    RegistryItem(
+        const std::string &rName,
+        const std::function<std::shared_ptr<TItemType>(TArgs...)> &rValue)
+        : mName(rName),
+          mpValue(rValue()),
+          mGetValueStringMethod(&RegistryItem::GetItemString<TItemType>) {}
+
     /// Constructor with the name and value
     template<class TItemType>
     RegistryItem(
@@ -228,11 +238,22 @@ public:
 
     RegistryItem& GetItem(std::string const& rItemName);
 
-    template<typename TDataType> TDataType const& GetValue() const
+    template<typename TDataType>
+    TDataType const& GetValue() const
     {
         KRATOS_TRY
 
         return *(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
+
+        KRATOS_CATCH("");
+    }
+
+    template<typename TDataType, typename TCastType> 
+    TCastType const& GetValueAs() const
+    {
+        KRATOS_TRY
+
+        return *std::dynamic_pointer_cast<TCastType>(std::any_cast<std::shared_ptr<TDataType>>(mpValue));
 
         KRATOS_CATCH("");
     }
@@ -312,6 +333,14 @@ private:
     class SubValueItemFunctor
     {
     public:
+        template<class... TArgumentsList, class TFunctionType = std::function<std::shared_ptr<TItemType>(TArgumentsList...)>>
+        static inline RegistryItem::Pointer Create(
+            std::string const& ItemName,
+            TFunctionType && Function)
+        {
+            return Kratos::make_shared<RegistryItem>(ItemName, std::forward<TFunctionType>(Function));
+        }
+
         template<class... TArgumentsList>
         static inline RegistryItem::Pointer Create(
             std::string const& ItemName,

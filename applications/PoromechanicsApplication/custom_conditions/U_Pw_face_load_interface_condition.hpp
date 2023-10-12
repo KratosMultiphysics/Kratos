@@ -35,7 +35,7 @@ public:
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
@@ -81,12 +81,12 @@ protected:
     void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo ) override;
 
     void CheckJointWidth(double& rJointWidth, bool& rComputeJointWidth, BoundedMatrix<double,TDim,TDim>& rRotationMatrix,
-                            const double& MinimumJointWidth, const GeometryType& Geom);
+                            const double& InitialJointWidth, const GeometryType& Geom);
 
     void CalculateJointWidth( double& rJointWidth, const BoundedMatrix<double,TDim,TDim*TNumNodes>& Nu,
                                 const array_1d<double,TDim*TNumNodes>& DisplacementVector, array_1d<double,TDim>& rRelDispVector,
                                 const BoundedMatrix<double,TDim,TDim>& RotationMatrix,
-                                array_1d<double,TDim>& rLocalRelDispVector, const double& MinimumJointWidth, const unsigned int& GPoint );
+                                array_1d<double,TDim>& rLocalRelDispVector, const double& InitialJointWidth, const unsigned int& GPoint );
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const Matrix& Jacobian, const double& Weight, const double& JointWidth);
 

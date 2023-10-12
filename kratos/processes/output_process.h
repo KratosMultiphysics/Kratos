@@ -96,6 +96,14 @@ public:
     void PrintData(std::ostream& rOStream) const override {}
 
     ///@}
+private:
+    ///@name Static Member Variables
+    ///@{
+
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.KratosMultiphysics", Process, OutputProcess)
+    KRATOS_REGISTRY_ADD_PROTOTYPE("Processes.All", Process, OutputProcess)
+
+    ///@}
 
 }; // Class OutputProcess
 

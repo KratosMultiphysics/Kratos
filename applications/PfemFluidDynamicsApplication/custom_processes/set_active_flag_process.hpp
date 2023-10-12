@@ -46,7 +46,7 @@ typedef ModelPart::NodesContainerType NodesContainerType;
 typedef ModelPart::ElementsContainerType ElementsContainerType;
 typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
 
-typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
 typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
 
 ///@}
@@ -145,7 +145,7 @@ public:
 
       if (elementRigidNodes == numNodes)
       {
-        Geometry<Node<3>> wallElementNodes = itElem->GetGeometry();
+        Geometry<Node> wallElementNodes = itElem->GetGeometry();
         this->SetPressureToIsolatedWallNodes(wallElementNodes);
       }
     }
@@ -200,7 +200,7 @@ bool mUnactiveSliverElements;
 //*******************************************************************************************
 //*******************************************************************************************
 
-void SetPressureToIsolatedWallNodes(Geometry<Node<3>> &wallElementNodes)
+void SetPressureToIsolatedWallNodes(Geometry<Node> &wallElementNodes)
 {
   KRATOS_TRY
   unsigned int numNodes = wallElementNodes.size();

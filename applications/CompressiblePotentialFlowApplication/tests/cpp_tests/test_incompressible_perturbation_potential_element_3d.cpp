@@ -76,7 +76,7 @@ namespace Kratos {
         PotentialFlowTestUtilities::ComputeElementalSensitivities<4>(
             model_part, LHS_finite_diference, LHS_analytical, potential);
 
-        KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+        KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
     }
 
     // Checks the LHS of the 3D Wake IncompressiblePerturbationPotentialFlowElement element.
@@ -99,7 +99,7 @@ namespace Kratos {
         PotentialFlowTestUtilities::ComputeWakeElementalSensitivities<4>(
             model_part, LHS_finite_diference, LHS_analytical, potential);
 
-        KRATOS_CHECK_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
+        KRATOS_EXPECT_MATRIX_NEAR(LHS_finite_diference, LHS_analytical, 1e-10);
     }
 
     // Checks the RHS of the 3D Wake IncompressiblePerturbationPotentialFlowElement element.
@@ -130,7 +130,7 @@ namespace Kratos {
 
         std::vector<double> reference{11.25952380952381,-14.46333333333333,2.251904761904762,-10.18101768701904,27.96218501752381,-6.205679241199999,-10.25501189882857,-0.9519047619047626};
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
     }
 
     // Checks the LHS of the 3D Wake IncompressiblePerturbationPotentialFlowElement element.
@@ -171,7 +171,7 @@ namespace Kratos {
 
         for (unsigned int i = 0; i < LHS.size1(); i++) {
             for (unsigned int j = 0; j < LHS.size2(); j++) {
-                KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 8 + j], 1e-13);
+                KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 8 + j], 1e-13);
             }
         }
     }
@@ -197,7 +197,7 @@ namespace Kratos {
 
         std::vector<double> reference{52.30928025561904,-26.12494590786666,-12.68925951787618,-13.49507482987619};
 
-        KRATOS_CHECK_VECTOR_NEAR(RHS, reference, 1e-13);
+        KRATOS_EXPECT_VECTOR_NEAR(RHS, reference, 1e-13);
     }
 
     // Checks the LHS of the 3D IncompressiblePerturbationPotentialFlowElement element.
@@ -223,7 +223,7 @@ namespace Kratos {
 
         for (unsigned int i = 0; i < LHS.size1(); i++) {
             for (unsigned int j = 0; j < LHS.size2(); j++) {
-                KRATOS_CHECK_NEAR(LHS(i, j), reference[i * 4 + j], 1e-13);
+                KRATOS_EXPECT_NEAR(LHS(i, j), reference[i * 4 + j], 1e-13);
             }
         }
     }

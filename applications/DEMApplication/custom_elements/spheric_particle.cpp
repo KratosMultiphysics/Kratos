@@ -141,6 +141,7 @@ SphericParticle& SphericParticle::operator=(const SphericParticle& rOther) {
     mRealMass = rOther.mRealMass;
     mClusterId = rOther.mClusterId;
     mGlobalDamping = rOther.mGlobalDamping;
+    mGlobalViscousDamping = rOther.mGlobalViscousDamping;
     mDiscontinuumConstitutiveLaw = rOther.mDiscontinuumConstitutiveLaw->CloneUnique();
     mRollingFrictionModel = rOther.mRollingFrictionModel->CloneUnique();
 
@@ -1154,7 +1155,7 @@ void SphericParticle::ComputeBallToRigidFaceContactForceAndMoment(SphericParticl
         DeltDisp[1] = delta_displ[1] - wall_delta_disp_at_contact_point[1];
         DeltDisp[2] = delta_displ[2] - wall_delta_disp_at_contact_point[2];
 
-        Node<3>::Pointer other_particle_node = this->GetGeometry()[0].Clone();
+        Node::Pointer other_particle_node = this->GetGeometry()[0].Clone();
         other_particle_node->GetSolutionStepValue(DELTA_DISPLACEMENT) = wall_delta_disp_at_contact_point;
         data_buffer.mpOtherParticleNode = &*other_particle_node;
         DEM_COPY_SECOND_TO_FIRST_3(data_buffer.mOtherToMeVector, cond_to_me_vect)
@@ -1698,7 +1699,7 @@ void SphericParticle::ComputeReactions() {
 
     KRATOS_TRY
 
-    Node<3>& node = GetGeometry()[0];
+    Node& node = GetGeometry()[0];
     array_1d<double, 3>& reaction_force = node.FastGetSolutionStepValue(FORCE_REACTION);
     array_1d<double, 3>& r_total_forces = node.FastGetSolutionStepValue(TOTAL_FORCES);
     reaction_force[0] = node.Is(DEMFlags::FIXED_VEL_X) * (-r_total_forces[0]);
@@ -1750,6 +1751,14 @@ void SphericParticle::ComputeAdditionalForces(array_1d<double, 3>& externally_ap
             noalias(externally_applied_force)  += counter_force;}
     } else {
         noalias(externally_applied_force)  += ComputeWeight(gravity, r_process_info);
+        //Global viscous damping force
+        const array_1d<double, 3>& vel = this->GetGeometry()[0].FastGetSolutionStepValue(VELOCITY);
+        const double vel_magnitude = DEM_MODULUS_3(vel);
+        if (vel_magnitude != 0.0)
+        {
+            const array_1d<double, 3> viscous_damping_force = -2.0 * mGlobalViscousDamping * sqrt(GetMass() * GetRadius() * GetYoung())  * vel;
+            noalias(externally_applied_force)  += viscous_damping_force;
+        }
         noalias(externally_applied_force)  += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_FORCE);
         noalias(externally_applied_moment) += this->GetGeometry()[0].FastGetSolutionStepValue(EXTERNAL_APPLIED_MOMENT);
     }
@@ -1891,6 +1900,7 @@ void SphericParticle::MemberDeclarationFirstStep(const ProcessInfo& r_process_in
     }
 
     mGlobalDamping = r_process_info[GLOBAL_DAMPING];
+    mGlobalViscousDamping = r_process_info[GLOBAL_VISCOUS_DAMPING];
 }
 
 std::unique_ptr<DEMDiscontinuumConstitutiveLaw> SphericParticle::pCloneDiscontinuumConstitutiveLawWithNeighbour(SphericParticle* neighbour) {
@@ -2101,9 +2111,9 @@ void SphericParticle::TransformNeighbourCoorsToClosestInPeriodicDomain(const Pro
     const array_1d<double,3>& domain_min = r_process_info[DOMAIN_MIN_CORNER];
     const array_1d<double,3>& domain_max = r_process_info[DOMAIN_MAX_CORNER];
 
-    const double periods[3] = {domain_min[0] - domain_max[0],
-                               domain_min[1] - domain_max[1],
-                               domain_min[2] - domain_max[2]};
+    const double periods[3] = {domain_max[0] - domain_min[0],
+                               domain_max[1] - domain_min[1],
+                               domain_max[2] - domain_min[2]};
 
     DiscreteParticleConfigure<3>::TransformToClosestPeriodicCoordinates(coors, neighbour_coors, periods);
 }

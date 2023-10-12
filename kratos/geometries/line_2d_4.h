@@ -8,10 +8,10 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Mohamed Nabi
-//                   
-//                   
-//  Contributors:    
-//                   
+//
+//
+//  Contributors:
+//
 //
 
 #pragma once
@@ -54,8 +54,8 @@ namespace Kratos
  * @details The node ordering corresponds with:
  *      0-----2----3----1
  * @author Mohamed Nabi
- * @author 
- * @author 
+ * @author
+ * @author
  */
 template<class TPointType>
 class Line2D4 : public Geometry<TPointType>
@@ -184,7 +184,7 @@ public:
     explicit Line2D4(const IndexType GeometryId, const PointsArrayType& rThisPoints)
         : BaseType(GeometryId, rThisPoints, &msGeometryData)
     {
-        KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 4, given " 
+        KRATOS_ERROR_IF(this->PointsNumber() != 4) << "Invalid points number. Expected 4, given "
                                                    << this->PointsNumber() << std::endl;
     }
 
@@ -278,7 +278,7 @@ public:
      * @param rThisPoints the nodes of the new geometry
      * @return Pointer to the new geometry
      */
-    typename BaseType::Pointer Create(const IndexType NewGeometryId, PointsArrayType const& rThisPoints) 
+    typename BaseType::Pointer Create(const IndexType NewGeometryId, PointsArrayType const& rThisPoints)
         const override
     {
         return typename BaseType::Pointer(new Line2D4(NewGeometryId, rThisPoints));
@@ -306,7 +306,7 @@ public:
      *      - Evaluation of M using a quadrature involving only the nodal points and thus
      *        automatically yielding a diagonal matrix for standard element shape function
      */
-    Vector& LumpingFactors(Vector& rResult, const typename BaseType::LumpingMethods LumpingMethod 
+    Vector& LumpingFactors(Vector& rResult, const typename BaseType::LumpingMethods LumpingMethod
         = BaseType::LumpingMethods::ROW_SUM) const override
     {
         if (rResult.size() != 4) rResult.resize(4, false);
@@ -349,7 +349,7 @@ public:
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns length, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     * 
+     *
      * @return double value contains area or surface area.
      * @see Length()
      * @see Volume()
@@ -364,7 +364,7 @@ public:
      * this geometry depending to it's dimension. For one dimensional
      * geometry it returns its length, for two dimensional it gives area
      * and for three dimensional geometries it gives its volume.
-     * 
+     *
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
@@ -481,7 +481,7 @@ public:
     JacobiansType& Jacobian(JacobiansType& rResult, IntegrationMethod ThisMethod) const override
     {
         // Getting derivatives of shape functions
-        const ShapeFunctionsGradientsType shape_functions_gradients 
+        const ShapeFunctionsGradientsType shape_functions_gradients
             = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
         const std::size_t number_of_integration_points = this->IntegrationPointsNumber(ThisMethod);
         if (rResult.size() != number_of_integration_points) {
@@ -519,11 +519,11 @@ public:
      * @see DeterminantOfJacobian
      * @see InverseOfJacobian
      */
-    JacobiansType& Jacobian(JacobiansType& rResult, IntegrationMethod ThisMethod, 
+    JacobiansType& Jacobian(JacobiansType& rResult, IntegrationMethod ThisMethod,
         Matrix& rDeltaPosition) const override
     {
         // Getting derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients 
+        ShapeFunctionsGradientsType shape_functions_gradients
             = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
         const std::size_t number_of_integration_points = this->IntegrationPointsNumber(ThisMethod);
         // Getting values of shape functions
@@ -569,7 +569,7 @@ public:
         rResult.resize(2, 1, false);
         noalias(rResult) = ZeroMatrix(2, 1);
         // Derivatives of shape functions
-        ShapeFunctionsGradientsType shape_functions_gradients 
+        ShapeFunctionsGradientsType shape_functions_gradients
             = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
         Matrix shape_function_gradient_in_integration_point = shape_functions_gradients(IntegrationPointIndex);
         // Values of shape functions in integration points
@@ -759,7 +759,7 @@ public:
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
     }
 
-    void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult, 
+    void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult,
                       Vector& rDeterminantsOfJacobian, IntegrationMethod ThisMethod) const override
     {
         KRATOS_ERROR << "Jacobian is not square" << std::endl;
@@ -795,20 +795,25 @@ public:
      * @see PrintInfo()
      * @see Info()
      */
-    void PrintData(std::ostream& rOStream) const override
+    void PrintData( std::ostream& rOStream ) const override
     {
-        BaseType::PrintData(rOStream);
+        // Base Geometry class PrintData call
+        BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        Jacobian(jacobian, PointType());
-        rOStream << "    Jacobian\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian\t : " << jacobian;
+        }
     }
 
     /** Calculates the local gradients for all integration points for given integration method
      */
     virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(IntegrationMethod& ThisMethod)
     {
-        ShapeFunctionsGradientsType localGradients 
+        ShapeFunctionsGradientsType localGradients
             = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
         const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
         ShapeFunctionsGradientsType Result(integration_points_number);
@@ -826,7 +831,7 @@ public:
     virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients()
     {
         IntegrationMethod ThisMethod = msGeometryData.DefaultIntegrationMethod();
-        ShapeFunctionsGradientsType localGradients 
+        ShapeFunctionsGradientsType localGradients
             = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
         const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
         ShapeFunctionsGradientsType Result(integration_points_number);
@@ -1135,6 +1140,6 @@ const GeometryData Line2D4<TPointType>::msGeometryData(
     AllShapeFunctionsLocalGradients());
 
 template<class TPointType>
-const GeometryDimension Line2D4<TPointType>::msGeometryDimension(2, 2, 1);
+const GeometryDimension Line2D4<TPointType>::msGeometryDimension(2, 1);
 
 }  // namespace Kratos.

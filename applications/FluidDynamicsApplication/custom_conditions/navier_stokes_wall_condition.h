@@ -91,7 +91,7 @@ public:
 
     using Condition::SizeType;
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 

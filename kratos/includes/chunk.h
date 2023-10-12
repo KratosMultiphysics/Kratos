@@ -21,6 +21,7 @@
 // External includes
 
 // Project includes
+#include "includes/checks.h"
 #include "includes/lock_object.h"
 #include "utilities/openmp_utils.h"
 
@@ -36,8 +37,8 @@ namespace Kratos
   /** The memory management of Kratos is implemented based on the design
 	  given in Modern C++ Design by A. Alexandrescu and chunk is the lower
 	  layer of it holding a chunk of NumberOfBlocks objects of BlockSize.
-	  This implemnetation is designed for larg chunk size (i.e. 1M)
-	  imposes more overhead than the reference for stroing a header
+	  This implementation is designed for large chunk size (i.e. 1M)
+	  imposes more overhead than the reference for storing a header
 	  containing the chunk size and block size.
   */
   class Chunk 

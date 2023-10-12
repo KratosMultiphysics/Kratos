@@ -5,6 +5,8 @@ message("**** configuring KratosRomApplication ****")
 ################### PYBIND11
 include(pybind11Tools)
 
+kratos_add_dependency(${KRATOS_SOURCE_DIR}/applications/LinearSolversApplication)
+
 include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 
 ## RomApplication Core sources
@@ -27,7 +29,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 file(GLOB_RECURSE KRATOS_ROM_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
 add_library(KratosRomApplicationCore SHARED ${KRATOS_ROM_APPLICATION_CORE} ${KRATOS_ROM_APPLICATION_TESTING_SOURCES})
-target_link_libraries(KratosRomApplicationCore PUBLIC KratosCore)
+target_link_libraries(KratosRomApplicationCore PUBLIC KratosCore KratosLinearSolversCore)
 set_target_properties(KratosRomApplicationCore PROPERTIES COMPILE_DEFINITIONS "ROM_APPLICATION=EXPORT,API")
 
 ###############################################################

@@ -8,10 +8,10 @@
 //                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Mohamed Nabi
-//                   
-//                   
-//  Contributors:    
-//                   
+//
+//
+//  Contributors:
+//
 //
 
 #pragma once
@@ -54,8 +54,8 @@ namespace Kratos
      * @details The node ordering corresponds with:
      *      0-----2----3----4----1
      * @author Mohamed Nabi
-     * @author 
-     * @author 
+     * @author
+     * @author
      */
     template<class TPointType>
     class Line2D5 : public Geometry<TPointType>
@@ -156,7 +156,7 @@ namespace Kratos
         ///@{
 
         Line2D5(const PointType& Point01, const PointType& Point02, const PointType& Point03,
-                const PointType& Point04, const PointType& Point05) 
+                const PointType& Point04, const PointType& Point05)
                 : BaseType(PointsArrayType(), &msGeometryData)
         {
             BaseType::Points().push_back(typename PointType::Pointer(new PointType(Point01)));
@@ -184,7 +184,7 @@ namespace Kratos
         }
 
         /// Constructor with Geometry Id
-        explicit Line2D5(const IndexType GeometryId, const PointsArrayType& rThisPoints) 
+        explicit Line2D5(const IndexType GeometryId, const PointsArrayType& rThisPoints)
             : BaseType(GeometryId, rThisPoints, &msGeometryData)
         {
             KRATOS_ERROR_IF(this->PointsNumber() != 5) << "Invalid points number. Expected 5, given "
@@ -195,7 +195,7 @@ namespace Kratos
         explicit Line2D5(const std::string& rGeometryName, const PointsArrayType& rThisPoints)
             : BaseType(rGeometryName, rThisPoints, &msGeometryData)
         {
-            KRATOS_ERROR_IF(this->PointsNumber() != 5) << "Invalid points number. Expected 5, given " 
+            KRATOS_ERROR_IF(this->PointsNumber() != 5) << "Invalid points number. Expected 5, given "
                 << this->PointsNumber() << std::endl;
         }
 
@@ -241,7 +241,7 @@ namespace Kratos
         ///@}
         ///@name Operators
         ///@{
-        
+
         /** Assignment operator.
          * @note This operator don't copy the points and this
          * geometry shares points with given source geometry. It's
@@ -274,7 +274,7 @@ namespace Kratos
         ///@}
         ///@name Operations
         ///@{
-        
+
         /**
          * @brief Creates a new geometry pointer
          * @param NewGeometryId the ID of the new geometry
@@ -309,7 +309,7 @@ namespace Kratos
          *      - Evaluation of M using a quadrature involving only the nodal points and thus
          *        automatically yielding a diagonal matrix for standard element shape function
          */
-        Vector& LumpingFactors(Vector& rResult, const typename BaseType::LumpingMethods LumpingMethod 
+        Vector& LumpingFactors(Vector& rResult, const typename BaseType::LumpingMethods LumpingMethod
             = BaseType::LumpingMethods::ROW_SUM)  const override
         {
             if (rResult.size() != 5) rResult.resize(5, false);
@@ -324,11 +324,11 @@ namespace Kratos
         ///@}
         ///@name Informations
         ///@{
-        
-        /** This method calculate and return Length or charactereistic 
-         * length of this geometry depending to it's dimension. For one 
-         * dimensional geometry for example Line it returns length of it 
-         * and for the other geometries it gives Characteristic length 
+
+        /** This method calculate and return Length or charactereistic
+         * length of this geometry depending to it's dimension. For one
+         * dimensional geometry for example Line it returns length of it
+         * and for the other geometries it gives Characteristic length
          * otherwise.
          * @return double value contains length or Characteristic length.
          * @see Area()
@@ -354,7 +354,7 @@ namespace Kratos
          * this geometry depending to it's dimension. For one dimensional
          * geometry it returns length, for two dimensional it gives area
          * and for three dimensional geometries it gives surface area.
-         * 
+         *
          * @return double value contains area or surface area.
          * @see Length()
          * @see Volume()
@@ -369,7 +369,7 @@ namespace Kratos
          * this geometry depending to it's dimension. For one dimensional
          * geometry it returns its length, for two dimensional it gives area
          * and for three dimensional geometries it gives its volume.
-         * 
+         *
          * @return double value contains length, area or volume.
          * @see Length()
          * @see Area()
@@ -467,9 +467,9 @@ namespace Kratos
         ///@}
         ///@name Jacobian
         ///@{
-        
-        /** Jacobians for given method. This method 
-         * calculate jacobians matrices in all integrations points of 
+
+        /** Jacobians for given method. This method
+         * calculate jacobians matrices in all integrations points of
          * given integration method.
          *
          * @param ThisMethod integration method which jacobians has to
@@ -683,7 +683,7 @@ namespace Kratos
         ///@}
         ///@name Shape Function
         ///@{
-        
+
         /**
          * @brief This method gives all non-zero shape functions values evaluated at the rCoordinates provided
          * @note There is no control if the return vector is empty or not!
@@ -765,7 +765,7 @@ namespace Kratos
         ///@}
         ///@name Shape Function Integration Points Gradient
         ///@{
-        
+
         void ShapeFunctionsIntegrationPointsGradients(ShapeFunctionsGradientsType& rResult,
             IntegrationMethod ThisMethod) const override
         {
@@ -781,7 +781,7 @@ namespace Kratos
         ///@}
         ///@name Input and output
         ///@{
-        
+
         /** Turn back information as a string.
          *
          * @return String contains information about this geometry.
@@ -803,26 +803,31 @@ namespace Kratos
             rOStream << "1 dimensional line with 5 nodes in 2D space";
         }
 
-        /** Print geometry's data into given stream. Prints it's points 
+        /** Print geometry's data into given stream. Prints it's points
          * by the order they stored in the geometry and then center point of geometry.
          * @param rOStream Stream to print into it.
          * @see PrintInfo()
          * @see Info()
          */
-        void PrintData(std::ostream& rOStream) const override
+        void PrintData( std::ostream& rOStream ) const override
         {
-            BaseType::PrintData(rOStream);
+            // Base Geometry class PrintData call
+            BaseType::PrintData( rOStream );
             std::cout << std::endl;
-            Matrix jacobian;
-            Jacobian(jacobian, PointType());
-            rOStream << "    Jacobian\t : " << jacobian;
+
+            // If the geometry has valid points, calculate and output its data
+            if (this->AllPointsAreValid()) {
+                Matrix jacobian;
+                this->Jacobian( jacobian, PointType() );
+                rOStream << "    Jacobian\t : " << jacobian;
+            }
         }
 
         /** Calculates the local gradients for all integration points for given integration method
          */
         virtual ShapeFunctionsGradientsType ShapeFunctionsLocalGradients(IntegrationMethod& ThisMethod)
         {
-            ShapeFunctionsGradientsType localGradients 
+            ShapeFunctionsGradientsType localGradients
                 = CalculateShapeFunctionsIntegrationPointsLocalGradients(ThisMethod);
             const int integration_points_number = msGeometryData.IntegrationPointsNumber(ThisMethod);
             ShapeFunctionsGradientsType Result(integration_points_number);
@@ -1163,6 +1168,6 @@ namespace Kratos
         AllShapeFunctionsLocalGradients());
 
     template<class TPointType>
-    const GeometryDimension Line2D5<TPointType>::msGeometryDimension(2, 2, 1);
+    const GeometryDimension Line2D5<TPointType>::msGeometryDimension(2, 1);
 
 }  // namespace Kratos.

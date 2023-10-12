@@ -437,7 +437,7 @@ public:
         KRATOS_WARNING("Quadrilateral3D9") << "Method not well defined. Replace with DomainSize() instead. This method preserves current behaviour but will be changed in June 2023 (returning error instead)" << std::endl;
         return Area();
         // TODO: Replace in June 2023
-        // KRATOS_ERROR << "Quadrilateral3D9:: Method not well defined. Replace with DomainSize() instead." << std::endl; 
+        // KRATOS_ERROR << "Quadrilateral3D9:: Method not well defined. Replace with DomainSize() instead." << std::endl;
         // return 0.0;
     }
 
@@ -546,9 +546,9 @@ public:
             rResult.resize( 2, false );
 
         //starting with xi = 0
-        rResult = ZeroVector( 2 );
+        rResult = ZeroVector( 3 );
 
-        Vector DeltaXi = ZeroVector( 2 );
+        Vector DeltaXi = ZeroVector( 3 );
 
         CoordinatesArrayType CurrentGlobalCoords( ZeroVector( 3 ) );
 
@@ -821,12 +821,13 @@ public:
         //loop over all nodes
         for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
         {
-            rResult( 0, 0 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 0, 1 ) += ( this->GetPoint( i ).X() ) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 1, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 1, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
-            rResult( 2, 0 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 0 ) );
-            rResult( 2, 1 ) += ( this->GetPoint( i ).Y() ) * ( shape_functions_gradients( i, 1 ) );
+            const auto& coordinates = this->GetPoint(i).Coordinates();
+            rResult( 0, 0 ) += ( coordinates[0] ) * ( shape_functions_gradients( i, 0 ) );
+            rResult( 0, 1 ) += ( coordinates[0] ) * ( shape_functions_gradients( i, 1 ) );
+            rResult( 1, 0 ) += ( coordinates[1] ) * ( shape_functions_gradients( i, 0 ) );
+            rResult( 1, 1 ) += ( coordinates[1] ) * ( shape_functions_gradients( i, 1 ) );
+            rResult( 2, 0 ) += ( coordinates[2] ) * ( shape_functions_gradients( i, 0 ) );
+            rResult( 2, 1 ) += ( coordinates[2] ) * ( shape_functions_gradients( i, 1 ) );
         }
 
         return rResult;
@@ -998,18 +999,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
 
-        for ( unsigned int i = 0; i < this->PointsNumber(); i++ )
-        {
-            rOStream << this->Points()[i] << "\t";
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
         }
-
-//                 Matrix jacobian;
-//                 Jacobian(jacobian, PointType());
-//                 rOStream << "    Jacobian in the origin\t : " << jacobian;
-        rOStream << std::endl;
     }
 
     /**
@@ -1754,7 +1753,6 @@ const GeometryData Quadrilateral3D9<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Quadrilateral3D9<TPointType>::msGeometryDimension(
-    2, 3, 2);
+const GeometryDimension Quadrilateral3D9<TPointType>::msGeometryDimension(3, 2);
 
 }  // namespace Kratos.

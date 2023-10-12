@@ -60,13 +60,13 @@ namespace Kratos
 
         //make a parallel clone of all the nodes
         IndexPartition<std::size_t>(mrModelPart.Nodes().size()).for_each([&](std::size_t Index){
-            Node<3>::Pointer& pnode = *(mrModelPart.Nodes().ptr_begin() + Index);
+            Node::Pointer& pnode = *(mrModelPart.Nodes().ptr_begin() + Index);
             pnode = pnode->Clone();
         });
 
         IndexPartition<std::size_t>(mrModelPart.Elements().size()).for_each([&](std::size_t Index){
             Element::Pointer& pelem = *(mrModelPart.Elements().ptr_begin() + Index);
-            Geometry<Node<3>>::PointsArrayType tmp;
+            Geometry<Node>::PointsArrayType tmp;
             const auto& geom = pelem->GetGeometry();
             tmp.reserve(geom.size());
             for(unsigned int k=0; k<geom.size(); ++k)
@@ -81,7 +81,7 @@ namespace Kratos
 
         IndexPartition<std::size_t>(mrModelPart.Conditions().size()).for_each([&](std::size_t Index){
             Condition::Pointer& pcond = *(mrModelPart.Conditions().ptr_begin() + Index);
-            Geometry<Node<3>>::PointsArrayType tmp;
+            Geometry<Node>::PointsArrayType tmp;
             const auto& geom = pcond->GetGeometry();
             tmp.reserve(geom.size());
             for(unsigned int k=0; k<geom.size(); ++k)
@@ -144,7 +144,7 @@ namespace Kratos
         {
             //make a parallel clone of all the nodes
             IndexPartition<std::size_t>(subpart.Nodes().size()).for_each([&](std::size_t Index){
-                Node<3>::Pointer& pnode = *(subpart.NodesBegin() + Index).base();
+                Node::Pointer& pnode = *(subpart.NodesBegin() + Index).base();
                 pnode = mrModelPart.Nodes()(pnode->Id());
             });
             subpart.Nodes().Sort();

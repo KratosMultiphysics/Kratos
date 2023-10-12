@@ -75,8 +75,8 @@ public:
     typedef ModelPart::NodesContainerType              NodesArrayType;
     typedef ModelPart::ElementsContainerType        ElementsArrayType;
 
-    /// The node type definition
-    typedef Node<3> NodeType;
+    /// The node type definiton
+    typedef Node NodeType;
 
     /// The definition of the index type
     typedef std::size_t IndexType;

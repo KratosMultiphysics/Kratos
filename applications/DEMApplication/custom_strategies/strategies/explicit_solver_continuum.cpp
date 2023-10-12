@@ -409,7 +409,7 @@ namespace Kratos {
                         ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (p_old_contact_element.get());
                         mListOfSphericContinuumParticles[i]->mBondElements[j] = p_bond;
                     } else {
-                        Geometry<Node<3> >::PointsArrayType NodeArray(2);
+                        Geometry<Node >::PointsArrayType NodeArray(2);
                         NodeArray.GetContainer()[0] = mListOfSphericContinuumParticles[i]->GetGeometry()(0);
                         NodeArray.GetContainer()[1] = neighbour_element->GetGeometry()(0);
                         const Properties::Pointer& properties = mListOfSphericContinuumParticles[i]->pGetProperties();

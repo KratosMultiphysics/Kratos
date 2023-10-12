@@ -14,7 +14,6 @@
 #pragma once
 
 // System includes
-#include <algorithm>
 
 // External includes
 
@@ -38,16 +37,13 @@ public:
     ///@{
 
     /// The size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
     /// The index type definition
-    typedef std::size_t IndexType;
-
-    /// Definition of the node
-    typedef Node<3> NodeType;
+    using IndexType = std::size_t;
 
     /// Definition of the geometry
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<Node>;
 
     ///@}
     ///@name Operations
@@ -156,9 +152,8 @@ public:
 
         //Jacobian is calculated:
         //  |dx/dxi  dx/deta|    |x1-x0   x2-x0|
-        //J=|                |=    |              |
+        //J=|               |=   |             |
         //  |dy/dxi  dy/deta|    |y1-y0   y2-y0|
-
 
         double detJ = x10 * y20-y10 * x20;
 
@@ -431,233 +426,67 @@ public:
      * @return The distance between the point and the line
      */
     static double PointDistanceToLineSegment3D(
-        Point const& rLinePoint1,
-        Point const& rLinePoint2,
-        Point const& rToPoint
-        )
-    {
-        const double epsilon = 1e-15; //1.00e-9;
-
-        const array_1d<double,3> v1 = rLinePoint2 - rLinePoint1;
-        const array_1d<double,3> v2 = rLinePoint1 - rToPoint;
-        array_1d<double,3> v3;
-
-        const double square_distance = inner_prod(v1,v1);
-
-        if(square_distance < epsilon) // near zero length line
-            return norm_2(v2); // we return the distance to the first point of line
-
-        const double t = - inner_prod(v1,v2) / square_distance;
-
-        if(t < 0.0) { // it is before point 1
-            // We return the distance to point 1
-            noalias(v3) = rLinePoint1 - rToPoint;
-
-            return norm_2(v3);
-        }
-
-        if(t > 1.00) { // it is after point 2
-            // We return the distance to point 2
-            noalias(v3) = rLinePoint2 - rToPoint;
-
-            return norm_2(v3);
-        }
-
-        // The projection point is between point 1 and 2 of the line segment
-        noalias(v3) = rLinePoint1 * (1.0 - t) + rLinePoint2 * t;
-
-        return norm_2(v3 - rToPoint);
-
-    }
+        const Point& rLinePoint1,
+        const Point& rLinePoint2,
+        const Point& rToPoint
+        );
 
     /**
      * @brief This function calculates the distance of a 3D point to a 3D triangle
      * @details The implementation is done using following reference:
      *          http://www.geometrictools.com/Documentation/DistancePoint3Triangle3.pdf
-     * @param TrianglePoint1 First point of triangle
-     * @param TrianglePoint2 Second point of triangle
-     * @param TrianglePoint3 Third point of triangle
-     * @param ToPoint The point which distance is required
+     * @param rTrianglePoint1 First point of triangle
+     * @param rTrianglePoint2 Second point of triangle
+     * @param rTrianglePoint3 Third point of triangle
+     * @param rPoint The point which distance is required
      * @return The distance between the point and the triangle
      */
     static double PointDistanceToTriangle3D(
-        Point const& TrianglePoint1,
-        Point const& TrianglePoint2,
-        Point const& TrianglePoint3,
-        Point const& ToPoint
-    )
-    {
-        const array_1d<double, 3> e0 = TrianglePoint2 - TrianglePoint1;
-        const array_1d<double, 3> e1 = TrianglePoint3 - TrianglePoint1;
-        const array_1d<double, 3> dd = TrianglePoint1 - ToPoint;
+        const Point& rTrianglePoint1,
+        const Point& rTrianglePoint2,
+        const Point& rTrianglePoint3,
+        const Point& rPoint
+        );
 
-        const double a = inner_prod(e0, e0);
-        const double b = inner_prod(e0, e1);
-        const double c = inner_prod(e1, e1);
-        const double d = inner_prod(e0, dd);
-        const double e = inner_prod(e1, dd);
-        const double f = inner_prod(dd, dd);
+    /**
+     * @brief This function calculates the distance of a 3D point to a 3D quadratic triangle
+     * @details The implementation is done by decomposing the quadratic triangle into 3 triangles and calling PointDistanceToTriangle3D
+     * @param rTrianglePoint1 First point of triangle
+     * @param rTrianglePoint2 Second point of triangle
+     * @param rTrianglePoint3 Third point of triangle
+     * @param rTrianglePoint4 Fourth point of triangle
+     * @param rTrianglePoint5 Fifth point of triangle
+     * @param rTrianglePoint6 Sixth point of triangle
+     * @param rPoint The point which distance is required
+     * @return The distance between the point and the triangle
+     */
+    static double PointDistanceToTriangle3D(
+        const Point& rTrianglePoint1,
+        const Point& rTrianglePoint2,
+        const Point& rTrianglePoint3,
+        const Point& rTrianglePoint4,
+        const Point& rTrianglePoint5,
+        const Point& rTrianglePoint6,
+        const Point& rPoint
+        );
 
-        const double det = a*c-b*b;
-        double s = b*e-c*d;
-        double t = b*d-a*e;
-
-        double square_distance = 0.00;
-
-        if ( s + t <= det ) {
-            if ( s < 0.0 ) {
-                if ( t < 0.0 ) { // region 4
-                    if (d < 0) {
-                        t = 0;
-                        if (-d >= a) {
-                            s = 1;
-                            square_distance = a + 2*d + f;
-                        } else {
-                            s = -d/a;
-                            square_distance = d*s + f;
-                        }
-                    } else {
-                        s = 0;
-                        if (e >= 0) {
-                            t = 0;
-                            square_distance = f;
-                        } else {
-                            if (-e >= c) {
-                                t = 1;
-                                square_distance = c + 2*e + f;
-                            } else {
-                                t = -e/c;
-                                square_distance = e*t + f;
-                            }
-                        }
-                    }
-                } else { // region 3
-                    s = 0.0;
-                    if(e >= 0.0) {
-                        t = 0.0;
-                        square_distance = f;
-                    } else {
-                        if (-e >= c) {
-                            t = 1.00;
-                            square_distance = c + 2*e +f;
-                        } else {
-                            t = -e/c;
-                            square_distance = e*t + f;
-                        }
-                    }
-
-                }
-            } else if ( t < 0.00 ) { // region 5
-                t = 0;
-                if (d >= 0) {
-                    s = 0;
-                    square_distance = f;
-                } else {
-                    if (-d >= a) {
-                        s = 1;
-                        square_distance = a + 2.0 * d + f;
-                    } else {
-                        s = -d / a;
-                        square_distance = d * s + f;
-                    }
-                }
-            } else { // region 0
-                double inv_det = 1.0 / det;
-                s *= inv_det;
-                t *= inv_det;
-                square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-            }
-        } else {
-            if ( s < 0.00 ) {
-                // Region 2
-                const double temp0 = b + d;
-                const double temp1 = c + e;
-                if (temp1 > temp0)  { // Minimum on edge s+t=1
-                    const double numer = temp1 - temp0;
-                    const double denom = a - 2*b + c;
-                    if(numer >= denom) {
-                        s = 1.0;
-                        t = 0.0;
-                        square_distance = a + 2*d + f;
-                    } else {
-                        s = numer/denom;
-                        t = 1.0 - s;
-                        square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-                    }
-                } else { // Minimum on edge s=0
-                    s = 0.0;
-                    if(temp1 <= 0.0) {
-                        t = 1;
-                        square_distance = c + 2*e + f;
-                    } else {
-                        if(e >= 0.0) {
-                            t = 0.0;
-                            square_distance = f;
-                        } else {
-                            t = -e/c;
-                            square_distance = e*t + f;
-                        }
-                    }
-                }
-            } else if ( t < 0.0 ) {
-                // Region 6
-                double temp0 = b + e;
-                double temp1 = a + d;
-                if (temp1 > temp0) {
-                    double numer = temp1 - temp0;
-                    double denom = a - 2*b + c;
-                    if(numer >= denom) {
-                        s = 0.0;
-                        t = 1.0;
-                        square_distance = c + 2*e + f;
-                    } else {
-                        t = numer/denom;
-                        s = 1.0 - t;
-                        square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-                    }
-                } else {
-                    t = 0.0;
-                    if(temp1 <= 0.0) {
-                        s = 1;
-                        square_distance = a + 2*d + f;
-                    } else {
-                        if(d >= 0.0) {
-                            s = 0.0;
-                            square_distance = f;
-                        } else {
-                            s = -d/a;
-                            square_distance = d*s + f;
-                        }
-                    }
-                }
-            } else {
-                // Region 1
-                double numer = c + e - b - d;
-
-                if (numer <= 0.0) {
-                    s = 0.0;
-                    t = 1.0;
-                    square_distance = c + 2.0 * e + f;
-                } else {
-                    double denom = a - 2.0 * b + c;
-                    if (numer >= denom) {
-                        s = 1.0;
-                        t = 0.0;
-                        square_distance = a + 2.0 * d + f;
-                    } else {
-                        s = numer / denom;
-                        t = 1.0 - s;
-                        square_distance = s*(a*s + b*t + 2*d) + t*(b*s + c*t + 2*e) + f;
-                    }
-                }
-            }
-        }
-
-        if(square_distance < 0.0)
-            return 0.0; // avoiding -0 case!!
-
-        return std::sqrt(square_distance);
-    }
+    /**
+     * @brief This function calculates the distance of a 3D point to a 3D quadrilateral
+     * @details The implementation is done by decomposing the quadrilateral into 2 triangles and calling PointDistanceToTriangle3D
+     * @param rQuadrilateralPoint1 First point of quadrilateral
+     * @param rQuadrilateralPoint2 Second point of quadrilateral
+     * @param rQuadrilateralPoint3 Third point of quadrilateral
+     * @param rQuadrilateralPoint4 Third point of quadrilateral
+     * @param rPoint The point which distance is required
+     * @return The distance between the point and the quadrilateral
+     */
+    static double PointDistanceToQuadrilateral3D(
+        const Point& rQuadrilateralPoint1,
+        const Point& rQuadrilateralPoint2,
+        const Point& rQuadrilateralPoint3,
+        const Point& rQuadrilateralPoint4,
+        const Point& rPoint
+        );
 
     /**
      * @brief Calculate the gradients of shape functions.
@@ -672,12 +501,8 @@ public:
         TMatrix3& rDN_DX
         )
     {
-    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("ShapeFunctionsGradients", rDN_DX.size1() != rDN_De.size1() || rDN_DX.size2() != rInvJ.size2()) << "ShapeFunctionsGradients has detected an incorrect size of your DN_DX matrix. Please resize before compute" << std::endl;
-    #else
         if (rDN_DX.size1() != rDN_De.size1() || rDN_DX.size2() != rInvJ.size2())
             rDN_DX.resize(rDN_De.size1(), rInvJ.size2(), false);
-    #endif // KRATOS_USE_AMATRIX
 
         noalias(rDN_DX) = prod(rDN_De, rInvJ);
     }
@@ -696,12 +521,8 @@ public:
         TMatrix3& rF
         )
     {
-    #ifdef KRATOS_USE_AMATRIX   // This macro definition is for the migration period and to be removed afterward please do not use it
-        KRATOS_WARNING_IF("DeformationGradient", rF.size1() != rJ.size1() || rF.size2() != rInvJ0.size2()) << "DeformationGradient has detected an incorrect size of your F matrix. Please resize before compute" << std::endl;
-    #else
         if (rF.size1() != rJ.size1() || rF.size2() != rInvJ0.size2())
             rF.resize(rJ.size1(), rInvJ0.size2(), false);
-    #endif // KRATOS_USE_AMATRIX
 
         noalias(rF) = prod(rJ, rInvJ0);
     }
@@ -854,6 +675,28 @@ public:
         const int Step = 0);
 
     /**
+     * @brief This method gives the transform of shape functions second derivatives from isoparametric to natural coordinates evaluated in all integration points
+     *  @param rResult the transform of the second derivative of the shape function on the integration point
+     */
+    static void ShapeFunctionsSecondDerivativesTransformOnAllIntegrationPoints(
+        DenseVector<DenseVector<Matrix>>& rResult,
+        const GeometryType& rGeometry,
+        const GeometryType::IntegrationMethod& rIntegrationMethod );
+
+
+    /**
+     * @brief This method gives the transform of shape functions second derivatives from isoparametric to natural coordinates evaluated on an integration point.
+     * @details The method used can be found here. https://scicomp.stackexchange.com/questions/25196/implementing-higher-order-derivatives-for-finite-element
+     *  @param rLocalIntegrationPointCoordinates the local coordinates of the integration point
+     *  @param rResult the transform of the second derivative of the shape function on the integration point
+     */
+    static void ShapeFunctionsSecondDerivativesTransformOnIntegrationPoint(
+        const Matrix& DN_DX,
+        const GeometryType& rGeometry,
+        const GeometryType::CoordinatesArrayType& rLocalIntegrationPointCoordinates,
+        DenseVector<Matrix>& rResult);
+
+    /**
      * @brief Checks if given point in global space coordinates is inside the geometry boundaries.
      * @details This function computes the local coordinates and checks then if this point lays within the boundaries after projecting the points.
      * @param rPointGlobalCoordinates the global coordinates of the external point.
@@ -867,6 +710,38 @@ public:
         GeometryType::CoordinatesArrayType& rResult,
         const double Tolerance = std::numeric_limits<double>::epsilon()
         );
+
+    /**
+    * @brief Computes the distance between an point in global coordinates and the closest point of this geometry.
+    * @param rGeometry the geometry to compute the distance to.
+    * @param rPointGlobalCoordinates the point to which the closest point has to be found.
+    * @param Tolerance accepted orthogonal error.
+    * @return Distance to geometry.
+    *         positive -> outside of to the geometry (for 2D and solids)
+    *         0        -> on/ in the geometry.
+    */
+    template <class TGeometryType>
+    static double CalculateDistanceFrom3DGeometry(
+        const TGeometryType& rGeometry,
+        const typename TGeometryType::CoordinatesArrayType& rPointGlobalCoordinates,
+        const double Tolerance = std::numeric_limits<double>::epsilon()
+        )
+    {
+        typename TGeometryType::CoordinatesArrayType aux_coordinates;
+        if (rGeometry.IsInside(rPointGlobalCoordinates, aux_coordinates, Tolerance)) {
+            return 0.0;
+        }
+
+        // Generate faces
+        std::vector<double> distances(rGeometry.FacesNumber());
+        unsigned int i = 0;
+        for (auto& r_face : rGeometry.GenerateFaces()) {
+            distances[i] = r_face.CalculateDistance(rPointGlobalCoordinates, Tolerance);
+            ++i;
+        }
+        const auto min = std::min_element(distances.begin(), distances.end());
+        return *min;
+    }
 };
 
 }  // namespace Kratos.

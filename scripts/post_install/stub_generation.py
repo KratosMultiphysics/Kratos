@@ -62,10 +62,13 @@ def __GetPythonModulesImportingCppModules(kratos_python_module_path: Path, krato
     for custom_library_path in kratos_library_path.iterdir():
         custom_library_name = custom_library_path.name
 
-        cpython_location = custom_library_name.find(".cpython")
-        if cpython_location != -1:
-            custom_library_name = custom_library_name[:cpython_location]
-            list_of_binary_modules.append(custom_library_name)
+        if any(key in custom_library_name for key in (".cpython", "Application")):
+            cpython_location = custom_library_name.find(".cpython")
+            if cpython_location != -1:
+                custom_library_name = custom_library_name[:cpython_location]
+                list_of_binary_modules.append(custom_library_name)
+            else:
+                list_of_binary_modules.append(custom_library_path.stem)
 
     cpp_python_modules_dict = {}
     copy_list_of_binary_modules = list(list_of_binary_modules)
@@ -104,8 +107,6 @@ def __GenerateStubFilesForModule(
             # now append cpp module stub file
             with open(str(cpp_module_file_path), "r") as file_input:
                 lines = file_input.read()
-
-            lines = lines.replace("\nimport Kratos\n", "\nimport KratosMultiphysics as Kratos\n")
 
             with open(str(cpp_module_file_path), "w") as file_output:
                 file_output.write(lines)
@@ -169,6 +170,20 @@ def __GenerateStubFilesForModule(
 
     return cpp_module_name
 
+def PostProcessGeneratedStubFiles():
+    kratos_installation_path = Path(sys.argv[1]).absolute()
+
+    files = kratos_installation_path.rglob("*.pyi")
+    for file in files:
+        with open(str(file.absolute()), "r") as file_input:
+            data = file_input.read()
+
+        data = re.sub(R"import +Kratos(\w+)\n", R"import KratosMultiphysics.\1 as Kratos\1\n", data)
+        data = re.sub(R"import +Kratos.(\w+)\n", R"import KratosMultiphysics.\1\n", data)
+        data = data.replace("import Kratos\n", "import KratosMultiphysics as Kratos\n")
+
+        with open(str(file.absolute()), "w") as file_output:
+            file_output.write(data)
 
 def Main():
     print("--- Generating python stub files from {:s}".format(sys.argv[1]))
@@ -220,8 +235,8 @@ if __name__ == "__main__":
     error_and_warning_outut_file = f"{sys.argv[1]}/stub_generation_errors_and_warnings.txt"
     if "--quiet" in sys.argv: # suppress output from Kratos imports
         args = [arg for arg in sys.argv if arg != "--quiet"]
-        output = subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = subprocess.PIPE)
-        for matched_group in re.finditer(r"(Error|Warning|error|warning)(.*?\\n)", str(output.stdout) + str(output.stderr)):
-            print("---- ", matched_group[1], matched_group[2])
+        subprocess.run([sys.executable] + args, stdout = subprocess.PIPE, stderr = sys.stderr, check=True)
+
     else:
         Main()
+        PostProcessGeneratedStubFiles()

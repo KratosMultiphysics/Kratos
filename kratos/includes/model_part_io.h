@@ -74,7 +74,7 @@ public:
     typedef std::vector<std::ostream*>            OutputFilesContainerType;
     typedef std::size_t                           SizeType;
 
-    // Prevents this class from hidding IO::WriteProperties(Properties)
+    // Prevents this class from hiding IO::WriteProperties(Properties)
     using BaseType::WriteProperties;
 
     ///@}
@@ -573,6 +573,10 @@ private:
 
     void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    void ReadSubModelPartGeometriesBlock(
+        ModelPart &rMainModelPart,
+        ModelPart &rSubModelPart);
+
     void DivideInputToPartitionsImpl(
         OutputFilesContainerType& rOutputFiles,
         SizeType NumberOfPartitions,
@@ -720,7 +724,7 @@ private:
     inline void CreatePartition(unsigned int NumberOfThreads,const int NumberOfRows, DenseVector<unsigned int>& partitions);
 
     /// Iterate over a Node block, calling ReorderedNodeId on each node.
-    /** This method allows derived implementations to initalize reordering
+    /** This method allows derived implementations to initialize reordering
      *  without storing the nodes.
      */
     void ScanNodeBlock();

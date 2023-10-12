@@ -4,14 +4,12 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
 //                   Riccardo Rossi
 //
-
-
 
 // System includes
 
@@ -19,19 +17,14 @@
 
 // Project includes
 #include "add_constitutive_law_to_python.h"
+
+#include "includes/properties.h"
 #include "includes/define_python.h"
 #include "includes/constitutive_law.h"
-#include "includes/node.h"
-#include "includes/variables.h"
-#include "includes/mesh.h"
-#include "includes/element.h"
-#include "includes/condition.h"
-#include "includes/properties.h"
 
+#include "containers/variable.h"
 
-namespace Kratos
-{
-namespace Python
+namespace Kratos::Python
 {
 namespace py = pybind11;
 
@@ -84,7 +77,6 @@ ConstitutiveLaw::DeformationGradientMatrixType& GetDeformationGradientF2(Constit
 
 ConstitutiveLaw::Pointer CreateWithoutProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters){ return rThisConstitutiveLaw.Create(NewParameters);}
 ConstitutiveLaw::Pointer CreateWithProperties(ConstitutiveLaw& rThisConstitutiveLaw, Kratos::Parameters NewParameters, const Properties& rProperties){ return rThisConstitutiveLaw.Create(NewParameters, rProperties);}
-
 
 void  AddConstitutiveLawToPython(pybind11::module& m)
 {
@@ -245,5 +237,4 @@ void  AddConstitutiveLawToPython(pybind11::module& m)
     ;
 
 }
-}  // namespace Python.
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

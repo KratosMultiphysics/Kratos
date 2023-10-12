@@ -380,8 +380,8 @@ public:
         return this->Volume();
     }
 
-    /** 
-     * @brief This method calculate and return volume of this geometry. 
+    /**
+     * @brief This method calculate and return volume of this geometry.
      * @details For one and two dimensional geometry it returns zero and for three dimensional it gives volume of geometry.
      * @return double value contains volume.
      * @see Length()
@@ -659,13 +659,15 @@ public:
      *
      * @return the value of the shape function at the given point
      */
-    double ShapeFunctionValue( 
+    double ShapeFunctionValue(
         IndexType ShapeFunctionIndex,
-        const CoordinatesArrayType& rPoint 
+        const CoordinatesArrayType& rPoint
         ) const override
     {
         return CalculateShapeFunctionValue(ShapeFunctionIndex, rPoint);
     }
+
+    using Geometry<TPointType>::ShapeFunctionsValues;
 
     /** This method gives gradient of all shape functions evaluated
      * in given point.
@@ -721,11 +723,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
 private:
@@ -768,9 +775,9 @@ private:
      *
      * @return the value of the shape function at the given point
      */
-    static double CalculateShapeFunctionValue( 
+    static double CalculateShapeFunctionValue(
         const IndexType ShapeFunctionIndex,
-        const CoordinatesArrayType& rPoint 
+        const CoordinatesArrayType& rPoint
         )
     {
         const double x = rPoint[0];
@@ -830,7 +837,7 @@ private:
         rResult(  12  ) = x*z*(2*z - 1)*(-4.0*x - 4.0*y + 4.0) ;
         rResult(  13  ) = 4.0*x*y*z*(2*z - 1) ;
         rResult(  14  ) = 4.0*y*z*(2*z - 1)*(-x - y + 1.0) ;
-        
+
         return rResult;
     }
 
@@ -910,13 +917,13 @@ private:
     {
         IntegrationPointsContainerType all_integration_points = AllIntegrationPoints();
         IntegrationPointsArrayType integration_points = all_integration_points[static_cast<int>(ThisMethod)];
-        
+
         // Number of integration points
         const std::size_t integration_points_number = integration_points.size();
-        
+
         //Setting up return matrix
         Matrix shape_function_values( integration_points_number, 15 );
-        
+
         // Loop over all integration points
         double x, y, z;
         for ( std::size_t pnt = 0; pnt < integration_points_number; pnt++ ) {
@@ -962,7 +969,7 @@ private:
         // Number of integration points
         const std::size_t integration_points_number = integration_points.size();
         ShapeFunctionsGradientsType d_shape_f_values( integration_points_number );
-        
+
         // Initialising container
         Matrix result = ZeroMatrix( 15, 3 );
 
@@ -1109,7 +1116,6 @@ GeometryData Prism3D15<TPointType>::msGeometryData(
 );
 
 template<class TPointType> const
-GeometryDimension Prism3D15<TPointType>::msGeometryDimension(
-    3, 3, 3);
+GeometryDimension Prism3D15<TPointType>::msGeometryDimension(3, 3);
 
 }// namespace Kratos.

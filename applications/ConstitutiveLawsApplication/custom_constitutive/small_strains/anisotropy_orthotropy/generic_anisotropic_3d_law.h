@@ -12,8 +12,7 @@
 //  Collaborator:    Lucia Barbu
 //
 
-#if !defined(KRATOS_GENERIC_ANISOTROPIC_3D_LAW_H_INCLUDED)
-#define KRATOS_GENERIC_ANISOTROPIC_3D_LAW_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -59,7 +58,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
     ///@{
 
     /// The node definition
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The geometry definition
     typedef Geometry<NodeType> GeometryType;
@@ -477,5 +476,3 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericAnisotropic3DLaw
 }; // Class GenericAnisotropic3DLaw
 
 } // namespace Kratos
-
-#endif

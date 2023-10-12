@@ -75,7 +75,7 @@ public:
     /// Pointer definition of MonolithicWallCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(MonolithicWallCondition);
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 

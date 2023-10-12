@@ -145,8 +145,8 @@ public:
 
                 if (geom.size() == 2)
                 {
-                    int index_0 = geom[0].Id() - 1;
-                    int index_1 = geom[1].Id() - 1;
+                    int index_0 = mMapNodeIdToPos[geom[0].Id()];
+                    int index_1 = mMapNodeIdToPos[geom[1].Id()];
                     int new_id;
 
                     if (index_0 > index_1)
@@ -163,12 +163,12 @@ public:
                         to_be_deleted++;
                         if (dimension == 2)
                         {
-                            Line2D2<Node < 3 > > newgeom1(
+                            Line2D2<Node > newgeom1(
                                 this_model_part.Nodes()(geom[0].Id()),
                                 this_model_part.Nodes()(new_id)
                             );
 
-                            Line2D2<Node < 3 > > newgeom2(
+                            Line2D2<Node > newgeom2(
                                 this_model_part.Nodes()(new_id),
                                 this_model_part.Nodes()(geom[1].Id())
                             );
@@ -184,12 +184,12 @@ public:
                         }
                         else
                         {
-                            Line3D2<Node < 3 > > newgeom1(
+                            Line3D2<Node > newgeom1(
                                 this_model_part.Nodes()(geom[0].Id()),
                                 this_model_part.Nodes()(new_id)
                             );
 
-                            Line3D2<Node < 3 > > newgeom2(
+                            Line3D2<Node > newgeom2(
                                 this_model_part.Nodes()(new_id),
                                 this_model_part.Nodes()(geom[1].Id())
                             );

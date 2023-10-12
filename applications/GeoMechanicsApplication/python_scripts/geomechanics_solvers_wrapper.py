@@ -10,53 +10,23 @@ def CreateSolver(model, custom_settings):
         raise Exception("input is expected to be provided as a Kratos Parameters object")
 
     parallelism = custom_settings["problem_data"]["parallel_type"].GetString()
-    solver_type = custom_settings["solver_settings"]["solver_type"].GetString()
+    solver_type_raw = custom_settings["solver_settings"]["solver_type"].GetString()
 
     # Solvers for OpenMP parallelism
     if (parallelism == "OpenMP"):
-        if (solver_type.lower() == "dynamic"):
-            time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
-            if (time_integration_method == "implicit"):
-                solver_module_name = "geomechanics_implicit_dynamic_solver"
-            elif ( time_integration_method == "explicit"):
-                solver_module_name = "geomechanics_explicit_dynamic_solver"
-            else:
-                err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
-                err_msg += "Available options are: \"implicit\", \"explicit\""
-                raise Exception(err_msg)
-
-        elif (solver_type.lower() == "u_pw" or solver_type.lower() == "geomechanics_u_pw_solver" or
-              solver_type.lower() == "twophase"):
-            custom_settings["solver_settings"]["time_stepping"].AddValue("end_time", custom_settings["problem_data"]["end_time"])
+        solver_type = solver_type_raw.lower()
+        if solver_type in ("u_pw", "geomechanics_u_pw_solver", "twophase"):
             solver_module_name = "geomechanics_U_Pw_solver"
 
-        elif (solver_type.lower() == "pw" or solver_type.lower() == "geomechanics_pw_solver" or
-              solver_type.lower() == "twophase"):
-            custom_settings["solver_settings"]["time_stepping"].AddValue("end_time", custom_settings["problem_data"]["end_time"])
+        elif solver_type in ("pw", "geomechanics_pw_solver"):
             solver_module_name = "geomechanics_Pw_solver"
-
         else:
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
-            err_msg += "Available options are: \"geomechanics_U_Pw_solver\""
-            raise Exception(err_msg)
-
-    # Solvers for MPI parallelism
-    elif (parallelism == "MPI"):
-        if (solver_type.lower() == "dynamic"):
-            time_integration_method = custom_settings["solver_settings"]["time_integration_method"].GetString()
-            if (time_integration_method == "implicit"):
-                solver_module_name = "trilinos_geomechanics_implicit_dynamic_solver"
-            else:
-                err_msg =  "The requested time integration method \"" + time_integration_method + "\" is not in the python solvers wrapper\n"
-                err_msg += "Available options are: \"implicit\""
-                raise Exception(err_msg)
-
-        else:
-            err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
+            err_msg += "Available options are: \"geomechanics_U_Pw_solver\", \"geomechanics_Pw_solver\""
             raise Exception(err_msg)
     else:
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
-        err_msg += "Available options are: \"OpenMP\", \"MPI\""
+        err_msg += "Available options are: \"OpenMP\""
         raise Exception(err_msg)
 
     module_full_name = 'KratosMultiphysics.GeoMechanicsApplication.' + solver_module_name
