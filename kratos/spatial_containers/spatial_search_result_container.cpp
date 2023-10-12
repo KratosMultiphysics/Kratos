@@ -121,9 +121,13 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
 
         // In rank 0
         if (rank == 0) {
+            // Prepare
+            std::vector<GlobalPointerResultType> global_gp;
+            global_gp.reserve(global_result_size);
+
             // Fill global vector with local result
             for (auto& r_value : mLocalResults) {
-                mGlobalResults.push_back(&r_value);
+                global_gp.push_back(GlobalPointerResultType(&r_value, rank));
             }
 
             // Create a lambda to generate the vector of indexes greater than zero
@@ -142,46 +146,40 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
 
             // Iterate over the ranks
             for (int rank_to_recv : resultVector) {
-                LocalResultsVector recv_gps;
+                std::vector<GlobalPointerResultType> recv_gps;
                 rDataCommunicator.Recv(recv_gps, rank_to_recv);
                 for (auto& r_value : recv_gps) {
-                    mGlobalResults.push_back(&r_value);
+                    global_gp.push_back(r_value);
                 }
             }
 
             // Send now to all ranks
             for (int i_rank = 1; i_rank < world_size; ++i_rank) {
-                rDataCommunicator.Send(mGlobalResults, i_rank);
+                rDataCommunicator.Send(global_gp, i_rank);
+            }
+
+            // Transfer to global pointer
+            for (auto& r_gp : global_gp) {
+                mGlobalResults.push_back(r_gp);
             }
         } else {
             // Sending local results if any
             if (local_result_size > 0) {
-                rDataCommunicator.Send(mLocalResults, 0);
+                std::vector<GlobalPointerResultType> local_gp;
+                local_gp.reserve(local_result_size);
+                for (auto& r_value : mLocalResults) {
+                    local_gp.push_back(GlobalPointerResultType(&r_value, rank));
+                }
+                rDataCommunicator.Send(local_gp, 0);
             }
 
             // Receiving synced result
-            GlobalResultsVector aux_global_results;
-            rDataCommunicator.Recv(aux_global_results, 0);
+            std::vector<GlobalPointerResultType> global_gp;
+            rDataCommunicator.Recv(global_gp, 0);
 
-            // Getting indexes
-            const std::size_t initial_index = std::accumulate(recv_buffer.begin(), recv_buffer.begin() + rank, 0);
-            const std::size_t end_index = std::accumulate(recv_buffer.begin(), recv_buffer.begin() + rank + 1, 0);     
-
-            // Partial fill
-            for (std::size_t i = 0; i < initial_index; ++i) {
-                auto it_global = aux_global_results.begin() + i;
-                mGlobalResults.push_back(&(*it_global));
-            }
-
-            // Adding local results
-            for (auto& r_value : mLocalResults) {
-                mGlobalResults.push_back(&r_value);
-            }
-
-            // Partial fill
-            for (std::size_t i = end_index; i < aux_global_results.size(); ++i) {
-                auto it_global = aux_global_results.begin() + i;
-                mGlobalResults.push_back(&(*it_global));
+            // Transfer to global pointer
+            for (auto& r_gp : global_gp) {
+                mGlobalResults.push_back(r_gp);
             }
         }
     } else { // Serial code
