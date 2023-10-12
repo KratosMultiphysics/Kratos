@@ -45,9 +45,7 @@ void UpdatedLagrangianUPwDiffOrderElement::
                   const bool CalculateStiffnessMatrixFlag,
                   const bool CalculateResidualVectorFlag )
 {
-    KRATOS_TRY;
-
-    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateAll()") << CalculateStiffnessMatrixFlag << " " << CalculateStiffnessMatrixFlag << std::endl;
+    KRATOS_TRY
 
     const GeometryType& rGeom = GetGeometry();
     const PropertiesType& rProp = this->GetProperties();
@@ -121,7 +119,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
         }
     }
 
-    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateAll()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -132,7 +129,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
                                              unsigned int GPoint)
 {
     KRATOS_TRY
-    //KRATOS_INFO("0-UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix()") << std::endl;
 
     const GeometryType& rGeom = GetGeometry();
     const SizeType NumUNodes = rGeom.PointsNumber();
@@ -151,7 +147,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
     //Distribute stiffness block matrix into the elemental matrix
     this->AssembleUBlockMatrix(rLeftHandSideMatrix,UMatrix);
 
-    //KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::CalculateAndAddGeometricStiffnessMatrix()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -214,8 +209,6 @@ void UpdatedLagrangianUPwDiffOrderElement::
             CalculateOnIntegrationPoints(rVariable, rOutput, rCurrentProcessInfo);
     }
 
-    // KRATOS_INFO("1-UpdatedLagrangianUPwDiffOrderElement::1-CalculateOnIntegrationPoints()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -253,13 +246,13 @@ void UpdatedLagrangianUPwDiffOrderElement::
 //----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::save( Serializer& rSerializer ) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallStrainUPwDiffOrderElement );
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, SmallStrainUPwDiffOrderElement )
 }
 
 //----------------------------------------------------------------------------------------
 void UpdatedLagrangianUPwDiffOrderElement::load( Serializer& rSerializer )
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallStrainUPwDiffOrderElement );
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, SmallStrainUPwDiffOrderElement )
 }
 
 } // Namespace Kratos

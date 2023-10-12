@@ -1,6 +1,6 @@
 # import Kratos
-from KratosMultiphysics import *
-if not IsDistributedRun():
+import KratosMultiphysics
+if not KratosMultiphysics.IsDistributedRun():
     raise Exception("This test script can only be executed in MPI!")
 
 
@@ -8,7 +8,7 @@ if not IsDistributedRun():
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
 # Import the tests o test_classes to create the suites
-
+import run_cpp_mpi_unit_tests
 import test_trilinos_linear_solvers
 import test_trilinos_matrix
 import test_trilinos_redistance
@@ -54,4 +54,6 @@ def AssembleTestSuites():
     return suites
 
 if __name__ == '__main__':
+    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    run_cpp_mpi_unit_tests.run() # Application-MPI tests are currently not run automatically, hence this hack is temporarily required
     KratosUnittest.runTests(AssembleTestSuites())

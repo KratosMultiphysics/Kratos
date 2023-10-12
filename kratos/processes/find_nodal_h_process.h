@@ -78,7 +78,7 @@ public:
     typedef std::size_t SizeType;
 
     /// The definition of the node
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /// The definition of the node iterator
     typedef ModelPart::NodeIterator NodeIterator;

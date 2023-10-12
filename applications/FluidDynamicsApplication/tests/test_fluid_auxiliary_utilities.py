@@ -129,7 +129,7 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
             node.SetSolutionStepValue(Kratos.VELOCITY,0,ref_v)
 
         KratosFluid.FluidAuxiliaryUtilities.MapVelocityFromSkinToVolumeRBF(fluid_model_part, skin_model_part, 1.2)
-        
+
         for elem in fluid_model_part.Elements:
             npos=0
             nneg=0
@@ -138,12 +138,18 @@ class FluidAuxiliaryUtilitiesTest(UnitTest.TestCase):
                     npos+=1
                 else:
                     nneg+=1
-                
+
             if(npos>0 and nneg>0):
                 for node in elem.GetGeometry():
                     v = node.GetValue(Kratos.EMBEDDED_VELOCITY)
                     self.assertVectorAlmostEqual(v,ref_v)
-        
+
+    def testFindMaximumEdgeLength(self):
+        calculate_nodal_neighbours = True
+        fluid_model_part = self.model.GetModelPart("FluidModelPart")
+        max_edge_length = KratosFluid.FluidAuxiliaryUtilities.FindMaximumEdgeLength(fluid_model_part, calculate_nodal_neighbours)
+        ref_max_edge_length = 0.2828427124746191
+        self.assertAlmostEqual(max_edge_length, ref_max_edge_length, 12)
 
     def tearDown(self):
         KratosUtils.DeleteFileIfExisting("Cavity/square5.time")

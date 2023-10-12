@@ -1,7 +1,6 @@
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics
 from KratosMultiphysics import python_linear_solver_factory as linear_solver_factory
-import math
 import os
 
 def GetFilePath(fileName):

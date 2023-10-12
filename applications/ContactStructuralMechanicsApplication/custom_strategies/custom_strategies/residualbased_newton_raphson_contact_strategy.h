@@ -4,30 +4,29 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_RESIDUALBASED_NEWTON_RAPHSON_CONTACT_STRATEGY)
-#define KRATOS_RESIDUALBASED_NEWTON_RAPHSON_CONTACT_STRATEGY
+#pragma once
 
-/* System Includes */
+// System includes
 
-/* External Includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "contact_structural_mechanics_application_variables.h"
 #include "includes/kratos_parameters.h"
 #include "includes/define.h"
 #include "includes/model_part.h"
 #include "includes/variables.h"
 
-// Strategies
+/* Strategies */
 #include "solving_strategies/strategies/residualbased_newton_raphson_strategy.h"
 
-// Utilities
+/* Utilities */
 #include "utilities/variable_utils.h"
 #include "utilities/color_utilities.h"
 #include "utilities/math_utils.h"
@@ -73,50 +72,71 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /** Counted pointer of ClassName */
+    /// Pointer definition of ResidualBasedNewtonRaphsonContactStrategy
     KRATOS_CLASS_POINTER_DEFINITION( ResidualBasedNewtonRaphsonContactStrategy );
 
-    typedef SolvingStrategy<TSparseSpace, TDenseSpace>                        SolvingStrategyType;
+    /// The solving strategy type
+    using SolvingStrategyType = SolvingStrategy<TSparseSpace, TDenseSpace>;
 
-    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>    StrategyBaseType;
+    /// The base type for the implicit solving strategy
+    using StrategyBaseType = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver> BaseType;
+    /// The base type for the Newton-Raphson strategy
+    using BaseType = ResidualBasedNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef ResidualBasedNewtonRaphsonContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver> ClassType;
+    /// The current class type
+    using ClassType = ResidualBasedNewtonRaphsonContactStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
 
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>               TConvergenceCriteriaType;
+    /// The convergence criteria type
+    using TConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
 
-    typedef typename BaseType::TBuilderAndSolverType                        TBuilderAndSolverType;
+    /// The type of the builder and solver
+    using TBuilderAndSolverType = typename BaseType::TBuilderAndSolverType;
 
-    typedef typename BaseType::TDataType                                                TDataType;
+    /// The data type
+    using TDataType = typename BaseType::TDataType;
 
-    typedef TSparseSpace                                                          SparseSpaceType;
+    /// The sparse space used
+    using SparseSpaceType = TSparseSpace;
 
-    typedef typename BaseType::TSchemeType                                            TSchemeType;
+    /// The scheme type
+    using TSchemeType = typename BaseType::TSchemeType;
 
-    typedef typename BaseType::DofsArrayType                                        DofsArrayType;
+    /// The array type for degrees of freedom
+    using DofsArrayType = typename BaseType::DofsArrayType;
 
-    typedef typename BaseType::TSystemMatrixType                                TSystemMatrixType;
+    /// The sparse matrix type
+    using TSystemMatrixType = typename BaseType::TSystemMatrixType;
 
-    typedef typename BaseType::TSystemVectorType                                TSystemVectorType;
+    /// The dense vector type
+    using TSystemVectorType = typename BaseType::TSystemVectorType;
 
-    typedef typename BaseType::LocalSystemVectorType                        LocalSystemVectorType;
+    /// The local system vector type
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
 
-    typedef typename BaseType::LocalSystemMatrixType                        LocalSystemMatrixType;
+    /// The local system matrix type
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
 
-    typedef typename BaseType::TSystemMatrixPointerType                  TSystemMatrixPointerType;
+    /// Pointer type for the system matrix
+    using TSystemMatrixPointerType = typename BaseType::TSystemMatrixPointerType;
 
-    typedef typename BaseType::TSystemVectorPointerType                  TSystemVectorPointerType;
+    /// Pointer type for the system vector
+    using TSystemVectorPointerType = typename BaseType::TSystemVectorPointerType;
 
-    typedef ModelPart::NodesContainerType                                          NodesArrayType;
+    /// Array type for nodes
+    using NodesArrayType = typename ModelPart::NodesContainerType;
 
-    typedef ModelPart::ElementsContainerType                                    ElementsArrayType;
+    /// Array type for elements
+    using ElementsArrayType = typename ModelPart::ElementsContainerType;
 
-    typedef ModelPart::ConditionsContainerType                                ConditionsArrayType;
+    /// Array type for conditions
+    using ConditionsArrayType = typename ModelPart::ConditionsContainerType;
 
-    typedef ProcessFactoryUtility::Pointer                                      ProcessesListType;
+    /// Type for the list of processes
+    using ProcessesListType = typename ProcessFactoryUtility::Pointer;
 
-    typedef std::size_t                                                                 IndexType;
+    /// Index type definition
+    using IndexType = std::size_t;
 
     /**
      * @brief Default constructor
@@ -318,11 +338,11 @@ public:
             const std::size_t step = r_process_info[STEP];
 
             if (step == 1) {
-                block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                block_for_each(r_nodes_array, [&](Node& rNode) {
                     noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT);
                 });
             } else {
-                block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                block_for_each(r_nodes_array, [&](Node& rNode) {
                     noalias(rNode.Coordinates()) += (rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT, 1));
                 });
             }
@@ -348,7 +368,7 @@ public:
 //             // We iterate over the nodes
 //             const bool is_components = nodes_array.begin()->SolutionStepsDataHas(LAGRANGE_MULTIPLIER_CONTACT_PRESSURE) ? false : true;
 //
-//             block_for_each(r_nodes_array, [&initial_penalty_parameter, &is_components](NodeType& rNode) {
+//             block_for_each(r_nodes_array, [&initial_penalty_parameter, &is_components](Node& rNode) {
 //                 const double current_gap = rNode.FastGetSolutionStepValue(WEIGHTED_GAP);
 //                 const double penalty = rNode.Has(INITIAL_PENALTY) ? rNode.GetValue(INITIAL_PENALTY) : initial_penalty_parameter;
 //                 if (current_gap < 0.0) {
@@ -812,7 +832,7 @@ protected:
                         UnMoveMesh();
 
                     NodesArrayType& r_nodes_array = r_model_part.Nodes();
-                    block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                    block_for_each(r_nodes_array, [&](Node& rNode) {
                         rNode.OverwriteSolutionStepData(1, 0);
 //                         rNode.OverwriteSolutionStepData(2, 1);
                     });
@@ -822,7 +842,7 @@ protected:
                     FinalizeSolutionStep();
                 } else {
                     NodesArrayType& r_nodes_array = r_model_part.Nodes();
-                    block_for_each(r_nodes_array, [&](NodeType& rNode) {
+                    block_for_each(r_nodes_array, [&](Node& rNode) {
                         rNode.CloneSolutionStepData();
                     });
 
@@ -984,7 +1004,7 @@ protected:
             KRATOS_ERROR << "It is impossible to move the mesh since the DISPLACEMENT var is not in the model_part. Either use SetMoveMeshFlag(False) or add DISPLACEMENT to the list of variables" << std::endl;
 
         NodesArrayType& r_nodes_array = StrategyBaseType::GetModelPart().Nodes();
-        block_for_each(r_nodes_array, [&](NodeType& rNode) {
+        block_for_each(r_nodes_array, [&](Node& rNode) {
             noalias(rNode.Coordinates()) = rNode.GetInitialPosition().Coordinates();
             noalias(rNode.Coordinates()) += rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
         });
@@ -1060,7 +1080,6 @@ protected:
     ///@}
     ///@name Protected LifeCycle
     ///@{
-    ///@{
 
     /**
      * Copy constructor.
@@ -1069,36 +1088,6 @@ protected:
     {
     };
 
-private:
-
-    ///@name Static Member Variables
-    ///@{
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
-
-    ///@name Private Inquiry
-    ///@{
-    ///@}
-    ///@name Un accessible methods
-    ///@{
     ///@}
 
 }; /* Class ResidualBasedNewtonRaphsonContactStrategy */
@@ -1110,5 +1099,3 @@ private:
 ///@{
 ///@}
 }  // namespace Kratos
-
-#endif /* KRATOS_RESIDUALBASED_NEWTON_RAPHSON_CONTACT_STRATEGY */

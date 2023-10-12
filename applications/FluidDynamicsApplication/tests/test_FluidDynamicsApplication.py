@@ -36,6 +36,7 @@ from fluid_analysis_test import FluidAnalysisTest
 from adjoint_fluid_test import AdjointFluidTest
 from adjoint_vms_element_2d import AdjointVMSElement2D
 from adjoint_vms_sensitivity_2d import AdjointVMSSensitivity2D
+from adjoint_qsvms_sensitivity_2d import AdjointQSVMSSensitivity2D
 from hdf5_io_test import HDF5IOTest
 from test_statistics_process import IntegrationPointStatisticsTest
 from test_flows_measuring_utility import FlowsMeasuringUtilityTest
@@ -44,6 +45,7 @@ from adjoint_conditions import TestAdjointMonolithicWallCondition
 from test_fluid_auxiliary_utilities import FluidAuxiliaryUtilitiesTest
 from test_navier_stokes_compressible_explicit_solver import NavierStokesCompressibleExplicitSolverTest
 from two_fluid_mass_conservation_source_test import TwoFluidMassConservationTest
+from two_fluid_hydraulic_test import TwoFluidHydraulicSolverTest
 from apply_compressible_navier_stokes_boundary_conditions_process_test import ApplyMachDependentBoundaryConditionsTest
 if sympy_available:
     from compressible_navier_stokes_symbolic_generator_formulation_test import CompressibleNavierStokesSymbolicGeneratorFormulationTest
@@ -52,6 +54,8 @@ from compute_pressure_coefficient_process_test import ComputePressureCoefficient
 from compute_drag_process_test import ComputeDragProcessTest
 from test_compute_y_plus_process import ComputeYPlusProcessTest
 from test_fluid_computation_processes import FluidComputationProcessesTest
+from slip_spurious_tangential_correction_test import SlipSpuriousTangentialCorrectionTest
+from apply_wall_law_process_test import ApplyWallLawProcessTest
 
 def AssembleTestSuites():
     ''' Populates the test suites to run.
@@ -89,6 +93,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputePressureCoefficientProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeDragProcessTest]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ComputeYPlusProcessTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([SlipSpuriousTangentialCorrectionTest]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([ApplyWallLawProcessTest]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
@@ -112,6 +118,7 @@ def AssembleTestSuites():
     nightSuite.addTest(AdjointVMSElement2D('testCalculateFirstDerivativesLHS2'))
     nightSuite.addTest(AdjointVMSElement2D('testCalculateSensitivityMatrix'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testOneElement'))
+    nightSuite.addTest(AdjointQSVMSSensitivity2D('testOneElement'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testTwoElementsSlipSteady'))
     nightSuite.addTest(AdjointVMSSensitivity2D('testTwoElementsSlipBossak'))
     nightSuite.addTest(HDF5IOTest('testInputOutput'))
@@ -123,6 +130,7 @@ def AssembleTestSuites():
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FlowsMeasuringUtilityTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidAuxiliaryUtilitiesTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidMassConservationTest]))
+    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([TwoFluidHydraulicSolverTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([NavierStokesCompressibleExplicitSolverTest]))
     nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([FluidComputationProcessesTest]))
 
@@ -133,6 +141,8 @@ def AssembleTestSuites():
     validationSuite.addTest(AdjointVMSSensitivity2D('testSteadyCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSlipNormCylinder'))
     validationSuite.addTest(AdjointVMSSensitivity2D('testSlipSteadyNormCylinder'))
+    validationSuite.addTest(AdjointQSVMSSensitivity2D('testCylinder'))
+    validationSuite.addTest(AdjointQSVMSSensitivity2D('testSteadyCylinder'))
     validationSuite.addTest(ManufacturedSolutionTest('testManufacturedSolution'))
     #FIXME: MOVE BACK THE SOD TO NIGHT ONCE WE FIX THE NIGHTLY BUILD ISSUE
     validationSuite.addTest(AdjointFluidTest('testCylinder'))

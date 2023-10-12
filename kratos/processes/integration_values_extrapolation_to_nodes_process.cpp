@@ -108,10 +108,8 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalizeSolutionStep()
     };
 
     block_for_each(r_elements_array, TLSType(), [&](Element& rElem, TLSType& rTls){
-        // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
-        // NOTE: Is active by default
-        const bool element_is_active = rElem.IsDefined(ACTIVE) ? rElem.Is(ACTIVE) : true;
-        if (element_is_active) {
+        // Only active elements
+        if (rElem.IsActive()) {
             auto& r_this_geometry = rElem.GetGeometry();
 
             // Auxiliar values
@@ -238,7 +236,7 @@ void IntegrationValuesExtrapolationToNodesProcess::ExecuteFinalize()
     auto& r_nodes_array = mrModelPart.Nodes();
 
     // Remove average variable
-    block_for_each(r_nodes_array, [&](Node<3>& rNode){
+    block_for_each(r_nodes_array, [&](Node& rNode){
         auto& data = rNode.GetData();
         data.Erase(*mpAverageVariable);
 
@@ -298,10 +296,8 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeMaps()
 
     // Fill the average value
     block_for_each(r_elements_array, TLSType(), [&](Element& rElem, TLSType& rTls){
-        // Only active elements. Detect if the element is active or not. If the user did not make any choice the element
-        // NOTE: Is active by default
-        const bool element_is_active = rElem.IsDefined(ACTIVE) ? rElem.Is(ACTIVE) : true;
-        if (element_is_active) {
+        // Only active elements
+        if (rElem.IsActive()) {
             // The geometry of the element
             auto& r_this_geometry = rElem.GetGeometry();
 
@@ -370,7 +366,7 @@ void IntegrationValuesExtrapolationToNodesProcess::InitializeVariables()
     auto& r_nodes_array = mrModelPart.Nodes();
 
     // Initialize values
-    block_for_each(r_nodes_array, [&](Node<3>& rNode){
+    block_for_each(r_nodes_array, [&](Node& rNode){
         if (mExtrapolateNonHistorical)
         {
             // We initialize the doubles values

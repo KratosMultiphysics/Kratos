@@ -772,8 +772,7 @@ const GeometryData Point2D<TPointType>::msGeometryData(
         AllShapeFunctionsLocalGradients());
 
 template<class TPointType>
-const GeometryDimension Point2D<TPointType>::msGeometryDimension(
-    2, 2, 0);
+const GeometryDimension Point2D<TPointType>::msGeometryDimension(2, 0);
 
 }  // namespace Kratos.
 

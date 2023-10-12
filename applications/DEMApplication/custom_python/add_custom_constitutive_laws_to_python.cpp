@@ -24,6 +24,7 @@
 #include "custom_constitutive/DEM_D_DMT_cohesive_law.h"
 #include "custom_constitutive/DEM_D_Stress_dependent_cohesive_CL.h"
 #include "custom_constitutive/DEM_D_Quadratic_CL.h"
+#include "custom_constitutive/DEM_D_void_CL.h"
 
 #include "custom_constitutive/DEM_rolling_friction_model.h"
 
@@ -59,6 +60,8 @@
 #include "custom_constitutive/dem_kdem_2d_cl.h"
 #include "custom_constitutive/dem_kdem_fabric_2d_cl.h"
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
+#include "custom_constitutive/DEM_smooth_joint_CL.h"
+#include "custom_constitutive/DEM_parallel_bond_for_membrane_CL.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_bounded.h"
@@ -157,6 +160,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         ;
 
     py::class_<DEM_D_Linear_classic, DEM_D_Linear_classic::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_Linear_classic")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_D_void, DEM_D_void::Pointer, DEMDiscontinuumConstitutiveLaw>(m, "DEM_D_void")
         .def(py::init<>())
         ;
 
@@ -267,6 +274,14 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
+    py::class_<DEM_smooth_joint, DEM_smooth_joint::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_smooth_joint")
+        .def(py::init<>())
+        ;
+
+    py::class_<DEM_parallel_bond_for_membrane, DEM_parallel_bond_for_membrane::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_parallel_bond_for_membrane")
+        .def(py::init<>())
+        ;
+
     py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Hertz_viscous_Coulomb>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Hertz_viscous_Coulomb>::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_Hertz")
         .def(py::init<>())
         ;
@@ -278,6 +293,7 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
     py::class_<DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Quadratic>, DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Quadratic>::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_Quadratic")
         .def(py::init<>())
         ;
+
 
     //for compound constitutive law
 

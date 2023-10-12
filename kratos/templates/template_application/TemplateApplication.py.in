@@ -1,7 +1,13 @@
 # Application dependent names and paths
-from KratosMultiphysics import _ImportApplication
+from KratosMultiphysics import _ImportApplication, python_registry_utilities
 from Kratos@{APP_NAME_CAMEL}Application import *
+
 application = Kratos@{APP_NAME_CAMEL}Application()
 application_name = "Kratos@{APP_NAME_CAMEL}Application"
 
 _ImportApplication(application, application_name)
+
+from . import python_registry_lists
+python_registry_utilities.RegisterModelersList("KratosMultiphysics.@{APP_NAME_CAMEL}Application", python_registry_lists)
+python_registry_utilities.RegisterOperationsList("KratosMultiphysics.@{APP_NAME_CAMEL}Application", python_registry_lists)
+python_registry_utilities.RegisterProcessesList("KratosMultiphysics.@{APP_NAME_CAMEL}Application", python_registry_lists)

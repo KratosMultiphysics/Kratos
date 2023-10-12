@@ -51,7 +51,7 @@ public:
 	KRATOS_CLASS_POINTER_DEFINITION(EstimateDtUtility);
 
     /// Function type for the element size calculator function
-    typedef std::function<double(const Geometry<Node<3>>&)> ElementSizeFunctionType;
+    typedef std::function<double(const Geometry<Node>&)> ElementSizeFunctionType;
 
     // Function type for the CFL calculator function
     typedef std::function<double(const Element &, const ElementSizeFunctionType &, const double)> CFLCalculatorType;

@@ -10,8 +10,7 @@
 //  Main authors:    Jordi Cotela
 //
 
-#if !defined(KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED )
-#define  KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED
+#pragma once
 
 ///@defgroup FluidDynamicsApplication Fluid Dynamics Application
 ///@brief Basic set of CFD tools.
@@ -36,6 +35,7 @@
 
 // Application includes
 //#include "custom_conditions/fluid_periodic_condition_2d.h"
+#include "custom_elements/axisymmetric_navier_stokes.h"
 #include "custom_elements/vms.h"
 #include "custom_elements/qs_vms.h"
 #include "custom_elements/qs_vms_dem_coupled.h"
@@ -77,8 +77,8 @@
 #include "custom_elements/compressible_navier_stokes_explicit.h"
 #include "custom_elements/two_fluid_navier_stokes.h"
 #include "custom_elements/two_fluid_navier_stokes_alpha_method.h"
-#include "custom_elements/vms_adjoint_element.h"
 
+#include "custom_elements/data_containers/axisymmetric_navier_stokes/axisymmetric_navier_stokes_data.h"
 #include "custom_utilities/qsvms_data.h"
 #include "custom_utilities/time_integrated_qsvms_data.h"
 #include "custom_utilities/qsvms_dem_coupled_data.h"
@@ -100,9 +100,17 @@
 #include "custom_constitutive/newtonian_temperature_dependent_2d_law.h"
 #include "custom_constitutive/newtonian_temperature_dependent_3d_law.h"
 
+// Wall laws
+#include "custom_conditions/wall_laws/linear_log_wall_law.h"
+#include "custom_conditions/wall_laws/navier_slip_wall_law.h"
+
+// Adjoint fluid elements
+#include "custom_elements/vms_adjoint_element.h"
+#include "custom_elements/fluid_adjoint_element.h"
+#include "custom_elements/data_containers/qs_vms/qs_vms_adjoint_element_data.h"
+
 // Adjoint fluid conditions
 #include "custom_conditions/adjoint_monolithic_wall_condition.h"
-
 
 namespace Kratos
 {
@@ -281,6 +289,8 @@ private:
     const AlternativeQSVMSDEMCoupled< QSVMSDEMCoupledData<3,8> > mAlternativeQSVMSDEMCoupled3D8N;
     const QSVMS< TimeIntegratedQSVMSData<2,3> > mTimeIntegratedQSVMS2D3N;
     const QSVMS< TimeIntegratedQSVMSData<3,4> > mTimeIntegratedQSVMS3D4N;
+    const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,3> > mAxisymmetricNavierStokes2D3N;
+    const AxisymmetricNavierStokes< AxisymmetricNavierStokesData<2,4> > mAxisymmetricNavierStokes2D4N;
     const DVMS< QSVMSData<2,3> > mDVMS2D3N;
     const DVMS< QSVMSData<3,4> > mDVMS3D4N;
     const DVMSDEMCoupled< QSVMSDEMCoupledData<2,3> > mDVMSDEMCoupled2D3N;
@@ -395,8 +405,12 @@ private:
     /// Navier-Stokes symbolic element
     const NavierStokes<2> mNavierStokes2D;
     const NavierStokes<3> mNavierStokes3D;
-    const NavierStokesWallCondition<2> mNavierStokesWallCondition2D;
-    const NavierStokesWallCondition<3> mNavierStokesWallCondition3D;
+    const NavierStokesWallCondition<2,2> mNavierStokesWallCondition2D;
+    const NavierStokesWallCondition<3,3> mNavierStokesWallCondition3D;
+    const NavierStokesWallCondition<2,2,LinearLogWallLaw<2,2>> mNavierStokesLinearLogWallCondition2D;
+    const NavierStokesWallCondition<3,3,LinearLogWallLaw<3,3>> mNavierStokesLinearLogWallCondition3D;
+    const NavierStokesWallCondition<2,2,NavierSlipWallLaw<2,2>> mNavierStokesNavierSlipWallCondition2D;
+    const NavierStokesWallCondition<3,3,NavierSlipWallLaw<3,3>> mNavierStokesNavierSlipWallCondition3D;
 
     /// Embedded Navier-Stokes symbolic element
     const EmbeddedNavierStokes<2> mEmbeddedNavierStokes2D;
@@ -418,11 +432,8 @@ private:
     const TwoFluidNavierStokes< TwoFluidNavierStokesData<3, 4> > mTwoFluidNavierStokes3D4N;
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<2, 3> > mTwoFluidNavierStokesAlphaMethod2D3N;
     const TwoFluidNavierStokesAlphaMethod< TwoFluidNavierStokesAlphaMethodData<3, 4> > mTwoFluidNavierStokesAlphaMethod3D4N;
-    const TwoFluidNavierStokesWallCondition<2, 2> mTwoFluidNavierStokesWallCondition2D;
-    const TwoFluidNavierStokesWallCondition<3, 3> mTwoFluidNavierStokesWallCondition3D;
-
-    const VMSAdjointElement<2> mVMSAdjointElement2D;
-    const VMSAdjointElement<3> mVMSAdjointElement3D;
+    const TwoFluidNavierStokesWallCondition<2,2> mTwoFluidNavierStokesWallCondition2D;
+    const TwoFluidNavierStokesWallCondition<3,3> mTwoFluidNavierStokesWallCondition3D;
 
     /// Fluid constitutive laws
     const Bingham3DLaw mBingham3DLaw;
@@ -435,6 +446,15 @@ private:
     const NewtonianTwoFluid3DLaw mNewtonianTwoFluid3DLaw;
     const NewtonianTemperatureDependent2DLaw mNewtonianTemperatureDependent2DLaw;
     const NewtonianTemperatureDependent3DLaw mNewtonianTemperatureDependent3DLaw;
+
+    /// Fluid adjoint elements
+    const VMSAdjointElement<2> mVMSAdjointElement2D;
+    const VMSAdjointElement<3> mVMSAdjointElement3D;
+
+    const FluidAdjointElement<2, 3, QSVMSAdjointElementData<2, 3>> mQSVMSAdjoint2D3N;
+    const FluidAdjointElement<2, 4, QSVMSAdjointElementData<2, 4>> mQSVMSAdjoint2D4N;
+    const FluidAdjointElement<3, 4, QSVMSAdjointElementData<3, 4>> mQSVMSAdjoint3D4N;
+    const FluidAdjointElement<3, 8, QSVMSAdjointElementData<3, 8>> mQSVMSAdjoint3D8N;
 
     /// Adjoint fluid conditions
     const AdjointMonolithicWallCondition<2, 2> mAdjointMonolithicWallCondition2D2N;
@@ -491,5 +511,3 @@ private:
 ///@} FluidDynamicsApplication group
 
 }  // namespace Kratos.
-
-#endif // KRATOS_FLUID_DYNAMICS_APPLICATION_H_INCLUDED  defined

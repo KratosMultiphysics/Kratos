@@ -99,7 +99,7 @@ void GeoCrBeamElementLinear3D2N::
     CalculateRightHandSide(VectorType& rRightHandSideVector,
                            const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     noalias(rRightHandSideVector) = ZeroVector(msElementSize);
 
     Matrix left_hand_side_matrix = ZeroMatrix(msElementSize, msElementSize);
@@ -195,14 +195,14 @@ void GeoCrBeamElementLinear3D2N::CalculateOnIntegrationPoints(
 
 void GeoCrBeamElementLinear3D2N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement3D2N);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement3D2N)
     rSerializer.save("InternalGlobalForcesFinalized",           mInternalGlobalForcesFinalized);
     rSerializer.save("InternalGlobalForcesFinalizedPrevious",   mInternalGlobalForcesFinalizedPrevious);
 }
 
 void GeoCrBeamElementLinear3D2N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement3D2N);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement3D2N)
     rSerializer.load("InternalGlobalForcesFinalized",           mInternalGlobalForcesFinalized);
     rSerializer.load("InternalGlobalForcesFinalizedPrevious",   mInternalGlobalForcesFinalizedPrevious);
 }

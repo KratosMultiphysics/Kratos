@@ -19,43 +19,8 @@
 #include "add_communicator_to_python.h"
 #include "includes/communicator.h"
 
-namespace Kratos {
-namespace Python {
-
-Communicator::MeshType& CommunicatorGetLocalMesh(Communicator& rCommunicator)
+namespace Kratos::Python
 {
-    return rCommunicator.LocalMesh();
-}
-
-Communicator::MeshType& CommunicatorGetLocalMeshWithIndex(Communicator& rCommunicator, Communicator::IndexType Index)
-{
-    return rCommunicator.LocalMesh(Index);
-}
-
-Communicator::MeshType& CommunicatorGetGhostMesh(Communicator& rCommunicator)
-{
-    return rCommunicator.GhostMesh();
-}
-
-Communicator::MeshType& CommunicatorGetGhostMeshWithIndex(Communicator& rCommunicator, Communicator::IndexType Index)
-{
-    return rCommunicator.GhostMesh(Index);
-}
-
-Communicator::MeshType& CommunicatorGetInterfaceMesh(Communicator& rCommunicator)
-{
-    return rCommunicator.InterfaceMesh();
-}
-
-Communicator::MeshType& CommunicatorGetInterfaceMeshWithIndex(Communicator& rCommunicator, Communicator::IndexType Index)
-{
-    return rCommunicator.InterfaceMesh(Index);
-}
-
-Communicator::NeighbourIndicesContainerType const&  NeighbourIndicesConst(Communicator& rCommunicator)
-{
-    return rCommunicator.NeighbourIndices();
-}
 
 template<class TDataType>
 bool CommunicatorSynchronizeVariable(Communicator& rCommunicator, Variable<TDataType> const& ThisVariable)
@@ -92,19 +57,20 @@ void AddCommunicatorToPython(pybind11::module &m)
         .def("GlobalNumberOfNodes", &Communicator::GlobalNumberOfNodes)
         .def("GlobalNumberOfElements", &Communicator::GlobalNumberOfElements)
         .def("GlobalNumberOfConditions", &Communicator::GlobalNumberOfConditions)
+        .def("GlobalNumberOfMasterSlaveConstraints", &Communicator::GlobalNumberOfMasterSlaveConstraints)
         .def("GetNumberOfColors", &Communicator::GetNumberOfColors)
-        .def("NeighbourIndices", NeighbourIndicesConst, py::return_value_policy::reference_internal)
+        .def("NeighbourIndices", py::overload_cast<>(&Communicator::NeighbourIndices), py::return_value_policy::reference_internal)
         .def("SynchronizeNodalSolutionStepsData", &Communicator::SynchronizeNodalSolutionStepsData)
         .def("SynchronizeNodalFlags", &Communicator::SynchronizeNodalFlags)
         .def("SynchronizeOrNodalFlags", &Communicator::SynchronizeOrNodalFlags)
         .def("SynchronizeAndNodalFlags", &Communicator::SynchronizeAndNodalFlags)
         .def("SynchronizeDofs", &Communicator::SynchronizeDofs)
-        .def("LocalMesh", CommunicatorGetLocalMesh, py::return_value_policy::reference_internal )
-        .def("LocalMesh", CommunicatorGetLocalMeshWithIndex, py::return_value_policy::reference_internal )
-        .def("GhostMesh", CommunicatorGetGhostMesh, py::return_value_policy::reference_internal )
-        .def("GhostMesh", CommunicatorGetGhostMeshWithIndex, py::return_value_policy::reference_internal )
-        .def("InterfaceMesh", CommunicatorGetInterfaceMesh, py::return_value_policy::reference_internal )
-        .def("InterfaceMesh", CommunicatorGetInterfaceMeshWithIndex, py::return_value_policy::reference_internal )
+        .def("LocalMesh", py::overload_cast<>(&Communicator::LocalMesh), py::return_value_policy::reference_internal)
+        .def("LocalMesh", py::overload_cast<Communicator::IndexType>(&Communicator::LocalMesh), py::return_value_policy::reference_internal)
+        .def("GhostMesh", py::overload_cast<>(&Communicator::GhostMesh), py::return_value_policy::reference_internal)
+        .def("GhostMesh", py::overload_cast<Communicator::IndexType>(&Communicator::GhostMesh), py::return_value_policy::reference_internal)
+        .def("InterfaceMesh", py::overload_cast<>(&Communicator::InterfaceMesh), py::return_value_policy::reference_internal)
+        .def("InterfaceMesh", py::overload_cast<Communicator::IndexType>(&Communicator::InterfaceMesh), py::return_value_policy::reference_internal)
         .def("GetDataCommunicator", &Communicator::GetDataCommunicator, py::return_value_policy::reference_internal )
         .def("SynchronizeVariable", CommunicatorSynchronizeVariable<int> )
         .def("SynchronizeVariable", CommunicatorSynchronizeVariable<double> )
@@ -130,5 +96,4 @@ void AddCommunicatorToPython(pybind11::module &m)
         ;
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

@@ -4,21 +4,18 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    clabra
 //
 
-#if !defined(KRATOS_OCT_TREE_H_INCLUDED )
-#define  KRATOS_OCT_TREE_H_INCLUDED
-
+#pragma once
 
 // System includes
 #include <cstddef>
 
 // External includes
-
 
 // Project includes
 #include "tree.h"
@@ -218,7 +215,7 @@ public:
 
     }
 
-    virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const
+    void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const override
     {
         rOStream << Perfix << "Partition at point (" << mPosition[0];
         for(IndexType j = 0 ; j < Dimension - 1 ; j++)
@@ -242,7 +239,7 @@ public:
     ///@name Operations
     ///@{
 
-    void SearchNearestPoint(PointType const& ThisPoint, PointerType& Result, CoordinateType& rResultDistance)
+    void SearchNearestPoint(PointType const& ThisPoint, PointerType& Result, CoordinateType& rResultDistance) override
     {
         CoordinateType distances_to_partitions[number_of_childs];
 
@@ -259,7 +256,7 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults)
+                        DistanceIteratorType& ResultsDistances, SizeType& NumberOfResults, SizeType const& MaxNumberOfResults) override
     {
         SizeType child_index = GetChildIndex(ThisPoint);
 
@@ -276,7 +273,7 @@ public:
     }
 
     void SearchInRadius(PointType const& ThisPoint, CoordinateType const& Radius, CoordinateType const& Radius2, IteratorType& Results,
-                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults)
+                        SizeType& NumberOfResults, SizeType const& MaxNumberOfResults) override
     {
         SizeType child_index = GetChildIndex(ThisPoint);
 
@@ -365,7 +362,5 @@ public:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_OCT_TREE_H_INCLUDED   defined 
 
 

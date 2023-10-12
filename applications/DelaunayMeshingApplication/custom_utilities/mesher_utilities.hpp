@@ -54,9 +54,9 @@ namespace Kratos
             /// Pointer definition of MesherUtilities
             KRATOS_CLASS_POINTER_DEFINITION(MesherUtilities);
 
-            typedef Node<3> PointType;
-            typedef Node<3>::Pointer PointPointerType;
-            typedef Geometry<Node<3>> GeometryType;
+            typedef Node PointType;
+            typedef Node::Pointer PointPointerType;
+            typedef Geometry<Node> GeometryType;
             typedef std::vector<PointPointerType> PointPointerVector;
             typedef ModelPart::PropertiesType PropertiesType;
             typedef ModelPart::PropertiesContainerType PropertiesContainerType;
@@ -66,7 +66,7 @@ namespace Kratos
             typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
             typedef MeshDataTransferUtilities::TransferParameters TransferParametersType;
 
-            typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+            typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
             typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
             typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
@@ -282,6 +282,9 @@ namespace Kratos
                   unsigned int NumberOfNewElements;
                   unsigned int NumberOfNewNodes;
                   unsigned int NumberOfNewConditions;
+
+                  unsigned int NumberOfEulerianInletNodes;
+                  unsigned int NumberOfLagrangianInletNodes;
 
                   // total for all refining boxes
                   unsigned int InsertedNodes;
@@ -1006,21 +1009,21 @@ namespace Kratos
             //*******************************************************************************************
             //*******************************************************************************************
 
-            bool CheckSubdomain(Geometry<Node<3>> &rGeometry);
+            bool CheckSubdomain(Geometry<Node> &rGeometry);
 
-            bool CheckRigidOuterCentre(Geometry<Node<3>> &rGeometry);
+            bool CheckRigidOuterCentre(Geometry<Node> &rGeometry);
 
-            bool CheckInnerCentre(Geometry<Node<3>> &rGeometry);
+            bool CheckInnerCentre(Geometry<Node> &rGeometry);
 
-            bool CheckOuterCentre(Geometry<Node<3>> &rGeometry, double &rOffsetFactor, bool &rSelfContact);
+            bool CheckOuterCentre(Geometry<Node> &rGeometry, double &rOffsetFactor, bool &rSelfContact);
 
-            bool CheckSliver(Geometry<Node<3>> &rGeometry);
+            bool CheckSliver(Geometry<Node> &rGeometry);
 
-            ContactElementType CheckContactElement(Geometry<Node<3>> &rGeometry, std::vector<int> &rSlaveVertices);
+            ContactElementType CheckContactElement(Geometry<Node> &rGeometry, std::vector<int> &rSlaveVertices);
 
-            double GetAndCompareSideLenghts(Geometry<Node<3>> &rGeometry, double &rMaximumSideLength, double &rMinimumSideLength);
+            double GetAndCompareSideLenghts(Geometry<Node> &rGeometry, double &rMaximumSideLength, double &rMinimumSideLength);
 
-            bool CheckGeometryShape(Geometry<Node<3>> &rGeometry, int &rShape);
+            bool CheckGeometryShape(Geometry<Node> &rGeometry, int &rShape);
 
             //*******************************************************************************************
             //*******************************************************************************************
@@ -1029,20 +1032,20 @@ namespace Kratos
             double &ComputeRadius(double &rRadius, double &rVolume, std::vector<Vector> &rVertices, const unsigned int &dimension);
 
             // returns false if it should be removed
-            bool AlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, const unsigned int dimension);
-            bool AlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, const unsigned int dimension, const double MeanMeshSize);
+            bool AlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, const unsigned int dimension);
+            bool AlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, const unsigned int dimension, const double MeanMeshSize);
 
             // returns false if it should be removed
-            bool ShrankAlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, double &rOffsetFactor, const unsigned int dimension);
+            bool ShrankAlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, double &rOffsetFactor, const unsigned int dimension);
 
             // returns the nodal h relative to a single boundary node
-            double FindBoundaryH(Node<3> &BoundaryPoint);
+            double FindBoundaryH(Node &BoundaryPoint);
 
             // writes a list of particles telling if they are set as boundary or not
             void CheckParticles(ModelPart &rModelPart);
 
             // computes velocity norms of the geometry
-            bool CheckRelativeVelocities(Geometry<Node<3>> &rGeometry, const double &rRelativeFactor);
+            bool CheckRelativeVelocities(Geometry<Node> &rGeometry, const double &rRelativeFactor);
 
             // computes prediction of volume decrease of the geometry
             bool CheckVolumeDecrease(GeometryType &rVertices, const unsigned int &rDimension, const double &rTolerance, double &VolumeChange);
@@ -1072,7 +1075,7 @@ namespace Kratos
                   return sqrt((P1.X() - P2.X()) * (P1.X() - P2.X()) + (P1.Y() - P2.Y()) * (P1.Y() - P2.Y()) + (P1.Z() - P2.Z()) * (P1.Z() - P2.Z()));
             };
 
-            static inline double CalculateBoundarySize(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateBoundarySize(Geometry<Node> &rGeometry)
             {
 
                   if (rGeometry.size() == 2)
@@ -1090,7 +1093,7 @@ namespace Kratos
                   }
             };
 
-            static inline double CalculateTriangleRadius(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateTriangleRadius(Geometry<Node> &rGeometry)
             {
 
                   double L1 = CalculateSideLength(rGeometry[0], rGeometry[1]);
@@ -1105,7 +1108,7 @@ namespace Kratos
                   return Rcrit;
             };
 
-            static inline double CalculateTetrahedronRadius(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateTetrahedronRadius(Geometry<Node> &rGeometry)
             {
 
                   // edges
@@ -1136,7 +1139,7 @@ namespace Kratos
                   return Rcrit;
             };
 
-            static inline double CalculateElementRadius(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateElementRadius(Geometry<Node> &rGeometry)
             {
 
                   if (rGeometry.size() == 3)
@@ -1145,7 +1148,7 @@ namespace Kratos
                         return CalculateTetrahedronRadius(rGeometry);
             };
 
-            static inline double CalculateElementRadius(Geometry<Node<3>> &rGeometry, double &rDomainSize)
+            static inline double CalculateElementRadius(Geometry<Node> &rGeometry, double &rDomainSize)
             {
 
                   if (rGeometry.size() == 3)
@@ -1379,7 +1382,7 @@ namespace Kratos
 
             bool CheckElementInBox(Element::Pointer &pElement, SpatialBoundingBox &rRefiningBox, ProcessInfo &rCurrentProcessInfo);
 
-            bool CheckVerticesInBox(Geometry<Node<3>> &rGeometry, SpatialBoundingBox &rRefiningBox, ProcessInfo &rCurrentProcessInfo);
+            bool CheckVerticesInBox(Geometry<Node> &rGeometry, SpatialBoundingBox &rRefiningBox, ProcessInfo &rCurrentProcessInfo);
 
             //*******************************************************************************************
             //*******************************************************************************************
@@ -1495,7 +1498,7 @@ namespace Kratos
             //*******************************************************************************************
             //*******************************************************************************************
 
-            bool FindCondition(Geometry<Node<3>> &rConditionGeometry, Geometry<Node<3>> &rGeometry, DenseMatrix<unsigned int> &lpofa, DenseVector<unsigned int> &lnofa, unsigned int &iface);
+            bool FindCondition(Geometry<Node> &rConditionGeometry, Geometry<Node> &rGeometry, DenseMatrix<unsigned int> &lpofa, DenseVector<unsigned int> &lnofa, unsigned int &iface);
 
             //*******************************************************************************************
             //*******************************************************************************************

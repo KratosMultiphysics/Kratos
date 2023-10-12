@@ -76,11 +76,11 @@ public:
 
     /**
      * Type definitions
-     * NOTE: geometries are assumed to be of type Node<3> for all problems
+     * NOTE: geometries are assumed to be of type Node for all problems
      */
     typedef ProcessInfo ProcessInfoType;
     typedef std::size_t SizeType;
-    typedef Geometry<Node < 3 > > GeometryType;
+    typedef Geometry<Node > GeometryType;
 
     typedef Vector StrainVectorType;
     typedef Vector StressVectorType;
@@ -206,7 +206,7 @@ public:
 
      * GEOMETRIC PARAMETERS:
      * @param mpShapeFunctionsValues pointer to the shape functions values in the current integration point (input data)
-     * @param mpShapeFunctionsDerivatives pointer to the shape functions derivaties values in the current integration point (input data)
+     * @param mpShapeFunctionsDerivatives pointer to the shape functions derivatives values in the current integration point (input data)
      * @param mpElementGeometry pointer to the element's geometry (input data)
 
      * MATERIAL PROPERTIES:
@@ -354,7 +354,7 @@ public:
 
 
       /**
-       *Check deformation gradient, strains ans stresses assigned
+       *Check deformation gradient, strains and stresses assigned
        */
 
       bool CheckMechanicalVariables ()
@@ -1356,7 +1356,7 @@ public:
 
 
     /**
-     * @brief This method is used to check that tow Constitutive Laws are the same type (references)
+     * @brief This method is used to check that two Constitutive Laws are the same type (references)
      * @param rLHS The first argument
      * @param rRHS The second argument
      */
@@ -1365,7 +1365,7 @@ public:
     }
 
     /**
-     * @brief This method is used to check that tow Constitutive Laws are the same type (pointers)
+     * @brief This method is used to check that two Constitutive Laws are the same type (pointers)
      * @param rLHS The first argument
      * @param rRHS The second argument
      */

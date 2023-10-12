@@ -11,8 +11,7 @@
 //                   Aron Noordam
 //
 
-#if !defined(KRATOS_GEO_MECHANICS_NEWTON_RAPHSON_EROSION_PROCESS_STRATEGY)
-#define KRATOS_GEO_MECHANICS_NEWTON_RAPHSON_EROSION_PROCESS_STRATEGY
+#pragma once
 
 // Project includes
 #include "includes/define.h"
@@ -30,7 +29,6 @@
 #include <ctime> 
 #include <tuple>
 
-
 namespace Kratos
 {
 
@@ -38,29 +36,22 @@ template<class TSparseSpace, class TDenseSpace, class TLinearSolver>
 class GeoMechanicsNewtonRaphsonErosionProcessStrategy :
     public GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION(GeoMechanicsNewtonRaphsonErosionProcessStrategy);
 
-    typedef ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>              BaseType;
-    typedef GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>  MotherType;
-    typedef ConvergenceCriteria<TSparseSpace, TDenseSpace>                 TConvergenceCriteriaType;
-    typedef typename BaseType::TBuilderAndSolverType                          TBuilderAndSolverType;
-    typedef typename BaseType::TSchemeType                                              TSchemeType;
-    typedef typename BaseType::DofsArrayType                                          DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType                                  TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType                                  TSystemVectorType;
-    typedef typename boost::range_detail::filtered_range
-        <std::function<bool(Element*)>, std::vector<Element*>>                         filtered_elements;
-
-    typedef class SteadyStatePwPipingElement<2, 4>               SteadyStatePwPipingElementType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
+    using BaseType                 = ImplicitSolvingStrategy<TSparseSpace, TDenseSpace, TLinearSolver>;
+    using TConvergenceCriteriaType = ConvergenceCriteria<TSparseSpace, TDenseSpace>;
+    using TBuilderAndSolverType    = typename BaseType::TBuilderAndSolverType;
+    using TSchemeType              = typename BaseType::TSchemeType;
+    using DofsArrayType            = typename BaseType::DofsArrayType;
+    using TSystemMatrixType        = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType        = typename BaseType::TSystemVectorType;
+    using filtered_elements        = typename boost::range_detail::filtered_range
+                                     <std::function<bool(Element*)>, std::vector<Element*>>;
+    using PropertiesType           = Properties;
+    using NodeType                 = Node;
+    using GeometryType             = Geometry<NodeType>;
 	
-	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-    ///Constructor
     GeoMechanicsNewtonRaphsonErosionProcessStrategy(
         ModelPart& model_part,
         typename TSchemeType::Pointer pScheme,
@@ -83,16 +74,9 @@ public:
                                                                                          ReformDofSetAtEachStep,
                                                                                          MoveMeshFlag)
     {
-
         rank = model_part.GetCommunicator().MyPID();
     	mPipingIterations = rParameters["max_piping_iterations"].GetInt();
-    	
     }
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    ///Destructor
-    ~GeoMechanicsNewtonRaphsonErosionProcessStrategy() override {}
 
     void FinalizeSolutionStep() override
     {
@@ -107,7 +91,7 @@ public:
         // get initially open pipe elements
         unsigned int openPipeElements = this->InitialiseNumActivePipeElements(PipeElements);
 
-        if (PipeElements.size()==0)
+        if (PipeElements.empty())
         {
             KRATOS_INFO_IF("PipingLoop", this->GetEchoLevel() > 0 && rank == 0) << "No Pipe Elements -> Finalizing Solution " << std::endl;
         	GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::FinalizeSolutionStep();
@@ -121,7 +105,6 @@ public:
         {
             // todo: JDN (20220817) : grow not used. 
             // bool Equilibrium = false;
-            bool converged = true;
 
             // get tip element and activate
             Element* tip_element = PipeElements.at(openPipeElements);
@@ -147,8 +130,8 @@ public:
             {
                 save_or_reset_pipe_heights(OpenPipeElements, grow);
             }
-            // recalculate ground water flow
-            converged = Recalculate();
+            // recalculate groundwater flow
+            bool converged = Recalculate();
 
             // error check
             KRATOS_ERROR_IF_NOT(converged) << "Groundwater flow calculation failed to converge." << std::endl;
@@ -199,7 +182,7 @@ public:
             }
         }
 
-        if (PipeElements.size() == 0)
+        if (PipeElements.empty())
         {
             return PipeElements;
         }
@@ -249,21 +232,12 @@ public:
 
         return PipeElements;
     }
-   
 
-	//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-protected:
-
+private:
     unsigned int mPipingIterations; /// This is used to calculate the pipingLength
     int rank;
 	double small_pipe_height = 1e-10;
     double pipe_height_accuracy = small_pipe_height * 10;
-
-    //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-private:
-
 
     /// <summary>
     /// Initialises the number of open pipe elements. This value can be greater than 0 in a multi staged analysis.
@@ -348,7 +322,7 @@ private:
         //this->Clear();
 
         // Reset displacements to the initial (Assumes Water Pressure is the convergence criteria)
-       /* block_for_each(CurrentModelPart.Nodes(), [&](Node<3>& rNode) {
+       /* block_for_each(CurrentModelPart.Nodes(), [&](Node& rNode) {
             auto dold = rNode.GetSolutionStepValue(WATER_PRESSURE, 1);
             rNode.GetSolutionStepValue(WATER_PRESSURE, 0) = dold;
             });*/
@@ -356,7 +330,6 @@ private:
     	GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::InitializeSolutionStep();
         GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Predict();
         return GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::SolveSolutionStep();
-
     }
 
     bool check_pipe_equilibrium(filtered_elements open_pipe_elements, double amax, unsigned int mPipingIterations)
@@ -372,10 +345,10 @@ private:
 
         while (PipeIter < mPipingIterations && !equilibrium && converged)
         {
-            // set equilibirum on true
+            // set equilibrium on true
             equilibrium = true;
 
-            // perform a flow calculation and stop growing if the calculation doesnt converge
+            // perform a flow calculation and stop growing if the calculation doesn't converge
             converged = Recalculate();
 
             // todo: JDN (20220817) : grow not used. 
@@ -400,13 +373,13 @@ private:
                     double eq_height = pElement->CalculateEquilibriumPipeHeight(prop, Geom, OpenPipeElement->GetValue(PIPE_ELEMENT_LENGTH));
                     double current_height = OpenPipeElement->GetValue(PIPE_HEIGHT);
 
-                    // set erosion on true if current pipe height is greater than the equilibirum height
+                    // set erosion on true if current pipe height is greater than the equilibrium height
                     if (current_height > eq_height)
                     {
                         OpenPipeElement->SetValue(PIPE_EROSION, true);
                     }
 
-                    // check this if statement, I dont understand the check for pipe erosion
+                    // check this if statement, I don't understand the check for pipe erosion
                     if (((!OpenPipeElement->GetValue(PIPE_EROSION) || (current_height > eq_height)) && current_height < amax))
                     {
                         OpenPipeElement->SetValue(PIPE_HEIGHT, OpenPipeElement->GetValue(PIPE_HEIGHT) + da);
@@ -467,7 +440,7 @@ private:
     }
 
     /// <summary>
-    /// Saves pipe heights if pipe grows, else reset pipe hieghts to previous grow step.
+    /// Saves pipe heights if pipe grows, else reset pipe heights to previous grow step.
     /// </summary>
     /// <param name="open_pipe_elements"> open pipe elements</param>
     /// <param name="grow"> boolean to check if pipe grows</param>
@@ -491,6 +464,4 @@ private:
 
 }; // Class GeoMechanicsNewtonRaphsonStrategy
 
-} // namespace Kratos
-
-#endif // KRATOS_GEO_MECHANICS_NEWTON_RAPHSON_EROSION_PROCESS_STRATEGY  defined
+}

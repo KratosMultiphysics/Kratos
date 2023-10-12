@@ -68,7 +68,6 @@ int UPwSmallStrainFICElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-UPwSmallStrainFICElement::Check()") << this->Id() << std::endl;
 
     // Verify generic variables
     int ierr = UPwSmallStrainElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
@@ -79,8 +78,6 @@ int UPwSmallStrainFICElement<TDim,TNumNodes>::
     // Verify specific properties
     if (Prop[IGNORE_UNDRAINED])
         KRATOS_ERROR << "IGNORE_UNDRAINED cannot be used in FIC elements. Use Non FIC elements instead" << this->Id() << std::endl;
-
-    // KRATOS_INFO("1-UPwSmallStrainElement::Check()") << std::endl;
 
     return ierr;
 
@@ -117,7 +114,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
     InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-UPwSmallStrainFICElement::InitializeNonLinearIteration()") << this->Id() << std::endl;    
+ 
     //Defining necessary variables
     const GeometryType& Geom = this->GetGeometry();
     const SizeType NumGPoints = Geom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -168,8 +165,7 @@ void UPwSmallStrainFICElement<TDim,TNumNodes>::
 
     this->ExtrapolateGPConstitutiveTensor(ConstitutiveTensorContainer);
     this->ExtrapolateGPDtStress(DtStressContainer);
-
-    // KRATOS_INFO("1-UPwSmallStrainFICElement::InitializeNonLinearIteration()") << this->Id() << std::endl;    
+   
     KRATOS_CATCH("")
 }
 
@@ -580,7 +576,7 @@ void UPwSmallStrainFICElement<2,4>::
                                         const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer )
 {
     // Quadrilateral_2d_4 with GI_GAUSS_2
-    KRATOS_TRY;
+    KRATOS_TRY
 
     BoundedMatrix<double,4,8> ShapeFunctionsGradientsContainer; //NumGPoints X TDim*TNumNodes
     unsigned int index;
@@ -649,7 +645,7 @@ void UPwSmallStrainFICElement<3,8>::
                                         const GeometryType::ShapeFunctionsGradientsType& DN_DXContainer )
 {
     // Hexahedra_3d_8 with GI_GAUSS_2
-    KRATOS_TRY;
+    KRATOS_TRY
 
     BoundedMatrix<double,8,24> ShapeFunctionsGradientsContainer; //NumGPoints X TDim*TNumNodes
     unsigned int index;
@@ -742,7 +738,7 @@ template<>
 void UPwSmallStrainFICElement<2,3>::
     InitializeSecondOrderTerms(FICElementVariables& rFICVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const SizeType Dim = 2;
 
@@ -759,7 +755,7 @@ template<>
 void UPwSmallStrainFICElement<2,4>::
     InitializeSecondOrderTerms(FICElementVariables& rFICVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     const SizeType Dim = 2;
     const SizeType NumNodes = 4;
 
@@ -786,7 +782,7 @@ template<>
 void UPwSmallStrainFICElement<3,4>::
     InitializeSecondOrderTerms(FICElementVariables& rFICVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const SizeType Dim = 3;
 
@@ -803,7 +799,7 @@ template<>
 void UPwSmallStrainFICElement<3,8>::
     InitializeSecondOrderTerms(FICElementVariables& rFICVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const SizeType Dim = 3;
     const SizeType NumNodes = 8;
@@ -844,7 +840,7 @@ void UPwSmallStrainFICElement<2,4>::
     CalculateShapeFunctionsSecondOrderGradients(FICElementVariables& rFICVariables,
                                                 ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B),rFICVariables.VoigtMatrix);
     unsigned int index;
@@ -886,7 +882,7 @@ void UPwSmallStrainFICElement<3,8>::
     CalculateShapeFunctionsSecondOrderGradients(FICElementVariables& rFICVariables,
                                                 ElementVariables& rVariables)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B),rFICVariables.VoigtMatrix);
     unsigned int index;
@@ -946,7 +942,7 @@ void UPwSmallStrainFICElement<2,4>::
                                          ElementVariables& rVariables,
                                          FICElementVariables& rFICVariables )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     noalias(rVariables.PUMatrix) = PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient
                                   * 0.25      * rFICVariables.ElementLength 
@@ -979,7 +975,7 @@ void UPwSmallStrainFICElement<3,8>::
                                          ElementVariables& rVariables,
                                          FICElementVariables& rFICVariables )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     noalias(rVariables.PUMatrix) =  PORE_PRESSURE_SIGN_FACTOR * rVariables.VelocityCoefficient
                                   * 0.25       * rFICVariables.ElementLength
@@ -1026,7 +1022,7 @@ void UPwSmallStrainFICElement<2,3>::
     CalculateConstitutiveTensorGradients( FICElementVariables& rFICVariables,
                                           const ElementVariables& Variables )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const SizeType Dim = 2;
     const SizeType NumNodes = 3;
@@ -1078,7 +1074,7 @@ void UPwSmallStrainFICElement<2,4>::
     CalculateConstitutiveTensorGradients( FICElementVariables& rFICVariables,
                                           const ElementVariables& Variables )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const SizeType Dim = 2;
     const SizeType NumNodes = 4;
@@ -1136,7 +1132,7 @@ void UPwSmallStrainFICElement<3,4>::
     CalculateConstitutiveTensorGradients( FICElementVariables& rFICVariables,
                                           const ElementVariables& Variables )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const SizeType Dim = 3;
     const SizeType NumNodes = 4;
@@ -1177,7 +1173,7 @@ void UPwSmallStrainFICElement<3,8>::
     CalculateConstitutiveTensorGradients( FICElementVariables& rFICVariables,
                                           const ElementVariables& Variables )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     const SizeType Dim = 3;
     const SizeType NumNodes = 8;
@@ -1310,7 +1306,7 @@ void UPwSmallStrainFICElement<2,4>::
                                        ElementVariables& rVariables,
                                        FICElementVariables& rFICVariables )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     noalias(rVariables.PUMatrix) = 0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength
                                         * rVariables.BiotCoefficient  * (-PORE_PRESSURE_SIGN_FACTOR)
@@ -1342,7 +1338,7 @@ void UPwSmallStrainFICElement<3,8>::
                                        ElementVariables& rVariables,
                                        FICElementVariables& rFICVariables )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     noalias(rVariables.PUMatrix) = 0.25 * rFICVariables.ElementLength * rFICVariables.ElementLength
                                         * rVariables.BiotCoefficient  * (-PORE_PRESSURE_SIGN_FACTOR)

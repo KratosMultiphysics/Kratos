@@ -93,11 +93,16 @@
 
 // Rules of mixtures
 #include "custom_constitutive/composites/rule_of_mixtures_law.h"
+#include "custom_constitutive/composites/traction_separation_law.h"
 
 #include "custom_constitutive/small_strains/plastic_damage/associative_plastic_damage_model.h"
 
-namespace Kratos {
-namespace Python {
+// Thermal CL's
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_elastic_isotropic_3d.h"
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_strain.h"
+#include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_stress.h"
+
+namespace Kratos::Python {
 
 void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 {
@@ -109,6 +114,10 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
 
     py::class_< MultiLinearIsotropicPlaneStress2D, typename MultiLinearIsotropicPlaneStress2D::Pointer, LinearPlaneStress >
     (m, "MultiLinearIsotropicPlaneStress2D").def(py::init<>() )
+    ;
+
+    py::class_< TractionSeparationLaw3D<3>, typename TractionSeparationLaw3D<3>::Pointer,  ConstitutiveLaw  >
+    (m,"TractionSeparationLaw3D").def(py::init<>())
     ;
 
     py::class_< WrinklingLinear2DLaw, typename WrinklingLinear2DLaw::Pointer, ConstitutiveLaw >
@@ -1152,7 +1161,18 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m)
     typename AssociativePlasticDamageModel <RankineYieldSurface<RankinePlasticPotential<6>>>::Pointer,
     ConstitutiveLaw >
     (m,"AssociativePlasticDamageModel3DRankine").def(py::init<>());
+
+    // Thermal CL's
+    py::class_< ThermalElasticIsotropic3D, typename ThermalElasticIsotropic3D::Pointer, ConstitutiveLaw >
+    (m,"ThermalElasticIsotropic3D").def(py::init<>());
+
+    py::class_< ThermalLinearPlaneStrain, typename ThermalLinearPlaneStrain::Pointer, ConstitutiveLaw >
+    (m,"ThermalLinearPlaneStrain").def(py::init<>());
+
+    py::class_< ThermalLinearPlaneStress, typename ThermalLinearPlaneStress::Pointer, ConstitutiveLaw >
+    (m,"ThermalLinearPlaneStress").def(py::init<>());
+
+
 }
 
-}  // namespace Python.
-}  // namespace Kratos.
+}  // namespace Kratos::Python.

@@ -33,7 +33,7 @@ double CalculateTurbulentViscosity(
     const double TurbulentEnergyDissipationRate);
 
 template <unsigned int TDim>
-double CalculateSourceTerm(
+double CalculateProductionTerm(
     const BoundedMatrix<double, TDim, TDim>& rVelocityGradient,
     const double TurbulentKinematicViscosity);
 

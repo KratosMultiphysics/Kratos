@@ -67,7 +67,7 @@ namespace Kratos
       /// Pointer definition of TetrahedraEdgeShell
       KRATOS_CLASS_POINTER_DEFINITION(TetrahedraEdgeShell);
 
-	  using PointType = Node<3>;
+	  using PointType = Node;
     using GeomertyType = Geometry<PointType>;
 
       ///@}

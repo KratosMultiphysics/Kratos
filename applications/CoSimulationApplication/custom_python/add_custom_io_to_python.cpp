@@ -3,10 +3,10 @@
 //        | |__| (_) |__) | | | | | | | |_| | | (_| | |_| | (_) | | | |
 //         \____\___/____/|_|_| |_| |_|\__,_|_|\__,_|\__|_|\___/|_| |_|
 //
-//  License:		 BSD License
-//					 license: CoSimulationApplication/license.txt
+//  License:         BSD License
+//                   license: CoSimulationApplication/license.txt
 //
-//  Main authors:    Philipp Bucher
+//  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
 
 // System includes
@@ -21,8 +21,7 @@
 // IO
 #include "custom_io/co_sim_EMPIRE_API.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 namespace EMPIRE_API_Wrappers { // helpers namespace
 
@@ -399,6 +398,5 @@ void  AddCustomIOToPython(pybind11::module& m)
     mEMPIREAPI.def("EMPIRE_API_PrintTiming",  EMPIRE_API_Wrappers::SetPrintTiming);
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 

@@ -33,7 +33,8 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
             "snapshots_interval": 1.0,
             "nodal_unknowns": ["TEMPERATURE"],
             "rom_basis_output_format": "json",
-            "rom_basis_output_name": "RomParameters",
+            "rom_basis_output_name": "RomParameters_test",
+            "rom_basis_output_folder": "rom_data_test",
             "svd_truncation_tolerance": 1.0e-6
         }""")
 
@@ -47,9 +48,14 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
     def tearDown(self):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             if not self.print_output:
-                for file_name in os.listdir():
-                    if not file_name.count("Results"):
-                        kratos_utilities.DeleteFileIfExisting(file_name)
+                for path in os.listdir():
+                    full_path = os.path.join(os.getcwd(), path)
+                    if not "_Results" in path:
+                        if os.path.isfile(full_path):
+                            kratos_utilities.DeleteFileIfExisting(full_path)
+                        elif os.path.isdir(full_path):
+                            kratos_utilities.DeleteDirectoryIfExisting(full_path)
+
 
     def __ExecuteTest(self, process_settings):
         # Emulate a simulation to get the ROM basis output
@@ -89,12 +95,13 @@ class TestCalculateRomBasisOutputProcess(KratosUnittest.TestCase):
     def __CheckResults(self, check_hrom_settings):
         with KratosUnittest.WorkFolderScope(self.work_folder, __file__):
             # Load ROM basis output file
-            output_filename = "{}.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
-            with open(output_filename) as f:
+            output_folder = self.process_settings["rom_basis_output_folder"].GetString()
+            full_output_filename = os.path.join(output_folder, "{}.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString()))
+            with open(full_output_filename) as f:
                 output_data = json.load(f)
 
             # Load reference file
-            reference_filename = "{}Results.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
+            reference_filename = "{}_Results.{}".format(self.process_settings["rom_basis_output_name"].GetString(), self.process_settings["rom_basis_output_format"].GetString())
             with open(reference_filename) as f:
                 reference_data = json.load(f)
 
