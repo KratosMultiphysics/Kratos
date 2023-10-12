@@ -18,11 +18,9 @@
 // External includes
 
 // Project includes
-#include "includes/parallel_environment.h"
 #include "geometries/bounding_box.h"
 #include "geometries/point.h"
 #include "spatial_containers/spatial_search_result.h"
-#include "spatial_containers/spatial_search_result_container_vector.h"
 
 namespace Kratos
 {
@@ -56,8 +54,6 @@ public:
     /// The type of geometrical object to be stored in the bins
     using CellType = std::vector<GeometricalObject*>;
     using ResultType = SpatialSearchResult<GeometricalObject>;
-    using ResultTypeContainer = SpatialSearchResultContainer<GeometricalObject>;
-    using ResultTypeContainerMap = SpatialSearchResultContainerVector<GeometricalObject>;
 
     ///@}
     ///@name Life Cycle
@@ -155,21 +151,6 @@ public:
         );
 
     /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it.
-     * @details The result contains the object and also its distance to the point.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    virtual void SearchInRadius(
-        const Point& rPoint,
-        const double Radius,
-        ResultTypeContainer& rResults,
-        const bool SyncronizeResults = true
-        );
-
-    /**
      * @brief This method takes a point and finds all of the objects in the given radius to it (iterative version).
      * @details The result contains the object and also its distance to the point.
      * @param itPointBegin The first point iterator
@@ -194,37 +175,6 @@ public:
     }
 
     /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it (iterative version).
-     * @details The result contains the object and also its distance to the point.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator
-     */
-    template<typename TPointIteratorType>
-    void SearchInRadius(
-        TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd,
-        const double Radius,
-        ResultTypeContainerMap& rResults, 
-        const bool ClearSolution = true
-        )
-    {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-
-        // Adding the results to the container
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            auto& r_partial_result = rResults.InitializeResult(it_point->Coordinates());
-            SearchInRadius(*it_point, Radius, r_partial_result);
-        }
-    }
-
-    /**
      * @brief This method takes a point and finds the nearest object to it in a given radius.
      * @details If there are more than one object in the same minimum distance only one is returned
      * If there are no objects in that radius the result will be set to not found.
@@ -236,23 +186,6 @@ public:
     ResultType SearchNearestInRadius(
         const Point& rPoint,
         const double Radius
-        );
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius.
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * If there are no objects in that radius the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    virtual void SearchNearestInRadius(
-        const Point& rPoint,
-        const double Radius,
-        ResultTypeContainer& rResults,
-        const bool SyncronizeResults = true
         );
 
     /**
@@ -284,43 +217,6 @@ public:
     }
 
     /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius (iterative version).
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * If there are no objects in that radius the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param Radius The radius to be checked
-     * @param rResults The result of the search
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator
-     */
-    template<typename TPointIteratorType>
-    void SearchNearestInRadius(
-        TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd,
-        const double Radius,
-        ResultTypeContainerMap& rResults, 
-        const bool ClearSolution = true
-        )
-    {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-
-        // Adding the results to the container
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            auto& r_point_result = rResults.InitializeResult(it_point->Coordinates());
-            auto result = SearchNearestInRadius(*it_point, Radius);
-            r_point_result.AddResult(result);
-            
-            // Synchronize
-            r_point_result.SynchronizeAll(ParallelEnvironment::GetDefaultDataCommunicator());
-        }
-    }
-
-    /**
      * @brief This method takes a point and finds the nearest object to it.
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
@@ -328,20 +224,6 @@ public:
      * @return ResultType The result of the search
     */
     ResultType SearchNearest(const Point& rPoint);
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it.
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-    */
-    virtual void SearchNearest(
-        const Point& rPoint,
-        ResultTypeContainer& rResults,
-        const bool SyncronizeResults = true
-        );
 
     /**
      * @brief This method takes a point and finds the nearest object to it (iterative version).
@@ -369,40 +251,6 @@ public:
     }
 
     /**
-     * @brief This method takes a point and finds the nearest object to it (iterative version).
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * Result contains a flag is the object has been found or not.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param rResults The result of the search
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator
-     */
-    template<typename TPointIteratorType>
-    void SearchNearest(
-        TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd,
-        ResultTypeContainerMap& rResults, 
-        const bool ClearSolution = true
-        )
-    {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-
-        // Adding the results to the container
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            auto& r_point_result = rResults.InitializeResult(it_point->Coordinates());
-            auto result = SearchNearest(*it_point);
-            r_point_result.AddResult(result);
-            
-            // Synchronize
-            r_point_result.SynchronizeAll(ParallelEnvironment::GetDefaultDataCommunicator());
-        }
-    }
-
-    /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain.
      * @details If it is inside an object, it returns it, and search distance is set to zero.
      * If there is no object, the result will be set to not found.
@@ -412,22 +260,6 @@ public:
      * @return ResultType The result of the search
      */
     ResultType SearchIsInside(const Point& rPoint);
-
-    /**
-     * @brief This method takes a point and search if it's inside an geometrical object of the domain.
-     * @details If it is inside an object, it returns it, and search distance is set to zero.
-     * If there is no object, the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * This method is a simplified and faster method of SearchNearest.
-     * @param rPoint The point to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    virtual void SearchIsInside(
-        const Point& rPoint,
-        ResultTypeContainer& rResults,
-        const bool SyncronizeResults = true
-        );
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
@@ -454,42 +286,6 @@ public:
             results[it_point - itPointBegin] = SearchIsInside(*it_point);
         }
         return results;
-    }
-
-    /**
-     * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
-     * @details If it is inside an object, it returns it, and search distance is set to zero.
-     * If there is no object, the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * This method is a simplified and faster method of SearchNearest.
-     * @param itPointBegin The first point iterator
-     * @param itPointEnd The last point iterator
-     * @param rResults The result of the search
-     * @param ClearSolution Clear the current solution
-     * @tparam TPointIteratorType The type of the point iterator
-     */
-    template<typename TPointIteratorType>
-    void SearchIsInside(
-        TPointIteratorType itPointBegin,
-        TPointIteratorType itPointEnd,
-        ResultTypeContainerMap& rResults, 
-        const bool ClearSolution = true
-        )
-    {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-
-        // Adding the results to the container
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            auto& r_point_result = rResults.InitializeResult(it_point->Coordinates());
-            auto result = SearchIsInside(*it_point);
-            r_point_result.AddResult(result);
-
-            // Synchronize
-            r_point_result.SynchronizeAll(ParallelEnvironment::GetDefaultDataCommunicator());
-        }
     }
 
     ///@}

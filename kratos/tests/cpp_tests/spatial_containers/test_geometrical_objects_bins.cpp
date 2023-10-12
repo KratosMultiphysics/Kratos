@@ -202,61 +202,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadius, KratosCoreFastSu
     KRATOS_EXPECT_EQ(results.size(), 12);
 }
 
-/** Checks bins search in radius
-*/
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadiusContainer, KratosCoreFastSuite)
-{
-    Model current_model;
-
-    // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model);
-
-    GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
-
-    // Generate new model part
-    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    auto p_node = r_point_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto& r_array_nodes = r_point_model_part.Nodes();
-
-    GeometricalObjectsBins::ResultTypeContainerMap results;
-
-    // 0.29 radius
-    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.29, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[*p_node].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[*p_node].NumberOfGlobalResults(), 0);
-
-    // 0.3 radius
-    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[*p_node].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[*p_node].NumberOfGlobalResults(), 4);
-
-    // 0.4 radius
-    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.4, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[*p_node].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[*p_node].NumberOfGlobalResults(), 4);
-
-    // 0.6 radius
-    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[*p_node].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[*p_node].NumberOfGlobalResults(), 8);
-
-    // 0.7 radius
-    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.7, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[*p_node].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[*p_node].NumberOfGlobalResults(), 8);
-
-    // 0.9 radius
-    bins.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.9, results);
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[*p_node].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[*p_node].NumberOfGlobalResults(), 12);
-}
-
 /** Checks bins search nearest
 */
 KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosCoreFastSuite) 
@@ -288,50 +233,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosCor
 
 /** Checks bins search nearest
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadiusContainer, KratosCoreFastSuite) 
-{
-    constexpr double tolerance = 1e-12;
-
-    Model current_model;
-
-    // Cube coordinates
-    const double cube_z = 0.3;
-
-    // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
-
-    GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
-
-    // Generate new model part
-    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    const double epsilon = 1.0e-6;
-    auto p_node = r_point_model_part.CreateNewNode(1, epsilon, epsilon, epsilon);
-    auto& r_array_nodes = r_point_model_part.Nodes();
-
-    GeometricalObjectsBins::ResultTypeContainerMap results;
-    bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z - 1.e-4, results);
-
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[*p_node].IsObjectFound());
-
-    bins.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z + 1.e-4, results);
-
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[*p_node].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[*p_node].NumberOfGlobalResults(), 1);
-
-    // Distances
-    auto distances = results[*p_node].GetDistances();
-    KRATOS_EXPECT_NEAR(distances[0], (cube_z - epsilon), tolerance);
-
-    // Compute indices
-    auto indices = results[*p_node].GetResultIndices();
-    const std::size_t id = indices[0];
-    KRATOS_EXPECT_EQ(id, 3);
-}
-
-/** Checks bins search nearest
-*/
 KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, KratosCoreFastSuite) 
 {
     constexpr double tolerance = 1e-12;
@@ -356,44 +257,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, KratosCoreFastSui
     KRATOS_EXPECT_TRUE(id == 3); 
 }
 
-/** Checks bins search nearest
-*/
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestContainer, KratosCoreFastSuite) 
-{
-    constexpr double tolerance = 1e-12;
-
-    Model current_model;
-    
-    // Cube coordinates
-    const double cube_z = 0.3;
-
-    // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
-
-    GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
-
-    // Generate new model part
-    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    const double epsilon = 1.0e-6;
-    auto p_node = r_point_model_part.CreateNewNode(1, epsilon, epsilon, epsilon);
-    auto& r_array_nodes = r_point_model_part.Nodes();
-
-    GeometricalObjectsBins::ResultTypeContainerMap results;
-    bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
-
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[*p_node].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[*p_node].NumberOfGlobalResults(), 1);
-
-    // Distances
-    KRATOS_EXPECT_NEAR(results[*p_node][0].GetDistance(), (cube_z - epsilon), tolerance);
-
-    // Compute indices
-    auto indices = results[*p_node].GetResultIndices();
-    const std::size_t id = indices[0];
-    KRATOS_EXPECT_EQ(id, 3);
-}
-
 /** Checks bins empty search nearest 
 */
 KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearest, KratosCoreFastSuite) 
@@ -409,29 +272,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearest, KratosCoreFa
     auto result = bins.SearchNearest(center_point);
 
     KRATOS_EXPECT_FALSE(result.IsObjectFound());
-}
-
-/** Checks bins empty search nearest 
-*/
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsEmptySearchNearestContainer, KratosCoreFastSuite) 
-{
-    Model current_model;
-
-    // Generate the cube skin
-    ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
-
-    GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
-
-    // Generate new model part
-    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    auto p_point = r_point_model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    auto& r_array_nodes = r_point_model_part.Nodes();
-
-    GeometricalObjectsBins::ResultTypeContainerMap results;
-    bins.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
-
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[*p_point].IsObjectFound());
 }
 
 /** Checks bins search is inside 
@@ -460,30 +300,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsInside, KratosCoreFastSu
     KRATOS_EXPECT_NEAR(result.GetDistance(), 0.0, tolerance);
 }
 
-/** Checks bins search is inside 
-*/
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsInsideContainer, KratosCoreFastSuite) 
-{
-    Model current_model;
-
-    // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeModelPart(current_model);
-
-    GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
-
-    // Generate new model part
-    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    auto p_inside_point = r_point_model_part.CreateNewNode(1, 0.5,0.5,0.5);
-    auto& r_array_nodes = r_point_model_part.Nodes();
-
-    GeometricalObjectsBins::ResultTypeContainerMap results;
-    bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
-
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_TRUE(results[*p_inside_point].IsObjectFound());
-    KRATOS_EXPECT_EQ(results[*p_inside_point].NumberOfGlobalResults(), 1);
-}
-
 /** Checks bins search is inside = not found
 */
 KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInside, KratosCoreFastSuite) 
@@ -505,29 +321,6 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInside, KratosCoreFas
     auto result = bins.SearchIsInside(near_point);
 
     KRATOS_EXPECT_FALSE(result.IsObjectFound());
-}
-
-/** Checks bins search is inside = not found
-*/
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInsideContainer, KratosCoreFastSuite) 
-{
-    Model current_model;
-
-    // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeModelPart(current_model);
-
-    GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
-
-    // Generate new model part
-    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-    auto p_outside_point = r_point_model_part.CreateNewNode(1, 100.0,100.0,100.0);
-    auto& r_array_nodes = r_point_model_part.Nodes();
-
-    GeometricalObjectsBins::ResultTypeContainerMap results;
-    bins.SearchIsInside(r_array_nodes.begin(), r_array_nodes.end(), results);
-
-    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-    KRATOS_EXPECT_FALSE(results[*p_outside_point].IsObjectFound());
 }
 
 } // namespace Kratos::Testing.
