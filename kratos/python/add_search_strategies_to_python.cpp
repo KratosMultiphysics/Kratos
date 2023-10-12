@@ -136,30 +136,14 @@ void BindSpatialSearchResultContainerVector(pybind11::module& m, const std::stri
     pybind11::class_<ContainerMapType, typename ContainerMapType::Pointer>(m, rClassName.c_str())
     .def(pybind11::init<>())
     .def("NumberOfSearchResults", &ContainerMapType::NumberOfSearchResults)
-    .def("InitializeResult", [](ContainerMapType& self, const std::size_t Index) {
-        return self.InitializeResult(Index);
-    })
-    .def("InitializeResult", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
-        return self.InitializeResult(rCoordinates);
-    })
-    .def("HasResult", [](ContainerMapType& self, const std::size_t Index) {
-        return self.HasResult(Index);
-    })
-    .def("HasResult", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
-        return self.HasResult(rCoordinates);
-    })
+    .def("InitializeResult", &ContainerMapType::InitializeResult)
+    .def("HasResult",  &ContainerMapType::HasResult)
     .def("Clear", &ContainerMapType::Clear)
     .def("__getitem__", [](ContainerMapType& self, const std::size_t Index) {
         return self[Index];
     })
-    .def("__getitem__", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
-        return self[rCoordinates];
-    })
     .def("__call__", [](ContainerMapType& self, const std::size_t Index) {
         return self(Index);
-    })
-    .def("__call__", [](ContainerMapType& self, const array_1d<double, 3>& rCoordinates) {
-        return self(rCoordinates);
     })
     .def("__str__", PrintObject<ContainerMapType>)
     .def("__iter__", [](ContainerMapType& self) {
@@ -621,51 +605,76 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     .def("GetTotalNumberOfCells", &GeometricalObjectsBins::GetTotalNumberOfCells)
     .def("SearchInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
         // Perform the search
-        ResultTypeContainerGeometricalObject results;
+        std::vector<ResultTypeGeometricalObject> results;
         self.SearchInRadius(rPoint, Radius, results);
-        return results;
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
     })
     .def("SearchInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
-        ResultTypeContainerMapGeometricalObject results; 
+        std::vector<std::vector<ResultTypeGeometricalObject>> results;
         self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
-        return results;
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            py::list sub_list_results;
+            for (auto& r_sub_result : r_result) {
+                sub_list_results.append(r_sub_result);
+            }
+            list_results.append(sub_list_results);
+        }
+        return list_results;
     })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const Point& rPoint, const double Radius) {
         // Perform the search
-        ResultTypeContainerGeometricalObject results;
-        self.SearchNearestInRadius(rPoint, Radius, results);
-        return results;
+        return self.SearchNearestInRadius(rPoint, Radius);
     })
     .def("SearchNearestInRadius", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
-        ResultTypeContainerMapGeometricalObject results;
-        self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, results);
-        return results;
+        std::vector<ResultTypeGeometricalObject> results = self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius);
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
     })
     .def("SearchNearest", [&](GeometricalObjectsBins& self, const Point& rPoint) {
         // Perform the search
-        ResultTypeContainerGeometricalObject results;
-        self.SearchNearest(rPoint, results);
-        return results;
+        return self.SearchNearest(rPoint);
     })
     .def("SearchNearest", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
-        ResultTypeContainerMapGeometricalObject results;
-        self.SearchNearest(rNodes.begin(), rNodes.end(), results);
-        return results;
+        std::vector<ResultTypeGeometricalObject> results = self.SearchNearest(rNodes.begin(), rNodes.end());
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
     })
     .def("SearchIsInside", [&](GeometricalObjectsBins& self, const Point& rPoint) {
         // Perform the search
-        ResultTypeContainerGeometricalObject results;
-        self.SearchIsInside(rPoint, results);
-        return results;
+        return self.SearchIsInside(rPoint);
     })
     .def("SearchIsInside", [&](GeometricalObjectsBins& self, const NodesContainerType& rNodes) {
         // Perform the search
-        ResultTypeContainerMapGeometricalObject results;
-        self.SearchIsInside(rNodes.begin(), rNodes.end(), results);
-        return results;
+        std::vector<ResultTypeGeometricalObject> results = self.SearchIsInside(rNodes.begin(), rNodes.end());
+
+        // Copy the results to the python list
+        py::list list_results;
+        for (auto& r_result : results) {
+            list_results.append(r_result);
+        }
+        return list_results;
     })
     ;
 }
