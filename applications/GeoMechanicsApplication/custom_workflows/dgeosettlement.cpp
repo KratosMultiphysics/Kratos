@@ -26,6 +26,7 @@
 #include "custom_utilities/process_info_parser.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
 #include "spaces/ublas_space.h"
+#include "solving_strategy_wrapper.hpp"
 
 namespace
 {
