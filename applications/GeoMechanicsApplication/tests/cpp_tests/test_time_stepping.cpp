@@ -41,9 +41,36 @@ class DummyStrategyWrapper : public StrategyWrapper
 public:
     explicit DummyStrategyWrapper(TimeStepEndState::ConvergenceState ConvergenceState) :
         mConvergenceState( ConvergenceState ) {}
-    [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()         override { return mConvergenceState;};
+    [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()   const override { return mConvergenceState;};
     [[nodiscard]] std::size_t                        GetNumberOfIterations() const override { return 4;};
     [[nodiscard]] double                             GetEndTime()            const override { return 10.;};
+    void SetEndTime(double EndTime) override {
+        // intentionally empty
+    }
+    [[nodiscard]] double GetTimeIncrement() const override {return 0.0; }
+    void SetTimeIncrement(double TimeIncrement) override {
+        // intentionally empty
+    }
+    [[nodiscard]] std::size_t GetStepNumber() const override {return 0;}
+    void IncrementStepNumber() override {
+        // intentionally empty
+    }
+    void CloneTimeStep() override {
+        // intentionally empty
+    };
+    void RestorePositionsAndDOFVectorToStartOfStep() override {
+        // intentionally empty
+    };
+    void SaveTotalDisplacementFieldAtStartOfTimeLoop() override {
+        // intentionally empty
+    };
+    void AccumulateTotalDisplacementField() override {
+        // intentionally empty
+    };
+    void OutputProcess() override {
+        // intentionally empty
+    };
+
     void Initialize()             override {++mSolverStrategyInitializeCalls;}
     void InitializeSolutionStep() override {++mSolverStrategyInitializeSolutionStepCalls;}
     void Predict()                override {++mSolverStrategyPredictCalls;}
@@ -146,24 +173,24 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanic
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategy(converging_strategy);
-    ProcessSpy spy;
-    TimeStepExecutor::ProcessRefVec process_refs{spy};
-    executor.SetProcessReferences(process_refs);
+    auto spy = std::make_shared<ProcessSpy>();
+
+    std::vector<std::shared_ptr<Process>> processes{spy};
+    std::vector<std::weak_ptr<Process>> process_observables{spy};
+    executor.SetProcessObservables(process_observables);
     const auto time = 0.0;
 
     executor.Run(time);
 
-    KRATOS_EXPECT_EQ(1, spy.NumberOfExecuteInitializeSolutionStepCalls());
-    KRATOS_EXPECT_EQ(1, spy.NumberOfExecuteFinalizeSolutionStepCalls());
+    KRATOS_EXPECT_EQ(1, spy->NumberOfExecuteInitializeSolutionStepCalls());
+    KRATOS_EXPECT_EQ(1, spy->NumberOfExecuteFinalizeSolutionStepCalls());
 }
 
-KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllCalledOnce, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptFinalizeCalledOnce, KratosGeoMechanicsFastSuite)
 {
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategy(converging_strategy);
-    TimeStepExecutor::ProcessRefVec process_refs;
-    executor.SetProcessReferences(process_refs);
     const auto time = 0.0;
 
     executor.Run(time);
@@ -172,7 +199,7 @@ KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllCalledOnce, KratosGeoM
     KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategyInitializeSolutionStepCalls());
     KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategyPredictCalls());
     KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategySolveSolutionStepCalls());
-    KRATOS_EXPECT_EQ(1, converging_strategy->NumberOfSolverStrategyFinalizeSolutionStepCalls());
+    KRATOS_EXPECT_EQ(0, converging_strategy->NumberOfSolverStrategyFinalizeSolutionStepCalls());
 }
 
 KRATOS_TEST_CASE_IN_SUITE(ConvergingTimeStepExecutionReturnsGivenTime, KratosGeoMechanicsFastSuite)
