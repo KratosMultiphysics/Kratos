@@ -7,4 +7,4 @@ def Factory(settings, Model):
 
     params = settings["Parameters"]
     model_part = Model[params["model_part_name"].GetString()]
-    return KratosGeo.ApplyScalarConstraintsTableProcess(model_part, params)
+    return KratosGeo.ApplyScalarConstraintTableProcess(model_part, params)
