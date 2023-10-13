@@ -32,7 +32,7 @@ public :
     virtual void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) = 0;
     virtual void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) = 0;
     virtual void SetSolverStrategyWrapper(std::shared_ptr<StrategyWrapper> pStrategyWrapper) = 0;
-    virtual std::vector<TimeStepEndState> Run(TimeStepEndState EndState) = 0;
+    virtual std::vector<TimeStepEndState> Run(const TimeStepEndState& EndState) = 0;
 };
 
 }

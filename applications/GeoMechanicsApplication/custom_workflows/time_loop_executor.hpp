@@ -46,19 +46,20 @@ public :
         mTimeStepExecutor->SetSolverStrategy(mStrategyWrapper);
     }
 
-    std::vector<TimeStepEndState> Run(TimeStepEndState EndState) override
+    std::vector<TimeStepEndState> Run(const TimeStepEndState& EndState) override
     {
         mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfTimeLoop();
         std::vector<TimeStepEndState> result;
-        while (mTimeIncrementor->WantNextStep(EndState)) {
+        TimeStepEndState NewEndState = EndState;
+        while (mTimeIncrementor->WantNextStep(NewEndState)) {
             mStrategyWrapper->IncrementStepNumber();
             // clone without end time, the end time is overwritten anyway
             mStrategyWrapper->CloneTimeStep();
-            EndState = RunCycleLoop(EndState);
+            NewEndState = RunCycleLoop(NewEndState);
             mStrategyWrapper->AccumulateTotalDisplacementField();
             mStrategyWrapper->FinalizeSolutionStep();
             mStrategyWrapper->OutputProcess();
-            result.emplace_back(EndState);
+            result.emplace_back(NewEndState);
         }
         return result;
     }

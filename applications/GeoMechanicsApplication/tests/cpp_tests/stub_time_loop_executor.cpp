@@ -40,7 +40,7 @@ void StubTimeLoopExecutor::SetSolverStrategyWrapper(std::shared_ptr<StrategyWrap
     // intentionally empty
 }
 
-std::vector<TimeStepEndState> StubTimeLoopExecutor::Run(TimeStepEndState EndState) {
+std::vector<TimeStepEndState> StubTimeLoopExecutor::Run(const TimeStepEndState& EndState) {
     return {};
 }
 

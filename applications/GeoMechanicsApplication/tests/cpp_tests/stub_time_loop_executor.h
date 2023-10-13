@@ -26,7 +26,7 @@ public:
 
     void SetSolverStrategyWrapper(std::shared_ptr<StrategyWrapper> pStrategyWrapper) override;
 
-    std::vector<TimeStepEndState> Run(TimeStepEndState EndState) override;
+    std::vector<TimeStepEndState> Run(const TimeStepEndState& EndState) override;
 
 private:
     std::size_t mNumberOfExpectedProcesses;
