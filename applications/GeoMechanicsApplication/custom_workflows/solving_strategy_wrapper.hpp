@@ -18,6 +18,7 @@
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "geo_mechanics_application_variables.h"
 #include "write_output.h"
+#include "includes/variables.h"
 
 namespace Kratos
 {
@@ -108,7 +109,7 @@ public:
         {
             node.GetSolutionStepValue(DISPLACEMENT, 0) = node.GetSolutionStepValue(DISPLACEMENT, 1);
             node.GetSolutionStepValue(WATER_PRESSURE, 0) = node.GetSolutionStepValue(WATER_PRESSURE, 1);
-            if (node.Has(ROTATION)) node.GetSolutionStepValue(ROTATION, 0) = node.GetSolutionStepValue(ROTATION, 1);
+            node.GetSolutionStepValue(ROTATION, 0) = node.GetSolutionStepValue(ROTATION, 1);
         }
     }
 
