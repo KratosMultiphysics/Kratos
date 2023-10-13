@@ -103,7 +103,13 @@ public:
 
     void RestorePositionsAndDOFVectorToStartOfStep() override
     {
-
+        VariableUtils().UpdateCurrentPosition(mrModelPart.Nodes(), DISPLACEMENT, 1);
+        for (auto& node : mrModelPart.Nodes())
+        {
+            node.GetSolutionStepValue(DISPLACEMENT, 0) = node.GetSolutionStepValue(DISPLACEMENT, 1);
+            node.GetSolutionStepValue(WATER_PRESSURE, 0) = node.GetSolutionStepValue(WATER_PRESSURE, 1);
+            if (node.Has(ROTATION)) node.GetSolutionStepValue(ROTATION, 0) = node.GetSolutionStepValue(ROTATION, 1);
+        }
     }
 
     void SaveTotalDisplacementFieldAtStartOfStage() override
@@ -125,9 +131,7 @@ public:
             std::size_t count = 0;
             for (auto& node : mrModelPart.Nodes())
             {
-                const auto total_displacement = mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
-                node.GetSolutionStepValue(TOTAL_DISPLACEMENT) = total_displacement;
-
+                node.GetSolutionStepValue(TOTAL_DISPLACEMENT) = mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
                 count++;
             }
         }

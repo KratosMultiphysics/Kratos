@@ -215,9 +215,29 @@ KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMech
     const array_1d<double, 3> expectedTotalDisplacement = originalTotalDisplacement + displacement_in_time_step;
 
     KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT), expectedTotalDisplacement);
-
 }
 
+KRATOS_TEST_CASE_IN_SUITE(RestorePositionsAndDOFVectorToStartOfStep_UpdatesPosition, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto strategy_wrapper = CreateWrapperWithEmptyProcessInfo(model);
+    auto& model_part = model.GetModelPart("dummy");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
 
+    auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    array_1d<double, 3> original_position{1.0, 2.0, 3.0};
+    (p_node->GetInitialPosition()).Coordinates() = original_position;
+    model_part.AddNode(p_node);
+
+    array_1d<double, 3> displacement_in_time_step{3.0, 2.0, 1.0};
+    p_node->GetSolutionStepValue(DISPLACEMENT, 1) = displacement_in_time_step;
+    strategy_wrapper.RestorePositionsAndDOFVectorToStartOfStep();
+
+    array_1d<double, 3> expected_position_after_displacement = original_position + displacement_in_time_step;
+
+    KRATOS_EXPECT_EQ(p_node->Coordinates(), expected_position_after_displacement);
+}
 
 }
