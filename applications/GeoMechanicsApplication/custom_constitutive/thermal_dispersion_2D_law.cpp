@@ -8,6 +8,7 @@
 //  License:         geo_mechanics_application/license.txt
 //
 //  Main authors:    Mohamed Nabi
+//                   John van Esch
 //
 
 // System includes

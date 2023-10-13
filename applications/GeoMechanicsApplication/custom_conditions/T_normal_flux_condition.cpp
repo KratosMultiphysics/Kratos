@@ -9,9 +9,8 @@
 //
 //
 //  Main authors:    Mohamed Nabi
+//                   John van Esch
 //                   
-//                   
-//
 
 
 // Application includes

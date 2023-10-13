@@ -186,6 +186,9 @@ void UPwBaseElement<TDim,TNumNodes>::
                                 row( rGeom.ShapeFunctionsValues( mThisIntegrationMethod ), i ) );
     }
 
+    mIsThermalCoupled = rGeom[0].SolutionStepsDataHas(TEMPERATURE);
+    mUpdateDensityViscosity = rCurrentProcessInfo[UPDATE_DENSITY_VISCOSITY];
+
     mIsInitialised = true;
 
     KRATOS_CATCH( "" )
