@@ -10,18 +10,13 @@
 //  Main authors:    Vahid Galavi
 //
 
-
-#if !defined(KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED)
-#define  KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED
-
+#pragma once
 
 // System includes
-
 
 // External includes
 
 // Project includes
-#include "custom_elements/U_Pw_base_element.hpp"
 #include "custom_elements/U_Pw_small_strain_element.hpp"
 #include "custom_utilities/stress_strain_utilities.hpp"
 #include "custom_utilities/element_utilities.hpp"
@@ -302,4 +297,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_GEO_U_PW_UPDATED_LAGRANGIAN_ELEMENT_H_INCLUDED  defined
