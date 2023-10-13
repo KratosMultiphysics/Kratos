@@ -626,16 +626,21 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
         identifier = constraint["identifier"].GetString()
         constraint_value = self.communicator.getStandardizedValue(identifier)
         if constraint["type"].GetString() == "=" or constraint_value >= 0:
-            thickness_gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
-                self.design_surface, self.constraint_gradient_variables[identifier]["mapped_gradient"]
-            )
+            if self.projection:
+                thickness_gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
+                    self.design_surface, self.constraint_gradient_variables[identifier]["projected_gradient"]
+                )
+            else:
+                thickness_gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
+                    self.design_surface, self.constraint_gradient_variables[identifier]["mapped_gradient"]
+                )
             shape_gradient_norm = 0.0
             if self.shape_opt:
                 shape_gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
                     self.design_surface, self.shape_constraint_gradient_variables[identifier]["mapped_gradient"]
                 )
             if math.isclose(thickness_gradient_norm, 0.0, abs_tol=1e-16) and math.isclose(shape_gradient_norm, 0.0, abs_tol=1e-16):
-                KM.Logger.PrintWarning("ShapeOpt", f"Gradient for constraint {identifier} is 0.0 - will not be considered!")
+                KM.Logger.PrintWarning("Opt", f"Gradient for constraint {identifier} is 0.0 - will not be considered!")
                 return False
             return True
         else:
