@@ -41,7 +41,7 @@ public:
 
     ~SolvingStrategyWrapper() override = default;
 
-    TimeStepEndState::ConvergenceState GetConvergenceState() override
+    TimeStepEndState::ConvergenceState GetConvergenceState() const override
     {
         return mpStrategy->IsConverged() ? TimeStepEndState::ConvergenceState::converged :
                                            TimeStepEndState::ConvergenceState::non_converged;
@@ -113,7 +113,7 @@ public:
         }
     }
 
-    void SaveTotalDisplacementFieldAtStartOfStage() override
+    void SaveTotalDisplacementFieldAtStartOfTimeLoop() override
     {
         if (mResetDisplacements)
         {

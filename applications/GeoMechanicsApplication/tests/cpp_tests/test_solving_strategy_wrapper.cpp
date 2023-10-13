@@ -206,7 +206,7 @@ KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMech
     p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT) = originalTotalDisplacement;
     model_part.AddNode(p_node);
 
-    strategy_wrapper.SaveTotalDisplacementFieldAtStartOfStage();
+    strategy_wrapper.SaveTotalDisplacementFieldAtStartOfTimeLoop();
 
     array_1d<double, 3> displacement_in_time_step{3.0, 2.0, 1.0};
     p_node->GetSolutionStepValue(DISPLACEMENT) = displacement_in_time_step;
