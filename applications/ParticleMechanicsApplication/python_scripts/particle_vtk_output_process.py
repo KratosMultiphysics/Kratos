@@ -70,11 +70,11 @@ class ParticleVtkOutputProcess(KratosMultiphysics.OutputProcess):
         if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
             DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
-        if settings.Has("gauss_point_results"):
-            KratosMultiphysics.Logger.PrintWarning("VtkOutputProcess", "Setting `gauss_point_results` is deprecated, use `gauss_point_variables_in_elements` instead!")
-            if not settings.Has("gauss_point_variables_in_elements"):
-                settings.AddEmptyValue("gauss_point_variables_in_elements").SetStringArray(settings["gauss_point_results"].GetStringArray())
-            settings.RemoveValue("gauss_point_results")
+        old_name = 'gauss_point_results'
+        new_name = 'gauss_point_variables_in_elements'
+
+        if DeprecationManager.HasDeprecatedVariable(context_string, settings, old_name, new_name):
+            DeprecationManager.ReplaceDeprecatedVariableName(settings, old_name, new_name)
 
     def ExecuteBeforeSolutionLoop(self) -> None:
         if not self.model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
