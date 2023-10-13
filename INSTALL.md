@@ -518,7 +518,7 @@ The result should be:
  ' /   __| _` | __|  _ \   __|    
  . \  |   (   | |   (   |\__ \  
 _|\_\_|  \__,_|\__|\___/ ____/
-           Multi-Physics 9.2."0"-4afb88094a-Release-ARM64
+           Multi-Physics 9.X.Y-4afb88094a-Release-ARM64
            Compiled for GNU/Linux and Python3.8 with GCC-8.5
 Compiled with threading and MPI support.
 Maximum number of threads: 1.

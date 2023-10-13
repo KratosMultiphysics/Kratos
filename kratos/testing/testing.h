@@ -26,6 +26,6 @@
 namespace Kratos::Testing 
 {
 
-DataCommunicator& GetDefaultDataCommunicator();
+KRATOS_API(KRATOS_CORE) DataCommunicator& GetDefaultDataCommunicator();
 
 }
