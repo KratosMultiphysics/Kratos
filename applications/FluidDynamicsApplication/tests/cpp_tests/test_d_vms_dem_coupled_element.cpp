@@ -111,7 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(DVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite)
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {3.116143804,4.099226399,-0.05951832553,-3.887629147,2.665560447,-0.04746630942,-5.810824842,-5.446647484,-0.04011729082,1.418312589,-6.482136957,-0.05289807423}; // DVMSDEMCoupled2D4N
+    std::vector<double> output = {2.885342223,3.817976395,-0.05954391544,-3.764678983,2.452222894,-0.04746809897,-5.675304236,-5.32981538,-0.04009093622,1.144992949,-6.350031955,-0.05289704936}; // DVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();

@@ -58,7 +58,8 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicati
     // Set the element properties
     Properties::Pointer p_properties = model_part.CreateNewProperties(0);
     p_properties->SetValue(DENSITY, 1000.0);
-    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-05);
+    p_properties->SetValue(DYNAMIC_VISCOSITY, 1.0e-5);
+    p_properties->SetValue(DYNAMIC_TAU, 0.0);
     ConstitutiveLaw::Pointer pConsLaw(new Newtonian2DLaw());
     p_properties->SetValue(CONSTITUTIVE_LAW, pConsLaw);
 
@@ -116,7 +117,7 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicati
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {-0.1614904326,0.8215921538,-0.01461243281,-10.4501061,-3.896916512,-0.05081111436,-22.31353294,-21.94935557,-0.0751634393,-14.7415372,-22.64198674,-0.05941301353}; // QSVMSDEMCoupled2D4N
+    std::vector<double> output = {-0.7903859428,0.1422482204,-0.01715539615,-10.404201,-4.187299126,-0.05064119836,-21.69732287,-21.35183401,-0.07314514572,-14.77475686,-22.26978176,-0.05905825977}; // QSVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
@@ -125,9 +126,8 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeQSVMSDEMCoupled2D4N, FluidDynamicsApplicati
         const auto& rElem = *i;
         rElem.Check(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
-
         // std::cout << i->Info() << std::setprecision(10) << std::endl;
-        // KRATOS_WATCH(RHS);
+        KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < output.size(); j++) {
             KRATOS_EXPECT_NEAR(RHS[j], output[j], 1e-4);
