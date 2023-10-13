@@ -210,7 +210,7 @@ void DVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCurrentProcess
     DVMS<TElementData>::Initialize(rCurrentProcessInfo);
 
     if(Dim == 2){
-        if (NumNodes == 9 || NumNodes == 6)
+        if (NumNodes == 9 || NumNodes == 6 || NumNodes == 4)
             mInterpolationOrder = 2;
     }
     else if(Dim == 3){

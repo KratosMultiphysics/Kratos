@@ -115,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeDVMSDEMCoupled2D4N, FluidDynamicsApplicatio
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {7.01623,8.98244,-0.0592665,-6.70311,6.39427,-0.0474478,-8.95559,-8.22618,-0.0403782,5.90279,-9.8902,-0.0529075}; // AlternativeDVMSDEMCoupled2D4N
+    std::vector<double> output = {3.116143804,4.099226399,-0.05951832553,-3.887629147,2.665560447,-0.04746630942,-5.810824842,-5.446647484,-0.04011729082,1.418312589,-6.482136957,-0.05289807423}; // AlternativeDVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
@@ -124,6 +124,9 @@ KRATOS_TEST_CASE_IN_SUITE(AlternativeDVMSDEMCoupled2D4N, FluidDynamicsApplicatio
         rElem.Check(r_process_info);
         i->InitializeNonLinearIteration(r_process_info);
         i->CalculateLocalVelocityContribution(LHS, RHS, r_process_info);
+
+        // std::cout << i->Info() << std::setprecision(10) << std::endl;
+        // KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < output.size(); j++) {
             KRATOS_EXPECT_NEAR(RHS[j], output[j], 1e-5);

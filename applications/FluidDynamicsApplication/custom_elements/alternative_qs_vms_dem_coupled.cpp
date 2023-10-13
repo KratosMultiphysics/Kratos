@@ -73,7 +73,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::Initialize(const ProcessInfo& rCu
     QSVMS<TElementData>::Initialize(rCurrentProcessInfo);
 
     if(Dim == 2){
-        if (NumNodes == 9 || NumNodes == 6)
+        if (NumNodes == 9 || NumNodes == 6 || NumNodes == 4)
             mInterpolationOrder = 2;
     }
     else if(Dim == 3){
