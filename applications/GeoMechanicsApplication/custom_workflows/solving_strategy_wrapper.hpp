@@ -17,6 +17,7 @@
 
 #include "solving_strategies/strategies/solving_strategy.h"
 #include "geo_mechanics_application_variables.h"
+#include "write_output.h"
 
 namespace Kratos
 {
@@ -25,10 +26,15 @@ template<class TSparseSpace, class TDenseSpace>
 class SolvingStrategyWrapper : public StrategyWrapper
 {
 public:
-    SolvingStrategyWrapper(std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy, bool ResetDisplacements = false) :
+    SolvingStrategyWrapper(std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy,
+                           bool ResetDisplacements = false,
+                           const std::filesystem::path& rWorkingDirectory = "",
+                           const Parameters& rProjectParameters = {}) :
         mpStrategy(std::move(strategy)),
         mrModelPart(mpStrategy->GetModelPart()),
-        mResetDisplacements{ResetDisplacements}
+        mResetDisplacements{ResetDisplacements},
+        mProjectParameters{rProjectParameters},
+        mWorkingDirectory{rWorkingDirectory}
     {
     }
 
@@ -82,7 +88,7 @@ public:
 
     size_t GetStepNumber() const override
     {
-        return mrModelPart.GetProcessInfo()[STEP];
+        return static_cast<std::size_t>(mrModelPart.GetProcessInfo()[STEP]);
     }
 
     void IncrementStepNumber() override
@@ -130,7 +136,7 @@ public:
 
     void OutputProcess() override
     {
-
+        GeoOutputWriter::WriteGiDOutput(mrModelPart, mProjectParameters, mWorkingDirectory.generic_string());
     }
 
     bool SolveSolutionStep() override
@@ -148,6 +154,8 @@ private:
     ModelPart& mrModelPart;
     bool mResetDisplacements;
     std::vector<array_1d<double, 3>> mOldTotalDisplacements;
+    std::filesystem::path mWorkingDirectory;
+    Parameters mProjectParameters;
 };
 
 }
