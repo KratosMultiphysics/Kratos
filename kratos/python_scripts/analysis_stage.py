@@ -293,10 +293,10 @@ class AnalysisStage(object):
             node.Z0 = 0.0
             node.Z  = 0.0
             # stretch flat geometry in x-direction to induce strains
-            if node.X > 0.1:
-                node.X += 0.01
-            if node.X < -0.1:
-                node.X -= 0.01
+            # if node.X > 0.1:
+            #     node.X += 0.1
+            # if node.X < -0.1:
+            #     node.X -= 0.1
         
         # save flat configuration nodal positions
         self.flattened_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
