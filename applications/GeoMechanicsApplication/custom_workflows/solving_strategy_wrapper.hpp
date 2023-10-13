@@ -16,6 +16,7 @@
 #include "strategy_wrapper.hpp"
 
 #include "solving_strategies/strategies/solving_strategy.h"
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
@@ -24,8 +25,10 @@ template<class TSparseSpace, class TDenseSpace>
 class SolvingStrategyWrapper : public StrategyWrapper
 {
 public:
-    explicit SolvingStrategyWrapper(std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy) :
-        mpStrategy(std::move(strategy))
+    SolvingStrategyWrapper(std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy, bool ResetDisplacements = false) :
+        mpStrategy(std::move(strategy)),
+        mrModelPart(mpStrategy->GetModelPart()),
+        mResetDisplacements{ResetDisplacements}
     {
     }
 
@@ -39,12 +42,12 @@ public:
 
     size_t GetNumberOfIterations() const override
     {
-        return mpStrategy->GetModelPart().GetProcessInfo()[NL_ITERATION_NUMBER];
+        return mrModelPart.GetProcessInfo()[NL_ITERATION_NUMBER];
     }
 
     double GetEndTime() const override
     {
-        return mpStrategy->GetModelPart().GetProcessInfo()[TIME];
+        return mrModelPart.GetProcessInfo()[TIME];
     }
 
     void Initialize() override
@@ -64,32 +67,32 @@ public:
 
     void SetEndTime(double EndTime) override
     {
-
+        mrModelPart.GetProcessInfo()[TIME] = EndTime;
     }
 
     double GetTimeIncrement() const override
     {
-        return 0;
+        return mrModelPart.GetProcessInfo()[DELTA_TIME];
     }
 
     void SetTimeIncrement(double TimeIncrement) override
     {
-
+        mrModelPart.GetProcessInfo()[DELTA_TIME] = TimeIncrement;
     }
 
     size_t GetStepNumber() const override
     {
-        return 0;
+        return mrModelPart.GetProcessInfo()[STEP];
     }
 
     void IncrementStepNumber() override
     {
-
+        mrModelPart.GetProcessInfo()[STEP] += 1;
     }
 
     void CloneTimeStep() override
     {
-
+        mrModelPart.CloneTimeStep();
     }
 
     void RestorePositionsAndDOFVectorToStartOfStep() override
@@ -99,11 +102,29 @@ public:
 
     void SaveTotalDisplacementFieldAtStartOfStage() override
     {
-
+        if (mResetDisplacements)
+        {
+            for (const auto& node : mrModelPart.Nodes())
+            {
+                mOldTotalDisplacements.emplace_back(node.GetSolutionStepValue(TOTAL_DISPLACEMENT));
+            }
+        }
     }
 
     void AccumulateTotalDisplacementField() override
     {
+        if (mResetDisplacements)
+        {
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() == mOldTotalDisplacements.size()) << "TEST";
+            std::size_t count = 0;
+            for (auto& node : mrModelPart.Nodes())
+            {
+                const auto total_displacement = mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
+                node.GetSolutionStepValue(TOTAL_DISPLACEMENT) = total_displacement;
+
+                count++;
+            }
+        }
 
     }
 
@@ -124,6 +145,9 @@ public:
 
 private:
     std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> mpStrategy;
+    ModelPart& mrModelPart;
+    bool mResetDisplacements;
+    std::vector<array_1d<double, 3>> mOldTotalDisplacements;
 };
 
 }

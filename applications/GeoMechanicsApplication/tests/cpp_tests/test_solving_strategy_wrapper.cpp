@@ -16,6 +16,7 @@
 #include "custom_workflows/solving_strategy_wrapper.hpp"
 #include "linear_solvers/linear_solver.h"
 #include "custom_utilities/solving_strategy_factory.hpp"
+#include "geo_mechanics_application_variables.h"
 
 namespace
 {
@@ -100,19 +101,34 @@ using SolvingStrategyFactoryType = SolvingStrategyFactory<SparseSpaceType, Dense
 using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
 
 
+SolvingStrategyWrapperType CreateWrapperWithDefaultProcessInfoEntries(Model& rModel)
+{
+    const int buffer_size = 2;
+    auto& dummy_model_part = rModel.CreateModelPart("dummy", buffer_size);
+    auto info = std::make_shared<ProcessInfo>();
+    (*info)[NL_ITERATION_NUMBER] = 5;
+    (*info)[TIME] = 17;
+    (*info)[DELTA_TIME] = 3.4;
+    (*info)[STEP] = 3;
+    dummy_model_part.SetProcessInfo(info);
+    const Parameters parameters{testParameters};
+    auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
+    return {std::move(created_strategy)};
+}
+
+SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(Model& rModel)
+{
+    const int buffer_size = 2;
+    auto& dummy_model_part = rModel.CreateModelPart("dummy", buffer_size);
+    const Parameters parameters{testParameters};
+    auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
+    return {std::move(created_strategy), true};
+}
 
 KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    const int buffer_size = 2;
-    auto& dummy_model_part = model.CreateModelPart("dummy", buffer_size);
-    ProcessInfo info;
-    info[NL_ITERATION_NUMBER] = 5;
-    dummy_model_part.SetProcessInfo(info);
-    const Parameters parameters{testParameters};
-    auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
-
-    SolvingStrategyWrapperType wrapper(std::move(created_strategy));
+    auto wrapper = CreateWrapperWithDefaultProcessInfoEntries(model);
 
     KRATOS_EXPECT_EQ(wrapper.GetNumberOfIterations(), 5);
 }
@@ -120,16 +136,7 @@ KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrec
 KRATOS_TEST_CASE_IN_SUITE(GetEndTimeFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    const int buffer_size = 2;
-    auto& dummy_model_part = model.CreateModelPart("dummy", buffer_size);
-    ProcessInfo info;
-    info[TIME] = 17;
-    dummy_model_part.SetProcessInfo(info);
-    const Parameters parameters{testParameters};
-
-    auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
-
-    SolvingStrategyWrapperType wrapper(std::move(created_strategy));
+    auto wrapper = CreateWrapperWithDefaultProcessInfoEntries(model);
 
     KRATOS_EXPECT_EQ(wrapper.GetEndTime(), 17);
 }
@@ -137,15 +144,78 @@ KRATOS_TEST_CASE_IN_SUITE(GetEndTimeFromStrategyWrapper_ReturnsCorrectNumber, Kr
 KRATOS_TEST_CASE_IN_SUITE(GetConvergenceStateFromStrategyWrapper_ReturnsCorrectState, KratosGeoMechanicsFastSuite)
 {
     Model model;
-    const int buffer_size = 2;
-    auto& dummy_model_part = model.CreateModelPart("dummy", buffer_size);
-    const Parameters parameters{testParameters};
-
-    auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
-
-    SolvingStrategyWrapperType wrapper(std::move(created_strategy));
+    auto wrapper = CreateWrapperWithDefaultProcessInfoEntries(model);
 
     KRATOS_EXPECT_EQ(wrapper.GetConvergenceState(), TimeStepEndState::ConvergenceState::converged);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SetEndTimeFromStrategyWrapper, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto wrapper = CreateWrapperWithEmptyProcessInfo(model);
+
+    wrapper.SetEndTime(0.4);
+    KRATOS_EXPECT_EQ(model.GetModelPart("dummy").GetProcessInfo()[TIME], 0.4);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GetTimeIncrementFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto wrapper = CreateWrapperWithDefaultProcessInfoEntries(model);
+
+    KRATOS_EXPECT_EQ(wrapper.GetTimeIncrement(), 3.4);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SetTimeIncrementFromStrategyWrapper, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto wrapper = CreateWrapperWithEmptyProcessInfo(model);
+    wrapper.SetTimeIncrement(0.8);
+
+    KRATOS_EXPECT_EQ(model.GetModelPart("dummy").GetProcessInfo()[DELTA_TIME], 0.8);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(GetStepNumberFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto wrapper = CreateWrapperWithDefaultProcessInfoEntries(model);
+
+    KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 3);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(IncrementStepNumberFromStrategyWrapper, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto wrapper = CreateWrapperWithDefaultProcessInfoEntries(model);
+
+    KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 3);
+    wrapper.IncrementStepNumber();
+    KRATOS_EXPECT_EQ(wrapper.GetStepNumber(), 4);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto strategy_wrapper = CreateWrapperWithEmptyProcessInfo(model);
+    auto& model_part = model.GetModelPart("dummy");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
+    model_part.AddNodalSolutionStepVariable(TOTAL_DISPLACEMENT);
+
+    auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    array_1d<double, 3> originalTotalDisplacement{1.0, 2.0, 3.0};
+    p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT) = originalTotalDisplacement;
+    model_part.AddNode(p_node);
+
+    strategy_wrapper.SaveTotalDisplacementFieldAtStartOfStage();
+
+    array_1d<double, 3> displacement_in_time_step{3.0, 2.0, 1.0};
+    p_node->GetSolutionStepValue(DISPLACEMENT) = displacement_in_time_step;
+    strategy_wrapper.AccumulateTotalDisplacementField();
+
+    const array_1d<double, 3> expectedTotalDisplacement = originalTotalDisplacement + displacement_in_time_step;
+
+    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT), expectedTotalDisplacement);
+
 }
 
 
