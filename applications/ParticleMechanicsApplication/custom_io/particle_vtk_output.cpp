@@ -33,7 +33,7 @@ Parameters ParticleVtkOutput::GetDefaultParameters()
         "output_control_type"                         : "step",
         "output_interval"                             : 1.0,
         "output_sub_model_parts"                      : false,
-        "output_path"                                 : "VTK_Output",
+        "output_path"                                 : "MPM_VTK_Output",
         "custom_name_prefix"                          : "",
         "custom_name_postfix"                         : "",
         "save_output_files_in_folder"                 : true,
