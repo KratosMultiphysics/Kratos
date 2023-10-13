@@ -41,7 +41,7 @@ class DummyStrategyWrapper : public StrategyWrapper
 public:
     explicit DummyStrategyWrapper(TimeStepEndState::ConvergenceState ConvergenceState) :
         mConvergenceState( ConvergenceState ) {}
-    [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()         override { return mConvergenceState;};
+    [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()   const override { return mConvergenceState;};
     [[nodiscard]] std::size_t                        GetNumberOfIterations() const override { return 4;};
     [[nodiscard]] double                             GetEndTime()            const override { return 10.;};
     void SetEndTime(double EndTime) override {
@@ -61,7 +61,7 @@ public:
     void RestorePositionsAndDOFVectorToStartOfStep() override {
         // intentionally empty
     };
-    void SaveTotalDisplacementFieldAtStartOfStage() override {
+    void SaveTotalDisplacementFieldAtStartOfTimeLoop() override {
         // intentionally empty
     };
     void AccumulateTotalDisplacementField() override {
@@ -123,7 +123,7 @@ KRATOS_TEST_CASE_IN_SUITE(ProcessMemberFunctionsAllCalledOnce, KratosGeoMechanic
     auto spy = std::make_shared<ProcessSpy>();
 
     std::vector<std::shared_ptr<Process>> processes{spy};
-    std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
+    std::vector<std::weak_ptr<Process>> process_observables{spy};
     executor.SetProcessObservables(process_observables);
     const auto time = 0.0;
 
@@ -138,8 +138,6 @@ KRATOS_TEST_CASE_IN_SUITE(SolverStrategyMemberFunctionsAllExceptFinalizeCalledOn
     TimeStepExecutor executor;
     auto converging_strategy = std::make_shared<DummyStrategyWrapper>(TimeStepEndState::ConvergenceState::converged);
     executor.SetSolverStrategy(converging_strategy);
-    std::vector<std::weak_ptr<Process>> process_observables;
-    executor.SetProcessObservables(process_observables);
     const auto time = 0.0;
 
     executor.Run(time);

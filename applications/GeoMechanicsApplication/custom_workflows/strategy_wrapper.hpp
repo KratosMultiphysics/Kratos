@@ -24,7 +24,7 @@ namespace Kratos
     public:
         virtual ~StrategyWrapper() = default;
 
-        [[nodiscard]] virtual TimeStepEndState::ConvergenceState GetConvergenceState()       = 0;
+        [[nodiscard]] virtual TimeStepEndState::ConvergenceState GetConvergenceState() const = 0;
         [[nodiscard]] virtual std::size_t      GetNumberOfIterations()                 const = 0;
         [[nodiscard]] virtual double           GetEndTime()                            const = 0;
         virtual void SetEndTime(double EndTime) = 0;
@@ -34,7 +34,7 @@ namespace Kratos
         virtual void IncrementStepNumber() = 0;
         virtual void CloneTimeStep() = 0;
         virtual void RestorePositionsAndDOFVectorToStartOfStep() = 0;
-        virtual void SaveTotalDisplacementFieldAtStartOfStage() = 0;
+        virtual void SaveTotalDisplacementFieldAtStartOfTimeLoop() = 0;
         virtual void AccumulateTotalDisplacementField() = 0;
         virtual void OutputProcess() = 0;
 

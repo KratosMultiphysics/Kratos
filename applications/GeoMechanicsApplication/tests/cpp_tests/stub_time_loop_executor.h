@@ -24,7 +24,7 @@ public:
 
     void SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) override;
 
-    void SetSolverStrategyTimeStepExecutor(std::shared_ptr<StrategyWrapper> pStrategyWrapper) override;
+    void SetSolverStrategyWrapper(std::shared_ptr<StrategyWrapper> pStrategyWrapper) override;
 
     std::vector<TimeStepEndState> Run(TimeStepEndState EndState) override;
 

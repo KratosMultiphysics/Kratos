@@ -127,10 +127,9 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
 
-    if (mpTimeLoopExecutor)
-    {
-        mpTimeLoopExecutor->SetProcessObservables(process_observables);
-    }
+        if (mpTimeLoopExecutor) {
+            mpTimeLoopExecutor->SetProcessObservables(process_observables);
+        }
 
         FlushLoggingOutput(rLogCallback, logger_output, kratos_log_buffer);
 

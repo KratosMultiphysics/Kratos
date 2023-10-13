@@ -36,7 +36,7 @@ void StubTimeLoopExecutor::SetTimeIncrementor(std::unique_ptr<TimeIncrementor> p
     // intentionally empty
 }
 
-void StubTimeLoopExecutor::SetSolverStrategyTimeStepExecutor(std::shared_ptr<StrategyWrapper> pStrategyWrapper) {
+void StubTimeLoopExecutor::SetSolverStrategyWrapper(std::shared_ptr<StrategyWrapper> pStrategyWrapper) {
     // intentionally empty
 }
 

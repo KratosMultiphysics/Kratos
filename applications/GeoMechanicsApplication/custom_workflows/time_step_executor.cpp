@@ -34,7 +34,7 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
     for (const auto& process_observable : mProcessObservables)
     {
         auto process = process_observable.lock();
-        process->ExecuteInitializeSolutionStep();
+        if (process) process->ExecuteInitializeSolutionStep();
     }
 
     mStrategyWrapper->Predict();
@@ -43,7 +43,7 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
     for (const auto& process_observable : mProcessObservables)
     {
         auto process = process_observable.lock();
-        process->ExecuteFinalizeSolutionStep();
+        if (process) process->ExecuteFinalizeSolutionStep();
     }
 
     TimeStepEndState result;

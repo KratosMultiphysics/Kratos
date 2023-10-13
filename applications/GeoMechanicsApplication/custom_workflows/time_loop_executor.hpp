@@ -40,7 +40,7 @@ public :
         mTimeIncrementor = std::move(pTimeIncrementor);
     }
 
-    void SetSolverStrategyTimeStepExecutor(std::shared_ptr<StrategyWrapper> pStrategyWrapper) override
+    void SetSolverStrategyWrapper(std::shared_ptr<StrategyWrapper> pStrategyWrapper) override
     {
         mStrategyWrapper = std::move(pStrategyWrapper);
         mTimeStepExecutor->SetSolverStrategy(mStrategyWrapper);
@@ -48,7 +48,7 @@ public :
 
     std::vector<TimeStepEndState> Run(TimeStepEndState EndState) override
     {
-        mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfStage();
+        mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfTimeLoop();
         std::vector<TimeStepEndState> result;
         while (mTimeIncrementor->WantNextStep(EndState)) {
             mStrategyWrapper->IncrementStepNumber();
@@ -57,8 +57,8 @@ public :
             EndState = RunCycleLoop(EndState);
             mStrategyWrapper->AccumulateTotalDisplacementField();
             mStrategyWrapper->FinalizeSolutionStep();
-            result.emplace_back(EndState);
             mStrategyWrapper->OutputProcess();
+            result.emplace_back(EndState);
         }
         return result;
     }
