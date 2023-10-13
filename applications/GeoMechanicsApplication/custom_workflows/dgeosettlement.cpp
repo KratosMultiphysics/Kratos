@@ -24,6 +24,22 @@
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_factory.hpp"
 #include "custom_utilities/process_info_parser.h"
+#include "custom_utilities/solving_strategy_factory.hpp"
+#include "spaces/ublas_space.h"
+
+namespace
+{
+
+using namespace Kratos;
+
+using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
+using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
+using LinearSolverType = LinearSolver<SparseSpaceType, DenseSpaceType>;
+using SolvingStrategyFactoryType = SolvingStrategyFactory<SparseSpaceType, DenseSpaceType, LinearSolverType>;
+
+}
+
+
 
 namespace Kratos
 {
@@ -127,7 +143,10 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
 
-        if (mpTimeLoopExecutor) {
+        auto solving_strategy = SolvingStrategyFactoryType::Create(project_parameters["solver_settings"], mModel.GetModelPart(mModelPartName));
+
+        if (mpTimeLoopExecutor)
+        {
             mpTimeLoopExecutor->SetProcessObservables(process_observables);
         }
 
