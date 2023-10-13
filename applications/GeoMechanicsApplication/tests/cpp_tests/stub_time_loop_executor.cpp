@@ -32,9 +32,13 @@ void StubTimeLoopExecutor::SetProcessObservables(const std::vector<std::weak_ptr
     }
 }
 
-void StubTimeLoopExecutor::SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) {}
+void StubTimeLoopExecutor::SetTimeIncrementor(std::unique_ptr<TimeIncrementor> pTimeIncrementor) {
+    // intentionally empty
+}
 
-void StubTimeLoopExecutor::SetSolverStrategyTimeStepExecutor(std::shared_ptr<StrategyWrapper> pStrategyWrapper) {}
+void StubTimeLoopExecutor::SetSolverStrategyTimeStepExecutor(std::shared_ptr<StrategyWrapper> pStrategyWrapper) {
+    // intentionally empty
+}
 
 std::vector<TimeStepEndState> StubTimeLoopExecutor::Run(TimeStepEndState EndState) {
     return {};

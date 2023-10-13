@@ -24,8 +24,6 @@ using namespace Kratos;
 namespace
 {
 
-Model TestModel;
-
 class DummySolverStrategy : public StrategyWrapper
 {
 public:
@@ -33,7 +31,7 @@ public:
     : mConvergenceState{AConvergenceState}
     {
         mModel.Reset();
-        mpModelPart = &TestModel.CreateModelPart("TestModelPart");
+        mpModelPart = &mModel.CreateModelPart("TestModelPart");
         mpModelPart->Reset();
     }
 
@@ -132,9 +130,15 @@ public:
         return mCountFinalizeSolutionStepCalled;
     }
 
-    void Initialize()             override {}
-    void InitializeSolutionStep() override {}
-    void Predict()                override {}
+    void Initialize()             override {
+        // intentionally empty
+    }
+    void InitializeSolutionStep() override {
+        // intentionally empty
+    }
+    void Predict()                override {
+        // intentionally empty
+    }
     bool SolveSolutionStep()      override { return false; }
     void FinalizeSolutionStep()   override {mCountFinalizeSolutionStepCalled += 1;}
 
@@ -171,7 +175,9 @@ public:
         return 0.5;
     }
     void PostTimeStepExecution(const TimeStepEndState& rResultantState) override
-    {}
+    {
+        // intentionally empty
+    }
 
 private:
     std::size_t mNumCyclesPerStep;

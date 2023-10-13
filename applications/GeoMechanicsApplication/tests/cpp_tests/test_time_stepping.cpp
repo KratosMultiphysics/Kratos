@@ -44,16 +44,32 @@ public:
     [[nodiscard]] TimeStepEndState::ConvergenceState GetConvergenceState()         override { return mConvergenceState;};
     [[nodiscard]] std::size_t                        GetNumberOfIterations() const override { return 4;};
     [[nodiscard]] double                             GetEndTime()            const override { return 10.;};
-    void SetEndTime(double EndTime) override {}
+    void SetEndTime(double EndTime) override {
+        // intentionally empty
+    }
     [[nodiscard]] double GetTimeIncrement() const override {return 0.0; }
-    void SetTimeIncrement(double TimeIncrement) override {}
+    void SetTimeIncrement(double TimeIncrement) override {
+        // intentionally empty
+    }
     [[nodiscard]] std::size_t GetStepNumber() const override {return 0;}
-    void IncrementStepNumber() override {}
-    void CloneTimeStep() override {};
-    void RestorePositionsAndDOFVectorToStartOfStep() override {};
-    void SaveTotalDisplacementFieldAtStartOfStage() override {};
-    void AccumulateTotalDisplacementField() override {};
-    void OutputProcess() override {};
+    void IncrementStepNumber() override {
+        // intentionally empty
+    }
+    void CloneTimeStep() override {
+        // intentionally empty
+    };
+    void RestorePositionsAndDOFVectorToStartOfStep() override {
+        // intentionally empty
+    };
+    void SaveTotalDisplacementFieldAtStartOfStage() override {
+        // intentionally empty
+    };
+    void AccumulateTotalDisplacementField() override {
+        // intentionally empty
+    };
+    void OutputProcess() override {
+        // intentionally empty
+    };
 
     void Initialize()             override {++mSolverStrategyInitializeCalls;}
     void InitializeSolutionStep() override {++mSolverStrategyInitializeSolutionStepCalls;}

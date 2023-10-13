@@ -30,9 +30,7 @@ class Process;
 
 class TimeLoopExecutor : public TimeLoopExecutorInterface{
 public :
-    TimeLoopExecutor() : mTimeStepExecutor{std::make_unique<TimeStepExecutor>()} {}
-
-    virtual void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override
+    void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables) override
     {
         mTimeStepExecutor->SetProcessObservables(rProcessObservables);
     }
@@ -94,7 +92,7 @@ private:
     }
 
     std::unique_ptr<TimeIncrementor>  mTimeIncrementor;
-    std::unique_ptr<TimeStepExecutor> mTimeStepExecutor;
+    std::unique_ptr<TimeStepExecutor> mTimeStepExecutor = std::make_unique<TimeStepExecutor>();
     std::shared_ptr<StrategyWrapper>  mStrategyWrapper;
 };
 
