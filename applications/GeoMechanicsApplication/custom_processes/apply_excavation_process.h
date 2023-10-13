@@ -9,7 +9,7 @@
 //
 //  Main authors:    Lorenzo Gracia,
 //                   Aron Noordam,
-//                   Vahid Galavi
+//                   Vahid Galavi,
 //                   Marjan Fathian
 //
 #pragma once
