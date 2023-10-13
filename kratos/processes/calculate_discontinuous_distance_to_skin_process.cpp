@@ -21,11 +21,12 @@
 // Project includes
 #include "geometries/plane_3d.h"
 #include "processes/calculate_discontinuous_distance_to_skin_process.h"
-#include "processes/find_global_nodal_elemental_neighbours_process.h"
+#include "processes/find_global_nodal_entity_neighbours_process.h"
 #include "utilities/geometry_utilities.h"
 #include "utilities/intersection_utilities.h"
 #include "utilities/parallel_utilities.h"
 #include "utilities/plane_approximation_utility.h"
+#include "utilities/global_pointer_utilities.h"
 
 namespace Kratos
 {
@@ -63,7 +64,7 @@ namespace Kratos
     CalculateDiscontinuousDistanceToSkinProcess<TDim>::CalculateDiscontinuousDistanceToSkinProcess(
         ModelPart& rVolumePart,
         ModelPart& rSkinPart,
-        Parameters& rParameters )
+        Parameters rParameters )
         : mFindIntersectedObjectsProcess(rVolumePart, rSkinPart)
         , mrSkinPart(rSkinPart)
         , mrVolumePart(rVolumePart)
@@ -347,7 +348,7 @@ namespace Kratos
             aux_pts.clear();
 
             // Check against all candidates to count the number of current edge intersections
-            const double edge_tolerance = 1e-6*norm_2(rEdgesContainer[i_edge][0] - rEdgesContainer[i_edge][1]);
+            const double edge_tolerance = 1e-6* rEdgesContainer[i_edge][0].Distance(rEdgesContainer[i_edge][1]);
             for (const auto &r_int_obj : rIntersectedObjects){
                 // Call the compute intersection method
                 Point int_pt;
@@ -414,7 +415,7 @@ namespace Kratos
         const double& rEdgeTolerance)
     {
         // Check if there is a close intersection (repeated intersection point)
-        for (auto aux_pt : rIntersectionPointsVector){
+        for (const auto& aux_pt : rIntersectionPointsVector){
                 const double aux_dist = norm_2(rIntersectionPoint - aux_pt);
                 if (aux_dist < rEdgeTolerance){
                     return true;
@@ -663,8 +664,7 @@ namespace Kratos
 
         // Compute the domain characteristic length
         typedef CombinedReduction<MaxReduction<double>,MaxReduction<double>,MaxReduction<double>,MinReduction<double>,MinReduction<double>,MinReduction<double>> CustomReduction;
-        double max_x, max_y, max_z, min_x, min_y, min_z;
-        std::tie(max_x,max_y,max_z,min_x,min_y,min_z) = block_for_each<CustomReduction>(r_model_part.Nodes(),[](const Node<3>& rNode){
+        auto [max_x,max_y,max_z,min_x,min_y,min_z] = block_for_each<CustomReduction>(r_model_part.Nodes(),[](const Node& rNode){
             return std::make_tuple(rNode[0],rNode[1],rNode[2],rNode[0],rNode[1],rNode[2]);}
         );
         auto max_vector = r_model_part.GetCommunicator().GetDataCommunicator().MaxAll(std::vector<double>{max_x, max_y, max_z});
@@ -706,7 +706,7 @@ namespace Kratos
     {
         if (TDim == 2 && rNumCutEdges == 1) {
             ComputeExtrapolatedGeometryIntersections(rElement, rEdgesContainer, rNumCutEdges, rCutEdgesRatioVector, rExtraGeomNormal, rCutExtraEdgesRatioVector);
-        } else if (TDim == 3) {
+        } else if constexpr (TDim == 3) {
             if (rNumCutEdges == 3) {
                 // if all three cut edges share one node, then the element is intersected and not incised
                 if (CheckIfCutEdgesShareNode(rElement, rEdgesContainer, rCutEdgesRatioVector)) {
@@ -811,7 +811,7 @@ namespace Kratos
 
     template<std::size_t TDim>
     double CalculateDiscontinuousDistanceToSkinProcess<TDim>::ConvertIntersectionPointToEdgeRatio(
-        const Geometry<Node<3> >& rEdge,
+        const Geometry<Node >& rEdge,
         const array_1d<double,3>& rIntersectionPoint)
     {
         const double edge_length = rEdge.Length();
@@ -823,7 +823,7 @@ namespace Kratos
 
     template<std::size_t TDim>
     array_1d<double,3> CalculateDiscontinuousDistanceToSkinProcess<TDim>::ConvertEdgeRatioToIntersectionPoint(
-        const Geometry<Node<3> >& rEdge,
+        const Geometry<Node >& rEdge,
         const double& rEdgeRatio)
     {
         return rEdge[0] + rEdgeRatio * (rEdge[1] - rEdge[0]);
@@ -871,7 +871,7 @@ namespace Kratos
         KRATOS_TRY;
 
         if (!mAreNeighboursComputed) {
-            FindGlobalNodalElementalNeighboursProcess find_nodal_elems_process(mrVolumePart);
+            FindGlobalNodalEntityNeighboursProcess<ModelPart::ElementsContainerType> find_nodal_elems_process(mrVolumePart);
             find_nodal_elems_process.Execute();
             mAreNeighboursComputed = true;
         }

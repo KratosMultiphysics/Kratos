@@ -86,8 +86,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
     typedef typename BaseType::TSchemeType TSchemeType;
 
-    //typedef typename BaseType::DofSetType DofSetType;
-
     typedef typename BaseType::DofsArrayType DofsArrayType;
 
     typedef typename BaseType::TSystemMatrixType TSystemMatrixType;
@@ -130,7 +128,6 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     explicit ResidualBasedNewtonRaphsonStrategy(ModelPart& rModelPart, Parameters ThisParameters)
         : BaseType(rModelPart),
-          mSolutionStepIsInitialized(false),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
     {
@@ -181,7 +178,6 @@ class ResidualBasedNewtonRaphsonStrategy
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
           mCalculateReactionsFlag(CalculateReactions),
-          mSolutionStepIsInitialized(false),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
@@ -238,7 +234,6 @@ class ResidualBasedNewtonRaphsonStrategy
           mpConvergenceCriteria(pNewConvergenceCriteria),
           mReformDofSetAtEachStep(ReformDofSetAtEachStep),
           mCalculateReactionsFlag(CalculateReactions),
-          mSolutionStepIsInitialized(false),
           mMaxIterationNumber(MaxIterations),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
@@ -324,7 +319,6 @@ class ResidualBasedNewtonRaphsonStrategy
         : BaseType(rModelPart),
           mpScheme(pScheme),
           mpConvergenceCriteria(pNewConvergenceCriteria),
-          mSolutionStepIsInitialized(false),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
     {
@@ -373,7 +367,6 @@ class ResidualBasedNewtonRaphsonStrategy
           mpScheme(pScheme),
           mpBuilderAndSolver(pNewBuilderAndSolver),
           mpConvergenceCriteria(pNewConvergenceCriteria),
-          mSolutionStepIsInitialized(false),
           mInitializeWasPerformed(false),
           mKeepSystemConstantDuringIterations(false)
     {
@@ -598,9 +591,9 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param Level The level to set
      * @details The different levels of echo are:
      * - 0: Mute... no echo at all
-     * - 1: Printing time and basic informations
+     * - 1: Printing time and basic information
      * - 2: Printing linear solver data
-     * - 3: Print of debug informations: Echo of stiffness matrix, Dx, b...
+     * - 3: Print of debug information: Echo of stiffness matrix, Dx, b...
      */
 
     void SetEchoLevel(int Level) override
@@ -637,10 +630,6 @@ class ResidualBasedNewtonRaphsonStrategy
         //if the operations needed were already performed this does nothing
         if (mInitializeWasPerformed == false)
             Initialize();
-
-        //initialize solution step
-        if (mSolutionStepIsInitialized == false)
-            InitializeSolutionStep();
 
         TSystemMatrixType& rA  = *mpA;
         TSystemVectorType& rDx = *mpDx;
@@ -741,7 +730,6 @@ class ResidualBasedNewtonRaphsonStrategy
         }
 
         mInitializeWasPerformed = false;
-        mSolutionStepIsInitialized = false;
 
         KRATOS_CATCH("");
     }
@@ -794,64 +782,60 @@ class ResidualBasedNewtonRaphsonStrategy
     {
         KRATOS_TRY;
 
-        if (!mSolutionStepIsInitialized) {
-            // Pointers needed in the solution
-            typename TSchemeType::Pointer p_scheme = GetScheme();
-            typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
-            ModelPart& r_model_part = BaseType::GetModelPart();
+        // Pointers needed in the solution
+        typename TSchemeType::Pointer p_scheme = GetScheme();
+        typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
+        ModelPart& r_model_part = BaseType::GetModelPart();
 
-            //set up the system, operation performed just once unless it is required
-            //to reform the dof set at each iteration
-            BuiltinTimer system_construction_time;
-            if (p_builder_and_solver->GetDofSetIsInitializedFlag() == false ||
-                mReformDofSetAtEachStep == true)
-            {
-                //setting up the list of the DOFs to be solved
-                BuiltinTimer setup_dofs_time;
-                p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
-                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: "
-                    << setup_dofs_time.ElapsedSeconds() << std::endl;
+        // Set up the system, operation performed just once unless it is required
+        // to reform the dof set at each iteration
+        BuiltinTimer system_construction_time;
+        if (!p_builder_and_solver->GetDofSetIsInitializedFlag() || mReformDofSetAtEachStep)
+        {
+            // Setting up the list of the DOFs to be solved
+            BuiltinTimer setup_dofs_time;
+            p_builder_and_solver->SetUpDofSet(p_scheme, r_model_part);
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup Dofs Time: "
+                << setup_dofs_time << std::endl;
 
-                //shaping correctly the system
-                BuiltinTimer setup_system_time;
-                p_builder_and_solver->SetUpSystem(r_model_part);
-                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: "
-                    << setup_system_time.ElapsedSeconds() << std::endl;
+            // Shaping correctly the system
+            BuiltinTimer setup_system_time;
+            p_builder_and_solver->SetUpSystem(r_model_part);
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "Setup System Time: "
+                << setup_system_time << std::endl;
 
-                //setting up the Vectors involved to the correct size
-                BuiltinTimer system_matrix_resize_time;
-                p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
-                                                                 r_model_part);
-                KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: "
-                    << system_matrix_resize_time.ElapsedSeconds() << std::endl;
-            }
+            // Setting up the Vectors involved to the correct size
+            BuiltinTimer system_matrix_resize_time;
+            p_builder_and_solver->ResizeAndInitializeVectors(p_scheme, mpA, mpDx, mpb,
+                                                                r_model_part);
+            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Matrix Resize Time: "
+                << system_matrix_resize_time << std::endl;
+        }
 
-            KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: "
-                << system_construction_time.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", BaseType::GetEchoLevel() > 0) << "System Construction Time: "
+            << system_construction_time << std::endl;
 
-            TSystemMatrixType& rA  = *mpA;
-            TSystemVectorType& rDx = *mpDx;
-            TSystemVectorType& rb  = *mpb;
+        TSystemMatrixType& rA  = *mpA;
+        TSystemVectorType& rDx = *mpDx;
+        TSystemVectorType& rb  = *mpb;
 
-            // Initial operations ... things that are constant over the Solution Step
-            p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
+        // Initial operations ... things that are constant over the Solution Step
+        p_builder_and_solver->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
-            // Initial operations ... things that are constant over the Solution Step
-            p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
+        // Initial operations ... things that are constant over the Solution Step
+        p_scheme->InitializeSolutionStep(r_model_part, rA, rDx, rb);
 
-            // Initialisation of the convergence criteria
-            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
-            {
-                TSparseSpace::SetToZero(rb);
-                p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
-            }
+        // Initialisation of the convergence criteria
+        if (mpConvergenceCriteria->GetActualizeRHSflag())
+        {
+            TSparseSpace::SetToZero(rb);
+            p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
+        }
 
-            mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
+        mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
-            if (mpConvergenceCriteria->GetActualizeRHSflag() == true)
-                TSparseSpace::SetToZero(rb);
-
-            mSolutionStepIsInitialized = true;
+        if (mpConvergenceCriteria->GetActualizeRHSflag()) {
+            TSparseSpace::SetToZero(rb);
         }
 
         KRATOS_CATCH("");
@@ -885,9 +869,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
         //Cleaning memory after the solution
         p_scheme->Clean();
-
-        //reset flags for next step
-        mSolutionStepIsInitialized = false;
 
         if (mReformDofSetAtEachStep == true) //deallocate the systemvectors
         {
@@ -1126,7 +1107,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
     ///@}
     ///@name Access
-
     ///@{
 
     /**
@@ -1161,7 +1141,6 @@ class ResidualBasedNewtonRaphsonStrategy
 
         return mDx;
     }
-
 
     /**
      * @brief Set method for the flag mKeepSystemConstantDuringIterations
@@ -1242,7 +1221,6 @@ class ResidualBasedNewtonRaphsonStrategy
     ///@{
 
     ///@}
-
   protected:
     ///@name Static Member Variables
     ///@{
@@ -1280,8 +1258,6 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     bool mUseOldStiffnessInFirstIteration = false;
 
-    bool mSolutionStepIsInitialized; /// Flag to set as initialized the solution step
-
     unsigned int mMaxIterationNumber; /// The maximum number of iterations, 30 by default
 
     bool mInitializeWasPerformed; /// Flag to set as initialized the strategy
@@ -1299,7 +1275,6 @@ class ResidualBasedNewtonRaphsonStrategy
      * @param b The RHS vector of the system of equations
      * @param MoveMesh The flag that allows to move the mesh
      */
-
     virtual void UpdateDatabase(
         TSystemMatrixType& rA,
         TSystemVectorType& rDx,
@@ -1362,7 +1337,6 @@ class ResidualBasedNewtonRaphsonStrategy
     /**
      * @brief This method prints information after reach the max number of iterations
      */
-
     virtual void MaxIterationsExceeded()
     {
         KRATOS_INFO_IF("ResidualBasedNewtonRaphsonStrategy", this->GetEchoLevel() > 0)

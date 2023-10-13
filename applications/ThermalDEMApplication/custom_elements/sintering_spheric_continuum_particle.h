@@ -1,14 +1,10 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Szymon Nosewicz (IPPT PAN, Warsaw, Poland)
-//                   Miguel Angel Celigueta (CIMNE, maceli@cimne.upc.edu)
+//  Main authors:  Szymon Nosewicz (IPPT PAN, Warsaw, Poland)
+//                 Miguel Angel Celigueta (CIMNE, maceli@cimne.upc.edu)
 //
 
 /*
@@ -53,10 +49,10 @@ namespace Kratos
       typedef ParticleWeakVectorType::ptr_iterator    ParticleWeakIteratorType_ptr;
       typedef GlobalPointersVector<Element>::iterator ParticleWeakIteratorType;
 
-      typedef Node<3>                             NodeType;
+      typedef Node                             NodeType;
       typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
       typedef std::size_t                         IndexType;
-      typedef Geometry<Node<3>>                   GeometryType;
+      typedef Geometry<Node>                   GeometryType;
       typedef Properties                          PropertiesType;
 
       // Constructor

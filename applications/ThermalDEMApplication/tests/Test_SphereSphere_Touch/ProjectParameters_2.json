@@ -32,7 +32,7 @@
 		"compute_indirect_conduction"    : true,
 		"compute_convection"             : true,
 		"compute_radiation"              : true,
-		"compute_friction_heat"          : true,
+		"compute_heat_generation"        : true,
 		"compute_adjusted_contact"       : true,
 		"direct_conduction_model"        : "thermal_pipe",
 		"indirect_conduction_model"      : "vargas_mccarthy",
@@ -40,7 +40,7 @@
 		"radiation_model"                : "continuum_krause",
 		"adjusted_contact_model"         : "lu",
 		"max_radiation_distance"         : 2.0,
-		"friction_heat_conversion_ratio" : 0.5,
+		"heat_generation_ratio"          : 0.5,
 		"global_fluid_properties"        : {
 			"fluid_density"              : 1.0,
 			"fluid_viscosity"            : 0.1,
@@ -95,5 +95,6 @@
 	"PostGraphParticleTempDev"       : false,
 	"PostGraphModelTempAvg"          : false,
 	"PostGraphHeatFluxContributions" : false,
+	"PostGraphHeatGenContributions"  : false,
     "problem_name"                   : "SphereSphere_Touch_2"
 }

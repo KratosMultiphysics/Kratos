@@ -60,27 +60,32 @@ namespace Kratos
 
     /// DivideGeometry implementation
     /// Default constructor
-    DivideGeometry::DivideGeometry(const GeometryType& rInputGeometry, const Vector& rNodalDistances) :
+    template<class TPointType>
+    DivideGeometry<TPointType>::DivideGeometry(const GeometryType& rInputGeometry, const Vector& rNodalDistances) :
         mrInputGeometry(rInputGeometry),
         mrNodalDistances(rNodalDistances) {
         this->IsSplit(); // Fast operation to state if the element is split or not.
     };
 
     /// Destructor
-    DivideGeometry::~DivideGeometry() {};
+    template<class TPointType>
+    DivideGeometry<TPointType>::~DivideGeometry() {};
 
     /// Turn back information as a string.
-    std::string DivideGeometry::Info() const {
+    template<class TPointType>
+    std::string DivideGeometry<TPointType>::Info() const {
         return "Base class for geometries splitting operations.";
     };
 
     /// Print information about this object.
-    void DivideGeometry::PrintInfo(std::ostream& rOStream) const {
+    template<class TPointType>
+    void DivideGeometry<TPointType>::PrintInfo(std::ostream& rOStream) const {
         rOStream << "Base class for geometries splitting operations.";
     };
 
     /// Print object's data.
-    void DivideGeometry::PrintData(std::ostream& rOStream) const {
+    template<class TPointType>
+    void DivideGeometry<TPointType>::PrintData(std::ostream& rOStream) const {
         rOStream << "Base class for geometries splitting operations constructed with:\n";
         rOStream << "   Geometry type: " << mrInputGeometry.Info() << "\n";
         std::stringstream distances_buffer;
@@ -92,21 +97,24 @@ namespace Kratos
         rOStream << "   Distance values: " << distances_buffer.str();
     };
 
-    DivideGeometry::GeometryType DivideGeometry::GetInputGeometry() const {
+    template<class TPointType>
+    Geometry < TPointType > DivideGeometry<TPointType>::GetInputGeometry() const {
         return mrInputGeometry;
     };
 
-    Vector DivideGeometry::GetNodalDistances() const {
+    template<class TPointType>
+    Vector DivideGeometry<TPointType>::GetNodalDistances() const {
         return mrNodalDistances;
     };
 
-    void DivideGeometry::IsSplit() {
+    template<class TPointType>
+    void DivideGeometry<TPointType>::IsSplit() {
         unsigned int n_pos = 0 , n_neg = 0;
 
         for (unsigned int i = 0; i < mrNodalDistances.size(); ++i) {
             if (mrNodalDistances(i) < 0.0) {
                 n_neg++;
-            } else {
+            } else if (mrNodalDistances(i) > 0.0) {
                 n_pos++;
             }
         }
@@ -118,33 +126,42 @@ namespace Kratos
         }
     };
 
-    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetPositiveSubdivisions() const
+    template<class TPointType>
+    std::vector<typename DivideGeometry<TPointType>::IndexedPointGeometryPointerType> DivideGeometry<TPointType>::GetPositiveSubdivisions() const
     {
         return mPositiveSubdivisions;
     }
 
-    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetNegativeSubdivisions() const
+    template<class TPointType>
+    std::vector<typename DivideGeometry<TPointType>::IndexedPointGeometryPointerType> DivideGeometry<TPointType>::GetNegativeSubdivisions() const
     {
         return mNegativeSubdivisions;
     }
 
-    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetPositiveInterfaces() const
+    template<class TPointType>
+    std::vector<typename DivideGeometry<TPointType>::IndexedPointGeometryPointerType> DivideGeometry<TPointType>::GetPositiveInterfaces() const
     {
         return mPositiveInterfaces;
     }
 
-    std::vector<DivideGeometry::IndexedPointGeometryPointerType> DivideGeometry::GetNegativeInterfaces() const
+    template<class TPointType>
+    std::vector<typename DivideGeometry<TPointType>::IndexedPointGeometryPointerType> DivideGeometry<TPointType>::GetNegativeInterfaces() const
     {
         return mNegativeInterfaces;
     }
 
-    std::vector<unsigned int> DivideGeometry::GetPositiveInterfacesParentIds() const
+    template<class TPointType>
+    std::vector<unsigned int> DivideGeometry<TPointType>::GetPositiveInterfacesParentIds() const
     {
         return mPositiveInterfacesParentIds;
     }
 
-    std::vector<unsigned int> DivideGeometry::GetNegativeInterfacesParentIds() const
+    template<class TPointType>
+    std::vector<unsigned int> DivideGeometry<TPointType>::GetNegativeInterfacesParentIds() const
     {
         return mNegativeInterfacesParentIds;
     }
+
+    template class DivideGeometry<Node>;
+    template class DivideGeometry<IndexedPoint>;
 };

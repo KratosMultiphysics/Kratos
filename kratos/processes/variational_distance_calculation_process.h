@@ -228,20 +228,20 @@ public:
         // Unfix the distances
         const int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
 
-        block_for_each(r_distance_model_part.Nodes(), [](Node<3>& rNode){
+        block_for_each(r_distance_model_part.Nodes(), [](Node& rNode){
             double& d = rNode.FastGetSolutionStepValue(DISTANCE);
-            double& fix_flag = rNode.FastGetSolutionStepValue(FLAG_VARIABLE);
 
             // Free the DISTANCE values
-            fix_flag = 1.0;
             rNode.Free(DISTANCE);
+            // Set the fix flag to 0
+            rNode.Set(BLOCKED, false);
 
             // Save the distances
             rNode.SetValue(DISTANCE, d);
 
             if(d == 0){
                 d = 1.0e-15;
-                fix_flag = -1.0;
+                rNode.Set(BLOCKED, true);
                 rNode.Fix(DISTANCE);
             } else {
                 if(d > 0.0){
@@ -269,7 +269,7 @@ public:
                     GeometryUtils::CalculateExactDistancesToPlane(geom, distances);
                 }
                 else {
-                    if(TDim==3){
+                    if constexpr (TDim==3){
                         GeometryUtils::CalculateTetrahedraDistances(geom, distances);
                     }
                     else {
@@ -286,12 +286,11 @@ public:
 
                 for(unsigned int i = 0; i < TDim+1; ++i){
                     double &d = geom[i].FastGetSolutionStepValue(DISTANCE);
-                    double &fix_flag = geom[i].FastGetSolutionStepValue(FLAG_VARIABLE);
                     geom[i].SetLock();
                     if(std::abs(d) > std::abs(distances[i])){
                         d = distances[i];
                     }
-                    fix_flag = -1.0;
+                    geom[i].Set(BLOCKED, true);
                     geom[i].Fix(DISTANCE);
                     geom[i].UnSetLock();
                 }
@@ -325,7 +324,7 @@ public:
 
         // Assign the max dist to all of the non-fixed positive nodes
         // and the minimum one to the non-fixed negatives
-        block_for_each(r_distance_model_part.Nodes(), [&min_dist, &max_dist](Node<3>& rNode){
+        block_for_each(r_distance_model_part.Nodes(), [&min_dist, &max_dist](Node& rNode){
             if(!rNode.IsFixed(DISTANCE)){
                 double& d = rNode.FastGetSolutionStepValue(DISTANCE);
                 if(d>0){
@@ -345,6 +344,8 @@ public:
 
         // Unfix the distances
         VariableUtils().ApplyFixity(DISTANCE, false, r_distance_model_part.Nodes());
+        VariableUtils().SetFlag(BOUNDARY, false, r_distance_model_part.Nodes());
+        VariableUtils().SetFlag(BLOCKED, false, r_distance_model_part.Nodes());
 
         KRATOS_CATCH("")
     }
@@ -443,7 +444,6 @@ protected:
 
         // Check that required nodal variables are present
         VariableUtils().CheckVariableExists<Variable<double > >(DISTANCE, mrBaseModelPart.Nodes());
-        VariableUtils().CheckVariableExists<Variable<double > >(FLAG_VARIABLE, mrBaseModelPart.Nodes());
     }
 
     void InitializeSolutionStrategy(BuilderSolverPointerType pBuilderAndSolver)
@@ -495,7 +495,7 @@ protected:
         // Note that above we have assigned the same geometry. Thus the flag is
         // set in the distance model part despite we are iterating the base one
         for (auto it_cond = rBaseModelPart.ConditionsBegin(); it_cond != rBaseModelPart.ConditionsEnd(); ++it_cond){
-            Geometry< Node<3> >& geom = it_cond->GetGeometry();
+            Geometry< Node >& geom = it_cond->GetGeometry();
             for(unsigned int i=0; i<geom.size(); i++){
                 geom[i].Set(BOUNDARY,true);
             }
@@ -596,15 +596,14 @@ private:
             int nnodes = static_cast<int>(r_distance_model_part.NumberOfNodes());
 
             // Synchronize the fixity flag variable to minium
-            // (-1.0 means fixed and 1.0 means free)
-            r_communicator.SynchronizeCurrentDataToMin(FLAG_VARIABLE);
+            // (true means fixed and false means free)
+            r_communicator.SynchronizeOrNodalFlags(BLOCKED);
 
             // Set the fixity according to the synchronized flag
             #pragma omp parallel for
             for(int i_node = 0; i_node < nnodes; ++i_node){
                 auto it_node = r_distance_model_part.NodesBegin() + i_node;
-                const double &r_fix_flag = it_node->FastGetSolutionStepValue(FLAG_VARIABLE);
-                if (r_fix_flag == -1.0){
+                if (it_node->Is(BLOCKED)){
                     it_node->Fix(DISTANCE);
                 }
             }

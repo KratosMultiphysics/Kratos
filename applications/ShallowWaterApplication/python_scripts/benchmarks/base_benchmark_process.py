@@ -44,7 +44,7 @@ class BaseBenchmarkProcess(KM.Process):
 
     def ExecuteInitialize(self):
         """Set the topography and the initial conditions."""
-
+        KM.Timer.Start("Benchmark/Initial state")
         time = self.model_part.ProcessInfo[KM.TIME]
         for node in self.model_part.Nodes:
             if self._Topography(node):
@@ -53,11 +53,12 @@ class BaseBenchmarkProcess(KM.Process):
             node.SetSolutionStepValue(KM.VELOCITY, self._Velocity(node, time))
             node.SetSolutionStepValue(KM.MOMENTUM, self._Momentum(node, time))
             node.SetSolutionStepValue(SW.FREE_SURFACE_ELEVATION, self._FreeSurfaceElevation(node, time))
+        KM.Timer.Stop("Benchmark/Initial state")
 
 
     def ExecuteBeforeOutputStep(self):
         """Compute the exact values of the benchmark and the error of the simulation."""
-
+        KM.Timer.Start("Benchmark/Exact values")
         time = self.model_part.ProcessInfo[KM.TIME]
         for (variable, exact_variable, error_variable) in zip(self.variables, self.exact_variables, self.error_variables):
 
@@ -76,6 +77,7 @@ class BaseBenchmarkProcess(KM.Process):
 
                 node.SetValue(exact_variable, exact_value)
                 node.SetValue(error_variable, fem_value - exact_value)
+        KM.Timer.Stop("Benchmark/Exact values")
 
 
     def Check(self):

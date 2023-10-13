@@ -73,7 +73,7 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef Node < 3 > NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 
@@ -104,6 +104,7 @@ public:
 
     struct ConditionDataStruct
     {
+        bool OutletInflowPreventionSwitch; // Outlet inflow (i.e. backflow) prevention switch
         double charVel;                // Problem characteristic velocity (used in the outlet inflow prevention)
         double delta;                  // Non-dimensional positive sufficiently small constant (used in the outlet inflow prevention)
 
@@ -352,7 +353,10 @@ public:
         // Store the outlet inflow prevention constants in the data structure
         data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
         const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+        data.OutletInflowPreventionSwitch = rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_SWITCH) ? rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_SWITCH] : false;
+        if (data.OutletInflowPreventionSwitch) {
+            data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+        }
 
         // Loop on gauss points
         if (data.n_pos != 0 && data.n_neg != 0){
@@ -523,7 +527,10 @@ public:
         // Store the outlet inflow prevention constants in the data structure
         data.delta = 1e-2; // TODO: Decide if this constant should be fixed or not
         const ProcessInfo& rProcessInfo = rCurrentProcessInfo; // const to avoid race conditions on data_value_container access/initialization
-        data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+        data.OutletInflowPreventionSwitch = rProcessInfo.Has(OUTLET_INFLOW_CONTRIBUTION_SWITCH) ? rProcessInfo[OUTLET_INFLOW_CONTRIBUTION_SWITCH] : false;
+        if (data.OutletInflowPreventionSwitch) {
+            data.charVel = rProcessInfo[CHARACTERISTIC_VELOCITY];
+        }
 
         // Loop on gauss points
         if (data.n_pos != 0 && data.n_neg != 0){

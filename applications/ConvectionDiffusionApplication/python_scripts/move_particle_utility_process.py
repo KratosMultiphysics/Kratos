@@ -42,11 +42,9 @@ class MoveParticleUtilityProcess(KM.Process):
 
     def ExecuteBeforeSolutionLoop(self):
         dimension = self.model_part.ProcessInfo[KM.DOMAIN_SIZE]
-        num_of_avg_elems = 10
-        num_of_avg_nodes = 10
         neighbor_search = KM.FindNodalNeighboursProcess(self.model_part)
         neighbor_search.Execute()
-        neighbor_elements_search = KM.FindElementalNeighboursProcess(self.model_part, dimension, num_of_avg_elems)
+        neighbor_elements_search = KM.GenericFindElementalNeighboursProcess(self.model_part)
         neighbor_elements_search.Execute()
 
         settings = self.model_part.ProcessInfo[KM.CONVECTION_DIFFUSION_SETTINGS]

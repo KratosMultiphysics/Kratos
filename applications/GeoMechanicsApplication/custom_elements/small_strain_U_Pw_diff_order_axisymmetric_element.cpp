@@ -43,15 +43,14 @@ void SmallStrainUPwDiffOrderAxisymmetricElement::
                      const Vector& Np)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderAxisymmetricElement::CalculateBMatrix()") << std::endl;
 
     const double radius = GeoElementUtilities::CalculateRadius(Np, this->GetGeometry());
 
     const SizeType Dim = this->GetGeometry().WorkingSpaceDimension();
     const SizeType NumNodes = this->GetGeometry().size();
 
-    for ( unsigned int i = 0; i < NumNodes; ++i ) {
-        const unsigned int index = Dim * i;
+    for ( IndexType i = 0; i < NumNodes; ++i ) {
+        const IndexType index = Dim * i;
 
         rB( INDEX_2D_PLANE_STRAIN_XX, index + INDEX_X ) = GradNpT( i, INDEX_X );
         rB( INDEX_2D_PLANE_STRAIN_YY, index + INDEX_Y ) = GradNpT( i, INDEX_Y );
@@ -60,15 +59,14 @@ void SmallStrainUPwDiffOrderAxisymmetricElement::
         rB( INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y ) = GradNpT( i, INDEX_X );
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderAxisymmetricElement::CalculateBMatrix()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------
 double SmallStrainUPwDiffOrderAxisymmetricElement::
      CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                      const IndexType& PointNumber,
-                                      const double& detJ)
+                                      unsigned int PointNumber,
+                                      double detJ)
 
 {
     Vector N;

@@ -4,14 +4,13 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//			 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_GEOMETRICAL_CONDITION_H_INCLUDED )
-#define  KRATOS_GEOMETRICAL_CONDITION_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -230,7 +229,7 @@ public:
      * @return specifications The required specifications/requirements
      */
     const Parameters GetSpecifications() const override;
-        
+
     /// Turn back information as a string.
     std::string Info() const override
     {
@@ -277,4 +276,3 @@ private:
 ///@}
 
 } // namespace Kratos.
-#endif // KRATOS_GEOMETRICAL_CONDITION_H_INCLUDED  defined

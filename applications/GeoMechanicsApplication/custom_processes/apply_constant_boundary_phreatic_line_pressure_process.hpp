@@ -10,8 +10,7 @@
 //  Main authors:    Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_APPLY_CONSTANT_BOUNDARY_PHREATIC_LINE_PRESSURE_PROCESS )
-#define  KRATOS_GEO_APPLY_CONSTANT_BOUNDARY_PHREATIC_LINE_PRESSURE_PROCESS
+#pragma once
 
 #include <algorithm>
 #include "includes/kratos_flags.h"
@@ -29,8 +28,6 @@ class ApplyConstantBoundaryPhreaticLinePressureProcess : public Process
 public:
 
     KRATOS_CLASS_POINTER_DEFINITION(ApplyConstantBoundaryPhreaticLinePressureProcess);
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Constructor
     ApplyConstantBoundaryPhreaticLinePressureProcess(ModelPart& model_part,
@@ -53,14 +50,16 @@ public:
                 "table" : 1
             }  )" );
 
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
+        // Some values need to be mandatory prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
         rParameters["first_reference_coordinate"];
         rParameters["second_reference_coordinate"];
         rParameters["variable_name"];
         rParameters["model_part_name"];
 
-        // Now validate agains defaults -- this also ensures no type mismatch
+        mIsFixedProvided = rParameters.Has("is_fixed");
+
+        // Now validate against defaults -- this also ensures no type mismatch
         rParameters.ValidateAndAssignDefaults(default_parameters);
 
         mVariableName = rParameters["variable_name"].GetString();
@@ -86,25 +85,17 @@ public:
             << rParameters
             << std::endl;
 
-        mSlope = (mSecondReferenceCoordinate[mGravityDirection] - mFirstReferenceCoordinate[mGravityDirection])
+        mSlope = (mSecondReferenceCoordinate[mGravityDirection]    - mFirstReferenceCoordinate[mGravityDirection])
                 /(mSecondReferenceCoordinate[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]);
 
         mSpecificWeight = rParameters["specific_weight"].GetDouble();
 
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
 
-    ///------------------------------------------------------------------------------------
-
-    /// Destructor
-    ~ApplyConstantBoundaryPhreaticLinePressureProcess() override {}
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    /// Execute method is used to execute the ApplyConstantBoundaryPhreaticLinePressureProcess algorithms.
-    void Execute() override
-    {
-    }
+    ApplyConstantBoundaryPhreaticLinePressureProcess(const ApplyConstantBoundaryPhreaticLinePressureProcess&) = delete;
+    ApplyConstantBoundaryPhreaticLinePressureProcess& operator=(const ApplyConstantBoundaryPhreaticLinePressureProcess&) = delete;
+    ~ApplyConstantBoundaryPhreaticLinePressureProcess() override = default;
 
     /// this function is designed for being called at the beginning of the computations
     /// right after reading the model and the groups
@@ -112,35 +103,24 @@ public:
     {
         KRATOS_TRY
 
-        if (mrModelPart.NumberOfNodes() > 0) {
-            const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
 
-            block_for_each(mrModelPart.Nodes(), [&var, this](Node<3>& rNode){
-                if (mIsFixed) rNode.Fix(var);
-                else          rNode.Free(var);
+        block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode){
+            if (mIsFixed) rNode.Fix(var);
+            else if (mIsFixedProvided) rNode.Free(var);
 
-                double height = 0.0;
-                if (rNode.Coordinates()[mHorizontalDirection] >= mMinHorizontalCoordinate && rNode.Coordinates()[mHorizontalDirection] <= mMaxHorizontalCoordinate) {
-                    height = mSlope * (rNode.Coordinates()[mHorizontalDirection] - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
-                } else if (rNode.Coordinates()[mHorizontalDirection] < mMinHorizontalCoordinate) {
-                    height = mSlope * (mMinHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
-                } else if (rNode.Coordinates()[mHorizontalDirection] > mMaxHorizontalCoordinate) {
-                    height = mSlope * (mMaxHorizontalCoordinate - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
-                }
-                const double distance = height - rNode.Coordinates()[mGravityDirection];
-                const double pressure = mSpecificWeight * distance ;
+            double horCoord = rNode.Coordinates()[mHorizontalDirection];
+            horCoord = std::max(horCoord, mMinHorizontalCoordinate);
+            horCoord = std::min(horCoord, mMaxHorizontalCoordinate);
+            const double height   = mSlope * (horCoord - mFirstReferenceCoordinate[mHorizontalDirection]) + mFirstReferenceCoordinate[mGravityDirection];
+            const double distance = height - rNode.Coordinates()[mGravityDirection];
+            const double pressure = mSpecificWeight * distance ;
+            rNode.FastGetSolutionStepValue(var) = std::max(pressure,0.0);
+        });
 
-                if (pressure > 0.0) {
-                    rNode.FastGetSolutionStepValue(var) = pressure;
-                } else {
-                    rNode.FastGetSolutionStepValue(var) = 0.0;
-                }
-            });
-
-        }
-
-        KRATOS_CATCH("");
+        KRATOS_CATCH("")
     }
+
 
     /// Turn back information as a string.
     std::string Info() const override
@@ -148,26 +128,12 @@ public:
         return "ApplyConstantBoundaryPhreaticLinePressureProcess";
     }
 
-    /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "ApplyConstantBoundaryPhreaticLinePressureProcess";
-    }
-
-    /// Print object's data.
-    void PrintData(std::ostream& rOStream) const override
-    {
-    }
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
-
     /// Member Variables
-
     ModelPart& mrModelPart;
     std::string mVariableName;
     bool mIsFixed;
+    bool mIsFixedProvided;
     unsigned int mGravityDirection;
     unsigned int mHorizontalDirection;
     double mSpecificWeight;
@@ -178,33 +144,6 @@ protected:
     double mMinHorizontalCoordinate;
     double mMaxHorizontalCoordinate;
 
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+};
 
-private:
-
-    /// Assignment operator.
-    ApplyConstantBoundaryPhreaticLinePressureProcess& operator=(ApplyConstantBoundaryPhreaticLinePressureProcess const& rOther);
-
-    /// Copy constructor.
-    //ApplyConstantPhreaticLinePressureProcess(ApplyConstantBoundaryPhreaticLinePressureProcess const& rOther);
-
-}; // Class ApplyConstantBoundaryPhreaticLinePressureProcess
-
-/// input stream function
-inline std::istream& operator >> (std::istream& rIStream,
-                                  ApplyConstantBoundaryPhreaticLinePressureProcess& rThis);
-
-/// output stream function
-inline std::ostream& operator << (std::ostream& rOStream,
-                                  const ApplyConstantBoundaryPhreaticLinePressureProcess& rThis)
-{
-    rThis.PrintInfo(rOStream);
-    rOStream << std::endl;
-    rThis.PrintData(rOStream);
-
-    return rOStream;
 }
-
-} // namespace Kratos.
-
-#endif /* KRATOS_GEO_APPLY_CONSTANT_BOUNDARY_PHREATIC_LINE_PRESSURE_PROCESS defined */

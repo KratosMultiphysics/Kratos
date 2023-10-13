@@ -33,7 +33,7 @@ namespace Kratos
 {
 
 template< unsigned int TDim, unsigned int TNumNodes >
-class SteadyConvectionDiffusionFICElement : public Element
+class KRATOS_API(FLUID_TRANSPORT_APPLICATION) SteadyConvectionDiffusionFICElement : public Element
 {
 
 public:
@@ -42,7 +42,7 @@ public:
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef Vector VectorType;
@@ -72,13 +72,13 @@ public:
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
-    void FinalizeSolutionStep(ProcessInfo& rCurrentProcessInfo) override;
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -88,17 +88,21 @@ public:
      */
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
-    void GetDofList( DofsVectorType& rElementalDofList, ProcessInfo& rCurrentProcessInfo ) override;
+    void GetDofList( DofsVectorType& rElementalDofList, const ProcessInfo& rCurrentProcessInfo ) const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
+    virtual void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateLeftHandSide(MatrixType& rLeftHandSideMatrix,const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void CalculateRightHandSide(VectorType& rRightHandSideVector,ProcessInfo& rCurrentProcessInfo ) override;
+    void CalculateRightHandSide(VectorType& rRightHandSideVector,const ProcessInfo& rCurrentProcessInfo ) override;
 
-    void EquationIdVector(EquationIdVectorType& rResult, ProcessInfo& rCurrentProcessInfo) override;
+    void EquationIdVector(EquationIdVectorType& rResult, const ProcessInfo& rCurrentProcessInfo) const override;
+
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -201,7 +205,7 @@ protected:
     void ExtrapolateGPValues(const Matrix& GradPhiContainer);
 
 
-    void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    virtual void CalculateAll( MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
     virtual void InitializeElementVariables(ElementVariables& rVariables, const GeometryType& Geom, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
@@ -213,20 +217,12 @@ protected:
 
     virtual void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo);
 
-    void CalculatePeclet(ElementVariables& rVariables, const Geometry<Node<3> >& rGeom, const double& NormVel, const ProcessInfo& CurrentProcessInfo,
+    void CalculatePeclet(ElementVariables& rVariables, const Geometry<Node >& rGeom, const double& NormVel, const ProcessInfo& CurrentProcessInfo,
                                                     const PropertiesType& Prop);
 
     void CalculateDifTerm(ElementVariables& rVariables);
 
     void CalculateFICBeta(ElementVariables& rVariables);
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double,3>>& rVariable, std::vector<array_1d<double,3>>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 
     virtual void CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables);
@@ -241,7 +237,7 @@ protected:
 
 
 
-    void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
     virtual void CalculateAndAddRHSAdvection(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
@@ -251,13 +247,13 @@ protected:
 
     void CalculateAndAddRHSFIC(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
-    void CalculateAndAddSourceForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
+    virtual void CalculateAndAddSourceForce(VectorType& rRightHandSideVector, ElementVariables& rVariables);
 
 
     void CalculateIntegrationCoefficient(double& rIntegrationCoefficient, const double& detJ, const double& weight);
 
 
-    void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
+    virtual void CalculateRHS( VectorType& rRightHandSideVector, const ProcessInfo& CurrentProcessInfo );
 
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

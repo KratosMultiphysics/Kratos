@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_U_PW_SMALL_STRAIN_ELEMENT_H_INCLUDED )
-#define  KRATOS_GEO_U_PW_SMALL_STRAIN_ELEMENT_H_INCLUDED
+#pragma once
 
 // Project includes
 #include "includes/serializer.h"
@@ -35,15 +34,15 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainElement );
 
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mRetentionLawVector;
     using UPwBaseElement<TDim,TNumNodes>::mStressVector;
@@ -55,7 +54,7 @@ public:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
-    UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement<TDim,TNumNodes>( NewId ) {}
+    explicit UPwSmallStrainElement(IndexType NewId = 0) : UPwBaseElement<TDim,TNumNodes>( NewId ) {}
 
     /// Constructor using an array of nodes
     UPwSmallStrainElement(IndexType NewId,
@@ -70,8 +69,11 @@ public:
                           GeometryType::Pointer pGeometry,
                           PropertiesType::Pointer pProperties) : UPwBaseElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
-    /// Destructor
-    ~UPwSmallStrainElement() override {}
+    ~UPwSmallStrainElement() override = default;
+    UPwSmallStrainElement(const UPwSmallStrainElement&) = delete;
+    UPwSmallStrainElement& operator=(const UPwSmallStrainElement&) = delete;
+    UPwSmallStrainElement(UPwSmallStrainElement&&) = delete;
+    UPwSmallStrainElement& operator=(UPwSmallStrainElement&&) = delete;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -131,8 +133,8 @@ public:
 
 protected:
 
-    static constexpr SizeType VoigtSize  = ( TDim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
-    static constexpr SizeType StressTensorSize = (TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
+    static constexpr SizeType VoigtSize        = ( TDim == N_DIM_3D ? VOIGT_SIZE_3D : VOIGT_SIZE_2D_PLANE_STRAIN);
+    static constexpr SizeType StressTensorSize = ( TDim == N_DIM_3D ? STRESS_TENSOR_SIZE_3D : STRESS_TENSOR_SIZE_2D);
 
     struct ElementVariables
     {
@@ -145,6 +147,7 @@ protected:
         double SolidDensity;
         double Density;
         double Porosity;
+        double PermeabilityUpdateFactor;
 
         double BiotCoefficient;
         double BiotModulusInverse;
@@ -190,6 +193,7 @@ protected:
         double DerivativeOfSaturation;
         double RelativePermeability;
         double BishopCoefficient;
+        double EffectiveSaturation;
 
         // needed for updated Lagrangian:
         double detJ;
@@ -209,13 +213,9 @@ protected:
 
     };
 
-    /// Member Variables
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void SaveGPStress( Matrix &rStressContainer,
                        const Vector &StressVector,
-                       const unsigned int &GPoint );
+                       unsigned int GPoint );
 
     void ExtrapolateGPValues( const Matrix &StressContainer);
 
@@ -240,10 +240,12 @@ protected:
     void SetRetentionParameters(const ElementVariables &rVariables,
                                 RetentionLaw::Parameters &rRetentionParameters);
 
-    virtual void CalculateKinematics( ElementVariables &rVariables, const unsigned int &PointNumber );
+    virtual void CalculateKinematics( ElementVariables &rVariables, unsigned int PointNumber );
 
     void InitializeBiotCoefficients( ElementVariables &rVariables,
                                      const bool &hasBiotCoefficient=false );
+
+    void CalculatePermeabilityUpdateFactor( ElementVariables &rVariables);
 
     virtual void CalculateBMatrix( Matrix &rB,
                                    const Matrix &GradNpT,
@@ -309,21 +311,20 @@ protected:
     virtual void CalculateCauchyAlmansiStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyGreenStrain( ElementVariables &rVariables );
     virtual void CalculateCauchyStrain( ElementVariables &rVariables );
-    virtual void CalculateHenckyStrain( ElementVariables& rVariables );
-    virtual void CalculateStrain( ElementVariables &rVariables, const IndexType& GPoint );
+    virtual void CalculateStrain( ElementVariables &rVariables, unsigned int GPoint );
     virtual void CalculateDeformationGradient( ElementVariables& rVariables,
-                                               const IndexType& GPoint );
+                                               unsigned int GPoint );
 
     void InitializeNodalDisplacementVariables( ElementVariables &rVariables );
     void InitializeNodalPorePressureVariables( ElementVariables &rVariables );
     void InitializeNodalVolumeAccelerationVariables( ElementVariables &rVariables );
 
     void InitializeProperties( ElementVariables &rVariables );
-    double CalculateFluidPressure( const ElementVariables &rVariables, const unsigned int &PointNumber );
+    double CalculateFluidPressure( const ElementVariables &rVariables);
 
     void CalculateRetentionResponse( ElementVariables &rVariables,
                                      RetentionLaw::Parameters &rRetentionParameters,
-                                     const unsigned int &GPoint );
+                                     unsigned int GPoint );
 
     void CalculateExtrapolationMatrix(BoundedMatrix<double,TNumNodes,TNumNodes> &rExtrapolationMatrix);
 
@@ -339,11 +340,6 @@ protected:
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
-
-    /// Member Variables
-
-///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     /// Serialization
 
     friend class Serializer;
@@ -358,12 +354,6 @@ private:
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, Element )
     }
 
-    // Assignment operator.
-    UPwSmallStrainElement & operator=(UPwSmallStrainElement const& rOther);
-
-    // Copy constructor.
-    UPwSmallStrainElement(UPwSmallStrainElement const& rOther);
-
     // Private Operations
 
     template < class TValueType >
@@ -377,6 +367,4 @@ private:
 
 }; // Class UPwSmallStrainElement
 
-} // namespace Kratos
-
-#endif // KRATOS_GEO_U_PW_SMALL_STRAIN_ELEMENT_H_INCLUDED  defined
+}

@@ -66,8 +66,8 @@ public:
     /// Pointer definition of AlternativeQSVMSDEMCoupled
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION(AlternativeQSVMSDEMCoupled);
 
-    /// Node type (default is: Node<3>)
-    typedef Node<3> NodeType;
+    /// Node type (default is: Node)
+    typedef Node NodeType;
 
     /// Geometry type (using with given NodeType)
     typedef Geometry<NodeType> GeometryType;
@@ -276,6 +276,10 @@ protected:
     void SubscalePressure(
         const TElementData& rData,
         double &rPressureSubscale) const override;
+
+    void Calculate(
+        const Variable<array_1d<double, 3>>& rVariable,
+        array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Protected  Access

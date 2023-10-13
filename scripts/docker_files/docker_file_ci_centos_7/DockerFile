@@ -1,0 +1,54 @@
+FROM centos:centos7
+
+USER root
+
+ENV HOME /root
+
+# Enable devtools packages
+RUN yum -y install centos-release-scl
+RUN yum-config-manager --enable rhel-7-server-devtools-rpms
+RUN yum-config-manager --enable rhel-7-server-extras-rpms
+RUN yum-config-manager --enable rhel-7-server-optional-rpms
+RUN yum-config-manager --enable rhel-server-rhscl-7-rpms
+
+RUN yum -y update
+
+# Installing dependencies
+RUN yum -y --quiet install wget git cmake gcc-c++ unzip python-pip make gcc-gfortran zlib-devel bzip2-devel openssl-devel samba-client openmpi-devel hdf5-openmpi-devel boost-devel
+
+# Installing scl-utils
+RUN yum -y install scl-utils
+
+# Installing Devtools 8
+RUN yum -y install devtoolset-8 devtoolset-8-gcc-c++
+RUN yum -y install binutils-devel wget && rm -rf /var/cache/yum/*
+RUN source scl_source enable devtoolset-8
+
+# Installing Python 3.8
+RUN cd /usr/src
+RUN wget https://www.python.org/ftp/python/3.8.10/Python-3.8.10.tgz
+RUN tar xzf Python-3.8.10.tgz -C /usr/src
+RUN ls /usr/src/Python-3.8.10
+RUN sh /usr/src/Python-3.8.10/configure --enable-optimizations --with-lto --enable-shared LDFLAGS="-Wl,-rpath /usr/local/lib"
+RUN make altinstall
+RUN rm Python-3.8.10.tgz
+
+# Installing Python packages
+RUN python3.8 -m pip install numpy sympy parameterized
+
+# Setting the needed environment variables for being able to run/compile
+ENV PYTHON_EXECUTABLE /usr/local/bin/python3.8
+ENV AMS_EXTERNAL_LIBRARIES_INSTALL_PATH /usr/local/
+
+# Installing cmake3
+RUN source scl_source enable devtoolset-8 && wget https://cmake.org/files/v3.18/cmake-3.18.6.tar.gz &&  tar zxvf cmake-3.* && cd cmake-3.* \
+    && ./bootstrap --prefix=/usr/local && gmake  -j$(nproc) && make install
+
+CMD [ "/bin/bash" ]
+
+WORKDIR $HOME
+
+#In case of dns problem please check https://forums.centos.org/viewtopic.php?t=74270P
+# For build please run the following command from the DockerFile folder
+# docker build ../../../ --file DockerFile --tag ams/ams-centos7-python35-build
+# For python compilation: https://www.workaround.cz/howto-compile-install-latest-python-37-38-39-centos-7-8/

@@ -137,9 +137,9 @@ void ComputeNodesMeanNormalModelPart(
 {
     KRATOS_WARNING("MortarUtilities") << "This method is deprecated. Please use NormalCalculationUtils().CalculateUnitNormals" << std::endl;
     if (ComputeConditions) {
-        NormalCalculationUtils().CalculateUnitNormals<Condition>(rModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(rModelPart, true);
     } else {
-        NormalCalculationUtils().CalculateUnitNormals<Element>(rModelPart, true);
+        NormalCalculationUtils().CalculateUnitNormals<ModelPart::ElementsContainerType>(rModelPart, true);
     }
 }
 
@@ -168,7 +168,7 @@ void ComputeNodesTangentModelPart(
 
     block_for_each(
         r_nodes_array,
-        [&pSlipVariable,SlipCoefficient,domain_size,has_lm,SlipAlways](Node<3>& rNode) {
+        [&pSlipVariable,SlipCoefficient,domain_size,has_lm,SlipAlways](Node& rNode) {
             if (rNode.Is(SLAVE)) {
                 if (has_lm && !SlipAlways)
                     ComputeTangentNodeWithLMAndSlip(rNode, 0, pSlipVariable, SlipCoefficient, domain_size);
@@ -195,7 +195,7 @@ void ComputeNodesTangentFromNormalModelPart(ModelPart& rModelPart)
 
     block_for_each(
         r_nodes_array,
-        [domain_size](Node<3>& rNode) {
+        [domain_size](Node& rNode) {
             if (rNode.Is(SLAVE)) {
                 const array_1d<double, 3>& r_normal = rNode.FastGetSolutionStepValue(NORMAL);
                 ComputeTangentsFromNormal(rNode, r_normal, domain_size);

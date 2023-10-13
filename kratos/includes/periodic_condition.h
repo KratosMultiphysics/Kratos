@@ -68,7 +68,7 @@ namespace Kratos
  * another on both periodic sides.\n
  * Note that the periodic boundary condition is enforced by the builder and solver, this Condition
  * is simply used to provide it the required information to set it up.\n
- * This condtion has to be carefully set up in order to work properly, see PeriodicConditionUtilities,
+ * This condition has to be carefully set up in order to work properly, see PeriodicConditionUtilities,
  * which provides some tools to do so.
  * @note PeriodicCondition is designed designed to work with a builder and solver
  * that recognizes the presence of periodic conditions, as ResidualBasedBlockBuilderAndSolverPeriodic
@@ -89,7 +89,7 @@ public:
 
     typedef Condition BaseType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Properties PropertiesType;
 
@@ -101,15 +101,17 @@ public:
 
     typedef Matrix MatrixType;
 
-    typedef std::size_t IndexType;
+    typedef BaseType::IndexType IndexType;
 
-    typedef std::size_t SizeType;
+    typedef BaseType::SizeType SizeType;
 
-    typedef std::vector<std::size_t> EquationIdVectorType;
+    typedef BaseType::DofType DofType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+    typedef BaseType::EquationIdVectorType EquationIdVectorType;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    typedef BaseType::DofsVectorType DofsVectorType;
+
+    typedef BaseType::DofsArrayType DofsArrayType;
 
     ///@}
     ///@name Life Cycle

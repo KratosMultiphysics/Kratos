@@ -44,7 +44,7 @@ namespace Kratos
 
       /// Short class definition.
       /** Detail class definition.
- */
+       */
       class KRATOS_API(DELAUNAY_MESHING_APPLICATION) MesherUtilities
       {
       public:
@@ -54,9 +54,9 @@ namespace Kratos
             /// Pointer definition of MesherUtilities
             KRATOS_CLASS_POINTER_DEFINITION(MesherUtilities);
 
-            typedef Node<3> PointType;
-            typedef Node<3>::Pointer PointPointerType;
-            typedef Geometry<Node<3>> GeometryType;
+            typedef Node PointType;
+            typedef Node::Pointer PointPointerType;
+            typedef Geometry<Node> GeometryType;
             typedef std::vector<PointPointerType> PointPointerVector;
             typedef ModelPart::PropertiesType PropertiesType;
             typedef ModelPart::PropertiesContainerType PropertiesContainerType;
@@ -66,24 +66,24 @@ namespace Kratos
             typedef ModelPart::MeshType::GeometryType::PointsArrayType PointsArrayType;
             typedef MeshDataTransferUtilities::TransferParameters TransferParametersType;
 
-            typedef GlobalPointersVector<Node<3>> NodeWeakPtrVectorType;
+            typedef GlobalPointersVector<Node> NodeWeakPtrVectorType;
             typedef GlobalPointersVector<Element> ElementWeakPtrVectorType;
             typedef GlobalPointersVector<Condition> ConditionWeakPtrVectorType;
 
             enum ContactElementType //(contact domain definition)
             {
-                  NonContact,   //this is not a contact element
-                  PointToFace,  //2D/3D classical well defined node to face contact
-                  EdgeToEdge,   //3D edge to edge complex contact element
-                  PointToPoint, //2D/3D not compatible element belong to multiple bodies
-                  Undefined     //to be defined later
+                  NonContact,   // this is not a contact element
+                  PointToFace,  // 2D/3D classical well defined node to face contact
+                  EdgeToEdge,   // 3D edge to edge complex contact element
+                  PointToPoint, // 2D/3D not compatible element belong to multiple bodies
+                  Undefined     // to be defined later
             };
 
             /**
-     * Flags related to the meshing parameters
-     */
+             * Flags related to the meshing parameters
+             */
 
-            //meshing options
+            // meshing options
 
             //(configuration)
             KRATOS_DEFINE_LOCAL_FLAG(REMESH);
@@ -95,7 +95,7 @@ namespace Kratos
             KRATOS_DEFINE_LOCAL_FLAG(MESH_SMOOTHING);
             KRATOS_DEFINE_LOCAL_FLAG(VARIABLES_SMOOTHING);
 
-            //removing options
+            // removing options
 
             //(configuration)
             KRATOS_DEFINE_LOCAL_FLAG(REMOVE_NODES);
@@ -108,7 +108,7 @@ namespace Kratos
             KRATOS_DEFINE_LOCAL_FLAG(REMOVE_BOUNDARY_NODES_ON_ERROR);
             KRATOS_DEFINE_LOCAL_FLAG(REMOVE_BOUNDARY_NODES_ON_THRESHOLD);
 
-            //refining options
+            // refining options
 
             //(configuration)
             KRATOS_DEFINE_LOCAL_FLAG(REFINE_ADD_NODES);
@@ -124,7 +124,7 @@ namespace Kratos
             KRATOS_DEFINE_LOCAL_FLAG(REFINE_BOUNDARY_ON_ERROR);
             KRATOS_DEFINE_LOCAL_FLAG(REFINE_BOUNDARY_ON_THRESHOLD);
 
-            //execution options
+            // execution options
             //(select)
             KRATOS_DEFINE_LOCAL_FLAG(INITIALIZE_MESHER_INPUT);
             KRATOS_DEFINE_LOCAL_FLAG(FINALIZE_MESHER_INPUT);
@@ -138,7 +138,7 @@ namespace Kratos
             KRATOS_DEFINE_LOCAL_FLAG(KEEP_ISOLATED_NODES);
             KRATOS_DEFINE_LOCAL_FLAG(REFINE_WALL_CORNER);
 
-            //execution options (tessellation) //not needed any more, just the strings definition...to set.
+            // execution options (tessellation) //not needed any more, just the strings definition...to set.
             KRATOS_DEFINE_LOCAL_FLAG(NEIGHBOURS_SEARCH);
             KRATOS_DEFINE_LOCAL_FLAG(BOUNDARIES_SEARCH);
             KRATOS_DEFINE_LOCAL_FLAG(SET_DOF);
@@ -161,7 +161,7 @@ namespace Kratos
                   int mNumberOfElements;
 
             public:
-                  //flags to set when the pointers are created (true) or deleted (false)
+                  // flags to set when the pointers are created (true) or deleted (false)
                   bool PointListFlag;
                   bool ElementListFlag;
                   bool ElementSizeListFlag;
@@ -271,21 +271,25 @@ namespace Kratos
                   KRATOS_CLASS_POINTER_DEFINITION(MeshingInfoParameters);
 
             public:
-                  //initial and total
+                  // initial and total
                   unsigned int NumberOfElements;
                   unsigned int NumberOfNodes;
                   unsigned int NumberOfConditions;
 
                   unsigned int InitialNumberOfNodes;
 
-                  //added
+                  // added
                   unsigned int NumberOfNewElements;
                   unsigned int NumberOfNewNodes;
                   unsigned int NumberOfNewConditions;
 
-                  //total for all refining boxes
+                  unsigned int NumberOfEulerianInletNodes;
+                  unsigned int NumberOfLagrangianInletNodes;
+
+                  // total for all refining boxes
                   unsigned int InsertedNodes;
                   unsigned int RemovedNodes;
+                  int BalancePrincipalSecondaryPartsNodes;
                   unsigned int InsertedBoundaryNodes;
                   unsigned int InsertedBoundaryConditions;
 
@@ -377,7 +381,7 @@ namespace Kratos
                   bool CheckGeometricalSmoothing()
                   {
 
-                        //std::cout<<" Inserted Nodes "<<InsertedNodes<<" NumNodes "<<NumberOfNodes<<" Removed "<<RemovedNodes<<std::endl;
+                        // std::cout<<" Inserted Nodes "<<InsertedNodes<<" NumNodes "<<NumberOfNodes<<" Removed "<<RemovedNodes<<std::endl;
 
                         if (InsertedNodes > NumberOfNodes * 0.001 || RemovedNodes > NumberOfNodes * 0.001)
                         {
@@ -414,7 +418,7 @@ namespace Kratos
 
             struct RefineBodyInfo
             {
-                  //number of entities refined/removed due to criterion:
+                  // number of entities refined/removed due to criterion:
                   unsigned int on_distance;
                   unsigned int on_threshold;
                   unsigned int on_error;
@@ -434,7 +438,7 @@ namespace Kratos
 
             struct RefineBoundaryInfo
             {
-                  //number of entities refined/removed due to criterion:
+                  // number of entities refined/removed due to criterion:
                   unsigned int on_distance;
                   unsigned int on_threshold;
                   unsigned int on_error;
@@ -462,13 +466,13 @@ namespace Kratos
 
             struct RefiningInfoParameters
             {
-                  //refine/remove body
-                  RefineBodyInfo BodyElementsRefined; //refined elements
-                  RefineBodyInfo BodyNodesRemoved;    //removed nodes
+                  // refine/remove body
+                  RefineBodyInfo BodyElementsRefined; // refined elements
+                  RefineBodyInfo BodyNodesRemoved;    // removed nodes
 
-                  //refine/remove boundary
-                  RefineBoundaryInfo BoundaryConditionsRefined; //refined boundary conditions
-                  RefineBoundaryInfo BoundaryNodesRemoved;      //removed boundary nodes
+                  // refine/remove boundary
+                  RefineBoundaryInfo BoundaryConditionsRefined; // refined boundary conditions
+                  RefineBoundaryInfo BoundaryNodesRemoved;      // removed boundary nodes
             };
 
             struct RefiningParameters
@@ -477,31 +481,31 @@ namespace Kratos
                   KRATOS_CLASS_POINTER_DEFINITION(RefiningParameters);
 
             private:
-                  //Pointer variables
+                  // Pointer variables
                   const Variable<double> *mpThresholdVariable;
                   const Variable<double> *mpErrorVariable;
 
             public:
-                  //reference sizes
-                  Flags RefiningOptions; //configuration refining options
-                  Flags RemovingOptions; //configuration removing options
+                  // reference sizes
+                  Flags RefiningOptions; // configuration refining options
+                  Flags RemovingOptions; // configuration removing options
 
-                  double Alpha; //critical alpha parameter
+                  double Alpha; // critical alpha parameter
 
-                  double CriticalRadius; //critical area   size
-                  double CriticalSide;   //critical length size
+                  double CriticalRadius; // critical area   size
+                  double CriticalSide;   // critical length size
 
-                  double ReferenceThreshold; //critical variable threshold value
-                  double ReferenceError;     //critical error percentage
+                  double ReferenceThreshold; // critical variable threshold value
+                  double ReferenceError;     // critical error percentage
 
-                  //computed sizes
-                  double InitialRadius; //initial mesh radius/nodal-h
-                  double MeanVolume;    //mean element area/volume
+                  // computed sizes
+                  double InitialRadius; // initial mesh radius/nodal-h
+                  double MeanVolume;    // mean element area/volume
 
-                  //info parameters
+                  // info parameters
                   RefiningInfoParameters Info;
 
-                  //applied in the spatial box
+                  // applied in the spatial box
                   bool RefiningBoxSetFlag;
                   SpatialBoundingBox::Pointer RefiningBox;
 
@@ -629,31 +633,31 @@ namespace Kratos
                   KRATOS_CLASS_POINTER_DEFINITION(MeshingParameters);
 
             protected:
-                  //Pointer variables
+                  // Pointer variables
                   const Element *mpReferenceElement;
                   const Condition *mpReferenceCondition;
 
             public:
-                  //SubModelPart Name
+                  // SubModelPart Name
                   std::string SubModelPartName;
 
-                  //General configuration flags
+                  // General configuration flags
                   Flags Options;
 
-                  //Local execution flags
-                  Flags ExecutionOptions; //configuration meshing options
+                  // Local execution flags
+                  Flags ExecutionOptions; // configuration meshing options
 
-                  //General configuration variables
+                  // General configuration variables
                   double AlphaParameter;
                   double OffsetFactor;
 
-                  //Options for the mesher
+                  // Options for the mesher
                   std::string TessellationFlags;
                   std::string TessellationInfo;
 
                   bool TransferVariablesSetFlag;
 
-                  //Local execution variablesg
+                  // Local execution variablesg
                   bool InputInitializedFlag;
                   bool MeshElementsSelectedFlag;
 
@@ -666,28 +670,28 @@ namespace Kratos
 
                   std::vector<BoundedVector<double, 3>> Holes;
 
-                  //Mesher pointers to the mesh structures
+                  // Mesher pointers to the mesh structures
                   MeshContainer InMesh;
                   MeshContainer OutMesh;
                   MeshContainer MidMesh;
 
                   std::vector<std::vector<int>> NeighbourList;
 
-                  //Global Meshing info
+                  // Global Meshing info
                   MeshingInfoParameters::Pointer Info;
 
-                  //Global Remining parameters
+                  // Global Remining parameters
                   RefiningParameters::Pointer Refine;
 
-                  //some local bbx-based refining parameters
-                  //can be defined here: std::vector<RefiningParameters::Pointer> LocalRefineVector;
+                  // some local bbx-based refining parameters
+                  // can be defined here: std::vector<RefiningParameters::Pointer> LocalRefineVector;
 
-                  //Global Tranfer parameters
+                  // Global Tranfer parameters
                   TransferParametersType::Pointer Transfer;
 
                   PropertiesType::Pointer Properties;
 
-                  //Global Meshing box
+                  // Global Meshing box
                   bool MeshingBoxSetFlag;
                   SpatialBoundingBox::Pointer MeshingBox;
 
@@ -697,17 +701,16 @@ namespace Kratos
                   array_1d<double, 3> BoundingBoxLowerPoint;
                   array_1d<double, 3> BoundingBoxUpperPoint;
 
-                  bool UseRefiningBox;
-                  double RefiningBoxInitialTime;
-                  double RefiningBoxFinalTime;
-                  double RefiningBoxMeshSize;
-                  array_1d<double, 3> RefiningBoxMinimumPoint;
-                  array_1d<double, 3> RefiningBoxMaximumPoint;
+                  std::vector<bool> UseRefiningBox;
+                  std::vector<double> RefiningBoxInitialTime;
+                  std::vector<double> RefiningBoxFinalTime;
+                  std::vector<double> RefiningBoxMeshSize;
+                  std::vector<unsigned int> RefiningBoxElementsInTransitionZone;
+                  std::vector<array_1d<double, 3>> RefiningBoxMinimumPoint;
+                  std::vector<array_1d<double, 3>> RefiningBoxMaximumPoint;
 
-                  array_1d<double, 3> RefiningBoxMinInternalPoint;
-                  array_1d<double, 3> RefiningBoxMinExternalPoint;
-                  array_1d<double, 3> RefiningBoxMaxInternalPoint;
-                  array_1d<double, 3> RefiningBoxMaxExternalPoint;
+                  std::vector<array_1d<double, 3>> RefiningBoxShiftedMinimumPoint;
+                  std::vector<array_1d<double, 3>> RefiningBoxShiftedMaximumPoint;
 
                   void Set(Flags ThisFlag)
                   {
@@ -868,11 +871,6 @@ namespace Kratos
                         OutMesh.Initialize();
                         MidMesh.Initialize();
 
-                        RefiningBoxMinInternalPoint = ZeroVector(3);
-                        RefiningBoxMinExternalPoint = ZeroVector(3);
-                        RefiningBoxMaxInternalPoint = ZeroVector(3);
-                        RefiningBoxMaxExternalPoint = ZeroVector(3);
-
                         // RemeshInfo.Initialize();
                         // Refine.Initialize();
                   };
@@ -916,63 +914,68 @@ namespace Kratos
                         BoundingBoxFinalTime = rBoundingBoxFinalTime;
                   };
 
-                  void SetUseRefiningBox(bool rUseRefiningBox)
+                  void InitializeRefiningBoxParameters(unsigned int size)
                   {
-                        UseRefiningBox = rUseRefiningBox;
+                        UseRefiningBox.resize(size, false);
+                        RefiningBoxMinimumPoint.resize(size);
+                        RefiningBoxMaximumPoint.resize(size);
+                        RefiningBoxShiftedMinimumPoint.resize(size);
+                        RefiningBoxShiftedMaximumPoint.resize(size);
+                        RefiningBoxInitialTime.resize(size, false);
+                        RefiningBoxFinalTime.resize(size, false);
+                        RefiningBoxMeshSize.resize(size, false);
+                        RefiningBoxElementsInTransitionZone.resize(size, false);
+                  }
+
+                  void SetUseRefiningBox(unsigned int index, bool rUseRefiningBox)
+                  {
+                        UseRefiningBox[index] = rUseRefiningBox;
                   };
 
-                  void SetRefiningBoxMinimumPoint(double rRefiningBoxMinimumPointX, double rRefiningBoxMinimumPointY, double rRefiningBoxMinimumPointZ)
+                  void SetRefiningBoxMinimumPoint(unsigned int index, double rRefiningBoxMinimumPointX, double rRefiningBoxMinimumPointY, double rRefiningBoxMinimumPointZ)
                   {
-                        RefiningBoxMinimumPoint[0] = rRefiningBoxMinimumPointX;
-                        RefiningBoxMinimumPoint[1] = rRefiningBoxMinimumPointY;
-                        RefiningBoxMinimumPoint[2] = rRefiningBoxMinimumPointZ;
+                        RefiningBoxMinimumPoint[index][0] = rRefiningBoxMinimumPointX;
+                        RefiningBoxMinimumPoint[index][1] = rRefiningBoxMinimumPointY;
+                        RefiningBoxMinimumPoint[index][2] = rRefiningBoxMinimumPointZ;
                   };
 
-                  void SetRefiningBoxMaximumPoint(double rRefiningBoxMaximumPointX, double rRefiningBoxMaximumPointY, double rRefiningBoxMaximumPointZ)
+                  void SetRefiningBoxMaximumPoint(unsigned int index, double rRefiningBoxMaximumPointX, double rRefiningBoxMaximumPointY, double rRefiningBoxMaximumPointZ)
                   {
-                        RefiningBoxMaximumPoint[0] = rRefiningBoxMaximumPointX;
-                        RefiningBoxMaximumPoint[1] = rRefiningBoxMaximumPointY;
-                        RefiningBoxMaximumPoint[2] = rRefiningBoxMaximumPointZ;
+                        RefiningBoxMaximumPoint[index][0] = rRefiningBoxMaximumPointX;
+                        RefiningBoxMaximumPoint[index][1] = rRefiningBoxMaximumPointY;
+                        RefiningBoxMaximumPoint[index][2] = rRefiningBoxMaximumPointZ;
                   };
 
-                  void SetRefiningBoxMinExternalPoint(double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxShiftedMinimumPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
                   {
-                        RefiningBoxMinExternalPoint[0] = rPointX;
-                        RefiningBoxMinExternalPoint[1] = rPointY;
-                        RefiningBoxMinExternalPoint[2] = rPointZ;
+                        RefiningBoxShiftedMinimumPoint[index][0] = rPointX;
+                        RefiningBoxShiftedMinimumPoint[index][1] = rPointY;
+                        RefiningBoxShiftedMinimumPoint[index][2] = rPointZ;
                   };
 
-                  void SetRefiningBoxMinInternalPoint(double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxShiftedMaximumPoint(unsigned int index, double rPointX, double rPointY, double rPointZ)
                   {
-                        RefiningBoxMinInternalPoint[0] = rPointX;
-                        RefiningBoxMinInternalPoint[1] = rPointY;
-                        RefiningBoxMinInternalPoint[2] = rPointZ;
+                        RefiningBoxShiftedMaximumPoint[index][0] = rPointX;
+                        RefiningBoxShiftedMaximumPoint[index][1] = rPointY;
+                        RefiningBoxShiftedMaximumPoint[index][2] = rPointZ;
                   };
 
-                  void SetRefiningBoxMaxExternalPoint(double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxTimeInterval(unsigned int index, double rRefiningBoxInitialTime, double rRefiningBoxFinalTime)
                   {
-                        RefiningBoxMaxExternalPoint[0] = rPointX;
-                        RefiningBoxMaxExternalPoint[1] = rPointY;
-                        RefiningBoxMaxExternalPoint[2] = rPointZ;
+                        RefiningBoxInitialTime[index] = rRefiningBoxInitialTime;
+                        RefiningBoxFinalTime[index] = rRefiningBoxFinalTime;
                   };
 
-                  void SetRefiningBoxMaxInternalPoint(double rPointX, double rPointY, double rPointZ)
+                  void SetRefiningBoxMeshSize(unsigned int index, double rRefiningBoxMeshSize)
                   {
-                        RefiningBoxMaxInternalPoint[0] = rPointX;
-                        RefiningBoxMaxInternalPoint[1] = rPointY;
-                        RefiningBoxMaxInternalPoint[2] = rPointZ;
+                        RefiningBoxMeshSize[index] = rRefiningBoxMeshSize;
                   };
 
-                  void SetRefiningBoxTimeInterval(double rRefiningBoxInitialTime, double rRefiningBoxFinalTime)
+                  void SetRefiningBoxElementsInTransitionZone(unsigned int index, unsigned int rRefiningBoxElementsInTransitionZone)
                   {
-                        RefiningBoxInitialTime = rRefiningBoxInitialTime;
-                        RefiningBoxFinalTime = rRefiningBoxFinalTime;
+                        RefiningBoxElementsInTransitionZone[index] = rRefiningBoxElementsInTransitionZone;
                   };
-
-                  void SetRefiningBoxMeshSize(double rRefiningBoxMeshSize)
-                  {
-                        RefiningBoxMeshSize = rRefiningBoxMeshSize;
-                  };
+                  
             };
 
             ///@}
@@ -1006,53 +1009,64 @@ namespace Kratos
             //*******************************************************************************************
             //*******************************************************************************************
 
-            bool CheckSubdomain(Geometry<Node<3>> &rGeometry);
+            bool CheckSubdomain(Geometry<Node> &rGeometry);
 
-            bool CheckRigidOuterCentre(Geometry<Node<3>> &rGeometry);
+            bool CheckRigidOuterCentre(Geometry<Node> &rGeometry);
 
-            bool CheckInnerCentre(Geometry<Node<3>> &rGeometry);
+            bool CheckInnerCentre(Geometry<Node> &rGeometry);
 
-            bool CheckOuterCentre(Geometry<Node<3>> &rGeometry, double &rOffsetFactor, bool &rSelfContact);
+            bool CheckOuterCentre(Geometry<Node> &rGeometry, double &rOffsetFactor, bool &rSelfContact);
 
-            bool CheckSliver(Geometry<Node<3>> &rGeometry);
+            bool CheckSliver(Geometry<Node> &rGeometry);
 
-            ContactElementType CheckContactElement(Geometry<Node<3>> &rGeometry, std::vector<int> &rSlaveVertices);
+            ContactElementType CheckContactElement(Geometry<Node> &rGeometry, std::vector<int> &rSlaveVertices);
 
-            double GetAndCompareSideLenghts(Geometry<Node<3>> &rGeometry, double &rMaximumSideLength, double &rMinimumSideLength);
+            double GetAndCompareSideLenghts(Geometry<Node> &rGeometry, double &rMaximumSideLength, double &rMinimumSideLength);
 
-            bool CheckGeometryShape(Geometry<Node<3>> &rGeometry, int &rShape);
+            bool CheckGeometryShape(Geometry<Node> &rGeometry, int &rShape);
 
             //*******************************************************************************************
             //*******************************************************************************************
 
-            //computes geometry radius
+            // computes geometry radius
             double &ComputeRadius(double &rRadius, double &rVolume, std::vector<Vector> &rVertices, const unsigned int &dimension);
 
-            //returns false if it should be removed
-            bool AlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, const unsigned int dimension);
-            bool AlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, const unsigned int dimension, const double MeanMeshSize);
+            // returns false if it should be removed
+            bool AlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, const unsigned int dimension);
+            bool AlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, const unsigned int dimension, const double MeanMeshSize);
 
-            //returns false if it should be removed
-            bool ShrankAlphaShape(double AlphaParameter, Geometry<Node<3>> &rGeometry, double &rOffsetFactor, const unsigned int dimension);
+            // returns false if it should be removed
+            bool ShrankAlphaShape(double AlphaParameter, Geometry<Node> &rGeometry, double &rOffsetFactor, const unsigned int dimension);
 
-            //returns the nodal h relative to a single boundary node
-            double FindBoundaryH(Node<3> &BoundaryPoint);
+            // returns the nodal h relative to a single boundary node
+            double FindBoundaryH(Node &BoundaryPoint);
 
-            //writes a list of particles telling if they are set as boundary or not
+            // writes a list of particles telling if they are set as boundary or not
             void CheckParticles(ModelPart &rModelPart);
 
-            //computes velocity norms of the geometry
-            bool CheckRelativeVelocities(Geometry<Node<3>> &rGeometry, const double &rRelativeFactor);
+            // computes velocity norms of the geometry
+            bool CheckRelativeVelocities(Geometry<Node> &rGeometry, const double &rRelativeFactor);
 
-            //computes prediction of volume decrease of the geometry
+            // computes prediction of volume decrease of the geometry
             bool CheckVolumeDecrease(GeometryType &rVertices, const unsigned int &rDimension, const double &rTolerance, double &VolumeChange);
 
-            //computes prediction of volume after a projection of the displacement geometry
+            // computes prediction of volume after a projection of the displacement geometry
             double GetMovedVolume(GeometryType &rVertices, const unsigned int &rDimension, double MovementFactor);
 
-            //computes deformation gradient determinant
+            // computes deformation gradient determinant
             double GetDeformationGradientDeterminant(GeometryType &rVertices, const unsigned int &rDimension);
 
+            void DefineMeshSizeInTransitionZones2D(MeshingParameters &rMeshingVariables,
+                                                   double currentTime,
+                                                   array_1d<double, 3> NodeCoordinates,
+                                                   double &meanMeshSize,
+                                                   bool &insideTransitionZone);
+
+            void DefineMeshSizeInTransitionZones3D(MeshingParameters &rMeshingVariables,
+                                                   double currentTime,
+                                                   array_1d<double, 3> NodeCoordinates,
+                                                   double &meanMeshSize,
+                                                   bool &insideTransitionZone);
             //*******************************************************************************************
             //*******************************************************************************************
 
@@ -1061,7 +1075,7 @@ namespace Kratos
                   return sqrt((P1.X() - P2.X()) * (P1.X() - P2.X()) + (P1.Y() - P2.Y()) * (P1.Y() - P2.Y()) + (P1.Z() - P2.Z()) * (P1.Z() - P2.Z()));
             };
 
-            static inline double CalculateBoundarySize(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateBoundarySize(Geometry<Node> &rGeometry)
             {
 
                   if (rGeometry.size() == 2)
@@ -1079,7 +1093,7 @@ namespace Kratos
                   }
             };
 
-            static inline double CalculateTriangleRadius(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateTriangleRadius(Geometry<Node> &rGeometry)
             {
 
                   double L1 = CalculateSideLength(rGeometry[0], rGeometry[1]);
@@ -1088,16 +1102,16 @@ namespace Kratos
 
                   double Area = rGeometry.Area();
 
-                  //inradius
+                  // inradius
                   double Rcrit = Area * 2 / (L1 + L2 + L3);
 
                   return Rcrit;
             };
 
-            static inline double CalculateTetrahedronRadius(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateTetrahedronRadius(Geometry<Node> &rGeometry)
             {
 
-                  //edges
+                  // edges
                   double L1 = CalculateSideLength(rGeometry[0], rGeometry[1]);
                   double L2 = CalculateSideLength(rGeometry[1], rGeometry[2]);
                   double L3 = CalculateSideLength(rGeometry[2], rGeometry[3]);
@@ -1105,27 +1119,27 @@ namespace Kratos
                   double L5 = CalculateSideLength(rGeometry[3], rGeometry[1]);
                   double L6 = CalculateSideLength(rGeometry[2], rGeometry[0]);
 
-                  //inradius
-                  double S = 0.5 * (L1 + L4 + L5); //semiperimeter
+                  // inradius
+                  double S = 0.5 * (L1 + L4 + L5); // semiperimeter
                   double R1 = sqrt(S * (S - L1) * (S - L4) * (S - L5)) / S;
 
-                  S = 0.5 * (L2 + L3 + L5); //semiperimeter
+                  S = 0.5 * (L2 + L3 + L5); // semiperimeter
                   double R2 = sqrt(S * (S - L2) * (S - L3) * (S - L5)) / S;
 
-                  S = 0.5 * (L3 + L4 + L6); //semiperimeter
+                  S = 0.5 * (L3 + L4 + L6); // semiperimeter
                   double R3 = sqrt(S * (S - L3) * (S - L4) * (S - L6)) / S;
 
-                  S = 0.5 * (L1 + L2 + L6); //semiperimeter
+                  S = 0.5 * (L1 + L2 + L6); // semiperimeter
                   double R4 = sqrt(S * (S - L1) * (S - L2) * (S - L6)) / S;
 
                   S = 1.0 / (R1 * R1) + 1.0 / (R2 * R2) + 1.0 / (R3 * R3) + 1.0 / (R4 * R4);
 
-                  double Rcrit = sqrt(2.0 / S); //this is always bigger than the inradius
+                  double Rcrit = sqrt(2.0 / S); // this is always bigger than the inradius
 
                   return Rcrit;
             };
 
-            static inline double CalculateElementRadius(Geometry<Node<3>> &rGeometry)
+            static inline double CalculateElementRadius(Geometry<Node> &rGeometry)
             {
 
                   if (rGeometry.size() == 3)
@@ -1134,7 +1148,7 @@ namespace Kratos
                         return CalculateTetrahedronRadius(rGeometry);
             };
 
-            static inline double CalculateElementRadius(Geometry<Node<3>> &rGeometry, double &rDomainSize)
+            static inline double CalculateElementRadius(Geometry<Node> &rGeometry, double &rDomainSize)
             {
 
                   if (rGeometry.size() == 3)
@@ -1171,7 +1185,7 @@ namespace Kratos
 
                   // std::cout<< " Area "<<Area<<" L1 "<<L1<<" L2 "<<L2<<" L3 "<<L3<<std::endl;
 
-                  //inradius
+                  // inradius
                   double Rcrit = Area * 2 / (L1 + L2 + L3);
 
                   return Rcrit;
@@ -1182,7 +1196,7 @@ namespace Kratos
                                                             const double x2, const double y2, const double z2,
                                                             const double x3, const double y3, const double z3)
             {
-                  //volume
+                  // volume
                   double Volume = 0;
 
                   Volume = CalculateDeterminant(x1, y1, z1, x2, y2, z2, x3, y3, z3);
@@ -1202,7 +1216,7 @@ namespace Kratos
                                                             double &Volume)
             {
 
-                  //edges
+                  // edges
                   double L1 = sqrt((x0 - x1) * (x0 - x1) + (y0 - y1) * (y0 - y1) + (z0 - z1) * (z0 - z1));
                   double L2 = sqrt((x1 - x2) * (x1 - x2) + (y1 - y2) * (y1 - y2) + (z1 - z2) * (z1 - z2));
                   double L3 = sqrt((x2 - x3) * (x2 - x3) + (y2 - y3) * (y2 - y3) + (z2 - z3) * (z2 - z3));
@@ -1210,25 +1224,25 @@ namespace Kratos
                   double L5 = sqrt((x3 - x1) * (x3 - x1) + (y3 - y1) * (y3 - y1) + (z3 - z1) * (z3 - z1));
                   double L6 = sqrt((x2 - x0) * (x2 - x0) + (y2 - y0) * (y2 - y0) + (z2 - z0) * (z2 - z0));
 
-                  //volume
+                  // volume
                   Volume = CalculateTetrahedronVolume(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
-                  //inradius
-                  double S = 0.5 * (L1 + L4 + L5); //semiperimeter
+                  // inradius
+                  double S = 0.5 * (L1 + L4 + L5); // semiperimeter
                   double R1 = sqrt(S * (S - L1) * (S - L4) * (S - L5)) / S;
 
-                  S = 0.5 * (L2 + L3 + L5); //semiperimeter
+                  S = 0.5 * (L2 + L3 + L5); // semiperimeter
                   double R2 = sqrt(S * (S - L2) * (S - L3) * (S - L5)) / S;
 
-                  S = 0.5 * (L3 + L4 + L6); //semiperimeter
+                  S = 0.5 * (L3 + L4 + L6); // semiperimeter
                   double R3 = sqrt(S * (S - L3) * (S - L4) * (S - L6)) / S;
 
-                  S = 0.5 * (L1 + L2 + L6); //semiperimeter
+                  S = 0.5 * (L1 + L2 + L6); // semiperimeter
                   double R4 = sqrt(S * (S - L1) * (S - L2) * (S - L6)) / S;
 
                   S = 1.0 / (R1 * R1) + 1.0 / (R2 * R2) + 1.0 / (R3 * R3) + 1.0 / (R4 * R4);
 
-                  double Rcrit = sqrt(2.0 / S); //this is always bigger than the inradius
+                  double Rcrit = sqrt(2.0 / S); // this is always bigger than the inradius
 
                   return Rcrit;
             }
@@ -1304,7 +1318,7 @@ namespace Kratos
                   if (rShapeFunctionsN.size() != 4)
                   {
                         rShapeFunctionsN.resize(4);
-                        //std::fill( rShapeFunctionsN.begin(), rShapeFunctionsN.end(), 0 );
+                        // std::fill( rShapeFunctionsN.begin(), rShapeFunctionsN.end(), 0 );
                   }
 
                   rShapeFunctionsN[0] = CalculateTetrahedronVolume(xc, yc, zc, x1, y1, z1, x2, y2, z2, x3, y3, z3) / volume;
@@ -1312,14 +1326,14 @@ namespace Kratos
                   rShapeFunctionsN[2] = CalculateTetrahedronVolume(x0, y0, z0, x1, y1, z1, xc, yc, zc, x3, y3, z3) / volume;
                   rShapeFunctionsN[3] = CalculateTetrahedronVolume(x0, y0, z0, x1, y1, z1, x2, y2, z2, xc, yc, zc) / volume;
 
-                  //std::cout<<" N "<<rShapeFunctionsN[0]<<" "<<rShapeFunctionsN[1]<<" "<<rShapeFunctionsN[2]<<" "<<rShapeFunctionsN[3]<<" "<<std::endl;
+                  // std::cout<<" N "<<rShapeFunctionsN[0]<<" "<<rShapeFunctionsN[1]<<" "<<rShapeFunctionsN[2]<<" "<<rShapeFunctionsN[3]<<" "<<std::endl;
 
                   double tol = 1e-5;
                   double upper_limit = 1.0 + tol;
                   double lower_limit = -tol;
 
                   if (rShapeFunctionsN[0] >= lower_limit && rShapeFunctionsN[1] >= lower_limit && rShapeFunctionsN[2] >= lower_limit && rShapeFunctionsN[3] >= lower_limit &&
-                      rShapeFunctionsN[0] <= upper_limit && rShapeFunctionsN[1] <= upper_limit && rShapeFunctionsN[2] <= upper_limit && rShapeFunctionsN[3] <= upper_limit) //if the xc yc zc is inside the tetrahedron
+                      rShapeFunctionsN[0] <= upper_limit && rShapeFunctionsN[1] <= upper_limit && rShapeFunctionsN[2] <= upper_limit && rShapeFunctionsN[3] <= upper_limit) // if the xc yc zc is inside the tetrahedron
                         return true;
                   return false;
             }
@@ -1337,14 +1351,14 @@ namespace Kratos
 
                   if (area < 1e-15)
                   {
-                        //KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" );
+                        // KRATOS_THROW_ERROR( std::logic_error,"element with zero area found", "" );
                         std::cout << " ERROR LS: triangle element with zero area found: " << area << " position (" << x0 << ", " << y0 << ") (" << x1 << ", " << y1 << ") (" << x2 << ", " << y2 << ") " << std::endl;
                   }
 
                   if (rShapeFunctionsN.size() != 3)
                   {
                         rShapeFunctionsN.resize(3);
-                        //std::fill( rShapeFunctionsN.begin(), rShapeFunctionsN.end(), 0 );
+                        // std::fill( rShapeFunctionsN.begin(), rShapeFunctionsN.end(), 0 );
                   }
 
                   rShapeFunctionsN[0] = CalculateTriangleArea(x1, y1, x2, y2, xc, yc) / area;
@@ -1355,7 +1369,7 @@ namespace Kratos
                   double upper_limit = 1.0 + tol;
                   double lower_limit = -tol;
 
-                  if (rShapeFunctionsN[0] >= lower_limit && rShapeFunctionsN[1] >= lower_limit && rShapeFunctionsN[2] >= lower_limit && rShapeFunctionsN[0] <= upper_limit && rShapeFunctionsN[1] <= upper_limit && rShapeFunctionsN[2] <= upper_limit) //if the xc yc is inside the triangle
+                  if (rShapeFunctionsN[0] >= lower_limit && rShapeFunctionsN[1] >= lower_limit && rShapeFunctionsN[2] >= lower_limit && rShapeFunctionsN[0] <= upper_limit && rShapeFunctionsN[1] <= upper_limit && rShapeFunctionsN[2] <= upper_limit) // if the xc yc is inside the triangle
                         return true;
 
                   return false;
@@ -1368,7 +1382,7 @@ namespace Kratos
 
             bool CheckElementInBox(Element::Pointer &pElement, SpatialBoundingBox &rRefiningBox, ProcessInfo &rCurrentProcessInfo);
 
-            bool CheckVerticesInBox(Geometry<Node<3>> &rGeometry, SpatialBoundingBox &rRefiningBox, ProcessInfo &rCurrentProcessInfo);
+            bool CheckVerticesInBox(Geometry<Node> &rGeometry, SpatialBoundingBox &rRefiningBox, ProcessInfo &rCurrentProcessInfo);
 
             //*******************************************************************************************
             //*******************************************************************************************
@@ -1427,7 +1441,7 @@ namespace Kratos
                         }
                   }
                   else if (dimension == 3)
-                  { //dimension == 3
+                  { // dimension == 3
 
                         for (ModelPart::ElementsContainerType::iterator i_elem = rModelPart.ElementsBegin(); i_elem != rModelPart.ElementsEnd(); ++i_elem)
                         {
@@ -1484,20 +1498,20 @@ namespace Kratos
             //*******************************************************************************************
             //*******************************************************************************************
 
-            bool FindCondition(Geometry<Node<3>> &rConditionGeometry, Geometry<Node<3>> &rGeometry, DenseMatrix<unsigned int> &lpofa, DenseVector<unsigned int> &lnofa, unsigned int &iface);
+            bool FindCondition(Geometry<Node> &rConditionGeometry, Geometry<Node> &rGeometry, DenseMatrix<unsigned int> &lpofa, DenseVector<unsigned int> &lnofa, unsigned int &iface);
 
             //*******************************************************************************************
             //*******************************************************************************************
 
             /**
-     *  Set Nodes to mesh
-     */
+             *  Set Nodes to mesh
+             */
             void SetNodes(ModelPart &rModelPart,
                           MeshingParameters &rMeshingVariables);
 
             /**
-     * Set Elements to mesh
-     */
+             * Set Elements to mesh
+             */
             void SetElements(ModelPart &rModelPart,
                              MeshingParameters &rMeshingVariables);
 

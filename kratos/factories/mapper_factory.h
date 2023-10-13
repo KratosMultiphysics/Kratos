@@ -119,6 +119,7 @@ public:
 
         std::vector<std::string> mapper_names;
 
+        mapper_names.reserve(mapper_list.size());
         for (auto const& r_registered_mapper : mapper_list) {
             mapper_names.push_back(r_registered_mapper.first);
         }

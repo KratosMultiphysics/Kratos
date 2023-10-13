@@ -4,14 +4,13 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /  
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED )
-#define  KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -21,13 +20,8 @@
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "custom_processes/normal_gap_process.h"
-
-/* Custom includes*/
-#include "custom_includes/point_item.h"
+#include "spatial_containers/specialized_spatial_search.h"
 #include "custom_conditions/paired_condition.h"
-
-/* Tree structures */
-// #include "spatial_containers/bounding_volume_tree.h" // k-DOP
 #include "spatial_containers/spatial_containers.h" // kd-tree
 
 namespace Kratos
@@ -40,7 +34,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -73,29 +67,27 @@ public:
     ///@name Type Definitions
     ///@{
 
-    /// General type definitions
-    typedef ModelPart::NodesContainerType                    NodesArrayType;
-    typedef ModelPart::ConditionsContainerType          ConditionsArrayType;
-    typedef Node<3>                                                NodeType;
-    typedef Geometry<NodeType>                                 GeometryType;
+    /// Containers definition
+    using NodesArrayType = ModelPart::NodesContainerType;
+    using ConditionsArrayType = ModelPart::ConditionsContainerType;
 
-    /// Index type definition
-    typedef std::size_t                                           IndexType;
+    /// Geometry type definition
+    using GeometryType = Geometry<Node>; 
+
+    /// Definition of the indextype
+    using IndexType = std::size_t;
 
     /// Type definitions for the tree
-    typedef PointItem<Condition>                                  PointType;
-    typedef PointType::Pointer                             PointTypePointer;
-    typedef std::vector<PointTypePointer>                       PointVector;
-    typedef PointVector::iterator                             PointIterator;
-    typedef std::vector<double>                              DistanceVector;
-    typedef DistanceVector::iterator                       DistanceIterator;
+    using PointType = PointObject<Condition>; /// Point type definition
+    using PointTypePointer = typename PointType::Pointer; /// Point type pointer definition
+    using PointVector = std::vector<PointTypePointer>; /// Point vector definition
 
     /// KDtree definitions
-    typedef Bucket< 3ul, PointType, PointVector, PointTypePointer, PointIterator, DistanceIterator > BucketType;
-    typedef Tree< KDTreePartition<BucketType> > KDTree;
+    using BucketType = Bucket<3, PointType, PointVector>; /// Bucket type definition
+    using KDTree = Tree<KDTreePartition<BucketType>>; /// KDTree type definition
 
     /// The type of mapper considered
-    typedef NormalGapProcess<TDim, TNumNodes, TNumNodesMaster> NormalGapProcessType;
+    using NormalGapProcessType = NormalGapProcess<TDim, TNumNodes, TNumNodesMaster>; /// Normal gap process type definition
 
     /// The definition of zero tolerance
     static constexpr double GapThreshold = 2.0e-3;
@@ -117,13 +109,48 @@ public:
     ///@name  Enum's
     ///@{
 
-    enum class SearchTreeType {KdtreeInRadius = 0, KdtreeInBox = 1, KdtreeInRadiusWithOBB = 2, KdtreeInBoxWithOBB = 3, OctreeWithOBB = 4, Kdop = 5};
+    /**
+     * @brief An enumeration of the different types of search trees that can be used in the contact search process.
+     */
+    enum class SearchTreeType {
+        KdtreeInRadius = 0, ///< A kd-tree search within a given radius.
+        KdtreeInBox = 1, ///< A kd-tree search within a given box.
+        KdtreeInRadiusWithOBB = 2, ///< A kd-tree search within a given radius, using oriented bounding boxes (OBBs).
+        KdtreeInBoxWithOBB = 3, ///< A kd-tree search within a given box, using OBBs.
+        OctreeWithOBB = 4, ///< An octree search using OBBs.
+        Kdop = 5 ///< A kd-tree search using discrete oriented polytopes (DOPs).
+    };
 
-    enum class CheckResult {Fail = 0, AlreadyInTheMap = 1, OK = 2};
+    /**
+     * @brief An enumeration of the possible results of a check during the contact search process.
+     */
+    enum class CheckResult {
+        Fail = 0, ///< The check failed.
+        AlreadyInTheMap = 1, ///< The check succeeded, and the element is already in the map.
+        OK = 2 ///< The check succeeded, and the element was added to the map.
+    };
 
-    enum class CheckGap {NoCheck = 0, DirectCheck = 1, MappingCheck = 2};
+    /**
+     * @brief An enumeration of the different types of gap checks that can be performed during the contact search process.
+     */
+    enum class CheckGap {
+        NoCheck = 0, ///< No gap check is performed.
+        DirectCheck = 1, ///< A direct gap check is performed.
+        MappingCheck = 2 ///< A mapping gap check is performed.
+    };
 
-    enum class TypeSolution {NormalContactStress = 0, ScalarLagrangeMultiplier = 1, VectorLagrangeMultiplier = 2, FrictionlessPenaltyMethod = 3, FrictionalPenaltyMethod = 4, OtherFrictionless = 5, OtherFrictional = 6};
+    /**
+     * @brief An enumeration of the different types of solutions that can be used in the contact search process.
+     */
+    enum class TypeSolution {
+        NormalContactStress = 0, ///< A normal contact stress solution.
+        ScalarLagrangeMultiplier = 1, ///< A scalar Lagrange multiplier solution.
+        VectorLagrangeMultiplier = 2, ///< A vector Lagrange multiplier solution.
+        FrictionlessPenaltyMethod = 3, ///< A frictionless penalty method solution.
+        FrictionalPenaltyMethod = 4, ///< A frictional penalty method solution.
+        OtherFrictionless = 5, ///< Another frictionless solution.
+        OtherFrictional = 6 ///< Another frictional solution.
+    };
 
     ///@}
     ///@name Life Cycle
@@ -249,17 +276,19 @@ public:
     ///@name Input and output
     ///@{
 
-    /************************************ GET INFO *************************************/
-    /***********************************************************************************/
-
+    /**
+     * @brief Returns a string with information about the contact search process.
+     * @return A string with information about the contact search process.
+     */
     std::string Info() const override
     {
         return "BaseContactSearchProcess";
     }
 
-    /************************************ PRINT INFO ***********************************/
-    /***********************************************************************************/
-
+    /**
+     * @brief Prints information about the contact search process to an output stream.
+     * @param rOStream The output stream to print to.
+     */
     void PrintInfo(std::ostream& rOStream) const override
     {
         rOStream << Info();
@@ -280,14 +309,14 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    ModelPart& mrMainModelPart;                       /// The main model part
-    Parameters mThisParameters;                       /// The configuration parameters
-    CheckGap mCheckGap;                               /// If the gap is checked during the search
-    TypeSolution mTypeSolution;                       /// The solution type
-    std::string mConditionName;                       /// The name of the condition to be created
-    PointVector mPointListDestination;                /// A list that contents the all the points (from nodes) from the modelpart
+    ModelPart& mrMainModelPart;                            /// The main model part
+    Parameters mThisParameters;                            /// The configuration parameters
+    CheckGap mCheckGap;                                    /// If the gap is checked during the search
+    TypeSolution mTypeSolution;                            /// The solution type
+    PairedCondition const* mpReferenceCondition = nullptr; /// The prototype reference condition to be created
+    PointVector mPointListDestination;                     /// A list that contents the all the points (from nodes) from the modelpart
 
-    Properties::Pointer mpPairedProperties = nullptr; /// This is the paired properties (unique for the given potential pair)
+    Properties::Pointer mpPairedProperties = nullptr;      /// This is the paired properties (unique for the given potential pair)
 
     ///@}
     ///@name Protected Operators
@@ -325,7 +354,7 @@ protected:
      * @param ScaleFactor The scale factor
      */
     virtual void SetActiveNode(
-        NodeType& rNode,
+        Node& rNode,
         const double CommonEpsilon,
         const double ScaleFactor = 1.0
         );
@@ -334,7 +363,7 @@ protected:
      * @brief This method sets as inactive a node and it sets to zero its LM
      * @param ItNode The node reference to set
      */
-    virtual void SetInactiveNode(NodeType& rNode);
+    virtual void SetInactiveNode(Node& rNode);
 
     /**
      * @brief This method add a new pair to the computing model part
@@ -433,7 +462,7 @@ private:
     ///@{
 
     /**
-     * @brief This auxiliar method performs the seach using a KDTree
+     * @brief This auxiliary method performs the seach using a KDTree
      * @param rSubContactModelPart The submodel part studied
      * @param rSubComputingContactModelPart The computing contact submodel part
      */
@@ -443,7 +472,7 @@ private:
         );
 
     /**
-     * @brief This auxiliar method performs the seach using a Octree
+     * @brief This auxiliary method performs the seach using a Octree
      * @param rSubContactModelPart The submodel part studied
      * @param rSubComputingContactModelPart The computing contact submodel part
      */
@@ -544,7 +573,7 @@ private:
     inline IndexType GetMaximumConditionsIds();
 
     /**
-     * @brief This method checks the potential pairing between two conditions/geometries (auxiliar one)
+     * @brief This method checks the potential pairing between two conditions/geometries (auxiliary one)
      * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param rConditionId The ID of the new condition to be created
      * @param pObjectSlave The pointer to the slave condition
@@ -581,12 +610,12 @@ private:
     inline void ComputeWeightedReaction();
 
     /**
-     * @brief This method creates the auxiliar the pairing
+     * @brief This method creates the auxiliary the pairing
      * @param rContactModelPart The modelpart  used in the assemble of the system
      * @param rComputingModelPart The modelpart  used in the assemble of the system
      * @param rConditionId The ID of the new condition to be created
      */
-    inline void CreateAuxiliarConditions(
+    inline void CreateAuxiliaryConditions(
         ModelPart& rContactModelPart,
         ModelPart& rComputingModelPart,
         IndexType& rConditionId
@@ -661,5 +690,3 @@ inline std::ostream& operator << (std::ostream& rOStream,
 ///@}
 
 }  // namespace Kratos.
-
-#endif // KRATOS_BASE_CONTACT_SEARCH_PROCESS_H_INCLUDED  defined

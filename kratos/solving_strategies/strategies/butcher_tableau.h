@@ -4,26 +4,24 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
-//  Main authors:    Edurd Gómez
+//  Main authors:    Eduard Gomez
 //
 //
 
-#if !defined(KRATOS_RUNGE_KUTTA_BUTCHER_TABLEAU_H)
-#define KRATOS_RUNGE_KUTTA_BUTCHER_TABLEAU_H
+#pragma once
 
-/* System includes */
+// System includes
 
-/* External includes */
+// External includes
 
-/* Project includes */
+// Project includes
 #include "containers/array_1d.h"
 
 namespace Kratos
 {
-
 ///@name Kratos Globals
 ///@{
 
@@ -71,21 +69,15 @@ public:
     ///@name Type Definitions
     ///@{
 
-    typedef array_1d<double, TSubstepCount> VectorType;
+    using VectorType = std::vector<double>;
 
     /* Using the following constructs allows us to multiply parts of vectors with parts of matrices
      * while avoiding BOOST's size checks. This is useful to skip multiplications by zero, since
      * for all explicit runge-kutta methods a_ij = 0 for i>j
      */
 
-    typedef array_1d<double,TSubstepCount-1> RowType;
-    typedef std::array<RowType, TSubstepCount-1> MatrixType;
-
-    struct ArraySlice
-    {
-        typename RowType::const_iterator begin;
-        typename RowType::const_iterator end;
-    };
+    using RowType = std::vector<double>;
+    using MatrixType = std::vector<RowType>;
 
     static constexpr unsigned int Order() {return TOrder;}
     static constexpr unsigned int SubstepCount() {return TSubstepCount; }
@@ -94,6 +86,8 @@ public:
     ///@name Life Cycle
     ///@{
 
+    /// Destructor.
+    virtual ~ButcherTableau() = default;
 
     ///@}
     ///@name Operators
@@ -109,7 +103,7 @@ public:
      *
      *  du^(i) = dt * A_ij*k_j
      *
-     * This method return the coefficients A_i[1...i]. The rest of coefficents
+     * This method return the coefficients A_i[1...i]. The rest of coefficients
      * A_i[i+1...n] are skipped. This is they are always zero for explicit
      * Runge-Kutta.
      *
@@ -120,12 +114,21 @@ public:
      *          intended to be used with std::inner_product.
      */
 
-    ArraySlice GetMatrixRow(const unsigned int SubStepIndex) const
+    std::tuple<RowType::const_iterator, RowType::const_iterator> GetMatrixRow(const unsigned int SubStepIndex) const
     {
-        return ArraySlice{
-            mA[SubStepIndex - 1].begin(),
-            mA[SubStepIndex - 1].begin() + SubStepIndex
-        };
+        return {GetMatrixRowBegin(SubStepIndex), GetMatrixRowEnd(SubStepIndex)};
+    }
+
+    RowType::const_iterator GetMatrixRowBegin(const unsigned int SubStepIndex) const
+    {
+        KRATOS_DEBUG_ERROR_IF(SubStepIndex == 0) << "Provided substep is 0. This must be greater than or equal to 1." << std::endl;
+        return mA[SubStepIndex - 1].begin();
+    }
+
+    RowType::const_iterator GetMatrixRowEnd(const unsigned int SubStepIndex) const
+    {
+        KRATOS_DEBUG_ERROR_IF(SubStepIndex == 0) << "Provided substep is 0. This must be greater than or equal to 1." << std::endl;
+        return mA[SubStepIndex - 1].begin() + SubStepIndex;
     }
 
     constexpr const VectorType& GetWeights() const
@@ -135,7 +138,8 @@ public:
 
     constexpr double GetIntegrationTheta(const unsigned int SubStepIndex) const
     {
-        return mC(SubStepIndex - 1);
+        KRATOS_DEBUG_ERROR_IF(SubStepIndex == 0) << "Provided substep is 0. This must be greater than or equal to 1." << std::endl;
+        return mC[SubStepIndex - 1];
     }
 
     ///@}
@@ -146,6 +150,8 @@ public:
     {
         return Derived::Name();
     }
+
+    virtual std::string Info() const = 0;
 
 protected:
     ///@name Protected static Member Variables
@@ -239,19 +245,20 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B;
-        B(0) = 1.0;
-        return B;
+        return VectorType {1.0};
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C;
-        C(0) = 0.0;
-        return C;
+        return VectorType {0.0};
     }
 
     static std::string Name()
+    {
+        return "butcher_tableau_forward_euler";
+    }
+
+    std::string Info() const override
     {
         return "ButcherTableauForwardEuler";
     }
@@ -265,28 +272,27 @@ public:
 
     static const BaseType::MatrixType GenerateRKMatrix()
     {
-        MatrixType A;
+        MatrixType A(1, RowType(1));
         A[0][0] = 0.5;
         return A;
     }
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B;
-        B(0) = 0.0;
-        B(1) = 1.0;
-        return B;
+        return VectorType {0.0, 1.0};
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C;
-        C(0) = 0.0;
-        C(1) = 0.5;
-        return C;
+        return VectorType {0.0, 0.5};
     }
 
     static std::string Name()
+    {
+        return "butcher_tableau_midpoint_method";
+    }
+
+    std::string Info() const override
     {
         return "ButcherTableauMidPointMethod";
     }
@@ -305,7 +311,7 @@ public:
 
     static const BaseType::MatrixType GenerateRKMatrix()
     {
-        MatrixType A;
+        MatrixType A(2, RowType(2));
         A[0][0] = 1;
         A[1][0] = 0.25;
         A[0][1] = 0.0;
@@ -315,23 +321,24 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B;
-        B(0) = 1.0 / 6.0;
-        B(1) = 1.0 / 6.0;
-        B(2) = 2.0 / 3.0;
-        return B;
+        return VectorType {1.0 / 6.0,
+                           1.0 / 6.0,
+                           2.0 / 3.0};
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C;
-        C(0) = 0.0;
-        C(1) = 1.0;
-        C(2) = 0.5;
-        return C;
+        return VectorType {0.0,
+                           1.0,
+                           0.5};
     }
 
     static std::string Name()
+    {
+        return "butcher_tableau_RK3TVD";
+    }
+
+    std::string Info() const override
     {
         return "ButcherTableauRK3TVD";
     }
@@ -344,8 +351,7 @@ public:
     typedef ButcherTableau<ButcherTableauRK4, 4, 4> BaseType;
     static const BaseType::MatrixType GenerateRKMatrix()
     {
-        MatrixType A;
-        std::fill(begin(A), end(A), ZeroVector(SubstepCount()-1));
+        MatrixType A(3, RowType(3,0.0));
         A[0][0] = 0.5;
         A[1][1] = 0.5;
         A[2][2] = 1.0;
@@ -354,25 +360,26 @@ public:
 
     static const BaseType::VectorType GenerateWeights()
     {
-        VectorType B;
-        B(0) = 1.0 / 6.0;
-        B(1) = 1.0 / 3.0;
-        B(2) = 1.0 / 3.0;
-        B(3) = 1.0 / 6.0;
-        return B;
+        return VectorType {1.0 / 6.0,
+                           1.0 / 3.0,
+                           1.0 / 3.0,
+                           1.0 / 6.0};
     }
 
     static const BaseType::VectorType GenerateThetasVector()
     {
-        VectorType C;
-        C(0) = 0.0;
-        C(1) = 0.5;
-        C(2) = 0.5;
-        C(3) = 1.0;
-        return C;
+        return VectorType {0.0,
+                           0.5,
+                           0.5,
+                           1.0};
     }
 
     static std::string Name()
+    {
+        return "butcher_tableau_RK4";
+    }
+
+    std::string Info() const override
     {
         return "ButcherTableauRK4";
     }
@@ -381,5 +388,3 @@ public:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RUNGE_KUTTA_BUTCHER_TABLEAU_H  defined */

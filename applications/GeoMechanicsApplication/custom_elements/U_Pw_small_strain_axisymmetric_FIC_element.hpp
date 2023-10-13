@@ -34,15 +34,15 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( UPwSmallStrainAxisymmetricFICElement );
 
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using  GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
     using UPwBaseElement<TDim,TNumNodes>::mConstitutiveLawVector;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -53,18 +53,18 @@ public:
 
     /// Constructor using an array of nodes
     UPwSmallStrainAxisymmetricFICElement(IndexType NewId,
-                                           const NodesArrayType& ThisNodes) :
+                                         const NodesArrayType& ThisNodes) :
         UPwSmallStrainFICElement<TDim,TNumNodes>(NewId, ThisNodes) {}
 
     /// Constructor using Geometry
     UPwSmallStrainAxisymmetricFICElement(IndexType NewId,
-                                           GeometryType::Pointer pGeometry) :
+                                         GeometryType::Pointer pGeometry) :
         UPwSmallStrainFICElement<TDim,TNumNodes>(NewId, pGeometry) {}
 
     /// Constructor using Properties
     UPwSmallStrainAxisymmetricFICElement(IndexType NewId,
-                                           GeometryType::Pointer pGeometry,
-                                           PropertiesType::Pointer pProperties) :
+                                         GeometryType::Pointer pGeometry,
+                                         PropertiesType::Pointer pProperties) :
         UPwSmallStrainFICElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
@@ -86,14 +86,20 @@ public:
     std::string Info() const override
     {
         std::stringstream buffer;
-        buffer << "U-Pw small strain axial symmetric Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        buffer << "Small strain axisymmetric U-Pw Element #"
+               << this->Id()
+               << "\nConstitutive law: "
+               << mConstitutiveLawVector[0]->Info();
         return buffer.str();
     }
 
     // Print information about this object.
     void PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "U-Pw small strain axial symmetric Element #" << this->Id() << "\nConstitutive law: " << mConstitutiveLawVector[0]->Info();
+        rOStream << "Small strain axisymmetric U-Pw Element #"
+                 << this->Id()
+                 << "\nConstitutive law: "
+                 << mConstitutiveLawVector[0]->Info();
     }
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
@@ -109,8 +115,8 @@ protected:
                            const Vector &Np ) override;
 
     double CalculateIntegrationCoefficient( const GeometryType::IntegrationPointsArrayType& IntegrationPoints,
-                                            const IndexType& PointNumber,
-                                            const double& detJ) override;
+                                            unsigned int PointNumber,
+                                            double detJ) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

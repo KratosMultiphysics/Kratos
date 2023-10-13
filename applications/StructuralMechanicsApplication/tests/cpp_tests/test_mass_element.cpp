@@ -3,8 +3,8 @@
 //             | |   |    |   | (    |   |   | |   (   | |
 //       _____/ \__|_|   \__,_|\___|\__|\__,_|_|  \__,_|_| MECHANICS
 //
-//  License:		 BSD License
-//					 license: structural_mechanics_application/license.txt
+//  License:         BSD License
+//                   license: StructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
@@ -81,7 +81,7 @@ void ConductMassElementRHSTest(std::string const& rElementName, const std::vecto
     Vector rhs;
     p_elem->CalculateRightHandSide(rhs, r_process_info);
 
-    KRATOS_CHECK_VECTOR_NEAR(rhs, rRefRHS, 1e-10);
+    KRATOS_EXPECT_VECTOR_NEAR(rhs, rRefRHS, 1e-10);
 
     KRATOS_CATCH("ConductMassElementRHSTest");
 }
@@ -99,7 +99,7 @@ void ConductMassElementMassMatrixTest(std::string const& rElementName, const Mat
     Matrix lhs;
     p_elem->CalculateMassMatrix(lhs, r_process_info);
 
-    KRATOS_CHECK_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
+    KRATOS_EXPECT_MATRIX_NEAR(lhs, rRefMatrix, 1e-8);
 
     KRATOS_CATCH("ConductMassElementMassMatrixTest");
 }

@@ -1,13 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
 // System includes
@@ -34,8 +30,9 @@ namespace Kratos {
     const double d         = particle->mNeighborDistanceAdjusted;
     const double kavg      = particle->ComputeAverageConductivity();
     const double temp_grad = particle->GetNeighborTemperature() - particle->GetParticleTemperature();
+    const double area      = (particle->mDimension == 2) ? 2.0 * Rc : Globals::Pi * Rc * Rc;
 
-    return kavg * (Globals::Pi * Rc * Rc) * temp_grad / d;
+    return kavg * area * temp_grad / d;
 
     KRATOS_CATCH("")
   }

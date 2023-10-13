@@ -71,6 +71,9 @@ Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: 
     FORCE_INTEGRATION_GROUP 0
     IDENTIFIER particles_1
   End SubModelPartData
+  Begin SubModelPartElements
+        90
+  End SubModelPartElements
   Begin SubModelPartNodes
         12
   End SubModelPartNodes
@@ -91,6 +94,9 @@ Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: 
     FORCE_INTEGRATION_GROUP 0
     IDENTIFIER particles_2
   End SubModelPartData
+  Begin SubModelPartElements
+        91
+  End SubModelPartElements
   Begin SubModelPartNodes
         16
   End SubModelPartNodes

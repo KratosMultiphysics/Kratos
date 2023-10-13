@@ -50,7 +50,7 @@ public:
         mTheta = theta;
 
         //Allocate auxiliary memory
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         mMMatrix.resize(NumThreads);
         mMVector.resize(NumThreads);
     }
@@ -111,7 +111,7 @@ public:
         KRATOS_TRY
 
         mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
-        r_model_part.GetProcessInfo()[THETA] = mTheta;
+        r_model_part.GetProcessInfo().SetValue(THETA,mTheta);
 
         BaseType::mSchemeIsInitialized = true;
 
@@ -129,9 +129,9 @@ public:
         KRATOS_TRY
 
         mDeltaTime = r_model_part.GetProcessInfo()[DELTA_TIME];
-        r_model_part.GetProcessInfo()[THETA] = mTheta;
+        r_model_part.GetProcessInfo().SetValue(THETA,mTheta);
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         int NElems = static_cast<int>(r_model_part.Elements().size());
         ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
@@ -204,28 +204,28 @@ public:
             }
         }
 
-        const double& Time = r_model_part.GetProcessInfo()[TIME];
+        // const double& Time = r_model_part.GetProcessInfo()[TIME];
 
-        const double M = 1000.0;
-        const double D = 0.1;
-        const double L = 4.0;
+        // const double M = 1000.0;
+        // const double D = 0.1;
+        // const double L = 4.0;
 
-        #pragma omp parallel for
-        for(int i = 0; i < NNodes; i++)
-        {
-            ModelPart::NodesContainerType::iterator itNode = node_begin + i;
+        // #pragma omp parallel for
+        // for(int i = 0; i < NNodes; i++)
+        // {
+        //     ModelPart::NodesContainerType::iterator itNode = node_begin + i;
 
-            double& rNodalAnalyticSolution = itNode->FastGetSolutionStepValue(NODAL_ANALYTIC_SOLUTION);
-            const double& velocity_x = itNode->FastGetSolutionStepValue(VELOCITY_X);
-            const double& velocity_y = itNode->FastGetSolutionStepValue(VELOCITY_Y);
-            const double& velocity_z = itNode->FastGetSolutionStepValue(VELOCITY_Z);
+        //     double& rNodalAnalyticSolution = itNode->FastGetSolutionStepValue(NODAL_ANALYTIC_SOLUTION);
+        //     const double& velocity_x = itNode->FastGetSolutionStepValue(VELOCITY_X);
+        //     const double& velocity_y = itNode->FastGetSolutionStepValue(VELOCITY_Y);
+        //     const double& velocity_z = itNode->FastGetSolutionStepValue(VELOCITY_Z);
 
-            rNodalAnalyticSolution = M /(4.0 * Globals::Pi * Time * D * L)
-                                    * std::exp(-(itNode->X()-(2.0 + velocity_x * Time))*(itNode->X()-(2.0 + velocity_x * Time)) / (4 * D * Time)
-                                               -(itNode->Y()-(5.0 + velocity_y * Time))*(itNode->Y()-(5.0 + velocity_y * Time)) / (4 * D * Time)
-                                               -(itNode->Z()-(0.0 + velocity_z * Time))*(itNode->Z()-(0.0 + velocity_z * Time)) / (4 * D * Time));
+        //     rNodalAnalyticSolution = M /(4.0 * Globals::Pi * Time * D * L)
+        //                             * std::exp(-(itNode->X()-(2.0 + velocity_x * Time))*(itNode->X()-(2.0 + velocity_x * Time)) / (4 * D * Time)
+        //                                        -(itNode->Y()-(5.0 + velocity_y * Time))*(itNode->Y()-(5.0 + velocity_y * Time)) / (4 * D * Time)
+        //                                        -(itNode->Z()-(0.0 + velocity_z * Time))*(itNode->Z()-(0.0 + velocity_z * Time)) / (4 * D * Time));
 
-        }
+        // }
 
         KRATOS_CATCH("")
     }
@@ -274,7 +274,7 @@ public:
 
         // // Extrapolate GP values to nodal variables
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         int NElems = static_cast<int>(r_model_part.Elements().size());
         ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
@@ -330,7 +330,7 @@ public:
     {
         KRATOS_TRY
 
-        ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
+        const ProcessInfo& CurrentProcessInfo = r_model_part.GetProcessInfo();
 
         int NElems = static_cast<int>(r_model_part.Elements().size());
         ModelPart::ElementsContainerType::iterator el_begin = r_model_part.ElementsBegin();
@@ -361,19 +361,19 @@ public:
 // Note: this is in a parallel loop
 
     void CalculateSystemContributions(
-        Element::Pointer rCurrentElement,
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement) -> CalculateFirstDerivativesContributions(mMMatrix[thread], mMVector[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateFirstDerivativesContributions(mMMatrix[thread], mMVector[thread],CurrentProcessInfo);
 
         // adding transient contribution
         if (mMMatrix[thread].size1() != 0)
@@ -382,7 +382,7 @@ public:
         if (mMVector[thread].size() != 0)
             noalias(RHS_Contribution) += mMVector[thread];
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
 // if(rCurrentElement->Id() == 8)
 // {
@@ -397,18 +397,18 @@ public:
 
 // Note: this is in a parallel loop
 
-    void Condition_CalculateSystemContributions(
-        Condition::Pointer rCurrentCondition,
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -417,26 +417,26 @@ public:
 
 // Note: this is in a parallel loop
 
-    void Calculate_RHS_Contribution(
-        Element::Pointer rCurrentElement,
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement) -> CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement) -> CalculateFirstDerivativesRHS(mMVector[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateFirstDerivativesRHS(mMVector[thread],CurrentProcessInfo);
 
         // adding transient contribution
 
         if (mMVector[thread].size() != 0)
             noalias(RHS_Contribution) += mMVector[thread];
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -445,17 +445,17 @@ public:
 
 // Note: this is in a parallel loop
 
-    void Condition_Calculate_RHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemVectorType& RHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateRightHandSide(RHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -464,25 +464,25 @@ public:
 
 // Note: this is in a parallel loop
 
-    void Calculate_LHS_Contribution(
-        Element::Pointer rCurrentElement,
+    void CalculateLHSContribution(
+        Element& rCurrentElement,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement) -> CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement) -> CalculateFirstDerivativesLHS(mMMatrix[thread], CurrentProcessInfo);
+        rCurrentElement.CalculateFirstDerivativesLHS(mMMatrix[thread], CurrentProcessInfo);
 
         // adding transient contribution
         if (mMMatrix[thread].size1() != 0)
             noalias(LHS_Contribution) += 1.0 / (mTheta*mDeltaTime) * mMMatrix[thread];
 
-        (rCurrentElement) -> EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -491,17 +491,17 @@ public:
 
 // Note: this is in a parallel loop
 
-    void Condition_Calculate_LHS_Contribution(
-        Condition::Pointer rCurrentCondition,
+    void CalculateLHSContribution(
+        Condition& rCurrentCondition,
         LocalSystemMatrixType& LHS_Contribution,
         Element::EquationIdVectorType& EquationId,
-        ProcessInfo& CurrentProcessInfo) override
+        const ProcessInfo& CurrentProcessInfo) override
     {
         KRATOS_TRY
 
-        (rCurrentCondition) -> CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+        rCurrentCondition.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
 
-        (rCurrentCondition) -> EquationIdVector(EquationId, CurrentProcessInfo);
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
@@ -517,7 +517,7 @@ public:
     {
         KRATOS_TRY
 
-        int NumThreads = OpenMPUtils::GetNumThreads();
+        int NumThreads = ParallelUtilities::GetNumThreads();
         OpenMPUtils::PartitionVector DofSetPartition;
         OpenMPUtils::DivideInPartitions(rDofSet.size(), NumThreads, DofSetPartition);
 

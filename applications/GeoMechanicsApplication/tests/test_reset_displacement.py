@@ -41,8 +41,8 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         project_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         n_stages = 4
 
+        cwd = os.getcwd()
         stages = test_helper.get_stages(project_path, n_stages)
-
         displacement_stages = [None]*n_stages
         nodal_coordinates_stages = [None]*n_stages
 
@@ -51,6 +51,8 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             stage.Run()
             displacement_stages[idx] = test_helper.get_displacement(stage)
             nodal_coordinates_stages[idx] = test_helper. get_nodal_coordinates(stage)
+
+        os.chdir(cwd)
 
         # Assert
         stage_nr = 0
@@ -93,7 +95,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
         test_name = 'geo_beam_with_reset_displacemnet'
         project_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         n_stages = 4
-
+        cwd = os.getcwd()
         stages = test_helper.get_stages(project_path, n_stages)
 
         displacement_stages = [None] * n_stages
@@ -104,6 +106,7 @@ class KratosGeoMechanicsResetDisplacementTests(KratosUnittest.TestCase):
             stage.Run()
             displacement_stages[idx] = test_helper.get_displacement(stage)
             nodal_coordinates_stages[idx] = test_helper.get_nodal_coordinates(stage)
+        os.chdir(cwd)
 
         # Assert
         stage_nr = 0

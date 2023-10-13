@@ -9,8 +9,6 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
@@ -23,6 +21,8 @@ from KratosMultiphysics.ShapeOptimizationApplication import mapper_factory
 from KratosMultiphysics.ShapeOptimizationApplication.loggers import data_logger_factory
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_timer import Timer
 from KratosMultiphysics.ShapeOptimizationApplication.utilities.custom_variable_utilities import WriteDictionaryDataOnNodalVariable
+
+import math
 
 # ==============================================================================
 class AlgorithmGradientProjection(OptimizationAlgorithm):
@@ -58,11 +58,11 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.objectives = optimization_settings["objectives"]
         self.constraints = optimization_settings["constraints"]
         self.constraint_gradient_variables = {}
-        for itr, constraint in enumerate(self.constraints):
+        for itr, constraint in enumerate(self.constraints.values()):
             self.constraint_gradient_variables.update({
                 constraint["identifier"].GetString() : {
-                    "gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX"),
-                    "mapped_gradient": KM.KratosGlobals.GetVariable("DC"+str(itr+1)+"DX_MAPPED")
+                    "gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX"),
+                    "mapped_gradient": KM.KratosGlobals.GetVariable(f"DC{(itr+1)}DX_MAPPED")
                 }
             })
         self.max_correction_share = self.algorithm_settings["max_correction_share"].GetDouble()
@@ -146,7 +146,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.communicator.requestValueOf(self.objectives[0]["identifier"].GetString())
         self.communicator.requestGradientOf(self.objectives[0]["identifier"].GetString())
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id =  constraint["identifier"].GetString()
             self.communicator.requestValueOf(con_id)
             self.communicator.requestGradientOf(con_id)
@@ -155,7 +155,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         # compute normals only if required
         surface_normals_required = self.objectives[0]["project_gradient_on_surface_normals"].GetBool()
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             if constraint["project_gradient_on_surface_normals"].GetBool():
                 surface_normals_required = True
 
@@ -172,7 +172,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.model_part_controller.DampNodalSensitivityVariableIfSpecified(KSO.DF1DX)
 
         # project and damp constraint gradients
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id = constraint["identifier"].GetString()
             conGradientDict = self.communicator.getStandardizedGradient(con_id)
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
@@ -188,7 +188,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         self.mapper.Update()
         self.mapper.InverseMap(KSO.DF1DX, KSO.DF1DX_MAPPED)
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             con_id = constraint["identifier"].GetString()
             gradient_variable = self.constraint_gradient_variables[con_id]["gradient"]
             mapped_gradient_variable = self.constraint_gradient_variables[con_id]["mapped_gradient"]
@@ -221,7 +221,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
 
         KM.Logger.PrintInfo("ShapeOpt", "Assemble matrix of constraint gradient.")
         N = KM.Matrix()
-        self.optimization_utilities.AssembleMatrix(self.design_surface, N, g_a_variables)  # TODO check if gradients are 0.0! - in cpp
+        self.optimization_utilities.AssembleMatrix(self.design_surface, N, g_a_variables)
 
         settings = KM.Parameters('{ "solver_type" : "LinearSolversApplication.dense_col_piv_householder_qr" }')
         solver = dense_linear_solver_factory.ConstructSolver(settings)
@@ -256,7 +256,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         active_constraint_values = []
         active_constraint_variables = []
 
-        for constraint in self.constraints:
+        for constraint in self.constraints.values():
             if self.__isConstraintActive(constraint):
                 identifier = constraint["identifier"].GetString()
                 constraint_value = self.communicator.getStandardizedValue(identifier)
@@ -270,9 +270,13 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
     def __isConstraintActive(self, constraint):
         identifier = constraint["identifier"].GetString()
         constraint_value = self.communicator.getStandardizedValue(identifier)
-        if constraint["type"].GetString() == "=":
-            return True
-        elif constraint_value >= 0:
+        if constraint["type"].GetString() == "=" or constraint_value >= 0:
+            gradient_norm = self.optimization_utilities.ComputeMaxNormOfNodalVariable(
+                self.design_surface, self.constraint_gradient_variables[identifier]["mapped_gradient"]
+            )
+            if math.isclose(gradient_norm, 0.0, abs_tol=1e-16):
+                KM.Logger.PrintWarning("ShapeOpt", f"Gradient for constraint {identifier} is 0.0 - will not be considered!")
+                return False
             return True
         else:
             return False
@@ -283,6 +287,7 @@ class AlgorithmGradientProjection(OptimizationAlgorithm):
         additional_values_to_log["step_size"] = self.step_size
         additional_values_to_log["inf_norm_s"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.SEARCH_DIRECTION)
         additional_values_to_log["inf_norm_c"] = self.optimization_utilities.ComputeMaxNormOfNodalVariable(self.design_surface, KSO.CORRECTION)
+        self.data_logger.LogSensitivityHeatmap(self.optimization_iteration, self.mapper)
         self.data_logger.LogCurrentValues(self.optimization_iteration, additional_values_to_log)
         self.data_logger.LogCurrentDesign(self.optimization_iteration)
 

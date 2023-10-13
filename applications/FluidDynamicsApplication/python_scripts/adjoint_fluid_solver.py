@@ -74,7 +74,7 @@ class AdjointFluidSolver(FluidSolver):
         ## Complete the element name
         # TODO: EXPORT THE ADJOINT FOLLOWING THE CONVENTION. ONCE THIS IS DONE WE CAN USE THE FUNCTION IN THE BASE CLASS
         if (self.element_name is not None):
-            new_elem_name = self.element_name + str(int(domain_size)) + "D"
+            new_elem_name = f"{self.element_name}{int(domain_size)}D{int(elem_num_nodes)}N"
         else:
             raise Exception("There is no element name. Define the self.element_name string variable in your derived solver.")
 
@@ -93,10 +93,22 @@ class AdjointFluidSolver(FluidSolver):
         KratosMultiphysics.ReplaceElementsAndConditionsProcess(self.main_model_part, self.settings["element_replace_settings"]).Execute()
 
     def _ComputeDeltaTime(self):
+        """This function returns the delta time
+        Note that the adjoint fluid analysis does not support the automatic time stepping
+        Also note that as it requires to go backwards in time, here we return minus the user time step
+        """
         if self.settings["time_stepping"]["automatic_time_step"].GetBool():
             raise Exception("Automatic time stepping is not supported by adjoint fluid solver.")
 
         delta_time = self.settings["time_stepping"]["time_step"].GetDouble()
+        if delta_time > 0.0:
+            # Expected positive time_step is reversed to advance backwards in time
+            delta_time *= -1.0
+        else:
+            # TODO: Remove this check after the backwards compatibility period
+            # In order to keep backwards compatibility, we throw a warning if a negative time_step is provided
+            KratosMultiphysics.Logger.PrintWarning("Setting a negative 'time_step' is no longer needed by 'AdjointFluidSolver'.")
+
         return delta_time
 
     def _SetNodalProperties(self):

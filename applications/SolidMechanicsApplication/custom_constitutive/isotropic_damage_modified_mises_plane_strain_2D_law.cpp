@@ -74,7 +74,7 @@ IsotropicDamageModifiedMisesPlaneStrain2DLaw::~IsotropicDamageModifiedMisesPlane
 
 int IsotropicDamageModifiedMisesPlaneStrain2DLaw::Check(const Properties& rMaterialProperties,
                                                 const GeometryType& rElementGeometry,
-                                                const ProcessInfo& rCurrentProcessInfo)
+                                                const ProcessInfo& rCurrentProcessInfo) const
 {
     int ierr = HyperElasticPlastic3DLaw::Check(rMaterialProperties,rElementGeometry,rCurrentProcessInfo);
     if(ierr != 0) return ierr;

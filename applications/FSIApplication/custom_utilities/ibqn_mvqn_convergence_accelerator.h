@@ -20,7 +20,7 @@
 // Project includes
 #include "includes/ublas_interface.h"
 #include "utilities/math_utils.h"
-#include "utilities/qr_utility.h"
+#include "utilities/dense_householder_qr_decomposition.h"
 #include "utilities/parallel_utilities.h"
 
 // Application includes
@@ -376,9 +376,9 @@ protected:
 
         // Calculate the correction
         // Do the QR decomposition of (I - J_{F}J_{S}) and solve for the force update
-        QR<double, row_major> qr_util;
-        qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
-        qr_util.solve(&(aux_RHS)(0), &(rLeftCorrection)(0));
+        DenseHouseholderQRDecomposition<TDenseSpace> qr_decomposition;
+        qr_decomposition.Compute(aux_LHS);
+        qr_decomposition.Solve(aux_RHS, rLeftCorrection);
     }
 
     virtual void SolveInterfaceBlockQuasiNewtonRightUpdate(
@@ -415,9 +415,9 @@ protected:
 
         // Calculate the correction
         // Do the QR decomposition of (I - J_{S}J_{F}) and solve for the force update
-        QR<double, row_major> qr_util;
-        qr_util.compute(problem_size, problem_size, &(aux_LHS)(0,0));
-        qr_util.solve(&(aux_RHS)(0), &(rRightCorrection)(0));
+        DenseHouseholderQRDecomposition<TDenseSpace> qr_decomposition;
+        qr_decomposition.Compute(aux_LHS);
+        qr_decomposition.Solve(aux_RHS, rRightCorrection);
     }
 
     ///@}

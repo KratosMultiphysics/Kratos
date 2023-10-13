@@ -80,7 +80,7 @@ void TwoFluidNavierStokes<TElementData>::CalculateLocalSystem(
     noalias(rLeftHandSideMatrix) = ZeroMatrix(LocalSize, LocalSize);
     noalias(rRightHandSideVector) = ZeroVector(LocalSize);
 
-    if (TElementData::ElementManagesTimeIntegration){
+    if constexpr (TElementData::ElementManagesTimeIntegration){
         TElementData data;
         data.Initialize(*this, rCurrentProcessInfo);
 

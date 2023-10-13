@@ -55,7 +55,7 @@ GeoCrBeamElement2D2N::~GeoCrBeamElement2D2N() {}
 //----------------------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::InitializeSolutionStep(const ProcessInfo& rCurrentProcessInfo )
 {
-    KRATOS_TRY;
+    KRATOS_TRY
 
     if (mIsInitialization) {
         if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
@@ -90,7 +90,7 @@ void GeoCrBeamElement2D2N::
 void GeoCrBeamElement2D2N::Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
 
-    KRATOS_TRY;
+    KRATOS_TRY
 
     mIsInitialization = true;
 
@@ -103,7 +103,7 @@ void GeoCrBeamElement2D2N::
                          VectorType& rRightHandSideVector,
                          const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // t
     mDeformationForces = CalculateInternalStresses_DeformationModes();
 
@@ -133,7 +133,7 @@ void GeoCrBeamElement2D2N::
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 {
-    KRATOS_TRY;
+    KRATOS_TRY
     // t
     mDeformationForces = CalculateInternalStresses_DeformationModes();
 
@@ -224,7 +224,7 @@ void GeoCrBeamElement2D2N::FinalizeSolutionStep(const ProcessInfo& rCurrentProce
 //----------------------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::save(Serializer& rSerializer) const
 {
-    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement2D2N);
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, CrBeamElement2D2N)
     rSerializer.save("InternalGlobalForcesFinalized", mInternalGlobalForcesFinalized);
     rSerializer.save("InternalGlobalForcesFinalizedPrevious", mInternalGlobalForcesFinalizedPrevious);
 
@@ -233,7 +233,7 @@ void GeoCrBeamElement2D2N::save(Serializer& rSerializer) const
 //----------------------------------------------------------------------------------------------------
 void GeoCrBeamElement2D2N::load(Serializer& rSerializer)
 {
-    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement2D2N);
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, CrBeamElement2D2N)
     rSerializer.load("InternalGlobalForcesFinalized", mInternalGlobalForcesFinalized);
     rSerializer.load("InternalGlobalForcesFinalizedPrevious", mInternalGlobalForcesFinalizedPrevious);
 }

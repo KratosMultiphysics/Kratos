@@ -1,13 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
 #if !defined(KRATOS_THERMAL_FORWARD_EULER_SCHEME_H_INCLUDED)
@@ -39,7 +35,7 @@ namespace Kratos
 
       // Public methods
       void SetThermalIntegrationSchemeInProperties (Properties::Pointer pProp, bool verbose = true) const override;
-      void UpdateTemperature                       (Node<3>& i, const double delta_t, const double c) override;
+      void UpdateTemperature                       (Node& i, const double delta_t, const double c) override;
 
       // Clone
       ThermalDEMIntegrationScheme* CloneRaw() const override {

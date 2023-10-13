@@ -56,7 +56,7 @@ public:
 
     typedef std::size_t IndexType;
 
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     typedef Geometry<NodeType> GeometryType;
 
@@ -150,6 +150,16 @@ public:
         p_new_elem->Set(Flags(*this));
         return p_new_elem;
     }
+
+    ///@}
+    ///@name Inquiry
+    ///@{
+
+    /**
+     * @brief This method provides the specifications/requirements of the element
+     * @return specifications The required specifications/requirements
+     */
+    const Parameters GetSpecifications() const override;
 
     ///@}
     ///@name Input and output

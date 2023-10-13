@@ -369,7 +369,6 @@ namespace Kratos
 
     double Viscosity = 0;
     double Density = 0;
-    double totalVolume = 0;
 
     MatrixType DynamicStabilizationMatrix = ZeroMatrix(NumNodes, NumNodes);
 
@@ -380,7 +379,6 @@ namespace Kratos
     for (unsigned int g = 0; g < NumGauss; ++g)
     {
       const double GaussWeight = GaussWeights[g];
-      totalVolume += GaussWeight;
       const ShapeFunctionsType &rN = row(NContainer, g);
       const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
 
@@ -450,114 +448,6 @@ namespace Kratos
     }
   }
 
-  // template <unsigned int TDim>
-  // void ThreeStepUpdatedLagrangianElement<TDim>::CalculateFICPressureSystem(MatrixType &rLeftHandSideMatrix,
-  //                                                                          VectorType &rRightHandSideVector,
-  //                                                                          const ProcessInfo &rCurrentProcessInfo)
-  // {
-
-  //   GeometryType &rGeom = this->GetGeometry();
-  //   const unsigned int NumNodes = rGeom.PointsNumber();
-
-  //   // Check sizes and initialize
-  //   if (rLeftHandSideMatrix.size1() != NumNodes)
-  //     rLeftHandSideMatrix.resize(NumNodes, NumNodes, false);
-
-  //   noalias(rLeftHandSideMatrix) = ZeroMatrix(NumNodes, NumNodes);
-  //   MatrixType LaplacianMatrix = ZeroMatrix(NumNodes, NumNodes);
-
-  //   if (rRightHandSideVector.size() != NumNodes)
-  //     rRightHandSideVector.resize(NumNodes, false);
-
-  //   noalias(rRightHandSideVector) = ZeroVector(NumNodes);
-
-  //   // Shape functions and integration points
-  //   ShapeFunctionDerivativesArrayType DN_DX;
-  //   Matrix NContainer;
-  //   VectorType GaussWeights;
-  //   this->CalculateGeometryData(DN_DX, NContainer, GaussWeights);
-  //   const unsigned int NumGauss = GaussWeights.size();
-
-  //   double TimeStep = rCurrentProcessInfo[DELTA_TIME];
-  //   double ElemSize = this->ElementSize();
-
-  //   double Viscosity = 0;
-  //   double Density = 0;
-  //   double totalVolume = 0;
-
-  //   double maxViscousValueForStabilization = 0.001;
-
-  //   ElementalVariables rElementalVariables;
-  //   this->InitializeElementalVariables(rElementalVariables);
-
-  //   VectorType NewRhsLaplacian = ZeroVector(NumNodes);
-
-  //   // Loop on integration points
-  //   for (unsigned int g = 0; g < NumGauss; ++g)
-  //   {
-  //     const double GaussWeight = GaussWeights[g];
-  //     totalVolume += GaussWeight;
-  //     const ShapeFunctionsType &rN = row(NContainer, g);
-  //     const ShapeFunctionDerivativesType &rDN_DX = DN_DX[g];
-
-  //     this->EvaluateInPoint(Viscosity, DYNAMIC_VISCOSITY, rN);
-  //     this->EvaluateInPoint(Density, DENSITY, rN);
-
-  //     if (Viscosity > maxViscousValueForStabilization)
-  //     {
-  //       Viscosity = maxViscousValueForStabilization;
-  //     }
-
-  //     double Tau = 0;
-  //     this->CalculateTauFIC(Tau, ElemSize, Density, Viscosity, rCurrentProcessInfo);
-
-  //     double StabLaplacianWeight = Tau * GaussWeight;
-
-  //     array_1d<double, TDim> OldPressureGradient = ZeroVector(TDim);
-  //     this->EvaluateGradientInPoint(OldPressureGradient, PRESSURE, rDN_DX, 0);
-
-  //     double DivU = 0;
-  //     this->EvaluateDivergenceInPoint(DivU, VELOCITY, rDN_DX);
-
-  //     bool computeElement = this->CalcCompleteStrainRate(rElementalVariables, rCurrentProcessInfo, rDN_DX, 1.0);
-
-  //     double BoundLHSCoeff = 4.0 * StabLaplacianWeight / (ElemSize * ElemSize);
-  //     this->ComputeBoundLHSMatrix(rLeftHandSideMatrix, rN, BoundLHSCoeff);
-
-  //     double BoundRHSCoeffAcc = -2.0 * StabLaplacianWeight * Density / ElemSize;
-  //     double BoundRHSCoeffDev = -8.0 * StabLaplacianWeight * Viscosity / (ElemSize * ElemSize);
-
-  //     this->ComputeBoundRHSVectorComplete(rRightHandSideVector, TimeStep, BoundRHSCoeffAcc, BoundRHSCoeffDev, rElementalVariables.SpatialDefRate);
-
-  //     this->ComputeStabLaplacianMatrix(LaplacianMatrix, rDN_DX, StabLaplacianWeight);
-
-  //     for (SizeType i = 0; i < NumNodes; ++i)
-  //     {
-  //       // RHS contribution
-  //       // Velocity divergence
-  //       rRightHandSideVector[i] += -GaussWeight * rN[i] * DivU;
-
-  //       double laplacianRHSi = 0;
-  //       double bodyForceStabilizedRHSi = 0;
-  //       array_1d<double, 3> VolumeAcceleration = this->GetGeometry()[i].FastGetSolutionStepValue(VOLUME_ACCELERATION);
-
-  //       for (SizeType d = 0; d < TDim; ++d)
-  //       {
-  //         laplacianRHSi += -StabLaplacianWeight * rDN_DX(i, d) * OldPressureGradient[d];
-
-  //         bodyForceStabilizedRHSi += StabLaplacianWeight * rDN_DX(i, d) * (Density * VolumeAcceleration[d]);
-  //       }
-  //       rRightHandSideVector[i] += laplacianRHSi + bodyForceStabilizedRHSi;
-  //     }
-  //   }
-
-  //   VectorType PressureValues = ZeroVector(NumNodes);
-  //   VectorType PressureValuesForRHS = ZeroVector(NumNodes);
-  //   this->GetPressureValues(PressureValuesForRHS, 0);
-  //   //the LHS matrix up to now just contains the laplacian term and the bound term
-  //   noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
-  //   noalias(rLeftHandSideMatrix) += LaplacianMatrix;
-  // }
 
   template <>
   void ThreeStepUpdatedLagrangianElement<2>::ComputeBoundRHSVectorComplete(VectorType &BoundRHSVector,
@@ -1155,7 +1045,7 @@ namespace Kratos
     KRATOS_TRY;
 
     unsigned int voigtsize = 3;
-    if (TDim == 3)
+    if constexpr (TDim == 3)
     {
       voigtsize = 6;
     }

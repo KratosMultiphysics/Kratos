@@ -21,14 +21,14 @@ namespace Kratos
 
 // Public Life Cycle //////////////////////////////////////////////////////////
 
-ThermalFace::ThermalFace(IndexType NewId, Geometry< Node<3> >::Pointer pGeometry):
+ThermalFace::ThermalFace(IndexType NewId, Geometry< Node >::Pointer pGeometry):
     Condition(NewId,pGeometry)
 {
 }
 
 ThermalFace::ThermalFace(
     IndexType NewId,
-    Geometry< Node<3> >::Pointer pGeometry,
+    Geometry< Node >::Pointer pGeometry,
     Properties::Pointer pProperties):
     Condition(NewId,pGeometry,pProperties)
 {
@@ -108,6 +108,15 @@ void ThermalFace::GetDofList(
     KRATOS_CATCH("")
 }
 
+void ThermalFace::SetIntegrationWeight(
+    const IndexType IntegrationPointIndex,
+    const typename GeometryType::IntegrationPointsArrayType &rIntegrationPoints,
+    const Vector &rJacobianDeterminantsVector,
+    ConditionDataStruct &rData)
+{
+    rData.Weight = rJacobianDeterminantsVector[IntegrationPointIndex] * rIntegrationPoints[IntegrationPointIndex].Weight();
+}
+
 void ThermalFace::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix,
     VectorType& rRightHandSideVector,
@@ -151,7 +160,7 @@ void ThermalFace::CalculateLeftHandSide(
     // Gauss pts. loop
     for (unsigned int g = 0; g < n_gauss; g++) {
         gauss_pt_data.N = row(N_container, g);
-        gauss_pt_data.Weight = gauss_pts_J_det[g] * r_gauss_pts[g].Weight();
+        SetIntegrationWeight(g, r_gauss_pts, gauss_pts_J_det, gauss_pt_data);
         this->AddIntegrationPointLHSContribution(rLeftHandSideMatrix, gauss_pt_data);
     }
 
@@ -188,7 +197,7 @@ void ThermalFace::CalculateRightHandSide(
     // Gauss pts. loop
     for (unsigned int g = 0; g < n_gauss; g++) {
         gauss_pt_data.N = row(N_container, g);
-        gauss_pt_data.Weight = gauss_pts_J_det[g] * r_gauss_pts[g].Weight();
+        SetIntegrationWeight(g, r_gauss_pts, gauss_pts_J_det, gauss_pt_data);
         this->AddIntegrationPointRHSContribution(rRightHandSideVector, gauss_pt_data);
     }
 
@@ -196,7 +205,7 @@ void ThermalFace::CalculateRightHandSide(
 }
 
 
-inline GeometryData::IntegrationMethod ThermalFace::GetIntegrationMethod()
+inline GeometryData::IntegrationMethod ThermalFace::GetIntegrationMethod() const
 {
     return IntegrationUtilities::GetIntegrationMethodForExactMassMatrixEvaluation(this->GetGeometry());
 }

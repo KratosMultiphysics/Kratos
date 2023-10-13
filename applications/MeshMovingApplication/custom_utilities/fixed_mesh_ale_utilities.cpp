@@ -32,28 +32,6 @@ namespace Kratos
     /* Public functions *******************************************************/
 
     FixedMeshALEUtilities::FixedMeshALEUtilities(
-        ModelPart &rVirtualModelPart,
-        ModelPart &rStructureModelPart) :
-        mrVirtualModelPart(rVirtualModelPart),
-        mrStructureModelPart(rStructureModelPart)
-    {
-        // Get the default settings
-        auto default_parameters = this->GetDefaultParameters();
-
-        // Set default embedded nodal variable settings
-        mEmbeddedNodalVariableSettings = default_parameters["embedded_nodal_variable_settings"];
-
-        // Set default linear solver pointer
-        this->SetLinearSolverPointer(default_parameters["linear_solver_settings"]);
-
-        // Check the structure model part
-        if (mrStructureModelPart.GetBufferSize() < 2) {
-            (mrStructureModelPart.GetRootModelPart()).SetBufferSize(2);
-            KRATOS_WARNING("FixedMeshALEUtilities") << "Structure model part buffer size is 1. Setting buffer size to 2." << std::endl;
-        }
-    }
-
-    FixedMeshALEUtilities::FixedMeshALEUtilities(
         Model &rModel,
         Parameters &rParameters) :
         mrVirtualModelPart(rModel.GetModelPart(rParameters["virtual_model_part_name"].GetString())),
@@ -61,6 +39,21 @@ namespace Kratos
     {
         // Validate with default parameters
         rParameters.ValidateAndAssignDefaults(this->GetDefaultParameters());
+
+        // Set the lists containing the variables to be projected from the virtual to the origin mesh
+        for (std::string var_name : rParameters["projected_variable_names"].GetStringArray()) {
+            if (KratosComponents<Variable<double>>::Has(var_name)) {
+                mScalarVariablesList.push_back(&(KratosComponents<Variable<double>>::Get(var_name)));
+            } else if (KratosComponents<Variable<array_1d<double,3>>>::Has(var_name)) {
+                mArrayVariablesList.push_back(&(KratosComponents<Variable<array_1d<double,3>>>::Get(var_name)));
+            } else {
+                KRATOS_ERROR << "Variable '" << var_name << "' in 'projected_variable_names' is not of scalar nor array type." << std::endl;
+            }
+        }
+
+        // Set the settings for the search in the virtual mesh
+        mSearchTolerance = rParameters["search_tolerance"].GetDouble();
+        mSearchMaxResults = rParameters["search_max_results"].GetInt();
 
         // Save the embedded nodal variable settings
         mEmbeddedNodalVariableSettings = rParameters["embedded_nodal_variable_settings"];
@@ -101,11 +94,15 @@ namespace Kratos
         mrVirtualModelPart.SetProcessInfo(rOriginModelPart.GetProcessInfo());
 
         // Add the required varibles to the virtual model part
-        mrVirtualModelPart.AddNodalSolutionStepVariable(VELOCITY);
-        mrVirtualModelPart.AddNodalSolutionStepVariable(PRESSURE);
         mrVirtualModelPart.AddNodalSolutionStepVariable(DISPLACEMENT);
         mrVirtualModelPart.AddNodalSolutionStepVariable(MESH_VELOCITY);
         mrVirtualModelPart.AddNodalSolutionStepVariable(MESH_DISPLACEMENT);
+        for (auto p_scalar_var : mScalarVariablesList) {
+            mrVirtualModelPart.AddNodalSolutionStepVariable(*p_scalar_var);
+        }
+        for (auto p_vector_var : mArrayVariablesList) {
+            mrVirtualModelPart.AddNodalSolutionStepVariable(*p_vector_var);
+        }
 
         // Set the buffer size in the virtual model part
         mrVirtualModelPart.SetBufferSize(rOriginModelPart.GetBufferSize());
@@ -143,15 +140,19 @@ namespace Kratos
                 const auto it_orig_node = orig_nodes_begin + index;
 
                 for (unsigned int step = 1; step < buffer_size; ++step) {
-                    it_virt_node->FastGetSolutionStepValue(PRESSURE, step) = it_orig_node->FastGetSolutionStepValue(PRESSURE, step);
-                    noalias(it_virt_node->FastGetSolutionStepValue(VELOCITY, step)) = it_orig_node->FastGetSolutionStepValue(VELOCITY, step);
+                    for (auto p_scalar_var : mScalarVariablesList) {
+                        it_virt_node->FastGetSolutionStepValue(*p_scalar_var, step) = it_orig_node->FastGetSolutionStepValue(*p_scalar_var, step);
+                    }
+                    for (auto p_vector_var : mArrayVariablesList) {
+                        noalias(it_virt_node->FastGetSolutionStepValue(*p_vector_var, step)) = it_orig_node->FastGetSolutionStepValue(*p_vector_var, step);
+                    }
                 }
             } );
     }
 
     void FixedMeshALEUtilities::ComputeMeshMovement(const double DeltaTime)
     {
-        // Initialize the PRESSURE and VELOCITY virtual mesh values
+        // Initialize the virtual mesh values
         this->InitializeVirtualMeshValues();
 
         // Initialize the MESH_DISPLACEMENT fixity
@@ -165,6 +166,7 @@ namespace Kratos
 
         // Set the mesh moving strategy
         this->SolveMeshMovementStrategy(DeltaTime);
+
     }
 
     void FixedMeshALEUtilities::UndoMeshMovement()
@@ -192,13 +194,20 @@ namespace Kratos
 
         // Search the origin model part nodes in the virtual mesh elements and
         // interpolate the values in the virtual element to the origin model part node
-        block_for_each( rOriginModelPart.Nodes(),
-            [&]( Node<3>& rNode )
-            {
+        block_for_each(
+            rOriginModelPart.Nodes(),
+            typename BinBasedFastPointLocator<TDim>::ResultContainerType(mSearchMaxResults),
+            [&](auto& rNode, auto& rSearchResults){
                 // Find the origin model part node in the virtual mesh
-                Vector aux_N;
+                Vector aux_N(TDim+1);
                 Element::Pointer p_elem = nullptr;
-                const bool is_found = bin_based_point_locator.FindPointOnMeshSimplified(rNode.Coordinates(), aux_N, p_elem);
+                const bool is_found = bin_based_point_locator.FindPointOnMesh(
+                    rNode.Coordinates(),
+                    aux_N,
+                    p_elem,
+                    rSearchResults.begin(),
+                    mSearchMaxResults,
+                    mSearchTolerance);
 
                 // Check if the node is found
                 if (is_found){
@@ -207,8 +216,12 @@ namespace Kratos
 
                     // Initialize historical data
                     for (unsigned int i_step = 1; i_step < BufferSize; ++i_step) {
-                        rNode.FastGetSolutionStepValue(PRESSURE, i_step) = 0.0;
-                        noalias(rNode.FastGetSolutionStepValue(VELOCITY, i_step)) = ZeroVector(3);
+                        for (auto p_scal_var : mScalarVariablesList) {
+                            rNode.FastGetSolutionStepValue(*p_scal_var, i_step) = 0.0;
+                        }
+                        for (auto p_arr_var : mArrayVariablesList) {
+                            noalias(rNode.FastGetSolutionStepValue(*p_arr_var, i_step)) = ZeroVector(3);
+                        }
                     }
 
                     // Interpolate the origin model part nodal values
@@ -220,10 +233,14 @@ namespace Kratos
 
                         // Project historical data
                         for (unsigned int i_step = 1; i_step < BufferSize; ++i_step){
-                            const auto &i_virt_v = r_geom[i_virt_node].FastGetSolutionStepValue(VELOCITY, i_step);
-                            const double &i_virt_p = r_geom[i_virt_node].FastGetSolutionStepValue(PRESSURE, i_step);
-                            rNode.FastGetSolutionStepValue(PRESSURE, i_step) += aux_N(i_virt_node) * i_virt_p;
-                            noalias(rNode.FastGetSolutionStepValue(VELOCITY, i_step)) += aux_N(i_virt_node) * i_virt_v;
+                            for (auto p_scal_var : mScalarVariablesList) {
+                                const double &i_virt_val = r_geom[i_virt_node].FastGetSolutionStepValue(*p_scal_var, i_step);
+                                rNode.FastGetSolutionStepValue(*p_scal_var, i_step) += aux_N(i_virt_node) * i_virt_val;
+                            }
+                            for (auto p_arr_var : mArrayVariablesList) {
+                                const auto &i_virt_val = r_geom[i_virt_node].FastGetSolutionStepValue(*p_arr_var, i_step);
+                                noalias(rNode.FastGetSolutionStepValue(*p_arr_var, i_step)) += aux_N(i_virt_node) * i_virt_val;
+                            }
                         }
                     }
                 } else {
@@ -264,6 +281,9 @@ namespace Kratos
         {
             "virtual_model_part_name": "",
             "structure_model_part_name": "",
+            "projected_variable_names" : ["PRESSURE","VELOCITY"],
+            "search_tolerance" : 1.0e-5,
+            "search_max_results" : 10000,
             "linear_solver_settings": {
                 "solver_type": "cg",
                 "tolerance": 1.0e-8,
@@ -325,7 +345,7 @@ namespace Kratos
         // in case the CloneTimeStep() is done in the virtual model part, since the method
         // assumes that the mesh is in the origin position when computing the MESH_VELOCITY.
         block_for_each( mrVirtualModelPart.Nodes(),
-            []( Node<3>& rNode )
+            []( Node& rNode )
             {
                 rNode.FastGetSolutionStepValue(MESH_VELOCITY, 0) = ZeroVector(3);
                 rNode.FastGetSolutionStepValue(MESH_VELOCITY, 1) = ZeroVector(3);
@@ -337,7 +357,7 @@ namespace Kratos
     void FixedMeshALEUtilities::InitializeMeshDisplacementFixity()
     {
         block_for_each( mrVirtualModelPart.Nodes(),
-            []( Node<3>& rNode )
+            []( Node& rNode )
             {
                 rNode.Free(MESH_DISPLACEMENT_X);
                 rNode.Free(MESH_DISPLACEMENT_Y);
@@ -369,7 +389,7 @@ namespace Kratos
     {
         // Initialize the DISPLACEMENT variable values
         block_for_each( mrVirtualModelPart.Nodes(),
-        []( Node<3>& rNode )
+        []( Node& rNode )
         {
             rNode.FastGetSolutionStepValue(DISPLACEMENT, 0) = ZeroVector(3);
             rNode.FastGetSolutionStepValue(DISPLACEMENT, 1) = ZeroVector(3);
@@ -377,7 +397,7 @@ namespace Kratos
 
         // Place the structure in its previous position
         block_for_each( mrStructureModelPart.Nodes(),
-        []( Node<3>& rNode )
+        []( Node& rNode )
         {
             const auto d_1 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 1);
             rNode.X() = rNode.X0() + d_1[0];
@@ -441,7 +461,7 @@ namespace Kratos
 
         // Revert the structure movement to its current position
         block_for_each( mrStructureModelPart.Nodes(),
-        []( Node<3>& rNode )
+        []( Node& rNode )
         {
             const auto d_0 = rNode.FastGetSolutionStepValue(DISPLACEMENT, 0);
             rNode.X() = rNode.X0() + d_0[0];
@@ -472,7 +492,7 @@ namespace Kratos
     void FixedMeshALEUtilities::RevertMeshDisplacementFixity()
     {
         block_for_each( mrVirtualModelPart.Nodes(),
-        []( Node<3>& rNode )
+        []( Node& rNode )
         {
             if (rNode.IsFixed(MESH_DISPLACEMENT_X)) {
                 rNode.Free(MESH_DISPLACEMENT_X);

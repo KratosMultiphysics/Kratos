@@ -18,7 +18,7 @@
 // External includes
 
 // Project includes
-#include "includes/oriented_bounding_box.h"
+#include "geometries/oriented_bounding_box.h"
 #include "processes/find_intersected_geometrical_objects_process.h"
 
 namespace Kratos
@@ -81,7 +81,7 @@ public:
     typedef typename BaseType::OctreeType OctreeType;
 
     /// Definition of the node type
-    using NodeType = Node<3>;
+    using NodeType = Node;
 
     /// Definition of the geometry type
     using GeometryType = Geometry<NodeType>;

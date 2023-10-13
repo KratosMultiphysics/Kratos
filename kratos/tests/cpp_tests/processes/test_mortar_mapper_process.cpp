@@ -29,7 +29,7 @@ namespace Kratos
 {
     namespace Testing
     {
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
 
 //         void GiDIODebugMapper(ModelPart& ThisModelPart)
 //         {
@@ -111,7 +111,7 @@ namespace Kratos
             master_model_part.AddCondition(p_cond_1);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(this_model_part, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(this_model_part, true);
 
             p_node_4->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_4->X(), 2) + std::pow(p_node_4->Y(), 2);
             p_node_5->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_5->X(), 2) + std::pow(p_node_5->Y(), 2);
@@ -121,7 +121,7 @@ namespace Kratos
             auto int_util = ExactMortarIntegrationUtility<3, 3>();
             double area;
             int_util.GetExactAreaIntegration(p_cond_0->GetGeometry(), p_cond_0->GetValue(NORMAL), p_cond_1->GetGeometry(), p_cond_1->GetValue(NORMAL), area);
-            KRATOS_CHECK_LESS_EQUAL((area - 0.499925)/0.499925, tolerance);
+            KRATOS_EXPECT_LE((area - 0.499925)/0.499925, tolerance);
 
             typedef SimpleMortarMapperProcess<3, 3, Variable<double>> MapperType;
             MapperType process = MapperType(master_model_part, slave_model_part, TEMPERATURE);
@@ -130,9 +130,9 @@ namespace Kratos
 //             // DEBUG
 //             GiDIODebugMapper(this_model_part);
 
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->X(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_2->X(), 2) + std::pow(p_node_2->Y(), 2))), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_3->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_3->X(), 2) + std::pow(p_node_3->Y(), 2))), tolerance);
+            KRATOS_EXPECT_LE(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->X(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
+            KRATOS_EXPECT_LE(std::abs(p_node_2->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_2->X(), 2) + std::pow(p_node_2->Y(), 2))), tolerance);
+            KRATOS_EXPECT_LE(std::abs(p_node_3->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_3->X(), 2) + std::pow(p_node_3->Y(), 2))), tolerance);
         }
 
         /**
@@ -207,7 +207,7 @@ namespace Kratos
             master_model_part.AddCondition(p_cond_1);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(this_model_part, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(this_model_part, true);
 
             p_node_5->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_5->X(), 2) + std::pow(p_node_5->Y(), 2);
             p_node_6->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_6->X(), 2) + std::pow(p_node_6->Y(), 2);
@@ -222,10 +222,10 @@ namespace Kratos
 //             GiDIODebugMapper(this_model_part);
 
             const double tolerance = 1.0e-4;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->X(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_2->X(), 2) + std::pow(p_node_2->Y(), 2))), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_3->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_3->X(), 2) + std::pow(p_node_3->Y(), 2))), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_4->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_4->X(), 2) + std::pow(p_node_4->Y(), 2))), tolerance);
+            KRATOS_EXPECT_LE(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->X(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
+            KRATOS_EXPECT_LE(std::abs(p_node_2->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_2->X(), 2) + std::pow(p_node_2->Y(), 2))), tolerance);
+            KRATOS_EXPECT_LE(std::abs(p_node_3->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_3->X(), 2) + std::pow(p_node_3->Y(), 2))), tolerance);
+            KRATOS_EXPECT_LE(std::abs(p_node_4->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_4->X(), 2) + std::pow(p_node_4->Y(), 2))), tolerance);
         }
 
         /**
@@ -316,7 +316,7 @@ namespace Kratos
             master_model_part.AddCondition(p_cond_3);
 
             // We compute the normals
-            NormalCalculationUtils().CalculateUnitNormals<Condition>(this_model_part, true);
+            NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(this_model_part, true);
 
             p_node_5->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_5->Z(), 2) + std::pow(p_node_5->Y(), 2);
             p_node_6->FastGetSolutionStepValue(TEMPERATURE) = std::pow(p_node_6->Z(), 2) + std::pow(p_node_6->Y(), 2);
@@ -331,10 +331,10 @@ namespace Kratos
 //             GiDIODebugMapper(this_model_part);
 
             const double tolerance = 1.0e-3;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->Z(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_2->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_2->Z(), 2) + std::pow(p_node_2->Y(), 2))), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_3->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_3->Z(), 2) + std::pow(p_node_3->Y(), 2))), tolerance);
-            KRATOS_CHECK_LESS_EQUAL(std::abs(p_node_4->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_4->Z(), 2) + std::pow(p_node_4->Y(), 2))), tolerance);
+            KRATOS_EXPECT_LE(std::abs(p_node_1->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_1->Z(), 2) + std::pow(p_node_1->Y(), 2))), tolerance);
+            KRATOS_EXPECT_LE(std::abs(p_node_2->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_2->Z(), 2) + std::pow(p_node_2->Y(), 2))), tolerance);
+            KRATOS_EXPECT_LE(std::abs(p_node_3->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_3->Z(), 2) + std::pow(p_node_3->Y(), 2))), tolerance);
+            KRATOS_EXPECT_LE(std::abs(p_node_4->FastGetSolutionStepValue(TEMPERATURE) - (std::pow(p_node_4->Z(), 2) + std::pow(p_node_4->Y(), 2))), tolerance);
         }
     } // namespace Testing
 }  // namespace Kratos.

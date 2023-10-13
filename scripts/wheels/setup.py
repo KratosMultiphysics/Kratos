@@ -39,6 +39,30 @@ if "excluded_binaries" in conf:
     f.writelines(list(map(lambda x: replaceKeyword(x) + "\n", conf["excluded_binaries"])))
     f.close()
 
+package_classifiers = [
+        "Programming Language :: Python :: 3",
+        "Programming Language :: C++",
+        "Programming Language :: Python",
+        "Programming Language :: Python :: 3.8",
+        "Programming Language :: Python :: 3.9",
+        "Programming Language :: Python :: 3.10",
+        "Programming Language :: Python :: 3.11",
+        "Topic :: Scientific/Engineering",
+        "Topic :: Scientific/Engineering :: Physics",
+        "Topic :: Scientific/Engineering :: Mathematics",
+        "Natural Language :: English",
+        "Intended Audience :: Science/Research",
+        "Intended Audience :: Other Audience",
+        "Intended Audience :: Developers",
+        "Development Status :: 5 - Production/Stable",
+        "Environment :: Console"
+    ]
+
+if "licence" not in conf.keys():
+    package_classifiers.append("License :: OSI Approved :: BSD License")
+else:
+    package_classifiers.append(conf["licence"])
+
 class BinaryDistribution(setuptools.Distribution):
     def has_ext_modules(foo):
         return True
@@ -58,30 +82,11 @@ setuptools.setup(
     long_description=long_description,
     long_description_content_type="text/markdown",
     install_requires=replaceKeywords(conf["dependencies"]),
-    classifiers=[
-        "Programming Language :: Python :: 3",
-        "Programming Language :: C++",
-        "Programming Language :: Python",
-        "Programming Language :: Python :: 3.6",
-        "Programming Language :: Python :: 3.7",
-        "Programming Language :: Python :: 3.8",
-        "Programming Language :: Python :: 3.9",
-        "Programming Language :: Python :: 3.10",
-        "Topic :: Scientific/Engineering",
-        "Topic :: Scientific/Engineering :: Physics",
-        "Topic :: Scientific/Engineering :: Mathematics",
-        "License :: OSI Approved :: BSD License",
-        "Natural Language :: English",
-        "Intended Audience :: Science/Research",
-        "Intended Audience :: Other Audience",
-        "Intended Audience :: Developers",
-        "Development Status :: 5 - Production/Stable",
-        "Environment :: Console"
-    ],
+    classifiers=package_classifiers,
     package_data={
         'KratosMultiphysics': list(map(lambda x: ".libs/" + x, os.listdir("KratosMultiphysics/.libs")))
     },
-    python_requires='>=3.6',
+    python_requires='>=3.8',
     ext_modules=EmptyListWithLength(),
     distclass=BinaryDistribution
 )

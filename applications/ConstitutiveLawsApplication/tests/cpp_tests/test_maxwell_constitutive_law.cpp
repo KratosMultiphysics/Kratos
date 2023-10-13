@@ -22,7 +22,7 @@
 // Application includes
 
 // Constitutive law
-#include "custom_constitutive/viscous_generalized_maxwell.h"
+#include "custom_constitutive/small_strains/viscous/viscous_generalized_maxwell.h"
 #include "includes/model_part.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "constitutive_laws_application_variables.h"
@@ -32,7 +32,7 @@ namespace Kratos
 namespace Testing
 {
 // We test the associated plasticity Constitutive laws...
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 /**
 * Check the correct calculation of the integrated stress with the CL's
@@ -46,11 +46,11 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwellInternalVariables, KratosConstit
 
     ViscousGeneralizedMaxwell<ElasticIsotropic3D> cl = ViscousGeneralizedMaxwell<ElasticIsotropic3D>();
 
-    KRATOS_CHECK_IS_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
 
     // This constitutive law does not use internal variables
     // TODO (marandra): check that this is compatible con API
-    KRATOS_CHECK_IS_FALSE(cl.Has(INTERNAL_VARIABLES));  // = False
+    KRATOS_EXPECT_FALSE(cl.Has(INTERNAL_VARIABLES));  // = False
 }
 
 
@@ -112,7 +112,7 @@ KRATOS_TEST_CASE_IN_SUITE(ConstitutiveLawMaxwell, KratosConstitutiveLawsFastSuit
     test_maxwell_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_maxwell_stress, maxwell_res, 0.0001e6);
+    KRATOS_EXPECT_VECTOR_NEAR(test_maxwell_stress, maxwell_res, 0.0001e6);
 }
 } // namespace Testing
 } // namespace Kratos

@@ -1,0 +1,86 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+
+Begin Nodes
+    1   0.0001500000   0.0000000000   0.0000000000
+    2   0.0000000000   0.0000000000   0.0000000000
+End Nodes
+
+Begin Elements CylinderContinuumParticle2D // GUI group identifier: dems
+        1          0     1 
+        2          0     2 
+End Elements
+
+Begin NodalData RADIUS // GUI group identifier: dems
+          1 0 0.000075
+          2 0 0.000075
+End NodalData
+
+Begin NodalData COHESIVE_GROUP // GUI group identifier: dems
+          1 0 1
+          2 0 1
+End NodalData
+
+Begin NodalData SKIN_SPHERE
+End NodalData
+
+Begin SubModelPart PartsCont_dems // Group dems // Subtree PartsCont
+    Begin SubModelPartNodes
+            1
+            2
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            1
+            2
+    End SubModelPartElements
+    Begin SubModelPartConditions
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart 1 // GUI DEM-VelocityBC - DEM-VelocityBC - group identifier: right
+  Begin SubModelPartData // DEM-VelocityBC. Group name: right
+    IMPOSED_VELOCITY_X_VALUE -0.01
+    IMPOSED_VELOCITY_Y_VALUE 0.1
+    IMPOSED_VELOCITY_Z_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_X_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_Y_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_Z_VALUE 0.0
+    VELOCITY_START_TIME 0.0
+    VELOCITY_STOP_TIME 100.0
+    RIGID_BODY_MOTION 0
+    FORCE_INTEGRATION_GROUP 0
+    IDENTIFIER right
+  End SubModelPartData
+  Begin SubModelPartNodes
+         1
+  End SubModelPartNodes
+  Begin SubModelPartElements
+            1
+  End SubModelPartElements
+End SubModelPart
+
+Begin SubModelPart 2 // GUI DEM-VelocityBC - DEM-VelocityBC2D - group identifier: left
+  Begin SubModelPartData // DEM-VelocityBC. Group name: left
+    IMPOSED_VELOCITY_X_VALUE 0.01
+    IMPOSED_VELOCITY_Y_VALUE -0.1
+    IMPOSED_VELOCITY_Z_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_X_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_Y_VALUE 0.0
+    IMPOSED_ANGULAR_VELOCITY_Z_VALUE 0.0
+    VELOCITY_START_TIME 0.0
+    VELOCITY_STOP_TIME 100.0
+    RIGID_BODY_MOTION 0
+    FORCE_INTEGRATION_GROUP 0
+    IDENTIFIER left
+  End SubModelPartData
+  Begin SubModelPartNodes
+         2
+  End SubModelPartNodes
+  Begin SubModelPartElements
+            2
+  End SubModelPartElements
+End SubModelPart
+

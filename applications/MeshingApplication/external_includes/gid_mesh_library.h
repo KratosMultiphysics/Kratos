@@ -1,7 +1,7 @@
 #ifndef GID_MESH_LIBRARY_H
 #define GID_MESH_LIBRARY_H
 
-#include <stdlib.h>
+#include <cstdlib>
 
 typedef void *GiDInput_Handle;
 typedef void *GiDOutput_Handle;

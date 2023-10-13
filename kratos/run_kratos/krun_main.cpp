@@ -13,7 +13,7 @@
 #endif
 
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 #include <locale.h>
 #include <string.h>
 #include <wchar.h>

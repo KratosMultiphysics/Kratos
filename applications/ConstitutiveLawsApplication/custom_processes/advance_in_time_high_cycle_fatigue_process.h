@@ -11,8 +11,7 @@
 //  Main authors:    Sergio Jimenez Reyes
 //
 
-#if !defined(KRATOS_ADVANCE_IN_TIME_HIGH_CYCLE_FATIGUE_PROCESS)
-#define KRATOS_ADVANCE_IN_TIME_HIGH_CYCLE_FATIGUE_PROCESS
+#pragma once
 
 #include "processes/process.h"
 #include "includes/model_part.h"
@@ -107,4 +106,3 @@ protected:
 }; // Class AdvanceInTimeHighCycleFatigueProcess
 
 } // namespace Kratos
-#endif

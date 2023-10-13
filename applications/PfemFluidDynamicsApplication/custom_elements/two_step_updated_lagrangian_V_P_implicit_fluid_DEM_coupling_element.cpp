@@ -13,7 +13,7 @@
 // Project includes
 #include "custom_elements/two_step_updated_lagrangian_V_P_implicit_fluid_DEM_coupling_element.h"
 #include "includes/cfd_variables.h"
-#include <math.h>
+#include <cmath>
 
 namespace Kratos
 {
@@ -32,25 +32,6 @@ namespace Kratos
     NewElement.SetFlags(this->GetFlags());
 
     return Element::Pointer(new TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement(NewElement));
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::Initialize(const ProcessInfo &rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
-    KRATOS_CATCH("");
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::InitializeSolutionStep(const ProcessInfo &rCurrentProcessInfo)
-  {
-  }
-
-  template <unsigned int TDim>
-  void TwoStepUpdatedLagrangianVPImplicitFluidDEMcouplingElement<TDim>::InitializeNonLinearIteration(const ProcessInfo &rCurrentProcessInfo)
-  {
-    KRATOS_TRY;
-    KRATOS_CATCH("");
   }
 
   template <unsigned int TDim>
@@ -143,7 +124,7 @@ namespace Kratos
 
       const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1];
 
-      if (rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
+      if (rGeom[0].IsNot(INLET)) // to change into moving wall!!!!!
         BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
 
       if (rGeom[1].IsNot(INLET))
@@ -170,7 +151,7 @@ namespace Kratos
 
       const double accelerationsNormalProjection = MeanAcc[0] * NormalVector[0] + MeanAcc[1] * NormalVector[1];
 
-      if (rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
+      if (rGeom[0].IsNot(INLET)) // to change into moving wall!!!!!
         BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc * accelerationsNormalProjection + BoundRHSCoeffDev * SpatialDefRateNormalProjection);
 
       if (rGeom[2].IsNot(INLET))
@@ -355,7 +336,6 @@ namespace Kratos
                                                                                            const double BoundRHSCoeffDev)
   {
     GeometryType &rGeom = this->GetGeometry();
-    //const SizeType NumNodes = rGeom.PointsNumber();
     array_1d<double, 3> AccA(3, 0.0);
     array_1d<double, 3> AccB(3, 0.0);
 
@@ -366,11 +346,10 @@ namespace Kratos
     {
       noalias(AccA) = factor * (rGeom[0].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[0].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[0].FastGetSolutionStepValue(ACCELERATION, 1);
       noalias(AccB) = factor * (rGeom[1].FastGetSolutionStepValue(VELOCITY, 0) - rGeom[1].FastGetSolutionStepValue(VELOCITY, 1)) - rGeom[1].FastGetSolutionStepValue(ACCELERATION, 1);
-      // noalias(AccA)=rGeom[0].FastGetSolutionStepValue(ACCELERATION,0);
-      // noalias(AccB)=rGeom[1].FastGetSolutionStepValue(ACCELERATION,0);
+
       const array_1d<double, 3> &NormalA = rGeom[0].FastGetSolutionStepValue(NORMAL);
       const array_1d<double, 3> &NormalB = rGeom[1].FastGetSolutionStepValue(NORMAL);
-      if (rGeom[0].IsNot(INLET)) //to change into moving wall!!!!!
+      if (rGeom[0].IsNot(INLET)) // to change into moving wall!!!!!
         BoundRHSVector[0] += one_third * (BoundRHSCoeffAcc * (AccA[0] * NormalA[0] + AccA[1] * NormalA[1]) + BoundRHSCoeffDev);
       if (rGeom[1].IsNot(INLET))
         BoundRHSVector[1] += one_third * (BoundRHSCoeffAcc * (AccB[0] * NormalB[0] + AccB[1] * NormalB[1]) + BoundRHSCoeffDev);
@@ -407,7 +386,6 @@ namespace Kratos
                                                                                            const double BoundRHSCoeffDev)
   {
     GeometryType &rGeom = this->GetGeometry();
-    //const SizeType NumNodes = rGeom.PointsNumber();
     array_1d<double, 3> AccA(3, 0.0);
     array_1d<double, 3> AccB(3, 0.0);
     array_1d<double, 3> AccC(3, 0.0);
@@ -504,14 +482,7 @@ namespace Kratos
     double MeanVelocity = 0;
     this->CalcMeanVelocityNorm(MeanVelocity, 0);
 
-    // Tau = 1.0 / (2.0 * Density *(0.5 * MeanVelocity / ElemSize + 0.5/DeltaTime) +  8.0 * Viscosity / (ElemSize * ElemSize) );
     Tau = (ElemSize * ElemSize * DeltaTime) / (Density * MeanVelocity * DeltaTime * ElemSize + Density * ElemSize * ElemSize + 8.0 * Viscosity * DeltaTime);
-    // if(Tau<0.0000001){
-    //   Tau=0.0000001;
-    // }
-    // if(Tau>0.0001){
-    //   Tau=0.0001;
-    // }
 
     if (MeanVelocity == 0)
     {
@@ -605,13 +576,8 @@ namespace Kratos
         }
         FluidFractionRate = 0.0;
 
-        // double BulkCoeff =GaussWeight/(VolumetricCoeff);
-        // this->ComputeBulkMatrix(BulkVelMatrix,N,BulkCoeff);
-        // double BulkStabCoeff=BulkCoeff*Tau*Density/TimeStep;
-        // this->ComputeBulkMatrix(BulkAccMatrix,N,BulkStabCoeff);
-
         double BoundLHSCoeff = Tau * 4.0 * GaussWeight / (ElemSize * ElemSize);
-        // if(TDim==3){
+        // if constexpr (TDim==3){
         //   BoundLHSCoeff=Tau*2*GaussWeight/(0.81649658*ElemSize*ElemSize);
         // }
 
@@ -647,7 +613,7 @@ namespace Kratos
       VectorType PressureValues = ZeroVector(NumNodes);
       VectorType PressureValuesForRHS = ZeroVector(NumNodes);
       this->GetPressureValues(PressureValuesForRHS, 0);
-      //the LHS matrix up to now just contains the laplacian term and the bound term
+      // the LHS matrix up to now just contains the laplacian term and the bound term
       noalias(rRightHandSideVector) -= prod(rLeftHandSideMatrix, PressureValuesForRHS);
 
       this->GetPressureValues(PressureValues, 1);
@@ -658,7 +624,6 @@ namespace Kratos
       double lumpedBulkStabCoeff = lumpedBulkCoeff * Tau * Density / TimeStep;
 
       this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkCoeff);
-      // this->ComputeBulkMatrixConsistent(BulkMatrixConsistent,lumpedBulkCoeff);
       noalias(rLeftHandSideMatrix) += BulkMatrix;
       // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
       noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);
@@ -668,7 +633,6 @@ namespace Kratos
       noalias(PressureValuesForRHS) += -PressureValues * TimeStep;
       noalias(BulkMatrix) = ZeroMatrix(NumNodes, NumNodes);
       this->ComputeBulkMatrixLump(BulkMatrix, lumpedBulkStabCoeff);
-      // this->ComputeBulkMatrixConsistent(BulkMatrixConsistent,lumpedBulkStabCoeff);
       noalias(rLeftHandSideMatrix) += BulkMatrix;
       // noalias(rLeftHandSideMatrix)+=BulkMatrixConsistent;
       noalias(rRightHandSideVector) -= prod(BulkMatrix, PressureValuesForRHS);

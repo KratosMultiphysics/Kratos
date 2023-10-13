@@ -1,4 +1,3 @@
-from __future__ import print_function, absolute_import, division  # makes KratosMultiphysics backward compatible with python 2.6 and 2.7
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -14,6 +13,13 @@ def CreateSolver(model, custom_settings):
 class FluidDEMSolver(FluidSolver):
 
     ## FluidDEMSolver specific methods.
+
+    def _TimeBufferIsInitialized(self):
+        # We always have one extra old step if we are not using a manufactured solution (step 0, read from input)
+        if self.main_model_part.ProcessInfo[KratosSDEM.MANUFACTURED]:
+            return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 2 >= self.GetMinimumBufferSize()
+        else:
+            return self.main_model_part.ProcessInfo[KratosMultiphysics.STEP] + 1 >= self.GetMinimumBufferSize()
 
     def _CreateScheme(self):
         domain_size = self.GetComputingModelPart().ProcessInfo[KratosMultiphysics.DOMAIN_SIZE]
@@ -61,3 +67,18 @@ class FluidDEMSolver(FluidSolver):
                 raise Exception(err_msg)
 
         return scheme
+
+    def _CreateNewtonRaphsonStrategy(self):
+        computing_model_part = self.GetComputingModelPart()
+        time_scheme = self._GetScheme()
+        convergence_criterion = self._GetConvergenceCriterion()
+        builder_and_solver = self._GetBuilderAndSolver()
+        return KratosSDEM.RelaxedResidualBasedNewtonRaphsonStrategy(
+            computing_model_part,
+            time_scheme,
+            convergence_criterion,
+            builder_and_solver,
+            self.settings["maximum_iterations"].GetInt(),
+            self.settings["compute_reactions"].GetBool(),
+            self.settings["reform_dofs_at_each_step"].GetBool(),
+            self.settings["move_mesh_flag"].GetBool())

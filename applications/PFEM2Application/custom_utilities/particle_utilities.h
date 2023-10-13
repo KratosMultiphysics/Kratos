@@ -34,7 +34,6 @@
 #include "pfem_2_application_variables.h"
 #include "spatial_containers/spatial_containers.h"
 #include "utilities/timer.h"
-#include "processes/node_erase_process.h"
 #include "utilities/binbased_fast_point_locator.h"
 //#include "utilities/enrichment_utilities.h"
 
@@ -156,8 +155,8 @@ namespace Kratos
       {
         KRATOS_TRY
 	  //defintions for spatial search
-	  typedef Node < 3 > PointType;
-        typedef Node < 3 > ::Pointer PointTypePointer;
+	  typedef Node PointType;
+        typedef Node ::Pointer PointTypePointer;
         typedef std::vector<PointType::Pointer> PointVector;
         typedef std::vector<PointType::Pointer>::iterator PointIterator;
         typedef std::vector<double> DistanceVector;
@@ -191,7 +190,7 @@ namespace Kratos
         tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 
         //work arrays
-        Node < 3 > work_point(0, 0.0, 0.0, 0.0);
+        Node work_point(0, 0.0, 0.0, 0.0);
         unsigned int MaximumNumberOfResults = 10000;
         PointVector Results(MaximumNumberOfResults);
         DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
@@ -201,7 +200,7 @@ namespace Kratos
 	  KRATOS_ERROR<<"Add  ----NODAL_H---- variable!!!!!! ERROR";
 
         double sigma = 0.0;
-        if (TDim == 2)
+        if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
         else
 	  sigma = 1.0 / 3.1415926;
@@ -263,8 +262,8 @@ namespace Kratos
         KRATOS_TRY
 
 	  //defintions for spatial search
-	  typedef Node < 3 > PointType;
-        typedef Node < 3 > ::Pointer PointTypePointer;
+	  typedef Node PointType;
+        typedef Node ::Pointer PointTypePointer;
         typedef std::vector<PointType::Pointer> PointVector;
         typedef std::vector<PointType::Pointer>::iterator PointIterator;
         typedef std::vector<double> DistanceVector;
@@ -297,7 +296,7 @@ namespace Kratos
         tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 
         //work arrays
-        Node < 3 > work_point(0, 0.0, 0.0, 0.0);
+        Node work_point(0, 0.0, 0.0, 0.0);
         unsigned int MaximumNumberOfResults = 10000;
         PointVector Results(MaximumNumberOfResults);
         DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
@@ -306,7 +305,7 @@ namespace Kratos
 	  KRATOS_ERROR<<"Add  ----NODAL_H---- variable!!!!!! ERROR";
 
         double sigma = 0.0;
-        if (TDim == 2)
+        if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
         else
 	  sigma = 1.0 / 3.1415926;
@@ -387,7 +386,7 @@ namespace Kratos
 	  {
             ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
 
-            Node < 3 > ::Pointer pparticle = *(iparticle.base());
+            Node ::Pointer pparticle = *(iparticle.base());
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
             Element::Pointer pelement;
@@ -396,7 +395,7 @@ namespace Kratos
 
             if (is_found == true)
 	      {
-                Geometry<Node<3> >& geom = pelement->GetGeometry();
+                Geometry<Node >& geom = pelement->GetGeometry();
 		BoundedMatrix<double, 3, 2 > msDN_DX;
 		array_1d<double, 3 > N;
 	    	//array_1d<double, 3 > N;
@@ -654,8 +653,8 @@ namespace Kratos
       void TransferToEulerianMeshShapeBased_aux_3D(ModelPart& rEulerianModelPart, ModelPart & rLagrangianModelPart, BinBasedFastPointLocator<TDim>& node_locator)
       {
 	KRATOS_TRY
-	//typedef Node < 3 > PointType;
-	//typedef Node < 3 > ::Pointer PointTypePointer;
+	//typedef Node PointType;
+	//typedef Node ::Pointer PointTypePointer;
 	Vector N;
 	const int max_results = 1000;
 	typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
@@ -664,13 +663,13 @@ namespace Kratos
 	for (int i = 0; i < nparticles; i++)
 	  {
 	    ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
-	    Node < 3 > ::Pointer pparticle = *(iparticle.base());
+	    Node ::Pointer pparticle = *(iparticle.base());
 	    typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 	    Element::Pointer pelement;
 	    bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
 	    if (is_found == true)
 	      {
-		Geometry<Node<3> >& geom = pelement->GetGeometry();
+		Geometry<Node >& geom = pelement->GetGeometry();
 		BoundedMatrix<double, 4, 3 > msDN_DX;
 		array_1d<double, 4 > N;
 		double Area=0.0;
@@ -742,7 +741,7 @@ namespace Kratos
 	    int subdivisions = 5;
 	    //double temperature=0.0;
 	    ModelPart::NodesContainerType::iterator iparticle = rModelPart.NodesBegin() + i;
-	    Node < 3 > ::Pointer pparticle = *(iparticle.base());
+	    Node ::Pointer pparticle = *(iparticle.base());
 	    //small_dt = dt / subdivisions;
 
 	    bool do_move = true;
@@ -774,7 +773,7 @@ namespace Kratos
 		    //KRATOS_WATCH(is_found);
 		    if (is_found == true)
 		      {
-			Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+			Geometry< Node >& geom = pelement->GetGeometry();
 			//int nn=0;
 			noalias(veulerian) = ZeroVector(3); //0.0;//N[0] * geom[0].FastGetSolutionStepValue(VELOCITY,1);
 			//temperature=0.0;//N[0] * geom[0].FastGetSolutionStepValue(TEMPERATURE);
@@ -890,7 +889,7 @@ namespace Kratos
 
 		  int nf=0;
 		  //loop on neighbours and erase if they are too close
-		  for( GlobalPointersVector< Node<3> >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
+		  for( GlobalPointersVector< Node >::iterator i = in->GetValue(NEIGHBOUR_NODES).begin(); i != in->GetValue(NEIGHBOUR_NODES).end(); i++)
 		    {
 
 			//KRATOS_ERROR(std::logic_error, "element with zero vol found", "");
@@ -916,8 +915,8 @@ namespace Kratos
         KRATOS_TRY
 
 	  //defintions for spatial search
-	  //typedef Node < 3 > PointType;
-	  //typedef Node < 3 > ::Pointer PointTypePointer;
+	  //typedef Node PointType;
+	  //typedef Node ::Pointer PointTypePointer;
 
 
         Vector N;
@@ -930,7 +929,7 @@ namespace Kratos
 	  {
             ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
 
-            Node < 3 > ::Pointer pparticle = *(iparticle.base());
+            Node ::Pointer pparticle = *(iparticle.base());
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
             Element::Pointer pelement;
@@ -939,7 +938,7 @@ namespace Kratos
 
             if (is_found == true)
 	      {
-                Geometry<Node<3> >& geom = pelement->GetGeometry();
+                Geometry<Node >& geom = pelement->GetGeometry();
 
                 BoundedMatrix<double, 4, 3 > msDN_DX;
 
@@ -970,8 +969,8 @@ namespace Kratos
         KRATOS_TRY
 
 	  //defintions for spatial search
-	  //typedef Node < 3 > PointType;
-	  //typedef Node < 3 > ::Pointer PointTypePointer;
+	  //typedef Node PointType;
+	  //typedef Node ::Pointer PointTypePointer;
 
 	  //particles
 	  for (ModelPart::NodesContainerType::iterator node_it = rLagrangianModelPart.NodesBegin(); node_it != rLagrangianModelPart.NodesEnd(); node_it++)
@@ -983,7 +982,7 @@ namespace Kratos
 	for (ModelPart::ElementsContainerType::iterator el_it = rLagrangianModelPart.ElementsBegin();el_it != rLagrangianModelPart.ElementsEnd(); el_it++)
 	  {
 
-            Geometry<Node < 3 > >& geom = el_it->GetGeometry();
+            Geometry<Node >& geom = el_it->GetGeometry();
             double x0 = geom[0].X();
             double y0 = geom[0].Y();
             double z0 = geom[0].Z();
@@ -1030,7 +1029,7 @@ namespace Kratos
 
 	for (ModelPart::ElementsContainerType::iterator ielem = mp_local_model_part.ElementsBegin();ielem != mp_local_model_part.ElementsEnd(); ielem++)
 	  {
-	    Geometry< Node<3> >& geom = ielem->GetGeometry();
+	    Geometry< Node >& geom = ielem->GetGeometry();
 	    if(geom.size()>1)
 	      {
 		ielem->GetValue(DIAMETER) = -1;
@@ -1060,7 +1059,7 @@ namespace Kratos
 
 	for (ModelPart::ElementsContainerType::iterator ielem = mp_local_model_part.ElementsBegin(); ielem != mp_local_model_part.ElementsEnd(); ielem++)
 	  {
-	    Geometry< Node<3> >& geom = ielem->GetGeometry();
+	    Geometry< Node >& geom = ielem->GetGeometry();
 	    if(geom.size()>1 && ielem->GetValue(DIAMETER) < 0 )
 	      {
 		color++;
@@ -1256,13 +1255,13 @@ namespace Kratos
 	    const double small_dt = dt / subdivisions;
 	    for (unsigned int substep = 0; substep < subdivisions; substep++)
             {
-	      Node < 3 > ::Pointer pparticle = *(iparticle.base());
+	      Node ::Pointer pparticle = *(iparticle.base());
 	      typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 	      Element::Pointer pelement;
 	      bool is_found = node_locator.FindPointOnMesh(pparticle->Coordinates(), N, pelement, result_begin, max_results);
 	      if (is_found == true)
                 {
-		  Geometry< Node < 3 > >& geom = pelement->GetGeometry();
+		  Geometry< Node >& geom = pelement->GetGeometry();
 
 		  //move according to the streamline
 		  noalias(veulerian) = N[0] * geom[0].FastGetSolutionStepValue(VELOCITY, 1);
@@ -1293,8 +1292,8 @@ namespace Kratos
 	KRATOS_TRY
 
 	  //defintions for spatial search
-	  typedef Node < 3 > PointType;
-	typedef Node < 3 > ::Pointer PointTypePointer;
+	  typedef Node PointType;
+	typedef Node ::Pointer PointTypePointer;
 	typedef std::vector<PointType::Pointer> PointVector;
 	typedef std::vector<PointType::Pointer>::iterator PointIterator;
 	typedef std::vector<double> DistanceVector;
@@ -1329,7 +1328,7 @@ namespace Kratos
 	tree nodes_tree(list_of_nodes.begin(), list_of_nodes.end(), bucket_size);
 
 	//work arrays
-	Node < 3 > work_point(0, 0.0, 0.0, 0.0);
+	Node work_point(0, 0.0, 0.0, 0.0);
 	unsigned int MaximumNumberOfResults = 10000;
 	PointVector Results(MaximumNumberOfResults);
 	DistanceVector SquaredResultsDistances(MaximumNumberOfResults);
@@ -1340,7 +1339,7 @@ namespace Kratos
 
 	double sigma = 0.0;
 
-	if (TDim == 2)
+	if constexpr (TDim == 2)
 	  sigma = 10.0 / (7.0 * 3.1415926);
 	else
 	  sigma = 1.0 / 3.1415926;
@@ -1435,7 +1434,7 @@ namespace Kratos
 	  {
             ModelPart::NodesContainerType::iterator iparticle = rLagrangianModelPart.NodesBegin() + i;
 	    //KRATOS_ERROR(std::logic_error, "Add  ----FORCE---- variable!!!!!! ERROR", "");
-            Node < 3 > ::Pointer pparticle = *(iparticle.base());
+            Node ::Pointer pparticle = *(iparticle.base());
             typename BinBasedFastPointLocator<TDim>::ResultIteratorType result_begin = results.begin();
 
             Element::Pointer pelement;
@@ -1444,7 +1443,7 @@ namespace Kratos
 
             if (is_found == true)
 	      {
-                Geometry<Node<3> >& geom = pelement->GetGeometry();
+                Geometry<Node >& geom = pelement->GetGeometry();
                 const array_1d<double, 3 > & vel_particle = (iparticle)->FastGetSolutionStepValue(VELOCITY);
                 double density_particle = (iparticle)->FastGetSolutionStepValue(DENSITY);
                 double Tp=(iparticle)->FastGetSolutionStepValue(YCH4);  //HEAT_FLUX
@@ -1480,7 +1479,7 @@ namespace Kratos
         for (ModelPart::ElementsContainerType::iterator el_it = rEulerianModelPart.ElementsBegin();el_it != rEulerianModelPart.ElementsEnd(); el_it++)
 	  {
 
-            Geometry<Node < 3 > >& geom = el_it->GetGeometry();
+            Geometry<Node >& geom = el_it->GetGeometry();
             double x0 = geom[0].X();
             double y0 = geom[0].Y();
             double z0 = geom[0].Z();
@@ -1494,7 +1493,7 @@ namespace Kratos
             double y3 = geom[3].Y();
 	    double z3 = geom[3].Z();
 	    double area=0.0;
-	    //if(TDim==2) area=CalculateVol(x0, y0, x1, y1, x2, y2);
+	    //if constexpr (TDim==2) area=CalculateVol(x0, y0, x1, y1, x2, y2);
             //else
 	    area=CalculateVol(x0, y0, z0, x1, y1, z1, x2, y2, z2, x3, y3, z3);
 
@@ -1548,7 +1547,7 @@ namespace Kratos
 	  return 0.0;
       }
 
-      inline void CalculateCenterAndSearchRadius(Geometry<Node < 3 > >&geom, double& xc, double& yc, double& zc, double& R, array_1d<double, 3 > & N )
+      inline void CalculateCenterAndSearchRadius(Geometry<Node >&geom, double& xc, double& yc, double& zc, double& R, array_1d<double, 3 > & N )
       {
 	double x0 = geom[0].X();
 	double y0 = geom[0].Y();
@@ -1572,7 +1571,7 @@ namespace Kratos
 	R = 1.01 * sqrt(R);
       }
 
-      inline void CalculateCenterAndSearchRadius(Geometry<Node < 3 > >&geom, double& xc, double& yc, double& zc, double& R, array_1d<double, 4 > & N )
+      inline void CalculateCenterAndSearchRadius(Geometry<Node >&geom, double& xc, double& yc, double& zc, double& R, array_1d<double, 4 > & N )
       {
 	double x0 = geom[0].X();
 	double y0 = geom[0].Y();
@@ -1606,7 +1605,7 @@ namespace Kratos
       }
 
 
-      inline bool CalculatePosition(Geometry<Node < 3 > >&geom,const double xc, const double yc, const double zc,  array_1d<double, 4 > & N )
+      inline bool CalculatePosition(Geometry<Node >&geom,const double xc, const double yc, const double zc,  array_1d<double, 4 > & N )
       {
 
 	double x0 = geom[0].X();
@@ -1675,7 +1674,7 @@ namespace Kratos
 	return detJ * 0.1666666666666666666667;
       }
 
-      void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 4, 3 > & pos, BoundedMatrix<double, 4, 3 > & N)
+      void ComputeGaussPointPositions(Geometry< Node >& geom, BoundedMatrix<double, 4, 3 > & pos, BoundedMatrix<double, 4, 3 > & N)
       {
 	double one_third = 1.0 / 3.0;
 	double one_sixt = 1.0 / 6.0;
@@ -1717,7 +1716,7 @@ namespace Kratos
 
       }
 
-      void ComputeGaussPointPositions(Geometry< Node < 3 > >& geom, BoundedMatrix<double, 16, 3 > & pos, BoundedMatrix<double, 16, 3 > & N)
+      void ComputeGaussPointPositions(Geometry< Node >& geom, BoundedMatrix<double, 16, 3 > & pos, BoundedMatrix<double, 16, 3 > & N)
       {
 	//lower diagonal terms
 	double ypos = 1.0 / 12.0;
@@ -1945,7 +1944,7 @@ namespace Kratos
 
       }
 
-      bool CalculatePosition(Geometry<Node < 3 > >&geom,const double xc, const double yc, const double zc,array_1d<double, 3 > & N	)
+      bool CalculatePosition(Geometry<Node >&geom,const double xc, const double yc, const double zc,array_1d<double, 3 > & N	)
       {
 	double x0 = geom[0].X();
 	double y0 = geom[0].Y();

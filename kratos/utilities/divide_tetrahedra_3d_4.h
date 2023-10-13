@@ -14,6 +14,7 @@
 #define KRATOS_DIVIDE_TETRAHEDRA_3D_4_UTILS
 
 // System includes
+#include <bitset>
 
 // External includes
 
@@ -39,17 +40,20 @@ namespace Kratos
 ///@}
 ///@name  Functions
 ///@{
-
-class KRATOS_API(KRATOS_CORE) DivideTetrahedra3D4 : public DivideGeometry
+template<class TPointType>
+class KRATOS_API(KRATOS_CORE) DivideTetrahedra3D4 : public DivideGeometry<TPointType>
 {
 public:
     ///@name Type Definitions
     ///@{
 
-    typedef DivideGeometry                                              BaseType;
-    typedef BaseType::GeometryType                                      GeometryType;
-    typedef BaseType::IndexedPointType                                  IndexedPointType;
-    typedef BaseType::IndexedPointGeometryType::GeometriesArrayType     IndexedGeometriesArrayType;
+    typedef DivideGeometry<TPointType>                                  BaseType;
+    typedef typename BaseType::GeometryType                                      GeometryType;
+    typedef typename BaseType::IndexedPointType                                  IndexedPointType;
+    typedef typename BaseType::IndexedPointPointerType                           IndexedPointPointerType;
+    typedef typename BaseType::IndexedPointGeometryType                          IndexedPointGeometryType;
+    typedef typename BaseType::IndexedPointGeometryPointerType                   IndexedPointGeometryPointerType;
+    typedef typename BaseType::IndexedPointGeometryType::GeometriesArrayType     IndexedGeometriesArrayType;
     typedef Triangle3D3 < IndexedPointType >                            IndexedPointTriangleType;
     typedef Tetrahedra3D4 < IndexedPointType >                          IndexedPointTetrahedraType;
 
@@ -159,6 +163,8 @@ private:
     ///@name Member Variables
     ///@{
 
+    std::bitset<4> mNodeIsCut{0x0};
+
     ///@}
     ///@name Serialization
     ///@{
@@ -179,6 +185,8 @@ private:
     ///@name Private Inquiry
     ///@{
 
+    bool NodeIsInterface(int NodeKey) const;
+
     ///@}
     ///@name Un accessible methods
     ///@{
@@ -188,7 +196,7 @@ private:
 
     /// Copy constructor.
     DivideTetrahedra3D4(DivideTetrahedra3D4 const& rOther)
-        : DivideGeometry(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
+        : DivideGeometry<TPointType>(rOther.GetInputGeometry(), rOther.GetNodalDistances()) {};
 
     ///@}
 

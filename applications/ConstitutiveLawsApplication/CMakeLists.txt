@@ -16,9 +16,15 @@ file(GLOB_RECURSE KRATOS_CONSTITUTIVE_LAWS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws_application.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/constitutive_laws_application_variables.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive_thermal/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/*.cpp
 )
+
+## Exclude sources that might yield problems with the unity build
+if(CMAKE_UNITY_BUILD MATCHES ON)
+    set_source_files_properties (${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/advanced_constitutive_law_utilities.cpp PROPERTIES SKIP_UNITY_BUILD_INCLUSION TRUE)
+endif(CMAKE_UNITY_BUILD MATCHES ON)
 
 ## ConstitutiveLaws testing sources
 if(${KRATOS_BUILD_TESTING} MATCHES ON)

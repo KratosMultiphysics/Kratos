@@ -104,7 +104,7 @@ public:
     /**
     * Returns the member pointer to the splitting utility.
     */
-    const DivideGeometry::Pointer pGetSplittingUtil() const override;
+    const DivideGeometry<Node>::Pointer pGetSplittingUtil() const override;
 
     ///@}
 
@@ -152,7 +152,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    DivideTriangle2D3::Pointer mpTriangleSplitter;
+    DivideTriangle2D3<Node>::Pointer mpTriangleSplitter;
 
     ///@}
     ///@name Serialization
@@ -184,7 +184,7 @@ private:
     /// Copy constructor.
     Triangle2D3ModifiedShapeFunctions(Triangle2D3ModifiedShapeFunctions const& rOther) :
         ModifiedShapeFunctions(rOther.GetInputGeometry(), rOther.GetNodalDistances()),
-        mpTriangleSplitter(new DivideTriangle2D3(*rOther.GetInputGeometry(), rOther.GetNodalDistances())) {
+        mpTriangleSplitter(new DivideTriangle2D3<Node>(*rOther.GetInputGeometry(), rOther.GetNodalDistances())) {
 
         // Perform the element splitting
         mpTriangleSplitter->GenerateDivision();

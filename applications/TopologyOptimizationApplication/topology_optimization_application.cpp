@@ -12,27 +12,13 @@
 //                   Eric Gonzales
 //					 Philipp Hofer
 //					 Erich Wehrle
-//
-// ==============================================================================
-
-// System includes
-
-
-// External includes 
-
-
-// Project includes
 #include "includes/define.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/triangle_3d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "geometries/hexahedra_3d_8.h"
-
-
 #include "includes/constitutive_law.h"
-
 #include "topology_optimization_application.h"
-
 
 namespace Kratos
 {
@@ -40,6 +26,7 @@ namespace Kratos
     KRATOS_CREATE_VARIABLE( double, YOUNGS_MODULUS_MIN)
     KRATOS_CREATE_VARIABLE( double, YOUNGS_MODULUS_0 )
     KRATOS_CREATE_VARIABLE( double, PENAL )
+    KRATOS_CREATE_VARIABLE( std::string, MAT_INTERP )
     KRATOS_CREATE_VARIABLE( double, X_PHYS )
     KRATOS_CREATE_VARIABLE( double, X_PHYS_OLD )
     KRATOS_CREATE_VARIABLE( double, DCDX )
@@ -50,9 +37,9 @@ namespace Kratos
 
     ///we define the node type
 
-        typedef Node<3> NodeType;
+        typedef Node NodeType;
 
-    KratosTopologyOptimizationApplication::KratosTopologyOptimizationApplication() 
+    KratosTopologyOptimizationApplication::KratosTopologyOptimizationApplication()
         : KratosApplication("TopologyOptimizationApplication"),
 
             mSmallDisplacementSIMPElement3D3N( 0, Element::GeometryType::Pointer( new Triangle3D3 <NodeType>( Element::GeometryType::PointsArrayType( 3 ) ) ) ),
@@ -63,9 +50,6 @@ namespace Kratos
 
     void KratosTopologyOptimizationApplication::Register()
     {
-        // calling base class register to register Kratos components
-        KratosApplication::Register();
-
         std::cout << "     KRATOS|_   _/_ \\| _ \\ _ \\| |  / _ \\/ __\\ \\ / /         " << std::endl;
         std::cout << "             | | (_) |  _/(_) | |_| (_) |(_ |\\ V /               " << std::endl;
         std::cout << "             |_|\\___/|_| \\___/|____\\___/ ___| |_|OPTIMIZATION  " << std::endl;
@@ -80,6 +64,7 @@ namespace Kratos
         KRATOS_REGISTER_VARIABLE( YOUNGS_MODULUS_MIN)
         KRATOS_REGISTER_VARIABLE( YOUNGS_MODULUS_0 )
         KRATOS_REGISTER_VARIABLE( PENAL )
+        KRATOS_REGISTER_VARIABLE( MAT_INTERP )
         KRATOS_REGISTER_VARIABLE( X_PHYS )
         KRATOS_REGISTER_VARIABLE( X_PHYS_OLD )
         KRATOS_REGISTER_VARIABLE( DCDX )
@@ -92,4 +77,3 @@ namespace Kratos
     }
 
 }  // namespace Kratos.
-

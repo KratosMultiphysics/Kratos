@@ -2,7 +2,6 @@
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-import math
 import os
 
 def GetFilePath(fileName):
@@ -38,7 +37,7 @@ class TestVariableUtils(KratosUnittest.TestCase):
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 0, [node.X ** 2, 0.0, 0.0])
             node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT, 1, [node.X, node.Y, node.Z])
 
-        ##copy the values to the destination model part
+        # ##copy the values to the destination model part
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VISCOSITY, origin_model_part, destination_model_part, 0)
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VISCOSITY, origin_model_part, destination_model_part, 1)
         KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.DISPLACEMENT, origin_model_part, destination_model_part, 0)
@@ -50,6 +49,16 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY, 1), 2.0 * node.X + 3.0 * node.Y)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0), node.X ** 2)
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 1), node.X)
+
+        ##copy the values to the destination model part in different buffers
+        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.VISCOSITY, KratosMultiphysics.VISCOSITY ,origin_model_part, destination_model_part, 0, 1)
+        KratosMultiphysics.VariableUtils().CopyModelPartNodalVar(KratosMultiphysics.DISPLACEMENT, KratosMultiphysics.DISPLACEMENT,origin_model_part, destination_model_part, 0, 1)
+
+        ##check the copied values
+        for node in destination_model_part.Nodes:
+            self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY, 1), node.X + node.Y)
+            self.assertVectorAlmostEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT,1),[node.X ** 2, 0.0, 0.0])
+
 
     def test_copy_model_part_nodal_var_to_non_historical_var(self):
         ##set the origin model part
@@ -692,6 +701,75 @@ class TestVariableUtils(KratosUnittest.TestCase):
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.VISCOSITY), data_vector_x1[i])
             self.assertEqual(node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), data_vector_x2[i])
             i+=1
+
+    def test_solutionsteps_vector(self):
+        current_model = KratosMultiphysics.Model()
+
+        ##set the model part
+        model_part = current_model.CreateModelPart("Main")
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VISCOSITY)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        model_part.AddNodalSolutionStepVariable(KratosMultiphysics.VELOCITY)
+        model_part.CreateNewNode(1,1.0,2.0,3.0)
+        model_part.CreateNewNode(2,11.0,25.0,31.0)
+        model_part.CreateNewNode(10,12.0,26.0,32.0)
+
+        #reference_results
+        ref_initial_coords2d = [1.0,2.0,11.0,25.0,12.0,26.0]
+        ref_initial_coords3d = [1.0,2.0,3.0,11.0,25.0,31.0,12.0,26.0,32.0]
+        ref_current_coords2d = [2.0,4.0,12.0,27.0,13.0,28.0]
+        ref_current_coords3d = [2.0,4.0,6.0,12.0,27.0,34.0,13.0,28.0,35.0]
+        ref_values2d = [1.0,2.0,2.0,4.0,10.0,20.0]
+        ref_values3d = [1.0,2.0,3.0,2.0,4.0,6.0,10.0,20.0,30.0]
+
+        for node in model_part.Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X,0,node.Id*1.)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y,0,node.Id*2.)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z,0,node.Id*3.)
+            node.SetSolutionStepValue(KratosMultiphysics.VISCOSITY,0,node.X)
+            node.X = node.X0 + 1.0
+            node.Y = node.Y0 + 2.0
+            node.Z = node.Z0 + 3.0
+
+        init2d = KratosMultiphysics.VariableUtils().GetInitialPositionsVector(model_part.Nodes,2) 
+        init3d = KratosMultiphysics.VariableUtils().GetInitialPositionsVector(model_part.Nodes,3)
+        current2d = KratosMultiphysics.VariableUtils().GetCurrentPositionsVector(model_part.Nodes,2) 
+        current3d = KratosMultiphysics.VariableUtils().GetCurrentPositionsVector(model_part.Nodes,3)
+
+        for v,r in zip(ref_initial_coords2d,init2d):
+            self.assertEqual(v,r)
+
+        for v,r in zip(ref_initial_coords3d,init3d):
+            self.assertEqual(v,r)
+
+        for v,r in zip(ref_current_coords2d,current2d):
+            self.assertEqual(v,r)
+
+        for v,r in zip(ref_current_coords3d,current3d):
+            self.assertEqual(v,r)
+
+        values2d = KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,0,2)
+        values3d = KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,0,3)
+
+        for v,r in zip(ref_values2d,values2d):
+            self.assertEqual(v,r)
+
+        for v,r in zip(ref_values3d,values3d):
+            self.assertEqual(v,r)
+
+        input2d = [0.0,1.0,2.0,3.0,4.0,5.0]
+        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,input2d,0)
+        verify2d = KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,0,2) 
+
+        for v,r in zip(input2d,verify2d):
+            self.assertEqual(v,r)
+
+        input3d = [0.0,1.0,2.0,3.0,4.0,5.0,6.0,7.0,8.0]
+        KratosMultiphysics.VariableUtils().SetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,input2d,0)
+        verify3d = KratosMultiphysics.VariableUtils().GetSolutionStepValuesVector(model_part.Nodes,KratosMultiphysics.DISPLACEMENT,0,2) 
+
+        for v,r in zip(input3d,verify3d):
+            self.assertEqual(v,r)
 
     def test_sum_variable(self):
         current_model = KratosMultiphysics.Model()

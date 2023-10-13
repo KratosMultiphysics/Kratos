@@ -1728,7 +1728,7 @@ Begin Nodes
 End Nodes
 
 
-Begin Elements UpdatedLagrangian2D3N// GUI group identifier: Parts Auto1
+Begin Elements MPMUpdatedLagrangian2D3N// GUI group identifier: Parts Auto1
         1          0       1720       1718       1719 
         2          0       1574       1557       1553 
         3          0       1278       1258       1251 

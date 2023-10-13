@@ -194,6 +194,9 @@ namespace Kratos
 
     private:
 
+        // boolean for the cable --> does not resist to compression
+        bool mIsCompressed;
+
         friend class Serializer;
         void save(Serializer& rSerializer) const override;
         void load(Serializer& rSerializer) override;

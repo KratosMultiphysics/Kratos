@@ -46,7 +46,7 @@ class IntegrationData
 public:
 
     IntegrationData(
-        Geometry< Node<3> >& rGeometry,
+        Geometry< Node >& rGeometry,
         const Variable<double>& rFluxVar
         ):
         mGaussPoint(0),
@@ -149,11 +149,11 @@ public:
 
     FluxCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry);
+        Geometry< Node >::Pointer pGeometry);
 
     FluxCondition(
         IndexType NewId,
-        Geometry< Node<3> >::Pointer pGeometry,
+        Geometry< Node >::Pointer pGeometry,
         Properties::Pointer pProperties);
 
     /// Destructor.
@@ -190,7 +190,7 @@ public:
         DofsVectorType& ConditionalDofList,
         const ProcessInfo& CurrentProcessInfo) const override;
 
-    GeometryData::IntegrationMethod GetIntegrationMethod() override;
+    GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
     void CalculateOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,

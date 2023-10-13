@@ -146,8 +146,8 @@ public:
     ///base type: an IndexedObject that automatically has a unique number
     typedef IndexedObject BaseType;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
 
     /**
      * Properties are used to store any parameters

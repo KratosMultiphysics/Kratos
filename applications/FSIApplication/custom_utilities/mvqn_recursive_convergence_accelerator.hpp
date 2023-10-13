@@ -18,8 +18,8 @@
 /* Project includes */
 #include "includes/ublas_interface.h"
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
+#include "utilities/dense_householder_qr_decomposition.h"
 #include "utilities/svd_utils.h"
-#include "utilities/qr_utility.h"
 
 
 namespace Kratos
@@ -173,10 +173,10 @@ public:
             TSpace::Mult(*pVtrans,*pWorkVector,*pVtransWorkVect);
 
             // Do the QR decomp of trans(V)*V and solve ((trans(V)*V)^-1)*trans(V)*res
-            QR<double, row_major> QRUtil;
-            QRUtil.compute(data_cols, data_cols, &(*pVtransV)(0,0));
+            DenseHouseholderQRDecomposition<TSpace> qr_decomposition;
+            qr_decomposition.Compute(*pVtransV);
             VectorPointerType pLambda = Kratos::make_shared<VectorType>(data_cols);
-            QRUtil.solve(&(*pVtransWorkVect)(0), &(*pLambda)(0));
+            qr_decomposition.Solve(*pVtransWorkVect, *pLambda);
 
             // Compute (res - V*Lambda). Note that it is save in pY
             VectorPointerType pY = Kratos::make_shared<VectorType>(residual_size);

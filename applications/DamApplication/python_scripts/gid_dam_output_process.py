@@ -302,6 +302,8 @@ class GiDDamOutputProcess(KratosMultiphysics.Process):
 
         if self.point_output_process is not None:
             self.point_output_process.ExecuteBeforeOutputStep()
+            if self.point_output_process.IsOutputStep():
+                self.point_output_process.PrintOutput()
 
         # Print the output
         time = self.model_part.ProcessInfo[KratosMultiphysics.TIME]

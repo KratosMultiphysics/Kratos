@@ -70,8 +70,8 @@ public:
     ///base type: an GeometricalObject that automatically has a unique number
     typedef GeometricalObject BaseType;
 
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
 
     /**
      * Properties are used to store any parameters
@@ -93,11 +93,13 @@ public:
 
     typedef std::size_t SizeType;
 
+    typedef Dof<double> DofType;
+
     typedef std::vector<std::size_t> EquationIdVectorType;
 
-    typedef std::vector< Dof<double>::Pointer > DofsVectorType;
+    typedef std::vector<DofType::Pointer> DofsVectorType;
 
-    typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+    typedef PointerVectorSet<DofType> DofsArrayType;
 
     ///Type definition for integration methods
     typedef GeometryData::IntegrationMethod IntegrationMethod;
@@ -112,7 +114,7 @@ public:
 
     /**
      * CONDITIONS inherited from this class have to implement next
-     * contructors, copy constructors and destructor: MANDATORY
+     * constructors, copy constructors and destructor: MANDATORY
      */
 
     /**
@@ -286,11 +288,6 @@ public:
     virtual IntegrationMethod GetIntegrationMethod() const
     {
         return pGetGeometry()->GetDefaultIntegrationMethod();
-    }
-
-    KRATOS_DEPRECATED virtual IntegrationMethod GetIntegrationMethod()
-    {
-        return const_cast<const Condition&>(*this).GetIntegrationMethod();
     }
 
     /**
@@ -479,7 +476,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition left hand side matrix for the first derivatives constributions
+     * to calculate the condition left hand side matrix for the first derivatives contributions
      * @param rLeftHandSideMatrix the condition left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -493,7 +490,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition right hand side vector for the first derivatives constributions
+     * to calculate the condition right hand side vector for the first derivatives contributions
      * @param rRightHandSideVector the condition right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -536,7 +533,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition left hand side matrix for the second derivatives constributions
+     * to calculate the condition left hand side matrix for the second derivatives contributions
      * @param rLeftHandSideMatrix the condition left hand side matrix
      * @param rCurrentProcessInfo the current process info instance
      */
@@ -550,7 +547,7 @@ public:
 
     /**
      * this is called during the assembling process in order
-     * to calculate the condition right hand side vector for the second derivatives constributions
+     * to calculate the condition right hand side vector for the second derivatives contributions
      * @param rRightHandSideVector the condition right hand side vector
      * @param rCurrentProcessInfo the current process info instance
      */

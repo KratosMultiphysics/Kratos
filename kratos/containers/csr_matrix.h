@@ -705,7 +705,8 @@ public:
     /// Print information about this object.
     void PrintInfo(std::ostream& rOStream) const
     {
-        rOStream << "CsrMatrix";
+        rOStream << "CsrMatrix" << std::endl;
+        PrintData(rOStream);
     }
 
     /// Print object's data.

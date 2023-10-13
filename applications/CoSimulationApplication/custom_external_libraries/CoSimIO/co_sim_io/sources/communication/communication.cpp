@@ -23,6 +23,19 @@
 namespace CoSimIO {
 namespace Internals {
 
+void AddFilePermissions(const fs::path& rPath)
+{
+    CO_SIM_IO_TRY
+
+    fs::permissions(rPath,
+        fs::perms::owner_read  | fs::perms::owner_write |
+        fs::perms::group_read  | fs::perms::group_write |
+        fs::perms::others_read | fs::perms::others_write,
+        fs::perm_options::add);
+
+    CO_SIM_IO_CATCH
+}
+
 Communication::Communication(
     const Info& I_Settings,
     std::shared_ptr<DataCommunicator> I_DataComm)
@@ -139,6 +152,7 @@ void Communication::BaseConnectDetail(const Info& I_Info)
         CO_SIM_IO_INFO_IF("CoSimIO", ec) << "Warning, communication directory (" << mCommFolder << ") could not be deleted!\nError code: " << ec.message() << std::endl;
         if (!fs::exists(mCommFolder)) {
             fs::create_directory(mCommFolder);
+            AddFilePermissions(mCommFolder); // otherwise the process with lower rights cannot delete files in it
         }
     }
 
@@ -262,7 +276,7 @@ void Communication::PostChecks(const Info& I_Info)
     CO_SIM_IO_ERROR_IF_NOT(I_Info.Has("memory_usage_ipc")) << "\"memory_usage_ipc\" must be specified!" << std::endl;
 }
 
-fs::path Communication::GetTempFileName(
+fs::path Communication::GetTmpFileName(
     const fs::path& rPath,
     const bool UseAuxFileForFileAvailability) const
 {
@@ -356,10 +370,13 @@ void Communication::MakeFileVisible(
     CO_SIM_IO_TRY
 
     if (!UseAuxFileForFileAvailability) {
+        const fs::path tmp_file_name = GetTmpFileName(rPath, UseAuxFileForFileAvailability);
+        AddFilePermissions(tmp_file_name);
         std::error_code ec;
-        fs::rename(GetTempFileName(rPath, UseAuxFileForFileAvailability), rPath, ec);
+        fs::rename(tmp_file_name, rPath, ec);
         CO_SIM_IO_ERROR_IF(ec) << rPath << " could not be made visible!\nError code: " << ec.message() << std::endl;
     } else {
+        AddFilePermissions(rPath);
         std::ofstream avail_file;
         avail_file.open(rPath.string() + ".avail");
         avail_file.close();
@@ -400,9 +417,9 @@ void Communication::SynchronizeAll(const std::string& rTag) const
 
         if (GetIsPrimaryConnection()) {
             std::ofstream sync_file;
-            sync_file.open(GetTempFileName(file_name_primary));
+            sync_file.open(GetTmpFileName(file_name_primary));
             sync_file.close();
-            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_primary))) << "Primary sync file " << file_name_primary << " could not be created!" << std::endl;
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTmpFileName(file_name_primary))) << "Primary sync file " << file_name_primary << " could not be created!" << std::endl;
             MakeFileVisible(file_name_primary);
 
             WaitForPath(file_name_secondary, true, 2);
@@ -414,9 +431,9 @@ void Communication::SynchronizeAll(const std::string& rTag) const
             RemovePath(file_name_primary);
 
             std::ofstream sync_file;
-            sync_file.open(GetTempFileName(file_name_secondary));
+            sync_file.open(GetTmpFileName(file_name_secondary));
             sync_file.close();
-            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTempFileName(file_name_secondary))) << "Secondary sync file " << file_name_secondary << " could not be created!" << std::endl;
+            CO_SIM_IO_ERROR_IF_NOT(fs::exists(GetTmpFileName(file_name_secondary))) << "Secondary sync file " << file_name_secondary << " could not be created!" << std::endl;
             MakeFileVisible(file_name_secondary);
 
             WaitUntilFileIsRemoved(file_name_secondary, 2);
@@ -468,7 +485,7 @@ void Communication::HandShake(const Info& I_Info)
             WaitUntilFileIsRemoved(rMyFileName,1); // in case of leftovers
 
             { // necessary as FileSerializer releases resources on destruction!
-                FileSerializer serializer_save(GetTempFileName(rMyFileName).string(), mSerializerTraceType);
+                FileSerializer serializer_save(GetTmpFileName(rMyFileName).string(), mSerializerTraceType);
                 serializer_save.save("info", GetMyInfo());
             }
 
@@ -507,7 +524,7 @@ void Communication::HandShake(const Info& I_Info)
 
         auto print_endianness = [](const bool IsBigEndian){return IsBigEndian ? "big endian" : "small endian";};
 
-        CO_SIM_IO_INFO_IF("CoSimIO", Utilities::IsBigEndian() != mPartnerInfo.Get<bool>("is_big_endian")) << "WARNING: Parnters have different endianness, check results carefully! It is recommended to use serialized ascii commuication.\n    My endianness:      " << print_endianness(Utilities::IsBigEndian()) << "\n    Partner endianness: " << print_endianness(mPartnerInfo.Get<bool>("is_big_endian")) << std::endl;
+        CO_SIM_IO_INFO_IF("CoSimIO", Utilities::IsBigEndian() != mPartnerInfo.Get<bool>("is_big_endian")) << "WARNING: Parnters have different endianness, check results carefully! It is recommended to use serialized ascii communication.\n    My endianness:      " << print_endianness(Utilities::IsBigEndian()) << "\n    Partner endianness: " << print_endianness(mPartnerInfo.Get<bool>("is_big_endian")) << std::endl;
 
         // more things can be done in derived class if necessary
         DerivedHandShake();

@@ -38,7 +38,7 @@ public:
 
     typedef std::size_t IndexType;
 	typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
+    typedef Node NodeType;
     typedef Geometry<NodeType> GeometryType;
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
     typedef typename Element::DofsVectorType DofsVectorType;
@@ -62,7 +62,7 @@ public:
     TransientConvectionDiffusionFICElement(IndexType NewId, GeometryType::Pointer pGeometry, PropertiesType::Pointer pProperties) : SteadyConvectionDiffusionFICElement<TDim,TNumNodes>( NewId, pGeometry, pProperties ) {}
 
     /// Destructor
-    virtual ~TransientConvectionDiffusionFICElement() {}
+    ~TransientConvectionDiffusionFICElement() override {}
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -70,20 +70,22 @@ public:
 
     Element::Pointer Create(IndexType NewId, GeometryType::Pointer pGeom, PropertiesType::Pointer pProperties) const override;
 
-    int Check(const ProcessInfo& rCurrentProcessInfo) override;
+    int Check(const ProcessInfo& rCurrentProcessInfo) const override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    void InitializeNonLinearIteration(ProcessInfo& rCurrentProcessInfo) override;
+    void InitializeNonLinearIteration(const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void CalculateFirstDerivativesContributions(MatrixType& rLeftHandSideMatrix,
-                        VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+                        VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateFirstDerivativesLHS(MatrixType& rLeftHandSideMatrix, const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, ProcessInfo& rCurrentProcessInfo) override;
+    void CalculateFirstDerivativesRHS(VectorType& rRightHandSideVector, const ProcessInfo& rCurrentProcessInfo) override;
+
+    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -94,10 +96,6 @@ protected:
     void CalculateDiffusivityVariables(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
 
     void CalculateHVector(ElementVariables& rVariables, const PropertiesType& Prop, const ProcessInfo& CurrentProcessInfo) override;
-
-    void GetValueOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues, const ProcessInfo& rCurrentProcessInfo) override;
-
-    void CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 

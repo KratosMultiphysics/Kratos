@@ -58,8 +58,8 @@ public:
     typedef IndexedObject BaseType;
     ///Element from which it is derived
     typedef VMS<TDim, TNumNodes> ElementBaseType;
-    ///definition of node type (default is: Node<3>)
-    typedef Node < 3 > NodeType;
+    ///definition of node type (default is: Node)
+    typedef Node NodeType;
     /**
      * Properties are used to store any parameters
      * related to the constitutive law
@@ -1255,7 +1255,7 @@ protected:
                           const array_1d<double, TNumNodes>& rShapeFunc,
                           const BoundedMatrix<double, TNumNodes, TDim>& rShapeDeriv,
                           const double Weight,
-			  const Matrix gauss_enriched_gradients)
+			  const Matrix& gauss_enriched_gradients)
     {
         const unsigned int BlockSize = TDim + 1;
 

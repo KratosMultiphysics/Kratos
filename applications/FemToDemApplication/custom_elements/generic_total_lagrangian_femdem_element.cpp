@@ -180,8 +180,6 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeSolutionSte
         this->ComputeEdgeNeighbours(rCurrentProcessInfo);
         this->SetValue(RECOMPUTE_NEIGHBOURS, false);
     }
-
-    this->InitializeInternalVariablesAfterMapping();
 }
 
 /***********************************************************************************/
@@ -259,18 +257,18 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAll(
     // Resizing as needed the LHS
     const SizeType mat_size = number_of_nodes * dimension;
 
-    if (CalculateStiffnessMatrixFlag == true) { // Calculation of the matrix is required
-        if (rLeftHandSideMatrix.size1() != mat_size)
+    if (CalculateStiffnessMatrixFlag) { // Calculation of the matrix is required
+        if (rLeftHandSideMatrix.size1() != mat_size )
             rLeftHandSideMatrix.resize(mat_size, mat_size, false);
-        noalias(rLeftHandSideMatrix) = ZeroMatrix(mat_size, mat_size); //resetting LHS
     }
+    rLeftHandSideMatrix.clear();
 
     // Resizing as needed the RHS
-    if (CalculateResidualVectorFlag == true) { // Calculation of the matrix is required
+    if (CalculateResidualVectorFlag) { // Calculation of the matrix is required
         if (rRightHandSideVector.size() != mat_size )
             rRightHandSideVector.resize(mat_size, false);
-        noalias(rRightHandSideVector) = ZeroVector(mat_size); //resetting RHS
     }
+    rRightHandSideVector.clear();
 
     // Reading integration points
     const auto& integration_points = GetGeometry().IntegrationPoints(this->GetIntegrationMethod());
@@ -1021,7 +1019,11 @@ void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateAverageVaria
 {
     auto& r_elem_neigb = this->GetValue(NEIGHBOUR_ELEMENTS);
     KRATOS_ERROR_IF(r_elem_neigb.size() == 0) << " Neighbour Elements not calculated" << std::endl;
-    rAverageVector += r_elem_neigb[edge].GetValue(rThisVariable);
+    if(r_elem_neigb(edge).get()!=nullptr) {
+        rAverageVector += r_elem_neigb[edge].GetValue(rThisVariable);
+    } else {
+        rAverageVector += pCurrentElement->GetValue(rThisVariable);
+    }
     rAverageVector *= 0.5;
 }
 
@@ -1121,7 +1123,7 @@ template<unsigned int TDim, unsigned int TyieldSurf>
 double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateElementalDamage3D(const Vector& rEdgeDamages)
 {
     // 7 modes of fracture of the tetrahedron
-    Vector damage_mode_fracture = ZeroVector(7);
+    Vector damage_mode_fracture(7);
     const double one_third = 1.0 / 3.0;
     damage_mode_fracture[0] = one_third * (rEdgeDamages[0] + rEdgeDamages[1] + rEdgeDamages[2]);
     damage_mode_fracture[1] = one_third * (rEdgeDamages[0] + rEdgeDamages[3] + rEdgeDamages[4]);
@@ -1139,29 +1141,6 @@ double GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::CalculateElementalD
     Vector two_max_values;
     ConstitutiveLawUtilities<VoigtSize>::Get2MaxValues(two_max_values, rEdgeDamages[0], rEdgeDamages[1], rEdgeDamages[2]);
     return 0.5*(two_max_values[0] + two_max_values[1]);
-}
-
-/***********************************************************************************/
-/***********************************************************************************/
-
-template<unsigned int TDim, unsigned int TyieldSurf>
-void GenericTotalLagrangianFemDemElement<TDim,TyieldSurf>::InitializeInternalVariablesAfterMapping()
-{
-    // After the mapping, the thresholds of the edges (are equal to 0.0) are imposed equal to the IP threshold
-    const double element_threhsold = mThreshold;
-    if (norm_2(mThresholds) < tolerance) {
-        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-            mThresholds[edge] = element_threhsold;
-        }
-    }
-
-    // IDEM with the edge damages
-    const double damage_element = mDamage;
-    if (norm_2(mDamages) < tolerance) {
-        for (unsigned int edge = 0; edge < NumberOfEdges; edge++) {
-            mDamages[edge] = damage_element;
-        }
-    }
 }
 
 /***********************************************************************************/

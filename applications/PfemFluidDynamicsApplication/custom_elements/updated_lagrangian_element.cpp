@@ -612,16 +612,16 @@ namespace Kratos
       }
     }
 
-    //Inverse
+    // Inverse
     invFgrad.resize(TDim, TDim, false);
     noalias(invFgrad) = ZeroMatrix(TDim, TDim);
     FJacobian = 1;
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
       MathUtils<double>::InvertMatrix2(Fgrad, invFgrad, FJacobian);
     }
-    else if (TDim == 3)
+    else if constexpr (TDim == 3)
     {
       MathUtils<double>::InvertMatrix3(Fgrad, invFgrad, FJacobian);
     }
@@ -719,16 +719,16 @@ namespace Kratos
       }
     }
 
-    //Inverse
+    // Inverse
     invFgradVel.resize(TDim, TDim, false);
     noalias(invFgradVel) = ZeroMatrix(TDim, TDim);
     FVelJacobian = 1;
 
-    if (TDim == 2)
+    if constexpr (TDim == 2)
     {
       MathUtils<double>::InvertMatrix2(FgradVel, invFgradVel, FVelJacobian);
     }
-    else if (TDim == 3)
+    else if constexpr (TDim == 3)
     {
       MathUtils<double>::InvertMatrix3(FgradVel, invFgradVel, FVelJacobian);
     }
@@ -856,12 +856,12 @@ namespace Kratos
     part1 = prod(VelDefgradTransp, Fgrad);
     part2 = prod(FgradTransp, VelDefgrad);
 
-    MDGreenLagrangeMaterial[0] = (part1(0, 0) + part2(0, 0)) * 0.5; //xx-component
-    MDGreenLagrangeMaterial[1] = (part1(1, 1) + part2(1, 1)) * 0.5; //yy-component
-    MDGreenLagrangeMaterial[2] = (part1(2, 2) + part2(2, 2)) * 0.5; //zz-component
-    MDGreenLagrangeMaterial[3] = (part1(0, 1) + part2(0, 1)) * 0.5; //xy-component
-    MDGreenLagrangeMaterial[4] = (part1(0, 2) + part2(0, 2)) * 0.5; //xz-component
-    MDGreenLagrangeMaterial[5] = (part1(1, 2) + part2(1, 2)) * 0.5; //yz-component
+    MDGreenLagrangeMaterial[0] = (part1(0, 0) + part2(0, 0)) * 0.5; // xx-component
+    MDGreenLagrangeMaterial[1] = (part1(1, 1) + part2(1, 1)) * 0.5; // yy-component
+    MDGreenLagrangeMaterial[2] = (part1(2, 2) + part2(2, 2)) * 0.5; // zz-component
+    MDGreenLagrangeMaterial[3] = (part1(0, 1) + part2(0, 1)) * 0.5; // xy-component
+    MDGreenLagrangeMaterial[4] = (part1(0, 2) + part2(0, 2)) * 0.5; // xz-component
+    MDGreenLagrangeMaterial[5] = (part1(1, 2) + part2(1, 2)) * 0.5; // yz-component
   }
 
   template <>
@@ -902,15 +902,15 @@ namespace Kratos
     invFgradTransp(2, 0) = invFgrad(0, 2);
     invFgradTransp(2, 1) = invFgrad(1, 2);
 
-    MDGLM(0, 0) = MDGreenLagrangeMaterial[0]; //XX-component;
-    MDGLM(1, 1) = MDGreenLagrangeMaterial[1]; //YY-component;
-    MDGLM(2, 2) = MDGreenLagrangeMaterial[2]; //ZZ-component;
-    MDGLM(0, 1) = MDGreenLagrangeMaterial[3]; //XY-component;
-    MDGLM(1, 0) = MDGreenLagrangeMaterial[3]; //XY-component;
-    MDGLM(0, 2) = MDGreenLagrangeMaterial[4]; //ZX-component;
-    MDGLM(2, 0) = MDGreenLagrangeMaterial[4]; //ZX-component;
-    MDGLM(1, 2) = MDGreenLagrangeMaterial[5]; //YZ-component;
-    MDGLM(2, 1) = MDGreenLagrangeMaterial[5]; //YZ-component;
+    MDGLM(0, 0) = MDGreenLagrangeMaterial[0]; // XX-component;
+    MDGLM(1, 1) = MDGreenLagrangeMaterial[1]; // YY-component;
+    MDGLM(2, 2) = MDGreenLagrangeMaterial[2]; // ZZ-component;
+    MDGLM(0, 1) = MDGreenLagrangeMaterial[3]; // XY-component;
+    MDGLM(1, 0) = MDGreenLagrangeMaterial[3]; // XY-component;
+    MDGLM(0, 2) = MDGreenLagrangeMaterial[4]; // ZX-component;
+    MDGLM(2, 0) = MDGreenLagrangeMaterial[4]; // ZX-component;
+    MDGLM(1, 2) = MDGreenLagrangeMaterial[5]; // YZ-component;
+    MDGLM(2, 1) = MDGreenLagrangeMaterial[5]; // YZ-component;
 
     part1 = prod(MDGLM, invFgrad);
 
@@ -1105,8 +1105,7 @@ namespace Kratos
   template <unsigned int TDim>
   bool UpdatedLagrangianElement<TDim>::CalcMechanicsUpdated(ElementalVariables &rElementalVariables,
                                                             const ProcessInfo &rCurrentProcessInfo,
-                                                            const ShapeFunctionDerivativesType &rDN_DX,
-                                                            unsigned int g)
+                                                            const ShapeFunctionDerivativesType &rDN_DX)
   {
 
     double theta = this->GetThetaMomentum();
@@ -1149,7 +1148,7 @@ namespace Kratos
       }
     }
 
-    //Inverse
+    // Inverse
     rElementalVariables.InvFgrad = ZeroMatrix(dimension, dimension);
     rElementalVariables.DetFgrad = 1;
     MathUtils<double>::InvertMatrix2(rElementalVariables.Fgrad,
@@ -1162,7 +1161,7 @@ namespace Kratos
     // 		    rElementalVariables.InvFgradVel,
     // 		    rElementalVariables.DetFgradVel);
 
-    //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+    // it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
     rElementalVariables.SpatialVelocityGrad.resize(dimension, dimension, false);
     rElementalVariables.SpatialVelocityGrad = prod(rElementalVariables.FgradVel, rElementalVariables.InvFgrad);
 
@@ -1258,7 +1257,7 @@ namespace Kratos
       }
     }
 
-    //Inverse
+    // Inverse
     rElementalVariables.InvFgrad = ZeroMatrix(dimension, dimension);
     rElementalVariables.DetFgrad = 1;
     MathUtils<double>::InvertMatrix3(rElementalVariables.Fgrad,
@@ -1271,7 +1270,7 @@ namespace Kratos
     // 		    rElementalVariables.InvFgradVel,
     // 		    rElementalVariables.DetFgradVel);
 
-    //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+    // it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
     rElementalVariables.SpatialVelocityGrad.resize(dimension, dimension, false);
     rElementalVariables.SpatialVelocityGrad = prod(rElementalVariables.FgradVel, rElementalVariables.InvFgrad);
 
@@ -1392,12 +1391,12 @@ namespace Kratos
                     rCurrentProcessInfo,
                     theta);
 
-    //it computes the material time derivative of the deformation gradient and its jacobian and inverse
+    // it computes the material time derivative of the deformation gradient and its jacobian and inverse
     this->CalcVelDefGrad(rDN_DX,
                          rElementalVariables.FgradVel,
                          theta);
 
-    //it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
+    // it computes the spatial velocity gradient tensor --> [L_ij]=dF_ik*invF_kj
     this->CalcSpatialVelocityGrad(rElementalVariables.InvFgrad,
                                   rElementalVariables.FgradVel,
                                   rElementalVariables.SpatialVelocityGrad);
@@ -1418,12 +1417,12 @@ namespace Kratos
     // 	       rElementalVariables.Fgrad,
     // 	       rElementalVariables.FgradVel);
 
-    //it computes Material time Derivative of Green Lagrange strain tensor in MATERIAL configuration --> [D(E)/Dt]
+    // it computes Material time Derivative of Green Lagrange strain tensor in MATERIAL configuration --> [D(E)/Dt]
     this->CalcMDGreenLagrangeMaterial(rElementalVariables.Fgrad,
                                       rElementalVariables.FgradVel,
                                       rElementalVariables.MDGreenLagrangeMaterial);
 
-    //it computes Material time Derivative of Green Lagrange strain tensor in SPATIAL configuration  --> [d]
+    // it computes Material time Derivative of Green Lagrange strain tensor in SPATIAL configuration  --> [d]
     this->CalcSpatialDefRate(rElementalVariables.MDGreenLagrangeMaterial,
                              rElementalVariables.InvFgrad,
                              rElementalVariables.SpatialDefRate);
@@ -1576,7 +1575,7 @@ namespace Kratos
                                                           const double theta)
   {
     std::cout << "TO BE IMPLEMENTED ------- CalcVolumetricDefRate -------" << std::endl;
-    //you can compute the volumetric deformation rate using CalcVolDefRateFromSpatialVelGrad
+    // you can compute the volumetric deformation rate using CalcVolDefRateFromSpatialVelGrad
   }
 
   template <>
@@ -1619,6 +1618,36 @@ namespace Kratos
     return std::sqrt(2.0 * NormS);
   }
 
+  template <>
+  void UpdatedLagrangianElement<2>::ComputeMechanicalDissipation(ElementalVariables &rElementalVariables)
+  {
+    KRATOS_TRY;
+    const double volumetric_strain = (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1]) * 0.5;
+
+    const double mechanical_dissipation = rElementalVariables.UpdatedDeviatoricCauchyStress[0] * (rElementalVariables.SpatialDefRate[0] - volumetric_strain) +
+                                   rElementalVariables.UpdatedDeviatoricCauchyStress[1] * (rElementalVariables.SpatialDefRate[1] - volumetric_strain) +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[2] * rElementalVariables.SpatialDefRate[2];
+
+    this->SetValue(MECHANICAL_DISSIPATION, mechanical_dissipation);
+    KRATOS_CATCH("");
+  }
+
+  template <>
+  void UpdatedLagrangianElement<3>::ComputeMechanicalDissipation(ElementalVariables &rElementalVariables)
+  {
+    KRATOS_TRY;
+    const double volumetric_strain = (rElementalVariables.SpatialDefRate[0] + rElementalVariables.SpatialDefRate[1] + rElementalVariables.SpatialDefRate[2]) / 3.0;
+
+    const double mechanical_dissipation = rElementalVariables.UpdatedDeviatoricCauchyStress[0] * (rElementalVariables.SpatialDefRate[0] - volumetric_strain) +
+                                   rElementalVariables.UpdatedDeviatoricCauchyStress[1] * (rElementalVariables.SpatialDefRate[1] - volumetric_strain) +
+                                   rElementalVariables.UpdatedDeviatoricCauchyStress[2] * (rElementalVariables.SpatialDefRate[2] - volumetric_strain) +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[3] * rElementalVariables.SpatialDefRate[3] +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[4] * rElementalVariables.SpatialDefRate[4] +
+                                   2.0 * rElementalVariables.UpdatedDeviatoricCauchyStress[5] * rElementalVariables.SpatialDefRate[5];
+
+    this->SetValue(MECHANICAL_DISSIPATION, mechanical_dissipation);
+    KRATOS_CATCH("");
+  }
   /*
    * Template class definition (this should allow us to compile the desired template instantiations)
    */

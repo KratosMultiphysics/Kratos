@@ -97,7 +97,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
     reference_velocity(3,0) = 0.3; reference_velocity(3,1) = 0.4;
 
 
-    Geometry<Node<3>>& r_geometry = model_part.ElementsBegin()->GetGeometry();
+    Geometry<Node>& r_geometry = model_part.ElementsBegin()->GetGeometry();
 
 
     for(unsigned int i=0; i<4; i++){
@@ -115,7 +115,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
     Vector RHS = ZeroVector(12);
     Matrix LHS = ZeroMatrix(12,12);
 
-    std::vector<double> output = {-2.665425819,-1.87894198,-0.02477280423,-10.27651236,-5.037560437,-0.05013494554,-19.87147169,-19.57971097,-0.06709466598,-14.8532568,-21.17045328,-0.05799758425}; // QSVMSDEMCoupled2D4N
+    std::vector<double> output = {9.643535313,11.41312123,0.02521635855,-11.1519233,0.6357175579,-0.05353592744,-31.92778769,-31.27132344,-0.1066649361,-14.23049099,-28.44418201,-0.06501549498}; // QSVMSDEMCoupled2D4N
 
     for (ModelPart::ElementIterator i = model_part.ElementsBegin(); i != model_part.ElementsEnd(); i++) {
         const auto& r_process_info = model_part.GetProcessInfo();
@@ -129,7 +129,7 @@ KRATOS_TEST_CASE_IN_SUITE(QSVMSDEMCoupled2D4N, FluidDynamicsApplicationFastSuite
         //KRATOS_WATCH(RHS);
 
         for (unsigned int j = 0; j < output.size(); j++) {
-            KRATOS_CHECK_NEAR(RHS[j], output[j], 1e-6);
+            KRATOS_EXPECT_NEAR(RHS[j], output[j], 1e-4);
         }
     }
 }

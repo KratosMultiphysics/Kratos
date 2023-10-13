@@ -1,19 +1,15 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
 // System includes
 
 // External includes
-#include "dem_application_variables.h"
+#include "DEM_application_variables.h"
 
 // Project includes
 #include "thermal_forward_euler_scheme.h"
@@ -31,7 +27,7 @@ namespace Kratos {
   }
 
   //------------------------------------------------------------------------------------------------------------
-  void ThermalForwardEulerScheme::UpdateTemperature(Node<3>& i, const double delta_t, const double c) {
+  void ThermalForwardEulerScheme::UpdateTemperature(Node& i, const double delta_t, const double c) {
     // Particle properties
     const double q = i.FastGetSolutionStepValue(HEATFLUX);
     const double m = i.FastGetSolutionStepValue(NODAL_MASS);

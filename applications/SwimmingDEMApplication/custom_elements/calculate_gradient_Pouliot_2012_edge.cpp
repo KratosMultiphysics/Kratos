@@ -56,7 +56,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::EquationIdVector(EquationI
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_X,pos).EquationId();
         rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Y,pos+1).EquationId();
-        if (TDim == 3){
+        if constexpr (TDim == 3){
             rResult[LocalIndex++] = this->GetGeometry()[iNode].GetDof(VELOCITY_COMPONENT_GRADIENT_Z,pos+2).EquationId();
         }
     }
@@ -74,7 +74,7 @@ void ComputeGradientPouliot2012Edge<TDim, TNumNodes>::GetDofList(DofsVectorType&
     for (unsigned int iNode = 0; iNode < TNumNodes; ++iNode){
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_X);
         rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_Y);
-        if (TDim == 3){
+        if constexpr (TDim == 3){
             rElementalDofList[LocalIndex++] = this->GetGeometry()[iNode].pGetDof(VELOCITY_COMPONENT_GRADIENT_Z);
         }
     }
@@ -154,10 +154,10 @@ int ComputeGradientPouliot2012Edge<TDim, TNumNodes>::Check(const ProcessInfo& rC
     // Check that the element's nodes contain all required SolutionStepData and Degrees of freedom
     for(unsigned int i=0; i<this->GetGeometry().size(); ++i)
     {
-        const Node<3>& rNode = this->GetGeometry()[i];
+        const Node& rNode = this->GetGeometry()[i];
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_COMPONENT_GRADIENT_X,rNode);
         KRATOS_CHECK_DOF_IN_NODE(VELOCITY_COMPONENT_GRADIENT_Y,rNode);
-        if (TDim == 3){
+        if constexpr (TDim == 3){
             KRATOS_CHECK_DOF_IN_NODE(VELOCITY_COMPONENT_GRADIENT_Z,rNode);
         }
         KRATOS_ERROR_IF(rNode.SolutionStepsDataHas(VELOCITY_COMPONENT_GRADIENT) == false) << "Missing VELOCITY_COMPONENT_GRADIENT variable on solution step data for node " << this->GetGeometry()[i].Id() << std::endl;

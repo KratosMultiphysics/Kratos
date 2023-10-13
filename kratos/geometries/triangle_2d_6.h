@@ -4,8 +4,8 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Riccardo Rossi
 //                   Janosch Stascheit
@@ -14,9 +14,7 @@
 //                   Josep Maria Carbonell
 //
 
-
-#if !defined(KRATOS_TRIANGLE_2D_6_H_INCLUDED )
-#define  KRATOS_TRIANGLE_2D_6_H_INCLUDED
+#pragma once
 
 // System includes
 
@@ -64,7 +62,8 @@ namespace Kratos
  * @author Janosch Stascheit
  * @author Felix Nagel
  */
-template<class TPointType> class Triangle2D6
+template<class TPointType>
+class Triangle2D6
     : public Geometry<TPointType>
 {
 public:
@@ -457,54 +456,44 @@ public:
      */
     double Length() const override
     {
-        return sqrt( fabs( Area() ) );
+        return std::sqrt( std::abs( Area() ) );
     }
 
-    /** This method calculates and returns area or surface area of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns zero, for two dimensional it gives area
+    /**
+     * @brief This method calculates and returns area or surface area of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns zero, for two dimensional it gives area
      * and for three dimensional geometries it gives surface area.
-     *
-     * @return double value contains area or surfacede
-     * area.
+     * @return double value contains area or surface area
      * @see Length()
      * @see Volume()
      * @see DomainSize()
      */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
-     */
     double Area() const override
     {
-
-        Vector temp;
-        this->DeterminantOfJacobian( temp, msGeometryData.DefaultIntegrationMethod() );
-
-        const IntegrationPointsArrayType& integration_points = this->IntegrationPoints( msGeometryData.DefaultIntegrationMethod() );
-        double area = 0.00;
-
-        for ( unsigned int i = 0; i < integration_points.size(); i++ )
-        {
-            area += temp[i] * integration_points[i].Weight();
-        }
-
-        return area;
+        return IntegrationUtilities::ComputeArea2DGeometry(*this);
     }
 
-    /** This method calculates and returns length, area or volume of
-     * this geometry depending to it's dimension. For one dimensional
-     * geometry it returns its length, for two dimensional it gives area
-     * and for three dimensional geometries it gives its volume.
-     *
+    // TODO: Code activated in June 2023
+    // /**
+    //  * @brief This method calculates and returns the volume of this geometry.
+    //  * @return Error, the volume of a 2D geometry is not defined
+    //  * @see Length()
+    //  * @see Area()
+    //  * @see Volume()
+    //  */
+    // double Volume() const override
+    // {
+    //     KRATOS_ERROR << "Triangle2D6:: Method not well defined. Replace with DomainSize() instead" << std::endl;
+    //     return 0.0;
+    // }
+
+    /**
+     * @brief This method calculates and returns length, area or volume of this geometry depending to it's dimension.
+     * @details For one dimensional geometry it returns its length, for two dimensional it gives area and for three dimensional geometries it gives its volume.
      * @return double value contains length, area or volume.
      * @see Length()
      * @see Area()
      * @see Volume()
-     */
-    /**
-     * :TODO: could be replaced by something more suitable
-     * (comment by janosch)
      */
     double DomainSize() const override
     {
@@ -645,12 +634,16 @@ public:
      */
     void PrintData( std::ostream& rOStream ) const override
     {
-        PrintInfo( rOStream );
+        // Base Geometry class PrintData call
         BaseType::PrintData( rOStream );
         std::cout << std::endl;
-        Matrix jacobian;
-        this->Jacobian( jacobian, PointType() );
-        rOStream << "    Jacobian in the origin\t : " << jacobian;
+
+        // If the geometry has valid points, calculate and output its data
+        if (this->AllPointsAreValid()) {
+            Matrix jacobian;
+            this->Jacobian( jacobian, PointType() );
+            rOStream << "    Jacobian in the origin\t : " << jacobian;
+        }
     }
 
     ///@}
@@ -685,9 +678,9 @@ public:
     {
         GeometriesArrayType edges = GeometriesArrayType();
 
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 3 ), this->pGetPoint( 1 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 4 ), this->pGetPoint( 2 ) ) );
-        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 5 ), this->pGetPoint( 0 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 0 ), this->pGetPoint( 1 ), this->pGetPoint( 3 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 1 ), this->pGetPoint( 2 ), this->pGetPoint( 4 ) ) );
+        edges.push_back( Kratos::make_shared<EdgeType>( this->pGetPoint( 2 ), this->pGetPoint( 0 ), this->pGetPoint( 5 ) ) );
         return edges;
     }
 
@@ -1198,9 +1191,6 @@ GeometryData Triangle2D6<TPointType>::msGeometryData(
 );
 
 template<class TPointType>
-const GeometryDimension Triangle2D6<TPointType>::msGeometryDimension(
-    2, 2, 2);
+const GeometryDimension Triangle2D6<TPointType>::msGeometryDimension(2, 2);
 
 }// namespace Kratos.
-
-#endif // KRATOS_QUADRILATERAL_2D_4_H_INCLUDED  defined

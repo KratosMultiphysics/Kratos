@@ -4,8 +4,8 @@
 //        / /___/ /_/ / / / / /_/ /_/ / /__/ /_ ___/ / /_/ /  / /_/ / /__/ /_/ /_/ / /  / /_/ / /
 //        \____/\____/_/ /_/\__/\__,_/\___/\__//____/\__/_/   \__,_/\___/\__/\__,_/_/   \__,_/_/  MECHANICS
 //
-//  License:		 BSD License
-//					 license: ContactStructuralMechanicsApplication/license.txt
+//  License:         BSD License
+//                   license: ContactStructuralMechanicsApplication/license.txt
 //
 //  Main authors:    Vicente Mataix Ferrandiz
 //
@@ -35,7 +35,7 @@ void NormalCheckProcess::Execute()
     const double check_threshold = mParameters["check_threshold"].GetDouble();
 
     // First we compute the normals
-    NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
+    NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(mrModelPart, true);
 
     // Getting the nodes array
     auto& r_nodes_array = mrModelPart.Nodes();
@@ -118,7 +118,7 @@ void NormalCheckProcess::Execute()
     VariableUtils().ResetFlag(MARKER, r_elements_array);
     VariableUtils().ResetFlag(MARKER, r_conditions_array);
 
-    // Declare auxiliar coordinates
+    // Declare auxiliary coordinates
     CoordinatesArrayType aux_coords;
 
     // Iterate over elements
@@ -175,7 +175,7 @@ void NormalCheckProcess::Execute()
     MortarUtilities::InvertNormalForFlag<PointerVectorSet<Condition, IndexedObject>>(r_conditions_array, MARKER);
 
     // We re-compute the normals
-    NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
+    NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(mrModelPart, true);
 
     // Reset flags
     VariableUtils().ResetFlag(MARKER, r_nodes_array);
@@ -231,7 +231,7 @@ void NormalCheckProcess::Execute()
     VariableUtils().ResetFlag(MARKER, r_conditions_array);
 
     // We re-compute the normals
-    NormalCalculationUtils().CalculateUnitNormals<Condition>(mrModelPart, true);
+    NormalCalculationUtils().CalculateUnitNormals<ModelPart::ConditionsContainerType>(mrModelPart, true);
 
     // Reassign flags
     block_for_each(nodes_marker_backup, [&](IndexType& rId) {

@@ -8,6 +8,7 @@ include_directories( ${KRATOS_SOURCE_DIR}/kratos )
 ## Kratos MPI extension sources
 file(GLOB_RECURSE KRATOS_MPI_SOURCES
     ${CMAKE_CURRENT_SOURCE_DIR}/sources/*.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/spatial_containers/*.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/utilities/*.cpp
 )
 
@@ -16,7 +17,10 @@ file(GLOB_RECURSE KRATOS_MPI_PYTHON_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/python/*
 
 ## Kratos MPI test sources.
 if(${KRATOS_BUILD_TESTING} MATCHES ON)
-    file(GLOB_RECURSE KRATOS_MPI_TEST_SOURCES ${CMAKE_CURRENT_SOURCE_DIR}/tests/sources/*.cpp)
+    file(GLOB_RECURSE KRATOS_MPI_TEST_SOURCES 
+      ${CMAKE_CURRENT_SOURCE_DIR}/tests/test_utilities/*.cpp
+      ${CMAKE_CURRENT_SOURCE_DIR}/tests/cpp_tests/*.cpp
+    )
 endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 
 ###############################################################################

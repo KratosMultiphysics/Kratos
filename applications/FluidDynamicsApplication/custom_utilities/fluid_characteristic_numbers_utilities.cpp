@@ -285,22 +285,22 @@ namespace Kratos
         return elem_mach;
     }
 
-    typename FluidCharacteristicNumbersUtilities::ElementSizeFunctionType FluidCharacteristicNumbersUtilities::GetAverageElementSizeFunction(const Geometry<Node<3>>& rGeometry)
+    typename FluidCharacteristicNumbersUtilities::ElementSizeFunctionType FluidCharacteristicNumbersUtilities::GetAverageElementSizeFunction(const Geometry<Node>& rGeometry)
     {
         ElementSizeFunctionType average_h_func;
         const auto geometry_type = rGeometry.GetGeometryType();
         switch (geometry_type) {
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                average_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
+                average_h_func = [&](const Geometry<Node>& rGeometry){return ElementSizeCalculator<2,3>::AverageElementSize(rGeometry);};
                 break;
             case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
-                average_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,4>::AverageElementSize(rGeometry);};
+                average_h_func = [&](const Geometry<Node>& rGeometry){return ElementSizeCalculator<2,4>::AverageElementSize(rGeometry);};
                 break;
             case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                average_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
+                average_h_func = [&](const Geometry<Node>& rGeometry){return ElementSizeCalculator<3,4>::AverageElementSize(rGeometry);};
                 break;
             case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8:
-                average_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,8>::AverageElementSize(rGeometry);};
+                average_h_func = [&](const Geometry<Node>& rGeometry){return ElementSizeCalculator<3,8>::AverageElementSize(rGeometry);};
                 break;
             default:
                 KRATOS_ERROR << "Non supported geometry type." << std::endl;
@@ -309,22 +309,22 @@ namespace Kratos
         return average_h_func;
     }
 
-    typename FluidCharacteristicNumbersUtilities::ElementSizeFunctionType FluidCharacteristicNumbersUtilities::GetMinimumElementSizeFunction(const Geometry<Node<3>>& rGeometry)
+    typename FluidCharacteristicNumbersUtilities::ElementSizeFunctionType FluidCharacteristicNumbersUtilities::GetMinimumElementSizeFunction(const Geometry<Node>& rGeometry)
     {
         ElementSizeFunctionType min_h_func;
         const auto geometry_type = rGeometry.GetGeometryType();
         switch (geometry_type) {
             case GeometryData::KratosGeometryType::Kratos_Triangle2D3:
-                min_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,3>::MinimumElementSize(rGeometry);};
+                min_h_func = [&](const Geometry<Node>& rGeometry){return ElementSizeCalculator<2,3>::MinimumElementSize(rGeometry);};
                 break;
             case GeometryData::KratosGeometryType::Kratos_Quadrilateral2D4:
-                min_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<2,4>::MinimumElementSize(rGeometry);};
+                min_h_func = [&](const Geometry<Node>& rGeometry){return ElementSizeCalculator<2,4>::MinimumElementSize(rGeometry);};
                 break;
             case GeometryData::KratosGeometryType::Kratos_Tetrahedra3D4:
-                min_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,4>::MinimumElementSize(rGeometry);};
+                min_h_func = [&](const Geometry<Node>& rGeometry){return ElementSizeCalculator<3,4>::MinimumElementSize(rGeometry);};
                 break;
             case GeometryData::KratosGeometryType::Kratos_Quadrilateral3D8:
-                min_h_func = [&](const Geometry<Node<3>>& rGeometry){return ElementSizeCalculator<3,8>::MinimumElementSize(rGeometry);};
+                min_h_func = [&](const Geometry<Node>& rGeometry){return ElementSizeCalculator<3,8>::MinimumElementSize(rGeometry);};
                 break;
             default:
                 KRATOS_ERROR << "Non supported geometry type." << std::endl;

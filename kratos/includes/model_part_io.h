@@ -8,25 +8,23 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Pooyan Dadvand
+//                   Riccardo Rossi
+//  Collaborator:    Vicente Mataix Ferrandiz
 //
 
-#if !defined(KRATOS_MODEL_PART_IO_H_INCLUDED )
-#define  KRATOS_MODEL_PART_IO_H_INCLUDED
+#pragma once
 
 // System includes
-#include <string>
+#include <filesystem>
 #include <fstream>
-#include <set>
-#include <typeinfo>
+#include <string>
 #include <unordered_set>
-
 
 // External includes
 
 // Project includes
 #include "includes/define.h"
 #include "includes/io.h"
-#include "utilities/timer.h"
 #include "containers/flags.h"
 
 namespace Kratos
@@ -76,16 +74,16 @@ public:
     typedef std::vector<std::ostream*>            OutputFilesContainerType;
     typedef std::size_t                           SizeType;
 
-    // Prevents this class from hidding IO::WriteProperties(Properties)
+    // Prevents this class from hiding IO::WriteProperties(Properties)
     using BaseType::WriteProperties;
 
     ///@}
     ///@name Life Cycle
     ///@{
 
-    /// Constructor with filenames.
+    /// Constructor with filename.
     ModelPartIO(
-        std::string const& Filename,
+        std::filesystem::path const& Filename,
         const Flags Options = IO::READ | IO::IGNORE_VARIABLES_ERROR.AsFalse() | IO::SKIP_TIMER);
 
     /// Constructor with stream.
@@ -298,50 +296,20 @@ public:
     /**
      * @brief This method divides a model part into partitions
      * @param NumberOfPartitions The number of partitions
-     * @param rDomainsColoredGraph The colors of the partition graph
-     * @param rNodesPartitions The partitions indices of the nodes
-     * @param rElementsPartitions The partitions indices of the elements
-     * @param rConditionsPartitions The partitions indices of the conditions
-     * @param rNodesAllPartitions The partitions of the nodes
-     * @param rElementsAllPartitions The partitions of the elements
-     * @param rConditionsAllPartitions The partitions of the conditions
+     * @param rPartitioningInfo Information about partitioning of entities
      */
     void DivideInputToPartitions(SizeType NumberOfPartitions,
-                                GraphType const& rDomainsColoredGraph,
-                                PartitionIndicesType const& rNodesPartitions,
-//                                 PartitionIndicesType const& rGeometriessPartitions,
-                                PartitionIndicesType const& rElementsPartitions,
-                                PartitionIndicesType const& rConditionsPartitions,
-                                PartitionIndicesContainerType const& rNodesAllPartitions,
-//                                 PartitionIndicesContainerType const& rGeometriessAllPartitions,
-                                PartitionIndicesContainerType const& rElementsAllPartitions,
-                                PartitionIndicesContainerType const& rConditionsAllPartitions
-                                ) override;
+                                 const PartitioningInfo& rPartitioningInfo) override;
 
     /**
      * @brief This method divides a model part into partitions
      * @param pStreams The stream pointer
      * @param NumberOfPartitions The number of partitions
-     * @param rDomainsColoredGraph The colors of the partition graph
-     * @param rNodesPartitions The partitions indices of the nodes
-     * @param rElementsPartitions The partitions indices of the elements
-     * @param rConditionsPartitions The partitions indices of the conditions
-     * @param rNodesAllPartitions The partitions of the nodes
-     * @param rElementsAllPartitions The partitions of the elements
-     * @param rConditionsAllPartitions The partitions of the conditions
+     * @param rPartitioningInfo Information about partitioning of entities
      */
     void DivideInputToPartitions(Kratos::shared_ptr<std::iostream> * pStreams,
                                 SizeType NumberOfPartitions,
-                                GraphType const& rDomainsColoredGraph,
-                                PartitionIndicesType const& rNodesPartitions,
-//                                 PartitionIndicesType const& rGeometriesPartitions,
-                                PartitionIndicesType const& rElementsPartitions,
-                                PartitionIndicesType const& rConditionsPartitions,
-                                PartitionIndicesContainerType const& rNodesAllPartitions,
-//                                 PartitionIndicesContainerType const& rGeometriesAllPartitions,
-                                PartitionIndicesContainerType const& rElementsAllPartitions,
-                                PartitionIndicesContainerType const& rConditionsAllPartitions
-                                ) override;
+                                const PartitioningInfo& rPartitioningInfo) override;
 
     void SwapStreamSource(Kratos::shared_ptr<std::iostream> newStream);
 
@@ -446,8 +414,7 @@ private:
 
     SizeType mNumberOfLines;
 
-    std::string mBaseFilename;
-    std::string mFilename;
+    std::filesystem::path mBaseFilename;
     Flags mOptions;
 
     Kratos::shared_ptr<std::iostream> mpStream;
@@ -606,6 +573,15 @@ private:
 
     void ReadSubModelPartConditionsBlock(ModelPart& rMainModelPart, ModelPart& rSubModelPart);
 
+    void ReadSubModelPartGeometriesBlock(
+        ModelPart &rMainModelPart,
+        ModelPart &rSubModelPart);
+
+    void DivideInputToPartitionsImpl(
+        OutputFilesContainerType& rOutputFiles,
+        SizeType NumberOfPartitions,
+        const PartitioningInfo& rPartitioningInfo);
+
     void DivideModelPartDataBlock(OutputFilesContainerType& OutputFiles);
 
     void DivideTableBlock(OutputFilesContainerType& OutputFiles);
@@ -629,6 +605,9 @@ private:
 
     void DivideNodalDataBlock(OutputFilesContainerType& OutputFiles,
                               PartitionIndicesContainerType const& NodesAllPartitions);
+
+    void DivideFlagVariableData(OutputFilesContainerType& OutputFiles,
+                               PartitionIndicesContainerType const& NodesAllPartitions);
 
     void DivideDofVariableData(OutputFilesContainerType& OutputFiles,
                                PartitionIndicesContainerType const& NodesAllPartitions);
@@ -745,7 +724,7 @@ private:
     inline void CreatePartition(unsigned int NumberOfThreads,const int NumberOfRows, DenseVector<unsigned int>& partitions);
 
     /// Iterate over a Node block, calling ReorderedNodeId on each node.
-    /** This method allows derived implementations to initalize reordering
+    /** This method allows derived implementations to initialize reordering
      *  without storing the nodes.
      */
     void ScanNodeBlock();
@@ -762,13 +741,6 @@ private:
     ///@}
     ///@name Un accessible methods
     ///@{
-
-    /// Assignment operator.
-    ModelPartIO& operator=(ModelPartIO const& rOther);
-
-    /// Copy constructor.
-    ModelPartIO(ModelPartIO const& rOther);
-
 
     ///@}
 
@@ -803,5 +775,3 @@ private:
 
 
 }  // namespace Kratos.
-
-#endif // KRATOS_MODEL_PART_IO_H_INCLUDED  defined

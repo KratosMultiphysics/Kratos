@@ -229,14 +229,12 @@ class ArcLengthStrategy
             KRATOS_INFO_IF("ArcLengthStrategy", BaseType::GetEchoLevel() > 0) << "Strategy Initialized" << std::endl;
         }
     
-        if (!BaseType::mSolutionStepIsInitialized) {
-            BaseType::InitializeSolutionStep();
-            SaveInitializeSystemVector(mpf);
-            InitializeSystemVector(mpDxf);
-            InitializeSystemVector(mpDxb);
-            InitializeSystemVector(mpDxPred);
-            InitializeSystemVector(mpDxStep);
-        }
+        BaseType::InitializeSolutionStep();
+        SaveInitializeSystemVector(mpf);
+        InitializeSystemVector(mpDxf);
+        InitializeSystemVector(mpDxb);
+        InitializeSystemVector(mpDxPred);
+        InitializeSystemVector(mpDxStep);
 
         KRATOS_CATCH("");
     }
@@ -399,7 +397,7 @@ class ArcLengthStrategy
 
             if (KratosComponents<Variable<double>>::Has(r_variable_name)) {
                 const Variable<double>& var = KratosComponents<Variable<double>>::Get(r_variable_name);
-                block_for_each(r_sub_model_part.Nodes(), [&](Node<3>& r_node){
+                block_for_each(r_sub_model_part.Nodes(), [&](Node& r_node){
                     r_node.FastGetSolutionStepValue(var) *= (mLambda/mLambda_old);
                 });
             } else if (KratosComponents<Variable<array_1d<double,3>>>::Has(r_variable_name)) {

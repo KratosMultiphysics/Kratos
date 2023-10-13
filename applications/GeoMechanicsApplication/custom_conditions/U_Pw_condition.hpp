@@ -42,22 +42,20 @@ public:
     
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-    // Default constructor
-    UPwCondition() : Condition() {}
+    UPwCondition() : UPwCondition(0, nullptr, nullptr){}
 
-    // Constructor 1
-    UPwCondition( IndexType NewId, GeometryType::Pointer pGeometry ) : Condition(NewId, pGeometry) {}
-    
-    // Constructor 2
-    UPwCondition( IndexType NewId,
-                  GeometryType::Pointer pGeometry,
-                  PropertiesType::Pointer pProperties ) : Condition(NewId, pGeometry, pProperties)
-    {
-        mThisIntegrationMethod = this->GetIntegrationMethod();
-    }
+    UPwCondition( IndexType               NewId,
+                  GeometryType::Pointer   pGeometry )
+        : UPwCondition(NewId, pGeometry, nullptr)
+    {}
 
-    // Destructor
-    virtual ~UPwCondition() {}
+    UPwCondition( IndexType               NewId,
+                  GeometryType::Pointer   pGeometry,
+                  PropertiesType::Pointer pProperties )
+        : Condition(NewId, pGeometry, pProperties)
+    {}
+
+    ~UPwCondition() override = default;
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -67,6 +65,16 @@ public:
  
     void GetDofList(DofsVectorType& rConditionDofList,
                     const ProcessInfo& rCurrentProcessInfo) const override;
+
+    IntegrationMethod GetIntegrationMethod() const override
+    {
+        return mThisIntegrationMethod;
+    }
+
+    void SetIntegrationMethod(IntegrationMethod method)
+    {
+        mThisIntegrationMethod = method;
+    }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -86,13 +94,6 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 protected:
-
-    // Member Variables
-
-    GeometryData::IntegrationMethod mThisIntegrationMethod;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     virtual void CalculateAll(MatrixType& rLeftHandSideMatrix,
                               VectorType& rRightHandSideVector,
                               const ProcessInfo& rCurrentProcessInfo);
@@ -103,6 +104,7 @@ protected:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:
+    GeometryData::IntegrationMethod mThisIntegrationMethod{ Condition::GetIntegrationMethod() };
     
     // Serialization
     

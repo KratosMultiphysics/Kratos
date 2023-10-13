@@ -1,13 +1,9 @@
-//    |  /           |
-//    ' /   __| _` | __|  _ \   __|
-//    . \  |   (   | |   (   |\__ \
-//   _|\_\_|  \__,_|\__|\___/ ____/
-//                   Multi-Physics ThermalDEM Application
+//  Kratos Multi-Physics - ThermalDEM Application
 //
-//  License:         BSD License
-//                   Kratos default license: kratos/license.txt
+//  License:       BSD License
+//                 Kratos default license: kratos/license.txt
 //
-//  Main authors:    Rafael Rangel (rrangel@cimne.upc.edu)
+//  Main authors:  Rafael Rangel (rrangel@cimne.upc.edu)
 //
 
 // System includes
@@ -37,8 +33,8 @@
 #include "custom_constitutive/radiation/radiation_model.h"
 #include "custom_constitutive/radiation/radiation_continuum_krause.h"
 #include "custom_constitutive/radiation/radiation_continuum_zhou.h"
-#include "custom_constitutive/friction/friction_model.h"
-#include "custom_constitutive/friction/friction_coulomb.h"
+#include "custom_constitutive/generation/generation_model.h"
+#include "custom_constitutive/generation/generation_dissipation.h"
 #include "custom_constitutive/real_contact/real_contact_model.h"
 #include "custom_constitutive/real_contact/real_contact_lu.h"
 #include "custom_constitutive/real_contact/real_contact_morris.h"
@@ -150,11 +146,11 @@ namespace Kratos
         .def(py::init<>());
 
 
-      // Friction -------------------------------------------------------------------------------------------------------------------
-      py::class_<FrictionModel, FrictionModel::Pointer, HeatGenerationMechanism>(m, "FrictionModel")
+      // Generation -------------------------------------------------------------------------------------------------------------------
+      py::class_<GenerationModel, GenerationModel::Pointer, HeatGenerationMechanism>(m, "GenerationModel")
         .def(py::init<>());
 
-      py::class_<FrictionCoulomb, FrictionCoulomb::Pointer, FrictionModel>(m, "FrictionCoulomb")
+      py::class_<GenerationDissipation, GenerationDissipation::Pointer, GenerationModel>(m, "GenerationDissipation")
         .def(py::init<>());
 
 

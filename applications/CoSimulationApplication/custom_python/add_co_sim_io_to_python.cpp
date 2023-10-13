@@ -3,8 +3,8 @@
 //        | |__| (_) |__) | | | | | | | |_| | | (_| | |_| | (_) | | | |
 //         \____\___/____/|_|_| |_| |_|\__,_|_|\__,_|\__|_|\___/|_| |_|
 //
-//  License:		 BSD License
-//					 license: CoSimulationApplication/license.txt
+//  License:         BSD License
+//                   license: CoSimulationApplication/license.txt
 //
 //  Main authors:    Philipp Bucher (https://github.com/philbucher)
 //
@@ -31,11 +31,12 @@
 #include "custom_external_libraries/CoSimIO/co_sim_io/python/vector_to_python.hpp"
 #include "custom_external_libraries/CoSimIO/co_sim_io/python/version_to_python.hpp"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 // TODO use elements or conditions?? => how to switch?
 // TODO using initial or current coordinates?? => how to switch?
+
+using DataLocation = Globals::DataLocation;
 
 namespace CoSimIO_Wrappers { // helpers namespace
 
@@ -204,15 +205,6 @@ void  AddCoSimIOToPython(pybind11::module& m)
 
 
     m_co_sim_io.def("InfoFromParameters", CoSimIOConversionUtilities::InfoFromParameters);
-
-    py::enum_<DataLocation>(m_co_sim_io,"DataLocation")
-        .value("NodeHistorical",    DataLocation::NodeHistorical)
-        .value("NodeNonHistorical", DataLocation::NodeNonHistorical)
-        .value("Element",           DataLocation::Element)
-        .value("Condition",         DataLocation::Condition)
-        .value("ModelPart",         DataLocation::ModelPart)
-        ;
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python

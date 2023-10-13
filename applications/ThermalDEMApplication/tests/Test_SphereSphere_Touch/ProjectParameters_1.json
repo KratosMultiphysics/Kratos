@@ -32,7 +32,7 @@
 		"compute_indirect_conduction"    : true,
 		"compute_convection"             : true,
 		"compute_radiation"              : true,
-		"compute_friction_heat"          : true,
+		"compute_heat_generation"        : true,
 		"compute_adjusted_contact"       : true,
 		"direct_conduction_model"        : "batchelor_obrien_simple",
 		"indirect_conduction_model"      : "surrounding_layer",
@@ -42,7 +42,7 @@
 		"min_conduction_distance"        : 0.0000000275,
 		"fluid_layer_thickness"          : 0.4,
 		"max_radiation_distance"         : 2.0,
-		"friction_heat_conversion_ratio" : 0.5,
+		"heat_generation_ratio"          : 0.5,
 		"integral_tolerance"             : 0.000001,
 		"global_fluid_properties"        : {
 			"fluid_density"              : 1.0,
@@ -98,5 +98,6 @@
 	"PostGraphParticleTempDev"       : false,
 	"PostGraphModelTempAvg"          : false,
 	"PostGraphHeatFluxContributions" : false,
+	"PostGraphHeatGenContributions"  : false,
     "problem_name"                   : "SphereSphere_Touch_1"
 }

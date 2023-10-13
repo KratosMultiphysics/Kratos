@@ -26,6 +26,7 @@ import test_point
 import test_processes
 import test_properties
 import test_importing
+import test_initial_time
 import test_connectivity_preserve_modeler
 import test_model
 import test_redistance
@@ -72,6 +73,25 @@ import test_model_part_combination_utilities
 import test_force_and_torque_utils
 import test_print_info_in_file
 import test_sparse_matrices
+import test_rbf_shape_functions_utility
+import test_generic_find_elemental_neighbours_process
+import test_graph_utilities
+import test_point_locator
+import test_particles_utilities
+import test_combine_model_part_modeler
+import test_calculate_distance_to_path_process
+import test_check_same_modelpart_using_skin_distance
+import test_kratos_globals
+import test_container_expression
+import test_model_part_operation_utilities
+import test_spatial_search
+import test_sequential_orchestrator
+import test_controllers
+import test_stl_io
+
+# Import modules required for sequential orchestrator test
+from test_sequential_orchestrator import EmptyAnalysisStage
+
 if sympy_available:
     import test_sympy_fe_utilities
 
@@ -110,6 +130,7 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_processes.TestProcesses]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_properties.TestProperties]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_importing.TestImporting]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_initial_time.TestInitialTime]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_connectivity_preserve_modeler.TestConnectivityPreserveModeler]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model.TestModel]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_redistance.TestRedistance]))
@@ -160,14 +181,32 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_combination_utilities.TestModelPartCombinationUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_force_and_torque_utils.TestForceAndTorqueUtils]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sparse_matrices.TestSparseMatrixInterface]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_generic_find_elemental_neighbours_process.TestGenericFindElementalNeighboursProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_graph_utilities.TestGraphUtilities]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_rbf_shape_functions_utility.TestRBFShapeFunctionsUtility]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_point_locator.TestPointLocator]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_particles_utilities.TestParticlesUtilities]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_combine_model_part_modeler.TestCombineModelPartModeler]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_distance_to_path_process.TestCalculateDistanceToPathProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_check_same_modelpart_using_skin_distance.TestCheckSameModelPartUsingSkinDistanceProcess]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_kratos_globals.TestKratosGlobals]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestHistoricalContainerExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestNodalContainerExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestConditionContainerExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestElementContainerExpression]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_container_expression.TestNodalPositionExpressionIO]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_operation_utilities.TestModelPartOperationUtilities]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_spatial_search.TestSpatialSearchSphere]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sequential_orchestrator.TestSequentialOrchestrator]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_controllers.TestControllers]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_stl_io.TestStlIO]))
+
     if sympy_available:
         smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sympy_fe_utilities.TestSympyFEUtilities]))
 
     # Create a test suite with the selected tests plus all small tests
     nightSuite = suites['nightly']
     nightSuite.addTests(smallSuite)
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_calculate_distance_to_skin.TestCalculateDistanceToSkin]))
-    nightSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_mortar_mapper.TestMortarMapperCore]))
 
     # Create a test suite that contains all the tests:
     allSuite = suites['all']

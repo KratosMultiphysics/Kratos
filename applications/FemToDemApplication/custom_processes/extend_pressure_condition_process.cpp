@@ -12,7 +12,7 @@
 //
 
 #include "custom_processes/extend_pressure_condition_process.h"
-#include "processes/find_elements_neighbours_process.h"
+#include "processes/generic_find_elements_neighbours_process.h"
 
 namespace Kratos {
 
@@ -119,7 +119,7 @@ void ExtendPressureConditionProcess<TDim>::GenerateLineLoads2Nodes(
 
     // We check some things...
     auto& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
-    if (r_elem_neigb[NonWetLocalIdNode].Id() == (*itElem)->Id()) {
+    if (r_elem_neigb(NonWetLocalIdNode).get()!=nullptr && r_elem_neigb[NonWetLocalIdNode].Id() == (*itElem)->Id()) {
         const IndexType id_1 = (NonWetLocalIdNode == 0) ? 0 : (NonWetLocalIdNode == 1) ? 1 : 2;
         const IndexType id_2 = (NonWetLocalIdNode == 0) ? 1 : (NonWetLocalIdNode == 1) ? 2 : 0;
         const IndexType id_3 = (NonWetLocalIdNode == 0) ? 2 : (NonWetLocalIdNode == 1) ? 0 : 1;
@@ -147,7 +147,7 @@ void ExtendPressureConditionProcess<TDim>::GenerateLineLoads3Nodes(
     IndexType alone_edge_local_id = 10;
     int number_of_free_edges = 0, non_free_edge;
     for (IndexType i = 0; i < r_elem_neigb.size(); ++i) {
-        if ((*itElem)->Id() == r_elem_neigb[i].Id()) {
+        if (r_elem_neigb(i).get()!=nullptr && (*itElem)->Id() == r_elem_neigb[i].Id()) {
             alone_edge_local_id = i;
             number_of_free_edges++;
         } else {
@@ -188,7 +188,7 @@ void ExtendPressureConditionProcess<TDim>::GeneratePressureLoads4WetNodes(
 
     // Loop over the faces
     for (int i = 0; i < r_elem_neigb.size(); i++) {
-        if (r_elem_neigb[i].Id() == id) { // it is skin face
+        if (r_elem_neigb(i).get()!=nullptr && r_elem_neigb[i].Id() == id) { // it is skin face
             // The associated node to this skin face is excluded
             const int excluded_local_id_node = i;
 
@@ -222,7 +222,7 @@ void ExtendPressureConditionProcess<TDim>::GeneratePressureLoads3WetNodes(
 
     // We only create pressure loads when the surface is skin
     auto& r_elem_neigb = (*itElem)->GetValue(NEIGHBOUR_ELEMENTS);
-    if (r_elem_neigb[NonWetLocalIdNode].Id() == (*itElem)->Id()) {
+    if (r_elem_neigb(NonWetLocalIdNode).get()!=nullptr && r_elem_neigb[NonWetLocalIdNode].Id() == (*itElem)->Id()) {
         this->CreatePressureLoads(id_2, id_3, id_4, itElem, r_sub_model_part, p_properties, rMaximumConditionId);
     }
 }
@@ -310,7 +310,7 @@ template <SizeType TDim>
 void ExtendPressureConditionProcess<TDim>::Execute()
 {
     // We search the neighbours for the generation of line loads
-    auto find_neigh = FindElementalNeighboursProcess(mrModelPart, TDim, 5);
+    auto find_neigh = GenericFindElementalNeighboursProcess(mrModelPart);
     find_neigh.Execute();
     auto& r_process_info = mrModelPart.GetProcessInfo();
 

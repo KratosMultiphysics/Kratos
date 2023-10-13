@@ -66,6 +66,77 @@ Element::Pointer AlternativeQSVMSDEMCoupled<TElementData>::Create(IndexType NewI
     return Kratos::make_intrusive<AlternativeQSVMSDEMCoupled>(NewId, pGeom, pProperties);
 }
 
+template <class TElementData>
+void AlternativeQSVMSDEMCoupled<TElementData>::Calculate(
+    const Variable<array_1d<double, 3>>& rVariable,
+    array_1d<double, 3>& rOutput, const ProcessInfo& rCurrentProcessInfo) {
+    // Lumped projection terms
+    if (rVariable == ADVPROJ) {
+        this->CalculateProjections(rCurrentProcessInfo);
+    }
+    else if (rVariable == SUBSCALE_VELOCITY){
+        // Get Shape function data
+        Vector GaussWeights;
+        Matrix ShapeFunctions;
+        ShapeFunctionDerivativesArrayType ShapeDerivatives;
+        this->CalculateGeometryData(GaussWeights,ShapeFunctions,ShapeDerivatives);
+        const unsigned int NumGauss = GaussWeights.size();
+
+        array_1d<double,NumNodes*Dim> momentum_rhs = ZeroVector(NumNodes*Dim);
+        VectorType MassRHS = ZeroVector(NumNodes);
+        VectorType NodalArea = ZeroVector(NumNodes);
+
+        TElementData data;
+        data.Initialize(*this, rCurrentProcessInfo);
+        for (unsigned int g = 0; g < NumGauss; g++)
+        {
+            this->UpdateIntegrationPointData(data, g, GaussWeights[g], row(ShapeFunctions, g), ShapeDerivatives[g]);
+
+            array_1d<double, 3> MomentumRes = ZeroVector(3);
+            double MassRes = 0.0;
+
+            array_1d<double,3> convective_velocity = this->GetAtCoordinate(data.Velocity,data.N) - this->GetAtCoordinate(data.MeshVelocity,data.N);
+
+            this->MomentumProjTerm(data, convective_velocity, MomentumRes);
+            this->MassProjTerm(data,MassRes);
+
+            for (unsigned int i = 0; i < NumNodes; i++)
+            {
+                double W = data.Weight*data.N[i];
+                unsigned int row = i*Dim;
+                for (unsigned int d = 0; d < Dim; d++)
+                    momentum_rhs[row+d] += W*MomentumRes[d];
+                NodalArea[i] += W;
+                MassRHS[i] += W*MassRes;
+                }
+        }
+            /* Projections of the elemental residual are computed with
+                * Newton-Raphson iterations of type M(lumped) dx = ElemRes - M(consistent) * x
+                */
+            // Carefully write results to nodal variables, to avoid parallelism problems
+        for (unsigned int i = 0; i < NumNodes; ++i)
+        {
+            this->GetGeometry()[i].SetLock(); // So it is safe to write in the node in OpenMP
+            double W = data.Weight*data.N[i];
+            // Write nodal area
+            this->GetGeometry()[i].FastGetSolutionStepValue(NODAL_AREA) +=NodalArea[i];
+
+            // Substract M(consistent)*x(i-1) from RHS
+            for(unsigned int j = 0; j < NumNodes; ++j) // RHS -= Weigth * Ones(TNumNodes,TNumNodes) * x(i-1)
+            {
+                for(unsigned int d = 0; d < Dim; ++d)
+                    momentum_rhs[d] -= W * this->GetGeometry()[j].FastGetSolutionStepValue(ADVPROJ)[d];
+                MassRHS[j] -= W * this->GetGeometry()[j].FastGetSolutionStepValue(DIVPROJ);
+            }
+            for(unsigned int d = 0; d < Dim; ++d) // RHS -= Weigth * Identity(TNumNodes,TNumNodes) * x(i-1)
+                momentum_rhs[d] -= W * this->GetGeometry()[i].FastGetSolutionStepValue(ADVPROJ)[d];
+            MassRHS[i] -= W * this->GetGeometry()[i].FastGetSolutionStepValue(DIVPROJ);
+            this->GetGeometry()[i].UnSetLock(); // Free the node for other threads
+        }
+
+    }
+}
+
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Inquiry
 
@@ -141,7 +212,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
                 for (unsigned int e = 0; e < Dim; e++){
                     sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
                     sym_gradient_u(d,e) += 1.0/2.0 * (rData.DN_DX(i,d) * r_velocities(i,e) + rData.DN_DX(i,e) * r_velocities(i,d));
-                    grad_alpha_sym_grad_u[d] += fluid_fraction_gradient[d] * sym_gradient_u(d,e);
+                    grad_alpha_sym_grad_u[d] += fluid_fraction_gradient[e] * sym_gradient_u(d,e);
                     div_u += rData.DN_DX(i,e) * r_velocities(i,e);
                 }
                 rResidual[d] += density * (rData.N[i] * r_body_forces(i,d) - fluid_fraction * rData.N[i] * r_acceleration[d] - fluid_fraction * convection[i] * r_velocities(i,d)) + 2 * grad_alpha_sym_grad_u[d] * viscosity - 2.0 / 3.0 * viscosity * fluid_fraction_gradient[d] * div_u - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
@@ -184,7 +255,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::MomentumProjTerm(
             for (unsigned int e = 0; e < Dim; e++){
                 sigma_U[d] += sigma(d,e) * rData.N[i] * r_velocities(i,e);
                 sym_gradient_u(d,e) += 1.0/2.0 * (rData.DN_DX(i,d) * r_velocities(i,e) + rData.DN_DX(i,e) * r_velocities(i,d));
-                grad_alpha_sym_grad_u[d] += r_fluid_fraction_gradient[d] * sym_gradient_u(d,e);
+                grad_alpha_sym_grad_u[d] += r_fluid_fraction_gradient[e] * sym_gradient_u(d,e);
                 div_u += rData.DN_DX(i,e) * r_velocities(i,e);
             }
             rMomentumRHS[d] += density * (rData.N[i] * r_body_forces(i,d) /*- fluid_fraction * rData.N[i] * r_acceleration[d]*/ - fluid_fraction * AGradN[i] * rData.Velocity(i,d)) + 2 * grad_alpha_sym_grad_u[d] * viscosity - 2.0/3.0 * viscosity * r_fluid_fraction_gradient[d] * div_u - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
@@ -284,7 +355,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     LHS.clear();
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
-    array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N);
+    array_1d<double,3> body_force = density * this->GetAtCoordinate(rData.BodyForce,rData.N); // Force per unit of volume
 
     const array_1d<double, 3> convective_velocity =
         this->GetAtCoordinate(rData.Velocity, rData.N) -
@@ -315,7 +386,6 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
 
     sigma *= viscosity;
-    body_force *= density; // Force per unit of volume
     AGradN *= density; // Convective term is always multiplied by density
 
 
@@ -341,7 +411,7 @@ void AlternativeQSVMSDEMCoupled<TElementData>::AddVelocitySystem(
                 // The last term comes from vh*d(u_ss)
                 double AA = tau_one(d,d) * AGradN[i] * std::pow(fluid_fraction, 2) * AGradN[j];
                 double AGBetaDiag = tau_one(d,d) * fluid_fraction * kin_viscosity * AGradN[i] * (rData.DN_DX(j,d) * fluid_fraction_gradient[d]);
-                double GBetaADiag = 2.0 / 3.0 * kin_viscosity * fluid_fraction * tau_one(d,d) * AGradN[j] * fluid_fraction_gradient[d] * rData.DN_DX(i,d);
+                double GBetaADiag = kin_viscosity * fluid_fraction * tau_one(d,d) * AGradN[j] * fluid_fraction_gradient[d] * rData.DN_DX(i,d);
 
                 LHS(row+d,col+d) += rData.Weight * (V + AA - AGBetaDiag + GBetaADiag);
                 // Galerkin pressure term: Div(v) * p

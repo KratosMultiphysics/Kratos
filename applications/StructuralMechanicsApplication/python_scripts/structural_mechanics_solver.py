@@ -57,7 +57,6 @@ class MechanicalSolver(PythonSolver):
 
 
         settings_have_use_block_builder = custom_settings.Has("block_builder")
-
         if settings_have_use_block_builder:
             kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "block_builder", please move it to "builder_and_solver_settings" as "use_block_builder"')
             if not custom_settings.Has("builder_and_solver_settings"):
@@ -65,6 +64,17 @@ class MechanicalSolver(PythonSolver):
 
             custom_settings["builder_and_solver_settings"].AddValue("use_block_builder", custom_settings["block_builder"])
             custom_settings.RemoveValue("block_builder")
+
+        settings_have_line_search = custom_settings.Has("line_search")
+        if settings_have_line_search:
+            kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
+            if custom_settings["line_search"].GetBool():
+                if not custom_settings.Has("solving_strategy_settings"):
+                    custom_settings.AddEmptyValue("solving_strategy_settings")
+
+                custom_settings["solving_strategy_settings"].AddEmptyValue("type")
+                custom_settings["solving_strategy_settings"]["type"].SetString("line_search")
+            custom_settings.RemoveValue("line_search")
 
         self._validate_settings_in_baseclass=True # To be removed eventually
         super().__init__(model, custom_settings)
@@ -83,6 +93,10 @@ class MechanicalSolver(PythonSolver):
                 raise Exception('Please specify a "domain_size" >= 0!')
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.DOMAIN_SIZE, domain_size)
 
+        # Some variables initialization
+        self.mpc_block_builder_initialized = False
+
+        # Printing message
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Construction finished")
 
         # Set if the analysis is restarted
@@ -113,7 +127,6 @@ class MechanicalSolver(PythonSolver):
             "pressure_dofs": false,
             "displacement_control": false,
             "reform_dofs_at_each_step": false,
-            "line_search": false,
             "use_old_stiffness_in_first_iteration": false,
             "compute_reactions": true,
             "solving_strategy_settings": {
@@ -227,12 +240,15 @@ class MechanicalSolver(PythonSolver):
     def Initialize(self):
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Initializing ...")
+        
         # The mechanical solution strategy is created here if it does not already exist.
         if self.settings["clear_storage"].GetBool():
             self.Clear()
         mechanical_solution_strategy = self._GetSolutionStrategy()
         mechanical_solution_strategy.SetEchoLevel(self.settings["echo_level"].GetInt())
         mechanical_solution_strategy.Initialize()
+
+        # Printing that inialization is finished
         KratosMultiphysics.Logger.PrintInfo("::[MechanicalSolver]:: ", "Finished initialization.")
 
     def InitializeSolutionStep(self):
@@ -318,20 +334,21 @@ class MechanicalSolver(PythonSolver):
         return self._linear_solver
 
     def _GetBuilderAndSolver(self):
-        if (self.settings["multi_point_constraints_used"].GetBool() is False and
-            self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-            self.settings["multi_point_constraints_used"].SetBool(True)
-            self._builder_and_solver = self._CreateBuilderAndSolver()
         if not hasattr(self, '_builder_and_solver'):
             self._builder_and_solver = self._CreateBuilderAndSolver()
+        elif not self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool(): # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
+            if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0 and not self.mpc_block_builder_initialized:
+                self.settings["multi_point_constraints_used"].SetBool(True)
+                self._builder_and_solver = self._CreateBuilderAndSolver()
+                self.mpc_block_builder_initialized = True
         return self._builder_and_solver
 
     def _GetSolutionStrategy(self):
-        if (self.settings["multi_point_constraints_used"].GetBool() is False and
-            self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0):
-            self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         if not hasattr(self, '_mechanical_solution_strategy'):
             self._mechanical_solution_strategy = self._CreateSolutionStrategy()
+        elif not self.settings["builder_and_solver_settings"]["use_block_builder"].GetBool(): # Block builder and solver are unified with MPC and without. In the case of the elimination this could be a problem
+            if self.GetComputingModelPart().NumberOfMasterSlaveConstraints() > 0 and not self.mpc_block_builder_initialized:
+                self._mechanical_solution_strategy = self._CreateSolutionStrategy()
         return self._mechanical_solution_strategy
 
     def import_constitutive_laws(self):
@@ -390,7 +407,7 @@ class MechanicalSolver(PythonSolver):
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_X,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Y,self.main_model_part)
         KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ACCELERATION_Z,self.main_model_part)
-        if(self.settings["rotation_dofs"].GetBool()):
+        if self.settings["rotation_dofs"].GetBool():
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_X,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Y,self.main_model_part)
             KratosMultiphysics.VariableUtils().AddDof(KratosMultiphysics.ANGULAR_VELOCITY_Z,self.main_model_part)
@@ -449,11 +466,6 @@ class MechanicalSolver(PythonSolver):
         if analysis_type == "linear":
             mechanical_solution_strategy = self._create_linear_strategy()
         elif analysis_type == "non_linear":
-            # Deprecation checks
-            if self.settings.Has("line_search"):
-                kratos_utilities.IssueDeprecationWarning('MechanicalSolver', 'Using "line_search", please move it to "solving_strategy_settings" as "type"')
-                if self.settings["line_search"].GetBool():
-                    self.settings["solving_strategy_settings"]["type"].SetString("line_search")
             # Create strategy
             if self.settings["solving_strategy_settings"]["type"].GetString() == "newton_raphson":
                 mechanical_solution_strategy = self._create_newton_raphson_strategy()

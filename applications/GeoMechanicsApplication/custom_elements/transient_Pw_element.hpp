@@ -34,26 +34,26 @@ public:
 
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( TransientPwElement );
 
-    typedef UPwSmallStrainElement<TDim, TNumNodes> BaseType;
+    using BaseType = UPwSmallStrainElement<TDim, TNumNodes>;
 
-    typedef std::size_t IndexType;
-    typedef Properties PropertiesType;
-    typedef Node <3> NodeType;
-    typedef Geometry<NodeType> GeometryType;
-    typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
-    typedef Vector VectorType;
-    typedef Matrix MatrixType;
-    typedef Element::DofsVectorType DofsVectorType;
-    typedef Element::EquationIdVectorType EquationIdVectorType;
+    using IndexType = std::size_t;
+    using PropertiesType = Properties;
+    using NodeType = Node;
+    using GeometryType = Geometry<NodeType>;
+    using NodesArrayType = GeometryType::PointsArrayType;
+    using VectorType = Vector;
+    using MatrixType = Matrix;
+    using DofsVectorType = Element::DofsVectorType;
+    using EquationIdVectorType = Element::EquationIdVectorType;
 
     /// The definition of the sizetype
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
     using BaseType::mRetentionLawVector;
     using BaseType::mConstitutiveLawVector;
     using BaseType::mIsInitialised;
     using BaseType::CalculateRetentionResponse;
 
-    typedef typename BaseType::ElementVariables ElementVariables;
+    using ElementVariables = typename BaseType::ElementVariables;
 
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -166,7 +166,7 @@ protected:
 
     void CalculateAndAddRHS(VectorType &rRightHandSideVector, ElementVariables &rVariables, unsigned int GPoint) override;
 
-    void CalculateKinematics( ElementVariables &rVariables, const unsigned int &PointNumber ) override;
+    void CalculateKinematics( ElementVariables &rVariables, unsigned int PointNumber ) override;
 
     void CalculateAndAddCompressibilityMatrix(MatrixType &rLeftHandSideMatrix, ElementVariables& rVariables) override;
     void CalculateAndAddPermeabilityFlow(VectorType &rRightHandSideVector, ElementVariables& rVariables) override;

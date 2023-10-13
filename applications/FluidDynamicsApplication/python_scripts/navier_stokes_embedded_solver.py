@@ -1,3 +1,7 @@
+# Importing Python modules
+import numpy
+import numpy.linalg
+
 # Importing the Kratos Library
 import KratosMultiphysics
 
@@ -195,7 +199,7 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 "max_iteration": 1000
             },
             "embedded_nodal_variable_settings": {
-                "gradient_penalty_coefficient": 0.0,
+                "gradient_penalty_coefficient": 1.0e-3,
                 "linear_solver_settings": {
                     "preconditioner_type": "amg",
                     "solver_type": "amgcl",
@@ -285,6 +289,9 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             "fm_ale_settings": {
                 "fm_ale_step_frequency": 0,
                 "mesh_movement": "implicit",
+                "embedded_velocity_calculation": "from_fluid_mesh_velocity",
+                "rbf_interpolation_search_radius": 0.0,
+                "rbf_interpolation_edge_factor": 2.0,
                 "fm_ale_solver_settings": {
                 }
             }
@@ -423,53 +430,48 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
         return new_time
 
     def InitializeSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # Compute the BDF coefficients
-            (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
+        # Compute the BDF coefficients
+        (self.time_discretization).ComputeAndSaveBDFCoefficients(self.GetComputingModelPart().ProcessInfo)
 
-            # If required, compute the nodal neighbours
-            if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
-                (self.find_nodal_neighbours_process).Execute()
+        # If required, compute the nodal neighbours
+        if (self.settings["formulation"]["element_type"].GetString() == "embedded_ausas_navier_stokes"):
+            (self.find_nodal_neighbours_process).Execute()
 
-            # Set the virtual mesh values from the background mesh
-            self.__SetVirtualMeshValues()
+        # Set the virtual mesh values from the background mesh
+        self.__SetVirtualMeshValues()
 
         # Call the base solver InitializeSolutionStep()
         super(NavierStokesEmbeddedMonolithicSolver, self).InitializeSolutionStep()
 
     def SolveSolutionStep(self):
-        if self._TimeBufferIsInitialized():
-            # Correct the distance field
-            # Note that this is intentionally placed in here (and not in the InitializeSolutionStep() of the solver
-            # It has to be done before each call to the Solve() in case an outer non-linear iteration is performed (FSI)
-            self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
+        # Correct the distance field
+        # Note that this is intentionally placed in here (and not in the InitializeSolutionStep() of the solver
+        # It has to be done before each call to the Solve() in case an outer non-linear iteration is performed (FSI)
+        self.GetDistanceModificationProcess().ExecuteInitializeSolutionStep()
 
-            # Perform the FM-ALE operations
-            # Note that this also sets the EMBEDDED_VELOCITY from the MESH_VELOCITY
-            self.__DoFmAleOperations()
+        # Perform the FM-ALE operations
+        # Note that this also sets the EMBEDDED_VELOCITY from the MESH_VELOCITY
+        self.__DoFmAleOperations()
 
-            # Call the base SolveSolutionStep to solve the embedded CFD problem
-            is_converged = super(NavierStokesEmbeddedMonolithicSolver,self).SolveSolutionStep()
+        # Call the base SolveSolutionStep to solve the embedded CFD problem
+        is_converged = super(NavierStokesEmbeddedMonolithicSolver,self).SolveSolutionStep()
 
-            # Undo the FM-ALE virtual mesh movement
-            self.__UndoFMALEOperations()
+        # Undo the FM-ALE virtual mesh movement
+        self.__UndoFMALEOperations()
 
-            # Restore the fluid node fixity to its original status
-            # Note that this is intentionally placed in here (and not in the FinalizeSolutionStep() of the solver
-            # It has to be done after each call to the Solve() and the FM-ALE in case an outer non-linear iteration is performed (FSI)
-            self.GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
+        # Restore the fluid node fixity to its original status
+        # Note that this is intentionally placed in here (and not in the FinalizeSolutionStep() of the solver
+        # It has to be done after each call to the Solve() and the FM-ALE in case an outer non-linear iteration is performed (FSI)
+        self.GetDistanceModificationProcess().ExecuteFinalizeSolutionStep()
 
-            return is_converged
-        else:
-            return True
+        return is_converged
 
     def FinalizeSolutionStep(self):
         # Call the base solver FinalizeSolutionStep()
         super(NavierStokesEmbeddedMonolithicSolver, self).FinalizeSolutionStep()
 
         # Do the FM-ALE end of step operations
-        if self._TimeBufferIsInitialized():
-            self.__UpdateFMALEStepCounter()
+        self.__UpdateFMALEStepCounter()
 
     #TODO: THIS COULD BE SAFELY REMOVED ONCE WE OLD EMBEDDED ELEMENTS ARE REMOVED
     def _SetPhysicalProperties(self):
@@ -591,12 +593,8 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
                 mesh_moving_util = KratosMeshMoving.FixedMeshALEUtilities(
                     self.model,
                     self.settings["fm_ale_settings"]["fm_ale_solver_settings"])
-            elif (mesh_movement == "explicit"):
-                mesh_moving_util = KratosMeshMoving.ExplicitFixedMeshALEUtilities(
-                    self.model,
-                    self.settings["fm_ale_settings"]["fm_ale_solver_settings"])
             else:
-                raise Exception("FM-ALE mesh_movement set to \'" + mesh_movement + "\'. Available options are \'implicit\' and \'explicit\'.")
+                raise Exception("FM-ALE mesh_movement set to \'" + mesh_movement + "\'. Available option is \'implicit\'.")
 
             return mesh_moving_util
         else:
@@ -640,15 +638,54 @@ class NavierStokesEmbeddedMonolithicSolver(FluidSolver):
             else:
                 self.__GetFmAleUtility().ProjectVirtualValues3D(self.main_model_part, buffer_size)
 
-            # If FM-ALE is performed, use the MESH_VELOCITY as EMBEDDED_VELOCITY
+            # If FM-ALE is performed, calculate the EMBEDDED_VELOCITY
+            self.__CalculateEmbeddedVelocity()
+
+    def __UndoFMALEOperations(self):
+        if self.__IsFmAleStep():
+            # Undo the FM-ALE virtual mesh movement
+            self.__GetFmAleUtility().UndoMeshMovement()
+
+    def __CalculateEmbeddedVelocity(self):
+        fm_ale_settings = self.settings["fm_ale_settings"]
+        embedded_velocity_calculation = fm_ale_settings["embedded_velocity_calculation"].GetString()
+        if embedded_velocity_calculation == "from_fluid_mesh_velocity":
+            # Use the fluid MESH_VELOCITY as EMBEDDED_VELOCITY
             KratosMultiphysics.VariableUtils().CopyModelPartNodalVarToNonHistoricalVar(
                 KratosMultiphysics.MESH_VELOCITY,
                 KratosMultiphysics.EMBEDDED_VELOCITY,
                 self.GetComputingModelPart(),
                 self.GetComputingModelPart(),
                 0)
+        elif embedded_velocity_calculation == "from_structure_velocity_rbf_interpolation":
+            # If FM-ALE is performed (i.e. moving object), calculate the EMBEDDED_VELOCITY from the immersed object VELOCITY
+            # This auxiliary function sets the EMBEDDED_VELOCITY in the non-historical nodal database of the intersected element
+            # nodes from a Radial-Basis Function (RBF) interpolation of the structure VELOCITY values. These EMBEDDED_VELOCITY
+            # nodal values would be later on interpolated in the cuts to impose the unfitted boundary condition within the element
+            KratosCFD.FluidAuxiliaryUtilities.MapVelocityFromSkinToVolumeRBF(
+                self.GetComputingModelPart(),
+                self.__GetFmAleStructureModelPart(),
+                self.__CalculateEmbeddedVelocityMapSearchRadius())
+        else:
+            err_msg = f"Provided 'embedded_velocity_calculation' vale {embedded_velocity_calculation} is not supported.\n"
+            err_msg += "Available options are:\n"
+            err_msg += "\t- 'from_fluid_mesh_velocity'\n"
+            err_msg += "\t- 'from_structure_velocity_rbf_interpolation'\n"
+            raise Exception(err_msg)
 
-    def __UndoFMALEOperations(self):
-        if self.__IsFmAleStep():
-            # Undo the FM-ALE virtual mesh movement
-            self.__GetFmAleUtility().UndoMeshMovement()
+    def __CalculateEmbeddedVelocityMapSearchRadius(self):
+        # If not computed yet, calculate the search radius
+        if not hasattr(self, '__embedded_velocity_map_search_radius'):
+            # First check if a user-defined specific value is provided
+            # Note that the default value is 0 in order to do this
+            fm_ale_settings = self.settings["fm_ale_settings"]
+            search_radius = fm_ale_settings["rbf_interpolation_search_radius"].GetDouble()
+            if search_radius > 0.0:
+                self.__embedded_velocity_map_search_radius = search_radius
+            else:
+                # If not calculate it from the largest edge distance
+                max_edge_factor = fm_ale_settings["rbf_interpolation_edge_factor"].GetDouble()
+                max_edge_length = KratosCFD.FluidAuxiliaryUtilities.FindMaximumEdgeLength(self.GetComputingModelPart())
+                self.__embedded_velocity_map_search_radius = max_edge_factor * max_edge_length
+
+        return self.__embedded_velocity_map_search_radius

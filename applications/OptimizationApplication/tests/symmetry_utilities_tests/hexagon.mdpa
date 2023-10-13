@@ -1,0 +1,118 @@
+// File created on Tue Jan 10 14:46:22 2023
+// Mesh Information:
+// Number of Nodes: 19
+// Number of Elements: 0
+// Number of Conditions: 24
+// Number of Properties: 1
+// Number of SubModelParts: 1
+//   SubModelPart: shell
+//     Number of Nodes: 19
+//     Number of Elements: 0
+//     Number of Conditions: 24
+//     Number of Properties: 1
+//     Number of SubModelParts: 0
+
+Begin Properties 0
+End Properties // 0
+
+Begin Nodes
+	1	1.0000000000	0.0000000000	0.0000000000
+	2	0.5000000000	-0.8660000000	0.0000000000
+	3	-0.5000000000	-0.8660000000	0.0000000000
+	4	-1.0000000000	0.0000000000	0.0000000000
+	5	-0.5000000000	0.8660000000	0.0000000000
+	6	0.5000000000	0.8660000000	0.0000000000
+	7	0.0000000000	0.8660000000	0.0000000000
+	8	-0.7500000000	0.4330000000	0.0000000000
+	9	-0.7500000000	-0.4330000000	0.0000000000
+	10	0.0000000000	-0.8660000000	0.0000000000
+	11	0.7500000000	-0.4330000000	0.0000000000
+	12	0.7500000000	0.4330000000	0.0000000000
+	13	-0.2500000000	0.4330000000	0.0000000000
+	14	-0.5000000000	-0.0000000000	0.0000000000
+	15	-0.2500000000	-0.4330000000	0.0000000000
+	16	0.2500000000	-0.4330000000	0.0000000000
+	17	0.5000000000	0.0000000000	0.0000000000
+	18	0.2500000000	0.4330000000	0.0000000000
+	19	-0.0000000000	-0.0000000000	0.0000000000
+End Nodes
+
+Begin Conditions SurfaceCondition3D3N
+	1	0	7	5	13
+	2	0	5	8	13
+	3	0	8	4	14
+	4	0	4	9	14
+	5	0	9	3	15
+	6	0	3	10	15
+	7	0	10	2	16
+	8	0	2	11	16
+	9	0	11	1	17
+	10	0	1	12	17
+	11	0	12	6	18
+	12	0	6	7	18
+	13	0	14	9	15
+	14	0	8	14	13
+	15	0	15	10	16
+	16	0	16	11	17
+	17	0	17	12	18
+	18	0	18	7	13
+	19	0	14	15	19
+	20	0	13	14	19
+	21	0	15	16	19
+	22	0	16	17	19
+	23	0	17	18	19
+	24	0	18	13	19
+End Conditions // SurfaceCondition3D3N
+
+Begin SubModelPart shell
+	Begin SubModelPartProperties
+		0
+	End SubModelPartProperties
+	Begin SubModelPartNodes
+		1
+		2
+		3
+		4
+		5
+		6
+		7
+		8
+		9
+		10
+		11
+		12
+		13
+		14
+		15
+		16
+		17
+		18
+		19
+	End SubModelPartNodes
+	Begin SubModelPartConditions
+		1
+		2
+		3
+		4
+		5
+		6
+		7
+		8
+		9
+		10
+		11
+		12
+		13
+		14
+		15
+		16
+		17
+		18
+		19
+		20
+		21
+		22
+		23
+		24
+	End SubModelPartConditions
+End SubModelPart // shell

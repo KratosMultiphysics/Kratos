@@ -10,8 +10,7 @@
 //  Main author:     Ruben Zorrilla
 //
 
-#if !defined(KRATOS_MVQN_RANDOMIZED_SVD_CONVERGENCE_ACCELERATOR)
-#define  KRATOS_MVQN_RANDOMIZED_SVD_CONVERGENCE_ACCELERATOR
+#pragma once
 
 // System includes
 #include <random>
@@ -54,8 +53,18 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 
-/** @brief MVQN acceleration scheme
- * MultiVectorQuasiNewton convergence accelerator from Bogaers et al. 2016
+/** @brief MVQN-RZ acceleration scheme
+ * RandomiZed Multi-Vector Quasi-Newton (MVQN-RZ) method convergence accelerator from Zorrilla and Rossi 2022.
+ * The MVQN-RZ overcomes the memory and computational bottlenecks of the original MVQN algorithm by doing a
+ * randomized SVD decomposition of the previous step inverse Jacobian approximation. This makes possible to
+ * reduce the complexity of the method from quadratic (MVQN) to linear (MVQN-RZ). The settings of the method are
+ * "automatic_jacobian_modes": if true automatically selects the number of modes to be used in the decomposition
+ * "jacobian_modes": if not automatic, the number of modes to be used in the decomposition
+ * "w_0": relaxation parameter to be used in the very first update
+ * "cut_off_tol": relative tolerance to avoid (almost) linear dependent information in the observation matrices
+ * "interface_block_newton": false for the IQN equations case and true for the IBQN equations once
+ * "limit_modes_to_iterations": if not automatic, limits the modes to the number of iterations to avoid numerical noise
+ * "min_rand_svd_extra_modes": minimum of extra modes to be used in the randomized SVD decomposition
  * @tparam TSparseSpace Linear algebra sparse space
  * @tparam TDenseSpace Linear algebra dense space
  */
@@ -103,7 +112,7 @@ public:
         ConvAcceleratorParameters.ValidateAndAssignDefaults(GetDefaultParameters());
         mUserNumberOfModes = ConvAcceleratorParameters["jacobian_modes"].GetInt();
         mAutomaticJacobianModes = ConvAcceleratorParameters["automatic_jacobian_modes"].GetBool();
-        mLimitModesToIterations = ConvAcceleratorParameters["limit_modes_to_iterations"].GetBool(); //TODO: THIS FIELD MUST BE RENAMED TO SOMETHING LIKE "restart_random_matrix"
+        mLimitModesToIterations = ConvAcceleratorParameters["limit_modes_to_iterations"].GetBool();
         mMinRandSVDExtraModes = ConvAcceleratorParameters["min_rand_svd_extra_modes"].GetInt();
         BaseType::SetInitialRelaxationOmega(ConvAcceleratorParameters["w_0"].GetDouble());
         BaseType::SetCutOffTolerance(ConvAcceleratorParameters["cut_off_tol"].GetDouble());
@@ -178,8 +187,8 @@ public:
             "w_0"                       : 0.825,
             "cut_off_tol"               : 1e-8,
             "interface_block_newton"    : false,
-            "limit_modes_to_iterations" : false,
-            "min_rand_svd_extra_modes"  : 10
+            "limit_modes_to_iterations" : true,
+            "min_rand_svd_extra_modes"  : 1
         })");
 
         return mvqn_randomized_svd_default_parameters;
@@ -418,7 +427,7 @@ private:
     SizeType mUserNumberOfModes; // User-defined number of modes to be kept in the Jacobian randomized SVD
     SizeType mNumberOfExtraModes; // Number of extra modes used in the randomization
     SizeType mMinRandSVDExtraModes; // Minimum number of extra modes used in the randomization
-    SizeType mCurrentNumberOfModes = 0; // Current number of modes to be kept in the Jacobian randomized SVD //TODO: I THINK WE CAN REMOVE THIS MEMBER VAR
+    SizeType mCurrentNumberOfModes = 0; // Current number of modes to be kept in the Jacobian randomized SVD
     bool mAutomaticJacobianModes = true; // Automatic selection of randomized SVD number of modes
     bool mLimitModesToIterations = true; // Limits the number of modes to the current iterations
     bool mRandomValuesAreInitialized = false; // Indicates if the random values for the truncated SVD have been already set
@@ -449,22 +458,26 @@ private:
         // Note that if automatic modes are selected we set the previous step rank plus the current number of observations
         // This comes from the additivity property rank(A+B) \leq rank(A) + rank(B). Hence, the current Jacobian rank is at
         // most the summation of the old Jacobian rank plus the number of current of observations
+        // This is current option, however there are alternative estimates (see below) that could be also used
         const SizeType n_obs = BaseType::GetNumberOfObservations();
         const SizeType full_rank_modes = mOldMaxRank + n_obs;
         SizeType n_modes;
         if (mAutomaticJacobianModes) {
-            n_modes = full_rank_modes;
+            //TODO: make this optional
+            // n_modes = n_obs; // This is a good estimate assuming that rank remains almost constant among iterations.
+            // n_modes = mOldMaxRank; // This is a good estimate between n_obs and full_rank_modes. It seems to work slightly better than one above.
+            // n_modes = std::min(mOldMaxRank, n_obs); // The most robust automation estimate. With this, chances are that we never get a full-rank decomposition. However numerical noise is minimized.
+            n_modes = full_rank_modes; // This is the upper bound for a full-rank decomposition. Note that it might eventually introduce too much noise if the rank is smaller.
         } else {
             // If the number of modes is not automatic we need to check if it needs to be limited to the number of iterations (e.g. IBQN)
             // Note that we check it with the current number of observations rather than using the iteration counter
             // This is important in case some iteration information has been dropped because its linear dependency
             // Also note that we consider the previous Jacobian (via the full_rank_modes variable) as this contributes to the rank
-            //TODO: HERE WE SHOULD SET A CHECK IF MAXIMUM MODES IS NOT ZERO DO THIS. THE AUTOMATIC IS SAME AS LIMIT MODES TO ITERATIONS
             n_modes = mLimitModesToIterations ? std::min(full_rank_modes, mUserNumberOfModes) : mUserNumberOfModes;
         }
 
         // Initialize auxiliary variables
-        const SizeType aux_extra_modes = std::ceil(0.2 * n_modes);
+        const SizeType aux_extra_modes = std::ceil(0.1 * n_modes);
         mNumberOfExtraModes = mMinRandSVDExtraModes > aux_extra_modes ? mMinRandSVDExtraModes : aux_extra_modes;
         mCurrentNumberOfModes = n_modes + mNumberOfExtraModes;
 
@@ -599,8 +612,10 @@ private:
     void CalculateAuxiliaryMatrixM(MatrixType& rAuxM)
     {
         // Do the QR decomposition of V
-        auto& r_V = *(BaseType::pGetResidualObservationMatrix());
-        mpDenseQR->Compute(r_V);
+        // Note that we require to do a copy of V observation matrix as QR decomposition is done inplace
+        const auto& r_V = *(BaseType::pGetResidualObservationMatrix());
+        MatrixType aux_V(r_V);
+        mpDenseQR->Compute(aux_V);
 
         // Get the QR decomposition matrices
         // Note that in here we are assuming that the pivoting QR is used
@@ -714,5 +729,3 @@ private:
 ///@}
 
 }  /* namespace Kratos.*/
-
-#endif /* KRATOS_MVQN_RANDOMIZED_SVD_CONVERGENCE_ACCELERATOR defined */

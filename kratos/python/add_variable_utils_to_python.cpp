@@ -11,7 +11,6 @@
 //  Main authors:    Riccardo Rossi
 //
 
-
 // System includes
 
 // External includes
@@ -19,13 +18,11 @@
 // Project includes
 #include "python/add_variable_utils_to_python.h"
 #include "includes/define_python.h"
-#include "processes/process.h"
 
 // Variable utilities
 #include "utilities/variable_utils.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 template<class TDataType>
 void AddCopyModelPartFlaggedInterface(pybind11::class_<VariableUtils>& rPythonVariableUtils)
@@ -230,6 +227,9 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<Quaternion<double>>>)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<Vector>>)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVar<Variable<Matrix>>)
+        .def("CopyModelPartNodalVar", py::overload_cast<const Variable<int> &, const Variable<int> &, const ModelPart &, ModelPart &, const unsigned int, const unsigned int>(&VariableUtils::CopyModelPartNodalVar<Variable<int>>))
+        .def("CopyModelPartNodalVar", py::overload_cast<const Variable<double> &, const Variable<double> &, const ModelPart &, ModelPart &, const unsigned int, const unsigned int>(&VariableUtils::CopyModelPartNodalVar<Variable<double>>))
+        .def("CopyModelPartNodalVar", py::overload_cast<const Variable<array_1d<double,3>> &, const Variable<array_1d<double,3>> &, const ModelPart &, ModelPart &, const unsigned int, const unsigned int>(&VariableUtils::CopyModelPartNodalVar<Variable<array_1d<double,3>>>))
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<bool>>)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<double>>)
         .def("CopyModelPartNodalVar", VariableUtilsCopyModelPartNodalVarWithDestination<Variable<array_1d<double, 3>>>)
@@ -379,6 +379,36 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<Quaternion<double>, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<Vector, ModelPart::ElementsContainerType>)
         .def("SetNonHistoricalVariable", VariableUtilsSetNonHistoricalVariableForFlag<Matrix, ModelPart::ElementsContainerType>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::NodesContainerType,Variable<bool>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::NodesContainerType,Variable<int>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::NodesContainerType,Variable<double>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::NodesContainerType,Variable<array_1d<double, 3>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::NodesContainerType,Variable<array_1d<double, 4>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::NodesContainerType,Variable<array_1d<double, 6>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::NodesContainerType,Variable<array_1d<double, 9>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::NodesContainerType,Variable<Quaternion<double>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::NodesContainerType,Variable<Vector>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::NodesContainerType,Variable<Matrix>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ConditionsContainerType,Variable<bool>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ConditionsContainerType,Variable<int>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ConditionsContainerType,Variable<double>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ConditionsContainerType,Variable<array_1d<double, 3>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ConditionsContainerType,Variable<array_1d<double, 4>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ConditionsContainerType,Variable<array_1d<double, 6>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ConditionsContainerType,Variable<array_1d<double, 9>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ConditionsContainerType,Variable<Quaternion<double>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ConditionsContainerType,Variable<Vector>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ConditionsContainerType,Variable<Matrix>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ElementsContainerType,Variable<bool>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ElementsContainerType,Variable<int>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ElementsContainerType,Variable<double>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ElementsContainerType,Variable<array_1d<double, 3>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ElementsContainerType,Variable<array_1d<double, 4>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ElementsContainerType,Variable<array_1d<double, 6>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ElementsContainerType,Variable<array_1d<double, 9>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ElementsContainerType,Variable<Quaternion<double>>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ElementsContainerType,Variable<Vector>>)
+        .def("EraseNonHistoricalVariable", &VariableUtils::EraseNonHistoricalVariable<ModelPart::ElementsContainerType,Variable<Matrix>>)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::NodesContainerType>)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::ConditionsContainerType>)
         .def("ClearNonHistoricalData", &VariableUtils::ClearNonHistoricalData<ModelPart::ElementsContainerType>)
@@ -452,6 +482,40 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("ApplyFixity", ApplyFixity<Variable<double>>)
         .def("ApplyFixity", ApplyFlaggedFixity<Variable<double>>)
         .def("ApplyVector", &VariableUtils::ApplyVector<Variable<double>>)
+        .def("GetSolutionStepValuesVector", py::overload_cast<
+                            const ModelPart::NodesContainerType&,
+                            const Variable<array_1d<double,3>>&,
+                            const unsigned int,
+                            const unsigned int>(&VariableUtils::GetSolutionStepValuesVector))
+        .def("GetSolutionStepValuesVector", py::overload_cast<
+                            const ModelPart::NodesContainerType&,
+                            const Variable<double>&,
+                            const unsigned int>(&VariableUtils::GetSolutionStepValuesVector))
+        .def("SetSolutionStepValuesVector", py::overload_cast<
+                            ModelPart::NodesContainerType&,
+                            const Variable<array_1d<double,3>>&,
+                            const Vector&,
+                            const unsigned int>(&VariableUtils::SetSolutionStepValuesVector))
+        .def("SetSolutionStepValuesVector", py::overload_cast<
+                            ModelPart::NodesContainerType&,
+                            const Variable<double>&,
+                            const Vector&,
+                            const unsigned int>(&VariableUtils::SetSolutionStepValuesVector))
+        .def("GetValuesVector", py::overload_cast<
+                            const ModelPart::NodesContainerType&,
+                            const Variable<array_1d<double,3>>&,
+                            const unsigned int>(&VariableUtils::GetValuesVector))
+        .def("GetValuesVector", py::overload_cast<
+                            const ModelPart::NodesContainerType&,
+                            const Variable<double>&>(&VariableUtils::GetValuesVector))
+        .def("SetValuesVector", py::overload_cast<
+                            ModelPart::NodesContainerType&,
+                            const Variable<array_1d<double,3>>&,
+                            const Vector&>(&VariableUtils::SetValuesVector))
+        .def("SetValuesVector", py::overload_cast<
+                            ModelPart::NodesContainerType&,
+                            const Variable<double>&,
+                            const Vector&>(&VariableUtils::SetValuesVector))
         .def("SumHistoricalNodeScalarVariable", &VariableUtils::SumHistoricalVariable<double>)
         .def("SumHistoricalNodeVectorVariable", &VariableUtils::SumHistoricalVariable<array_1d<double, 3>>)
         .def("SumNonHistoricalNodeScalarVariable", &VariableUtils::SumNonHistoricalNodeScalarVariable<Variable<double>>)
@@ -469,7 +533,12 @@ void AddVariableUtilsToPython(pybind11::module &m)
         .def("UpdateInitialToCurrentConfiguration", &VariableUtils::UpdateInitialToCurrentConfiguration)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPosition)
         .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariable)
-        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition);
+        .def("UpdateCurrentPosition", VariableUtilsUpdateCurrentPositionWithVariableAndPosition)
+        .def("GetCurrentPositionsVector", &VariableUtils::GetCurrentPositionsVector<>)
+        .def("GetInitialPositionsVector", &VariableUtils::GetInitialPositionsVector<>)
+        .def("SetCurrentPositionsVector", &VariableUtils::SetCurrentPositionsVector)
+        .def("SetInitialPositionsVector", &VariableUtils::SetInitialPositionsVector)
+        ;
 
     AddCopyModelPartFlaggedInterface<bool>(python_variable_utils);
     AddCopyModelPartFlaggedInterface<double>(python_variable_utils);
@@ -481,5 +550,4 @@ void AddVariableUtilsToPython(pybind11::module &m)
     AddCopyModelPartFlaggedInterface<Matrix>(python_variable_utils);
 }
 
-} // namespace Python.
-} // Namespace Kratos
+} // namespace Kratos::Python.

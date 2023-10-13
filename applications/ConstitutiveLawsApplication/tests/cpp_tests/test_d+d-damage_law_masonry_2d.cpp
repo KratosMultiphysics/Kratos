@@ -25,7 +25,7 @@
 #include "constitutive_laws_application_variables.h"
 
 // Constitutive law
-#include "custom_constitutive/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
+#include "custom_constitutive/small_strains/damage/plane_stress_d_plus_d_minus_damage_masonry_2d.h"
 #include "includes/model_part.h"
 #include "geometries/triangle_2d_3.h"
 #include "constitutive_laws_application_variables.h"
@@ -35,7 +35,7 @@ namespace Kratos
 namespace Testing
 {
 // We test the d+ d- damage Constitutive Law (for masonry) 2D...
-typedef Node<3> NodeType;
+typedef Node NodeType;
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DInternalVariables, KratosConstitutiveLawsFastSuite)
 {
@@ -47,14 +47,14 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DInternalVariables, KratosConstitut
     ModelPart &test_model_part = current_model.CreateModelPart("Main");
     DamageDPlusDMinusMasonry2DLaw cl = DamageDPlusDMinusMasonry2DLaw();
 
-    KRATOS_CHECK_IS_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
-    KRATOS_CHECK(cl.Has(DAMAGE_TENSION));  // = True
-    KRATOS_CHECK(cl.Has(THRESHOLD_TENSION));  // = True
-    KRATOS_CHECK(cl.Has(DAMAGE_COMPRESSION));  // = True
-    KRATOS_CHECK(cl.Has(THRESHOLD_COMPRESSION));  // = True
-    KRATOS_CHECK(cl.Has(UNIAXIAL_STRESS_COMPRESSION));  // = True
-    KRATOS_CHECK(cl.Has(UNIAXIAL_STRESS_TENSION));  // = True
-    KRATOS_CHECK(cl.Has(INTERNAL_VARIABLES));  // = True
+    KRATOS_EXPECT_FALSE(cl.Has(INTEGRATED_STRESS_TENSOR));  // = False, in order to use CalculateValue())
+    KRATOS_EXPECT_TRUE(cl.Has(DAMAGE_TENSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(THRESHOLD_TENSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(DAMAGE_COMPRESSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(THRESHOLD_COMPRESSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(UNIAXIAL_STRESS_COMPRESSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(UNIAXIAL_STRESS_TENSION));  // = True
+    KRATOS_EXPECT_TRUE(cl.Has(INTERNAL_VARIABLES));  // = True
 
     Vector internal_variables_w(6);
     internal_variables_w[0] = 0.0;
@@ -136,7 +136,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureTensionTest, KratosConstitutiv
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.01e6);
+    KRATOS_EXPECT_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.01e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosConstitutiveLawsFastSuite)
@@ -208,7 +208,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPureCompressionTest, KratosConstit
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
+    KRATOS_EXPECT_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosConstitutiveLawsFastSuite)
@@ -280,7 +280,7 @@ KRATOS_TEST_CASE_IN_SUITE(DPlusDMinusMasonry2DPMixedStateTest, KratosConstitutiv
     test_masonry2d_stress = cl_parameters.GetStressVector();
 
     // Check the results
-    KRATOS_CHECK_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
+    KRATOS_EXPECT_VECTOR_NEAR(test_masonry2d_stress, masonry2d_res, 0.0001e6);
 }
 
 } // namespace Testing

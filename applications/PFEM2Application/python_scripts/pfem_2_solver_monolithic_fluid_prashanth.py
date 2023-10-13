@@ -1,4 +1,3 @@
-from __future__ import print_function
 from KratosMultiphysics import *
 from KratosMultiphysics.PFEM2Application import *
 #from KratosMultiphysics.ConvectionDiffusionApplication import *
@@ -31,11 +30,11 @@ def AddVariables(model_part):
     model_part.AddNodalSolutionStepVariable(TEMP_CONV_PROJ);
     model_part.AddNodalSolutionStepVariable(PREVIOUS_ITERATION_PRESSURE);
     #model_part.AddNodalSolutionStepVariable(FIRST_ITERATION_PRESSURE);
-    model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY) 
-    model_part.AddNodalSolutionStepVariable(PRESS_PROJ_NO_RO) 
-    model_part.AddNodalSolutionStepVariable(MEAN_SIZE) 
-    model_part.AddNodalSolutionStepVariable(NODAL_AREA) 
-    model_part.AddNodalSolutionStepVariable(NODAL_MASS) 
+    model_part.AddNodalSolutionStepVariable(DELTA_VELOCITY)
+    model_part.AddNodalSolutionStepVariable(PRESS_PROJ_NO_RO)
+    model_part.AddNodalSolutionStepVariable(MEAN_SIZE)
+    model_part.AddNodalSolutionStepVariable(NODAL_AREA)
+    model_part.AddNodalSolutionStepVariable(NODAL_MASS)
     model_part.AddNodalSolutionStepVariable(SPLIT_ELEMENT)
     model_part.AddNodalSolutionStepVariable(PRESSUREAUX)
     model_part.AddNodalSolutionStepVariable(BODY_FORCE)
@@ -58,7 +57,7 @@ def AddDofs(model_part):
 class PFEM2Solver:
     def __init__(self,model_part,domain_size):
         self.model_part = model_part
-        
+
         self.time_scheme = ResidualBasedIncrementalUpdateStaticScheme()
 
         #definition of the solvers
@@ -66,29 +65,27 @@ class PFEM2Solver:
         tol = 1e-5
         verbosity = 1
         pDiagPrecond = DiagonalPreconditioner()
-        #self.linear_solver = BICGSTABSolver(1e-5, 1000,pDiagPrecond) # SkylineLUFactorizationSolver() 
-        self.linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,500,verbosity,gmres_size) #SkylineLUFactorizationSolver() 
-        self.monolitic_linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,500,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver() 
+        #self.linear_solver = BICGSTABSolver(1e-5, 1000,pDiagPrecond) # SkylineLUFactorizationSolver()
+        self.linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,500,verbosity,gmres_size) #SkylineLUFactorizationSolver()
+        self.monolitic_linear_solver =  AMGCLSolver(AMGCLSmoother.ILU0,AMGCLIterativeSolverType.BICGSTAB,tol,500,verbosity,gmres_size)      #BICGSTABSolver(1e-7, 5000) # SkylineLUFactorizationSolver()
         #(self.monolitic_linear_solver).is_symmetric=True;
-        self.conv_criteria = DisplacementCriteria(1e-9,1e-15)  #tolerance for the solver 
-        
+        self.conv_criteria = DisplacementCriteria(1e-9,1e-15)  #tolerance for the solver
+
         self.domain_size = domain_size
-        number_of_avg_elems = 10
-        number_of_avg_nodes = 10
         self.neighbour_search = FindNodalNeighboursProcess(model_part)
         (self.neighbour_search).Execute()
-        self.neighbour_elements_search= FindElementalNeighboursProcess(model_part,domain_size,number_of_avg_elems)
+        self.neighbour_elements_search= GenericFindElementalNeighboursProcess(model_part)
         (self.neighbour_elements_search).Execute()
         ##calculate normals
         self.normal_tools = BodyNormalCalculationUtils()
-        
-        
+
+
     #######################################################################
     #######################################################################
     def Initialize(self):
         #creating the solution strategy
         CalculateReactionFlag = False
-        ReformDofSetAtEachStep = False 
+        ReformDofSetAtEachStep = False
         MoveMeshFlag = False
         pDiagPrecond = DiagonalPreconditioner()
         maximum_number_of_particles= 8*self.domain_size
@@ -96,7 +93,7 @@ class PFEM2Solver:
         self.ExplicitStrategy=PFEM2_Explicit_Strategy(self.model_part,self.domain_size, MoveMeshFlag)
 
         self.VariableUtils = VariableUtils()
-        
+
         if self.domain_size==2:
                 self.moveparticles = MoveParticleUtilityDiffFluidOnly2D(self.model_part,maximum_number_of_particles)
         else:
@@ -113,18 +110,18 @@ class PFEM2Solver:
         self.water_initial_volume=0.0 #we initialize it at zero
         self.water_initial_volume_flag=True #we initialize it at zero
         self.mass_correction_factor=0.0
-        
 
-        self.normal_tools.CalculateBodyNormals(self.model_part,self.domain_size);  
+
+        self.normal_tools.CalculateBodyNormals(self.model_part,self.domain_size);
         condition_number=1
-        
+
         if self.domain_size==2:
                 self.addBC = AddMonolithicFixedVelocityCondition2D(self.model_part)
         else:
                 self.addBC = AddMonolithicFixedVelocityCondition3D(self.model_part)
 
         (self.addBC).AddThem()
-        
+
 
         ##RICC TOOLS
         #if self.domain_size==2:
@@ -136,7 +133,7 @@ class PFEM2Solver:
         #   self.distance_utils = SignedDistanceCalculationUtils2D()
         #else:
         #    self.distance_utils = SignedDistanceCalculationUtils3D()
-        #self.redistance_step = 0 
+        #self.redistance_step = 0
         ########
 
         import strategy_python #implicit solver
@@ -156,12 +153,12 @@ class PFEM2Solver:
         self.nodaltasks=0.0
         self.thermal=0.0
         self.implicitviscosity=0.0
-        
-        
 
-                 
-    #######################################################################   
-    #######################################################################   
+
+
+
+    #######################################################################
+    #######################################################################
     def Solve(self):
                 add_gravity=False #in the monolitic solver we do not add the gravity, it is added directly in the implicit monolitic system
                 transfer_pressure=False
@@ -169,7 +166,7 @@ class PFEM2Solver:
 
                 t1 = timer.time()
 
-                #calculating RHS by viscous forces using information of the previous time step: 
+                #calculating RHS by viscous forces using information of the previous time step:
                 #self.CalculateExplicitViscosityContribution();
                 t2 = timer.time()
                 self.calculateinitialdrag = self.calculateinitialdrag + t2-t1
@@ -180,7 +177,7 @@ class PFEM2Solver:
 
                 #streamline integration:
                 self.moveparticles.MountBinDiff()
-                (self.moveparticles).MoveParticlesDiff(viscosity_streamline_integrate,add_gravity); 
+                (self.moveparticles).MoveParticlesDiff(viscosity_streamline_integrate,add_gravity);
                 t3 = timer.time()
                 self.streamlineintegration = self.streamlineintegration + t3-t2a
                 t3a = timer.time()
@@ -217,17 +214,17 @@ class PFEM2Solver:
                     node.SetSolutionStepValue(CORRECTED_DISTANCE,distance-2.0)
                 #TransferLagrtoEul copied info to MESH_VEL, but the solver uses simply velocity, so we copy the variable there.
                 (self.VariableUtils).CopyVectorVar(MESH_VELOCITY,VELOCITY,self.model_part.Nodes)
-                
+
                 #implicit everything
                 full_reset=True;
                 self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 20)
-                (self.moveparticles).ResetBoundaryConditions(full_reset) 
+                (self.moveparticles).ResetBoundaryConditions(full_reset)
                 (self.monolitic_solver).Solve() #implicit resolution of the pressure system. All the other tasks are explicit
                 self.CalculatePressureProjection()
                 full_reset=True;
-                (self.moveparticles).ResetBoundaryConditions(full_reset) 
+                (self.moveparticles).ResetBoundaryConditions(full_reset)
                 #delta_velocity= Velocity(final) - MeshVelocity(from the particles), so we add to the particles the correction done in the mesh.
-                (self.moveparticles).CalculateDeltaVelocity();                
+                (self.moveparticles).CalculateDeltaVelocity();
                 t11 = timer.time()
                 self.implicit_solving = self.implicit_solving + t11-t6
                 #transfering the information to the mesh:
@@ -240,7 +237,7 @@ class PFEM2Solver:
                 post_minimum_number_of_particles=self.domain_size*2;
 
                 self.water_volume = (self.calculatewatervolume).Calculate()
-                if (self.water_initial_volume_flag): 
+                if (self.water_initial_volume_flag):
                         print("calculated water volume for the first time")
                         self.water_initial_volume=self.water_volume
                         self.water_initial_volume_flag=False
@@ -251,14 +248,14 @@ class PFEM2Solver:
                         self.mass_correction_factor
                 print("mass correction factor: ", self.mass_correction_factor)
                 print("current mass loss is : " , (1.0 - water_fraction) * 100.0 , " % ")
-                (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);                
+                (self.moveparticles).PostReseed(post_minimum_number_of_particles,self.mass_correction_factor);
                 t13 = timer.time()
                 self.reseed=self.reseed+ t13-t12
                 #self.nodaltasks = self.nodaltasks + t11-t9
 
                 #print ". erasing  = ", t14-t13
-                self.total = self.total + t13-t1 
-                
+                self.total = self.total + t13-t1
+
 
                 print("----------TIMES----------")
                 print("self.calculateinitialdrag  ", self.calculateinitialdrag,"in % = ", 100.0*(self.calculateinitialdrag)/(self.total))
@@ -272,10 +269,10 @@ class PFEM2Solver:
                 print("TOTAL ----- ",  self.total)
                 print("THIS TIME STEP = ", t13-t1)
 
-                
 
 
-    #######################################################################   
+
+    #######################################################################
     def CalculateExplicitViscosityContribution(self):
                 self.model_part.ProcessInfo.SetValue(FRACTIONAL_STEP, 0) #explicit contribution by viscosity is defined as fract step = 0
                 (self.ExplicitStrategy).InitializeSolutionStep(self.model_part.ProcessInfo);

@@ -541,7 +541,7 @@ int CompressibleNavierStokesExplicit<TDim, TNumNodes>::Check(const ProcessInfo &
         // Activate as soon as we start using the explicit DOF based strategy
         KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(DENSITY)) << "Missing DENSITY DOF in node ", this->GetGeometry()[i].Id();
         KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_X) || this->GetGeometry()[i].HasDofFor(MOMENTUM_Y)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
-        if (TDim == 3) {
+        if constexpr (TDim == 3) {
             KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(MOMENTUM_Z)) << "Missing MOMENTUM component DOF in node ", this->GetGeometry()[i].Id();
         }
         KRATOS_ERROR_IF_NOT(this->GetGeometry()[i].HasDofFor(TOTAL_ENERGY)) << "Missing TOTAL_ENERGY DOF in node ", this->GetGeometry()[i].Id();
@@ -713,7 +713,7 @@ namespace CompressibleNavierStokesExplicitInternal
     // Specialization for simplex geometries
     template<unsigned int TDim, unsigned int TNumNodes>
     static typename std::enable_if<IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryData(
-        const Geometry<Node<3>> & rGeometry,
+        const Geometry<Node> & rGeometry,
         ElementDataStruct<TDim, TNumNodes>& rData)
     {
         GeometryUtils::CalculateGeometryData(rGeometry, rData.DN_DX, rData.N, rData.volume);
@@ -727,7 +727,7 @@ namespace CompressibleNavierStokesExplicitInternal
      */
     template<unsigned int TDim, unsigned int TNumNodes>
     static typename std::enable_if<!IsSimplex(TDim, TNumNodes), void>::type ComputeGeometryData(
-        const Geometry<Node<3>> & rGeometry,
+        const Geometry<Node> & rGeometry,
         ElementDataStruct<TDim, TNumNodes>& rData)
     {
         rData.volume = rGeometry.DomainSize();
@@ -842,7 +842,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
     // Get geometry data
     const auto& r_geom = GetGeometry();
     const unsigned int NumNodes = r_geom.PointsNumber();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
     r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
@@ -867,7 +867,7 @@ array_1d<double,3> CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateM
     // Get geometry data
     const auto& r_geom = GetGeometry();
     const unsigned int NumNodes = r_geom.PointsNumber();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
     r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
@@ -931,7 +931,7 @@ double CompressibleNavierStokesExplicit<TDim, TNumNodes>::CalculateMidPointVeloc
     // Get geometry data
     const auto& r_geom = GetGeometry();
     const unsigned int NumNodes = r_geom.PointsNumber();
-    Geometry<Node<3>>::ShapeFunctionsGradientsType dNdX_container;
+    Geometry<Node>::ShapeFunctionsGradientsType dNdX_container;
     r_geom.ShapeFunctionsIntegrationPointsGradients(dNdX_container, GeometryData::IntegrationMethod::GI_GAUSS_1);
     const auto& r_dNdX = dNdX_container[0];
 
@@ -1035,7 +1035,7 @@ const Parameters CompressibleNavierStokesExplicit<TDim, TNumNodes>::GetSpecifica
             "This element implements a compressible Navier-Stokes formulation written in conservative variables. A Variational MultiScales (VMS) stabilization technique, both with Algebraic SubGrid Scales (ASGS) and Orthogonal Subgrid Scales (OSS), is used. This element is compatible with both entropy-based and physics-based shock capturing techniques."
     })");
 
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         std::vector<std::string> dofs_2d({"DENSITY","MOMENTUM_X","MOMENTUM_Y","TOTAL_ENERGY"});
         specifications["required_dofs"].SetStringArray(dofs_2d);
     } else {

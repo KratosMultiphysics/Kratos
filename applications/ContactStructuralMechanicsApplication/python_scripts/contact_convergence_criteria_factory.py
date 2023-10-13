@@ -7,8 +7,8 @@ import KratosMultiphysics.ContactStructuralMechanicsApplication as CSMA
 # Construction of the class convergence_criterion
 from KratosMultiphysics.StructuralMechanicsApplication import convergence_criteria_factory
 
-# Import auxiliar methods
-from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliar_methods_solvers
+# Import auxiliary methods
+from KratosMultiphysics.ContactStructuralMechanicsApplication import auxiliary_methods_solvers
 
 # Import eigen solver factory
 from KratosMultiphysics import eigen_solver_factory
@@ -60,7 +60,7 @@ class ContactConvergenceCriteriaFactory:
                     if "PureSlip" in self.mortar_type:
                         pure_slip = True
                     else:
-                        pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.model_part)
+                        pure_slip = auxiliary_methods_solvers.AuxiliaryPureSlipCheck(self.model_part)
                     self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierFrictionalContactCriteria(D_RT, D_AT, RT_RT, RT_AT, CD_RT, CD_AT, FSTCD_RT, FSTCD_AT, FSLCD_RT, FSLCD_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementContactCriteria(D_RT, D_AT, RT_RT, RT_AT, self.print_convergence_criterion)
@@ -74,7 +74,7 @@ class ContactConvergenceCriteriaFactory:
                     if "PureSlip" in self.mortar_type:
                         pure_slip = True
                     else:
-                        pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.model_part)
+                        pure_slip = auxiliary_methods_solvers.AuxiliaryPureSlipCheck(self.model_part)
                     self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierResidualFrictionalContactCriteria(R_RT, R_AT, RTR_RT, RTR_AT, CR_RT, CR_AT, FSTCD_RT, FSTCR_AT, FSLCD_RT, FSLCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementResidualContactCriteria(R_RT, R_AT, RTR_RT, RTR_AT, self.print_convergence_criterion)
@@ -87,7 +87,7 @@ class ContactConvergenceCriteriaFactory:
                     if "PureSlip" in self.mortar_type:
                         pure_slip = True
                     else:
-                        pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.model_part)
+                        pure_slip = auxiliary_methods_solvers.AuxiliaryPureSlipCheck(self.model_part)
                     self.mechanical_convergence_criterion = CSMA.DisplacementLagrangeMultiplierMixedFrictionalContactCriteria(R_RT, R_AT, RTR_RT, RTR_AT, CR_RT, CR_AT, FSTCD_RT, FSTCR_AT, FSLCD_RT, FSLCR_AT, RNTT, ensure_contact, pure_slip, self.print_convergence_criterion)
                 elif "Penalty" in self.mortar_type:
                     self.mechanical_convergence_criterion = CSMA.DisplacementResidualContactCriteria(R_RT, R_AT, self.print_convergence_criterion)
@@ -183,7 +183,7 @@ class ContactConvergenceCriteriaFactory:
             if "PureSlip" in self.mortar_type:
                 pure_slip = True
             else:
-                pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.model_part)
+                pure_slip = auxiliary_methods_solvers.AuxiliaryPureSlipCheck(self.model_part)
             if include_table:
                 Mortar = CSMA.ALMFrictionalMortarConvergenceCriteria(pure_slip, self.print_convergence_criterion, self.compute_dynamic_factor, self.gidio_debug)
             else:
@@ -197,7 +197,7 @@ class ContactConvergenceCriteriaFactory:
             if "PureSlip" in self.mortar_type:
                 pure_slip = True
             else:
-                pure_slip = auxiliar_methods_solvers.AuxiliarPureSlipCheck(self.model_part)
+                pure_slip = auxiliary_methods_solvers.AuxiliaryPureSlipCheck(self.model_part)
             if include_table:
                 Mortar = CSMA.PenaltyFrictionalMortarConvergenceCriteria(pure_slip, self.print_convergence_criterion, self.compute_dynamic_factor, self.gidio_debug)
             else:

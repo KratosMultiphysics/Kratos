@@ -38,8 +38,8 @@ namespace Python
 namespace py = pybind11;
 
 typedef Condition ConditionBaseType;
-typedef Geometry<Node<3>> GeometryType;
-typedef Mesh<Node<3>, Properties, Element, Condition> MeshType;
+typedef Geometry<Node> GeometryType;
+typedef Mesh<Node, Properties, Element, Condition> MeshType;
 typedef GeometryType::PointsArrayType NodesArrayType;
 
 void AddCustomConditionsToPython(pybind11::module &m)

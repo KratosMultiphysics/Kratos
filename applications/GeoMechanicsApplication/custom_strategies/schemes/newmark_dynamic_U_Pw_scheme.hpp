@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME )
-#define  KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME
+#pragma once
 
 #include "utilities/parallel_utilities.h"
 
@@ -24,28 +23,22 @@ namespace Kratos
 {
 
 template<class TSparseSpace, class TDenseSpace>
-
 class NewmarkDynamicUPwScheme : public NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>
 {
-
 public:
-
     KRATOS_CLASS_POINTER_DEFINITION( NewmarkDynamicUPwScheme );
 
-    typedef Scheme<TSparseSpace,TDenseSpace>                      BaseType;
-    typedef typename BaseType::DofsArrayType                 DofsArrayType;
-    typedef typename BaseType::TSystemMatrixType         TSystemMatrixType;
-    typedef typename BaseType::TSystemVectorType         TSystemVectorType;
-    typedef typename BaseType::LocalSystemVectorType LocalSystemVectorType;
-    typedef typename BaseType::LocalSystemMatrixType LocalSystemMatrixType;
+    using BaseType              = Scheme<TSparseSpace,TDenseSpace>;
+    using DofsArrayType         = typename BaseType::DofsArrayType;
+    using TSystemMatrixType     = typename BaseType::TSystemMatrixType;
+    using TSystemVectorType     = typename BaseType::TSystemVectorType;
+    using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
+    using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mDeltaTime;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mBeta;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mGamma;
     using NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>::mTheta;
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-    ///Constructor
     NewmarkDynamicUPwScheme(double beta, double gamma, double theta)
         : NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(beta, gamma, theta)
     {
@@ -57,13 +50,6 @@ public:
         mVelocityVector.resize(NumThreads);
     }
 
-    //------------------------------------------------------------------------------------
-
-    ///Destructor
-    ~NewmarkDynamicUPwScheme() override {}
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
     void Predict(
         ModelPart& rModelPart,
         DofsArrayType& rDofSet,
@@ -74,7 +60,8 @@ public:
         KRATOS_TRY
 
         // Predict Displacements on free nodes and update Acceleration, Velocity and DtPressure
-        block_for_each(rModelPart.Nodes(), [&](Node<3>& rNode){
+        block_for_each(rModelPart.Nodes(), [&](Node& rNode){
+ // refactor such that all mathematical formulas appear once only.
             if (rNode.IsFixed(ACCELERATION_X))
             {
                 const double &PreviousDisplacement = rNode.FastGetSolutionStepValue(DISPLACEMENT_X, 1);
@@ -83,9 +70,9 @@ public:
                 const double &CurrentAcceleration  = rNode.FastGetSolutionStepValue(ACCELERATION_X);
 
                 rNode.FastGetSolutionStepValue(DISPLACEMENT_X) =  PreviousDisplacement
-                                                                + mDeltaTime * PreviousVelocity
-                                                                + mDeltaTime * mDeltaTime
-                                                                * ( ( 0.5 - mBeta) * PreviousAcceleration + mBeta * CurrentAcceleration );
+                                                                           + mDeltaTime * PreviousVelocity
+                                                                           + mDeltaTime * mDeltaTime
+                                                                             * ( ( 0.5 - mBeta) * PreviousAcceleration + mBeta * CurrentAcceleration );
             }
             else if (rNode.IsFixed(VELOCITY_X))
             {
@@ -93,8 +80,8 @@ public:
                 const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_X, 1);
                 const double &CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY_X);
                 rNode.FastGetSolutionStepValue(DISPLACEMENT_X) =  PreviousDisplacement
-                                                                 + mDeltaTime*(mBeta/mGamma*(CurrentVelocity - PreviousVelocity)
-                                                                 + PreviousVelocity);
+                                                                          + mDeltaTime*((mBeta/mGamma)*(CurrentVelocity - PreviousVelocity)
+                                                                          + PreviousVelocity);
             }
             else if (!rNode.IsFixed(DISPLACEMENT_X))
             {
@@ -126,7 +113,7 @@ public:
                 const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_Y, 1);
                 const double &CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY_Y);
                 rNode.FastGetSolutionStepValue(DISPLACEMENT_Y) =  PreviousDisplacement
-                                                                 + mDeltaTime*(mBeta/mGamma*(CurrentVelocity - PreviousVelocity)
+                                                                 + mDeltaTime*((mBeta/mGamma)*(CurrentVelocity - PreviousVelocity)
                                                                  + PreviousVelocity);
             }
             else if (!rNode.IsFixed(DISPLACEMENT_Y))
@@ -162,7 +149,7 @@ public:
                     const double &PreviousVelocity     = rNode.FastGetSolutionStepValue(VELOCITY_Z, 1);
                     const double &CurrentVelocity      = rNode.FastGetSolutionStepValue(VELOCITY_Z);
                     rNode.FastGetSolutionStepValue(DISPLACEMENT_Z) =  PreviousDisplacement
-                                                                    + mDeltaTime*(mBeta/mGamma*(CurrentVelocity - PreviousVelocity)
+                                                                    + mDeltaTime*((mBeta/mGamma)*(CurrentVelocity - PreviousVelocity)
                                                                     + PreviousVelocity);
                 }
                 else if (!rNode.IsFixed(DISPLACEMENT_Z))
@@ -178,7 +165,7 @@ public:
                 }
             }
 
-            noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) =   1.0/(mBeta*mDeltaTime*mDeltaTime)
+            noalias(rNode.FastGetSolutionStepValue(ACCELERATION)) =   (1.0/(mBeta*mDeltaTime*mDeltaTime))
                                                                     * ( (rNode.FastGetSolutionStepValue(DISPLACEMENT) - rNode.FastGetSolutionStepValue(DISPLACEMENT,1))
                                                                      - mDeltaTime
                                                                      * rNode.FastGetSolutionStepValue(VELOCITY, 1)
@@ -194,7 +181,7 @@ public:
             const double DeltaPressure =  rNode.FastGetSolutionStepValue(WATER_PRESSURE)
                                         - rNode.FastGetSolutionStepValue(WATER_PRESSURE, 1);
 
-            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  1.0/(mTheta*mDeltaTime)
+            rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE) =  (1.0/(mTheta*mDeltaTime))
                                                                 * ( DeltaPressure
                                                                    - (1.0-mTheta) * mDeltaTime 
                                                                    * rNode.FastGetSolutionStepValue(DT_WATER_PRESSURE,1));
@@ -204,9 +191,31 @@ public:
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void CalculateSystemContributions(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& LHS_Contribution,
+        LocalSystemVectorType& RHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) override
+    {
+        KRATOS_TRY
 
-// Note: this is in a parallel loop
+        int thread = OpenMPUtils::ThisThread();
+
+        rCurrentCondition.CalculateLocalSystem(LHS_Contribution, RHS_Contribution, CurrentProcessInfo);
+
+        rCurrentCondition.CalculateMassMatrix(mMassMatrix[thread], CurrentProcessInfo);
+
+        rCurrentCondition.CalculateDampingMatrix(mDampingMatrix[thread], CurrentProcessInfo);
+
+        this->AddDynamicsToLHS(LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+
+        this->AddDynamicsToRHS(rCurrentCondition, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
 
     void CalculateSystemContributions(
         Element& rCurrentElement,
@@ -219,24 +228,20 @@ public:
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement).CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement).CalculateMassMatrix(mMassMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread],CurrentProcessInfo);
 
-        (rCurrentElement).CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
 
         this->AddDynamicsToLHS(LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
 
         this->AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
 
-        (rCurrentElement).EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-// Note: this is in a parallel loop
 
     void CalculateRHSContribution(
         Element &rCurrentElement,
@@ -248,22 +253,64 @@ public:
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement).CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement).CalculateMassMatrix(mMassMatrix[thread], CurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread], CurrentProcessInfo);
 
-        (rCurrentElement).CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
 
         this->AddDynamicsToRHS(rCurrentElement, RHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
 
-        (rCurrentElement).EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationIds,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        KRATOS_TRY
 
-// Note: this is in a parallel loop
+        int thread = OpenMPUtils::ThisThread();
+
+        rCurrentCondition.CalculateRightHandSide(rRHS_Contribution, rCurrentProcessInfo);
+
+        rCurrentCondition.CalculateMassMatrix(mMassMatrix[thread], rCurrentProcessInfo);
+
+        rCurrentCondition.CalculateDampingMatrix(mDampingMatrix[thread], rCurrentProcessInfo);
+
+        this->AddDynamicsToRHS(rCurrentCondition, rRHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], rCurrentProcessInfo);
+
+        rCurrentCondition.EquationIdVector(rEquationIds, rCurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
+
+    void CalculateLHSContribution(
+        Condition& rCurrentCondition,
+        LocalSystemMatrixType& LHS_Contribution,
+        Element::EquationIdVectorType& EquationId,
+        const ProcessInfo& CurrentProcessInfo) override
+    {
+        KRATOS_TRY
+
+        int thread = OpenMPUtils::ThisThread();
+
+        rCurrentCondition.CalculateLeftHandSide(LHS_Contribution, CurrentProcessInfo);
+
+        rCurrentCondition.CalculateMassMatrix(mMassMatrix[thread], CurrentProcessInfo);
+
+        rCurrentCondition.CalculateDampingMatrix(mDampingMatrix[thread], CurrentProcessInfo);
+
+        this->AddDynamicsToLHS(LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
+
+        rCurrentCondition.EquationIdVector(EquationId, CurrentProcessInfo);
+
+        KRATOS_CATCH("")
+    }
 
     void CalculateLHSContribution(
         Element &rCurrentElement,
@@ -275,31 +322,25 @@ public:
 
         int thread = OpenMPUtils::ThisThread();
 
-        (rCurrentElement).CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
+        rCurrentElement.CalculateLeftHandSide(LHS_Contribution,CurrentProcessInfo);
 
-        (rCurrentElement).CalculateMassMatrix(mMassMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateMassMatrix(mMassMatrix[thread],CurrentProcessInfo);
 
-        (rCurrentElement).CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
+        rCurrentElement.CalculateDampingMatrix(mDampingMatrix[thread],CurrentProcessInfo);
 
         this->AddDynamicsToLHS(LHS_Contribution, mMassMatrix[thread], mDampingMatrix[thread], CurrentProcessInfo);
 
-        (rCurrentElement).EquationIdVector(EquationId,CurrentProcessInfo);
+        rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 protected:
-
     /// Member Variables
-
     std::vector< Matrix > mMassMatrix;
     std::vector< Vector > mAccelerationVector;
     std::vector< Matrix > mDampingMatrix;
     std::vector< Vector > mVelocityVector;
-
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     void AddDynamicsToLHS(LocalSystemMatrixType& LHS_Contribution,
                           LocalSystemMatrixType& M,
@@ -310,16 +351,41 @@ protected:
 
         // adding mass contribution
         if (M.size1() != 0)
-            noalias(LHS_Contribution) += 1.0/(mBeta*mDeltaTime*mDeltaTime)*M;
+            noalias(LHS_Contribution) += (1.0/(mBeta*mDeltaTime*mDeltaTime))*M;
 
         // adding damping contribution
         if (C.size1() != 0)
-            noalias(LHS_Contribution) += mGamma/(mBeta*mDeltaTime)*C;
+            noalias(LHS_Contribution) += (mGamma/(mBeta*mDeltaTime))*C;
 
         KRATOS_CATCH( "" )
     }
 
-//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+    void AddDynamicsToRHS(Condition& rCurrentCondition,
+        LocalSystemVectorType& RHS_Contribution,
+        LocalSystemMatrixType& M,
+        LocalSystemMatrixType& C,
+        const ProcessInfo& CurrentProcessInfo)
+    {
+        KRATOS_TRY
+
+            int thread = OpenMPUtils::ThisThread();
+
+        //adding inertia contribution
+        if (M.size1() != 0)
+        {
+            rCurrentCondition.GetSecondDerivativesVector(mAccelerationVector[thread], 0);
+            noalias(RHS_Contribution) -= prod(M, mAccelerationVector[thread]);
+        }
+
+        //adding damping contribution
+        if (C.size1() != 0)
+        {
+            rCurrentCondition.GetFirstDerivativesVector(mVelocityVector[thread], 0);
+            noalias(RHS_Contribution) -= prod(C, mVelocityVector[thread]);
+        }
+
+        KRATOS_CATCH("")
+    }
 
     void AddDynamicsToRHS(Element &rCurrentElement,
                           LocalSystemVectorType& RHS_Contribution,
@@ -347,8 +413,6 @@ protected:
 
         KRATOS_CATCH( "" )
     }
-
 }; // Class NewmarkDynamicUPwScheme
-}  // namespace Kratos
 
-#endif // KRATOS_NEWMARK_DYNAMIC_U_PW_SCHEME defined
+}

@@ -13,7 +13,7 @@
 // System includes
 #include <string>
 #include <iostream>
-#include <stdlib.h>
+#include <cstdlib>
 
 
 // Project includes
@@ -186,7 +186,7 @@ private:
 
 
 
-    inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
+    inline void CalculateCenterAndSearchRadius(Geometry<Node >&geom,
             double& xc, double& yc, double& zc, double& R, array_1d<double,3>& N
                                               )
     {
@@ -214,7 +214,7 @@ private:
     }
     //***************************************
     //***************************************
-    inline void CalculateCenterAndSearchRadius(Geometry<Node<3> >&geom,
+    inline void CalculateCenterAndSearchRadius(Geometry<Node >&geom,
             double& xc, double& yc, double& zc, double& R, array_1d<double,4>& N
 
                                               )
@@ -285,7 +285,7 @@ private:
     }
     //***************************************
     //***************************************
-    inline bool CalculatePosition(	Geometry<Node<3> >&geom,
+    inline bool CalculatePosition(	Geometry<Node >&geom,
                                     const double xc, const double yc, const double zc,
                                     array_1d<double,3>& N
                                  )
@@ -322,7 +322,7 @@ private:
     //***************************************
     //***************************************
 
-    inline bool CalculatePosition(	Geometry<Node<3> >&geom,
+    inline bool CalculatePosition(	Geometry<Node >&geom,
                                     const double xc, const double yc, const double zc,
                                     array_1d<double,4>& N
                                  )
@@ -378,13 +378,13 @@ private:
     void Interpolate(
         Element::Pointer el_it,
         const array_1d<double,3>& N,
-        Node<3>::Pointer pnode,
+        Node::Pointer pnode,
         Variable<array_1d<double,3> >& rOriginVariable,
         Variable<array_1d<double,3> >& rDestinationVariable)
     {
 
         //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        Geometry< Node >& geom = el_it->GetGeometry();
 
         //unsigned int buffer_size = pnode->GetBufferSize();
 
@@ -414,12 +414,12 @@ private:
     void Interpolate(
         Element::Pointer el_it,
         const array_1d<double,4>& N,
-        Node<3>::Pointer pnode,
+        Node::Pointer pnode,
         Variable<array_1d<double,3> >& rOriginVariable,
         Variable<array_1d<double,3> >& rDestinationVariable) {
 
             //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+            Geometry< Node >& geom = el_it->GetGeometry();
 
             //getting the data of the solution step
             array_1d<double, 3 > & step_data = (pnode)->FastGetSolutionStepValue(rDestinationVariable, 0);
@@ -439,12 +439,12 @@ private:
     void Interpolate(
         Element::Pointer el_it,
         const array_1d<double,3>& N,
-        Node<3>::Pointer pnode,
+        Node::Pointer pnode,
         Variable<double>& rOriginVariable,
         Variable<double>& rDestinationVariable) {
 
         //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+            Geometry< Node >& geom = el_it->GetGeometry();
 
 
             //getting the data of the solution step
@@ -465,12 +465,12 @@ private:
     void Interpolate(
         Element::Pointer el_it,
         const array_1d<double,4>& N,
-        Node<3>::Pointer pnode,
+        Node::Pointer pnode,
         Variable<double>& rOriginVariable,
         Variable<double>& rDestinationVariable)
 {
             //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+            Geometry< Node >& geom = el_it->GetGeometry();
 
 
 
@@ -492,13 +492,13 @@ private:
      void Transfer(
         Element::Pointer el_it,
         const array_1d<double,3>& N,
-        Node<3>::Pointer pnode,
+        Node::Pointer pnode,
         Variable<array_1d<double,3> >& rDestinationVariable,
         Variable<array_1d<double,3> >& rOriginVariable,
         int n_particles_per_depth_distance) {
 
             //Geometry element of the rOrigin_ModelPart
-            Geometry< Node < 3 > >& geom = el_it->GetGeometry();
+            Geometry< Node >& geom = el_it->GetGeometry();
 
 
             //getting the data of the solution step
@@ -523,14 +523,14 @@ private:
     void Transfer(
         Element::Pointer el_it,
         const array_1d<double,4>& N,
-        Node<3>::Pointer pnode,
+        Node::Pointer pnode,
         Variable<array_1d<double,3> >& rOriginVariable,
         Variable<array_1d<double,3> >& rDestinationVariable)
 
     {
 
         //Geometry element of the rOrigin_ModelPart
-        Geometry< Node<3> >& geom = el_it->GetGeometry();
+        Geometry< Node >& geom = el_it->GetGeometry();
 
         //unsigned int buffer_size = pnode->GetBufferSize();
 

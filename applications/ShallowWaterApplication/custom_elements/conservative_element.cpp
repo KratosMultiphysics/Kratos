@@ -27,6 +27,18 @@ namespace Kratos
 {
 
 template<std::size_t TNumNodes>
+const Parameters ConservativeElement<TNumNodes>::GetSpecifications() const
+{
+    const Parameters specifications = Parameters(R"({
+        "required_variables"         : ["MOMENTUM","VELOCITY","HEIGHT","TOPOGRAPHY","ACCELERATION","VERTICAL_VELOCITY"],
+        "required_dofs"              : ["MOMENTUM_X","MOMENTUM_Y","HEIGHT"],
+        "compatible_geometries"      : ["Triangle2D3"],
+        "element_integrates_in_time" : false
+    })");
+    return specifications;
+}
+
+template<std::size_t TNumNodes>
 const Variable<double>& ConservativeElement<TNumNodes>::GetUnknownComponent(int Index) const
 {
     switch (Index) {
@@ -131,13 +143,19 @@ void ConservativeElement<TNumNodes>::CalculateArtificialViscosity(
     const array_1d<double,TNumNodes>& rN,
     const BoundedMatrix<double,TNumNodes,2>& rDN_DX)
 {
-    double jump = 0;
-    array_1d<double,2> inner_grad_h = prod(rData.nodal_h, rDN_DX);
-    for (auto& r_elem : this->GetValue(NEIGHBOUR_ELEMENTS)) {
+    double jump = .0;
+    array_1d<double,2> inner_grad_h = prod(rData.nodal_h + rData.nodal_z, rDN_DX);
+    const auto& neighbour_elems = this->GetValue(NEIGHBOUR_ELEMENTS);
+    for (unsigned int i_ne = 0; i_ne < neighbour_elems.size(); i_ne++){
         array_1d<double,2> outer_grad_h;
         array_1d<double,2> normal;
-        CalculateGradient(outer_grad_h, r_elem.GetGeometry());
-        CalculateEdgeUnitNormal(normal, r_elem.GetGeometry());
+        if(nullptr != neighbour_elems(i_ne).get()){
+            CalculateGradient(outer_grad_h, neighbour_elems[i_ne].GetGeometry());
+            CalculateEdgeUnitNormal(normal, neighbour_elems[i_ne].GetGeometry());
+        } else {
+             CalculateGradient(outer_grad_h, this->GetGeometry());
+            CalculateEdgeUnitNormal(normal, this->GetGeometry());
+        }
 
         const double gj_h = norm_2(inner_grad_h - outer_grad_h);
         const double gm_h = std::abs(inner_prod(inner_grad_h, normal)) + std::abs(inner_prod(outer_grad_h, normal)) + 1e-16;
@@ -156,11 +174,15 @@ void ConservativeElement<TNumNodes>::CalculateArtificialDamping(
     BoundedMatrix<double,3,3>& rDamping,
     const ElementData& rData)
 {
+    // Add the absorbing boundary damping
+    WaveElementType::CalculateArtificialDamping(rDamping, rData);
+
+    // Add the dry domain damping
     double factor = 1e3 / rData.length;
     double threshold = rData.relative_dry_height * rData.length;
     factor *= 1.0 - PhaseFunction::WetFraction(rData.height, threshold);
-    rDamping(0,0) = factor;
-    rDamping(1,1) = factor;
+    rDamping(0,0) += factor;
+    rDamping(1,1) += factor;
 }
 
 template<std::size_t TNumNodes>
@@ -173,9 +195,9 @@ void ConservativeElement<TNumNodes>::CalculateGradient(
     double area;
     GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, area);
     array_1d<double,3> nodal_h;
-    std::size_t i = 0;
-    for (auto& r_node : rGeometry) {
-        nodal_h[i++] = r_node.FastGetSolutionStepValue(HEIGHT);
+    for (IndexType i = 0; i < TNumNodes; i++) {
+        nodal_h[i] = rGeometry[i].FastGetSolutionStepValue(HEIGHT);
+        nodal_h[i] += rGeometry[i].FastGetSolutionStepValue(TOPOGRAPHY);
     }
     rGradient = prod(nodal_h, DN_DX);
 }

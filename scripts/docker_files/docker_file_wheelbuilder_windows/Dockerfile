@@ -40,37 +40,9 @@ RUN powershell.exe -Command \
 #download and extract boost
 RUN powershell.exe -Command \
     [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://dl.bintray.com/boostorg/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
+    wget https://boostorg.jfrog.io/artifactory/main/release/1.71.0/source/boost_1_71_0.zip -OutFile c:\TEMP\boost.zip; \
     mkdir c:\boost; \
     7z x c:\TEMP\boost.zip -o"c:\boost"
-
-#Install python 3.5
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.5.4/python-3.5.4-amd64.exe -OutFile c:\temp\python35.exe; \
-    mkdir c:\python\35; \
-    Start-Process c:\temp\python35.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\35' -Wait; \
-    c:\python\35\python.exe -m pip install --upgrade pip; \
-    c:\python\35\python.exe -m pip install --upgrade setuptools wheel
-
-#Install python 3.6
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.6.8/python-3.6.8-amd64.exe -OutFile c:\temp\python36.exe; \
-    mkdir c:\python\36; \
-    Start-Process c:\temp\python36.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\36' -Wait; \
-    c:\python\36\python.exe -m pip install --upgrade pip; \
-    c:\python\36\python.exe -m pip install --upgrade setuptools wheel
-
-
-#Install python 3.7
-RUN powershell.exe -Command \
-    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
-    wget https://www.python.org/ftp/python/3.7.7/python-3.7.7-amd64.exe -OutFile c:\temp\python37.exe; \
-    mkdir c:\python\37; \
-    Start-Process c:\temp\python37.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\37' -Wait; \
-    c:\python\37\python.exe -m pip install --upgrade pip; \
-    c:\python\37\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.8
 RUN powershell.exe -Command \
@@ -79,6 +51,7 @@ RUN powershell.exe -Command \
     mkdir c:\python\38; \
     Start-Process c:\temp\python38.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\38' -Wait; \
     c:\python\38\python.exe -m pip install --upgrade pip; \
+    c:\python\38\python.exe -m pip install mypy; \
     c:\python\38\python.exe -m pip install --upgrade setuptools wheel
 
 #Install python 3.9
@@ -88,7 +61,42 @@ RUN powershell.exe -Command \
     mkdir c:\python\39; \
     Start-Process c:\temp\python39.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\39' -Wait; \
     c:\python\39\python.exe -m pip install --upgrade pip; \
+    c:\python\39\python.exe -m pip install mypy; \
     c:\python\39\python.exe -m pip install --upgrade setuptools wheel
+
+#Install python 3.10
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.10.0/python-3.10.0-amd64.exe -OutFile c:\temp\python310.exe; \
+    mkdir c:\python\310; \
+    Start-Process c:\temp\python310.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\310' -Wait; \
+    c:\python\310\python.exe -m pip install --upgrade pip; \
+    c:\python\310\python.exe -m pip install --upgrade setuptools wheel
+
+#Install python 3.11
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://www.python.org/ftp/python/3.11.0/python-3.11.0-amd64.exe -OutFile c:\temp\python311.exe; \
+    mkdir c:\python\311; \
+    Start-Process c:\temp\python311.exe -ArgumentList '/quiet InstallAllUsers=1 PrependPath=0 TargetDir=c:\\python\\311' -Wait; \
+    c:\python\311\python.exe -m pip install --upgrade pip; \
+    c:\python\311\python.exe -m pip install --upgrade setuptools wheel
+
+# Download and extract boost
+RUN powershell.exe -Command \
+    [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; \
+    wget https://hdf-wordpress-1.s3.amazonaws.com/wp-content/uploads/manual/HDF5/HDF5_1_12_2/source/hdf5-1.12.2.zip -OutFile c:\TEMP\hdf5.zip; \
+    mkdir c:\hdf5; \
+    mkdir c:\hdf5\build; \
+    mkdir c:\hdf5\bin; \
+    mkdir c:\hdf5\source; \
+    7z x c:\TEMP\hdf5.zip -o"c:\hdf5\source"
+
+# Build Hdf5 lib
+RUN powershell.exe -Command \
+    cd 'c:/Program Files/CMake/bin/'; \
+    ./cmake.exe -H"c:\hdf5\source\hdf5-1.12.2" -B"c:\hdf5\build" -DCMAKE_INSTALL_PREFIX="c:\hdf5\bin" -DBUILD_TESTING=OFF -DBUILD_SHARED_LIBS=ON; \
+    ./cmake.exe --build "c:\hdf5\build" --target install -- /property:configuration=Release
 
 # #Downloand blas/lapack
 # RUN powershell.exe -Command \

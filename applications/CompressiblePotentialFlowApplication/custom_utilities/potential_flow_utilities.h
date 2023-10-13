@@ -16,6 +16,7 @@
 // Project includes
 #include "containers/array_1d.h"
 #include "includes/ublas_interface.h"
+#include "utilities/geometry_utilities.h"
 
 namespace Kratos
 {
@@ -27,7 +28,6 @@ namespace Kratos
     class GlobalPointersVector;
     template< class TDataType >
     class Dof;
-    template< std::size_t TDimension, class TDofType >
     class Node;
     template< class TPointType >
     class Geometry;
@@ -35,7 +35,14 @@ namespace Kratos
 namespace PotentialFlowUtilities
 {
 template <unsigned int TNumNodes, unsigned int TDim>
-struct ElementalData{
+struct ElementalData
+{
+    template<typename TGeometryType>
+    ElementalData(const TGeometryType& rGeometry)
+    {
+        GeometryUtils::CalculateGeometryData(rGeometry, DN_DX, N, vol);
+    }
+
     array_1d<double, TNumNodes> potentials, distances;
     double vol;
 
@@ -43,7 +50,7 @@ struct ElementalData{
     array_1d<double, TNumNodes> N;
 };
 
-typedef Node < 3, Dof<double> > NodeType;
+typedef Node NodeType;
 typedef Geometry<NodeType> GeometryType;
 
 template <int Dim, int NumNodes>

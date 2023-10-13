@@ -88,6 +88,15 @@ public:
         mData.resize(size,false);
     }
 
+    SystemVector(
+        const Vector& data,
+        DataCommunicator& rComm = ParallelEnvironment::GetDataCommunicator("Serial")) {
+        if(rComm.IsDistributed())
+            KRATOS_ERROR << "Attempting to construct a serial system_vector with a distributed communicator" << std::endl;
+        mpComm = &rComm;
+        mData.resize(data.size(),false);
+        noalias(mData) = data;
+    }
     /// Copy constructor.
     explicit SystemVector(const SystemVector<TDataType,TIndexType>& rOtherVector){
         mpComm = rOtherVector.mpComm;
@@ -268,7 +277,10 @@ public:
     }
 
     /// Print information about this object.
-    void PrintInfo(std::ostream& rOStream) const {rOStream << "SystemVector";}
+    void PrintInfo(std::ostream& rOStream) const {
+        rOStream << "SystemVector" << std::endl;
+        PrintData(rOStream);
+    }
 
     /// Print object's data.
     void PrintData(std::ostream& rOStream) const {

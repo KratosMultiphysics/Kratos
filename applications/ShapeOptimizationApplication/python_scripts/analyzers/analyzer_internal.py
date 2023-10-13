@@ -9,10 +9,7 @@
 #
 # ==============================================================================
 
-# Making KratosMultiphysics backward compatible with python 2.6 and 2.7
-from __future__ import print_function, absolute_import, division
-
-import os, pathlib
+import os, pathlib, sys
 
 # Kratos Core and Apps
 import KratosMultiphysics as KM
@@ -47,11 +44,13 @@ class IterationScope:
     def __enter__(self):
         if (self.is_evaluated_in_folder):
             self.scope.mkdir(parents=True, exist_ok=True)
+            sys.path.insert(0, str(self.scope.absolute()))
             os.chdir(str(self.scope))
 
     def __exit__(self, exc_type, exc_value, traceback):
         if (self.is_evaluated_in_folder):
             os.chdir(self.currentPath)
+            sys.path.remove(str(self.scope.absolute()))
 
 
 # ==============================================================================
@@ -126,7 +125,7 @@ class KratosInternalAnalyzer( AnalyzerBaseClass ):
             "airfoil_chord_length",
             "airfoil_perimeter"
         ]
-        csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress"]
+        csm_response_functions = ["strain_energy", "mass", "eigenfrequency", "adjoint_local_stress", "adjoint_max_stress", "adjoint_nodal_displacement", "adjoint_linear_strain_energy", "adjoint_nodal_reaction"]
         cps_response_functions = ["adjoint_lift_potential_jump", "stochastic_adjoint_lift_potential_jump"]
         convdiff_response_functions = ["point_temperature"]
 

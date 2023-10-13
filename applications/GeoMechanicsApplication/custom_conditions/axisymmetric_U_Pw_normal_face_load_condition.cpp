@@ -42,6 +42,14 @@ double AxisymmetricUPwNormalFaceLoadCondition<TDim,TNumNodes>::
 }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+template< unsigned int TDim, unsigned int TNumNodes >
+GeometryData::IntegrationMethod 
+    AxisymmetricUPwNormalFaceLoadCondition<TDim,TNumNodes>::GetIntegrationMethod() const
+{
+    return GeometryData::IntegrationMethod::GI_GAUSS_2;
+}
+
+//----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 template class AxisymmetricUPwNormalFaceLoadCondition<2,2>;
 

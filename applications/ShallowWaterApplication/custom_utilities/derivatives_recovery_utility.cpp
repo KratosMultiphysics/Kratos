@@ -52,7 +52,7 @@ void DerivativesRecoveryUtility<TDim>::CheckRequiredNeighborsPatch(ModelPart& rM
 {
     std::size_t space_degree = 1;
     std::size_t required_neighbors = (space_degree + TDim) * (space_degree + TDim + 1) / 2;
-    if (TDim == 3) {
+    if constexpr (TDim == 3) {
         required_neighbors += 1; //NOTE: the extra node is required for accuracy in the faces for the 3D case
     }
     DerivativesRecoveryUtility<TDim>::ExtendNeighborsPatch(rModelPart, required_neighbors);
@@ -218,7 +218,7 @@ void DerivativesRecoveryUtility<TDim>::RecoverLaplacian(
         for (unsigned int d = 0; d < TDim; ++d) {
             laplacian[d] += nodal_weights[d] * first_value[d];
         }
-        if (TDim == 2) {
+        if constexpr (TDim == 2) {
             laplacian[0] += nodal_weights[TDim] * first_value[1];
             laplacian[1] += nodal_weights[TDim] * first_value[0];
         }
@@ -239,7 +239,7 @@ void DerivativesRecoveryUtility<TDim>::RecoverLaplacian(
             for (unsigned int d = 0; d < TDim; ++d) {
                 laplacian[d] += nodal_weights[n_terms * (n+1) + d] * value[d];
             }
-            if (TDim == 2) {
+            if constexpr (TDim == 2) {
                 laplacian[0] += nodal_weights[n_terms * (n+1) + TDim] * value[1];
                 laplacian[1] += nodal_weights[n_terms * (n+1) + TDim] * value[0];
             }
@@ -330,7 +330,7 @@ bool DerivativesRecoveryUtility<TDim>::CalculateNodalPolynomialWeights(NodeType&
             A(n+1,i_first_order) = rel_coordinates[i];
             A(n+1,i_second_order) = rel_coordinates[i] * rel_coordinates[i];
         }
-        if (TDim == 2) {
+        if constexpr (TDim == 2) {
             A(n+1,n_poly_terms-1) = rel_coordinates[0] * rel_coordinates[1];
         }
         else {
@@ -353,7 +353,7 @@ bool DerivativesRecoveryUtility<TDim>::CalculateNodalPolynomialWeights(NodeType&
     constexpr std::size_t n_second_order_terms = n_poly_terms - first_order_terms; // x^2, y^2, xy...
     std::array<int,n_first_order_terms> first_derivative_terms;
     std::array<int,n_second_order_terms> second_derivative_terms;
-    if (TDim == 2) {
+    if constexpr (TDim == 2) {
         first_derivative_terms[0] = 1;
         first_derivative_terms[1] = 2;
         second_derivative_terms[0] = 3;

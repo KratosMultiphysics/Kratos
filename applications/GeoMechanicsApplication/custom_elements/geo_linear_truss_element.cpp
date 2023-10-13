@@ -84,8 +84,6 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-GeoLinearTrussElement<TDim,TNumNodes>::: Initialize()") << std::endl;
-
     GeoTrussElementLinearBase<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
     if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
@@ -96,8 +94,6 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
             mInternalStressesFinalized = mInternalStressesFinalizedPrevious;
         }
     }
-
-    // KRATOS_INFO("1-GeoLinearTrussElement<TDim,TNumNodes>::: Initialize()") << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -118,7 +114,7 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
     }
 
     if (rVariable == FORCE) {
-        BoundedVector<double, TDim> truss_forces = ZeroVector(TDim);
+        BoundedVector<double, 3> truss_forces = ZeroVector(3);
         const double A = this->GetProperties()[CROSS_AREA];
 
         double prestress = 0.00;
@@ -129,8 +125,8 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
         ConstitutiveLaw::Parameters Values(this->GetGeometry(),
                                            this->GetProperties(),
                                            rCurrentProcessInfo);
-        Vector temp_strain = ZeroVector(1);
-        Vector temp_stress = ZeroVector(1);
+        Vector temp_strain = ZeroVector(mStressVectorSize);
+        Vector temp_stress = ZeroVector(mStressVectorSize);
         temp_strain[0] = this->CalculateLinearStrain();
         Values.SetStrainVector(temp_strain);
         Values.SetStressVector(temp_stress);
@@ -158,8 +154,8 @@ void GeoLinearTrussElement<TDim,TNumNodes>::
                                        this->GetProperties(),
                                        rCurrentProcessInfo);
 
-    Vector temp_strain = ZeroVector(1);
-    Vector temp_stress = ZeroVector(1);
+    Vector temp_strain = ZeroVector(mStressVectorSize);
+    Vector temp_stress = ZeroVector(mStressVectorSize);
     temp_strain[0] = this->CalculateLinearStrain();
     Values.SetStrainVector(temp_strain);
     Values.SetStressVector(temp_stress);

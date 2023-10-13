@@ -27,7 +27,6 @@
 #include "utilities/geometry_utilities.h"
 #include "utilities/math_utils.h"
 #include "utilities/timer.h"
-#include "processes/find_elements_neighbours_process.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -119,7 +118,7 @@ public:
 
     /** Defining 3D Node class as nodes of the mesh
     */
-    typedef Node<3> NodeType;
+    typedef Node NodeType;
 
     /** Defining Geometry of 3D Node class as geometry type
     */
@@ -284,7 +283,7 @@ public:
 
     /** An auxiliary method for writing the mesh for GiD for debugging purpose
     */
-    void WriteMesh(ModelPart& rThisModelPart, std::string Filename)
+    void WriteMesh(ModelPart& rThisModelPart, const std::string& Filename)
     {
         std::ofstream temp_file(Filename.c_str());
 
@@ -403,7 +402,7 @@ private:
                     for(std::vector<int>::iterator i = mNodalNeighbourElements[node_index].begin() ; i != mNodalNeighbourElements[node_index].end() ; i++)
                     {
                         //look for the this node in neighbour elements
-                        Geometry<Node<3> >& r_neighbour_element_geometry = elements_array[*i-1]->GetGeometry();
+                        Geometry<Node >& r_neighbour_element_geometry = elements_array[*i-1]->GetGeometry();
                         for( unsigned int node_i = 0 ; node_i < r_neighbour_element_geometry.size(); node_i++)
                         {
                             int other_node_id = r_neighbour_element_geometry[node_i].Id();
@@ -481,7 +480,7 @@ private:
         for(std::vector<int>::iterator i = mNodalNeighbourElements[node_index].begin() ; i != mNodalNeighbourElements[node_index].end() ; i++)
         {
             //look for the nodes of the neighbour faces
-            Geometry<Node<3> >& r_neighbour_element_geometry = elements_array[*i-1]->GetGeometry();
+            Geometry<Node >& r_neighbour_element_geometry = elements_array[*i-1]->GetGeometry();
             for( unsigned int i_node = 0 ; i_node < r_neighbour_element_geometry.size(); i_node++)
             {
                 if(r_neighbour_element_geometry[i_node].Is(TO_ERASE) == 0) // can be used for collapse and is not the same node!
@@ -667,7 +666,7 @@ private:
         for(std::vector<int>::iterator i = mNodalNeighbourElements[node_index_1].begin() ; i != mNodalNeighbourElements[node_index_1].end() ; i++)
         {
             //look for the nodes of the neighbour faces
-            Geometry<Node<3> >& r_neighbour_element_geometry = ElementsArray[*i-1]->GetGeometry();
+            Geometry<Node >& r_neighbour_element_geometry = ElementsArray[*i-1]->GetGeometry();
             rSwappingData.OppositeNodes[EdgeIndex] = -1;
             for( int node_i = 0 ; node_i < static_cast<int>(r_neighbour_element_geometry.size()); node_i++)
             {

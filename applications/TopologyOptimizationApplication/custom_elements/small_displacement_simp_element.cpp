@@ -12,11 +12,6 @@
 //                   Eric Gonzales
 //                   Philipp Hofer
 //                   Erich Wehrle
-//
-// ==============================================================================
-
-// Application includes
-
 #include "small_displacement_simp_element.h"
 #include "topology_optimization_application.h"
 #include "custom_utilities/structural_mechanics_element_utilities.h"
@@ -44,7 +39,7 @@ SmallDisplacementSIMPElement::SmallDisplacementSIMPElement( IndexType NewId, Geo
 /***********************************************************************************/
 /***********************************************************************************/
 
-Element::Pointer SmallDisplacementSIMPElement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const 
+Element::Pointer SmallDisplacementSIMPElement::Create( IndexType NewId, NodesArrayType const& ThisNodes, PropertiesType::Pointer pProperties ) const
 {
     return Kratos::make_intrusive<SmallDisplacementSIMPElement>( NewId, GetGeometry().Create( ThisNodes ), pProperties );
 }
@@ -93,14 +88,14 @@ Element::Pointer SmallDisplacementSIMPElement::Clone (
 /***********************************************************************************/
 
 
-// =============================================================================================================================================
+// ===================================================================================
 // STARTING / ENDING METHODS
-// =============================================================================================================================================
+// ===================================================================================
 
 //************************************************************************************
 //************************************************************************************
 
-	
+
 void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<double>& rVariable, std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo)
 {
@@ -118,7 +113,7 @@ void SmallDisplacementSIMPElement::CalculateOnIntegrationPoints(const Variable<d
       	}
 
     KRATOS_CATCH( "" )
-    } 
+    }
 
 /***********************************************************************************/
 /***********************************************************************************/
@@ -127,28 +122,53 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 {
     KRATOS_TRY
 
+    // Get values
+    const double E_min     = this->GetProperties()[YOUNGS_MODULUS_MIN];
+    const double E_initial = this->GetProperties()[YOUNGS_MODULUS_0];
+    //const std::string mat_interp = this->GetProperties()[MAT_INTERP];
+    const std::string mat_interp = this->GetValue(MAT_INTERP);
+    const double E_current = this->GetValue(YOUNG_MODULUS);
+    const double penalty   = this->GetValue(PENAL);
+    const double x_phys    = this->GetValue(X_PHYS);
+
+    // sensitivities of interpolation method
+    double interp_sens = 0;
+    double E_new = 0;
+    if (mat_interp == "simp")
+    {
+        E_new += E_initial*pow(x_phys, penalty);
+        interp_sens += penalty * E_initial * pow(x_phys, penalty - 1);
+    }
+    else if (mat_interp == "simp_modified")
+    {
+        E_new += (E_min + pow(x_phys, penalty) * (E_initial - E_min));
+        interp_sens += penalty * (E_initial - E_min) * pow(x_phys, penalty - 1);
+    }
+    else if (mat_interp == "ramp")
+    {
+        E_new += E_min + x_phys/(1+penalty*(1-x_phys)) * (E_initial - E_min);
+        interp_sens += (E_initial - E_min)*(penalty+1) / pow(1-penalty*(x_phys-1), 2);
+    }
+    else
+    {
+        KRATOS_ERROR << "Material interpolation option incorrectly chosen \nAvailable methods are: 'simp', 'simp_modified', 'ramp'." << std::endl;
+    }
+
+
     if (rVariable == DCDX || rVariable == LOCAL_STRAIN_ENERGY)
     {
-        // Get values
-        const double E_min     = this->GetProperties()[YOUNGS_MODULUS_MIN];
-        const double E_initial = this->GetProperties()[YOUNGS_MODULUS_0];
-        const double E_current = this->GetValue(YOUNG_MODULUS);
-        const double penalty   = this->GetValue(PENAL);
-        const double x_phys    = this->GetValue(X_PHYS);
-
         // Get element stiffness matrix and modify it with the factor that considers the adjusted Youngs Modulus according to the SIMP method
         // Note that Ke0 is computed based on the originally provided Youngs Modulus in the .mdpa-file
         MatrixType Ke0 = Matrix();
         this->CalculateLeftHandSide(Ke0, const_cast <ProcessInfo&>(rCurrentProcessInfo));
-        double E_new     = (E_min + pow(x_phys, penalty) * (E_initial - E_min));
 
         ///Normalize the youngs modulus
-        double factor    = E_new/E_current; 
+        double factor    = E_new/E_current;
         MatrixType Ke = Ke0 * factor;
 
         // Loop through nodes of elements and create elemental displacement vector "ue"
         Element::GeometryType& rGeom = this->GetGeometry();
-        unsigned int NumNodes = rGeom.PointsNumber(); 
+        unsigned int NumNodes = rGeom.PointsNumber();
 
         // Resize "ue" according to element type
         Vector ue;
@@ -171,8 +191,8 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
         if (rVariable == DCDX)
         {
             // Calculation of the compliance sensitivities DCDX
-            double dcdx = (-penalty)* (E_initial - E_min) * pow(x_phys, penalty - 1) * ue_Ke0_ue;
-            this->SetValue(DCDX, dcdx); 
+            double dcdx = -interp_sens * ue_Ke0_ue;
+            this->SetValue(DCDX, dcdx);
         }
         if (rVariable == LOCAL_STRAIN_ENERGY)
         {
@@ -189,8 +209,8 @@ void SmallDisplacementSIMPElement::Calculate(const Variable<double> &rVariable, 
 	}
 
     KRATOS_CATCH( "" )
-} 
- 
+}
+
 /***********************************************************************************/
 /***********************************************************************************/
 

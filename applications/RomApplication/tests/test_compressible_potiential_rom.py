@@ -1,11 +1,5 @@
 import os
-
-try:
-    import numpy as np
-    numpy_available = True
-except ModuleNotFoundError:
-    numpy_available = False
-
+import numpy as np
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -29,7 +23,6 @@ class TestCompressiblePotentialRom(KratosUnittest.TestCase):
             for file_name in files_to_remove:
                 kratos_utilities.DeleteFileIfExisting(file_name)
 
-    @KratosUnittest.skipUnless(numpy_available, "numpy is required for RomApplication")
     def testCompressiblePotentialRom(self):
         parameters_filename = "ProjectParameters.json"
         expected_output_filename = "ExpectedOutput.npy"
