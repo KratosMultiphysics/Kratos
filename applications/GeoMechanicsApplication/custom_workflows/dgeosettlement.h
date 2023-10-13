@@ -54,6 +54,8 @@ private:
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
     void InitializeProcessFactory();
     std::vector<std::shared_ptr<Process>> GetProcesses(const Parameters& project_parameters) const;
+    LoggerOutput::Pointer CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const;
+    void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer pLoggerOutput, const std::stringstream& rKratosLogBuffer) const;
 
     Kernel mKernel;
     Model mModel;
