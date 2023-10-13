@@ -134,6 +134,7 @@ namespace Kratos
         }
 
         mIsPressureCoupled = rGeom[0].SolutionStepsDataHas(WATER_PRESSURE);
+        updateDensityViscosity = rCurrentProcessInfo[UPDATE_DENSITY_VISCOSITY];
 
         mIsInitialised = true;
 
@@ -258,8 +259,10 @@ namespace Kratos
 
             // For thermo_hydro coupled problems 
             if (mIsPressureCoupled) {
-                Variables.WaterDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.N, Geom);
-                Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.N, Geom);
+                if (updateDensityViscosity) {
+                    Variables.WaterDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.N, Geom);
+                    Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.N, Geom);
+                }
                 this->CalculateDischargeVector(Variables);
             }
 

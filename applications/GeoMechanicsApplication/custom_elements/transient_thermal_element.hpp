@@ -48,6 +48,7 @@ namespace Kratos
     	std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
         bool mIsInitialised = false;
         bool mIsPressureCoupled = false;
+        bool updateDensityViscosity = true;
 
         struct ElementVariables
         {

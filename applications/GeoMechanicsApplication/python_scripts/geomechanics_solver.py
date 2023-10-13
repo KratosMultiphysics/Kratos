@@ -211,6 +211,11 @@ class GeoMechanicalSolver(PythonSolver):
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.TIME_UNIT_CONVERTER, 1.0)
         self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.NODAL_SMOOTHING,
                                                   self.settings["nodal_smoothing"].GetBool())
+                                                  
+        self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.THERMO_HYDRO_COUPLED,
+                                                  self.settings["thermal_pressure_coupled"].GetBool())
+        self.main_model_part.ProcessInfo.SetValue(GeoMechanicsApplication.UPDATE_DENSITY_VISCOSITY,
+                                                  self.settings["update_density_viscosity"].GetBool())
 
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, 0)
         if not self.main_model_part.ProcessInfo[KratosMultiphysics.IS_RESTARTED]:

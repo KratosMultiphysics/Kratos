@@ -210,6 +210,9 @@ void TransientPwElement<TDim,TNumNodes>::
                                 row( Geom.ShapeFunctionsValues( this->GetIntegrationMethod() ), i ) );
     }
 
+    mIsThermalCoupled = Geom[0].SolutionStepsDataHas(TEMPERATURE);
+    mUpdateDensityViscosity = rCurrentProcessInfo[UPDATE_DENSITY_VISCOSITY];
+
     mIsInitialised = true;
 
     KRATOS_CATCH( "" )
@@ -491,7 +494,7 @@ void TransientPwElement<TDim,TNumNodes>::
         this->CalculateKinematics(Variables, GPoint);
 
         // Contribute thermal effects if it is a coupled thermo-hydro problem
-        if (Geom[0].SolutionStepsDataHas(TEMPERATURE)) {
+        if (mIsThermalCoupled && mUpdateDensityViscosity) {
             Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.Np, Geom);
             Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.Np, Geom);
         }

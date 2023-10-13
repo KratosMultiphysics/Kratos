@@ -96,7 +96,7 @@ void UPwUpdatedLagrangianElement<TDim,TNumNodes>::
         this->CalculateKinematics(Variables, GPoint);
 
         // Contribute thermal effects if it is a coupled thermo-hydro-mechanical problem
-        if (Geom[0].SolutionStepsDataHas(TEMPERATURE)) {
+        if (mIsThermalCoupled && mUpdateDensityViscosity) {
             Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.Np, Geom);
             Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.Np, Geom);
         }

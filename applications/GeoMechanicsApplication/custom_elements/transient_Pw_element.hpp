@@ -55,6 +55,9 @@ public:
 
     using ElementVariables = typename BaseType::ElementVariables;
 
+    bool mIsThermalCoupled = false;
+    bool mUpdateDensityViscosity = true;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
