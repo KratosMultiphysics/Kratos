@@ -122,7 +122,8 @@ SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(Model& rModel)
     auto& dummy_model_part = rModel.CreateModelPart("dummy", buffer_size);
     const Parameters parameters{testParameters};
     auto created_strategy = SolvingStrategyFactoryType::Create(parameters, dummy_model_part);
-    return {std::move(created_strategy), true};
+    const auto reset_displacements = true;
+    return {std::move(created_strategy), reset_displacements};
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
@@ -239,37 +240,58 @@ KRATOS_TEST_CASE_IN_SUITE(RestorePositionsAndDOFVectorToStartOfStep_UpdatesPosit
     KRATOS_EXPECT_EQ(p_node->Coordinates(), expected_position_after_displacement);
 }
 
-KRATOS_TEST_CASE_IN_SUITE(RestorePositionsAndDOFVectorToStartOfStep_RestoresDOFs, KratosGeoMechanicsFastSuite)
+KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndWaterPressuresOnRequest, KratosGeoMechanicsFastSuite)
 {
     Model model;
     auto strategy_wrapper = CreateWrapperWithEmptyProcessInfo(model);
     auto& model_part = model.GetModelPart("dummy");
     model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(WATER_PRESSURE);
+
+    // Define the old Degrees of Freedom
+    auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
+    const auto old_displacement = array_1d<double, 3>{1.0, 2.0, 3.0};
+    p_node->GetSolutionStepValue(DISPLACEMENT, 1) = old_displacement;
+    const auto old_water_pressure = 4.0;
+    p_node->GetSolutionStepValue(WATER_PRESSURE, 1) = old_water_pressure;
+
+    // Set some new Degrees of Freedom (emulating a time step calculation)
+    const auto new_displacement = array_1d<double, 3>{10.0, 20.0, 30.0};
+    p_node->GetSolutionStepValue(DISPLACEMENT, 0) = new_displacement;
+    const auto new_water_pressure = 40.0;
+    p_node->GetSolutionStepValue(WATER_PRESSURE, 0) = new_water_pressure;
+
+    strategy_wrapper.RestorePositionsAndDOFVectorToStartOfStep();
+
+    KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(DISPLACEMENT, 0), old_displacement);
+    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(WATER_PRESSURE, 0), old_water_pressure);
+}
+
+KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndRotationsOnRequest, KratosGeoMechanicsFastSuite)
+{
+    Model model;
+    auto strategy_wrapper = CreateWrapperWithEmptyProcessInfo(model);
+    auto& model_part = model.GetModelPart("dummy");
+    model_part.AddNodalSolutionStepVariable(DISPLACEMENT);
     model_part.AddNodalSolutionStepVariable(ROTATION);
 
     // Define the old Degrees of Freedom
     auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
-    array_1d<double, 3> old_displacement{1.0, 2.0, 3.0};
+    const auto old_displacement = array_1d<double, 3>{1.0, 2.0, 3.0};
     p_node->GetSolutionStepValue(DISPLACEMENT, 1) = old_displacement;
-    double old_water_pressure = 4.0;
-    p_node->GetSolutionStepValue(WATER_PRESSURE, 1) = old_water_pressure;
-    array_1d<double, 3> old_rotation{5.0, 6.0, 7.0};
+    const auto old_rotation = array_1d<double, 3>{5.0, 6.0, 7.0};
     p_node->GetSolutionStepValue(ROTATION, 1) = old_rotation;
 
     // Set some new Degrees of Freedom (emulating a time step calculation)
-    array_1d<double, 3> new_displacement{10.0, 20.0, 30.0};
+    const auto new_displacement = array_1d<double, 3>{10.0, 20.0, 30.0};
     p_node->GetSolutionStepValue(DISPLACEMENT, 0) = new_displacement;
-    double new_water_pressure = 40.0;
-    p_node->GetSolutionStepValue(WATER_PRESSURE, 0) = new_water_pressure;
-    array_1d<double, 3> new_rotation{50.0, 60.0, 70.0};
+    const auto new_rotation = array_1d<double, 3>{50.0, 60.0, 70.0};
     p_node->GetSolutionStepValue(ROTATION, 0) = new_rotation;
 
     strategy_wrapper.RestorePositionsAndDOFVectorToStartOfStep();
 
-    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(DISPLACEMENT, 0), old_displacement);
-    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(WATER_PRESSURE, 0), old_water_pressure);
-    KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(ROTATION, 0), old_rotation);
+    KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(DISPLACEMENT, 0), old_displacement);
+    KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(ROTATION, 0), old_rotation);
 }
 
 }

@@ -105,12 +105,12 @@ public:
     void RestorePositionsAndDOFVectorToStartOfStep() override
     {
         VariableUtils().UpdateCurrentPosition(mrModelPart.Nodes(), DISPLACEMENT, 1);
-        for (auto& node : mrModelPart.Nodes())
-        {
-            node.GetSolutionStepValue(DISPLACEMENT, 0) = node.GetSolutionStepValue(DISPLACEMENT, 1);
-            node.GetSolutionStepValue(WATER_PRESSURE, 0) = node.GetSolutionStepValue(WATER_PRESSURE, 1);
-            node.GetSolutionStepValue(ROTATION, 0) = node.GetSolutionStepValue(ROTATION, 1);
-        }
+
+        const auto index_of_old_value = Node::IndexType{1};
+        const auto index_of_new_value = Node::IndexType{0};
+        CopyNodalSolutionStepValues(DISPLACEMENT,   index_of_old_value, index_of_new_value);
+        CopyNodalSolutionStepValues(WATER_PRESSURE, index_of_old_value, index_of_new_value);
+        CopyNodalSolutionStepValues(ROTATION,       index_of_old_value, index_of_new_value);
     }
 
     void SaveTotalDisplacementFieldAtStartOfTimeLoop() override
@@ -155,6 +155,18 @@ public:
     }
 
 private:
+    template<typename TVariableType>
+    void CopyNodalSolutionStepValues(const TVariableType& rVariable,
+                                     Node::IndexType      SourceIndex,
+                                     Node::IndexType      DestinationIndex)
+    {
+        if (!mrModelPart.HasNodalSolutionStepVariable(rVariable)) return;
+
+        for (auto& node : mrModelPart.Nodes()) {
+            node.GetSolutionStepValue(rVariable, DestinationIndex) = node.GetSolutionStepValue(rVariable, SourceIndex);
+        }
+    }
+
     std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> mpStrategy;
     ModelPart& mrModelPart;
     bool mResetDisplacements;
