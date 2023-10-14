@@ -27,6 +27,7 @@
 #include "custom_utilities/solving_strategy_factory.hpp"
 #include "spaces/ublas_space.h"
 #include "solving_strategy_wrapper.hpp"
+#include "adaptive_time_incrementor.h"
 
 namespace
 {
@@ -37,6 +38,46 @@ using SparseSpaceType = UblasSpace<double, CompressedMatrix, Vector>;
 using DenseSpaceType = UblasSpace<double, Matrix, Vector>;
 using LinearSolverType = LinearSolver<SparseSpaceType, DenseSpaceType>;
 using SolvingStrategyFactoryType = SolvingStrategyFactory<SparseSpaceType, DenseSpaceType, LinearSolverType>;
+
+double GetStartTimeFrom(const Parameters& rProjectParameters)
+{
+    return rProjectParameters["problem_data"]["start_time"].GetDouble();
+}
+
+double GetEndTimeFrom(const Parameters& rProjectParameters)
+{
+    return rProjectParameters["problem_data"]["end_time"].GetDouble();
+}
+
+double GetTimeIncrementFrom(const Parameters& rProjectParameters)
+{
+    return rProjectParameters["solver_settings"]["time_stepping"]["time_step"].GetDouble();
+}
+
+std::size_t GetMaxNumberOfCyclesFrom(const Parameters& rProjectParameters)
+{
+    return static_cast<std::size_t>(rProjectParameters["solver_settings"]["number_cycles"].GetInt());
+}
+
+double GetReductionFactorFrom(const Parameters& rProjectParameters)
+{
+    return rProjectParameters["solver_settings"]["reduction_factor"].GetDouble();
+}
+
+double GetIncreaseFactorFrom(const Parameters& rProjectParameters)
+{
+    return rProjectParameters["solver_settings"]["increase_factor"].GetDouble();
+}
+
+std::size_t GetMinNumberOfIterationsFrom(const Parameters& rProjectParameters)
+{
+    return static_cast<std::size_t>(rProjectParameters["solver_settings"]["min_iterations"].GetInt());
+}
+
+std::size_t GetMaxNumberOfIterationsFrom(const Parameters& rProjectParameters)
+{
+    return static_cast<std::size_t>(rProjectParameters["solver_settings"]["max_iterations"].GetInt());
+}
 
 }
 
@@ -155,6 +196,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         if (mpTimeLoopExecutor)
         {
             mpTimeLoopExecutor->SetProcessObservables(process_observables);
+            mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
         }
 
         FlushLoggingOutput(rLogCallback, logger_output, kratos_log_buffer);
@@ -254,6 +296,19 @@ std::vector<std::shared_ptr<Process>> KratosGeoSettlement::GetProcesses(const Pa
     }
 
     return result;
+}
+
+std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const Parameters& rProjectParameters)
+{
+    // For now, we can create adaptive time incrementors only
+    return std::make_unique<AdaptiveTimeIncrementor>(GetStartTimeFrom(rProjectParameters),
+                                                     GetEndTimeFrom(rProjectParameters),
+                                                     GetTimeIncrementFrom(rProjectParameters),
+                                                     GetMaxNumberOfCyclesFrom(rProjectParameters),
+                                                     GetReductionFactorFrom(rProjectParameters),
+                                                     GetIncreaseFactorFrom(rProjectParameters),
+                                                     GetMinNumberOfIterationsFrom(rProjectParameters),
+                                                     GetMaxNumberOfIterationsFrom(rProjectParameters));
 }
 
 // This default destructor is added in the cpp to be able to forward member variables in a unique_ptr

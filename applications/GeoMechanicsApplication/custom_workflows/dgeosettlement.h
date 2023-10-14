@@ -29,6 +29,7 @@ class InputUtility;
 class ProcessInfoParser;
 class Process;
 class TimeLoopExecutorInterface;
+class TimeIncrementor;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 {
@@ -54,6 +55,7 @@ private:
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
     void InitializeProcessFactory();
     std::vector<std::shared_ptr<Process>> GetProcesses(const Parameters& project_parameters) const;
+    static std::unique_ptr<TimeIncrementor> MakeTimeIncrementor(const Parameters& rProjectParameters);
     LoggerOutput::Pointer CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const;
     void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer pLoggerOutput, const std::stringstream& rKratosLogBuffer) const;
 
