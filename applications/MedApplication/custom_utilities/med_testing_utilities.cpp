@@ -150,6 +150,48 @@ void CheckGeometriesAreEqual(
     KRATOS_CATCH("")
 }
 
+enum class QuantityType
+{
+    DOMAIN_SIZE = -1,
+    LENGTH = 1,
+    AREA = 2,
+    VOLUME = 3,
+};
+
+
+double ComputeGeometricalQuantity(
+    const ModelPart& rModelPart,
+    const QuantityType Quantity)
+{
+    std::function<double(const ModelPart::GeometryType&)> access_function;
+
+    switch (Quantity)
+    {
+        case QuantityType::LENGTH:
+            access_function = [](const auto& rGeom){return rGeom.Length();};
+        case QuantityType::AREA:
+            access_function = [](const auto& rGeom){return rGeom.Area();};
+        case QuantityType::VOLUME:
+            access_function = [](const auto& rGeom){return rGeom.Volume();};
+        default:
+            access_function = [](const auto& rGeom){return rGeom.DomainSize();};
+    }
+
+    double total_quantity = 0.0;
+    for (const auto& r_geom : rModelPart.Geometries()) {
+        if (Quantity == QuantityType::DOMAIN_SIZE ||
+            r_geom.LocalSpaceDimension() == static_cast<int>(Quantity)) {
+            const double quantity = access_function(r_geom);
+            if (r_geom.LocalSpaceDimension() > 0) {
+                KRATOS_CHECK_GREATER(quantity, 0.0);
+            }
+            total_quantity += quantity;
+        }
+    }
+    return total_quantity;
+}
+
+
 } // helpers namespace
 
 void MedTestingUtilities::CheckModelPartsAreEqual(
@@ -207,44 +249,22 @@ void MedTestingUtilities::AddGeometriesFromElements(
 
 double MedTestingUtilities::ComputeLength(const ModelPart& rModelPart)
 {
-    double length = 0.0;
-    for (const auto& r_geom : rModelPart.Geometries()) {
-        if (r_geom.LocalSpaceDimension() == 1) {
-            length += r_geom.Length();
-        }
-    }
-    return length;
+    return ComputeGeometricalQuantity(rModelPart, QuantityType::LENGTH);
 }
 
 double MedTestingUtilities::ComputeArea(const ModelPart& rModelPart)
 {
-    double area = 0.0;
-    for (const auto& r_geom : rModelPart.Geometries()) {
-        if (r_geom.LocalSpaceDimension() == 2) {
-            area += r_geom.Area();
-        }
-    }
-    return area;
+    return ComputeGeometricalQuantity(rModelPart, QuantityType::AREA);
 }
 
 double MedTestingUtilities::ComputeVolume(const ModelPart& rModelPart)
 {
-    double volume = 0.0;
-    for (const auto& r_geom : rModelPart.Geometries()) {
-        if (r_geom.LocalSpaceDimension() == 3) {
-            volume += r_geom.Volume();
-        }
-    }
-    return volume;
+    return ComputeGeometricalQuantity(rModelPart, QuantityType::VOLUME);
 }
 
 double MedTestingUtilities::ComputeDomainSize(const ModelPart& rModelPart)
 {
-    double domain_size = 0.0;
-    for (const auto& r_geom : rModelPart.Geometries()) {
-        domain_size += r_geom.DomainSize();
-    }
-    return domain_size;
+    return ComputeGeometricalQuantity(rModelPart, QuantityType::DOMAIN_SIZE);
 }
 
 } // namespace Kratos
