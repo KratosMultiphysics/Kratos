@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 ###
-### This file is generated automatically by SALOME v9.6.0 with dump python functionality
+### This file is generated automatically by SALOME v9.4.0 with dump python functionality
 ###
 
 import salome
@@ -46,26 +46,23 @@ smesh = smeshBuilder.New()
 
 Mesh_1 = smesh.Mesh(Box_1)
 Regular_1D = Mesh_1.Segment()
-Number_of_Segments_1 = Regular_1D.NumberOfSegments(50)
+Number_of_Segments_1 = Regular_1D.NumberOfSegments(5)
 Quadrangle_2D = Mesh_1.Quadrangle(algo=smeshBuilder.QUADRANGLE)
 Hexa_3D = Mesh_1.Hexahedron(algo=smeshBuilder.Hexa)
-Number_of_Segments_1.SetNumberOfSegments( 3 )
 isDone = Mesh_1.Compute()
 smesh.SetName(Mesh_1, 'Mesh_1')
 try:
-  Mesh_1.ExportMED(r'applications/MedApplication/tests/med_files/hexahedral_8N/mesh.med',auto_groups=0,version=41,overwrite=1,meshPart=None,autoDimension=1)
+  Mesh_1.ExportMED(r'applications/MedApplication/tests/med_files/hexahedral_8N/mesh.med',auto_groups=0,minor=40,overwrite=1,meshPart=None,autoDimension=1)
   pass
 except:
   print('ExportMED() failed. Invalid file name?')
 
-
 ## Set names of Mesh objects
 smesh.SetName(Regular_1D.GetAlgorithm(), 'Regular_1D')
-smesh.SetName(Hexa_3D.GetAlgorithm(), 'Hexa_3D')
 smesh.SetName(Quadrangle_2D.GetAlgorithm(), 'Quadrangle_2D')
-smesh.SetName(Number_of_Segments_1, 'Number of Segments_1')
+smesh.SetName(Hexa_3D.GetAlgorithm(), 'Hexa_3D')
 smesh.SetName(Mesh_1.GetMesh(), 'Mesh_1')
-
+smesh.SetName(Number_of_Segments_1, 'Number of Segments_1')
 
 if salome.sg.hasDesktop():
   salome.sg.updateObjBrowser()

@@ -20,9 +20,12 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         self.mp_read_1 = self.model.CreateModelPart("read_1")
         self.mp_read_2 = self.model.CreateModelPart("read_2")
 
-    def _execute_tests(self, med_path, check_fct):
+    def _execute_tests(self, med_path, check_fct, print_vtk=False):
         med_io_read_1 = KratosMed.MedModelPartIO(GetMedPath(med_path))
         med_io_read_1.ReadModelPart(self.mp_read_1)
+
+        if print_vtk:
+            write_vtk(self.mp_read_1, med_path)
 
         self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeLength(self.mp_read_1), 0.0)
         self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeArea(self.mp_read_1), 0.0)
@@ -114,8 +117,41 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         raise NotImplementedError
 
     def test_hexahedra_8N_linear_mesh(self):
-        self.skipTest("This test is not yet implemented")
-        raise NotImplementedError
+        def mp_check_fct(model_part):
+            self.assertEqual(model_part.NumberOfNodes(), 4)
+
+            exp_coords = [
+                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
+            ]
+
+            for coords, node in zip(exp_coords, model_part.Nodes):
+                self.assertAlmostEqual(node.X, coords[0])
+                self.assertAlmostEqual(node.X0, coords[0])
+                self.assertAlmostEqual(node.Y, coords[1])
+                self.assertAlmostEqual(node.Y0, coords[1])
+                self.assertAlmostEqual(node.Z, coords[2])
+                self.assertAlmostEqual(node.Z0, coords[2])
+
+        self._execute_tests("hexahedral_8N", mp_check_fct, True)
+
+def write_vtk(model_part, name):
+    modeler_parameters = KM.Parameters("""{
+        "elements_list" : [{
+            "model_part_name" : "read_1",
+            "element_name" : "Element2D3N;Element2D4N;Element3D8N"
+        }]
+    }""")
+    modeler = KM.CreateEntitiesFromGeometriesModeler(model_part.GetModel(), modeler_parameters)
+    modeler.SetupModelPart();
+
+    vtk_parameters = KM.Parameters("""{
+        "file_format"                  : "binary",
+        "output_sub_model_parts"       : false,
+        "save_output_files_in_folder"  : true
+    }""")
+
+    vtk_io = KM.VtkOutput(model_part, vtk_parameters)
+    vtk_io.PrintOutput(name)
 
 
 if __name__ == '__main__':
