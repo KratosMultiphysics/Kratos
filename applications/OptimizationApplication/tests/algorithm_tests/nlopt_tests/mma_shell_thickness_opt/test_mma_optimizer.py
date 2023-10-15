@@ -5,7 +5,7 @@ from KratosMultiphysics.OptimizationApplication.optimization_analysis import Opt
 import csv, os
 
 try:
-    import nlopt
+    import nlopt # noqa
     nlopt_available = True
 except ImportError:
     nlopt_available = False
