@@ -34,6 +34,7 @@ static const std::map<GeometryData::KratosGeometryType, med_geometry_type> Krato
     { GeometryData::KratosGeometryType::Kratos_Line3D2,          MED_SEG2 },
     { GeometryData::KratosGeometryType::Kratos_Line2D3,          MED_SEG3 },
     { GeometryData::KratosGeometryType::Kratos_Line3D3,          MED_SEG3 },
+    { GeometryData::KratosGeometryType::Kratos_Line2D4,          MED_SEG4 },
 
     { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      MED_TRIA3 },
     { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      MED_TRIA3 },
@@ -86,7 +87,7 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
         };
 
     case MED_TRIA6:
-        return [](auto& rConnectivities) -> void {
+        return [](auto& rConnectivities){
             CheckConnectivitiesSize(6, rConnectivities);
             std::swap(rConnectivities[1], rConnectivities[2]);
             std::swap(rConnectivities[3], rConnectivities[5]);
@@ -99,17 +100,50 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
         };
 
     case MED_QUAD8:
-        KRATOS_ERROR << "MED_QUAD8 is med_quad8 is not implemented!" << std::endl;
+        return [](auto& Connectivities){
+            CheckConnectivitiesSize(8, Connectivities);
+            std::swap(Connectivities[1], Connectivities[3]);
+            std::swap(Connectivities[4], Connectivities[7]);
+            std::swap(Connectivities[5], Connectivities[6]);
+        };
 
-    case MED_QUAD9: // should be same as MED_QUAD8
-        KRATOS_ERROR << "MED_QUAD9 is not implemented!" << std::endl;
+    case MED_QUAD9:
+        return [](auto& Connectivities){
+            CheckConnectivitiesSize(9, Connectivities);
+            std::swap(Connectivities[1], Connectivities[3]);
+            std::swap(Connectivities[4], Connectivities[7]);
+            std::swap(Connectivities[5], Connectivities[6]);
+        };
 
     case MED_TETRA10:
-        return [](auto& rConnectivities) -> void {
+        return [](auto& rConnectivities){
             CheckConnectivitiesSize(10, rConnectivities);
             std::swap(rConnectivities[1], rConnectivities[2]);
             std::swap(rConnectivities[4], rConnectivities[6]);
             std::swap(rConnectivities[8], rConnectivities[9]);
+        };
+
+    case MED_HEXA8:
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(8, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[4]);
+            std::swap(rConnectivities[2], rConnectivities[7]);
+        };
+
+    case MED_HEXA20:
+        KRATOS_ERROR << "MED_HEXA20 is not implemented!" << std::endl;
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(20, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[4]);
+            std::swap(rConnectivities[2], rConnectivities[7]);
+        };
+
+    case MED_HEXA27:
+        KRATOS_ERROR << "MED_HEXA27 is not implemented!" << std::endl;
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(20, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[4]);
+            std::swap(rConnectivities[2], rConnectivities[7]);
         };
 
     case MED_PYRA5:
@@ -118,9 +152,21 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
     case MED_PYRA13:
         KRATOS_ERROR << "MED_PYRA13 is not implemented!" << std::endl;
 
+    case MED_PENTA6:
+        KRATOS_ERROR << "MED_PENTA6 is not implemented!" << std::endl;
+
+    case MED_PENTA15:
+        KRATOS_ERROR << "MED_PENTA15 is not implemented!" << std::endl;
+
     default:
         return [](auto& Connectivities){
             // does nothing if no reordering is needed
+            /*
+            - MED_POINT1
+            - MED_SEG2
+            - MED_SEG3
+            - MED_SEG4
+            */
         };
     }
 }
