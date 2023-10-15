@@ -26,8 +26,6 @@ Element::Pointer GeoCurvedBeamElement<TDim,TNumNodes>::
             NodesArrayType const& ThisNodes,
             PropertiesType::Pointer pProperties ) const
 {
-    // KRATOS_INFO("0-GeoCurvedBeamElement::Create") << this->Id() << std::endl;
-
     return Element::Pointer( new GeoCurvedBeamElement( NewId, this->GetGeometry().Create( ThisNodes ), pProperties ) );
 }
 
@@ -38,8 +36,6 @@ Element::Pointer GeoCurvedBeamElement<TDim,TNumNodes>::
             GeometryType::Pointer pGeom,
             PropertiesType::Pointer pProperties ) const
 {
-    // KRATOS_INFO("0-GeoCurvedBeamElement::Create") << this->Id() << std::endl;
-
     return Element::Pointer( new GeoCurvedBeamElement( NewId, pGeom, pProperties ) );
 }
 
@@ -49,8 +45,6 @@ int GeoCurvedBeamElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-
-    // KRATOS_INFO("0-GeoCurvedBeamElement::Check") << this->Id() << std::endl;
 
     // Base class checks for positive area and Id > 0
     int ierr = GeoStructuralBaseElement<TDim, TNumNodes>::Check(rCurrentProcessInfo);
@@ -88,8 +82,6 @@ int GeoCurvedBeamElement<TDim,TNumNodes>::
                           << std::endl;
     }
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::Check") << std::endl;
-
     return 0;
 
     KRATOS_CATCH( "" )
@@ -101,7 +93,6 @@ void GeoCurvedBeamElement<3,3>::
     SetRotationalInertiaVector(const PropertiesType& rProp, Vector& rRotationalInertia) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::SetRotationalInertiaVector") << std::endl;
 
     if ( rRotationalInertia.size() != N_DOF_NODE_ROT )
         rRotationalInertia.resize( N_DOF_NODE_ROT, false );
@@ -110,8 +101,6 @@ void GeoCurvedBeamElement<3,3>::
     rRotationalInertia[index++] = rProp[TORSIONAL_INERTIA];
     rRotationalInertia[index++] = rProp[I22];
     rRotationalInertia[index++] = rProp[I33];
-
-    // KRATOS_INFO("1-GeoCurvedBeamElement::SetRotationalInertiaVector") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -122,14 +111,11 @@ void GeoCurvedBeamElement<2,3>::
     SetRotationalInertiaVector(const PropertiesType& rProp, Vector& rRotationalInertia) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::SetRotationalInertiaVector") << std::endl;
 
     if ( rRotationalInertia.size() != N_DOF_NODE_ROT )
         rRotationalInertia.resize( N_DOF_NODE_ROT, false );
 
     rRotationalInertia[0] = rProp[I33];
-
-    // KRATOS_INFO("1-GeoCurvedBeamElement::SetRotationalInertiaVector") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -141,7 +127,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                          const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateMassMatrix") << std::endl;
 
     //Resizing mass matrix
     if ( rMassMatrix.size1() != N_DOF_ELEMENT )
@@ -186,8 +171,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
         }
     }
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateMassMatrix") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -201,7 +184,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                   const bool CalculateResidualVectorFlag )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateAll") << this->Id() << std::endl;
 
     //Previous definitions
     const PropertiesType& rProp = this->GetProperties();
@@ -285,8 +267,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
         }
     }
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateAll") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -300,8 +280,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                                 const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-
-    // KRATOS_INFO("0-GeoCurvedBeamElement::InitializeElementVariables") << std::endl;
 
     //Properties variables
     rVariables.HalfThickness = 0.5 * std::sqrt(12.0 * (rProp[I33] / rProp[CROSS_AREA]));
@@ -345,8 +323,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
     rConstitutiveParameters.SetDeterminantF(rVariables.detF);
     //Auxiliary variables
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::InitializeElementVariables") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -358,13 +334,9 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateAndAddLHS") << std::endl;
-
     noalias(rVariables.UVoigtMatrix) = prod(trans(rVariables.B), rVariables.ConstitutiveMatrix);
     rLeftHandSideMatrix +=  prod(rVariables.UVoigtMatrix, rVariables.B)
                           * rVariables.IntegrationCoefficient;
-
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateAndAddLHS") << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -377,13 +349,10 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                        unsigned int GPoint ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateAndAddRHS") << std::endl;
 
     this->CalculateAndAddStiffnessForce(rRightHandSideVector, rVariables, GPoint);
-
     this->CalculateAndAddBodyForce(rRightHandSideVector, rVariables);
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateAndAddRHS") << std::endl;
     KRATOS_CATCH("")
 }
 
@@ -394,7 +363,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                              ElementVariables& rVariables) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateAndAddBodyForce") << std::endl;
 
     const PropertiesType& rProp = this->GetProperties();
     const double &density = rProp[DENSITY];
@@ -407,7 +375,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
     //Distribute body force block vector into elemental vector
     GeoElementUtilities::AssembleUBlockVector<TDim, TNumNodes>(rRightHandSideVector,rVariables.UVector);
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateAndAddBodyForce") << std::endl;
     KRATOS_CATCH("")
 }
 
@@ -419,13 +386,11 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                                   unsigned int GPoint ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateAndAddStiffnessForce") << std::endl;
 
     //Distribute stiffness block vector into elemental vector
     rRightHandSideVector -=  prod(trans(rVariables.B),mStressVector[GPoint])
                            * rVariables.IntegrationCoefficient;
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateAndAddStiffnessForce") << force << std::endl;
     KRATOS_CATCH("")
 }
 
@@ -436,7 +401,6 @@ double GeoCurvedBeamElement<TDim,TNumNodes>::
                          const BoundedMatrix<double,TNumNodes, TNumNodes> & DN_DeContainer) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateAngleAtNode") << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -449,8 +413,6 @@ double GeoCurvedBeamElement<TDim,TNumNodes>::
         dy += DN_DeContainer(GPoint, node) * rGeom[node].Y0();
     }
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateAngleAtNode, dx") << dx << ", dy" << dy << std::endl;
-
     return atan2(dx, -dy);
 
     KRATOS_CATCH("")
@@ -462,7 +424,6 @@ double GeoCurvedBeamElement<TDim,TNumNodes>::
     CalculateAngleAtGaussPoint(const Matrix &GradNe) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateAngleAtGaussPoint") << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -473,8 +434,6 @@ double GeoCurvedBeamElement<TDim,TNumNodes>::
         dx += GradNe(node, 0) * rGeom[node].X0();
         dy += GradNe(node, 0) * rGeom[node].Y0();
     }
-
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateAngleAtGaussPoint, dy, dx") << dy << ", " << dx << std::endl;
 
     return atan2(dy, dx);
 
@@ -493,8 +452,6 @@ void GeoCurvedBeamElement<2,3>::
     // "1. Geometrically non-linear formulation for the axisymmetric shell elements"
     // Eq.(8)
 
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateTransformationMatrix") << std::endl;
-
     const double phi = CalculateAngleAtGaussPoint(GradNe);
 
     const double cosPhi = cos(phi);
@@ -512,8 +469,6 @@ void GeoCurvedBeamElement<2,3>::
     TransformationMatrix(INDEX_2D_BEAM_XY, INDEX_2D_BEAM_YY) = -TransformationMatrix(INDEX_2D_BEAM_XY, INDEX_2D_BEAM_XX);
     TransformationMatrix(INDEX_2D_BEAM_XY, INDEX_2D_BEAM_XY) =  TransformationMatrix(INDEX_2D_BEAM_XX, INDEX_2D_BEAM_XX)
                                                               - TransformationMatrix(INDEX_2D_BEAM_XX, INDEX_2D_BEAM_YY);
-
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateTransformationMatrix") << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -541,21 +496,15 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
     // "1. Geometrically non-linear formulation for the axisymmetric shell elements"
     // Eq.(1)
 
-    //if (this->Id()==9) KRATOS_INFO("0-GeoCurvedBeamElement::CalculateNodalCrossDirection") << std::endl;
-
     BoundedMatrix<double, TNumNodes, TNumNodes> DN_DeContainer;
     GeoElementUtilities::CalculateNewtonCotesLocalShapeFunctionsGradients(DN_DeContainer);
-    // KRATOS_INFO("NewtonCotes_DN_DeContainer") << DN_DeContainer << std::endl;
 
     for (unsigned int node = 0; node < TNumNodes; ++node) {
         double phi = CalculateAngleAtNode(node, DN_DeContainer);
-        // KRATOS_INFO("phi") << phi << std::endl;
 
         NodalCrossDirection(node, INDEX_X) = cos(phi);
         NodalCrossDirection(node, INDEX_Y) = sin(phi);
     }
-
-    //if (this->Id()==9) KRATOS_INFO("1-GeoCurvedBeamElement::CalculateNodalCrossDirection") << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -571,7 +520,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
     // details can be found in
     // "1. Geometrically non-linear formulation for the axisymmetric shell elements"
     // Eqs.(1), (20) - (22)
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateJacobianMatrix") << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
     const double &t = rVariables.HalfThickness;
@@ -596,7 +544,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
         JacobianMatrix(1, 1) += rVariables.Nu(node) * t*Vy;
     }
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateJacobianMatrix") << JacobianMatrix << std::endl;
     KRATOS_CATCH("")
 }
 
@@ -610,9 +557,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
 
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateBMatrix") << std::endl;
-
-
     Matrix B;
     this->CalculateLocalBMatrix( B, GPointCross, InvJ, rVariables );
 
@@ -621,8 +565,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
         BTransformed.resize( rVariables.TransformationMatrix.size1(), B.size2(), false );
 
     noalias(BTransformed) = prod(trans(rVariables.TransformationMatrix), B);
-
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateBMatrix") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -640,8 +582,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
     // Details of derivation of linear part of B-Matrix can be found in:
     // "1. Geometrically non-linear formulation for the axisymmetric shell elements"
     // Note: In order to find B-Matrix, substitute Eqs.(23) & (26) into Eq.(11) to obtain Eq.(10)
-
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateLocalBMatrix") << std::endl;
 
     if (B.size1() != VoigtSize ||
         B.size2() != N_DOF_ELEMENT     )
@@ -686,9 +626,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                                        + t * Fjy * term_xx;
     }
 
-
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateLocalBMatrix") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -698,11 +635,9 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
      CalculateStrainVector(ElementVariables &rVariables) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateStrainVector") << std::endl;
 
     noalias(rVariables.StrainVector) = prod(rVariables.B, rVariables.DofValuesVector);
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateStrainVector") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -741,7 +676,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                                  const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateLocalInternalForce") << this->Id() << std::endl;
 
     //Previous definitions
     const PropertiesType& rProp = this->GetProperties();
@@ -819,11 +753,8 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
         }
     }
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateLocalInternalForce") << std::endl;
-
     KRATOS_CATCH( "" )
 }
-
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
@@ -833,7 +764,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                                  const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateOnIntegrationPoints()") << rVariable << std::endl;
 
     //Defining necessary variables
     const GeometryType& rGeom = this->GetGeometry();
@@ -1004,7 +934,8 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 
             rOutput[GPointAlong] = MathUtils<double>::StrainVectorToTensor(AverageStrainVector);
         }
-    } else {
+    } 
+    else {
         if ( rOutput.size() != mConstitutiveLawVector.size() )
             rOutput.resize(mConstitutiveLawVector.size());
 
@@ -1015,8 +946,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
         }
     }
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateOnIntegrationPoints()") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1026,7 +955,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
     InterpolateOnOutputPoints(Matrix &ValuesMatrix) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::InterpolateOnOutputPoints(Matrix)") << std::endl;
 
     Vector ValuesVector = ZeroVector(ValuesMatrix.size2());
 
@@ -1038,8 +966,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
         }
     }
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::InterpolateOnOutputPoints(Matrix)") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -1050,7 +976,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
 {
     KRATOS_TRY
     // solve: y = m * x + b
-    // KRATOS_INFO("1-GeoCurvedBeamElement::InterpolateOnOutputPoints(Vector)") << std::endl;
 
     const std::vector<double> XiOutput{-1.0/3.0, 1.0/3.0};
     const std::vector<double> Xi{-1.0/sqrt(3.0), 1.0/sqrt(3.0)};
@@ -1063,10 +988,8 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
     for (unsigned int i=0; i<Values.size(); ++i)
         Values[i] = m * XiOutput[i] + b;
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::InterpolateOnOutputPoints(Vector)") << std::endl;
     KRATOS_CATCH( "" )
 }
-
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
@@ -1076,7 +999,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
                                   const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoCurvedBeamElement::CalculateOnIntegrationPoints<double,3>()") << rVariable << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
     const unsigned int NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
@@ -1126,7 +1048,6 @@ void GeoCurvedBeamElement<TDim,TNumNodes>::
         }
     }
 
-    // KRATOS_INFO("1-GeoCurvedBeamElement::CalculateOnIntegrationPoints<double,3>()") << std::endl;
     KRATOS_CATCH( "" )
 }
 

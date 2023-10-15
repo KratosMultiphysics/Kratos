@@ -1,6 +1,7 @@
 # Import Python modules
 import json
 import numpy as np
+from pathlib import Path
 
 # Importing the Kratos Library
 import KratosMultiphysics
@@ -38,7 +39,8 @@ class HRomTrainingUtility(object):
         self.solver = solver
         self.time_step_residual_matrix_container = []
         self.echo_level = settings["echo_level"].GetInt()
-        self.rom_settings = custom_settings["rom_settings"]
+        self.rom_settings = custom_settings["rom_settings"].Clone()
+        self.rom_settings.RemoveValue("rom_bns_settings") #Removing because the inner rom settings are specific for each builder and solver.
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
         self.projection_strategy = settings["projection_strategy"].GetString()
         self.hrom_output_format = settings["hrom_format"].GetString()
@@ -48,6 +50,7 @@ class HRomTrainingUtility(object):
         # Retrieve list of model parts from settings
         self.include_conditions_model_parts_list = settings["include_conditions_model_parts_list"].GetStringArray()
         self.include_elements_model_parts_list = settings["include_elements_model_parts_list"].GetStringArray()
+        self.include_nodal_neighbouring_elements_model_parts_list = settings["include_nodal_neighbouring_elements_model_parts_list"].GetStringArray()
 
         # Check if the model parts exist
         for model_part_name in self.include_conditions_model_parts_list:
@@ -57,6 +60,42 @@ class HRomTrainingUtility(object):
         for model_part_name in self.include_elements_model_parts_list:
             if not self.solver.model.HasModelPart(model_part_name):
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
+
+
+        # getting initial candidate ids for empirical cubature
+        initial_candidate_elements_model_part_list = settings["initial_candidate_elements_model_part_list"].GetStringArray()
+        initial_candidate_conditions_model_part_list = settings["initial_candidate_conditions_model_part_list"].GetStringArray()
+
+        candidate_ids = np.empty(0)
+        for model_part_name in initial_candidate_elements_model_part_list:
+            if not self.solver.model.HasModelPart(model_part_name):
+                raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
+            candidate_elements_model_part = self.solver.model.GetModelPart(model_part_name)
+            if candidate_elements_model_part.NumberOfElements() == 0:
+                KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility",
+                    f"The model part named '{model_part_name}' has no associated elements. Fetching the associated neighboring elements to the model part's nodes.")
+                this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIds(self.solver.GetComputingModelPart(), candidate_elements_model_part)
+            else:
+                this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetElementIdsInModelPart(candidate_elements_model_part)
+            if len(this_modelpart_element_ids)>0:
+                candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_element_ids)]
+
+        number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
+        for model_part_name in initial_candidate_conditions_model_part_list:
+            if not self.solver.model.HasModelPart(model_part_name):
+                raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
+            this_modelpart_condition_ids = KratosROM.RomAuxiliaryUtilities.GetConditionIdsInModelPart(self.solver.model.GetModelPart(model_part_name))
+            if len(this_modelpart_condition_ids)>0:
+                candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_condition_ids)+number_of_elements]
+
+        if np.size(candidate_ids)>0:
+            self.candidate_ids = np.unique(candidate_ids).astype(int)
+        else:
+            self.candidate_ids = None
+
+        # Rom settings files
+        self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
+        self.rom_basis_output_folder = Path(custom_settings["rom_basis_output_folder"].GetString())
 
     def AppendCurrentStepResiduals(self):
         # Get the computing model part from the solver implementing the problem physics
@@ -90,9 +129,13 @@ class HRomTrainingUtility(object):
         # Calculate the residuals basis and compute the HROM weights from it
         residual_basis = self.__CalculateResidualBasis()
         n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
-        self.hyper_reduction_element_selector.SetUp(residual_basis, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+        self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
         self.hyper_reduction_element_selector.Run()
-
+        if not self.hyper_reduction_element_selector.success:
+            KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
+            #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
+            self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = None, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+            self.hyper_reduction_element_selector.Run()
         # Save the HROM weights in the RomParameters.json
         # Note that in here we are assuming this naming convention for the ROM json file
         self.AppendHRomWeightsToRomParameters()
@@ -113,10 +156,10 @@ class HRomTrainingUtility(object):
         aux_model = KratosMultiphysics.Model()
         hrom_main_model_part = aux_model.CreateModelPart(model_part_name)
 
-        if  self.hrom_output_format == "numpy":
+        if self.hrom_output_format == "numpy":
             hrom_info = KratosMultiphysics.Parameters(json.JSONEncoder().encode(self.__CreateDictionaryWithRomElementsAndWeights()))
         elif self.hrom_output_format == "json":
-            with open('RomParameters.json','r') as f:
+            with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
                 rom_parameters = KratosMultiphysics.Parameters(f.read())
                 hrom_info = rom_parameters["elements_and_weights"]
 
@@ -127,7 +170,7 @@ class HRomTrainingUtility(object):
 
         # Output the HROM model part in mdpa format
         hrom_output_name = "{}HROM".format(model_part_output_name)
-        model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
+        model_part_io = KratosMultiphysics.ModelPartIO(hrom_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
         model_part_io.WriteModelPart(hrom_main_model_part)
         KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_output_name))
         if self.echo_level > 0:
@@ -148,7 +191,7 @@ class HRomTrainingUtility(object):
 
             # Write the HROM visualization mesh
             hrom_vis_output_name = "{}HROMVisualization".format(model_part_output_name)
-            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY)
+            model_part_io = KratosMultiphysics.ModelPartIO(hrom_vis_output_name, KratosMultiphysics.IO.WRITE | KratosMultiphysics.IO.MESH_ONLY | KratosMultiphysics.IO.SCIENTIFIC_PRECISION)
             model_part_io.WriteModelPart(hrom_visualization_model_part)
             KratosMultiphysics.kratos_utilities.DeleteFileIfExisting("{}.time".format(hrom_vis_output_name))
             if self.echo_level > 0:
@@ -165,6 +208,9 @@ class HRomTrainingUtility(object):
             "projection_strategy": "galerkin",
             "include_conditions_model_parts_list": [],
             "include_elements_model_parts_list": [],
+            "initial_candidate_elements_model_part_list" : [],
+            "initial_candidate_conditions_model_part_list" : [],
+            "include_nodal_neighbouring_elements_model_parts_list":[],
             "include_minimum_condition": false,
             "include_condition_parents": false
         }""")
@@ -232,7 +278,6 @@ class HRomTrainingUtility(object):
 
                 # Call the GetElementIdsNotInHRomModelPart function
                 new_elements = KratosROM.RomAuxiliaryUtilities.GetElementIdsNotInHRomModelPart(
-                    root_model_part, # The complete model part
                     elements_to_include_model_part, # The model part containing the elements to be included
                     hrom_weights)
 
@@ -242,6 +287,24 @@ class HRomTrainingUtility(object):
 
                 # If needed, update your weights and indexes using __AddSelectedElementsWithZeroWeights function with the new_elements
                 weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights, indexes, new_elements)
+
+        # Add nodal neighbouring elements
+        for model_part_name in self.include_nodal_neighbouring_elements_model_parts_list:
+            # Check if the sub model part exists
+            if self.solver.model.HasModelPart(model_part_name):
+                nodal_neighbours_model_part = self.solver.model.GetModelPart(model_part_name)
+
+                # Call the GetNodalNeighbouringElementIdsNotInHRom function
+                new_nodal_neighbours = KratosROM.RomAuxiliaryUtilities.GetNodalNeighbouringElementIdsNotInHRom(
+                    nodal_neighbours_model_part, # The model part containing the nodal neighbouring elements to be included
+                    hrom_weights)
+
+                # Add the new nodal neighbouring elements to the elements dict with a null weight
+                for element_id in new_nodal_neighbours:
+                    hrom_weights["Elements"][element_id] = 0.0
+
+                # If needed, update your weights and indexes using __AddSelectedElementsWithZeroWeights function with the new_nodal_neighbours
+                weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights, indexes, new_nodal_neighbours)
 
         # If required, keep at least one condition per submodelpart
         # This might be required by those BCs involving the faces (e.g. slip BCs)
@@ -259,6 +322,8 @@ class HRomTrainingUtility(object):
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
         if self.include_condition_parents:
+            KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", 'Make sure you set "assign_neighbour_elements_to_conditions": true in the solver_settings to have a parent element for each condition.')
+
             # Get the HROM condition parents from the current HROM weights
             missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
                 self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root
@@ -270,19 +335,20 @@ class HRomTrainingUtility(object):
             weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights,indexes, missing_condition_parents)
 
         if self.hrom_output_format=="numpy":
-            element_indexes = np.where( indexes < number_of_elements )[0]
-            condition_indexes = np.where( indexes >= number_of_elements )[0]
-            np.save('HROM_ElementWeights.npy',weights[element_indexes])
-            np.save('HROM_ConditionWeights.npy',weights[condition_indexes])
-            np.save('HROM_ElementIds.npy',indexes[element_indexes]) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
-            np.save('HROM_ConditionIds.npy',indexes[condition_indexes]-number_of_elements) #FIXME fix the -1 in the indexes of numpy and ids of Kratos
+            element_indexes = np.where(indexes < number_of_elements)[0]
+            condition_indexes = np.where(indexes >= number_of_elements)[0]
+            np.save(self.rom_basis_output_folder / "HROM_ElementWeights.npy", weights[element_indexes])
+            np.save(self.rom_basis_output_folder / "HROM_ConditionWeights.npy", weights[condition_indexes])
+            np.save(self.rom_basis_output_folder / "HROM_ElementIds.npy", indexes[element_indexes])  # FIXME fix the -1 in the indexes of numpy and ids of Kratos
+            np.save(self.rom_basis_output_folder / "HROM_ConditionIds.npy", indexes[condition_indexes] - number_of_elements)  # FIXME fix the -1 in the indexes of numpy and ids of Kratos
 
         elif self.hrom_output_format=="json":
-            with open('RomParameters.json','r') as f:
+            with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('r') as f:
                 updated_rom_parameters = json.load(f)
-                updated_rom_parameters["elements_and_weights"] = hrom_weights #TODO: Rename elements_and_weights to hrom_weights
-            with open('RomParameters.json','w') as f:
-                json.dump(updated_rom_parameters, f, indent = 4)
+                updated_rom_parameters["elements_and_weights"] = hrom_weights  # TODO: Rename elements_and_weights to hrom_weights
+
+            with (self.rom_basis_output_folder / self.rom_basis_output_name).with_suffix('.json').open('w') as f:
+                json.dump(updated_rom_parameters, f, indent=4)
 
         if self.echo_level > 0 : KratosMultiphysics.Logger.PrintInfo("HRomTrainingUtility","\'RomParameters.json\' file updated with HROM weights.")
 
@@ -307,10 +373,9 @@ class HRomTrainingUtility(object):
         if number_of_elements is None:
             number_of_elements = self.solver.GetComputingModelPart().NumberOfElements()
         if weights is None:
-            weights = np.r_[np.load('HROM_ElementWeights.npy'),np.load('HROM_ConditionWeights.npy')]
+            weights = np.r_[np.load(self.rom_basis_output_folder / "HROM_ElementWeights.npy"), np.load(self.rom_basis_output_folder / "HROM_ConditionWeights.npy")]
         if indexes is None:
-            indexes = np.r_[np.load('HROM_ElementIds.npy'),np.load('HROM_ConditionIds.npy')+number_of_elements]
-
+            indexes = np.r_[np.load(self.rom_basis_output_folder / "HROM_ElementIds.npy"), np.load(self.rom_basis_output_folder / "HROM_ConditionIds.npy") + number_of_elements]
         hrom_weights = {}
         hrom_weights["Elements"] = {}
         hrom_weights["Conditions"] = {}
