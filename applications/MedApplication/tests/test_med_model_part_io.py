@@ -4,16 +4,10 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.MedApplication as KratosMed
 
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
-
-from pathlib import Path
-
+from testing_utilities import MedModelPartIOTestCase, GetMedPath, get_num_geometries_by_type
 
 
-def GetMedPath(med_path, med_name="mesh.med"):
-    return Path(__file__).absolute().parent / "med_files" / med_path / med_name
-
-
-class TestMedModelPartIO(KratosUnittest.TestCase):
+class TestMedModelPartIO(MedModelPartIOTestCase):
 
     def setUp(self):
         self.model = KM.Model()
@@ -24,17 +18,10 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         med_io_read_1 = KratosMed.MedModelPartIO(GetMedPath(med_path))
         med_io_read_1.ReadModelPart(self.mp_read_1)
 
-        # check no elements or conditions are created
-        self.assertEqual(self.mp_read_1.NumberOfElements(), 0)
-        self.assertEqual(self.mp_read_1.NumberOfConditions(), 0)
+        self._basic_checks(self.mp_read_1)
 
         if print_vtk:
             write_vtk(self.mp_read_1, med_path)
-
-        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeLength(self.mp_read_1), 0.0)
-        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeArea(self.mp_read_1), 0.0)
-        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeVolume(self.mp_read_1), 0.0)
-        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeDomainSize(self.mp_read_1), 0.0)
 
         with self.subTest("check_model_part"):
             check_fct(self.mp_read_1)
@@ -119,6 +106,17 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
     def test_tetrahedra_4N_linear_mesh(self):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 36)
+            self.assertEqual(model_part.NumberOfGeometries(), 167)
+
+            # check how many geoms of each type
+            exp_geoms = {KM.Tetrahedra3D4: 65, KM.Triangle3D3: 64, KM.Line3D2: 32, KM.Geometry: 6}
+            self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
+            self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
+
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeLength(model_part), 3200)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeArea(model_part), 340000)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeVolume(model_part), 10000000)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeDomainSize(model_part), 10343200)
 
             for node in model_part.Nodes:
                 self.assertTrue(0.0 <= node.X <= 500.0)
@@ -135,6 +133,17 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
     def test_tetrahedra_10N_quadratic_mesh(self):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 168)
+            self.assertEqual(model_part.NumberOfGeometries(), 176)
+
+            # check how many geoms of each type
+            exp_geoms = {KM.Tetrahedra3D10: 65, KM.Triangle3D6: 64, KM.Line3D3: 32, KM.Geometry: 15}
+            self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
+            self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
+
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeLength(model_part), 3200)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeArea(model_part), 340000)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeVolume(model_part), 10000000)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeDomainSize(model_part), 10343200)
 
             for node in model_part.Nodes:
                 self.assertTrue(0.0 <= node.X <= 500.0)
@@ -151,6 +160,17 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
     def test_hexahedra_8N_linear_mesh(self):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 216)
+            self.assertEqual(model_part.NumberOfGeometries(), 371)
+
+            # check how many geoms of each type
+            exp_geoms = {KM.Hexahedra3D8: 125, KM.Quadrilateral3D4: 150, KM.Line3D2: 60, KM.Geometry: 36}
+            self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
+            self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
+
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeLength(model_part), 3200)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeArea(model_part), 340000)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeVolume(model_part), 10000000)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeDomainSize(model_part), 10343200)
 
             for node in model_part.Nodes:
                 self.assertTrue(0.0 <= node.X <= 500.0)
@@ -167,6 +187,17 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
     def test_hexahedra_20N_quadratic_mesh(self):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 36)
+            self.assertEqual(model_part.NumberOfGeometries(), 36)
+
+            # check how many geoms of each type
+            exp_geoms = {KM.Hexahedra3D20: 125, KM.Quadrilateral3D8: 150, KM.Line3D3: 60, KM.Geometry: 96}
+            self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
+            self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
+
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeLength(model_part), 3200)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeArea(model_part), 340000)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeVolume(model_part), 10000000)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeDomainSize(model_part), 10343200)
 
             for node in model_part.Nodes:
                 self.assertTrue(0.0 <= node.X <= 500.0)
@@ -183,6 +214,17 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
     def test_hexahedra_27N_biquadratic_mesh(self):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 36)
+            self.assertEqual(model_part.NumberOfGeometries(), 36)
+
+            # check how many geoms of each type
+            exp_geoms = {KM.Hexahedra3D27: 125, KM.Quadrilateral3D9: 150, KM.Line3D3: 60, KM.Geometry: 121}
+            self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
+            self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
+
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeLength(model_part), 3200)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeArea(model_part), 340000)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeVolume(model_part), 10000000)
+            self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeDomainSize(model_part), 10343200)
 
             for node in model_part.Nodes:
                 self.assertTrue(0.0 <= node.X <= 500.0)
