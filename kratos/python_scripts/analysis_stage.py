@@ -325,7 +325,9 @@ class AnalysisStage(object):
             self.flatted_config_jacobians.append(J_X0)
             
         strains_list = []
-        for J, J0, element in zip(self.deformed_config_jacobians,self.flatted_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
+        # Read pre-calculated strains
+        strains_def_config = np.load('strains_cylinder.npy')
+        for J, J0, strain, element in zip(self.deformed_config_jacobians,self.flatted_config_jacobians, strains_def_config, self._GetSolver().GetComputingModelPart().Elements):
 
             local_axis_1 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_2 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
@@ -359,7 +361,7 @@ class AnalysisStage(object):
             # Calculate strain by Deformation Gradient F
             defgrad = J @ J0_inv
             C3D_FFT = defgrad.T @ defgrad
-            E3D_FFT = 0.5 * (C3D_FFT - np.eye(3))
+            # E3D_FFT = 0.5 * (C3D_FFT - np.eye(3))
             
             # Check matrix operations
             # print("C3D:\n", C3D)
@@ -367,10 +369,10 @@ class AnalysisStage(object):
             
             # TODO: CHECK STRAINS
 
-            E_voigt = KratosMultiphysics.Vector(3)
-            E_voigt[0] = E3D_FFT[0, 0]
-            E_voigt[1] = E3D_FFT[1, 1]
-            E_voigt[2] = 2 * E3D_FFT[0, 1]
+            # E_voigt = KratosMultiphysics.Vector(3)
+            # E_voigt[0] = E3D_FFT[0, 0]
+            # E_voigt[1] = E3D_FFT[1, 1]
+            # E_voigt[2] = 2 * E3D_FFT[0, 1]
 
             # # selected elements
             # E_voigt = KratosMultiphysics.Vector(3)
@@ -386,14 +388,15 @@ class AnalysisStage(object):
             #     E_voigt[1] = 0.01
             #     E_voigt[2] = 0.0
 
-            element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
-            strainvalue = np.array(E_voigt)
+            # apply pre-calculated strains from original deformed configuration to flat input
+            element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, strain)
+            strainvalue = np.array(strain)
             strains_list.append(strainvalue)
             # TODO later - Create condition for PointLoad, reference command:
             # self._GetSolver().GetComputingModelPart().CreateCondition()
         # print("strain list:\n", strains_list)
-        np.save("strains_cylinder",strains_list)
-        np.savetxt("strains_cylinder",strains_list)
+        # np.save("strains_cylinder",strains_list)
+        # np.savetxt("strains_cylinder",strains_list)
 
 
     def ModifyAfterSolverInitialize(self):
