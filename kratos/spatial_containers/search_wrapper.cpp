@@ -23,7 +23,7 @@
 #include "mpi/includes/mpi_data_communicator.h"
 #endif
 #include "utilities/search_utilities.h"
-#include "mpi/spatial_containers/geometrical_objects_bins_mpi.h"
+#include "spatial_containers/search_wrapper.h"
 
 namespace Kratos
 {
