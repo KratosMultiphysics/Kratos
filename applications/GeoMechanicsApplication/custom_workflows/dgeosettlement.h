@@ -27,15 +27,15 @@ namespace Kratos
 class ProcessFactory;
 class InputUtility;
 class ProcessInfoParser;
-class TimeLoopExecutor;
 class Process;
+class TimeLoopExecutorInterface;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 {
 public:
     KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility,
                         std::unique_ptr<ProcessInfoParser> pProcessInfoParser,
-                        std::unique_ptr<TimeLoopExecutor> pTimeLoopExecutor);
+                        std::unique_ptr<TimeLoopExecutorInterface> pTimeLoopExecutorInterface);
 
     ~KratosGeoSettlement();
 
@@ -64,7 +64,7 @@ private:
     std::unique_ptr<ProcessFactory> mProcessFactory = std::make_unique<ProcessFactory>();
     std::unique_ptr<InputUtility> mpInputUtility;
     std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;
-    std::unique_ptr<TimeLoopExecutor> mpTimeLoopExecutor;
+    std::unique_ptr<TimeLoopExecutorInterface> mpTimeLoopExecutor;
 };
 
 }
