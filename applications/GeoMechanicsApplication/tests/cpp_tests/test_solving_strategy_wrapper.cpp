@@ -53,7 +53,7 @@ const std::string testParameters = R"(
         "newmark_theta":                      0.5,
         "rayleigh_m":                         0.0,
         "rayleigh_k":                         0.0,
-        "strategy_type":                      "newton_raphson_strategy",
+        "strategy_type":                      "newton_raphson",
         "convergence_criterion":              "displacement_criterion",
         "displacement_relative_tolerance":    1.0E-4,
         "displacement_absolute_tolerance":    1.0E-9,

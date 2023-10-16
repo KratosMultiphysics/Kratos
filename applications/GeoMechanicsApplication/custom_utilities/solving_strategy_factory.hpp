@@ -41,8 +41,7 @@ public:
         auto builder_and_solver = BuilderAndSolverFactory<TSparseSpace, TDenseSpace, TLinearSolver>::Create(rSolverSettings, solver);
         auto criteria = ConvergenceCriteriaFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
 
-        if (rSolverSettings[strategy_type].GetString() ==
-            GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Name())
+        if (rSolverSettings[strategy_type].GetString() == "newton_raphson")
         {
             auto strategy_parameters = ExtractStrategyParameters(rSolverSettings);
             return std::make_unique<GeoMechanicsNewtonRaphsonStrategy<TSparseSpace,

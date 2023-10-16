@@ -79,6 +79,11 @@ std::size_t GetMaxNumberOfIterationsFrom(const Parameters& rProjectParameters)
     return static_cast<std::size_t>(rProjectParameters["solver_settings"]["max_iterations"].GetInt());
 }
 
+bool GetResetDisplacementsFrom(const Parameters& rProjectParameters)
+{
+    return rProjectParameters["solver_settings"]["reset_displacements"].GetBool();
+}
+
 }
 
 
@@ -191,12 +196,12 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
 
-        auto solving_strategy = SolvingStrategyFactoryType::Create(project_parameters["solver_settings"], mModel.GetModelPart(mModelPartName));
-
         if (mpTimeLoopExecutor)
         {
             mpTimeLoopExecutor->SetProcessObservables(process_observables);
             mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
+            mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters,
+                                                                             rWorkingDirectory));
         }
 
         FlushLoggingOutput(rLogCallback, logger_output, kratos_log_buffer);
@@ -309,6 +314,20 @@ std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const 
                                                      GetIncreaseFactorFrom(rProjectParameters),
                                                      GetMinNumberOfIterationsFrom(rProjectParameters),
                                                      GetMaxNumberOfIterationsFrom(rProjectParameters));
+}
+
+std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const Parameters&            rProjectParameters,
+                                                                          const std::filesystem::path& rWorkingDirectory)
+{
+    // For now, we can create solving strategy wrappers only
+    using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
+    auto solving_strategy = SolvingStrategyFactoryType::Create(rProjectParameters["solver_settings"],
+                                                               mModel.GetModelPart(mModelPartName));
+    KRATOS_ERROR_IF_NOT(solving_strategy) << "No solving strategy was created!" << std::endl;
+    return std::make_shared<SolvingStrategyWrapperType>(std::move(solving_strategy),
+                                                        GetResetDisplacementsFrom(rProjectParameters),
+                                                        rWorkingDirectory,
+                                                        rProjectParameters);
 }
 
 // This default destructor is added in the cpp to be able to forward member variables in a unique_ptr
