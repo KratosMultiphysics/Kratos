@@ -61,6 +61,7 @@ private:
     Model mModel;
     std::string mModelPartName;
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
+    KratosGeoMechanicsApplication::Pointer mpLinearSolverApp;
     std::unique_ptr<ProcessFactory> mProcessFactory = std::make_unique<ProcessFactory>();
     std::unique_ptr<InputUtility> mpInputUtility;
     std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;
