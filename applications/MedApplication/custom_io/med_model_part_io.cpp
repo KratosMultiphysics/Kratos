@@ -146,7 +146,7 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
     case MED_HEXA27:
         KRATOS_ERROR << "MED_HEXA27 is not implemented!" << std::endl;
         return [](auto& rConnectivities){
-            CheckConnectivitiesSize(20, rConnectivities);
+            CheckConnectivitiesSize(27, rConnectivities);
             std::swap(rConnectivities[1], rConnectivities[4]);
             std::swap(rConnectivities[2], rConnectivities[7]);
         };
@@ -496,7 +496,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             KRATOS_ERROR_IF(std::numeric_limits<decltype(num_geometries_total)>::max() == num_geometries_total)
                 << "number of geometries read (" << num_geometries_total << ") exceeds the capacity of the index type";
             rThisModelPart.CreateNewGeometry(kratos_geo_name,
-                                             num_geometries_total++,
+                                             ++num_geometries_total,
                                              geom_node_ids);
         }
 

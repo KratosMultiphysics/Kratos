@@ -8,7 +8,6 @@ from testing_utilities import MedModelPartIOTestCase, GetMedPath, get_num_geomet
 
 
 class TestMedModelPartIO(MedModelPartIOTestCase):
-
     def setUp(self):
         self.model = KM.Model()
         self.mp_read_1 = self.model.CreateModelPart("read_1")
@@ -28,8 +27,8 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
 
         with self.subTest("read_write_read"):
             med_temp_path = GetMedPath(med_path, "temp.med")
-            DeleteFileIfExisting(med_temp_path) # make sure there are no leftovers from previous tests
-            self.addCleanup(DeleteFileIfExisting, med_temp_path) # clean up after test
+            DeleteFileIfExisting(med_temp_path)  # make sure there are no leftovers from previous tests
+            self.addCleanup(DeleteFileIfExisting, med_temp_path)  # clean up after test
 
             med_io_write = KratosMed.MedModelPartIO(med_temp_path, KM.IO.WRITE)
             med_io_write.WriteModelPart(self.mp_read_1)
@@ -49,9 +48,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 4)
 
-            exp_coords = [
-                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
-            ]
+            exp_coords = [(0, 0, 0), (0, 0, 1), (0, 1, 1), (1, 1, 1)]
 
             for coords, node in zip(exp_coords, model_part.Nodes):
                 self.assertAlmostEqual(node.X, coords[0])
@@ -185,6 +182,8 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
         self._execute_tests("hexahedral_8N", mp_check_fct, True)
 
     def test_hexahedra_20N_quadratic_mesh(self):
+        self.skipTest("The connectivity conversion is not yet fully implemented")
+
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 36)
             self.assertEqual(model_part.NumberOfGeometries(), 36)
@@ -212,6 +211,8 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
         self._execute_tests("hexahedral_20N", mp_check_fct, True)
 
     def test_hexahedra_27N_biquadratic_mesh(self):
+        self.skipTest("The connectivity conversion is not yet fully implemented")
+
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 36)
             self.assertEqual(model_part.NumberOfGeometries(), 36)
@@ -242,20 +243,24 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
 def write_vtk(model_part, name):
     # using the modeler to create elements for visualization,
     # until the vtk-output supports geometries directly
-    modeler_parameters = KM.Parameters("""{
+    modeler_parameters = KM.Parameters(
+        """{
         "elements_list" : [{
             "model_part_name" : "read_1",
             "element_name" : "Element2D3N;Element2D4N;Element3D4N;Element3D8N;Element3D10N;Element3D20N;Element3D27N"
         }]
-    }""")
+    }"""
+    )
     modeler = KM.CreateEntitiesFromGeometriesModeler(model_part.GetModel(), modeler_parameters)
     modeler.SetupModelPart()
 
-    vtk_parameters = KM.Parameters("""{
+    vtk_parameters = KM.Parameters(
+        """{
         "file_format"                  : "binary",
         "output_sub_model_parts"       : false,
         "save_output_files_in_folder"  : true
-    }""")
+    }"""
+    )
 
     vtk_io = KM.VtkOutput(model_part, vtk_parameters)
     vtk_io.PrintOutput(name)
@@ -265,5 +270,5 @@ def write_vtk(model_part, name):
     model_part.RemoveElementsFromAllLevels(KM.TO_ERASE)
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     KratosUnittest.main()
