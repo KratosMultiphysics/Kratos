@@ -1324,26 +1324,10 @@ void ModelPartIO::ReadTableBlock(ModelPart::TablesContainerType& rTables)
     std::string variable_name;
 
     ReadWord(variable_name);
-
-    //if(!KratosComponents<Variable<double> >::Has(variable_name))
-    //{
-    //    std::stringstream buffer;
-    //    buffer << variable_name << " is not a valid argument variable!!! Table only accepts double arguments." << std::endl;
-    //    buffer << " [Line " << mNumberOfLines << " ]";
-    //    KRATOS_ERROR << buffer.str() << std::endl;
-
-    //}
+    temp_table.SetNameOfX(variable_name);
 
     ReadWord(variable_name);
-
-    //if(!KratosComponents<Variable<double> >::Has(variable_name))
-    //{
-    //    std::stringstream buffer;
-    //    buffer << variable_name << " is not a valid value variable!!! Table only accepts double values." << std::endl;
-    //    buffer << " [Line " << mNumberOfLines << " ]";
-    //    KRATOS_ERROR << buffer.str() << std::endl;
-
-    //}
+    temp_table.SetNameOfY(variable_name);
 
     while(!mpStream->eof())
     {

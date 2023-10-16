@@ -5,18 +5,13 @@
     "projection_strategy": "galerkin",
     "assembling_strategy": "global",
     "rom_format": "json",
-    "train_petrov_galerkin": {
-        "train": false,
-        "basis_strategy": "residuals",
-        "include_phi": false,
-        "svd_truncation_tolerance": 1e-06
-    },
     "rom_settings": {
         "nodal_unknowns": [
             "TEMPERATURE"
         ],
         "number_of_rom_dofs": 1,
-        "petrov_galerkin_number_of_rom_dofs": 0
+        "petrov_galerkin_number_of_rom_dofs": 0,
+        "rom_bns_settings": {}
     },
     "hrom_settings": {
         "hrom_format": "json"

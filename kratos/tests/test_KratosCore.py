@@ -86,6 +86,8 @@ import test_container_expression
 import test_model_part_operation_utilities
 import test_spatial_search
 import test_sequential_orchestrator
+import test_controllers
+import test_stl_io
 import test_geometrical_object_bins
 
 # Import modules required for sequential orchestrator test
@@ -197,6 +199,8 @@ def AssembleTestSuites():
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_model_part_operation_utilities.TestModelPartOperationUtilities]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_spatial_search.TestSpatialSearchSphere]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_sequential_orchestrator.TestSequentialOrchestrator]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_controllers.TestControllers]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_stl_io.TestStlIO]))
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_geometrical_object_bins.TestGeometricalObjectBins]))
 
     if sympy_available:
