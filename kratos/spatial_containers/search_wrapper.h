@@ -136,7 +136,7 @@ public:
     void SearchInRadius(
         const Point& rPoint,
         const double Radius,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 
@@ -192,7 +192,7 @@ public:
     void SearchNearestInRadius(
         const Point& rPoint,
         const double Radius,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 
@@ -248,7 +248,7 @@ public:
     */
     void SearchNearest(
         const Point& rPoint,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 
@@ -303,7 +303,7 @@ public:
      */
     void SearchIsInside(
         const Point& rPoint,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 
@@ -454,7 +454,7 @@ private:
     void SerialSearchInRadius(
         const Point& rPoint,
         const double Radius,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 
@@ -471,7 +471,7 @@ private:
     void SerialSearchNearestInRadius(
         const Point& rPoint,
         const double Radius,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 
@@ -485,7 +485,7 @@ private:
     */
     void SerialSearchNearest(
         const Point& rPoint,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 
@@ -501,7 +501,7 @@ private:
      */
     void SerialSearchIsInside(
         const Point& rPoint,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 
@@ -517,7 +517,7 @@ private:
     void DistributedSearchInRadius(
         const Point& rPoint,
         const double Radius,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 
@@ -534,7 +534,7 @@ private:
     void DistributedSearchNearestInRadius(
         const Point& rPoint,
         const double Radius,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 
@@ -548,7 +548,7 @@ private:
     */
     void DistributedSearchNearest(
         const Point& rPoint,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 
@@ -564,7 +564,7 @@ private:
      */
     void DistributedSearchIsInside(
         const Point& rPoint,
-        ResultTypeContainer& rResults,
+        ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
 

@@ -60,11 +60,20 @@ template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::SearchInRadius(
     const Point& rPoint,
     const double Radius,
-    ResultTypeContainer& rResults,
+    ResultContainerType& rResults,
     const bool SyncronizeResults
     )
 {
-
+#ifdef KRATOS_USING_MPI
+    // Call distributed version
+    if (mrDataCommunicator.IsDistributed()) {
+        DistributedSearchInRadius(rPoint, Radius, rResults, SyncronizeResults);
+    } else { // Call serial version
+        SerialSearchInRadius(rPoint, Radius, rResults, SyncronizeResults);
+    }
+#else // Calling just serial method
+    SerialSearchInRadius(rPoint, Radius, rResults, SyncronizeResults);
+#endif
 }
 
 /***********************************************************************************/
@@ -74,11 +83,20 @@ template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::SearchNearestInRadius(
     const Point& rPoint,
     const double Radius,
-    ResultTypeContainer& rResults,
+    ResultContainerType& rResults,
     const bool SyncronizeResults
     )
 {
-
+#ifdef KRATOS_USING_MPI
+    // Call distributed version
+    if (mrDataCommunicator.IsDistributed()) {
+        DistributedSearchNearestInRadius(rPoint, Radius, rResults, SyncronizeResults);
+    } else { // Call serial version
+        SerialSearchNearestInRadius(rPoint, Radius, rResults, SyncronizeResults);
+    }
+#else // Calling just serial method
+    SerialSearchNearestInRadius(rPoint, Radius, rResults, SyncronizeResults);
+#endif
 }
 
 /***********************************************************************************/
@@ -87,11 +105,20 @@ void SearchWrapper<TSearchObject, TObjectType>::SearchNearestInRadius(
 template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::SearchNearest(
     const Point& rPoint,
-    ResultTypeContainer& rResults,
+    ResultContainerType& rResults,
     const bool SyncronizeResults
     )
 {
-
+#ifdef KRATOS_USING_MPI
+    // Call distributed version
+    if (mrDataCommunicator.IsDistributed()) {
+        DistributedSearchNearest(rPoint, rResults, SyncronizeResults);
+    } else { // Call serial version
+        SerialSearchNearest(rPoint, rResults, SyncronizeResults);
+    }
+#else // Calling just serial method
+    SerialSearchNearest(rPoint, rResults, SyncronizeResults);
+#endif
 }
 
 /***********************************************************************************/
@@ -100,11 +127,20 @@ void SearchWrapper<TSearchObject, TObjectType>::SearchNearest(
 template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::SearchIsInside(
     const Point& rPoint,
-    ResultTypeContainer& rResults,
+    ResultContainerType& rResults,
     const bool SyncronizeResults
     )
 {
-
+#ifdef KRATOS_USING_MPI
+    // Call distributed version
+    if (mrDataCommunicator.IsDistributed()) {
+        DistributedSearchIsInside(rPoint, rResults, SyncronizeResults);
+    } else { // Call serial version
+        SerialSearchIsInside(rPoint, rResults, SyncronizeResults);
+    }
+#else // Calling just serial method
+    SerialSearchIsInside(rPoint, rResults, SyncronizeResults);
+#endif
 }
 
 /***********************************************************************************/
@@ -114,11 +150,21 @@ template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::SerialSearchInRadius(
     const Point& rPoint,
     const double Radius,
-    ResultTypeContainer& rResults,
+    ResultContainerType& rResults,
     const bool SyncronizeResults
     )
 {
+    // Search
+    std::vector<ResultType> results;
+    mSearchObject->SearchInRadius(rPoint, Radius, results);
+    for (auto& r_result : results) {
+        rResults.AddResult(r_result);
+    }
 
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(mrDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -128,11 +174,18 @@ template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::SerialSearchNearestInRadius(
     const Point& rPoint,
     const double Radius,
-    ResultTypeContainer& rResults,
+    ResultContainerType& rResults,
     const bool SyncronizeResults
     )
 {
+    // Search
+    auto result = mSearchObject->SearchNearestInRadius(rPoint, Radius);
+    rResults.AddResult(result);
 
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(mrDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -141,11 +194,18 @@ void SearchWrapper<TSearchObject, TObjectType>::SerialSearchNearestInRadius(
 template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::SerialSearchNearest(
     const Point& rPoint,
-    ResultTypeContainer& rResults,
+    ResultContainerType& rResults,
     const bool SyncronizeResults
     )
 {
+    // Search
+    auto result = mSearchObject->SearchNearest(rPoint);
+    rResults.AddResult(result);
 
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(mrDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -154,11 +214,41 @@ void SearchWrapper<TSearchObject, TObjectType>::SerialSearchNearest(
 template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::SerialSearchIsInside(
     const Point& rPoint,
-    ResultTypeContainer& rResults,
+    ResultContainerType& rResults,
     const bool SyncronizeResults
     )
 {
+    // Search
+    auto result = mSearchObject->SearchIsInside(rPoint);
+    rResults.AddResult(result);
 
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(mrDataCommunicator);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TSearchObject, class TObjectType>
+void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchInRadius(
+    const Point& rPoint,
+    const double Radius,
+    ResultContainerType& rResults,
+    const bool SyncronizeResults
+    )
+{
+    // Check if the point is inside the set
+    if (SearchUtilities::PointIsInsideBoundingBox(mSearchObject->GetBoundingBox(), rPoint, Radius)) {
+        // Call local search
+        SerialSearchInRadius(rPoint, Radius, rResults, false);
+    }
+
+    // Synchronize if needed
+    if (SyncronizeResults) {
+        rResults.SynchronizeAll(mrDataCommunicator);
+    }
 }
 
 /***********************************************************************************/
@@ -168,7 +258,7 @@ template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchNearestInRadius(
     const Point& rPoint,
     const double Radius,
-    ResultTypeContainer& rResults,
+    ResultContainerType& rResults,
     const bool SyncronizeResults
     )
 {
@@ -217,7 +307,7 @@ void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchNearestInRadius
 template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchNearest(
     const Point& rPoint,
-    ResultTypeContainer& rResults,
+    ResultContainerType& rResults,
     const bool SyncronizeResults
     )
 {
@@ -234,7 +324,7 @@ void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchNearest(
 template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchIsInside(
     const Point& rPoint,
-    ResultTypeContainer& rResults,
+    ResultContainerType& rResults,
     const bool SyncronizeResults
     )
 {
