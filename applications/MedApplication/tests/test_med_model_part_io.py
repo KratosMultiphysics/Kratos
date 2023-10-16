@@ -24,6 +24,10 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         med_io_read_1 = KratosMed.MedModelPartIO(GetMedPath(med_path))
         med_io_read_1.ReadModelPart(self.mp_read_1)
 
+        # check no elements or conditions are created
+        self.assertEqual(self.mp_read_1.NumberOfElements(), 0)
+        self.assertEqual(self.mp_read_1.NumberOfConditions(), 0)
+
         if print_vtk:
             write_vtk(self.mp_read_1, med_path)
 
@@ -116,51 +120,47 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 36)
 
-            exp_coords = [
-                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
-            ]
+            for node in model_part.Nodes:
+                self.assertTrue(0.0 <= node.X <= 500.0)
+                self.assertTrue(0.0 <= node.X0 <= 500.0)
 
-            for coords, node in zip(exp_coords, model_part.Nodes):
-                self.assertAlmostEqual(node.X, coords[0])
-                self.assertAlmostEqual(node.X0, coords[0])
-                self.assertAlmostEqual(node.Y, coords[1])
-                self.assertAlmostEqual(node.Y0, coords[1])
-                self.assertAlmostEqual(node.Z, coords[2])
-                self.assertAlmostEqual(node.Z0, coords[2])
+                self.assertTrue(0.0 <= node.Y <= 100.0)
+                self.assertTrue(0.0 <= node.Y0 <= 100.0)
+
+                self.assertTrue(0.0 <= node.Z <= 200.0)
+                self.assertTrue(0.0 <= node.Z0 <= 200.0)
+
+        self._execute_tests("tetrahedral_4N", mp_check_fct, True)
 
     def test_tetrahedra_10N_quadratic_mesh(self):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 168)
 
-            exp_coords = [
-                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
-            ]
+            for node in model_part.Nodes:
+                self.assertTrue(0.0 <= node.X <= 500.0)
+                self.assertTrue(0.0 <= node.X0 <= 500.0)
 
-            for coords, node in zip(exp_coords, model_part.Nodes):
-                self.assertAlmostEqual(node.X, coords[0])
-                self.assertAlmostEqual(node.X0, coords[0])
-                self.assertAlmostEqual(node.Y, coords[1])
-                self.assertAlmostEqual(node.Y0, coords[1])
-                self.assertAlmostEqual(node.Z, coords[2])
-                self.assertAlmostEqual(node.Z0, coords[2])
+                self.assertTrue(0.0 <= node.Y <= 100.0)
+                self.assertTrue(0.0 <= node.Y0 <= 100.0)
+
+                self.assertTrue(0.0 <= node.Z <= 200.0)
+                self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
         self._execute_tests("tetrahedral_10N", mp_check_fct, True)
 
     def test_hexahedra_8N_linear_mesh(self):
         def mp_check_fct(model_part):
-            self.assertEqual(model_part.NumberOfNodes(), 36)
+            self.assertEqual(model_part.NumberOfNodes(), 216)
 
-            exp_coords = [
-                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
-            ]
+            for node in model_part.Nodes:
+                self.assertTrue(0.0 <= node.X <= 500.0)
+                self.assertTrue(0.0 <= node.X0 <= 500.0)
 
-            for coords, node in zip(exp_coords, model_part.Nodes):
-                self.assertAlmostEqual(node.X, coords[0])
-                self.assertAlmostEqual(node.X0, coords[0])
-                self.assertAlmostEqual(node.Y, coords[1])
-                self.assertAlmostEqual(node.Y0, coords[1])
-                self.assertAlmostEqual(node.Z, coords[2])
-                self.assertAlmostEqual(node.Z0, coords[2])
+                self.assertTrue(0.0 <= node.Y <= 100.0)
+                self.assertTrue(0.0 <= node.Y0 <= 100.0)
+
+                self.assertTrue(0.0 <= node.Z <= 200.0)
+                self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
         self._execute_tests("hexahedral_8N", mp_check_fct, True)
 
@@ -168,17 +168,15 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 36)
 
-            exp_coords = [
-                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
-            ]
+            for node in model_part.Nodes:
+                self.assertTrue(0.0 <= node.X <= 500.0)
+                self.assertTrue(0.0 <= node.X0 <= 500.0)
 
-            for coords, node in zip(exp_coords, model_part.Nodes):
-                self.assertAlmostEqual(node.X, coords[0])
-                self.assertAlmostEqual(node.X0, coords[0])
-                self.assertAlmostEqual(node.Y, coords[1])
-                self.assertAlmostEqual(node.Y0, coords[1])
-                self.assertAlmostEqual(node.Z, coords[2])
-                self.assertAlmostEqual(node.Z0, coords[2])
+                self.assertTrue(0.0 <= node.Y <= 100.0)
+                self.assertTrue(0.0 <= node.Y0 <= 100.0)
+
+                self.assertTrue(0.0 <= node.Z <= 200.0)
+                self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
         self._execute_tests("hexahedral_20N", mp_check_fct, True)
 
@@ -186,19 +184,18 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 36)
 
-            exp_coords = [
-                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
-            ]
+            for node in model_part.Nodes:
+                self.assertTrue(0.0 <= node.X <= 500.0)
+                self.assertTrue(0.0 <= node.X0 <= 500.0)
 
-            for coords, node in zip(exp_coords, model_part.Nodes):
-                self.assertAlmostEqual(node.X, coords[0])
-                self.assertAlmostEqual(node.X0, coords[0])
-                self.assertAlmostEqual(node.Y, coords[1])
-                self.assertAlmostEqual(node.Y0, coords[1])
-                self.assertAlmostEqual(node.Z, coords[2])
-                self.assertAlmostEqual(node.Z0, coords[2])
+                self.assertTrue(0.0 <= node.Y <= 100.0)
+                self.assertTrue(0.0 <= node.Y0 <= 100.0)
+
+                self.assertTrue(0.0 <= node.Z <= 200.0)
+                self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
         self._execute_tests("hexahedral_27N", mp_check_fct, True)
+
 
 def write_vtk(model_part, name):
     # using the modeler to create elements for visualization,
@@ -220,6 +217,10 @@ def write_vtk(model_part, name):
 
     vtk_io = KM.VtkOutput(model_part, vtk_parameters)
     vtk_io.PrintOutput(name)
+
+    # remove elements again to avoid intereference with other checks
+    KM.VariableUtils().SetFlag(KM.TO_ERASE, True, model_part.Elements)
+    model_part.RemoveElementsFromAllLevels(KM.TO_ERASE)
 
 
 if __name__ == '__main__':
