@@ -19,7 +19,17 @@ namespace Kratos
 ApplyNormalLoadTableProcess::ApplyNormalLoadTableProcess(ModelPart&        rModelPart,
                                                          const Parameters& rProcessSettings)
     : mrModelPart{rModelPart}
-{}
+{
+    if (rProcessSettings["active"][0].GetBool()) {
+        auto normal_parameters = Parameters{"{}"};
+        normal_parameters.AddValue("model_part_name", rProcessSettings["model_part_name"]);
+        normal_parameters.AddValue("variable_name", rProcessSettings["variable_name"]);
+
+        if (rProcessSettings["fluid_pressure_type"].GetString() == "Uniform") {
+
+        }
+    }
+}
 
 void ApplyNormalLoadTableProcess::ExecuteInitialize()
 {
