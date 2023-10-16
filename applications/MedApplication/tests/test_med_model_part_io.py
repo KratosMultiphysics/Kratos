@@ -125,7 +125,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertTrue(0.0 <= node.Z <= 200.0)
                 self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
-        self._execute_tests("tetrahedral_4N", mp_check_fct, True)
+        self._execute_tests("tetrahedral_4N", mp_check_fct)
 
     def test_tetrahedra_10N_quadratic_mesh(self):
         def mp_check_fct(model_part):
@@ -152,7 +152,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertTrue(0.0 <= node.Z <= 200.0)
                 self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
-        self._execute_tests("tetrahedral_10N", mp_check_fct, True)
+        self._execute_tests("tetrahedral_10N", mp_check_fct)
 
     def test_hexahedra_8N_linear_mesh(self):
         def mp_check_fct(model_part):
@@ -179,7 +179,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertTrue(0.0 <= node.Z <= 200.0)
                 self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
-        self._execute_tests("hexahedral_8N", mp_check_fct, True)
+        self._execute_tests("hexahedral_8N", mp_check_fct)
 
     def test_hexahedra_20N_quadratic_mesh(self):
         self.skipTest("The connectivity conversion is not yet fully implemented")
@@ -208,7 +208,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertTrue(0.0 <= node.Z <= 200.0)
                 self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
-        self._execute_tests("hexahedral_20N", mp_check_fct, True)
+        self._execute_tests("hexahedral_20N", mp_check_fct)
 
     def test_hexahedra_27N_biquadratic_mesh(self):
         self.skipTest("The connectivity conversion is not yet fully implemented")
@@ -237,7 +237,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertTrue(0.0 <= node.Z <= 200.0)
                 self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
-        self._execute_tests("hexahedral_27N", mp_check_fct, True)
+        self._execute_tests("hexahedral_27N", mp_check_fct)
 
 
 def write_vtk(model_part, name):
