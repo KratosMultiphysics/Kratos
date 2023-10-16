@@ -82,6 +82,36 @@ class ModelPartController:
 
         self.mesh_controller.Initialize()
 
+    def ModifyInitialProperties(self):
+
+        test = True
+        if test:
+            # Search for the maximum property id in the current model
+            # Note that this operation is required to be performed after
+            # the properties have been already set by reading the materials.json
+            max_prop_id = -1
+            model_part_names = self.model.GetModelPartNames()
+            for model_part_name in model_part_names:
+                for prop in self.model.GetModelPart(model_part_name).Properties:
+                    if prop.Id > max_prop_id:
+                        max_prop_id = prop.Id
+            max_prop_id = self.optimization_model_part.GetCommunicator().GetDataCommunicator().MaxAll(max_prop_id)
+
+            count = 0
+            for element in self.optimization_model_part.Elements:
+                # thickness_property = KM.Properties(max_prop_id + 1)
+                new_property = KM.Properties(element.Properties)
+                new_property.Id = max_prop_id + 1
+                new_property.SetValue(KM.THICKNESS, element.Properties.GetValue(KM.THICKNESS))
+                element.Properties = new_property
+                condition = self.optimization_model_part.GetCondition(element.Id)
+                condition.Properties = new_property
+                max_prop_id += 1
+                if count < 20:
+                    KM.Logger.PrintInfo(f"ModelPartController:: Element: {element.Id} Property Id: {element.Properties.Id} T = {element.Properties.GetValue(KM.THICKNESS)}")
+                    KM.Logger.PrintInfo(f"ModelPartController:: Condition: {condition.Id} Property Id: {condition.Properties.Id} T = {condition.Properties.GetValue(KM.THICKNESS)}")
+                count += 1
+
     def InitializeDamping(self):
         """Initialize damping utilities, should be called after mapper is initialized"""
         if self.model_settings["damping"]["apply_damping"].GetBool():

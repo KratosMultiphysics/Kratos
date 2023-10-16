@@ -154,6 +154,8 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
 
         self.analyzer.InitializeBeforeOptimizationLoop()
 
+        self.model_part_controller.ModifyInitialProperties()
+
         self.initial_design_surface = self.initial_model_part_controller.GetDesignSurface()
         self.design_surface = self.model_part_controller.GetDesignSurface()
 

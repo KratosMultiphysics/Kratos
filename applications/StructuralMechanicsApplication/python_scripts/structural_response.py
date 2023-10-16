@@ -93,7 +93,12 @@ class StrainEnergyResponseFunction(ResponseFunctionInterface):
         return gradient
 
     def GetElementalGradient(self, variable):
-        raise NotImplementedError("GetElementalGradient needs to be implemented for StrainEnergyResponseFunction")
+        if variable != StructuralMechanicsApplication.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for element in self.primal_model_part.Elements:
+            gradient[element.Id] = element.GetValue(variable)
+        return gradient
 
 # ==============================================================================
 class EigenFrequencyResponseFunction(StrainEnergyResponseFunction):
@@ -218,7 +223,12 @@ class MassResponseFunction(ResponseFunctionInterface):
         return gradient
 
     def GetElementalGradient(self, variable):
-        raise NotImplementedError("GetElementalGradient needs to be implemented for MassResponseFunction")
+        if variable != StructuralMechanicsApplication.THICKNESS_SENSITIVITY:
+            raise RuntimeError("GetElementalGradient: No gradient for {}!".format(variable.Name))
+        gradient = {}
+        for element in self.model_part.Elements:
+            gradient[element.Id] = element.GetValue(variable)
+        return gradient
 
 # ==============================================================================
 class AdjointResponseFunction(ResponseFunctionInterface):
@@ -329,6 +339,9 @@ class AdjointResponseFunction(ResponseFunctionInterface):
         if len(self.primal_model_part.Nodes) != len(self.adjoint_model_part.Nodes):
             raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
 
+        if len(self.primal_model_part.Elements) != len(self.adjoint_model_part.Elements):
+            raise RuntimeError("_SynchronizeAdjointFromPrimal: Model parts have a different number of nodes!")
+
         # TODO this should happen automatically
         for primal_node, adjoint_node in zip(self.primal_model_part.Nodes, self.adjoint_model_part.Nodes):
             adjoint_node.X0 = primal_node.X0
@@ -337,6 +350,16 @@ class AdjointResponseFunction(ResponseFunctionInterface):
             adjoint_node.X = primal_node.X
             adjoint_node.Y = primal_node.Y
             adjoint_node.Z = primal_node.Z
+
+        count = 0
+        for primal_element, adjoint_element in zip(self.primal_model_part.Elements, self.adjoint_model_part.Elements):
+            if adjoint_element.Properties.Id != primal_element.Properties.Id:
+                adjoint_element.Properties = primal_element.Properties
+            adjoint_element.Properties.SetValue(KratosMultiphysics.THICKNESS, primal_element.Properties.GetValue(KratosMultiphysics.THICKNESS))
+            if count < 20:
+                Logger.PrintInfo(self._GetLabel(), f"Primal Element: {primal_element.Id} Property Id: {primal_element.Properties.Id} T = {primal_element.Properties.GetValue(KratosMultiphysics.THICKNESS)}")
+                Logger.PrintInfo(self._GetLabel(), f"Adjoint Element: {adjoint_element.Id} Property Id: {adjoint_element.Properties.Id} T = {adjoint_element.Properties.GetValue(KratosMultiphysics.THICKNESS)}")
+            count += 1
 
         # Put primal solution on adjoint model
         if self.primal_data_transfer_with_python:
