@@ -24,6 +24,7 @@
 #endif
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "spatial_containers/spatial_search_result_container.h"
+#include "spatial_containers/spatial_search_result_container_vector.h"
 
 namespace Kratos
 {
@@ -378,7 +379,7 @@ public:
     void PrintData(std::ostream& rOStream) const
     {
         rOStream << "Local Search for Rank " << GetRank() + 1 << "/" << GetWorldSize() << "\n";
-        BaseType::PrintData(rOStream);
+        mSearchObject->PrintData(rOStream);
     }
 
     ///@}
@@ -394,11 +395,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    TSearchObject::Pointer mSearchObject;       /// The pointer to the base search considered
+    typename TSearchObject::Pointer mSearchObject; /// The pointer to the base search considered
 
-    std::vector<double> mGlobalBoundingBoxes;   /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
+    std::vector<double> mGlobalBoundingBoxes;      /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
 
-    const DataCommunicator& mrDataCommunicator; /// The data communicator
+    const DataCommunicator& mrDataCommunicator;    /// The data communicator
 
     ///@}
     ///@name Private Operators
