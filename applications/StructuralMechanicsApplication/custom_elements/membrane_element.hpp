@@ -388,6 +388,9 @@ namespace Kratos
     void CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
         std::vector< Vector >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
 
+    void CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+        std::vector< Matrix >& rOutput, const ProcessInfo& rCurrentProcessInfo) override;
+
     void DeformationGradient(Matrix& rDeformationGradient, double& rDetDeformationGradient,
        const array_1d<Vector,2>& rCurrentCovariantBase, const array_1d<Vector,2>& rReferenceContraVariantBase);
 

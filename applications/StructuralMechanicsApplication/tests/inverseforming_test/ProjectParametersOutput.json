@@ -97,7 +97,7 @@
         "echo_level": 3,
         "end_time": 1.0,
         "parallel_type": "OpenMP",
-        "problem_name": "sphere_small",
+        "problem_name": "cyl",
         "start_time": 0.0
     },
     "processes": {
@@ -105,7 +105,7 @@
             {
                 "Parameters": {
                     "constrained": [
-                        false,
+                        true,
                         true,
                         true
                     ],
@@ -116,9 +116,9 @@
                     ],
                     "local_axes": {},
                     "mesh_id": 0,
-                    "model_part_name": "Structure.DISPLACEMENT_Displacement_Auto1",
+                    "model_part_name": "Structure.DISPLACEMENT_Displacement_Center",
                     "value": [
-                        null,
+                        0.0,
                         0.0,
                         0.0
                     ],
@@ -132,7 +132,7 @@
                 "Parameters": {
                     "constrained": [
                         true,
-                        true,
+                        false,
                         true
                     ],
                     "help": "This process assigns a given value (vector) to the nodes belonging a certain submodelpart",
@@ -142,10 +142,10 @@
                     ],
                     "local_axes": {},
                     "mesh_id": 0,
-                    "model_part_name": "Structure.DISPLACEMENT_Displacement_Auto2",
+                    "model_part_name": "Structure.DISPLACEMENT_Displacement_CenterUp",
                     "value": [
                         0.0,
-                        0.0,
+                        null,
                         0,
                         0
                     ],
@@ -188,10 +188,10 @@
         "material_import_settings": {
             "materials_filename": "StructuralMaterials.json"
         },
-        "max_iteration": 30,
+        "max_iteration": 10,
         "model_import_settings": {
             "ignore_variables_not_in_solution_step_data": false,
-            "input_filename": "sphere_small",
+            "input_filename": "cyl",
             "input_type": "mdpa",
             "reorder": false,
             "reorder_consecutive": false,
@@ -202,15 +202,15 @@
         "multi_point_constraints_used": true,
         "pressure_dofs": false,
         "reform_dofs_at_each_step": false,
-        "residual_absolute_tolerance": 1e-07,
-        "residual_relative_tolerance": 0.0001,
+        "residual_absolute_tolerance": 1e-15,
+        "residual_relative_tolerance": 1e-10,
         "rotation_dofs": false,
         "solver_type": "Static",
         "solving_strategy_settings": {
             "type": "line_search"
         },
         "time_stepping": {
-            "time_step": 0.25
+            "time_step": 1.0
         },
         "use_old_stiffness_in_first_iteration": false,
         "volumetric_strain_dofs": false

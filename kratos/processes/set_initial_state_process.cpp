@@ -58,6 +58,8 @@ namespace Kratos
         mrModelPart(rModelPart), mInitialStrain(rInitialStrain),
         mInitialStress(rInitialStress), mInitialF(rInitialF)
     {
+        KRATOS_WATCH("-----CONSTRUCTOR 2-----")
+        KRATOS_WATCH(mInitialF)
     }
 
 /***********************************************************************************/
@@ -159,6 +161,9 @@ namespace Kratos
                 InitialState::Pointer p_initial_state_custom = Kratos::make_intrusive<InitialState>(aux_initial_strain, aux_initial_stress, aux_initial_F);
                 for (IndexType point_number = 0; point_number < constitutive_law_vector.size(); ++point_number) {
                     constitutive_law_vector[point_number]->SetInitialState(p_initial_state_custom);
+                    KRATOS_WATCH("ASSIGNED TO CONSTITUTIVE as POINTER!!");
+                    KRATOS_WATCH( constitutive_law_vector[point_number]->GetInitialState().GetInitialStrainVector());
+                    KRATOS_WATCH( constitutive_law_vector[point_number]->GetInitialState().GetInitialDeformationGradientMatrix());
                 }
             } else {
                 for (IndexType point_number = 0; point_number < constitutive_law_vector.size(); ++point_number) {

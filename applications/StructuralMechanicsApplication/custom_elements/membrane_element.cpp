@@ -736,6 +736,20 @@ void MembraneElement::TransformBaseVectors(array_1d<Vector,2>& rBaseVectors,
     }
 }
 
+
+void MembraneElement::CalculateOnIntegrationPoints(const Variable<Matrix >& rVariable,
+                        std::vector< Matrix >& rOutput,
+                        const ProcessInfo& rCurrentProcessInfo)
+{
+    if (rVariable == INITIAL_DEFORMATION_GRADIENT_MATRIX) {
+        KRATOS_WATCH("ADDING INITIAL_DEFORMATION_GRADIENT_MATRIX");
+        for ( IndexType point_number = 0; point_number < 1; ++point_number ) {
+            rOutput[point_number] = mConstitutiveLawVector[point_number]->GetInitialState().GetInitialDeformationGradientMatrix();
+        }
+    }
+}
+
+
 void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVariable,
                         std::vector< Vector >& rOutput,
                         const ProcessInfo& rCurrentProcessInfo)
@@ -929,12 +943,13 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
                     rOutput[point_number][0] = r_initial_strain[0];
                     rOutput[point_number][1] = r_initial_strain[1];
                     rOutput[point_number][3] = r_initial_strain[2];
-                    KRATOS_WATCH(rOutput[point_number])
+                    //KRATOS_WATCH("ASSIGNED INITIAL_STRAIN_VECTOR");
+                    //KRATOS_WATCH(r_initial_strain);
                 } else {
                     noalias(rOutput[point_number]) = ZeroVector(6);
                 }
             }
-        } 
+        }
 }
 
 
