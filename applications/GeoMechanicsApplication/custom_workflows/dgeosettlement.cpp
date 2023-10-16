@@ -110,8 +110,8 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUti
     if (!mKernel.IsImported("LinearSolversApplication"))
     {
         KRATOS_INFO("KratosGeoSettlement") << "Importing LinearSolversApplication" << std::endl;
-        mpGeoApp = Kratos::make_shared<KratosGeoMechanicsApplication>();
-        mKernel.ImportApplication(mpLinearSolverApp);
+        mpLinearSolversApp = Kratos::make_shared<KratosLinearSolversApplication>();
+        mKernel.ImportApplication(mpLinearSolversApp);
     }
 
     InitializeProcessFactory();
