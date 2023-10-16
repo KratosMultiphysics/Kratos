@@ -17,6 +17,7 @@
 #include "includes/model_part.h"
 #include "utilities/parallel_utilities.h"
 #include "solving_strategies/schemes/scheme.h"
+#include "newmark_quasistatic_U_Pw_scheme.hpp"
 
 // Application includes
 #include "geo_mechanics_application_variables.h"
