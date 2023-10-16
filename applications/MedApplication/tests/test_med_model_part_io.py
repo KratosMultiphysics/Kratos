@@ -113,12 +113,42 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         raise NotImplementedError
 
     def test_tetrahedra_4N_linear_mesh(self):
-        self.skipTest("This test is not yet implemented")
-        raise NotImplementedError
+        def mp_check_fct(model_part):
+            self.assertEqual(model_part.NumberOfNodes(), 36)
+
+            exp_coords = [
+                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
+            ]
+
+            for coords, node in zip(exp_coords, model_part.Nodes):
+                self.assertAlmostEqual(node.X, coords[0])
+                self.assertAlmostEqual(node.X0, coords[0])
+                self.assertAlmostEqual(node.Y, coords[1])
+                self.assertAlmostEqual(node.Y0, coords[1])
+                self.assertAlmostEqual(node.Z, coords[2])
+                self.assertAlmostEqual(node.Z0, coords[2])
+
+    def test_tetrahedra_10N_quadratic_mesh(self):
+        def mp_check_fct(model_part):
+            self.assertEqual(model_part.NumberOfNodes(), 168)
+
+            exp_coords = [
+                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
+            ]
+
+            for coords, node in zip(exp_coords, model_part.Nodes):
+                self.assertAlmostEqual(node.X, coords[0])
+                self.assertAlmostEqual(node.X0, coords[0])
+                self.assertAlmostEqual(node.Y, coords[1])
+                self.assertAlmostEqual(node.Y0, coords[1])
+                self.assertAlmostEqual(node.Z, coords[2])
+                self.assertAlmostEqual(node.Z0, coords[2])
+
+        self._execute_tests("tetrahedral_10N", mp_check_fct, True)
 
     def test_hexahedra_8N_linear_mesh(self):
         def mp_check_fct(model_part):
-            self.assertEqual(model_part.NumberOfNodes(), 4)
+            self.assertEqual(model_part.NumberOfNodes(), 36)
 
             exp_coords = [
                 (0,0,0), (0,0,1),(0,1,1),(1,1,1)
@@ -138,11 +168,11 @@ def write_vtk(model_part, name):
     modeler_parameters = KM.Parameters("""{
         "elements_list" : [{
             "model_part_name" : "read_1",
-            "element_name" : "Element2D3N;Element2D4N;Element3D8N"
+            "element_name" : "Element2D3N;Element2D4N;Element3D4N;Element3D8N;Element3D10N"
         }]
     }""")
     modeler = KM.CreateEntitiesFromGeometriesModeler(model_part.GetModel(), modeler_parameters)
-    modeler.SetupModelPart();
+    modeler.SetupModelPart()
 
     vtk_parameters = KM.Parameters("""{
         "file_format"                  : "binary",

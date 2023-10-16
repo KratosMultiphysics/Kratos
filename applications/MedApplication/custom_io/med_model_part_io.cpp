@@ -34,7 +34,6 @@ static const std::map<GeometryData::KratosGeometryType, med_geometry_type> Krato
     { GeometryData::KratosGeometryType::Kratos_Line3D2,          MED_SEG2 },
     { GeometryData::KratosGeometryType::Kratos_Line2D3,          MED_SEG3 },
     { GeometryData::KratosGeometryType::Kratos_Line3D3,          MED_SEG3 },
-    { GeometryData::KratosGeometryType::Kratos_Line2D4,          MED_SEG4 },
 
     { GeometryData::KratosGeometryType::Kratos_Triangle2D3,      MED_TRIA3 },
     { GeometryData::KratosGeometryType::Kratos_Triangle3D3,      MED_TRIA3 },
@@ -115,6 +114,12 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
             std::swap(Connectivities[5], Connectivities[6]);
         };
 
+    case MED_TETRA4:
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(4, rConnectivities);
+            std::swap(rConnectivities[2], rConnectivities[3]);
+        };
+
     case MED_TETRA10:
         return [](auto& rConnectivities){
             CheckConnectivitiesSize(10, rConnectivities);
@@ -165,7 +170,6 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
             - MED_POINT1
             - MED_SEG2
             - MED_SEG3
-            - MED_SEG4
             */
         };
     }
