@@ -79,8 +79,6 @@ public:
 
     using NodesOffsetMapType = std::unordered_map<NodeType::Pointer, double, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
 
-    using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
-
     ///@}
     ///@name Pointer Definitions
 
@@ -110,17 +108,24 @@ public:
 
     void Execute() override;
 
+    void ExecuteInitialize() override;
+
+    void ExecuteBeforeSolutionLoop() override;
+
+    void ExecuteInitializeSolutionStep() override;
+
+    void ExecuteFinalizeSolutionStep() override;
+
     const Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"({
-            "model_part_name"                 : "",
-            "apply_to_all_negative_cut_nodes" : true,
-            "use_mls_shape_functions"         : false,
-            "include_intersection_points"     : true,
-            "avoid_zero_distances"            : true,
-            "deactivate_negative_elements"    : true,
-            "deactivate_intersected_elements" : false,
-            "slip_length"                     : 0.0
+            "model_part_name"                   : "",
+            "check_at_each_time_step"           : true,
+            "apply_to_all_negative_cut_nodes"   : true,
+            "include_intersection_points"       : true,
+            "avoid_zero_distances"              : true,
+            "deactivate_full_negative_elements" : true,
+            "slip_length"                       : 0.0
         })" );
 
         return default_parameters;
@@ -151,9 +156,7 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
     ///@}
     ///@name Friends
@@ -202,16 +205,18 @@ private:
     ///@{
 
     ModelPart* mpModelPart = nullptr;
+    const std::array<std::string,4> mComponents = {"PRESSURE","VELOCITY_X","VELOCITY_Y","VELOCITY_Z"};
+
+    bool mConstraintsAreCalculated;
+    bool mCheckAtEachStep;
 
     bool mApplyToAllNegativeCutNodes;
-    bool mUseMLSShapeFunctions;
     bool mIncludeIntersectionPoints;
     double mSlipLength;
 
     bool mAvoidZeroDistances;
 
-    bool mDeactivateNegativeElements;
-    bool mDeactivateIntersectedElements;
+    bool mNegElemDeactivation;
 
     // Count number of positive small cuts
     std::size_t mNSmallCutPos;
@@ -240,27 +245,13 @@ private:
         std::vector<NodeType::Pointer> neg_nodes_element,
         std::vector<NodeType::Pointer> pos_nodes_element);
 
-    void AddMLSNodeClouds(
-        NodesCloudMapType& rCloudsMap,
-        NodesOffsetMapType& rOffsetsMap,
-        std::vector<NodeType::Pointer> neg_nodes_element,
-        std::vector<NodeType::Pointer> pos_nodes_element);
-
-    void AddMLSNodeCloudsIncludingBC(
-        NodesCloudMapType& rCloudsMap,
-        NodesOffsetMapType& rOffsetsMap,
-        std::vector<NodeType::Pointer> neg_nodes_element,
-        std::vector<NodeType::Pointer> pos_nodes_element);
-
-    double CalculateKernelRadius(
-        const Matrix& rCloudCoordinates,
-        const array_1d<double,3>& rOrigin);
-
     void ApplyConstraints(
         NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap);
 
-    void DeactivateElementsAndNodes();
+    void DeactivateFullNegativeElements();
+
+    void RecoverDeactivationPreviousState();
 
     void ModifyDistances();
 
@@ -269,8 +260,6 @@ private:
     bool IsSmallCut(const GeometryType& rGeometry);
 
     bool IsNegative(const GeometryType& rGeometry);
-
-    MLSShapeFunctionsFunctionType GetMLSShapeFunctionsFunction();
 
     ///@}
     ///@name Private  Access

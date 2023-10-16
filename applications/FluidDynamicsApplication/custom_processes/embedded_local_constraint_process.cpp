@@ -17,6 +17,7 @@
 
 // Project includes
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "embedded_local_constraint_process.h"
@@ -25,74 +26,115 @@
 namespace Kratos
 {
 
-using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const array_1d<double,3>&, const double, Vector&)>;
-
 /* Public functions *******************************************************/
 
 EmbeddedLocalConstraintProcess::EmbeddedLocalConstraintProcess(
     Model& rModel,
-    Parameters ThisParameters)
+    Parameters& rParameters)
     : Process()
 {
     // Validate input settings with defaults
-    ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     // Retrieve the required model parts
-    const std::string model_part_name = ThisParameters["model_part_name"].GetString();
+    const std::string model_part_name = rParameters["model_part_name"].GetString();
     mpModelPart = &rModel.GetModelPart(model_part_name).GetSubModelPart("fluid_computational_model_part");
 
-    // Set how constraints are applied
-    mApplyToAllNegativeCutNodes = ThisParameters["apply_to_all_negative_cut_nodes"].GetBool();
-    mUseMLSShapeFunctions = ThisParameters["use_mls_shape_functions"].GetBool();
-    mIncludeIntersectionPoints = ThisParameters["include_intersection_points"].GetBool();
-    mSlipLength = ThisParameters["slip_length"].GetDouble();
+    // Set whether constraints need to be adapted at each time step (FSI)
+    mCheckAtEachStep = rParameters["check_at_each_time_step"].GetBool();
+    mConstraintsAreCalculated = false;
 
-    // Set whether nodal distances will be modified to avoid levelset zeros
-    mAvoidZeroDistances = ThisParameters["avoid_zero_distances"].GetBool();
+    // Set to which elements constraints are applied
+    mApplyToAllNegativeCutNodes = rParameters["apply_to_all_negative_cut_nodes"].GetBool();
+    
+    // Set whether intersection points should be added to the cloud points or only positive nodes
+    mIncludeIntersectionPoints = rParameters["include_intersection_points"].GetBool();
+    mSlipLength = rParameters["slip_length"].GetDouble();
+
+    // Set whether nodal distances will be modified to avoid level set zeros
+    mAvoidZeroDistances = rParameters["avoid_zero_distances"].GetBool();
 
     // Set which elements will not be active
-    mDeactivateNegativeElements = ThisParameters["deactivate_negative_elements"].GetBool();
-    mDeactivateIntersectedElements = ThisParameters["deactivate_intersected_elements"].GetBool();
+    mNegElemDeactivation = rParameters["deactivate_full_negative_elements"].GetBool();
 }
 
 void EmbeddedLocalConstraintProcess::Execute()
 {
-    // Declare extension operator map for negative nodes of split elements
-    NodesCloudMapType clouds_map;
-    NodesOffsetMapType offsets_map;
+    this->ExecuteInitialize();
+    this->ExecuteInitializeSolutionStep();
+}
 
-    if (mAvoidZeroDistances) { ModifyDistances(); }
+void EmbeddedLocalConstraintProcess::ExecuteInitialize()
+{
+    KRATOS_TRY;
 
-    // Deactivate intersected and negative elements as well as their nodes depending on the process settings
-    if (mDeactivateNegativeElements) { DeactivateElementsAndNodes(); }
+    // Continuous distance modification historical variables check
+    KRATOS_ERROR_IF_NOT(mpModelPart->HasNodalSolutionStepVariable(DISTANCE)) << "DISTANCE variable not found in solution step variables list in " << mpModelPart->FullName() << ".\n";
 
-    // Calculate the negative nodes' clouds
-    CalculateNodeClouds(clouds_map, offsets_map);
+    KRATOS_CATCH("");
+}
 
-    // Apply a constraint to negative nodes of split elements
-    ApplyConstraints(clouds_map, offsets_map);
+void EmbeddedLocalConstraintProcess::ExecuteBeforeSolutionLoop()
+{
+    this->ExecuteInitializeSolutionStep();
+    this->ExecuteFinalizeSolutionStep();
+}
+
+void EmbeddedLocalConstraintProcess::ExecuteInitializeSolutionStep()
+{
+    if(!mConstraintsAreCalculated){
+        // Avoid level set zero distances
+        if (mAvoidZeroDistances) { ModifyDistances(); }
+
+        // Deactivate full negative elements and fix their nodal values to zero
+        if (mNegElemDeactivation) { this->DeactivateFullNegativeElements(); }
+
+        // Declare support point weights and offsets for negative nodes of cut elements
+        NodesCloudMapType clouds_map;
+        NodesOffsetMapType offsets_map;
+
+        // Calculate the negative nodes' clouds (support points)
+        CalculateNodeClouds(clouds_map, offsets_map);
+
+        //TODO: hand over master weights to elements
+        //SetElementalValues(clouds_map);
+        
+        //TODO
+        //FixAndCalculateConstrainedDofs(clouds_map, offsets_map);
+
+        // Apply a constraint to negative nodes of split elements
+        //ApplyConstraints(clouds_map, offsets_map);
+        mConstraintsAreCalculated = true;
+    }
+}
+
+void EmbeddedLocalConstraintProcess::ExecuteFinalizeSolutionStep()
+{
+    // Restore the initial state if the distance is checked at each time step
+    if (mCheckAtEachStep){
+        // Restore the flag to false
+        mConstraintsAreCalculated = false;
+        if (mNegElemDeactivation){
+            // Recover the state previous to the element deactivation
+            this->RecoverDeactivationPreviousState();
+        }
+    }
 }
 
 /* Protected functions ****************************************************/
 
 /* Private functions ****************************************************/
 
-void EmbeddedLocalConstraintProcess::CalculateNodeClouds(NodesCloudMapType& rCloudsMap, NodesOffsetMapType& rOffsetsMap)
+void EmbeddedLocalConstraintProcess::CalculateNodeClouds(
+    NodesCloudMapType& rCloudsMap, 
+    NodesOffsetMapType& rOffsetsMap)
 {
     //Pointer for which function to call
     void(Kratos::EmbeddedLocalConstraintProcess::*fptrNodeClouds)(NodesCloudMapType&, NodesOffsetMapType&, std::vector<NodeType::Pointer>, std::vector<NodeType::Pointer>);
-    if (mUseMLSShapeFunctions) {
-        if (mIncludeIntersectionPoints) {
-            fptrNodeClouds = &Kratos::EmbeddedLocalConstraintProcess::AddMLSNodeCloudsIncludingBC;
-        } else {
-            fptrNodeClouds = &Kratos::EmbeddedLocalConstraintProcess::AddMLSNodeClouds;
-        }
+    if (mIncludeIntersectionPoints) {
+        fptrNodeClouds = &Kratos::EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC;
     } else {
-        if (mIncludeIntersectionPoints) {
-            fptrNodeClouds = &Kratos::EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC;
-        } else {
-            fptrNodeClouds = &Kratos::EmbeddedLocalConstraintProcess::AddAveragedNodeClouds;
-        }
+        fptrNodeClouds = &Kratos::EmbeddedLocalConstraintProcess::AddAveragedNodeClouds;
     }
 
     // Containers for negative and positive side nodes of split element
@@ -226,130 +268,6 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
     }
 }
 
-void EmbeddedLocalConstraintProcess::AddMLSNodeClouds(NodesCloudMapType& rCloudsMap, NodesOffsetMapType& rOffsetsMap, std::vector<NodeType::Pointer> neg_nodes_element, std::vector<NodeType::Pointer> pos_nodes_element)
-{
-    for (auto slave_node : neg_nodes_element) {
-        // Check whether node was already added because of a previous element
-        if (!rCloudsMap.count(slave_node)) {
-            // Get the MLS shape functions function
-            auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
-
-            // Get number of positive element nodes
-            const std::size_t n_cloud_nodes = pos_nodes_element.size();
-
-            // Get the current negative node support cloud coordinates (positive nodes of cut element)
-            Matrix cloud_nodes_coordinates;
-            cloud_nodes_coordinates.resize(n_cloud_nodes, 3);
-            IndexPartition<std::size_t>(n_cloud_nodes).for_each(array_1d<double,3>(), [&pos_nodes_element, &cloud_nodes_coordinates](std::size_t i_pos_node, array_1d<double,3>& rAuxCoordTLS){
-                noalias(rAuxCoordTLS) = pos_nodes_element[i_pos_node]->Coordinates();
-                cloud_nodes_coordinates(i_pos_node, 0) = rAuxCoordTLS[0];
-                cloud_nodes_coordinates(i_pos_node, 1) = rAuxCoordTLS[1];
-                cloud_nodes_coordinates(i_pos_node, 2) = rAuxCoordTLS[2];
-            });
-
-            // Calculate the MLS basis in the current negative node
-            Vector N_container;
-            const array_1d<double,3> r_coords = slave_node->Coordinates();
-            const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
-            p_mls_sh_func(cloud_nodes_coordinates, r_coords, 1.01 * mls_kernel_rad, N_container);
-
-            /// Save positive element nodes (cloud nodes) and weights (MLS shape function values)
-            CloudDataVectorType cloud_data_vector(n_cloud_nodes);
-            for (std::size_t i_pos_node = 0; i_pos_node < n_cloud_nodes; ++i_pos_node) {
-                auto i_data = std::make_pair(pos_nodes_element[i_pos_node], N_container[i_pos_node]);
-                cloud_data_vector(i_pos_node) = i_data;
-            }
-
-            // Pair slave node and constraint offset as well as slave node and cloud vector and add to respective map
-            rOffsetsMap.insert(std::make_pair(slave_node, 0.0));
-            rCloudsMap.insert(std::make_pair(slave_node, cloud_data_vector));
-            KRATOS_WATCH("Added local MLS cloud for a negative node of a cut element");
-        }
-    }
-}
-
-void EmbeddedLocalConstraintProcess::AddMLSNodeCloudsIncludingBC(NodesCloudMapType& rCloudsMap, NodesOffsetMapType& rOffsetsMap, std::vector<NodeType::Pointer> neg_nodes_element, std::vector<NodeType::Pointer> pos_nodes_element)
-{
-    for (auto slave_node : neg_nodes_element) {
-        // Check whether node was already added because of a previous element
-        if (!rCloudsMap.count(slave_node)) {
-            // Get the MLS shape functions function
-            auto p_mls_sh_func = GetMLSShapeFunctionsFunction();
-
-            // Get number of positive element nodes
-            const std::size_t n_cloud_nodes = pos_nodes_element.size();
-
-            // Calculate intersection points
-            std::vector<array_1d<double,3>> int_pt_coord;
-            for (auto neg_node : neg_nodes_element) {
-                double dist_neg_node = neg_node->FastGetSolutionStepValue(DISTANCE);
-                for (auto pos_node : pos_nodes_element) {
-                    double dist_pos_node = pos_node->FastGetSolutionStepValue(DISTANCE);
-                    const double int_pt_rel_location = std::abs(dist_neg_node/(dist_pos_node-dist_neg_node));
-                    array_1d<double,3> int_pt = *neg_node + int_pt_rel_location * (*pos_node - *neg_node);
-                    int_pt_coord.push_back(int_pt);
-                }
-            }
-            const std::size_t n_intersections = int_pt_coord.size();
-
-            // Get the current negative node support cloud coordinates (positive nodes of cut element)
-            Matrix cloud_nodes_coordinates;
-            cloud_nodes_coordinates.resize(n_cloud_nodes+n_intersections, 3);
-            IndexPartition<std::size_t>(n_cloud_nodes).for_each(array_1d<double,3>(), [&pos_nodes_element, &cloud_nodes_coordinates](std::size_t i_pos_node, array_1d<double,3>& rAuxCoordTLS){
-                noalias(rAuxCoordTLS) = pos_nodes_element[i_pos_node]->Coordinates();
-                cloud_nodes_coordinates(i_pos_node, 0) = rAuxCoordTLS[0];
-                cloud_nodes_coordinates(i_pos_node, 1) = rAuxCoordTLS[1];
-                cloud_nodes_coordinates(i_pos_node, 2) = rAuxCoordTLS[2];
-            });
-
-            //Add intersection points coordinates to cloud
-            for (std::size_t i_int_pt = n_cloud_nodes; i_int_pt < n_cloud_nodes+n_intersections; ++i_int_pt) {
-                cloud_nodes_coordinates(i_int_pt, 0) = int_pt_coord[i_int_pt][0];
-                cloud_nodes_coordinates(i_int_pt, 1) = int_pt_coord[i_int_pt][1];
-                cloud_nodes_coordinates(i_int_pt, 2) = int_pt_coord[i_int_pt][2];
-            }
-
-            // Calculate the MLS basis in the current negative node
-            Vector N_container;
-            const array_1d<double,3> r_coords = slave_node->Coordinates();
-            const double mls_kernel_rad = CalculateKernelRadius(cloud_nodes_coordinates, r_coords);
-            p_mls_sh_func(cloud_nodes_coordinates, r_coords, 1.01 * mls_kernel_rad, N_container);
-
-            /// Save positive element nodes (cloud nodes) and weights (MLS shape function values) // =0.0 if value_bc = 0.0 ???
-            CloudDataVectorType cloud_data_vector(n_cloud_nodes);
-            for (std::size_t i_pos_node = 0; i_pos_node < n_cloud_nodes; ++i_pos_node) {
-                auto i_data = std::make_pair(pos_nodes_element[i_pos_node], N_container[i_pos_node]);
-                cloud_data_vector(i_pos_node) = i_data;
-            }
-
-            // Calculate offset for master-slave constraint
-            double offset = 0.0;
-            for (std::size_t i_int_pt = n_cloud_nodes; i_int_pt < n_cloud_nodes+n_intersections; ++i_int_pt) {
-                // Get boundary condition value for intersection point  // TODO  different boundary condition?!?
-                //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);
-                const double value_bc = 0.0; //std::pow(int_pt_coord[i_int_pt][0],2) + std::pow(int_pt_coord[i_int_pt][1],2);
-                offset += N_container[i_int_pt] * value_bc;
-            }
-
-            // Pair slave node and constraint offset as well as slave node and cloud vector and add to respective map
-            rOffsetsMap.insert(std::make_pair(slave_node, offset));
-            rCloudsMap.insert(std::make_pair(slave_node, cloud_data_vector));
-            KRATOS_WATCH("Added local MLS cloud including intersection points for a negative node of a cut element");
-        }
-    }
-}
-
-double EmbeddedLocalConstraintProcess::CalculateKernelRadius(
-    const Matrix& rCloudCoordinates,
-    const array_1d<double,3>& rOrigin)
-{
-    const std::size_t n_nodes = rCloudCoordinates.size1();
-    const double squared_rad = IndexPartition<std::size_t>(n_nodes).for_each<MaxReduction<double>>([&](std::size_t I){
-        return std::pow(rCloudCoordinates(I,0) - rOrigin(0), 2) + std::pow(rCloudCoordinates(I,1) - rOrigin(1), 2) + std::pow(rCloudCoordinates(I,2) - rOrigin(2), 2);
-    });
-    return std::sqrt(squared_rad);
-}
-
 void EmbeddedLocalConstraintProcess::ApplyConstraints(NodesCloudMapType& rCloudsMap, NodesOffsetMapType& rOffsetsMap)
 {
     // Initialize counter of master slave constraints
@@ -419,7 +337,7 @@ void EmbeddedLocalConstraintProcess::ApplyConstraints(NodesCloudMapType& rClouds
     }
 }
 
-void EmbeddedLocalConstraintProcess::DeactivateElementsAndNodes()
+void EmbeddedLocalConstraintProcess::DeactivateFullNegativeElements()
 {
     ModelPart::NodesContainerType& rNodes = mpModelPart->Nodes();
     ModelPart::ElementsContainerType& rElements = mpModelPart->Elements();
@@ -433,22 +351,22 @@ void EmbeddedLocalConstraintProcess::DeactivateElementsAndNodes()
 
     // Deactivate those elements whose negative distance nodes summation is equal to their number of nodes
     #pragma omp parallel for
-    for (int k = 0; k < static_cast<int>(rElements.size()); ++k){
+    for (int i_elem = 0; i_elem < static_cast<int>(rElements.size()); ++i_elem){
         unsigned int n_neg = 0;
-        ModelPart::ElementsContainerType::iterator itElement = rElements.begin() + k;
-        auto& rGeometry = itElement->GetGeometry();
+        ModelPart::ElementsContainerType::iterator it_elem = rElements.begin() + i_elem;
+        auto& rGeometry = it_elem->GetGeometry();
 
         // Check the distance function sign at the element nodes
-        for (unsigned int i_node=0; i_node<rGeometry.size(); i_node++){
+        for (unsigned int i_node = 0; i_node<rGeometry.size(); i_node++){
             if (rGeometry[i_node].FastGetSolutionStepValue(DISTANCE) < 0.0){
                 n_neg++;
             }
         }
 
-        (n_neg == rGeometry.size()) ? itElement->Set(ACTIVE, false) : itElement->Set(ACTIVE, true);
+        (n_neg == rGeometry.size()) ? it_elem->Set(ACTIVE, false) : it_elem->Set(ACTIVE, true);
 
         // If the element is ACTIVE, all its nodes are active as well
-        if (itElement->Is(ACTIVE)){
+        if (it_elem->Is(ACTIVE)){
             for (unsigned int i_node = 0; i_node < rGeometry.size(); ++i_node){
                 int& activation_index = rGeometry[i_node].GetValue(EMBEDDED_IS_ACTIVE);
                 #pragma omp atomic
@@ -460,19 +378,39 @@ void EmbeddedLocalConstraintProcess::DeactivateElementsAndNodes()
     // Synchronize the EMBEDDED_IS_ACTIVE variable flag
     mpModelPart->GetCommunicator().AssembleNonHistoricalData(EMBEDDED_IS_ACTIVE);
 
-    const std::array<std::string,4> components = {"PRESSURE","VELOCITY_X","VELOCITY_Y","VELOCITY_Z"};
-
     // Set to zero and fix the DOFs in the remaining inactive nodes
     #pragma omp parallel for
     for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
         auto it_node = rNodes.begin() + i_node;
         if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
-            for (std::size_t i_var = 0; i_var < components.size(); i_var++){
-                const auto& r_double_var = KratosComponents<Variable<double>>::Get(components[i_var]);
+            for (std::size_t i_var = 0; i_var < mComponents.size(); i_var++){
+                const auto& r_double_var = KratosComponents<Variable<double>>::Get(mComponents[i_var]);
                 // Fix the nodal DOFs
                 it_node->Fix(r_double_var);
                 // Set to zero the nodal DOFs
                 it_node->FastGetSolutionStepValue(r_double_var) = 0.0;
+            }
+        }
+    }
+}
+
+void EmbeddedLocalConstraintProcess::RecoverDeactivationPreviousState()
+{
+    // Activate again all the elements
+    #pragma omp parallel for
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        it_elem->Set(ACTIVE, true);
+    }
+    // Free the negative DOFs that were fixed
+    #pragma omp parallel for
+    for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
+        auto it_node = mrModelPart.NodesBegin() + i_node;
+        if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
+            for (std::size_t i_var = 0; i_var < mComponents.size(); i_var++){
+                const auto& r_double_var = KratosComponents<Variable<double>>::Get(mComponents[i_var]);
+                // Free the nodal DOFs  that were fixed
+                it_node->Free(r_double_var);
             }
         }
     }

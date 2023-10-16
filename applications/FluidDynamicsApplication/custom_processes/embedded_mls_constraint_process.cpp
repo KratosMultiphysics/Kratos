@@ -20,6 +20,7 @@
 // Project includes
 #include "processes/find_nodal_neighbours_process.h"
 #include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 
 // Application includes
 #include "embedded_mls_constraint_process.h"
@@ -34,59 +35,107 @@ using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const ar
 
 EmbeddedMLSConstraintProcess::EmbeddedMLSConstraintProcess(
     Model& rModel,
-    Parameters ThisParameters)
+    Parameters rParameters)
     : Process()
 {
     // Validate input settings with defaults
-    ThisParameters.ValidateAndAssignDefaults(GetDefaultParameters());
+    rParameters.ValidateAndAssignDefaults(GetDefaultParameters());
 
     // Retrieve the required model parts
-    const std::string model_part_name = ThisParameters["model_part_name"].GetString();
+    const std::string model_part_name = rParameters["model_part_name"].GetString();
     mpModelPart = &rModel.GetModelPart(model_part_name).GetSubModelPart("fluid_computational_model_part");
 
+    // Set whether constraints need to be adapted at each time step (FSI)
+    mCheckAtEachStep = rParameters["check_at_each_time_step"].GetBool();
+    mConstraintsAreCalculated = false;
+
     // Set to which elements constraints are applied
-    mApplyToAllNegativeCutNodes = ThisParameters["apply_to_all_negative_cut_nodes"].GetBool();
+    mApplyToAllNegativeCutNodes = rParameters["apply_to_all_negative_cut_nodes"].GetBool();
 
     // Set the order of the MLS extension operator used in the MLS shape functions utility
-    mMLSExtensionOperatorOrder = ThisParameters["mls_extension_operator_order"].GetInt();
+    mMLSExtensionOperatorOrder = rParameters["mls_extension_operator_order"].GetInt();
 
     // Set whether intersection points should be added to the cloud points or only positive nodes
-    mIncludeIntersectionPoints = ThisParameters["include_intersection_points"].GetBool();
-    mSlipLength = ThisParameters["slip_length"].GetDouble();
+    mIncludeIntersectionPoints = rParameters["include_intersection_points"].GetBool();
+    mSlipLength = rParameters["slip_length"].GetDouble();
 
-    // Set whether nodal distances will be modified to avoid levelset zeros
-    mAvoidZeroDistances = ThisParameters["avoid_zero_distances"].GetBool();
+    // Set whether nodal distances will be modified to avoid level set zeros
+    mAvoidZeroDistances = rParameters["avoid_zero_distances"].GetBool();
 
     // Set which elements will not be active
-    mDeactivateNegativeElements = ThisParameters["deactivate_negative_elements"].GetBool();
-    mDeactivateIntersectedElements = ThisParameters["deactivate_intersected_elements"].GetBool();
+    mNegElemDeactivation = rParameters["deactivate_full_negative_elements"].GetBool();
 }
 
 void EmbeddedMLSConstraintProcess::Execute()
 {
-    // Declare extension operator map for negative nodes of split elements
-    NodesCloudMapType clouds_map;
-    NodesOffsetMapType offsets_map;
+    this->ExecuteInitialize();
+    this->ExecuteInitializeSolutionStep();
+}
 
-    if (mAvoidZeroDistances) { ModifyDistances(); }
+void EmbeddedMLSConstraintProcess::ExecuteInitialize()
+{
+    KRATOS_TRY;
 
-    // Set the required interface flags
-    // NOTE: this will deactivate all negative as well as intersected elements
-    SetInterfaceFlags();
+    // Continuous distance modification historical variables check
+    KRATOS_ERROR_IF_NOT(mpModelPart->HasNodalSolutionStepVariable(DISTANCE)) << "DISTANCE variable not found in solution step variables list in " << mpModelPart->FullName() << ".\n";
 
-    // Calculate the negative nodes' clouds
-    // Calculate the conforming extension basis
-    if (mIncludeIntersectionPoints) {
-        CalculateNodeCloudsIncludingBC(clouds_map, offsets_map);
-    } else {
-        CalculateNodeClouds(clouds_map, offsets_map);
+    KRATOS_CATCH("");
+}
+
+void EmbeddedMLSConstraintProcess::ExecuteBeforeSolutionLoop()
+{
+    this->ExecuteInitializeSolutionStep();
+    this->ExecuteFinalizeSolutionStep();
+}
+
+void EmbeddedMLSConstraintProcess::ExecuteInitializeSolutionStep()
+{
+    if(!mConstraintsAreCalculated){
+        // Avoid level set zero distances
+        if (mAvoidZeroDistances) { ModifyDistances(); }
+
+        // Set the required interface flags
+        // NOTE: this will deactivate all negative as well as intersected elements
+        SetInterfaceFlags();
+
+        // Declare support point weights and offsets for negative nodes of cut elements
+        NodesCloudMapType clouds_map;
+        NodesOffsetMapType offsets_map;
+
+        // Calculate the negative nodes' clouds (support points) as extension basis
+        if (mIncludeIntersectionPoints) {
+            CalculateNodeCloudsIncludingBC(clouds_map, offsets_map);
+        } else {
+            CalculateNodeClouds(clouds_map, offsets_map);
+        }
+
+        // Reactivate intersected and negative elements depending on process settings
+        // Fix nodal values of deactivated nodes to zero
+        ReactivateElementsAndFixNodes();
+
+        //TODO: hand over master weights to elements
+        //SetElementalValues(clouds_map);
+        
+        //TODO
+        //FixAndCalculateConstrainedDofs(clouds_map, offsets_map);
+
+        // Apply a constraint to negative nodes of split elements
+        //ApplyConstraints(clouds_map, offsets_map);
+        mConstraintsAreCalculated = true;
     }
+}
 
-    // Reactivate intersected and negative elements as well as their nodes depending on the process settings
-    ReactivateElementsAndNodes();
-
-    // Apply a constraint to negative nodes of split elements
-    ApplyConstraints(clouds_map, offsets_map);
+void EmbeddedMLSConstraintProcess::ExecuteFinalizeSolutionStep()
+{
+    // Restore the initial state if the distance is checked at each time step
+    if (mCheckAtEachStep){
+        // Restore the flag to false
+        mConstraintsAreCalculated = false;
+        if (mNegElemDeactivation){
+            // Recover the state previous to the element deactivation
+            this->RecoverDeactivationPreviousState();
+        }
+    }
 }
 
 /* Protected functions ****************************************************/
@@ -94,7 +143,7 @@ void EmbeddedMLSConstraintProcess::Execute()
 /* Private functions ****************************************************/
 
 void EmbeddedMLSConstraintProcess::CalculateNodeClouds(
-    NodesCloudMapType& rExtensionOperatorMap,
+    NodesCloudMapType& rCloudsMap,
     NodesOffsetMapType& rOffsetsMap)
 {
     // Get the MLS shape functions function
@@ -109,7 +158,7 @@ void EmbeddedMLSConstraintProcess::CalculateNodeClouds(
                 // Find the intersected element negative nodes
                 for (auto& r_node : r_geom) {
                     // Check whether node is negative (not ACTIVE) or already was added because of a previous element
-                    const std::size_t found = rExtensionOperatorMap.count(&r_node);
+                    const std::size_t found = rCloudsMap.count(&r_node);
                     if (r_node.IsNot(ACTIVE) && !found) {
 
                         // Get the current negative node neighbours cloud
@@ -135,7 +184,7 @@ void EmbeddedMLSConstraintProcess::CalculateNodeClouds(
 
                         // Pair pointer to negative node with vector of pairs of a pointer to a positive node with its MLS shape function value and add it to the extension operator map
                         auto ext_op_key_data = std::make_pair(&r_node, cloud_data_vector);
-                        rExtensionOperatorMap.insert(ext_op_key_data);
+                        rCloudsMap.insert(ext_op_key_data);
 
                         // Pair pointer to negative node with offset for the master-slave constraint of that node and add it to the constraint offset map
                         auto offset_key_data = std::make_pair(&r_node, 0.0);
@@ -150,7 +199,7 @@ void EmbeddedMLSConstraintProcess::CalculateNodeClouds(
 }
 
 void EmbeddedMLSConstraintProcess::CalculateNodeCloudsIncludingBC(
-    NodesCloudMapType& rExtensionOperatorMap,
+    NodesCloudMapType& rCloudsMap,
     NodesOffsetMapType& rOffsetsMap)
 {
     // Get the MLS shape functions function
@@ -171,7 +220,7 @@ void EmbeddedMLSConstraintProcess::CalculateNodeCloudsIncludingBC(
                 // Find the intersected element negative nodes
                 for (auto& r_node : r_geom) {
                     // Check whether node is negative (not ACTIVE) or already was added because of a previous element
-                    const std::size_t found = rExtensionOperatorMap.count(&r_node);
+                    const std::size_t found = rCloudsMap.count(&r_node);
                     if (r_node.IsNot(ACTIVE) && !found) {
 
                         // Get the current negative node neighbors cloud and directly neighboring positive nodes
@@ -246,7 +295,7 @@ void EmbeddedMLSConstraintProcess::CalculateNodeCloudsIncludingBC(
 
                         // Pair pointer to negative node with vector of pairs of a pointer to a positive node with its MLS shape function value and add it to the extension operator map
                         auto ext_op_key_data = std::make_pair(&r_node, cloud_data_vector);
-                        rExtensionOperatorMap.insert(ext_op_key_data);
+                        rCloudsMap.insert(ext_op_key_data);
 
                         // Pair pointer to negative node with offset for the master-slave constraint of that node and add it to the constraint offset map
                         auto offset_key_data = std::make_pair(&r_node, constraint_offset);
@@ -261,7 +310,7 @@ void EmbeddedMLSConstraintProcess::CalculateNodeCloudsIncludingBC(
 }
 
 void EmbeddedMLSConstraintProcess::ApplyConstraints(
-    NodesCloudMapType& rExtensionOperatorMap,
+    NodesCloudMapType& rCloudsMap,
     NodesOffsetMapType& rOffsetsMap)
 {
     // Initialize counter of master slave constraints
@@ -282,7 +331,7 @@ void EmbeddedMLSConstraintProcess::ApplyConstraints(
     }
 
     // Loop through all negative nodes of split elements (slave nodes)
-    for (const auto& r_slave : rExtensionOperatorMap) {
+    for (const auto& r_slave : rCloudsMap) {
         const auto p_slave_node = r_slave.first;
         auto& r_ext_op_data = r_slave.second;
         double offset = rOffsetsMap[p_slave_node];
@@ -390,23 +439,22 @@ void EmbeddedMLSConstraintProcess::SetInterfaceFlags()
     }
 }
 
-void EmbeddedMLSConstraintProcess::ReactivateElementsAndNodes()
+void EmbeddedMLSConstraintProcess::ReactivateElementsAndFixNodes()
 {
     // Make intersected elements and their nodes ACTIVE
-    if ( !mDeactivateIntersectedElements ) {
-        for (auto& rElement : mpModelPart->Elements()) {
-            // Check if the element is split
-            const auto& r_geom = rElement.GetGeometry();
-            if (IsSplit(r_geom)) {
-                rElement.Set(ACTIVE, true);
-                for (auto& rNode : r_geom) {
-                    rNode.Set(ACTIVE, true);
-                }
+    for (auto& rElement : mpModelPart->Elements()) {
+        // Check if the element is split
+        const auto& r_geom = rElement.GetGeometry();
+        if (IsSplit(r_geom)) {
+            rElement.Set(ACTIVE, true);
+            for (auto& rNode : r_geom) {
+                rNode.Set(ACTIVE, true);
             }
         }
     }
+        
     // Make negative elements and their nodes ACTIVE
-    if ( !mDeactivateNegativeElements ) {
+    if ( !mNegElemDeactivation ) {
         for (auto& rElement : mpModelPart->Elements()) {
             // Check if the element is negative
             const auto& r_geom = rElement.GetGeometry();
@@ -447,20 +495,40 @@ void EmbeddedMLSConstraintProcess::ReactivateElementsAndNodes()
         // Synchronize the EMBEDDED_IS_ACTIVE variable flag
         mpModelPart->GetCommunicator().AssembleNonHistoricalData(EMBEDDED_IS_ACTIVE);
 
-        const std::array<std::string,4> components = {"PRESSURE","VELOCITY_X","VELOCITY_Y","VELOCITY_Z"};
-
         // Set to zero and fix the DOFs in the remaining inactive nodes
         #pragma omp parallel for
         for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
             auto it_node = rNodes.begin() + i_node;
             if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
-                for (std::size_t i_var = 0; i_var < components.size(); i_var++){
-                    const auto& r_double_var = KratosComponents<Variable<double>>::Get(components[i_var]);
+                for (std::size_t i_var = 0; i_var < mComponents.size(); i_var++){
+                    const auto& r_double_var = KratosComponents<Variable<double>>::Get(mComponents[i_var]);
                     // Fix the nodal DOFs
                     it_node->Fix(r_double_var);
                     // Set to zero the nodal DOFs
                     it_node->FastGetSolutionStepValue(r_double_var) = 0.0;
                 }
+            }
+        }
+    }
+}
+
+void EmbeddedMLSConstraintProcess::RecoverDeactivationPreviousState()
+{
+    // Activate again all the elements
+    #pragma omp parallel for
+    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
+        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+        it_elem->Set(ACTIVE, true);
+    }
+    // Free the negative DOFs that were fixed
+    #pragma omp parallel for
+    for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
+        auto it_node = mrModelPart.NodesBegin() + i_node;
+        if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
+            for (std::size_t i_var = 0; i_var < mComponents.size(); i_var++){
+                const auto& r_double_var = KratosComponents<Variable<double>>::Get(mComponents[i_var]);
+                // Free the nodal DOFs  that were fixed
+                it_node->Free(r_double_var);
             }
         }
     }
@@ -675,7 +743,7 @@ double EmbeddedMLSConstraintProcess::CalculateKernelRadius(
 {
     const std::size_t n_nodes = rCloudCoordinates.size1();
     const double squared_rad = IndexPartition<std::size_t>(n_nodes).for_each<MaxReduction<double>>([&](std::size_t I){
-        return std::pow(rCloudCoordinates(I,0) - rOrigin(0), 2) + std::pow(rCloudCoordinates(I,1) - rOrigin(1), 2) + std::pow(rCloudCoordinates(I,2) - rOrigin(2), 2);
+        return std::pow(rCloudCoordinates(I,0) - rOrigin(0),2) + std::pow(rCloudCoordinates(I,1) - rOrigin(1),2) + std::pow(rCloudCoordinates(I,2) - rOrigin(2),2);
     });
     return std::sqrt(squared_rad);
 }

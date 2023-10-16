@@ -112,17 +112,25 @@ public:
 
     void Execute() override;
 
+    void ExecuteInitialize() override;
+
+    void ExecuteBeforeSolutionLoop() override;
+
+    void ExecuteInitializeSolutionStep() override;
+
+    void ExecuteFinalizeSolutionStep() override;
+
     const Parameters GetDefaultParameters() const override
     {
         const Parameters default_parameters = Parameters(R"({
-            "model_part_name"                 : "",
-            "apply_to_all_negative_cut_nodes" : true,
-            "mls_extension_operator_order"    : 1,
-            "include_intersection_points"     : false,
-            "avoid_zero_distances"            : true,
-            "deactivate_negative_elements"    : true,
-            "deactivate_intersected_elements" : false,
-            "slip_length"                     : 0.0
+            "model_part_name"                   : "",
+            "check_at_each_time_step"           : true,
+            "apply_to_all_negative_cut_nodes"   : true,
+            "mls_extension_operator_order"      : 1,
+            "include_intersection_points"       : false,
+            "avoid_zero_distances"              : true,
+            "deactivate_full_negative_elements" : true,
+            "slip_length"                       : 0.0
         })" );
 
         return default_parameters;
@@ -153,9 +161,7 @@ public:
     }
 
     /// Print object's data.
-    virtual void PrintData(std::ostream& rOStream) const override
-    {
-    }
+    virtual void PrintData(std::ostream& rOStream) const override {}
 
     ///@}
     ///@name Friends
@@ -204,6 +210,10 @@ private:
     ///@{
 
     ModelPart* mpModelPart = nullptr;
+    const std::array<std::string,4> mComponents = {"PRESSURE","VELOCITY_X","VELOCITY_Y","VELOCITY_Z"};
+
+    bool mConstraintsAreCalculated;
+    bool mCheckAtEachStep;
 
     std::size_t mMLSExtensionOperatorOrder;
 
@@ -213,8 +223,7 @@ private:
 
     bool mAvoidZeroDistances;
 
-    bool mDeactivateNegativeElements;
-    bool mDeactivateIntersectedElements;
+    bool mNegElemDeactivation;
 
     ///@}
     ///@name Private Operators
@@ -225,20 +234,22 @@ private:
     ///@{
 
     void CalculateNodeClouds(
-        NodesCloudMapType& rExtensionOperatorMap,
+        NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap);
 
     void CalculateNodeCloudsIncludingBC(
-        NodesCloudMapType& rExtensionOperatorMap,
+        NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap);
 
     void ApplyConstraints(
-        NodesCloudMapType& rExtensionOperatorMap,
+        NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap);
 
     void SetInterfaceFlags();
 
-    void ReactivateElementsAndNodes();
+    void ReactivateElementsAndFixNodes();
+
+    void RecoverDeactivationPreviousState();
 
     void ModifyDistances();
 
