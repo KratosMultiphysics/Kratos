@@ -144,13 +144,9 @@ class CalculateRomBasisOutputProcess(KratosMultiphysics.OutputProcess):
             "projection_strategy": "galerkin",
             "assembling_strategy": "global",
             "rom_format": "numpy",
-            "train_petrov_galerkin": {
-                "train": False,
-                "basis_strategy": "residuals",
-                "include_phi": False,
-                "svd_truncation_tolerance": 1e-6
+            "rom_settings": {
+                "rom_bns_settings": {}
             },
-            "rom_settings": {},
             "hrom_settings": {},
             "nodal_modes": {},
             "elements_and_weights" : {}

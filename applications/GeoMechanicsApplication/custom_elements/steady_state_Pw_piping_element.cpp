@@ -122,7 +122,6 @@ void SteadyStatePwPipingElement<3, 8>::CalculateLength(const GeometryType& Geom)
 }
 
 //----------------------------------------------------------------------------------------
-
 template< unsigned int TDim, unsigned int TNumNodes >
 void SteadyStatePwPipingElement<TDim, TNumNodes>::
 CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
@@ -130,8 +129,6 @@ CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
     const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-
-    // KRATOS_INFO("0-TransientPwInterfaceElement:::CalculateOnIntegrationPoints<double>()") << std::endl;
 
     if (rVariable == PIPE_ACTIVE)
     {
@@ -145,6 +142,7 @@ CalculateOnIntegrationPoints(const Variable<bool>& rVariable,
             rValues[GPoint] = pipe_active;
         }
     }
+
     KRATOS_CATCH("")
 }
 
@@ -174,7 +172,6 @@ CalculateOnIntegrationPoints(const Variable<double>& rVariable,
     }
     KRATOS_CATCH("")
 }
-
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >

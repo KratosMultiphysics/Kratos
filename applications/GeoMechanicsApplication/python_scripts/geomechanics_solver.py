@@ -409,7 +409,7 @@ class GeoMechanicalSolver(PythonSolver):
         if materials_imported:
             KratosMultiphysics.Logger.PrintInfo("::[GeoMechanicalSolver]:: ", "Constitutive law was successfully imported.")
         else:
-            raise Exception("::[GeoMechanicalSolver]:: ", "Constitutive law was not imported.")
+            raise RuntimeError("::[GeoMechanicalSolver]:: Constitutive law was not imported.")
 
     def _SetBufferSize(self):
         required_buffer_size = max( self.settings["buffer_size"].GetInt(), self.GetMinimumBufferSize())
@@ -423,14 +423,14 @@ class GeoMechanicalSolver(PythonSolver):
         delta_time  = self.main_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         step        = self.main_model_part.ProcessInfo[KratosMultiphysics.STEP]
 
-        step = step - (buffer_size-1)*1
+        step -= (buffer_size - 1)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-        time = time - (buffer_size-1)*delta_time
+        time -= ((buffer_size - 1) * delta_time)
         self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.TIME, time)
-        for i in range(buffer_size-1):
-            step = step + 1
+        for _ in range(buffer_size - 1):
+            step += 1
             self.main_model_part.ProcessInfo.SetValue(KratosMultiphysics.STEP, step)
-            time = time + delta_time
+            time += delta_time
             self.main_model_part.CloneTimeStep(time)
 
     def _ConstructLinearSolver(self):
@@ -539,6 +539,6 @@ class GeoMechanicalSolver(PythonSolver):
                                                                               move_mesh_flag)
 
         else:
-            raise Exception("Undefined strategy type", strategy_type)
+            raise RuntimeError(f"Undefined strategy type '{strategy_type}'")
 
         return solving_strategy
