@@ -202,6 +202,10 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             mpTimeLoopExecutor->SetTimeIncrementor(MakeTimeIncrementor(project_parameters));
             mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters,
                                                                              rWorkingDirectory));
+            // For now, pass a dummy state. THIS PROBABLY NEEDS TO BE REFINED AT SOME POINT!
+            TimeStepEndState dummy_state;
+            dummy_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
+            mpTimeLoopExecutor->Run(dummy_state);
         }
 
         FlushLoggingOutput(rLogCallback, logger_output, kratos_log_buffer);
