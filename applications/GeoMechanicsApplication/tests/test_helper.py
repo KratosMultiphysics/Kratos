@@ -147,7 +147,7 @@ def get_hydraulic_discharge(simulation):
     return get_nodal_variable(simulation, KratosGeo.HYDRAULIC_DISCHARGE)
 
 
-def get_nodal_variable(simulation, variable):
+def get_nodal_variable(simulation, variable, node_ids=None):
     """
     Gets values of a give nodal variable from kratos simulation
     :param simulation:
@@ -155,9 +155,9 @@ def get_nodal_variable(simulation, variable):
     """
 
     nodes = simulation._list_of_output_processes[0].model_part.Nodes
-    values = [node.GetSolutionStepValue(variable) for node in nodes]
-
-    return values
+    if node_ids:
+        nodes = [node for node in nodes if node.Id in node_ids]
+    return [node.GetSolutionStepValue(variable) for node in nodes]
 
 
 def get_nodal_variable_from_ascii(filename: str, variable: str):

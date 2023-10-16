@@ -241,7 +241,7 @@ public:
         rA.GlobalAssemble();
         rb.GlobalAssemble();
 
-        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time: " << build_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time: " << build_timer << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -295,7 +295,7 @@ public:
         // Finalizing the assembly
         rA.GlobalAssemble();
 
-        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time LHS: " << build_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >= 1) << "Build time LHS: " << build_timer << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -385,7 +385,7 @@ public:
             START_TIMER("ApplyConstraints", 0)
             ApplyConstraints(pScheme, rModelPart, rA, rb);
             STOP_TIMER("ApplyConstraints", 0)
-            KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints.ElapsedSeconds() << std::endl;
+            KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "Constraints build time: " << timer_constraints << std::endl;
         }
 
         // Apply dirichlet conditions
@@ -402,7 +402,7 @@ public:
 
         SystemSolveWithPhysics(rA, rDx, rb, rModelPart);
 
-        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer << std::endl;
 
         STOP_TIMER("Solve", 0)
 
@@ -445,7 +445,7 @@ public:
 
         STOP_TIMER("Solve", 0)
 
-        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer.ElapsedSeconds() << std::endl;
+        KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", BaseType::GetEchoLevel() >=1) << "System solve time: " << solve_timer << std::endl;
 
         KRATOS_INFO_IF("TrilinosBlockBuilderAndSolver", ( this->GetEchoLevel() == 3)) << "After the solution of the system" << "\nSystem Matrix = " << rA << "\nUnknowns vector = " << rDx << "\nRHS vector = " << rb << std::endl;
 
