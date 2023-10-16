@@ -425,6 +425,19 @@ protected:
         VectorType& rRHS,
         const EmbeddedElementData& rData) const;
 
+    /**
+    * This functions applies the elemental master slave constraints for the negative nodes of a cut element (slaves), 
+    * which have one of the element's nodes as their master.
+    * Therefore, LHS and RHS are multiplied by the relation matrix T, which contains the weights of the master nodes.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void ApplyMasterSlaveConstraints(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
     ///@}
     ///@name Protected Operations
     ///@{

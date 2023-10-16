@@ -10,6 +10,7 @@
 //  Main authors:    Jordi Cotela
 //
 
+#include <cstddef>
 #if !defined(KRATOS_EMBEDDED_DATA_H)
 #define KRATOS_EMBEDDED_DATA_H
 
@@ -43,6 +44,7 @@ typedef std::vector<array_1d<double,3>> InterfaceNormalsType;
 ///@{
 
 bool IsSlip;
+bool ApplyConstraints;
 bool ApplyNitscheBoundaryImposition;
 
 double SlipLength;
@@ -65,6 +67,11 @@ std::vector< size_t > NegativeIndices;
 size_t NumPositiveNodes;
 size_t NumNegativeNodes;
 
+//Matrix ConstraintMasterWeights;
+size_t BlockSize;
+size_t LocalConstraintSize;
+//BoundedMatrix<double, LocalSize, LocalSize> ConstraintRelationMatrix;
+
 ///@}
 ///@name Public Operations
 ///@{
@@ -81,6 +88,7 @@ void Initialize(
     NumNegativeNodes = 0;
 
     IsSlip = rElement.Is(SLIP) ? true : false;
+    ApplyConstraints = rElement.Is(APPLY_CONSTRAINTS) ? true : false;
 }
 
 /**
@@ -96,6 +104,20 @@ void InitializeBoundaryConditionData(const ProcessInfo &rProcessInfo)
     }
     this->FillFromProcessInfo(PenaltyCoefficient, PENALTY_COEFFICIENT, rProcessInfo);
     this->FillFromProcessInfo(ApplyNitscheBoundaryImposition, APPLY_NITSCHE_BOUNDARY_IMPOSITION, rProcessInfo);
+}
+
+/* @brief
+ * This method needs to be called in cut elements where constraints on the negative nodes are to be applied
+ */
+void InitializeConstraintData() 
+{
+    // TODO Get master IDs and their weights for all negative node IDs of a cut element
+    // TODO Unique set of node IDs to define LocalConstraintSize and for resizing LHS and RHS
+
+    // NOTE: LocalConstraintSize only differs from LocalSize for MLSConstraints, not for LocalConstraints
+    LocalConstraintSize = TFluidData::NumNodes * BlockSize;
+
+    // TODO Create/ update/ keep relation matrix??
 }
 
 static int Check(const Element& rElement, const ProcessInfo& rProcessInfo)

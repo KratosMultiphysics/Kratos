@@ -11,6 +11,7 @@
 
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
+#include <algorithm>
 
 namespace Kratos {
 
@@ -124,7 +125,7 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
 
         // Add the boundary condition imposition terms
         data.InitializeBoundaryConditionData(rCurrentProcessInfo);
-        if (data.ApplyNitscheBoundaryImposition){
+        if (data.ApplyNitscheBoundaryImposition) {
             if (this->Is(SLIP)){
                 // Nitsche Navier-Slip boundary condition implementation (Winter, 2018)
                 AddSlipNormalPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
@@ -134,11 +135,33 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
             } else {
                 // First, compute and assemble the penalty level set BC imposition contribution
                 // Secondly, compute and assemble the modified Nitsche method level set BC imposition contribution (Codina and Baiges, 2009)
-                // Note that the Nistche contribution has to be computed the last since it drops the outer nodes rows previous constributions
+                // Note that the Nitshe contribution has to be computed the last since it drops the outer nodes rows previous constributions
                 AddBoundaryConditionPenaltyContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
                 DropOuterNodesVelocityContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
                 AddBoundaryConditionModifiedNitscheContribution(rLeftHandSideMatrix, rRightHandSideVector, data);
             }
+        }
+
+        // Because only negative nodes of cut elements are constrained only cut elements provide relevant stiffness contributions
+        // NOTE: Constraints have to be applied as the last step of the calculation of the local system
+        if (data.ApplyConstraints) {
+            data.BlockSize = BlockSize;
+            data.InitializeConstraintData();
+
+            // Expand LHS and RHS to contain master nodes
+            // NOTE no expansion needed for LocalConstraints
+            BoundedMatrix<double, LocalSize, LocalSize> aux_LHS = rLeftHandSideMatrix;
+            BoundedVector<double, LocalSize> aux_RHS = rRightHandSideVector;
+            rLeftHandSideMatrix.resize(data.LocalConstraintSize, data.LocalConstraintSize, false);
+            rRightHandSideVector.resize(data.LocalConstraintSize, false);
+            noalias(rLeftHandSideMatrix) = ZeroMatrix(data.LocalConstraintSize, data.LocalConstraintSize);
+            noalias(rRightHandSideVector) = ZeroVector(data.LocalConstraintSize);
+            // TODO insert auxillary LHS and RHS into current one
+
+            // Use master weights in relation matrix to apply master-slave constraints of the interface to the local system
+            ApplyMasterSlaveConstraints(rLeftHandSideMatrix, rRightHandSideVector, data);
+
+            //TODO how to return different matrix size and equation IDs to strategy?? (residual 0,based NR)
         }
     }
 }
@@ -961,6 +984,22 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
     }
 
     noalias(rRHS) += prod(nitsche_lhs, embedded_vel_exp);
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::ApplyMasterSlaveConstraints(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const EmbeddedElementData& rData) {  // TODO const??
+
+    //TODO: create relation matrix?
+    BoundedMatrix<double, data.LocalConstraintSize, data.LocalConstraintSize> T = ZeroMatrix(data.LocalConstraintSize, data.LocalConstraintSize);
+
+    // Multiply LHS and RHS by relation matrix T of element to apply constraints 
+    const BoundedMatrix<double, data.LocalConstraintSize, data.LocalConstraintSize> aux_LHS = prod( trans(T), prod(rLHS, T) );
+    const BoundedVector<double, data.LocalConstraintSize> aux_RHS = prod( trans(T), rRHS );
+    noalias(rLHS) = aux_LHS;
+    noalias(rRHS) = aux_RHS;
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////
