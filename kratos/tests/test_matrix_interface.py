@@ -1,6 +1,8 @@
 ﻿import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics as KM
 
+import numpy
+
 class TestMatrixInterface(KratosUnittest.TestCase):
 
     def test_len(self):
@@ -147,6 +149,57 @@ class TestMatrixInterface(KratosUnittest.TestCase):
         for i in range(D.Size1()):
             for j in range(D.Size2()):
                 self.assertEqual(D[i,j], i + (j*0.1))
+
+    def test_buffer_protocol(self) -> None:
+        # + ------------ +
+        # |  0  1  2  3  |
+        # |  4  5  6  7  |
+        # |  8  9 10 11  |
+        # | 12 13 14 15  |
+        # | 16 17 18 19  |
+        # + ------------ +
+        numpy_matrix = numpy.arange(20.0, dtype=numpy.float64).reshape((5, 4))
+
+        # Test default casting
+        kratos_matrix = KM.Matrix(numpy_matrix)
+        reference_matrix = KM.Matrix([[ 0.0,  1.0,  2.0,  3.0],
+                                      [ 4.0,  5.0,  6.0,  7.0],
+                                      [ 8.0,  9.0, 10.0, 11.0],
+                                      [12.0, 13.0, 14.0, 15.0],
+                                      [16.0, 17.0, 18.0, 19.0]])
+        self.assertMatrixAlmostEqual(kratos_matrix, reference_matrix)
+
+        # Test slicing
+        # + ------ +
+        # |  5  6  |
+        # |  9 10  |
+        # | 13 14  |
+        # + ------ +
+        sliced_numpy_matrix = numpy_matrix[1:4,1:3]
+        kratos_matrix = KM.Matrix(sliced_numpy_matrix)
+        reference_matrix = KM.Matrix([[ 5.0,  6.0],
+                                      [ 9.0, 10.0],
+                                      [13.0, 14.0]])
+        self.assertMatrixAlmostEqual(kratos_matrix, reference_matrix)
+
+        # Test slicing with steps
+        # + ----- +
+        # |  1  3 |
+        # | 13 15 |
+        # + ----- +
+        sliced_numpy_matrix = numpy_matrix[0::3, 1::2]
+        kratos_matrix = KM.Matrix(sliced_numpy_matrix)
+        reference_matrix = KM.Matrix([[ 1.0,  3.0],
+                                      [13.0, 15.0]])
+        self.assertMatrixAlmostEqual(kratos_matrix, reference_matrix)
+
+        # Test empty slice
+        # ++
+        # ++
+        sliced_numpy_matrix = numpy_matrix[10:10,20:20]
+        kratos_matrix = KM.Matrix(sliced_numpy_matrix)
+        reference_matrix = KM.Matrix([])
+        self.assertMatrixAlmostEqual(kratos_matrix, reference_matrix)
 
     def test_list_of_list_construction_error_hand(self):
         with self.assertRaisesRegex(RuntimeError, r'Error: Wrong size of a row 1! Expected 2, got 3'):

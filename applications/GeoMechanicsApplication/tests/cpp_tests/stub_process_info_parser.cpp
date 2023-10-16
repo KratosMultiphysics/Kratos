@@ -46,7 +46,7 @@ R"({
 })";
 
 const std::vector<ProcessParameters> process_list =
-{ProcessParameters{"ApplyVectorConstraintsTableProcess", Parameters{vector_parameter_string}},
+{ProcessParameters{"ApplyVectorConstraintTableProcess", Parameters{vector_parameter_string}},
  ProcessParameters{"SetParameterFieldProcess", Parameters{parameter_field_string}},
  ProcessParameters{"ApplyExcavationProcess", Parameters{excavation_string}},
  ProcessParameters{"ApplyK0ProcedureProcess", Parameters{k0_string}}};
