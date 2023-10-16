@@ -36,7 +36,7 @@ BoundingBox<Point> SearchWrapper<TSearchObject, TObjectType>::GetBoundingBox() c
     auto& r_max = bb.GetMaxPoint();
     auto& r_min = bb.GetMinPoint();
 
-    const auto& r_local_bb = mSearchObject->GetBoundingBox();
+    const auto& r_local_bb = mpSearchObject->GetBoundingBox();
     const auto& r_local_max = r_local_bb.GetMaxPoint();
     const auto& r_local_min = r_local_bb.GetMinPoint();
 
@@ -156,7 +156,7 @@ void SearchWrapper<TSearchObject, TObjectType>::SerialSearchInRadius(
 {
     // Search
     std::vector<ResultType> results;
-    mSearchObject->SearchInRadius(rPoint, Radius, results);
+    mpSearchObject->SearchInRadius(rPoint, Radius, results);
     for (auto& r_result : results) {
         rResults.AddResult(r_result);
     }
@@ -179,7 +179,7 @@ void SearchWrapper<TSearchObject, TObjectType>::SerialSearchNearestInRadius(
     )
 {
     // Search
-    auto result = mSearchObject->SearchNearestInRadius(rPoint, Radius);
+    auto result = mpSearchObject->SearchNearestInRadius(rPoint, Radius);
     rResults.AddResult(result);
 
     // Synchronize if needed
@@ -199,7 +199,7 @@ void SearchWrapper<TSearchObject, TObjectType>::SerialSearchNearest(
     )
 {
     // Search
-    auto result = mSearchObject->SearchNearest(rPoint);
+    auto result = mpSearchObject->SearchNearest(rPoint);
     rResults.AddResult(result);
 
     // Synchronize if needed
@@ -219,7 +219,7 @@ void SearchWrapper<TSearchObject, TObjectType>::SerialSearchIsInside(
     )
 {
     // Search
-    auto result = mSearchObject->SearchIsInside(rPoint);
+    auto result = mpSearchObject->SearchIsInside(rPoint);
     rResults.AddResult(result);
 
     // Synchronize if needed
@@ -230,6 +230,7 @@ void SearchWrapper<TSearchObject, TObjectType>::SerialSearchIsInside(
 
 /***********************************************************************************/
 /***********************************************************************************/
+#ifdef KRATOS_USING_MPI
 
 template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchInRadius(
@@ -240,7 +241,7 @@ void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchInRadius(
     )
 {
     // Check if the point is inside the set
-    if (SearchUtilities::PointIsInsideBoundingBox(mSearchObject->GetBoundingBox(), rPoint, Radius)) {
+    if (SearchUtilities::PointIsInsideBoundingBox(mpSearchObject->GetBoundingBox(), rPoint, Radius)) {
         // Call local search
         SerialSearchInRadius(rPoint, Radius, rResults, false);
     }
@@ -269,9 +270,9 @@ void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchNearestInRadius
     const int current_rank = GetRank();
 
     // Check if the point is inside the set
-    if (SearchUtilities::PointIsInsideBoundingBox(mSearchObject->GetBoundingBox(), rPoint, Radius)) {
+    if (SearchUtilities::PointIsInsideBoundingBox(mpSearchObject->GetBoundingBox(), rPoint, Radius)) {
         // Call local search
-        local_result = mSearchObject->SearchNearestInRadius(rPoint, Radius);
+        local_result = mpSearchObject->SearchNearestInRadius(rPoint, Radius);
     }
 
     /* Now sync results between partitions */
@@ -336,9 +337,9 @@ void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchIsInside(
 
     // Check if the point is inside the set
     int computed_rank = std::numeric_limits<int>::max();
-    if (SearchUtilities::PointIsInsideBoundingBox(mSearchObject->GetBoundingBox(), rPoint)) {
+    if (SearchUtilities::PointIsInsideBoundingBox(mpSearchObject->GetBoundingBox(), rPoint)) {
         // Call local search
-        local_result = mSearchObject->SearchIsInside(rPoint);
+        local_result = mpSearchObject->SearchIsInside(rPoint);
 
         // Set current rank
         computed_rank = current_rank;
@@ -362,6 +363,8 @@ void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchIsInside(
     }
 }
 
+#endif
+
 /***********************************************************************************/
 /***********************************************************************************/
 
@@ -383,30 +386,35 @@ int SearchWrapper<TSearchObject, TObjectType>::GetWorldSize() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+#ifdef KRATOS_USING_MPI
+
 template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::InitializeGlobalBoundingBoxes()
 {
-    // We get the world size
-    const int world_size = GetWorldSize();
+    // Just executed in MPI
+    if (mrDataCommunicator.IsDistributed()) {
+        // We get the world size
+        const int world_size = GetWorldSize();
 
-    // Set up the global bounding boxes
-    if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*world_size) {
-        mGlobalBoundingBoxes.resize(6*world_size);
+        // Set up the global bounding boxes
+        if (static_cast<int>(mGlobalBoundingBoxes.size()) != 6*world_size) {
+            mGlobalBoundingBoxes.resize(6*world_size);
+        }
+
+        // Set up the local bounding boxes
+        std::vector<double> local_bounding_box(6);
+        const auto& r_bb = mpSearchObject->GetBoundingBox();
+        const auto& r_max = r_bb.GetMaxPoint();
+        const auto& r_min = r_bb.GetMinPoint();
+        for (int i = 0; i < 3; ++i) {
+            local_bounding_box[2 * i] = r_max[i];
+            local_bounding_box[2 * i + 1] = r_min[i];
+        }
+
+        MPI_Allgather(local_bounding_box.data(),   6, MPI_DOUBLE,
+                    mGlobalBoundingBoxes.data(), 6, MPI_DOUBLE,
+                    MPI_COMM_WORLD);
     }
-
-    // Set up the local bounding boxes
-    std::vector<double> local_bounding_box(6);
-    const auto& r_bb = mSearchObject->GetBoundingBox();
-    const auto& r_max = r_bb.GetMaxPoint();
-    const auto& r_min = r_bb.GetMinPoint();
-    for (int i = 0; i < 3; ++i) {
-        local_bounding_box[2 * i] = r_max[i];
-        local_bounding_box[2 * i + 1] = r_min[i];
-    }
-
-    MPI_Allgather(local_bounding_box.data(),   6, MPI_DOUBLE,
-                  mGlobalBoundingBoxes.data(), 6, MPI_DOUBLE,
-                  MPI_COMM_WORLD);
 }
 
 /***********************************************************************************/
@@ -459,6 +467,8 @@ std::vector<int> SearchWrapper<TSearchObject, TObjectType>::RansksPointIsInsideB
 
     return ranks;
 }
+
+#endif
 
 /***********************************************************************************/
 /***********************************************************************************/

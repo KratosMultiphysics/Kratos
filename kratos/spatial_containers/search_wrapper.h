@@ -88,11 +88,13 @@ public:
     {
         // Create base search object
         if constexpr (std::is_same_v<TSearchObject, GeometricalObjectsBins>) {
-            mSearchObject = Kratos::make_shared<TSearchObject>(GeometricalObjectsBegin, GeometricalObjectsEnd);
+            mpSearchObject = Kratos::make_shared<TSearchObject>(GeometricalObjectsBegin, GeometricalObjectsEnd);
         }
 
+    #ifdef KRATOS_USING_MPI
         // Set up the global bounding boxes
         InitializeGlobalBoundingBoxes();
+    #endif
     }
 
     /**
@@ -160,24 +162,16 @@ public:
         const bool ClearSolution = true
         )
     {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-
-        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
-
-        // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
-
-        // Perform the corresponding searches
-        const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
-            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_node);
-            this->SearchInRadius(point, Radius, r_partial_result);
-        }
+#ifdef KRATOS_USING_MPI
+    // Call distributed version
+    if (mrDataCommunicator.IsDistributed()) {
+        DistributedSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+    } else { // Call serial version
+        SerialSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+    }
+#else // Calling just serial method
+    SerialSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+#endif
     }
 
     /**
@@ -218,25 +212,16 @@ public:
         const bool ClearSolution = true
         )
     {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-
-        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
-
-        // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
-
-        // Perform the corresponding searches
-        const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
-            // Perform local search
-            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_node);
-            this->SearchNearestInRadius(point, Radius, r_partial_result);
-        }
+#ifdef KRATOS_USING_MPI
+    // Call distributed version
+    if (mrDataCommunicator.IsDistributed()) {
+        DistributedSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+    } else { // Call serial version
+        SerialSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+    }
+#else // Calling just serial method
+    SerialSearchNearestInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
+#endif
     }
 
     /**
@@ -271,25 +256,16 @@ public:
         const bool ClearSolution = true
         )
     {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-        
-        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
-
-        // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
-
-        // Perform the corresponding searches
-        const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
-            // Perform local search
-            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_node);
-            this->SearchNearest(point, r_partial_result);
-        }
+#ifdef KRATOS_USING_MPI
+    // Call distributed version
+    if (mrDataCommunicator.IsDistributed()) {
+        DistributedSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
+    } else { // Call serial version
+        SerialSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
+    }
+#else // Calling just serial method
+    SerialSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
+#endif
     }
 
     /**
@@ -328,25 +304,16 @@ public:
         const bool ClearSolution = true
         )
     {
-        // Clear current solution
-        if (ClearSolution) {
-            rResults.Clear();
-        }
-        
-        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
-
-        // Prepare MPI search
-        std::vector<double> all_points_coordinates;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
-
-        // Perform the corresponding searches
-        const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
-            // Perform local search
-            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_node);
-            this->SearchIsInside(point, r_partial_result);
-        }
+#ifdef KRATOS_USING_MPI
+    // Call distributed version
+    if (mrDataCommunicator.IsDistributed()) {
+        DistributedSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution);
+    } else { // Call serial version
+        SerialSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution);
+    }
+#else // Calling just serial method
+    SerialSearchIsInside(itPointBegin, itPointEnd, rResults, ClearSolution);
+#endif
     }
 
     ///@}
@@ -379,7 +346,7 @@ public:
     void PrintData(std::ostream& rOStream) const
     {
         rOStream << "Local Search for Rank " << GetRank() + 1 << "/" << GetWorldSize() << "\n";
-        mSearchObject->PrintData(rOStream);
+        mpSearchObject->PrintData(rOStream);
     }
 
     ///@}
@@ -395,11 +362,13 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename TSearchObject::Pointer mSearchObject; /// The pointer to the base search considered
+    typename TSearchObject::Pointer mpSearchObject; /// The pointer to the base search considered
 
-    std::vector<double> mGlobalBoundingBoxes;      /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
+#ifdef KRATOS_USING_MPI
+    std::vector<double> mGlobalBoundingBoxes;       /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
+#endif
 
-    const DataCommunicator& mrDataCommunicator;    /// The data communicator
+    const DataCommunicator& mrDataCommunicator;     /// The data communicator
 
     ///@}
     ///@name Private Operators
@@ -420,6 +389,8 @@ private:
      * @return The world size
      */
     int GetWorldSize() const;
+
+#ifdef KRATOS_USING_MPI
 
     /**
      * @brief Initializes the global bounding boxes
@@ -444,6 +415,8 @@ private:
         const double Tolerance
         );
 
+#endif
+
     /**
      * @brief This method takes a point and finds all of the objects in the given radius to it (serial version).
      * @details The result contains the object and also its distance to the point.
@@ -458,6 +431,41 @@ private:
         ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
+
+    /**
+     * @brief This method takes a point and finds all of the objects in the given radius to it (iterative version) (serial version).
+     * @details The result contains the object and also its distance to the point.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @param Radius The radius to be checked
+     * @param rResults The results of the search
+     * @param ClearSolution Clear the current solution
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    void SerialSearchInRadius(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const double Radius,
+        ResultContainerVectorType& rResults, 
+        const bool ClearSolution = true
+        )
+    {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
+        // Adding the results to the container
+        std::size_t counter = 0;
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+            auto& r_partial_result = rResults.InitializeResult(counter);
+            SerialSearchInRadius(*it_point, Radius, r_partial_result);
+
+            // Update counter
+            ++counter;
+        }
+    }
 
     /**
      * @brief This method takes a point and finds the nearest object to it in a given radius (serial version).
@@ -477,6 +485,47 @@ private:
         );
 
     /**
+     * @brief This method takes a point and finds the nearest object to it in a given radius (iterative version) (serial version).
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * If there are no objects in that radius the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @param Radius The radius to be checked
+     * @param rResults The result of the search
+     * @param ClearSolution Clear the current solution
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    void SerialSearchNearestInRadius(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const double Radius,
+        ResultContainerVectorType& rResults, 
+        const bool ClearSolution = true
+        )
+    {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
+        // Adding the results to the container
+        std::size_t counter = 0;
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+            auto& r_point_result = rResults.InitializeResult(counter);
+            auto result = mpSearchObject->SearchNearestInRadius(*it_point, Radius);
+            r_point_result.AddResult(result);
+            
+            // Synchronize
+            r_point_result.SynchronizeAll(mrDataCommunicator);
+
+            // Update counter
+            ++counter;
+        }
+    }
+
+    /**
      * @brief This method takes a point and finds the nearest object to it (serial version).
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
@@ -489,6 +538,44 @@ private:
         ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
+
+    /**
+     * @brief This method takes a point and finds the nearest object to it (iterative version)  (serial version).
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * Result contains a flag is the object has been found or not.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @param rResults The result of the search
+     * @param ClearSolution Clear the current solution
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    void SerialSearchNearest(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        ResultContainerVectorType& rResults, 
+        const bool ClearSolution = true
+        )
+    {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
+        // Adding the results to the container
+        std::size_t counter = 0;
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+            auto& r_point_result = rResults.InitializeResult(counter);
+            auto result = mpSearchObject->SearchNearest(*it_point);
+            r_point_result.AddResult(result);
+            
+            // Synchronize
+            r_point_result.SynchronizeAll(mrDataCommunicator);
+            
+            // Update counter
+            ++counter;
+        }
+    }
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain (serial version).
@@ -508,6 +595,48 @@ private:
 
 
     /**
+     * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version)  (serial version).
+     * @details If it is inside an object, it returns it, and search distance is set to zero.
+     * If there is no object, the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * This method is a simplified and faster method of SearchNearest.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @param rResults The result of the search
+     * @param ClearSolution Clear the current solution
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    void SerialSearchIsInside(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        ResultContainerVectorType& rResults, 
+        const bool ClearSolution = true
+        )
+    {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
+        // Adding the results to the container
+        std::size_t counter = 0;
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
+            auto& r_point_result = rResults.InitializeResult(counter);
+            auto result = mpSearchObject->SearchIsInside(*it_point);
+            r_point_result.AddResult(result);
+
+            // Synchronize
+            r_point_result.SynchronizeAll(mrDataCommunicator);
+
+            // Update counter
+            ++counter;
+        }
+    }
+
+#ifdef KRATOS_USING_MPI
+
+    /**
      * @brief This method takes a point and finds all of the objects in the given radius to it (MPI version).
      * @details The result contains the object and also its distance to the point.
      * @param rPoint The point to be checked
@@ -521,6 +650,45 @@ private:
         ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
+
+    /**
+     * @brief This method takes a point and finds all of the objects in the given radius to it (MPI version).
+     * @details The result contains the object and also its distance to the point.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @param Radius The radius to be checked
+     * @param rResults The results of the search
+     * @param ClearSolution Clear the current solution
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    void DistributedSearchInRadius(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const double Radius,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
+        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
+
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
+
+        // Perform the corresponding searches
+        const int total_number_of_points = all_points_coordinates.size()/3;
+        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            auto& r_partial_result = rResults.InitializeResult(i_node);
+            this->SearchInRadius(point, Radius, r_partial_result);
+        }
+    }
 
     /**
      * @brief This method takes a point and finds the nearest object to it in a given radius (MPI version).
@@ -540,6 +708,48 @@ private:
         );
 
     /**
+     * @brief This method takes a point and finds the nearest object to it in a given radius (MPI version).
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * If there are no objects in that radius the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @param Radius The radius to be checked
+     * @param rResults The results of the search
+     * @param ClearSolution Clear the current solution
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    void DistributedSearchNearestInRadius(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        const double Radius,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+
+        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
+
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
+
+        // Perform the corresponding searches
+        const int total_number_of_points = all_points_coordinates.size()/3;
+        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+            // Perform local search
+            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            auto& r_partial_result = rResults.InitializeResult(i_node);
+            this->SearchNearestInRadius(point, Radius, r_partial_result);
+        }
+    }
+
+    /**
      * @brief This method takes a point and finds the nearest object to it (MPI version).
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
@@ -552,6 +762,45 @@ private:
         ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
+
+    /**
+     * @brief This method takes a point and finds the nearest object to it (MPI version).
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * Result contains a flag is the object has been found or not.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @param rResults The results of the search
+     * @param ClearSolution Clear the current solution
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    void DistributedSearchNearest(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+        
+        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
+
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
+
+        // Perform the corresponding searches
+        const int total_number_of_points = all_points_coordinates.size()/3;
+        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+            // Perform local search
+            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            auto& r_partial_result = rResults.InitializeResult(i_node);
+            this->SearchNearest(point, r_partial_result);
+        }
+    }
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain (MPI version).
@@ -568,6 +817,49 @@ private:
         ResultContainerType& rResults,
         const bool SyncronizeResults = true
         );
+
+    /**
+     * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version) (MPI version).
+     * @details If it is inside an object, it returns it, and search distance is set to zero.
+     * If there is no object, the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * This method is a simplified and faster method of SearchNearest.
+     * @param itPointBegin The first point iterator
+     * @param itPointEnd The last point iterator
+     * @param rResults The results of the search
+     * @param ClearSolution Clear the current solution
+     * @tparam TPointIteratorType The type of the point iterator
+     */
+    template<typename TPointIteratorType>
+    void DistributedSearchIsInside(
+        TPointIteratorType itPointBegin,
+        TPointIteratorType itPointEnd,
+        ResultContainerVectorType& rResults,
+        const bool ClearSolution = true
+        )
+    {
+        // Clear current solution
+        if (ClearSolution) {
+            rResults.Clear();
+        }
+        
+        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
+
+        // Prepare MPI search
+        std::vector<double> all_points_coordinates;
+        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
+
+        // Perform the corresponding searches
+        const int total_number_of_points = all_points_coordinates.size()/3;
+        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+            // Perform local search
+            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
+            auto& r_partial_result = rResults.InitializeResult(i_node);
+            this->SearchIsInside(point, r_partial_result);
+        }
+    }
+
+#endif
 
     ///@}
     ///@name Private  Access
