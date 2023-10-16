@@ -676,6 +676,7 @@ private:
         }
 
         // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
+        // NOTE: Once you do that you don't require to check that all nodes are the same (it is one node per local partition)
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -734,6 +735,7 @@ private:
         }
 
         // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
+        // NOTE: Once you do that you don't require to check that all nodes are the same (it is one node per local partition)
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -787,6 +789,7 @@ private:
         }
         
         // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
+        // NOTE: Once you do that you don't require to check that all nodes are the same (it is one node per local partition)
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -844,6 +847,7 @@ private:
         }
         
         // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
+        // NOTE: Once you do that you don't require to check that all nodes are the same (it is one node per local partition)
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
