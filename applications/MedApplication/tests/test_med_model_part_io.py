@@ -164,11 +164,49 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
 
         self._execute_tests("hexahedral_8N", mp_check_fct, True)
 
+    def test_hexahedra_20N_quadratic_mesh(self):
+        def mp_check_fct(model_part):
+            self.assertEqual(model_part.NumberOfNodes(), 36)
+
+            exp_coords = [
+                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
+            ]
+
+            for coords, node in zip(exp_coords, model_part.Nodes):
+                self.assertAlmostEqual(node.X, coords[0])
+                self.assertAlmostEqual(node.X0, coords[0])
+                self.assertAlmostEqual(node.Y, coords[1])
+                self.assertAlmostEqual(node.Y0, coords[1])
+                self.assertAlmostEqual(node.Z, coords[2])
+                self.assertAlmostEqual(node.Z0, coords[2])
+
+        self._execute_tests("hexahedral_20N", mp_check_fct, True)
+
+    def test_hexahedra_27N_biquadratic_mesh(self):
+        def mp_check_fct(model_part):
+            self.assertEqual(model_part.NumberOfNodes(), 36)
+
+            exp_coords = [
+                (0,0,0), (0,0,1),(0,1,1),(1,1,1)
+            ]
+
+            for coords, node in zip(exp_coords, model_part.Nodes):
+                self.assertAlmostEqual(node.X, coords[0])
+                self.assertAlmostEqual(node.X0, coords[0])
+                self.assertAlmostEqual(node.Y, coords[1])
+                self.assertAlmostEqual(node.Y0, coords[1])
+                self.assertAlmostEqual(node.Z, coords[2])
+                self.assertAlmostEqual(node.Z0, coords[2])
+
+        self._execute_tests("hexahedral_27N", mp_check_fct, True)
+
 def write_vtk(model_part, name):
+    # using the modeler to create elements for visualization,
+    # until the vtk-output supports geometries directly
     modeler_parameters = KM.Parameters("""{
         "elements_list" : [{
             "model_part_name" : "read_1",
-            "element_name" : "Element2D3N;Element2D4N;Element3D4N;Element3D8N;Element3D10N"
+            "element_name" : "Element2D3N;Element2D4N;Element3D4N;Element3D8N;Element3D10N;Element3D20N;Element3D27N"
         }]
     }""")
     modeler = KM.CreateEntitiesFromGeometriesModeler(model_part.GetModel(), modeler_parameters)
