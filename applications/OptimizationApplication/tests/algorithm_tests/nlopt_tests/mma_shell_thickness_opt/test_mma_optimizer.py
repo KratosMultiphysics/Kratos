@@ -5,12 +5,11 @@ from KratosMultiphysics.OptimizationApplication.optimization_analysis import Opt
 import csv, os
 
 try:
-    import nlopt # noqa
-    nlopt_available = True
+    import nlopt
 except ImportError:
-    nlopt_available = False
+    nlopt = None
 
-@kratos_unittest.skipIf(not nlopt_available, "Missing nlopt python libraries ")
+@kratos_unittest.skipIf(nlopt==None, "Missing nlopt python libraries ")
 class TestNLOPTOptimizer(kratos_unittest.TestCase):
     def test_MMA_optimizer(self):
         with kratos_unittest.WorkFolderScope(".", __file__):
