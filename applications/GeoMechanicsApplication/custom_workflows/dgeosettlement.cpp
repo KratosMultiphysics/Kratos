@@ -184,6 +184,8 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             auto& model_part = AddNewModelPart(model_part_name);
             const auto mesh_file_name = project_parameters["solver_settings"]["model_import_settings"]["input_filename"].GetString();
             mpInputUtility->ReadModelFromFile(rWorkingDirectory / mesh_file_name, model_part);
+            AddDegreesOfFreedomTo(model_part);
+            KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
         }
 
         if (project_parameters["solver_settings"].Has("material_import_settings")) {
@@ -231,9 +233,6 @@ ModelPart& KratosGeoSettlement::AddNewModelPart(const std::string& rModelPartNam
 
     AddNodalSolutionStepVariablesTo(result);
     KRATOS_INFO("KratosGeoSettlement") << "Added nodal solution step variables" << std::endl;
-
-    AddDegreesOfFreedomTo(result);
-    KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
 
     return result;
 }
