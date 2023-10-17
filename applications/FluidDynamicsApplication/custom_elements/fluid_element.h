@@ -239,7 +239,7 @@ public:
      * @param rMassMatrix Local mass matrix (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    virtual void CalculateMassMatrix(
+    void CalculateMassMatrix(
         MatrixType &rMassMatrix,
         const ProcessInfo &rCurrentProcessInfo) override;
 
