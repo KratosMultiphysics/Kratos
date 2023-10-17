@@ -675,18 +675,16 @@ private:
             rResults.Clear();
         }
 
-        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
-        // NOTE: Once you do that you don't require to check that all nodes are the same (it is one node per local partition)
-
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
+        std::vector<IndexType> all_points_ids;
+        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_point);
+            auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
             this->SearchInRadius(point, Radius, r_partial_result);
         }
     }
@@ -734,19 +732,17 @@ private:
             rResults.Clear();
         }
 
-        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
-        // NOTE: Once you do that you don't require to check that all nodes are the same (it is one node per local partition)
-
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
+        std::vector<IndexType> all_points_ids;
+        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_point);
+            auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
             this->SearchNearestInRadius(point, Radius, r_partial_result);
         }
     }
@@ -788,19 +784,17 @@ private:
             rResults.Clear();
         }
         
-        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
-        // NOTE: Once you do that you don't require to check that all nodes are the same (it is one node per local partition)
-
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
+        std::vector<IndexType> all_points_ids;
+        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_point);
+            auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
             this->SearchNearest(point, r_partial_result);
         }
     }
@@ -846,19 +840,17 @@ private:
             rResults.Clear();
         }
         
-        // TODO: Check if TPointIteratorType is node interator and check the PARTITION_INDEX
-        // NOTE: Once you do that you don't require to check that all nodes are the same (it is one node per local partition)
-
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, mrDataCommunicator);
+        std::vector<IndexType> all_points_ids;
+        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
         for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_point);
+            auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
             this->SearchIsInside(point, r_partial_result);
         }
     }
