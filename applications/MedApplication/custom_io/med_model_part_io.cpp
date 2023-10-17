@@ -128,12 +128,6 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
             std::swap(rConnectivities[2], rConnectivities[3]);
         };
 
-    case MED_TETRA4:
-        return [](auto& rConnectivities) -> void {
-            CheckConnectivitiesSize(4, rConnectivities);
-            std::swap(rConnectivities[2], rConnectivities[3]);
-        };
-
     case MED_TETRA10:
         return [](auto& rConnectivities){
             CheckConnectivitiesSize(10, rConnectivities);
