@@ -229,7 +229,7 @@ public:
      * @param rRightHandSideVector Local finite element residual vector (output)
      * @param rCurrentProcessInfo Current ProcessInfo values (input)
      */
-    virtual void CalculateLocalVelocityContribution(
+    void CalculateLocalVelocityContribution(
         MatrixType &rDampMatrix,
         VectorType &rRightHandSideVector,
         const ProcessInfo &rCurrentProcessInfo) override;
@@ -431,7 +431,7 @@ protected:
     virtual void CalculateStrainRate(TElementData& rData) const;
 
     /// Determine integration point weights and shape funcition derivatives from the element's geometry.
-    void CalculateGeometryData(Vector& rGaussWeights,
+    virtual void CalculateGeometryData(Vector& rGaussWeights,
                                        Matrix& rNContainer,
                                        ShapeFunctionDerivativesArrayType& rDN_DX) const;
 
