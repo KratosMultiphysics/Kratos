@@ -210,67 +210,68 @@ void DefineSpecializedSpatialSearch(pybind11::module& m, const std::string& rCla
 template<class TSearchObject, class TObjectType>
 void DefineSearchWrapper(pybind11::module& m, const std::string& rClassName)
 {
-    // using NodesContainerType = ModelPart::NodesContainerType;
-    // using ElementsContainerType = ModelPart::ElementsContainerType;
-    // using ConditionsContainerType = ModelPart::ConditionsContainerType;
-    // using ResultTypeContainer = SpatialSearchResultContainer<TObjectType>;
-    // using ResultTypeContainerVector = SpatialSearchResultContainerVector<TObjectType>;
-    // using SearchWrapperType = SearchWrapper<TSearchObject, TObjectType>;
+    using NodesContainerType = ModelPart::NodesContainerType;
+    using ElementsContainerType = ModelPart::ElementsContainerType;
+    using ConditionsContainerType = ModelPart::ConditionsContainerType;
+    using ResultTypeContainer = SpatialSearchResultContainer<TObjectType>;
+    using ResultTypeContainerVector = SpatialSearchResultContainerVector<TObjectType>;
+    using SearchWrapperType = SearchWrapper<TSearchObject, TObjectType>;
+    using SearchWrapperPointerType = typename SearchWrapper<TSearchObject, TObjectType>::Pointer;
 
-    // pybind11::class_<SearchWrapperType, typename SearchWrapperType::Pointer>(m, rClassName)
-    // //.def(pybind11::init<NodesContainerType&, const DataCommunicator&>())
-    // .def(pybind11::init<ElementsContainerType&, const DataCommunicator&>())
-    // .def(pybind11::init<ConditionsContainerType&, const DataCommunicator&>())
-    // .def("GetBoundingBox", &SearchWrapperType::GetBoundingBox)
-    // .def("SearchInRadius", [&](SearchWrapperType& self, const Point& rPoint, const double Radius) {
-    //     // Perform the search
-    //     ResultTypeContainer results;
-    //     self.SearchInRadius(rPoint, Radius, results);
-    //     return results;
-    // })
-    // .def("SearchInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
-    //     // Perform the search
-    //     ResultTypeContainerVector results; 
-    //     self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
-    //     return results;
-    // })
-    // .def("SearchNearestInRadius", [&](SearchWrapperType& self, const Point& rPoint, const double Radius) {
-    //     // Perform the search
-    //     ResultTypeContainer results;
-    //     self.SearchNearestInRadius(rPoint, Radius, results);
-    //     return results;
-    // })
-    // .def("SearchNearestInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
-    //     // Perform the search
-    //     ResultTypeContainerVector results;
-    //     self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, results);
-    //     return results;
-    // })
-    // .def("SearchNearest", [&](SearchWrapperType& self, const Point& rPoint) {
-    //     // Perform the search
-    //     ResultTypeContainer results;
-    //     self.SearchNearest(rPoint, results);
-    //     return results;
-    // })
-    // .def("SearchNearest", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
-    //     // Perform the search
-    //     ResultTypeContainerVector results;
-    //     self.SearchNearest(rNodes.begin(), rNodes.end(), results);
-    //     return results;
-    // })
-    // .def("SearchIsInside", [&](SearchWrapperType& self, const Point& rPoint) {
-    //     // Perform the search
-    //     ResultTypeContainer results;
-    //     self.SearchIsInside(rPoint, results);
-    //     return results;
-    // })
-    // .def("SearchIsInside", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
-    //     // Perform the search
-    //     ResultTypeContainerVector results;
-    //     self.SearchIsInside(rNodes.begin(), rNodes.end(), results);
-    //     return results;
-    // })
-    // ;
+    pybind11::class_<SearchWrapperType, SearchWrapperPointerType>(m, rClassName.c_str())
+    //.def(pybind11::init<NodesContainerType&, const DataCommunicator&>())
+    .def(pybind11::init<ElementsContainerType&, const DataCommunicator&>())
+    .def(pybind11::init<ConditionsContainerType&, const DataCommunicator&>())
+    .def("GetBoundingBox", &SearchWrapperType::GetBoundingBox)
+    .def("SearchInRadius", [&](SearchWrapperType& self, const Point& rPoint, const double Radius) {
+        // Perform the search
+        ResultTypeContainer results;
+        self.SearchInRadius(rPoint, Radius, results);
+        return results;
+    })
+    .def("SearchInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
+        // Perform the search
+        ResultTypeContainerVector results; 
+        self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, results);
+        return results;
+    })
+    .def("SearchNearestInRadius", [&](SearchWrapperType& self, const Point& rPoint, const double Radius) {
+        // Perform the search
+        ResultTypeContainer results;
+        self.SearchNearestInRadius(rPoint, Radius, results);
+        return results;
+    })
+    .def("SearchNearestInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
+        // Perform the search
+        ResultTypeContainerVector results;
+        self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, results);
+        return results;
+    })
+    .def("SearchNearest", [&](SearchWrapperType& self, const Point& rPoint) {
+        // Perform the search
+        ResultTypeContainer results;
+        self.SearchNearest(rPoint, results);
+        return results;
+    })
+    .def("SearchNearest", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
+        // Perform the search
+        ResultTypeContainerVector results;
+        self.SearchNearest(rNodes.begin(), rNodes.end(), results);
+        return results;
+    })
+    .def("SearchIsInside", [&](SearchWrapperType& self, const Point& rPoint) {
+        // Perform the search
+        ResultTypeContainer results;
+        self.SearchIsInside(rPoint, results);
+        return results;
+    })
+    .def("SearchIsInside", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
+        // Perform the search
+        ResultTypeContainerVector results;
+        self.SearchIsInside(rNodes.begin(), rNodes.end(), results);
+        return results;
+    })
+    ;
 }
 
 void AddSearchStrategiesToPython(pybind11::module& m)
