@@ -10,8 +10,7 @@
 //  Main authors:    Jordi Cotela, Riccardo Rossi, Carlos Roig and Ruben Zorrilla
 //
 
-#ifndef KRATOS_MIXED_GENERIC_CRITERIA_H
-#define	KRATOS_MIXED_GENERIC_CRITERIA_H
+#pragma once
 
 // System includes
 
@@ -564,5 +563,3 @@ private:
 
 ///@} // Application group
 }
-
-#endif // KRATOS_MIXED_GENERIC_CRITERIA_H
