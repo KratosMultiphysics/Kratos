@@ -18,7 +18,6 @@
 #endif
 
 // Project includes
-#include "input_output/vtk_output.h"
 #ifdef KRATOS_USING_MPI
 #include "mpi/includes/mpi_data_communicator.h"
 #endif
