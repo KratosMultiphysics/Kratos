@@ -21,18 +21,18 @@ class ModelPart;
 class Parameters;
 
 
-class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyVectorConstraintsTableProcess : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyVectorConstraintTableProcess : public Process
 {
 public:
-    KRATOS_CLASS_POINTER_DEFINITION(ApplyVectorConstraintsTableProcess);
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyVectorConstraintTableProcess);
 
-    ApplyVectorConstraintsTableProcess(ModelPart&        rModelPart,
-                                       const Parameters& rSettings);
+    ApplyVectorConstraintTableProcess(ModelPart&        rModelPart,
+                                      const Parameters& rSettings);
 
-    ~ApplyVectorConstraintsTableProcess() override;
+    ~ApplyVectorConstraintTableProcess() override;
 
-    ApplyVectorConstraintsTableProcess(const ApplyVectorConstraintsTableProcess&) = delete;
-    ApplyVectorConstraintsTableProcess& operator=(const ApplyVectorConstraintsTableProcess&) = delete;
+    ApplyVectorConstraintTableProcess(const ApplyVectorConstraintTableProcess&) = delete;
+    ApplyVectorConstraintTableProcess& operator=(const ApplyVectorConstraintTableProcess&) = delete;
 
     using ProcessUniquePointer = std::unique_ptr<Process>;
 

@@ -1,6 +1,8 @@
 import sys
 import KratosMultiphysics
-from KratosMultiphysics.GeoMechanicsApplication import *
+import KratosMultiphysics.GeoMechanicsApplication
+import KratosMultiphysics.LinearSolversApplication
+
 import argparse
 
 def run():

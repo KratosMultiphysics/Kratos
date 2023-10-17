@@ -24,6 +24,11 @@ class TestMedModelPartIO(KratosUnittest.TestCase):
         med_io_read_1 = KratosMed.MedModelPartIO(GetMedPath(med_path))
         med_io_read_1.ReadModelPart(self.mp_read_1)
 
+        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeLength(self.mp_read_1), 0.0)
+        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeArea(self.mp_read_1), 0.0)
+        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeVolume(self.mp_read_1), 0.0)
+        self.assertGreaterEqual(KratosMed.MedTestingUtilities.ComputeDomainSize(self.mp_read_1), 0.0)
+
         with self.subTest("check_model_part"):
             check_fct(self.mp_read_1)
 

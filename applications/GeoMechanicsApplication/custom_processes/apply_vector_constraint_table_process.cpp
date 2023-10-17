@@ -10,7 +10,7 @@
 //  Main authors:    Wijtze Pieter Kikstra,
 //                   Anne van de Graaf
 //
-#include "apply_vector_constraints_table_process.hpp"
+#include "apply_vector_constraint_table_process.h"
 #include "includes/model_part.h"
 #include "includes/kratos_parameters.h"
 #include "apply_component_table_process.hpp"
@@ -19,8 +19,8 @@
 namespace Kratos
 {
 
-ApplyVectorConstraintsTableProcess::ApplyVectorConstraintsTableProcess(Kratos::ModelPart&        rModelPart,
-                                                                       const Kratos::Parameters& rSettings)
+ApplyVectorConstraintTableProcess::ApplyVectorConstraintTableProcess(Kratos::ModelPart&        rModelPart,
+                                                                     const Kratos::Parameters& rSettings)
     : Process(Flags()),
       mrModelPart(rModelPart)
 {
@@ -30,10 +30,10 @@ ApplyVectorConstraintsTableProcess::ApplyVectorConstraintsTableProcess(Kratos::M
     }
 }
 
-ApplyVectorConstraintsTableProcess::~ApplyVectorConstraintsTableProcess() = default;
+ApplyVectorConstraintTableProcess::~ApplyVectorConstraintTableProcess() = default;
 
 
-std::vector<Parameters> ApplyVectorConstraintsTableProcess::CreateParametersForActiveComponents(const Parameters& rSettings)
+std::vector<Parameters> ApplyVectorConstraintTableProcess::CreateParametersForActiveComponents(const Parameters& rSettings)
 {
     std::vector<Parameters> result;
     for (auto component : ActiveComponents(rSettings)) {
@@ -42,7 +42,7 @@ std::vector<Parameters> ApplyVectorConstraintsTableProcess::CreateParametersForA
     return result;
 }
 
-std::vector<char> ApplyVectorConstraintsTableProcess::ActiveComponents(const Parameters& rSettings)
+std::vector<char> ApplyVectorConstraintTableProcess::ActiveComponents(const Parameters& rSettings)
 {
     std::vector<char> result;
     for (auto component : {'X', 'Y', 'Z'}) {
@@ -54,7 +54,7 @@ std::vector<char> ApplyVectorConstraintsTableProcess::ActiveComponents(const Par
     return result;
 }
 
-Parameters ApplyVectorConstraintsTableProcess::CreateParametersForComponent(const Parameters& rSettings, char component)
+Parameters ApplyVectorConstraintTableProcess::CreateParametersForComponent(const Parameters& rSettings, char component)
 {
     Parameters result;
     const auto index = ComponentToIndex(component);
@@ -71,7 +71,7 @@ Parameters ApplyVectorConstraintsTableProcess::CreateParametersForComponent(cons
     return result;
 }
 
-std::size_t ApplyVectorConstraintsTableProcess::ComponentToIndex(char component)
+std::size_t ApplyVectorConstraintTableProcess::ComponentToIndex(char component)
 {
     switch (component) {
         case 'X':
@@ -82,12 +82,12 @@ std::size_t ApplyVectorConstraintsTableProcess::ComponentToIndex(char component)
             return 2;
 
         default:
-            KRATOS_ERROR << "ApplyVectorConstraintsTableProcess: Unknown component '" << component << "'" << std::endl;
+            KRATOS_ERROR << "ApplyVectorConstraintTableProcess: Unknown component '" << component << "'" << std::endl;
     }
 }
 
-ApplyVectorConstraintsTableProcess::ProcessUniquePointer
-ApplyVectorConstraintsTableProcess::MakeProcessFor(const Parameters& rParameters) const
+ApplyVectorConstraintTableProcess::ProcessUniquePointer
+ApplyVectorConstraintTableProcess::MakeProcessFor(const Parameters& rParameters) const
 {
     if (rParameters.Has("table")) {
         return std::make_unique<ApplyComponentTableProcess>(mrModelPart, rParameters);
@@ -96,14 +96,14 @@ ApplyVectorConstraintsTableProcess::MakeProcessFor(const Parameters& rParameters
     return std::make_unique<ApplyConstantScalarValueProcess>(mrModelPart, rParameters);
 }
 
-void ApplyVectorConstraintsTableProcess::ExecuteInitialize()
+void ApplyVectorConstraintTableProcess::ExecuteInitialize()
 {
     for (const auto& process : mProcesses) {
         process->ExecuteInitialize();
     }
 }
 
-void ApplyVectorConstraintsTableProcess::ExecuteInitializeSolutionStep()
+void ApplyVectorConstraintTableProcess::ExecuteInitializeSolutionStep()
 {
     for (const auto& process : mProcesses) {
         process->ExecuteInitializeSolutionStep();

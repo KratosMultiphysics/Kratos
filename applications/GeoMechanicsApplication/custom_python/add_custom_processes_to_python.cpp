@@ -33,7 +33,7 @@
 #include "custom_processes/apply_phreatic_surface_pressure_table_process.hpp"
 #include "custom_processes/apply_constant_boundary_phreatic_surface_pressure_process.hpp"
 #include "custom_processes/apply_boundary_phreatic_surface_pressure_table_process.hpp"
-#include "custom_processes/apply_excavation_process.hpp"
+#include "custom_processes/apply_excavation_process.h"
 #include "custom_processes/apply_write_result_scalar_process.hpp"
 #include "custom_processes/apply_k0_procedure_process.hpp"
 #include "custom_processes/find_neighbour_elements_of_conditions_process.hpp"
@@ -41,8 +41,8 @@
 #include "custom_processes/set_absorbing_boundary_parameters_process.hpp"
 #include "custom_processes/set_parameter_field_process.hpp"
 #include "custom_processes/set_multiple_moving_loads.h"
-#include "custom_processes/apply_vector_constraints_table_process.hpp"
-#include "custom_processes/apply_scalar_constraints_table_process.h"
+#include "custom_processes/apply_vector_constraint_table_process.h"
+#include "custom_processes/apply_scalar_constraint_table_process.h"
 
 namespace Kratos {
 namespace Python {
@@ -109,7 +109,7 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyExcavationProcess, ApplyExcavationProcess::Pointer, Process>
         (m, "ApplyExcavationProcess")
-        .def(py::init < ModelPart&, Parameters&>());
+        .def(py::init < ModelPart&, const Parameters&>());
 
     py::class_<ApplyWriteScalarProcess, ApplyWriteScalarProcess::Pointer, Process>
         (m, "ApplyWriteScalarProcess")
@@ -139,12 +139,12 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         (m, "SetMultipleMovingLoadsProcess")
         .def(py::init < ModelPart&, Parameters>());
 
-    py::class_<ApplyVectorConstraintsTableProcess, ApplyVectorConstraintsTableProcess::Pointer, Process>
-        (m, "ApplyVectorConstraintsTableProcess")
+    py::class_<ApplyVectorConstraintTableProcess, ApplyVectorConstraintTableProcess::Pointer, Process>
+        (m, "ApplyVectorConstraintTableProcess")
         .def(py::init<ModelPart&, const Parameters&>());
 
-    py::class_<ApplyScalarConstraintsTableProcess, ApplyScalarConstraintsTableProcess::Pointer, Process>
-        (m, "ApplyScalarConstraintsTableProcess")
+    py::class_<ApplyScalarConstraintTableProcess, ApplyScalarConstraintTableProcess::Pointer, Process>
+        (m, "ApplyScalarConstraintTableProcess")
         .def(py::init<ModelPart&, const Parameters&>());
 }
 
