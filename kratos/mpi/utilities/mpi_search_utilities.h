@@ -20,6 +20,8 @@
 
 // Project includes
 #include "includes/data_communicator.h"
+#include "includes/variables.h"
+#include "includes/model_part.h"
 
 namespace Kratos
 {
@@ -35,7 +37,10 @@ class MPISearchUtilities
 public:
     ///@name Type Definitions
     ///@{
-        
+
+    /// The index definition
+    using IndexType = std::size_t;
+
     /// Define zero tolerance as Epsilon
     static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
 
@@ -48,6 +53,7 @@ public:
      * @param itPointBegin Iterator to the beginning of the points range
      * @param itPointEnd Iterator to the end of the points range
      * @param rAllPointsCoordinates vector where the computed coordinates will be stored
+     * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
      * @param rDataCommunicator The data communicator
      * @tparam TPointIteratorType The type of the point iterator
      */
@@ -56,18 +62,19 @@ public:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         std::vector<double>& rAllPointsCoordinates,
+        std::vector<IndexType>& rAllPointsIds,
         const DataCommunicator& rDataCommunicator
         )
     {
         // First check that the points are the same in all processes
         int number_of_points, total_number_of_points;
-        const bool all_points_are_the_same = CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
+        CalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
 
         KRATOS_DEBUG_ERROR_IF(number_of_points < 0) << "The number of points is negative" << std::endl;
         KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
 
         // We synchronize the points
-        SynchronizePoints(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator, all_points_are_the_same, number_of_points, total_number_of_points);
+        SynchronizePoints(itPointBegin, itPointEnd, rAllPointsCoordinates, rAllPointsIds, rDataCommunicator, number_of_points, total_number_of_points);
     }
 
     /**
@@ -76,6 +83,7 @@ public:
      * @param itPointBegin Iterator to the beginning of the points range
      * @param itPointEnd Iterator to the end of the points range
      * @param rAllPointsCoordinates vector where the computed coordinates will be stored
+     * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
      * @param rDataCommunicator The data communicator
      * @return The resulting whole radius vector
      * @tparam TPointIteratorType The type of the point iterator
@@ -85,22 +93,19 @@ public:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         std::vector<double>& rAllPointsCoordinates,
+        std::vector<IndexType>& rAllPointsIds,
         const DataCommunicator& rDataCommunicator
         )
     {
         // First check that the points are the same in all processes
         int number_of_points, total_number_of_points;
-        const bool all_points_are_the_same = CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
+        CalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
 
         KRATOS_DEBUG_ERROR_IF(number_of_points < 0) << "The number of points is negative" << std::endl;
         KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
 
         // We synchronize the points
-        SynchronizePoints(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator, all_points_are_the_same, number_of_points, total_number_of_points);
-
-        // Get recv_sizes
-        const auto recv_sizes = SynchronizeRecvSizes(number_of_points, all_points_are_the_same, rDataCommunicator);
-        return recv_sizes;
+        return SynchronizePoints(itPointBegin, itPointEnd, rAllPointsCoordinates, rAllPointsIds, rDataCommunicator, number_of_points, total_number_of_points);
     }
 
     /**
@@ -109,6 +114,7 @@ public:
      * @param itPointBegin Iterator to the beginning of the points range
      * @param itPointEnd Iterator to the end of the points range
      * @param rAllPointsCoordinates vector where the computed coordinates will be stored
+     * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
      * @param rRadius The radius of the points
      * @param rDataCommunicator The data communicator
      * @return The resulting whole radius vector
@@ -119,22 +125,20 @@ public:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         std::vector<double>& rAllPointsCoordinates,
+        std::vector<IndexType>& rAllPointsIds,
         const std::vector<double>& rRadius,
         const DataCommunicator& rDataCommunicator
         )
     {
         // First check that the points are the same in all processes
         int number_of_points, total_number_of_points;
-        const bool all_points_are_the_same = CheckAllPointsAreTheSameAndCalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
+        CalculateNumberOfPoints(itPointBegin, itPointEnd, number_of_points, total_number_of_points, rDataCommunicator);
 
         KRATOS_DEBUG_ERROR_IF(number_of_points < 0) << "The number of points is negative" << std::endl;
         KRATOS_DEBUG_ERROR_IF(total_number_of_points < 0) << "The total number of points is negative" << std::endl;
 
         // We synchronize the points
-        SynchronizePoints(itPointBegin, itPointEnd, rAllPointsCoordinates, rDataCommunicator, all_points_are_the_same, number_of_points, total_number_of_points);
-
-        // Get recv_sizes
-        const auto recv_sizes = SynchronizeRecvSizes(number_of_points, all_points_are_the_same, rDataCommunicator);
+        const auto recv_sizes = SynchronizePoints(itPointBegin, itPointEnd, rAllPointsCoordinates, rAllPointsIds, rDataCommunicator, number_of_points, total_number_of_points);
 
         // Get radius
         const auto radius = SynchronizeRadius(recv_sizes, rRadius, rDataCommunicator);
@@ -152,98 +156,95 @@ private:
      * @param itPointBegin Iterator pointing to the beginning of the range of points
      * @param itPointEnd Iterator pointing to the end of the range of points
      * @param rAllPointsCoordinates Vector to store the synchronized points' coordinates
+     * @param rAllPointsIds The ids of all the points (just a counter for points, and ids for nodes)
      * @param rDataCommunicator Object for data communication between processes
-     * @param AllPointsAreTheSame Flag indicating if all points are the same
      * @param NumberOfPoints Local number of points to be synchronized
      * @param TotalNumberOfPoints Total number of points across all processes
+     * @return A vector containing the sizes of data for each process
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    static void SynchronizePoints(
+    static std::vector<int> SynchronizePoints(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         std::vector<double>& rAllPointsCoordinates,
+        std::vector<IndexType>& rAllPointsIds,
         const DataCommunicator& rDataCommunicator,
-        const bool AllPointsAreTheSame,
         const int NumberOfPoints,
         const int TotalNumberOfPoints
         )
     {
+        // Get the World Size and rank in MPI
+        const int world_size = rDataCommunicator.Size();
+        const int rank = rDataCommunicator.Rank();
+
+        // Getting global number of points
+        std::vector<int> points_per_partition(world_size);
+        std::vector<int> send_points_per_partition(1, NumberOfPoints);
+        rDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
+        std::size_t initial_id = 0;
+        if constexpr (!std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+            initial_id = std::accumulate(points_per_partition.begin(), points_per_partition.begin() + rank, 0);
+        }
+
         // Initialize local points coordinates
         std::size_t counter = 0;
         array_1d<double, 3> coordinates;
         unsigned int i_coord;
         std::vector<double> send_points_coordinates(NumberOfPoints * 3);
+        std::vector<IndexType> send_points_ids(NumberOfPoints);
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
+            // In case of considering nodes
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                if (it_point->FastGetSolutionStepValue(PARTITION_INDEX) != rank) {
+                    continue; // Skip if not local
+                }
+            }
             noalias(coordinates) = it_point->Coordinates();
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                send_points_ids[counter] = it_point->Id();
+            } else {
+                send_points_ids[counter] = initial_id + counter;
+            }
             for (i_coord = 0; i_coord < 3; ++i_coord) {
                 send_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
             }
             ++counter;
         }
 
-        // If all points are the same
-        if (AllPointsAreTheSame) {
-            rAllPointsCoordinates = send_points_coordinates;
-        } else { // If not
-            // MPI information
-            const int world_size = rDataCommunicator.Size();
+        // Resizing
+        rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
+        rAllPointsIds.resize(TotalNumberOfPoints);
 
-            // Getting global number of points
-            std::vector<int> points_per_partition(world_size);
-            std::vector<int> send_points_per_partition(1, NumberOfPoints);
-            rDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
+        /* Sync coordinates */
 
-            // Getting global coordinates
-            rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
-
-            // Generate vectors with sizes for AllGatherv
-            std::vector<int> recv_sizes(world_size, 0);
-            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-                recv_sizes[i_rank] = 3 * points_per_partition[i_rank];
-            }
-            std::vector<int> recv_offsets(world_size, 0);
-            for (int i_rank = 1; i_rank < world_size; ++i_rank) {
-                recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
-            }
-
-            // Invoque AllGatherv
-            rDataCommunicator.AllGatherv(send_points_coordinates, rAllPointsCoordinates, recv_sizes, recv_offsets);
-        }
-    }
-
-    /**
-     * @brief Synchronizes the sizes of data among multiple processes using MPI.
-     * @param NumberOfPoints The number of local points in the data
-     * @param AllPointsAreTheSame Flag indicating if all points are the same
-     * @param rDataCommunicator The data communicator for MPI communication
-     * @return A vector containing the sizes of data for each process
-     */
-    static std::vector<int> SynchronizeRecvSizes(
-        const int NumberOfPoints,
-        const bool AllPointsAreTheSame,
-        const DataCommunicator& rDataCommunicator
-        )
-    {
-        // MPI information
-        const int world_size = rDataCommunicator.Size();
-
-        // Define recv_sizes
+        // Generate vectors with sizes for AllGatherv
         std::vector<int> recv_sizes(world_size, 0);
-        if (!AllPointsAreTheSame) { // If not all points are the same
-            // Getting global number of points
-            std::vector<int> points_per_partition(world_size);
-            std::vector<int> send_points_per_partition(1, NumberOfPoints);
-            rDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
-
-            // Generate vectors with sizes for AllGatherv
-            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-                recv_sizes[i_rank] = points_per_partition[i_rank];
-            }
-        } else if (world_size == 1) { // In case only one process is used
-            recv_sizes[0] = NumberOfPoints;
+        for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+            recv_sizes[i_rank] = 3 * points_per_partition[i_rank];
+        }
+        std::vector<int> recv_offsets(world_size, 0);
+        for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+            recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
         }
 
+        // Invoke AllGatherv
+        rDataCommunicator.AllGatherv(send_points_coordinates, rAllPointsCoordinates, recv_sizes, recv_offsets);
+
+        /* Sync Ids */
+
+        // Generate vectors with sizes for AllGatherv
+        for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+            recv_sizes[i_rank] = points_per_partition[i_rank];
+        }
+        for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+            recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
+        }
+
+        // Invoke AllGatherv
+        rDataCommunicator.AllGatherv(send_points_ids, rAllPointsIds, recv_sizes, recv_offsets);
+
+        // Return the recv sizes
         return recv_sizes;
     }
 
@@ -263,7 +264,7 @@ private:
         // First we calculate the total number of points to communicate
         const int total_number_of_points = std::accumulate(rRecvSizes.begin(), rRecvSizes.end(), 0);
 
-        // Synchonize radius
+        // Synchronize radius
         if (total_number_of_points == 0) { // If all points are the same
             return rRadius;
         } else {                           // If not
@@ -279,13 +280,12 @@ private:
                 recv_offsets[i_rank] = recv_offsets[i_rank - 1] + rRecvSizes[i_rank - 1];
             }
 
-            // Invoque AllGatherv
+            // Invoke AllGatherv
             rDataCommunicator.AllGatherv(rRadius, all_points_radius, rRecvSizes, recv_offsets);
 
             return all_points_radius;
         }
     }
-
 
     /**
      * @brief This method checks if all nodes are the same across all partitions
@@ -297,7 +297,7 @@ private:
      * @tparam TPointIteratorType The type of the point iterator
      */
     template<typename TPointIteratorType>
-    static bool CheckAllPointsAreTheSameAndCalculateNumberOfPoints(
+    static void CalculateNumberOfPoints(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         int& rNumberOfPoints,
@@ -305,39 +305,23 @@ private:
         const DataCommunicator& rDataCommunicator
         )
     {
-        // Get the World Size in MPI
-        const int world_size = rDataCommunicator.Size();
+        // Get the World Size and rank in MPI
+        const int rank = rDataCommunicator.Rank();
 
         // Getting local number of points
         rNumberOfPoints = std::distance(itPointBegin, itPointEnd);
+        
+        // In case of considering nodes
+        if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+            for (auto it_node = itPointBegin; it_node < itPointEnd; ++it_node) {
+                if (it_node->FastGetSolutionStepValue(PARTITION_INDEX) != rank) {
+                    --rNumberOfPoints; // Remove is not local
+                }
+            }
+        }
 
-        // First we check if all the partitions have the same number of points
+        // Sum all the nodes
         rTotalNumberOfPoints = rDataCommunicator.SumAll(rNumberOfPoints);
-        if (rNumberOfPoints * world_size != rTotalNumberOfPoints) {
-            return false;
-        }
-
-        // Now we check if all the points are the same (we are going to do a gross assumtion that the sum of coordinates in al partitions does not compensate between them)
-        double x_sum, y_sum, z_sum;
-        array_1d<double, 3> coordinates;
-        bool all_points_are_the_same = true;
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
-            noalias(coordinates) = it_point->Coordinates();
-            x_sum = rDataCommunicator.SumAll(coordinates[0]);
-            if (std::abs(coordinates[0] - (x_sum/world_size)) > ZeroTolerance) all_points_are_the_same = false;
-            all_points_are_the_same = rDataCommunicator.AndReduceAll(all_points_are_the_same);
-            if (!all_points_are_the_same) break;
-            y_sum = rDataCommunicator.SumAll(coordinates[1]);
-            if (std::abs(coordinates[1] - (y_sum/world_size)) > ZeroTolerance) all_points_are_the_same = false;
-            all_points_are_the_same = rDataCommunicator.AndReduceAll(all_points_are_the_same);
-            if (!all_points_are_the_same) break;
-            z_sum = rDataCommunicator.SumAll(coordinates[2]);
-            if (std::abs(coordinates[2] - (z_sum/world_size)) > ZeroTolerance) all_points_are_the_same = false;
-            all_points_are_the_same = rDataCommunicator.AndReduceAll(all_points_are_the_same);
-            if (!all_points_are_the_same) break;
-        }
-
-        return all_points_are_the_same;
     }
     ///@}
 };
