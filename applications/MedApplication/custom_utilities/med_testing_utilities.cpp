@@ -82,6 +82,8 @@ void CheckGeometriesAreEqual(
 
     // KRATOS_CHECK_EQUAL(rGeom1.Id(), rGeom2.Id()); // the MEDApp deliberately does not care about IDs
 
+    KRATOS_CHECK_EQUAL(rGeom1.PointsNumber(), rGeom2.PointsNumber());
+
     // make sure to not accidentially compare base-geometries
     KRATOS_CHECK_NOT_EQUAL(rGeom1.GetGeometryType(), GeometryData::KratosGeometryType::Kratos_generic_type);
     KRATOS_CHECK(GeometryType::IsSame(rGeom1, rGeom2));
@@ -152,10 +154,10 @@ void CheckGeometriesAreEqual(
 
 enum class QuantityType
 {
-    DOMAIN_SIZE = -1,
     LENGTH = 1,
     AREA = 2,
     VOLUME = 3,
+    DOMAIN_SIZE,
 };
 
 
@@ -163,7 +165,7 @@ double ComputeGeometricalQuantity(
     const ModelPart& rModelPart,
     const QuantityType Quantity)
 {
-    std::function<double(const ModelPart::GeometryType&)> access_function;
+    std::function<double(const GeometryType&)> access_function;
 
     switch (Quantity)
     {
@@ -180,7 +182,7 @@ double ComputeGeometricalQuantity(
     double total_quantity = 0.0;
     for (const auto& r_geom : rModelPart.Geometries()) {
         if (Quantity == QuantityType::DOMAIN_SIZE ||
-            r_geom.LocalSpaceDimension() == static_cast<int>(Quantity)) {
+            r_geom.LocalSpaceDimension() == static_cast<std::size_t>(Quantity)) {
             const double quantity = access_function(r_geom);
             if (r_geom.LocalSpaceDimension() > 0) {
                 KRATOS_CHECK_GREATER(quantity, 0.0);
