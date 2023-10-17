@@ -494,10 +494,7 @@ private:
                     const auto &r_current_variable = it_dof->GetVariable();
                     const KeyType key = r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key();
                     auto key_find = mLocalKeyMap.find(key);
-                    if (key_find == mLocalKeyMap.end()) {
-                        KRATOS_ERROR << "MixedGenericCriteria: The key " << key << " was not found in mLocalKeyMap." <<
-                          "Make sure the input variables in constructor and the dofset variables match.\n";
-                    }
+                    KRATOS_ERROR_IF(key_find == mLocalKeyMap.end()) << "MixedGenericCriteria: The key " << key << " was not found in mLocalKeyMap for variable " << r_current_variable.Name() << ". Make sure the input variables in constructor and the dofset variables match." << std::endl;
                     const int var_local_key = key_find->second;
 
                     var_solution_norm_reduction[var_local_key] += dof_value * dof_value;
