@@ -684,9 +684,9 @@ private:
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
-            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_node);
+        for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
+            const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
+            auto& r_partial_result = rResults.InitializeResult(i_point);
             this->SearchInRadius(point, Radius, r_partial_result);
         }
     }
@@ -743,10 +743,10 @@ private:
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+        for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
-            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_node);
+            const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
+            auto& r_partial_result = rResults.InitializeResult(i_point);
             this->SearchNearestInRadius(point, Radius, r_partial_result);
         }
     }
@@ -797,10 +797,10 @@ private:
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+        for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
-            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_node);
+            const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
+            auto& r_partial_result = rResults.InitializeResult(i_point);
             this->SearchNearest(point, r_partial_result);
         }
     }
@@ -855,10 +855,10 @@ private:
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_node = 0; i_node < total_number_of_points; ++i_node) {
+        for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
-            const Point point(all_points_coordinates[i_node * 3 + 0], all_points_coordinates[i_node * 3 + 1], all_points_coordinates[i_node * 3 + 2]);
-            auto& r_partial_result = rResults.InitializeResult(i_node);
+            const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
+            auto& r_partial_result = rResults.InitializeResult(i_point);
             this->SearchIsInside(point, r_partial_result);
         }
     }
