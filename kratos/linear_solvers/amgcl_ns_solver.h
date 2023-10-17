@@ -118,6 +118,7 @@ public:
         //kratos specific settings
         mTol = rParameters["inner_settings"]["solver"]["tol"].GetDouble();
         mVerbosity=rParameters["verbosity"].GetInt();
+        mPressureVarName = rParameters["schur_variable"].GetString();
         mndof = 1; 
 
         //pass settings to amgcl
@@ -403,12 +404,13 @@ public:
         //*****************************
         //compute pressure mask
         if(mp.size() != rA.size1()) mp.resize( rA.size1() );
+        const auto& r_pressure_var = KratosComponents<Variable<double>>::Get(mPressureVarName);
         for (ModelPart::DofsArrayType::iterator it = rDofSet.begin(); it!=rDofSet.end(); it++)
         {
             const unsigned int eq_id = it->EquationId();
             if( eq_id < rA.size1() )
             {
-                mp[eq_id]  = (it->GetVariable().Key() == PRESSURE);
+                mp[eq_id]  = (it->GetVariable().Key() == r_pressure_var);
             }
         }
 
@@ -419,6 +421,7 @@ private:
 
     double mTol;
     int mVerbosity;
+    std::string mPressureVarName;
     int mndof;
     std::vector< char > mp;
 
