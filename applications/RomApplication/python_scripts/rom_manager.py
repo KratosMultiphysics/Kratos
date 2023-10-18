@@ -94,6 +94,29 @@ class RomManager(object):
                     self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
                 self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         ##########################
+
+        #####################################
+        ###  Custom ROM (Galerkin-like)   ###
+        elif chosen_projection_strategy == "custom":
+            if any(item == "ROM" for item in training_stages):
+                err_msg = f'Training strategies are not implemented for Custom ROM (Galerkin-like strategy).'
+                raise Exception(err_msg)
+            if any(item == "HROM" for item in training_stages):
+                err_msg = f'Training strategies are not implemented for Custom ROM (Galerkin-like strategy).'
+                raise Exception(err_msg)
+        ##########################
+
+        ##########################
+        ###  Custom LSPG ROM   ###
+        elif chosen_projection_strategy == "custom_lspg":
+            if any(item == "ROM" for item in training_stages):
+                err_msg = f'Training strategies are not implemented for Custom LSPG ROM.'
+                raise Exception(err_msg)
+            if any(item == "HROM" for item in training_stages):
+                err_msg = f'Training strategies are not implemented for Custom LSPG ROM.'
+                raise Exception(err_msg)
+        ##########################
+
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
@@ -146,6 +169,29 @@ class RomManager(object):
                 hrom_snapshots = self.__LaunchTestHROM(mu_test)
                 self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         ##########################
+
+        #########################################
+        ######  Custom ROM (Galerkin-like) ######
+        elif chosen_projection_strategy == "custom":
+            if any(item == "ROM" for item in testing_stages):
+                err_msg = f'Testing strategy not supported yet for Custom ROM (Galerkin-like) strategy.'
+                raise Exception(err_msg)
+
+            if any(item == "HROM" for item in testing_stages):
+                err_msg = f'Testing strategy not supported yet for Custom ROM (Galerkin-like) strategy.'
+                raise Exception(err_msg)
+            
+        ##############################
+        ######  Custom LSPG ROM ######
+        elif chosen_projection_strategy == "custom_lspg":
+            if any(item == "ROM" for item in testing_stages):
+                err_msg = f'Testing strategy not supported yet for Custom LSPG ROM strategy.'
+                raise Exception(err_msg)
+
+            if any(item == "HROM" for item in testing_stages):
+                err_msg = f'Testing strategy not supported yet for Custom LSPG ROM strategy.'
+                raise Exception(err_msg)
+
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
@@ -156,8 +202,10 @@ class RomManager(object):
     def RunFOM(self, mu_run=[None]):
         self.__LaunchRunFOM(mu_run)
 
-    def RunROM(self, mu_run=[None]):
+    def RunROM(self, mu_run=[None], nn_rom_interface=None, output_path=None):
+        customROM=False ## This is temporary and should be done in a better way
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
+        print(chosen_projection_strategy)
         #######################
         ######  Galerkin ######
         if chosen_projection_strategy == "galerkin":
@@ -170,10 +218,23 @@ class RomManager(object):
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
             self._ChangeRomFlags(simulation_to_run = "PG")
+        #########################################
+        ######  Custom ROM (Galerkin-like) ######
+        elif chosen_projection_strategy == "custom":
+            print("Got custom strategy string")
+            self._ChangeRomFlags(simulation_to_run = "custom")
+            customROM=True
+        ##############################
+        ######  Custom LSPG ROM ######
+        elif chosen_projection_strategy == "custom_lspg":
+            print("Got custom strategy string")
+            self._ChangeRomFlags(simulation_to_run = "custom_lspg")
+            customROM=True
+        #######################
         else:
             err_msg = f'Provided projection strategy {chosen_projection_strategy} is not supported. Available options are \'galerkin\', \'lspg\' and \'petrov_galerkin\'.'
             raise Exception(err_msg)
-        self.__LaunchRunROM(mu_run)
+        self.__LaunchRunROM(mu_run, customROM=customROM, nn_rom_interface=nn_rom_interface, output_path=output_path)
 
     def RunHROM(self, mu_run=[None], use_full_model_part = False):
         chosen_projection_strategy = self.general_rom_manager_parameters["projection_strategy"].GetString()
@@ -441,7 +502,7 @@ class RomManager(object):
             simulation.Run()
 
 
-    def __LaunchRunROM(self, mu_run):
+    def __LaunchRunROM(self, mu_run, customROM=False, nn_rom_interface=None, output_path=None):
         """
         This method should be parallel capable
         """
@@ -450,12 +511,12 @@ class RomManager(object):
 
         for Id, mu in enumerate(mu_run):
             parameters = self.UpdateProjectParameters(parameters, mu)
-            parameters = self._StoreResultsByName(parameters,'ROM_Run',mu,Id)
+            parameters = self._StoreResultsByName(parameters,'ROM_Run',mu,Id,output_path)
             materials_file_name = parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString()
             self.UpdateMaterialParametersFile(materials_file_name, mu)
             model = KratosMultiphysics.Model()
-            analysis_stage_class = type(SetUpSimulationInstance(model, parameters))
-            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters)
+            analysis_stage_class = type(SetUpSimulationInstance(model, parameters, customROM=customROM))
+            simulation = self.CustomizeSimulation(analysis_stage_class,model,parameters, nn_rom_interface=nn_rom_interface)
             simulation.Run()
 
 
@@ -529,6 +590,14 @@ class RomManager(object):
                 f['run_hrom']=True
                 f['projection_strategy']="petrov_galerkin"
                 f['train_petrov_galerkin']['train'] = False
+            elif simulation_to_run=='custom':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="custom"
+            elif simulation_to_run=='custom_lspg':
+                f['train_hrom']=False
+                f['run_hrom']=False
+                f['projection_strategy']="custom_lspg"
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
             parameter_file.seek(0)
@@ -549,18 +618,22 @@ class RomManager(object):
 
 
 
-    def _StoreResultsByName(self,parameters,results_name,mu, Id):
+    def _StoreResultsByName(self,parameters,results_name,mu, Id, output_path=None):
 
         if  self.general_rom_manager_parameters["output_name"].GetString() == "mu":
             case_name = (", ".join(map(str, mu)))
         elif self.general_rom_manager_parameters["output_name"].GetString() == "id":
             case_name = str(Id)
+        
+        if output_path is None:
+            output_path='Results/'
+
         if self.general_rom_manager_parameters["save_gid_output"].GetBool():
-            parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"].SetString('Results/'+ results_name +  case_name)
+            parameters["output_processes"]["gid_output"][0]["Parameters"]["output_name"].SetString(output_path+ results_name +  case_name)
         else:
             parameters["output_processes"].RemoveValue("gid_output")
         if self.general_rom_manager_parameters["save_vtk_output"].GetBool():
-            parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].SetString('Results/vtk_output_'+ results_name + case_name)
+            parameters["output_processes"]["vtk_output"][0]["Parameters"]["output_path"].SetString(output_path+'/vtk_output_'+ results_name + case_name)
         else:
             parameters["output_processes"].RemoveValue("vtk_output")
 

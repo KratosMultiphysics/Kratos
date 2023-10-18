@@ -80,3 +80,16 @@ install(TARGETS KratosRomApplication DESTINATION libs )
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosRomApplicationCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosRomApplication" PARENT_SCOPE)
+
+
+##*****************************
+# Finding and including TENSORFLOW C++ library
+
+#find_package(Protobuf REQUIRED)
+#include_directories(${PROTOBUF_INCLUDE_DIRS})
+
+#include_directories(KratosRomApplication PRIVATE "/home/nsibuet/tensorflow/bazel-bin/tensorflow/include/")
+#target_link_directories(KratosRomApplication PRIVATE "/home/nsibuet/tensorflow/bazel-bin/tensorflow/")
+#target_link_libraries(KratosRomApplication PRIVATE tensorflow_cc)
+# message(STATUS "Boost Include: ${Boost_INCLUDE_DIRS}")
+
