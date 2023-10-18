@@ -3,7 +3,7 @@
         "problem_name":         "test_model",
         "start_time":           0.0,
         "end_time":             1.0,
-        "echo_level":           1,
+        "echo_level":           2,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
     },
@@ -23,7 +23,7 @@
             "max_delta_time_factor":    1000
         },
         "buffer_size":                        2,
-        "echo_level":                         1,
+        "echo_level":                         2,
         "clear_storage":                      false,
         "compute_reactions":                  true,
         "move_mesh_flag":                     false,
@@ -67,7 +67,7 @@
             "scaling":       true
         },
         "problem_domain_sub_model_part_list": ["Clay_after_excavation","Excavated_clay"],
-        "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","Gravitational_load"],
+        "processes_sub_model_part_list":      ["Side_sliders","Bottom_fixed","Head_line","Bottom_pressure","Gravitational_load","K0_model_part"],
         "body_domain_sub_model_part_list":    ["Clay_after_excavation","Excavated_clay"]
     },
     "output_processes": {
@@ -166,6 +166,16 @@
             "table":           [0,0,0]
         }
     }],
-        "auxiliar_process_list": []
+    "auxiliar_process_list": [
+      {
+        "python_module": "apply_k0_procedure_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name": "ApplyK0ProcedureProcess",
+        "Parameters": {
+          "model_part_name": "PorousDomain.K0_model_part",
+          "variable_name": "CAUCHY_STRESS_TENSOR"
+        }
+      }
+    ]    
     }
 }

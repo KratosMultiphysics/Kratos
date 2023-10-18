@@ -36,6 +36,7 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
     for (const auto& process_observable : mProcessObservables)
     {
         auto process = process_observable.lock();
+        KRATOS_INFO("TimeStepExecutor::Run") << "Process '" << process->Info() << "'" << std::endl;
         if (process) process->ExecuteInitializeSolutionStep();
     }
 

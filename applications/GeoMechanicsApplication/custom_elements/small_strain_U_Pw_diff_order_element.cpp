@@ -2256,6 +2256,11 @@ void SmallStrainUPwDiffOrderElement::
         }
     }
 
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce") << "Element " << Id() << std::endl;
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce") << "Density = " << rVariables.Density << std::endl;
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce") << "Body acceleration[0] = " << BodyAcceleration[0] << std::endl;
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateAndAddMixBodyForce") << "Body acceleration[1] = " << BodyAcceleration[1] << std::endl;
+
     for (SizeType i=0; i < NumUNodes; ++i) {
         Index = i * Dim;
         for (SizeType idim=0; idim < Dim; ++idim) {
@@ -2281,6 +2286,10 @@ void SmallStrainUPwDiffOrderElement::
                           * rProp[POROSITY]
                           * rProp[DENSITY_WATER] )
                          + (1.0 - rProp[POROSITY] )*rProp[DENSITY_SOLID];
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateSoilDensity") << "Degree of saturation: " << rVariables.DegreeOfSaturation << std::endl;
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateSoilDensity") << "Porosity            : " << rProp[POROSITY] << std::endl;
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateSoilDensity") << "Density of water    : " << rProp[DENSITY_WATER] << std::endl;
+    KRATOS_INFO("SmallStrainUPwDiffOrderElement::CalculateSoilDensity") << "Density of solid    : " << rProp[DENSITY_SOLID] << std::endl;
 
     KRATOS_CATCH("")
 }

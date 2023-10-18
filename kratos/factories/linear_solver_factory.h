@@ -110,6 +110,7 @@ public:
             << "The list of available options (for currently loaded applications) is:\n"
             << KratosComponents< FactoryType >() << std::endl;
 
+        KRATOS_INFO("LinearSolverFactory") << "About to create linear solver with name '" << solver_name << "'" << std::endl;
         const auto& aux = KratosComponents< FactoryType >::Get(solver_name);
         return aux.CreateSolver( Settings );
     }

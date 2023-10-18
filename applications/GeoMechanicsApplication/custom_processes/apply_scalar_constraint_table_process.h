@@ -39,6 +39,8 @@ public:
     void ExecuteInitialize() override;
     void ExecuteInitializeSolutionStep() override;
 
+    std::string Info() const override;
+
 private:
     void MakeInternalProcess(const Parameters& rProcessSettings);
     void MakeProcessForFluidPressureType(const Parameters&        rProcessSettings,

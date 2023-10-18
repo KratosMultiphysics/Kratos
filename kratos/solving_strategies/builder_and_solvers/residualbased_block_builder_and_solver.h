@@ -200,6 +200,8 @@ public:
     {
         KRATOS_TRY
 
+        KRATOS_INFO("ResidualBasedBlockBuilderAndSolver::Build") << "Hello Richard and Wijtze Pieter!" << std::endl;
+
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
         // Getting the elements from the model
@@ -444,10 +446,14 @@ public:
         KRATOS_TRY
 
         double norm_b;
-        if (TSparseSpace::Size(b) != 0)
+        if (TSparseSpace::Size(b) != 0) {
             norm_b = TSparseSpace::TwoNorm(b);
-        else
+            KRATOS_INFO("InternalSystemSolveWithPhysics") << "Length of sparse space =" << TSparseSpace::Size(b) << " calculated L2 norm = " << norm_b << std::endl;
+        }
+        else {
             norm_b = 0.00;
+            KRATOS_INFO("InternalSystemSolveWithPhysics") << "Sparse space has length 0?!" << std::endl;
+        }
 
         if (norm_b != 0.00) {
             //provide physical data as needed

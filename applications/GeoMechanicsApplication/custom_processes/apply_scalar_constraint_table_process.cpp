@@ -67,6 +67,7 @@ ApplyScalarConstraintTableProcess::ApplyScalarConstraintTableProcess(ModelPart& 
         : Process(Flags()),
           mrModelPart{rModelPart}
 {
+    KRATOS_INFO("ApplyScalarConstraintTableProcess") << "Model part name = " << mrModelPart.Name() << std::endl;
     MakeInternalProcess(rProcessSettings);
 }
 
@@ -208,12 +209,20 @@ void ApplyScalarConstraintTableProcess::MakeProcessForInterpolatedLine(const Par
 
 void ApplyScalarConstraintTableProcess::ExecuteInitialize()
 {
+    KRATOS_INFO("ApplyScalarConstraintTableProcess::ExecuteInitialize") << "Model part name = " << mrModelPart.Name() << std::endl;
     mProcess->ExecuteInitialize();
 }
 
 void ApplyScalarConstraintTableProcess::ExecuteInitializeSolutionStep()
 {
+    KRATOS_INFO("ApplyScalarConstraintTableProcess::ExecuteInitializeSolutionStep") << "Model part name = " << mrModelPart.Name() << std::endl;
     mProcess->ExecuteInitializeSolutionStep();
 }
+
+std::string ApplyScalarConstraintTableProcess::Info() const
+{
+    return "ApplyScalarConstraintTableProcess";
+}
+
 
 }

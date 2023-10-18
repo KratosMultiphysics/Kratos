@@ -90,6 +90,7 @@ public:
                     if (mIsFixedProvided) rNode.Free(var);
                 }
             } else {
+                KRATOS_INFO("ApplyConstantHydrostaticPressureProcess::ExecuteInitialize") << "node: " << rNode.Id() << std::endl;
                 rNode.FastGetSolutionStepValue(var) = std::min(pressure, PORE_PRESSURE_SIGN_FACTOR * mPressureTensionCutOff);
                 if (mIsFixed) rNode.Fix(var);
                 else if (mIsFixedProvided) rNode.Free(var);
