@@ -36,7 +36,7 @@ ApplyNormalLoadTableProcess::ApplyNormalLoadTableProcess(ModelPart&        rMode
 
         if (rProcessSettings["fluid_pressure_type"].GetString() == "Uniform") {
             normal_parameters.AddValue("value", rProcessSettings["value"][0]);
-            if (rProcessSettings["table"][0].GetInt()) {
+            if (rProcessSettings["table"][0].GetInt() == 0) {
                 mProcesses.push_back(std::make_unique <ApplyConstantScalarValueProcess>(mrModelPart, normal_parameters));
             }
             else {
@@ -105,6 +105,8 @@ ApplyNormalLoadTableProcess::ApplyNormalLoadTableProcess(ModelPart&        rMode
     }
 
 }
+
+ApplyNormalLoadTableProcess::~ApplyNormalLoadTableProcess() = default;
 
 void ApplyNormalLoadTableProcess::ExecuteInitialize()
 {

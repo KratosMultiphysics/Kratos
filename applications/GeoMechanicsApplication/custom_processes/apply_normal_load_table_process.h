@@ -24,9 +24,11 @@ class ModelPart;
 class Parameters;
 
 
-class ApplyNormalLoadTableProcess : public Process
+class KRATOS_API(GEO_MECHANICS_APPLICATION) ApplyNormalLoadTableProcess : public Process
 {
 public:
+    KRATOS_CLASS_POINTER_DEFINITION(ApplyNormalLoadTableProcess);
+
     ApplyNormalLoadTableProcess(ModelPart&        rModelPart,
                                 const Parameters& rProcessSettings);
 
