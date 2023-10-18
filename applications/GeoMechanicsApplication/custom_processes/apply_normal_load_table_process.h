@@ -14,8 +14,8 @@
 
 #include "processes/process.h"
 
-#include <memory>
-#include <vector>
+//#include <memory>
+//#include <vector>
 
 namespace Kratos
 {
@@ -29,6 +29,11 @@ class ApplyNormalLoadTableProcess : public Process
 public:
     ApplyNormalLoadTableProcess(ModelPart&        rModelPart,
                                 const Parameters& rProcessSettings);
+
+    ~ApplyNormalLoadTableProcess() override;
+
+    ApplyNormalLoadTableProcess(const ApplyNormalLoadTableProcess&) = delete;
+    ApplyNormalLoadTableProcess& operator=(const ApplyNormalLoadTableProcess&) = delete;
 
     void ExecuteInitialize() override;
     void ExecuteInitializeSolutionStep() override;
