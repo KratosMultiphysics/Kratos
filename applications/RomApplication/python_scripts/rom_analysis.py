@@ -128,7 +128,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
             computing_model_part = self._GetSolver().GetComputingModelPart().GetRootModelPart()
             # computing_model_part = self._GetSolver().GetComputingModelPart()
 
-            # Set ROM basis
+           """  # Set ROM basis
             nodal_modes = self.rom_parameters["nodal_modes"]
             nodal_dofs = len(self.project_parameters["solver_settings"]["rom_settings"]["nodal_unknowns"].GetStringArray())
             rom_dofs = self.project_parameters["solver_settings"]["rom_settings"]["number_of_rom_dofs"].GetInt()
@@ -174,7 +174,7 @@ def CreateRomAnalysisInstance(cls, global_model, parameters):
                     node.SetValue(KratosROM.ROM_BASIS, KratosMultiphysics.Matrix(right_modes[offset:offset+nodal_dofs, :])) # ROM basis
                     if (self.solving_strategy == "petrov_galerkin"):
                         node.SetValue(KratosROM.ROM_LEFT_BASIS, KratosMultiphysics.Matrix(left_modes[offset:offset+nodal_dofs, :])) # ROM basis
-
+            """
 
             # Check for HROM stages
             if self.train_hrom:

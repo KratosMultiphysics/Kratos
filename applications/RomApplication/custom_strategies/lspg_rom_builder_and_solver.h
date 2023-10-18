@@ -415,43 +415,21 @@ protected:
         qr_decomposition.Solve(rb, dxrom);
         KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Solve reduced system time: " << solving_timer.ElapsedSeconds() << std::endl;
 
-        // ----------------------------------------------------------------
         // Save the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
-        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;
-        // -----------------------------------------------------------------
-        // If this is not commented out, linear won't work        
+        noalias(r_root_mp.GetValue(ROM_SOLUTION_INCREMENT)) += dxrom;   
         
-        // saves projection using current increments, saves current q to qn
-        
-        //Append dxrom to Qs
-        //for (int j = 0; j < 31; j++) {
-        //    this->qs(j, this->time_step_iterations) = dxrom(j);
-        //}
-        
+        // saves projection using current increments, saves current q to qn      
         this->ProjectToFineBasis(this->qn, rModelPart, rDx);
-        this->Un_plus_1_k = rDx;
-        //KRATOS_WATCH(this->Un_plus_1_k)
+        this->Un = rDx;
+
         this->qn += dxrom;
-        //KRATOS_WATCH(this->qn)
-        // ----------------------------------------------------------------
-        // project reduced solution back to full order model
-        const auto backward_projection_timer = BuiltinTimer();
-        
-        // ----------------------------------------------------------------
-        //KRATOS_WATCH(rDx)
+   
         this->ProjectToFineBasis(this->qn, rModelPart, rDx);
-        rDx -= this->Un_plus_1_k;
-        //KRATOS_WATCH(rDx)
-        // ----------------------------------------------------------------
+        rDx -= this->Un;
         
-        //Append rDx to Us
-        for (int j = 0; j < 9216; j++) {
-                this->us(j, this->time_step_iterations) = rDx(j);
-        }
-        
-        // Increase time step interations counter
-        this->time_step_iterations += 1;        
+        // project reduced solution back to full order model
+        const auto backward_projection_timer = BuiltinTimer();      
         
         KRATOS_INFO_IF("LeastSquaresPetrovGalerkinROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 

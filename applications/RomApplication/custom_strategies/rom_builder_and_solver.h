@@ -116,11 +116,8 @@ public:
     ///@{
     
     Vector qn;
-    Vector Un_plus_1_k;
-    Matrix qs;
-    Matrix us;
-    bool InitializedQnFlag = true;
-    int time_step_iterations;
+    Vector Un;
+    bool InitializedQnFlag = false;
     
     bool isQuadratic = false;
 
@@ -138,14 +135,6 @@ public:
     
     bool getQuadratic() {
         return isQuadratic;
-    }
-    
-    Matrix GetQs() {
-        return qs;
-    }
-    
-    Matrix GetUs() {
-        return us;
     }
 
     explicit ROMBuilderAndSolver(
@@ -324,26 +313,11 @@ public:
                             } else {
                                 rDx[r_dof.EquationId()] = inner_prod(row(r_rom_nodal_basis, row_id), rRomUnkowns);
                             }
-                        
-                            if (r_node.Id() == 1641) {
-                            
-                                //KRATOS_WATCH(r_node.Id())
-                                //KRATOS_WATCH(r_node.GetValue(ROM_PHI))
-                                //KRATOS_WATCH(r_node.GetValue(ROM_H))
-                                //KRATOS_WATCH(row_id)
-                                //KRATOS_WATCH(rRomUnkowns)
-                                //KRATOS_WATCH(mQ)
-                                //KRATOS_WATCH(inner_prod(row(r_rom_nodal_basis, row_id), rRomUnkowns))
-                                //KRATOS_WATCH(inner_prod(row(r_rom_nodal_basis_h, row_id), mQ))
-                                //KRATOS_WATCH(inner_prod(row(r_rom_nodal_basis, row_id), rRomUnkowns) + inner_prod(row(r_rom_nodal_basis_h, row_id), mQ))
-                                //KRATOS_WATCH(r_node.GetValue(ROM_BASIS))
-                                
-                            }
                                                     
                         });
     } 
     
-    TSystemVectorType TestProjectToFineBasis(
+    /* TSystemVectorType TestProjectToFineBasis(
         const TSystemVectorType &rRomUnkowns,
         const ModelPart &rModelPart,
         TSystemVectorType &rDx) const
@@ -384,7 +358,7 @@ public:
                                                     
                         });
         return rDx;
-    } 
+    } */ 
 
 
     virtual void InitializeSolutionStep(
@@ -395,21 +369,15 @@ public:
     {
         // Call the base B&S InitializeSolutionStep
         BaseType::InitializeSolutionStep(rModelPart, rA, rDx, rb);
-
-
-        time_step_iterations = 0;
-            
     
         // Reset the ROM solution increment in the root modelpart database
         auto& r_root_mp = rModelPart.GetRootModelPart();
         r_root_mp.GetValue(ROM_SOLUTION_INCREMENT) = ZeroVector(GetNumberOfROMModes());
 
-        if (InitializedQnFlag == true) {            
+        if (InitializedQnFlag == false) {            
             // Initializes qn but does not reset it
             qn = ZeroVector(GetNumberOfROMModes());
-            qs = ZeroMatrix(GetNumberOfROMModes(),50);
-            us = ZeroMatrix(9216,50);
-            InitializedQnFlag = false;          
+            InitializedQnFlag = true;          
         };
     }
 
@@ -902,26 +870,13 @@ protected:
         // saves projection using current increments, saves current q to qn
         qn += dxrom;
         
-        //Append dxrom to Qs
-        //for (int j = 0; j < 31; j++) {
-        //        qs(j, time_step_iterations) = dxrom(j);
-        //}
-        
-        // project reduced solution back to full order model
-        const auto backward_projection_timer = BuiltinTimer();
         ProjectToFineBasis(qn, rModelPart, rDx);
-        
         rDx -= Un;
 
+        // project reduced solution back to full order model
+        const auto backward_projection_timer = BuiltinTimer();
+
         KRATOS_WATCH(rDx)
-        
-        //Append rDx to Us
-        for (int j = 0; j < 9216; j++) {
-                us(j, time_step_iterations) = rDx(j);
-        }
-        
-        // Increase time step interations counter
-        time_step_iterations += 1;
             
         KRATOS_INFO_IF("ROMBuilderAndSolver", (this->GetEchoLevel() > 0)) << "Project to fine basis time: " << backward_projection_timer.ElapsedSeconds() << std::endl;
 
