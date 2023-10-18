@@ -38,7 +38,7 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-// forward declaring ModelPart adn Model to be avoid including heavy header here
+// forward declaring ModelPart and Model to be avoid including heavy header here
 class ModelPart;
 class Model;
 
