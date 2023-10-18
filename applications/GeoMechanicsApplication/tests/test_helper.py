@@ -172,51 +172,33 @@ def get_nodal_variable_from_ascii(filename: str, variable: str):
 
     # read data
     with open(filename, "r") as f:
-        all_data = f.readlines()
+        all_lines = f.readlines()
 
     add_var = False
-
-    data = []
-    time_steps = []
-    all_var_data = []
+    res = {}
 
     # read all data at each time step of variable
-    for line in all_data:
+    for line in all_lines:
 
         if "End Values" in line and add_var:
             add_var = False
-            all_var_data.append(data)
-            data = []
+
         if add_var:
-            data.append(line)
+            if line.startswith("Values"):
+                continue;
+            lineSplit = line.split()
+            lineSplit[0] = int(lineSplit[0])
+            for ind, strVal in enumerate(lineSplit[1:]):
+                lineSplit[ind+1] = float(strVal)
+            if (len(lineSplit[1:])==1):
+                res[time_step][lineSplit[0]] = lineSplit[1]
+            else:
+                res[time_step][lineSplit[0]] = lineSplit[1:]
 
         if r'"' + variable + r'"' in line:
             time_step = float(line.split()[3])
-
-            time_steps.append(time_step)
+            res[time_step] = {}
             add_var=True
-
-    # initialise results dictionary
-    res = {"time": time_steps}
-
-    for var_data in all_var_data:
-        var_data.pop(0)
-
-        # convert var data to floats
-        for i, _ in enumerate(var_data):
-            line = var_data[i].split()
-            line[1] = float(line[1])
-            line[2] = float(line[2])
-            line[3] = float(line[3])
-            var_data[i] = line
-
-    # add node numbers as dict keys
-    for line in var_data:
-        res[line[0]] = []
-
-    for var_data in all_var_data:
-        for line in var_data:
-            res[line[0]].append(line[1:])
 
     return res
 
