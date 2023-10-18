@@ -524,7 +524,7 @@ private:
      * @return dof variable is found or not
      */
     bool FindVarLocalKey(
-        DofsArrayType::const_iterator iDof,
+        typename DofsArrayType::const_iterator iDof,
         int& rVarLocalKey) const
     {
         const auto &r_current_variable = iDof->GetVariable();
