@@ -165,7 +165,7 @@ double ComputeGeometricalQuantity(
     const ModelPart& rModelPart,
     const QuantityType Quantity)
 {
-    std::function<double(const ModelPart::GeometryType&)> access_function;
+    std::function<double(const GeometryType&)> access_function;
 
     switch (Quantity)
     {
