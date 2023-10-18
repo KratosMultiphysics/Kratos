@@ -44,6 +44,11 @@ public:
         if (rSolverSettings[strategy_type].GetString() ==
             GeoMechanicsNewtonRaphsonStrategy<TSparseSpace, TDenseSpace, TLinearSolver>::Name())
         {
+            const int max_iterations = rSolverSettings["max_iterations"].GetInt();
+            const bool calculate_reactions = rSolverSettings["calculate_reactions"].GetBool();
+            const bool reform_dof_set_at_each_step = rSolverSettings["reform_dofs_at_each_step"].GetBool();
+            const bool move_mesh_flag = rSolverSettings["move_mesh_flag"].GetBool();
+
             auto strategy_parameters = ExtractStrategyParameters(rSolverSettings);
             return std::make_unique<GeoMechanicsNewtonRaphsonStrategy<TSparseSpace,
                     TDenseSpace,
@@ -52,7 +57,11 @@ public:
                     solver,
                     criteria,
                     builder_and_solver,
-                    strategy_parameters);
+                    strategy_parameters,
+                    max_iterations,
+                    calculate_reactions,
+                    reform_dof_set_at_each_step,
+                    move_mesh_flag);
         }
 
         return nullptr;
