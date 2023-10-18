@@ -137,7 +137,7 @@ namespace CppTestsUtilities
      * @param HalfZ The half-length of the cube in the Z-direction.
      * @return ModelPart& The created cube skin model part.
      */
-    ModelPart& KRATOS_API(KRATOS_CORE) CreateCubeSkinModelPart(
+    KRATOS_API(KRATOS_CORE) ModelPart& CreateCubeSkinModelPart(
         Model& rCurrentModel,
         const double HalfX = 0.6,
         const double HalfY = 0.9,
@@ -149,7 +149,7 @@ namespace CppTestsUtilities
      * @param rCurrentModel The current model.
      * @return The created cube model part.
      */
-    ModelPart& KRATOS_API(KRATOS_CORE) CreateCubeModelPart(Model& rCurrentModel);
+    KRATOS_API(KRATOS_CORE) ModelPart& CreateCubeModelPart(Model& rCurrentModel);
 
 }; // namespace CppTestsUtilities
 }  // namespace Kratos
