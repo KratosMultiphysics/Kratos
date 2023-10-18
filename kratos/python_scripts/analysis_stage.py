@@ -95,6 +95,16 @@ class AnalysisStage(object):
             self.__CheckIfSolveSolutionStepReturnsAValue(is_converged)
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
+        # export DISPLACEMENTS
+        self.WriteOutputDisplacements()
+
+    def WriteOutputDisplacements(self):
+        displacements = []
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            node_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
+            displacements.append(node_displacement)
+        np.save("DISPLACEMENTS", displacements)
+        np.savetxt("DISPLACEMENTS.txt", displacements)
 
     def Initialize(self):
         """This function initializes the AnalysisStage
@@ -265,6 +275,10 @@ class AnalysisStage(object):
             T_elm[2, 2] = local_axis_3[0][2]
 
             self.deformed_config_jacobians.append(J_X)
+        # export Jacobians J0
+        np.save("jacobians_J0", self.deformed_config_jacobians)
+        J0txt = np.reshape(self.deformed_config_jacobians, -1)
+        np.savetxt("jacobians_J0.txt", J0txt)
 
         # Calculate normals from deformed configuration
         print("\n ::TESTING:: START Calculate normals \n")
@@ -280,13 +294,13 @@ class AnalysisStage(object):
 
         # flatten geometry
         for node in self._GetSolver().GetComputingModelPart().Nodes:
-            node.Z0 = 0.0
-            node.Z  = 0.0
+            # node.Z0 = 0.0
+            # node.Z  = 0.0
             # stretch flat geometry in x-direction to induce strains
-            # if node.X > 0.1:
-            #     node.X += 0.1
-            # if node.X < -0.1:
-            #     node.X -= 0.1
+            if node.X > 0.1:
+                node.X += 0.2
+            if node.X < -0.1:
+                node.X -= 0.2
         
         # save flat configuration nodal positions
         self.flattened_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
@@ -313,11 +327,16 @@ class AnalysisStage(object):
             elm_Jacobian = np.array(element.GetGeometry().Jacobian(0))
             J_X0 = np.concatenate((elm_Jacobian, extracolumn.T), axis=1)
             self.flatted_config_jacobians.append(J_X0)
+        # export Jacobians J
+        np.save("jacobians_J", self.flatted_config_jacobians)
+        Jtxt = np.reshape(self.flatted_config_jacobians, -1)
+        np.savetxt("jacobians_J.txt", Jtxt)
             
+        F_list = []
         strains_list = []
         # Read pre-calculated strains
-        strains_def_config = np.load('strains_cylinder.npy')
-        for J, J0, strain, element in zip(self.deformed_config_jacobians,self.flatted_config_jacobians, strains_def_config, self._GetSolver().GetComputingModelPart().Elements):
+        # strains_def_config = np.load('strains_cylinder.npy')
+        for J, J0, element in zip(self.deformed_config_jacobians,self.flatted_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
 
             local_axis_1 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_2 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
@@ -351,7 +370,8 @@ class AnalysisStage(object):
             # Calculate strain by Deformation Gradient F
             defgrad = J @ J0_inv
             C3D_FFT = defgrad.T @ defgrad
-            # E3D_FFT = 0.5 * (C3D_FFT - np.eye(3))
+            F_list.append(defgrad)
+            E3D_FFT = 0.5 * (C3D_FFT - np.eye(3))
             
             # Check matrix operations
             # print("C3D:\n", C3D)
@@ -359,10 +379,10 @@ class AnalysisStage(object):
             
             # TODO: CHECK STRAINS
 
-            # E_voigt = KratosMultiphysics.Vector(3)
-            # E_voigt[0] = E3D_FFT[0, 0]
-            # E_voigt[1] = E3D_FFT[1, 1]
-            # E_voigt[2] = 2 * E3D_FFT[0, 1]
+            E_voigt = KratosMultiphysics.Vector(3)
+            E_voigt[0] = E3D_FFT[0, 0]
+            E_voigt[1] = E3D_FFT[1, 1]
+            E_voigt[2] = (E3D_FFT[0, 1] + E3D_FFT[1, 0])
 
             # # selected elements
             # E_voigt = KratosMultiphysics.Vector(3)
@@ -379,14 +399,18 @@ class AnalysisStage(object):
             #     E_voigt[2] = 0.0
 
             # apply pre-calculated strains from original deformed configuration to flat input
-            element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, strain)
-            strainvalue = np.array(strain)
+            element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
+            strainvalue = np.array(E_voigt)
             strains_list.append(strainvalue)
             # TODO later - Create condition for PointLoad, reference command:
             # self._GetSolver().GetComputingModelPart().CreateCondition()
         # print("strain list:\n", strains_list)
-        # np.save("strains_cylinder",strains_list)
-        # np.savetxt("strains_cylinder",strains_list)
+        # export F, E
+        np.save("F_defgrad", F_list)
+        Ftxt = np.reshape(F_list, -1)
+        np.savetxt("F_defgrad.txt", Ftxt)
+        np.save("E_strains", strains_list)
+        np.savetxt("E_strains.txt", strains_list)
 
 
     def ModifyAfterSolverInitialize(self):
