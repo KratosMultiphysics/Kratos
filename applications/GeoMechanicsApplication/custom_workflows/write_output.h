@@ -37,7 +37,8 @@ public:
 
     static void WriteGiDOutput(ModelPart&         rModelPart,
                                Parameters         Settings,
-                               const std::string& rWorkingDirectory);
+                               const std::string& rWorkingDirectory,
+                               bool WriteHydraulicHeadToNodes = true);
 
 private:
     static void WriteNodalOutput(const std::vector<std::string>& rOutputItemNames,
@@ -46,8 +47,8 @@ private:
     static void WriteIntegrationPointOutput(const std::vector<std::string>& rOutputItemNames,
                                             GidIO<>&                        rGidIO,
                                             ModelPart&                      rModelPart);
-    static void CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart &rModelPart);
-    static void PrintGaussVariable(std::any input, GidIO<>& rGidIO, ModelPart &rModelPart);
+    static void CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart& rModelPart);
+    static void PrintGaussVariable(std::any input, GidIO<>& rGidIO, ModelPart& rModelPart);
 
     static GiD_PostMode GetGiDPostModeFrom(const Parameters& rGiDPostFlags);
     static MultiFileFlag GetMultiFileFlagFrom(const Parameters& rGiDPostFlags);

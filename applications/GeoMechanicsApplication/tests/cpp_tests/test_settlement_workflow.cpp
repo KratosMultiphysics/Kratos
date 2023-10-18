@@ -59,24 +59,21 @@ KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsFastSuite)
     const auto working_directory = std::filesystem::path{"./applications/GeoMechanicsApplication/tests/test_settlement_workflow"};
 
     auto settlement = CustomWorkflowFactory::CreateKratosGeoSettlement();
-    std::ofstream stream;
-    stream.open("./applications/GeoMechanicsApplication/tests/test_settlement_workflow/test_output.txt", std::ios_base::out);
-    auto log_callback = [&stream](const char* output){stream << output;};
-    for (int i = 0; i < 1; ++i) {
+//    std::ofstream stream;
+//    stream.open("./applications/GeoMechanicsApplication/tests/test_settlement_workflow/test_output.txt", std::ios_base::out);
+//    auto log_callback = [&stream](const char* output){stream << output;};
+    for (int i = 0; i < 3; ++i) {
         auto projectFile = "ProjectParameters_stage"+ std::to_string(i + 1) + ".json";
         int status = settlement->RunStage(working_directory, projectFile,
-                                          log_callback, &flow_stubs::emptyProgress,
+                                          &flow_stubs::emptyLog, &flow_stubs::emptyProgress,
                                           &flow_stubs::emptyLog, &flow_stubs::emptyCancel);
 
+        std::string original = working_directory.generic_string() + std::string("/test_model_stage") + std::to_string(i+1) + ".post.orig.res";
+        std::string result = working_directory.generic_string() + std::string("/test_model_stage") + std::to_string(i+1) + ".post.res";
+
         KRATOS_EXPECT_EQ(status, 0);
+//        KRATOS_EXPECT_TRUE(compareFiles(original, result))
     }
-
-
-    // output_files
-//    std::string original = (std::string) workingDirectory + "/test_head_extrapolate_1.orig.res";
-//    std::string result = (std::string) workingDirectory + "/test_head_extrapolate_1.post.res";
-
-//    KRATOS_EXPECT_TRUE(compareFiles(original, result))
 }
 
 }

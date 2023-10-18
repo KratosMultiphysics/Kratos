@@ -141,7 +141,11 @@ public:
 
     void OutputProcess() override
     {
-        GeoOutputWriter::WriteGiDOutput(mrModelPart, mProjectParameters, mWorkingDirectory.generic_string());
+        auto write_hydraulic_head_to_nodes = false;
+        GeoOutputWriter::WriteGiDOutput(mrModelPart,
+                                        mProjectParameters,
+                                        mWorkingDirectory.generic_string(),
+                                        write_hydraulic_head_to_nodes);
     }
 
     bool SolveSolutionStep() override

@@ -175,6 +175,21 @@
             "table":           [0,0,0]
         }
     },{
+        "python_module": "apply_normal_load_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyNormalLoadTableProcess",
+        "Parameters":    {
+            "model_part_name":      "PorousDomain.Hydrostatic_load_in_sloot",
+            "variable_name":        "NORMAL_CONTACT_STRESS",
+            "active":               [true,false],
+            "value":                [0.0,0.0],
+            "table":                [0,0],
+            "fluid_pressure_type": "Hydrostatic",
+            "gravity_direction":    1,
+            "reference_coordinate": -1,
+            "specific_weight":      9.81
+        }
+    },{
         "python_module": "apply_vector_constraint_table_process",
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyVectorConstraintTableProcess",

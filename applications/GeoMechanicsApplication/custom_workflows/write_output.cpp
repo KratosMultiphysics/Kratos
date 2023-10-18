@@ -96,7 +96,8 @@ namespace Kratos
 
 void GeoOutputWriter::WriteGiDOutput(ModelPart&         rModelPart,
                                      Parameters         Settings,
-                                     const std::string& rWorkingDirectory)
+                                     const std::string& rWorkingDirectory,
+                                     bool WriteHydraulicHeadToNodes)
 {
     auto output_parameters = Settings["output_processes"]["gid_output"].GetArrayItem(0)["Parameters"];
     auto gid_post_flags = output_parameters["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"];
@@ -115,7 +116,7 @@ void GeoOutputWriter::WriteGiDOutput(ModelPart&         rModelPart,
 
     // Calculate hydraulic head on the nodes
     auto gauss_outputs = output_parameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
-    if (std::find(gauss_outputs.begin(), gauss_outputs.end(), "HYDRAULIC_HEAD") != gauss_outputs.end())
+    if (WriteHydraulicHeadToNodes && std::find(gauss_outputs.begin(), gauss_outputs.end(), "HYDRAULIC_HEAD") != gauss_outputs.end())
     {
         CalculateNodalHydraulicHead(gid_io, rModelPart);
     }
@@ -175,7 +176,7 @@ void GeoOutputWriter::WriteIntegrationPointOutput(const std::vector<std::string>
     }
 }
 
-void GeoOutputWriter::PrintGaussVariable(std::any input, GidIO<> &rGidIO, ModelPart &rModelPart)
+void GeoOutputWriter::PrintGaussVariable(std::any input, GidIO<> &rGidIO, ModelPart& rModelPart)
 {
     // We need the try catch blocks, since the std::any_cast throw
     // and in that case, we want to try a different type
