@@ -584,10 +584,7 @@ void DVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
 
-    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
-    for (unsigned int i = 0; i < NumNodes; i++)
-        for (unsigned int d = 0; d < Dim; d++)
-            fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+    array_1d<double,3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
 
@@ -876,10 +873,7 @@ void DVMSDEMCoupled<TElementData>::MassProjTerm(
         const auto velocities = rData.Velocity;
 
         const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-        array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
-        for (unsigned int i = 0; i < NumNodes; i++)
-            for (unsigned int d = 0; d < Dim; d++)
-                fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+        array_1d<double,3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
         const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
         const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
 
@@ -1033,11 +1027,7 @@ void DVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
 
     BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
-    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
-
-    for (unsigned int i = 0; i < NumNodes; i++)
-        for (unsigned int d = 0; d < Dim; d++)
-            fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+    array_1d<double,3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     // This last term does not exist physically and it is included to do the spectral radius taking into account the inverse Gamma
     // whose size is (d+1,d+1)

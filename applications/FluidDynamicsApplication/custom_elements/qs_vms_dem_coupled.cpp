@@ -625,11 +625,7 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
     const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
-    //array_1d<double, 3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
-    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
-    for (unsigned int i = 0; i < NumNodes; i++)
-        for (unsigned int d = 0; d < Dim; d++)
-            fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+    array_1d<double,3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
 
@@ -929,11 +925,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateTau(
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     MatrixType sigma = ZeroMatrix(Dim+1, Dim+1);
     BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
-    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
-
-    for (unsigned int i = 0; i < NumNodes; i++)
-        for (unsigned int d = 0; d < Dim; d++)
-            fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+    array_1d<double,3> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     double velocity_modulus = 0.0;
     double fluid_fraction_gradient_modulus = 0.0;
