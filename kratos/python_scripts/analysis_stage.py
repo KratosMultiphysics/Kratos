@@ -55,16 +55,6 @@ class AnalysisStage(object):
         """
         return self.time < self.end_time
 
-    def InvertMatrix(self,A):
-        Ainv = KratosMultiphysics.Matrix(2,2)
-        det = A[0,0]*A[1,1]-A[1,0]*A[0,1]
-
-        Ainv[0,0] = A[1,1]/det
-        Ainv[0,1] = -A[0,1]/det
-        Ainv[1,0] = -A[1,0]/det
-        Ainv[1,1] = A[0,0]/det
-        return Ainv
-    
     ######################################################################################################
     def ImposeInitialStateProcess(self):
         imposed_strain = KratosMultiphysics.Vector(3)
@@ -236,13 +226,13 @@ class AnalysisStage(object):
         # save deformed configuration nodal positions
         var_utils = KratosMultiphysics.VariableUtils()
         self.initial_unmodified_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
-        # test GetPositions functions 
-        initial_positions_def = self.initial_unmodified_coordinates
-        current_positions_def = var_utils.GetCurrentPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
-        print("initial positions (deformed)")
-        print(initial_positions_def)
-        print("current positions (deformed)")
-        print(current_positions_def)
+        # # test GetPositions functions 
+        # initial_positions_def = self.initial_unmodified_coordinates
+        # current_positions_def = var_utils.GetCurrentPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
+        # print("initial positions (deformed)")
+        # print(initial_positions_def)
+        # print("current positions (deformed)")
+        # print(current_positions_def)
     
         # Calculate Jacobians from deformed configuration
         self.deformed_config_jacobians = []
@@ -257,11 +247,11 @@ class AnalysisStage(object):
             local_axis_1 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_2 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_3 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, self._GetSolver().GetComputingModelPart().ProcessInfo)
-            print("local axes DEFORMED\n")
-            print("elem", elem.Id,":")
-            print(local_axis_1[0])
-            print(local_axis_2[0])
-            print(local_axis_3[0])
+            # print("local axes DEFORMED\n")
+            # print("elem", elem.Id,":")
+            # print(local_axis_1[0])
+            # print(local_axis_2[0])
+            # print(local_axis_3[0])
             
             T_elm = KratosMultiphysics.Matrix(3, 3)
             T_elm[0, 0] = local_axis_1[0][0]
@@ -303,13 +293,13 @@ class AnalysisStage(object):
         self.initial_displacements = self.initial_unmodified_coordinates - self.flattened_coordinates
         # print("initial_displacements:", self.initial_displacements)
 
-        # test GetPositions functions 
-        initial_positions_flat = self.flattened_coordinates
-        current_positions_flat = var_utils.GetCurrentPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
-        print("initial positions (flat)")
-        print(initial_positions_flat)
-        print("current positions (flat)")
-        print(current_positions_flat)
+        # # test GetPositions functions 
+        # initial_positions_flat = self.flattened_coordinates
+        # current_positions_flat = var_utils.GetCurrentPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
+        # print("initial positions (flat)")
+        # print(initial_positions_flat)
+        # print("current positions (flat)")
+        # print(current_positions_flat)
 
         # assign initial strains
         self.InitializeMyStrains()
@@ -332,11 +322,11 @@ class AnalysisStage(object):
             local_axis_1 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_2 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_3 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, self._GetSolver().GetComputingModelPart().ProcessInfo)
-            print("local axes FLAT\n")
-            print("elem", element.Id,":")
-            print(local_axis_1[0])
-            print(local_axis_2[0])
-            print(local_axis_3[0])
+            # print("local axes FLAT\n")
+            # print("elem", element.Id,":")
+            # print(local_axis_1[0])
+            # print(local_axis_2[0])
+            # print(local_axis_3[0])
 
             T0_elm = KratosMultiphysics.Matrix(3, 3)
             T0_elm[0, 0] = local_axis_1[0][0]
