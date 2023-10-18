@@ -107,6 +107,7 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
 
             # find index of expected time of wave arrival in time list
             res_keys = list(res.keys())
+            print("TEST", res.keys())
             ini_time_idx = test_helper.find_closest_index_greater_than_value(res_keys, expected_ini_time)
 
             # calculate velocity after wave arrival
