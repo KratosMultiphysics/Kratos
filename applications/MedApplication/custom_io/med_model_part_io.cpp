@@ -86,7 +86,7 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
         };
 
     case MED_TRIA6:
-        return [](auto& rConnectivities) -> void {
+        return [](auto& rConnectivities){
             CheckConnectivitiesSize(6, rConnectivities);
             std::swap(rConnectivities[1], rConnectivities[2]);
             std::swap(rConnectivities[3], rConnectivities[5]);
@@ -99,17 +99,56 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
         };
 
     case MED_QUAD8:
-        KRATOS_ERROR << "MED_QUAD8 is med_quad8 is not implemented!" << std::endl;
+        return [](auto& Connectivities){
+            CheckConnectivitiesSize(8, Connectivities);
+            std::swap(Connectivities[1], Connectivities[3]);
+            std::swap(Connectivities[4], Connectivities[7]);
+            std::swap(Connectivities[5], Connectivities[6]);
+        };
 
-    case MED_QUAD9: // should be same as MED_QUAD8
-        KRATOS_ERROR << "MED_QUAD9 is not implemented!" << std::endl;
+    case MED_QUAD9:
+        return [](auto& Connectivities){
+            CheckConnectivitiesSize(9, Connectivities);
+            std::swap(Connectivities[1], Connectivities[3]);
+            std::swap(Connectivities[4], Connectivities[7]);
+            std::swap(Connectivities[5], Connectivities[6]);
+        };
+
+    case MED_TETRA4:
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(4, rConnectivities);
+            std::swap(rConnectivities[2], rConnectivities[3]);
+        };
 
     case MED_TETRA10:
-        return [](auto& rConnectivities) -> void {
+        return [](auto& rConnectivities){
             CheckConnectivitiesSize(10, rConnectivities);
             std::swap(rConnectivities[1], rConnectivities[2]);
             std::swap(rConnectivities[4], rConnectivities[6]);
             std::swap(rConnectivities[8], rConnectivities[9]);
+        };
+
+    case MED_HEXA8:
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(8, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[4]);
+            std::swap(rConnectivities[2], rConnectivities[7]);
+        };
+
+    case MED_HEXA20:
+        KRATOS_ERROR << "MED_HEXA20 is not implemented!" << std::endl;
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(20, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[4]);
+            std::swap(rConnectivities[2], rConnectivities[7]);
+        };
+
+    case MED_HEXA27:
+        KRATOS_ERROR << "MED_HEXA27 is not implemented!" << std::endl;
+        return [](auto& rConnectivities){
+            CheckConnectivitiesSize(27, rConnectivities);
+            std::swap(rConnectivities[1], rConnectivities[4]);
+            std::swap(rConnectivities[2], rConnectivities[7]);
         };
 
     case MED_PYRA5:
@@ -118,9 +157,20 @@ std::function<void(std::vector<T>&)> GetReorderFunction(const med_geometry_type 
     case MED_PYRA13:
         KRATOS_ERROR << "MED_PYRA13 is not implemented!" << std::endl;
 
+    case MED_PENTA6:
+        KRATOS_ERROR << "MED_PENTA6 is not implemented!" << std::endl;
+
+    case MED_PENTA15:
+        KRATOS_ERROR << "MED_PENTA15 is not implemented!" << std::endl;
+
     default:
         return [](auto& Connectivities){
             // does nothing if no reordering is needed
+            /*
+            - MED_POINT1
+            - MED_SEG2
+            - MED_SEG3
+            */
         };
     }
 }
@@ -446,7 +496,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
             KRATOS_ERROR_IF(std::numeric_limits<decltype(num_geometries_total)>::max() == num_geometries_total)
                 << "number of geometries read (" << num_geometries_total << ") exceeds the capacity of the index type";
             rThisModelPart.CreateNewGeometry(kratos_geo_name,
-                                             num_geometries_total++,
+                                             ++num_geometries_total,
                                              geom_node_ids);
         }
 

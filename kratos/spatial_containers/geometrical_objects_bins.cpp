@@ -172,6 +172,52 @@ GeometricalObjectsBins::ResultType GeometricalObjectsBins::SearchIsInside(const 
 /***********************************************************************************/
 /***********************************************************************************/
 
+bool GeometricalObjectsBins::PointIsInsideBoundingBox(const array_1d<double, 3>& rCoords)
+{
+    // Get the bounding box points
+    const auto& r_max_point = mBoundingBox.GetMaxPoint();
+    const auto& r_min_point = mBoundingBox.GetMinPoint();
+
+    // The Bounding Box check
+    if (rCoords[0] < r_max_point[0] && rCoords[0] > r_min_point[0])           // check x-direction
+        if (rCoords[1] < r_max_point[1] && rCoords[1] > r_min_point[1])       // check y-direction
+            if (rCoords[2] < r_max_point[2] && rCoords[2] > r_min_point[2])   // check z-direction
+                return true;
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+bool GeometricalObjectsBins::PointIsInsideBoundingBoxWithTolerance(
+    const array_1d<double, 3>& rCoords,
+    const double Tolerance
+    )
+{
+    // Get the bounding box points
+    auto max_point = mBoundingBox.GetMaxPoint();
+    auto min_point = mBoundingBox.GetMinPoint();
+    
+    // Apply Tolerances (only in non zero BB cases)
+    const double epsilon = std::numeric_limits<double>::epsilon();
+    if (norm_2(max_point) > epsilon && norm_2(min_point) > epsilon) {
+        for (unsigned int i=0; i<3; ++i) {
+            max_point[i] += Tolerance;
+            min_point[i] -= Tolerance;
+        }
+    }
+
+    // The Bounding Box check
+    if (rCoords[0] < max_point[0] && rCoords[0] > min_point[0])           // check x-direction
+        if (rCoords[1] < max_point[1] && rCoords[1] > min_point[1])       // check y-direction
+            if (rCoords[2] < max_point[2] && rCoords[2] > min_point[2])   // check z-direction
+                return true;
+    return false;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 void GeometricalObjectsBins::CalculateCellSize(const std::size_t NumberOfCells)
 {
     const std::size_t avarage_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(NumberOfCells), 1.00 / Dimension));
