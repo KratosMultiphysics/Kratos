@@ -158,7 +158,7 @@ private:
         const TSystemVectorType& rDx,
         std::vector<int>& rDofsCount,
         std::vector<TDataType>& rSolutionNormsVector,
-        std::vector<TDataType>& rIncreaseNormsVector) override
+        std::vector<TDataType>& rIncreaseNormsVector) const override
     {
         int n_dofs = rDofSet.size();
         const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
@@ -183,8 +183,14 @@ private:
                 dof_dx = local_dx[mpDofImport->TargetMap().LID(dof_id)];
 
                 const auto &r_current_variable = it_dof->GetVariable();
-                KeyType var_key = r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key();
-                int var_local_key = r_local_key_map[var_key];
+                const KeyType var_key = r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key();
+                auto key_find = r_local_key_map.find(var_key);
+                if (key_find == r_local_key_map.end()) {
+                    // the dof does not belong to the list of variables
+                    // we are checking for convergence, so we skip it
+                    continue;
+                }
+                const int var_local_key = key_find->second;
 
                 rSolutionNormsVector[var_local_key] += r_dof_value * r_dof_value;
                 rIncreaseNormsVector[var_local_key] += dof_dx * dof_dx;

@@ -461,7 +461,7 @@ private:
         const TSystemVectorType& rDx,
         std::vector<int>& rDofsCount,
         std::vector<TDataType>& rSolutionNormsVector,
-        std::vector<TDataType>& rIncreaseNormsVector)
+        std::vector<TDataType>& rIncreaseNormsVector) const
     {
         int n_dofs = rDofSet.size();
 
@@ -495,8 +495,9 @@ private:
                     const KeyType key = r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key();
                     auto key_find = mLocalKeyMap.find(key);
                     if (key_find == mLocalKeyMap.end()) {
-                        KRATOS_ERROR << "MixedGenericCriteria: The key " << key << " was not found in mLocalKeyMap." <<
-                          "Make sure the input variables in constructor and the dofset variables match.\n";
+                        // the dof does not belong to the list of variables
+                        // we are checking for convergence, so we skip it
+                        continue;
                     }
                     const int var_local_key = key_find->second;
 
