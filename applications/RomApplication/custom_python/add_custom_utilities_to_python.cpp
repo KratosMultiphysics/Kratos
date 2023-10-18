@@ -43,7 +43,6 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
     .def(init<ModelPart&, Parameters, BaseSchemeType::Pointer>()) //
     .def("GetProjectedResidualsOntoPhi",&RomResidualsUtility::GetProjectedResidualsOntoPhi) //
     .def("GetProjectedResidualsOntoPsi",&RomResidualsUtility::GetProjectedResidualsOntoPsi) //
-    .def("GetProjectedGlobalLHS", &RomResidualsUtility::GetProjectedGlobalLHS)//
     ;
 
     class_<RomAuxiliaryUtilities>(m, "RomAuxiliaryUtilities")
@@ -51,10 +50,13 @@ void AddCustomUtilitiesToPython(pybind11::module& m)
         .def_static("SetHRomVolumetricVisualizationModelPart", &RomAuxiliaryUtilities::SetHRomVolumetricVisualizationModelPart)
         .def_static("GetHRomConditionParentsIds", &RomAuxiliaryUtilities::GetHRomConditionParentsIds)
         .def_static("GetNodalNeighbouringElementIdsNotInHRom", &RomAuxiliaryUtilities::GetNodalNeighbouringElementIdsNotInHRom)
+        .def_static("GetNodalNeighbouringElementIds", &RomAuxiliaryUtilities::GetNodalNeighbouringElementIds)
         .def_static("GetConditionIdsNotInHRomModelPart", &RomAuxiliaryUtilities::GetConditionIdsNotInHRomModelPart)
         .def_static("GetElementIdsNotInHRomModelPart", &RomAuxiliaryUtilities::GetElementIdsNotInHRomModelPart)
         .def_static("GetHRomMinimumConditionsIds", &RomAuxiliaryUtilities::GetHRomMinimumConditionsIds)
         .def_static("ProjectRomSolutionIncrementToNodes", &RomAuxiliaryUtilities::ProjectRomSolutionIncrementToNodes)
+        .def_static("GetElementIdsInModelPart", &RomAuxiliaryUtilities::GetElementIdsInModelPart)
+        .def_static("GetConditionIdsInModelPart", &RomAuxiliaryUtilities::GetConditionIdsInModelPart)
         ;
 }
 

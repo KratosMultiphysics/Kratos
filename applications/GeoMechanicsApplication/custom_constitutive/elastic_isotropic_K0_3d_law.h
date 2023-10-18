@@ -243,7 +243,7 @@ protected:
     * @brief It checks the size of the constitutive matrix rConstitutiveMatrix and resize it if neccessary
     * @param rConstitutiveMatrix The constitutive matrix
     */
-    void CheckClearElasticMatrix(Matrix& rConstitutiveMatrix);
+    void CheckClearElasticMatrix(Matrix& rConstitutiveMatrix) const;
 
     /**
     * @brief It calculates the constitutive matrix rConstitutiveMatrix
