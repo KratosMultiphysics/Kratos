@@ -182,15 +182,13 @@ private:
                 const TDataType& r_dof_value = it_dof->GetSolutionStepValue(0);
                 dof_dx = local_dx[mpDofImport->TargetMap().LID(dof_id)];
 
-                const auto &r_current_variable = it_dof->GetVariable();
-                const KeyType var_key = r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key();
-                auto key_find = r_local_key_map.find(var_key);
-                if (key_find == r_local_key_map.end()) {
+                int var_local_key;
+                bool key_found = FindVarLocalKey(it_dof,var_local_key);
+                if (!key_found) {
                     // the dof does not belong to the list of variables
                     // we are checking for convergence, so we skip it
                     continue;
                 }
-                const int var_local_key = key_find->second;
 
                 rSolutionNormsVector[var_local_key] += r_dof_value * r_dof_value;
                 rIncreaseNormsVector[var_local_key] += dof_dx * dof_dx;

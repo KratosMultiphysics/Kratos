@@ -491,16 +491,13 @@ private:
                     dof_value = it_dof->GetSolutionStepValue(0);
                     dof_dx = TSparseSpace::GetValue(rDx, dof_id);
 
-                    const auto &r_current_variable = it_dof->GetVariable();
-                    const KeyType key = r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key();
-                    auto key_find = mLocalKeyMap.find(key);
-                    if (key_find == mLocalKeyMap.end()) {
+                    int var_local_key;
+                    bool key_found = FindVarLocalKey(it_dof,var_local_key);
+                    if (!key_found) {
                         // the dof does not belong to the list of variables
                         // we are checking for convergence, so we skip it
                         continue;
                     }
-                    const int var_local_key = key_find->second;
-
                     var_solution_norm_reduction[var_local_key] += dof_value * dof_value;
                     var_correction_norm_reduction[var_local_key] += dof_dx * dof_dx;
                     dofs_counter_reduction[var_local_key]++;
@@ -516,6 +513,30 @@ private:
                 }
             }
         }
+    }
+
+    /**
+     * @brief Finds the var local key in the mLocalKeyMap for 
+     * a gifen dof. If the variable does not exist in mLocalKeyMap
+     * this function returns false
+     * @param iDof the dof
+     * @param rVarLocalKey variable local key 
+     * @return dof variable is found or not
+     */
+    bool FindVarLocalKey(
+        DofsArrayType::const_iterator iDof,
+        int& rVarLocalKey) const
+    {
+        const auto &r_current_variable = iDof->GetVariable();
+        const KeyType key = r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key();
+        auto key_find = this->mLocalKeyMap.find(key);
+        bool found = true;
+        if (key_find == this->mLocalKeyMap.end()) {
+            found = false;
+        } else {
+            rVarLocalKey = key_find->second;;
+        }
+        return found;
     }
 
     /**
