@@ -163,7 +163,7 @@ private:
         int n_dofs = rDofSet.size();
         const auto& r_data_comm = rModelPart.GetCommunicator().GetDataCommunicator();
         const int rank = r_data_comm.Rank();
-        auto& r_local_key_map = BaseType::GetLocalKeyMap();
+        const auto& r_local_key_map = BaseType::GetLocalKeyMap();
 
         // Do the local Dx vector import
         Epetra_Vector local_dx(mpDofImport->TargetMap());
