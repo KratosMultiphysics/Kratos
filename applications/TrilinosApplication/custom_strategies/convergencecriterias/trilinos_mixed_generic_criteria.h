@@ -182,7 +182,7 @@ private:
                 dof_dx = local_dx[mpDofImport->TargetMap().LID(dof_id)];
 
                 int var_local_key;
-                bool key_found = FindVarLocalKey(it_dof,var_local_key);
+                bool key_found = BaseType::FindVarLocalKey(it_dof,var_local_key);
                 if (!key_found) {
                     // the dof does not belong to the list of variables
                     // we are checking for convergence, so we skip it
