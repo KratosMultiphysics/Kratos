@@ -88,104 +88,6 @@ class NodeHYDRAULIC_HEAD : public NodeOperation
     }
 };
 
-
-class GaussOperation
-{
-  public:
-    virtual ~GaussOperation() = default;
-    virtual void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) = 0;
-};
-
-class GaussFLUID_FLUX_VECTOR : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::FLUID_FLUX_VECTOR, rModelPart, 0, 0);
-    }
-};
-
-class GaussHYDRAULIC_HEAD : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::HYDRAULIC_HEAD, rModelPart, 0, 0);
-    }
-};
-
-class GaussLOCAL_FLUID_FLUX_VECTOR : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::LOCAL_FLUID_FLUX_VECTOR, rModelPart, 0, 0);
-    }
-};
-
-class GaussLOCAL_PERMEABILITY_MATRIX : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::LOCAL_PERMEABILITY_MATRIX, rModelPart, 0, 0);
-    }
-};
-
-class GaussPERMEABILITY_MATRIX : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::PERMEABILITY_MATRIX, rModelPart, 0, 0);
-    }
-};
-
-class GaussDEGREE_OF_SATURATION : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::DEGREE_OF_SATURATION, rModelPart, 0, 0);
-    }
-};
-
-class GaussDERIVATIVE_OF_SATURATION : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::DERIVATIVE_OF_SATURATION, rModelPart, 0, 0);
-    }
-};
-
-class GaussRELATIVE_PERMEABILITY : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::RELATIVE_PERMEABILITY, rModelPart, 0, 0);
-    }
-};
-
-class GaussPIPE_ACTIVE : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::PIPE_ACTIVE, rModelPart, 0, 0);
-    }
-};
-
-class GaussPIPE_HEIGHT : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::PIPE_HEIGHT, rModelPart, 0, 0);
-    }
-};
-
 }
 
 
@@ -250,22 +152,80 @@ void GeoOutputWriter::WriteIntegrationPointOutput(const std::vector<std::string>
                                                   GidIO<>&                        rGidIO,
                                                   ModelPart&                      rModelPart)
 {
-    std::map<std::string, std::unique_ptr<GaussOperation>, std::less<>> output_writer_map;
-    output_writer_map["FLUID_FLUX_VECTOR"]         = std::make_unique<GaussFLUID_FLUX_VECTOR>();
-    output_writer_map["HYDRAULIC_HEAD"]            = std::make_unique<GaussHYDRAULIC_HEAD>();
-    output_writer_map["LOCAL_FLUID_FLUX_VECTOR"]   = std::make_unique<GaussLOCAL_FLUID_FLUX_VECTOR>();
-    output_writer_map["LOCAL_PERMEABILITY_MATRIX"] = std::make_unique<GaussLOCAL_PERMEABILITY_MATRIX>();
-    output_writer_map["PERMEABILITY_MATRIX"]       = std::make_unique<GaussPERMEABILITY_MATRIX>();
-    output_writer_map["DEGREE_OF_SATURATION"]      = std::make_unique<GaussDEGREE_OF_SATURATION>();
-    output_writer_map["DERIVATIVE_OF_SATURATION"]  = std::make_unique<GaussDERIVATIVE_OF_SATURATION>();
-    output_writer_map["RELATIVE_PERMEABILITY"]     = std::make_unique<GaussRELATIVE_PERMEABILITY>();
-    output_writer_map["PIPE_ACTIVE"]               = std::make_unique<GaussPIPE_ACTIVE>();
-    output_writer_map["PIPE_HEIGHT"]               = std::make_unique<GaussPIPE_HEIGHT>();
+    std::map<std::string, std::any, std::less<>> output_writer_map;
+    output_writer_map["FLUID_FLUX_VECTOR"]              = FLUID_FLUX_VECTOR;
+    output_writer_map["HYDRAULIC_HEAD"]                 = HYDRAULIC_HEAD;
+    output_writer_map["LOCAL_FLUID_FLUX_VECTOR"]        = LOCAL_FLUID_FLUX_VECTOR;
+    output_writer_map["LOCAL_PERMEABILITY_MATRIX"]      = LOCAL_PERMEABILITY_MATRIX;
+    output_writer_map["PERMEABILITY_MATRIX"]            = PERMEABILITY_MATRIX;
+    output_writer_map["DEGREE_OF_SATURATION"]           = DEGREE_OF_SATURATION;
+    output_writer_map["DERIVATIVE_OF_SATURATION"]       = DERIVATIVE_OF_SATURATION;
+    output_writer_map["RELATIVE_PERMEABILITY"]          = RELATIVE_PERMEABILITY;
+    output_writer_map["PIPE_ACTIVE"]                    = PIPE_ACTIVE;
+    output_writer_map["PIPE_HEIGHT"]                    = PIPE_HEIGHT;
+    output_writer_map["GREEN_LAGRANGE_STRAIN_TENSOR"]   = GREEN_LAGRANGE_STRAIN_TENSOR;
+    output_writer_map["ENGINEERING_STRAIN_TENSOR"]      = ENGINEERING_STRAIN_TENSOR;
+    output_writer_map["CAUCHY_STRESS_TENSOR"]           = CAUCHY_STRESS_TENSOR;
+    output_writer_map["TOTAL_STRESS_TENSOR"]            = TOTAL_STRESS_TENSOR;
+    output_writer_map["VON_MISES_STRESS"]               = VON_MISES_STRESS;
 
     for (const auto& name : rOutputItemNames)
     {
-        output_writer_map.at(name)->write(rGidIO, rModelPart);
+        PrintGaussVariable(output_writer_map.at(name), rGidIO, rModelPart);
     }
+}
+
+void GeoOutputWriter::PrintGaussVariable(std::any input, GidIO<> &rGidIO, ModelPart &rModelPart)
+{
+    // We need the try catch blocks, since the std::any_cast throw
+    // and in that case, we want to try a different type
+    try
+    {
+        auto variable_array = std::any_cast<Variable<Kratos::array_1d<double, 3>>>(input);
+        rGidIO.PrintOnGaussPoints(variable_array, rModelPart, 0, 0);
+        return;
+    }
+    catch (const std::bad_any_cast& e) { /*No action needed*/ }
+
+    try
+    {
+        auto variable_bool = std::any_cast<Variable<bool>>(input);
+        rGidIO.PrintOnGaussPoints(variable_bool, rModelPart, 0, 0);
+        return;
+    }
+    catch (const std::bad_any_cast& e) { /*No action needed*/ }
+
+    try
+    {
+        auto variable_int = std::any_cast<Variable<int>>(input);
+        rGidIO.PrintOnGaussPoints(variable_int, rModelPart, 0, 0);
+        return;
+    }
+    catch (const std::bad_any_cast& e) { /*No action needed*/ }
+
+    try
+    {
+        auto variable_double = std::any_cast<Variable<double>>(input);
+        rGidIO.PrintOnGaussPoints(variable_double, rModelPart, 0, 0);
+        return;
+    }
+    catch (const std::bad_any_cast& e) { /*No action needed*/ }
+
+    try
+    {
+        auto variable_vector = std::any_cast<Variable<Vector>>(input);
+        rGidIO.PrintOnGaussPoints(variable_vector, rModelPart, 0, 0);
+        return;
+    }
+    catch (const std::bad_any_cast& e) { /*No action needed*/ }
+
+    try
+    {
+        auto variable_matrix = std::any_cast<Variable<Matrix>>(input);
+        rGidIO.PrintOnGaussPoints(variable_matrix, rModelPart, 0, 0);
+        return;
+    }
+    catch (const std::bad_any_cast& e) { /*No action needed*/ }
 }
 
 
