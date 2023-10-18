@@ -45,7 +45,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         self.assertAlmostEqual(0, p_top_left)
         self.assertAlmostEqual(0, p_top_middle)
         self.assertAlmostEqual(0, p_top_right)
-        
+
     def test_inclined_phreatic_line_time(self):
         """
         test hydrostatic water pressure under an inclined phreatic line ranging over the width of the geometry
@@ -159,7 +159,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         test_helper.run_kratos(file_path)
 
         res_path = os.path.join(file_path, test_name + result_extension)
-        
+
         reader = test_helper.GiDOutputFileReader()
         simulation_output = reader.read_output_from(res_path)
         water_pressures = simulation_output["results"]["WATER_PRESSURE"]
@@ -167,7 +167,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         times = [x * 0.25 for x in range(1,16)]
         d_head_centre = [0.5, -0.5, -0.5, 0.5]
         for ind, time in enumerate(times):
-            
+
             # Central Head
             d_head_ind = int(ind/4)  # slope
             if d_head_ind == 0:
@@ -177,7 +177,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
             expected_bottom_centre_head = last_head - (d_head_centre[d_head_ind] * 10000) * (time - (4 * d_head_ind * 0.25))
 
             current_water_pressure = reader.get_values_at_time(time, water_pressures)
-      
+
             # Bottom Row
             self.assertAlmostEqual(-5000, reader.get_value_at_node(1, current_water_pressure))
             self.assertAlmostEqual(expected_bottom_centre_head, reader.get_value_at_node(48, current_water_pressure))
@@ -187,7 +187,7 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
             self.assertAlmostEqual(0, reader.get_value_at_node(187, current_water_pressure))
             self.assertAlmostEqual(0, reader.get_value_at_node(223, current_water_pressure))
             self.assertAlmostEqual(0, reader.get_value_at_node(251, current_water_pressure))
-            
+
     def test_inclined_phreatic_multi_line_time_edge(self):
         """
         test hydrostatic water pressure under an inclined phreatic  multi line ranging over the width of the geometry
@@ -208,16 +208,16 @@ class KratosGeoMechanicsWaterPressureTests(KratosUnittest.TestCase):
         d_head_left = [0.5, -0.5, -0.5, 0.5]
         d_head_right = [0.25, -0.25, -0.25, 0.25]
         for ind, time in enumerate(times):
-            
+
             d_head_ind = int(ind/4)  # slope
-            
+
             # Left Head
             if d_head_ind == 0:
                 last_head = -5000
             else:
                 last_head = (sum(d_head_left[0:d_head_ind]) * -10000) - 5000
             expected_bottom_left_head = last_head - (d_head_left[d_head_ind] * 10000) * (time - (4 * d_head_ind * 0.25))
-            
+
             # Left Head
             if d_head_ind == 0:
                 last_head = -5000
