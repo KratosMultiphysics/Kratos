@@ -38,8 +38,9 @@ namespace Kratos
 ///@}
 ///@name Kratos Classes
 ///@{
-// forward declaring ModelPart to be avoid including heavy header here
+// forward declaring ModelPart adn Model to be avoid including heavy header here
 class ModelPart;
+class Model;
 
 /**
  * @namespace CppTestsUtilities
@@ -127,6 +128,28 @@ namespace CppTestsUtilities
         const std::string& rElementName = "Element3D10N",
         const bool Initialize = true
         );
+
+    /**
+     * @brief Create a cube skin model part.
+     * @param rCurrentModel The current model.
+     * @param HalfX The half-length of the cube in the X-direction.
+     * @param HalfY The half-length of the cube in the Y-direction.
+     * @param HalfZ The half-length of the cube in the Z-direction.
+     * @return ModelPart& The created cube skin model part.
+     */
+    ModelPart& KRATOS_API(KRATOS_CORE) CreateCubeSkinModelPart(
+        Model& rCurrentModel,
+        const double HalfX = 0.6,
+        const double HalfY = 0.9,
+        const double HalfZ = 0.3
+        );
+
+    /**
+     * @brief Create a cube model part.
+     * @param rCurrentModel The current model.
+     * @return The created cube model part.
+     */
+    ModelPart& KRATOS_API(KRATOS_CORE) CreateCubeModelPart(Model& rCurrentModel);
 
 }; // namespace CppTestsUtilities
 }  // namespace Kratos
