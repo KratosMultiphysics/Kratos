@@ -472,6 +472,6 @@ std::vector<int> SearchWrapper<TSearchObject, TObjectType>::RansksPointIsInsideB
 /***********************************************************************************/
 /***********************************************************************************/
 
-class SearchWrapper<GeometricalObjectsBins, GeometricalObject>;
+template class SearchWrapper<GeometricalObjectsBins, GeometricalObject>;
 
 }  // namespace Kratos.
