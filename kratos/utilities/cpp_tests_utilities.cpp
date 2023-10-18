@@ -15,7 +15,7 @@
 // External includes
 
 // Project includes
-#include "includes/model_part.h"
+#include "containers/model.h"
 #include "geometries/triangle_2d_3.h"
 #include "geometries/tetrahedra_3d_4.h"
 #include "utilities/cpp_tests_utilities.h"
@@ -394,6 +394,74 @@ void Create3DQuadraticGeometry(
         for (auto& r_elem : rModelPart.Elements())
             r_elem.Initialize(r_process_info);
     }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart& CreateCubeSkinModelPart(
+    Model& rCurrentModel,
+    const double HalfX,
+    const double HalfY,
+    const double HalfZ
+    )
+{
+    // Generate the cube skin
+    ModelPart& r_skin_part = rCurrentModel.CreateModelPart("Skin");
+    r_skin_part.CreateNewNode(1, -HalfX, -HalfY, -HalfZ);
+    r_skin_part.CreateNewNode(2,  HalfX, -HalfY, -HalfZ);
+    r_skin_part.CreateNewNode(3,  HalfX,  HalfY, -HalfZ);
+    r_skin_part.CreateNewNode(4, -HalfX,  HalfY, -HalfZ);
+    r_skin_part.CreateNewNode(5, -HalfX, -HalfY,  HalfZ);
+    r_skin_part.CreateNewNode(6,  HalfX, -HalfY,  HalfZ);
+    r_skin_part.CreateNewNode(7,  HalfX,  HalfY,  HalfZ);
+    r_skin_part.CreateNewNode(8, -HalfX,  HalfY,  HalfZ);
+    Properties::Pointer p_properties(new Properties(0));
+    r_skin_part.CreateNewElement("Element3D3N",  1, { 1,2,3 }, p_properties);
+    r_skin_part.CreateNewElement("Element3D3N",  2, { 1,3,4 }, p_properties);
+    r_skin_part.CreateNewElement("Element3D3N",  3, { 5,6,7 }, p_properties);
+    r_skin_part.CreateNewElement("Element3D3N",  4, { 5,7,8 }, p_properties);
+    r_skin_part.CreateNewElement("Element3D3N",  5, { 3,6,2 }, p_properties);
+    r_skin_part.CreateNewElement("Element3D3N",  6, { 3,7,6 }, p_properties);
+    r_skin_part.CreateNewElement("Element3D3N",  7, { 4,5,1 }, p_properties);
+    r_skin_part.CreateNewElement("Element3D3N",  8, { 4,8,5 }, p_properties);
+    r_skin_part.CreateNewElement("Element3D3N",  9, { 3,4,8 }, p_properties);
+    r_skin_part.CreateNewElement("Element3D3N", 10, { 3,8,7 }, p_properties);
+    r_skin_part.CreateNewElement("Element3D3N", 11, { 2,1,5 }, p_properties);
+    r_skin_part.CreateNewElement("Element3D3N", 12, { 2,5,6 }, p_properties);
+
+    return r_skin_part;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+ModelPart& CreateCubeModelPart(Model& rCurrentModel)
+{
+    // Generate the cube skin
+    ModelPart& r_model_part = rCurrentModel.CreateModelPart("Cube");
+
+    // Create properties
+    auto p_properties = r_model_part.CreateNewProperties(1, 0);
+
+    r_model_part.CreateNewNode(1 , 0.0 , 1.0 , 1.0);
+    r_model_part.CreateNewNode(2 , 0.0 , 1.0 , 0.0);
+    r_model_part.CreateNewNode(3 , 0.0 , 0.0 , 1.0);
+    r_model_part.CreateNewNode(4 , 0.5 , 1.0 , 1.0);
+    r_model_part.CreateNewNode(5 , 0.0 , 0.0 , 0.0);
+    r_model_part.CreateNewNode(6 , 0.5 , 1.0 , 0.0);
+    r_model_part.CreateNewNode(7 , 0.5 , 0.0 , 1.0);
+    r_model_part.CreateNewNode(8 , 0.5 , 0.0 , 0.0);
+    r_model_part.CreateNewNode(9 , 1.0 , 1.0 , 1.0);
+    r_model_part.CreateNewNode(10 , 1.0 , 1.0 , 0.0);
+    r_model_part.CreateNewNode(11 , 1.0 , 0.0 , 1.0);
+    r_model_part.CreateNewNode(12 , 1.0 , 0.0 , 0.0);
+
+    // Create elements
+    r_model_part.CreateNewElement("Element3D8N", 1, {{5,8,6,2,3,7,4,1}}, p_properties);
+    r_model_part.CreateNewElement("Element3D8N", 2, {{8,12,10,6,7,11,9,4}}, p_properties);
+
+    return r_model_part;
 }
 
 } // namespace ConstraintUtilities
