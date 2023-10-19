@@ -406,17 +406,17 @@ protected:
 
     /**
      * @brief Finds the var local key in the mLocalKeyMap for 
-     * a gifen dof. If the variable does not exist in mLocalKeyMap
+     * a gifen DOF. If the variable does not exist in mLocalKeyMap
      * this function returns false
-     * @param iDof the dof
+     * @param itDof the DOF iterator
      * @param rVarLocalKey variable local key 
      * @return dof variable is found or not
      */
     bool FindVarLocalKey(
-        typename DofsArrayType::const_iterator iDof,
+        typename DofsArrayType::const_iterator itDof,
         int& rVarLocalKey) const
     {
-        const auto &r_current_variable = iDof->GetVariable();
+        const auto &r_current_variable = itDof->GetVariable();
         const KeyType key = r_current_variable.IsComponent() ? r_current_variable.GetSourceVariable().Key() : r_current_variable.Key();
         auto key_find = this->mLocalKeyMap.find(key);
         bool found = true;
