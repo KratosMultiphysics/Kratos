@@ -198,7 +198,8 @@ double ComputeGeometricalQuantity(
 
 void MedTestingUtilities::CheckModelPartsAreEqual(
     const ModelPart& rModelPart1,
-    const ModelPart& rModelPart2)
+    const ModelPart& rModelPart2,
+    const bool CheckSubModelParts)
 {
     KRATOS_TRY
 
@@ -222,6 +223,10 @@ void MedTestingUtilities::CheckModelPartsAreEqual(
 
     // check geometries
     CheckGeometriesAreEqual(rModelPart1, rModelPart2);
+
+    if (!CheckSubModelParts) {
+        return;
+    }
 
     KRATOS_CHECK_EQUAL(rModelPart1.NumberOfSubModelParts(), rModelPart2.NumberOfSubModelParts());
 
