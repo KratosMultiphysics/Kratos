@@ -108,6 +108,7 @@
 #include "custom_constitutive/thermal/small_strains/elastic/thermal_elastic_isotropic_3d.h"
 #include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_strain.h"
 #include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_stress.h"
+#include "custom_constitutive/thermal/small_strains/damage/generic_small_strain_thermal_isotropic_damage.h"
 
 namespace Kratos {
 
