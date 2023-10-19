@@ -179,22 +179,19 @@ std::vector<Condition> SetMovingLoadProcess::SortConditions(ModelPart::Condition
                             sorted_conditions.push_back(r_cond);
                             visited_indices.push_back(i);
                         }
-                    }
-                    else {
+                    } else {
                         // sort nodes in condition, such that new node is connected to previous condition
                         IndexType prev_id;
                         if (is_cond_reversed) {
                             prev_id = node_id_vector[0];
-                        }
-                        else {
+                        } else {
                             prev_id = node_id_vector[1];
                         }
 
                         if (prev_id != r_geom.Points()[0].Id()) {
                             is_cond_reversed = true;
                             mIsCondReversedVector.push_back(is_cond_reversed);
-                        }
-                        else {
+                        } else {
                             is_cond_reversed = false;
                             mIsCondReversedVector.push_back(is_cond_reversed);
                         }
