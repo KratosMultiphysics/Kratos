@@ -1,3 +1,25 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Máté Kelemen
+//
+
+#include <amgcl/io/mm.hpp>
+#ifndef AMGCL_PARAM_UNKNOWN
+    #include "input_output/logger.h"
+    #define AMGCL_PARAM_UNKNOWN(NAME)                       \
+        Kratos::Logger("AMGCL")                             \
+            << KRATOS_CODE_LOCATION                         \
+            << Kratos::Logger::Severity::ERROR              \
+            << "Unknown parameter " << NAME << std::endl
+#endif
+
 // External includes
 #include "amgcl/adapter/crs_tuple.hpp"
 #include "amgcl/adapter/ublas.hpp"
@@ -15,19 +37,66 @@
 // Project includes
 #include "amgcl_quadratic_solver.h"
 #include "spaces/ublas_space.h"
+//#include "amgcl_composite_preconditioner.hpp"
 
 // STL includes
 #include <amgcl/util.hpp>
 #include <type_traits> // remove_reference_t, remove_cv_t
 #include <sstream> // stringstream
 #include <optional> // optional
-#include <cstddef> // byte
 
 
 namespace Kratos {
 
 
 namespace detail {
+
+
+template <unsigned BlockSize>
+struct CompositePreconditionedSolver
+{
+private:
+    static_assert(0 < BlockSize, "Invalid block size");
+
+    using ScalarBackend = amgcl::backend::builtin<double>;
+    using ScalarSolver = amgcl::make_solver<
+        amgcl::runtime::preconditioner<ScalarBackend>,
+        amgcl::runtime::solver::wrapper<ScalarBackend>
+    >;
+
+    using Block = amgcl::static_matrix<double,BlockSize,BlockSize>;
+    using BlockBackend = amgcl::backend::builtin<Block>;
+    using BlockSolver = amgcl::make_block_solver<
+        amgcl::runtime::preconditioner<BlockBackend>,
+        amgcl::runtime::solver::wrapper<BlockBackend>
+    >;
+
+public:
+    using Type = amgcl::make_solver<
+        amgcl::preconditioner::schur_pressure_correction<BlockSolver,ScalarSolver>,
+        amgcl::runtime::solver::wrapper<ScalarBackend>
+    >;
+}; // struct CompositePreconditionedSolver
+
+
+
+template <>
+struct CompositePreconditionedSolver<1>
+{
+private:
+    using Backend = amgcl::backend::builtin<double>;
+    using Solver = amgcl::make_solver<
+        amgcl::runtime::preconditioner<Backend>,
+        amgcl::runtime::solver::wrapper<Backend>
+    >;
+
+public:
+    using Type = amgcl::make_solver<
+        amgcl::preconditioner::schur_pressure_correction<Solver,Solver>,
+        amgcl::runtime::solver::wrapper<Backend>
+    >;
+};
+
 
 
 class ParametersWithDefaults
@@ -104,6 +173,12 @@ private:
 } // namespace detail
 
 
+
+template <unsigned BlockSize>
+using MakeCompositePreconditionedSolver = typename detail::CompositePreconditionedSolver<BlockSize>::Type;
+
+
+
 template <class TSparseSpace,
           class TDenseSpace,
           class TReorderer>
@@ -120,6 +195,7 @@ struct AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
 
     boost::property_tree::ptree mAMGCLSettings;
 }; // struct AMGCLQuadraticSolver::Impl
+
 
 
 template<class TSparseSpace,
@@ -151,6 +227,7 @@ AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::AMGCLQuadraticSolver(
 }
 
 
+
 // Necessary for PIMPL
 template<class TSparseSpace,
          class TDenseSpace,
@@ -158,6 +235,7 @@ template<class TSparseSpace,
 AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::~AMGCLQuadraticSolver()
 {
 }
+
 
 
 template<class TSparseSpace,
@@ -222,6 +300,7 @@ bool AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatr
     return residual < mpImpl->mTolerance ? true : false;
     KRATOS_CATCH("")
 }
+
 
 
 template<class TSparseSpace,
@@ -336,6 +415,7 @@ void AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditiona
 }
 
 
+
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
@@ -388,6 +468,7 @@ AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParameters(
 }
 
 
+
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
@@ -398,69 +479,19 @@ AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMatri
                                                                      Vector& rB) const
 {
     KRATOS_TRY
-    using LBackend = amgcl::backend::builtin<double>;
-    using QBackend = amgcl::backend::builtin<double>; // @todo why float?
-    using LSolver = amgcl::make_solver<
-        amgcl::runtime::preconditioner<LBackend>,
-        amgcl::runtime::solver::wrapper<QBackend>
-    >;
-    using QSolver = amgcl::make_solver<
-        amgcl::runtime::preconditioner<QBackend>,
-        amgcl::runtime::solver::wrapper<QBackend>
-    >;
-
-    if constexpr (BlockSize == 1) {
-        using Solver = amgcl::make_solver<
-            amgcl::preconditioner::schur_pressure_correction<LSolver,QSolver>,
-            amgcl::runtime::solver::wrapper<LBackend>
-        >;
-
-        auto p_adapter = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
-                                                   rA.index1_data().begin(),
-                                                   rA.index2_data().begin(),
-                                                   rA.value_data().begin());
-        Solver solver(*p_adapter, mpImpl->mAMGCLSettings);
-        KRATOS_INFO_IF("AMGCLQuadraticSolver", 1 < mpImpl->mVerbosity)
-            << "Solver memory usage: " << amgcl::human_readable_memory(amgcl::backend::bytes(solver))
-            << "\n";
-        return solver(*p_adapter, rB, rX);
-    } else if constexpr (2 <= BlockSize && BlockSize < 4) {
-        using Block = amgcl::static_matrix<double,BlockSize,BlockSize>; // @todo why float?
-        using BlockBackend = amgcl::backend::builtin<Block>;
-        using BlockSolver = amgcl::make_block_solver<
-            amgcl::runtime::preconditioner<BlockBackend>,
-            amgcl::runtime::solver::wrapper<BlockBackend>
-        >;
-        using Solver = amgcl::make_solver<
-            amgcl::preconditioner::schur_pressure_correction<BlockSolver,QSolver>,
-            amgcl::runtime::solver::wrapper<LBackend>
-        >;
-
-        auto p_adapter = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
-                                                   rA.index1_data().begin(),
-                                                   rA.index2_data().begin(),
-                                                   rA.value_data().begin());
-        Solver solver(*p_adapter, mpImpl->mAMGCLSettings);
-        KRATOS_INFO_IF("AMGCLQuadraticSolver", 1 < mpImpl->mVerbosity)
-            << "Solver memory usage: " << amgcl::human_readable_memory(amgcl::backend::bytes(solver))
-            << "\n";
-        return solver(*p_adapter, rB, rX);
-    } else {
-        static_assert(1 <= BlockSize && BlockSize < 4, "Invalid block size");
-    }
+    auto p_adapter = amgcl::adapter::zero_copy(TSparseSpace::Size1(rA),
+                                               rA.index1_data().begin(),
+                                               rA.index2_data().begin(),
+                                               rA.value_data().begin());
+    auto solver = MakeCompositePreconditionedSolver<BlockSize>(*p_adapter, mpImpl->mAMGCLSettings);
+    KRATOS_INFO_IF("AMGCLQuadraticSolver", 1 < mpImpl->mVerbosity)
+        << "Solver memory usage: " << amgcl::human_readable_memory(amgcl::backend::bytes(solver))
+        << "\n";
+    return solver(*p_adapter, rB, rX);
     KRATOS_CATCH("")
 }
 
 
-//template
-//class AMGCLQuadraticSolver<
-//    UblasSpace<double,CompressedMatrix,boost::numeric::ublas::vector<double>>,
-//    UblasSpace<double,Matrix,Vector>,
-//    Reorderer<
-//        UblasSpace<double,CompressedMatrix,boost::numeric::ublas::vector<double>>,
-//        UblasSpace<double,Matrix,Vector>
-//    >
-//>;
 
 template
 class AMGCLQuadraticSolver<

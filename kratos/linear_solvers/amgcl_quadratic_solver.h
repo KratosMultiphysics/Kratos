@@ -12,15 +12,6 @@
 
 #pragma once
 
-#ifndef AMGCL_PARAM_UNKNOWN
-#include "input_output/logger.h"
-#define AMGCL_PARAM_UNKNOWN(NAME)                       \
-    Kratos::Logger("AMGCL")                             \
-        << KRATOS_CODE_LOCATION                         \
-        << Kratos::Logger::Severity::ERROR              \
-        << "Unknown parameter " << NAME << std::endl
-#endif
-
 // External includes
 
 // Project includes
