@@ -103,8 +103,8 @@ class AnalysisStage(object):
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             node_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             displacements.append(node_displacement)
-        np.save("DISPLACEMENTS_U2", displacements)
-        np.savetxt("DISPLACEMENTS_U2.txt", displacements)
+        np.save("DISPLACEMENTS_U2_T", displacements)
+        np.savetxt("DISPLACEMENTS_U2_T.txt", displacements)
 
     def Initialize(self):
         """This function initializes the AnalysisStage
@@ -274,11 +274,12 @@ class AnalysisStage(object):
             T_elm[2, 1] = local_axis_3[0][1]
             T_elm[2, 2] = local_axis_3[0][2]
 
+            J_X = T_elm.transpose() @ J_X
             self.deformed_config_jacobians.append(J_X)
         # export Jacobians J0
-        np.save("jacobians_J0", self.deformed_config_jacobians)
+        np.save("jacobians_J0_T", self.deformed_config_jacobians)
         J0txt = np.reshape(self.deformed_config_jacobians, (-1,3))
-        np.savetxt("jacobians_J0.txt", J0txt)
+        np.savetxt("jacobians_J0_T.txt", J0txt)
 
         # Calculate normals from deformed configuration
         print("\n ::TESTING:: START Calculate normals \n")
@@ -336,9 +337,9 @@ class AnalysisStage(object):
             J_X0 = np.concatenate((elm_Jacobian, extracolumn.T), axis=1)
             self.flatted_config_jacobians.append(J_X0)
         # export Jacobians J
-        np.save("jacobians_J", self.flatted_config_jacobians)
+        np.save("jacobians_J_T", self.flatted_config_jacobians)
         Jtxt = np.reshape(self.flatted_config_jacobians, (-1,3))
-        np.savetxt("jacobians_J.txt", Jtxt)
+        np.savetxt("jacobians_J_T.txt", Jtxt)
             
         F_list = []
         strains_list = []
@@ -366,6 +367,7 @@ class AnalysisStage(object):
             T0_elm[2, 1] = local_axis_3[0][1]
             T0_elm[2, 2] = local_axis_3[0][2]
 
+            J0 = T0_elm.transpose() @ J0
             J0_inv = np.linalg.inv(J0)
 
             # Calculate strain by Jacobians
@@ -416,11 +418,11 @@ class AnalysisStage(object):
             # self._GetSolver().GetComputingModelPart().CreateCondition()
         # print("strain list:\n", strains_list)
         # export F, E
-        np.save("F_defgrad", F_list)
+        np.save("F_defgrad_T", F_list)
         Ftxt = np.reshape(F_list, (-1,3))
-        np.savetxt("F_defgrad.txt", Ftxt)
-        np.save("E_strains", strains_list)
-        np.savetxt("E_strains.txt", strains_list)
+        np.savetxt("F_defgrad_T.txt", Ftxt)
+        np.save("E_strains_T", strains_list)
+        np.savetxt("E_strains_T.txt", strains_list)
 
 
     def ModifyAfterSolverInitialize(self):
