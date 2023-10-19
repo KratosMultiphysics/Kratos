@@ -8,7 +8,7 @@ from typing import Any, Dict, List, Set
 
 
 def GetMedPath(med_file_name: Path) -> Path:
-    return Path(__file__).absolute().parent / "med_files" / med_file_name
+    return Path(__file__).absolute().parent / "med_files" / med_file_name.with_suffix(".med")
 
 
 class MedModelPartIOTestCase(KratosUnittest.TestCase):
