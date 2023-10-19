@@ -43,15 +43,15 @@ namespace Kratos
 ///@name Kratos Classes
 ///@{
 /**
- * @class GenericSmallStrainThremalIsotropicDamage
+ * @class GenericSmallStrainThermalIsotropicDamage
  * @ingroup ConstitutiveLawsApp
  * @brief This class derives from the Isotropic damage CL and adds thermal effects (material properties affectation and internal variables)
- * @details This class considers a constitutive law integrator as an intermediate utility to compute the damage
+ * @details This class considers a constitutive law integrator as an intermediate utility to compute the damage. 3D and plane strain
  * @tparam TConstLawIntegratorType The constitutive law integrator considered
  * @author Alejandro Cornejo
  */
 template <class TConstLawIntegratorType>
-class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainThremalIsotropicDamage
+class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) GenericSmallStrainThermalIsotropicDamage
     : public GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>
 {
 public:
@@ -70,7 +70,7 @@ public:
     typedef array_1d<double, VoigtSize> BoundedArrayType;
 
     /// Counted pointer of GenericYieldSurface
-    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainThremalIsotropicDamage);
+    KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainThermalIsotropicDamage);
 
     /// The node definition
     typedef Node NodeType;
@@ -89,7 +89,7 @@ public:
     /**
     * Default constructor.
     */
-    GenericSmallStrainThremalIsotropicDamage()
+    GenericSmallStrainThermalIsotropicDamage()
     {
     }
 
@@ -98,13 +98,13 @@ public:
     */
     ConstitutiveLaw::Pointer Clone() const override
     {
-        return Kratos::make_shared<GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>>(*this);
+        return Kratos::make_shared<GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>>(*this);
     }
 
     /**
     * Copy constructor.
     */
-    GenericSmallStrainThremalIsotropicDamage(const GenericSmallStrainThremalIsotropicDamage &rOther)
+    GenericSmallStrainThermalIsotropicDamage(const GenericSmallStrainThermalIsotropicDamage &rOther)
         : BaseType(rOther),
           mReferenceTemperature(rOther.mReferenceTemperature)
     {
@@ -113,7 +113,7 @@ public:
     /**
     * Destructor.
     */
-    ~GenericSmallStrainThremalIsotropicDamage() override
+    ~GenericSmallStrainThermalIsotropicDamage() override
     {
     }
 

@@ -108,6 +108,7 @@
 #include "custom_constitutive/thermal/small_strains/elastic/thermal_elastic_isotropic_3d.h"
 #include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_strain.h"
 #include "custom_constitutive/thermal/small_strains/elastic/thermal_linear_plane_stress.h"
+
 #include "custom_constitutive/thermal/small_strains/damage/generic_small_strain_thermal_isotropic_damage.h"
 
 namespace Kratos {
@@ -574,6 +575,25 @@ private:
     const ThermalElasticIsotropic3D mThermalElasticIsotropic3D;
     const ThermalLinearPlaneStrain mThermalLinearPlaneStrain;
     const ThermalLinearPlaneStress mThermalLinearPlaneStress;
+
+    /// Damage
+    /* Small strain 3D */
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DVonMises;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DModifiedMohrCoulomb;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DTresca;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DDruckerPrager;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DRankine;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DSimoJu;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>> mSmallStrainThermalIsotropicDamage3DMohrCoulomb;
+
+    /* Small strain 2D */
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainVonMises;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainModifiedMohrCoulomb;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainTresca;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainDruckerPrager;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainRankine;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainSimoJu;
+    const GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>> mSmallStrainThermalIsotropicDamagePlaneStrainMohrCoulomb;
     ///@}
     ///@name Private Operators
     ///@{

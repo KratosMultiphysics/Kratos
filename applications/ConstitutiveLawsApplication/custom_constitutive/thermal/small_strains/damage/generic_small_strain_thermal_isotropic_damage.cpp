@@ -46,7 +46,7 @@ namespace Kratos
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 
 
@@ -59,7 +59,7 @@ void GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::Calculat
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::InitializeMaterial(
+void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::InitializeMaterial(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const Vector& rShapeFunctionsValues
@@ -74,7 +74,7 @@ void GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::Initiali
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
+void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
 
 
@@ -86,7 +86,7 @@ void GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::Finalize
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-bool GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
+bool GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
     BaseType::Has(rThisVariable);
 
@@ -100,7 +100,7 @@ bool GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::Has(cons
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-void GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::SetValue(
+void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::SetValue(
     const Variable<double>& rThisVariable,
     const double& rValue,
     const ProcessInfo& rCurrentProcessInfo
@@ -115,7 +115,7 @@ void GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::SetValue
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-double& GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::GetValue(
+double& GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::GetValue(
     const Variable<double>& rThisVariable,
     double& rValue
     )
@@ -132,7 +132,7 @@ double& GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::GetVa
 /***********************************************************************************/
 
 template <class TConstLawIntegratorType>
-int GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::Check(
+int GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Check(
     const Properties& rMaterialProperties,
     const GeometryType& rElementGeometry,
     const ProcessInfo& rCurrentProcessInfo
@@ -147,19 +147,19 @@ int GenericSmallStrainThremalIsotropicDamage<TConstLawIntegratorType>::Check(
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<6>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<6>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<6>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<6>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<6>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<6>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>>>;
 
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<3>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<3>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>>;
-template class GenericSmallStrainThremalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<VonMisesYieldSurface<VonMisesPlasticPotential<3>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<TrescaYieldSurface<TrescaPlasticPotential<3>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<DruckerPragerYieldSurface<DruckerPragerPlasticPotential<3>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<RankineYieldSurface<RankinePlasticPotential<3>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<SimoJuYieldSurface<VonMisesPlasticPotential<3>>>>;
+template class GenericSmallStrainThermalIsotropicDamage <GenericConstitutiveLawIntegratorDamage<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>>>;
 } // namespace Kratos
