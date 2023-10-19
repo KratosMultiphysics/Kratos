@@ -22,24 +22,64 @@ class KratosGeoMechanicsTransientThermalTests(KratosUnittest.TestCase):
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
-        temp = temperature[49]
-        self.assertAlmostEqual(14.17464130639103, temp)
+        temp = temperature[37]
+        self.assertAlmostEqual(13.08528783780587, temp)
 
     def test_thermal_fixed_temperature_2D6N(self):
         test_name = 'test_thermal_fixed_temperature_2D6N'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
-        temp = temperature[99]
-        self.assertAlmostEqual(6.596927051998985, temp)
+        temp = temperature[57]
+        self.assertAlmostEqual(13.08528783780587, temp)
 
+    def test_thermal_fixed_temperature_2D10N(self):
+        test_name = 'test_thermal_fixed_temperature_2D10N'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        temp = temperature[77]
+        self.assertAlmostEqual(13.08528783780587, temp)
+
+    def test_thermal_fixed_temperature_2D15N(self):
+        test_name = 'test_thermal_fixed_temperature_2D15N'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        temp = temperature[97]
+        self.assertAlmostEqual(13.08528783780587, temp)
+
+    def test_thermal_heat_flux_2D3N(self):
+        test_name = 'test_thermal_heat_flux_2D3N'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        temp = temperature[37]
+        self.assertAlmostEqual(28.04411163544510063559, temp)
+        
     def test_thermal_heat_flux_2D6N(self):
         test_name = 'test_thermal_heat_flux_2D6N'
         file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
         simulation = test_helper.run_kratos(file_path)
         temperature = test_helper.get_temperature(simulation)
-        temp = temperature[224]
-        self.assertAlmostEqual(41.93149511165559, temp)
+        temp = temperature[57]
+        self.assertAlmostEqual(28.04411163544510063559, temp)
+        
+    def test_thermal_heat_flux_2D10N(self):
+        test_name = 'test_thermal_heat_flux_2D10N'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        temp = temperature[77]
+        self.assertAlmostEqual(28.04411163544510063559, temp)
+        
+    def test_thermal_heat_flux_2D15N(self):
+        test_name = 'test_thermal_heat_flux_2D15N'
+        file_path = test_helper.get_file_path(os.path.join('.', test_name + '.gid'))
+        simulation = test_helper.run_kratos(file_path)
+        temperature = test_helper.get_temperature(simulation)
+        temp = temperature[97]
+        self.assertAlmostEqual(28.04411163544510063559, temp)
 
 
 if __name__ == '__main__':

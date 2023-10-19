@@ -14,7 +14,7 @@
         "start_time":                         0.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_thermal_fixed_temperature_2D6N"
+            "input_filename":   "test_thermal_fixed_temperature_2D10N"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -79,7 +79,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_thermal_fixed_temperature_2D6N",
+                "output_name": "test_thermal_fixed_temperature_2D10N",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {

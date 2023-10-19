@@ -138,6 +138,8 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateIntegrationCoefficient(
 // ============================================================================================
 template class TNormalFluxCondition<2,2>;
 template class TNormalFluxCondition<2,3>;
+template class TNormalFluxCondition<2,4>;
+template class TNormalFluxCondition<2,5>;
 template class TNormalFluxCondition<3,3>;
 template class TNormalFluxCondition<3,4>;
 

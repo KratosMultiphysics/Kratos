@@ -215,6 +215,8 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("TransientThermalElement2D6N", mTransientThermalElement2D6N)
     KRATOS_REGISTER_ELEMENT("TransientThermalElement2D8N", mTransientThermalElement2D8N)
     KRATOS_REGISTER_ELEMENT("TransientThermalElement2D9N", mTransientThermalElement2D9N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D10N", mTransientThermalElement2D10N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D15N", mTransientThermalElement2D15N)
     KRATOS_REGISTER_ELEMENT("TransientThermalElement3D10N", mTransientThermalElement3D10N)
     KRATOS_REGISTER_ELEMENT("TransientThermalElement3D20N", mTransientThermalElement3D20N)
     KRATOS_REGISTER_ELEMENT("TransientThermalElement3D27N", mTransientThermalElement3D27N)
@@ -241,6 +243,8 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D2N", mTNormalFluxCondition2D2N)
     KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D3N", mTNormalFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D4N", mTNormalFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D5N", mTNormalFluxCondition2D5N)
 
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N)

@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "test61",
+        "problem_name":         "test63",
         "start_time":           0.0,
-        "end_time":             7200.0,
+        "end_time":             21600.0,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -14,7 +14,7 @@
         "start_time":                         0.0,
         "model_import_settings":              {
             "input_type":       "mdpa",
-            "input_filename":   "test_thermal_fixed_temperature_2D6N"
+            "input_filename":   "test_thermal_heat_flux_2D10N"
         },
         "material_import_settings":              {
             "materials_filename":       "MaterialParameters.json"
@@ -69,7 +69,7 @@
             "preconditioner_type": "ilu0"
         },
         "problem_domain_sub_model_part_list": ["Soil"],
-        "processes_sub_model_part_list":      ["left","right","init"],
+        "processes_sub_model_part_list":      ["top","init","bottom"],
         "body_domain_sub_model_part_list":    ["Soil"]
     },
     "output_processes": {
@@ -79,7 +79,7 @@
             "process_name": "GiDOutputProcess",
             "Parameters":    {
                 "model_part_name": "PorousDomain.porous_computational_model_part",
-                "output_name": "test_thermal_fixed_temperature_2D6N",
+                "output_name": "test_thermal_heat_flux_2D10N",
                 "postprocess_parameters": {
                     "result_file_configuration": {
                         "gidpost_flags":       {
@@ -112,6 +112,7 @@
             "model_part_name":      "PorousDomain.init",
             "variable_name":        "TEMPERATURE",
             "is_fixed":             false,
+            "fluid_pressure_type": "Uniform",
             "value":                0.0,
             "table":                0
         }
@@ -120,26 +121,25 @@
         "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
         "process_name":  "ApplyScalarConstraintTableProcess",
         "Parameters":    {
-            "model_part_name":      "PorousDomain.left",
-            "variable_name":        "TEMPERATURE",
-            "is_fixed":             true,
-            "value":                0.0,
-            "table":                0
-        }
-    },{
-        "python_module": "apply_scalar_constraint_table_process",
-        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
-        "process_name":  "ApplyScalarConstraintTableProcess",
-        "Parameters":    {
-            "model_part_name":      "PorousDomain.right",
+            "model_part_name":      "PorousDomain.top",
             "variable_name":        "TEMPERATURE",
             "is_fixed":             true,
             "fluid_pressure_type": "Uniform",
-            "value":                25.0,
+            "value":                0.0,
             "table":                0
         }
     }],
-    "loads_process_list":       [],
+    "loads_process_list": [{
+        "python_module": "apply_scalar_constraint_table_process",
+        "kratos_module": "KratosMultiphysics.GeoMechanicsApplication",
+        "process_name":  "ApplyScalarConstraintTableProcess",
+        "Parameters":    {
+            "model_part_name": "PorousDomain.bottom",
+            "variable_name":   "NORMAL_HEAT_FLUX",
+            "value":           100.0,
+            "table":           0
+        }
+    }],
         "auxiliar_process_list": []
     }
 }

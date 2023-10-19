@@ -121,6 +121,14 @@ Begin Elements TransientThermalElement2D3N
 End Elements
 
 
+Begin Conditions TNormalFluxCondition2D2N
+  1  1  1 5
+  2  1  5 6
+  3  1  6 7
+  4  1  7 8
+  5  1  8 2
+End Conditions
+
 
 Begin SubModelPart Soil
   Begin SubModelPartTables
@@ -243,32 +251,15 @@ Begin SubModelPart Soil
   End SubModelPartConditions
 End SubModelPart
 
-Begin SubModelPart left
+Begin SubModelPart top
   Begin SubModelPartTables
   End SubModelPartTables
   Begin SubModelPartNodes
-     1
-    16
-    15
-    14
-    13
      4
-  End SubModelPartNodes
-  Begin SubModelPartElements
-  End SubModelPartElements
-  Begin SubModelPartConditions
-  End SubModelPartConditions
-End SubModelPart
-
-Begin SubModelPart right
-  Begin SubModelPartTables
-  End SubModelPartTables
-  Begin SubModelPartNodes
-     2
-    17
-    18
-    19
-    20
+    12
+    11
+    10
+     9
      3
   End SubModelPartNodes
   Begin SubModelPartElements
@@ -395,6 +386,28 @@ Begin SubModelPart init
     66
   End SubModelPartElements
   Begin SubModelPartConditions
+  End SubModelPartConditions
+End SubModelPart
+
+Begin SubModelPart bottom
+  Begin SubModelPartTables
+  End SubModelPartTables
+  Begin SubModelPartNodes
+     1
+     5
+     6
+     7
+     8
+     2
+  End SubModelPartNodes
+  Begin SubModelPartElements
+  End SubModelPartElements
+  Begin SubModelPartConditions
+    1
+    2
+    3
+    4
+    5
   End SubModelPartConditions
 End SubModelPart
 
