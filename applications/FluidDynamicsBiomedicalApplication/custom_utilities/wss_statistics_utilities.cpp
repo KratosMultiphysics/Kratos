@@ -98,7 +98,7 @@ void WssStatisticsUtilities::CalculateWSS(
 
 void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
 {
-    constexpr double abs_tol = std::numeric_limits<double>::epsilon();
+    const double abs_tol = std::numeric_limits<double>::epsilon();
     KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(TIME)) << "'TIME' is not present in '" << rModelPart.FullName() << "' ProcessInfo container." << std::endl;
     KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DELTA_TIME)) << "'DELTA_TIME' is not present in '" << rModelPart.FullName() << "' ProcessInfo container." << std::endl;
     const double time = rModelPart.GetProcessInfo()[TIME];
