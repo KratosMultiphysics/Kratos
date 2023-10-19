@@ -2,6 +2,7 @@
 #define KRATOS_AMGCL_MPI_SOLVE_FUNCTIONS_H
 
 #include <boost/property_tree/ptree.hpp>
+#include "includes/kratos_parameters.h"
 
 namespace Kratos
 {
@@ -13,7 +14,7 @@ void AMGCLSolve(
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::VectorType& rB,
     TrilinosSpace<Epetra_FECrsMatrix, Epetra_FEVector>::IndexType& rIterationNumber,
     double& rResidual,
-    boost::property_tree::ptree amgclParams,
+    Parameters amgclParams,
     int verbosity_level,
     bool use_gpgpu
     );
