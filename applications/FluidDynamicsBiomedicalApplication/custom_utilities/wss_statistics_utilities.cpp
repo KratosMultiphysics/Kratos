@@ -103,7 +103,8 @@ void WssStatisticsUtilities::CalculateOSI(ModelPart &rModelPart)
     KRATOS_ERROR_IF_NOT(rModelPart.GetProcessInfo().Has(DELTA_TIME)) << "'DELTA_TIME' is not present in '" << rModelPart.FullName() << "' ProcessInfo container." << std::endl;
     const double time = rModelPart.GetProcessInfo()[TIME];
     const double delta_time = rModelPart.GetProcessInfo()[DELTA_TIME];
-    block_for_each(rModelPart.Nodes(), [&time, &delta_time](NodeType& rNode){
+    block_for_each(rModelPart.Nodes(), [&time, &delta_time, &abs_tol](NodeType& rNode){
+
         // Accumulate the current step contribution to the Oscillatory Shear Index (OSI)
         // Note that this requires the tangential WSS to be already computed (see CalculateWSS)
         auto& r_temporal_osi = rNode.GetValue(TEMPORAL_OSI);
