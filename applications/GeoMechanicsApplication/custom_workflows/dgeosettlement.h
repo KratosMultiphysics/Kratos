@@ -53,6 +53,8 @@ public:
 
 private:
     ModelPart& AddNewModelPart(const std::string& rModelPartName);
+    void PrepareModelPart(const Parameters& rSolverSettings);
+
     static void AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
     void InitializeProcessFactory();
@@ -72,6 +74,7 @@ private:
     std::unique_ptr<InputUtility> mpInputUtility;
     std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;
     std::unique_ptr<TimeLoopExecutorInterface> mpTimeLoopExecutor;
+    const std::string mComputationalSubModelPartName{"settlement_computational_model_part"};
 };
 
 }

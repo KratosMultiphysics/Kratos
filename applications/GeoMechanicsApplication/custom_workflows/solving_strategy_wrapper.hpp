@@ -99,7 +99,8 @@ public:
 
     void CloneTimeStep() override
     {
-        mrModelPart.CloneTimeStep();
+        auto& root_model_part = mrModelPart.IsSubModelPart() ? mrModelPart.GetRootModelPart() : mrModelPart;
+        root_model_part.CloneTimeStep();
     }
 
     void RestorePositionsAndDOFVectorToStartOfStep() override

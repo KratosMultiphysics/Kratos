@@ -195,6 +195,8 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
         }
 
+        PrepareModelPart(project_parameters["solver_settings"]);
+
         if (project_parameters["solver_settings"].Has("material_import_settings")) {
             const auto material_file_name = project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
             const auto material_file_path = rWorkingDirectory / material_file_name;
@@ -342,14 +344,74 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
                                                                           const std::filesystem::path& rWorkingDirectory)
 {
     // For now, we can create solving strategy wrappers only
+    auto& main_model_part = mModel.GetModelPart(mModelPartName);
+
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
     auto solving_strategy = SolvingStrategyFactoryType::Create(rProjectParameters["solver_settings"],
-                                                               mModel.GetModelPart(mModelPartName));
+                                                               main_model_part.GetSubModelPart(mComputationalSubModelPartName));
     KRATOS_ERROR_IF_NOT(solving_strategy) << "No solving strategy was created!" << std::endl;
     return std::make_shared<SolvingStrategyWrapperType>(std::move(solving_strategy),
                                                         GetResetDisplacementsFrom(rProjectParameters),
                                                         rWorkingDirectory,
                                                         rProjectParameters);
+}
+
+void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
+{
+    auto& main_model_part = mModel.GetModelPart(mModelPartName);
+    if (!main_model_part.HasSubModelPart(mComputationalSubModelPartName)) {
+        main_model_part.CreateSubModelPart(mComputationalSubModelPartName);
+    }
+    auto& computing_model_part = main_model_part.GetSubModelPart(mComputationalSubModelPartName);
+    // Note that the computing part and the main model part _share_ their process info and properties
+    computing_model_part.SetProcessInfo(main_model_part.GetProcessInfo());
+    // NOTE TO SELF: Wijtze Pieter en ik weten nog niet goed hoe we de properties over moeten brengen, omdat de getter
+    // argumenten nodig heeft waarvan we niet goed weten wat we daar precies moeten meegeven.
+    //computing_model_part.SetProperties(main_model_part.Get);
+    computing_model_part.Set(ACTIVE);
+
+    const auto problem_domain_sub_model_part_list = rSolverSettings["problem_domain_sub_model_part_list"];
+    std::vector<std::string> domain_part_names;
+    for (const auto& sub_model_part : problem_domain_sub_model_part_list) {
+        domain_part_names.emplace_back(sub_model_part.GetString());
+    }
+
+    // Add nodes to computing model part
+    std::set<Node::IndexType> node_id_set;
+    for (const auto& name : domain_part_names) {
+        auto& domain_part = main_model_part.GetSubModelPart(name);
+        for (const auto& node : domain_part.Nodes()) {
+            node_id_set.insert(node.Id());
+        }
+    }
+    computing_model_part.AddNodes(std::vector<Node::IndexType>{node_id_set.begin(), node_id_set.end()});
+
+    std::set<IndexedObject::IndexType> element_id_set;
+    for (const auto& name : domain_part_names) {
+        auto& domain_part = main_model_part.GetSubModelPart(name);
+        for (const auto& element : domain_part.Elements()) {
+            element_id_set.insert(element.Id());
+        }
+    }
+    computing_model_part.AddElements(std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
+
+    const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
+    std::vector<std::string> domain_condition_names;
+    for (const auto& sub_model_part : processes_sub_model_part_list) {
+        domain_condition_names.emplace_back(sub_model_part.GetString());
+    }
+
+    std::set<IndexedObject::IndexType> condition_id_set;
+    for (const auto& name : domain_condition_names) {
+        auto& domain_part = main_model_part.GetSubModelPart(name);
+        for (const auto& condition : domain_part.Conditions()) {
+            condition_id_set.insert(condition.Id());
+        }
+    }
+    computing_model_part.AddConditions(std::vector<IndexedObject::IndexType>{condition_id_set.begin(), condition_id_set.end()});
+
+    // NOTE TO SELF: here we don't yet "Adding Computing Sub Sub Model Parts" (see check_and_prepare_model_process_geo.py)
+    // We are not sure yet whether that piece of code is relevant or not.
 }
 
 // This default destructor is added in the cpp to be able to forward member variables in a unique_ptr

@@ -80,6 +80,8 @@ public:
                                                                                          ReformDofSetAtEachStep,
                                                                                          MoveMeshFlag)
         {
+            KRATOS_INFO("GeoMechanicsNewtonRaphsonStrategy") << "Model part name: '" << model_part.Name() << "'" << std::endl;
+
             //only include validation with c++11 since raw_literals do not exist in c++03
             Parameters default_parameters( R"(
                 {
