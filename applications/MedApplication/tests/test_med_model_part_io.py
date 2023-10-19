@@ -26,7 +26,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
             check_fct(self.mp_read_1)
 
         with self.subTest("read_write_read"):
-            med_temp_path = GetMedPath(med_path, "temp.med")
+            med_temp_path = GetMedPath(med_path).with_suffix(".med.tmp")
             DeleteFileIfExisting(med_temp_path)  # make sure there are no leftovers from previous tests
             self.addCleanup(DeleteFileIfExisting, med_temp_path)  # clean up after test
 
@@ -271,4 +271,5 @@ def write_vtk(model_part, name):
 
 
 if __name__ == "__main__":
+    KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     KratosUnittest.main()
