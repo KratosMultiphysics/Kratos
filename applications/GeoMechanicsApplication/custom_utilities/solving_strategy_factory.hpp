@@ -77,7 +77,6 @@ public:
                     calculate_reactions,
                     reform_dof_set_at_each_step,
                     move_mesh_flag);
-                    strategy_parameters);
             result->SetEchoLevel(echo_level);
             return result;
         }
