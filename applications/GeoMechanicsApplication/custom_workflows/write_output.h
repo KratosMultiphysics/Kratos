@@ -48,12 +48,29 @@ private:
                                             GidIO<>&                        rGidIO,
                                             ModelPart&                      rModelPart);
     static void CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart& rModelPart);
-    static void PrintGaussVariable(std::any input, GidIO<>& rGidIO, ModelPart& rModelPart);
+    static void PrintGaussVariable(const std::any& input, GidIO<>& rGidIO, ModelPart& rModelPart);
 
     static GiD_PostMode GetGiDPostModeFrom(const Parameters& rGiDPostFlags);
     static MultiFileFlag GetMultiFileFlagFrom(const Parameters& rGiDPostFlags);
     static WriteDeformedMeshFlag GetWriteDeformedMeshFlagFrom(const Parameters& rGiDPostFlags);
     static WriteConditionsFlag GetWriteConditionsFlagFrom(const Parameters& rGiDPostFlags);
+
+    template<class T>
+    static bool PrintType(const std::any& input, GidIO<> &rGidIO, ModelPart& rModelPart, double time)
+    {
+        try
+        {
+            const auto variable = std::any_cast<T>(input);
+            rGidIO.PrintOnGaussPoints(variable, rModelPart, time, 0);
+        }
+        catch (const std::bad_any_cast&)
+        {
+            return false;
+        }
+
+        return true;
+    }
+
 };
 
 }

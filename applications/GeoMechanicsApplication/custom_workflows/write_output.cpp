@@ -10,6 +10,7 @@
 //  Main authors:    Anne van de Graaf
 //
 
+#include <variant>
 #include "write_output.h"
 #include "includes/model_part.h"
 #include "custom_utilities/element_utilities.hpp"
@@ -183,61 +184,21 @@ void GeoOutputWriter::WriteIntegrationPointOutput(const std::vector<std::string>
     }
 }
 
-void GeoOutputWriter::PrintGaussVariable(std::any input, GidIO<> &rGidIO, ModelPart& rModelPart)
+void GeoOutputWriter::PrintGaussVariable(const std::any& input, GidIO<> &rGidIO, ModelPart& rModelPart)
 {
-    // We need the try catch blocks, since the std::any_cast throw
-    // and in that case, we want to try a different type
     const auto time = rModelPart.GetProcessInfo()[TIME];
 
-    try
-    {
-        auto variable_array = std::any_cast<Variable<Kratos::array_1d<double, 3>>>(input);
-        rGidIO.PrintOnGaussPoints(variable_array, rModelPart, time, 0);
-        return;
-    }
-    catch (const std::bad_any_cast& e) { /*No action needed*/ }
+    // Here we try to print the input as a type for these options. As soon as one succeeds,
+    // the printing is done and the function returns
+    if(PrintType<Variable<double>>(input, rGidIO, rModelPart, time)) return;
+    if(PrintType<Variable<int>>(input, rGidIO, rModelPart, time)) return;
+    if(PrintType<Variable<bool>>(input, rGidIO, rModelPart, time)) return;
+    if(PrintType<Variable<Kratos::array_1d<double, 3>>>(input, rGidIO, rModelPart, time)) return;
+    if(PrintType<Variable<Vector>>(input, rGidIO, rModelPart, time)) return;
+    if(PrintType<Variable<Matrix>>(input, rGidIO, rModelPart, time)) return;
 
-    try
-    {
-        auto variable_bool = std::any_cast<Variable<bool>>(input);
-        rGidIO.PrintOnGaussPoints(variable_bool, rModelPart, time, 0);
-        return;
-    }
-    catch (const std::bad_any_cast& e) { /*No action needed*/ }
-
-    try
-    {
-        auto variable_int = std::any_cast<Variable<int>>(input);
-        rGidIO.PrintOnGaussPoints(variable_int, rModelPart, time, 0);
-        return;
-    }
-    catch (const std::bad_any_cast& e) { /*No action needed*/ }
-
-    try
-    {
-        auto variable_double = std::any_cast<Variable<double>>(input);
-        rGidIO.PrintOnGaussPoints(variable_double, rModelPart, time, 0);
-        return;
-    }
-    catch (const std::bad_any_cast& e) { /*No action needed*/ }
-
-    try
-    {
-        auto variable_vector = std::any_cast<Variable<Vector>>(input);
-        rGidIO.PrintOnGaussPoints(variable_vector, rModelPart, time, 0);
-        return;
-    }
-    catch (const std::bad_any_cast& e) { /*No action needed*/ }
-
-    try
-    {
-        auto variable_matrix = std::any_cast<Variable<Matrix>>(input);
-        rGidIO.PrintOnGaussPoints(variable_matrix, rModelPart, time, 0);
-        return;
-    }
-    catch (const std::bad_any_cast& e) { /*No action needed*/ }
+    KRATOS_ERROR << "Variable is of unknown type and could not be printed\n";
 }
-
 
 void GeoOutputWriter::CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart& rModelPart)
 {
