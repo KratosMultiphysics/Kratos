@@ -1,3 +1,21 @@
+Begin Table 1 X LINE_LOAD_Y
+   0.0   0.0
+   10.0  0.0
+   12.5 -5.0
+   17.5 -5.0
+   20.0  0.0
+   30.0  0.0
+End Table
+
+Begin Table 2 X LINE_LOAD_Y
+   0.0    0.0
+   10.0   0.0
+   12.5 -15.0
+   17.5 -15.0
+   20.0   0.0
+   30.0   0.0
+End Table
+
 
 Begin Properties 1
 End Properties
@@ -9649,6 +9667,7 @@ End SubModelPart
 
 Begin SubModelPart First_line_load
   Begin SubModelPartTables
+    1
   End SubModelPartTables
   Begin SubModelPartNodes
     348
@@ -9691,6 +9710,7 @@ End SubModelPart
 
 Begin SubModelPart Second_line_load
   Begin SubModelPartTables
+    2
   End SubModelPartTables
   Begin SubModelPartNodes
     348
