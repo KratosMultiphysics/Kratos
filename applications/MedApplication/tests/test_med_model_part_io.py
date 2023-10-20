@@ -6,6 +6,8 @@ import KratosMultiphysics.MedApplication as KratosMed
 from KratosMultiphysics.kratos_utilities import DeleteFileIfExisting
 from testing_utilities import MedModelPartIOTestCase, GetMedPath, get_num_geometries_by_type
 
+from pathlib import Path
+
 
 class TestMedModelPartIO(MedModelPartIOTestCase):
     def setUp(self):
@@ -26,7 +28,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
             check_fct(self.mp_read_1)
 
         with self.subTest("read_write_read"):
-            med_temp_path = GetMedPath(med_path, "temp.med")
+            med_temp_path = GetMedPath(med_path).with_suffix(".med.tmp")
             DeleteFileIfExisting(med_temp_path)  # make sure there are no leftovers from previous tests
             self.addCleanup(DeleteFileIfExisting, med_temp_path)  # clean up after test
 
@@ -36,13 +38,17 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
             med_io_read_2 = KratosMed.MedModelPartIO(med_temp_path, KM.IO.READ)
             med_io_read_2.ReadModelPart(self.mp_read_2)
 
-            KratosMed.MedTestingUtilities.CheckModelPartsAreEqual(self.mp_read_1, self.mp_read_2)
+            KratosMed.MedTestingUtilities.CheckModelPartsAreEqual(
+                self.mp_read_1,
+                self.mp_read_2,
+                check_sub_model_parts=False # until writing of SMPs is implemented
+            )
 
     def test_empty_med_file(self):
         def mp_check_fct(model_part):
             self.assertEqual(model_part.NumberOfNodes(), 0)
 
-        self._execute_tests("empty", mp_check_fct)
+        self._execute_tests(Path("empty"), mp_check_fct)
 
     def test_only_nodes(self):
         def mp_check_fct(model_part):
@@ -58,7 +64,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertAlmostEqual(node.Z, coords[2])
                 self.assertAlmostEqual(node.Z0, coords[2])
 
-        self._execute_tests("only_nodes", mp_check_fct)
+        self._execute_tests(Path("only_nodes"), mp_check_fct)
 
     def test_nodes_with_sub_meshes(self):
         self.skipTest("This test is not yet implemented")
@@ -125,7 +131,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertTrue(0.0 <= node.Z <= 200.0)
                 self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
-        self._execute_tests("tetrahedral_4N", mp_check_fct)
+        self._execute_tests(Path("tetrahedral_4N"), mp_check_fct)
 
     def test_tetrahedra_10N_quadratic_mesh(self):
         def mp_check_fct(model_part):
@@ -152,7 +158,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertTrue(0.0 <= node.Z <= 200.0)
                 self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
-        self._execute_tests("tetrahedral_10N", mp_check_fct)
+        self._execute_tests(Path("tetrahedral_10N"), mp_check_fct)
 
     def test_hexahedra_8N_linear_mesh(self):
         def mp_check_fct(model_part):
@@ -179,7 +185,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertTrue(0.0 <= node.Z <= 200.0)
                 self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
-        self._execute_tests("hexahedral_8N", mp_check_fct)
+        self._execute_tests(Path("hexahedral_8N"), mp_check_fct)
 
     def test_hexahedra_20N_quadratic_mesh(self):
         self.skipTest("The connectivity conversion is not yet fully implemented")
@@ -208,7 +214,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertTrue(0.0 <= node.Z <= 200.0)
                 self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
-        self._execute_tests("hexahedral_20N", mp_check_fct)
+        self._execute_tests(Path("hexahedral_20N"), mp_check_fct)
 
     def test_hexahedra_27N_biquadratic_mesh(self):
         self.skipTest("The connectivity conversion is not yet fully implemented")
@@ -237,7 +243,7 @@ class TestMedModelPartIO(MedModelPartIOTestCase):
                 self.assertTrue(0.0 <= node.Z <= 200.0)
                 self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
-        self._execute_tests("hexahedral_27N", mp_check_fct)
+        self._execute_tests(Path("hexahedral_27N"), mp_check_fct)
 
 
 def write_vtk(model_part, name):
@@ -271,4 +277,5 @@ def write_vtk(model_part, name):
 
 
 if __name__ == "__main__":
+    KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     KratosUnittest.main()
