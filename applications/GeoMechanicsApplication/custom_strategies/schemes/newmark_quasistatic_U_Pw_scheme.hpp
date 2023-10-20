@@ -115,8 +115,6 @@ public:
 
     void Initialize(ModelPart& rModelPart) override
     {
-        KRATOS_INFO("NewmarkQuasistaticUPwScheme::Initialize") << "Am I being called??" << std::endl;
-
         KRATOS_TRY
 
         SetTimeFactors(rModelPart);
@@ -131,8 +129,6 @@ public:
                                  TSystemVectorType& Dx,
                                  TSystemVectorType& b) override
     {
-        KRATOS_INFO("NewmarkQuasistaticUPwScheme::InitializeSolutionStep") << "En we gaan nog niet naar huis ..." << "model part = '" << rModelPart.Name() << "'" << std::endl;
-
         KRATOS_TRY
 
         SetTimeFactors(rModelPart);
@@ -144,20 +140,10 @@ public:
             if (isActive) rElement.InitializeSolutionStep(rCurrentProcessInfo);
         });
 
-        const auto& _elements = rModelPart.Elements();
-        auto _count = std::count_if(_elements.begin(), _elements.end(),
-                      [](const auto& element){return (element.IsDefined(ACTIVE)) ? element.Is(ACTIVE) : true;});
-        KRATOS_INFO("NewmarkQuasistaticUPwScheme::InitializeSolutionStep") << "Number of active elements = " << _count << std::endl;
-
         block_for_each(rModelPart.Conditions(), [&rCurrentProcessInfo](Condition& rCondition) {
             const bool isActive = (rCondition.IsDefined(ACTIVE)) ? rCondition.Is(ACTIVE) : true;
             if (isActive) rCondition.InitializeSolutionStep(rCurrentProcessInfo);
         });
-
-        const auto& _conditions = rModelPart.Conditions();
-        _count = std::count_if(_conditions.begin(), _conditions.end(),
-                               [](const auto& condition){return (condition.IsDefined(ACTIVE)) ? condition.Is(ACTIVE) : true;});
-        KRATOS_INFO("NewmarkQuasistaticUPwScheme::InitializeSolutionStep") << "Number of active conditions = " << _count << std::endl;
 
         KRATOS_CATCH("")
     }
@@ -337,10 +323,6 @@ public:
         KRATOS_TRY
 
         rCurrentElement.CalculateLocalSystem(LHS_Contribution,RHS_Contribution,CurrentProcessInfo);
-        KRATOS_INFO("NewmarkQuasistaticUPwScheme::CalculateSystemContributions") << "Element " << rCurrentElement.Id() << ":" << std::endl;
-        for (const auto& value : RHS_Contribution) {
-            KRATOS_INFO("NewmarkQuasistaticUPwScheme::CalculateSystemContributions") << "  value = " << value << std::endl;
-        }
 
         rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
@@ -370,10 +352,6 @@ public:
         KRATOS_TRY
 
         rCurrentElement.CalculateRightHandSide(RHS_Contribution,CurrentProcessInfo);
-        KRATOS_INFO("NewmarkQuasistaticUPwScheme::CalculateRHSContribution") << "Element " << rCurrentElement.Id() << ":" << std::endl;
-        for (const auto& value : RHS_Contribution) {
-            KRATOS_INFO("NewmarkQuasistaticUPwScheme::CalculateRHSContribution") << "  value = " << value << std::endl;
-        }
 
         rCurrentElement.EquationIdVector(EquationId,CurrentProcessInfo);
 
