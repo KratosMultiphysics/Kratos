@@ -172,7 +172,7 @@
             "variable_name":   "LINE_LOAD",
             "active":          [false,true,false],
             "value":           [0.0,-15,0.0],
-            "table":           [0,0,0]
+            "table":           [0,2,0]
         }
     },{
         "python_module": "apply_normal_load_table_process",

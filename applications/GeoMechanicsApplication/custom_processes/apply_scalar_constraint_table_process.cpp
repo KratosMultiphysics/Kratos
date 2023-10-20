@@ -67,7 +67,6 @@ ApplyScalarConstraintTableProcess::ApplyScalarConstraintTableProcess(ModelPart& 
         : Process(Flags()),
           mrModelPart{rModelPart}
 {
-    KRATOS_INFO("ApplyScalarConstraintTableProcess") << "Model part name = " << mrModelPart.Name() << std::endl;
     MakeInternalProcess(rProcessSettings);
 }
 

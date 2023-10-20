@@ -163,7 +163,7 @@
             "variable_name":   "LINE_LOAD",
             "active":          [false,true,false],
             "value":           [0.0,-5,0.0],
-            "table":           [0,0,0]
+            "table":           [0,1,0]
         }
     },{
         "python_module": "apply_vector_constraint_table_process",

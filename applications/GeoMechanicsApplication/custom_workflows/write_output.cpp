@@ -208,10 +208,9 @@ void GeoOutputWriter::CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart& rM
     {
         auto& rGeom = element.GetGeometry();
         const auto& rProp = element.GetProperties();
+        const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(rGeom, rProp);
 
-        const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<3>(rGeom, rProp);
-
-        for (unsigned int node = 0; node < 3; ++node)
+        for (unsigned int node = 0; node < rGeom.PointsNumber(); ++node)
         {
             rGeom[node].SetValue(element_var, NodalHydraulicHead[node]);
         }
