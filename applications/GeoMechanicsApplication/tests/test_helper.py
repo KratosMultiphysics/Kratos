@@ -159,7 +159,6 @@ def get_nodal_variable(simulation, variable, node_ids=None):
         nodes = [node for node in nodes if node.Id in node_ids]
     return [node.GetSolutionStepValue(variable) for node in nodes]
 
-
 def get_nodal_variable_from_ascii(filename: str, variable: str):
     """
     Reads data of Kratos variable from ascii output GID file
@@ -174,6 +173,7 @@ def get_nodal_variable_from_ascii(filename: str, variable: str):
     with open(filename, "r") as f:
         all_lines = f.readlines()
 
+    time_step = None
     add_var = False
     res = {}
 
@@ -185,15 +185,9 @@ def get_nodal_variable_from_ascii(filename: str, variable: str):
 
         if add_var:
             if line.startswith("Values"):
-                continue;
-            lineSplit = line.split()
-            lineSplit[0] = int(lineSplit[0])
-            for ind, strVal in enumerate(lineSplit[1:]):
-                lineSplit[ind+1] = float(strVal)
-            if (len(lineSplit[1:])==1):
-                res[time_step][lineSplit[0]] = lineSplit[1]
-            else:
-                res[time_step][lineSplit[0]] = lineSplit[1:]
+                continue
+            if time_step is not None:
+                add_line_data_to_dictionary(line, res, time_step)
 
         if r'"' + variable + r'"' in line:
             time_step = float(line.split()[3])
@@ -201,6 +195,27 @@ def get_nodal_variable_from_ascii(filename: str, variable: str):
             add_var=True
 
     return res
+
+def add_line_data_to_dictionary(line, dictionary, main_index):
+    """
+    Adds the data from a GiD Ascii line to a dictionary structure
+    :param line: line with data from a GiD Ascii File
+    :param dictionary: dictionary to input data (main index already initialized)
+    :param main_index: this is the main index under which to store the data
+                       (usually time series), i.e. dictionary[main_index] = {}
+    """
+    if main_index not in dictionary.keys():
+        KeyError(f"The key '{main_index}' is not in the dictionary.")
+    if not isinstance(dictionary[main_index], dict):
+        raise TypeError(f"The value for key '{main_index}' is not a dictionary.")
+    line_split = line.split()
+    line_split[0] = int(line_split[0])
+    for ind, str_value in enumerate(line_split[1:]):
+        line_split[ind + 1] = float(str_value)
+    if (len(line_split[1:]) == 1):
+        dictionary[main_index][line_split[0]] = line_split[1]
+    else:
+        dictionary[main_index][line_split[0]] = line_split[1:]
 
 
 def get_gauss_coordinates(simulation):
