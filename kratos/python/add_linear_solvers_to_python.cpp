@@ -31,6 +31,7 @@
 #include "linear_solvers/skyline_lu_factorization_solver.h"
 #include "linear_solvers/skyline_lu_custom_scalar_solver.h"
 #include "linear_solvers/scaling_solver.h"
+#include "linear_solvers/hierarchical_solver.h"
 
 #include "linear_solvers/preconditioner.h"
 #include "linear_solvers/diagonal_preconditioner.h"
@@ -67,6 +68,7 @@ void  AddLinearSolversToPython(pybind11::module& m)
     typedef BICGSTABSolver<SpaceType,  LocalSpaceType> BICGSTABSolverType;
     typedef TFQMRSolver<SpaceType,  LocalSpaceType> TFQMRSolverType;
     typedef ScalingSolver<SpaceType,  LocalSpaceType> ScalingSolverType;
+    typedef HierarchicalSolver<SpaceType,  LocalSpaceType> HierarchicalSolverType;
     typedef PowerIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationEigenvalueSolverType;
     typedef PowerIterationHighestEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> PowerIterationHighestEigenvalueSolverType;
     typedef RayleighQuotientIterationEigenvalueSolver<SpaceType, LocalSpaceType, LinearSolverType> RayleighQuotientIterationEigenvalueSolverType;
@@ -174,6 +176,12 @@ void  AddLinearSolversToPython(pybind11::module& m)
     .def(py::init<LinearSolverType::Pointer>())
     .def(py::init<LinearSolverType::Pointer, bool >())
     .def(py::init<Parameters >())
+    ;
+
+    py::class_<HierarchicalSolverType, HierarchicalSolverType::Pointer,IterativeSolverType>(m,"HierarchicalSolver")
+    //.def("__str__", PrintObject<HierarchicalSolverType>)
+    //.def(py::init<Parameters>())
+    //.def("SetTolerance",&HierarchicalSolverType::SetTolerance)
     ;
 
     py::class_<PowerIterationEigenvalueSolverType, PowerIterationEigenvalueSolverType::Pointer, LinearSolverType>(m,"PowerIterationEigenvalueSolver")
