@@ -1,16 +1,17 @@
 # Importing the Kratos Library
-import KratosMultiphysics
+import KratosMultiphysics as KM
 import KratosMultiphysics.KratosUnittest as KratosUnittest
+import KratosMultiphysics.MedApplication as KratosMed
 from KratosMultiphysics.MedApplication.modelers.import_med_modeler import ImportMedModeler
 from pathlib import Path
-from testing_utilities import MedModelPartIOTestCase, GetMedPath
+from testing_utilities import MedModelPartIOTestCase, GetMedPath, get_num_geometries_by_type
 
 
 class TestImportMedModeler(MedModelPartIOTestCase):
     def test_import_med_modeler(self):
         # Set up the import model part modeler
-        model = KratosMultiphysics.Model()
-        settings = KratosMultiphysics.Parameters(
+        model = KM.Model()
+        settings = KM.Parameters(
             """{
             "echo_level" : 0,
             "input_filename" : "",
@@ -30,154 +31,31 @@ class TestImportMedModeler(MedModelPartIOTestCase):
 
         self._basic_checks(model_part)
 
-        # Check results
+        # Check read ModelPart
+        self.assertEqual(model_part.NumberOfNodes(), 216)
+        self.assertEqual(model_part.NumberOfGeometries(), 371)
 
-        return
+        # check how many geoms of each type
+        exp_geoms = {KM.Hexahedra3D8: 125, KM.Quadrilateral3D4: 150, KM.Line3D2: 60, KM.Geometry: 36}
+        self.assertEqual(sum(exp_geoms.values()), model_part.NumberOfGeometries())
+        self.assertDictEqual(exp_geoms, get_num_geometries_by_type(model_part))
 
-        self.assertEqual(model_part.NumberOfSubModelParts(), 2)
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeLength(model_part), 3200)
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeArea(model_part), 340000)
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeVolume(model_part), 10000000)
+        self.assertAlmostEqual(KratosMed.MedTestingUtilities.ComputeDomainSize(model_part), 10343200)
 
-        self.assertEqual(model_part.NumberOfTables(), 0)
-        self.assertEqual(model_part.NumberOfProperties(), 0)
-        self.assertEqual(model_part.NumberOfNodes(), 6)
-        self.assertEqual(model_part.NumberOfGeometries(), 9)
-        self.assertEqual(model_part.NumberOfElements(), 0)
-        self.assertEqual(model_part.NumberOfConditions(), 5)
+        for node in model_part.Nodes:
+            self.assertTrue(0.0 <= node.X <= 500.0)
+            self.assertTrue(0.0 <= node.X0 <= 500.0)
 
-        self.assertEqual(model_part[KratosMultiphysics.AMBIENT_TEMPERATURE], 250.0)
-        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_X], 2.1)
-        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_Y], 3.2)
-        self.assertEqual(model_part[KratosMultiphysics.DISPLACEMENT_Z], 4.3)
-        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_X], 3.8)
-        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_Y], 4.9)
-        self.assertEqual(model_part[KratosMultiphysics.VELOCITY_Z], 0.0)
+            self.assertTrue(0.0 <= node.Y <= 100.0)
+            self.assertTrue(0.0 <= node.Y0 <= 100.0)
 
-        self.assertTrue(model_part.GetNode(1).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-        self.assertTrue(model_part.GetNode(2).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-        self.assertFalse(model_part.GetNode(3).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-        self.assertFalse(model_part.GetNode(972).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-        self.assertTrue(model_part.GetNode(973).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-        self.assertTrue(model_part.GetNode(974).IsFixed(KratosMultiphysics.DISPLACEMENT_X))
-
-        self.assertTrue(model_part.GetNode(1).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-        self.assertTrue(model_part.GetNode(2).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-        self.assertFalse(model_part.GetNode(3).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-        self.assertFalse(model_part.GetNode(972).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-        self.assertTrue(model_part.GetNode(973).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-        self.assertTrue(model_part.GetNode(974).IsFixed(KratosMultiphysics.DISPLACEMENT_Y))
-
-        self.assertTrue(model_part.GetNode(1).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-        self.assertTrue(model_part.GetNode(2).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-        self.assertFalse(model_part.GetNode(3).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-        self.assertFalse(model_part.GetNode(972).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-        self.assertTrue(model_part.GetNode(973).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-        self.assertTrue(model_part.GetNode(974).IsFixed(KratosMultiphysics.DISPLACEMENT_Z))
-
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.1)
-        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.2)
-        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.0)
-        self.assertEqual(model_part.GetNode(972).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.0)
-        self.assertEqual(model_part.GetNode(973).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.0)
-        self.assertEqual(model_part.GetNode(974).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X), 0.0)
-
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
-        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
-        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
-        self.assertEqual(model_part.GetNode(972).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.0)
-        self.assertEqual(model_part.GetNode(973).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.000973)
-        self.assertEqual(model_part.GetNode(974).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y), 0.000974)
-
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
-        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
-        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
-        self.assertEqual(model_part.GetNode(972).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
-        self.assertEqual(model_part.GetNode(973).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
-        self.assertEqual(model_part.GetNode(974).GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z), 0.0)
-
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.01)
-        self.assertEqual(model_part.GetNode(2).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.01)
-        self.assertEqual(model_part.GetNode(3).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.0)
-        self.assertEqual(model_part.GetNode(972).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.0)
-        self.assertEqual(model_part.GetNode(973).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.01)
-        self.assertEqual(model_part.GetNode(974).GetSolutionStepValue(KratosMultiphysics.VISCOSITY), 0.01)
-
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_X), 1.1)
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y), 2.2)
-        self.assertEqual(model_part.GetNode(1).GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z), 3.3)
-
-        self.assertTrue(model_part.HasSubModelPart("Inlets"))
-
-        inlets_model_part = model_part.GetSubModelPart("Inlets")
-
-        self.assertEqual(inlets_model_part.NumberOfTables(), 1)
-        self.assertEqual(inlets_model_part.NumberOfProperties(), 0)
-        self.assertEqual(inlets_model_part.NumberOfNodes(), 3)
-        self.assertEqual(inlets_model_part.NumberOfGeometries(), 0)
-        self.assertEqual(inlets_model_part.NumberOfElements(), 1)
-        self.assertEqual(inlets_model_part.NumberOfConditions(), 3)
-        self.assertEqual(inlets_model_part.NumberOfSubModelParts(), 2)
-        self.assertTrue(inlets_model_part.HasSubModelPart("Inlet1"))
-        self.assertTrue(inlets_model_part.HasSubModelPart("Inlet2"))
-
-        inlet1_model_part = inlets_model_part.GetSubModelPart("Inlet1")
-
-        self.assertEqual(inlet1_model_part.NumberOfTables(), 0)
-        self.assertEqual(inlet1_model_part.NumberOfProperties(), 0)
-        self.assertEqual(inlet1_model_part.NumberOfNodes(), 2)
-        self.assertEqual(inlet1_model_part.NumberOfGeometries(), 0)
-        self.assertEqual(inlet1_model_part.NumberOfElements(), 0)
-        self.assertEqual(inlet1_model_part.NumberOfConditions(), 2)
-        self.assertEqual(inlet1_model_part.NumberOfSubModelParts(), 0)
-
-        inlet2_model_part = inlets_model_part.GetSubModelPart("Inlet2")
-
-        self.assertEqual(inlet2_model_part.NumberOfTables(), 0)
-        self.assertEqual(inlet2_model_part.NumberOfProperties(), 0)
-        self.assertEqual(inlet2_model_part.NumberOfNodes(), 0)
-        self.assertEqual(inlet2_model_part.NumberOfGeometries(), 0)
-        self.assertEqual(inlet2_model_part.NumberOfElements(), 0)
-        self.assertEqual(inlet2_model_part.NumberOfConditions(), 2)
-        self.assertEqual(inlet2_model_part.NumberOfSubModelParts(), 0)
-
-        self.assertTrue(model_part.HasSubModelPart("Outlet"))
-
-        outlet_model_part = model_part.GetSubModelPart("Outlet")
-
-        self.assertEqual(outlet_model_part.NumberOfTables(), 0)
-        self.assertEqual(outlet_model_part.NumberOfProperties(), 1)
-        self.assertEqual(outlet_model_part.NumberOfNodes(), 0)
-        self.assertEqual(outlet_model_part.NumberOfGeometries(), 0)
-        self.assertEqual(outlet_model_part.NumberOfElements(), 0)
-        self.assertEqual(outlet_model_part.NumberOfConditions(), 1)
-        self.assertEqual(outlet_model_part.NumberOfSubModelParts(), 0)
-
-        properties_1 = model_part.GetProperties()[1]
-        # Bools
-        self.assertTrue(properties_1[KratosMultiphysics.IS_RESTARTED])
-        self.assertFalse(properties_1[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT])
-        self.assertFalse(properties_1[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX])
-        # Double
-        self.assertEqual(properties_1[KratosMultiphysics.DENSITY], 3.4e-5)
-        # Array3
-        self.assertEqual(properties_1[KratosMultiphysics.VOLUME_ACCELERATION][0], 0.00)
-        self.assertEqual(properties_1[KratosMultiphysics.VOLUME_ACCELERATION][1], 0.00)
-        self.assertEqual(properties_1[KratosMultiphysics.VOLUME_ACCELERATION][2], 9.8)
-        # Matrix3x3
-        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][0, 0], 0)
-        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][0, 1], 0.27)
-        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][0, 2], 0.27)
-        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][1, 0], 0.087)
-        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][1, 1], 0)
-        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][1, 2], 0.27)
-        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2, 0], 0.075)
-        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2, 1], 0.23)
-        self.assertEqual(properties_1[KratosMultiphysics.LOCAL_INERTIA_TENSOR][2, 2], 0)
-
-        # SubModelPartData
-        self.assertTrue(inlets_model_part[KratosMultiphysics.IS_RESTARTED])
-        self.assertTrue(inlets_model_part[KratosMultiphysics.COMPUTE_LUMPED_MASS_MATRIX])
-        self.assertFalse(inlets_model_part[KratosMultiphysics.COMPUTE_DYNAMIC_TANGENT])
+            self.assertTrue(0.0 <= node.Z <= 200.0)
+            self.assertTrue(0.0 <= node.Z0 <= 200.0)
 
 
 if __name__ == "__main__":
-    KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+    KM.Logger.GetDefaultOutput().SetSeverity(KM.Logger.Severity.WARNING)
     KratosUnittest.main()
