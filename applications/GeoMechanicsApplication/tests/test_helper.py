@@ -205,7 +205,7 @@ def add_line_data_to_dictionary(line, dictionary, main_index):
                        (usually time series), i.e. dictionary[main_index] = {}
     """
     if main_index not in dictionary.keys():
-        KeyError(f"The key '{main_index}' is not in the dictionary.")
+        raise KeyError(f"The key '{main_index}' is not in the dictionary.")
     if not isinstance(dictionary[main_index], dict):
         raise TypeError(f"The value for key '{main_index}' is not a dictionary.")
     line_split = line.split()
