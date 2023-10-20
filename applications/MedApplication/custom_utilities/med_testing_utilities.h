@@ -63,7 +63,8 @@ public:
 
     static void CheckModelPartsAreEqual(
         const ModelPart& rModelPart1,
-        const ModelPart& rModelPart2);
+        const ModelPart& rModelPart2,
+        const bool CheckSubModelParts=true);
 
     static void AddGeometriesFromElements(
         ModelPart& rModelPart);
