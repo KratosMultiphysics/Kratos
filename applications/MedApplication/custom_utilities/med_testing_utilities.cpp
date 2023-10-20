@@ -234,7 +234,7 @@ void MedTestingUtilities::CheckModelPartsAreEqual(
 
     for (const auto& r_smp_name : rModelPart1.GetSubModelPartNames()) {
         KRATOS_CHECK(contains(r_smp2_names, r_smp_name));
-        CheckModelPartsAreEqual(rModelPart1.GetSubModelPart(r_smp_name), rModelPart1.GetSubModelPart(r_smp_name));
+        CheckModelPartsAreEqual(rModelPart1.GetSubModelPart(r_smp_name), rModelPart2.GetSubModelPart(r_smp_name));
     }
 
     KRATOS_CATCH("")
