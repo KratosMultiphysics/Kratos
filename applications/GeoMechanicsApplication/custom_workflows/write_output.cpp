@@ -30,7 +30,8 @@ class NodeDISPLACEMENT : public NodeOperation
   public:
     void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
     {
-        rGidIO.WriteNodalResults(Kratos::DISPLACEMENT, rModelPart.Nodes(), 0, 0);
+        const auto time = rModelPart.GetProcessInfo()[Kratos::TIME];
+        rGidIO.WriteNodalResults(Kratos::DISPLACEMENT, rModelPart.Nodes(), time, 0);
     }
 };
 
@@ -39,7 +40,8 @@ class NodeTOTAL_DISPLACEMENT : public NodeOperation
   public:
     void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
     {
-        rGidIO.WriteNodalResults(Kratos::TOTAL_DISPLACEMENT, rModelPart.Nodes(), 0, 0);
+        const auto time = rModelPart.GetProcessInfo()[Kratos::TIME];
+        rGidIO.WriteNodalResults(Kratos::TOTAL_DISPLACEMENT, rModelPart.Nodes(), time, 0);
     }
 };
 
@@ -48,7 +50,8 @@ class NodeWATER_PRESSURE : public NodeOperation
   public:
     void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
     {
-        rGidIO.WriteNodalResults(Kratos::WATER_PRESSURE, rModelPart.Nodes(), 0, 0);
+        const auto time = rModelPart.GetProcessInfo()[Kratos::TIME];
+        rGidIO.WriteNodalResults(Kratos::WATER_PRESSURE, rModelPart.Nodes(), time, 0);
     }
 };
 
@@ -57,7 +60,8 @@ class NodeNORMAL_FLUID_FLUX : public NodeOperation
   public:
     void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
     {
-        rGidIO.WriteNodalResults(Kratos::NORMAL_FLUID_FLUX, rModelPart.Nodes(), 0, 0);
+        const auto time = rModelPart.GetProcessInfo()[Kratos::TIME];
+        rGidIO.WriteNodalResults(Kratos::NORMAL_FLUID_FLUX, rModelPart.Nodes(), time, 0);
     }
 };
 
@@ -66,7 +70,8 @@ class NodeVOLUME_ACCELERATION : public NodeOperation
   public:
     void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
     {
-        rGidIO.WriteNodalResults(Kratos::VOLUME_ACCELERATION, rModelPart.Nodes(), 0, 0);
+        const auto time = rModelPart.GetProcessInfo()[Kratos::TIME];
+        rGidIO.WriteNodalResults(Kratos::VOLUME_ACCELERATION, rModelPart.Nodes(), time, 0);
     }
 };
 
@@ -75,7 +80,8 @@ class NodeHYDRAULIC_DISCHARGE : public NodeOperation
   public:
     void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
     {
-        rGidIO.WriteNodalResults(Kratos::HYDRAULIC_DISCHARGE, rModelPart.Nodes(), 0, 0);
+        const auto time = rModelPart.GetProcessInfo()[Kratos::TIME];
+        rGidIO.WriteNodalResults(Kratos::HYDRAULIC_DISCHARGE, rModelPart.Nodes(), time, 0);
     }
 };
 
@@ -84,7 +90,8 @@ class NodeHYDRAULIC_HEAD : public NodeOperation
   public:
     void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
     {
-        rGidIO.WriteNodalResults(Kratos::HYDRAULIC_HEAD, rModelPart.Nodes(), 0, 0);
+        const auto time = rModelPart.GetProcessInfo()[Kratos::TIME];
+        rGidIO.WriteNodalResults(Kratos::HYDRAULIC_HEAD, rModelPart.Nodes(), time, 0);
     }
 };
 
@@ -180,10 +187,12 @@ void GeoOutputWriter::PrintGaussVariable(std::any input, GidIO<> &rGidIO, ModelP
 {
     // We need the try catch blocks, since the std::any_cast throw
     // and in that case, we want to try a different type
+    const auto time = rModelPart.GetProcessInfo()[TIME];
+
     try
     {
         auto variable_array = std::any_cast<Variable<Kratos::array_1d<double, 3>>>(input);
-        rGidIO.PrintOnGaussPoints(variable_array, rModelPart, 0, 0);
+        rGidIO.PrintOnGaussPoints(variable_array, rModelPart, time, 0);
         return;
     }
     catch (const std::bad_any_cast& e) { /*No action needed*/ }
@@ -191,7 +200,7 @@ void GeoOutputWriter::PrintGaussVariable(std::any input, GidIO<> &rGidIO, ModelP
     try
     {
         auto variable_bool = std::any_cast<Variable<bool>>(input);
-        rGidIO.PrintOnGaussPoints(variable_bool, rModelPart, 0, 0);
+        rGidIO.PrintOnGaussPoints(variable_bool, rModelPart, time, 0);
         return;
     }
     catch (const std::bad_any_cast& e) { /*No action needed*/ }
@@ -199,7 +208,7 @@ void GeoOutputWriter::PrintGaussVariable(std::any input, GidIO<> &rGidIO, ModelP
     try
     {
         auto variable_int = std::any_cast<Variable<int>>(input);
-        rGidIO.PrintOnGaussPoints(variable_int, rModelPart, 0, 0);
+        rGidIO.PrintOnGaussPoints(variable_int, rModelPart, time, 0);
         return;
     }
     catch (const std::bad_any_cast& e) { /*No action needed*/ }
@@ -207,7 +216,7 @@ void GeoOutputWriter::PrintGaussVariable(std::any input, GidIO<> &rGidIO, ModelP
     try
     {
         auto variable_double = std::any_cast<Variable<double>>(input);
-        rGidIO.PrintOnGaussPoints(variable_double, rModelPart, 0, 0);
+        rGidIO.PrintOnGaussPoints(variable_double, rModelPart, time, 0);
         return;
     }
     catch (const std::bad_any_cast& e) { /*No action needed*/ }
@@ -215,7 +224,7 @@ void GeoOutputWriter::PrintGaussVariable(std::any input, GidIO<> &rGidIO, ModelP
     try
     {
         auto variable_vector = std::any_cast<Variable<Vector>>(input);
-        rGidIO.PrintOnGaussPoints(variable_vector, rModelPart, 0, 0);
+        rGidIO.PrintOnGaussPoints(variable_vector, rModelPart, time, 0);
         return;
     }
     catch (const std::bad_any_cast& e) { /*No action needed*/ }
@@ -223,7 +232,7 @@ void GeoOutputWriter::PrintGaussVariable(std::any input, GidIO<> &rGidIO, ModelP
     try
     {
         auto variable_matrix = std::any_cast<Variable<Matrix>>(input);
-        rGidIO.PrintOnGaussPoints(variable_matrix, rModelPart, 0, 0);
+        rGidIO.PrintOnGaussPoints(variable_matrix, rModelPart, time, 0);
         return;
     }
     catch (const std::bad_any_cast& e) { /*No action needed*/ }
