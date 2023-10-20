@@ -8,8 +8,7 @@
 //  License:         BSD License
 //                   license: structural_mechanics_application/license.txt
 //
-//  Main authors:    Alejandro Cornejo & Lucia Barbu
-//  Collaborator:    Vicente Mataix Ferrandiz
+//  Main authors:    Alejandro Cornejo
 //
 
 // System includes
