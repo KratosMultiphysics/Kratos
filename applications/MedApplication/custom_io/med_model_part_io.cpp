@@ -566,7 +566,7 @@ void MedModelPartIO::ReadModelPart(ModelPart& rThisModelPart)
     std::unordered_map<std::string, std::vector<IndexType>> smp_geoms;
 
     // looping geometry types
-    for (int it_geo=1; it_geo<=num_geometry_types; ++it_geo) { //TODO +1?
+    for (int it_geo=1; it_geo<=num_geometry_types; ++it_geo) {
         med_geometry_type geo_type;
 
         std::string geotypename;
