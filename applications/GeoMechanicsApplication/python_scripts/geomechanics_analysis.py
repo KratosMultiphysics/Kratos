@@ -141,8 +141,6 @@ class GeoMechanicsAnalysis(GeoMechanicsAnalysisBase):
 
         self._GetSolver().solver.SetRebuildLevel(self.rebuild_level)
 
-        self._list_of_processes
-        KratosMultiphysics.Logger.PrintInfo("RunSolutionLoop", f"processes to run: {', '.join([str(process) for process in self._list_of_processes])}")
         while self.KeepAdvancingSolutionLoop():
             # check against max_delta_time should only be necessary when trying to scale up
             if (self.delta_time > self.max_delta_time):

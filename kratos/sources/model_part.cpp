@@ -142,8 +142,6 @@ ModelPart::IndexType ModelPart::CloneSolutionStep()
 
 ModelPart::IndexType ModelPart::CloneTimeStep()
 {
-    KRATOS_INFO("ModelPart::CloneTimeStep [1]") << "Model part name: '" << Name() << "'" << std::endl;
-
     KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;
@@ -169,8 +167,6 @@ ModelPart::IndexType ModelPart::CreateTimeStep(double NewTime)
 
 ModelPart::IndexType ModelPart::CloneTimeStep(double NewTime)
 {
-    KRATOS_INFO("ModelPart::CloneTimeStep [2]") << "Model part name: '" << Name() << "'" << std::endl;
-
     KRATOS_ERROR_IF(IsSubModelPart()) << "Calling the method of the sub model part "
         << Name() << " please call the one of the root model part: "
         << GetRootModelPart().Name() << std::endl;

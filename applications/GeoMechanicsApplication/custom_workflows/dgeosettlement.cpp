@@ -204,11 +204,6 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             KRATOS_INFO("KratosGeoSettlement") << "Read the materials from " << material_file_path << std::endl;
         }
 
-        KRATOS_INFO("KratosGeoSettlement") << "List of model parts:" << std::endl;
-        for (const auto& name : mModel.GetModelPartNames()) {
-            KRATOS_INFO("KratosGeoSettlement") << "  " << name << std::endl;
-        }
-
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
         for (auto& process : processes) {

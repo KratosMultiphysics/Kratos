@@ -176,8 +176,8 @@ private:
     ModelPart& mrModelPart;
     bool mResetDisplacements;
     std::vector<array_1d<double, 3>> mOldTotalDisplacements;
-    std::filesystem::path mWorkingDirectory;
     Parameters mProjectParameters;
+    std::filesystem::path mWorkingDirectory;
 };
 
 }
