@@ -44,7 +44,7 @@ const std::string testParameters = R"(
         "echo_level":                         1,
         "clear_storage":                      false,
         "compute_reactions":                  true,
-        "move_mesh_flag":                     false,
+        "move_mesh_flag":                     true,
         "reform_dofs_at_each_step":           false,
         "nodal_smoothing":                    false,
         "block_builder":                      true,
@@ -111,6 +111,7 @@ KRATOS_TEST_CASE_IN_SUITE(Create_ReturnsSolvingStrategy_ForNewtonRhapsonStrategy
     const auto created_strategy = SolvingStrategyFactoryType::Create(
             parameters, dummy_model_part);
 
+    KRATOS_EXPECT_TRUE(created_strategy->GetMoveMeshFlag()) // since it is set to true in the parameters
     KRATOS_EXPECT_NE(created_strategy, nullptr);
     KRATOS_EXPECT_EQ(created_strategy->Check(), 0);
 }
