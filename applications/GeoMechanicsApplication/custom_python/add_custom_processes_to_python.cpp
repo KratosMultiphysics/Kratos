@@ -25,7 +25,9 @@
 #include "custom_processes/apply_constant_boundary_hydrostatic_pressure_process.hpp"
 #include "custom_processes/apply_boundary_hydrostatic_pressure_table_process.hpp"
 #include "custom_processes/apply_constant_phreatic_line_pressure_process.hpp"
+#include "custom_processes/apply_constant_phreatic_multi_line_pressure_process.h"
 #include "custom_processes/apply_phreatic_line_pressure_table_process.hpp"
+#include "custom_processes/apply_phreatic_multi_line_pressure_table_process.h"
 #include "custom_processes/apply_constant_boundary_phreatic_line_pressure_process.hpp"
 #include "custom_processes/apply_boundary_phreatic_line_pressure_table_process.hpp"
 #include "custom_processes/apply_constant_phreatic_surface_pressure_process.hpp"
@@ -44,8 +46,8 @@
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python
+{
 
 void  AddCustomProcessesToPython(pybind11::module& m)
 {
@@ -83,6 +85,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         (m, "ApplyPhreaticLinePressureTableProcess")
         .def(py::init < ModelPart&, Parameters>());
 
+    py::class_<ApplyConstantPhreaticMultiLinePressureProcess, ApplyConstantPhreaticMultiLinePressureProcess::Pointer, Process>
+        (m, "ApplyConstantPhreaticMultiLinePressureProcess")
+        .def(py::init < ModelPart&, Parameters>());
+
     py::class_<ApplyBoundaryPhreaticLinePressureTableProcess, ApplyBoundaryPhreaticLinePressureTableProcess::Pointer, Process>
         (m, "ApplyBoundaryPhreaticLinePressureTableProcess")
         .def(py::init < ModelPart&, Parameters>());
@@ -93,6 +99,10 @@ void  AddCustomProcessesToPython(pybind11::module& m)
 
     py::class_<ApplyConstantPhreaticSurfacePressureProcess, ApplyConstantPhreaticSurfacePressureProcess::Pointer, Process>
         (m, "ApplyConstantPhreaticSurfacePressureProcess")
+        .def(py::init < ModelPart&, Parameters>());
+
+    py::class_<ApplyPhreaticMultiLinePressureTableProcess, ApplyPhreaticMultiLinePressureTableProcess::Pointer, Process>
+        (m, "ApplyPhreaticMultiLinePressureTableProcess")
         .def(py::init < ModelPart&, Parameters>());
 
     py::class_<ApplyPhreaticSurfacePressureTableProcess, ApplyPhreaticSurfacePressureTableProcess::Pointer, Process>
@@ -148,5 +158,4 @@ void  AddCustomProcessesToPython(pybind11::module& m)
         .def(py::init<ModelPart&, const Parameters&>());
 }
 
-} // Namespace Python.
-} // Namespace Kratos
+} // Namespace Kratos::Python.
