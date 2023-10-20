@@ -6,12 +6,13 @@ from testing_utilities import MedModelPartIOTestCase, GetMedPath, get_num_geomet
 
 from itertools import chain
 from typing import Any, Dict, Set
+from pathlib import Path
 
 class TestMedModelPartIOReadSubModelPart(MedModelPartIOTestCase):
     def test_cube_with_groups(self):
         model: KM.Model = KM.Model()
         model_part: KM.ModelPart = model.CreateModelPart("test")
-        KratosMed.MedModelPartIO(GetMedPath("cube_with_groups", "cube.med")).ReadModelPart(model_part)
+        KratosMed.MedModelPartIO(GetMedPath(Path("cube_with_groups"))).ReadModelPart(model_part)
 
         self._basic_checks(model_part)
 
@@ -77,7 +78,7 @@ class TestMedModelPartIOReadSubModelPart(MedModelPartIOTestCase):
     def test_cube_with_adjacent_groups(self):
         model: KM.Model = KM.Model()
         model_part: KM.ModelPart = model.CreateModelPart("test")
-        KratosMed.MedModelPartIO(GetMedPath("cube_with_adjacent_groups", "cube.med")).ReadModelPart(model_part)
+        KratosMed.MedModelPartIO(GetMedPath(Path("cube_with_adjacent_groups"))).ReadModelPart(model_part)
 
         self._basic_checks(model_part)
 
@@ -169,7 +170,7 @@ class TestMedModelPartIOReadSubModelPart(MedModelPartIOTestCase):
     def test_cube_with_subsub_groups(self):
         model: KM.Model = KM.Model()
         model_part: KM.ModelPart = model.CreateModelPart("test")
-        KratosMed.MedModelPartIO(GetMedPath("cube_sub_subgroups", "cube.med")).ReadModelPart(model_part)
+        KratosMed.MedModelPartIO(GetMedPath(Path("cube_sub_subgroups"))).ReadModelPart(model_part)
 
         self._basic_checks(model_part)
 
