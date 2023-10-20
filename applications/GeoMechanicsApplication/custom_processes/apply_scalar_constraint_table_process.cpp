@@ -21,6 +21,7 @@
 #include "apply_constant_interpolate_line_pressure_process.hpp"
 #include "apply_constant_phreatic_surface_pressure_process.hpp"
 #include "apply_phreatic_surface_pressure_table_process.hpp"
+#include "apply_phreatic_multi_line_pressure_table_process.h"
 
 namespace
 {
@@ -96,6 +97,8 @@ void ApplyScalarConstraintTableProcess::MakeProcessForFluidPressureType(const Pa
         MakeProcessForHydrostaticFluidPressure(rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Phreatic_Line") {
         MakeProcessForPhreaticLine(rProcessSettings, std::move(NamesOfSettingsToCopy));
+    } else if (fluid_pressure_type == "Phreatic_Multi_Line") {
+        MakeProcessForPhreaticMultiLine(rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Interpolate_Line") {
         MakeProcessForInterpolatedLine(rProcessSettings, std::move(NamesOfSettingsToCopy));
     } else if (fluid_pressure_type == "Phreatic_Surface") {
@@ -163,6 +166,32 @@ void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticLine(const Paramet
         mProcess = std::make_unique<ApplyConstantPhreaticLinePressureProcess>(mrModelPart,
                                                                               ExtractParameters(rProcessSettings,
                                                                                                 NamesOfSettingsToCopy));
+    }
+}
+
+void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticMultiLine(const Parameters&        rProcessSettings,
+                                                                         std::vector<std::string> NamesOfSettingsToCopy)
+{
+    NamesOfSettingsToCopy.insert(NamesOfSettingsToCopy.end(), {"gravity_direction",
+                                                               "out_of_plane_direction",
+                                                               "x_coordinates",
+                                                               "y_coordinates",
+                                                               "z_coordinates",
+                                                               "specific_weight"});
+    AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings, NamesOfSettingsToCopy);
+    AppendParameterNameIfExists("is_seepage", rProcessSettings, NamesOfSettingsToCopy);
+
+    if (HasTableAttached(rProcessSettings)) {
+        NamesOfSettingsToCopy.emplace_back("table");
+        mProcess = std::make_unique<ApplyPhreaticMultiLinePressureTableProcess>(mrModelPart,
+                                                                                ExtractParameters(rProcessSettings,
+                                                                                                  NamesOfSettingsToCopy));
+    }
+    else
+    {
+        mProcess = std::make_unique<ApplyConstantPhreaticMultiLinePressureProcess>(mrModelPart,
+                                                                                   ExtractParameters(rProcessSettings,
+                                                                                                     NamesOfSettingsToCopy));
     }
 }
 
