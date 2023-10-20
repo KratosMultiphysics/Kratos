@@ -17,7 +17,7 @@
 
 // External includes
 // Project includes
-#include "custom_constitutive\small_strains\damage\generic_small_strain_isotropic_damage.h"
+#include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage.h"
 
 namespace Kratos
 {
@@ -249,6 +249,24 @@ protected:
     ///@name Protected  Access
     ///@{
 
+    /**
+     * @brief Retrieve the reference temperature
+     * @return The reference temperature
+     */
+    double& GetReferenceTemperature()
+    {
+        return mReferenceTemperature;
+    }
+
+    /**
+     * @brief Sets the reference temperature
+     * @param ToRefTemperature The reference temperature
+     */
+    void SetReferenceTemperature(const double ToRefTemperature)
+    {
+        mReferenceTemperature = ToRefTemperature;
+    }
+
     ///@}
     ///@name Protected Inquiry
     ///@{
@@ -294,13 +312,13 @@ private:
 
     void save(Serializer &rSerializer) const override
     {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>)
         rSerializer.save("ReferenceTemperature", mReferenceTemperature);
     }
 
     void load(Serializer &rSerializer) override
     {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>)
         rSerializer.load("ReferenceTemperature", mReferenceTemperature);
     }
 

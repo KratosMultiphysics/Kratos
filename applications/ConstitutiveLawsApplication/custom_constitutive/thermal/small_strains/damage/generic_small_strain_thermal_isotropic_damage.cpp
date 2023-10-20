@@ -66,7 +66,12 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Initiali
 {
     // We construct the CL parameters
     BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
-    // TODO
+
+    if (rElementGeometry.Has(REFERENCE_TEMPERATURE)) {
+        mReferenceTemperature = rElementGeometry.GetValue(REFERENCE_TEMPERATURE);
+    } else if (rMaterialProperties.Has(REFERENCE_TEMPERATURE)) {
+        mReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
+    }
 }
 
 /***********************************************************************************/
@@ -137,9 +142,12 @@ int GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Check(
     const ProcessInfo& rCurrentProcessInfo
     ) const
 {
+    KRATOS_ERROR_IF_NOT(rElementGeometry[0].SolutionStepsDataHas(TEMPERATURE))  << "The TEMPERATURE variable is not available at the nodes." << std::endl;
+    KRATOS_ERROR_IF_NOT(rMaterialProperties.Has(THERMAL_EXPANSION_COEFFICIENT)) << "The THERMAL_EXPANSION_COEFFICIENT is not set in the material properties." << std::endl;
+    KRATOS_ERROR_IF(rMaterialProperties[THERMAL_EXPANSION_COEFFICIENT] < 0.0)   << "The THERMAL_EXPANSION_COEFFICIENT is negative..." << std::endl;
+    KRATOS_ERROR_IF_NOT(rElementGeometry.Has(REFERENCE_TEMPERATURE) || rMaterialProperties.Has(REFERENCE_TEMPERATURE)) << "The REFERENCE_TEMPERATURE is not given in the material properties nor via SetValue()" << std::endl;
     BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
 
-    // more...
     return 0;
 }
 
