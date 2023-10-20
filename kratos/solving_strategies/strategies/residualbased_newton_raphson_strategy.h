@@ -780,8 +780,6 @@ class ResidualBasedNewtonRaphsonStrategy
      */
     void InitializeSolutionStep() override
     {
-        KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy::InitializeSolutionStep") << "Whoohoo!" << std::endl;
-
         KRATOS_TRY;
 
         // Pointers needed in the solution
@@ -792,7 +790,6 @@ class ResidualBasedNewtonRaphsonStrategy
         // Set up the system, operation performed just once unless it is required
         // to reform the dof set at each iteration
         BuiltinTimer system_construction_time;
-        KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy::InitializeSolutionStep") << "GetDofSetIsInitializedFlag() = " << p_builder_and_solver->GetDofSetIsInitializedFlag() << " mReformDofSetAtEachStep = " << mReformDofSetAtEachStep << std::endl;
         if (!p_builder_and_solver->GetDofSetIsInitializedFlag() || mReformDofSetAtEachStep)
         {
             // Setting up the list of the DOFs to be solved

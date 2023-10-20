@@ -77,12 +77,9 @@ public:
         mvariable_name = rParameters["variable_name"].GetString();
         this->Set( VARIABLE_IS_FIXED, rParameters["is_fixed"].GetBool());
 
-        KRATOS_INFO("ApplyConstantScalarValueProcess") << "variable name: " << mvariable_name << std::endl;
-
         if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
             mdouble_value = rParameters["value"].GetDouble();
-            KRATOS_INFO("ApplyConstantScalarValueProcess") << "double value: " << mdouble_value << std::endl;
 
             if( model_part.GetNodalSolutionStepVariablesList().Has( KratosComponents< Variable<double> >::Get( mvariable_name ) ) == false )
             {

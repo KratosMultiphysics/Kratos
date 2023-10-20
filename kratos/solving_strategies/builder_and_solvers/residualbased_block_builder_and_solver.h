@@ -200,8 +200,6 @@ public:
     {
         KRATOS_TRY
 
-        KRATOS_INFO("ResidualBasedBlockBuilderAndSolver::Build") << "Hello Richard and Wijtze Pieter!" << std::endl;
-
         KRATOS_ERROR_IF(!pScheme) << "No scheme provided!" << std::endl;
 
         // Getting the elements from the model
