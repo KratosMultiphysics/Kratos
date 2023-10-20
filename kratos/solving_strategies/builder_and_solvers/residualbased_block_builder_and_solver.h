@@ -444,14 +444,10 @@ public:
         KRATOS_TRY
 
         double norm_b;
-        if (TSparseSpace::Size(b) != 0) {
+        if (TSparseSpace::Size(b) != 0)
             norm_b = TSparseSpace::TwoNorm(b);
-            KRATOS_INFO("InternalSystemSolveWithPhysics") << "Length of sparse space =" << TSparseSpace::Size(b) << " calculated L2 norm = " << norm_b << std::endl;
-        }
-        else {
+        else
             norm_b = 0.00;
-            KRATOS_INFO("InternalSystemSolveWithPhysics") << "Sparse space has length 0?!" << std::endl;
-        }
 
         if (norm_b != 0.00) {
             //provide physical data as needed

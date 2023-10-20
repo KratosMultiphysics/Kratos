@@ -828,7 +828,6 @@ class ResidualBasedNewtonRaphsonStrategy
         // Initialisation of the convergence criteria
         if (mpConvergenceCriteria->GetActualizeRHSflag())
         {
-            KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy::InitializeSolutionStep") << "Attempt to build RHS" << std::endl;
             TSparseSpace::SetToZero(rb);
             p_builder_and_solver->BuildRHS(p_scheme, r_model_part, rb);
         }
@@ -836,7 +835,6 @@ class ResidualBasedNewtonRaphsonStrategy
         mpConvergenceCriteria->InitializeSolutionStep(r_model_part, p_builder_and_solver->GetDofSet(), rA, rDx, rb);
 
         if (mpConvergenceCriteria->GetActualizeRHSflag()) {
-            KRATOS_INFO("ResidualBasedNewtonRaphsonStrategy::InitializeSolutionStep") << "ABOUT TO SET RHS TO ZERO?!" << std::endl;
             TSparseSpace::SetToZero(rb);
         }
 

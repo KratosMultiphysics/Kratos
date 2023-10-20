@@ -238,14 +238,11 @@ public:
     /// right after reading the model and the groups
     void ExecuteInitialize() override
     {
-        KRATOS_INFO("ApplyConstantScalarValueProcess::ExecuteInitialize") << "Is this being called??" << std::endl;
-
         KRATOS_TRY;
         const bool is_fixed = this->Is(VARIABLE_IS_FIXED);
 
         if( KratosComponents< Variable<double> >::Has( mvariable_name ) ) //case of double variable
         {
-            KRATOS_INFO("ApplyConstantScalarValueProcess::ExecuteInitialize") << "About to call InternalApplyValue" << std::endl;
             InternalApplyValue<>(KratosComponents< Variable<double> >::Get(mvariable_name) , is_fixed, mdouble_value);
         }
         else if( KratosComponents< Variable<int> >::Has( mvariable_name ) ) //case of int variable
@@ -355,7 +352,6 @@ private:
     void InternalApplyValue(const TVarType& rVar, const bool to_be_fixed, const TDataType value)
     {
         const int nnodes = mr_model_part.GetMesh(mmesh_id).Nodes().size();
-        KRATOS_INFO("InternalApplyValue") << "num nodes: " << nnodes << " value = " << value << std::endl;
 
         if(nnodes != 0)
         {
