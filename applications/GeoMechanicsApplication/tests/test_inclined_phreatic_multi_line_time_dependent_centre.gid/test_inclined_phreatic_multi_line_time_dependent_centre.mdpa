@@ -1,8 +1,10 @@
 Begin Table 1 TIME WATER_PRESSURE
   0.0 0.0
   1.0 0.5
+  2.0 0.0
+  3.0 -0.5
+  4.0 0.0
 End Table
-
 
 Begin Properties 1
 End Properties
