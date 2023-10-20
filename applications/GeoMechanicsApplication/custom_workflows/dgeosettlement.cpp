@@ -114,7 +114,7 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUti
         mKernel.ImportApplication(mpLinearSolversApp);
     }
 
-    Kratos::OpenMPUtils::SetNumThreads(1);
+    ParallelUtilities::SetNumThreads(1);
 
     InitializeProcessFactory();
 }
@@ -206,11 +206,11 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
 
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
-        for (auto& process : processes) {
+        for (const auto& process : processes) {
             process->ExecuteInitialize();
         }
 
-        for (auto& process : processes) {
+        for (const auto& process : processes) {
             process->ExecuteBeforeSolutionLoop();
         }
 

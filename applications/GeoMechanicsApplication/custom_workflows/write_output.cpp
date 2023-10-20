@@ -184,7 +184,7 @@ void GeoOutputWriter::WriteIntegrationPointOutput(const std::vector<std::string>
     }
 }
 
-void GeoOutputWriter::PrintGaussVariable(const std::any& input, GidIO<> &rGidIO, ModelPart& rModelPart)
+void GeoOutputWriter::PrintGaussVariable(const std::any& input, GidIO<> &rGidIO, const ModelPart& rModelPart)
 {
     const auto time = rModelPart.GetProcessInfo()[TIME];
 

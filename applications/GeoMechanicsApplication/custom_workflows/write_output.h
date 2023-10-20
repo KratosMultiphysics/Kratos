@@ -48,7 +48,7 @@ private:
                                             GidIO<>&                        rGidIO,
                                             ModelPart&                      rModelPart);
     static void CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart& rModelPart);
-    static void PrintGaussVariable(const std::any& input, GidIO<>& rGidIO, ModelPart& rModelPart);
+    static void PrintGaussVariable(const std::any& input, GidIO<>& rGidIO, const ModelPart& rModelPart);
 
     static GiD_PostMode GetGiDPostModeFrom(const Parameters& rGiDPostFlags);
     static MultiFileFlag GetMultiFileFlagFrom(const Parameters& rGiDPostFlags);
@@ -56,7 +56,7 @@ private:
     static WriteConditionsFlag GetWriteConditionsFlagFrom(const Parameters& rGiDPostFlags);
 
     template<class T>
-    static bool PrintType(const std::any& input, GidIO<> &rGidIO, ModelPart& rModelPart, double time)
+    static bool PrintType(const std::any& input, GidIO<> &rGidIO, const ModelPart& rModelPart, double time)
     {
         try
         {
