@@ -38,6 +38,8 @@
 #include "custom_constitutive/auxiliary_files/plastic_potentials/mohr_coulomb_plastic_potential.h"
 #include "custom_constitutive/auxiliary_files/plastic_potentials/drucker_prager_plastic_potential.h"
 
+#include "custom_constitutive/thermal/auxiliary_files/thermal_yield_surfaces/thermal_von_mises_yield_surface.h"
+
 namespace Kratos
 {
 
@@ -3492,7 +3494,60 @@ CalculateTangentTensorIsotropicDamage(
   KRATOS_ERROR << "This autom differentiation has not been implemented yet..." << std::endl;
 }
 
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AutomaticDifferentiationTangentUtilities<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>::
+CalculateTangentTensorIsotropicDamage(
+  ConstitutiveLaw::Parameters rValues
+  )
+{
+  KRATOS_ERROR << "This autom differentiation has not been implemented yet..." << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AutomaticDifferentiationTangentUtilities<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>::
+CalculateTangentTensorIsotropicDamage(
+  ConstitutiveLaw::Parameters rValues
+  )
+{
+  KRATOS_ERROR << "This autom differentiation has not been implemented yet..." << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AutomaticDifferentiationTangentUtilities<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>::
+CalculateTangentTensorIsotropicDamage(
+  ConstitutiveLaw::Parameters rValues
+  )
+{
+  KRATOS_ERROR << "This autom differentiation has not been implemented yet..." << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<>
+void AutomaticDifferentiationTangentUtilities<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>::
+CalculateTangentTensorIsotropicDamage(
+  ConstitutiveLaw::Parameters rValues
+  )
+{
+  KRATOS_ERROR << "This autom differentiation has not been implemented yet..." << std::endl;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+
 // 3D exponential
+template class AutomaticDifferentiationTangentUtilities<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>;
 template class AutomaticDifferentiationTangentUtilities<VonMisesYieldSurface<VonMisesPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>;
 template class AutomaticDifferentiationTangentUtilities<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>;
 template class AutomaticDifferentiationTangentUtilities<TrescaYieldSurface<TrescaPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>;
@@ -3501,6 +3556,7 @@ template class AutomaticDifferentiationTangentUtilities<RankineYieldSurface<Rank
 template class AutomaticDifferentiationTangentUtilities<SimoJuYieldSurface<VonMisesPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>;
 template class AutomaticDifferentiationTangentUtilities<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Exponential)>;
 // 3D Linear
+template class AutomaticDifferentiationTangentUtilities<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>;
 template class AutomaticDifferentiationTangentUtilities<VonMisesYieldSurface<VonMisesPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>;
 template class AutomaticDifferentiationTangentUtilities<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>;
 template class AutomaticDifferentiationTangentUtilities<TrescaYieldSurface<TrescaPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>;
@@ -3510,6 +3566,7 @@ template class AutomaticDifferentiationTangentUtilities<SimoJuYieldSurface<VonMi
 template class AutomaticDifferentiationTangentUtilities<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<6>>, static_cast<SizeType>(SofteningType::Linear)>;
 
 // 2D exponential
+template class AutomaticDifferentiationTangentUtilities<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>;
 template class AutomaticDifferentiationTangentUtilities<VonMisesYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>;
 template class AutomaticDifferentiationTangentUtilities<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>;
 template class AutomaticDifferentiationTangentUtilities<TrescaYieldSurface<TrescaPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>;
@@ -3518,6 +3575,7 @@ template class AutomaticDifferentiationTangentUtilities<RankineYieldSurface<Rank
 template class AutomaticDifferentiationTangentUtilities<SimoJuYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>;
 template class AutomaticDifferentiationTangentUtilities<MohrCoulombYieldSurface<MohrCoulombPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Exponential)>;
 // 2D Linear
+template class AutomaticDifferentiationTangentUtilities<ThermalVonMisesYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>;
 template class AutomaticDifferentiationTangentUtilities<VonMisesYieldSurface<VonMisesPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>;
 template class AutomaticDifferentiationTangentUtilities<ModifiedMohrCoulombYieldSurface<ModifiedMohrCoulombPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>;
 template class AutomaticDifferentiationTangentUtilities<TrescaYieldSurface<TrescaPlasticPotential<3>>, static_cast<SizeType>(SofteningType::Linear)>;
