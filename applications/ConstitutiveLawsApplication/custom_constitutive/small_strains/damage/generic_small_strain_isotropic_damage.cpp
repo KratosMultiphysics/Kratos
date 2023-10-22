@@ -74,28 +74,21 @@ template <class TConstLawIntegratorType>
 void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     // Integrate Stress Damage
-    Vector& r_integrated_stress_vector = rValues.GetStressVector();
-    Matrix& r_tangent_tensor = rValues.GetConstitutiveMatrix(); // todo modify after integration
     const Flags& r_constitutive_law_options = rValues.GetOptions();
 
     // We get the strain vector
-    Vector& r_strain_vector = rValues.GetStrainVector();
+    auto& r_strain_vector = rValues.GetStrainVector();
 
     //NOTE: SINCE THE ELEMENT IS IN SMALL STRAINS WE CAN USE ANY STRAIN MEASURE. HERE EMPLOYING THE CAUCHY_GREEN
     if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
         BaseType::CalculateCauchyGreenStrain(rValues, r_strain_vector);
     }
 
-    // Elastic Matrix
-    if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
-        this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
-    }
-
     // We compute the stress
     if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        auto& r_integrated_stress_vector = rValues.GetStressVector();
         // Elastic Matrix
-        Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
+        auto& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
 
         this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
@@ -105,8 +98,8 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
         double damage = this->GetDamage();
 
         // S0 = C:(E-E0) + S0
-        array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
-        this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(predictive_stress_vector);
+        BoundedArrayType predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
+        this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
 
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
@@ -117,7 +110,7 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::CalculateMateri
             noalias(r_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
 
             if (r_constitutive_law_options.Is(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR)) {
-                noalias(r_tangent_tensor) = (1.0 - damage) * r_constitutive_matrix;
+                r_constitutive_matrix *= (1.0 - damage);
             }
         } else { // Damage case
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());

@@ -67,8 +67,6 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Initiali
 template <class TConstLawIntegratorType>
 void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
-    auto& r_integrated_stress_vector      = rValues.GetStressVector();
-    auto& r_tangent_constitutive_tensor   = rValues.GetConstitutiveMatrix();
     const auto& r_cl_options = rValues.GetOptions();
     const auto& r_properties = rValues.GetMaterialProperties();
 
@@ -82,6 +80,7 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Calculat
 
     // We compute the stress
     if (r_cl_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
+        auto& r_integrated_stress_vector = rValues.GetStressVector();
         // Elastic Matrix
         auto& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         const double E = AdvCLutils::GetMaterialPropertyThroughAccessor(YOUNG_MODULUS, rValues);
@@ -90,13 +89,13 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Calculat
 
         this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
-        // Converged values
-        double threshold = this->GetThreshold();
-        double damage = this->GetDamage();
-
         // S0 = C:(E-E0) + S0
         BoundedArrayType predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
         this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
+
+        // Converged values
+        double threshold = this->GetThreshold();
+        double damage = this->GetDamage();
 
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
@@ -111,7 +110,9 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Calculat
         uniaxial_stress /=  temperature_reduction_factor;
         const double F = uniaxial_stress - threshold;
 
-        // ...
+        if (F <= threshold_tolerance) { // Elasticity
+            noalias(r_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
+        }
 
     }
 
