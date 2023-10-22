@@ -3,6 +3,7 @@ import KratosMultiphysics.KratosUnittest as KratosUnittest
 # Import the tests of test-classes to create the suites
 import test_med_model_part_io
 import test_med_model_part_io_read_smp
+import test_import_med_modeler
 
 
 def AssembleTestSuites():
@@ -25,11 +26,8 @@ def AssembleTestSuites():
     # - testSmallExample
     smallSuite = suites["small"]
     smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_med_model_part_io.TestMedModelPartIO]))
-    smallSuite.addTests(
-        KratosUnittest.TestLoader().loadTestsFromTestCases(
-            [test_med_model_part_io_read_smp.TestMedModelPartIOReadSubModelPart]
-        )
-    )
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_med_model_part_io_read_smp.TestMedModelPartIOReadSubModelPart]))
+    smallSuite.addTests(KratosUnittest.TestLoader().loadTestsFromTestCases([test_import_med_modeler.TestImportMedModeler]))
 
     # Create a test suit with the selected tests
     # nightSuite will contain the following tests:
