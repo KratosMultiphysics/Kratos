@@ -837,7 +837,7 @@ double AdvancedConstitutiveLawUtilities<TVoigtSize>::GetPropertyFromTemperatureT
     )
 {
     const auto& r_properties = rValues.GetMaterialProperties();
-    return r_properties.HasTable(rVariable) ? rProperties.GetTable(TEMPERATURE, rVariable).GetValue(Temperature) : r_properties[rVariable];
+    return r_properties.HasTable(TEMPERATURE, rVariable) ? r_properties.GetTable(TEMPERATURE, rVariable).GetValue(Temperature) : r_properties[rVariable];
 }
 
 /***********************************************************************************/
