@@ -18,6 +18,8 @@
 // External includes
 // Project includes
 #include "custom_constitutive/small_strains/damage/generic_small_strain_isotropic_damage.h"
+#include "custom_utilities/advanced_constitutive_law_utilities.h"
+#include "custom_utilities/constitutive_law_utilities.h"
 
 namespace Kratos
 {
@@ -65,18 +67,21 @@ public:
     static constexpr SizeType VoigtSize = TConstLawIntegratorType::VoigtSize;
 
     /// Definition of the base class
-    typedef GenericSmallStrainIsotropicDamage<TConstLawIntegratorType> BaseType;
+    using BaseType = GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>;
 
-    typedef array_1d<double, VoigtSize> BoundedArrayType;
+    using BoundedArrayType = array_1d<double, VoigtSize>;
 
     /// Counted pointer of GenericYieldSurface
     KRATOS_CLASS_POINTER_DEFINITION(GenericSmallStrainThermalIsotropicDamage);
 
     /// The node definition
-    typedef Node NodeType;
+    using NodeType = Node;
 
     /// The geometry definition
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
+
+    using CLutils    = ConstitutiveLawUtilities<6>;
+    using AdvCLutils = AdvancedConstitutiveLawUtilities<6>;
 
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
@@ -210,6 +215,7 @@ public:
         const GeometryType& rElementGeometry,
         const ProcessInfo& rCurrentProcessInfo
         ) const override;
+
 
     ///@}
     ///@name Access

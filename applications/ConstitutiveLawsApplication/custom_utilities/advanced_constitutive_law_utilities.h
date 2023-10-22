@@ -483,7 +483,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         ConstitutiveLaw::StrainVectorType &rStrainVector,
         const double ReferenceTemperature,
         ConstitutiveLaw::Parameters &rParameters,
-        const bool IsPlaneStrain = false);
+        const bool IsPlaneStrain = false
+        );
 
     /**
      * @brief This retrieves an interpolated nodal variable to a GP
@@ -491,7 +492,8 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
     static double CalculateInGaussPoint(
         const Variable<double> &rVariableInput,
         ConstitutiveLaw::Parameters &rParameters,
-        unsigned int step = 0);
+        unsigned int step = 0
+        );
 
     /**
      * @brief This retrieves a double type variable checking the accessor
@@ -499,7 +501,16 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
     static double GetMaterialPropertyThroughAccessor(
         const Variable<double>& rVariable,
         ConstitutiveLaw::Parameters &rValues
-    );
+        );
+
+    /**
+     * @brief This retrieves a double type variable from a table if exists, assumes TEMPERATURE to be the independent variable
+     */
+    static double GetPropertyFromTemperatureTable(
+        const Variable<double>& rVariable,
+        ConstitutiveLaw::Parameters &rValues,
+        const double Temperature
+        );
 
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos
