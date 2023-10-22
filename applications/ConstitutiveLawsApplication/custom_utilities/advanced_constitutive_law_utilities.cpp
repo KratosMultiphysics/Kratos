@@ -814,6 +814,20 @@ double AdvancedConstitutiveLawUtilities<TVoigtSize>::MacaullyBrackets(const doub
 /***********************************************************************************/
 /***********************************************************************************/
 
+double GetMaterialPropertyThroughAccessor(
+    const Variable<double>& rVariable,
+    ConstitutiveLaw::Parameters &rValues
+    )
+{
+    const auto &r_geom = rValues.GetElementGeometry();
+    const auto &r_N = rValues.GetShapeFunctionsValues();
+    const auto &r_process_info = rValues.GetProcessInfo();
+    return rValues.GetMaterialProperties().GetValue(rVariable, r_geom, r_N, r_process_info);
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class AdvancedConstitutiveLawUtilities<3>;
 template class AdvancedConstitutiveLawUtilities<6>;
 

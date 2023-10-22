@@ -493,5 +493,13 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
         ConstitutiveLaw::Parameters &rParameters,
         unsigned int step = 0);
 
+    /**
+     * @brief This retrieves a double type variable checking the accessor
+     */
+    static double GetMaterialPropertyThroughAccessor(
+        const Variable<double>& rVariable,
+        ConstitutiveLaw::Parameters &rValues
+    );
+
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos
