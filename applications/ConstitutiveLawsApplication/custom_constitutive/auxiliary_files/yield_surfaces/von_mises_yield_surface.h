@@ -159,8 +159,10 @@ public:
         if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Exponential)) {
             rAParameter = 1.00 / (fracture_energy * young_modulus / (CharacteristicLength * std::pow(yield_compression, 2)) - 0.5);
             KRATOS_ERROR_IF(rAParameter < 0.0) << "Fracture energy is too low, increase FRACTURE_ENERGY..." << std::endl;
-        } else { // linear
+        } else if (r_material_properties[SOFTENING_TYPE] == static_cast<int>(SofteningType::Linear)) { // linear
             rAParameter = -std::pow(yield_compression, 2) / (2.0 * young_modulus * fracture_energy / CharacteristicLength);
+        } else {
+            rAParameter = 0.0;
         }
     }
 
