@@ -234,35 +234,24 @@ void GenericSmallStrainIsotropicDamage<TConstLawIntegratorType>::FinalizeMateria
         Matrix& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         this->CalculateValue(rValues, CONSTITUTIVE_MATRIX, r_constitutive_matrix);
 
-        if (r_constitutive_law_options.IsNot(ConstitutiveLaw::USE_ELEMENT_PROVIDED_STRAIN)) {
-            BaseType::CalculateCauchyGreenStrain( rValues, r_strain_vector);
-        }
-
         this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
-        // Converged values
-        double threshold = this->GetThreshold();
-        double damage = this->GetDamage();
-
         // S0 = C:(E-E0) + S0
-        array_1d<double, VoigtSize> predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
-        this->template AddInitialStressVectorContribution<array_1d<double, VoigtSize>>(predictive_stress_vector);
+        BoundedArrayType predictive_stress_vector = prod(r_constitutive_matrix, r_strain_vector);
+        this->template AddInitialStressVectorContribution<BoundedArrayType>(predictive_stress_vector);
 
         // Initialize Plastic Parameters
         double uniaxial_stress;
         TConstLawIntegratorType::YieldSurfaceType::CalculateEquivalentStress(predictive_stress_vector, r_strain_vector, uniaxial_stress, rValues);
 
-        const double F = uniaxial_stress - threshold;
+        const double F = uniaxial_stress - mThreshold;
 
-        if (F >= threshold_tolerance) { // Plastic case
+        if (F >= threshold_tolerance) { // Damage case
             const double characteristic_length = AdvancedConstitutiveLawUtilities<VoigtSize>::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
             // This routine updates the PredictiveStress to verify the yield surf
-            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, damage, threshold, rValues, characteristic_length);
-            mDamage = damage;
+            TConstLawIntegratorType::IntegrateStressVector(predictive_stress_vector, uniaxial_stress, mDamage, mThreshold, rValues, characteristic_length);
             mThreshold = uniaxial_stress;
 
-        } else {
-            predictive_stress_vector *= (1.0 - mDamage);
         }
     }
 }
