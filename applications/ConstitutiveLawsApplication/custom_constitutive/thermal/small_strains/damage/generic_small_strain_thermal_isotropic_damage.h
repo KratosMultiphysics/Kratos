@@ -80,8 +80,8 @@ public:
     /// The geometry definition
     using GeometryType = Geometry<NodeType>;
 
-    using CLutils    = ConstitutiveLawUtilities<6>;
-    using AdvCLutils = AdvancedConstitutiveLawUtilities<6>;
+    using CLutils    = ConstitutiveLawUtilities<VoigtSize>;
+    using AdvCLutils = AdvancedConstitutiveLawUtilities<VoigtSize>;
 
     /// Definition of the machine precision tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
