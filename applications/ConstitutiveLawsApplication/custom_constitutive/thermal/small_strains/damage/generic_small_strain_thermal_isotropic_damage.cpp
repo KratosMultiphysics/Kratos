@@ -112,6 +112,7 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Calculat
 
         if (F <= threshold_tolerance) { // Elasticity
             noalias(r_integrated_stress_vector) = (1.0 - damage) * predictive_stress_vector;
+            r_constitutive_matrix *= (1.0 - damage);
         }
 
     }
