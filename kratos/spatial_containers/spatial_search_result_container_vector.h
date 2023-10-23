@@ -219,7 +219,6 @@ public:
     SpatialSearchResultContainerVector() = default;
 
     /// Destructor.
-    /// Destructor.
     virtual ~SpatialSearchResultContainerVector() {
         // Make sure to delete the pointers stored in the container
         for (auto pResult : mPointResults) {

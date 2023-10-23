@@ -30,7 +30,7 @@ namespace Kratos
 template <class TObjectType>
 std::size_t SpatialSearchResultContainerVector<TObjectType>::NumberOfSearchResults() const
 {
-    return block_for_each<SumReduction<IndexType>>(mPointResults, [&](auto& p_result) {
+    return block_for_each<SumReduction<IndexType>>(mPointResults, [&](auto p_result) {
         if (p_result != nullptr) {
             return 1;
         }
@@ -85,8 +85,8 @@ template <class TObjectType>
 void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
 {
     // Synchronize all the results
-    for (auto& p_point_result : mPointResults) {
-        p_point_result->SynchronizeAll(rDataCommunicator);
+    for (auto p_result : mPointResults) {
+        p_result->SynchronizeAll(rDataCommunicator);
     }
 }
 
@@ -118,8 +118,8 @@ void SpatialSearchResultContainerVector<TObjectType>::PrintData(std::ostream& rO
 {
     // Print results
     rOStream << "SpatialSearchResultContainerVector data summary: " << "\n";
-    for (auto& p_point_result : mPointResults) {
-        p_point_result->PrintData(rOStream);
+    for (auto p_result : mPointResults) {
+        p_result->PrintData(rOStream);
     }
 }
 
