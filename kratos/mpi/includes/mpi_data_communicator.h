@@ -57,6 +57,8 @@ void MinAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS_
 __VA_ARGS__ MaxAll(const __VA_ARGS__& rLocalValue) const override;                                                  \
 std::vector<__VA_ARGS__> MaxAll(const std::vector<__VA_ARGS__>& rLocalValues) const override;                       \
 void MaxAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const override;  \
+std::pair<__VA_ARGS__, int> MinLocAll(const __VA_ARGS__& rLocalValue) const override;                               \
+std::pair<__VA_ARGS__, int> MaxLocAll(const __VA_ARGS__& rLocalValue) const override;
 
 #endif
 
@@ -379,6 +381,12 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     template<class TDataType> std::vector<TDataType> AllReduceDetailVector(
         const std::vector<TDataType>& rLocalValues,
         MPI_Op Operation) const;
+
+    template<class TDataType> 
+    std::pair<TDataType, int> AllReduceDetailWithLocation(
+        const std::pair<TDataType, int>& rLocalValues, 
+        MPI_Op Operation
+        ) const;
 
     template<class TDataType> void ScanDetail(
         const TDataType& rLocalValues,
