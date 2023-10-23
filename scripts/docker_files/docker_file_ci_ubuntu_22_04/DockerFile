@@ -23,7 +23,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         cmake \
         gfortran \
         git \
-        intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic \
+        intel-oneapi-compiler-dpcpp-cpp \
         intel-oneapi-mkl-devel \
         valgrind \
         libboost-dev \
