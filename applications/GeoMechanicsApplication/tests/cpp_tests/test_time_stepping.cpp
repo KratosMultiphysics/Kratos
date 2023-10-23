@@ -79,9 +79,6 @@ public:
     void FinalizeSolutionStep()   override {++mSolverStrategyFinalizeSolutionStepCalls;}
     [[nodiscard]] unsigned int NumberOfSolverStrategyInitializeCalls()             const {return mSolverStrategyInitializeCalls;}
     [[nodiscard]] unsigned int NumberOfSolverStrategyInitializeSolutionStepCalls() const {return mSolverStrategyInitializeSolutionStepCalls;}
-
-    ~DummyStrategyWrapper() override = default;
-
     [[nodiscard]] unsigned int NumberOfSolverStrategyPredictCalls()                const {return mSolverStrategyPredictCalls;}
     [[nodiscard]] unsigned int NumberOfSolverStrategySolveSolutionStepCalls()      const {return mSolverStrategySolveSolutionsStepCalls;}
     [[nodiscard]] unsigned int NumberOfSolverStrategyFinalizeSolutionStepCalls()   const {return mSolverStrategyFinalizeSolutionStepCalls;}
