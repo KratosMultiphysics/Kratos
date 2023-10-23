@@ -722,12 +722,9 @@ std::pair<TDataType, int> MPIDataCommunicator::AllReduceDetailWithLocation(
     local_reduce.value = rLocalValues.first;
     local_reduce.rank = rLocalValues.second;
     MPI_Datatype data_type;
-    if constexpr (std::is_same_v<TDataType, double>) {
-        data_type = MPI_DOUBLE_INT;
-    } else if constexpr (std::is_same_v<TDataType, long int>) {
-        data_type = MPI_LONG_INT;
-    } else if constexpr (std::is_same_v<TDataType, int>) {
-        data_type = MPI_2INT;
+    if constexpr (std::is_same_v<TDataType, double> || std::is_same_v<TDataType, long int> || std::is_same_v<TDataType, int>) {
+        MPIMessage<TDataType> mpi_msg;
+        data_type = mpi_msg.IntPairDataType();
     } else {
         KRATOS_ERROR << "Unsupported type for AllReduceDetailWithLocation" << std::endl;
     }
@@ -742,7 +739,7 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
 {
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     const int local_size = mpi_send_msg.Size(rLocalValues);
     const int reduced_size = mpi_recv_msg.Size(rReducedValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(local_size))
@@ -751,7 +748,7 @@ template<class TDataType> void MPIDataCommunicator::ScanDetail(
     KRATOS_ERROR_IF(ErrorIfTrueOnAnyRank(local_size != reduced_size))
     << "Input error in call to MPI_Scan for rank " << Rank() << ": "
     << "Sending " << local_size << " values " << "but receiving " << reduced_size << " values." << std::endl;
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     const int ierr = MPI_Scan(
         mpi_send_msg.Buffer(rLocalValues), mpi_recv_msg.Buffer(rReducedValues),
@@ -921,13 +918,13 @@ template<class TDataType> void MPIDataCommunicator::BroadcastDetail(
     TDataType& rBuffer, const int SourceRank) const
 {
     MPIMessage<TDataType> mpi_message;
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
     << "In call to MPI_Bcast: " << SourceRank << " is not a valid rank." << std::endl;
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(mpi_message.Size(rBuffer)))
     << "Input error in call to MPI_Bcast: "
     << "The buffer does not have the same size on all ranks." << std::endl;
-    #endif
+#endif
 
     const int ierr = MPI_Bcast(
         mpi_message.Buffer(rBuffer), mpi_message.Size(rBuffer),
@@ -945,7 +942,7 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Sca
     MPIMessage<TSendDataType> mpi_send_msg;
     MPIMessage<TRecvDataType> mpi_recv_msg;
 
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(SourceRank)))
     << "In call to MPI_Scatter: " << SourceRank << " is not a valid rank." << std::endl;
     const int send_size = mpi_send_msg.Size(rSendValues);
@@ -957,7 +954,7 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Sca
     << "Input error in call to MPI_Scatter for rank " << SourceRank << ": "
     << "Sending " << send_size << " values " << "but receiving " << recv_size << " values ("
     << recv_size * Size() << " values to send expected)." << std::endl;
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     const int sends_per_rank = mpi_recv_msg.Size(rRecvValues);
     const int ierr = MPI_Scatter(
@@ -999,9 +996,9 @@ template<class TDataType> void MPIDataCommunicator::ScattervDetail(
         const TDataType& rSendValues, const std::vector<int>& rSendCounts, const std::vector<int>& rSendOffsets,
         TDataType& rRecvValues, const int SourceRank) const
 {
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     ValidateScattervInput(rSendValues, rSendCounts, rSendOffsets, rRecvValues, SourceRank);
-    #endif
+#endif
 
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
@@ -1052,7 +1049,7 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Gat
     MPIMessage<TSendDataType> mpi_send_msg;
     MPIMessage<TRecvDataType> mpi_recv_msg;
 
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     KRATOS_ERROR_IF_NOT(ErrorIfFalseOnAnyRank(IsValidRank(RecvRank)))
     << "In call to MPI_Gather: " << RecvRank << " is not a valid rank." << std::endl;
     const int send_size = mpi_send_msg.Size(rSendValues);
@@ -1064,7 +1061,7 @@ template<class TSendDataType, class TRecvDataType> void MPIDataCommunicator::Gat
     << "Input error in call to MPI_Gather for rank " << RecvRank << ": "
     << "Sending " << send_size << " values " << "but receiving " << recv_size << " values ("
     << send_size * Size() << " values to receive expected)." << std::endl;
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     const int sends_per_rank = mpi_send_msg.Size(rSendValues);
     const int ierr = MPI_Gather(
@@ -1102,9 +1099,9 @@ template<class TDataType> void MPIDataCommunicator::GathervDetail(
     const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets,
     const int RecvRank) const
 {
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     ValidateGathervInput(rSendValues, rRecvValues, rRecvCounts, rRecvOffsets, RecvRank);
-    #endif
+#endif
 
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
@@ -1158,7 +1155,7 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
 {
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     const int send_size = mpi_send_msg.Size(rSendValues);
     const int recv_size = mpi_recv_msg.Size(rRecvValues);
     KRATOS_ERROR_IF_NOT(IsEqualOnAllRanks(send_size))
@@ -1168,7 +1165,7 @@ template<class TDataType> void MPIDataCommunicator::AllGatherDetail(
     << "Input error in call to MPI_Allgather for rank " << Rank() << ": "
     << "Sending " << send_size << " values " << "but receiving " << recv_size << " values ("
     << send_size * Size() << " values to receive expected)." << std::endl;
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     const int sends_per_rank = mpi_send_msg.Size(rSendValues);
     const int ierr = MPI_Allgather(
@@ -1198,9 +1195,9 @@ void MPIDataCommunicator::AllGathervDetail(
     const TDataType& rSendValues, TDataType& rRecvValues,
     const std::vector<int>& rRecvCounts, const std::vector<int>& rRecvOffsets) const
 {
-    #ifdef KRATOS_DEBUG
+#ifdef KRATOS_DEBUG
     ValidateAllGathervInput(rSendValues, rRecvValues, rRecvCounts, rRecvOffsets);
-    #endif // KRATOS_DEBUG
+#endif // KRATOS_DEBUG
 
     MPIMessage<TDataType> mpi_send_msg, mpi_recv_msg;
 
