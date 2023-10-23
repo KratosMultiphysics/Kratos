@@ -496,8 +496,18 @@ private:
     const TNormalFluxCondition<3,8> mTNormalFluxCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };
     const TNormalFluxCondition<3,9> mTNormalFluxCondition3D9N{ 0, Kratos::make_shared< Quadrilateral3D9 <NodeType> >(Condition::GeometryType::PointsArrayType(9)) };
 
-    const TMicroClimateFluxCondition<2,2> mTMicroClimateFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2 <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
-    const TMicroClimateFluxCondition<2,3> mTMicroClimateFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3 <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const TMicroClimateFluxCondition<2,2> mTMicroClimateFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const TMicroClimateFluxCondition<2,3> mTMicroClimateFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const TMicroClimateFluxCondition<2,4> mTMicroClimateFluxCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const TMicroClimateFluxCondition<2,5> mTMicroClimateFluxCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
+    const TMicroClimateFluxCondition<3,3> mTMicroClimateFluxCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const TMicroClimateFluxCondition<3,6> mTMicroClimateFluxCondition3D6N{ 0, Kratos::make_shared< Triangle3D6      <NodeType> >(Condition::GeometryType::PointsArrayType(6)) };
+    const TMicroClimateFluxCondition<3,4> mTMicroClimateFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const TMicroClimateFluxCondition<3,8> mTMicroClimateFluxCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };
+    const TMicroClimateFluxCondition<3,9> mTMicroClimateFluxCondition3D9N{ 0, Kratos::make_shared< Quadrilateral3D9 <NodeType> >(Condition::GeometryType::PointsArrayType(9)) };
+
+
+
 
     const UPwFaceLoadInterfaceCondition<2,2> mUPwFaceLoadInterfaceCondition2D2N{ 0, Kratos::make_shared< Line2D2                   <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
     const UPwFaceLoadInterfaceCondition<3,4> mUPwFaceLoadInterfaceCondition3D4N{ 0, Kratos::make_shared< QuadrilateralInterface3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };

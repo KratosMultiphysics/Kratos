@@ -489,7 +489,12 @@ void TMicroClimateFluxCondition<TDim, TNumNodes>::CalculateKinematics(
 // ============================================================================================
 template class TMicroClimateFluxCondition<2,2>;
 template class TMicroClimateFluxCondition<2,3>;
+template class TMicroClimateFluxCondition<2,4>;
+template class TMicroClimateFluxCondition<2,5>;
 template class TMicroClimateFluxCondition<3,3>;
 template class TMicroClimateFluxCondition<3,4>;
+template class TMicroClimateFluxCondition<3,6>;
+template class TMicroClimateFluxCondition<3,8>;
+template class TMicroClimateFluxCondition<3,9>;
 
 } // Namespace Kratos.

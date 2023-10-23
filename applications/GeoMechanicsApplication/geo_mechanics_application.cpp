@@ -253,6 +253,13 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_CONDITION("TMicroClimateFluxCondition2D2N", mTMicroClimateFluxCondition2D2N)
     KRATOS_REGISTER_CONDITION("TMicroClimateFluxCondition2D3N", mTMicroClimateFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("TMicroClimateFluxCondition2D4N", mTMicroClimateFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("TMicroClimateFluxCondition2D5N", mTMicroClimateFluxCondition2D5N)
+    KRATOS_REGISTER_CONDITION("TMicroClimateFluxCondition3D3N", mTMicroClimateFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION("TMicroClimateFluxCondition3D4N", mTMicroClimateFluxCondition3D4N)
+    KRATOS_REGISTER_CONDITION("TMicroClimateFluxCondition3D6N", mTMicroClimateFluxCondition3D6N)
+    KRATOS_REGISTER_CONDITION("TMicroClimateFluxCondition3D8N", mTMicroClimateFluxCondition3D8N)
+    KRATOS_REGISTER_CONDITION("TMicroClimateFluxCondition3D9N", mTMicroClimateFluxCondition3D9N)
 
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N)
@@ -346,7 +353,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE )
     KRATOS_REGISTER_VARIABLE( NORMAL_HEAT_FLUX )
-	KRATOS_REGISTER_VARIABLE( AIR_TEMPERATURE )
+    KRATOS_REGISTER_VARIABLE( AIR_TEMPERATURE )
     KRATOS_REGISTER_VARIABLE( SOLAR_RADIATION )
     KRATOS_REGISTER_VARIABLE( AIR_HUMIDITY )
     KRATOS_REGISTER_VARIABLE( PRECIPITATION )
