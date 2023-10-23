@@ -31,6 +31,7 @@ void ReadAndSetAccessorsUtilities::ReadAndSetAccessors(
     if (MaterialData.Has("accessors")) {
         Parameters accessors = MaterialData["accessors"];
 
+
         // Loop over the accessors list
         for (auto iter = accessors.begin(); iter != accessors.end(); ++iter) {
             auto accessor_param = accessors.GetValue(iter.name());

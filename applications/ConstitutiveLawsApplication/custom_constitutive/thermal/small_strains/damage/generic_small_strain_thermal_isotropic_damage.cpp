@@ -52,14 +52,17 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Initiali
     const Vector& rShapeFunctionsValues
     )
 {
+                KRATOS_WATCH("HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
     // We construct the CL parameters
     BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
+                KRATOS_WATCH("222222222222222222222222222222222")
 
     if (rElementGeometry.Has(REFERENCE_TEMPERATURE)) {
         mReferenceTemperature = rElementGeometry.GetValue(REFERENCE_TEMPERATURE);
     } else if (rMaterialProperties.Has(REFERENCE_TEMPERATURE)) {
         mReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
     }
+            KRATOS_WATCH("3333333333333333333333333333333333333")
 }
 
 /***********************************************************************************/
@@ -85,7 +88,12 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Calculat
         auto& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         const double E = AdvCLutils::GetMaterialPropertyThroughAccessor(YOUNG_MODULUS, rValues);
         const double poisson_ratio = AdvCLutils::GetMaterialPropertyThroughAccessor(POISSON_RATIO, rValues);
-        CLutils::CalculateElasticMatrix(r_constitutive_matrix, E, poisson_ratio);
+
+        if constexpr (Dimension == 2) {
+            CLutils::CalculateElasticMatrixPlaneStrain(r_constitutive_matrix, E, poisson_ratio);
+        } else if constexpr (Dimension == 3) {
+            CLutils::CalculateElasticMatrix(r_constitutive_matrix, E, poisson_ratio);
+        }
 
         this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
@@ -104,6 +112,8 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Calculat
         const double ref_yield = AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, mReferenceTemperature);
         const double current_yield = AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues);
         const double temperature_reduction_factor = current_yield / ref_yield;
+
+        KRATOS_WATCH("")
 
         // We affect the stress by Temperature reduction factor
         uniaxial_stress /=  temperature_reduction_factor;
@@ -153,7 +163,11 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Finalize
         auto& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         const double E = AdvCLutils::GetMaterialPropertyThroughAccessor(YOUNG_MODULUS, rValues);
         const double poisson_ratio = AdvCLutils::GetMaterialPropertyThroughAccessor(POISSON_RATIO, rValues);
-        CLutils::CalculateElasticMatrix(r_constitutive_matrix, E, poisson_ratio);
+        if constexpr (Dimension == 2) {
+            CLutils::CalculateElasticMatrixPlaneStrain(r_constitutive_matrix, E, poisson_ratio);
+        } else if constexpr (Dimension == 3) {
+            CLutils::CalculateElasticMatrix(r_constitutive_matrix, E, poisson_ratio);
+        }
 
         this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
 
