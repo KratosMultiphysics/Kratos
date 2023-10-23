@@ -89,7 +89,7 @@ void GeoOutputWriter::WriteGiDOutput(ModelPart&         rModelPart,
 
 void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputItemNames,
                                        GidIO<>&                        rGidIO,
-                                       ModelPart&                      rModelPart)
+                                       const ModelPart&                rModelPart)
 {
     const auto output_writer_map = std::map<std::string, NodalResultWriter, std::less<>>{
             {"DISPLACEMENT",        MakeNodalResultWriterFor(DISPLACEMENT)},
@@ -110,7 +110,7 @@ void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputIt
 
 void GeoOutputWriter::WriteIntegrationPointOutput(const std::vector<std::string>& rOutputItemNames,
                                                   GidIO<>&                        rGidIO,
-                                                  ModelPart&                      rModelPart)
+                                                  const ModelPart&                rModelPart)
 {
     const auto output_writer_map = std::map<std::string, IntegrationPointResultWriter, std::less<>>{
             {"FLUID_FLUX_VECTOR",            MakeIntegrationPointResultWriterFor(FLUID_FLUX_VECTOR)},

@@ -43,10 +43,10 @@ public:
 private:
     static void WriteNodalOutput(const std::vector<std::string>& rOutputItemNames,
                                  GidIO<>&                        rGidIO,
-                                 ModelPart&                      rModelPart);
+                                 const ModelPart&                rModelPart);
     static void WriteIntegrationPointOutput(const std::vector<std::string>& rOutputItemNames,
                                             GidIO<>&                        rGidIO,
-                                            ModelPart&                      rModelPart);
+                                            const ModelPart&                rModelPart);
     static void CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart& rModelPart);
 
     static GiD_PostMode GetGiDPostModeFrom(const Parameters& rGiDPostFlags);

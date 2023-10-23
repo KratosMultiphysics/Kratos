@@ -245,7 +245,7 @@ KRATOS_TEST_CASE_IN_SUITE(RestorePositionsAndDOFVectorToStartOfStep_UpdatesPosit
 
     const auto expected_position_after_displacement = array_1d<double, 3>{initial_position + displacement_in_time_step};
 
-    KRATOS_EXPECT_VECTOR_EQ(p_node->Coordinates(), expected_position_after_displacement);
+    KRATOS_EXPECT_VECTOR_EQ(p_node->Coordinates(), expected_position_after_displacement)
 }
 
 KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndWaterPressuresOnRequest, KratosGeoMechanicsFastSuite)
@@ -271,7 +271,7 @@ KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndWaterPressuresOnRequest, K
 
     strategy_wrapper.RestorePositionsAndDOFVectorToStartOfStep();
 
-    KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(DISPLACEMENT, 0), old_displacement);
+    KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(DISPLACEMENT, 0), old_displacement)
     KRATOS_EXPECT_EQ(p_node->GetSolutionStepValue(WATER_PRESSURE, 0), old_water_pressure);
 }
 
@@ -298,8 +298,8 @@ KRATOS_TEST_CASE_IN_SUITE(RestoreNodalDisplacementsAndRotationsOnRequest, Kratos
 
     strategy_wrapper.RestorePositionsAndDOFVectorToStartOfStep();
 
-    KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(DISPLACEMENT, 0), old_displacement);
-    KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(ROTATION, 0), old_rotation);
+    KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(DISPLACEMENT, 0), old_displacement)
+    KRATOS_EXPECT_VECTOR_EQ(p_node->GetSolutionStepValue(ROTATION, 0), old_rotation)
 }
 
 }
