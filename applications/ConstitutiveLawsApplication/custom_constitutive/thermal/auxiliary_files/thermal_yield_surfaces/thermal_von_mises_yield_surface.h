@@ -141,8 +141,14 @@ public:
         )
     {
         const auto& r_props = rValues.GetMaterialProperties();
-        const double yield_tension = r_props.Has(YIELD_STRESS) ? AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues) : AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS_TENSION, rValues);
-		rThreshold = std::abs(yield_tension);
+        double yield_tension;
+        if (rValues.IsSetShapeFunctionsValues()) {
+            yield_tension = r_props.Has(YIELD_STRESS) ? AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues) : AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS_TENSION, rValues);
+        } else {
+            const double ref_temperature = r_props.Has(REFERENCE_TEMPERATURE) ? r_props[REFERENCE_TEMPERATURE] : rValues.GetElementGeometry().GetValue(REFERENCE_TEMPERATURE);
+            yield_tension = r_props.Has(YIELD_STRESS) ? AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, ref_temperature) : AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS_TENSION, rValues, ref_temperature);
+        }
+        rThreshold = std::abs(yield_tension);
     }
 
     /**
