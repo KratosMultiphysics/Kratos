@@ -69,7 +69,6 @@ template <class TConstLawIntegratorType>
 void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::CalculateMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     const auto& r_cl_options = rValues.GetOptions();
-    const auto& r_properties = rValues.GetMaterialProperties();
 
     // We get the strain vector
     auto& r_strain_vector = rValues.GetStrainVector();
@@ -139,7 +138,6 @@ template <class TConstLawIntegratorType>
 void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues)
 {
     const auto& r_cl_options = rValues.GetOptions();
-    const auto& r_properties = rValues.GetMaterialProperties();
 
     // We get the strain vector
     auto& r_strain_vector = rValues.GetStrainVector();
@@ -151,7 +149,6 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Finalize
 
     // We compute the stress
     if (r_cl_options.Is(ConstitutiveLaw::COMPUTE_STRESS)) {
-        auto& r_integrated_stress_vector = rValues.GetStressVector();
         // Elastic Matrix
         auto& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         const double E = AdvCLutils::GetMaterialPropertyThroughAccessor(YOUNG_MODULUS, rValues);
@@ -196,11 +193,11 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Finalize
 template <class TConstLawIntegratorType>
 bool GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Has(const Variable<double>& rThisVariable)
 {
-    BaseType::Has(rThisVariable);
-
-    // MORE
-
-    return false;
+    bool has = false;
+    has = BaseType::Has(rThisVariable);
+    if (rThisVariable == REFERENCE_TEMPERATURE)
+        has = true;
+    return has;
 }
 
 
@@ -214,9 +211,10 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::SetValue
     const ProcessInfo& rCurrentProcessInfo
     )
 {
-    BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
-
-    // MORE....
+    if (BaseType::Has(rThisVariable))
+        BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    else if (rThisVariable == REFERENCE_TEMPERATURE)
+        mReferenceTemperature = rValue;
 }
 
 /***********************************************************************************/
@@ -228,10 +226,11 @@ double& GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::GetVa
     double& rValue
     )
 {
-    BaseType::GetValue(rThisVariable, rValue);
-
-    // MORE...
-
+    rValue = 0.0;
+    if (BaseType::Has(rThisVariable))
+        BaseType::GetValue(rThisVariable, rValue);
+    else if (rThisVariable == REFERENCE_TEMPERATURE)
+        rValue = mReferenceTemperature;
     return rValue;
 }
 
@@ -251,7 +250,6 @@ int GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Check(
     KRATOS_ERROR_IF(rMaterialProperties[THERMAL_EXPANSION_COEFFICIENT] < 0.0)   << "The THERMAL_EXPANSION_COEFFICIENT is negative..." << std::endl;
     KRATOS_ERROR_IF_NOT(rElementGeometry.Has(REFERENCE_TEMPERATURE) || rMaterialProperties.Has(REFERENCE_TEMPERATURE)) << "The REFERENCE_TEMPERATURE is not given in the material properties nor via SetValue()" << std::endl;
     BaseType::Check(rMaterialProperties, rElementGeometry, rCurrentProcessInfo);
-
     return 0;
 }
 
