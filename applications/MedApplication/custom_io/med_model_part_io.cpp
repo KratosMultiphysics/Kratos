@@ -329,7 +329,7 @@ auto GetGroupsByFamily(
         std::vector<std::string> group_names(num_groups);
         // split the goup names
         for (int i = 0; i < num_groups; i++) {
-            group_names[i] = std::string(c_group_names.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE));
+            group_names[i] = c_group_names.substr(i * MED_LNAME_SIZE, MED_LNAME_SIZE);
             RemoveTrailingNullChars(group_names[i]);
         }
 
