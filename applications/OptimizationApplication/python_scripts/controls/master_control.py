@@ -3,7 +3,7 @@ from KratosMultiphysics.OptimizationApplication.controls.control import Control
 from KratosMultiphysics.OptimizationApplication.utilities.union_utilities import SupportedSensitivityFieldVariableTypes
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import IsSameContainerExpression
 from KratosMultiphysics.OptimizationApplication.utilities.helper_utilities import HasContainerExpression
-from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import TimeLogger
+from KratosMultiphysics.OptimizationApplication.utilities.logger_utilities import time_decorator
 
 class MasterControl:
     """Master control class.
@@ -87,6 +87,7 @@ class MasterControl:
 
         return control_fields
 
+    @time_decorator()
     def MapGradient(self, physical_space_gradient_variable_and_collective_expressions_map: 'dict[SupportedSensitivityFieldVariableTypes, KratosOA.CollectiveExpression]') -> KratosOA.CollectiveExpression:
         """Maps physical space gradients to a collective expression.
 
@@ -128,38 +129,39 @@ class MasterControl:
             KratosOA.CollectiveExpression: Control space sensitivities.
         """
 
-        with TimeLogger("MasterControl::MapGradient", None, "Finished", False):
-            mapped_gradients = KratosOA.CollectiveExpression()
 
-            for control in self.__list_of_controls:
-                # iterate through each control to create its own container expression map from the collective expressions map given as input
-                control_physical_sensitivities_container_expression_map = {}
-                for physical_control_variable in control.GetPhysicalKratosVariables():
-                    # first assume the gradients for this physical_control_variable is zero, hence get the zero valued expression.
-                    control_expression = control.GetEmptyField()
+        mapped_gradients = KratosOA.CollectiveExpression()
 
-                    # get the required physical variables from control.
-                    if physical_control_variable in physical_space_gradient_variable_and_collective_expressions_map.keys():
-                        # if the sensitivities for the given physical control variable exists, then try to find whether
-                        # for this specific control the physical control variable sensitivities exists.
+        for control in self.__list_of_controls:
+            # iterate through each control to create its own container expression map from the collective expressions map given as input
+            control_physical_sensitivities_container_expression_map = {}
+            for physical_control_variable in control.GetPhysicalKratosVariables():
+                # first assume the gradients for this physical_control_variable is zero, hence get the zero valued expression.
+                control_expression = control.GetEmptyField()
 
-                        sensitivity_collective_expression = physical_space_gradient_variable_and_collective_expressions_map[physical_control_variable]
-                        for container_expression in sensitivity_collective_expression.GetContainerExpressions():
-                            if IsSameContainerExpression(control_expression, container_expression):
-                                # there exists for this control's physical variables sensitivities. then copy it to the expression
-                                # this copy moves the underlying vectors, hence cheap.
-                                control_expression.CopyFrom(container_expression)
-                                break
+                # get the required physical variables from control.
+                if physical_control_variable in physical_space_gradient_variable_and_collective_expressions_map.keys():
+                    # if the sensitivities for the given physical control variable exists, then try to find whether
+                    # for this specific control the physical control variable sensitivities exists.
 
-                    # now add it to the map. If it is found from input gradients, the control_expression will have those values,
-                    # otherwise it will have representative zero control_expression.
-                    control_physical_sensitivities_container_expression_map[physical_control_variable] = control_expression
+                    sensitivity_collective_expression = physical_space_gradient_variable_and_collective_expressions_map[physical_control_variable]
+                    for container_expression in sensitivity_collective_expression.GetContainerExpressions():
+                        if IsSameContainerExpression(control_expression, container_expression):
+                            # there exists for this control's physical variables sensitivities. then copy it to the expression
+                            # this copy moves the underlying vectors, hence cheap.
+                            control_expression.CopyFrom(container_expression)
+                            break
 
-                # map the physical control variable sensitivities to one control space
-                mapped_gradients.Add(control.MapGradient(control_physical_sensitivities_container_expression_map))
+                # now add it to the map. If it is found from input gradients, the control_expression will have those values,
+                # otherwise it will have representative zero control_expression.
+                control_physical_sensitivities_container_expression_map[physical_control_variable] = control_expression
+
+            # map the physical control variable sensitivities to one control space
+            mapped_gradients.Add(control.MapGradient(control_physical_sensitivities_container_expression_map))
 
         return mapped_gradients
 
+    @time_decorator()
     def Update(self, update_collective_expressions: KratosOA.CollectiveExpression) -> 'dict[Control, bool]':
         """Update each control with given collective expression's respective container expression.
 
@@ -175,10 +177,9 @@ class MasterControl:
         if len(self.__list_of_controls) != len(update_collective_expressions.GetContainerExpressions()):
             raise RuntimeError(f"Controls size and update size mismatch [ number of controls: {len(self.__list_of_controls)}, number of container expressions: {len(update_collective_expressions.GetContainerExpressions())} ].")
 
-        with TimeLogger("MasterControl::Update", None, "Finished",False):
-            update_map: 'dict[Control, bool]' = {}
-            for control, container_expression in zip(self.__list_of_controls, update_collective_expressions.GetContainerExpressions()):
-                update_map[control] = control.Update(container_expression)
+        update_map: 'dict[Control, bool]' = {}
+        for control, container_expression in zip(self.__list_of_controls, update_collective_expressions.GetContainerExpressions()):
+            update_map[control] = control.Update(container_expression)
 
         return update_map
 

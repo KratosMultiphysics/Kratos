@@ -25,7 +25,6 @@ class PwSolver(GeoSolver):
             "solver_type": "geomechanics_U_Pw_solver",
             "model_part_name": "PorousDomain",
             "domain_size": 2,
-            "start_time": 0.0,
             "model_import_settings":{
                 "input_type": "mdpa",
                 "input_filename": "unknown_name"
@@ -34,7 +33,6 @@ class PwSolver(GeoSolver):
                 "materials_filename": ""
             },
             "time_stepping": {
-                "end_time" : 1.0,
                 "time_step": 0.1
             },
             "buffer_size": 2,
@@ -130,32 +128,32 @@ class PwSolver(GeoSolver):
 
     def _ConstructScheme(self, scheme_type, solution_type):
 
-        self.main_model_part.ProcessInfo.SetValue(KratosGeo.VELOCITY_COEFFICIENT, 1.0)
+        self.main_model_part.ProcessInfo.SetValue(KratosGeo.VELOCITY_COEFFICIENT,    1.0)
         self.main_model_part.ProcessInfo.SetValue(KratosGeo.DT_PRESSURE_COEFFICIENT, 1.0)
 
         if (scheme_type.lower() == "newmark" or scheme_type.lower() == "newmark_flow"):
-            theta = self.settings["newmark_theta"].GetDouble()
+            theta      = self.settings["newmark_theta"].GetDouble()
             rayleigh_m = self.settings["rayleigh_m"].GetDouble()
             rayleigh_k = self.settings["rayleigh_k"].GetDouble()
             self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_ALPHA, rayleigh_m)
-            self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_BETA, rayleigh_k)
+            self.main_model_part.ProcessInfo.SetValue(KratosStructure.RAYLEIGH_BETA,  rayleigh_k)
             KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, solution_type", solution_type)
             if (solution_type.lower() == "transient-groundwater-flow" or solution_type.lower() == "transient_groundwater_flow"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, scheme", "Newmark Transient groundwater flow.")
-                scheme = scheme = KratosGeo.NewmarkQuasistaticPwScheme(theta)
+                scheme = KratosGeo.NewmarkQuasistaticPwScheme(theta)
             elif (solution_type.lower() == "steady-state-groundwater-flow" or solution_type.lower() == "steady_state_groundwater_flow"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, scheme", "Newmark Steady-state groundwater flow.")
-                scheme = scheme = KratosGeo.NewmarkQuasistaticPwScheme(theta)
+                scheme = KratosGeo.NewmarkQuasistaticPwScheme(theta)
 
             else:
               raise Exception("Undefined solution type", solution_type)
         elif (scheme_type.lower() == "backward_euler"):
             if (solution_type.lower() == "transient-groundwater-flow" or solution_type.lower() == "transient_groundwater_flow"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, scheme", "Backward Euler Transient groundwater flow.")
-                scheme = scheme = KratosGeo.BackwardEulerQuasistaticPwScheme()
+                scheme = KratosGeo.BackwardEulerQuasistaticPwScheme()
             elif (solution_type.lower() == "steady-state-groundwater-flow" or solution_type.lower() == "steady_state_groundwater_flow"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_Pw_Solver, scheme", "Backward Euler Steady-state groundwater flow.")
-                scheme = scheme = KratosGeo.BackwardEulerQuasistaticPwScheme()
+                scheme = KratosGeo.BackwardEulerQuasistaticPwScheme()
         else:
             raise Exception("Apart from Newmark, other scheme_type are not available.")
 
@@ -169,19 +167,19 @@ class PwSolver(GeoSolver):
         R_AT = self.settings["residual_absolute_tolerance"].GetDouble()
         echo_level = self.settings["echo_level"].GetInt()
 
-        if(convergence_criterion.lower() == "water_pressure_criterion"):
+        if (convergence_criterion.lower() == "water_pressure_criterion"):
             convergence_criterion = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
             convergence_criterion.SetEchoLevel(echo_level)
-        elif(convergence_criterion.lower() == "residual_criterion"):
+        elif (convergence_criterion.lower() == "residual_criterion"):
             convergence_criterion = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             convergence_criterion.SetEchoLevel(echo_level)
-        elif(convergence_criterion.lower() == "and_criterion"):
+        elif (convergence_criterion.lower() == "and_criterion"):
             WaterPressure = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
             WaterPressure.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)
             Residual.SetEchoLevel(echo_level)
             convergence_criterion = KratosMultiphysics.AndCriteria(Residual, WaterPressure)
-        elif(convergence_criterion.lower() == "or_criterion"):
+        elif (convergence_criterion.lower() == "or_criterion"):
             WaterPressure = KratosMultiphysics.MixedGenericCriteria([(KratosMultiphysics.WATER_PRESSURE, D_RT, D_AT)])
             WaterPressure.SetEchoLevel(echo_level)
             Residual = KratosMultiphysics.ResidualCriteria(R_RT, R_AT)

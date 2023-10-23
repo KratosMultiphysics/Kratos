@@ -60,12 +60,6 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
      py::class_<ROMBuilderAndSolverType, typename ROMBuilderAndSolverType::Pointer, BuilderAndSolverType>(m, "ROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
         ;
-
-    typedef LeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> LeastSquaresPetrovGalerkinROMBuilderAndSolverType;
-
-     py::class_<LeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename LeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, ROMBuilderAndSolverType, BuilderAndSolverType>(m, "LeastSquaresPetrovGalerkinROMBuilderAndSolver")
-        .def(py::init< LinearSolverType::Pointer, Parameters>() )
-        ;
     
     typedef PetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> PetrovGalerkinROMBuilderAndSolverType;
 
@@ -91,6 +85,15 @@ void  AddCustomStrategiesToPython(pybind11::module& m)
      py::class_<CustomLeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename CustomLeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, CustomROMBuilderAndSolverType, BuilderAndSolverType>(m, "CustomLeastSquaresPetrovGalerkinROMBuilderAndSolver")
         .def(py::init< LinearSolverType::Pointer, Parameters>() )
         ;
+
+    typedef LeastSquaresPetrovGalerkinROMBuilderAndSolver<SparseSpaceType, LocalSpaceType, LinearSolverType> LeastSquaresPetrovGalerkinROMBuilderAndSolverType;
+    
+    py::class_<LeastSquaresPetrovGalerkinROMBuilderAndSolverType, typename LeastSquaresPetrovGalerkinROMBuilderAndSolverType::Pointer, GlobalROMBuilderAndSolverType>(m, "LeastSquaresPetrovGalerkinROMBuilderAndSolver")
+    .def(py::init< LinearSolverType::Pointer, Parameters>() )
+    .def("BuildAndApplyDirichletConditions", &LeastSquaresPetrovGalerkinROMBuilderAndSolverType::BuildAndApplyDirichletConditions)
+    .def("GetRightROMBasis", &LeastSquaresPetrovGalerkinROMBuilderAndSolverType::GetRightROMBasis)
+    ;
+
 
 }
 

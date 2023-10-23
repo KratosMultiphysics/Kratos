@@ -14,6 +14,7 @@
 #include <cmath>
 #include <variant>
 #include <numeric>
+#include <type_traits>
 
 // Project includes
 #include "expression/variable_expression_data_io.h"
@@ -26,6 +27,7 @@
 #include "utilities/parallel_utilities.h"
 #include "utilities/reduction_utilities.h"
 #include "utilities/variable_utils.h"
+#include "utilities/atomic_utilities.h"
 
 // Application includes
 #include "optimization_application_variables.h"
@@ -67,6 +69,37 @@ VariablePairVariantType GetTemporaryVariable1And2(const std::vector<IndexType>& 
                      << rShape << ". Only scalar and array3 data shapes are supported for temporary variable retrieval.\n";
     }
     return std::make_pair(&TEMPORARY_SCALAR_VARIABLE_1, &TEMPORARY_SCALAR_VARIABLE_2);
+}
+
+template<class TDataType1, class TDataType2,
+         std::enable_if_t<std::disjunction_v<
+                    std::is_arithmetic<TDataType1>,
+                    std::is_same<TDataType1, Vector>,
+                    std::is_same<TDataType1, Matrix>>
+                    , bool> = true>
+inline void GenericAtomicAdd(
+    TDataType1& rOutput,
+    const TDataType2& rInput)
+{
+    if constexpr(std::is_arithmetic_v<TDataType1>) {
+        AtomicAdd(rOutput, rInput);
+    } else if constexpr(std::is_same_v<TDataType1, Vector>) {
+        AtomicAddVector(rOutput, rInput);
+    } else if constexpr(std::is_same_v<TDataType1, Matrix>) {
+        AtomicAddMatrix(rOutput, rInput);
+    } else {
+        // This will be never reached. But having this
+        // gives some peace of mind.
+        static_assert(!std::is_same_v<TDataType1, TDataType1>, "Unsupported atomic add.");
+    }
+}
+
+template<class TDataType, std::size_t TSize, class TDataType2>
+inline void GenericAtomicAdd(
+    array_1d<TDataType, TSize>& rOutput,
+    const TDataType2& rInput)
+{
+    AtomicAdd<TDataType, TSize>(rOutput, rInput);
 }
 
 template<class TDataType>
@@ -473,9 +506,9 @@ void ContainerExpressionUtils::MapContainerVariableToNodalVariable(
             auto p_entity = (r_container.begin() + EntityIndex);
             auto& r_geometry = p_entity->GetGeometry();
             for (auto& r_node : r_geometry) {
-                r_node.SetLock();
-                r_node.GetValue(*p_variable) += rValue / r_node.GetValue(TEMPORARY_SCALAR_VARIABLE_2);
-                r_node.UnSetLock();
+                ContainerVariableDataHolderUtilsHelper::GenericAtomicAdd(
+                    r_node.GetValue(*p_variable),
+                    rValue / r_node.GetValue(TEMPORARY_SCALAR_VARIABLE_2));
             }
         });
 
@@ -618,18 +651,18 @@ void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(
 
 // template instantiations
 #define KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                      \
-    template double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<ContainerType>&);                                                                                                                        \
-    template double ContainerExpressionUtils::NormInf(const ContainerExpression<ContainerType>&);                                                                                                                                \
-    template double ContainerExpressionUtils::NormL2(const ContainerExpression<ContainerType>&);                                                                                                                                 \
-    template double ContainerExpressionUtils::InnerProduct(const ContainerExpression<ContainerType>&, const ContainerExpression<ContainerType>&);                                                                                \
-    template void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType&, const ContainerExpression<ContainerType>&);   \
-    template void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const Matrix&, const ContainerExpression<ContainerType>&);
+    template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::EntityMaxNormL2(const ContainerExpression<ContainerType>&);                                                                                                                        \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::NormInf(const ContainerExpression<ContainerType>&);                                                                                                                                \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::NormL2(const ContainerExpression<ContainerType>&);                                                                                                                                 \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) double ContainerExpressionUtils::InnerProduct(const ContainerExpression<ContainerType>&, const ContainerExpression<ContainerType>&);                                                                                \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const typename UblasSpace<double, CompressedMatrix, Vector>::MatrixType&, const ContainerExpression<ContainerType>&);   \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ProductWithEntityMatrix(ContainerExpression<ContainerType>&, const Matrix&, const ContainerExpression<ContainerType>&);
 
 #define KRATOS_INSTANTIATE_NON_NODAL_UTILITY_METHOD_FOR_CONTAINER_TYPE(ContainerType)                                                                                                                                                                                \
-    template void ContainerExpressionUtils::ComputeNumberOfNeighbourEntities<ContainerType>(ContainerExpression<ModelPart::NodesContainerType>&);                                                                                                                \
-    template void ContainerExpressionUtils::MapContainerVariableToNodalVariable(ContainerExpression<ModelPart::NodesContainerType>&, const ContainerExpression<ContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&);          \
-    template void ContainerExpressionUtils::MapNodalVariableToContainerVariable(ContainerExpression<ContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&);                                                                       \
-    template void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(ContainerExpression<ModelPart::NodesContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&, const Variable<Matrix>& rMatrixVariable, ContainerType&);
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ComputeNumberOfNeighbourEntities<ContainerType>(ContainerExpression<ModelPart::NodesContainerType>&);                                                                                                                \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::MapContainerVariableToNodalVariable(ContainerExpression<ModelPart::NodesContainerType>&, const ContainerExpression<ContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&);          \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::MapNodalVariableToContainerVariable(ContainerExpression<ContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&);                                                                       \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void ContainerExpressionUtils::ComputeNodalVariableProductWithEntityMatrix(ContainerExpression<ModelPart::NodesContainerType>&, const ContainerExpression<ModelPart::NodesContainerType>&, const Variable<Matrix>& rMatrixVariable, ContainerType&);
 
 
 KRATOS_INSTANTIATE_UTILITY_METHOD_FOR_CONTAINER_TYPE(ModelPart::NodesContainerType)

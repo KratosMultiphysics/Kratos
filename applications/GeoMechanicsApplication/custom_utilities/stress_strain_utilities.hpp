@@ -11,105 +11,36 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_COMPARISON_UTILITIES )
-#define  KRATOS_GEO_COMPARISON_UTILITIES
-
-
-/* System includes */
+#pragma once
 
 /* Project includes */
 #include "custom_utilities/math_utilities.hpp"
+#include "geo_mechanics_application_constants.h"
 
 namespace Kratos
 {
 
-/**@name Kratos Globals */
-/*@{ */
-
-
-/*@} */
-/**@name Type Definitions */
-/*@{ */
-
-/*@} */
-
-
-/**@name  Enum's */
-/*@{ */
-
-
-/*@} */
-/**@name  Functions */
-/*@{ */
-
-
-
-/*@} */
-/**@name Kratos Classes */
-/*@{ */
-
-
 class KRATOS_API(GEO_MECHANICS_APPLICATION) StressStrainUtilities
 {
 public:
-    /**@name Type Definitions */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Life Cycle
-     */
-    /*@{ */
-
-    /** Constructor.
-     */
-    StressStrainUtilities() {};
-
-    /** Destructor.
-     */
-    ~StressStrainUtilities() {};
-
-    /** Operators.
-     */
-
-    //**************************************************************************
-    //**************************************************************************
-
-
-    //**************************************************************************
-    //**************************************************************************
-
-    double CalculateStressNorm(const Vector& StressVector)
+    static double CalculateStressNorm(const Vector& StressVector)
     {
         KRATOS_TRY
 
-        Matrix LocalStressTensor  = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
+        Matrix LocalStressTensor = MathUtils<>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
-        Matrix StressTensor(3,3); //3D stress tensor
-        noalias(StressTensor) = ZeroMatrix(3,3);
-        for(unsigned int i=0; i<LocalStressTensor.size1(); ++i)
-        {
-            for(unsigned int j=0; j<LocalStressTensor.size2(); ++j)
-            {
-                StressTensor(i,j) = LocalStressTensor(i,j);
+        double StressNorm = 0.;
+        for(unsigned int i = 0; i < LocalStressTensor.size1(); ++i) {
+            for(unsigned int j = 0; j < LocalStressTensor.size2(); ++j) {
+                StressNorm += LocalStressTensor(i,j)*LocalStressTensor(i,j);
             }
         }
+        return std::sqrt(StressNorm);
 
-        double StressNorm = ((StressTensor(0,0)*StressTensor(0,0))+(StressTensor(1,1)*StressTensor(1,1))+(StressTensor(2,2)*StressTensor(2,2))+
-                             (StressTensor(0,1)*StressTensor(0,1))+(StressTensor(0,2)*StressTensor(0,2))+(StressTensor(1,2)*StressTensor(1,2))+
-                             (StressTensor(1,0)*StressTensor(1,0))+(StressTensor(2,0)*StressTensor(2,0))+(StressTensor(2,1)*StressTensor(2,1)));
-
-        StressNorm = sqrt(StressNorm);
-
-        return StressNorm;
-
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
-    //**************************************************************************
-    //**************************************************************************
-
-    double CalculateVonMisesStress(const Vector& StressVector)
+    static double CalculateVonMisesStress(const Vector& StressVector)
     {
         KRATOS_TRY
 
@@ -119,175 +50,88 @@ public:
         noalias(StressTensor) = ZeroMatrix(3,3);
         for (std::size_t i=0; i < LocalStressTensor.size1(); ++i) {
             for (std::size_t j=0; j < LocalStressTensor.size2(); ++j) {
-            StressTensor(i,j) = LocalStressTensor(i,j);
+                StressTensor(i,j) = LocalStressTensor(i,j);
             }
         }
 
-        //in general coordinates:
-        double SigmaEquivalent =  (0.5)*((StressTensor(0,0)-StressTensor(1,1))*((StressTensor(0,0)-StressTensor(1,1)))+
-                                         (StressTensor(1,1)-StressTensor(2,2))*((StressTensor(1,1)-StressTensor(2,2)))+
-                                         (StressTensor(2,2)-StressTensor(0,0))*((StressTensor(2,2)-StressTensor(0,0)))+
-                                       6*(StressTensor(0,1)*StressTensor(1,0)+StressTensor(1,2)*StressTensor(2,1)+StressTensor(2,0)*StressTensor(0,2)));
+        double SigmaEquivalent = 0.5*((StressTensor(0,0)-StressTensor(1,1))*(StressTensor(0,0)-StressTensor(1,1))+
+                                      (StressTensor(1,1)-StressTensor(2,2))*(StressTensor(1,1)-StressTensor(2,2))+
+                                      (StressTensor(2,2)-StressTensor(0,0))*(StressTensor(2,2)-StressTensor(0,0))+
+                                      6.0*(StressTensor(0,1)*StressTensor(1,0)+
+                                           StressTensor(1,2)*StressTensor(2,1)+
+                                           StressTensor(2,0)*StressTensor(0,2) ));
 
-        if ( SigmaEquivalent < 0 )
-             SigmaEquivalent = 0;
+        return std::sqrt(std::max(SigmaEquivalent, 0.));
 
-        SigmaEquivalent = sqrt(SigmaEquivalent);
-
-        return SigmaEquivalent;
-
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
-    double CalculateTrace(const Vector& StressVector)
+    static double CalculateTrace(const Vector& StressVector)
     {
         KRATOS_TRY
 
         Matrix StressTensor = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
 
         double trace = 0.0;
-        for (std::size_t i=0; i < StressTensor.size1(); ++i) {
+        for (std::size_t i = 0; i < StressTensor.size1(); ++i) {
             trace += StressTensor(i,i);
         }
 
         return trace;
 
-        KRATOS_CATCH( "" )
+        KRATOS_CATCH("")
     }
 
-    double CalculateMeanStress(const Vector& StressVector)
+    static double CalculateMeanStress(const Vector& StressVector)
+    {
+        KRATOS_TRY
+        return CalculateTrace(StressVector) / (StressVector.size() == 3 ? 2.0 : 3.0);
+        KRATOS_CATCH("")
+    }
+
+    static double CalculateVonMisesStrain(const Vector& StrainVector)
+    {
+        KRATOS_TRY
+        return (2.0/3.0) * CalculateVonMisesStress(StrainVector);
+        KRATOS_CATCH("")
+    }
+
+    static Vector CalculateHenckyStrain(const Matrix& DeformationGradient, size_t VoigtSize)
     {
         KRATOS_TRY
 
-        Matrix StressTensor = MathUtils<double>::StressVectorToTensor(StressVector); //reduced dimension stress tensor
-
-        double trace = 0.0;
-        for (std::size_t i=0; i < StressTensor.size1(); ++i) {
-            trace += StressTensor(i,i);
+        // right Cauchy Green deformation tensor C
+        Matrix C = prod(trans(DeformationGradient), DeformationGradient);
+        // Eigenvalues of C matrix, so principal right Cauchy Green deformation tensor C
+        Matrix EigenValuesMatrix, EigenVectorsMatrix;
+        MathUtils<double>::GaussSeidelEigenSystem(C, EigenVectorsMatrix, EigenValuesMatrix, 1.0e-16, 20);
+        // Compute natural strain == Logarithmic strain == Hencky strain from principal strains
+        for (std::size_t i = 0; i < DeformationGradient.size1(); ++i){
+            EigenValuesMatrix(i,i) = 0.5 * std::log(EigenValuesMatrix(i,i));
         }
 
-        return (trace / StressTensor.size1());
+        // Rotate from principal strains back to the used coordinate system
+        Matrix ETensor;
+        MathUtils<double>::BDBtProductOperation(ETensor, EigenValuesMatrix, EigenVectorsMatrix);
 
-        KRATOS_CATCH( "" )
+        // From tensor to vector
+        if (DeformationGradient.size1()==2 && VoigtSize == 4) {
+            // Plane strain
+            Vector StrainVector2D;
+            StrainVector2D = MathUtils<double>::StrainTensorToVector(ETensor, 3);
+            Vector StrainVector(4);
+            StrainVector[INDEX_2D_PLANE_STRAIN_XX] = StrainVector2D[0];
+            StrainVector[INDEX_2D_PLANE_STRAIN_YY] = StrainVector2D[1];
+            StrainVector[INDEX_2D_PLANE_STRAIN_ZZ] = 0.0;
+            StrainVector[INDEX_2D_PLANE_STRAIN_XY] = StrainVector2D[2];
+            return StrainVector;
+        } else {
+            return MathUtils<double>::StrainTensorToVector(ETensor, VoigtSize);
+        }
+
+        KRATOS_CATCH("")
     }
 
+};
 
-    double CalculateVonMisesStrain(const Vector& StrainVector)
-    {
-        KRATOS_TRY
-
-        return (2.0/3.0) * CalculateVonMisesStress(StrainVector);
-
-        KRATOS_CATCH( "" )
-    }
-
-    /*@} */
-    /**@name Operations */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Friends */
-    /*@{ */
-
-
-    /*@} */
-
-protected:
-    /**@name Protected static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Protected LifeCycle */
-    /*@{ */
-
-
-
-    /*@} */
-
-private:
-    /**@name Static Member Variables */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Member Variables */
-    /*@{ */
-
-    /*@} */
-    /**@name Private Operators*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Operations*/
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private  Access */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Private Inquiry */
-    /*@{ */
-
-
-    /*@} */
-    /**@name Un accessible methods */
-    /*@{ */
-
-
-    /*@} */
-
-}; /* Class StressStrainUtilities */
-
-/*@} */
-
-/**@name Type Definitions */
-/*@{ */
-
-
-/*@} */
-
-} /* namespace Kratos.*/
-
-#endif /* KRATOS_GEO_COMPARISON_UTILITIES defined */
-
+}
