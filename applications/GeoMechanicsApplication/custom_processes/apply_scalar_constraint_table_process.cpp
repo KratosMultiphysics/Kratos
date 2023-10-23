@@ -142,19 +142,19 @@ void ApplyScalarConstraintTableProcess::MakeProcessForPhreaticMultiLine(const Pa
                                                                "y_coordinates",
                                                                "z_coordinates",
                                                                "specific_weight"});
-    AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings, NamesOfSettingsToCopy);
-    AppendParameterNameIfExists("is_seepage", rProcessSettings, NamesOfSettingsToCopy);
+    FunctonsForParameters::AppendParameterNameIfExists("pressure_tension_cut_off", rProcessSettings, NamesOfSettingsToCopy);
+    FunctonsForParameters::AppendParameterNameIfExists("is_seepage", rProcessSettings, NamesOfSettingsToCopy);
 
-    if (HasTableAttached(rProcessSettings)) {
+    if (FunctonsForParameters::HasTableAttached(rProcessSettings)) {
         NamesOfSettingsToCopy.emplace_back("table");
         mProcess = std::make_unique<ApplyPhreaticMultiLinePressureTableProcess>(mrModelPart,
-                                                                                ExtractParameters(rProcessSettings,
+                                                                                FunctonsForParameters::ExtractParameters(rProcessSettings,
                                                                                                   NamesOfSettingsToCopy));
     }
     else
     {
         mProcess = std::make_unique<ApplyConstantPhreaticMultiLinePressureProcess>(mrModelPart,
-                                                                                   ExtractParameters(rProcessSettings,
+                                                                                   FunctonsForParameters::ExtractParameters(rProcessSettings,
                                                                                                      NamesOfSettingsToCopy));
     }
 }
