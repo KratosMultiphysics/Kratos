@@ -9,8 +9,8 @@
 //
 //
 //  Main authors:    Mohamed Nabi
+//                   John van Esch
 //
-
 
 // Application includes
 #include "custom_conditions/T_condition.hpp"
@@ -154,5 +154,8 @@ template class TCondition<2,5>;
 template class TCondition<3,1>;
 template class TCondition<3,3>;
 template class TCondition<3,4>;
+template class TCondition<3,6>;
+template class TCondition<3,8>;
+template class TCondition<3,9>;
 
 } // Namespace Kratos.

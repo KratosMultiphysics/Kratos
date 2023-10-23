@@ -9,10 +9,8 @@
 //
 //
 //  Main authors:    Mohamed Nabi
+//                   John van Esch
 //                   
-//                   
-//
-
 
 #pragma once
 

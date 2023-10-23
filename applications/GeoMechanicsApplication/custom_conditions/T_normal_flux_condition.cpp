@@ -9,10 +9,8 @@
 //
 //
 //  Main authors:    Mohamed Nabi
+//                   John van Esch
 //                   
-//                   
-//
-
 
 // Application includes
 #include "utilities/math_utils.h"
@@ -142,5 +140,8 @@ template class TNormalFluxCondition<2,4>;
 template class TNormalFluxCondition<2,5>;
 template class TNormalFluxCondition<3,3>;
 template class TNormalFluxCondition<3,4>;
+template class TNormalFluxCondition<3,6>;
+template class TNormalFluxCondition<3,8>;
+template class TNormalFluxCondition<3,9>;
 
 } // Namespace Kratos.
