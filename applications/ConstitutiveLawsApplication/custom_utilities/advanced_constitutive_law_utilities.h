@@ -33,7 +33,7 @@ namespace Kratos
 ///@{
 
     /// The size type definition
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -62,7 +62,7 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
     ///@{
 
     /// The index type definition
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// We define the dimension
     static constexpr SizeType Dimension = TVoigtSize == 6 ? 3 : 2;
@@ -71,25 +71,25 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
     static constexpr SizeType VoigtSize = TVoigtSize;
 
     /// The matrix type definition
-    typedef Matrix MatrixType;
+    using MatrixType = Matrix;
 
     /// the vector type definition
-    typedef Vector VectorType;
+    using VectorType = Vector;
 
     /// The definition of the bounded vector type
-    typedef array_1d<double, VoigtSize> BoundedVectorType;
+    using BoundedVectorType = array_1d<double, VoigtSize>;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, Dimension, Dimension> BoundedMatrixType;
+    using BoundedMatrixType = BoundedMatrix<double, Dimension, Dimension>;
 
     /// The definition of the bounded matrix type
-    typedef BoundedMatrix<double, VoigtSize, VoigtSize> BoundedMatrixVoigtType;
+    using BoundedMatrixVoigtType = BoundedMatrix<double, VoigtSize, VoigtSize>;
 
     /// Node type definition
-    typedef Node NodeType;
+    using NodeType = Node;
 
     /// Geometry definitions
-    typedef Geometry<NodeType> GeometryType;
+    using GeometryType = Geometry<NodeType>;
 
     /// The zero tolerance
     static constexpr double tolerance = std::numeric_limits<double>::epsilon();
