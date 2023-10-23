@@ -109,7 +109,7 @@ SolvingStrategyWrapperType CreateWrapperWithDefaultProcessInfoEntries(ModelPart&
     (*info)[DELTA_TIME] = 3.4;
     (*info)[STEP] = 3;
     rModelPart.SetProcessInfo(info);
-    return {SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart)};
+    return SolvingStrategyWrapperType{SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart)};
 }
 
 ModelPart& CreateDummyModelPart(Model& rModel)
@@ -121,7 +121,7 @@ ModelPart& CreateDummyModelPart(Model& rModel)
 SolvingStrategyWrapperType CreateWrapperWithEmptyProcessInfo(ModelPart& rModelPart)
 {
     const auto reset_displacements = true;
-    return {SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_displacements};
+    return SolvingStrategyWrapperType{SolvingStrategyFactoryType::Create(Parameters{testParameters}, rModelPart), reset_displacements};
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetNumberOfIterationsFromStrategyWrapper_ReturnsCorrectNumber, KratosGeoMechanicsFastSuite)
