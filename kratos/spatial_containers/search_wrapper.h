@@ -19,9 +19,7 @@
 
 // Project includes
 #include "includes/geometrical_object.h"
-#ifdef KRATOS_USING_MPI
-#include "mpi/utilities/mpi_search_utilities.h"
-#endif
+#include "utilities/search_utilities.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "spatial_containers/spatial_search_result_container.h"
 #include "spatial_containers/spatial_search_result_container_vector.h"
@@ -678,7 +676,7 @@ private:
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         std::vector<IndexType> all_points_ids;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
@@ -735,7 +733,7 @@ private:
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         std::vector<IndexType> all_points_ids;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
@@ -787,7 +785,7 @@ private:
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         std::vector<IndexType> all_points_ids;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
@@ -843,7 +841,7 @@ private:
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         std::vector<IndexType> all_points_ids;
-        MPISearchUtilities::MPISynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
+        SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
         const int total_number_of_points = all_points_coordinates.size()/3;
