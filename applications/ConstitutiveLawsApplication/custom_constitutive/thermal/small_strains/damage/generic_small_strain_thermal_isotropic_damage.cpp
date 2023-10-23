@@ -52,17 +52,14 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Initiali
     const Vector& rShapeFunctionsValues
     )
 {
-                KRATOS_WATCH("HEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE")
     // We construct the CL parameters
     BaseType::InitializeMaterial(rMaterialProperties, rElementGeometry, rShapeFunctionsValues);
-                KRATOS_WATCH("222222222222222222222222222222222")
 
     if (rElementGeometry.Has(REFERENCE_TEMPERATURE)) {
         mReferenceTemperature = rElementGeometry.GetValue(REFERENCE_TEMPERATURE);
     } else if (rMaterialProperties.Has(REFERENCE_TEMPERATURE)) {
         mReferenceTemperature = rMaterialProperties[REFERENCE_TEMPERATURE];
     }
-            KRATOS_WATCH("3333333333333333333333333333333333333")
 }
 
 /***********************************************************************************/
@@ -112,8 +109,6 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Calculat
         const double ref_yield = AdvCLutils::GetPropertyFromTemperatureTable(YIELD_STRESS, rValues, mReferenceTemperature);
         const double current_yield = AdvCLutils::GetMaterialPropertyThroughAccessor(YIELD_STRESS, rValues);
         const double temperature_reduction_factor = current_yield / ref_yield;
-
-        KRATOS_WATCH("")
 
         // We affect the stress by Temperature reduction factor
         uniaxial_stress /=  temperature_reduction_factor;
@@ -191,7 +186,7 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Finalize
         uniaxial_stress /=  temperature_reduction_factor;
         const double F = uniaxial_stress - r_threshold;
 
-        if (F >= threshold_tolerance) { 
+        if (F > threshold_tolerance) { 
             const double characteristic_length = AdvCLutils::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
             // This routine updates the PredictiveStress to verify the yield surf
