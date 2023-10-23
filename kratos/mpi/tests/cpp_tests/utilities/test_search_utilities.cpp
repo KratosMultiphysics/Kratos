@@ -18,7 +18,7 @@
 // Project includes
 #include "testing/testing.h"
 #include "geometries/point.h"
-#include "mpi/utilities/mpi_search_utilities.h"
+#include "utilities/search_utilities.h"
 
 namespace Kratos::Testing 
 {
@@ -40,7 +40,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronization, Kratos
     // Call the function
     std::vector<double> all_points_coordinates;
     std::vector<std::size_t> all_points_ids;
-    MPISearchUtilities::MPISynchronousPointSynchronization(points.begin(), points.end(), all_points_coordinates, all_points_ids, r_data_comm);
+    SearchUtilities::SynchronousPointSynchronization(points.begin(), points.end(), all_points_coordinates, all_points_ids, r_data_comm);
 
     // Check the results
     KRATOS_EXPECT_EQ(static_cast<int>(all_points_coordinates.size()), 2 * 3 * world_size);
@@ -75,7 +75,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISynchronousPointSynchronizationWithRadi
     // Call the function
     std::vector<double> all_points_coordinates;
     std::vector<std::size_t> all_points_ids;
-    auto radius = MPISearchUtilities::MPISynchronousPointSynchronizationWithRadius(points.begin(), points.end(), all_points_coordinates, all_points_ids, local_radius, r_data_comm);
+    auto radius = SearchUtilities::SynchronousPointSynchronizationWithRadius(points.begin(), points.end(), all_points_coordinates, all_points_ids, local_radius, r_data_comm);
 
     // Check the results
     KRATOS_EXPECT_EQ(static_cast<int>(all_points_coordinates.size()), 2 * 3 * world_size);
