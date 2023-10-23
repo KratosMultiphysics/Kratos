@@ -135,7 +135,7 @@ public:
             for (auto& node : mrModelPart.Nodes())
             {
                 node.GetSolutionStepValue(TOTAL_DISPLACEMENT) = mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
-                count++;
+                ++count;
             }
         }
 
@@ -143,7 +143,7 @@ public:
 
     void OutputProcess() override
     {
-        auto write_hydraulic_head_to_nodes = false;
+        const auto write_hydraulic_head_to_nodes = false;
         GeoOutputWriter::WriteGiDOutput(mrModelPart,
                                         mProjectParameters,
                                         mWorkingDirectory.generic_string(),
