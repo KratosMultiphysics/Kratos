@@ -137,6 +137,16 @@ def get_water_pressure(simulation):
     return get_nodal_variable(simulation, Kratos.WATER_PRESSURE)
 
 
+def get_temperature(simulation):
+    """
+    Gets the temperature from kratos simulation
+
+    :param simulation:
+    :return:
+    """
+    return get_nodal_variable(simulation, Kratos.TEMPERATURE)
+
+
 def get_hydraulic_discharge(simulation):
     """
     Gets displacements from kratos simulation
