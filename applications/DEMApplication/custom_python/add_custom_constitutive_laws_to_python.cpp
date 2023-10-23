@@ -62,6 +62,7 @@
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
 #include "custom_constitutive/DEM_smooth_joint_CL.h"
 #include "custom_constitutive/DEM_parallel_bond_for_membrane_CL.h"
+#include "custom_constitutive/DEM_parallel_bond_bilinear_damage_CL.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_bounded.h"
@@ -278,7 +279,11 @@ void AddCustomConstitutiveLawsToPython(pybind11::module& m) {
         .def(py::init<>())
         ;
 
-    py::class_<DEM_parallel_bond_for_membrane, DEM_parallel_bond_for_membrane::Pointer, DEMContinuumConstitutiveLaw>(m, "DEM_parallel_bond_for_membrane")
+    py::class_<DEM_parallel_bond_for_membrane, DEM_parallel_bond_for_membrane::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_for_membrane")
+        .def(py::init<>())
+        ;
+    
+    py::class_<DEM_parallel_bond_bilinear_damage, DEM_parallel_bond_bilinear_damage::Pointer, DEM_parallel_bond>(m, "DEM_parallel_bond_bilinear_damage")
         .def(py::init<>())
         ;
 

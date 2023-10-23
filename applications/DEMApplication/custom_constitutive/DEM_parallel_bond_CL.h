@@ -27,6 +27,7 @@ namespace Kratos{
         void TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp) override;
         std::string GetTypeOfLaw() override;
         void Check(Properties::Pointer pProp) const override;
+        void Initialize(SphericContinuumParticle* element1, SphericContinuumParticle* element2, Properties::Pointer pProps) override;
 
         ~DEM_parallel_bond() {}
 
@@ -53,7 +54,7 @@ namespace Kratos{
         //TODO:CHECK
         virtual double GetYoungModulusForComputingRotationalMoments(const double& equiv_young);
 
-        virtual void CheckFailure(const int i_neighbour_count, 
+        void CheckFailure(const int i_neighbour_count, 
                             SphericContinuumParticle* element1, 
                             SphericContinuumParticle* element2,
                             double& contact_sigma,
@@ -91,7 +92,7 @@ namespace Kratos{
 
         virtual double ComputeNormalUnbondedForce(double unbonded_indentation);
 
-        void CalculateNormalForces(double LocalElasticContactForce[3],
+        virtual void CalculateNormalForces(double LocalElasticContactForce[3],
                 const double kn_el,
                 double equiv_young,
                 double indentation,
@@ -104,7 +105,7 @@ namespace Kratos{
                 const ProcessInfo& r_process_info,
                 double& contact_sigma);
             
-        virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
+        void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                                 double &equiv_visco_damp_coeff_tangential,
                                 SphericContinuumParticle* element1,
                                 SphericContinuumParticle* element2,
@@ -193,6 +194,7 @@ namespace Kratos{
         double mBondedLocalContactTangentTorque[3] = {0.0};
         double mKn;
         double mKt;
+        bool mDebugPrintingOption = false;
 
     protected:
 

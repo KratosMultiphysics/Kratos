@@ -49,6 +49,7 @@
 #include "custom_constitutive/DEM_parallel_bond_CL.h"
 #include "custom_constitutive/DEM_smooth_joint_CL.h"
 #include "custom_constitutive/DEM_parallel_bond_for_membrane_CL.h"
+#include "custom_constitutive/DEM_parallel_bond_bilinear_damage_CL.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"
@@ -1026,6 +1027,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_parallel_bond", DEM_parallel_bond());
     Serializer::Register("DEM_smooth_joint", DEM_smooth_joint());
     Serializer::Register("DEM_parallel_bond_for_membrane", DEM_parallel_bond_for_membrane());
+    Serializer::Register("DEM_parallel_bond_bilinear_damage", DEM_parallel_bond_bilinear_damage());
     Serializer::Register("DEMRollingFrictionModelConstantTorque", DEMRollingFrictionModelConstantTorque());
     Serializer::Register("DEMRollingFrictionModelViscousTorque", DEMRollingFrictionModelViscousTorque());
     Serializer::Register("DEMRollingFrictionModelBounded", DEMRollingFrictionModelBounded());
