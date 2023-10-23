@@ -7,7 +7,9 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Richard Faasse
+//  Main authors:    Richard Faasse,
+//                   Anne van de Graaf,
+//                   Gennady Markelov
 //
 
 #pragma once
@@ -41,6 +43,22 @@ public:
     void ExecuteInitializeSolutionStep() override;
 
 private:
+    void MakeInternalProcesses(const Parameters & rProcessSettings);
+    void MakeProcessForNormalComponent(const Parameters & rProcessSettings);
+    void MakeProcessForTangentialComponent(const Parameters & rProcessSettings);
+    void MakeProcessForUniformFluidPressureType(const Parameters & rProcessSettings,
+                                                        Parameters processingParameters);
+    void MakeProcessForHydrostaticFluidPressureType(const Parameters & rProcessSettings,
+                                                           Parameters processingParameters);
+    void MakeProcessForPhreaticLineFluidPressureType(const Parameters & rProcessSettings,
+                                                              Parameters processingParameters);
+    void MakeProcessForPhreaticSurfaceFluidPressureType(const Parameters & rProcessSettings,
+                                                              Parameters processingParameters);
+    bool IsNormalComponentActive(const Parameters & rProcessSettings);
+    bool IsTangentialComponentActive(const Parameters & rProcessSettings);
+    bool IsComponentActive(const Parameters & rProcessSettings, int componentNumber);
+
+
     ModelPart& mrModelPart;
     std::vector<std::unique_ptr<Process>> mProcesses;
 };
