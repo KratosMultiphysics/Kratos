@@ -338,13 +338,13 @@ std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const 
 std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const Parameters&            rProjectParameters,
                                                                           const std::filesystem::path& rWorkingDirectory)
 {
-    // For now, we can create solving strategy wrappers only
     auto& main_model_part = mModel.GetModelPart(mModelPartName);
-
-    using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
     auto solving_strategy = SolvingStrategyFactoryType::Create(rProjectParameters["solver_settings"],
                                                                main_model_part.GetSubModelPart(mComputationalSubModelPartName));
     KRATOS_ERROR_IF_NOT(solving_strategy) << "No solving strategy was created!" << std::endl;
+
+    // For now, we can create solving strategy wrappers only
+    using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
     return std::make_shared<SolvingStrategyWrapperType>(std::move(solving_strategy),
                                                         GetResetDisplacementsFrom(rProjectParameters),
                                                         rWorkingDirectory,
