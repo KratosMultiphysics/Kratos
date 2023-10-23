@@ -216,7 +216,6 @@ KRATOS_TEST_CASE_IN_SUITE(SaveAndAccumulateTotalDisplacementField, KratosGeoMech
     auto p_node = model_part.CreateNewNode(1, 0.0, 0.0, 0.0);
     const auto original_total_displacement = array_1d<double, 3>{1.0, 2.0, 3.0};
     p_node->GetSolutionStepValue(TOTAL_DISPLACEMENT) = original_total_displacement;
-    model_part.AddNode(p_node);
 
     strategy_wrapper.SaveTotalDisplacementFieldAtStartOfTimeLoop();
 
