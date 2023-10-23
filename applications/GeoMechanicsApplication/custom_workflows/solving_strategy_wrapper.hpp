@@ -27,7 +27,7 @@ template<class TSparseSpace, class TDenseSpace>
 class SolvingStrategyWrapper : public StrategyWrapper
 {
 public:
-    SolvingStrategyWrapper(std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy,
+    explicit SolvingStrategyWrapper(std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy,
                            bool ResetDisplacements = false,
                            const std::filesystem::path& rWorkingDirectory = "",
                            const Parameters& rProjectParameters = {}) :
