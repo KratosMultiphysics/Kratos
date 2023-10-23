@@ -80,9 +80,13 @@ class InterpolateVelocityProcess(KratosMultiphysics.Process):
         model_part_io.ReadModelPart(self.origin_model_part) 
 
         #Set velocity field to origin model part
+<<<<<<< Updated upstream
         self.alpha = 1.0
         self.expected_alpha = 1.0
         velocity = self.alpha*np.load("velocity_field.npy")
+=======
+        velocity = 1.0e-2*np.load("velocity_field.npy")
+>>>>>>> Stashed changes
         
         counter = 0
         for node in self.origin_model_part.Nodes:
@@ -119,6 +123,7 @@ class InterpolateVelocityProcess(KratosMultiphysics.Process):
         pass
 
     def ExecuteInitializeSolutionStep(self):
+<<<<<<< Updated upstream
         # self.old_alpha = self.alpha
         # self.alpha += 1e-4
         # if self.alpha<self.expected_alpha:
@@ -126,6 +131,13 @@ class InterpolateVelocityProcess(KratosMultiphysics.Process):
         #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_X,self.alpha*node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_X)/self.old_alpha)
         #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Y,self.alpha*node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Y)/self.old_alpha)
         #         node.SetSolutionStepValue(KratosMultiphysics.VELOCITY_Z,self.alpha*node.GetSolutionStepValue(KratosMultiphysics.VELOCITY_Z)/self.old_alpha)
+=======
+        """ This method is executed in order to initialize the current step
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+>>>>>>> Stashed changes
         pass
 
     def ExecuteBeforeOutputStep(self):
