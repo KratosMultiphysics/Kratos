@@ -333,7 +333,7 @@ auto GetGroupsByFamily(
             RemoveTrailingNullChars(group_names[i]);
         }
 
-        groups_by_family[family_number] = group_names;
+        groups_by_family[family_number] = std::move(group_names);
     }
 
     return groups_by_family;
