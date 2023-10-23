@@ -418,7 +418,7 @@ jobs:
 
     - name: Installing intel compiler
       shell: bash
-      run: sudo apt-get install intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
+      run: apt-get install intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
 
     - name: Build
       shell: bash
