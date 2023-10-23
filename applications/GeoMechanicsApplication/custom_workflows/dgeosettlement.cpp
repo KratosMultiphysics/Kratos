@@ -11,7 +11,7 @@
 //
 #include "dgeosettlement.h"
 #include "input_output/logger.h"
-#include "time_loop_executor.h"
+#include "time_loop_executor_interface.h"
 
 #include "utilities/variable_utils.h"
 
@@ -20,7 +20,7 @@
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/set_parameter_field_process.hpp"
 #include "custom_processes/apply_k0_procedure_process.hpp"
-#include "custom_processes/apply_excavation_process.hpp"
+#include "custom_processes/apply_excavation_process.h"
 
 #include "custom_utilities/input_utility.h"
 #include "custom_utilities/process_factory.hpp"
@@ -31,10 +31,10 @@ namespace Kratos
 
 KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility,
                                          std::unique_ptr<ProcessInfoParser> pProcessInfoParser,
-                                         std::unique_ptr<TimeLoopExecutor> pTimeLoopExecutor) :
+                                         std::unique_ptr<TimeLoopExecutorInterface> pTimeLoopExecutorInterface) :
     mpInputUtility{std::move(pInputUtility)},
     mpProcessInfoParser{std::move(pProcessInfoParser)},
-    mpTimeLoopExecutor{std::move(pTimeLoopExecutor)}
+    mpTimeLoopExecutor{std::move(pTimeLoopExecutorInterface)}
 {
     KRATOS_INFO("KratosGeoSettlement") << "Setting up Kratos" << std::endl;
     KRATOS_ERROR_IF_NOT(mpInputUtility) << "Invalid Input Utility";
@@ -52,9 +52,10 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUti
 void KratosGeoSettlement::InitializeProcessFactory()
 {
     mProcessFactory->AddCreator("ApplyScalarConstraintTableProcess",
-                                [this](const Parameters& rParameters)
+                                [&model = mModel](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<ApplyScalarConstraintTableProcess>(mModel.GetModelPart(mModelPartName),
+                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
+                                    return std::make_unique<ApplyScalarConstraintTableProcess>(model_part,
                                                                                                rParameters);
                                 });
 
@@ -66,30 +67,34 @@ void KratosGeoSettlement::InitializeProcessFactory()
                                 });
 
     mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
-                                [this](const Parameters& rParameters)
+                                [&model = mModel](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<ApplyVectorConstraintTableProcess>(mModel.GetModelPart(mModelPartName),
+                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
+                                    return std::make_unique<ApplyVectorConstraintTableProcess>(model_part,
                                                                                                rParameters);
                                 });
 
     mProcessFactory->AddCreator("SetParameterFieldProcess",
-                                [this](const Parameters& rParameters)
+                                [&model = mModel](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<SetParameterFieldProcess>(mModel.GetModelPart(mModelPartName),
+                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
+                                    return std::make_unique<SetParameterFieldProcess>(model_part,
                                                                                       rParameters);
                                 });
 
     mProcessFactory->AddCreator("ApplyExcavationProcess",
-                                [this](const Parameters& rParameters)
+                                [&model = mModel](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<ApplyExcavationProcess>(mModel.GetModelPart(mModelPartName),
+                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
+                                    return std::make_unique<ApplyExcavationProcess>(model_part,
                                                                                     rParameters);
                                 });
 
     mProcessFactory->AddCreator("ApplyK0ProcedureProcess",
-                                [this](const Parameters& rParameters)
+                                [&model = mModel](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<ApplyK0ProcedureProcess>(mModel.GetModelPart(mModelPartName),
+                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
+                                    return std::make_unique<ApplyK0ProcedureProcess>(model_part,
                                                                                      rParameters);
                                 });
 
@@ -135,9 +140,8 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
 
-        if (mpTimeLoopExecutor)
-        {
-            mpTimeLoopExecutor->SetProcessReferences(process_observables);
+        if (mpTimeLoopExecutor) {
+            mpTimeLoopExecutor->SetProcessObservables(process_observables);
         }
 
         FlushLoggingOutput(rLogCallback, logger_output, kratos_log_buffer);
@@ -213,8 +217,8 @@ LoggerOutput::Pointer KratosGeoSettlement::CreateLoggingOutput(std::stringstream
     return logger_output;
 }
 
-void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, 
-                                             LoggerOutput::Pointer pLoggerOutput, 
+void KratosGeoSettlement::FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback,
+                                             LoggerOutput::Pointer pLoggerOutput,
                                              const std::stringstream& rKratosLogBuffer) const
 {
     rLogCallback(rKratosLogBuffer.str().c_str());

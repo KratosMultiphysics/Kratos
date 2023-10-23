@@ -84,7 +84,19 @@ void CheckGeometriesAreEqual(
 
     KRATOS_CHECK_EQUAL(rGeom1.PointsNumber(), rGeom2.PointsNumber());
 
+    // make sure to not accidentially compare base-geometries
+    KRATOS_CHECK_NOT_EQUAL(rGeom1.GetGeometryType(), GeometryData::KratosGeometryType::Kratos_generic_type);
     KRATOS_CHECK(GeometryType::IsSame(rGeom1, rGeom2));
+
+    KRATOS_CHECK_DOUBLE_EQUAL(rGeom1.DomainSize(), rGeom2.DomainSize());
+
+    if (rGeom1.PointsNumber() > 1) {
+        KRATOS_CHECK_GREATER(rGeom1.DomainSize(), 0.0);
+    } else if (rGeom1.PointsNumber() == 1) {
+        KRATOS_CHECK_DOUBLE_EQUAL(rGeom1.DomainSize(), 0.0);
+    } else {
+        KRATOS_ERROR << "Geometry with no points found! " << rGeom1 << std::endl;
+    }
 
     for (std::size_t i=0; i<rGeom1.PointsNumber(); ++i) {
         CheckEntitiesAreEqual(rGeom1[i], rGeom2[i]);
@@ -121,14 +133,14 @@ void CheckGeometriesAreEqual(
     KRATOS_CHECK_EQUAL(rModelPart1.NumberOfGeometries(), rModelPart2.NumberOfGeometries());
 
     auto check_geoms = [](const ModelPart& rModelPart1, const ModelPart& rModelPart2){
-        for (auto geom_1 : rModelPart1.Geometries()) {
-            for (auto geom_2 : rModelPart2.Geometries()) {
-                if (have_same_nodes(geom_1, geom_2)) {
-                    CheckGeometriesAreEqual(geom_1, geom_2);
+        for (const auto& r_geom_1 : rModelPart1.Geometries()) {
+            for (const auto& r_geom_2 : rModelPart2.Geometries()) {
+                if (have_same_nodes(r_geom_1, r_geom_2)) {
+                    CheckGeometriesAreEqual(r_geom_1, r_geom_2);
                     goto here;
                 }
             }
-            KRATOS_ERROR << "no match found for geometry " << geom_1 << std::endl;
+            KRATOS_ERROR << "no match found for geometry " << r_geom_1 << std::endl;
             here:;
         }
     };
@@ -140,11 +152,54 @@ void CheckGeometriesAreEqual(
     KRATOS_CATCH("")
 }
 
+enum class QuantityType
+{
+    LENGTH = 1,
+    AREA = 2,
+    VOLUME = 3,
+    DOMAIN_SIZE,
+};
+
+
+double ComputeGeometricalQuantity(
+    const ModelPart& rModelPart,
+    const QuantityType Quantity)
+{
+    std::function<double(const GeometryType&)> access_function;
+
+    switch (Quantity)
+    {
+        case QuantityType::LENGTH:
+            access_function = [](const auto& rGeom){return rGeom.Length();};
+        case QuantityType::AREA:
+            access_function = [](const auto& rGeom){return rGeom.Area();};
+        case QuantityType::VOLUME:
+            access_function = [](const auto& rGeom){return rGeom.Volume();};
+        default:
+            access_function = [](const auto& rGeom){return rGeom.DomainSize();};
+    }
+
+    double total_quantity = 0.0;
+    for (const auto& r_geom : rModelPart.Geometries()) {
+        if (Quantity == QuantityType::DOMAIN_SIZE ||
+            r_geom.LocalSpaceDimension() == static_cast<std::size_t>(Quantity)) {
+            const double quantity = access_function(r_geom);
+            if (r_geom.LocalSpaceDimension() > 0) {
+                KRATOS_CHECK_GREATER(quantity, 0.0);
+            }
+            total_quantity += quantity;
+        }
+    }
+    return total_quantity;
+}
+
+
 } // helpers namespace
 
 void MedTestingUtilities::CheckModelPartsAreEqual(
     const ModelPart& rModelPart1,
-    const ModelPart& rModelPart2)
+    const ModelPart& rModelPart2,
+    const bool CheckSubModelParts)
 {
     KRATOS_TRY
 
@@ -169,13 +224,17 @@ void MedTestingUtilities::CheckModelPartsAreEqual(
     // check geometries
     CheckGeometriesAreEqual(rModelPart1, rModelPart2);
 
+    if (!CheckSubModelParts) {
+        return;
+    }
+
     KRATOS_CHECK_EQUAL(rModelPart1.NumberOfSubModelParts(), rModelPart2.NumberOfSubModelParts());
 
     const auto& r_smp2_names = rModelPart2.GetSubModelPartNames();
 
     for (const auto& r_smp_name : rModelPart1.GetSubModelPartNames()) {
         KRATOS_CHECK(contains(r_smp2_names, r_smp_name));
-        CheckModelPartsAreEqual(rModelPart1.GetSubModelPart(r_smp_name), rModelPart1.GetSubModelPart(r_smp_name));
+        CheckModelPartsAreEqual(rModelPart1.GetSubModelPart(r_smp_name), rModelPart2.GetSubModelPart(r_smp_name));
     }
 
     KRATOS_CATCH("")
@@ -192,6 +251,27 @@ void MedTestingUtilities::AddGeometriesFromElements(
     }
 
     KRATOS_CATCH("")
+}
+
+
+double MedTestingUtilities::ComputeLength(const ModelPart& rModelPart)
+{
+    return ComputeGeometricalQuantity(rModelPart, QuantityType::LENGTH);
+}
+
+double MedTestingUtilities::ComputeArea(const ModelPart& rModelPart)
+{
+    return ComputeGeometricalQuantity(rModelPart, QuantityType::AREA);
+}
+
+double MedTestingUtilities::ComputeVolume(const ModelPart& rModelPart)
+{
+    return ComputeGeometricalQuantity(rModelPart, QuantityType::VOLUME);
+}
+
+double MedTestingUtilities::ComputeDomainSize(const ModelPart& rModelPart)
+{
+    return ComputeGeometricalQuantity(rModelPart, QuantityType::DOMAIN_SIZE);
 }
 
 } // namespace Kratos
