@@ -216,7 +216,6 @@ class GeoMechanicalSolver(PythonSolver):
         return current_time_corrected < end_time
 
     def Initialize(self):
-        KratosMultiphysics.Logger.PrintInfo("GeoMechanicalSolver", "Initialize()")
         """Perform initialization after adding nodal variables and dofs to the main model part. """
         self.computing_model_part = self.GetComputingModelPart()
 
@@ -225,20 +224,16 @@ class GeoMechanicalSolver(PythonSolver):
 
         # Construct the linear solver
         self.linear_solver = self._ConstructLinearSolver()
-        #KratosMultiphysics.Logger.PrintInfo("GeoMechanicalSolver", f"Created linear solver: '{self.linear_solver.Info()}'")
 
         # Builder and solver creation
         builder_and_solver = self._ConstructBuilderAndSolver(self.settings["block_builder"].GetBool())
-        KratosMultiphysics.Logger.PrintInfo("GeoMechanicalSolver", f"Created builder-and-solver: '{builder_and_solver.Info()}'")
 
         # Solution scheme creation
         self.scheme = self._ConstructScheme(self.settings["scheme_type"].GetString(),
                                             self.settings["solution_type"].GetString())
-        KratosMultiphysics.Logger.PrintInfo("GeoMechanicalSolver", f"Created scheme: '{self.scheme.Info()}'")
 
         # Get the convergence criterion
         self.convergence_criterion = self._ConstructConvergenceCriterion(self.settings["convergence_criterion"].GetString())
-        KratosMultiphysics.Logger.PrintInfo("GeoMechanicalSolver", f"Created convergence criteria: '{self.convergence_criterion.Info()}'")
 
         # Solver creation
         self.solver = self._ConstructSolver(builder_and_solver,

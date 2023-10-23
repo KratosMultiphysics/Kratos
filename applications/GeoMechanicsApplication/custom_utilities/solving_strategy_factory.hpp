@@ -37,24 +37,19 @@ public:
         << "The parameter strategy_type is undefined, aborting.";
 
         const auto echo_level = rSolverSettings["echo_level"].GetInt();
-        KRATOS_INFO("SolvingStrategyFactory") << "After instances have been created, set the echo level to " << echo_level << std::endl;
 
         auto solver = LinearSolverFactory<TSparseSpace, TDenseSpace>().Create(rSolverSettings["linear_solver_settings"]);
         KRATOS_ERROR_IF_NOT(solver) << "Failed to create a linear solver" << std::endl;
-        KRATOS_INFO("SolvingStrategyFactory") << "Created a linear solver '" << solver->Info() << "'" << std::endl;
 
         auto scheme = SchemeFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
         KRATOS_ERROR_IF_NOT(scheme) << "Failed to create a scheme" << std::endl;
-        KRATOS_INFO("SolvingStrategyFactory") << "Created a scheme '" << scheme->Info() << "'" << std::endl;
 
         auto builder_and_solver = BuilderAndSolverFactory<TSparseSpace, TDenseSpace, TLinearSolver>::Create(rSolverSettings, solver);
         KRATOS_ERROR_IF_NOT(builder_and_solver) << "Failed to create a builder-and-solver" << std::endl;
-        KRATOS_INFO("SolvingStrategyFactory") << "Created a builder-and-solver '" << builder_and_solver->Info() << "'" << std::endl;
         builder_and_solver->SetEchoLevel(echo_level);
 
         auto criteria = ConvergenceCriteriaFactory<TSparseSpace, TDenseSpace>::Create(rSolverSettings);
         KRATOS_ERROR_IF_NOT(criteria) << "Failed to create convergence criteria" << std::endl;
-        KRATOS_INFO("SolvingStrategyFactory") << "Created convergence criteria '" << criteria->Info() << "'" << std::endl;
         criteria->SetEchoLevel(echo_level);
 
         if (rSolverSettings[strategy_type].GetString() == "newton_raphson")
