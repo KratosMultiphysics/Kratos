@@ -4,7 +4,8 @@
             "TEMPERATURE"
         ],
         "number_of_rom_dofs": 2,
-        "petrov_galerkin_number_of_rom_dofs": 0
+        "petrov_galerkin_number_of_rom_dofs": 0,
+        "rom_bns_settings":{}
     },
     "nodal_modes": {
         "1": [

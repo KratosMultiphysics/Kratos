@@ -39,7 +39,8 @@ class HRomTrainingUtility(object):
         self.solver = solver
         self.time_step_residual_matrix_container = []
         self.echo_level = settings["echo_level"].GetInt()
-        self.rom_settings = custom_settings["rom_settings"]
+        self.rom_settings = custom_settings["rom_settings"].Clone()
+        self.rom_settings.RemoveValue("rom_bns_settings") #Removing because the inner rom settings are specific for each builder and solver.
         self.hrom_visualization_model_part = settings["create_hrom_visualization_model_part"].GetBool()
         self.projection_strategy = settings["projection_strategy"].GetString()
         self.hrom_output_format = settings["hrom_format"].GetString()
@@ -59,6 +60,32 @@ class HRomTrainingUtility(object):
         for model_part_name in self.include_elements_model_parts_list:
             if not self.solver.model.HasModelPart(model_part_name):
                 raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
+
+
+        # getting initial candidate ids for empirical cubature
+        initial_candidate_elements_model_part_list = settings["initial_candidate_elements_model_part_list"].GetStringArray()
+        initial_candidate_conditions_model_part_list = settings["initial_candidate_conditions_model_part_list"].GetStringArray()
+
+        candidate_ids = np.empty(0)
+        for model_part_name in initial_candidate_elements_model_part_list:
+            if not self.solver.model.HasModelPart(model_part_name):
+                raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
+            this_modelpart_element_ids = KratosROM.RomAuxiliaryUtilities.GetElementIdsInModelPart(self.solver.model.GetModelPart(model_part_name))
+            if len(this_modelpart_element_ids)>0:
+                candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_element_ids)]
+
+        number_of_elements = self.solver.GetComputingModelPart().GetRootModelPart().NumberOfElements()
+        for model_part_name in initial_candidate_conditions_model_part_list:
+            if not self.solver.model.HasModelPart(model_part_name):
+                raise Exception('The model part named "' + model_part_name + '" does not exist in the model')
+            this_modelpart_condition_ids = KratosROM.RomAuxiliaryUtilities.GetConditionIdsInModelPart(self.solver.model.GetModelPart(model_part_name))
+            if len(this_modelpart_condition_ids)>0:
+                candidate_ids = np.r_[candidate_ids, np.array(this_modelpart_condition_ids)+number_of_elements]
+
+        if np.size(candidate_ids)>0:
+            self.candidate_ids = np.unique(candidate_ids).astype(int) - 1 # this -1 takes into account the id difference in numpy and Kratos
+        else:
+            self.candidate_ids = None
 
         # Rom settings files
         self.rom_basis_output_name = Path(custom_settings["rom_basis_output_name"].GetString())
@@ -96,9 +123,13 @@ class HRomTrainingUtility(object):
         # Calculate the residuals basis and compute the HROM weights from it
         residual_basis = self.__CalculateResidualBasis()
         n_conditions = self.solver.GetComputingModelPart().NumberOfConditions() # Conditions must be included as an extra restriction to enforce ECM to capture all BC's regions.
-        self.hyper_reduction_element_selector.SetUp(residual_basis, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+        self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = self.candidate_ids, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
         self.hyper_reduction_element_selector.Run()
-
+        if not self.hyper_reduction_element_selector.success:
+            KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", "The Empirical Cubature Method did not converge using the initial set of candidates. Launching again without initial candidates.")
+            #Imposing an initial candidate set can lead to no convergence. Restart without imposing the initial candidate set
+            self.hyper_reduction_element_selector.SetUp(residual_basis, InitialCandidatesSet = None, constrain_sum_of_weights=True, constrain_conditions = False, number_of_conditions = n_conditions)
+            self.hyper_reduction_element_selector.Run()
         # Save the HROM weights in the RomParameters.json
         # Note that in here we are assuming this naming convention for the ROM json file
         self.AppendHRomWeightsToRomParameters()
@@ -171,9 +202,11 @@ class HRomTrainingUtility(object):
             "projection_strategy": "galerkin",
             "include_conditions_model_parts_list": [],
             "include_elements_model_parts_list": [],
+            "initial_candidate_elements_model_part_list" : [],
+            "initial_candidate_conditions_model_part_list" : [],
             "include_nodal_neighbouring_elements_model_parts_list":[],
             "include_minimum_condition": false,
-            "include_condition_parents": true
+            "include_condition_parents": false
         }""")
         return default_settings
 
@@ -249,7 +282,7 @@ class HRomTrainingUtility(object):
 
                 # If needed, update your weights and indexes using __AddSelectedElementsWithZeroWeights function with the new_elements
                 weights, indexes = self.__AddSelectedElementsWithZeroWeights(weights, indexes, new_elements)
-        
+
         # Add nodal neighbouring elements
         for model_part_name in self.include_nodal_neighbouring_elements_model_parts_list:
             # Check if the sub model part exists
@@ -285,6 +318,8 @@ class HRomTrainingUtility(object):
         # If required, add the HROM conditions parent elements
         # Note that we add these with zero weight so their future assembly will have no effect
         if self.include_condition_parents:
+            KratosMultiphysics.Logger.PrintWarning("HRomTrainingUtility", 'Make sure you set "assign_neighbour_elements_to_conditions": true in the solver_settings to have a parent element for each condition.')
+
             # Get the HROM condition parents from the current HROM weights
             missing_condition_parents = KratosROM.RomAuxiliaryUtilities.GetHRomConditionParentsIds(
                 self.solver.GetComputingModelPart().GetRootModelPart(), #TODO: I think this one should be the root

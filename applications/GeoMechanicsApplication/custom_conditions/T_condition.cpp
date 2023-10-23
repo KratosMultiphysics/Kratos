@@ -9,8 +9,8 @@
 //
 //
 //  Main authors:    Mohamed Nabi
+//                   John van Esch
 //
-
 
 // Application includes
 #include "custom_conditions/T_condition.hpp"
@@ -148,10 +148,14 @@ void TCondition<TDim,TNumNodes>::CalculateRHS(
 // ============================================================================================
 template class TCondition<2,1>;
 template class TCondition<2,2>;
+template class TCondition<2,3>;
+template class TCondition<2,4>;
+template class TCondition<2,5>;
 template class TCondition<3,1>;
 template class TCondition<3,3>;
 template class TCondition<3,4>;
-
-template class TCondition<2,3>;
+template class TCondition<3,6>;
+template class TCondition<3,8>;
+template class TCondition<3,9>;
 
 } // Namespace Kratos.
