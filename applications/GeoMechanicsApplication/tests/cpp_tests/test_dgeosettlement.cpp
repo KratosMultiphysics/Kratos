@@ -87,7 +87,9 @@ KRATOS_TEST_CASE_IN_SUITE(RunStageMakesRelevantCallsOnce, KratosGeoMechanicsFast
 
     const auto exit_status = RunStage(settlement);
 
-    KRATOS_EXPECT_EQ(exit_status, 1); // Ask Richard why we should expect an error state here
+    // At the moment the parameter_json_settings do not contain enough info to instantiate the solving strategy.
+    // That is why the exit_status is now 1, as with other tests in this suite.
+    KRATOS_EXPECT_EQ(exit_status, 1);
     ExpectNumberOfReadCallsIsEqualToOne(settlement);
     ExpectNumberOfMaterialCallsEqualTo(1, settlement);
 }

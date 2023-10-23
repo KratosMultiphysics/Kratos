@@ -118,6 +118,7 @@ public:
     {
         if (mResetDisplacements)
         {
+            mOldTotalDisplacements.clear();
             for (const auto& node : mrModelPart.Nodes())
             {
                 mOldTotalDisplacements.emplace_back(node.GetSolutionStepValue(TOTAL_DISPLACEMENT));
@@ -130,7 +131,8 @@ public:
         if (mResetDisplacements)
         {
             KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() == mOldTotalDisplacements.size()) <<
-            "The number of old displacements does not match the current number of nodes.";
+            "The number of old displacements (" << mOldTotalDisplacements.size()
+            << ") does not match the current number of nodes ("<< mrModelPart.Nodes().size() << ").";
             std::size_t count = 0;
             for (auto& node : mrModelPart.Nodes())
             {
@@ -138,7 +140,6 @@ public:
                 ++count;
             }
         }
-
     }
 
     void OutputProcess() override
