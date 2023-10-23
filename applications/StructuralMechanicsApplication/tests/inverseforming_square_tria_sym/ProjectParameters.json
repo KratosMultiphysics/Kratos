@@ -107,7 +107,7 @@
             "kratos_module" : "KratosMultiphysics",
             "process_name"  : "VtkOutputProcess",
             "Parameters"    : {
-                "model_part_name"                             : "Structure",
+                "model_part_name"                             : "square_tria_sym",
                 "output_control_type"                         : "step",
                 "output_interval"                             : 1,
                 "file_format"                                 : "ascii",
@@ -115,6 +115,7 @@
                 "output_sub_model_parts"                      : false,
                 "output_path"                                 : "vtk_output_U1_T",
                 "save_output_files_in_folder"                 : true,
+                "write_deformed_configuration"                : false,
                 "nodal_solution_step_data_variables"          : ["DISPLACEMENT","REACTION"],
                 "nodal_data_value_variables"                  : ["NORMAL"],
                 "element_data_value_variables"                : [],

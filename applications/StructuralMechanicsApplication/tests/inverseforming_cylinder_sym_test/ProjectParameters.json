@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "cylinder_flat",
+        "problem_name"  : "cylinder_symmetric_flat",
         "parallel_type" : "OpenMP",
         "echo_level"    : 1,
         "start_time"    : 0.0,
@@ -17,7 +17,7 @@
         "analysis_type"                        : "non_linear",
         "model_import_settings"                : {
             "input_type"     : "mdpa",
-            "input_filename" : "cylinder_flat"
+            "input_filename" : "cylinder_symmetric_flat"
         },
         "material_import_settings"             : {
             "materials_filename" : "StructuralMaterials.json"
@@ -99,7 +99,7 @@
                     },
                     "point_data_configuration"  : []
                 },
-                "output_name"            : "gid_output/cylinder_flat"
+                "output_name"            : "gid_output/cylinder_symmetric_flat"
             }
         }],
         "vtk_output" : [{
@@ -113,7 +113,7 @@
                 "file_format"                                 : "ascii",
                 "output_precision"                            : 7,
                 "output_sub_model_parts"                      : false,
-                "output_path"                                 : "vtk_output_flat",
+                "output_path"                                 : "vtk_output_symm_flat",
                 "save_output_files_in_folder"                 : true,
                 "write_deformed_configuration"                : false,
                 "nodal_solution_step_data_variables"          : ["DISPLACEMENT","REACTION"],
