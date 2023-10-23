@@ -29,6 +29,23 @@ DEMContinuumConstitutiveLaw::Pointer DEM_parallel_bond::Clone() const{
 // Parameters preparation
 //*************************************
 
+void DEM_parallel_bond::Initialize(SphericContinuumParticle* element1,
+                                   SphericContinuumParticle* element2,
+                                   Properties::Pointer pProps) {
+    mpProperties = pProps;
+    mDebugPrintingOption = false;
+    if (!mpProperties->Has(DEBUG_PRINTING_OPTION)) {
+        mDebugPrintingOption = false;
+    } else {
+        mDebugPrintingOption = bool((*mpProperties)[DEBUG_PRINTING_OPTION]);
+    }
+    if (mDebugPrintingOption) {
+        if (!mpProperties->Has(DEBUG_PRINTING_ID_1) || !mpProperties->Has(DEBUG_PRINTING_ID_2)) {
+            KRATOS_WARNING("DEM") << "\nWARNING: We are currently in DEBUG PRINTING mode, so the ids of the two particles involved must be given.\n\n";
+        }
+    }
+}
+
 void DEM_parallel_bond::TransferParametersToProperties(const Parameters& parameters, Properties::Pointer pProp){
     BaseClassType::TransferParametersToProperties(parameters, pProp);
 }
@@ -347,7 +364,7 @@ void DEM_parallel_bond::CalculateForces(const ProcessInfo& r_process_info,
                             i_neighbour_count,
                             sliding,
                             r_process_info);
-
+    
     KRATOS_CATCH("") 
 }
 
@@ -422,6 +439,20 @@ void DEM_parallel_bond::CalculateNormalForces(double LocalElasticContactForce[3]
         mBondedScalingFactor[2] = 0.0;
     }
 
+    //for debug
+    if (mDebugPrintingOption) {
+
+        const long unsigned int& sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_1];
+        const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
+
+        if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
+            std::ofstream normal_forces_file("delta_stress_normal.txt", std::ios_base::out | std::ios_base::app);
+            normal_forces_file << r_process_info[TIME] << " " << bonded_indentation/*2*/ << " " << contact_sigma/*3*/ << " " << indentation <<'\n'; 
+            normal_forces_file.flush();
+            normal_forces_file.close();
+        }
+    }
+
     KRATOS_CATCH("")  
 
 } // CalculateNormalForces
@@ -446,7 +477,7 @@ void DEM_parallel_bond::CalculateViscoDampingCoeff(double &equiv_visco_damp_coef
     equiv_visco_damp_coeff_normal     = 2.0 * equiv_gamma * sqrt(equiv_mass * kn_el);
     equiv_visco_damp_coeff_tangential = 2.0 * equiv_gamma * sqrt(equiv_mass * kt_el);
 
-    KRATOS_CATCH("")                    
+    KRATOS_CATCH("")                
 }
 
 void DEM_parallel_bond::CalculateUnbondedViscoDampingForce(double LocalRelVel[3],
@@ -651,6 +682,21 @@ void DEM_parallel_bond::CalculateTangentialForces(double OldLocalElasticContactF
         mBondedScalingFactor[1] = BondedLocalElasticContactForce[1] / LocalElasticContactForce[1];
     } else {
         mBondedScalingFactor[0] = mBondedScalingFactor[1] = 0.0;
+    }
+
+    //for debug
+    if (mDebugPrintingOption) {
+
+        const long unsigned int& sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_1];
+        const long unsigned int& neigh_sphere_id = (*mpProperties)[DEBUG_PRINTING_ID_2];
+        const double AccumulatedBondedTangentialLocalDisplacementModulus = sqrt(mAccumulatedBondedTangentialLocalDisplacement[0]*mAccumulatedBondedTangentialLocalDisplacement[0] + mAccumulatedBondedTangentialLocalDisplacement[1]*mAccumulatedBondedTangentialLocalDisplacement[1]);
+
+        if ((element1->Id() == sphere_id) && (element2->Id() == neigh_sphere_id)) {
+            std::ofstream normal_forces_file("delta_stress_tangential.txt", std::ios_base::out | std::ios_base::app);
+            normal_forces_file << r_process_info[TIME] << " " << AccumulatedBondedTangentialLocalDisplacementModulus/*4*/ << " " << contact_tau/*5*/ << '\n'; 
+            normal_forces_file.flush();
+            normal_forces_file.close();
+        }
     }
 
     KRATOS_CATCH("")
