@@ -22,6 +22,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
         clang-14 \
         libomp-dev \
         cmake \
+        gfortran \
         git \
         intel-oneapi-compiler-dpcpp-cpp \
         intel-oneapi-mkl-devel \
