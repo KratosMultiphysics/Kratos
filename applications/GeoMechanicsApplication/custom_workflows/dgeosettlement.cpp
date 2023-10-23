@@ -360,9 +360,15 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     auto& computing_model_part = main_model_part.GetSubModelPart(mComputationalSubModelPartName);
     // Note that the computing part and the main model part _share_ their process info and properties
     computing_model_part.SetProcessInfo(main_model_part.GetProcessInfo());
-    // NOTE TO SELF: Wijtze Pieter en ik weten nog niet goed hoe we de properties over moeten brengen, omdat de getter
-    // argumenten nodig heeft waarvan we niet goed weten wat we daar precies moeten meegeven.
-    //computing_model_part.SetProperties(main_model_part.Get);
+    for (int i = 0; i < main_model_part.NumberOfMeshes(); ++i)
+    {
+        auto& mesh = main_model_part.GetMesh(i);
+        for (const auto& property : mesh.Properties())
+        {
+            computing_model_part.AddProperties( mesh.pGetProperties(property.GetId()));
+        }
+    }
+
     computing_model_part.Set(ACTIVE);
 
     const auto problem_domain_sub_model_part_list = rSolverSettings["problem_domain_sub_model_part_list"];
