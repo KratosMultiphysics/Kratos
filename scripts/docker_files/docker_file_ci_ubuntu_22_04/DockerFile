@@ -14,6 +14,7 @@ RUN apt-get update -y && apt-get upgrade -y && \
     add-apt-repository ppa:git-core/ppa && \
     apt-get -y update && \
     apt-get install -y --no-install-recommends \
+        sudo \
         build-essential \
         ccache \
         g++-12 \
