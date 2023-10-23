@@ -413,6 +413,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    # - name: Installing dependencies
+    # => must be added to the docker container to avoid reinstalling it in every CI run
+
     - name: Installing intel compiler
       run: auso apt-get install intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
 
