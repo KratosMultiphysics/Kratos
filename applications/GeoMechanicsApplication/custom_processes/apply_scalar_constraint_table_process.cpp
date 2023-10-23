@@ -221,5 +221,4 @@ std::string ApplyScalarConstraintTableProcess::Info() const
     return "ApplyScalarConstraintTableProcess";
 }
 
-
 }
