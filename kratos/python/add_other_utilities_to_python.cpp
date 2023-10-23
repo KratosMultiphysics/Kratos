@@ -68,6 +68,7 @@
 #include "utilities/particles_utilities.h"
 #include "utilities/string_utilities.h"
 #include "utilities/model_part_operation_utilities.h"
+#include "utilities/fixed_interval_recurring_event_utility.h"
 
 namespace Kratos::Python {
 
@@ -819,6 +820,20 @@ void AddOtherUtilitiesToPython(pybind11::module &m)
         .def("Intersect", &ModelPartOperationUtilities::FillSubModelPart<ModelPartIntersectionOperator>, py::arg("output_sub_model_part"), py::arg("main_model_part"), py::arg("model_parts_to_intersect"), py::arg("add_neighbours"))
         .def("HasIntersection", &ModelPartOperationUtilities::HasIntersection, py::arg("model_parts_to_intersect"))
     ;
+
+    py::class_<FixedIntervalRecurringEventUtility<int>, FixedIntervalRecurringEventUtility<int>::Pointer>(m,"IntegerFixedIntervalRecurringEventUtility")
+        .def(py::init<const int, const int>(), py::arg("initial_value"), py::arg("interval"))
+        .def("IsEventExpected", &FixedIntervalRecurringEventUtility<int>::IsEventExpected, py::arg("current_value"))
+        .def("ScheduleNextEvent", &FixedIntervalRecurringEventUtility<int>::ScheduleNextEvent, py::arg("current_value"))
+        .def("__str__", &FixedIntervalRecurringEventUtility<int>::Info)
+    ;
+
+    py::class_<FixedIntervalRecurringEventUtility<double>, FixedIntervalRecurringEventUtility<double>::Pointer>(m,"DoubleFixedIntervalRecurringEventUtility")
+        .def(py::init<const double, const double>(), py::arg("initial_value"), py::arg("interval"))
+        .def("IsEventExpected", &FixedIntervalRecurringEventUtility<double>::IsEventExpected, py::arg("current_value"))
+        .def("ScheduleNextEvent", &FixedIntervalRecurringEventUtility<double>::ScheduleNextEvent, py::arg("current_value"))
+        .def("__str__", &FixedIntervalRecurringEventUtility<double>::Info)
+    ;    
 
 }
 

@@ -7,6 +7,9 @@ def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.M
         raise Exception("expected input shall be a Model object, encapsulating a json string")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object")
+
     return UnvOutputProcess(model, settings["Parameters"])
 
 

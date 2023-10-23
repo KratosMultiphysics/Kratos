@@ -67,7 +67,7 @@ endif(${KRATOS_BUILD_TESTING} MATCHES ON)
 # ###############################################################
 ## TrilinosApplication core library (C++ parts)
 add_library( KratosTrilinosCore SHARED ${KRATOS_TRILINOS_APPLICATION_CORE_SOURCES} ${KRATOS_TRILINOS_TEST_SOURCES} )
-target_link_libraries(KratosTrilinosCore PRIVATE KratosCore KratosMPICore ${TRILINOS_LIBRARIES} )
+target_link_libraries(KratosTrilinosCore PRIVATE KratosCore KratosMPICore ${Trilinos_LIBRARIES} )
 set_target_properties( KratosTrilinosCore PROPERTIES COMPILE_DEFINITIONS "TRILINOS_APPLICATION=EXPORT,API")
 
 target_include_directories(KratosTrilinosCore SYSTEM PUBLIC ${TRILINOS_INCLUDE_DIR})
@@ -101,8 +101,8 @@ get_filename_component (CURRENT_DIR_NAME ${CMAKE_CURRENT_SOURCE_DIR} NAME)
 kratos_python_install_directory(${INSTALL_PYTHON_USING_LINKS} ${CMAKE_CURRENT_SOURCE_DIR}/python_scripts KratosMultiphysics/${CURRENT_DIR_NAME} )
 
 # TODO: Move this to the new system. Not sure how it will work on windows but being Trilinos should give no problem.
-message(STATUS "Trilinos libs to be installed: " ${TRILINOS_LIBRARIES})
-install(FILES ${TRILINOS_LIBRARIES} DESTINATION libs )
+message(STATUS "Trilinos libs to be installed: " ${Trilinos_LIBRARIES})
+install(TARGETS ${TRILINOS} DESTINATION libs )
 
 # Kratos Testing. Install everything except sources to ensure that reference and configuration files are copied.
 if(${INSTALL_TESTING_FILES} MATCHES ON )

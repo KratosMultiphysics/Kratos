@@ -15,6 +15,7 @@ import warnings
 from itertools import chain
 from contextlib import contextmanager
 import re
+import collections
 
 
 import KratosMultiphysics

@@ -33,6 +33,7 @@
 #include "add_matrix_to_python.h"
 #include "add_quaternion_to_python.h"
 #include "add_points_to_python.h"
+#include "add_predicates_to_python.h"
 #include "add_geometries_to_python.h"
 #include "add_bounding_box_to_python.h"
 #include "add_containers_to_python.h"
@@ -94,6 +95,7 @@ PYBIND11_MODULE(Kratos, m)
     AddVectorToPython(m);
     AddMatrixToPython(m);
     AddPointsToPython(m);
+    AddPredicatesToPython(m);
     AddKernelToPython(m);
     AddContainersToPython(m);
     AddModelPartToPython(m);

@@ -10,7 +10,6 @@ def Factory(parameters: Kratos.Parameters, model: Kratos.Model):
 
     return VtuOutputProcess(model, parameters["Parameters"])
 
-
 class VtuOutputProcess(Kratos.OutputProcess):
     def GetDefaultParameters(self) -> Kratos.Parameters:
         return Kratos.Parameters("""

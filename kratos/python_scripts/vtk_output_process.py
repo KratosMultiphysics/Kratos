@@ -7,8 +7,10 @@ def Factory(settings: KratosMultiphysics.Parameters, model: KratosMultiphysics.M
         raise Exception("expected input shall be a Model object, encapsulating a json string")
     if not isinstance(settings, KratosMultiphysics.Parameters):
         raise Exception("expected input shall be a Parameters object, encapsulating a json string")
-    return VtkOutputProcess(model, settings["Parameters"])
+    if not isinstance(model, KratosMultiphysics.Model):
+        raise Exception("expected input shall be a Model object")
 
+    return VtkOutputProcess(model, settings["Parameters"])
 
 class VtkOutputProcess(KratosMultiphysics.OutputProcess):
     def __init__(self, model: KratosMultiphysics.Model, settings: KratosMultiphysics.Parameters) -> None:
