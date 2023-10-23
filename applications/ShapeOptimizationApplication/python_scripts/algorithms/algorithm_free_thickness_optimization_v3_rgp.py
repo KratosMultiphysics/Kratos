@@ -171,8 +171,6 @@ class AlgorithmFreeThicknessOptimizationv3RGP(OptimizationAlgorithm):
     def CheckApplicability(self):
         if self.objectives.size() > 1:
             raise RuntimeError("Gradient projection algorithm only supports one objective function!")
-        if self.constraints.size() == 0:
-            raise RuntimeError("Gradient projection algorithm requires definition of at least one constraint!")
 
     # --------------------------------------------------------------------------
     def InitializeOptimizationLoop(self):

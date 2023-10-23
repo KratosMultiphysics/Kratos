@@ -224,20 +224,10 @@ public:
 		}
 
 		// thickness sensitivity
-		VariableUtils().SetHistoricalVariableToZero(THICKNESS_SENSITIVITY, mrModelPart.Nodes());
-		int count = 0;
-		KRATOS_INFO("") << "THICKNESS IN MASS RESPONSE" << std::endl;
 		for(auto& element_i : mrModelPart.Elements())
 		{
-			count += 1;
 			const double gradient = element_i.GetGeometry().Area();
 			element_i.SetValue(THICKNESS_SENSITIVITY, gradient);
-			if (count < 21) {
-				KRATOS_INFO("") << "Element " << element_i.Id() << std::endl;
-				KRATOS_INFO("") << " Thickness GetValue : " << element_i.GetValue(THICKNESS) << std::endl;
-				KRATOS_INFO("") << " Thickness Property Id : " << element_i.GetProperties().Id() << std::endl;
-				KRATOS_INFO("") << " Thickness GetProperties.GetValue : " << element_i.GetProperties().GetValue(THICKNESS) << std::endl;
-			}
 		}
 
 		KRATOS_CATCH("");

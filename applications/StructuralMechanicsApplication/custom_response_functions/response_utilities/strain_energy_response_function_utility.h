@@ -164,7 +164,6 @@ public:
 
 		// First gradients are initialized
 		VariableUtils().SetHistoricalVariableToZero(SHAPE_SENSITIVITY, mrModelPart.Nodes());
-		// VariableUtils().SetHistoricalVariableToZero(THICKNESS_SENSITIVITY, mrModelPart.Nodes());
 		for (auto& elem_i : mrModelPart.Elements())
 		{
 			elem_i.SetValue(THICKNESS_SENSITIVITY, 0.0);
@@ -295,23 +294,17 @@ protected:
 				}
 
 				// Pertubation, gradient analysis and recovery of t
-				double gradient = 0;
 				Vector perturbed_RHS = Vector(0);
 
 				const double t = elem_i.GetProperties().GetValue(THICKNESS);
-				const double perturbed_t = t + 1E-5;
-				// elem_i.GetProperties().SetValue(THICKNESS, t+perturbed_t);
-				elem_i.GetProperties().SetValue(THICKNESS, 1.0);
+				const double perturbed_t = t + mDelta;
+				elem_i.GetProperties().SetValue(THICKNESS, perturbed_t);
 				elem_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				// gradient = inner_prod(0.5*u, (perturbed_RHS - RHS) / mDelta);
-				gradient = inner_prod(0.5*u, perturbed_RHS);
 				elem_i.GetProperties().SetValue(THICKNESS, t);
+				const double gradient = 0.5 * inner_prod(u, (perturbed_RHS - RHS) / mDelta);
 
 				double& sens = elem_i.GetValue(THICKNESS_SENSITIVITY);
 				sens += gradient;
-
-				// double thickness_sens = elem_i.GetValue(THICKNESS_SENSITIVITY);
-				// elem_i.SetValue(THICKNESS_SENSITIVITY, thickness_sens+gradient);
 			}
 		}
 
@@ -368,24 +361,17 @@ protected:
 				}
 
 				// Pertubation, gradient analysis and recovery of t
-				double gradient = 0;
 				Vector perturbed_RHS = Vector(0);
 
 				const double t = cond_i.GetProperties().GetValue(THICKNESS);
-				const double perturbed_t = t + 1E-5;
-				// cond_i.GetProperties().SetValue(THICKNESS, t+perturbed_t);
-				cond_i.GetProperties().SetValue(THICKNESS, 1.0);
+				const double perturbed_t = t + mDelta;
+				cond_i.GetProperties().SetValue(THICKNESS, perturbed_t);
 				cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				// gradient = inner_prod(0.5*u, (perturbed_RHS - RHS) / mDelta);
-				gradient = inner_prod(0.5*u, perturbed_RHS);
 				cond_i.GetProperties().SetValue(THICKNESS, t);
+				const double gradient = 0.5 * inner_prod(u, (perturbed_RHS - RHS) / mDelta);
 
 				double& sens = cond_i.GetValue(THICKNESS_SENSITIVITY);
 				sens += gradient;
-
-				// double thickness_sens = cond_i.GetValue(THICKNESS_SENSITIVITY);
-				// cond_i.SetValue(THICKNESS_SENSITIVITY, thickness_sens+gradient);
-
 			}
 		}
 
@@ -449,25 +435,6 @@ protected:
 					// Assemble shape gradient to node
 					noalias(node_i.FastGetSolutionStepValue(SHAPE_SENSITIVITY)) += gradient_contribution;
 				}
-
-				// Pertubation, gradient analysis and recovery of t
-				double gradient = 0;
-				Vector perturbed_RHS = Vector(0);
-
-				const double t = cond_i.GetProperties().GetValue(THICKNESS);
-				const double perturbed_t = t + 1E-5;
-				// cond_i.GetProperties().SetValue(THICKNESS, t+perturbed_t);
-				cond_i.GetProperties().SetValue(THICKNESS, 1.0);
-				cond_i.CalculateRightHandSide(perturbed_RHS, CurrentProcessInfo);
-				// gradient = inner_prod(0.5*u, (perturbed_RHS - RHS) / mDelta);
-				gradient = inner_prod(0.5*u, perturbed_RHS);
-				cond_i.GetProperties().SetValue(THICKNESS, t);
-
-				double& sens = cond_i.GetValue(THICKNESS_SENSITIVITY);
-				sens += gradient;
-
-				// double thickness_sens = cond_i.GetValue(THICKNESS_SENSITIVITY);
-				// cond_i.SetValue(THICKNESS_SENSITIVITY, thickness_sens+gradient);
 
 			}
 		}
