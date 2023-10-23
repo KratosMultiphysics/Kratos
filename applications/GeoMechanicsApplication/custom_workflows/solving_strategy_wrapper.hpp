@@ -129,7 +129,8 @@ public:
     {
         if (mResetDisplacements)
         {
-            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() == mOldTotalDisplacements.size()) << "TEST";
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() == mOldTotalDisplacements.size()) <<
+            "The number of old displacements does not match the current number of nodes.";
             std::size_t count = 0;
             for (auto& node : mrModelPart.Nodes())
             {
