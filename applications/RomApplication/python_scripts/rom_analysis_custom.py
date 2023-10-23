@@ -40,6 +40,23 @@ def CreateCustomRomAnalysisInstance(cls, global_model, parameters):
             e.g. for POD: return self.phi
             """
 
+        def RunSolutionLoop(self):
+            """This function executes the solution loop of the AnalysisStage
+            It can be overridden by derived classes
+            """
+            while self.KeepAdvancingSolutionLoop():
+                self.time = self._AdvanceTime()
+                i=0
+                is_converged=False
+                while i in range(10) and is_converged==False:
+                    self.InitializeSolutionStep()
+                    self._GetSolver().Predict()
+                    is_converged = self._GetSolver().SolveSolutionStep()
+                    self._AnalysisStage__CheckIfSolveSolutionStepReturnsAValue(is_converged)
+                    self.FinalizeSolutionStep()
+                self.FinalizeSolutionStepConverged()
+                self.OutputSolutionStep()
+
         def _CreateSolver(self):
             """ Create the Solver (and create and import the ModelPart if it is not alread in the model) """
 
