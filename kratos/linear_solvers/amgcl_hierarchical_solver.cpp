@@ -10,13 +10,11 @@
 //  Main authors:    Máté Kelemen
 //
 
-#include <amgcl/io/mm.hpp>
 #ifndef AMGCL_PARAM_UNKNOWN
     #include "input_output/logger.h"
     #define AMGCL_PARAM_UNKNOWN(NAME)                       \
-        Kratos::Logger("AMGCL")                             \
+        KRATOS_ERROR                                        \
             << KRATOS_CODE_LOCATION                         \
-            << Kratos::Logger::Severity::ERROR              \
             << "Unknown parameter " << NAME << std::endl
 #endif
 
@@ -33,9 +31,10 @@
 #include "amgcl/preconditioner/runtime.hpp"
 #include "boost/property_tree/ptree.hpp"
 #include "boost/property_tree/json_parser.hpp"
+#include <amgcl/io/mm.hpp>
 
 // Project includes
-#include "amgcl_quadratic_solver.h"
+#include "amgcl_hierarchical_solver.h"
 #include "spaces/ublas_space.h"
 //#include "amgcl_composite_preconditioner.hpp"
 
@@ -182,7 +181,7 @@ using MakeCompositePreconditionedSolver = typename detail::CompositePrecondition
 template <class TSparseSpace,
           class TDenseSpace,
           class TReorderer>
-struct AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
+struct AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
 {
     double mTolerance;
 
@@ -194,23 +193,23 @@ struct AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::Impl
     std::optional<std::vector<std::byte>> mLinearDoFMask;
 
     boost::property_tree::ptree mAMGCLSettings;
-}; // struct AMGCLQuadraticSolver::Impl
+}; // struct AMGCLHierarchicalSolver::Impl
 
 
 
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::AMGCLQuadraticSolver(Parameters parameters)
+AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::AMGCLHierarchicalSolver(Parameters parameters)
     : mpImpl(new Impl)
 {
     KRATOS_TRY
     Parameters default_parameters = this->GetDefaultParameters();
     parameters.ValidateAndAssignDefaults(default_parameters);
 
-    KRATOS_ERROR_IF_NOT(parameters["solver_type"].GetString() == "amgcl_quadratic")
+    KRATOS_ERROR_IF_NOT(parameters["solver_type"].GetString() == "amgcl_hierarchical")
         << "Requested a(n) '" << parameters["solver_type"].GetString() << "' solver,"
-        << " but constructing an AMGCLQuadraticSolver";
+        << " but constructing an AMGCLHierarchicalSolver";
 
     detail::ParametersWithDefaults safe_parameters(parameters, default_parameters);
     mpImpl->mTolerance = safe_parameters["amgcl_settings"]["solver"]["tol"].Get<double>();
@@ -232,7 +231,7 @@ AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::AMGCLQuadraticSolver(
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::~AMGCLQuadraticSolver()
+AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::~AMGCLHierarchicalSolver()
 {
 }
 
@@ -241,13 +240,13 @@ AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::~AMGCLQuadraticSolver
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-bool AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
-                                                                      Vector& rX,
-                                                                      Vector& rB)
+bool AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatrix& rA,
+                                                                         Vector& rX,
+                                                                         Vector& rB)
 {
     KRATOS_TRY
     KRATOS_ERROR_IF_NOT(mpImpl->mLinearDoFMask.has_value())
-        << "AMGCLQuadraticSolver::Solve called before AMGCLQuadraticSolver::ProvideAdditionalData";
+        << "AMGCLHierarchicalSolver::Solve called before AMGCLHierarchicalSolver::ProvideAdditionalData";
     auto& r_linear_dof_mask = mpImpl->mLinearDoFMask.value();
     KRATOS_ERROR_IF_NOT(r_linear_dof_mask.size() == TSparseSpace::Size1(rA))
         << "DoF mask size " << r_linear_dof_mask.size()
@@ -288,7 +287,7 @@ bool AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatr
 
     const auto [iteration_count, residual] = solver_results;
 
-    KRATOS_WARNING_IF("AMGCLQuadraticSolver", mpImpl->mTolerance <= residual)
+    KRATOS_WARNING_IF("AMGCLHierarchicalSolver", mpImpl->mTolerance <= residual)
         << "Failed to converge. Residual: " << residual << "\n";
 
     if(1 < mpImpl->mVerbosity) {
@@ -306,7 +305,7 @@ bool AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::Solve(SparseMatr
 template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
-void AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(SparseMatrix& rA,
+void AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditionalData(SparseMatrix& rA,
                                                                                       Vector& rX,
                                                                                       Vector& rB,
                                                                                       ModelPart::DofsArrayType& rDofs,
@@ -373,7 +372,7 @@ void AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditiona
         KRATOS_ERROR_IF(mpImpl->mDoFCount != max_block_size) << "Block size is not consistent. Local: " << mpImpl->mDoFCount  << " Max: " << max_block_size << std::endl;
     }
 
-    KRATOS_INFO_IF("AMGCLQuadraticSolver", 1 < mpImpl->mVerbosity)
+    KRATOS_INFO_IF("AMGCLHierarchicalSolver", 1 < mpImpl->mVerbosity)
         << "Number of DoFs: " << mpImpl->mDoFCount << "\n";
 
     // Construct mask
@@ -420,11 +419,11 @@ template<class TSparseSpace,
          class TDenseSpace,
          class TReorderer>
 Parameters
-AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParameters()
+AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::GetDefaultParameters()
 {
     return Parameters(R"(
 {
-    "solver_type" : "amgcl_quadratic",
+    "solver_type" : "amgcl_hierarchical",
     "verbosity" : 1,
     "scaling": false,
     "schur_variable" : "PRESSURE",
@@ -474,7 +473,7 @@ template<class TSparseSpace,
          class TReorderer>
 template <unsigned BlockSize>
 std::tuple<std::size_t,double>
-AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMatrix& rA,
+AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMatrix& rA,
                                                                      Vector& rX,
                                                                      Vector& rB) const
 {
@@ -484,7 +483,7 @@ AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMatri
                                                rA.index2_data().begin(),
                                                rA.value_data().begin());
     auto solver = MakeCompositePreconditionedSolver<BlockSize>(*p_adapter, mpImpl->mAMGCLSettings);
-    KRATOS_INFO_IF("AMGCLQuadraticSolver", 1 < mpImpl->mVerbosity)
+    KRATOS_INFO_IF("AMGCLHierarchicalSolver", 1 < mpImpl->mVerbosity)
         << "Solver memory usage: " << amgcl::human_readable_memory(amgcl::backend::bytes(solver))
         << "\n";
     return solver(*p_adapter, rB, rX);
@@ -494,7 +493,7 @@ AMGCLQuadraticSolver<TSparseSpace,TDenseSpace,TReorderer>::SolveImpl(SparseMatri
 
 
 template
-class AMGCLQuadraticSolver<
+class AMGCLHierarchicalSolver<
     TUblasSparseSpace<double>,
     TUblasDenseSpace<double>,
     Reorderer<

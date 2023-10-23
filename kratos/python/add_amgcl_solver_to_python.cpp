@@ -22,7 +22,7 @@
 
 #include "linear_solvers/amgcl_solver.h"
 #include "linear_solvers/amgcl_ns_solver.h"
-#include "linear_solvers/amgcl_quadratic_solver.h"
+#include "linear_solvers/amgcl_hierarchical_solver.h"
 
 namespace Kratos::Python {
 
@@ -71,8 +71,8 @@ void  AddAMGCLSolverToPython(pybind11::module& m)
         .def(py::init<Parameters>())
         ;
 
-    using AMGCLQuadraticSolverType = AMGCLQuadraticSolver<SpaceType,LocalSpaceType>;
-    py::class_<AMGCLQuadraticSolverType, std::shared_ptr<AMGCLQuadraticSolverType>, LinearSolverType>(m, "AMGCLQuadraticSolver")
+    using AMGCLHierarchicalSolverType = AMGCLHierarchicalSolver<SpaceType,LocalSpaceType>;
+    py::class_<AMGCLHierarchicalSolverType, std::shared_ptr<AMGCLHierarchicalSolverType>, LinearSolverType>(m, "AMGCLHierarchicalSolver")
         .def(py::init<Parameters>())
         ;
 
