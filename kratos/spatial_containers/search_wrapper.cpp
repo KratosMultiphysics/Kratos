@@ -372,8 +372,6 @@ int SearchWrapper<TSearchObject, TObjectType>::GetWorldSize() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-#ifdef KRATOS_USING_MPI
-
 template<class TSearchObject, class TObjectType>
 void SearchWrapper<TSearchObject, TObjectType>::InitializeGlobalBoundingBoxes()
 {
@@ -452,8 +450,6 @@ std::vector<int> SearchWrapper<TSearchObject, TObjectType>::RansksPointIsInsideB
 
     return ranks;
 }
-
-#endif
 
 /***********************************************************************************/
 /***********************************************************************************/

@@ -388,8 +388,6 @@ private:
      */
     int GetWorldSize() const;
 
-#ifdef KRATOS_USING_MPI
-
     /**
      * @brief Initializes the global bounding boxes
      */
@@ -412,8 +410,6 @@ private:
         const array_1d<double, 3>& rCoords,
         const double Tolerance
         );
-
-#endif
 
     /**
      * @brief This method takes a point and finds all of the objects in the given radius to it (serial version).
@@ -455,9 +451,14 @@ private:
         }
 
         // Adding the results to the container
-        std::size_t counter = 0;
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            auto& r_partial_result = rResults.InitializeResult(counter);
+        std::size_t counter = 0, id = 0;
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                id = it_point->Id();
+            } else {
+                id = counter;
+            }
+            auto& r_partial_result = rResults.InitializeResult(id);
             SerialSearchInRadius(*it_point, Radius, r_partial_result);
 
             // Update counter
@@ -509,9 +510,14 @@ private:
         }
 
         // Adding the results to the container
-        std::size_t counter = 0;
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            auto& r_point_result = rResults.InitializeResult(counter);
+        std::size_t counter = 0, id = 0;
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                id = it_point->Id();
+            } else {
+                id = counter;
+            }
+            auto& r_point_result = rResults.InitializeResult(id);
             auto result = mpSearchObject->SearchNearestInRadius(*it_point, Radius);
             r_point_result.AddResult(result);
             
@@ -561,9 +567,14 @@ private:
         }
 
         // Adding the results to the container
-        std::size_t counter = 0;
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            auto& r_point_result = rResults.InitializeResult(counter);
+        std::size_t counter = 0, id = 0;
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                id = it_point->Id();
+            } else {
+                id = counter;
+            }
+            auto& r_point_result = rResults.InitializeResult(id);
             auto result = mpSearchObject->SearchNearest(*it_point);
             r_point_result.AddResult(result);
             
@@ -618,9 +629,14 @@ private:
         }
 
         // Adding the results to the container
-        std::size_t counter = 0;
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++){
-            auto& r_point_result = rResults.InitializeResult(counter);
+        std::size_t counter = 0, id = 0;
+        for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                id = it_point->Id();
+            } else {
+                id = counter;
+            }
+            auto& r_point_result = rResults.InitializeResult(id);
             auto result = mpSearchObject->SearchIsInside(*it_point);
             r_point_result.AddResult(result);
 
