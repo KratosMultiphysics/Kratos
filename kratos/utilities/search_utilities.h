@@ -242,8 +242,11 @@ public:
         const auto recv_sizes = SynchronizePoints(itPointBegin, itPointEnd, rAllPointsCoordinates, rAllPointsIds, rDataCommunicator, number_of_points, total_number_of_points);
 
         // Get radius
-        const auto radius = SynchronizeRadius(recv_sizes, rRadius, rDataCommunicator);
-        return radius;
+        if (rDataCommunicator.IsDistributed()) { // If distributed
+            return SynchronizeRadius(recv_sizes, rRadius, rDataCommunicator);
+        } else { // If serial
+            return rRadius;
+        }
     }
 
     ///@}
@@ -288,62 +291,81 @@ private:
             initial_id = std::accumulate(points_per_partition.begin(), points_per_partition.begin() + rank, 0);
         }
 
-        // Initialize local points coordinates
+        // Initialize and resize vectors
+        rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
+        rAllPointsIds.resize(TotalNumberOfPoints);
+        std::vector<int> recv_sizes(world_size, 0);
+
+        // Auxiliary variables
         std::size_t counter = 0;
         array_1d<double, 3> coordinates;
         unsigned int i_coord;
-        std::vector<double> send_points_coordinates(NumberOfPoints * 3);
-        std::vector<IndexType> send_points_ids(NumberOfPoints);
-        for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
-            // In case of considering nodes
-            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
-                if (it_point->FastGetSolutionStepValue(PARTITION_INDEX) != rank) {
-                    continue; // Skip if not local
+
+        // If distributed
+        if (rDataCommunicator.IsDistributed()) {
+            // Initialize local points coordinates
+            std::vector<double> send_points_coordinates(NumberOfPoints * 3);
+            std::vector<IndexType> send_points_ids(NumberOfPoints);
+            for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
+                // In case of considering nodes
+                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                    if (it_point->FastGetSolutionStepValue(PARTITION_INDEX) != rank) {
+                        continue; // Skip if not local
+                    }
                 }
+                noalias(coordinates) = it_point->Coordinates();
+                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                    send_points_ids[counter] = it_point->Id();
+                } else {
+                    send_points_ids[counter] = initial_id + counter;
+                }
+                for (i_coord = 0; i_coord < 3; ++i_coord) {
+                    send_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
+                }
+                ++counter;
             }
-            noalias(coordinates) = it_point->Coordinates();
-            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
-                send_points_ids[counter] = it_point->Id();
-            } else {
-                send_points_ids[counter] = initial_id + counter;
+
+            /* Sync coordinates */
+
+            // Generate vectors with sizes for AllGatherv
+            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                recv_sizes[i_rank] = 3 * points_per_partition[i_rank];
             }
-            for (i_coord = 0; i_coord < 3; ++i_coord) {
-                send_points_coordinates[3 * counter + i_coord] = coordinates[i_coord];
+            std::vector<int> recv_offsets(world_size, 0);
+            for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+                recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
             }
-            ++counter;
+
+            // Invoke AllGatherv
+            rDataCommunicator.AllGatherv(send_points_coordinates, rAllPointsCoordinates, recv_sizes, recv_offsets);
+
+            /* Sync Ids */
+
+            // Generate vectors with sizes for AllGatherv
+            for (int i_rank = 0; i_rank < world_size; ++i_rank) {
+                recv_sizes[i_rank] = points_per_partition[i_rank];
+            }
+            for (int i_rank = 1; i_rank < world_size; ++i_rank) {
+                recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
+            }
+
+            // Invoke AllGatherv
+            rDataCommunicator.AllGatherv(send_points_ids, rAllPointsIds, recv_sizes, recv_offsets);
+        } else { // Serial
+            // Assign values
+            for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
+                noalias(coordinates) = it_point->Coordinates();
+                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                    rAllPointsIds[counter] = it_point->Id();
+                } else {
+                    rAllPointsIds[counter] = initial_id + counter;
+                }
+                for (i_coord = 0; i_coord < 3; ++i_coord) {
+                    rAllPointsCoordinates[3 * counter + i_coord] = coordinates[i_coord];
+                }
+                ++counter;
+            }
         }
-
-        // Resizing
-        rAllPointsCoordinates.resize(TotalNumberOfPoints * 3);
-        rAllPointsIds.resize(TotalNumberOfPoints);
-
-        /* Sync coordinates */
-
-        // Generate vectors with sizes for AllGatherv
-        std::vector<int> recv_sizes(world_size, 0);
-        for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-            recv_sizes[i_rank] = 3 * points_per_partition[i_rank];
-        }
-        std::vector<int> recv_offsets(world_size, 0);
-        for (int i_rank = 1; i_rank < world_size; ++i_rank) {
-            recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
-        }
-
-        // Invoke AllGatherv
-        rDataCommunicator.AllGatherv(send_points_coordinates, rAllPointsCoordinates, recv_sizes, recv_offsets);
-
-        /* Sync Ids */
-
-        // Generate vectors with sizes for AllGatherv
-        for (int i_rank = 0; i_rank < world_size; ++i_rank) {
-            recv_sizes[i_rank] = points_per_partition[i_rank];
-        }
-        for (int i_rank = 1; i_rank < world_size; ++i_rank) {
-            recv_offsets[i_rank] = recv_offsets[i_rank - 1] + recv_sizes[i_rank - 1];
-        }
-
-        // Invoke AllGatherv
-        rDataCommunicator.AllGatherv(send_points_ids, rAllPointsIds, recv_sizes, recv_offsets);
 
         // Return the recv sizes
         return recv_sizes;
@@ -412,17 +434,21 @@ private:
         // Getting local number of points
         rNumberOfPoints = std::distance(itPointBegin, itPointEnd);
         
-        // In case of considering nodes
-        if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
-            for (auto it_node = itPointBegin; it_node < itPointEnd; ++it_node) {
-                if (it_node->FastGetSolutionStepValue(PARTITION_INDEX) != rank) {
-                    --rNumberOfPoints; // Remove is not local
+        // In case of considering nodes (and distributed)
+        if (rDataCommunicator.IsDistributed()) {
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                for (auto it_node = itPointBegin; it_node < itPointEnd; ++it_node) {
+                    if (it_node->FastGetSolutionStepValue(PARTITION_INDEX) != rank) {
+                        --rNumberOfPoints; // Remove is not local
+                    }
                 }
             }
-        }
 
-        // Sum all the nodes
-        rTotalNumberOfPoints = rDataCommunicator.SumAll(rNumberOfPoints);
+            // Sum all the nodes
+            rTotalNumberOfPoints = rDataCommunicator.SumAll(rNumberOfPoints);
+        } else { // Serial
+            rTotalNumberOfPoints = rNumberOfPoints;
+        }
     }
 
     ///@}
