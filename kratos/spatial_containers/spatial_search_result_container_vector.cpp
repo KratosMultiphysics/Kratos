@@ -20,10 +20,26 @@
 #include "includes/data_communicator.h"
 #include "includes/node.h"
 #include "includes/geometrical_object.h"
+#include "utilities/parallel_utilities.h"
+#include "utilities/reduction_utilities.h"
 #include "spatial_containers/spatial_search_result_container_vector.h"
 
 namespace Kratos
 {
+
+template <class TObjectType>
+std::size_t SpatialSearchResultContainerVector<TObjectType>::NumberOfSearchResults() const
+{
+    return block_for_each<SumReduction<IndexType>>(mPointResults, [&](auto& p_result) {
+        if (p_result != nullptr) {
+            return 1;
+        }
+        return 0;
+    });
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
 
 template <class TObjectType>
 SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerVector<TObjectType>::InitializeResult(const IndexType Index)
@@ -32,8 +48,11 @@ SpatialSearchResultContainer<TObjectType>& SpatialSearchResultContainerVector<TO
     if (!HasResult(Index)) {
         // Resize vector
         mPointResults.resize(Index + 1);
+
+        // Create the result
+        mPointResults[Index] = new SpatialSearchResultContainer<TObjectType>();
     }
-    return mPointResults[Index];
+    return *mPointResults[Index];
 }
 
 /***********************************************************************************/
@@ -46,7 +65,7 @@ bool SpatialSearchResultContainerVector<TObjectType>::HasResult(const IndexType 
     if (Index >= mPointResults.size()) {
         return false;
     } else {
-        return true;
+        return mPointResults[Index] != nullptr;
     }      
 }
 
@@ -66,8 +85,8 @@ template <class TObjectType>
 void SpatialSearchResultContainerVector<TObjectType>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
 {
     // Synchronize all the results
-    for (auto& r_point_result : mPointResults) {
-        r_point_result.SynchronizeAll(rDataCommunicator);
+    for (auto& p_point_result : mPointResults) {
+        p_point_result->SynchronizeAll(rDataCommunicator);
     }
 }
 
@@ -99,8 +118,8 @@ void SpatialSearchResultContainerVector<TObjectType>::PrintData(std::ostream& rO
 {
     // Print results
     rOStream << "SpatialSearchResultContainerVector data summary: " << "\n";
-    for (auto& r_point_result : mPointResults) {
-        r_point_result.PrintData(rOStream);
+    for (auto& p_point_result : mPointResults) {
+        p_point_result->PrintData(rOStream);
     }
 }
 

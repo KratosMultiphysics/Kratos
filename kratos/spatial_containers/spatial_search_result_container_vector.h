@@ -47,7 +47,7 @@ public:
     KRATOS_CLASS_POINTER_DEFINITION(SpatialSearchResultContainerVector);
 
     /// The container type
-    using ContainerType = std::vector<SpatialSearchResultContainer<TObjectType>>;
+    using ContainerType = std::vector<SpatialSearchResultContainer<TObjectType>*>;
 
     // Define the iterator class
     class iterator {
@@ -111,19 +111,19 @@ public:
         }
 
         /**
-         * @brief Dereference operator.
-         * @return Reference to the value pointed to by the iterator.
-         */
+        * @brief Dereference operator.
+        * @return Reference to the value pointed to by the iterator.
+        */
         reference operator*() const {
-            return *iter_;
+            return **iter_;
         }
 
         /**
-         * @brief Member access operator.
-         * @return Pointer to the value pointed to by the iterator.
-         */
+        * @brief Member access operator.
+        * @return Pointer to the value pointed to by the iterator.
+        */
         pointer operator->() const {
-            return &(*iter_);
+            return *iter_;
         }
 
     private:
@@ -192,19 +192,19 @@ public:
         }
 
         /**
-         * @brief Dereference operator.
-         * @return Reference to the value pointed to by the constant iterator.
-         */
+        * @brief Dereference operator.
+        * @return Reference to the value pointed to by the iterator.
+        */
         reference operator*() const {
-            return *iter_;
+            return **iter_;
         }
 
         /**
-         * @brief Member access operator.
-         * @return Pointer to the value pointed to by the constant iterator.
-         */
+        * @brief Member access operator.
+        * @return Pointer to the value pointed to by the iterator.
+        */
         pointer operator->() const {
-            return &(*iter_);
+            return *iter_;
         }
 
     private:
@@ -219,7 +219,13 @@ public:
     SpatialSearchResultContainerVector() = default;
 
     /// Destructor.
-    virtual ~SpatialSearchResultContainerVector() = default;
+    /// Destructor.
+    virtual ~SpatialSearchResultContainerVector() {
+        // Make sure to delete the pointers stored in the container
+        for (auto pResult : mPointResults) {
+            delete pResult;
+        }
+    }
 
     ///@}
     ///@name Operators
@@ -233,7 +239,7 @@ public:
     SpatialSearchResultContainer<TObjectType>& operator[](const IndexType Index)
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
-        return mPointResults[Index];
+        return *mPointResults[Index];
     }
 
     /**
@@ -244,7 +250,7 @@ public:
     const SpatialSearchResultContainer<TObjectType>& operator[](const IndexType Index) const
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
-        return mPointResults[Index];
+        return *mPointResults[Index];
     }
 
     /**
@@ -255,7 +261,7 @@ public:
     SpatialSearchResultContainer<TObjectType>& operator()(const IndexType Index)
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
-        return mPointResults[Index];
+        return *mPointResults[Index];
     }
 
     /**
@@ -266,7 +272,7 @@ public:
     const SpatialSearchResultContainer<TObjectType>& operator()(const IndexType Index) const
     {
         KRATOS_ERROR_IF_NOT(this->HasResult(Index)) << "The result container does not exist for index: " << Index << std::endl;
-        return mPointResults[Index];
+        return *mPointResults[Index];
     }
 
     ///@}
@@ -313,10 +319,7 @@ public:
      * @brief Returns the number of points results
      * @return The number of points results
      */
-    std::size_t NumberOfSearchResults() const
-    {
-        return mPointResults.size();
-    }
+    std::size_t NumberOfSearchResults() const;
 
     /**
      * @brief Initialize the container
