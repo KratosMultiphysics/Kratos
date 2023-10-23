@@ -47,13 +47,13 @@ private:
     void MakeProcessForNormalComponent(const Parameters & rProcessSettings);
     void MakeProcessForTangentialComponent(const Parameters & rProcessSettings);
     void MakeProcessForUniformFluidPressureType(const Parameters & rProcessSettings,
-                                                        Parameters processingParameters);
+                                                std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForHydrostaticFluidPressureType(const Parameters & rProcessSettings,
-                                                           Parameters processingParameters);
+                                                    std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForPhreaticLineFluidPressureType(const Parameters & rProcessSettings,
-                                                              Parameters processingParameters);
+                                                     std::vector<std::string> NamesOfSettingsToCopy);
     void MakeProcessForPhreaticSurfaceFluidPressureType(const Parameters & rProcessSettings,
-                                                              Parameters processingParameters);
+                                                        std::vector<std::string> NamesOfSettingsToCopy);
     bool IsNormalComponentActive(const Parameters & rProcessSettings);
     bool IsTangentialComponentActive(const Parameters & rProcessSettings);
     bool IsComponentActive(const Parameters & rProcessSettings, int componentNumber);
