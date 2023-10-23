@@ -18,9 +18,6 @@
 #endif
 
 // Project includes
-#ifdef KRATOS_USING_MPI
-#include "mpi/includes/mpi_data_communicator.h"
-#endif
 #include "utilities/search_utilities.h"
 #include "spatial_containers/search_wrapper.h"
 
@@ -280,17 +277,10 @@ void SearchWrapper<TSearchObject, TObjectType>::DistributedSearchNearestInRadius
     const double local_distance = (local_result.IsObjectFound() && local_result.IsDistanceCalculated()) ? local_result.GetDistance() : std::numeric_limits<double>::max();
 
     // Find the minimum value and the rank that holds it
-    struct {
-        double value;
-        int rank;
-    } local_min, global_min;
-
-    local_min.value = local_distance;
-    local_min.rank = current_rank;
-    MPI_Allreduce(&local_min, &global_min, 1, MPI_DOUBLE_INT, MPI_MINLOC, MPIDataCommunicator::GetMPICommunicator(mrDataCommunicator));
+    global_min = mrDataCommunicator.MinLocAll(local_distance);
 
     // Get the solution from the computed_rank
-    if (global_min.rank == current_rank) {
+    if (global_min.second == current_rank) {
         // Add the local search
         rResults.AddResult(local_result);
     }
