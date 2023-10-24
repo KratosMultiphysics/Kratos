@@ -164,7 +164,7 @@ void MembraneElement::CalculateLeftHandSide(
 //***********************************************************************************
 //***********************************************************************************
 
-void MembraneElement::CalculateRightHandSide(
+void MembraneElement::CalculateRightHandSide(MatrixType& rLeftHandSideVector,
     VectorType& rRightHandSideVector,
     const ProcessInfo& rCurrentProcessInfo)
 
@@ -174,10 +174,63 @@ void MembraneElement::CalculateRightHandSide(
     const SizeType system_size = number_of_nodes * dimension;
 
     Vector internal_forces = ZeroVector(system_size);
+    //Vector external_forces = ZeroVector(system_size);
     InternalForces(internal_forces,GetGeometry().GetDefaultIntegrationMethod(),rCurrentProcessInfo);
     rRightHandSideVector.resize(system_size);
     noalias(rRightHandSideVector) = ZeroVector(system_size);
     noalias(rRightHandSideVector) -= internal_forces;
+
+    // KRATOS_WATCH(internal_forces)
+    // KRATOS_WATCH(rRightHandSideVector)
+
+    // Matrix normals = ZeroMatrix(3,6);
+    // normals(0,0) = 0.0         ;
+    // normals(0,1) = -0.35920894;
+    // normals(0,2) = -0.49999801;
+    // normals(0,3) = 0.0         ;
+    // normals(0,4) = -0.18898127;
+    // normals(0,5) = -0.49999801;
+
+    // normals(1,0) = 0.0;
+    // normals(1,1) = 0.0;
+    // normals(1,2) = 0.0;
+    // normals(1,3) = 0.0;
+    // normals(1,4) = 0.0;
+    // normals(1,5) = 0.0;
+
+    // normals(2,0) = 1.0       ;
+    // normals(2,1) = 0.93325716;
+    // normals(2,2) = 0.86602655;
+    // normals(2,3) = 1.0       ;
+    // normals(2,4) = 0.98198069;
+    // normals(2,5) = 0.86602655;
+
+    // KRATOS_WATCH(internal_forces)
+    // KRATOS_WATCH(rRightHandSideVector)
+    // double p_0 = 0.0;
+    // double p_1 = 0.0;
+    // double p_2 = 0.0;
+
+    // if (abs(internal_forces[2]) > 1e-10){
+    //     p_0 = internal_forces[2] / normals(2, GetGeometry()[0].Id());
+    // }
+    // if (abs(internal_forces[5]) > 1e-10){
+    //     p_1 = internal_forces[5] / normals(2, GetGeometry()[1].Id());
+    // }
+    // if (abs(internal_forces[8]) > 1e-10){
+    //     p_2 = internal_forces[8] / normals(2, GetGeometry()[2].Id());
+    // }
+    // external_forces(0) = p_0 * normals(0, GetGeometry()[0].Id());
+    // external_forces(1) = p_0 * normals(1, GetGeometry()[0].Id());
+    // external_forces(2) = p_0 * normals(2, GetGeometry()[0].Id());
+    // external_forces(3) = p_1 * normals(0, GetGeometry()[1].Id());
+    // external_forces(4) = p_1 * normals(1, GetGeometry()[1].Id());
+    // external_forces(5) = p_1 * normals(2, GetGeometry()[1].Id());
+    // external_forces(6) = p_2 * normals(0, GetGeometry()[2].Id());
+    // external_forces(7) = p_2 * normals(1, GetGeometry()[2].Id());
+    // external_forces(8) = p_2 * normals(2, GetGeometry()[2].Id());
+    // noalias(rRightHandSideVector) += external_forces;
+    // KRATOS_WATCH(rRightHandSideVector)
     CalculateAndAddBodyForce(rRightHandSideVector,rCurrentProcessInfo);
 }
 
@@ -190,8 +243,8 @@ void MembraneElement::CalculateLocalSystem(
     const ProcessInfo& rCurrentProcessInfo)
 
 {
-    CalculateRightHandSide(rRightHandSideVector,rCurrentProcessInfo);
     CalculateLeftHandSide(rLeftHandSideMatrix,rCurrentProcessInfo);
+    CalculateRightHandSide(rLeftHandSideMatrix, rRightHandSideVector,rCurrentProcessInfo);
 }
 
 
@@ -554,11 +607,12 @@ void MembraneElement::InternalForces(Vector& rInternalForces,const IntegrationMe
 
 
         JacobiDeterminante(detJ,reference_covariant_base_vectors);
+        KRATOS_WATCH(detJ)
         Matrix material_tangent_modulus = ZeroMatrix(dimension);
         MaterialResponse(stress,contravariant_metric_reference,covariant_metric_reference,covariant_metric_current,
             transformed_base_vectors,inplane_transformation_matrix_material,point_number,material_tangent_modulus,
             rCurrentProcessInfo);
-
+        KRATOS_WATCH(stress)
         for (SizeType dof_r=0;dof_r<number_dofs;++dof_r)
         {
             DerivativeStrainGreenLagrange(derivative_strain,shape_functions_gradients_i,
@@ -887,7 +941,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
 
 
             DeformationGradient(deformation_gradient,det_deformation_gradient,current_covariant_base_vectors,reference_contravariant_base_vectors);
-
+            KRATOS_WATCH(deformation_gradient)
 
             Matrix stress_matrix_local_cs = MathUtils<double>::StressVectorToTensor(stress);
 
@@ -930,7 +984,7 @@ void MembraneElement::CalculateOnIntegrationPoints(const Variable<Vector >& rVar
             }
         }
     } else if (rVariable == INITIAL_STRAIN_VECTOR) {
-            const SizeType strain_size = 6;
+            //const SizeType strain_size = 6;
             for ( IndexType point_number = 0; point_number < 1; ++point_number ) {
                 if (mConstitutiveLawVector[point_number]->HasInitialState()) {
                     const Vector& r_initial_strain = mConstitutiveLawVector[point_number]->GetInitialState().GetInitialStrainVector();

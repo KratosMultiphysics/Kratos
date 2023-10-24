@@ -15,7 +15,6 @@
                             "file_label": "step",
                             "flush_after_output": false,
                             "gauss_point_results": [
-                                "INITIAL_STRAIN_VECTOR",
                                 "GREEN_LAGRANGE_STRAIN_VECTOR",
                                 "LOCAL_AXIS_1"
                             ],
@@ -59,7 +58,6 @@
                     "entity_type": "automatic",
                     "file_format": "ascii",
                     "gauss_point_variables_extrapolated_to_nodes": [
-                        "INITIAL_STRAIN_VECTOR",
                         "LOCAL_AXIS_1",
                         "LOCAL_AXIS_2",
                         "LOCAL_AXIS_3"
@@ -68,7 +66,6 @@
                     "model_part_name": "Structure",
                     "nodal_data_value_variables": [
                         "NORMAL",
-                        "INITIAL_STRAIN_VECTOR",
                         "LOCAL_AXIS_1",
                         "LOCAL_AXIS_2",
                         "LOCAL_AXIS_3"
@@ -84,7 +81,7 @@
                     "output_precision": 7,
                     "output_sub_model_parts": false,
                     "save_output_files_in_folder": true,
-                    "write_deformed_configuration": true,
+                    "write_deformed_configuration": false,
                     "write_ids": false
                 },
                 "kratos_module": "KratosMultiphysics",
@@ -116,7 +113,7 @@
                     ],
                     "local_axes": {},
                     "mesh_id": 0,
-                    "model_part_name": "Structure.DISPLACEMENT_Displacement_Center",
+                    "model_part_name": "Structure.DISPLACEMENT_Displacement_CenterDown",
                     "value": [
                         0.0,
                         0.0,
@@ -188,10 +185,10 @@
         "material_import_settings": {
             "materials_filename": "StructuralMaterials.json"
         },
-        "max_iteration": 10,
+        "max_iteration": 30,
         "model_import_settings": {
             "ignore_variables_not_in_solution_step_data": false,
-            "input_filename": "cyl",
+            "input_filename": "plate",
             "input_type": "mdpa",
             "reorder": false,
             "reorder_consecutive": false,

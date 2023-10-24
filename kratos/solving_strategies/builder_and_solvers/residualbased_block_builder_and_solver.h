@@ -232,7 +232,8 @@ public:
                 if (it_elem->IsActive()) {
                     // Calculate elemental contribution
                     pScheme->CalculateSystemContributions(*it_elem, LHS_Contribution, RHS_Contribution, EquationId, CurrentProcessInfo);
-
+                    KRATOS_WATCH(LHS_Contribution)
+                    KRATOS_WATCH(RHS_Contribution)
                     // Assemble the elemental contribution
                     Assemble(A, b, LHS_Contribution, RHS_Contribution, EquationId);
                 }

@@ -92,9 +92,9 @@ namespace Kratos
       MatrixType& rLeftHandSideMatrix,
       const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateRightHandSide(
+    void CalculateRightHandSide(MatrixType& rLeftHandSideVector,
       VectorType& rRightHandSideVector,
-      const ProcessInfo& rCurrentProcessInfo) override;
+      const ProcessInfo& rCurrentProcessInfo);
 
     void CalculateLocalSystem(
       MatrixType& rLeftHandSideMatrix,

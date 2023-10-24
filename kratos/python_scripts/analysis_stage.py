@@ -60,27 +60,27 @@ class AnalysisStage(object):
         It can be overridden by derived classes
         """
         ######################################################################################################
-        imposed_strain = KratosMultiphysics.Vector(3)
-        imposed_stress = KratosMultiphysics.Vector(3)
-        imposed_def_grad = KratosMultiphysics.Matrix(2, 2)
-        imposed_strain[0] = 0.0
-        imposed_strain[1] = 0.0
-        imposed_strain[2] = 0.0
-        imposed_stress[0] = 0.0
-        imposed_stress[1] = 0.0
-        imposed_stress[2] = 0.0
-        imposed_def_grad[0, 0] = 0.0
-        imposed_def_grad[0, 1] = 0.0
-        imposed_def_grad[1, 0] = 0.0
-        imposed_def_grad[1, 1] = 0.0
+        # imposed_strain = KratosMultiphysics.Vector(3)
+        # imposed_stress = KratosMultiphysics.Vector(3)
+        # imposed_def_grad = KratosMultiphysics.Matrix(2, 2)
+        # imposed_strain[0] = 0.0
+        # imposed_strain[1] = 0.0
+        # imposed_strain[2] = 0.0
+        # imposed_stress[0] = 0.0
+        # imposed_stress[1] = 0.0
+        # imposed_stress[2] = 0.0
+        # imposed_def_grad[0, 0] = 0.0
+        # imposed_def_grad[0, 1] = 0.0
+        # imposed_def_grad[1, 0] = 0.0
+        # imposed_def_grad[1, 1] = 0.0
 
         # create process
-        KratosMultiphysics.SetInitialStateProcess2D(self._GetSolver().GetComputingModelPart(),
-                                                    imposed_strain,
-                                                    imposed_stress,
-                                                    imposed_def_grad).ExecuteInitializeSolutionStep()
+        # KratosMultiphysics.SetInitialStateProcess2D(self._GetSolver().GetComputingModelPart(),
+        #                                             imposed_strain,
+        #                                             imposed_stress,
+        #                                             imposed_def_grad).ExecuteInitializeSolutionStep()
         ######################################################################################################
-
+        flag_started = False
         while self.KeepAdvancingSolutionLoop():
             self.time = self._AdvanceTime()
             self.InitializeSolutionStep()
@@ -90,24 +90,24 @@ class AnalysisStage(object):
             self.FinalizeSolutionStep()
             self.OutputSolutionStep()
 
-    def InitializeMyStrains(self):
-        self.flatted_config_jacobians = []
-        for element in self._GetSolver().GetComputingModelPart().Elements:
-            H0 = element.Properties[KratosMultiphysics.THICKNESS]
-            extracolumn = np.array([[0.0, 0.0, H0/2.0]])
-            elm_Jacobian = np.array(element.GetGeometry().Jacobian(0))
-            J_X0 = np.concatenate((elm_Jacobian, extracolumn.T), axis=1)
-            self.flatted_config_jacobians.append(J_X0)
+    #def InitializeMyStrains(self):
+        # self.flatted_config_jacobians = []
+        # for element in self._GetSolver().GetComputingModelPart().Elements:
+        #     H0 = element.Properties[KratosMultiphysics.THICKNESS]
+        #     extracolumn = np.array([[0.0, 0.0, H0/2.0]])
+        #     elm_Jacobian = np.array(element.GetGeometry().Jacobian(0))
+        #     J_X0 = np.concatenate((elm_Jacobian, extracolumn.T), axis=1)
+        #     self.flatted_config_jacobians.append(J_X0)
 
-        for J, J0, element in zip(self.deformed_config_jacobians,self.flatted_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
+        # for J, J0, element in zip(self.deformed_config_jacobians,self.flatted_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
 
-            J0_inv = np.linalg.inv(J0)
+        #     J0_inv = np.linalg.inv(J0)
 
-            JTJ = J.T @ J
-            G_hat = J0_inv
-            g_hat = JTJ
-            C3D = G_hat.T @ (g_hat @ G_hat)
-            E3D = 0.5 * (C3D - np.eye(3))
+        #     JTJ = J.T @ J
+        #     G_hat = J0_inv
+        #     g_hat = JTJ
+        #     C3D = G_hat.T @ (g_hat @ G_hat)
+        #     E3D = 0.5 * (C3D - np.eye(3))
 
             # JTJ = J.T @ J
             # G = J0_inv[0:2, 0:2]
@@ -115,22 +115,22 @@ class AnalysisStage(object):
             # C2D = G.T @ (g @ G)
             # E2D = 0.5 * (C2D - np.eye(2))
 
-            def_grad = J @ J0_inv
+            # def_grad = J @ J0_inv
 
-            E_voigt = KratosMultiphysics.Vector(3)
-            factor = float(0.001)
-            E_voigt[0] = factor * E3D[0, 0]
-            E_voigt[1] = factor * E3D[1, 1]
-            E_voigt[2] = factor * (E3D[0, 1] + E3D[1, 0])
+            # E_voigt = KratosMultiphysics.Vector(3)
+            # factor = float(0.001)
+            # E_voigt[0] = factor * E3D[0, 0]
+            # E_voigt[1] = factor * E3D[1, 1]
+            # E_voigt[2] = factor * (E3D[0, 1] + E3D[1, 0])
 
-            _def_grad = KratosMultiphysics.Matrix(2, 2)
-            _def_grad[0, 0] = 0.5
-            _def_grad[0, 1] = 0.0
-            _def_grad[1, 0] = 0.0
-            _def_grad[1, 1] = 0.5
+            # _def_grad = KratosMultiphysics.Matrix(2, 2)
+            # _def_grad[0, 0] = 0.5
+            # _def_grad[0, 1] = 0.0
+            # _def_grad[1, 0] = 0.0
+            # _def_grad[1, 1] = 0.5
 
             #element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
-            element.SetValue(KratosMultiphysics.INITIAL_DEFORMATION_GRADIENT_MATRIX, _def_grad)
+            #element.SetValue(KratosMultiphysics.INITIAL_DEFORMATION_GRADIENT_MATRIX, _def_grad)
             # TODO later - Create condition for PointLoad, reference command:
             # self._GetSolver().GetComputingModelPart().CreateCondition()
 
@@ -261,20 +261,20 @@ class AnalysisStage(object):
 
     def ModifyInitialGeometry(self):
         """this is the place to eventually modify geometry (for example moving nodes) in the stage """
-        ######################################################################################################
-        # save deformed configuration nodal positions
-        var_utils = KratosMultiphysics.VariableUtils()
-        self.initial_unmodified_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
+        # ######################################################################################################
+        # # save deformed configuration nodal positions
+        # var_utils = KratosMultiphysics.VariableUtils()
+        # self.initial_unmodified_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
 
-        # Calculate Jacobians from deformed configuration
-        self.deformed_config_jacobians = []
-        for elem in self._GetSolver().GetComputingModelPart().Elements:
-            H0 = elem.Properties[KratosMultiphysics.THICKNESS]
-            extracolumn = np.array([[0.0, 0.0, H0/2.0]])
-            elm_Jacobian = np.array(elem.GetGeometry().Jacobian(0))
+        # # Calculate Jacobians from deformed configuration
+        # self.deformed_config_jacobians = []
+        # for elem in self._GetSolver().GetComputingModelPart().Elements:
+        #     H0 = elem.Properties[KratosMultiphysics.THICKNESS]
+        #     extracolumn = np.array([[0.0, 0.0, H0/2.0]])
+        #     elm_Jacobian = np.array(elem.GetGeometry().Jacobian(0))
 
-            J_X = np.concatenate((elm_Jacobian, extracolumn.T), axis=1)
-            self.deformed_config_jacobians.append(J_X)
+        #     J_X = np.concatenate((elm_Jacobian, extracolumn.T), axis=1)
+        #     self.deformed_config_jacobians.append(J_X)
 
         # Calculate normals from deformed configuration
         print("\n ::TESTING:: START Calculate normals \n")
@@ -286,23 +286,23 @@ class AnalysisStage(object):
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             self.deformed_config_normals.append(np.array(node.GetValue(KratosMultiphysics.NORMAL)))
             print(node.Id, self.deformed_config_normals[node.Id - 1])
-        # print(self.deformed_config_normals)
+        print(self.deformed_config_normals)
         print("\n ::TESTING:: FINISH Calculate normals \n")
 
         # flatten geometry
-        for node in self._GetSolver().GetComputingModelPart().Nodes:
-            node.Z0 = 0.0
-            node.Z  = 0.0
+        #for node in self._GetSolver().GetComputingModelPart().Nodes:
+        #   node.Z0 = 0.0
+        #    node.Z  = 0.0
         normal_calculation_utils = KratosMultiphysics.NormalCalculationUtils()
         normal_calculation_utils.CalculateUnitNormalsNonHistorical(self._GetSolver().GetComputingModelPart(), 0)
 
-        # save flat configuration nodal positions
-        self.flattened_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
-        self.initial_displacements = self.initial_unmodified_coordinates - self.flattened_coordinates
+        # # save flat configuration nodal positions
+        # self.flattened_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
+        # self.initial_displacements = self.initial_unmodified_coordinates - self.flattened_coordinates
 
-        # assign initial strains
-        self.InitializeMyStrains()
-        ######################################################################################################
+        # # assign initial strains
+        # # self.InitializeMyStrains()
+        # ######################################################################################################
 
 
 
@@ -315,6 +315,14 @@ class AnalysisStage(object):
 
         for process in self._GetListOfProcesses():
             process.ExecuteInitializeSolutionStep()
+
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, node.Z)
+            print("NODE:", node.Id, node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT))
+
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            node.Z0 = 0.0
+            node.Z  = 0.0
 
         #other operations as needed
 

@@ -53,6 +53,12 @@ Begin SubModelPart DISPLACEMENT_Displacement_CenterUp // Group Displacement Cent
             5
     End SubModelPartNodes
 End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Z // Group Displacement Z // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           2
+           5
+    End SubModelPartNodes
+End SubModelPart
 Begin SubModelPart SurfaceLoad3D_Membrane_Auto1 // Group Membrane Auto1 // Subtree SurfaceLoad3D
     Begin SubModelPartNodes
             1
