@@ -406,3 +406,9 @@ class Pressure(object):
             self.sub_group = file_or_group.create_group(self.group_name)
         else:
             self.sub_group = file_or_group.create_group(self.group_name)
+
+        for name, datum in zip(names, data):
+            if name in file_or_group:
+                file_or_group.__delitem__(name)
+        for name, datum in zip(names, data):
+            self.sub_group.create_dataset(name = name, data = datum)
