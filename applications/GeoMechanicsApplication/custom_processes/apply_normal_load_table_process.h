@@ -16,8 +16,8 @@
 
 #include "processes/process.h"
 
-//#include <memory>
-//#include <vector>
+#include <memory>
+#include <vector>
 
 namespace Kratos
 {
@@ -41,6 +41,7 @@ public:
 
     void ExecuteInitialize() override;
     void ExecuteInitializeSolutionStep() override;
+    std::string Info() const override;
 
 private:
     void MakeInternalProcesses(const Parameters & rProcessSettings);
