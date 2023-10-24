@@ -84,6 +84,10 @@ void  AddSerializerToPython(pybind11::module& m)
     .def("LoadFromBeginning",SerializerLoadFromBeginning<Model>)
     .def("Save",SerializerSave<Model>)
 
+    .def("Load",SerializerLoad<Flags>)
+    .def("LoadFromBeginning",SerializerLoadFromBeginning<Flags>)
+    .def("Save",SerializerSave<Flags>)
+
     .def("Set",   &Serializer::Set)
     .def("Print", SerializerPrint)
     ;
