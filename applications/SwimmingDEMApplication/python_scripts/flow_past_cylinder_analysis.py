@@ -14,8 +14,8 @@ from swimming_DEM_analysis import SwimmingDEMAnalysis
 
 import swimming_DEM_procedures as SDP
 
-class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
-    def __init__(self, model, iteration, damkohler, omega, varying_parameters = Parameters("{}")):
+class FlowPastCylinderAnalysis(SwimmingDEMAnalysis):
+    def __init__(self, model, iteration, varying_parameters = Parameters("{}")):
         """The default constructor of the class.
 
         Keyword arguments:
@@ -32,8 +32,7 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
         self.max_iteration = self.project_parameters['fluid_parameters']['solver_settings']['maximum_iterations'].GetInt()
         self.lowest_alpha = self.project_parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["alpha_min"].GetDouble()
         self.u_characteristic = self.project_parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
-        self.damkohler_number = damkohler
-        self.omega = omega
+        self.pressure = hdf5_script.Pressure(iteration)
         # This model analysis is created to validate formulations so we have to make sure the fluid is computed in every time step
 
     def InitializeVariablesWithNonZeroValues(self):
@@ -41,14 +40,13 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
 
     def Initialize(self):
         super().Initialize()
-        self._GetSolver().ConstructErrorNormCalculator()
 
     def GetDebugInfo(self):
         return SDP.Counter(is_dead = 1)
 
     def _CreateSolver(self):
-        import fluid_fraction_test_solver as sdem_solver
-        return sdem_solver.FluidFractionTestSolver(self.model,
+        import flow_past_cylinder_solver as sdem_solver
+        return sdem_solver.FlowPastCylinderSolver(self.model,
                                                 self.project_parameters,
                                                 self.GetFieldUtility(),
                                                 self._GetFluidAnalysis()._GetSolver(),
@@ -77,37 +75,14 @@ class FluidFractionTestAnalysis(SwimmingDEMAnalysis):
                 self.project_parameters["fluid_domain_volume"].GetDouble())
 
         super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
-        self.n_iteration_number = self.fluid_model_part.ProcessInfo[Kratos.NL_ITERATION_NUMBER]
-        self.relax_alpha = self.fluid_model_part.ProcessInfo[SDEM.RELAXATION_ALPHA]
 
-        porosity_field = [node.GetSolutionStepValue(Kratos.FLUID_FRACTION) for node in self.fluid_model_part.Nodes]
-        self.porosity_mean = np.mean(porosity_field)
         for node in self.fluid_model_part.Nodes:
             self.nu = node.GetSolutionStepValue(Kratos.VISCOSITY)
             break
         self.reynolds_number = self.u_characteristic/self.nu
 
-        self.velocity_L2_error_norm, self.pressure_L2_error_norm, self.error_model_part = self._GetSolver().CalculateL2ErrorNorm()
+        self.pressure.WriteData(self.fluid_model_part, self.model_type, self.lowest_alpha, self.reynolds_number)
 
-        self.velocity_H1_error_seminorm, self.pressure_H1_error_seminorm = self._GetSolver().CalculateH1ErrorSemiNorm()
-
-        self.projector_post_process.WriteData(self.error_model_part,
-                                            self.velocity_L2_error_norm,
-                                            self.pressure_L2_error_norm,
-                                            self.velocity_H1_error_seminorm,
-                                            self.pressure_H1_error_seminorm,
-                                            self.projection_type,
-                                            self.model_type,
-                                            self.subscale_type,
-                                            self.porosity_mean,
-                                            self.n_iteration_number,
-                                            self.max_iteration,
-                                            self.relax_alpha,
-                                            self.lowest_alpha,
-                                            self.damkohler_number,
-                                            self.omega,
-                                            self.reynolds_number,
-                                            2)
 
     def TransferBodyForceFromDisperseToFluid(self):
         pass

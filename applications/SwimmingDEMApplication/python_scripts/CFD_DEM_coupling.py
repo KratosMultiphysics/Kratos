@@ -143,7 +143,7 @@ class ProjectionModule:
             self.projector.InterpolateFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.bin_of_objects_fluid)
 
         else:
-            self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, recalculate_neigh, self.use_drew_model)
+            self.projector.HomogenizeFromDEMMesh(self.particles_model_part, self.fluid_model_part, self.meso_scale_length, self.bin_of_objects_fluid, recalculate_neigh, self.use_drew_model)
 
     def ComputePostProcessResults(self, particles_process_info):
         self.projector.ComputePostProcessResults(self.particles_model_part, self.fluid_model_part, self.FEM_DEM_model_part, self.bin_of_objects_fluid, particles_process_info)
