@@ -85,6 +85,7 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include "custom_utilities/renumbering_nodes_utility.h"
 #include "custom_utilities/stationarity_check.h"
 #include "custom_utilities/error_norm_calculator_utility.h"
+#include "custom_utilities/averaging_variables_utility.h"
 
 namespace Kratos{
 
@@ -314,6 +315,12 @@ void  AddCustomUtilitiesToPython(pybind11::module& m){
         .def("GetLowZ", &SpaceTimeSet::GetLowZ)
         .def("GetHighZ", &SpaceTimeSet::GetHighZ)
         .def("GetRules", &SpaceTimeSet::GetRules)
+        ;
+
+
+    py::class_<AveragingVariablesUtility, AveragingVariablesUtility::Pointer>(m, "AveragingVariablesUtility")
+        .def(py::init<>())
+        .def("AverageVariables", &AveragingVariablesUtility::AverageVariables)
         ;
 
     // next we do what is needed to define the overloaded function 'FieldUtility::ImposeFieldOnNodes'

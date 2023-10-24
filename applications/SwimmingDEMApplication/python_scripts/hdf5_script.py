@@ -5,8 +5,8 @@ import numpy as np
 import h5py
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.DEMApplication as DEM
-import KratosMultiphysics.SwimmingDEMApplication as SDEM
 import KratosMultiphysics.FluidDynamicsApplication as Fluid
+from KratosMultiphysics.SwimmingDEMApplication import *
 
 class ErrorProjectionPostProcessTool(object):
     def __init__(self, test_number):
@@ -35,7 +35,7 @@ class ErrorProjectionPostProcessTool(object):
         self.dtype = np.float64
         self.group_name = str(test_number)
 
-    def WriteData(self, error_model_part, velocity_L2_error_norm, pressure_L2_error_norm, velocity_H1_error_seminorm, pressure_H1_error_seminorm, projection_type, model_type, subscale_type, porosity_mean, n_iterations, max_iteration, relax_alpha, lowest_alpha, damkohler, omega,reynolds_number):
+    def WriteData(self, error_model_part, velocity_L2_error_norm, pressure_L2_error_norm, velocity_H1_error_seminorm, pressure_H1_error_seminorm, projection_type, model_type, subscale_type, porosity_mean, n_iterations, max_iteration, relax_alpha, lowest_alpha, damkohler, omega,reynolds_number, viscous_projector):
         self.error_model_part = error_model_part
         self.projection_type = projection_type
         self.model_type = model_type
@@ -46,9 +46,16 @@ class ErrorProjectionPostProcessTool(object):
         self.lowest_alpha = lowest_alpha
         self.damkohler_number = damkohler
         self.omega = omega
+        if viscous_projector == 0:
+            self.viscous_projector = 'Identity'
+        elif viscous_projector == 1:
+            self.viscous_projector = 'Symmetric'
+        elif viscous_projector == 2:
+            self.viscous_projector = 'SymmetricAndDeviatoric'
 
-        element_size = [Element.GetGeometry().Length() for Element in self.error_model_part.Elements]
-        self.element_size = np.max(element_size)
+        elem_size = [Element.GetGeometry().Length() for Element in self.error_model_part.Elements]
+
+        self.element_size = np.max(elem_size)
 
         self.reynolds_number = reynolds_number
 
@@ -83,6 +90,7 @@ class ErrorProjectionPostProcessTool(object):
         self.sub_group.attrs['damkohler_number'] = str(self.damkohler_number)
         self.sub_group.attrs['omega'] = str(self.omega)
         self.sub_group.attrs['reynolds_number'] = str(self.reynolds_number)
+        self.sub_group.attrs['viscous_projector'] = str(self.viscous_projector)
 
         for name, datum in zip(names, data):
             if name in file_or_group:
@@ -160,7 +168,7 @@ class ParticleDragForcePostProcessTool(object):
 
         self.sub_group.create_dataset(name = self.group_name, data = data_array)
 
-class ForceBalance(object):
+class EnergyAnalytics(object):
     def __init__(self):
         """The default constructor of the class.
 
@@ -169,76 +177,67 @@ class ForceBalance(object):
         """
         self.parameters = Kratos.Parameters( """
         {
-            "file_name": "sp_data",
+            "file_name": "sp_data.hdf5",
             "target_porosity" : 0.3,
             "probe_height" : 0.2032
         }  """ )
 
 
         self.problem_path = os.getcwd()
+        self.file_path = os.path.join(str(self.problem_path),self.parameters["file_name"].GetString())
         self.dtype = np.float64
-        self.hydrodynamic_force_x = []
-        self.hydrodynamic_force_y = []
-        self.hydrodynamic_force_z = []
-        self.hydrodynamic_reaction_x = []
-        self.hydrodynamic_reaction_y = []
-        self.hydrodynamic_reaction_z = []
-        self.hydrodynamic_reaction_x = []
-        self.hydrodynamic_reaction_y = []
-        self.hydrodynamic_reaction_z = []
-        self.projected_hydrodynamic_reaction_x = []
-        self.projected_hydrodynamic_reaction_y = []
-        self.projected_hydrodynamic_reaction_z = []
-        self.error = []
+        self.fluid_kinetic_energy_x = []
+        self.fluid_kinetic_energy_z = []
+        self.particle_kinetic_energy_x = []
+        self.particle_kinetic_energy_z = []
+        self.particle_total_kinetic_energy = []
+        self.front_position = []
         self.time = []
-        self.velocity = []
+        self.group_name = str(1)
 
     def WriteData(self, spheres_model_part, fluid_model_part, time):
+        self.spheres_model_part = spheres_model_part
+        self.fluid_model_part = fluid_model_part
 
-        self.delta_time = round(fluid_model_part.ProcessInfo.GetValue(Kratos.DELTA_TIME),3)
+        fke_x = fke_z = pke_x = pke_z = t_pke = 0.0
+        max_node_x = nodal_area_upper = nodal_area_bottom = 0.0
 
-        element_size = [Element.GetGeometry().Length() for Element in fluid_model_part.Elements]
-        self.element_size = np.max(element_size)
-        self.group_name = str(self.element_size)
+        solid_fraction_cont = solid_fraction_disc = 0.0
 
-        self.file_path = os.path.join(str(self.problem_path),self.parameters["file_name"].GetString() + "_" + str(self.delta_time) + ".hdf5")
 
-        hydrodynamic_force_x = hydrodynamic_force_y = hydrodynamic_force_z = hydrodynamic_reaction_x = hydrodynamic_reaction_y = hydrodynamic_reaction_z = 0.0
-        projected_hydrodynamic_reaction_x = projected_hydrodynamic_reaction_y = projected_hydrodynamic_reaction_z = velocity = 0.0
+        for node in self.fluid_model_part.Nodes:
+            fke_x += 0.5*node.GetSolutionStepValue(Kratos.NODAL_AREA)*node.GetSolutionStepValue(Kratos.FLUID_FRACTION)*node.GetSolutionStepValue(Kratos.DENSITY)*node.GetSolutionStepValue(Kratos.VELOCITY_X)**2
+            fke_z += 0.5*node.GetSolutionStepValue(Kratos.NODAL_AREA)*node.GetSolutionStepValue(Kratos.FLUID_FRACTION)*node.GetSolutionStepValue(Kratos.DENSITY)*node.GetSolutionStepValue(Kratos.VELOCITY_Z)**2
+            solid_fraction_cont += node.GetSolutionStepValue(Kratos.NODAL_AREA) - node.GetSolutionStepValue(Kratos.NODAL_AREA) * node.GetSolutionStepValue(Kratos.FLUID_FRACTION)
 
-        for node in spheres_model_part.Nodes:
-            hydrodynamic_force_x += node.GetSolutionStepValue(Kratos.HYDRODYNAMIC_FORCE_X)
-            hydrodynamic_force_y += node.GetSolutionStepValue(Kratos.HYDRODYNAMIC_FORCE_Y)
-            hydrodynamic_force_z += node.GetSolutionStepValue(Kratos.HYDRODYNAMIC_FORCE_Z)
-            projected_hydrodynamic_reaction_x += node.GetSolutionStepValue(SDEM.HYDRODYNAMIC_REACTION_PROJECTED_X)
-            projected_hydrodynamic_reaction_y += node.GetSolutionStepValue(SDEM.HYDRODYNAMIC_REACTION_PROJECTED_Y)
-            projected_hydrodynamic_reaction_z += node.GetSolutionStepValue(SDEM.HYDRODYNAMIC_REACTION_PROJECTED_Z)
-            velocity += node.GetSolutionStepValue(Kratos.VELOCITY_Z)
+        for node in self.spheres_model_part.Nodes:
+            pke_x += 0.5*self.spheres_model_part.GetProperties()[1][DEM.PARTICLE_DENSITY]*4/3*np.pi*node.GetSolutionStepValue(Kratos.RADIUS)**3*node.GetSolutionStepValue(Kratos.VELOCITY_X)**2
+            pke_z += 0.5*self.spheres_model_part.GetProperties()[1][DEM.PARTICLE_DENSITY]*4/3*np.pi*node.GetSolutionStepValue(Kratos.RADIUS)**3*node.GetSolutionStepValue(Kratos.VELOCITY_Z)**2
+            t_pke += 0.5*self.spheres_model_part.GetProperties()[1][DEM.PARTICLE_DENSITY]*4/3*np.pi*node.GetSolutionStepValue(Kratos.RADIUS)**3*np.sqrt(node.GetSolutionStepValue(Kratos.VELOCITY_X)**2 + node.GetSolutionStepValue(Kratos.VELOCITY_Z)**2 + node.GetSolutionStepValue(Kratos.VELOCITY_Y)**2)**2
+            if node.X >= max_node_x and node.Z != 0.0025:
+                max_node_x = node.X
+            solid_fraction_disc += 4/3*np.pi*node.GetSolutionStepValue(Kratos.RADIUS)**3
 
-        for node in fluid_model_part.Nodes:
-            hydrodynamic_reaction_x += node.GetSolutionStepValue(Kratos.HYDRODYNAMIC_REACTION_X)
-            hydrodynamic_reaction_y += node.GetSolutionStepValue(Kratos.HYDRODYNAMIC_REACTION_Y)
-            hydrodynamic_reaction_z += node.GetSolutionStepValue(Kratos.HYDRODYNAMIC_REACTION_Z)
-
-        error = np.abs(np.sqrt(hydrodynamic_force_x**2 + hydrodynamic_force_y**2 + hydrodynamic_force_z**2)-np.sqrt(hydrodynamic_reaction_x**2 + hydrodynamic_reaction_y**2 + hydrodynamic_reaction_z**2))/np.sqrt(hydrodynamic_force_x**2 + hydrodynamic_force_y**2 + hydrodynamic_force_z**2)
-
+        print('projected_volume', solid_fraction_cont)
+        print('real_volume', solid_fraction_disc)
+        print('difference', solid_fraction_cont - solid_fraction_disc)
         self.time.append(time)
-        self.hydrodynamic_force_x.append(hydrodynamic_force_x)
-        self.hydrodynamic_force_y.append(hydrodynamic_force_y)
-        self.hydrodynamic_force_z.append(hydrodynamic_force_z)
-        self.hydrodynamic_reaction_x.append(hydrodynamic_reaction_x)
-        self.hydrodynamic_reaction_y.append(hydrodynamic_reaction_y)
-        self.hydrodynamic_reaction_z.append(hydrodynamic_reaction_z)
-        self.projected_hydrodynamic_reaction_x.append(projected_hydrodynamic_reaction_x)
-        self.projected_hydrodynamic_reaction_y.append(projected_hydrodynamic_reaction_y)
-        self.projected_hydrodynamic_reaction_z.append(projected_hydrodynamic_reaction_z)
-        self.error.append(error)
-        self.velocity.append(velocity)
+        self.particle_kinetic_energy_x.append(pke_x)
+        self.particle_kinetic_energy_z.append(pke_z)
+        # self.fluid_kinetic_energy_x.append(fke_x/nodal_area_bottom)
+        # self.fluid_kinetic_energy_z.append(fke_z/nodal_area_upper)
+        self.fluid_kinetic_energy_x.append(fke_x)
+        self.fluid_kinetic_energy_z.append(fke_z)
+        self.particle_total_kinetic_energy.append(t_pke)
+        self.front_position.append(max_node_x)
 
         with h5py.File(self.file_path, 'a') as f:
                 self.WriteDataToFile(file_or_group = f,
-                            names = ['HYDRODYNAMIC_FORCE_X','HYDRODYNAMIC_FORCE_Y','HYDRODYNAMIC_FORCE_Z','HYDRODYNAMIC_REACTION_X','HYDRODYNAMIC_REACTION_Y', 'HYDRODYNAMIC_REACTION_Z', 'HYDRODYNAMIC_REACTION_PROJECTED_X', 'HYDRODYNAMIC_REACTION_PROJECTED_Y', 'HYDRODYNAMIC_REACTION_PROJECTED_Z', 'ERROR', 'VELOCITY', 'TIME'],
-                            data = [self.hydrodynamic_force_x ,self.hydrodynamic_force_y, self.hydrodynamic_force_z, self.hydrodynamic_reaction_x, self.hydrodynamic_reaction_y, self.hydrodynamic_reaction_z, self.projected_hydrodynamic_reaction_x, self.projected_hydrodynamic_reaction_y, self.projected_hydrodynamic_reaction_z, self.error, self.velocity, self.time])
+                            names = ['FLUID_KINETIC_ENERGY_X','FLUID_KINETIC_ENERGY_Z','PARTICLES_KINETIC_ENERGY_X','PARTICLES_KINETIC_ENERGY_Z', 'PARTICLES_TOTAL_KINETIC_ENERGY', 'FRONT_POSITION', 'TIME'],
+                            data = [self.fluid_kinetic_energy_x ,self.fluid_kinetic_energy_z, self.particle_kinetic_energy_x, self.particle_kinetic_energy_z, self.particle_total_kinetic_energy, self.front_position, self.time])
+                # self.WriteDataToFile(file_or_group = f,
+                #             names = ['FLUID_KINETIC_ENERGY_X','FLUID_KINETIC_ENERGY_Z', 'TIME'],
+                #             data = [self.fluid_kinetic_energy_x ,self.fluid_kinetic_energy_z, self.time])
 
     def WriteDataToFile(self, file_or_group, names, data):
         if self.group_name in file_or_group:
@@ -247,14 +246,112 @@ class ForceBalance(object):
         else:
             self.sub_group = file_or_group.create_group(self.group_name)
 
-        self.sub_group.attrs['element_size'] = str(self.element_size)
-        self.sub_group.attrs['delta_time'] = str(self.delta_time)
-
         for name, datum in zip(names, data):
             if name in file_or_group:
                 file_or_group.__delitem__(name)
         for name, datum in zip(names, data):
             self.sub_group.create_dataset(name = name, data = datum)
+
+class AveragingVariablesPostProcessTool(object):
+
+    def __init__(self):
+        """The default constructor of the class.
+
+        Keyword arguments:
+        self -- It signifies an instance of a class.
+        """
+        self.parameters = Kratos.Parameters( """
+        {
+            "file_name": "sp_data.hdf5",
+            "target_porosity" : 0.3,
+            "probe_height" : 0.2032
+        }  """ )
+
+
+        self.problem_path = os.getcwd()
+        self.dtype = np.float64
+        self.file_path = os.path.join(str(self.problem_path),self.parameters["file_name"].GetString())
+        n_layers = 100
+        self.velocity_layers = dict(("average_velocity_layer_" + str(i), []) for i in range(1, n_layers + 1))
+        self.velocity_gradient_z_layers = dict(("average_velocity_gradient_z_layer_" + str(i), []) for i in range(1, n_layers + 1))
+        self.granular_temperature_layers = dict(("granular_temperature_layer_" + str(i), []) for i in range(1, n_layers + 1))
+        self.averaged_stress_layers = dict(("averaged_stress_layer_" + str(i), []) for i in range(1, n_layers + 1))
+        self.averaged_packing_density_layers = dict(("averaged_packing_density_" + str(i), []) for i in range(1, n_layers + 1))
+        self.time = []
+
+        self.average_utility = AveragingVariablesUtility()
+
+    def WriteData(self, spheres_model_part):
+        time = spheres_model_part.ProcessInfo[Kratos.TIME]
+        n_layers = 100
+        n_sublayers = 11
+        layer_width = 0.0004
+        bottom = 10*layer_width
+        plane_area = 40*layer_width*32*layer_width
+        self.time.append(time)
+
+        for i in range(1, n_layers + 1):
+            centroid_layer_i = bottom + (i-0.5)*layer_width
+            layer_averaged_velocity = Kratos.Vector(3)
+            layer_averaged_dv_dz = Kratos.Vector(3)
+            layer_averaged_particle_stress = Kratos.Matrix(3,3)
+            layer_granular_temperature = Kratos.Matrix(3,3)
+            layer_packing_density = self.average_utility.AverageVariables(spheres_model_part, centroid_layer_i, layer_width, n_sublayers, plane_area, layer_averaged_velocity, layer_averaged_dv_dz, layer_averaged_particle_stress, layer_granular_temperature)
+            kinetic_stress = -spheres_model_part.GetProperties()[1][DEM.PARTICLE_DENSITY]*layer_packing_density*np.array(layer_granular_temperature)
+            layer_averaged_stress = np.array(layer_averaged_particle_stress) + kinetic_stress
+            self.velocity_layers["average_velocity_layer_" + str(i)].append(layer_averaged_velocity)
+            self.velocity_gradient_z_layers["average_velocity_gradient_z_layer_" + str(i)].append(layer_averaged_dv_dz)
+            self.granular_temperature_layers["granular_temperature_layer_" + str(i)].append(np.array(layer_granular_temperature).flatten())
+            self.averaged_stress_layers["averaged_stress_layer_" + str(i)].append(layer_averaged_stress.flatten())
+            self.averaged_packing_density_layers["averaged_packing_density_" + str(i)].append(layer_packing_density)
+            self.group_name = str(i)
+            with h5py.File(self.file_path, 'a') as f:
+                if self.group_name in f:
+                    f['/'].__delitem__(self.group_name)
+                    self.sub_group = f.create_group(self.group_name)
+                else:
+                    self.sub_group = f.create_group(self.group_name)
+
+                self.AverageVelocityToFile(['AVERAGED_VELOCITY'], self.velocity_layers["average_velocity_layer_" + str(i)])
+                self.AverageGradientZVelocityToFile(['AVERAGED_GRADIENT_Z_VELOCITY'], self.velocity_gradient_z_layers["average_velocity_gradient_z_layer_" + str(i)])
+                self.GranularTemperatureToFile(['GRANULAR_TEMPERATURE'], self.granular_temperature_layers["granular_temperature_layer_" + str(i)])
+                self.StressTensorToFile(['STRESS'], self.averaged_stress_layers["averaged_stress_layer_" + str(i)])
+                self.PackingDensityToFile(['PACKING_DENSITY'],self.averaged_packing_density_layers["averaged_packing_density_" + str(i)])
+                self.TimeToFile(['TIME'], self.time)
+
+    def AverageVelocityToFile(self, group_name, data):
+        column_names = ['U_x', 'U_y', 'U_z']
+        self.WriteTensorDataToFile(group_name, column_names, data)
+
+    def AverageGradientZVelocityToFile(self, group_name, data):
+        column_names = ['DU_x', 'DU_y', 'DU_z']
+        self.WriteTensorDataToFile(group_name, column_names, data)
+
+    def GranularTemperatureToFile(self, group_name, data):
+        column_names = ['T_xx', 'T_xy', 'T_xz', 'T_yx', 'T_yy', 'T_yz', 'T_zx', 'T_zy', 'T_zz']
+        self.WriteTensorDataToFile(group_name, column_names, data)
+
+    def StressTensorToFile(self, group_name, data):
+        column_names = ['S_xx', 'S_xy', 'S_xz', 'S_yx', 'S_yy', 'S_yz', 'S_zx', 'S_zy', 'S_zz']
+        self.WriteTensorDataToFile(group_name, column_names, data)
+
+    def PackingDensityToFile(self, group_name, data):
+        self.WriteScalarDataToFile(group_name, data)
+
+    def TimeToFile(self, group_name, data):
+        self.WriteScalarDataToFile(group_name, data)
+
+    def WriteTensorDataToFile(self, group_name, column_names, data):
+        column_name = np.dtype({'names': column_names, 'formats':[(float)]*len(column_names)})
+        data_array = []
+        for i in range(0,len(data)):
+            data_array.append(np.rec.fromarrays(data[i], dtype = column_name))
+        self.sub_group.create_dataset(name = group_name[0], data = data_array)
+
+    def WriteScalarDataToFile(self, group_name, data):
+        data_array = []
+        data_array.append(data)
+        self.sub_group.create_dataset(name = group_name[0], data = data_array)
 
 class Pressure(object):
     def __init__(self,test_number):
@@ -309,13 +406,3 @@ class Pressure(object):
             self.sub_group = file_or_group.create_group(self.group_name)
         else:
             self.sub_group = file_or_group.create_group(self.group_name)
-
-        self.sub_group.attrs['model_type'] = str(self.model_type)
-        self.sub_group.attrs['alpha_min'] = str(self.alpha_min)
-        self.sub_group.attrs['Reynolds_number'] = str(self.reynolds_number)
-
-        for name, datum in zip(names, data):
-            if name in file_or_group:
-                file_or_group.__delitem__(name)
-        for name, datum in zip(names, data):
-            self.sub_group.create_dataset(name = name, data = datum)
