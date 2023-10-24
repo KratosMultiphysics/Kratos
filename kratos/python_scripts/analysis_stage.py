@@ -103,8 +103,8 @@ class AnalysisStage(object):
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             node_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             displacements.append(node_displacement)
-        np.save("DISPLACEMENTS_U2_T", displacements)
-        np.savetxt("DISPLACEMENTS_U2_T.txt", displacements)
+        np.save("DISPLACEMENTS_U1", displacements)
+        np.savetxt("DISPLACEMENTS_U1.txt", displacements)
 
     def Initialize(self):
         """This function initializes the AnalysisStage
@@ -235,7 +235,7 @@ class AnalysisStage(object):
         ######################################################################################################
         # save deformed configuration nodal positions
         var_utils = KratosMultiphysics.VariableUtils()
-        self.initial_unmodified_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
+        self.deformed_config_coordinates = var_utils.GetCurrentPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
         # # test GetPositions functions 
         # initial_positions_def = self.initial_unmodified_coordinates
         # current_positions_def = var_utils.GetCurrentPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
@@ -276,10 +276,10 @@ class AnalysisStage(object):
 
             J_X = T_elm.transpose() @ J_X
             self.deformed_config_jacobians.append(J_X)
-        # export Jacobians J0
-        np.save("jacobians_J0_T", self.deformed_config_jacobians)
+        # export Jacobians J
+        np.save("jacobians_J", self.deformed_config_jacobians)
         J0txt = np.reshape(self.deformed_config_jacobians, (-1,3))
-        np.savetxt("jacobians_J0_T.txt", J0txt)
+        np.savetxt("jacobians_J.txt", J0txt)
 
         # Calculate normals from deformed configuration
         print("\n ::TESTING:: START Calculate normals \n")
@@ -294,16 +294,20 @@ class AnalysisStage(object):
         print("\n ::TESTING:: FINISH Calculate normals \n")
 
         # read prescribed displacements
-        u_prescribed = np.loadtxt("DISPLACEMENTS_U1.txt")
+        u_prescribed = np.loadtxt("DISPLACEMENTS_U0.txt")
         i_disp = 0
         # flatten geometry
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             # node.Z0 = 0.0
             # node.Z  = 0.0
             # stretch flat geometry to induce strains
+            node.X0 += u_prescribed[i_disp,0]
+            node.Y0 += u_prescribed[i_disp,1]
+            node.Z0 += u_prescribed[i_disp,2]
             node.X += u_prescribed[i_disp,0]
             node.Y += u_prescribed[i_disp,1]
             node.Z += u_prescribed[i_disp,2]
+            print(node.Id, node.X0, node.Y0, node.Z0)
             print(node.Id, node.X, node.Y, node.Z)
             # if node.X > 0.1:
             #     node.X += 0.2
@@ -313,7 +317,7 @@ class AnalysisStage(object):
         
         # save flat configuration nodal positions
         self.flattened_coordinates = var_utils.GetInitialPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, 3)
-        self.initial_displacements = self.initial_unmodified_coordinates - self.flattened_coordinates
+        self.initial_displacements = self.deformed_config_coordinates - self.flattened_coordinates
         # print("initial_displacements:", self.initial_displacements)
 
         # test GetPositions functions 
@@ -329,23 +333,23 @@ class AnalysisStage(object):
         ######################################################################################################
 
     def InitializeMyStrains(self):
-        self.flatted_config_jacobians = []
+        self.flat_config_jacobians = []
         for element in self._GetSolver().GetComputingModelPart().Elements:
             H0 = element.Properties[KratosMultiphysics.THICKNESS]
             extracolumn = np.array([[0.0, 0.0, H0/2.0]])
             elm_Jacobian = np.array(element.GetGeometry().Jacobian(0))
             J_X0 = np.concatenate((elm_Jacobian, extracolumn.T), axis=1)
-            self.flatted_config_jacobians.append(J_X0)
-        # export Jacobians J
-        np.save("jacobians_J_T", self.flatted_config_jacobians)
-        Jtxt = np.reshape(self.flatted_config_jacobians, (-1,3))
-        np.savetxt("jacobians_J_T.txt", Jtxt)
+            self.flat_config_jacobians.append(J_X0)
+        # export Jacobians J0
+        np.save("jacobians_J0", self.flat_config_jacobians)
+        Jtxt = np.reshape(self.flat_config_jacobians, (-1,3))
+        np.savetxt("jacobians_J0.txt", Jtxt)
             
         F_list = []
         strains_list = []
         # Read pre-calculated strains
         # strains_def_config = np.load('strains_cylinder.npy')
-        for J, J0, element in zip(self.deformed_config_jacobians,self.flatted_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
+        for J, J0, element in zip(self.deformed_config_jacobians,self.flat_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
 
             local_axis_1 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_2 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
@@ -418,11 +422,11 @@ class AnalysisStage(object):
             # self._GetSolver().GetComputingModelPart().CreateCondition()
         # print("strain list:\n", strains_list)
         # export F, E
-        np.save("F_defgrad_T", F_list)
+        np.save("F1_defgrad", F_list)
         Ftxt = np.reshape(F_list, (-1,3))
-        np.savetxt("F_defgrad_T.txt", Ftxt)
-        np.save("E_strains_T", strains_list)
-        np.savetxt("E_strains_T.txt", strains_list)
+        np.savetxt("F1_defgrad.txt", Ftxt)
+        np.save("E1_strains", strains_list)
+        np.savetxt("E1_strains.txt", strains_list)
 
 
     def ModifyAfterSolverInitialize(self):
