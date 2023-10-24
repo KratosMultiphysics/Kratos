@@ -50,6 +50,7 @@
 #include "custom_constitutive/DEM_smooth_joint_CL.h"
 #include "custom_constitutive/DEM_parallel_bond_for_membrane_CL.h"
 #include "custom_constitutive/DEM_parallel_bond_bilinear_damage_CL.h"
+#include "custom_constitutive/DEM_parallel_bond_bilinear_damage_mixed_CL.h"
 #include "custom_constitutive/DEM_rolling_friction_model.h"
 #include "custom_constitutive/DEM_rolling_friction_model_constant_torque.h"
 #include "custom_constitutive/DEM_rolling_friction_model_viscous_torque.h"
@@ -254,6 +255,9 @@ KRATOS_CREATE_VARIABLE(bool, DEBUG_PRINTING_OPTION)
 KRATOS_CREATE_VARIABLE(int, DEBUG_PRINTING_ID_1)
 KRATOS_CREATE_VARIABLE(int, DEBUG_PRINTING_ID_2)
 KRATOS_CREATE_VARIABLE(double, FRACTURE_ENERGY)
+KRATOS_CREATE_VARIABLE(double, FRACTURE_ENERGY_NORMAL)
+KRATOS_CREATE_VARIABLE(double, FRACTURE_ENERGY_TANGENTIAL)
+KRATOS_CREATE_VARIABLE(double, FRACTURE_ENERGY_EXPONENT)
 KRATOS_CREATE_VARIABLE(double, SIGMA_SLOPE_CHANGE_THRESHOLD)
 KRATOS_CREATE_VARIABLE(double, INTERNAL_FRICTION_AFTER_THRESHOLD)
 KRATOS_CREATE_VARIABLE(double, SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION)
@@ -544,6 +548,10 @@ template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_
 template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage, DEM_D_Linear_classic>;
 template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage, DEM_D_Quadratic>;
 
+template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage_mixed, DEM_D_Hertz_viscous_Coulomb>;
+template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage_mixed, DEM_D_Linear_classic>;
+template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage_mixed, DEM_D_Quadratic>;
+
 void KratosDEMApplication::Register() {
     KRATOS_INFO("") << "\n"
                     << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      \n"
@@ -734,6 +742,9 @@ void KratosDEMApplication::Register() {
     KRATOS_REGISTER_VARIABLE(DEBUG_PRINTING_ID_1)
     KRATOS_REGISTER_VARIABLE(DEBUG_PRINTING_ID_2)
     KRATOS_REGISTER_VARIABLE(FRACTURE_ENERGY)
+    KRATOS_REGISTER_VARIABLE(FRACTURE_ENERGY_NORMAL)
+    KRATOS_REGISTER_VARIABLE(FRACTURE_ENERGY_TANGENTIAL)
+    KRATOS_REGISTER_VARIABLE(FRACTURE_ENERGY_EXPONENT)
     KRATOS_REGISTER_VARIABLE(SIGMA_SLOPE_CHANGE_THRESHOLD)
     KRATOS_REGISTER_VARIABLE(INTERNAL_FRICTION_AFTER_THRESHOLD)
     KRATOS_REGISTER_VARIABLE(SEARCH_RADIUS_INCREMENT_FOR_BONDS_CREATION)
@@ -1032,6 +1043,7 @@ void KratosDEMApplication::Register() {
     Serializer::Register("DEM_smooth_joint", DEM_smooth_joint());
     Serializer::Register("DEM_parallel_bond_for_membrane", DEM_parallel_bond_for_membrane());
     Serializer::Register("DEM_parallel_bond_bilinear_damage", DEM_parallel_bond_bilinear_damage());
+    Serializer::Register("DEM_parallel_bond_bilinear_damage_mixed", DEM_parallel_bond_bilinear_damage_mixed());
     Serializer::Register("DEMRollingFrictionModelConstantTorque", DEMRollingFrictionModelConstantTorque());
     Serializer::Register("DEMRollingFrictionModelViscousTorque", DEMRollingFrictionModelViscousTorque());
     Serializer::Register("DEMRollingFrictionModelBounded", DEMRollingFrictionModelBounded());

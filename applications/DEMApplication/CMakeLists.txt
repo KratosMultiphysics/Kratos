@@ -92,6 +92,7 @@ set(KRATOS_DEM_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_smooth_joint_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_parallel_bond_for_membrane_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_parallel_bond_bilinear_damage_CL.cpp
+    ${CMAKE_CURRENT_SOURCE_DIR}/custom_constitutive/DEM_parallel_bond_bilinear_damage_mixed_CL.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/inlet.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/fast_filling_creator.cpp
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/force_based_inlet.cpp
