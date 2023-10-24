@@ -186,7 +186,7 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Finalize
         uniaxial_stress /=  temperature_reduction_factor;
         const double F = uniaxial_stress - r_threshold;
 
-        if (F > threshold_tolerance) { 
+        if (F > threshold_tolerance) {
             const double characteristic_length = AdvCLutils::CalculateCharacteristicLengthOnReferenceConfiguration(rValues.GetElementGeometry());
 
             // This routine updates the PredictiveStress to verify the yield surf
