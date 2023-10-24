@@ -40,7 +40,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchInRadius, Kra
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapper<GeometricalObjectsBins, GeometricalObject> search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), serial_communicator);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
