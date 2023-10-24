@@ -164,11 +164,14 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
 
                 //real damage calculation
                 //mDamageReal += std::sqrt((mDamageNormal - mDamageReal) * (mDamageNormal - mDamageReal) + (mDamageTangential - mDamageReal) * (mDamageTangential - mDamageReal));
-                if (mDamageNormal > mDamageTangential){
+                if (mDamageNormal > mDamageReal){
                     mDamageReal = mDamageNormal;
-                } else {
+                } 
+
+                if (mDamageTangential > mDamageReal){
                     mDamageReal = mDamageTangential;
-                }
+                } 
+                
                 if (mDamageReal > 1.0){
                     mDamageReal = 1.0;
                 }
@@ -260,12 +263,9 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
                 }
 
                 //real damage calculation
-                //mDamageReal += std::sqrt((mDamageNormal - mDamageReal) * (mDamageNormal - mDamageReal) + (mDamageTangential - mDamageReal) * (mDamageTangential - mDamageReal));
-                if (mDamageNormal > mDamageTangential){
-                    mDamageReal = mDamageNormal;
-                } else {
+                if (mDamageTangential > mDamageReal){
                     mDamageReal = mDamageTangential;
-                }
+                } 
                 if (mDamageReal > 1.0){
                     mDamageReal = 1.0;
                 }

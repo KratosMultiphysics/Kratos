@@ -118,7 +118,10 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
 
             double delta_equivalent = sqrt(AccumulatedBondedTangentialLocalDisplacementModulus * AccumulatedBondedTangentialLocalDisplacementModulus + bonded_indentation * bonded_indentation);
 
-            double beta = AccumulatedBondedTangentialLocalDisplacementModulus / bonded_indentation;
+            double beta = 0.0;
+            if (bonded_indentation){
+                beta = AccumulatedBondedTangentialLocalDisplacementModulus / std::abs(bonded_indentation);
+            }
             double beta_zero = (kn_el * (bond_tau_zero + bond_sigma_max * tan(internal_friction * Globals::Pi / 180.0)))/(bond_sigma_max * kt_el);
             
             double delta_equivalent_0 = 0.0;
