@@ -165,7 +165,7 @@ double ComputeGeometricalQuantity(
     const ModelPart& rModelPart,
     const QuantityType Quantity)
 {
-    std::function<double(const ModelPart::GeometryType&)> access_function;
+    std::function<double(const GeometryType&)> access_function;
 
     switch (Quantity)
     {
@@ -198,7 +198,8 @@ double ComputeGeometricalQuantity(
 
 void MedTestingUtilities::CheckModelPartsAreEqual(
     const ModelPart& rModelPart1,
-    const ModelPart& rModelPart2)
+    const ModelPart& rModelPart2,
+    const bool CheckSubModelParts)
 {
     KRATOS_TRY
 
@@ -223,13 +224,17 @@ void MedTestingUtilities::CheckModelPartsAreEqual(
     // check geometries
     CheckGeometriesAreEqual(rModelPart1, rModelPart2);
 
+    if (!CheckSubModelParts) {
+        return;
+    }
+
     KRATOS_CHECK_EQUAL(rModelPart1.NumberOfSubModelParts(), rModelPart2.NumberOfSubModelParts());
 
     const auto& r_smp2_names = rModelPart2.GetSubModelPartNames();
 
     for (const auto& r_smp_name : rModelPart1.GetSubModelPartNames()) {
         KRATOS_CHECK(contains(r_smp2_names, r_smp_name));
-        CheckModelPartsAreEqual(rModelPart1.GetSubModelPart(r_smp_name), rModelPart1.GetSubModelPart(r_smp_name));
+        CheckModelPartsAreEqual(rModelPart1.GetSubModelPart(r_smp_name), rModelPart2.GetSubModelPart(r_smp_name));
     }
 
     KRATOS_CATCH("")

@@ -16,6 +16,7 @@
 #include "utilities/variable_utils.h"
 
 #include "custom_processes/apply_scalar_constraint_table_process.h"
+#include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
 #include "custom_processes/set_parameter_field_process.hpp"
 #include "custom_processes/apply_k0_procedure_process.hpp"
@@ -51,37 +52,49 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUti
 void KratosGeoSettlement::InitializeProcessFactory()
 {
     mProcessFactory->AddCreator("ApplyScalarConstraintTableProcess",
-                                [this](const Parameters& rParameters)
+                                [&model = mModel](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<ApplyScalarConstraintTableProcess>(mModel.GetModelPart(mModelPartName),
+                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
+                                    return std::make_unique<ApplyScalarConstraintTableProcess>(model_part,
                                                                                                rParameters);
                                 });
 
-    mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
+    mProcessFactory->AddCreator("ApplyNormalLoadTableProcess",
                                 [this](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<ApplyVectorConstraintTableProcess>(mModel.GetModelPart(mModelPartName),
+                                      return std::make_unique<ApplyNormalLoadTableProcess>(mModel.GetModelPart(mModelPartName),
+                                                                                           rParameters);
+                                });
+
+    mProcessFactory->AddCreator("ApplyVectorConstraintTableProcess",
+                                [&model = mModel](const Parameters& rParameters)
+                                {
+                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
+                                    return std::make_unique<ApplyVectorConstraintTableProcess>(model_part,
                                                                                                rParameters);
                                 });
 
     mProcessFactory->AddCreator("SetParameterFieldProcess",
-                                [this](const Parameters& rParameters)
+                                [&model = mModel](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<SetParameterFieldProcess>(mModel.GetModelPart(mModelPartName),
+                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
+                                    return std::make_unique<SetParameterFieldProcess>(model_part,
                                                                                       rParameters);
                                 });
 
     mProcessFactory->AddCreator("ApplyExcavationProcess",
-                                [this](const Parameters& rParameters)
+                                [&model = mModel](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<ApplyExcavationProcess>(mModel.GetModelPart(mModelPartName),
+                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
+                                    return std::make_unique<ApplyExcavationProcess>(model_part,
                                                                                     rParameters);
                                 });
 
     mProcessFactory->AddCreator("ApplyK0ProcedureProcess",
-                                [this](const Parameters& rParameters)
+                                [&model = mModel](const Parameters& rParameters)
                                 {
-                                    return std::make_unique<ApplyK0ProcedureProcess>(mModel.GetModelPart(mModelPartName),
+                                    auto& model_part = model.GetModelPart(rParameters["model_part_name"].GetString());
+                                    return std::make_unique<ApplyK0ProcedureProcess>(model_part,
                                                                                      rParameters);
                                 });
 
