@@ -46,7 +46,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     ResetDEMVariables(r_dem_model_part);
 
     Vector shape_function_values_at_point;
-    const int max_results = 10000000;
+    const int max_results = 10000;
     typename BinBasedFastPointLocator<TDim>::ResultContainerType results(max_results);
 
     #pragma omp parallel for firstprivate(results, shape_function_values_at_point)
@@ -210,6 +210,11 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Interpol
     ResetFluidVariables(r_fluid_model_part);
     // calculating the fluid fraction (and possibly the fluid mass fraction)
     InterpolateFluidFraction(r_dem_model_part, r_fluid_model_part, bin_of_objects_fluid);
+    for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
+        array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
+        double& fluid_fraction = node_it->FastGetSolutionStepValue(FLUID_FRACTION);
+        body_force *= fluid_fraction;
+    }
     // calculating the rest of fluid variables (particle-fluid force etc.). The solid fraction must be known at this point as it may be used in this step
     InterpolateOtherFluidVariables(r_dem_model_part, r_fluid_model_part, bin_of_objects_fluid);
 
@@ -251,32 +256,32 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::VariingR
 
     // calculating weights for each particle's nodal contributions
 
-    DensityFunctionPolynomial<3> weighing_function(search_radius);
+    // DensityFunctionPolynomial<3> weighing_function(search_radius);
 
-    #pragma omp parallel for
-    for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
-        weighing_function.ComputeWeights(mVectorsOfDistances[i], mVectorsOfRadii[i], mMaxNodalAreaInv, mVectorsOfDistances[i]);
-    }
+    // #pragma omp parallel for
+    // for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
+    //     weighing_function.ComputeWeights(mVectorsOfDistances[i], mVectorsOfRadii[i], mMaxNodalAreaInv, mVectorsOfDistances[i]);
+    // }
 
-    UpdateGentleCouplingInitiationCoefficients(r_dem_model_part);
+    // UpdateGentleCouplingInitiationCoefficients(r_dem_model_part);
 
-    // transferring fluid fraction information onto the fluid (not a naturally parallel task)
+    // // transferring fluid fraction information onto the fluid (not a naturally parallel task)
 
-    ComputeHomogenizedFluidFraction(r_fluid_model_part, r_dem_model_part);
+    // ComputeHomogenizedFluidFraction(r_fluid_model_part, r_dem_model_part);
 
-    // transferring the rest of effects onto the fluid (not a naturally parallel task)
+    // // transferring the rest of effects onto the fluid (not a naturally parallel task)
 
-	VariablesList& fluid_variables = mVariables.GetVariablesList("Fluid");
+	// VariablesList& fluid_variables = mVariables.GetVariablesList("Fluid");
 
-    for (unsigned int j = 0; j != fluid_variables.size(); ++j){
+    // for (unsigned int j = 0; j != fluid_variables.size(); ++j){
 
-        for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
-            //NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
-            ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
+    //     for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
+    //         //NodeIteratorType i_particle = r_dem_model_part.NodesBegin() + i;
+    //         ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
 
-            ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j], use_drew_model);
-        }
-    }
+    //         ComputeHomogenizedNodalVariable(particle, mSwimmingSphereElementPointers[i]->mNeighbourNodes, mVectorsOfDistances[i], fluid_variables[j], use_drew_model);
+    //     }
+    // }
 
     KRATOS_CATCH("")
 }
@@ -287,6 +292,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
     ModelPart& r_dem_model_part,
     ModelPart& r_fluid_model_part,
     const double& search_radius, // it is the density function's maximum divided by its support's radius
+    BinBasedFastPointLocator<3>& bin_of_objects_fluid,
     bool must_search,
     bool use_drew_model)
 {
@@ -313,7 +319,8 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
 
     #pragma omp parallel for
     for (int i = 0; i < (int)mSwimmingSphereElementPointers.size(); ++i){
-        weighing_function.ComputeWeights(mVectorsOfDistances[i], mVectorsOfRadii[i], mVectorsOfDistances[i]);
+        ParticleType& particle = dynamic_cast<ParticleType&> (*mSwimmingSphereElementPointers[i]);
+        weighing_function.ComputeWeights(mVectorsOfDistances[i], mVectorsOfRadii[i], mVectorsOfDistances[i], mVectorsOfNeighNodes[i], bin_of_objects_fluid, particle.GetGeometry()[0].Coordinates());
     }
 
     UpdateGentleCouplingInitiationCoefficients(r_dem_model_part);
@@ -321,12 +328,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
     // transferring fluid fraction information onto the fluid (not a naturally parallel task)
 
     ComputeHomogenizedFluidFraction(r_fluid_model_part, r_dem_model_part);
-    if (use_drew_model == false){
-        for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
-            array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
-            double& fluid_fraction = node_it->FastGetSolutionStepValue(FLUID_FRACTION);
-            body_force /= fluid_fraction;
-        }
+    for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
+        array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
+        double& fluid_fraction = node_it->FastGetSolutionStepValue(FLUID_FRACTION);
+        body_force *= fluid_fraction;
     }
 
     // transferring the rest of effects onto the fluid (not a naturally parallel task)
@@ -892,6 +897,10 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Project(
 
     else if (*r_destination_variable == FLUID_FRACTION_PROJECTED && mVariables.Is(FLUID_FRACTION, "Fluid")){
         Interpolate(p_elem, N, p_node, FLUID_FRACTION, FLUID_FRACTION_PROJECTED, alpha);
+    }
+
+    else if (*r_destination_variable == HYDRODYNAMIC_REACTION_PROJECTED){
+        Interpolate(p_elem, N, p_node, HYDRODYNAMIC_REACTION, HYDRODYNAMIC_REACTION_PROJECTED, alpha);
     }
 
     else if (*r_destination_variable == FLUID_FRACTION_GRADIENT_PROJECTED){
@@ -1490,7 +1499,7 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
             array_1d<double, 3>& hydrodynamic_reaction = neighbours[i]->FastGetSolutionStepValue(HYDRODYNAMIC_REACTION);
             array_1d<double, 3>& body_force = neighbours[i]->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
             const double gentle_coupling_coeff = node.FastGetSolutionStepValue(GENTLE_INITIATION_COUPLING_COEFFICIENT);
-            hydrodynamic_reaction += gentle_coupling_coeff * contribution;
+            hydrodynamic_reaction[0] += gentle_coupling_coeff * weights[i] * node.FastGetSolutionStepValue(DRAG_COEFFICIENT)/denominator;
 
             if (mTimeAveragingType == 0){
                 noalias(body_force) += gentle_coupling_coeff * contribution;
@@ -1509,7 +1518,20 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Transfer
     else if (r_origin_variable == VELOCITY){
         for (unsigned int i = 0; i != neighbours.size(); ++i){
             array_1d<double, 3> contribution = weights[i] * origin_data;
+            double& sum_of_weights = neighbours[i]->FastGetSolutionStepValue(WEIGHTED_SUM);
             array_1d<double, 3>& particles_filtered_vel = neighbours[i]->FastGetSolutionStepValue(PARTICLE_VEL_FILTERED);
+            array_1d<double, 3>& mean_p_velocity = neighbours[i]->FastGetSolutionStepValue(AVERAGED_PARTICLE_VELOCITY);
+            array_1d<double, 3> mean_old;
+            double old_sum_of_weights = sum_of_weights;
+            sum_of_weights += weights[i];
+            if(old_sum_of_weights < std::numeric_limits<double>::epsilon()){
+                mean_old = origin_data;
+                mean_p_velocity = mean_old;
+            }
+            else{
+                mean_old = mean_p_velocity;
+                mean_p_velocity = mean_old + weights[i] * (origin_data - mean_old) / sum_of_weights;
+            }
             particles_filtered_vel += contribution;
         }
     }

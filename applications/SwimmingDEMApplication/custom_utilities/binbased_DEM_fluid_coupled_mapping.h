@@ -232,7 +232,7 @@ void UpdateOldVelocity(ModelPart& r_dem_model_part);
 void UpdateOldAdditionalForce(ModelPart& r_dem_model_part);
 void InterpolateFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid); // this is a bin of objects which contains the FLUID model part
 void VariingRadiusHomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, const double& shape_factor, bool must_search = true, bool use_drew_model = false);
-void HomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, bool must_search = true, bool use_drew_model = false);
+void HomogenizeFromDEMMesh(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, const double& search_radius, BinBasedFastPointLocator<3>& bin_of_objects_fluid, bool must_search = true, bool use_drew_model = false);
 void ComputePostProcessResults(ModelPart& r_dem_model_part, ModelPart& r_fluid_model_part, ModelPart& rfem_dem_model_part, BinBasedFastPointLocator<TDim>& bin_of_objects_fluid, const ProcessInfo& r_current_process_info);
 
 ///@}

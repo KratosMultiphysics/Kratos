@@ -52,6 +52,13 @@ SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 #include <cstdlib>
 #include "density_function.h"
 #include <cmath>
+#include "includes/model_part.h"
+//Database includes
+#include "spatial_containers/spatial_containers.h"
+#include "custom_utilities/search/point_point_search.h"
+
+#include "utilities/binbased_fast_point_locator.h"
+#include "utilities/binbased_nodes_in_element_locator.h"
 
 namespace Kratos
 {
@@ -73,60 +80,65 @@ DensityFunctionPolynomial(const double range)
 
 virtual ~DensityFunctionPolynomial(){}
 
-void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal_areas, std::vector<double> & weights)
+void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal_areas, std::vector<double> & weights, ModelPart::NodesContainerType::ContainerType neighbor, BinBasedFastPointLocator<TDim> bin_of_objects_fluid, array_1d<double, 3> p_coord)
 {
     double total_nodal_area_inv = 0.0;
+    double min_distance = mR;
+    int n_neigh;
+    bool on_boundary = false;
+    double sum_of_weights_inv = 0.0;
+    array_1d<double, 3> virtual_coordinates;
 
     for (unsigned int i = 0; i != distances.size(); ++i){
+        double distance = 0.0;
         total_nodal_area_inv += nodal_areas[i];
+        if (neighbor[i]->Is(BOUNDARY)){
+            on_boundary = true;
+            for (unsigned int d = 0; d < TDim; ++d)
+                distance += std::pow(neighbor[i]->Coordinates()[d] - p_coord[d],2);
+            distance = std::sqrt(distance);
+            if (distance <= min_distance){
+                min_distance = distance;
+                n_neigh = i;
+            }
+        }
+    }
+    if (on_boundary == true){
+        // Calculate intersection between the normal direction of plane from particle and the plane
+        array_1d<double, 3> normal = -neighbor[n_neigh]->FastGetSolutionStepValue(NORMAL);
+
+        array_1d<double, 3> intersection_coordinates;
+        double t = (-normal[0] * (p_coord[0] - neighbor[n_neigh]->Coordinates()[0]) - normal[1] * (p_coord[1] - neighbor[n_neigh]->Coordinates()[1]) - normal[2] * (p_coord[2] - neighbor[n_neigh]->Coordinates()[2])) / (-std::pow(normal[0],2)-std::pow(normal[1],2)-std::pow(normal[2],2));
+        for (unsigned int d = 0; d < TDim; ++d)
+            intersection_coordinates[d] = p_coord[d] - normal[d]*t;
+
+        // Calculate virtual coordinates
+        for (unsigned int d = 0; d < TDim; ++d)
+            virtual_coordinates[d] = 2.0 * intersection_coordinates[d] - p_coord[d];
+
     }
 
-    total_nodal_area_inv = 1.0 / total_nodal_area_inv;
-
-    double sum_of_weights_inv = 0.0;
-
     for (unsigned int i = 0; i != distances.size(); ++i){
+        double virtual_weight = 0.0;
+        if (on_boundary == true){
+            double virtual_distance = 0.0;
+            for (unsigned int d = 0; d < TDim; ++d)
+                virtual_distance += std::pow(virtual_coordinates[d] - neighbor[i]->Coordinates()[d],2);
+            virtual_distance = std::sqrt(virtual_distance);
+            if (virtual_distance <= mR){
+                double virtual_radius_2 = virtual_distance * virtual_distance;
+                virtual_weight = nodal_areas[i] * (m6 * std::pow(virtual_radius_2, 3) + m6 * m2 * virtual_radius_2 + m0);
+            }
+        }
         double radius_2 = distances[i] * distances[i];
         double weight = nodal_areas[i] * (m6 * std::pow(radius_2, 3) + m6 * m2 * radius_2 + m0);
-        weights[i] = weight;
-        sum_of_weights_inv += weight;
+        weights[i] = weight + virtual_weight;
+        sum_of_weights_inv += weight + virtual_weight;
     }
 
     sum_of_weights_inv = 1.0 / sum_of_weights_inv;
 
     // normalizing weights
-    for (unsigned int i = 0; i != distances.size(); ++i){
-        weights[i] *= sum_of_weights_inv;
-    }
-}
-
-void ComputeWeights(std::vector<double> & distances, std::vector<double> & nodal_areas, const double max_nodal_area_inv, std::vector<double> & weights)
-{
-    double total_nodal_area_inv = 0.0;
-
-    for (unsigned int i = 0; i != distances.size(); ++i){
-        total_nodal_area_inv += nodal_areas[i];
-    }
-
-    total_nodal_area_inv = 1.0 / total_nodal_area_inv;
-
-    double sum_of_weights_inv = 0.0;
-
-    for (unsigned int i = 0; i != distances.size(); ++i){
-        double radius_2 = distances[i] * distances[i];
-        double r = mR;// * pow(nodal_areas[i] * max_nodal_area_inv, 0.3333333333333333333333333333333);
-        double weight;
-
-        weight = nodal_areas[i] * ((radius_2 > r * r) ? 0.0 : m6 * std::pow(radius_2, 3) + m6 * m2 * radius_2 + m0);
-        weights[i] = weight;
-        sum_of_weights_inv += weight;
-    }
-
-    if(std::abs(sum_of_weights_inv) < std::numeric_limits<double>::epsilon()) sum_of_weights_inv = 0.0;
-    else sum_of_weights_inv = 1.0 / sum_of_weights_inv;
-
-    // normalizing weights
-
     for (unsigned int i = 0; i != distances.size(); ++i){
         weights[i] *= sum_of_weights_inv;
     }
