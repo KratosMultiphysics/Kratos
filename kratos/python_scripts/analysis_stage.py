@@ -100,11 +100,16 @@ class AnalysisStage(object):
 
     def WriteOutputDisplacements(self):
         displacements = []
+        finalconfig_X = []
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             node_displacement = node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT)
             displacements.append(node_displacement)
+            node_coordinate = [node.X, node.Y, node.Z]
+            finalconfig_X.append(node_coordinate)
         np.save("DISPLACEMENTS_U1", displacements)
         np.savetxt("DISPLACEMENTS_U1.txt", displacements)
+        np.save("COORDINATES_X1", finalconfig_X)
+        np.savetxt("COORDINATES_X1.txt", finalconfig_X)
 
     def Initialize(self):
         """This function initializes the AnalysisStage
