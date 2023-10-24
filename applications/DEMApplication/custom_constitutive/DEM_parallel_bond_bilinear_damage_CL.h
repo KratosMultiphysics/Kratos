@@ -28,6 +28,7 @@ namespace Kratos{
         ~DEM_parallel_bond_bilinear_damage() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
+        double ComputeNormalUnbondedForce(double unbonded_indentation) override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
                             double OldLocalElasticContactForce[3],
