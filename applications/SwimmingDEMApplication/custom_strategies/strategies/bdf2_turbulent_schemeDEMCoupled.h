@@ -304,8 +304,8 @@ public:
         //if orthogonal subscales are computed
         if (ProcessInfo[OSS_SWITCH] == 1.0)
         {
-            this->FullProjection(rModelPart);
-            //this->LumpedProjection(rModelPart);
+            //this->FullProjection(rModelPart);
+            this->LumpedProjection(rModelPart);
         }
 
     }
