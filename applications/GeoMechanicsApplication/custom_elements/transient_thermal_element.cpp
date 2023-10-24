@@ -273,7 +273,7 @@ namespace Kratos
             }
             //Contributions to the right hand side
             if (CalculateResidualVectorFlag) {
-                this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
+                this->CalculateAndAddRHS(rRightHandSideVector, Variables);
             }
         }
 
@@ -344,11 +344,11 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        this->CalculateConductivityMatrix(rVariables.TMatrix, rVariables);
+        this->CalculateConductivityMatrix(rVariables);
 
         //Distribute compressibility block matrix into the elemental matrix
         GeoElementUtilities::
-            AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.TMatrix);
+            AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.conductivityMatrix);
 
         KRATOS_CATCH("")
     }
@@ -362,10 +362,10 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        this->CalculateCapacityMatrix(rVariables.TMatrix, rVariables);
+        this->CalculateCapacityMatrix(rVariables);
 
         //Distribute permeability block matrix into the elemental matrix
-        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.TMatrix);
+        GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.capacityMatrix);
 
         KRATOS_CATCH("")
     }
@@ -375,8 +375,7 @@ namespace Kratos
     template<unsigned int TDim, unsigned int TNumNodes>
     void TransientThermalElement<TDim, TNumNodes>::CalculateAndAddRHS(
         VectorType& rRightHandSideVector,
-        ElementVariables& rVariables,
-        unsigned int GPoint)
+        ElementVariables& rVariables)
     {
         KRATOS_TRY
 
@@ -446,7 +445,6 @@ namespace Kratos
     // ============================================================================================
     template<unsigned int TDim, unsigned int TNumNodes>
     void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityMatrix(
-        BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
         ElementVariables& rVariables) const
     {
         KRATOS_TRY
@@ -455,7 +453,7 @@ namespace Kratos
             * rVariables.waterDensity * rVariables.waterHeatCapacity;
         const double cSolid = (1.0 - rVariables.porosity) * rVariables.solidDensity
             * rVariables.solidHeatCapacity;
-        noalias(TMatrix) = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
+        noalias(rVariables.capacityMatrix) = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
             * rVariables.IntegrationCoefficient
             * rVariables.dtTemperatureCoefficient;
 
@@ -466,7 +464,6 @@ namespace Kratos
     // ============================================================================================
     template<unsigned int TDim, unsigned int TNumNodes>
     void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(
-        BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
         ElementVariables& rVariables)
     {
         KRATOS_TRY
@@ -476,7 +473,7 @@ namespace Kratos
         GeoThermalDispersion2DLaw::CalculateThermalDispersionMatrix(rVariables.constitutiveMatrix, rProp);
 
         BoundedMatrix<double, TDim, TNumNodes> Temp = prod(rVariables.constitutiveMatrix, trans(rVariables.GradNT));
-        noalias(TMatrix) = prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
+        noalias(rVariables.conductivityMatrix) = prod(rVariables.GradNT, Temp) * rVariables.IntegrationCoefficient;
 
         KRATOS_CATCH("");
     }
@@ -490,10 +487,10 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        this->CalculateCapacityVector(rVariables.TMatrix, rVariables.TVector, rVariables);
+        this->CalculateCapacityVector(rVariables);
 
         //Distribute permeability block vector into elemental vector
-        GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
+        GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.capacityVector);
 
         KRATOS_CATCH("")
     }
@@ -502,20 +499,12 @@ namespace Kratos
     // ============================================================================================
     template<unsigned int TDim, unsigned int TNumNodes>
     void TransientThermalElement<TDim, TNumNodes>::CalculateCapacityVector(
-        BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
-        array_1d<double, TNumNodes>& TVector,
         ElementVariables& rVariables) const
     {
         KRATOS_TRY
 
-        const double cWater = rVariables.porosity * rVariables.saturation
-            * rVariables.waterDensity * rVariables.waterHeatCapacity;
-        const double cSolid = (1.0 - rVariables.porosity) * rVariables.solidDensity
-            * rVariables.solidHeatCapacity;
-        noalias(TMatrix) = (cWater + cSolid) * outer_prod(rVariables.N, rVariables.N)
-            * rVariables.IntegrationCoefficient;
-
-        noalias(TVector) = - prod(TMatrix, rVariables.dtTemperatureVector);
+        rVariables.capacityMatrix /= rVariables.dtTemperatureCoefficient;
+        noalias(rVariables.capacityVector) = - prod(rVariables.capacityMatrix, rVariables.dtTemperatureVector);
 
         KRATOS_CATCH("")
     }
@@ -529,10 +518,10 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        this->CalculateConductivityVector(rVariables.TDimMatrix, rVariables.TMatrix, rVariables.TVector, rVariables);
+        this->CalculateConductivityVector(rVariables);
 
         //Distribute permeability block vector into elemental vector
-        GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
+        GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.conductivityVector);
 
         KRATOS_CATCH("")
     }
@@ -541,19 +530,11 @@ namespace Kratos
     // ============================================================================================
     template< unsigned int TDim, unsigned int TNumNodes >
     void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityVector(
-        BoundedMatrix<double, TNumNodes, TDim>& TDimMatrix,
-        BoundedMatrix<double, TNumNodes, TNumNodes>& TMatrix,
-        array_1d<double, TNumNodes>& TVector,
-        const ElementVariables& rVariables)
+        ElementVariables& rVariables)
     {
         KRATOS_TRY
 
-        noalias(TDimMatrix) = prod(rVariables.GradNT, rVariables.constitutiveMatrix);
-
-        noalias(TMatrix) = prod(TDimMatrix, trans(rVariables.GradNT))
-            * rVariables.IntegrationCoefficient;
-
-        noalias(TVector) = - prod(TMatrix, rVariables.temperatureVector);
+        noalias(rVariables.conductivityVector) = - prod(rVariables.conductivityMatrix, rVariables.temperatureVector);
 
         KRATOS_CATCH("");
     }
