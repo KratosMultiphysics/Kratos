@@ -20,8 +20,8 @@ Parameters ParametersUtilities::ExtractParameters(const Parameters& rSourceParam
                                                         const std::vector<std::string>& rNamesOfParametersToCopy)
 {
     auto result = Parameters{};
-        result.CopyValuesFromExistingParameters(rSourceParameters, rNamesOfParametersToCopy);
-        return result;
+    result.CopyValuesFromExistingParameters(rSourceParameters, rNamesOfParametersToCopy);
+    return result;
  }
 
 void ParametersUtilities::AppendParameterNameIfExists(const std::string& rParameterName,
@@ -50,12 +50,6 @@ bool ParametersUtilities::HasTableAttached(const Parameters& rSettings,
     int component)
 {
     return rSettings["table"][component].GetInt() != 0;
-
-    KRATOS_ERROR_IF_NOT(rSettings["table"][component].IsArray()) << "'table' is neither a single number nor an array of numbers";
-
-    const auto& table = rSettings["table"][component];
-    return std::any_of(table.begin(), table.end(),
-        [](const auto& value) {return value.GetInt() != 0; });
 }
 
 }
