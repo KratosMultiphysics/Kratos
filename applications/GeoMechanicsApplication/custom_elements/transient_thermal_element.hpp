@@ -51,7 +51,6 @@ namespace Kratos
 
         struct ElementVariables
         {
-            ///Properties variables
             double waterDensity;
             double solidDensity;
             double waterHeatCapacity;
@@ -64,26 +63,18 @@ namespace Kratos
             double porosity;
             double saturation;
 
-            ///ProcessInfo variables
             double dtTemperatureCoefficient;
-
-            ///Nodal variables
             array_1d<double, TNumNodes> temperatureVector;
             array_1d<double, TNumNodes> dtTemperatureVector;
-
-            ///Constitutive Law parameters
             Matrix constitutiveMatrix;
             Vector N;
             Matrix GradNT;
             Matrix GradNTInitialConfiguration;
-
             Vector detJContainer;
             Matrix NContainer;
             GeometryType::ShapeFunctionsGradientsType DN_DXContainer;
-
             double detJ;
             double IntegrationCoefficient;
-
             BoundedMatrix<double, TNumNodes, TNumNodes> conductivityMatrix;
             BoundedMatrix<double, TNumNodes, TNumNodes> capacityMatrix;
             array_1d<double, TNumNodes> conductivityVector;

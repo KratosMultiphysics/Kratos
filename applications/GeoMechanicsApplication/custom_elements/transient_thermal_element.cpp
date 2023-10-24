@@ -77,13 +77,12 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const GeometryType& rGeom = this->GetGeometry();
         const unsigned int N_DOF = this->GetNumberOfDOF();
-
         if (rElementalDofList.size() != N_DOF) {
             rElementalDofList.resize(N_DOF);
         }
 
+        const GeometryType& rGeom = this->GetGeometry();
         for (unsigned int i = 0; i < N_DOF; ++i) {
             rElementalDofList[i] = rGeom[i].pGetDof(TEMPERATURE);
         }
@@ -100,14 +99,13 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const GeometryType& rGeom = this->GetGeometry();
         const unsigned int N_DOF = this->GetNumberOfDOF();
-        unsigned int index = 0;
-
         if (rResult.size() != N_DOF) {
             rResult.resize(N_DOF, false);
         }
 
+        const GeometryType& rGeom = this->GetGeometry();
+        unsigned int index = 0;
         for (unsigned int i = 0; i < TNumNodes; ++i) {
             rResult[index++] = rGeom[i].GetDof(TEMPERATURE).EquationId();
         }
@@ -163,7 +161,7 @@ namespace Kratos
                 KRATOS_ERROR << "missing variable DT_TEMPERATURE on node " << rGeom[i].Id() << std::endl;
             }
             if (!rGeom[i].HasDofFor(TEMPERATURE)) {
-                KRATOS_ERROR << "missing variable TEMPERATURE on node " << rGeom[i].Id() << std::endl;
+                KRATOS_ERROR << "missing degree of freedom for TEMPERATURE on node " << rGeom[i].Id() << std::endl;
             }
         }
 
@@ -307,7 +305,7 @@ namespace Kratos
         const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
         // shape functions
-        (rVariables.NContainer).resize(NumGPoints, TNumNodes, false);
+        rVariables.NContainer.resize(NumGPoints, TNumNodes, false);
         rVariables.NContainer = rGeom.ShapeFunctionsValues(this->GetIntegrationMethod());
 
         // gradient of shape functions and determinant of Jacobian
@@ -346,7 +344,7 @@ namespace Kratos
 
         this->CalculateConductivityMatrix(rVariables);
 
-        //Distribute compressibility block matrix into the elemental matrix
+        //Distribute conductivity block matrix into the elemental matrix
         GeoElementUtilities::
             AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.conductivityMatrix);
 
@@ -489,7 +487,7 @@ namespace Kratos
 
         this->CalculateCapacityVector(rVariables);
 
-        //Distribute permeability block vector into elemental vector
+        //Distribute capacity block vector into elemental vector
         GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.capacityVector);
 
         KRATOS_CATCH("")
@@ -520,7 +518,7 @@ namespace Kratos
 
         this->CalculateConductivityVector(rVariables);
 
-        //Distribute permeability block vector into elemental vector
+        //Distribute conductivity block vector into elemental vector
         GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.conductivityVector);
 
         KRATOS_CATCH("")

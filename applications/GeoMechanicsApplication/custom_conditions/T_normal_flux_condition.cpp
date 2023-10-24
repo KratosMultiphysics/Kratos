@@ -70,22 +70,19 @@ void TNormalFluxCondition<TDim, TNumNodes>::CalculateRHS(
     rGeom.Jacobian(JContainer, this->GetIntegrationMethod());
 
     //Condition variables
-    array_1d<double, TNumNodes> normal_flux_vector;
+    array_1d<double, TNumNodes> normalFluxVector;
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        normal_flux_vector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_HEAT_FLUX);
+        normalFluxVector[i] = rGeom[i].FastGetSolutionStepValue(NORMAL_HEAT_FLUX);
     }
     NormalFluxVariables Variables;
 
     //Loop over integration points
     for (unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint) {
-        //Compute normal flux 
-        Variables.normalFlux = 0.0;
-        for (unsigned int i = 0; i < TNumNodes; ++i) {
-            Variables.normalFlux += NContainer(GPoint, i) * normal_flux_vector[i];
-        }
+        //Obtain N
+        noalias(Variables.N) = row(NContainer, GPoint);
 
-        //Obtain Np
-        noalias(Variables.Np) = row(NContainer, GPoint);
+        //Compute normal flux 
+        Variables.normalFlux = MathUtils<>::Dot(Variables.N, normalFluxVector);
 
         //Compute weighting coefficient for integration
         this->CalculateIntegrationCoefficient(Variables.IntegrationCoefficient,
@@ -104,7 +101,7 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(
     VectorType& rRightHandSideVector,
     NormalFluxVariables& rVariables )
 {
-    noalias(rVariables.TVector) = rVariables.normalFlux * rVariables.Np * rVariables.IntegrationCoefficient;
+    noalias(rVariables.TVector) = rVariables.normalFlux * rVariables.N * rVariables.IntegrationCoefficient;
 
     GeoElementUtilities::
         AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);

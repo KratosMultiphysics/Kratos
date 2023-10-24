@@ -71,7 +71,7 @@ protected:
     {
         double normalFlux;
         double IntegrationCoefficient;
-        array_1d<double,TNumNodes> Np;
+        array_1d<double,TNumNodes> N;
         array_1d<double,TNumNodes> TVector;
     };
     

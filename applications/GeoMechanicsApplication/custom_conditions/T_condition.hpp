@@ -14,9 +14,6 @@
 
 #pragma once
 
-// System includes
-#include <cmath>
-
 // Project includes
 #include "includes/define.h"
 #include "includes/condition.h"

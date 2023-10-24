@@ -59,13 +59,11 @@ void TCondition<TDim,TNumNodes>::GetDofList(
 {
     KRATOS_TRY
 
-    unsigned int conditionSize = TNumNodes;
-    const GeometryType& rGeom = GetGeometry();
-
-    if (rConditionDofList.size() != conditionSize) {
-        rConditionDofList.resize(conditionSize);
+    if (rConditionDofList.size() != TNumNodes) {
+        rConditionDofList.resize(TNumNodes);
     }
 
+    const GeometryType& rGeom = GetGeometry();
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rConditionDofList[i] = rGeom[i].pGetDof(TEMPERATURE);
     }
@@ -83,18 +81,17 @@ void TCondition<TDim, TNumNodes>::CalculateLocalSystem(
 {
     KRATOS_TRY
 
-    unsigned int conditionSize = TNumNodes;
     //Resetting the LHS
-    if (rLeftHandSideMatrix.size1() != conditionSize) {
-        rLeftHandSideMatrix.resize(conditionSize, conditionSize, false);
+    if (rLeftHandSideMatrix.size1() != TNumNodes || rLeftHandSideMatrix.size2() != TNumNodes) {
+        rLeftHandSideMatrix.resize(TNumNodes, TNumNodes, false);
     }
-    noalias(rLeftHandSideMatrix) = ZeroMatrix(conditionSize, conditionSize);
+    noalias(rLeftHandSideMatrix) = ZeroMatrix(TNumNodes, TNumNodes);
 
     //Resetting the RHS
-    if (rRightHandSideVector.size() != conditionSize) {
-        rRightHandSideVector.resize(conditionSize, false);
+    if (rRightHandSideVector.size() != TNumNodes) {
+        rRightHandSideVector.resize(TNumNodes, false);
     }
-    noalias(rRightHandSideVector) = ZeroVector(conditionSize);
+    noalias(rRightHandSideVector) = ZeroVector(TNumNodes);
 
     this->CalculateAll(rLeftHandSideMatrix, rRightHandSideVector, rCurrentProcessInfo);
 
@@ -110,13 +107,11 @@ void TCondition<TDim, TNumNodes>::EquationIdVector(
 {
     KRATOS_TRY
 
-    unsigned int conditionSize = TNumNodes;
-    const GeometryType& rGeom = GetGeometry();
-
-    if (rResult.size() != conditionSize) {
-        rResult.resize(conditionSize, false);
+    if (rResult.size() != TNumNodes) {
+        rResult.resize(TNumNodes, false);
     }
 
+    const GeometryType& rGeom = GetGeometry();
     for (unsigned int i = 0; i < TNumNodes; ++i) {
         rResult[i] = rGeom[i].GetDof(TEMPERATURE).EquationId();
     }
