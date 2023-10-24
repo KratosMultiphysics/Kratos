@@ -540,6 +540,10 @@ template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_He
 template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Linear_classic>;
 template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond, DEM_D_Quadratic>;
 
+template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage, DEM_D_Hertz_viscous_Coulomb>;
+template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage, DEM_D_Linear_classic>;
+template class DEM_compound_constitutive_law_for_PBM<DEM_parallel_bond_bilinear_damage, DEM_D_Quadratic>;
+
 void KratosDEMApplication::Register() {
     KRATOS_INFO("") << "\n"
                     << "     KRATOS |  _ \\| ____|  \\/  |  _ \\ __ _  ___| | __      \n"

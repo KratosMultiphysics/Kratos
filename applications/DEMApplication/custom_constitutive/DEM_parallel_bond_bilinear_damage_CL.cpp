@@ -57,6 +57,20 @@ void DEM_parallel_bond_bilinear_damage::Check(Properties::Pointer pProp) const {
 // Force calculation
 //*************************************
 
+double DEM_parallel_bond_bilinear_damage::ComputeNormalUnbondedForce(double indentation){
+    
+    KRATOS_TRY
+
+    KRATOS_ERROR << "This function shouldn't be accessed here, use basic contact model instead."<<std::endl
+                << "Maybe you are using \"DEM_parallel_bond_bilinear_damage\" for DEM_CONTINUUM_CONSTITUTIVE_LAW_NAME." <<std::endl
+                << "Unfortunately, you can only input one of the names listed below." <<std::endl
+                << "1. DEM_parallel_bond_bilinear_damage_Linear" <<std::endl 
+                << "2. DEM_parallel_bond_bilinear_damage_Hertz" <<std::endl
+                << "3. DEM_parallel_bond_bilinear_damage_Quadratic" <<std::endl;
+    
+    KRATOS_CATCH("")
+}
+
 void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_process_info,
                             double OldLocalElasticContactForce[3],
                             double LocalElasticContactForce[3],
@@ -104,6 +118,9 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
     const double fracture_energy = (*mpProperties)[FRACTURE_ENERGY];
     const double delta_at_undamaged_peak_normal = bond_sigma_max * calculation_area / kn_el;
     const double delta_at_failure_point_normal = (2.0 * fracture_energy) / bond_sigma_max;
+
+    double current_tau_for_debug = 0.0;
+    double current_tau_max_for_debug = 0.0;
     
   //**********************************************
     
@@ -209,7 +226,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
             
             double current_sigma = BondedLocalElasticContactForce2 / calculation_area;
 
-            double delta_residual_tangential = current_sigma * tan(internal_friction * Globals::Pi / 180.0) / kt_el;
+            double delta_residual_tangential = current_sigma * tan(internal_friction * Globals::Pi * calculation_area / 180.0) / kt_el;
             double delta_at_failure_point_tangential = (2.0 * fracture_energy) / bond_tau_zero + delta_residual_tangential;
 
             double max_tau_peak = bond_tau_zero + current_sigma * tan(internal_friction * Globals::Pi / 180.0);
@@ -228,7 +245,10 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
                                                  + BondedLocalElasticContactForce[1] * BondedLocalElasticContactForce[1]);
 
             double current_tau = current_tangential_force_module / calculation_area;
-            double max_tau = (1 - DamageTangentialOnlyForCalculation) * bond_tau_zero + current_sigma * tan(internal_friction * Globals::Pi / 180.0);
+            double max_tau = (1 - DamageTangentialOnlyForCalculation) * (bond_tau_zero + current_sigma * tan(internal_friction * Globals::Pi / 180.0));
+
+            current_tau_for_debug = current_tau;
+            current_tau_max_for_debug = max_tau;
 
             //yield check
             if (fracture_energy && !(*mpProperties)[IS_UNBREAKABLE]){  // the material can sustain further damage, not failure yet
@@ -464,8 +484,9 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
             std::ofstream normal_forces_file("delta_stress.txt", std::ios_base::out | std::ios_base::app);
             normal_forces_file << r_process_info[TIME] << " " << bonded_indentation/*2*/ << " " << contact_sigma/*3*/ << " "
                                 << AccumulatedBondedTangentialLocalDisplacementModulus/*4*/ << " " << contact_tau/*5*/ << " " 
-                                << mDamageReal/*6*/ << " " << delta_at_failure_point_normal << " " << delta_at_undamaged_peak_normal << " " 
-                                << mDamageNormal << " " << mDamageTangential << " " << '\n'; 
+                                << mDamageReal/*6*/ << " " << mDamageNormal << " " << mDamageTangential << " " 
+                                << current_tau_for_debug << " " << current_tau_max_for_debug << " " 
+                                << '\n'; 
             normal_forces_file.flush();
             normal_forces_file.close();
         }
