@@ -35,7 +35,7 @@ using MLSShapeFunctionsFunctionType = std::function<void(const Matrix&, const ar
 
 EmbeddedMLSConstraintProcess::EmbeddedMLSConstraintProcess(
     Model& rModel,
-    Parameters rParameters)
+    Parameters& rParameters)
     : Process()
 {
     // Validate input settings with defaults
@@ -109,13 +109,35 @@ void EmbeddedMLSConstraintProcess::ExecuteInitializeSolutionStep()
             CalculateNodeClouds(clouds_map, offsets_map);
         }
 
+        //TODO APPLY_EMBEDDED_CONSTRAINTS
+        //reset the EMBEDDED_VELOCITY
+        /*
+        #pragma omp parallel for
+    for (int i_node = 0; i_node < static_cast<int>(rNodes.size()); ++i_node){
+        ModelPart::NodesContainerType::iterator it_node = rNodes.begin() + i_node;
+        it_node->SetValue(EMBEDDED_IS_ACTIVE, 0);
+    }
+    }
+    // Synchronize the EMBEDDED_IS_ACTIVE variable flag
+    mrModelPart.GetCommunicator().AssembleNonHistoricalData(EMBEDDED_IS_ACTIVE);
+
+
+        */
+    /*block_for_each(rVolumeModelPart.Nodes(), [](auto& rNode){
+        rNode.GetValue(EMBEDDED_VELOCITY).clear();
+    });
+    auto& r_v = rNode.GetValue(EMBEDDED_VELOCITY); //we know it is zero since we zeroed all the nodes at the beginning of the function
+            for(unsigned int i=0; i<nfound; ++i){
+                noalias(r_v) += shape_functions[i]*r_neighbours[i]->FastGetSolutionStepValue(VELOCITY);
+            }*/
+
         // Reactivate intersected and negative elements depending on process settings
         // Fix nodal values of deactivated nodes to zero
         ReactivateElementsAndFixNodes();
 
         //TODO: hand over master weights to elements
         //SetElementalValues(clouds_map);
-        
+
         //TODO
         //FixAndCalculateConstrainedDofs(clouds_map, offsets_map);
 
@@ -452,7 +474,7 @@ void EmbeddedMLSConstraintProcess::ReactivateElementsAndFixNodes()
             }
         }
     }
-        
+
     // Make negative elements and their nodes ACTIVE
     if ( !mNegElemDeactivation ) {
         for (auto& rElement : mpModelPart->Elements()) {
@@ -516,14 +538,14 @@ void EmbeddedMLSConstraintProcess::RecoverDeactivationPreviousState()
 {
     // Activate again all the elements
     #pragma omp parallel for
-    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
-        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+    for (int i_elem = 0; i_elem < static_cast<int>(mpModelPart->NumberOfElements()); ++i_elem){
+        auto it_elem = mpModelPart->ElementsBegin() + i_elem;
         it_elem->Set(ACTIVE, true);
     }
     // Free the negative DOFs that were fixed
     #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
-        auto it_node = mrModelPart.NodesBegin() + i_node;
+    for (int i_node = 0; i_node < static_cast<int>(mpModelPart->NumberOfNodes()); ++i_node){
+        auto it_node = mpModelPart->NodesBegin() + i_node;
         if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
             for (std::size_t i_var = 0; i_var < mComponents.size(); i_var++){
                 const auto& r_double_var = KratosComponents<Variable<double>>::Get(mComponents[i_var]);

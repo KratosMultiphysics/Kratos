@@ -46,7 +46,7 @@ EmbeddedLocalConstraintProcess::EmbeddedLocalConstraintProcess(
 
     // Set to which elements constraints are applied
     mApplyToAllNegativeCutNodes = rParameters["apply_to_all_negative_cut_nodes"].GetBool();
-    
+
     // Set whether intersection points should be added to the cloud points or only positive nodes
     mIncludeIntersectionPoints = rParameters["include_intersection_points"].GetBool();
     mSlipLength = rParameters["slip_length"].GetDouble();
@@ -98,7 +98,7 @@ void EmbeddedLocalConstraintProcess::ExecuteInitializeSolutionStep()
 
         //TODO: hand over master weights to elements
         //SetElementalValues(clouds_map);
-        
+
         //TODO
         //FixAndCalculateConstrainedDofs(clouds_map, offsets_map);
 
@@ -126,7 +126,7 @@ void EmbeddedLocalConstraintProcess::ExecuteFinalizeSolutionStep()
 /* Private functions ****************************************************/
 
 void EmbeddedLocalConstraintProcess::CalculateNodeClouds(
-    NodesCloudMapType& rCloudsMap, 
+    NodesCloudMapType& rCloudsMap,
     NodesOffsetMapType& rOffsetsMap)
 {
     //Pointer for which function to call
@@ -398,14 +398,14 @@ void EmbeddedLocalConstraintProcess::RecoverDeactivationPreviousState()
 {
     // Activate again all the elements
     #pragma omp parallel for
-    for (int i_elem = 0; i_elem < static_cast<int>(mrModelPart.NumberOfElements()); ++i_elem){
-        auto it_elem = mrModelPart.ElementsBegin() + i_elem;
+    for (int i_elem = 0; i_elem < static_cast<int>(mpModelPart->NumberOfElements()); ++i_elem){
+        auto it_elem = mpModelPart->ElementsBegin() + i_elem;
         it_elem->Set(ACTIVE, true);
     }
     // Free the negative DOFs that were fixed
     #pragma omp parallel for
-    for (int i_node = 0; i_node < static_cast<int>(mrModelPart.NumberOfNodes()); ++i_node){
-        auto it_node = mrModelPart.NodesBegin() + i_node;
+    for (int i_node = 0; i_node < static_cast<int>(mpModelPart->NumberOfNodes()); ++i_node){
+        auto it_node = mpModelPart->NodesBegin() + i_node;
         if (it_node->GetValue(EMBEDDED_IS_ACTIVE) == 0){
             for (std::size_t i_var = 0; i_var < mComponents.size(); i_var++){
                 const auto& r_double_var = KratosComponents<Variable<double>>::Get(mComponents[i_var]);
@@ -467,20 +467,6 @@ bool EmbeddedLocalConstraintProcess::IsNegative(const GeometryType& rGeometry)
         }
     }
     return (n_neg == rGeometry.PointsNumber());
-}
-
-MLSShapeFunctionsFunctionType EmbeddedLocalConstraintProcess::GetMLSShapeFunctionsFunction()
-{
-    switch (mpModelPart->GetProcessInfo()[DOMAIN_SIZE]) {
-        case 2:
-            return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
-                MLSShapeFunctionsUtility::CalculateShapeFunctions<2,1>(rPoints, rX, h, rN);};
-        case 3:
-            return [&](const Matrix& rPoints, const array_1d<double,3>& rX, const double h, Vector& rN){
-                MLSShapeFunctionsUtility::CalculateShapeFunctions<3,1>(rPoints, rX, h, rN);};
-        default:
-            KRATOS_ERROR << "Wrong domain size. MLS shape functions utility cannot be set.";
-    }
 }
 
 }; // namespace Kratos.

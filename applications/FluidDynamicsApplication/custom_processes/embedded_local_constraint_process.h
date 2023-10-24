@@ -21,7 +21,6 @@
 // Project includes
 #include "containers/model.h"
 #include "processes/process.h"
-#include "utilities/mls_shape_functions_utility.h"
 
 // Application includes
 
@@ -92,7 +91,7 @@ public:
     /// Constructor.
     EmbeddedLocalConstraintProcess(
         Model& rModel,
-        Parameters ThisParameters);
+        Parameters& rParameters);
 
     /// Destructor.
     virtual ~EmbeddedLocalConstraintProcess() = default;

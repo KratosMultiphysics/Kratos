@@ -96,7 +96,7 @@ public:
     /// Constructor.
     EmbeddedMLSConstraintProcess(
         Model& rModel,
-        Parameters ThisParameters);
+        Parameters& rParameters);
 
     /// Destructor.
     virtual ~EmbeddedMLSConstraintProcess() = default;
