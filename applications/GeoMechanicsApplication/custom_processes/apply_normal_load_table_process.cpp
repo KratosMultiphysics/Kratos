@@ -47,18 +47,18 @@ void ApplyNormalLoadTableProcess::MakeInternalProcesses(const Parameters& rProce
     }
 }
 
-bool ApplyNormalLoadTableProcess::IsNormalComponentActive(const Parameters& rProcessSettings)
+bool ApplyNormalLoadTableProcess::IsNormalComponentActive(const Parameters& rProcessSettings) const
 {
     return IsComponentActive(rProcessSettings, normalComponentNumber);
 }
 
-bool ApplyNormalLoadTableProcess::IsTangentialComponentActive(const Parameters& rProcessSettings)
+bool ApplyNormalLoadTableProcess::IsTangentialComponentActive(const Parameters& rProcessSettings) const
 {
     return IsComponentActive(rProcessSettings, tangentialComponentNumber);
 }
 
 bool ApplyNormalLoadTableProcess::IsComponentActive(const Parameters& rProcessSettings, 
-                                                        int componentNumber)
+                                                    int               componentNumber) const
 {
     return rProcessSettings["active"][componentNumber].GetBool();
 }
@@ -70,7 +70,7 @@ void ApplyNormalLoadTableProcess::MakeProcessForNormalComponent(const Parameters
     const auto fluid_pressure_type = rProcessSettings["fluid_pressure_type"].GetString();
 
     if (fluid_pressure_type == "Uniform") {
-        MakeProcessForUniformFluidPressureType(rProcessSettings, std::move(names_of_settings_to_copy));
+        MakeProcessForUniformFluidPressureType(rProcessSettings, names_of_settings_to_copy);
     }
     else if (fluid_pressure_type == "Hydrostatic") {
         MakeProcessForHydrostaticFluidPressureType(rProcessSettings, std::move(names_of_settings_to_copy));
@@ -87,7 +87,7 @@ void ApplyNormalLoadTableProcess::MakeProcessForNormalComponent(const Parameters
 }
 
 void ApplyNormalLoadTableProcess::MakeProcessForUniformFluidPressureType(const Parameters& rProcessSettings,
-                                                                         std::vector<std::string> NamesOfSettingsToCopy)
+                                                                         const std::vector<std::string>& NamesOfSettingsToCopy)
 {  
     auto normal_parameters = ParametersUtilities::ExtractParameters(rProcessSettings,
                                                                       NamesOfSettingsToCopy);
