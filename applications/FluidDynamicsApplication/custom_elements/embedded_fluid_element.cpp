@@ -12,6 +12,7 @@
 #include "modified_shape_functions/triangle_2d_3_modified_shape_functions.h"
 #include "modified_shape_functions/tetrahedra_3d_4_modified_shape_functions.h"
 #include <algorithm>
+#include <cstddef>
 
 namespace Kratos {
 
@@ -84,8 +85,8 @@ void EmbeddedFluidElement<TBaseElement>::Initialize(const ProcessInfo& rCurrentP
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
     MatrixType& rLeftHandSideMatrix, VectorType& rRightHandSideVector,
-    const ProcessInfo& rCurrentProcessInfo) {
-
+    const ProcessInfo& rCurrentProcessInfo)
+{
     // Resize and intialize output
     if (rLeftHandSideMatrix.size1() != LocalSize)
         rLeftHandSideMatrix.resize(LocalSize, LocalSize, false);
@@ -142,27 +143,82 @@ void EmbeddedFluidElement<TBaseElement>::CalculateLocalSystem(
             }
         }
 
-        // Because only negative nodes of cut elements are constrained only cut elements provide relevant stiffness contributions
+        // Because only negative nodes of cut elements are constrained only cut elements provide relevant stiffness contributions for their multi-point constraints
         // NOTE: Constraints have to be applied as the last step of the calculation of the local system
+        data.InitializeConstraintData(*this, BlockSize);
         if (data.ApplyConstraints) {
-            data.BlockSize = BlockSize;
-            data.InitializeConstraintData();
-
-            // Expand LHS and RHS to contain master nodes
-            // NOTE no expansion needed for LocalConstraints
-            BoundedMatrix<double, LocalSize, LocalSize> aux_LHS = rLeftHandSideMatrix;
-            BoundedVector<double, LocalSize> aux_RHS = rRightHandSideVector;
-            rLeftHandSideMatrix.resize(data.LocalConstraintSize, data.LocalConstraintSize, false);
-            rRightHandSideVector.resize(data.LocalConstraintSize, false);
-            noalias(rLeftHandSideMatrix) = ZeroMatrix(data.LocalConstraintSize, data.LocalConstraintSize);
-            noalias(rRightHandSideVector) = ZeroVector(data.LocalConstraintSize);
-            // TODO insert auxillary LHS and RHS into current one
-
+            // Extend LHS and RHS to contain master nodes of constrained negative nodes of the element
+            ExtendLocalSystemWithMasterNodes(rLeftHandSideMatrix, rRightHandSideVector, data);
             // Use master weights in relation matrix to apply master-slave constraints of the interface to the local system
             ApplyMasterSlaveConstraints(rLeftHandSideMatrix, rRightHandSideVector, data);
-
-            //TODO how to return different matrix size and equation IDs to strategy?? (residual 0,based NR)
         }
+    }
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::CalculateLocalVelocityContribution(
+    MatrixType& rDampMatrix, VectorType& rRightHandSideVector,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (!BaseElementData::ElementManagesTimeIntegration) {
+        TBaseElement::CalculateLocalVelocityContribution(rDampMatrix, rRightHandSideVector, rCurrentProcessInfo);
+    } else {
+        // Resize element matrix to account for master nodes of constraints on the elements nodes and initialize
+        // so that zero matrix can be added in solution scheme because time integration was already done in CalculateLocalSystem
+        EmbeddedElementData data;
+        data.InitializeConstraintData(*this, BlockSize);
+        const std::size_t size = data.LocalConstraintSize;
+        if (rDampMatrix.size1() != size)
+            rDampMatrix.resize(size, size, false);
+        if (rRightHandSideVector.size() != size)
+            rRightHandSideVector.resize(size, false);
+        noalias(rDampMatrix) = ZeroMatrix(size, size);
+        noalias(rRightHandSideVector) = ZeroVector(size);
+    }
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::CalculateMassMatrix(
+    MatrixType& rMassMatrix,
+    const ProcessInfo& rCurrentProcessInfo)
+{
+    if (!BaseElementData::ElementManagesTimeIntegration) {
+        TBaseElement::CalculateMassMatrix(rMassMatrix, rCurrentProcessInfo);
+    } else {
+        // Resize element matrix to account for master nodes of constraints on the elements nodes and initialize
+        // so that zero matrix can be added in solution scheme because time integration was already done in CalculateLocalSystem
+        EmbeddedElementData data;
+        data.InitializeConstraintData(*this, BlockSize);
+        const std::size_t size = data.LocalConstraintSize;
+        if (rMassMatrix.size1() != size)
+            rMassMatrix.resize(size, size, false);
+        noalias(rMassMatrix) = ZeroMatrix(size, size);
+    }
+}
+
+template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::EquationIdVector(
+    EquationIdVectorType &rResult,
+    const ProcessInfo &rCurrentProcessInfo) const
+{
+    EmbeddedElementData data;
+    data.InitializeConstraintData(*this, BlockSize);
+
+    // Resize vector to account for master nodes of constraints on the elements nodes and initialize
+    if (rResult.size() != data.LocalConstraintSize)
+        rResult.resize(data.LocalConstraintSize, false);
+
+    // Get dof position for first node
+    const std::size_t xpos = data.ElementsNodesAndMasters[0]->GetDofPosition(VELOCITY_X);
+    const std::size_t ppos = data.ElementsNodesAndMasters[0]->GetDofPosition(PRESSURE);
+
+    // Add dof positions of the element's nodes and master nodes
+    std::size_t LocalIndex = 0;
+    for (auto p_node : data.ElementsNodesAndMasters) {
+        rResult[LocalIndex++] = p_node->GetDof(VELOCITY_X,xpos).EquationId();
+        rResult[LocalIndex++] = p_node->GetDof(VELOCITY_Y,xpos+1).EquationId();
+        if (Dim == 3) rResult[LocalIndex++] = p_node->GetDof(VELOCITY_Z,xpos+2).EquationId();
+        rResult[LocalIndex++] = p_node->GetDof(PRESSURE,ppos).EquationId();
     }
 }
 
@@ -192,8 +248,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::Calculate(
     const Variable<array_1d<double, 3>> &rVariable,
     array_1d<double, 3> &rOutput,
-    const ProcessInfo &rCurrentProcessInfo) {
-
+    const ProcessInfo &rCurrentProcessInfo)
+{
     rOutput = ZeroVector(3);
 
     // If the element is split, integrate sigma.n over the interface
@@ -221,8 +277,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::Calculate(
     const Variable<Vector> &rVariable,
     Vector& rOutput,
-    const ProcessInfo &rCurrentProcessInfo) {
-
+    const ProcessInfo &rCurrentProcessInfo)
+{
     TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 }
 
@@ -230,8 +286,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::Calculate(
     const Variable<Matrix> &rVariable,
     Matrix& rOutput,
-    const ProcessInfo &rCurrentProcessInfo) {
-
+    const ProcessInfo &rCurrentProcessInfo)
+{
     TBaseElement::Calculate(rVariable, rOutput, rCurrentProcessInfo);
 }
 
@@ -295,7 +351,7 @@ const Parameters EmbeddedFluidElement<TBaseElement>::GetSpecifications() const
         },
         "required_variables"         : ["DISTANCE","VELOCITY","PRESSURE","MESH_VELOCITY","MESH_DISPLACEMENT"],
         "required_dofs"              : [],
-        "flags_used"                 : ["SLIP"],
+        "flags_used"                 : ["SLIP","APPLY_CONSTRAINTS"],
         "compatible_geometries"      : ["Triangle2D3","Tetrahedra3D4"],
         "element_integrates_in_time" : true,
         "compatible_constitutive_laws": {
@@ -320,7 +376,8 @@ const Parameters EmbeddedFluidElement<TBaseElement>::GetSpecifications() const
 }
 
 template <class TBaseElement>
-std::string EmbeddedFluidElement<TBaseElement>::Info() const {
+std::string EmbeddedFluidElement<TBaseElement>::Info() const
+{
     std::stringstream buffer;
     buffer << "EmbeddedFluidElement #" << this->Id();
     return buffer.str();
@@ -328,7 +385,8 @@ std::string EmbeddedFluidElement<TBaseElement>::Info() const {
 
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::PrintInfo(
-    std::ostream& rOStream) const {
+    std::ostream& rOStream) const
+{
     rOStream << "EmbeddedFluidElement" << Dim << "D" << NumNodes << "N"
              << std::endl
              << "on top of ";
@@ -344,8 +402,8 @@ void EmbeddedFluidElement<TBaseElement>::PrintInfo(
 
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::InitializeGeometryData(
-    EmbeddedElementData& rData) const {
-
+    EmbeddedElementData& rData) const
+{
     rData.PositiveIndices.clear();
     rData.NegativeIndices.clear();
 
@@ -372,8 +430,8 @@ void EmbeddedFluidElement<TBaseElement>::InitializeGeometryData(
 
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::DefineStandardGeometryData(
-    EmbeddedElementData& rData) const {
-
+    EmbeddedElementData& rData) const
+{
     this->CalculateGeometryData(
         rData.PositiveSideWeights, rData.PositiveSideN, rData.PositiveSideDNDX);
     rData.NumPositiveNodes = NumNodes;
@@ -382,8 +440,8 @@ void EmbeddedFluidElement<TBaseElement>::DefineStandardGeometryData(
 
 template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::DefineCutGeometryData(
-    EmbeddedElementData& rData) const {
-
+    EmbeddedElementData& rData) const
+{
     // Auxiliary distance vector for the element subdivision utility
     Vector distances = rData.Distance;
 
@@ -475,8 +533,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddSlipNormalSymmetricCounterpartContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double,LocalSize> values;
     this->GetCurrentValuesVector(rData,values);
@@ -870,7 +928,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::DropOuterNodesVelocityContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
+    const EmbeddedElementData& rData) const
+{
     // Set the LHS and RHS u_out rows to zero (outside nodes used to impose the BC)
     for (unsigned int i=0; i<rData.NumNegativeNodes ; ++i) {
         const unsigned int out_node_row_id = rData.NegativeIndices[i];
@@ -891,8 +950,8 @@ template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheContribution(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) const {
-
+    const EmbeddedElementData& rData) const
+{
     // Obtain the previous iteration velocity solution
     array_1d<double, LocalSize> values;
     this->GetCurrentValuesVector(rData, values);
@@ -987,19 +1046,50 @@ void EmbeddedFluidElement<TBaseElement>::AddBoundaryConditionModifiedNitscheCont
 }
 
 template <class TBaseElement>
+void EmbeddedFluidElement<TBaseElement>::ExtendLocalSystemWithMasterNodes(
+    MatrixType& rLHS,
+    VectorType& rRHS,
+    const EmbeddedElementData& rData) const
+{
+    // Copy current entries
+    const BoundedMatrix<double, LocalSize, LocalSize> prev_LHS = rLHS;
+    const BoundedVector<double, LocalSize> prev_RHS = rRHS;
+
+    // Resize local system matrix and vector
+    const std::size_t size = rData.LocalConstraintSize;
+    rLHS.resize(size, size, false);
+    rRHS.resize(size, false);
+    noalias(rLHS) = ZeroMatrix(size, size);
+    noalias(rRHS) = ZeroVector(size);
+
+    // Add entries back into the local system
+    for (std::size_t i=0; i<LocalSize; ++i) {
+        rRHS(i) = prev_RHS(i);
+        for (std::size_t j=0; j<LocalSize; ++j) {
+            rLHS(i,j) = prev_LHS(i,j);
+        }
+    }
+}
+
+template <class TBaseElement>
 void EmbeddedFluidElement<TBaseElement>::ApplyMasterSlaveConstraints(
     MatrixType& rLHS,
     VectorType& rRHS,
-    const EmbeddedElementData& rData) {  // TODO const??
+    const EmbeddedElementData& rData) const
+{
+    // Get size of local system and relation matrix
+    const std::size_t size = rData.LocalConstraintSize;
+    const MatrixType& T_matrix = rData.ConstraintsRelationMatrix;
 
-    //TODO: create relation matrix?
-    BoundedMatrix<double, data.LocalConstraintSize, data.LocalConstraintSize> T = ZeroMatrix(data.LocalConstraintSize, data.LocalConstraintSize);
+    // Initialize auxillary matrix
+    MatrixType aux_LHS;
+    aux_LHS.resize(size, size, false);
+    noalias(aux_LHS) = ZeroMatrix(size, size);
 
-    // Multiply LHS and RHS by relation matrix T of element to apply constraints 
-    const BoundedMatrix<double, data.LocalConstraintSize, data.LocalConstraintSize> aux_LHS = prod( trans(T), prod(rLHS, T) );
-    const BoundedVector<double, data.LocalConstraintSize> aux_RHS = prod( trans(T), rRHS );
-    noalias(rLHS) = aux_LHS;
-    noalias(rRHS) = aux_RHS;
+    // Multiply LHS and RHS by relation matrix T_matrix of element to apply constraints
+    aux_LHS = prod(rLHS, T_matrix);
+    noalias(rLHS) = prod( trans(T_matrix), aux_LHS );
+    noalias(rRHS) = prod( trans(T_matrix), rRHS );
 }
 
 ///////////////////////////////////////////////////////////////////////////////////////////////////

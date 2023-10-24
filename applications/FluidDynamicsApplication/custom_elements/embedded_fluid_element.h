@@ -63,6 +63,9 @@ public:
     /// Node type (default is: Node)
     typedef Node NodeType;
 
+    /// Geometry type (using with given NodeType)
+    typedef Geometry<NodeType> GeometryType;
+
     /// Definition of nodes container type, redefined from GeometryType
     typedef Geometry<NodeType>::PointsArrayType NodesArrayType;
 
@@ -81,6 +84,10 @@ public:
     typedef std::vector< Dof<double>::Pointer > DofsVectorType;
 
     typedef PointerVectorSet<Dof<double>, IndexedObject> DofsArrayType;
+
+    typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
+
+    typedef std::vector<NodeType::Pointer> NodePointersType;
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;
@@ -178,7 +185,7 @@ public:
 
     /// Calculates both LHS and RHS contributions
     /**
-     * Computes the LHS and RHS elementar matrices. If the element is split
+     * Computes the LHS and RHS elemental matrices. If the element is split
      * includes the contribution of the level set boundary condition imposition.
      * @param rLeftHandSideMatrix reference to the LHS matrix
      * @param rRightHandSideVector reference to the RHS vector
@@ -187,6 +194,39 @@ public:
     void CalculateLocalSystem(MatrixType& rLeftHandSideMatrix,
         VectorType& rRightHandSideVector,
         const ProcessInfo& rCurrentProcessInfo) override;
+
+    /**
+     * @brief CalculateLocalVelocityContribution Calculate the local contribution in terms of velocity and pressure.
+     * If element is split and constraints are applied, the element matrix size might differ from LocalSize
+     * to account for master nodes of constraints on the elements nodes.
+     * @param rDampMatrix Local finite element system matrix (output)
+     * @param rRightHandSideVector Local finite element residual vector (output)
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    void CalculateLocalVelocityContribution(
+        MatrixType &rDampMatrix,
+        VectorType &rRightHandSideVector,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    /**
+     * @brief MassMatrix Calculate the local mass matrix.
+     * If element is split and constraints are applied, the element matrix size might differ from LocalSize
+     * to account for master nodes of constraints on the elements nodes.
+     * @param rMassMatrix Local mass matrix (output)
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    void CalculateMassMatrix(
+        MatrixType &rMassMatrix,
+        const ProcessInfo &rCurrentProcessInfo) override;
+
+    /**
+     * @brief EquationIdVector Returns the global system rows corresponding to each local row.
+     * @param rResult rResult[i] is the global index of local row i (output)
+     * @param rCurrentProcessInfo Current ProcessInfo values (input)
+     */
+    void EquationIdVector(
+        EquationIdVectorType& rResult,
+        const ProcessInfo& rCurrentProcessInfo) const override;
 
     /// Computes an elemental double value
     /**
@@ -426,7 +466,19 @@ protected:
         const EmbeddedElementData& rData) const;
 
     /**
-    * This functions applies the elemental master slave constraints for the negative nodes of a cut element (slaves), 
+    * This functions extends LHS matrix and RHS vector with the master nodes.
+    * Therefore, LHS and RHS are resized and the previous entries are added back into the top left part.
+    * @param rLHS reference to the LHS matrix
+    * @param rRHS reference to the RHS vector
+    * @param rData reference to element data structure
+    */
+    void ExtendLocalSystemWithMasterNodes(
+        MatrixType& rLHS,
+        VectorType& rRHS,
+        const EmbeddedElementData& rData) const;
+
+    /**
+    * This functions applies the elemental master slave constraints for the negative nodes of a cut element (slaves),
     * which have one of the element's nodes as their master.
     * Therefore, LHS and RHS are multiplied by the relation matrix T, which contains the weights of the master nodes.
     * @param rLHS reference to the LHS matrix
