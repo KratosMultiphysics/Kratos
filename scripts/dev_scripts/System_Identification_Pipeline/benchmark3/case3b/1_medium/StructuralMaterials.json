@@ -1,0 +1,148 @@
+{
+  "properties": [
+    {
+      "model_part_name": "Structure.ElemMat1",
+      "properties_id": 1,
+      "Material": {
+        "constitutive_law": {
+          "name": "LinearElasticPlaneStress2DLaw"
+        },
+        "Variables": {
+          "THICKNESS": 0.25,
+          "DENSITY": 1.0,
+          "YOUNG_MODULUS": 30000000000.0,
+          "POISSON_RATIO": 0.29
+        },
+        "Tables": {}
+      }
+    },
+    {
+      "model_part_name": "Structure.ElemMat6",
+      "properties_id": 1,
+      "Material": {
+        "constitutive_law": {
+          "name": "LinearElasticPlaneStress2DLaw"
+        },
+        "Variables": {
+          "THICKNESS": 0.25,
+          "DENSITY": 1.0,
+          "YOUNG_MODULUS": 30000000000.0,
+          "POISSON_RATIO": 0.29
+        },
+        "Tables": {}
+      }
+    },
+    {
+      "model_part_name": "Structure.ElemMat7",
+      "properties_id": 1,
+      "Material": {
+        "constitutive_law": {
+          "name": "LinearElasticPlaneStress2DLaw"
+        },
+        "Variables": {
+          "THICKNESS": 0.25,
+          "DENSITY": 1.0,
+          "YOUNG_MODULUS": 30000000000.0,
+          "POISSON_RATIO": 0.29
+        },
+        "Tables": {}
+      }
+    },
+    {
+      "model_part_name": "Structure.ElemMat8",
+      "properties_id": 1,
+      "Material": {
+        "constitutive_law": {
+          "name": "LinearElasticPlaneStress2DLaw"
+        },
+        "Variables": {
+          "THICKNESS": 0.25,
+          "DENSITY": 1.0,
+          "YOUNG_MODULUS": 30000000000.0,
+          "POISSON_RATIO": 0.29
+        },
+        "Tables": {}
+      }
+    },
+    {
+      "model_part_name": "Structure.ElemMat9",
+      "properties_id": 1,
+      "Material": {
+        "constitutive_law": {
+          "name": "LinearElasticPlaneStress2DLaw"
+        },
+        "Variables": {
+          "THICKNESS": 0.25,
+          "DENSITY": 1.0,
+          "YOUNG_MODULUS": 30000000000.0,
+          "POISSON_RATIO": 0.29
+        },
+        "Tables": {}
+      }
+    },
+    {
+      "model_part_name": "Structure.ElemMat2",
+      "properties_id": 2,
+      "Material": {
+        "constitutive_law": {
+          "name": "LinearElasticPlaneStress2DLaw"
+        },
+        "Variables": {
+          "THICKNESS": 0.25,
+          "DENSITY": 1.0,
+          "YOUNG_MODULUS": 210000000000.0,
+          "POISSON_RATIO": 0.29
+        },
+        "Tables": {}
+      }
+    },
+    {
+      "model_part_name": "Structure.ElemMat3",
+      "properties_id": 2,
+      "Material": {
+        "constitutive_law": {
+          "name": "LinearElasticPlaneStress2DLaw"
+        },
+        "Variables": {
+          "THICKNESS": 0.25,
+          "DENSITY": 1.0,
+          "YOUNG_MODULUS": 210000000000.0,
+          "POISSON_RATIO": 0.29
+        },
+        "Tables": {}
+      }
+    },
+    {
+      "model_part_name": "Structure.ElemMat4",
+      "properties_id": 2,
+      "Material": {
+        "constitutive_law": {
+          "name": "LinearElasticPlaneStress2DLaw"
+        },
+        "Variables": {
+          "THICKNESS": 0.25,
+          "DENSITY": 1.0,
+          "YOUNG_MODULUS": 210000000000.0,
+          "POISSON_RATIO": 0.29
+        },
+        "Tables": {}
+      }
+    },
+    {
+      "model_part_name": "Structure.ElemMat5",
+      "properties_id": 2,
+      "Material": {
+        "constitutive_law": {
+          "name": "LinearElasticPlaneStress2DLaw"
+        },
+        "Variables": {
+          "THICKNESS": 0.25,
+          "DENSITY": 1.0,
+          "YOUNG_MODULUS": 210000000000.0,
+          "POISSON_RATIO": 0.29
+        },
+        "Tables": {}
+      }
+    }
+  ]
+}

@@ -1,0 +1,114 @@
+{
+  "problem_data": {
+    "problem_name": "calculate_sensitivities_for_system_identification",
+    "start_time": 0.0,
+    "end_time": 1.0,
+    "parallel_type": "OpenMP",
+    "echo_level": 0
+  },
+  "solver_settings": {
+    "solver_type": "adjoint_static",
+    "analysis_type": "linear",
+    "model_part_name": "Structure",
+    "domain_size": 3,
+    "time_stepping": {
+      "time_step": 1.0
+    },
+    "compute_reactions": false,
+    "move_mesh_flag": false,
+    "response_function_settings": {
+      "response_type": "adjoint_nodal_displacement_measurement_residual",
+      "analyzer": "kratos",
+      "gradient_mode": "semi_analytic",
+      "step_size": 1.0e-6,
+      "adapt_step_size": true,
+      "response_part_name": "all_nodes_elements_model_part",
+      "direction": [0.0, 1.0, 0.0],
+      "traced_dof": "DISPLACEMENT",
+      "measurement_file_name": "measurement_data.json",
+      "measurement_load_case_to_use":0
+    },
+    "sensitivity_settings": {
+      "sensitivity_model_part_name": "all_nodes_elements_model_part",
+      "element_data_value_sensitivity_variables": ["YOUNG_MODULUS"],
+      "build_mode": "static"
+    },
+    "echo_level": 0,
+    "rotation_dofs": true,
+    "model_import_settings": {
+      "input_type": "mdpa",
+      "input_filename": "model_file"
+    },
+    "material_import_settings": {
+      "materials_filename": "StructuralMaterials.json"
+    }
+  },
+  "processes": {
+    "constraints_process_list": [
+      {
+        "python_module": "assign_vector_variable_process",
+        "kratos_module": "KratosMultiphysics",
+        "help": "This process fixes the selected components of a given vector variable",
+        "process_name": "AssignVectorVariableProcess",
+        "Parameters": {
+          "mesh_id": 0,
+          "model_part_name": "Structure.BoundPtsType5",
+          "variable_name": "ADJOINT_DISPLACEMENT",
+          "constrained": [true, true, true],
+          "value": [0.0, 0.0, 0.0],
+          "interval": [0.0, "End"]
+        }
+      },
+      {
+        "python_module": "assign_vector_variable_process",
+        "kratos_module": "KratosMultiphysics",
+        "help": "This process fixes the selected components of a given vector variable",
+        "process_name": "AssignVectorVariableProcess",
+        "Parameters": {
+          "mesh_id": 0,
+          "model_part_name": "Structure.BoundPtsType7",
+          "variable_name": "ADJOINT_DISPLACEMENT",
+          "constrained": [false, true, true],
+          "value": [0.0, 0.0, 0.0],
+          "interval": [0.0, "End"]
+        }
+      }
+    ],
+    "loads_process_list": [
+      {
+        "python_module": "assign_vector_by_direction_to_condition_process",
+        "kratos_module": "KratosMultiphysics",
+        "help": "This process sets a vector variable value over a condition",
+        "check": "DirectorVectorNonZero direction",
+        "process_name": "AssignModulusAndDirectionToConditionsProcess",
+        "Parameters": {
+          "mesh_id": 0,
+          "model_part_name": "Structure.load_boundary_P2",
+          "variable_name": "LINE_LOAD",
+          "modulus": 10000000.0,
+          "direction": [0.0, 1.0, 0.0],
+          "interval": [0.0, "End"]
+        }
+      }
+    ],
+    "list_other_processes": [
+      {
+        "kratos_module": "KratosMultiphysics.HDF5Application",
+        "python_module": "single_mesh_temporal_input_process",
+        "help": "",
+        "process_name": "",
+        "Parameters": {
+          "model_part_name": "Structure.all_nodes_elements_model_part",
+          "file_settings": {
+            "file_name" : "results_primal.h5",
+            "file_access_mode": "read_only"
+          },
+          "nodal_solution_step_data_settings": {
+            "list_of_variables": ["DISPLACEMENT", "ROTATION"]
+          }
+        }
+      }
+    ]
+  },
+  "_json_output_process": []
+}
