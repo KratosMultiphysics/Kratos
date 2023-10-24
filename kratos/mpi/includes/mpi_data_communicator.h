@@ -57,9 +57,13 @@ void MinAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS_
 __VA_ARGS__ MaxAll(const __VA_ARGS__& rLocalValue) const override;                                                  \
 std::vector<__VA_ARGS__> MaxAll(const std::vector<__VA_ARGS__>& rLocalValues) const override;                       \
 void MaxAll(const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const override;  \
+
+#endif
+
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(...)                                  \
 std::pair<__VA_ARGS__, int> MinLocAll(const __VA_ARGS__& rLocalValue) const override;                               \
 std::pair<__VA_ARGS__, int> MaxLocAll(const __VA_ARGS__& rLocalValue) const override;
-
 #endif
 
 #ifndef KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_SCANSUM_INTERFACE_FOR_TYPE
@@ -218,6 +222,13 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(array_1d<double, 9>)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(Vector)
     KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_PUBLIC_INTERFACE_FOR_TYPE(Matrix)
+
+    // MinLoc and MaxLoc AllReduce operations
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(char)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(long unsigned int)
+    KRATOS_MPI_DATA_COMMUNICATOR_DECLARE_ALLREDUCE_LOC_INTERFACE_FOR_TYPE(double)
 
     // Reduce operations
 
@@ -382,9 +393,9 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
         const std::vector<TDataType>& rLocalValues,
         MPI_Op Operation) const;
 
-    template<class TDataType> 
+    template<class TDataType>
     std::pair<TDataType, int> AllReduceDetailWithLocation(
-        const std::pair<TDataType, int>& rLocalValues, 
+        const std::pair<TDataType, int>& rLocalValues,
         MPI_Op Operation
         ) const;
 

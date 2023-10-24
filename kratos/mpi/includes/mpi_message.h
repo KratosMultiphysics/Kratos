@@ -38,23 +38,12 @@ template<> struct MPIDataType<int>
     {
         return MPI_INT;
     }
-
-    static inline MPI_Datatype IntPairDataType()
-    {
-        return MPI_2INT;
-    }
 };
 
 template<> struct MPIDataType<unsigned int>
 {
     static inline MPI_Datatype DataType()
     {
-        return MPI_UNSIGNED;
-    }
-
-    static inline MPI_Datatype IntPairDataType()
-    {
-        KRATOS_ERROR << "Unsupported type for MPIDataType<unsigned int>" << std::endl;
         return MPI_UNSIGNED;
     }
 };
@@ -65,12 +54,6 @@ template<> struct MPIDataType<long unsigned int>
     {
         return MPI_UNSIGNED_LONG;
     }
-
-    static inline MPI_Datatype IntPairDataType()
-    {
-        KRATOS_ERROR << "Unsupported type for MPIDataType<long unsigned int>" << std::endl;
-        return MPI_UNSIGNED_LONG;
-    }
 };
 
 template<> struct MPIDataType<double>
@@ -79,23 +62,12 @@ template<> struct MPIDataType<double>
     {
         return MPI_DOUBLE;
     }
-
-    static inline MPI_Datatype IntPairDataType()
-    {
-        return MPI_DOUBLE_INT;
-    }
 };
 
 template<> struct MPIDataType<bool>
 {
     static inline MPI_Datatype DataType()
     {
-        return MPI_C_BOOL;
-    }
-    
-    static inline MPI_Datatype IntPairDataType()
-    {
-        KRATOS_ERROR << "Unsupported type for MPIDataType<bool>" << std::endl;
         return MPI_C_BOOL;
     }
 };
@@ -106,12 +78,6 @@ template<> struct MPIDataType<char>
     {
         return MPI_CHAR;
     }
-
-    static inline MPI_Datatype IntPairDataType()
-    {
-        KRATOS_ERROR << "Unsupported type for MPIDataType<char>" << std::endl;
-        return MPI_CHAR;
-    }
 };
 
 template<> struct MPIDataType<int64_t>
@@ -120,10 +86,45 @@ template<> struct MPIDataType<int64_t>
     {
         return MPI_INT64_T;
     }
+};
 
-    static inline MPI_Datatype IntPairDataType()
+template<> struct MPIDataType<std::pair<char, int>>
+{
+    static inline MPI_Datatype DataType()
+    {
+        return MPI_2INT;
+    }
+};
+
+template<> struct MPIDataType<std::pair<int, int>>
+{
+    static inline MPI_Datatype DataType()
+    {
+        return MPI_2INT;
+    }
+};
+
+template<> struct MPIDataType<std::pair<unsigned int, int>>
+{
+    static inline MPI_Datatype DataType()
+    {
+        return MPI_2INT;
+    }
+};
+
+template<> struct MPIDataType<std::pair<long unsigned int, int>>
+{
+    static inline MPI_Datatype DataType()
     {
         return MPI_LONG_INT;
+    }
+};
+
+template<> struct MPIDataType<std::pair<double, int>>
+{
+    static inline MPI_Datatype DataType()
+    {
+        return MPI_DOUBLE_INT;
     }
 };
 
@@ -154,11 +155,6 @@ public:
     inline MPI_Datatype DataType()
     {
         return Internals::MPIDataType<PrimitiveDataType>::DataType();
-    }
-
-    inline MPI_Datatype IntPairDataType()
-    {
-        return Internals::MPIDataType<PrimitiveDataType>::IntPairDataType();
     }
 
     inline void* Buffer(MessageDataType& rValue)

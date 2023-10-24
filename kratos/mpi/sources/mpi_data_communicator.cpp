@@ -114,7 +114,11 @@ std::vector<__VA_ARGS__> MPIDataCommunicator::MaxAll(const std::vector<__VA_ARGS
 void MPIDataCommunicator::MaxAll(                                                                           \
     const std::vector<__VA_ARGS__>& rLocalValues, std::vector<__VA_ARGS__>& rGlobalValues) const {          \
     AllReduceDetail(rLocalValues, rGlobalValues, MPI_MAX);                                                  \
-}                                                                                                           \
+}
+#endif
+
+#ifndef KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE
+#define KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(...)                      \
 std::pair<__VA_ARGS__, int> MPIDataCommunicator::MinLocAll(const __VA_ARGS__& rLocalValue) const {          \
     std::pair<__VA_ARGS__, int> local_values({rLocalValue, Rank()});                                        \
     return AllReduceDetailWithLocation(local_values, MPI_MINLOC);                                           \
@@ -510,6 +514,13 @@ KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(array_1d<double, 9>)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(Vector)
 KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_IMPLEMENTATION_FOR_TYPE(Matrix)
 
+// MinLoc and MaxLoc AllReduce operations
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(char)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(unsigned int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(long unsigned int)
+KRATOS_MPI_DATA_COMMUNICATOR_DEFINE_ALLREDUCE_LOC_IMPLEMENTATION_FOR_TYPE(double)
+
 // Broadcast operations
 
 void MPIDataCommunicator::BroadcastImpl(std::string& rBroadcastValues, const int SourceRank) const
@@ -681,9 +692,9 @@ template<class TDataType> void MPIDataCommunicator::AllReduceDetail(
     mpi_recv_msg.Update(rReducedValues);
 }
 
-template<class TDataType> 
+template<class TDataType>
 TDataType MPIDataCommunicator::AllReduceDetail(
-    const TDataType& rLocalValues, 
+    const TDataType& rLocalValues,
     MPI_Op Operation
     ) const
 {
@@ -709,27 +720,21 @@ std::vector<TDataType> MPIDataCommunicator::AllReduceDetailVector(
     return reduced_values;
 }
 
-template<class TDataType> 
+template<class TDataType>
 std::pair<TDataType, int> MPIDataCommunicator::AllReduceDetailWithLocation(
     const std::pair<TDataType, int>& rLocalValues,
     MPI_Op Operation
     ) const
 {
     struct {
-        TDataType value;
+        std::conditional_t<std::is_same<TDataType,char>::value, int, TDataType> value;
         int rank;
     } local_reduce, global_reduce;
     local_reduce.value = rLocalValues.first;
     local_reduce.rank = rLocalValues.second;
-    MPI_Datatype data_type;
-    if constexpr (std::is_same_v<TDataType, double> || std::is_same_v<TDataType, long int> || std::is_same_v<TDataType, int>) {
-        MPIMessage<TDataType> mpi_msg;
-        data_type = mpi_msg.IntPairDataType();
-    } else {
-        KRATOS_ERROR << "Unsupported type for AllReduceDetailWithLocation" << std::endl;
-    }
+    MPI_Datatype data_type = MPIMessage<std::pair<TDataType, int>>().DataType();
     MPI_Allreduce(&local_reduce, &global_reduce, 1, data_type, Operation, mComm);
-    std::pair<TDataType, int> global_values({global_reduce.value, global_reduce.rank});
+    std::pair<TDataType, int> global_values({static_cast<TDataType>(global_reduce.value), global_reduce.rank});
     return global_values;
 }
 
