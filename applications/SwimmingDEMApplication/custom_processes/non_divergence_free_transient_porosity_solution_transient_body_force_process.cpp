@@ -254,7 +254,7 @@ void NonDivergenceFreeTransientPorositySolutionTransientBodyForceProcess::SetBod
 
         du222 = -8*std::pow(k,2)*omega*std::pow((1 - alpha_min),2)*(alpha_min - 1)*(-x2*std::cos(omega*time) + std::cos(2*k*(x1 + x2) + 2*omega*time)/(4*k))*std::pow(std::sin(k*(x1 + x2) + omega*time),2)*std::pow(std::cos(k*(x1 + x2) + omega*time),2)/std::pow((alpha_min + (1 - alpha_min)*std::pow(std::sin(k*(x1 + x2) + omega*time),2)),3) - 2*std::pow(k,2)*omega*(1 - alpha_min)*(alpha_min - 1)*(-x2*std::cos(omega*time) + std::cos(2*k*(x1 + x2) + 2*omega*time)/(4*k))*std::pow(std::sin(k*(x1 + x2) + omega*time),2)/std::pow((alpha_min + (1 - alpha_min)*std::pow(std::sin(k*(x1 + x2) + omega*time),2)),2) + 2*std::pow(k,2)*omega*(1 - alpha_min)*(alpha_min - 1)*(-x2*std::cos(omega*time) + std::cos(2*k*(x1 + x2) + 2*omega*time)/(4*k))*std::pow(std::cos(k*(x1 + x2) + omega*time),2)/std::pow((alpha_min + (1 - alpha_min)*std::pow(std::sin(k*(x1 + x2) + omega*time),2)),2) + 4*k*omega*(1 - alpha_min)*(alpha_min - 1)*(-std::sin(2*k*(x1 + x2) + 2*omega*time)/2 - std::cos(omega*time))*std::sin(k*(x1 + x2) + omega*time)*std::cos(k*(x1 + x2) + omega*time)/std::pow((alpha_min + (1 - alpha_min)*std::pow(std::sin(k*(x1 + x2) + omega*time),2)),2) + k*omega*(alpha_min - 1)*std::cos(2*k*(x1 + x2) + 2*omega*time)/(alpha_min + (1 - alpha_min)*std::pow(std::sin(k*(x1 + x2) + omega*time),2));
 
-        r_pressure = Uc*nu*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*x1)*(1.0 + omega/nu + Re + Da);
+        r_pressure = Uc*nu*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*x1)*(1.0 + Re + Da);
 
         r_sigma = mSigma * I;
 
@@ -267,8 +267,8 @@ void NonDivergenceFreeTransientPorositySolutionTransientBodyForceProcess::SetBod
         const double grad_of_div1 = du111 + du221;
         const double grad_of_div2 = du112 + du222;
 
-        const double press_grad1 = -Uc*nu*Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)*(1.0 + omega/nu + Re + Da);
-        const double press_grad2 = Uc*nu*Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)*(1.0 + omega/nu + Re + Da);
+        const double press_grad1 = -Uc*nu*Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)*(1.0 + Re + Da);
+        const double press_grad2 = Uc*nu*Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)*(1.0 + Re + Da);
 
         if (mAlternativeFormulation){
             const double grad_alpha_sym_grad1 = (1.0/2.0) * (2 * r_alpha1 * du11 + r_alpha2 * (du21 + du12));
@@ -445,10 +445,10 @@ void NonDivergenceFreeTransientPorositySolutionTransientBodyForceProcess::SetVal
 
             du222 = -8*std::pow(k,2)*omega*std::pow((1 - alpha_min),2)*(alpha_min - 1)*(-x2*std::cos(omega*time) + std::cos(2*k*(x1 + x2) + 2*omega*time)/(4*k))*std::pow(std::sin(k*(x1 + x2) + omega*time),2)*std::pow(std::cos(k*(x1 + x2) + omega*time),2)/std::pow((alpha_min + (1 - alpha_min)*std::pow(std::sin(k*(x1 + x2) + omega*time),2)),3) - 2*std::pow(k,2)*omega*(1 - alpha_min)*(alpha_min - 1)*(-x2*std::cos(omega*time) + std::cos(2*k*(x1 + x2) + 2*omega*time)/(4*k))*std::pow(std::sin(k*(x1 + x2) + omega*time),2)/std::pow((alpha_min + (1 - alpha_min)*std::pow(std::sin(k*(x1 + x2) + omega*time),2)),2) + 2*std::pow(k,2)*omega*(1 - alpha_min)*(alpha_min - 1)*(-x2*std::cos(omega*time) + std::cos(2*k*(x1 + x2) + 2*omega*time)/(4*k))*std::pow(std::cos(k*(x1 + x2) + omega*time),2)/std::pow((alpha_min + (1 - alpha_min)*std::pow(std::sin(k*(x1 + x2) + omega*time),2)),2) + 4*k*omega*(1 - alpha_min)*(alpha_min - 1)*(-std::sin(2*k*(x1 + x2) + 2*omega*time)/2 - std::cos(omega*time))*std::sin(k*(x1 + x2) + omega*time)*std::cos(k*(x1 + x2) + omega*time)/std::pow((alpha_min + (1 - alpha_min)*std::pow(std::sin(k*(x1 + x2) + omega*time),2)),2) + k*omega*(alpha_min - 1)*std::cos(2*k*(x1 + x2) + 2*omega*time)/(alpha_min + (1 - alpha_min)*std::pow(std::sin(k*(x1 + x2) + omega*time),2));
 
-            pressure = Uc*nu*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*x1)*(1.0 + omega/nu + Re + Da);
+            pressure = Uc*nu*std::sin(Globals::Pi*x2)*std::cos(Globals::Pi*x1)*(1.0 + Re + Da);
 
-            const double press_grad1 = -Uc*nu*Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)*(1.0 + omega/nu + Re + Da);
-            const double press_grad2 = Uc*nu*Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)*(1.0 + omega/nu + Re + Da);
+            const double press_grad1 = -Uc*nu*Globals::Pi*std::sin(Globals::Pi*x1)*std::sin(Globals::Pi*x2)*(1.0 + Re + Da);
+            const double press_grad2 = Uc*nu*Globals::Pi*std::cos(Globals::Pi*x1)*std::cos(Globals::Pi*x2)*(1.0 + Re + Da);
 
             sigma = mSigma * I;
 

@@ -156,52 +156,15 @@ void FlowPastCylinderPorosityFieldProcess::SetPorosityField()
         if (x1 >= r1 &&  x1 <= r2){
             r_alpha = (mAlphaMax-mAlphaMin)/(r2-r1) * x1 + (mAlphaMin*r2-mAlphaMax*r1)/(r2-r1);
 
-            r_alpha1 = (mAlphaMax-mAlphaMin)/(r2-r1);
 
-            r_alpha2 = 0.0;
         }
         else{
             if (x1 < r1) {
                 r_alpha = mAlphaMin;
-                r_alpha1 = 0.0;
-                r_alpha2 = 0.0;
         } else if (x1 > r2){
                 r_alpha = mAlphaMax;
-                r_alpha1 = 0.0;
-                r_alpha2 = 0.0;
             }
         }
-
-        // r_alpha = (mAlphaMin-mAlphaMax)/L*x1 + mAlphaMax;
-
-        // r_dalphat = 0.0;
-
-        // r_alpha1 = (mAlphaMin-mAlphaMax)/L;
-
-        // r_alpha2 = 0.0;
-
-        // double r_sq = std::pow(x1-x10,2) + std::pow(x2-x20,2);
-
-        // if ((std::sqrt(r_sq) > r1) && (std::sqrt(r_sq) < r2)){
-
-        //     r_alpha = -(1 - alpha_min)*(1 - std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/(std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))) + std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))))) + 1;
-
-        //     r_alpha1 = -(1 - alpha_min)*(-((2*x1 - 2*x10)*std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/((-std::pow(r1,2) + std::pow(r2,2))*std::pow((1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))),2)) - (2*x1 - 2*x10)*std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/((-std::pow(r1,2) + std::pow(r2,2))*std::pow(((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))),2)))*std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/std::pow((std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))) + std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))),2) - (2*x1 - 2*x10)*std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/((-std::pow(r1,2) + std::pow(r2,2))*std::pow(((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))),2)*(std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))) + std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))))));
-
-        //     r_alpha2 = -(1 - alpha_min)*(-((2*x2 - 2*x20)*std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/((-std::pow(r1,2) + std::pow(r2,2))*std::pow((1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))),2)) - (2*x2 - 2*x20)*std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/((-std::pow(r1,2) + std::pow(r2,2))*std::pow(((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))),2)))*std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/std::pow((std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))) + std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))),2) - (2*x2 - 2*x20)*std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))))/((-std::pow(r1,2) + std::pow(r2,2))*std::pow(((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2))),2)*(std::exp(-1/(1 - (-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) - std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))) + std::exp(-1/((-std::pow(r1,2) + std::pow((x1 - x10),2))/(-std::pow(r1,2) + std::pow(r2,2)) + std::pow((x2 - x20),2)/(-std::pow(r1,2) + std::pow(r2,2)))))));
-
-        // }
-        // else{
-        //     if (std::sqrt(r_sq) <= r1) {
-        //         r_alpha = mAlphaMin;
-        //         r_alpha1 = 0.0;
-        //         r_alpha2 = 0.0;
-        //     } else if (std::sqrt(r_sq) >= r2){
-        //         r_alpha = mAlphaMax;
-        //         r_alpha1 = 0.0;
-        //         r_alpha2 = 0.0;
-        //     }
-        // }
 
         if (std::sqrt(std::pow(x1-4,2) + std::pow(x2-4,2)) <= 0.51){
             u1 = 0.0;
