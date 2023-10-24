@@ -399,6 +399,96 @@ jobs:
         python kratos/python_scripts/testing/run_tests.py -l nightly -c python
 
 
+  ubuntu-intel-legacy:
+    runs-on: ubuntu-latest
+    env:
+      KRATOS_BUILD_TYPE: Custom
+      OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
+      OMPI_MCA_btl_vader_single_copy_mechanism: none # suppressing some annoying OpenMPI messages
+
+    container:
+      image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
+      options: --user 1001
+
+    steps:
+    - uses: actions/checkout@v4
+
+    # - name: Installing dependencies
+    # => must be added to the docker container to avoid reinstalling it in every CI run
+
+    - name: Install intel compiler
+      shell: bash
+      run: sudo apt-get install intel-oneapi-compiler-dpcpp-cpp-and-cpp-classic
+
+    - name: Build
+      shell: bash
+      run: |
+        export CC=icc
+        export CXX=icpc
+        source /opt/intel/oneapi/setvars.sh
+        cp .github/workflows/intel_configure.sh configure.sh
+        bash configure.sh
+
+    - name: Running python tests
+      shell: bash
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/testing/run_tests.py -l nightly -c python3
+
+    - name: Running MPI C++ tests (2 Cores)
+      shell: bash
+      timeout-minutes : 10
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        mpiexec -np 2 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running MPI C++ tests (3 Cores)
+      shell: bash
+      timeout-minutes : 10
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        mpiexec -np 3 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running MPI C++ tests (4 Cores)
+      shell: bash
+      timeout-minutes : 10
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        mpiexec -np 4 python3 kratos/python_scripts/testing/run_cpp_mpi_tests.py --using-mpi
+
+    - name: Running Python MPI tests (2 Cores)
+      shell: bash
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 2
+
+    - name: Running Python MPI tests (3 Cores)
+      shell: bash
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 3
+
+    - name: Running Python MPI tests (4 Cores)
+      shell: bash
+      run: |
+        source /opt/intel/oneapi/setvars.sh
+        export PYTHONPATH=${PYTHONPATH}:${GITHUB_WORKSPACE}/bin/Custom
+        export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${GITHUB_WORKSPACE}/bin/Custom/libs
+        python3 kratos/python_scripts/testing/run_python_mpi_tests.py -l mpi_nightly -n 4
+
+
   ubuntu-intel:
     runs-on: ubuntu-latest
     env:
@@ -415,6 +505,10 @@ jobs:
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
+
+    - name: Install intel compiler
+      shell: bash
+      run: sudo apt-get install intel-oneapi-compiler-dpcpp-cpp
 
     - name: Build
       shell: bash
