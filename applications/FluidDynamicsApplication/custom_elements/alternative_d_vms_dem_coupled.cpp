@@ -651,10 +651,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
     const auto& body_force = this->GetAtCoordinate(rData.BodyForce, rData.N);
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
-    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
-    for (unsigned int i = 0; i < NumNodes; i++)
-        for (unsigned int d = 0; d < Dim; d++)
-            fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+    array_1d<double,Dim> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     Vector sigma_U, grad_alpha_sym_grad_u, grad_div_u, div_sym_grad_u;
     BoundedMatrix<double,Dim,Dim> sym_gradient_u;
@@ -679,7 +676,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
                 else
                     div_sym_grad_u[d] += 1.0/2.0 * (rData.DDN_DDX[i](e,d) * r_velocities(i,e) + rData.DDN_DDX[i](e,e) * r_velocities(i,d));
             }
-            rResidual[d] += density * (- fluid_fraction * rData.N[i] * r_acceleration[d] - fluid_fraction * convection[i] * r_velocities(i,d)) + 2.0 * grad_alpha_sym_grad_u[d] * viscosity - 2.0 / 3.0 * viscosity * fluid_fraction_gradient[d] * div_u + 2.0 * fluid_fraction * viscosity * div_sym_grad_u[d] - 2.0/3.0 * fluid_fraction * viscosity * grad_div_u[d] - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
+            rResidual[d] += density * (- fluid_fraction * rData.N[i] * r_acceleration[d] - fluid_fraction * convection[i] * r_velocities(i,d)) + 2.0 * grad_alpha_sym_grad_u[d] * viscosity - 2.0 / 3.0 * viscosity * fluid_fraction_gradient[d] * div_u + 2.0 * fluid_fraction * viscosity * div_sym_grad_u[d] - 0*2.0/3.0 * fluid_fraction * viscosity * grad_div_u[d] - fluid_fraction * rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
         }
     }
     for (unsigned int d = 0; d < Dim; d++)
@@ -701,10 +698,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::MomentumProjTerm(
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
     MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
-    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
-    for (unsigned int i = 0; i < NumNodes; i++)
-        for (unsigned int d = 0; d < Dim; d++)
-            fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+    array_1d<double,Dim> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
     const auto& body_force = this->GetAtCoordinate(rData.BodyForce, rData.N);
     Vector grad_alpha_sym_grad_u, grad_div_u, sigma_U, div_sym_grad_u;
     BoundedMatrix<double,Dim,Dim> sym_gradient_u;
@@ -778,10 +772,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
     //BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
     MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
 
-    array_1d<double, Dim> fluid_fraction_gradient = ZeroVector(Dim);
-    for (unsigned int i = 0; i < NumNodes; i++)
-        for (unsigned int d = 0; d < Dim; d++)
-            fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+    array_1d<double,Dim> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     // Multiplying convective operator by density to have correct units
     // Note: Dof order is (u,v,[w,]p) for each node
@@ -930,15 +921,14 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddVelocitySystem(
                         LC_2 += 2.0 / 3.0 * tau_one(d,d) * std::pow(fluid_fraction,2) * std::pow(viscosity,2) * rData.DDN_DDX[i](d,f) * rData.DDN_DDX[j](f,e);
                         CL_1 += 2.0 / 3.0 * tau_one(d,d) * std::pow(fluid_fraction,2) * std::pow(viscosity,2) * rData.DDN_DDX[i](d,e) * rData.DDN_DDX[j](f,f);
                         CL_2 += 2.0 / 3.0 * tau_one(d,d) * std::pow(fluid_fraction,2) * std::pow(viscosity,2) * rData.DDN_DDX[i](d,f) * rData.DDN_DDX[j](f,e);
-                        CC += 4.0 / 9.0 * tau_one(d,d) * std::pow(fluid_fraction,2) * std::pow(viscosity,2) * rData.DDN_DDX[i](f,d) * rData.DDN_DDX[j](f,e);
                         LGBeta_1 += tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * rData.DDN_DDX[i](f,f) * rData.DN_DX(j,d) * fluid_fraction_gradient[e];
                         LGBeta_2 += tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * rData.DDN_DDX[i](f,f);
                         LGBeta_4 += tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * rData.DDN_DDX[i](d,f) * rData.DN_DX(j,f) * fluid_fraction_gradient[e];
                         LGBeta_5 += tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * rData.DDN_DDX[i](d,e) * fluid_fraction_gradient[f] * rData.DN_DX(j,f);
                         LDBeta_1 += 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * rData.DN_DX(j,e) * fluid_fraction_gradient[f] * rData.DDN_DDX[i](d,f);
                         LDBeta_2 += 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * rData.DN_DX(j,e) * fluid_fraction_gradient[d] * rData.DDN_DDX[i](f,f);
-                        CGBeta_1 += 2.0 /3.0 * tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * rData.DDN_DDX[i](d,f) * rData.DN_DX(j,f) * fluid_fraction_gradient[e];
-                        CGBeta_2 += 2.0 /3.0 * tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * rData.DDN_DDX[i](d,e) * rData.DN_DX(j,f) * fluid_fraction_gradient[f];
+                        CGBeta_1 += 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * rData.DDN_DDX[i](d,f) * rData.DN_DX(j,f) * fluid_fraction_gradient[e];
+                        CGBeta_2 += 2.0 / 3.0 * tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * rData.DDN_DDX[i](d,e) * rData.DN_DX(j,f) * fluid_fraction_gradient[f];
                         CDBeta += 4.0 / 9.0 * tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * fluid_fraction_gradient[f] * rData.DDN_DDX[i](d,f) * rData.DN_DX(j,e);
                         GBetaL_1 += tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * fluid_fraction_gradient[d] * rData.DN_DX(i,f) * rData.DDN_DDX[j](f,e);
                         GBetaL_2 += tau_one(d,d) * fluid_fraction * std::pow(viscosity,2) * fluid_fraction_gradient[d] * rData.DN_DX(i,e) * rData.DDN_DDX[j](f,f);
@@ -1163,10 +1153,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::MassProjTerm(
         const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
         const double mass_source = this->GetAtCoordinate(rData.MassSource, rData.N);
         const double fluid_fraction_rate = this->GetAtCoordinate(rData.FluidFractionRate, rData.N);
-        array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
-        for (unsigned int i = 0; i < NumNodes; i++)
-            for (unsigned int d = 0; d < Dim; d++)
-                fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+        array_1d<double,Dim> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
 
         // Compute this node's contribution to the residual (evaluated at integration point)
@@ -1208,10 +1195,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddReactionStabilization(
     array_1d<double,Dim> OldUssTerm = (density/dt) * mOldSubscaleVelocity[rData.IntegrationPointIndex]; // rho * u_ss^{n-1}/dt
 
     const double fluid_fraction = this->GetAtCoordinate(rData.FluidFraction, rData.N);
-    array_1d<double, Dim> fluid_fraction_gradient = ZeroVector(Dim);
-    for (unsigned int i = 0; i < NumNodes; i++)
-        for (unsigned int d = 0; d < Dim; d++)
-            fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+    array_1d<double,Dim> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
 
@@ -1311,10 +1295,7 @@ void AlternativeDVMSDEMCoupled<TElementData>::AddMassStabilization(
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
     BoundedMatrix<double,Dim,Dim> sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
 
-    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
-    for (unsigned int i = 0; i < NumNodes; i++)
-        for (unsigned int d = 0; d < Dim; d++)
-            fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+    array_1d<double,Dim> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
 
     double W = rData.Weight * density; // This density is for the dynamic term in the residual (rho*Du/Dt)
@@ -1455,11 +1436,8 @@ void AlternativeDVMSDEMCoupled<TElementData>::CalculateStabilizationParameters(
     const int p = mInterpolationOrder;
     MatrixType sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
     BoundedMatrix<double,Dim,Dim> I = IdentityMatrix(Dim, Dim);
-    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
 
-    for (unsigned int i = 0; i < NumNodes; i++)
-        for (unsigned int d = 0; d < Dim; d++)
-            fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+    array_1d<double,Dim> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
 
     // This last term does not exist physically and it is included to do the spectral radius taking into account the inverse Gamma
@@ -1754,13 +1732,8 @@ void AlternativeDVMSDEMCoupled<TElementData>::UpdateSubscaleVelocityPrediction(
     BoundedMatrix<double,Dim,Dim> resolved_velocity_gradient = ZeroMatrix(Dim,Dim);
 
     BoundedMatrix<double,Dim,Dim> sigma = mViscousResistanceTensor[rData.IntegrationPointIndex];
-    //BoundedMatrix<double,Dim,Dim> permeability = this->GetAtCoordinate(rData.Permeability, rData.N);
-    //double det_permeability = MathUtils<double>::Det(permeability);
-    //MathUtils<double>::InvertMatrix(permeability, sigma, det_permeability, -1.0);
-    array_1d<double,Dim> fluid_fraction_gradient = ZeroVector(Dim);
-    for (unsigned int i = 0; i < NumNodes; i++)
-        for (unsigned int d = 0; d < Dim; d++)
-            fluid_fraction_gradient[d] += rData.DN_DX(i,d) * rData.FluidFraction[i];
+
+    array_1d<double,Dim> fluid_fraction_gradient = this->GetAtCoordinate(rData.FluidFractionGradient, rData.N);
 
     const auto& r_resolved_velocities = rData.Velocity;
 
