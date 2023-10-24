@@ -27,7 +27,7 @@ namespace Kratos{
         ~DEM_parallel_bond_bilinear_damage_mixed() {}
 
         DEMContinuumConstitutiveLaw::Pointer Clone() const override;
-        
+
         double ComputeNormalUnbondedForce(double unbonded_indentation) override;
 
         void CalculateForces(const ProcessInfo& r_process_info,
@@ -56,13 +56,14 @@ namespace Kratos{
                             double LocalRelVel[3],
                             double ViscoDampingLocalContactForce[3]) override;
 
+        /*
         double mDamageNormal = 0.0;
         double mDamageTangential = 0.0;
         double mDamageMoment = 0.0;
         const double mDamageThresholdTolerance = 0.999;
         double mDamageReal = 0.0;
         bool mDebugPrintingOption = false;
-        double mInitialIndentationForBondedPart = 0.0;
+        double mInitialIndentationForBondedPart = 0.0;*/
     
     protected:
 
