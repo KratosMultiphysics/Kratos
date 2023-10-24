@@ -287,7 +287,7 @@ private:
         std::vector<int> send_points_per_partition(1, NumberOfPoints);
         rDataCommunicator.AllGather(send_points_per_partition, points_per_partition);
         std::size_t initial_id = 0;
-        if constexpr (!std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+        if constexpr (!std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
             initial_id = std::accumulate(points_per_partition.begin(), points_per_partition.begin() + rank, 0);
         }
 
@@ -308,13 +308,13 @@ private:
             std::vector<IndexType> send_points_ids(NumberOfPoints);
             for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
                 // In case of considering nodes
-                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                     if (it_point->FastGetSolutionStepValue(PARTITION_INDEX) != rank) {
                         continue; // Skip if not local
                     }
                 }
                 noalias(coordinates) = it_point->Coordinates();
-                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                     send_points_ids[counter] = it_point->Id();
                 } else {
                     send_points_ids[counter] = initial_id + counter;
@@ -355,7 +355,7 @@ private:
             // Assign values
             for (auto it_point = itPointBegin ; it_point != itPointEnd ; ++it_point) {
                 noalias(coordinates) = it_point->Coordinates();
-                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+                if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                     rAllPointsIds[counter] = it_point->Id();
                 } else {
                     rAllPointsIds[counter] = initial_id + counter;
@@ -436,7 +436,7 @@ private:
         
         // In case of considering nodes (and distributed)
         if (rDataCommunicator.IsDistributed()) {
-            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 for (auto it_node = itPointBegin; it_node < itPointEnd; ++it_node) {
                     if (it_node->FastGetSolutionStepValue(PARTITION_INDEX) != rank) {
                         --rNumberOfPoints; // Remove is not local
