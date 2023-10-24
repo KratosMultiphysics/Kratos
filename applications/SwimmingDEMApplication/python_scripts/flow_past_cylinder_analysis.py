@@ -15,7 +15,7 @@ from swimming_DEM_analysis import SwimmingDEMAnalysis
 import swimming_DEM_procedures as SDP
 
 class FlowPastCylinderAnalysis(SwimmingDEMAnalysis):
-    def __init__(self, model, iteration, varying_parameters = Parameters("{}")):
+    def __init__(self, model, iteration, Re, varying_parameters = Parameters("{}")):
         """The default constructor of the class.
 
         Keyword arguments:
@@ -30,6 +30,7 @@ class FlowPastCylinderAnalysis(SwimmingDEMAnalysis):
         self.project_parameters = varying_parameters
         self.GetModelAttributes()
         self.max_iteration = self.project_parameters['fluid_parameters']['solver_settings']['maximum_iterations'].GetInt()
+        self.reynolds_number = Re
         self.lowest_alpha = self.project_parameters["fluid_parameters"]["processes"]["initial_conditions_process_list"][0]["Parameters"]["benchmark_parameters"]["alpha_min"].GetDouble()
         self.u_characteristic = self.project_parameters["error_projection_parameters"]["u_characteristic"].GetDouble()
         self.pressure = hdf5_script.Pressure(iteration)
@@ -76,13 +77,7 @@ class FlowPastCylinderAnalysis(SwimmingDEMAnalysis):
 
         super(SwimmingDEMAnalysis, self).FinalizeSolutionStep()
 
-        for node in self.fluid_model_part.Nodes:
-            self.nu = node.GetSolutionStepValue(Kratos.VISCOSITY)
-            break
-        self.reynolds_number = self.u_characteristic/self.nu
-
         self.pressure.WriteData(self.fluid_model_part, self.model_type, self.lowest_alpha, self.reynolds_number)
-
 
     def TransferBodyForceFromDisperseToFluid(self):
         pass

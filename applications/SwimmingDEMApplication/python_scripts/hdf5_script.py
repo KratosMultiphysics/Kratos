@@ -407,6 +407,10 @@ class Pressure(object):
         else:
             self.sub_group = file_or_group.create_group(self.group_name)
 
+        self.sub_group.attrs['model_type'] = str(self.model_type)
+        self.sub_group.attrs['alpha_min'] = str(self.alpha_min)
+        self.sub_group.attrs['reynolds_number'] = str(self.reynolds_number)
+
         for name, datum in zip(names, data):
             if name in file_or_group:
                 file_or_group.__delitem__(name)
