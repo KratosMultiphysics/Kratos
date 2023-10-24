@@ -453,7 +453,7 @@ private:
         // Adding the results to the container
         std::size_t counter = 0, id = 0;
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
-            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 id = it_point->Id();
             } else {
                 id = counter;
@@ -512,7 +512,7 @@ private:
         // Adding the results to the container
         std::size_t counter = 0, id = 0;
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
-            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 id = it_point->Id();
             } else {
                 id = counter;
@@ -569,7 +569,7 @@ private:
         // Adding the results to the container
         std::size_t counter = 0, id = 0;
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
-            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 id = it_point->Id();
             } else {
                 id = counter;
@@ -631,7 +631,7 @@ private:
         // Adding the results to the container
         std::size_t counter = 0, id = 0;
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
-            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value) {
+            if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 id = it_point->Id();
             } else {
                 id = counter;
