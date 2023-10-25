@@ -50,8 +50,9 @@ namespace Kratos
  * @class SearchUtilities
  * @ingroup KratosCore
  * @brief MPI utilities for searching geometrical objects
- * @details Original implementation from MappingUtilities 
- * @author Philipp Bucher (moved by Vicente Mataix Ferrandiz)
+ * @details Some methods original implementation coming from MappingUtilities
+ * @author Philipp Bucher (MappingUtilities methods)
+ * @author Vicente Mataix Ferrandiz
  */
 class SearchUtilities
 {
@@ -63,7 +64,7 @@ public:
     using BoundingBoxType = std::array<double, 6>;
 
     /// The index type definition
-    using IndexType = std::size_t;
+    using IndexType = long unsigned int;
 
     /// The size type definition
     using SizeType = std::size_t;
@@ -430,7 +431,7 @@ private:
     {
         // Getting local number of points
         rNumberOfPoints = std::distance(itPointBegin, itPointEnd);
-        
+
         // In case of considering nodes (and distributed)
         if (rDataCommunicator.IsDistributed()) {
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
