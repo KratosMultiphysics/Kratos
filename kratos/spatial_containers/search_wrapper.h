@@ -695,8 +695,8 @@ private:
         SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
-        const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
+        const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
             this->SearchInRadius(point, Radius, r_partial_result);
@@ -752,8 +752,8 @@ private:
         SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
-        const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
+        const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
@@ -804,8 +804,8 @@ private:
         SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
-        const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
+        const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
@@ -860,8 +860,8 @@ private:
         SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // Perform the corresponding searches
-        const int total_number_of_points = all_points_coordinates.size()/3;
-        for (int i_point = 0; i_point < total_number_of_points; ++i_point) {
+        const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
