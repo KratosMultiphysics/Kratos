@@ -19,6 +19,7 @@
 
 // Project includes
 #include "includes/geometrical_object.h"
+#include "includes/kratos_parameters.h"
 #include "utilities/search_utilities.h"
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "spatial_containers/spatial_search_result_container.h"
@@ -72,41 +73,31 @@ public:
 
     /**
      * @brief The constructor with all geometries to be stored. Please note that all of them should be available at construction time and cannot be modified after.
-     * @param GeometricalObjectsBegin The begin iterator of the geometries to be stored
-     * @param GeometricalObjectsEnd The end iterator of the geometries to be stored
+     * @param rGeometricalObjectsVector The geometries to be stored
      * @param rDataCommunicator The data communicator
-     * @tparam TIteratorType The type of the iterator
+     * @param Settings The settings of the search
+     * @tparam TContainer The container type
      */
-    template<typename TIteratorType>
+    template<typename TContainer>
     SearchWrapper(
-        TIteratorType GeometricalObjectsBegin,
-        TIteratorType GeometricalObjectsEnd,
-        const DataCommunicator& rDataCommunicator
-        ) : mrDataCommunicator(rDataCommunicator)
+        TContainer& rGeometricalObjectsVector,
+        const DataCommunicator& rDataCommunicator,
+        Parameters Settings = Parameters(R"({})")
+        ) : mrDataCommunicator(rDataCommunicator),
+            mSettings(Settings)
     {
+        // Validate and assign defaults
+        mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
+
         // Create base search object
         if constexpr (std::is_same_v<TSearchObject, GeometricalObjectsBins>) {
-            mpSearchObject = Kratos::make_shared<TSearchObject>(GeometricalObjectsBegin, GeometricalObjectsEnd);
+            mpSearchObject = Kratos::make_shared<TSearchObject>(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end());
         }
 
     #ifdef KRATOS_USING_MPI
         // Set up the global bounding boxes
         InitializeGlobalBoundingBoxes();
     #endif
-    }
-
-    /**
-     * @brief The constructor with all geometries to be stored. Please note that all of them should be available at construction time and cannot be modified after.
-     * @param rGeometricalObjectsVector The geometries to be stored
-     * @param rDataCommunicator The data communicator
-     * @tparam TContainer The container type
-     */
-    template<typename TContainer>
-    SearchWrapper(
-        TContainer& rGeometricalObjectsVector,
-        const DataCommunicator& rDataCommunicator
-        ) : SearchWrapper(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end(), rDataCommunicator)
-    {
     }
 
     /// Destructor.
@@ -363,6 +354,7 @@ private:
     typename TSearchObject::Pointer mpSearchObject; /// The pointer to the base search considered
     std::vector<double> mGlobalBoundingBoxes;       /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
     const DataCommunicator& mrDataCommunicator;     /// The data communicator
+    Parameters mSettings;                           /// The settings considered
 
     ///@}
     ///@name Private Operators
@@ -866,6 +858,21 @@ private:
     }
 
 #endif
+
+
+    /**
+     * @brief This method returns the default parameters of the search
+    * @return The default parameters
+     */
+    const Parameters GetDefaultParameters() const 
+    {
+        const Parameters default_parameters = Parameters(R"(
+        {
+            "search_parameters" : {
+            }
+        })" );
+        return default_parameters;
+    }
 
     ///@}
     ///@name Private  Access

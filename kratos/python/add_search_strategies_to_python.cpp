@@ -220,8 +220,11 @@ void DefineSearchWrapper(pybind11::module& m, const std::string& rClassName)
 
     pybind11::class_<SearchWrapperType, SearchWrapperPointerType>(m, rClassName.c_str())
     //.def(pybind11::init<NodesContainerType&, const DataCommunicator&>())
+    //.def(pybind11::init<NodesContainerType&, const DataCommunicator&, Parameters>())
     .def(pybind11::init<ElementsContainerType&, const DataCommunicator&>())
+    .def(pybind11::init<ElementsContainerType&, const DataCommunicator&, Parameters>())
     .def(pybind11::init<ConditionsContainerType&, const DataCommunicator&>())
+    .def(pybind11::init<ConditionsContainerType&, const DataCommunicator&, Parameters>())
     .def("GetBoundingBox", &SearchWrapperType::GetBoundingBox)
     .def("SearchInRadius", [&](SearchWrapperType& self, const Point& rPoint, const double Radius)  {
         // Perform the search
