@@ -1,11 +1,53 @@
 import KratosMultiphysics
-
 import KratosMultiphysics.GeoMechanicsApplication as GMA
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 
-class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
+
+class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCase):
     time_dependent_load = '["0.0", "-2.0*t", "0.0"]'
     time_dependent_velocity = ' "2.0*t" '
+
+    def set_nodal_displacement_dof(self):
+        for node in self.mp.Nodes:
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_X)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Y)
+            node.AddDof(KratosMultiphysics.DISPLACEMENT_Z)
+
+    @staticmethod
+    def setup_strategy(mp):
+        """
+        Setup default strategy for solving the problem
+
+        Parameters
+        ----------
+        mp: model part
+
+        Returns default strategy
+        -------
+
+        """
+
+        linear_solver = KratosMultiphysics.SkylineLUFactorizationSolver()
+        builder_and_solver = KratosMultiphysics.ResidualBasedBlockBuilderAndSolver(linear_solver)
+        scheme = KratosMultiphysics.ResidualBasedIncrementalUpdateStaticScheme()
+        convergence_criterion = KratosMultiphysics.ResidualCriteria(1e-1, 1e-1)
+        convergence_criterion.SetEchoLevel(0)
+
+        max_iters = 10
+        compute_reactions = False
+        reform_step_dofs = False
+        move_mesh_flag = False
+        strategy = KratosMultiphysics.ResidualBasedNewtonRaphsonStrategy(mp,
+                                                                         scheme,
+                                                                         convergence_criterion,
+                                                                         builder_and_solver,
+                                                                         max_iters,
+                                                                         compute_reactions,
+                                                                         reform_step_dofs,
+                                                                         move_mesh_flag)
+
+        strategy.SetEchoLevel(0)
+        return strategy
 
     def setUp(self):
         self.current_model = KratosMultiphysics.Model()
@@ -24,11 +66,51 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
                     "origin"                    : [0,0,0]
                 }
                 """)
+        # Add nodal solution space
+        self.mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
+        self.strategy = self.setup_strategy(self.cmp)
+
+    def create_two_nodes_condition(self, reversed=False):
+        # create nodes
+        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
+        self.mp.CreateNewNode(2, 1.0, 0.0, 0.0)
+        self.set_nodal_displacement_dof()
+
+        # create condition
+        if reversed:
+            self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [2, 1], self.mp.GetProperties()[1])
+        else:
+            self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], self.mp.GetProperties()[1])
+
+    def create_three_nodes_condition(self, reversed=False):
+        # create nodes
+        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
+        self.mp.CreateNewNode(2, 1.0, 0.0, 0.0)
+        self.mp.CreateNewNode(3, 2.0, 0.0, 0.0)
+        self.set_nodal_displacement_dof()
+
+        # create condition
+        if reversed:
+            self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [3, 2], self.mp.GetProperties()[1])
+            self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 1], self.mp.GetProperties()[1])
+        else:
+            self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], self.mp.GetProperties()[1])
+            self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 3], self.mp.GetProperties()[1])
+
+    def initialize_test(self, process):
+        process.ExecuteInitialize()
+        process.ExecuteInitializeSolutionStep()
+        self.strategy.InitializeSolutionStep()
+
+    def next_solution_step(self, process):
+        process.ExecuteFinalizeSolutionStep()
+        process.ExecuteInitializeSolutionStep()
+        self.strategy.InitializeSolutionStep()
 
     def tearDown(self):
-        self.rmp.Clear();
+        self.rmp.Clear()
 
-    def checkRHS(self, rhs, expected_res, tols = None):
+    def checkRHS(self, rhs, expected_res, tols=None):
         """
         routine to check calculation of rhs side within context of testing SetMovingLoad
         Returns
@@ -41,7 +123,6 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         for rhs_val, expected_val, tol in zip(rhs, expected_res, tols):
             self.assertAlmostEqual(rhs_val, expected_val, tol)
 
-
     def test_SetMultipleMovingLoads(self):
         """
         Tests a moving load on 1 condition element, where the nodes of the element are sorted in the direction of the
@@ -51,13 +132,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1,0.0,0.0,0.0)
-        self.mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition()
 
         parameters = self.base_parameters
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
@@ -67,8 +142,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         cond = self.cmp.GetCondition(2)
 
         # initialise and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -80,8 +154,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
 
         # move load
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
@@ -97,13 +170,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1,0.0,0.0,0.0)
-        self.mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition()
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [0.25])
@@ -115,8 +182,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         cond = self.cmp.GetCondition(2)
 
         # initialise and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -128,8 +194,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, -1.5, 0.0, -0.5])
 
         # move load
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
@@ -145,13 +210,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1,0.0,0.0,0.0)
-        self.mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition()
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.25])
@@ -163,8 +222,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         cond = self.cmp.GetCondition(2)
 
         # initialise and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -176,8 +234,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # move load
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
@@ -193,13 +250,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1,0.0,0.0,0.0)
-        self.mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition()
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.25, 0, 0.25])
@@ -214,9 +265,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         conditions.append(self.cmp.GetCondition(4))
 
         # initialise and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
-
+        self.initialize_test(process)
 
         # set load on node
         all_rhs = []
@@ -227,18 +276,18 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
             cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
-
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, -2.0, 0.0, 0.0])
         self.checkRHS(all_rhs[2], [0.0, -1.5, 0.0, -0.5])
 
         # move load within first element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         all_rhs = []
         for cond in conditions:
+            lhs = KratosMultiphysics.Matrix(0, 0)
+            rhs = KratosMultiphysics.Vector(0)
             cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
@@ -255,27 +304,18 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0], second_coord[1], 0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [2, 1], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition(reversed=True)
 
         parameters = self.base_parameters
 
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
-                                0)
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
-                                0.25)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -288,8 +328,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, 0.0, 0.0, -2.0])
 
         # move load
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
@@ -305,28 +344,19 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0], second_coord[1], 0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [2, 1], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition(reversed=True)
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [0.25])
 
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
-                                0)
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
-                                0.25)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -338,8 +368,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, -0.5, 0.0, -1.5])
 
         # move load
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
@@ -355,27 +384,21 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0], second_coord[1], 0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [2, 1], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition(reversed=True)
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.25])
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
-                                0)
+                                     0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
-                                0.25)
+                                     0.25)
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
+
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -388,8 +411,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # move load
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
@@ -405,21 +427,13 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0], second_coord[1], 0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [2, 1], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition(reversed=True)
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.25, 0, 0.25])
 
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
-                                0)
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
-                                0.25)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
@@ -429,8 +443,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         conditions.append(self.cmp.GetCondition(4))
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # set load on node
         all_rhs = []
@@ -446,20 +459,19 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[2], [0.0, -0.5, 0.0, -1.5])
 
         # move load within first element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         all_rhs = []
         for cond in conditions:
+            lhs = KratosMultiphysics.Matrix(0, 0)
+            rhs = KratosMultiphysics.Vector(0)
             cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
             all_rhs.append(list(rhs))
 
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
         self.checkRHS(all_rhs[1], [0.0, -0.5, 0.0, -1.5])
         self.checkRHS(all_rhs[2], [0.0, -1.0, 0.0, -1.0])
-
-
 
     def test_SetMultipleMovingLoadsMultipleConditions(self):
         """
@@ -470,36 +482,22 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        #create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 3], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition()
 
         parameters = self.base_parameters
 
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
-                                                  0)
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
-                                                  0.5)
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.5)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # set load on node
@@ -512,8 +510,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load within first element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         all_rhs = []
@@ -525,8 +522,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to element connection element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         all_rhs = []
         for cond in conditions:
@@ -537,8 +533,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to next element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         all_rhs = []
         for cond in conditions:
@@ -557,37 +552,23 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        #create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 3], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition()
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [0.5])
 
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
-                                                  0)
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
-                                                  0.5)
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.5)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # set load on node
@@ -601,8 +582,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load within first element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         all_rhs = []
@@ -614,8 +594,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to element connection element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         all_rhs = []
         for cond in conditions:
@@ -626,8 +605,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
 
         # move load to next element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         all_rhs = []
         for cond in conditions:
@@ -646,37 +624,25 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        #create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 3], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition()
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.5])
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME,
-                                                  0)
+                                     0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME,
-                                                  0.5)
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+                                     0.5)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # set load on node
@@ -690,8 +656,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load within first element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         all_rhs = []
@@ -703,8 +668,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to element connection element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         all_rhs = []
         for cond in conditions:
@@ -715,8 +679,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to next element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         all_rhs = []
         for cond in conditions:
@@ -727,8 +690,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to next element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         all_rhs = []
         for cond in conditions:
@@ -747,34 +709,22 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [3, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 1], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition(reversed=True)
 
         parameters = self.base_parameters
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.5)
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # calculate load
@@ -787,8 +737,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
 
         # move load within first element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         all_rhs = []
@@ -800,8 +749,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
 
         # move load to element connection element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # calculate load
         all_rhs = []
@@ -814,8 +762,8 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         # move load to next element, also increase time step
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.75)
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+
+        self.next_solution_step(process)
 
         # calculate load
         all_rhs = []
@@ -835,35 +783,23 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [3, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 1], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition(reversed=True)
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [0.5])
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.5)
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # calculate load
@@ -876,8 +812,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, -1.0, 0.0, -1.0])
 
         # move load within first element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         all_rhs = []
@@ -889,8 +824,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load to element connection element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # calculate load
         all_rhs = []
@@ -903,8 +837,8 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         # move load to next element, also increase time step
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.75)
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+
+        self.next_solution_step(process)
 
         # calculate load
         all_rhs = []
@@ -924,16 +858,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [3, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 1], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition(reversed=True)
 
         # set parameters and process info
         parameters = self.base_parameters
@@ -941,19 +866,16 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.5)
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # calculate load
@@ -966,8 +888,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
         # move load within first element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         all_rhs = []
@@ -979,8 +900,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
 
         # move load to element connection element
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # calculate load
         all_rhs = []
@@ -993,8 +913,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         # move load to next element, also increase time step
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.75)
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # calculate load
         all_rhs = []
@@ -1014,33 +933,21 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        #create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 3], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition()
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
 
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # set load on node
@@ -1052,7 +959,6 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, -1.5, 0.0, -0.5])
 
-
     def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationPositive(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -1062,34 +968,22 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        #create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 3], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition()
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
         parameters.AddVector("configuration", [0.75])
 
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # set load on node
@@ -1101,7 +995,6 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, 0.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, -2.0])
 
-
     def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginConfigurationNegative(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -1111,34 +1004,22 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        #create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 3], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition()
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
         parameters.AddVector("configuration", [-0.25])
 
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # set load on node
@@ -1150,7 +1031,6 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, 0.0, 0.0, -2.0])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
-
     def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginReversed(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -1160,33 +1040,21 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [3, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 1], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition(reversed=True)
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
 
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # set load on node
@@ -1198,7 +1066,6 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(all_rhs[0], [0.0, -0.5, 0.0, -1.5])
         self.checkRHS(all_rhs[1], [0.0, 0.0, 0.0, 0.0])
 
-
     def test_SetMultipleMovingLoadsMultipleConditionsDifferentOriginReversedConfigurationPositive(self):
         """
         Tests a moving load on 2 condition elements, where the order of the elements is sorted in the direction of the
@@ -1208,34 +1075,22 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [3, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 1], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition(reversed=True)
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
         parameters.AddVector("configuration", [0.25])
 
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # set load on node
@@ -1256,34 +1111,22 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1.0, 0.0, 0.0]
-        third_coord = [2.0, 0.0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
-        self.mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [3, 2], self.mp.GetProperties()[1])
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 1], self.mp.GetProperties()[1])
+        self.create_three_nodes_condition(reversed=True)
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
         parameters.AddVector("configuration", [-1.25])
 
-        process = GMA.SetMultipleMovingLoadsProcess(self.mp,parameters)
+        process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
-        conditions = []
-        conditions.append(self.cmp.GetCondition(3))
-        conditions.append(self.cmp.GetCondition(4))
+        conditions = [self.cmp.GetCondition(3), self.cmp.GetCondition(4)]
 
         # initialize and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
-        lhs = KratosMultiphysics.Matrix(0,0)
+        lhs = KratosMultiphysics.Matrix(0, 0)
         rhs = KratosMultiphysics.Vector(0)
 
         # set load on node
@@ -1303,30 +1146,23 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
        """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1,0.0,0.0,0.0)
-        self.mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition()
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [0.5, 0, 0])
-        parameters["load"]=KratosMultiphysics.Parameters(self.time_dependent_load)
+        parameters["load"] = KratosMultiphysics.Parameters(self.time_dependent_load)
 
+        d_time = 0.25
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, d_time)
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
 
         # get conditions
         cond = self.cmp.GetCondition(2)
 
-
         # initialise and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -1338,13 +1174,13 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # change time and recalculate load
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
-        process.ExecuteInitializeSolutionStep()
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, d_time)
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -0.5, 0.0, -0.5])
+        self.checkRHS(rhs, [0.0, -0.125, 0.0, -0.375])
 
     def test_SetMultipleMovingLoadsWithLoadFunctionConfigurationPositive(self):
         """
@@ -1354,28 +1190,22 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
        """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1,0.0,0.0,0.0)
-        self.mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition()
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [0.5, 0, 0])
-        parameters["load"]=KratosMultiphysics.Parameters(self.time_dependent_load)
+        parameters["load"] = KratosMultiphysics.Parameters(self.time_dependent_load)
         parameters.AddVector("configuration", [0.25])
 
+        d_time = 0.25
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, d_time)
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
 
         # initialise and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -1387,13 +1217,13 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # change time and recalculate load
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
-        process.ExecuteInitializeSolutionStep()
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, d_time)
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -0.25, 0.0, -0.75])
+        self.checkRHS(rhs, [0.0, 0.0, 0.0, -0.5])
 
     def test_SetMultipleMovingLoadsWithLoadFunctionConfigurationNegative(self):
         """
@@ -1403,28 +1233,22 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
        """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1,0.0,0.0,0.0)
-        self.mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition()
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [0.5, 0, 0])
-        parameters["load"]=KratosMultiphysics.Parameters(self.time_dependent_load)
+        parameters["load"] = KratosMultiphysics.Parameters(self.time_dependent_load)
         parameters.AddVector("configuration", [-0.25])
 
+        d_time = 0.25
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, d_time)
 
         process = GMA.SetMultipleMovingLoadsProcess(self.mp, parameters)
         cond = self.cmp.GetCondition(2)
 
         # initialise and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -1436,13 +1260,13 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # change time and recalculate load
-        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
-        process.ExecuteInitializeSolutionStep()
+        self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, d_time)
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
 
-        self.checkRHS(rhs, [0.0, -0.75, 0.0, -0.25])
+        self.checkRHS(rhs, [0.0, -0.25, 0.0, -0.25])
 
     def test_SetMultipleMovingLoadsWithVelocityFunction(self):
         """
@@ -1453,16 +1277,10 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
-        self.mp.CreateNewNode(2, second_coord[0], second_coord[1], 0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition()
 
         parameters = self.base_parameters
-        parameters["velocity"]=KratosMultiphysics.Parameters(self.time_dependent_velocity)
+        parameters["velocity"] = KratosMultiphysics.Parameters(self.time_dependent_velocity)
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.DELTA_TIME, 0.25)
@@ -1471,8 +1289,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         cond = self.cmp.GetCondition(2)
 
         # initialise and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -1484,8 +1301,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, -2.0, 0.0, 0.0])
 
         # change time and recalculate load
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
@@ -1494,8 +1310,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
 
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
@@ -1511,16 +1326,10 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
        """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1,0.0,0.0,0.0)
-        self.mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition()
 
         parameters = self.base_parameters
-        parameters["velocity"]=KratosMultiphysics.Parameters(self.time_dependent_velocity)
+        parameters["velocity"] = KratosMultiphysics.Parameters(self.time_dependent_velocity)
         parameters.AddVector("configuration", [0.5])
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
@@ -1530,8 +1339,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         cond = self.cmp.GetCondition(2)
 
         # initialise and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -1543,8 +1351,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, -1.0, 0.0, -1.0])
 
         # change time and recalculate load
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
@@ -1553,8 +1360,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
 
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
@@ -1570,16 +1376,10 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
        """
 
-        # create nodes
-        second_coord = [1, 0, 0.0]
-        self.mp.CreateNewNode(1,0.0,0.0,0.0)
-        self.mp.CreateNewNode(2,second_coord[0],second_coord[1],0.0)
-
-        # create condition
-        self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1,2], self.mp.GetProperties()[1])
+        self.create_two_nodes_condition()
 
         parameters = self.base_parameters
-        parameters["velocity"]=KratosMultiphysics.Parameters(self.time_dependent_velocity)
+        parameters["velocity"] = KratosMultiphysics.Parameters(self.time_dependent_velocity)
         parameters.AddVector("configuration", [-0.25])
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0)
@@ -1589,8 +1389,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         cond = self.cmp.GetCondition(2)
 
         # initialise and set load
-        process.ExecuteInitialize()
-        process.ExecuteInitializeSolutionStep()
+        self.initialize_test(process)
 
         # initialise matrices
         lhs = KratosMultiphysics.Matrix(0, 0)
@@ -1602,8 +1401,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
         self.checkRHS(rhs, [0.0, 0.0, 0.0, 0.0])
 
         # change time and recalculate load
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)
@@ -1612,8 +1410,7 @@ class TestSetMultipleMovingLoadsProcess(KratosUnittest.TestCase):
 
         self.mp.ProcessInfo.SetValue(KratosMultiphysics.TIME, 0.5)
 
-        process.ExecuteFinalizeSolutionStep()
-        process.ExecuteInitializeSolutionStep()
+        self.next_solution_step(process)
 
         # check if interpolation is done correctly
         cond.CalculateLocalSystem(lhs, rhs, self.mp.ProcessInfo)

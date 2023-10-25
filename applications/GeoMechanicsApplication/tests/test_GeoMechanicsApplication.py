@@ -37,7 +37,7 @@ from test_normal_load_on_1d_element import KratosGeoMechanicsNormalLoad1DTests
 from test_k0_procedure_process import KratosGeoMechanicsK0ProcedureProcessTests
 from test_geomechanics_solver import KratosGeoMechanicsSolverTests
 from test_column_changing_waterlevel import KratosGeoMechanicsChangingWaterLevelTests
-
+from test_set_multiple_moving_load_process import KratosGeoMechanicsSetMultipleMovingLoadProcessTests
 def AssembleTestSuites():
     ''' Populates the test suites to run.
 
