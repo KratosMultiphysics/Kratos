@@ -129,9 +129,9 @@ class NavierStokesTwoFluidsHydraulicSolver(FluidSolver):
 
         self.eulerian_fm_ale = self.settings["eulerian_fm_ale"].GetBool()
         if self.eulerian_fm_ale:
-            self.fm_ale_variable = KratosCFD.CONVECTION_SCALAR
-            self.eulerian_gradient = KratosCFD.CONVECTION_VELOCITY
-            self.eulerian_convection_var = KratosCFD.CONVECTION_SCALAR_GRADIENT
+            self.fm_ale_variable = KratosCFD.CONVECTION_SCALAR 
+            self.eulerian_gradient = KratosCFD.CONVECTION_SCALAR_GRADIENT
+            self.eulerian_convection_var = KratosCFD.CONVECTION_VELOCITY
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_variable_name").SetString("CONVECTION_SCALAR")
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_gradient_variable_name").SetString("CONVECTION_SCALAR_GRADIENT")
             self.settings["eulerian_fm_ale_settings"].AddEmptyValue("levelset_convection_variable_name").SetString("CONVECTION_VELOCITY")
