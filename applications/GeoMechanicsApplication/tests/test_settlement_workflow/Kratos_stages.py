@@ -8,7 +8,7 @@ if __name__ == "__main__":
     currentWorking = os.getcwd()
 
     # construct parameterfile names of stages to run
-    project_path = r"C:\Users\graaf\OneDrive - Stichting Deltares\Documents\settlement_app\scenario_1\input_files"
+    project_path = r"C:\checkouts\KratosProjects\maas\applications\GeoMechanicsApplication\tests\test_settlement_workflow"
     n_stages = 4
     parameter_file_names = [os.path.join(project_path, 'ProjectParameters_stage' + str(i + 1) + '.json') for i in
                             range(n_stages)]
