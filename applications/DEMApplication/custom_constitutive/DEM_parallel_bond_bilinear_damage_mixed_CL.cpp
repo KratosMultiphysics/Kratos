@@ -105,7 +105,7 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
     if (!failure_type){ //if the bond is not broken
         
         BondedLocalElasticContactForce2 = (1 - mDamageNormal) * kn_el * bonded_indentation;
-        const double OldAccumulatedBondedTangentialLocalDisplacementModulus = sqrt(mAccumulatedBondedTangentialLocalDisplacement[0]*mAccumulatedBondedTangentialLocalDisplacement[0] + mAccumulatedBondedTangentialLocalDisplacement[1]*mAccumulatedBondedTangentialLocalDisplacement[1]);
+        //const double OldAccumulatedBondedTangentialLocalDisplacementModulus = sqrt(mAccumulatedBondedTangentialLocalDisplacement[0]*mAccumulatedBondedTangentialLocalDisplacement[0] + mAccumulatedBondedTangentialLocalDisplacement[1]*mAccumulatedBondedTangentialLocalDisplacement[1]);
         mAccumulatedBondedTangentialLocalDisplacement[0] += LocalDeltDisp[0];
         mAccumulatedBondedTangentialLocalDisplacement[1] += LocalDeltDisp[1];
         const double AccumulatedBondedTangentialLocalDisplacementModulus = sqrt(mAccumulatedBondedTangentialLocalDisplacement[0]*mAccumulatedBondedTangentialLocalDisplacement[0] + mAccumulatedBondedTangentialLocalDisplacement[1]*mAccumulatedBondedTangentialLocalDisplacement[1]);
@@ -194,8 +194,8 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
             double delta_at_undamaged_peak_tangential = max_tau_peak * calculation_area / kt_el;
             
             double DamageTangentialOnlyForCalculation = 0.0;
-            if (OldAccumulatedBondedTangentialLocalDisplacementModulus){
-                DamageTangentialOnlyForCalculation = (1 - delta_residual_tangential / OldAccumulatedBondedTangentialLocalDisplacementModulus) * mDamageTangential;
+            if (AccumulatedBondedTangentialLocalDisplacementModulus){
+                DamageTangentialOnlyForCalculation = (1 - delta_residual_tangential / AccumulatedBondedTangentialLocalDisplacementModulus) * mDamageTangential;
             } else {
                 DamageTangentialOnlyForCalculation = mDamageTangential;
             }
@@ -218,12 +218,9 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
                 }
 
                 //real damage calculation
-                //mDamageReal += std::sqrt((mDamageNormal - mDamageReal) * (mDamageNormal - mDamageReal) + (mDamageTangential - mDamageReal) * (mDamageTangential - mDamageReal));
-                if (mDamageNormal > mDamageTangential){
-                    mDamageReal = mDamageNormal;
-                } else {
+                if (mDamageTangential > mDamageReal){
                     mDamageReal = mDamageTangential;
-                }
+                } 
                 if (mDamageReal > 1.0){
                     mDamageReal = 1.0;
                 }
@@ -232,8 +229,8 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
                 
                 // real force in current step
                 BondedLocalElasticContactForce2 = (1 - mDamageNormal) * kn_el * bonded_indentation;
-                if (OldAccumulatedBondedTangentialLocalDisplacementModulus){
-                    DamageTangentialOnlyForCalculation = (1 - delta_residual_tangential / OldAccumulatedBondedTangentialLocalDisplacementModulus) * mDamageTangential;
+                if (AccumulatedBondedTangentialLocalDisplacementModulus){
+                    DamageTangentialOnlyForCalculation = (1 - delta_residual_tangential / AccumulatedBondedTangentialLocalDisplacementModulus) * mDamageTangential;
                 } else {
                     DamageTangentialOnlyForCalculation = mDamageTangential;
                 }

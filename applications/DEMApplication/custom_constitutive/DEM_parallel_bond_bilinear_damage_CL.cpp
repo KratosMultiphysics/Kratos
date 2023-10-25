@@ -130,7 +130,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
     if (!failure_type){ //if the bond is not broken
         
         BondedLocalElasticContactForce2 = (1 - mDamageNormal) * kn_el * bonded_indentation;
-        const double OldAccumulatedBondedTangentialLocalDisplacementModulus = sqrt(mAccumulatedBondedTangentialLocalDisplacement[0]*mAccumulatedBondedTangentialLocalDisplacement[0] + mAccumulatedBondedTangentialLocalDisplacement[1]*mAccumulatedBondedTangentialLocalDisplacement[1]);
+        //const double OldAccumulatedBondedTangentialLocalDisplacementModulus = sqrt(mAccumulatedBondedTangentialLocalDisplacement[0]*mAccumulatedBondedTangentialLocalDisplacement[0] + mAccumulatedBondedTangentialLocalDisplacement[1]*mAccumulatedBondedTangentialLocalDisplacement[1]);
         mAccumulatedBondedTangentialLocalDisplacement[0] += LocalDeltDisp[0];
         mAccumulatedBondedTangentialLocalDisplacement[1] += LocalDeltDisp[1];
         const double AccumulatedBondedTangentialLocalDisplacementModulus = sqrt(mAccumulatedBondedTangentialLocalDisplacement[0]*mAccumulatedBondedTangentialLocalDisplacement[0] + mAccumulatedBondedTangentialLocalDisplacement[1]*mAccumulatedBondedTangentialLocalDisplacement[1]);
@@ -239,8 +239,8 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
             double delta_at_undamaged_peak_tangential = max_tau_peak * calculation_area / kt_el;
             
             double DamageTangentialOnlyForCalculation = 0.0;
-            if (OldAccumulatedBondedTangentialLocalDisplacementModulus){
-                DamageTangentialOnlyForCalculation = (1 - delta_residual_tangential / OldAccumulatedBondedTangentialLocalDisplacementModulus) * mDamageTangential;
+            if (AccumulatedBondedTangentialLocalDisplacementModulus){
+                DamageTangentialOnlyForCalculation = (1 - delta_residual_tangential / AccumulatedBondedTangentialLocalDisplacementModulus) * mDamageTangential;
             } else {
                 DamageTangentialOnlyForCalculation = mDamageTangential;
             }
@@ -258,7 +258,8 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
 
                 if (current_tau > max_tau) {
                     if ((AccumulatedBondedTangentialLocalDisplacementModulus - delta_residual_tangential) && (delta_at_failure_point_tangential - delta_at_undamaged_peak_tangential)){
-                        mDamageTangential = ((delta_at_failure_point_tangential - delta_residual_tangential) / (AccumulatedBondedTangentialLocalDisplacementModulus - delta_residual_tangential)) * (AccumulatedBondedTangentialLocalDisplacementModulus - delta_at_undamaged_peak_tangential) / (delta_at_failure_point_tangential - delta_at_undamaged_peak_tangential);
+                        mDamageTangential = ((delta_at_failure_point_tangential - delta_residual_tangential) / (AccumulatedBondedTangentialLocalDisplacementModulus - delta_residual_tangential)) 
+                                            * (AccumulatedBondedTangentialLocalDisplacementModulus - delta_at_undamaged_peak_tangential) / (delta_at_failure_point_tangential - delta_at_undamaged_peak_tangential);
                     }
                 }
 
@@ -274,8 +275,8 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
                 
                 // real force in current step
                 BondedLocalElasticContactForce2 = (1 - mDamageNormal) * kn_el * bonded_indentation;
-                if (OldAccumulatedBondedTangentialLocalDisplacementModulus){
-                    DamageTangentialOnlyForCalculation = (1 - delta_residual_tangential / OldAccumulatedBondedTangentialLocalDisplacementModulus) * mDamageTangential;
+                if (AccumulatedBondedTangentialLocalDisplacementModulus){
+                    DamageTangentialOnlyForCalculation = (1 - delta_residual_tangential / AccumulatedBondedTangentialLocalDisplacementModulus) * mDamageTangential;
                 } else {
                     DamageTangentialOnlyForCalculation = mDamageTangential;
                 }
