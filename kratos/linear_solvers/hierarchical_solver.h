@@ -243,6 +243,7 @@ public:
 
         VectorType residual = VectorType(rB);
         VectorType delta = VectorType(rX.size());
+        VectorType fine_rhs = VectorType(rX.size());
         VectorType aux = VectorType(rX.size());
 
         SparseMatrixType& r_coarse_a = *mpCoarseA;
@@ -263,7 +264,8 @@ public:
 
             // New approximation using fine solver/smoothing
             SparseSpace::SetToZero(delta);
-            mpFineSolver->Solve(rA, delta, residual);
+            noalias(fine_rhs) = residual;
+            mpFineSolver->Solve(rA, delta, fine_rhs);
 
             // Calculate coarse residual dl = rl - All*deltal - Alq*deltaq
             noalias(aux) = residual;
