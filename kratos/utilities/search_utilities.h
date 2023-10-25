@@ -428,15 +428,16 @@ private:
         const DataCommunicator& rDataCommunicator
         )
     {
-        // Get the World Size and rank in MPI
-        const int rank = rDataCommunicator.Rank();
-
         // Getting local number of points
         rNumberOfPoints = std::distance(itPointBegin, itPointEnd);
         
         // In case of considering nodes (and distributed)
         if (rDataCommunicator.IsDistributed()) {
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
+                // Get the rank in MPI
+                const int rank = rDataCommunicator.Rank();
+
+                // Check if the nodes are local
                 for (auto it_node = itPointBegin; it_node < itPointEnd; ++it_node) {
                     if (it_node->FastGetSolutionStepValue(PARTITION_INDEX) != rank) {
                         --rNumberOfPoints; // Remove is not local
