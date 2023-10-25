@@ -87,7 +87,7 @@ public:
 
     typedef PointerVectorSet<NodeType, IndexedObject> NodesContainerType;
 
-    typedef std::vector<NodeType::Pointer> NodePointersType;
+    typedef std::vector<NodeType::Pointer> NodePointerVectorType;
 
     /// Type for shape function values container
     typedef Kratos::Vector ShapeFunctionsType;

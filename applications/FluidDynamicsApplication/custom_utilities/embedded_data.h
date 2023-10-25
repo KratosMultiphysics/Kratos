@@ -41,7 +41,7 @@ typedef GeometryData::ShapeFunctionsGradientsType ShapeFunctionsGradientsType;
 typedef std::vector<array_1d<double,3>> InterfaceNormalsType;
 
 typedef Node NodeType;
-typedef std::vector< NodeType::Pointer > NodePointersType;
+typedef std::vector< NodeType::Pointer > NodePointerVectorType;
 
 ///@}
 ///@name Public Members
@@ -72,7 +72,7 @@ std::size_t NumPositiveNodes;
 std::size_t NumNegativeNodes;
 
 std::size_t LocalConstraintSize;
-NodePointersType ElementsNodesAndMasters;
+NodePointerVectorType ElementsNodesAndMasters;
 Matrix ConstraintsRelationMatrix;
 
 ///@}
@@ -136,7 +136,7 @@ void InitializeConstraintData(const Element& rElement, const std::size_t BlockSi
             if (r_node.GetValue(APPLY_EMBEDDED_CONSTRAINTS)) {
 
                 // Get vector of master node pointers for respective node
-                const NodePointersType NegNodeConstraintMasters = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTERS);
+                const NodePointerVectorType NegNodeConstraintMasters = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTERS);
 
                 // Add master node if it was not already added (unique entries)
                 for (auto p_master : NegNodeConstraintMasters) {
@@ -178,7 +178,7 @@ void BuildRelationMatrix(const Element& rElement, const std::size_t BlockSize)
             const std::size_t dim = BlockSize - 1;
 
             // Get vector of master node pointers and master weights matrix for respective node
-            const NodePointersType NegNodeConstraintMasters = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTERS);
+            const NodePointerVectorType NegNodeConstraintMasters = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTERS);
             const Matrix NegNodeConstraintWeights = r_node.GetValue(EMBEDDED_CONSTRAINT_MASTER_WEIGHTS);
             KRATOS_ERROR_IF_NOT(NegNodeConstraintWeights.size1() == dim)
                 << "Size1 of master weights of an embedded constrained does not match the node's velocity dofs.";
@@ -198,7 +198,7 @@ void BuildRelationMatrix(const Element& rElement, const std::size_t BlockSize)
                 // Add master weights of respective master dof (column) to slave dof (row)
                 for (std::size_t d1 = 0; d1 < dim; ++d1) {
                     for (std::size_t d2 = 0; d2 < dim; ++d2) {
-                        ConstraintsRelationMatrix(pos_slave_x+d1, pos_master_x+d2) = NegNodeConstraintWeights(d1, pos_master_node+d2);
+                        ConstraintsRelationMatrix(pos_slave_x+d1, pos_master_x+d2) = NegNodeConstraintWeights(d1, pos_master_node*dim+d2);
                     }
                 }
                 pos_master_node++;
