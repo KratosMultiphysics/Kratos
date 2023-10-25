@@ -40,7 +40,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchInRadius, Kra
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), serial_communicator);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -102,7 +102,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearestInRadi
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), serial_communicator);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), serial_communicator);
 
     double epsilon = 1.0e-6;
 
@@ -149,7 +149,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchNearest, Krat
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), serial_communicator);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), serial_communicator);
 
     double epsilon = 1.0e-6;
 
@@ -186,7 +186,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsEmptySearchNearest,
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), serial_communicator);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -211,7 +211,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsInside, Kra
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), serial_communicator);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -237,7 +237,7 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperGeometricalObjectsBinsSearchIsNotInside, 
 
     // Generate the search wrapper for bins
     DataCommunicator serial_communicator;
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), serial_communicator);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), serial_communicator);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");

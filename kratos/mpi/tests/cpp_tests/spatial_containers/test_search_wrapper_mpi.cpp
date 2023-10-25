@@ -69,7 +69,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     // Generate new model part
     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
@@ -138,7 +138,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     double epsilon = 1.0e-6;
     const std::size_t near_point_id = 1;
@@ -192,7 +192,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     double epsilon = 1.0e-6;
     const std::size_t near_point_id = 1;
@@ -236,7 +236,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmpt
     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t point_id = 1;
 
@@ -269,7 +269,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     ModelPart& r_skin_part = CreateCubeModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t inside_point_id = 1;
 
@@ -303,7 +303,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     ModelPart& r_skin_part = CreateCubeModelPart(current_model);
     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
 
-    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd(), r_data_comm);
+    SearchWrapperGeometricalObjectsBins search_wrapper_bins(r_skin_part.Elements(), r_data_comm);
 
     const std::size_t outside_point_id = 1;
 
