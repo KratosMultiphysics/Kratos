@@ -27,7 +27,7 @@ void DEM_parallel_bond_bilinear_damage_mixed::Check(Properties::Pointer pProp) c
     BaseClassType::Check(pProp);
 
     if (!pProp->Has(FRACTURE_ENERGY_EXPONENT)) {
-        KRATOS_ERROR("DEM")<<"\nWARNING: Variable FRACTURE_ENERGY_EXPONENT was not found in cthe Properties when using DEM_parallel_bond_bilinear_damage. A default value of 0.0 was assigned.\n\n";
+        KRATOS_ERROR<<"\nWARNING: Variable FRACTURE_ENERGY_EXPONENT was not found in cthe Properties when using DEM_parallel_bond_bilinear_damage. A default value of 0.0 was assigned.\n\n";
         pProp->GetValue(FRACTURE_ENERGY_EXPONENT) = 1.0;
     }
 }
@@ -99,6 +99,12 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
     const double fracture_energy_exponent = (*mpProperties)[FRACTURE_ENERGY_EXPONENT];
     const double delta_at_undamaged_peak_normal = bond_sigma_max * calculation_area / kn_el;
     const double delta_at_failure_point_normal = (2.0 * fracture_energy_normal) / bond_sigma_max;
+
+    if (std::abs(delta_at_failure_point_normal) < std::abs(delta_at_undamaged_peak_normal)){
+        double suggested_fracture_energy = delta_at_undamaged_peak_normal * bond_sigma_max / 2.0;
+        KRATOS_INFO("DEM") << "The [Fracture_energy_normal] is too small! It shouble be bigger than " << suggested_fracture_energy << std::endl;
+        KRATOS_ERROR<< "The [Fracture_energy_normal] is too small!" << std::endl;
+    }
     
   //**********************************************
     
@@ -142,6 +148,11 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
                 double delta_equivalent_failure = 2 / (k_bar_equivalent * delta_equivalent_0) 
                                                     * (fracture_energy_normal + (fracture_energy_tangential - fracture_energy_normal) 
                                                     * std::pow((kt_el / calculation_area * beta * beta)/(kn_el / calculation_area + kt_el / calculation_area * beta * beta), fracture_energy_exponent));
+                
+                if (std::abs(delta_equivalent_failure) < std::abs(delta_equivalent_0)){
+                    KRATOS_INFO("DEM") << "The [Fracture_energy] is too small! " << std::endl;
+                    KRATOS_ERROR<< "The [Fracture_energy] is too small!" << std::endl;
+                }
                 
                 double mDamageReal_trial = (delta_equivalent_failure * (delta_equivalent - delta_equivalent_0)) / (delta_equivalent * (delta_equivalent_failure - delta_equivalent_0));
 
@@ -192,6 +203,12 @@ void DEM_parallel_bond_bilinear_damage_mixed::CalculateForces(const ProcessInfo&
 
             double max_tau_peak = bond_tau_zero + current_sigma * tan(internal_friction * Globals::Pi / 180.0);
             double delta_at_undamaged_peak_tangential = max_tau_peak * calculation_area / kt_el;
+
+            if (std::abs(delta_at_failure_point_tangential) < std::abs(delta_at_undamaged_peak_tangential)){
+                double suggested_fracture_energy = delta_at_undamaged_peak_tangential * bond_tau_zero / 2.0;
+                KRATOS_INFO("DEM") << "The [Fracture_energy_tangential] is too small! It shouble be bigger than " << suggested_fracture_energy << std::endl;
+                KRATOS_ERROR<< "The [Fracture_energy_tangential] is too small!" << std::endl;
+            }
             
             double DamageTangentialOnlyForCalculation = 0.0;
             if (AccumulatedBondedTangentialLocalDisplacementModulus){
