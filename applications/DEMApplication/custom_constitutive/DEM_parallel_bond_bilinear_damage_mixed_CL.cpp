@@ -27,7 +27,7 @@ void DEM_parallel_bond_bilinear_damage_mixed::Check(Properties::Pointer pProp) c
     BaseClassType::Check(pProp);
 
     if (!pProp->Has(FRACTURE_ENERGY_EXPONENT)) {
-        KRATOS_WARNING("DEM")<<"\nWARNING: Variable FRACTURE_ENERGY_EXPONENT was not found in cthe Properties when using DEM_parallel_bond_bilinear_damage. A default value of 0.0 was assigned.\n\n";
+        KRATOS_ERROR("DEM")<<"\nWARNING: Variable FRACTURE_ENERGY_EXPONENT was not found in cthe Properties when using DEM_parallel_bond_bilinear_damage. A default value of 0.0 was assigned.\n\n";
         pProp->GetValue(FRACTURE_ENERGY_EXPONENT) = 1.0;
     }
 }
