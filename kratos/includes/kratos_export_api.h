@@ -4,22 +4,21 @@
 //   _|\_\_|  \__,_|\__|\___/ ____/
 //                   Multi-Physics
 //
-//  License:		 BSD License
-//					 Kratos default license: kratos/license.txt
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Carlos A. Roig Pina
 //
 
-#ifndef KRATOS_EXPORT_API_H
-#define KRATOS_EXPORT_API_H
+#pragma once
 
 #undef KRATOS_API_EXPORT
 #undef KRATOS_API_IMPORT
 #if _WIN32
-    #if defined(__MINGW32__) || defined(__MINGW64__)
+    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER )
         #define KRATOS_API_EXPORT __attribute__((visibility("default")))
         #define KRATOS_API_IMPORT __attribute__((visibility("default")))
-    #else 
+    #else
         #define KRATOS_API_EXPORT __declspec(dllexport)
         #define KRATOS_API_IMPORT __declspec(dllimport)
     #endif
@@ -48,13 +47,11 @@
 // Conditionally declare explicit template instances, since explicit instiation does not play nice with dllexport
 #undef KRATOS_API_EXTERN
 #ifdef _WIN32
-    #if defined(__MINGW32__) || defined(__MINGW64__)
+    #if defined(__MINGW32__) || defined(__MINGW64__) || defined(__INTEL_LLVM_COMPILER )
         #define KRATOS_API_EXTERN extern
-    #else 
+    #else
         #define KRATOS_API_EXTERN
     #endif
 #else
     #define KRATOS_API_EXTERN extern
-#endif
-
 #endif
