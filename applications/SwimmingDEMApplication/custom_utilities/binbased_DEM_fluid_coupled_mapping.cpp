@@ -328,10 +328,12 @@ void BinBasedDEMFluidCoupledMapping<TDim, TBaseTypeOfSwimmingParticle>::Homogeni
     // transferring fluid fraction information onto the fluid (not a naturally parallel task)
 
     ComputeHomogenizedFluidFraction(r_fluid_model_part, r_dem_model_part);
-    for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
-        array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
-        double& fluid_fraction = node_it->FastGetSolutionStepValue(FLUID_FRACTION);
-        body_force *= fluid_fraction;
+    if (use_drew_model == true){
+        for (NodeIteratorType node_it = r_fluid_model_part.NodesBegin(); node_it != r_fluid_model_part.NodesEnd(); ++node_it){
+            array_1d<double, 3>& body_force            = node_it->FastGetSolutionStepValue(GetBodyForcePerUnitMassVariable());
+            double& fluid_fraction = node_it->FastGetSolutionStepValue(FLUID_FRACTION);
+            body_force *= fluid_fraction;
+        }
     }
 
     // transferring the rest of effects onto the fluid (not a naturally parallel task)
