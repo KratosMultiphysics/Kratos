@@ -124,15 +124,6 @@ namespace Kratos
         const GeometryType& rGeom = this->GetGeometry();
         const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
 
-        // pointer to constitutive laws
-        if (mConstitutiveLawVector.size() != NumGPoints) {
-            mConstitutiveLawVector.resize(NumGPoints);
-        }
-
-        for (unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i) {
-            mConstitutiveLawVector[i] = nullptr;
-        }
-
         mIsInitialised = true;
 
         KRATOS_CATCH("")
@@ -169,62 +160,48 @@ namespace Kratos
         if (!rProp.Has(DENSITY_WATER) || rProp[DENSITY_WATER] < 0.0) {
             KRATOS_ERROR << "DENSITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(POROSITY) || rProp[POROSITY] < 0.0 || rProp[POROSITY] > 1.0) {
             KRATOS_ERROR << "POROSITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(SATURATION) || rProp[SATURATION] < 0.0 || rProp[SATURATION] > 1.0) {
             KRATOS_ERROR << "SATURATION does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(DENSITY_SOLID) || rProp[DENSITY_SOLID] < 0.0) {
             KRATOS_ERROR << "DENSITY_SOLID does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(SPECIFIC_HEAT_CAPACITY_WATER) || rProp[SPECIFIC_HEAT_CAPACITY_WATER] < 0.0) {
             KRATOS_ERROR << "SPECIFIC_HEAT_CAPACITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(SPECIFIC_HEAT_CAPACITY_SOLID) || rProp[SPECIFIC_HEAT_CAPACITY_SOLID] < 0.0) {
             KRATOS_ERROR << "SPECIFIC_HEAT_CAPACITY_SOLID does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(THERMAL_CONDUCTIVITY_WATER) || rProp[THERMAL_CONDUCTIVITY_WATER] < 0.0) {
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_WATER does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(THERMAL_CONDUCTIVITY_SOLID_XX) || rProp[THERMAL_CONDUCTIVITY_SOLID_XX] < 0.0) {
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_SOLID_XX does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(THERMAL_CONDUCTIVITY_SOLID_YY) || rProp[THERMAL_CONDUCTIVITY_SOLID_YY] < 0.0) {
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_SOLID_YY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(THERMAL_CONDUCTIVITY_SOLID_XY) || rProp[THERMAL_CONDUCTIVITY_SOLID_XY] < 0.0) {
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_SOLID_XY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(THERMAL_CONDUCTIVITY_SOLID_YX) || rProp[THERMAL_CONDUCTIVITY_SOLID_YX] < 0.0) {
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_SOLID_YX does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(LONGITUDINAL_DISPERSIVITY) || rProp[LONGITUDINAL_DISPERSIVITY] < 0.0) {
             KRATOS_ERROR << "LONGITUDINAL_DISPERSIVITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(TRANSVERSE_DISPERSIVITY) || rProp[TRANSVERSE_DISPERSIVITY] < 0.0) {
             KRATOS_ERROR << "TRANSVERSE_DISPERSIVITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-
         if (!rProp.Has(SOLID_COMPRESSIBILITY) || rProp[SOLID_COMPRESSIBILITY] < 0.0) {
             KRATOS_ERROR << "SOLID_COMPRESSIBILITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
 
         if (TDim == 2) {
-            auto pos = std::find_if(rGeom.begin(), rGeom.end(),
-                                    [](const auto& node) { return node.Z() != 0.0;  });
+            auto pos = std::find_if(rGeom.begin(), rGeom.end(), [](const auto& node) {return node.Z() != 0.0;});
             if (pos != rGeom.end()) {
                 KRATOS_ERROR << " Node with non-zero Z coordinate found. Id: " << pos->Id() << std::endl;
             }
@@ -343,8 +320,6 @@ namespace Kratos
         KRATOS_TRY
 
         this->CalculateConductivityMatrix(rVariables);
-
-        //Distribute conductivity block matrix into the elemental matrix
         GeoElementUtilities::
             AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.conductivityMatrix);
 
@@ -361,8 +336,6 @@ namespace Kratos
         KRATOS_TRY
 
         this->CalculateCapacityMatrix(rVariables);
-
-        //Distribute permeability block matrix into the elemental matrix
         GeoElementUtilities::AssemblePBlockMatrix<0, TNumNodes>(rLeftHandSideMatrix, rVariables.capacityMatrix);
 
         KRATOS_CATCH("")
@@ -395,7 +368,6 @@ namespace Kratos
     	//Setting the vector of shape functions and the matrix of the shape functions global gradients
     	rVariables.N = row(rVariables.NContainer, PointNumber);
         rVariables.GradNT = rVariables.DN_DXContainer[PointNumber];
-
         rVariables.detJ = rVariables.detJContainer[PointNumber];
 
         KRATOS_CATCH("")
@@ -486,8 +458,6 @@ namespace Kratos
         KRATOS_TRY
 
         this->CalculateCapacityVector(rVariables);
-
-        //Distribute capacity block vector into elemental vector
         GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.capacityVector);
 
         KRATOS_CATCH("")
@@ -517,8 +487,6 @@ namespace Kratos
         KRATOS_TRY
 
         this->CalculateConductivityVector(rVariables);
-
-        //Distribute conductivity block vector into elemental vector
         GeoElementUtilities::AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.conductivityVector);
 
         KRATOS_CATCH("")
@@ -558,7 +526,6 @@ namespace Kratos
         rVariables.solidThermalConductivityYX = rProp[THERMAL_CONDUCTIVITY_SOLID_YX];
         rVariables.solidThermalConductivityYY = rProp[THERMAL_CONDUCTIVITY_SOLID_YY];
         rVariables.saturation = rProp[SATURATION];
-        rVariables.dtTemperatureCoefficient = rProp[DT_TEMPERATURE_COEFFICIENT];
 
         KRATOS_CATCH("")
     }
@@ -576,13 +543,15 @@ namespace Kratos
     	const unsigned int N_DOF = this->GetNumberOfDOF();
 
         //Resetting the LHS
-        if (rLeftHandSideMatrix.size1() != N_DOF)
+        if (rLeftHandSideMatrix.size1() != N_DOF) {
             rLeftHandSideMatrix.resize(N_DOF, N_DOF, false);
+        }
         noalias(rLeftHandSideMatrix) = ZeroMatrix(N_DOF, N_DOF);
 
         //Resetting the RHS
-        if (rRightHandSideVector.size() != N_DOF)
+        if (rRightHandSideVector.size() != N_DOF) {
             rRightHandSideVector.resize(N_DOF, false);
+        }
         noalias(rRightHandSideVector) = ZeroVector(N_DOF);
 
         //calculation flags

@@ -46,7 +46,6 @@ namespace Kratos
         /// The definition of the sizetype
         using SizeType = std::size_t;
 
-    	std::vector<ConstitutiveLaw::Pointer> mConstitutiveLawVector;
         bool mIsInitialised = false;
 
         struct ElementVariables
