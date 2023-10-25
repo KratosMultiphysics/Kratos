@@ -485,7 +485,7 @@ void DEM_parallel_bond_bilinear_damage::CalculateForces(const ProcessInfo& r_pro
             std::ofstream normal_forces_file("delta_stress.txt", std::ios_base::out | std::ios_base::app);
             normal_forces_file << r_process_info[TIME] << " " << bonded_indentation/*2*/ << " " << contact_sigma/*3*/ << " "
                                 << AccumulatedBondedTangentialLocalDisplacementModulus/*4*/ << " " << contact_tau/*5*/ << " " 
-                                << mDamageReal/*6*/ << " " << mDamageNormal << " " << mDamageTangential << " " << '\n'; 
+                                << mDamageReal/*6*/ << " " << mDamageNormal << " " << bonded_indentation << " " << '\n'; 
             normal_forces_file.flush();
             normal_forces_file.close();
         }
