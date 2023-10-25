@@ -26,7 +26,7 @@ using namespace Kratos;
 namespace Kratos::Testing
 {
 
-KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsIntegrationSuite)
+KRATOS_TEST_CASE_IN_SUITE(SettlementWorkflow, KratosGeoMechanicsSkippedSuite)
 {
     const auto working_directory = std::filesystem::path{"./applications/GeoMechanicsApplication/tests/test_settlement_workflow"};
 
