@@ -99,6 +99,7 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUti
     mpProcessInfoParser{std::move(pProcessInfoParser)},
     mpTimeLoopExecutor{std::move(pTimeLoopExecutorInterface)}
 {
+    mKernel.GetApplicationsList().clear();
     mModel.Reset();
     KRATOS_INFO("KratosGeoSettlement") << "Setting up Kratos" << std::endl;
     KRATOS_ERROR_IF_NOT(mpInputUtility) << "Invalid Input Utility";
