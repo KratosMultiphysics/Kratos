@@ -54,11 +54,6 @@ namespace Kratos
             double solidDensity;
             double waterHeatCapacity;
             double solidHeatCapacity;
-            double waterThermalConductivity;
-            double solidThermalConductivityXX;
-            double solidThermalConductivityXY;
-            double solidThermalConductivityYX;
-            double solidThermalConductivityYY;
             double porosity;
             double saturation;
 

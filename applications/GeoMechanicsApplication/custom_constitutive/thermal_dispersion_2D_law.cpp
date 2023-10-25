@@ -44,7 +44,7 @@ namespace Kratos
         C(INDEX_2D_THERMAL_FLUX_X, INDEX_2D_THERMAL_FLUX_X) = cSolid * rProp[THERMAL_CONDUCTIVITY_SOLID_XX]
                                                             + cWater * rProp[THERMAL_CONDUCTIVITY_WATER];
         C(INDEX_2D_THERMAL_FLUX_X, INDEX_2D_THERMAL_FLUX_Y) = cSolid * rProp[THERMAL_CONDUCTIVITY_SOLID_XY];
-        C(INDEX_2D_THERMAL_FLUX_Y, INDEX_2D_THERMAL_FLUX_X) = cSolid * rProp[THERMAL_CONDUCTIVITY_SOLID_YX];
+        C(INDEX_2D_THERMAL_FLUX_Y, INDEX_2D_THERMAL_FLUX_X) = cSolid * rProp[THERMAL_CONDUCTIVITY_SOLID_XY];
         C(INDEX_2D_THERMAL_FLUX_Y, INDEX_2D_THERMAL_FLUX_Y) = cSolid * rProp[THERMAL_CONDUCTIVITY_SOLID_YY]
                                                             + cWater * rProp[THERMAL_CONDUCTIVITY_WATER];
         

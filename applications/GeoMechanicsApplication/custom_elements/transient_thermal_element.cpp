@@ -187,9 +187,6 @@ namespace Kratos
         if (!rProp.Has(THERMAL_CONDUCTIVITY_SOLID_XY) || rProp[THERMAL_CONDUCTIVITY_SOLID_XY] < 0.0) {
             KRATOS_ERROR << "THERMAL_CONDUCTIVITY_SOLID_XY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
-        if (!rProp.Has(THERMAL_CONDUCTIVITY_SOLID_YX) || rProp[THERMAL_CONDUCTIVITY_SOLID_YX] < 0.0) {
-            KRATOS_ERROR << "THERMAL_CONDUCTIVITY_SOLID_YX does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
-        }
         if (!rProp.Has(LONGITUDINAL_DISPERSIVITY) || rProp[LONGITUDINAL_DISPERSIVITY] < 0.0) {
             KRATOS_ERROR << "LONGITUDINAL_DISPERSIVITY does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
         }
@@ -520,11 +517,6 @@ namespace Kratos
         rVariables.porosity = rProp[POROSITY];
         rVariables.waterHeatCapacity = rProp[SPECIFIC_HEAT_CAPACITY_WATER];
         rVariables.solidHeatCapacity = rProp[SPECIFIC_HEAT_CAPACITY_SOLID];
-        rVariables.waterThermalConductivity = rProp[THERMAL_CONDUCTIVITY_WATER];
-        rVariables.solidThermalConductivityXX = rProp[THERMAL_CONDUCTIVITY_SOLID_XX];
-        rVariables.solidThermalConductivityXY = rProp[THERMAL_CONDUCTIVITY_SOLID_XY];
-        rVariables.solidThermalConductivityYX = rProp[THERMAL_CONDUCTIVITY_SOLID_YX];
-        rVariables.solidThermalConductivityYY = rProp[THERMAL_CONDUCTIVITY_SOLID_YY];
         rVariables.saturation = rProp[SATURATION];
 
         KRATOS_CATCH("")

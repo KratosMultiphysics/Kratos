@@ -104,10 +104,10 @@ void TNormalFluxCondition<TDim,TNumNodes>::CalculateAndAddRHS(
     VectorType& rRightHandSideVector,
     NormalFluxVariables& rVariables )
 {
-    noalias(rVariables.TVector) = rVariables.normalFlux * rVariables.N * rVariables.IntegrationCoefficient;
+    noalias(rVariables.fluxVector) = rVariables.normalFlux * rVariables.N * rVariables.IntegrationCoefficient;
 
     GeoElementUtilities::
-        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.TVector);
+        AssemblePBlockVector<0, TNumNodes>(rRightHandSideVector, rVariables.fluxVector);
 }
 
 // ============================================================================================
