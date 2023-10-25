@@ -27,7 +27,6 @@
 #include "containers/global_pointers_vector.h"
 #include "containers/global_pointers_unordered_map.h"
 #include "utilities/communication_coloring_utilities.h"
-#include "spatial_containers/spatial_search_result.h"
 
 namespace Kratos
 {
@@ -433,22 +432,11 @@ private:
 
     /**
      * @brief Determines if an object meets a certain geometrical object and is located locally.
-     * @param rGeometricalObject The geometrical object to check
-     * @param CurrentRank The current rank of the object
+     * @param rGeometricalObject the geometrical object that the object must meet
+     * @param CurrentRank the current rank of the object
      * @return true if the object is local, false otherwise
      */
     static bool ObjectIsLocal(const GeometricalObject& rGeometricalObject, const int CurrentRank)
-    {
-        return true; //if the iterator was found, then it is local!
-    }
-
-    /**
-     * @brief Determines if an object meets a certain geometrical object and is located locally.
-     * @param rGeometricalObjectResult The geometrical object result to check
-     * @param CurrentRank The current rank of the object
-     * @return true if the object is local, false otherwise
-     */
-    static bool ObjectIsLocal(const SpatialSearchResult<GeometricalObject>& rGeometricalObjectResult, const int CurrentRank)
     {
         return true; //if the iterator was found, then it is local!
     }
@@ -462,17 +450,6 @@ private:
     static bool ObjectIsLocal(const Node& rNode, const int CurrentRank)
     {
         return rNode.FastGetSolutionStepValue(PARTITION_INDEX) == CurrentRank;
-    }
-
-    /**
-     * @brief Determines if an object is local based on its partition index.
-     * @param rNodeResult The Node object result to check.
-     * @param CurrentRank The current partition index to compare with.
-     * @return True if the object is local, false otherwise.
-     */
-    static bool ObjectIsLocal(const SpatialSearchResult<Node>& rNodeResult, const int CurrentRank)
-    {
-        return (rNodeResult.Get().get())->FastGetSolutionStepValue(PARTITION_INDEX) == CurrentRank;
     }
 
     ///@}
