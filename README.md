@@ -35,7 +35,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 
 **Kratos** is **free** under BSD-4 [license](https://github.com/KratosMultiphysics/Kratos/wiki/Licence) and can be used even in comercial softwares as it is. Many of its main applications are also free and BSD-4 licensed but each derived application can have its own propietary license.
 
-# 🌟 Main Features 🌟
+# Main Features
 **Kratos** is __multiplatform__ and available for __Windows, Linux__ (several distros) and __macOS__.
 
 **Kratos** is __OpenMP__ and __MPI__ parallel and scalable up to thousands of cores.
@@ -55,7 +55,7 @@ _KRATOS Multiphysics_ ("Kratos") is a framework for building parallel, multi-dis
 - [Metis](applications/MetisApplication/README.md)
 - [Meshing](applications/MeshingApplication/README.md)
 
-# 📚 Documentation 📚
+# Documentation
 Here you can find the basic documentation of the project:
 
 ## Getting Started
@@ -76,7 +76,7 @@ Here you can find the basic documentation of the project:
 ## More documentation
 [Wiki](https://github.com/KratosMultiphysics/Kratos/wiki)
 
-# 🎓 Examples of use
+# Examples of use
 Kratos has been used for simulation of many different problems in a wide variety of disciplines ranging from wind over singular building to granular domain dynamics. Some examples and validation benchmarks simulated by Kratos can be found [here](https://kratosmultiphysics.github.io/Examples/)
 
 <span>
@@ -85,7 +85,7 @@ Kratos has been used for simulation of many different problems in a wide variety
 </span>
 <br>
 
-# 👥 Contributors
+# Contributors
 Organizations contributing to Kratos:
 
 <img align="left" src="https://github.com/KratosMultiphysics/Documentation/raw/master/Wiki_files/Logos/CIMNE_logo.png" width="128">
@@ -116,7 +116,7 @@ Organizations contributing to Kratos:
 
 </br></br>
 
-# 🌐 Our Users
+# Our Users
 Some users of the technologies developed in Kratos are:
 
 <span>
@@ -134,7 +134,7 @@ Some users of the technologies developed in Kratos are:
 
 🤗 Looking forward to seeing your logo here!
 
-# 🙌 Special Thanks To
+# Special Thanks To
 ## In Kratos Core:
 - [Boost](http://www.boost.org/) for ublas
 - [pybind11](https://github.com/pybind/pybind11) for exposing C++ to python
@@ -152,7 +152,7 @@ Some users of the technologies developed in Kratos are:
   - [filesystem](https://github.com/gulrak/filesystem) Header-only single-file std::filesystem compatible helper library, based on the C++17 specs
   - [asio](https://think-async.com/Asio/) for socket based interprocess communication
 
-# 📝 How to cite Kratos?
+# How to cite Kratos?
 Please, use the following references when citing Kratos in your work.
 - Dadvand, P., Rossi, R. & Oñate, E. An Object-oriented Environment for Developing Finite Element Codes for Multi-disciplinary Applications. Arch Computat Methods Eng 17, 253–297 (2010). https://doi.org/10.1007/s11831-010-9045-2
 - Dadvand, P., Rossi, R., Gil, M., Martorell, X., Cotela, J., Juanpere, E., Idelsohn, S., Oñate, E. (2013). Migration of a generic multi-physics framework to HPC environments. Computers & Fluids. 80. 301–309. 10.1016/j.compfluid.2012.02.004.
