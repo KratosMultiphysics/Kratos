@@ -361,11 +361,7 @@ private:
     ///@{
 
     typename TSearchObject::Pointer mpSearchObject; /// The pointer to the base search considered
-
-#ifdef KRATOS_USING_MPI
     std::vector<double> mGlobalBoundingBoxes;       /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
-#endif
-
     const DataCommunicator& mrDataCommunicator;     /// The data communicator
 
     ///@}
