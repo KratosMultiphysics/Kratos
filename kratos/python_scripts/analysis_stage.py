@@ -323,6 +323,7 @@ class AnalysisStage(object):
         for node in self._GetSolver().GetComputingModelPart().Nodes:
             node.Z0 = 0.0
             node.Z  = 0.0
+        print("CALLING THIS BCS!!!")
 
         #other operations as needed
 
