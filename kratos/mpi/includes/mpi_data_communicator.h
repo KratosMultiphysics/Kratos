@@ -393,6 +393,14 @@ class KRATOS_API(KRATOS_MPI_CORE) MPIDataCommunicator: public DataCommunicator
         const std::vector<TDataType>& rLocalValues,
         MPI_Op Operation) const;
 
+    /**
+    * @brief Performs an AllReduce operation with location information.
+    * @details This function performs an AllReduce operation on a pair of data and an integer location using the specified MPI operation. The AllReduce operation combines the data from all processes and stores the result in the pair's first element. The location information (integer) is not modified during the AllReduce operation.
+    * @tparam TDataType The data type of the pair's first element.
+    * @param rLocalValues A pair containing the local data and location information to be reduced.
+    * @param Operation The MPI operation to use for the reduction.
+    * @return A pair where the first element contains the result of the AllReduce operation, and the second element is the unchanged location information.
+    */
     template<class TDataType>
     std::pair<TDataType, int> AllReduceDetailWithLocation(
         const std::pair<TDataType, int>& rLocalValues,
