@@ -81,7 +81,10 @@ public:
     {
         KRATOS_TRY
 
-        const auto& var = KratosComponents<Variable<double>>::Get(mVariableName);
+        if (KratosComponents<Variable<double>>::Has(mVariableName) == false)
+            KRATOS_ERROR << "Variable " << mVariableName << " is not defined!" << std::endl;
+            
+        const auto& var = KratosComponents<Variable<double>>::Get(mVariableName);        
 
         auto variable_name_1 = mpTable->NameOfX();
         boost::to_upper(variable_name_1);
