@@ -69,6 +69,11 @@ protected:
 
         KRATOS_CATCH( "" )
     }
+
+    std::string Info() const override
+    {
+        return "BackwardEulerQuasistaticUPwScheme";
+    }
 }; // Class BackwardEulerQuasistaticUPwScheme
 
 }
