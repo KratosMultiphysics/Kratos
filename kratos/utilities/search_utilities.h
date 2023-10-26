@@ -274,6 +274,26 @@ public:
         VectorDistanceType& rResultsDistance
         )
     {
+        // Resizing the results
+        const std::size_t input_size = rInput.size();
+        if (rResults.size() != input_size) {
+            rResults.resize(input_size);
+        }
+        if (rResultsDistance.size() != input_size) {
+            rResultsDistance.resize(input_size);
+        }
+
+        return PreparePointsSearch(rStructure);
+    }
+
+    /**
+     * @brief This method prepares the points for search
+     * @param rStructure The structure to be searched
+     * @tparam TContainer The container type
+     */
+    template<class TContainer>
+    static std::vector<typename PointObject<typename TContainer::value_type>::Pointer> PreparePointsSearch(const TContainer& rStructure)
+    {
         // Some definitions
         using ObjectType = typename TContainer::value_type;
         using PointType = PointObject<ObjectType>;
@@ -288,15 +308,6 @@ public:
         for (std::size_t i = 0; i < structure_size; ++i) {
             auto it = it_begin + i;
             points.push_back(PointTypePointer(new PointType(*(it.base()))));
-        }
-
-        // Resizing the results
-        const std::size_t input_size = rInput.size();
-        if (rResults.size() != input_size) {
-            rResults.resize(input_size);
-        }
-        if (rResultsDistance.size() != input_size) {
-            rResultsDistance.resize(input_size);
         }
 
         return points;
