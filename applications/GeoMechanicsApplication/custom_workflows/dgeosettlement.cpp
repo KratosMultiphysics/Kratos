@@ -206,8 +206,8 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             AddDegreesOfFreedomTo(model_part);
             KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
         }
-        PrepareModelPart(project_parameters["solver_settings"]);
 
+        PrepareModelPart(project_parameters["solver_settings"]);
 
         if (project_parameters["solver_settings"].Has("material_import_settings")) {
             const auto material_file_name = project_parameters["solver_settings"]["material_import_settings"]["materials_filename"].GetString();
@@ -261,6 +261,9 @@ ModelPart& KratosGeoSettlement::AddNewModelPart(const std::string& rModelPartNam
 
     AddNodalSolutionStepVariablesTo(result);
     KRATOS_INFO("KratosGeoSettlement") << "Added nodal solution step variables" << std::endl;
+
+    AddDegreesOfFreedomTo(result);
+    KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
 
     return result;
 }
@@ -353,16 +356,7 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     auto& main_model_part = mModel.GetModelPart(mModelPartName);
     auto solving_strategy = SolvingStrategyFactoryType::Create(rProjectParameters["solver_settings"],
                                                                main_model_part.GetSubModelPart(mComputationalSubModelPartName));
-
-
     KRATOS_ERROR_IF_NOT(solving_strategy) << "No solving strategy was created!" << std::endl;
-
-    solving_strategy->Initialize();
-    auto find_neighbours_process = FindNeighbourElementsOfConditionsProcess(mModel.GetModelPart(mModelPartName).GetSubModelPart(mComputationalSubModelPartName));
-    find_neighbours_process.Execute();
-
-    auto deactivate_conditions_on_inactive_elements_process = DeactivateConditionsOnInactiveElements(mModel.GetModelPart(mModelPartName).GetSubModelPart(mComputationalSubModelPartName));
-    deactivate_conditions_on_inactive_elements_process.Execute();
 
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
