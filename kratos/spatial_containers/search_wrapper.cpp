@@ -454,6 +454,20 @@ std::vector<int> SearchWrapper<TSearchObject, TObjectType>::RansksPointIsInsideB
 /***********************************************************************************/
 /***********************************************************************************/
 
+template<class TSearchObject, class TObjectType>
+const Parameters SearchWrapper<TSearchObject, TObjectType>::GetDefaultParameters() const 
+{
+    const Parameters default_parameters = Parameters(R"(
+    {
+        "allocation_size" : 1000,
+        "bucket_size"     : 4
+    })" );
+    return default_parameters;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
 template class SearchWrapper<GeometricalObjectsBins, GeometricalObject>;
 
 }  // namespace Kratos.

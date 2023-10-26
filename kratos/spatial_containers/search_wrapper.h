@@ -862,17 +862,9 @@ private:
 
     /**
      * @brief This method returns the default parameters of the search
-    * @return The default parameters
+     * @return The default parameters
      */
-    const Parameters GetDefaultParameters() const 
-    {
-        const Parameters default_parameters = Parameters(R"(
-        {
-            "search_parameters" : {
-            }
-        })" );
-        return default_parameters;
-    }
+    const Parameters GetDefaultParameters() const;
 
     ///@}
     ///@name Private  Access
