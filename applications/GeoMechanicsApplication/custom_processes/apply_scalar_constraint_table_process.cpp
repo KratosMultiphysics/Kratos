@@ -209,4 +209,9 @@ void ApplyScalarConstraintTableProcess::ExecuteInitializeSolutionStep()
     mProcess->ExecuteInitializeSolutionStep();
 }
 
+std::string ApplyScalarConstraintTableProcess::Info() const
+{
+    return "ApplyScalarConstraintTableProcess";
+}
+
 }
