@@ -21,14 +21,6 @@
 namespace Kratos
 {
 
-template class PointObject<Node>;
-template class PointObject<GeometricalObject>;
-template class PointObject<Condition>;
-template class PointObject<Element>;
-
-/***********************************************************************************/
-/***********************************************************************************/
-
 template<SpatialContainer TSearchBackend>
 void SpecializedSpatialSearch<TSearchBackend>::SearchElementsInRadiusExclusive(
     const ElementsContainerType& rStructureElements,
