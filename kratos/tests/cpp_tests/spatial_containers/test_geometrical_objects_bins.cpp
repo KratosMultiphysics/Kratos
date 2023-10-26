@@ -21,36 +21,10 @@
 #include "spatial_containers/geometrical_objects_bins.h"
 #include "containers/model.h"
 #include "geometries/triangle_3d_3.h"
+#include "utilities/cpp_tests_utilities.h"
 
-namespace Kratos::Testing {
-
-ModelPart& CreateCubeSkinModelPart(Model& rCurrentModel, const double HalfX, const double HalfY, const double HalfZ){
-    // Generate the cube skin
-    ModelPart& r_skin_part = rCurrentModel.CreateModelPart("Skin");
-    r_skin_part.CreateNewNode(1, -HalfX, -HalfY, -HalfZ);
-    r_skin_part.CreateNewNode(2,  HalfX, -HalfY, -HalfZ);
-    r_skin_part.CreateNewNode(3,  HalfX,  HalfY, -HalfZ);
-    r_skin_part.CreateNewNode(4, -HalfX,  HalfY, -HalfZ);
-    r_skin_part.CreateNewNode(5, -HalfX, -HalfY,  HalfZ);
-    r_skin_part.CreateNewNode(6,  HalfX, -HalfY,  HalfZ);
-    r_skin_part.CreateNewNode(7,  HalfX,  HalfY,  HalfZ);
-    r_skin_part.CreateNewNode(8, -HalfX,  HalfY,  HalfZ);
-    Properties::Pointer p_properties(new Properties(0));
-    r_skin_part.CreateNewElement("Element3D3N",  1, { 1,2,3 }, p_properties);
-    r_skin_part.CreateNewElement("Element3D3N",  2, { 1,3,4 }, p_properties);
-    r_skin_part.CreateNewElement("Element3D3N",  3, { 5,6,7 }, p_properties);
-    r_skin_part.CreateNewElement("Element3D3N",  4, { 5,7,8 }, p_properties);
-    r_skin_part.CreateNewElement("Element3D3N",  5, { 3,6,2 }, p_properties);
-    r_skin_part.CreateNewElement("Element3D3N",  6, { 3,7,6 }, p_properties);
-    r_skin_part.CreateNewElement("Element3D3N",  7, { 4,5,1 }, p_properties);
-    r_skin_part.CreateNewElement("Element3D3N",  8, { 4,8,5 }, p_properties);
-    r_skin_part.CreateNewElement("Element3D3N",  9, { 3,4,8 }, p_properties);
-    r_skin_part.CreateNewElement("Element3D3N", 10, { 3,8,7 }, p_properties);
-    r_skin_part.CreateNewElement("Element3D3N", 11, { 2,1,5 }, p_properties);
-    r_skin_part.CreateNewElement("Element3D3N", 12, { 2,5,6 }, p_properties);
-
-    return r_skin_part;
-}
+namespace Kratos::Testing 
+{
 
 /** Checks bins bounding box
 */
@@ -65,7 +39,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsBoundingBox, KratosCoreFastSuite
     const double cube_z = 0.3;
 
     // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
 
     GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
 
@@ -92,7 +66,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsCellSizes, KratosCoreFastSuite)
     const double cube_z = 0.3;
 
     // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
 
     GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
 
@@ -114,12 +88,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsAddObjectsToCells, KratosCoreFas
 {
     Model current_model;
 
-    const double cube_x = 0.6;
-    const double cube_y = 0.9;
-    const double cube_z = 0.3;
-
     // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model);
 
     GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
 
@@ -144,12 +114,8 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchInRadius, KratosCoreFastSu
 {
     Model current_model;
 
-    const double cube_x = 0.6;
-    const double cube_y = 0.9;
-    const double cube_z = 0.3;
-
     // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model);
 
     GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
 
@@ -183,12 +149,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearestInRadius, KratosCor
 
     Model current_model;
 
-    const double cube_x = 0.6;
-    const double cube_y = 0.9;
+    // Cube coordinates
     const double cube_z = 0.3;
 
     // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
 
     GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
 
@@ -213,12 +178,11 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchNearest, KratosCoreFastSui
 
     Model current_model;
 
-    const double cube_x = 0.6;
-    const double cube_y = 0.9;
+    // Cube coordinates
     const double cube_z = 0.3;
 
     // Generate the cube skin
-    ModelPart& r_skin_part = CreateCubeSkinModelPart(current_model, cube_x, cube_y, cube_z);
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
 
     GeometricalObjectsBins bins(r_skin_part.ElementsBegin(), r_skin_part.ElementsEnd());
 
@@ -277,7 +241,7 @@ KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsInside, KratosCoreFastSu
 
 /** Checks bins search is inside = not found
 */
-KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInside, KratosFastSuite) 
+KRATOS_TEST_CASE_IN_SUITE(GeometricalObjectsBinsSearchIsNotInside, KratosCoreFastSuite) 
 {
     Model current_model;
 

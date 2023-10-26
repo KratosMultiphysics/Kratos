@@ -541,7 +541,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::CalculateOnIntegrationPoints(const V
         //Defining the shape functions, the Jacobian and the shape functions local gradients Containers
         const Matrix& NContainer = rGeom.ShapeFunctionsValues( mThisIntegrationMethod );
 
-        const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<TNumNodes>(rGeom, rProp);
+        const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(rGeom, rProp);
 
         //Loop over integration points
         for ( unsigned int GPoint = 0; GPoint < NumGPoints; ++GPoint ) {
@@ -722,6 +722,7 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
     //Defining necessary variables
     const GeometryType& rGeom = this->GetGeometry();
     const IndexType NumGPoints = rGeom.IntegrationPointsNumber( mThisIntegrationMethod );
+    const PropertiesType& rProp = this->GetProperties();
 
     if ( rOutput.size() != NumGPoints )
         rOutput.resize(NumGPoints);
@@ -736,7 +737,6 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         }
     } else if (rVariable == TOTAL_STRESS_VECTOR) {
         //Defining necessary variables
-        const PropertiesType& rProp = this->GetProperties();
 
         ConstitutiveLaw::Parameters ConstitutiveParameters(rGeom,rProp,rCurrentProcessInfo);
         ConstitutiveParameters.Set(ConstitutiveLaw::COMPUTE_CONSTITUTIVE_TENSOR);
@@ -836,7 +836,15 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
 
             rOutput[GPoint] = Variables.StrainVector;
         }
-    } else {
+    }
+    else if (rProp.Has(rVariable))
+    {
+        // map initial material property to gauss points, as required for the output 
+        rOutput.clear();
+        std::fill_n(std::back_inserter(rOutput), mConstitutiveLawVector.size(), rProp.GetValue(rVariable));
+
+    }
+    else {
         for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
             rOutput[i] = mConstitutiveLawVector[i]->GetValue( rVariable , rOutput[i] );
     }

@@ -20,6 +20,7 @@
 #include "includes/kratos_export_api.h"
 
 #include "geo_mechanics_application.h"
+#include "linear_solvers_application.h"
 
 namespace Kratos
 {
@@ -27,15 +28,17 @@ namespace Kratos
 class ProcessFactory;
 class InputUtility;
 class ProcessInfoParser;
-class TimeLoopExecutor;
 class Process;
+class TimeLoopExecutorInterface;
+class TimeIncrementor;
+class StrategyWrapper;
 
 class KRATOS_API(GEO_MECHANICS_APPLICATION) KratosGeoSettlement
 {
 public:
     KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUtility,
                         std::unique_ptr<ProcessInfoParser> pProcessInfoParser,
-                        std::unique_ptr<TimeLoopExecutor> pTimeLoopExecutor);
+                        std::unique_ptr<TimeLoopExecutorInterface> pTimeLoopExecutorInterface);
 
     ~KratosGeoSettlement();
 
@@ -50,19 +53,28 @@ public:
 
 private:
     ModelPart& AddNewModelPart(const std::string& rModelPartName);
+    void PrepareModelPart(const Parameters& rSolverSettings);
+
     static void AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
     void InitializeProcessFactory();
     std::vector<std::shared_ptr<Process>> GetProcesses(const Parameters& project_parameters) const;
+    static std::unique_ptr<TimeIncrementor> MakeTimeIncrementor(const Parameters& rProjectParameters);
+    std::shared_ptr<StrategyWrapper> MakeStrategyWrapper(const Parameters&            rProjectParameters,
+                                                         const std::filesystem::path& rWorkingDirectory);
+    LoggerOutput::Pointer CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const;
+    void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer pLoggerOutput, const std::stringstream& rKratosLogBuffer) const;
 
     Kernel mKernel;
     Model mModel;
     std::string mModelPartName;
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
+    KratosLinearSolversApplication::Pointer mpLinearSolversApp;
     std::unique_ptr<ProcessFactory> mProcessFactory = std::make_unique<ProcessFactory>();
     std::unique_ptr<InputUtility> mpInputUtility;
     std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;
-    std::unique_ptr<TimeLoopExecutor> mpTimeLoopExecutor;
+    std::unique_ptr<TimeLoopExecutorInterface> mpTimeLoopExecutor;
+    const std::string mComputationalSubModelPartName{"settlement_computational_model_part"};
 };
 
 }
