@@ -70,19 +70,19 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         self.mp.AddNodalSolutionStepVariable(KratosMultiphysics.DISPLACEMENT)
         self.strategy = self.setup_strategy(self.cmp)
 
-    def create_two_nodes_condition(self, reversed=False):
+    def create_two_nodes_condition(self, reverse_nodes=False):
         # create nodes
         self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
         self.mp.CreateNewNode(2, 1.0, 0.0, 0.0)
         self.set_nodal_displacement_dof()
 
         # create condition
-        if reversed:
+        if reverse_nodes:
             self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [2, 1], self.mp.GetProperties()[1])
         else:
             self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], self.mp.GetProperties()[1])
 
-    def create_three_nodes_condition(self, reversed=False):
+    def create_three_nodes_condition(self, reverse_nodes=False):
         # create nodes
         self.mp.CreateNewNode(1, 0.0, 0.0, 0.0)
         self.mp.CreateNewNode(2, 1.0, 0.0, 0.0)
@@ -90,7 +90,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
         self.set_nodal_displacement_dof()
 
         # create condition
-        if reversed:
+        if reverse_nodes:
             self.mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [3, 2], self.mp.GetProperties()[1])
             self.mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 1], self.mp.GetProperties()[1])
         else:
@@ -304,7 +304,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
 
         """
 
-        self.create_two_nodes_condition(reversed=True)
+        self.create_two_nodes_condition(reverse_nodes=True)
 
         parameters = self.base_parameters
 
@@ -344,7 +344,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
 
         """
 
-        self.create_two_nodes_condition(reversed=True)
+        self.create_two_nodes_condition(reverse_nodes=True)
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [0.25])
@@ -384,7 +384,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
 
         """
 
-        self.create_two_nodes_condition(reversed=True)
+        self.create_two_nodes_condition(reverse_nodes=True)
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.25])
@@ -427,7 +427,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
 
         """
 
-        self.create_two_nodes_condition(reversed=True)
+        self.create_two_nodes_condition(reverse_nodes=True)
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [-0.25, 0, 0.25])
@@ -709,7 +709,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
 
         """
 
-        self.create_three_nodes_condition(reversed=True)
+        self.create_three_nodes_condition(reverse_nodes=True)
 
         parameters = self.base_parameters
 
@@ -783,7 +783,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
 
         """
 
-        self.create_three_nodes_condition(reversed=True)
+        self.create_three_nodes_condition(reverse_nodes=True)
 
         parameters = self.base_parameters
         parameters.AddVector("configuration", [0.5])
@@ -858,7 +858,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
 
         """
 
-        self.create_three_nodes_condition(reversed=True)
+        self.create_three_nodes_condition(reverse_nodes=True)
 
         # set parameters and process info
         parameters = self.base_parameters
@@ -1040,7 +1040,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
 
         """
 
-        self.create_three_nodes_condition(reversed=True)
+        self.create_three_nodes_condition(reverse_nodes=True)
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
@@ -1075,7 +1075,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
 
         """
 
-        self.create_three_nodes_condition(reversed=True)
+        self.create_three_nodes_condition(reverse_nodes=True)
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
@@ -1111,7 +1111,7 @@ class KratosGeoMechanicsSetMultipleMovingLoadProcessTests(KratosUnittest.TestCas
 
         """
 
-        self.create_three_nodes_condition(reversed=True)
+        self.create_three_nodes_condition(reverse_nodes=True)
 
         parameters = self.base_parameters
         parameters.AddVector("origin", [1.25, 0, 0])
