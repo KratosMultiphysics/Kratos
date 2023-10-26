@@ -12,30 +12,29 @@
 
 #pragma once
 
-#include <memory>
 #include "strategy_wrapper.hpp"
+#include <memory>
 
-#include "solving_strategies/strategies/solving_strategy.h"
 #include "geo_mechanics_application_variables.h"
-#include "write_output.h"
 #include "includes/variables.h"
+#include "solving_strategies/strategies/solving_strategy.h"
+#include "write_output.h"
 
-namespace Kratos
-{
+namespace Kratos {
 
-template<class TSparseSpace, class TDenseSpace>
-class SolvingStrategyWrapper : public StrategyWrapper
-{
+template <class TSparseSpace, class TDenseSpace>
+class SolvingStrategyWrapper : public StrategyWrapper {
 public:
-    explicit SolvingStrategyWrapper(std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy,
-                           bool ResetDisplacements = false,
-                           const std::filesystem::path& rWorkingDirectory = "",
-                           const Parameters& rProjectParameters = {}) :
-        mpStrategy(std::move(strategy)),
-        mrModelPart(mpStrategy->GetModelPart()),
-        mResetDisplacements{ResetDisplacements},
-        mProjectParameters{rProjectParameters},
-        mWorkingDirectory{rWorkingDirectory}
+    explicit SolvingStrategyWrapper(
+        std::unique_ptr<SolvingStrategy<TSparseSpace, TDenseSpace>> strategy,
+        bool ResetDisplacements = false,
+        const std::filesystem::path& rWorkingDirectory = "",
+        const Parameters& rProjectParameters = {})
+        : mpStrategy(std::move(strategy)),
+          mrModelPart(mpStrategy->GetModelPart()),
+          mResetDisplacements{ResetDisplacements},
+          mProjectParameters{rProjectParameters},
+          mWorkingDirectory{rWorkingDirectory}
     {
     }
 
@@ -43,8 +42,9 @@ public:
 
     TimeStepEndState::ConvergenceState GetConvergenceState() const override
     {
-        return mpStrategy->IsConverged() ? TimeStepEndState::ConvergenceState::converged :
-                                           TimeStepEndState::ConvergenceState::non_converged;
+        return mpStrategy->IsConverged()
+                   ? TimeStepEndState::ConvergenceState::converged
+                   : TimeStepEndState::ConvergenceState::non_converged;
     }
 
     size_t GetNumberOfIterations() const override
@@ -60,6 +60,7 @@ public:
     void Initialize() override
     {
         mpStrategy->Initialize();
+        mWriter = std::make_unique<GeoOutputWriter>(mProjectParameters, mWorkingDirectory.generic_string(), mrModelPart);
     }
 
     void InitializeSolutionStep() override
@@ -99,7 +100,8 @@ public:
 
     void CloneTimeStep() override
     {
-        auto& root_model_part = mrModelPart.IsSubModelPart() ? mrModelPart.GetRootModelPart() : mrModelPart;
+        auto& root_model_part =
+            mrModelPart.IsSubModelPart() ? mrModelPart.GetRootModelPart() : mrModelPart;
         root_model_part.CloneTimeStep();
     }
 
@@ -109,18 +111,16 @@ public:
 
         const auto index_of_old_value = Node::IndexType{1};
         const auto index_of_new_value = Node::IndexType{0};
-        CopyNodalSolutionStepValues(DISPLACEMENT,   index_of_old_value, index_of_new_value);
+        CopyNodalSolutionStepValues(DISPLACEMENT, index_of_old_value, index_of_new_value);
         CopyNodalSolutionStepValues(WATER_PRESSURE, index_of_old_value, index_of_new_value);
-        CopyNodalSolutionStepValues(ROTATION,       index_of_old_value, index_of_new_value);
+        CopyNodalSolutionStepValues(ROTATION, index_of_old_value, index_of_new_value);
     }
 
     void SaveTotalDisplacementFieldAtStartOfTimeLoop() override
     {
-        if (mResetDisplacements)
-        {
+        if (mResetDisplacements) {
             mOldTotalDisplacements.clear();
-            for (const auto& node : mrModelPart.Nodes())
-            {
+            for (const auto& node : mrModelPart.Nodes()) {
                 mOldTotalDisplacements.emplace_back(node.GetSolutionStepValue(TOTAL_DISPLACEMENT));
             }
         }
@@ -128,15 +128,16 @@ public:
 
     void AccumulateTotalDisplacementField() override
     {
-        if (mResetDisplacements)
-        {
-            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() == mOldTotalDisplacements.size()) <<
-            "The number of old displacements (" << mOldTotalDisplacements.size()
-            << ") does not match the current number of nodes ("<< mrModelPart.Nodes().size() << ").";
+        if (mResetDisplacements) {
+            KRATOS_ERROR_IF_NOT(mrModelPart.Nodes().size() ==
+                                mOldTotalDisplacements.size())
+                << "The number of old displacements (" << mOldTotalDisplacements.size()
+                << ") does not match the current number of nodes ("
+                << mrModelPart.Nodes().size() << ").";
             std::size_t count = 0;
-            for (auto& node : mrModelPart.Nodes())
-            {
-                node.GetSolutionStepValue(TOTAL_DISPLACEMENT) = mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
+            for (auto& node : mrModelPart.Nodes()) {
+                node.GetSolutionStepValue(TOTAL_DISPLACEMENT) =
+                    mOldTotalDisplacements[count] + node.GetSolutionStepValue(DISPLACEMENT);
                 ++count;
             }
         }
@@ -144,11 +145,13 @@ public:
 
     void OutputProcess() override
     {
-        const auto write_hydraulic_head_to_nodes = false;
-        GeoOutputWriter::WriteGiDOutput(mrModelPart,
-                                        mProjectParameters,
-                                        mWorkingDirectory.generic_string(),
-                                        write_hydraulic_head_to_nodes);
+        if (mWriter)
+        {
+            const auto write_hydraulic_head_to_nodes = false;
+            mWriter->WriteGiDOutput(mrModelPart, mProjectParameters,
+                                    mWorkingDirectory.generic_string(),
+                                    write_hydraulic_head_to_nodes);
+        }
     }
 
     bool SolveSolutionStep() override
@@ -160,17 +163,26 @@ public:
     {
         return mpStrategy->FinalizeSolutionStep();
     }
+    void FinalizeOutput() override
+    {
+        if (mWriter)
+        {
+            mWriter->FinalizeResults();
+        }
+    }
 
 private:
-    template<typename TVariableType>
+    template <typename TVariableType>
     void CopyNodalSolutionStepValues(const TVariableType& rVariable,
-                                     Node::IndexType      SourceIndex,
-                                     Node::IndexType      DestinationIndex)
+                                     Node::IndexType SourceIndex,
+                                     Node::IndexType DestinationIndex)
     {
-        if (!mrModelPart.HasNodalSolutionStepVariable(rVariable)) return;
+        if (!mrModelPart.HasNodalSolutionStepVariable(rVariable))
+            return;
 
         for (auto& node : mrModelPart.Nodes()) {
-            node.GetSolutionStepValue(rVariable, DestinationIndex) = node.GetSolutionStepValue(rVariable, SourceIndex);
+            node.GetSolutionStepValue(rVariable, DestinationIndex) =
+                node.GetSolutionStepValue(rVariable, SourceIndex);
         }
     }
 
@@ -180,6 +192,7 @@ private:
     std::vector<array_1d<double, 3>> mOldTotalDisplacements;
     Parameters mProjectParameters;
     std::filesystem::path mWorkingDirectory;
+    std::unique_ptr<GeoOutputWriter> mWriter;
 };
 
-}
+} // namespace Kratos

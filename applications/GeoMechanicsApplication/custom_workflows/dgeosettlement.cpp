@@ -234,9 +234,10 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             mpTimeLoopExecutor->SetSolverStrategyWrapper(MakeStrategyWrapper(project_parameters,
                                                                              rWorkingDirectory));
             // For now, pass a dummy state. THIS PROBABLY NEEDS TO BE REFINED AT SOME POINT!
-            TimeStepEndState dummy_state;
-            dummy_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
-            mpTimeLoopExecutor->Run(dummy_state);
+            TimeStepEndState start_of_loop_state;
+            start_of_loop_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
+            start_of_loop_state.time = GetStartTimeFrom(project_parameters);
+            mpTimeLoopExecutor->Run(start_of_loop_state);
         }
 
         for (const auto& process : processes) {
@@ -363,10 +364,19 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
     solving_strategy->Initialize();
     main_model_part.CloneTimeStep();
 
-    if (rProjectParameters["solver_settings"]["reset_displacements"].GetBool())
+    const bool reset_displacements = rProjectParameters["solver_settings"]["reset_displacements"].GetBool();
+    if (reset_displacements)
     {
         VariableUtils().SetHistoricalVariableToZero(DISPLACEMENT, main_model_part.GetSubModelPart(mComputationalSubModelPartName).Nodes());
 //        VariableUtils().SetHistoricalVariableToZero(ROTATION, main_model_part.GetSubModelPart(mComputationalSubModelPartName).Nodes());
+        for (auto& node : main_model_part.GetSubModelPart(mComputationalSubModelPartName).Nodes())
+        {
+            auto dNew = node.GetSolutionStepValue(DISPLACEMENT,0);
+            node.GetSolutionStepValue(DISPLACEMENT, 1) = dNew;
+//            auto rotNew = node.GetSolutionStepValue(KratosMultiphysics.ROTATION,0);
+//            node.SetSolutionStepValue(KratosMultiphysics.ROTATION, 1, rotNew);
+        }
+
     }
 
     auto find_neighbours_process = FindNeighbourElementsOfConditionsProcess(main_model_part.GetSubModelPart(mComputationalSubModelPartName));
@@ -390,7 +400,11 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     if (!main_model_part.HasSubModelPart(mComputationalSubModelPartName)) {
         main_model_part.CreateSubModelPart(mComputationalSubModelPartName);
     }
-    main_model_part.GetProcessInfo().SetValue(NODAL_SMOOTHING, rSolverSettings["nodal_smoothing"].GetBool());
+
+    if (rSolverSettings.Has("nodal_smoothing"))
+    {
+        main_model_part.GetProcessInfo().SetValue(NODAL_SMOOTHING, rSolverSettings["nodal_smoothing"].GetBool());
+    }
 
     auto& computing_model_part = main_model_part.GetSubModelPart(mComputationalSubModelPartName);
     // Note that the computing part and the main model part _share_ their process info and properties

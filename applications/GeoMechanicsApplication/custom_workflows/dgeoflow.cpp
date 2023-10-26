@@ -388,7 +388,8 @@ namespace Kratos
             if (!hasPiping)
             {
                 MainExecution(model_part, processes, p_solving_strategy, 0.0, 1.0, 1);
-                GeoOutputWriter::WriteGiDOutput(model_part, projectfile, rWorkingDirectory);
+                GeoOutputWriter writer(projectfile, rWorkingDirectory, model_part);
+                writer.WriteGiDOutput(model_part, projectfile, rWorkingDirectory);
             }
             else
             {
@@ -473,7 +474,8 @@ namespace Kratos
                         break;
                     }
 
-                    GeoOutputWriter::WriteGiDOutput(model_part, projectfile, rWorkingDirectory);
+                    GeoOutputWriter writer(projectfile, rWorkingDirectory, model_part);
+                    writer.WriteGiDOutput(model_part, projectfile, rWorkingDirectory);
 
                     // Update boundary conditions for next search head.
                     if (RiverBoundary->Info() == "ApplyConstantScalarValueProcess")

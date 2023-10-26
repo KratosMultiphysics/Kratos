@@ -43,5 +43,6 @@ namespace Kratos
         virtual void Predict()                = 0;
         virtual bool SolveSolutionStep()      = 0;
         virtual void FinalizeSolutionStep()   = 0;
+        virtual void FinalizeOutput()         = 0;
     };
 }

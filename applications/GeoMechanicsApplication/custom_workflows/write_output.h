@@ -14,12 +14,10 @@
 
 #include <string>
 
-#include "includes/kratos_parameters.h"
 #include "includes/gid_io.h"
+#include "includes/kratos_parameters.h"
 
-
-namespace Kratos
-{
+namespace Kratos {
 
 class Model;
 class ModelPart;
@@ -27,32 +25,34 @@ class ModelPart;
 // A collection of functions to write output to files. According to Kratos' coding style we should use static member
 // functions rather than nonmember (i.e. free) functions. See
 // https://github.com/KratosMultiphysics/Kratos/wiki/Namespaces-vs-Static-Classes for details.
-class GeoOutputWriter
-{
+class GeoOutputWriter {
 public:
-    GeoOutputWriter() = delete;
-    ~GeoOutputWriter() = delete;
-    GeoOutputWriter(const GeoOutputWriter&) = delete;
-    GeoOutputWriter& operator=(const GeoOutputWriter&) = delete;
+    GeoOutputWriter(Parameters Settings,
+                    const std::string& rWorkingDirectory,
+                    ModelPart& rModelPart);
 
-    static void WriteGiDOutput(ModelPart&         rModelPart,
-                               Parameters         Settings,
-                               const std::string& rWorkingDirectory,
-                               bool WriteHydraulicHeadToNodes = true);
+    void WriteGiDOutput(ModelPart& rModelPart,
+                        Parameters Settings,
+                        const std::string& rWorkingDirectory,
+                        bool WriteHydraulicHeadToNodes = true);
+
+    void FinalizeResults();
 
 private:
-    static void WriteNodalOutput(const std::vector<std::string>& rOutputItemNames,
-                                 GidIO<>&                        rGidIO,
-                                 const ModelPart&                rModelPart);
-    static void WriteIntegrationPointOutput(const std::vector<std::string>& rOutputItemNames,
-                                            GidIO<>&                        rGidIO,
-                                            const ModelPart&                rModelPart);
-    static void CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart& rModelPart);
+    void WriteNodalOutput(const std::vector<std::string>& rOutputItemNames,
+                          GidIO<>& rGidIO,
+                          const ModelPart& rModelPart);
+    void WriteIntegrationPointOutput(const std::vector<std::string>& rOutputItemNames,
+                                     GidIO<>& rGidIO,
+                                     const ModelPart& rModelPart);
+    void CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart& rModelPart);
 
-    static GiD_PostMode GetGiDPostModeFrom(const Parameters& rGiDPostFlags);
-    static MultiFileFlag GetMultiFileFlagFrom(const Parameters& rGiDPostFlags);
-    static WriteDeformedMeshFlag GetWriteDeformedMeshFlagFrom(const Parameters& rGiDPostFlags);
-    static WriteConditionsFlag GetWriteConditionsFlagFrom(const Parameters& rGiDPostFlags);
+    GiD_PostMode GetGiDPostModeFrom(const Parameters& rGiDPostFlags);
+    MultiFileFlag GetMultiFileFlagFrom(const Parameters& rGiDPostFlags);
+    WriteDeformedMeshFlag GetWriteDeformedMeshFlagFrom(const Parameters& rGiDPostFlags);
+    WriteConditionsFlag GetWriteConditionsFlagFrom(const Parameters& rGiDPostFlags);
+
+    GidIO<> mGidIO;
 };
 
-}
+} // namespace Kratos
