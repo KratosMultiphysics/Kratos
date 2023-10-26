@@ -101,7 +101,7 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUti
     mpProcessInfoParser{std::move(pProcessInfoParser)},
     mpTimeLoopExecutor{std::move(pTimeLoopExecutorInterface)}
 {
-    mKernel.GetApplicationsList().clear();
+    Kernel::GetApplicationsList().clear();
     mModel.Reset();
     KRATOS_INFO("KratosGeoSettlement") << "Setting up Kratos" << std::endl;
     KRATOS_ERROR_IF_NOT(mpInputUtility) << "Invalid Input Utility";
@@ -218,6 +218,7 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
 
         std::vector<std::shared_ptr<Process>> processes = GetProcesses(project_parameters);
         std::vector<std::weak_ptr<Process>> process_observables(processes.begin(), processes.end());
+
         for (const auto& process : processes) {
             process->ExecuteInitialize();
         }
@@ -236,6 +237,10 @@ int KratosGeoSettlement::RunStage(const std::filesystem::path&            rWorki
             TimeStepEndState dummy_state;
             dummy_state.convergence_state = TimeStepEndState::ConvergenceState::converged;
             mpTimeLoopExecutor->Run(dummy_state);
+        }
+
+        for (const auto& process : processes) {
+            process->ExecuteFinalize();
         }
 
         FlushLoggingOutput(rLogCallback, logger_output, kratos_log_buffer);
@@ -261,9 +266,6 @@ ModelPart& KratosGeoSettlement::AddNewModelPart(const std::string& rModelPartNam
 
     AddNodalSolutionStepVariablesTo(result);
     KRATOS_INFO("KratosGeoSettlement") << "Added nodal solution step variables" << std::endl;
-
-    AddDegreesOfFreedomTo(result);
-    KRATOS_INFO("KratosGeoSettlement") << "Added degrees of freedom" << std::endl;
 
     return result;
 }
@@ -358,6 +360,22 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
                                                                main_model_part.GetSubModelPart(mComputationalSubModelPartName));
     KRATOS_ERROR_IF_NOT(solving_strategy) << "No solving strategy was created!" << std::endl;
 
+    solving_strategy->Initialize();
+    main_model_part.CloneTimeStep();
+
+    if (rProjectParameters["solver_settings"]["reset_displacements"].GetBool())
+    {
+        VariableUtils().SetHistoricalVariableToZero(DISPLACEMENT, main_model_part.GetSubModelPart(mComputationalSubModelPartName).Nodes());
+//        VariableUtils().SetHistoricalVariableToZero(ROTATION, main_model_part.GetSubModelPart(mComputationalSubModelPartName).Nodes());
+    }
+
+    auto find_neighbours_process = FindNeighbourElementsOfConditionsProcess(main_model_part.GetSubModelPart(mComputationalSubModelPartName));
+    find_neighbours_process.Execute();
+
+    auto deactivate_conditions_on_inactive_elements_process = DeactivateConditionsOnInactiveElements(main_model_part.GetSubModelPart(mComputationalSubModelPartName));
+    deactivate_conditions_on_inactive_elements_process.Execute();
+
+
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
     return std::make_shared<SolvingStrategyWrapperType>(std::move(solving_strategy),
@@ -372,6 +390,8 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
     if (!main_model_part.HasSubModelPart(mComputationalSubModelPartName)) {
         main_model_part.CreateSubModelPart(mComputationalSubModelPartName);
     }
+    main_model_part.GetProcessInfo().SetValue(NODAL_SMOOTHING, rSolverSettings["nodal_smoothing"].GetBool());
+
     auto& computing_model_part = main_model_part.GetSubModelPart(mComputationalSubModelPartName);
     // Note that the computing part and the main model part _share_ their process info and properties
     computing_model_part.SetProcessInfo(main_model_part.GetProcessInfo());
