@@ -1,0 +1,222 @@
+Begin ModelPartData
+//  VARIABLE_NAME value
+End ModelPartData
+
+Begin Properties 0
+End Properties
+Begin Nodes
+   10 -38.3170193640 179.9763265387  0.0000000000
+   11 -38.2704115736 159.9079486181  0.0000000000
+   12 -38.1432485798 139.8711800976  0.0000000000
+   13 -19.5394289766 179.9988864429  0.0000000000
+   14 -19.5272636329 159.9238019526  0.0000000000
+   15 -19.4671204631 139.8741554468  0.0000000000
+   16   0.0029350795 180.0099630325  0.0000000000
+   17   0.0029133443 159.9474615339  0.0000000000
+   18   0.0030045445 139.9045004478  0.0000000000
+   19  19.5452556651 179.9988864429  0.0000000000
+   20  19.5330903214 159.9238019526  0.0000000000
+   21  19.4729471516 139.8741554468  0.0000000000
+   22  38.3228460525 179.9763265387  0.0000000000
+   23  38.2762382621 159.9079486181  0.0000000000
+   24  38.1490752684 139.8711800976  0.0000000000
+End Nodes
+
+
+Begin Elements MembraneElement3D3N// GUI group identifier: Membrane_All_Elements
+        7          0    15    14    11 
+        8          0    14    13    10 
+        9          0    14    15    18 
+       11          0    13    14    17 
+       17          0    21    23    20 
+       18          0    20    22    19 
+       19          0    20    18    21 
+       20          0    19    17    20 
+       27          0    15    11    12 
+       28          0    14    10    11 
+       29          0    14    18    17 
+       30          0    13    17    16 
+       37          0    21    24    23 
+       38          0    20    23    22 
+       39          0    20    17    18 
+       40          0    19    16    17 
+End Elements
+
+Begin Conditions PointLoadCondition3D1N// GUI group identifier: PointLoad_Dummy_Zero_AllNodes
+    2 0 10
+    3 0 11
+    4 0 12
+    5 0 13
+    6 0 14
+    7 0 15
+    8 0 16
+    9 0 17
+    10 0 18
+    11 0 19
+    12 0 20
+    13 0 21
+    14 0 22
+    15 0 23
+    16 0 24
+End Conditions
+
+Begin Conditions SurfaceLoadCondition3D3N// GUI group identifier: SurfaceLoad_Dummy_Zero_AllElements
+    17 0 15 14 11
+    18 0 14 13 10
+    19 0 14 15 18
+    20 0 13 14 17
+    21 0 21 23 20
+    22 0 20 22 19
+    23 0 20 18 21
+    24 0 19 17 20
+    25 0 15 11 12
+    26 0 14 10 11
+    27 0 14 18 17
+    28 0 13 17 16
+    29 0 21 24 23
+    30 0 20 23 22
+    31 0 20 17 18
+    32 0 19 16 17
+End Conditions
+
+Begin SubModelPart Parts_Membrane_Membrane_All_Elements // Group Membrane_All_Elements // Subtree Parts_Membrane
+    Begin SubModelPartNodes
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+    End SubModelPartNodes
+    Begin SubModelPartElements
+            7
+            8
+            9
+           11
+           17
+           18
+           19
+           20
+           27
+           28
+           29
+           30
+           37
+           38
+           39
+           40
+    End SubModelPartElements
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Nodes_Fixed // Group Displacement_Nodes_Fixed // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           10
+           12
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_Node_Center // Group Displacement_Node_Center // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           17
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_XSYMM_Node_Left // Group Displacement_XSYMM_Node_Left // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           11
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_XSYMM_Node_Right // Group Displacement_XSYMM_Node_Right // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           23
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_YSYMM_Node_Up // Group Displacement_YSYMM_Node_Up // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           16
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_YSYMM_Node_Down // Group Displacement_YSYMM_Node_Down // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           18
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart PointLoad3D_PointLoad_Dummy_Zero_AllNodes // Group PointLoad_Dummy_Zero_AllNodes // Subtree PointLoad3D
+    Begin SubModelPartNodes
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+            2
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+    End SubModelPartConditions
+End SubModelPart
+Begin SubModelPart SurfaceLoad3D_SurfaceLoad_Dummy_Zero_AllElements // Group SurfaceLoad_Dummy_Zero_AllElements // Subtree SurfaceLoad3D
+    Begin SubModelPartNodes
+           10
+           11
+           12
+           13
+           14
+           15
+           16
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+    End SubModelPartNodes
+    Begin SubModelPartConditions
+           17
+           18
+           19
+           20
+           21
+           22
+           23
+           24
+           25
+           26
+           27
+           28
+           29
+           30
+           31
+           32
+    End SubModelPartConditions
+End SubModelPart
