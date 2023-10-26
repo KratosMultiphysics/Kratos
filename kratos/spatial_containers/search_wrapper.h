@@ -22,6 +22,7 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/search_utilities.h"
 #include "spatial_containers/geometrical_objects_bins.h"
+#include "spatial_containers/specialized_spatial_search.h"
 #include "spatial_containers/spatial_search_result_container.h"
 #include "spatial_containers/spatial_search_result_container_vector.h"
 
@@ -52,17 +53,12 @@ public:
     /// Pointer definition of SearchWrapper
     KRATOS_CLASS_POINTER_DEFINITION(SearchWrapper);
 
-    /// The buffer type definition
-    using BufferTypeDouble = std::vector<std::vector<double>>;
-    using BufferTypeChar = std::vector<std::vector<char>>;
+    /// The result type definition
+    using ResultType = SpatialSearchResult<TObjectType>;
 
-    /// The type of geometrical object to be stored in the bins
-    using CellType = GeometricalObjectsBins::CellType;
-    using ResultType = GeometricalObjectsBins::ResultType;
-
-    // Search containers
-    using ResultContainerType = SpatialSearchResultContainer<GeometricalObject>;
-    using ResultContainerVectorType = SpatialSearchResultContainerVector<GeometricalObject>;
+    /// Search containers
+    using ResultContainerType = SpatialSearchResultContainer<TObjectType>;
+    using ResultContainerVectorType = SpatialSearchResultContainerVector<TObjectType>;
 
     ///@}
     ///@name Life Cycle
