@@ -52,14 +52,14 @@ constexpr inline bool IsCorrectType<std::complex<double>>(MM_typecode& mm_code)
 inline bool ReadMatrixMarketMatrixEntry(FILE *f, int& I, int& J, double& V)
 {
 
-    return fscanf(f, "%d %d %lg", &I, &J, &V) == 3;
+    return fscanf_s(f, "%d %d %lg", &I, &J, &V) == 3;
 }
 
 inline bool ReadMatrixMarketMatrixEntry(FILE *f, int& I, int& J, std::complex<double>& V)
 {
     double real;
     double imag;
-    const int i = fscanf(f, "%d %d %lg %lg", &I, &J, &real, &imag);
+    const int i = fscanf_s(f, "%d %d %lg %lg", &I, &J, &real, &imag);
     V = std::complex<double>(real, imag);
     return i == 4;
 }
@@ -131,7 +131,7 @@ template <typename CompressedMatrixType> inline bool ReadMatrixMarketMatrix(cons
     if (mm_is_pattern(mm_code))
         for (int i = 0; i < nnz; i++)
         {
-            if (fscanf(f, "%d %d", &I[i], &J[i]) != 2)
+            if (fscanf_s(f, "%d %d", &I[i], &J[i]) != 2)
             {
                 printf("ReadMatrixMarketMatrix(): invalid data.\n");
                 fclose(f);
@@ -423,14 +423,14 @@ template <typename CompressedMatrixType> inline bool WriteMatrixMarketMatrix(con
 
 inline bool ReadMatrixMarketVectorEntry(FILE *f, double& entry)
 {
-    return fscanf(f, "%lg", &entry) == 1;
+    return fscanf_s(f, "%lg", &entry) == 1;
 }
 
 inline bool ReadMatrixMarketVectorEntry(FILE *f, std::complex<double>& entry)
 {
     double real;
     double imag;
-    const int i = fscanf(f, "%lg %lg", &real, &imag);
+    const int i = fscanf_s(f, "%lg %lg", &real, &imag);
     entry = std::complex<double>(real, imag);
     return i == 2;
 }

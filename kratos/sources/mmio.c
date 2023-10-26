@@ -74,7 +74,7 @@ int mm_read_unsymmetric_sparse(const char *fname, int *M_, int *N_, int *nz_,
  
     for (i=0; i<nz; i++)
     {
-        int rr = fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
+        int rr = fscanf_s(f, "%d %d %lg\n", &I[i], &J[i], &val[i]);
  	if(rr == 0)  printf("some error in reading mm file");
         I[i]--;  /* adjust from 1-based to 0-based */
         J[i]--;
@@ -209,7 +209,7 @@ int mm_read_mtx_crd_size(FILE *f, int *M, int *N, int *nz )
     else
     do
     { 
-        num_items_read = fscanf(f, "%d %d %d", M, N, nz); 
+        num_items_read = fscanf_s(f, "%d %d %d", M, N, nz); 
         if (num_items_read == EOF) return MM_PREMATURE_EOF;
     }
     while (num_items_read != 3);
@@ -239,7 +239,7 @@ int mm_read_mtx_array_size(FILE *f, int *M, int *N)
     else /* we have a blank line */
     do
     { 
-        num_items_read = fscanf(f, "%d %d", M, N); 
+        num_items_read = fscanf_s(f, "%d %d", M, N); 
         if (num_items_read == EOF) return MM_PREMATURE_EOF;
     }
     while (num_items_read != 2);
@@ -270,14 +270,14 @@ int mm_read_mtx_crd_data(FILE *f, int M, int N, int nz, int I[], int J[],
     if (mm_is_complex(matcode))
     {
         for (i=0; i<nz; i++)
-            if (fscanf(f, "%d %d %lg %lg", &I[i], &J[i], &val[2*i], &val[2*i+1])
+            if (fscanf_s(f, "%d %d %lg %lg", &I[i], &J[i], &val[2*i], &val[2*i+1])
                 != 4) return MM_PREMATURE_EOF;
     }
     else if (mm_is_real(matcode))
     {
         for (i=0; i<nz; i++)
         {
-            if (fscanf(f, "%d %d %lg\n", &I[i], &J[i], &val[i])
+            if (fscanf_s(f, "%d %d %lg\n", &I[i], &J[i], &val[i])
                 != 3) return MM_PREMATURE_EOF;
 
         }
@@ -286,7 +286,7 @@ int mm_read_mtx_crd_data(FILE *f, int M, int N, int nz, int I[], int J[],
     else if (mm_is_pattern(matcode))
     {
         for (i=0; i<nz; i++)
-            if (fscanf(f, "%d %d", &I[i], &J[i])
+            if (fscanf_s(f, "%d %d", &I[i], &J[i])
                 != 2) return MM_PREMATURE_EOF;
     }
     else
@@ -301,19 +301,19 @@ int mm_read_mtx_crd_entry(FILE *f, int *I, int *J,
 {
     if (mm_is_complex(matcode))
     {
-            if (fscanf(f, "%d %d %lg %lg", I, J, real, imag)
+            if (fscanf_s(f, "%d %d %lg %lg", I, J, real, imag)
                 != 4) return MM_PREMATURE_EOF;
     }
     else if (mm_is_real(matcode))
     {
-            if (fscanf(f, "%d %d %lg\n", I, J, real)
+            if (fscanf_s(f, "%d %d %lg\n", I, J, real)
                 != 3) return MM_PREMATURE_EOF;
 
     }
 
     else if (mm_is_pattern(matcode))
     {
-            if (fscanf(f, "%d %d", I, J) != 2) return MM_PREMATURE_EOF;
+            if (fscanf_s(f, "%d %d", I, J) != 2) return MM_PREMATURE_EOF;
     }
     else
         return MM_UNSUPPORTED_TYPE;
