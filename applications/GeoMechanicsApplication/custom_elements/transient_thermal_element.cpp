@@ -121,9 +121,6 @@ namespace Kratos
     {
         KRATOS_TRY
 
-        const GeometryType& rGeom = this->GetGeometry();
-        const unsigned int NumGPoints = rGeom.IntegrationPointsNumber(this->GetIntegrationMethod());
-
         mIsInitialised = true;
 
         KRATOS_CATCH("")
