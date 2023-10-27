@@ -27,7 +27,7 @@ namespace Kratos::Testing
 {
 
 // Definition of the geometrical object bins search wrapper
-using SearchWrapperGeometricalObjectsBins = SearchWrapper<GeometricalObjectsBins, GeometricalObject>;
+using SearchWrapperGeometricalObjectsBins = SearchWrapper<GeometricalObjectsBins>;
 
 /** Checks SearchWrapper works for GeometricalObjectBins search in radius
 */

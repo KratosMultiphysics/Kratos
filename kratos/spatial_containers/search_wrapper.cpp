@@ -21,8 +21,8 @@
 namespace Kratos
 {
 
-template<class TSearchObject, class TObjectType>
-BoundingBox<Point> SearchWrapper<TSearchObject, TObjectType>::GetBoundingBox() const
+template<class TSearchObject>
+BoundingBox<Point> SearchWrapper<TSearchObject>::GetBoundingBox() const
 {
     // Generate BB
     BoundingBox<Point> bb;
@@ -49,8 +49,8 @@ BoundingBox<Point> SearchWrapper<TSearchObject, TObjectType>::GetBoundingBox() c
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject, class TObjectType>
-int SearchWrapper<TSearchObject, TObjectType>::GetRank() const
+template<class TSearchObject>
+int SearchWrapper<TSearchObject>::GetRank() const
 {
     return mrDataCommunicator.Rank();
 }
@@ -58,8 +58,8 @@ int SearchWrapper<TSearchObject, TObjectType>::GetRank() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject, class TObjectType>
-int SearchWrapper<TSearchObject, TObjectType>::GetWorldSize() const
+template<class TSearchObject>
+int SearchWrapper<TSearchObject>::GetWorldSize() const
 {
     return mrDataCommunicator.Size();
 }
@@ -67,8 +67,8 @@ int SearchWrapper<TSearchObject, TObjectType>::GetWorldSize() const
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject, class TObjectType>
-void SearchWrapper<TSearchObject, TObjectType>::InitializeGlobalBoundingBoxes()
+template<class TSearchObject>
+void SearchWrapper<TSearchObject>::InitializeGlobalBoundingBoxes()
 {
     // Just executed in MPI
     if (mrDataCommunicator.IsDistributed()) {
@@ -98,8 +98,8 @@ void SearchWrapper<TSearchObject, TObjectType>::InitializeGlobalBoundingBoxes()
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject, class TObjectType>
-std::vector<int> SearchWrapper<TSearchObject, TObjectType>::RansksPointIsInsideBoundingBox(const array_1d<double, 3>& rCoords)
+template<class TSearchObject>
+std::vector<int> SearchWrapper<TSearchObject>::RansksPointIsInsideBoundingBox(const array_1d<double, 3>& rCoords)
 {
     std::vector<int> ranks;
     const int world_size = GetWorldSize();
@@ -121,8 +121,8 @@ std::vector<int> SearchWrapper<TSearchObject, TObjectType>::RansksPointIsInsideB
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject, class TObjectType>
-std::vector<int> SearchWrapper<TSearchObject, TObjectType>::RansksPointIsInsideBoundingBoxWithTolerance(
+template<class TSearchObject>
+std::vector<int> SearchWrapper<TSearchObject>::RansksPointIsInsideBoundingBoxWithTolerance(
     const array_1d<double, 3>& rCoords,
     const double Tolerance
     )
@@ -149,8 +149,8 @@ std::vector<int> SearchWrapper<TSearchObject, TObjectType>::RansksPointIsInsideB
 /***********************************************************************************/
 /***********************************************************************************/
 
-template<class TSearchObject, class TObjectType>
-const Parameters SearchWrapper<TSearchObject, TObjectType>::GetDefaultParameters() const 
+template<class TSearchObject>
+const Parameters SearchWrapper<TSearchObject>::GetDefaultParameters() const 
 {
     const Parameters default_parameters = Parameters(R"(
     {
@@ -163,6 +163,6 @@ const Parameters SearchWrapper<TSearchObject, TObjectType>::GetDefaultParameters
 /***********************************************************************************/
 /***********************************************************************************/
 
-template class SearchWrapper<GeometricalObjectsBins, GeometricalObject>;
+template class SearchWrapper<GeometricalObjectsBins>;
 
 }  // namespace Kratos.

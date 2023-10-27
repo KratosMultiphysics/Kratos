@@ -41,9 +41,8 @@ namespace Kratos
  * @details Must be adapted and specialized for every search object
  * @author Vicente Mataix Ferrandiz
  * @tparam TSearchObject The seach object considered
- * @tparam TObjectType The object type considered
  */
-template<class TSearchObject, class TObjectType = GeometricalObject>
+template<class TSearchObject>
 class KRATOS_API(KRATOS_CORE) SearchWrapper
 {
 public:
@@ -53,12 +52,15 @@ public:
     /// Pointer definition of SearchWrapper
     KRATOS_CLASS_POINTER_DEFINITION(SearchWrapper);
 
+    /// The type of geometrical object to be stored in the bins
+    using ObjectType = typename TSearchObject::ObjectType;
+
     /// The result type definition
-    using ResultType = SpatialSearchResult<TObjectType>;
+    using ResultType = SpatialSearchResult<ObjectType>;
 
     /// Search containers
-    using ResultContainerType = SpatialSearchResultContainer<TObjectType>;
-    using ResultContainerVectorType = SpatialSearchResultContainerVector<TObjectType>;
+    using ResultContainerType = SpatialSearchResultContainer<ObjectType>;
+    using ResultContainerVectorType = SpatialSearchResultContainerVector<ObjectType>;
 
     /// Some constexpr flags
     static constexpr bool IsGeometricalObjectBins = std::is_same_v<TSearchObject, GeometricalObjectsBins>;

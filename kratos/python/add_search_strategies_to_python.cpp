@@ -206,16 +206,18 @@ void DefineSpecializedSpatialSearch(pybind11::module& m, const std::string& rCla
  * @brief Defines a search wrapper module in Pybind11.
  * @param m The Pybind11 module to define the search wrapper search in.
  * @param rClassName The name of the search wrapper search class.
+ * @tparam TSearchObject The seach object considered
  */
-template<class TSearchObject, class TObjectType>
+template<class TSearchObject>
 void DefineSearchWrapper(pybind11::module& m, const std::string& rClassName)
 {
     using NodesContainerType = ModelPart::NodesContainerType;
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
-    using ResultTypeContainerVector = SpatialSearchResultContainerVector<TObjectType>;
-    using SearchWrapperType = SearchWrapper<TSearchObject, TObjectType>;
-    using SearchWrapperPointerType = typename SearchWrapper<TSearchObject, TObjectType>::Pointer;
+    using ObjectType = typename TSearchObject::ObjectType;
+    using ResultTypeContainerVector = SpatialSearchResultContainerVector<ObjectType>;
+    using SearchWrapperType = SearchWrapper<TSearchObject>;
+    using SearchWrapperPointerType = typename SearchWrapper<TSearchObject>::Pointer;
 
     pybind11::class_<SearchWrapperType, SearchWrapperPointerType>(m, rClassName.c_str())
     //.def(pybind11::init<NodesContainerType&, const DataCommunicator&>())
@@ -728,7 +730,7 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     ;
     
     // Define the search wrappers
-    DefineSearchWrapper<GeometricalObjectsBins, GeometricalObject>(m, "SearchWrapperGeometricalObjectBins");
+    DefineSearchWrapper<GeometricalObjectsBins>(m, "SearchWrapperGeometricalObjectBins");
 }
 
 }  // namespace Kratos::Python.
