@@ -84,24 +84,6 @@ public:
         KRATOS_CATCH("");
     }
 
-    // /// Default constructor.
-    // explicit CheckSameModelPartUsingSkinDistanceProcess(
-    //     ModelPart& rSkinModelPart1,
-    //     ModelPart& rSkinModelPart2,
-    //     Parameters ThisParameters = Parameters(R"({})")
-    //     )
-    //     : mrSkinModelPart1(rSkinModelPart1),
-    //       mrSkinModelPart2(rSkinModelPart2),
-    //       mThisParameters(ThisParameters)
-    // {
-    //     KRATOS_TRY
-
-    //     Parameters default_parameters = GetDefaultParameters();
-    //     mThisParameters.RecursivelyValidateAndAssignDefaults(default_parameters);
-
-    //     KRATOS_CATCH("");
-    // }
-
     /// Destructor.
     ~CheckSameModelPartUsingSkinDistanceProcess() override = default;
 
