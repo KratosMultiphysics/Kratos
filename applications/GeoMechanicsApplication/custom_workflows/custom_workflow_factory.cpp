@@ -24,7 +24,9 @@ namespace Kratos
 
 KratosGeoSettlement* CustomWorkflowFactory::CreateKratosGeoSettlement()
 {
-    return new KratosGeoSettlement{std::make_unique<FileInputUtility>(), std::make_unique<JsonProcessInfoParser>(), {}};
+    return new KratosGeoSettlement{std::make_unique<FileInputUtility>(),
+                                   std::make_unique<JsonProcessInfoParser>(),
+                                   std::make_unique<TimeLoopExecutor>()};
 }
 
 }
