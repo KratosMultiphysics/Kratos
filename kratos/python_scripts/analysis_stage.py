@@ -249,9 +249,8 @@ class AnalysisStage(object):
         # for node in self._GetSolver().GetComputingModelPart().Nodes:
         #     print(node.Id, node.X, node.Y, node.Z)
         # new_coordinates = np.load('COORDINATES_X1.npy')
-        # new_coord_vector = np.reshape(new_coordinates, -1)
         # print("new coordinates:\n", new_coordinates)
-        # print("new coordinates (vector):\n", new_coord_vector)
+        # new_coord_vector = np.reshape(new_coordinates, -1)
         # newcoord_KratosVector = KratosMultiphysics.Vector(new_coord_vector)
         # print("kratos vector:\n", newcoord_KratosVector)
         # var_utils.SetCurrentPositionsVector(self._GetSolver().GetComputingModelPart().Nodes, newcoord_KratosVector)
@@ -280,11 +279,6 @@ class AnalysisStage(object):
             local_axis_1 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_2 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_3 = elem.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, self._GetSolver().GetComputingModelPart().ProcessInfo)
-            # print("local axes DEFORMED\n")
-            # print("elem", elem.Id,":")
-            # print(local_axis_1[0])
-            # print(local_axis_2[0])
-            # print(local_axis_3[0])
             
             T_elm = KratosMultiphysics.Matrix(3, 3)
             T_elm[0, 0] = local_axis_1[0][0]
@@ -374,26 +368,10 @@ class AnalysisStage(object):
             extracolumn = np.array([[0.0, 0.0, H0/2.0]])
             elm_Jacobian = np.array(element.GetGeometry().Jacobian(0))
             J_X0 = np.concatenate((elm_Jacobian, extracolumn.T), axis=1)
-            self.flat_config_jacobians.append(J_X0)
-        # export Jacobians J0
-        np.save("jacobians_J0_" + str(self.case), self.flat_config_jacobians)
-        Jtxt = np.reshape(self.flat_config_jacobians, (-1,3))
-        np.savetxt("jacobians_J0_" + str(self.case) + ".txt", Jtxt)
             
-        F_list = []
-        strains_list = []
-        # Read pre-calculated strains
-        # strains_def_config = np.load('strains_cylinder.npy')
-        for J, J0, element in zip(self.deformed_config_jacobians,self.flat_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
-
             local_axis_1 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_1, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_2 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_2, self._GetSolver().GetComputingModelPart().ProcessInfo)
             local_axis_3 = element.CalculateOnIntegrationPoints(KratosMultiphysics.LOCAL_AXIS_3, self._GetSolver().GetComputingModelPart().ProcessInfo)
-            # print("local axes FLAT\n")
-            # print("elem", element.Id,":")
-            # print(local_axis_1[0])
-            # print(local_axis_2[0])
-            # print(local_axis_3[0])
 
             T0_elm = KratosMultiphysics.Matrix(3, 3)
             T0_elm[0, 0] = local_axis_1[0][0]
@@ -406,7 +384,18 @@ class AnalysisStage(object):
             T0_elm[2, 1] = local_axis_3[0][1]
             T0_elm[2, 2] = local_axis_3[0][2]
 
-            J0 = T0_elm.transpose() @ J0
+            J_X0 = T0_elm.transpose() @ J_X0
+            self.flat_config_jacobians.append(J_X0)
+        # export Jacobians J0
+        np.save("jacobians_J0_" + str(self.case), self.flat_config_jacobians)
+        Jtxt = np.reshape(self.flat_config_jacobians, (-1,3))
+        np.savetxt("jacobians_J0_" + str(self.case) + ".txt", Jtxt)
+
+        F_list = []
+        strains_list = []
+        # Read pre-calculated strains
+        # strains_def_config = np.load('strains_cylinder.npy')
+        for J, J0, element in zip(self.deformed_config_jacobians,self.flat_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
             J0_inv = np.linalg.inv(J0)
 
             # Calculate strain by Jacobians
@@ -434,20 +423,6 @@ class AnalysisStage(object):
             E_voigt[1] = E3D_FFT[1, 1]
             E_voigt[2] = (E3D_FFT[0, 1] + E3D_FFT[1, 0])
 
-            # # selected elements
-            # E_voigt = KratosMultiphysics.Vector(3)
-            # E_voigt[0] = 0.0
-            # E_voigt[1] = 0.0
-            # E_voigt[2] = 0.0
-            # if element.Id == 1 or element.Id == 2 or element.Id == 21 or element.Id == 22:
-            #     E_voigt[0] = 0.01
-            #     E_voigt[1] = 0.01
-            #     E_voigt[2] = 0.0
-            # if element.Id == 15 or element.Id == 19 or element.Id == 39 or element.Id == 40:
-            #     E_voigt[0] = 0.01
-            #     E_voigt[1] = 0.01
-            #     E_voigt[2] = 0.0
-
             # apply pre-calculated strains from original deformed configuration to flat input
             element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
             strainvalue = np.array(E_voigt)
@@ -455,7 +430,7 @@ class AnalysisStage(object):
             strains_list.append(strainvalue)
             # TODO later - Create condition for PointLoad, reference command:
             # self._GetSolver().GetComputingModelPart().CreateCondition()
-        # print("strain list:\n", strains_list)
+        
         # export F, E
         np.save("F" + str(self.case) + "_defgrad", F_list)
         Ftxt = np.reshape(F_list, (-1,3))
