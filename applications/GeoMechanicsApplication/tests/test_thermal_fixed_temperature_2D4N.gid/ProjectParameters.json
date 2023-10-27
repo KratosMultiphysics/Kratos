@@ -1,8 +1,8 @@
 {
     "problem_data": {
-        "problem_name":         "test61",
+        "problem_name":         "test_thermal_fixed_temperature_2D4N",
         "start_time":           0.0,
-        "end_time":             7200.0,
+        "end_time":             8640000,
         "echo_level":           1,
         "parallel_type":        "OpenMP",
         "number_of_threads":    1
@@ -20,7 +20,7 @@
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":                0.25,
+            "time_step":                 600,
             "max_delta_time_factor":    1000
         },
         "buffer_size":                        2,
