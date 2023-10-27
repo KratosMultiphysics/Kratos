@@ -275,6 +275,28 @@ public:
         )
     {
         // Resizing the results
+        PrepareOutputSearch(rInput, rResults, rResultsDistance);
+
+        // Preparing the points
+        return PreparePointsSearch(rStructure);
+    }
+
+    /**
+     * @brief This method prepares the search output
+     * @param rInput The input to be searched
+     * @param rResults The results
+     * @param rResultsDistance The results distance
+     * @tparam TContainer The container type
+     * @tparam TResultType The result type
+     */
+    template<class TContainer, class TResultType>
+    static void PrepareOutputSearch(
+        const TContainer& rInput,
+        TResultType& rResults,
+        VectorDistanceType& rResultsDistance
+        )
+    {
+        // Resizing the results
         const std::size_t input_size = rInput.size();
         if (rResults.size() != input_size) {
             rResults.resize(input_size);
@@ -282,8 +304,6 @@ public:
         if (rResultsDistance.size() != input_size) {
             rResultsDistance.resize(input_size);
         }
-
-        return PreparePointsSearch(rStructure);
     }
 
     /**
