@@ -21,6 +21,7 @@
 
 // Project includes
 #include "search_structure.h"
+#include "geometries/bounding_box.h"
 #include "utilities/parallel_utilities.h"
 
 namespace Kratos
@@ -64,21 +65,35 @@ public:
     /// Pointer definition of TreeNode
     KRATOS_CLASS_POINTER_DEFINITION(TreeNode);
 
-    // Global definitions
-    typedef std::size_t SizeType;
-    typedef std::size_t IndexType;
-    typedef double CoordinateType;
+    /// Define SizeType as std::size_t
+    using SizeType = std::size_t;
 
-    typedef TPointType PointType;
-    typedef TPointerType PointerType;
-    typedef TIteratorType IteratorType;
-    typedef TDistanceIteratorType DistanceIteratorType;
+    /// Define IndexType as std::size_t
+    using IndexType = std::size_t;
 
-    typedef TreeNode<TDimension,TPointType,TPointerType,TIteratorType,TDistanceIteratorType> TreeNodeType;
+    /// Define CoordinateType as double
+    using CoordinateType = double;
 
-    typedef typename std::vector<IteratorType>::iterator IteratorIteratorType;
+    /// Define PointType as TPointType
+    using PointType = TPointType;
 
-    typedef SearchStructure<IndexType,SizeType,CoordinateType,TIteratorType,IteratorIteratorType,TDimension> SearchStructureType;
+    /// Define PointerType as TPointerType
+    using PointerType = TPointerType;
+
+    /// Define IteratorType as TIteratorType
+    using IteratorType = TIteratorType;
+
+    /// Define DistanceIteratorType as TDistanceIteratorType
+    using DistanceIteratorType = TDistanceIteratorType;
+
+    /// Define TreeNodeType as a TreeNode type with the given template arguments
+    using TreeNodeType = TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType>;
+
+    /// Define IteratorIteratorType as an iterator type for a vector of IteratorType
+    using IteratorIteratorType = typename std::vector<IteratorType>::iterator;
+
+    /// Define SearchStructureType as a SearchStructure type with the given template arguments
+    using SearchStructureType = SearchStructure<IndexType, SizeType, CoordinateType, TIteratorType, IteratorIteratorType, TDimension>;
 
     virtual void PrintData(std::ostream& rOStream, std::string const& Perfix = std::string()) const {}
 
@@ -161,9 +176,14 @@ template<std::size_t TDimension, class TPointType, class TPointerType, class TIt
 TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>
 TreeNode<TDimension, TPointType, TPointerType, TIteratorType, TDistanceIteratorType, TIteratorIteratorType>::msNullLeaf;
 
-/// Short class definition.
-/** Detail class definition.
-*/
+/**
+ * @class Tree
+ * @ingroup KratosCore
+ * @brief A generic tree data structure for spatial partitioning.
+ * @details This class implements a generic tree data structure for spatial partitioning.
+ * @tparam TPartitionType The partitioning strategy type.
+ * @author Carlos Labra
+ */
 template< class TPartitionType >
 class Tree
 {
@@ -171,16 +191,29 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /**
+     * @class Partitions
+     * @brief Class to represent partitions for the tree.
+     */
     class Partitions
     {
     public:
+        /**
+         * @brief Constructor to initialize the number of partitions.
+         * @param NumPartitions The number of partitions.
+         */
         explicit Partitions( const std::size_t NumPartitions ) : mNumPartitions(NumPartitions) {}
+        
+        /// Destructor.
         ~Partitions() {};
+
+        ///The number of partitions.
         std::size_t mNumPartitions;
     };
 
     /// Pointer definition of Tree
     KRATOS_CLASS_POINTER_DEFINITION(Tree);
+
     /// The partition type definition
     using PartitionType = TPartitionType;
 
@@ -307,6 +340,12 @@ public:
     ///@name Operations
     ///@{
 
+    /**
+     * @brief Check if a point exists in the tree within a given tolerance.
+     * @param ThisPoint The point to check.
+     * @param Tolerance The tolerance for proximity check.
+     * @return A pointer to the existing point or a null pointer.
+     */
     PointerType ExistPoint(
         PointerType const& ThisPoint,
         CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) 
@@ -321,6 +360,11 @@ public:
         return NodeType::NullPointer();
     }
 
+    /**
+     * @brief Search for the nearest point to a given point.
+     * @param ThisPoint The point for which to find the nearest point.
+     * @return A pointer to the nearest point.
+     */
     PointerType SearchNearestPoint(
         PointType const& ThisPoint,
         CoordinateType& rResultDistance
@@ -335,6 +379,15 @@ public:
         return Result;
     }
 
+    /**
+     * @brief Search for points within a given radius of a point.
+     * @param ThisPoint The center point.
+     * @param Radius The search radius.
+     * @param Results Iterator to store the found points.
+     * @param ResultsDistances Iterator to store the distances to found points.
+     * @param MaxNumberOfResults Maximum number of results to return.
+     * @return The number of points found within the specified radius.
+     */
     PointerType SearchNearestPoint(PointType const& ThisPoint)
     {
         PointerType Result = *mPointsBegin; // NULL ??
@@ -346,6 +399,15 @@ public:
         return Result;
     }
 
+    /**
+     * @brief Search for points within a given radius of a point.
+     * @param ThisPoint The center point.
+     * @param Radius The search radius.
+     * @param Results Iterator to store the found points.
+     * @param ResultsDistances Iterator to store the distances to found points.
+     * @param MaxNumberOfResults Maximum number of results to return.
+     * @return The number of points found within the specified radius.
+     */
     SizeType SearchInRadius(
         PointType const& ThisPoint,
         CoordinateType Radius,
@@ -364,6 +426,14 @@ public:
         return NumberOfResults;
     }
 
+    /**
+     * @brief Search for points within a given radius of a point.
+     * @param ThisPoint The center point.
+     * @param Radius The search radius.
+     * @param Results Iterator to store the found points.
+     * @param MaxNumberOfResults Maximum number of results to return.
+     * @return The number of points found within the specified radius.
+     */
     SizeType SearchInRadius(
         PointType const& ThisPoint,
         CoordinateType Radius,
@@ -380,6 +450,14 @@ public:
         return NumberOfResults;
     }
 
+    /**
+     * @brief Search for points within a given axis-aligned box.
+     * @param MinPointBox The minimum point of the bounding box.
+     * @param MaxPointBox The maximum point of the bounding box.
+     * @param Results Iterator to store the found points.
+     * @param MaxNumberOfResults Maximum number of results to return.
+     * @return The number of points found within the specified bounding box.
+     */
     SizeType SearchInBox(
         PointType const& MinPointBox,
         PointType const& MaxPointBox,
@@ -396,14 +474,33 @@ public:
     ///@name Access
     ///@{
 
+    /**
+     * @brief Get a reference to the low point of the bounding box.
+     * @return A reference to the low point of the bounding box.
+     */
     PointType& BoundingBoxLowPoint()
     {
         return mBoundingBoxLowPoint;
     }
 
+    /**
+     * @brief Get a reference to the high point of the bounding box.
+     * @return A reference to the high point of the bounding box.
+     */
     PointType& BoundingBoxHighPoint()
     {
         return mBoundingBoxHighPoint;
+    }
+
+    /**
+     * @brief Get the bounding box.
+     * @details This function creates a bounding box using the low and high points and returns it.
+     * @return The bounding box.
+     */
+    BoundingBox<PointType> GetBoundingBox()
+    {
+        BoundingBox<PointType> bb(mBoundingBoxLowPoint, mBoundingBoxHighPoint);
+        return bb;
     }
 
     ///@}
@@ -434,35 +531,6 @@ public:
 
     ///@}
     ///@name Friends
-    ///@{
-
-    ///@}
-protected:
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
-    ///@}
-    ///@name Protected  Access
-    ///@{
-
-    ///@}
-    ///@name Protected Inquiry
-    ///@{
-
-    ///@}
-    ///@name Protected LifeCycle
     ///@{
 
     ///@}
