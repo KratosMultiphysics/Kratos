@@ -36,7 +36,7 @@ class GeometricalObject; // forward declaration, to be included in the cpp. This
  * @class GeometricalObjectsBins
  * @ingroup KratosCore
  * @brief A bins container for 3 dimensional GeometricalObject entities.
- * @details It provides efficent search in radius and search nearest methods.
+ * @details It provides efficient search in radius and search nearest methods.
  * All of the geometries should be given at construction time. After
  * constructing the bins the geometries cannot be modified. In case of
  * any modification, the bins should be reconstructed.
@@ -50,6 +50,9 @@ public:
 
     /// Pointer definition of GeometricalObjectsBins
     KRATOS_CLASS_POINTER_DEFINITION(GeometricalObjectsBins);
+
+    /// The type of geometrical object to be stored in the bins
+    using ObjectType = GeometricalObject;
 
     /// The type of geometrical object to be stored in the bins
     using CellType = std::vector<GeometricalObject*>;
