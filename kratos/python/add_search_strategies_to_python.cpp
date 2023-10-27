@@ -213,7 +213,6 @@ void DefineSearchWrapper(pybind11::module& m, const std::string& rClassName)
     using NodesContainerType = ModelPart::NodesContainerType;
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
-    using ResultTypeContainer = SpatialSearchResultContainer<TObjectType>;
     using ResultTypeContainerVector = SpatialSearchResultContainerVector<TObjectType>;
     using SearchWrapperType = SearchWrapper<TSearchObject, TObjectType>;
     using SearchWrapperPointerType = typename SearchWrapper<TSearchObject, TObjectType>::Pointer;
