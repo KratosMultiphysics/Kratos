@@ -13,8 +13,6 @@
 #include "input_output/logger.h"
 #include "time_loop_executor_interface.h"
 
-#include "utilities/variable_utils.h"
-
 #include "custom_processes/apply_scalar_constraint_table_process.h"
 #include "custom_processes/apply_normal_load_table_process.h"
 #include "custom_processes/apply_vector_constraint_table_process.h"
@@ -90,7 +88,6 @@ bool GetResetDisplacementsFrom(const Parameters& rProjectParameters)
 }
 
 
-
 namespace Kratos
 {
 
@@ -137,7 +134,7 @@ void KratosGeoSettlement::InitializeProcessFactory()
     mProcessFactory->AddCreator("ApplyNormalLoadTableProcess",
                                 [this](const Parameters& rParameters)
                                 {
-                                      return std::make_unique<ApplyNormalLoadTableProcess>(mModel.GetModelPart(mModelPartName),
+                                      return std::make_unique<ApplyNormalLoadTableProcess>(GetMainModelPart(),
                                                                                            rParameters);
                                 });
 
@@ -356,35 +353,24 @@ std::unique_ptr<TimeIncrementor> KratosGeoSettlement::MakeTimeIncrementor(const 
 std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const Parameters&            rProjectParameters,
                                                                           const std::filesystem::path& rWorkingDirectory)
 {
-    auto& main_model_part = mModel.GetModelPart(mModelPartName);
     auto solving_strategy = SolvingStrategyFactoryType::Create(rProjectParameters["solver_settings"],
-                                                               main_model_part.GetSubModelPart(mComputationalSubModelPartName));
+                                                               GetComputationalModelPart());
     KRATOS_ERROR_IF_NOT(solving_strategy) << "No solving strategy was created!" << std::endl;
 
     solving_strategy->Initialize();
-    main_model_part.CloneTimeStep();
+    GetMainModelPart().CloneTimeStep();
 
-    const bool reset_displacements = rProjectParameters["solver_settings"]["reset_displacements"].GetBool();
-    if (reset_displacements)
-    {
-        VariableUtils().SetHistoricalVariableToZero(DISPLACEMENT, main_model_part.GetSubModelPart(mComputationalSubModelPartName).Nodes());
-//        VariableUtils().SetHistoricalVariableToZero(ROTATION, main_model_part.GetSubModelPart(mComputationalSubModelPartName).Nodes());
-        for (auto& node : main_model_part.GetSubModelPart(mComputationalSubModelPartName).Nodes())
-        {
-            auto dNew = node.GetSolutionStepValue(DISPLACEMENT,0);
-            node.GetSolutionStepValue(DISPLACEMENT, 1) = dNew;
-//            auto rotNew = node.GetSolutionStepValue(KratosMultiphysics.ROTATION,0);
-//            node.SetSolutionStepValue(KratosMultiphysics.ROTATION, 1, rotNew);
-        }
+    if (rProjectParameters["solver_settings"]["reset_displacements"].GetBool()) {
+        constexpr auto source_index      = std::size_t{0};
+        constexpr auto destination_index = std::size_t{1};
+        RestoreValuesOfNodalVariable(DISPLACEMENT, source_index, destination_index);
+        RestoreValuesOfNodalVariable(ROTATION, source_index, destination_index);
 
+        VariableUtils{}.UpdateCurrentToInitialConfiguration(GetComputationalModelPart().Nodes());
     }
 
-    auto find_neighbours_process = FindNeighbourElementsOfConditionsProcess(main_model_part.GetSubModelPart(mComputationalSubModelPartName));
-    find_neighbours_process.Execute();
-
-    auto deactivate_conditions_on_inactive_elements_process = DeactivateConditionsOnInactiveElements(main_model_part.GetSubModelPart(mComputationalSubModelPartName));
-    deactivate_conditions_on_inactive_elements_process.Execute();
-
+    FindNeighbourElementsOfConditionsProcess{GetComputationalModelPart()}.Execute();
+    DeactivateConditionsOnInactiveElements{GetComputationalModelPart()}.Execute();
 
     // For now, we can create solving strategy wrappers only
     using SolvingStrategyWrapperType = SolvingStrategyWrapper<SparseSpaceType, DenseSpaceType>;
@@ -396,7 +382,7 @@ std::shared_ptr<StrategyWrapper> KratosGeoSettlement::MakeStrategyWrapper(const 
 
 void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
 {
-    auto& main_model_part = mModel.GetModelPart(mModelPartName);
+    auto& main_model_part = GetMainModelPart();
     if (!main_model_part.HasSubModelPart(mComputationalSubModelPartName)) {
         main_model_part.CreateSubModelPart(mComputationalSubModelPartName);
     }
@@ -406,19 +392,18 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
         main_model_part.GetProcessInfo().SetValue(NODAL_SMOOTHING, rSolverSettings["nodal_smoothing"].GetBool());
     }
 
-    auto& computing_model_part = main_model_part.GetSubModelPart(mComputationalSubModelPartName);
     // Note that the computing part and the main model part _share_ their process info and properties
-    computing_model_part.SetProcessInfo(main_model_part.GetProcessInfo());
+    GetComputationalModelPart().SetProcessInfo(main_model_part.GetProcessInfo());
     for (auto i = ModelPart::SizeType{0}; i < main_model_part.NumberOfMeshes(); ++i)
     {
         auto& mesh = main_model_part.GetMesh(i);
         for (const auto& property : mesh.Properties())
         {
-            computing_model_part.AddProperties( mesh.pGetProperties(property.GetId()));
+            GetComputationalModelPart().AddProperties( mesh.pGetProperties(property.GetId()));
         }
     }
 
-    computing_model_part.Set(ACTIVE);
+    GetComputationalModelPart().Set(ACTIVE);
 
     const auto problem_domain_sub_model_part_list = rSolverSettings["problem_domain_sub_model_part_list"];
     std::vector<std::string> domain_part_names;
@@ -434,7 +419,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
             node_id_set.insert(node.Id());
         }
     }
-    computing_model_part.AddNodes(std::vector<Node::IndexType>{node_id_set.begin(), node_id_set.end()});
+    GetComputationalModelPart().AddNodes(std::vector<Node::IndexType>{node_id_set.begin(), node_id_set.end()});
 
     std::set<IndexedObject::IndexType> element_id_set;
     for (const auto& name : domain_part_names) {
@@ -443,7 +428,7 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
             element_id_set.insert(element.Id());
         }
     }
-    computing_model_part.AddElements(std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
+    GetComputationalModelPart().AddElements(std::vector<IndexedObject::IndexType>{element_id_set.begin(), element_id_set.end()});
 
     const auto processes_sub_model_part_list = rSolverSettings["processes_sub_model_part_list"];
     std::vector<std::string> domain_condition_names;
@@ -458,10 +443,19 @@ void KratosGeoSettlement::PrepareModelPart(const Parameters& rSolverSettings)
             condition_id_set.insert(condition.Id());
         }
     }
-    computing_model_part.AddConditions(std::vector<IndexedObject::IndexType>{condition_id_set.begin(), condition_id_set.end()});
+    GetComputationalModelPart().AddConditions(std::vector<IndexedObject::IndexType>{condition_id_set.begin(), condition_id_set.end()});
 
     // NOTE TO SELF: here we don't yet "Adding Computing Sub Sub Model Parts" (see check_and_prepare_model_process_geo.py)
     // We are not sure yet whether that piece of code is relevant or not.
+}
+
+ModelPart& KratosGeoSettlement::GetMainModelPart()
+{
+    return mModel.GetModelPart(mModelPartName);
+}
+
+ModelPart& KratosGeoSettlement::GetComputationalModelPart() {
+    return GetMainModelPart().GetSubModelPart(mComputationalSubModelPartName);
 }
 
 // This default destructor is added in the cpp to be able to forward member variables in a unique_ptr

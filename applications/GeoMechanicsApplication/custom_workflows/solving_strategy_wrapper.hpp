@@ -60,7 +60,8 @@ public:
     void Initialize() override
     {
         mpStrategy->Initialize();
-        mWriter = std::make_unique<GeoOutputWriter>(mProjectParameters, mWorkingDirectory.generic_string(), mrModelPart);
+        const auto gid_output_settings = mProjectParameters["output_processes"]["gid_output"][0]["Parameters"];
+        mWriter = std::make_unique<GeoOutputWriter>(gid_output_settings, mWorkingDirectory.generic_string(), mrModelPart);
     }
 
     void InitializeSolutionStep() override
@@ -148,8 +149,8 @@ public:
         if (mWriter)
         {
             const auto write_hydraulic_head_to_nodes = false;
-            mWriter->WriteGiDOutput(mrModelPart, mProjectParameters,
-                                    mWorkingDirectory.generic_string(),
+            const auto gid_output_settings = mProjectParameters["output_processes"]["gid_output"][0]["Parameters"];
+            mWriter->WriteGiDOutput(mrModelPart, gid_output_settings,
                                     write_hydraulic_head_to_nodes);
         }
     }
