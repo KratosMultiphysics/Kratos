@@ -41,7 +41,7 @@ namespace Kratos
  * @details Must be adapted and specialized for every search object
  * @author Vicente Mataix Ferrandiz
  * @tparam TSearchObject The seach object considered
- * @tparam TObjectType The objec type considered
+ * @tparam TObjectType The object type considered
  */
 template<class TSearchObject, class TObjectType = GeometricalObject>
 class KRATOS_API(KRATOS_CORE) SearchWrapper
