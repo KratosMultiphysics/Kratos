@@ -30,7 +30,7 @@ rem set KRATOS_INSTALL_PYTHON_USING_LINKS=ON
 
 rem Set basic configuration
 if not defined KRATOS_BUILD_TYPE set KRATOS_BUILD_TYPE=Release
-if not defined BOOST_ROOT set BOOST_ROOT=C:\CompiledLibs\boost_1_83_0
+if not defined BOOST_ROOT set BOOST_ROOT=C:\CompiledLibs\boost_1_67_0
 if not defined PYTHON_EXECUTABLE set PYTHON_EXECUTABLE=C:\Windows\py.exe
 if not defined CMAKE_GENERATOR set CMAKE_GENERATOR=Visual Studio 16 2019
 if not defined NUMBER_OF_COMPILATION_CORES set NUMBER_OF_COMPILATION_CORES=%NUMBER_OF_PROCESSORS%
