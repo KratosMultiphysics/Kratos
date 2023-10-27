@@ -419,7 +419,6 @@ void  AddProcessesToPython(pybind11::module& m)
         ;
     py::class_<CheckSameModelPartUsingSkinDistanceProcess<3>, CheckSameModelPartUsingSkinDistanceProcess<3>::Pointer, Process>(m,"CheckSameModelPartUsingSkinDistanceProcess3D")
         .def(py::init<Model&, Parameters>())
-        //.def(py::init<ModelPart&, ModelPart&, Parameters>())
         ;
 
     // Discontinuous distance computation methods
