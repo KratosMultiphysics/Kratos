@@ -19,9 +19,8 @@
 #include "includes/define.h"
 #include "custom_conditions/particle_based_conditions/mpm_particle_penalty_dirichlet_condition.h"
 #include "includes/kratos_flags.h"
-#include "utilities/math_utils.h"
-#include "custom_utilities/particle_mechanics_math_utilities.h"
-#include "includes/checks.h"
+
+
 
 namespace Kratos
 {
@@ -88,7 +87,7 @@ void MPMParticlePenaltyDirichletCondition::InitializeSolutionStep( const Process
             r_geometry[i].SetLock();
             r_geometry[i].Set(SLIP);
             r_geometry[i].FastGetSolutionStepValue(IS_STRUCTURE) = 2.0;
-            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_unit_normal;
+            r_geometry[i].FastGetSolutionStepValue(NORMAL) += Variables.N[i] * m_normal;
             r_geometry[i].UnSetLock();
         }
     }
@@ -166,7 +165,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
                 field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
         }
 
-        const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_unit_normal);
+        const double penetration = MathUtils<double>::Dot((field_displacement - m_imposed_displacement), m_normal);
 
         // If penetrates, apply constraint, otherwise no
         if (penetration >= 0.0)
@@ -317,11 +316,11 @@ void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(const 
     if (Is(CONTACT))
     {
         // Apply only in the normal direction
-        const double normal_force = MathUtils<double>::Dot(mpc_force, m_unit_normal);
+        const double normal_force = MathUtils<double>::Dot(mpc_force, m_normal);
 
         // This check is done to avoid sticking forces
         if (normal_force > 0.0)
-            mpc_force = -1.0 * normal_force * m_unit_normal;
+            mpc_force = -1.0 * normal_force * m_normal;
         else
             mpc_force = ZeroVector(3);
     }
@@ -350,28 +349,6 @@ void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Va
     }
 }
 
-void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rValues.size() != 1)
-        rValues.resize(1);
-
-    if (rVariable == MPC_IMPOSED_DISPLACEMENT) {
-        rValues[0] = m_imposed_displacement;
-    }
-    else if (rVariable == MPC_NORMAL) {
-        rValues[0] = m_unit_normal;
-    }
-    else if (rVariable == MPC_CONTACT_FORCE) {
-        rValues[0] = m_contact_force;
-    }
-    else {
-        MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
-            rVariable, rValues, rCurrentProcessInfo);
-    }
-}
-
 void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
     const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)
@@ -389,40 +366,6 @@ void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(const Va
     }
 }
 
-void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    const std::vector<array_1d<double, 3 > >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_ERROR_IF(rValues.size() > 1)
-        << "Only 1 value per integration point allowed! Passed values vector size: "
-        << rValues.size() << std::endl;
-
-    if (rVariable == MPC_IMPOSED_DISPLACEMENT) {
-        m_imposed_displacement = rValues[0];
-    }
-    else if (rVariable == MPC_NORMAL) {
-        m_unit_normal = rValues[0];
-        ParticleMechanicsMathUtilities<double>::Normalize(m_unit_normal);
-    }
-    else {
-        MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
-            rVariable, rValues, rCurrentProcessInfo);
-    }
-}
-
-int MPMParticlePenaltyDirichletCondition::Check( const ProcessInfo& rCurrentProcessInfo ) const
-{
-    MPMParticleBaseDirichletCondition::Check(rCurrentProcessInfo);
-
-    // Verify that the dofs exist
-    for (const auto& r_node : this->GetGeometry().Points()){
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NORMAL,r_node)
-        KRATOS_CHECK_VARIABLE_IN_NODAL_DATA(NODAL_AREA,r_node)
-    }
-
-    return 0;
-}
 
 } // Namespace Kratos
 

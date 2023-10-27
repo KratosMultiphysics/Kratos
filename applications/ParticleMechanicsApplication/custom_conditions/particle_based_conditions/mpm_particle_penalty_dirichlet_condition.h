@@ -124,15 +124,6 @@ public:
         ) const override;
 
 
-    /**
-     * This function provides the place to perform checks on the completeness of the input.
-     * It is designed to be called only once (or anyway, not often) typically at the beginning
-     * of the calculations, so to verify that nothing is missing from the input
-     * or that no common error is found.
-     * @param rCurrentProcessInfo
-     */
-    int Check( const ProcessInfo& rCurrentProcessInfo ) const override;
-
     ///@}
     ///@name Access Get Values
     ///@{
@@ -141,9 +132,6 @@ public:
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
     ///@name Access Set Values
@@ -153,9 +141,6 @@ public:
         const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        const std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
 
     ///@}
 
@@ -163,7 +148,6 @@ protected:
     ///@name Protected member Variables
     ///@{
 
-    array_1d<double, 3> m_unit_normal;
     double m_penalty = 0.0;
 
     ///@}
@@ -216,9 +200,7 @@ private:
 
     ///@}
     ///@name Member Variables
-    ///@{
-
-    array_1d<double, 3> m_contact_force=ZeroVector(3);
+    ///@{   
 
     ///@}
     ///@name Private Operators
@@ -247,14 +229,12 @@ private:
     void save( Serializer& rSerializer ) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS( rSerializer, MPMParticleBaseDirichletCondition );
-        rSerializer.save("unit_normal", m_unit_normal);
         rSerializer.save("penalty", m_penalty);
     }
 
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, MPMParticleBaseDirichletCondition );
-        rSerializer.load("unit_normal", m_unit_normal);
         rSerializer.load("penalty", m_penalty);
     }
 
