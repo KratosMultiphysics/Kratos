@@ -60,6 +60,9 @@ public:
     using ResultContainerType = SpatialSearchResultContainer<TObjectType>;
     using ResultContainerVectorType = SpatialSearchResultContainerVector<TObjectType>;
 
+    /// Some constexpr flags
+    static constexpr bool IsGeometricalObjectBins = std::is_same_v<TSearchObject, GeometricalObjectsBins>;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -86,7 +89,7 @@ public:
         mSettings.ValidateAndAssignDefaults(GetDefaultParameters());
 
         // Create base search object
-        if constexpr (std::is_same_v<TSearchObject, GeometricalObjectsBins>) {
+        if constexpr (IsGeometricalObjectBins) {
             mpSearchObject = Kratos::make_shared<TSearchObject>(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end());
         }
 
