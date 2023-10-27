@@ -21,6 +21,7 @@
 // Application includes
 #include "custom_elements/small_strain_U_Pw_diff_order_element.hpp"
 #include "custom_utilities/element_utilities.hpp"
+#include "custom_utilities/thermal_utilities.hpp"
 
 namespace Kratos
 {
@@ -251,6 +252,9 @@ void SmallStrainUPwDiffOrderElement::Initialize(const ProcessInfo& rCurrentProce
                                                  rCurrentProcessInfo );
         }
     }
+
+    mIsThermalCoupled = rGeom[0].SolutionStepsDataHas(TEMPERATURE);
+    mUpdateDensityViscosity = rCurrentProcessInfo[UPDATE_DENSITY_VISCOSITY];
 
     mIsInitialised = true;
 
@@ -1518,6 +1522,12 @@ void SmallStrainUPwDiffOrderElement::
     for ( unsigned int GPoint = 0; GPoint < IntegrationPoints.size(); ++GPoint ) {
         //compute element kinematics (Np, gradNpT, |J|, B, strains)
         this->CalculateKinematics(Variables, GPoint);
+
+        // Contribute thermal effects if it is a coupled thermo-hydro-mechanical problem
+        if (mIsThermalCoupled && mUpdateDensityViscosity) {
+            Variables.Density = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.Np, rGeom);
+            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.Np, rGeom);
+        }
 
         //Compute infinitessimal strain
         this->CalculateStrain(Variables, GPoint);

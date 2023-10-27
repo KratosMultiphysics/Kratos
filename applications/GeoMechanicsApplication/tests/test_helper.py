@@ -44,6 +44,7 @@ def run_stages(project_path,n_stages):
     :param n_stages:
     :return:
     """
+
     cwd = os.getcwd()
     stages = get_stages(project_path,n_stages)
     [stage.Run() for stage in stages]
@@ -135,6 +136,16 @@ def get_water_pressure(simulation):
     :return:
     """
     return get_nodal_variable(simulation, Kratos.WATER_PRESSURE)
+
+
+def get_temperature(simulation):
+    """
+    Gets the temperature from kratos simulation
+
+    :param simulation:
+    :return:
+    """
+    return get_nodal_variable(simulation, Kratos.TEMPERATURE)
 
 
 def get_hydraulic_discharge(simulation):

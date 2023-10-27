@@ -175,6 +175,9 @@ protected:
     std::vector<Vector> mStateVariablesFinalized;
     bool mIsInitialised = false;
 
+    bool mIsThermalCoupled = false;
+    bool mUpdateDensityViscosity = true;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     virtual void CalculateMaterialStiffnessMatrix( MatrixType& rStiffnessMatrix,

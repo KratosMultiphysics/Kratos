@@ -48,6 +48,7 @@
 #include "custom_conditions/axisymmetric_line_normal_load_2D_diff_order_condition.hpp"
 #include "custom_conditions/axisymmetric_line_normal_fluid_flux_2D_diff_order_condition.hpp"
 #include "custom_conditions/U_Pw_normal_lysmer_absorbing_condition.hpp"
+#include "custom_conditions/T_normal_flux_condition.hpp"
 
 // Geometries
 #include "geometries/triangle_2d_3.h"
@@ -100,6 +101,7 @@
 #include "custom_elements/updated_lagrangian_U_Pw_diff_order_axisymmetric_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_element.hpp"
 #include "custom_elements/updated_lagrangian_U_Pw_axisymmetric_FIC_element.hpp"
+#include "custom_elements/transient_thermal_element.hpp"
 
 /* geo structural element */
 #include "custom_elements/geo_cr_beam_element_3D2N.hpp"
@@ -132,6 +134,7 @@
 #include "custom_constitutive/linear_elastic_2D_interface_law.h"
 #include "custom_constitutive/linear_elastic_3D_interface_law.h"
 #include "custom_constitutive/linear_elastic_2D_beam_law.h"
+#include "custom_constitutive/thermal_dispersion_2D_law.hpp"
 
 namespace Kratos {
 
@@ -276,7 +279,7 @@ private:
     ///@{
 
     // elements
-    // transient one-phase flow elements:
+    // Transient one-phase flow elements:
     const TransientPwElement<2, 3> mTransientPwElement2D3N { 0, Kratos::make_shared< Triangle2D3      <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
     const TransientPwElement<2, 4> mTransientPwElement2D4N { 0, Kratos::make_shared< Quadrilateral2D4 <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
     const TransientPwElement<3, 4> mTransientPwElement3D4N { 0, Kratos::make_shared< Tetrahedra3D4    <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
@@ -316,7 +319,7 @@ private:
     const SteadyStatePwPipingElement<3,6> mSteadyStatePwPipingElement3D6N{ 0, Kratos::make_shared< PrismInterface3D6         <NodeType> >(Element::GeometryType::PointsArrayType(6)) };
     const SteadyStatePwPipingElement<3,8> mSteadyStatePwPipingElement3D8N{ 0, Kratos::make_shared< HexahedraInterface3D8     <NodeType> >(Element::GeometryType::PointsArrayType(8)) };
 
-    // small strain elements:
+    // Small strain elements:
     const UPwSmallStrainElement<2, 3> mUPwSmallStrainElement2D3N { 0, Kratos::make_shared< Triangle2D3      <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
     const UPwSmallStrainElement<2, 4> mUPwSmallStrainElement2D4N { 0, Kratos::make_shared< Quadrilateral2D4 <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
     const UPwSmallStrainElement<3, 4> mUPwSmallStrainElement3D4N { 0, Kratos::make_shared< Tetrahedra3D4    <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
@@ -330,13 +333,13 @@ private:
     const UPwSmallStrainElement<3,20> mUPwSmallStrainElement3D20N{ 0, Kratos::make_shared< Hexahedra3D20    <NodeType> >(Element::GeometryType::PointsArrayType(20)) };
     const UPwSmallStrainElement<3,27> mUPwSmallStrainElement3D27N{ 0, Kratos::make_shared< Hexahedra3D27    <NodeType> >(Element::GeometryType::PointsArrayType(27)) };
 
-    // small strain drained elements:
+    // Small strain drained elements:
     const DrainedUPwSmallStrainElement<2,3> mDrainedUPwSmallStrainElement2D3N{ 0, Kratos::make_shared< Triangle2D3      <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
     const DrainedUPwSmallStrainElement<2,4> mDrainedUPwSmallStrainElement2D4N{ 0, Kratos::make_shared< Quadrilateral2D4 <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
     const DrainedUPwSmallStrainElement<3,4> mDrainedUPwSmallStrainElement3D4N{ 0, Kratos::make_shared< Tetrahedra3D4    <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
     const DrainedUPwSmallStrainElement<3,8> mDrainedUPwSmallStrainElement3D8N{ 0, Kratos::make_shared< Hexahedra3D8     <NodeType> >(Element::GeometryType::PointsArrayType(8)) };
 
-    // small strain undrained elements:
+    // Small strain undrained elements:
     const UndrainedUPwSmallStrainElement<2,3> mUndrainedUPwSmallStrainElement2D3N{ 0, Kratos::make_shared< Triangle2D3      <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
     const UndrainedUPwSmallStrainElement<2,4> mUndrainedUPwSmallStrainElement2D4N{ 0, Kratos::make_shared< Quadrilateral2D4 <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
     const UndrainedUPwSmallStrainElement<3,4> mUndrainedUPwSmallStrainElement3D4N{ 0, Kratos::make_shared< Tetrahedra3D4    <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
@@ -358,7 +361,7 @@ private:
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D20N{ 0, Kratos::make_shared< Hexahedra3D20    <NodeType> >(Element::GeometryType::PointsArrayType(20)) };
     const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D27N{ 0, Kratos::make_shared< Hexahedra3D27    <NodeType> >(Element::GeometryType::PointsArrayType(27)) };
 
-    // small strain axisymmtric elements:
+    // Small strain axisymmtric elements:
     const UPwSmallStrainAxisymmetricElement<2, 3> mUPwSmallStrainAxisymmetricElement2D3N { 0, Kratos::make_shared< Triangle2D3      <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
     const UPwSmallStrainAxisymmetricElement<2, 4> mUPwSmallStrainAxisymmetricElement2D4N { 0, Kratos::make_shared< Quadrilateral2D4 <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
     const UPwSmallStrainAxisymmetricElement<2, 6> mUPwSmallStrainAxisymmetricElement2D6N { 0, Kratos::make_shared< Triangle2D6      <NodeType> >(Element::GeometryType::PointsArrayType(6)) };
@@ -376,7 +379,7 @@ private:
     const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D10N{ 0, Kratos::make_shared< Triangle2D10     <NodeType> >(Element::GeometryType::PointsArrayType(10)) };
     const SmallStrainUPwDiffOrderAxisymmetricElement mSmallStrainUPwDiffOrderAxisymmetricElement2D15N{ 0, Kratos::make_shared< Triangle2D15     <NodeType> >(Element::GeometryType::PointsArrayType(15)) };
 
-    // interface elements
+    // Interface elements
     const UPwSmallStrainInterfaceElement<2,4> mUPwSmallStrainInterfaceElement2D4N{ 0, Kratos::make_shared< QuadrilateralInterface2D4 <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
     const UPwSmallStrainInterfaceElement<3,6> mUPwSmallStrainInterfaceElement3D6N{ 0, Kratos::make_shared< PrismInterface3D6         <NodeType> >(Element::GeometryType::PointsArrayType(6)) };
     const UPwSmallStrainInterfaceElement<3,8> mUPwSmallStrainInterfaceElement3D8N{ 0, Kratos::make_shared< HexahedraInterface3D8     <NodeType> >(Element::GeometryType::PointsArrayType(8)) };
@@ -431,7 +434,7 @@ private:
     const UPwUpdatedLagrangianAxisymmetricFICElement<2,3> mUPwUpdatedLagrangianAxisymmetricFICElement2D3N{ 0, Kratos::make_shared< Triangle2D3      <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
     const UPwUpdatedLagrangianAxisymmetricFICElement<2,4> mUPwUpdatedLagrangianAxisymmetricFICElement2D4N{ 0, Kratos::make_shared< Quadrilateral2D4 <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
 
-    // geo structural element
+    // Geo-structural element
     const GeoCrBeamElement2D2N       mGeoCrBeamElement2D2N      { 0, Kratos::make_shared< Line2D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoCrBeamElement3D2N       mGeoCrBeamElement3D2N      { 0, Kratos::make_shared< Line3D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoCrBeamElementLinear2D2N mGeoCrBeamElementLinear2D2N{ 0, Kratos::make_shared< Line2D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
@@ -444,29 +447,59 @@ private:
     const GeoCableElement<3,2>       mGeoCableElement3D2N       { 0, Kratos::make_shared< Line3D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoCurvedBeamElement<2,3>  mGeoCurvedBeamElement2D3N  { 0, Kratos::make_shared< Line2D3 <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
 
+    // Transient thermal elements:
+    const TransientThermalElement<2, 3> mTransientThermalElement2D3N { 0, Kratos::make_shared< Triangle2D3      <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
+    const TransientThermalElement<2, 4> mTransientThermalElement2D4N { 0, Kratos::make_shared< Quadrilateral2D4 <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
+    const TransientThermalElement<3, 4> mTransientThermalElement3D4N { 0, Kratos::make_shared< Tetrahedra3D4    <NodeType> >(Element::GeometryType::PointsArrayType(4)) };
+    const TransientThermalElement<3, 8> mTransientThermalElement3D8N { 0, Kratos::make_shared< Hexahedra3D8     <NodeType> >(Element::GeometryType::PointsArrayType(8)) };
+    const TransientThermalElement<2, 6> mTransientThermalElement2D6N { 0, Kratos::make_shared< Triangle2D6      <NodeType> >(Element::GeometryType::PointsArrayType(6)) };
+    const TransientThermalElement<2, 8> mTransientThermalElement2D8N { 0, Kratos::make_shared< Quadrilateral2D8 <NodeType> >(Element::GeometryType::PointsArrayType(8)) };
+    const TransientThermalElement<2, 9> mTransientThermalElement2D9N { 0, Kratos::make_shared< Quadrilateral2D9 <NodeType> >(Element::GeometryType::PointsArrayType(9)) };
+    const TransientThermalElement<3,10> mTransientThermalElement3D10N{ 0, Kratos::make_shared< Tetrahedra3D10   <NodeType> >(Element::GeometryType::PointsArrayType(10)) };
+    const TransientThermalElement<3,20> mTransientThermalElement3D20N{ 0, Kratos::make_shared< Hexahedra3D20    <NodeType> >(Element::GeometryType::PointsArrayType(20)) };
+    const TransientThermalElement<3,27> mTransientThermalElement3D27N{ 0, Kratos::make_shared< Hexahedra3D27    <NodeType> >(Element::GeometryType::PointsArrayType(27)) };
+
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N{ 0, Kratos::make_shared< Point2D <NodeType> >(Condition::GeometryType::PointsArrayType(1)) };
     const UPwForceCondition<3,1> mUPwForceCondition3D1N{ 0, Kratos::make_shared< Point3D <NodeType> >(Condition::GeometryType::PointsArrayType(1)) };
 
     const UPwFaceLoadCondition<2,2> mUPwFaceLoadCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const UPwFaceLoadCondition<2,3> mUPwFaceLoadCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const UPwFaceLoadCondition<2,4> mUPwFaceLoadCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const UPwFaceLoadCondition<2,5> mUPwFaceLoadCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
     const UPwFaceLoadCondition<3,3> mUPwFaceLoadCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const UPwFaceLoadCondition<3,4> mUPwFaceLoadCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
 
     const UPwNormalFaceLoadCondition<2,2> mUPwNormalFaceLoadCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const UPwNormalFaceLoadCondition<2,3> mUPwNormalFaceLoadCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const UPwNormalFaceLoadCondition<2,4> mUPwNormalFaceLoadCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const UPwNormalFaceLoadCondition<2,5> mUPwNormalFaceLoadCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
     const UPwNormalFaceLoadCondition<3,3> mUPwNormalFaceLoadCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const UPwNormalFaceLoadCondition<3,4> mUPwNormalFaceLoadCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
 
     const UPwNormalFluxCondition<2,2> mUPwNormalFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const UPwNormalFluxCondition<2,3> mUPwNormalFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const UPwNormalFluxCondition<2,4> mUPwNormalFluxCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const UPwNormalFluxCondition<2,5> mUPwNormalFluxCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
     const UPwNormalFluxCondition<3,3> mUPwNormalFluxCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const UPwNormalFluxCondition<3,4> mUPwNormalFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
 
     const PwNormalFluxCondition<2,2> mPwNormalFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2          <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const PwNormalFluxCondition<2,3> mPwNormalFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3          <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const PwNormalFluxCondition<2,4> mPwNormalFluxCondition2D4N{ 0, Kratos::make_shared< Line2D4          <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const PwNormalFluxCondition<2,5> mPwNormalFluxCondition2D5N{ 0, Kratos::make_shared< Line2D5          <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
     const PwNormalFluxCondition<3,3> mPwNormalFluxCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
     const PwNormalFluxCondition<3,4> mPwNormalFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
 
-    const UPwFaceLoadCondition<2,3> mUPwFaceLoadCondition2D3N{ 0, Kratos::make_shared< Line2D3 <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
-    const UPwFaceLoadCondition<2,4> mUPwFaceLoadCondition2D4N{ 0, Kratos::make_shared< Line2D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
-    const UPwFaceLoadCondition<2,5> mUPwFaceLoadCondition2D5N{ 0, Kratos::make_shared< Line2D5 <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
+    const TNormalFluxCondition<2,2> mTNormalFluxCondition2D2N{ 0, Kratos::make_shared< Line2D2 <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
+    const TNormalFluxCondition<2,3> mTNormalFluxCondition2D3N{ 0, Kratos::make_shared< Line2D3 <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const TNormalFluxCondition<2,4> mTNormalFluxCondition2D4N{ 0, Kratos::make_shared< Line2D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const TNormalFluxCondition<2,5> mTNormalFluxCondition2D5N{ 0, Kratos::make_shared< Line2D5 <NodeType> >(Condition::GeometryType::PointsArrayType(5)) };
+    const TNormalFluxCondition<3,3> mTNormalFluxCondition3D3N{ 0, Kratos::make_shared< Triangle3D3      <NodeType> >(Condition::GeometryType::PointsArrayType(3)) };
+    const TNormalFluxCondition<3,4> mTNormalFluxCondition3D4N{ 0, Kratos::make_shared< Quadrilateral3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
+    const TNormalFluxCondition<3,6> mTNormalFluxCondition3D6N{ 0, Kratos::make_shared< Triangle3D6      <NodeType> >(Condition::GeometryType::PointsArrayType(6)) };
+    const TNormalFluxCondition<3,8> mTNormalFluxCondition3D8N{ 0, Kratos::make_shared< Quadrilateral3D8 <NodeType> >(Condition::GeometryType::PointsArrayType(8)) };
+    const TNormalFluxCondition<3,9> mTNormalFluxCondition3D9N{ 0, Kratos::make_shared< Quadrilateral3D9 <NodeType> >(Condition::GeometryType::PointsArrayType(9)) };
 
     const UPwFaceLoadInterfaceCondition<2,2> mUPwFaceLoadInterfaceCondition2D2N{ 0, Kratos::make_shared< Line2D2                   <NodeType> >(Condition::GeometryType::PointsArrayType(2)) };
     const UPwFaceLoadInterfaceCondition<3,4> mUPwFaceLoadInterfaceCondition3D4N{ 0, Kratos::make_shared< QuadrilateralInterface3D4 <NodeType> >(Condition::GeometryType::PointsArrayType(4)) };
@@ -536,6 +569,7 @@ private:
 
     const LinearElastic2DBeamLaw          mLinearElastic2DBeamLaw;
 
+    const GeoThermalDispersion2DLaw       mGeoThermalDispersion2DLaw;
 
     ///@}
 

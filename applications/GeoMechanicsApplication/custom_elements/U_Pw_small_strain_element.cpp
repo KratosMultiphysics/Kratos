@@ -13,6 +13,7 @@
 
 // Application includes
 #include "custom_elements/U_Pw_small_strain_element.hpp"
+#include "custom_utilities/thermal_utilities.hpp"
 
 namespace Kratos
 {
@@ -1129,7 +1130,13 @@ void UPwSmallStrainElement<TDim,TNumNodes>::
         //Compute GradNpT, B and StrainVector
         this->CalculateKinematics(Variables, GPoint);
 
-        //Compute infinitesimal strain
+        // Contribute thermal effects if it is a coupled thermo-hydro-mechanical problem
+        if (mIsThermalCoupled && mUpdateDensityViscosity) {
+            Variables.FluidDensity = ThermalUtilities::CalculateWaterDensityOnIntegrationPoints(Variables.Np, rGeom);
+            Variables.DynamicViscosityInverse = 1.0 / ThermalUtilities::CalculateWaterViscosityOnIntegrationPoints(Variables.Np, rGeom);
+        }
+
+        //Compute infinitessimal strain
         this->CalculateStrain(Variables, GPoint);
 
         //set Gauss points variables to constitutive law parameters

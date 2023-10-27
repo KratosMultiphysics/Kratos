@@ -55,6 +55,9 @@ public:
 
     using ElementVariables = typename BaseType::ElementVariables;
 
+    bool mIsThermalCoupled = false;
+    bool mUpdateDensityViscosity = true;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     /// Default Constructor
@@ -175,6 +178,7 @@ protected:
     void CalculateAndAddCompressibilityFlow(VectorType &rRightHandSideVector, ElementVariables &rVariables) override;
 
     unsigned int GetNumberOfDOF() const override;
+
 ///----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 private:

@@ -22,6 +22,7 @@ using NodeType = Node;
 KratosGeoMechanicsApplication::KratosGeoMechanicsApplication() :
     KratosApplication("GeoMechanicsApplication") {}
 
+
 void KratosGeoMechanicsApplication::Register() {
     KRATOS_INFO("") << " KRATOS___                             \n"
                     << "     //   ) )                          \n"
@@ -34,7 +35,7 @@ void KratosGeoMechanicsApplication::Register() {
 
 
     //Register Elements
-    // transient one-phase flow elements:
+    // Transient one-phase flow elements:
     KRATOS_REGISTER_ELEMENT("TransientPwElement2D3N", mTransientPwElement2D3N)
     KRATOS_REGISTER_ELEMENT("TransientPwElement2D4N", mTransientPwElement2D4N)
     KRATOS_REGISTER_ELEMENT("TransientPwElement3D4N", mTransientPwElement3D4N)
@@ -119,7 +120,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement3D20N", mSmallStrainUPwDiffOrderElement3D20N)
     KRATOS_REGISTER_ELEMENT("SmallStrainUPwDiffOrderElement3D27N", mSmallStrainUPwDiffOrderElement3D27N)
 
-    // small strain axisymmtric elements:
+    // Small strain axisymmtric elements:
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainAxisymmetricElement2D3N", mUPwSmallStrainAxisymmetricElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainAxisymmetricElement2D4N", mUPwSmallStrainAxisymmetricElement2D4N)
     KRATOS_REGISTER_ELEMENT("UPwSmallStrainAxisymmetricElement2D6N", mUPwSmallStrainAxisymmetricElement2D6N)
@@ -193,7 +194,7 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D3N", mUPwUpdatedLagrangianAxisymmetricFICElement2D3N)
     KRATOS_REGISTER_ELEMENT("UPwUpdatedLagrangianAxisymmetricFICElement2D4N", mUPwUpdatedLagrangianAxisymmetricFICElement2D4N)
 
-    // Register geo structural elements
+    // Geo-structural elements
     KRATOS_REGISTER_ELEMENT("GeoTrussElement2D2N", mGeoTrussElement2D2N)
     KRATOS_REGISTER_ELEMENT("GeoTrussElement3D2N", mGeoTrussElement3D2N)
     KRATOS_REGISTER_ELEMENT("GeoLinearTrussElement2D2N", mGeoLinearTrussElement2D2N)
@@ -206,25 +207,55 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear3D2N", mGeoCrBeamElementLinear3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCurvedBeamElement2D3N", mGeoCurvedBeamElement2D3N)
 
+    // Transient thermal elements
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D3N", mTransientThermalElement2D3N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D4N", mTransientThermalElement2D4N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D4N", mTransientThermalElement3D4N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D8N", mTransientThermalElement3D8N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D6N", mTransientThermalElement2D6N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D8N", mTransientThermalElement2D8N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D9N", mTransientThermalElement2D9N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D10N", mTransientThermalElement3D10N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D20N", mTransientThermalElement3D20N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D27N", mTransientThermalElement3D27N)
+
     //Register Conditions
     KRATOS_REGISTER_CONDITION("UPwForceCondition2D1N", mUPwForceCondition2D1N)
     KRATOS_REGISTER_CONDITION("UPwForceCondition3D1N", mUPwForceCondition3D1N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D2N", mUPwFaceLoadCondition2D2N)
-    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D3N", mUPwFaceLoadCondition3D3N)
-    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D4N", mUPwFaceLoadCondition3D4N)
-    KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition2D2N", mUPwNormalFaceLoadCondition2D2N)
-    KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition3D3N", mUPwNormalFaceLoadCondition3D3N)
-    KRATOS_REGISTER_CONDITION("UpwNormalFaceLoadCondition3D4N", mUPwNormalFaceLoadCondition3D4N)
-    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition2D2N", mUPwNormalFluxCondition2D2N)
-    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition3D3N", mUPwNormalFluxCondition3D3N)
-    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition3D4N", mUPwNormalFluxCondition3D4N)
-    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D2N", mPwNormalFluxCondition2D2N)
-    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D3N", mPwNormalFluxCondition3D3N)
-    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
-
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D3N", mUPwFaceLoadCondition2D3N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D4N", mUPwFaceLoadCondition2D4N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition2D5N", mUPwFaceLoadCondition2D5N)
+    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D3N", mUPwFaceLoadCondition3D3N)
+    KRATOS_REGISTER_CONDITION("UPwFaceLoadCondition3D4N", mUPwFaceLoadCondition3D4N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition2D2N", mUPwNormalFaceLoadCondition2D2N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition2D3N", mUPwNormalFaceLoadCondition2D3N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition2D4N", mUPwNormalFaceLoadCondition2D4N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition2D5N", mUPwNormalFaceLoadCondition2D5N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFaceLoadCondition3D3N", mUPwNormalFaceLoadCondition3D3N)
+    KRATOS_REGISTER_CONDITION("UpwNormalFaceLoadCondition3D4N", mUPwNormalFaceLoadCondition3D4N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition2D2N", mUPwNormalFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition2D3N", mUPwNormalFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition2D4N", mUPwNormalFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition2D5N", mUPwNormalFluxCondition2D5N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition3D3N", mUPwNormalFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION("UPwNormalFluxCondition3D4N", mUPwNormalFluxCondition3D4N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D2N", mPwNormalFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D3N", mPwNormalFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D4N", mPwNormalFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition2D5N", mPwNormalFluxCondition2D5N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D3N", mPwNormalFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION("PwNormalFluxCondition3D4N", mPwNormalFluxCondition3D4N)
+
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D2N", mTNormalFluxCondition2D2N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D3N", mTNormalFluxCondition2D3N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D4N", mTNormalFluxCondition2D4N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition2D5N", mTNormalFluxCondition2D5N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition3D3N", mTNormalFluxCondition3D3N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition3D4N", mTNormalFluxCondition3D4N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition3D6N", mTNormalFluxCondition3D6N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition3D8N", mTNormalFluxCondition3D8N)
+    KRATOS_REGISTER_CONDITION("TNormalFluxCondition3D9N", mTNormalFluxCondition3D9N)
 
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition2D2N", mUPwFaceLoadInterfaceCondition2D2N)
     KRATOS_REGISTER_CONDITION("UPwFaceLoadInterfaceCondition3D4N", mUPwFaceLoadInterfaceCondition3D4N)
@@ -288,6 +319,8 @@ void KratosGeoMechanicsApplication::Register() {
 
     KRATOS_REGISTER_CONSTITUTIVE_LAW("LinearElastic2DBeamLaw",        mLinearElastic2DBeamLaw)
 
+    KRATOS_REGISTER_CONSTITUTIVE_LAW("GeoThermalDispersion2DLaw", mGeoThermalDispersion2DLaw)
+
     //Register Variables
     KRATOS_REGISTER_VARIABLE( VELOCITY_COEFFICIENT )
     KRATOS_REGISTER_VARIABLE( DT_PRESSURE_COEFFICIENT )
@@ -302,6 +335,22 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_VARIABLE( DENSITY_SOLID )
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_SOLID )
     KRATOS_REGISTER_VARIABLE( BULK_MODULUS_FLUID )
+
+    KRATOS_REGISTER_VARIABLE( SPECIFIC_HEAT_CAPACITY_WATER )
+    KRATOS_REGISTER_VARIABLE( SPECIFIC_HEAT_CAPACITY_SOLID )
+    KRATOS_REGISTER_VARIABLE( THERMAL_CONDUCTIVITY_WATER )
+    KRATOS_REGISTER_VARIABLE( THERMAL_CONDUCTIVITY_SOLID_XX )
+    KRATOS_REGISTER_VARIABLE( THERMAL_CONDUCTIVITY_SOLID_YY )
+    KRATOS_REGISTER_VARIABLE( THERMAL_CONDUCTIVITY_SOLID_XY )
+    KRATOS_REGISTER_VARIABLE( THERMAL_CONDUCTIVITY_SOLID_YX )
+    KRATOS_REGISTER_VARIABLE( LONGITUDINAL_DISPERSIVITY )
+    KRATOS_REGISTER_VARIABLE( TRANSVERSE_DISPERSIVITY )
+    KRATOS_REGISTER_VARIABLE( SOLID_COMPRESSIBILITY )
+    KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE_COEFFICIENT )
+    KRATOS_REGISTER_VARIABLE( DT_TEMPERATURE )
+    KRATOS_REGISTER_VARIABLE( NORMAL_HEAT_FLUX )
+    KRATOS_REGISTER_VARIABLE( THERMO_HYDRO_COUPLED )
+    KRATOS_REGISTER_VARIABLE( UPDATE_DENSITY_VISCOSITY )
 
     KRATOS_REGISTER_VARIABLE( K0_MAIN_DIRECTION )
     KRATOS_REGISTER_VARIABLE( K0_VALUE_XX )
