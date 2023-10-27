@@ -57,7 +57,7 @@ public :
         mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfTimeLoop();
         std::vector<TimeStepEndState> result;
         TimeStepEndState NewEndState = EndState;
-        while (mTimeIncrementor->WantNextStep(NewEndState) && (!mCancelDelegateAvailable || !mCancelDelegate())) {
+        while (mTimeIncrementor->WantNextStep(NewEndState) && mCancelDelegateAvailable && !mCancelDelegate()) {
             mStrategyWrapper->IncrementStepNumber();
             // clone without end time, the end time is overwritten anyway
             mStrategyWrapper->CloneTimeStep();
