@@ -116,21 +116,6 @@ public:
     /**
      * @brief This method takes a point and finds all of the objects in the given radius to it.
      * @details The result contains the object and also its distance to the point.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    void SearchInRadius(
-        const Point& rPoint,
-        const double Radius,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
-
-    /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it.
-     * @details The result contains the object and also its distance to the point.
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
      * @param Radius The radius to be checked
@@ -158,23 +143,6 @@ public:
     SerialSearchInRadius(itPointBegin, itPointEnd, Radius, rResults, ClearSolution);
 #endif
     }
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius.
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * If there are no objects in that radius the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    void SearchNearestInRadius(
-        const Point& rPoint,
-        const double Radius,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
 
     /**
      * @brief This method takes a point and finds the nearest object to it in a given radius.
@@ -213,20 +181,6 @@ public:
      * @brief This method takes a point and finds the nearest object to it.
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-    */
-    void SearchNearest(
-        const Point& rPoint,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it.
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * Result contains a flag is the object has been found or not.
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
      * @param rResults The results of the search
@@ -252,22 +206,6 @@ public:
     SerialSearchNearest(itPointBegin, itPointEnd, rResults, ClearSolution);
 #endif
     }
-
-    /**
-     * @brief This method takes a point and search if it's inside an geometrical object of the domain.
-     * @details If it is inside an object, it returns it, and search distance is set to zero.
-     * If there is no object, the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * This method is a simplified and faster method of SearchNearest.
-     * @param rPoint The point to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    void SearchIsInside(
-        const Point& rPoint,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version).
@@ -396,21 +334,6 @@ private:
         );
 
     /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it (serial version).
-     * @details The result contains the object and also its distance to the point.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    void SerialSearchInRadius(
-        const Point& rPoint,
-        const double Radius,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
-
-    /**
      * @brief This method takes a point and finds all of the objects in the given radius to it (iterative version) (serial version).
      * @details The result contains the object and also its distance to the point.
      * @param itPointBegin The first point iterator
@@ -443,29 +366,21 @@ private:
                 id = counter;
             }
             auto& r_partial_result = rResults.InitializeResult(id);
-            SerialSearchInRadius(*it_point, Radius, r_partial_result);
+
+            // Search
+            std::vector<ResultType> results;
+            mpSearchObject->SearchInRadius(*it_point, Radius, results);
+            for (auto& r_result : results) {
+                r_partial_result.AddResult(r_result);
+            }
+
+            // Synchronize
+            r_partial_result.SynchronizeAll(mrDataCommunicator);
 
             // Update counter
             ++counter;
         }
     }
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius (serial version).
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * If there are no objects in that radius the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    void SerialSearchNearestInRadius(
-        const Point& rPoint,
-        const double Radius,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
 
     /**
      * @brief This method takes a point and finds the nearest object to it in a given radius (iterative version) (serial version).
@@ -514,20 +429,6 @@ private:
     }
 
     /**
-     * @brief This method takes a point and finds the nearest object to it (serial version).
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-    */
-    void SerialSearchNearest(
-        const Point& rPoint,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
-
-    /**
      * @brief This method takes a point and finds the nearest object to it (iterative version)  (serial version).
      * @details If there are more than one object in the same minimum distance only one is returned
      * Result contains a flag is the object has been found or not.
@@ -569,23 +470,6 @@ private:
             ++counter;
         }
     }
-
-    /**
-     * @brief This method takes a point and search if it's inside an geometrical object of the domain (serial version).
-     * @details If it is inside an object, it returns it, and search distance is set to zero.
-     * If there is no object, the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * This method is a simplified and faster method of SearchNearest.
-     * @param rPoint The point to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    void SerialSearchIsInside(
-        const Point& rPoint,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
-
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version)  (serial version).
@@ -637,21 +521,6 @@ private:
     /**
      * @brief This method takes a point and finds all of the objects in the given radius to it (MPI version).
      * @details The result contains the object and also its distance to the point.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    void DistributedSearchInRadius(
-        const Point& rPoint,
-        const double Radius,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
-
-    /**
-     * @brief This method takes a point and finds all of the objects in the given radius to it (MPI version).
-     * @details The result contains the object and also its distance to the point.
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
      * @param Radius The radius to be checked
@@ -678,12 +547,27 @@ private:
         std::vector<IndexType> all_points_ids;
         SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
+        // The local bounding box
+        const auto& r_local_bb = mpSearchObject->GetBoundingBox(); 
+
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
         for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
-            this->SearchInRadius(point, Radius, r_partial_result);
+
+            // Check if the point is inside the set
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, Radius)) {
+                // Search
+                std::vector<ResultType> results;
+                mpSearchObject->SearchInRadius(point, Radius, results);
+                for (auto& r_result : results) {
+                    r_partial_result.AddResult(r_result);
+                }
+            }
+
+            // Synchronize
+            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
     }
 
@@ -692,23 +576,6 @@ private:
      * @details If there are more than one object in the same minimum distance only one is returned
      * If there are no objects in that radius the result will be set to not found.
      * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param Radius The radius to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    void DistributedSearchNearestInRadius(
-        const Point& rPoint,
-        const double Radius,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it in a given radius (MPI version).
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * If there are no objects in that radius the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
      * @param itPointBegin The first point iterator
      * @param itPointEnd The last point iterator
      * @param Radius The radius to be checked
@@ -734,6 +601,12 @@ private:
         std::vector<double> all_points_coordinates;
         std::vector<IndexType> all_points_ids;
         SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
+
+        // Get the rank
+        const int current_rank = GetRank();
+
+        // The local bounding box
+        const auto& r_local_bb = mpSearchObject->GetBoundingBox(); 
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
@@ -741,23 +614,34 @@ private:
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
-            this->SearchNearestInRadius(point, Radius, r_partial_result);
+            
+            // Result of search
+            ResultType local_result;
+
+            // Check if the point is inside the set
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, Radius)) {
+                // Call local search
+                local_result = mpSearchObject->SearchNearestInRadius(point, Radius);
+            }
+
+            /* Now sync results between partitions */
+
+            // Get the distance
+            const double local_distance = (local_result.IsObjectFound() && local_result.IsDistanceCalculated()) ? local_result.GetDistance() : std::numeric_limits<double>::max();
+
+            // Find the minimum value and the rank that holds it
+            const auto global_min = mrDataCommunicator.MinLocAll(local_distance);
+
+            // Get the solution from the computed_rank
+            if (global_min.second == current_rank) {
+                // Add the local search
+                r_partial_result.AddResult(local_result);
+            }
+
+            // Synchronize
+            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
     }
-
-    /**
-     * @brief This method takes a point and finds the nearest object to it (MPI version).
-     * @details If there are more than one object in the same minimum distance only one is returned
-     * Result contains a flag is the object has been found or not.
-     * @param rPoint The point to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-    */
-    void DistributedSearchNearest(
-        const Point& rPoint,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
 
     /**
      * @brief This method takes a point and finds the nearest object to it (MPI version).
@@ -787,31 +671,49 @@ private:
         std::vector<IndexType> all_points_ids;
         SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
+        // Get the rank
+        const int current_rank = GetRank();
+
+        // Get the maximum radius
+        const auto bb = GetBoundingBox();
+        const array_1d<double, 3> box_size = bb.GetMaxPoint() - bb.GetMinPoint();
+        const double max_radius= *std::max_element(box_size.begin(), box_size.end());
+
+        // The local bounding box
+        const auto& r_local_bb = mpSearchObject->GetBoundingBox(); 
+
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
         for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
-            this->SearchNearest(point, r_partial_result);
+
+            // Check if the point is inside the set
+            ResultType local_result;
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, max_radius)) {
+                // Call local search
+                local_result = mpSearchObject->SearchNearestInRadius(point, max_radius);
+            }
+
+            /* Now sync results between partitions */
+
+            // Get the distance
+            const double local_distance = (local_result.IsObjectFound() && local_result.IsDistanceCalculated()) ? local_result.GetDistance() : std::numeric_limits<double>::max();
+
+            // Find the minimum value and the rank that holds it
+            const auto global_min = mrDataCommunicator.MinLocAll(local_distance);
+
+            // Get the solution from the computed_rank
+            if (global_min.second == current_rank) {
+                // Add the local search
+                r_partial_result.AddResult(local_result);
+            }
+
+            // Synchronize
+            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
     }
-
-    /**
-     * @brief This method takes a point and search if it's inside an geometrical object of the domain (MPI version).
-     * @details If it is inside an object, it returns it, and search distance is set to zero.
-     * If there is no object, the result will be set to not found.
-     * Result contains a flag is the object has been found or not.
-     * This method is a simplified and faster method of SearchNearest.
-     * @param rPoint The point to be checked
-     * @param rResults The results of the search
-     * @param SyncronizeResults If the results should be synchronized or not
-     */
-    void DistributedSearchIsInside(
-        const Point& rPoint,
-        ResultContainerType& rResults,
-        const bool SyncronizeResults = true
-        );
 
     /**
      * @brief This method takes a point and search if it's inside an geometrical object of the domain (iterative version) (MPI version).
@@ -843,18 +745,48 @@ private:
         std::vector<IndexType> all_points_ids;
         SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
+        // Get the rank
+        const int current_rank = GetRank();
+
+        // The local bounding box
+        const auto& r_local_bb = mpSearchObject->GetBoundingBox(); 
+
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
         for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
-            this->SearchIsInside(point, r_partial_result);
+
+            // Check if the point is inside the set
+            int computed_rank = std::numeric_limits<int>::max();
+            ResultType local_result;
+            if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point)) {
+                // Call local search
+                local_result = mpSearchObject->SearchIsInside(point);
+
+                // Set current rank
+                computed_rank = current_rank;
+            }
+
+            // Now sync results between partitions
+            //KRATOS_WARNING("SearchWrapper.SearchIsInside") << "This assumes that first one of the viable results is the closest one. The algorithm  sets distance to 0, so it is ambiguous which is the closest one." << std::endl;
+
+            // Min rank of all ranks
+            computed_rank = mrDataCommunicator.MinAll(computed_rank);
+
+            // Get the solution from the computed_rank
+            if (computed_rank == current_rank) {
+                // Add the local search
+                r_partial_result.AddResult(local_result);
+            }
+
+            // Synchronize
+            r_partial_result.SynchronizeAll(mrDataCommunicator);
         }
     }
 
 #endif
-
 
     /**
      * @brief This method returns the default parameters of the search

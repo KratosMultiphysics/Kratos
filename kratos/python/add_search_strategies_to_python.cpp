@@ -226,22 +226,10 @@ void DefineSearchWrapper(pybind11::module& m, const std::string& rClassName)
     .def(pybind11::init<ConditionsContainerType&, const DataCommunicator&>())
     .def(pybind11::init<ConditionsContainerType&, const DataCommunicator&, Parameters>())
     .def("GetBoundingBox", &SearchWrapperType::GetBoundingBox)
-    .def("SearchInRadius", [&](SearchWrapperType& self, const Point& rPoint, const double Radius)  {
-        // Perform the search
-        auto p_results = Kratos::make_shared<ResultTypeContainer>();
-        self.SearchInRadius(rPoint, Radius, *p_results);
-        return p_results;
-    })
     .def("SearchInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>(); 
         self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, *p_results);
-        return p_results;
-    })
-    .def("SearchNearestInRadius", [&](SearchWrapperType& self, const Point& rPoint, const double Radius)  {
-        // Perform the search
-        auto p_results = Kratos::make_shared<ResultTypeContainer>();
-        self.SearchNearestInRadius(rPoint, Radius, *p_results);
         return p_results;
     })
     .def("SearchNearestInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
@@ -250,22 +238,10 @@ void DefineSearchWrapper(pybind11::module& m, const std::string& rClassName)
         self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, *p_results);
         return p_results;
     })
-    .def("SearchNearest", [&](SearchWrapperType& self, const Point& rPoint) {
-        // Perform the search
-        auto p_results = Kratos::make_shared<ResultTypeContainer>();
-        self.SearchNearest(rPoint, *p_results);
-        return p_results;
-    })
     .def("SearchNearest", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>(); 
         self.SearchNearest(rNodes.begin(), rNodes.end(), *p_results);
-        return p_results;
-    })
-    .def("SearchIsInside", [&](SearchWrapperType& self, const Point& rPoint) {
-        // Perform the search
-        auto p_results = Kratos::make_shared<ResultTypeContainer>();
-        self.SearchIsInside(rPoint, *p_results);
         return p_results;
     })
     .def("SearchIsInside", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
