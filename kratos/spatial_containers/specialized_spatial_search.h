@@ -17,8 +17,8 @@
 // External includes
 
 // Project includes
-#include "geometries/point.h"
 #include "includes/kratos_parameters.h"
+#include "spatial_containers/point_object.h"
 #include "spatial_containers/spatial_search.h"
 #include "utilities/parallel_utilities.h"
 
@@ -60,92 +60,6 @@ enum class SpatialContainer
 ///@{
 
 /**
- * @class PointObject
- * @ingroup KratosCore
- * @brief Custom Point container to be used by the search
- * @details It stores the pointer of a certain object
- * @author Vicente Mataix Ferrandiz
- */
-template<class TObject>
-class PointObject
-    : public Point
-{
-public:
-
-    ///@name Type Definitions
-    ///@{
-
-    /// Base class definition
-    typedef Point BaseType;
-
-    /// Counted pointer of PointObject
-    KRATOS_CLASS_POINTER_DEFINITION( PointObject );
-
-    ///@}
-    ///@name Life Cycle
-    ///@{
-
-    /// Default constructors
-    PointObject():
-        BaseType()
-    {
-    }
-
-    /**
-     * @brief Constructor with object
-     * @param pObject The pointer to the object
-     */
-    PointObject(typename TObject::Pointer pObject):
-        mpObject(pObject)
-    {
-        UpdatePoint();
-    }
-
-    ///@}
-    ///@name Operations
-    ///@{
-
-    /**
-     * @brief This function updates the database, using as base for the coordinates the condition center
-     */
-    void UpdatePoint();
-
-    ///@}
-    ///@name Acess
-    ///@{
-
-    /**
-     * @brief Returns the geometry associated to the point
-     * @return mrGeometry The reference to the geometry associated to the point
-     */
-    typename TObject::Pointer pGetObject()
-    {
-        return mpObject;
-    }
-
-    /**
-     * @brief Sets the object associated to the point
-     * @param pObject The pointer to the object
-     */
-    void pSetObject(typename TObject::Pointer pObject)
-    {
-        mpObject = pObject;
-        UpdatePoint();
-    }
-
-    ///@}
-private:
-    ///@}
-    ///@name Member Variables
-    ///@{
-
-    typename TObject::Pointer mpObject = nullptr;
-
-    ///@}
-
-}; // Class PointObject
-
-/**
 * @class SpecializedSpatialSearch
 * @ingroup KratosCore
 * @brief This class is used to search for elements, conditions and nodes in a given model part
@@ -167,32 +81,25 @@ public:
     /// The base type
     using BaseType = SpatialSearch;
 
-    /// Common Defines
-    using BaseType::PointType;
-
-    using BaseType::ElementsContainerType;
-    using BaseType::ElementType;
-    using BaseType::ElementPointerType;
-    using BaseType::ResultElementsContainerType;
-    using BaseType::VectorResultElementsContainerType;
-
+    /// Nodes classes
     using BaseType::NodesContainerType;
-    using BaseType::NodeType;
-    using BaseType::NodePointerType;
     using BaseType::ResultNodesContainerType;
     using BaseType::VectorResultNodesContainerType;
 
+    /// Elements classes
+    using BaseType::ElementsContainerType;
+    using BaseType::ResultElementsContainerType;
+    using BaseType::VectorResultElementsContainerType;
+
+    /// Conditions classes
     using BaseType::ConditionsContainerType;
-    using BaseType::ConditionType;
-    using BaseType::ConditionPointerType;
     using BaseType::ResultConditionsContainerType;
     using BaseType::VectorResultConditionsContainerType;
 
+    /// Input/output types
     using BaseType::RadiusArrayType;
     using BaseType::DistanceType;
     using BaseType::VectorDistanceType;
-
-    using BaseType::ResultIteratorType;
 
     ///@}
     ///@name Life Cycle

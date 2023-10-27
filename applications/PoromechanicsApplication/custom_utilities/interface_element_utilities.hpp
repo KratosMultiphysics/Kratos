@@ -139,22 +139,22 @@ public:
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
     static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,2,2>& rPermeabilityMatrix,
-                                                    const double& JointWidth, const double& Transversal_Permeability)
+                                                    const double& JointWidth, const double& Transversal_Permeability_Coeff)
     {
         //Quadrilateral_interface_2d_4
         rPermeabilityMatrix(0,0) = JointWidth*JointWidth/12.0;
-        rPermeabilityMatrix(1,1) = Transversal_Permeability;
+        rPermeabilityMatrix(1,1) = Transversal_Permeability_Coeff;
     }
     
     //----------------------------------------------------------------------------------------
     
     static inline void CalculatePermeabilityMatrix(BoundedMatrix<double,3,3>& rPermeabilityMatrix,
-                                                    const double& JointWidth, const double& Transversal_Permeability)
+                                                    const double& JointWidth, const double& Transversal_Permeability_Coeff)
     {
         //Prism_interface_3d_6 & Hexahedral_interface_3d_8
         rPermeabilityMatrix(0,0) = JointWidth*JointWidth/12.0;
         rPermeabilityMatrix(1,1) = JointWidth*JointWidth/12.0;
-        rPermeabilityMatrix(2,2) = Transversal_Permeability;
+        rPermeabilityMatrix(2,2) = Transversal_Permeability_Coeff;
     }
 
 //----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------

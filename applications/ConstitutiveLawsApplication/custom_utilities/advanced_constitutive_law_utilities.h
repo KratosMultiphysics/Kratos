@@ -20,6 +20,7 @@
 // Project includes
 #include "includes/ublas_interface.h"
 #include "includes/node.h"
+#include "includes/constitutive_law.h"
 #include "geometries/geometry.h"
 
 namespace Kratos
@@ -473,8 +474,24 @@ class KRATOS_API(CONSTITUTIVE_LAWS_APPLICATION) AdvancedConstitutiveLawUtilities
      /**
      * @brief This computes the MacaullyBrackets of a double
      */
-    static double MacaullyBrackets(
-        const double Number);
+    static double MacaullyBrackets(const double Number);
+
+    /**
+     * @brief This substracts the thermal strain contribution to a vector
+     */
+    static void SubstractThermalStrain(
+        ConstitutiveLaw::StrainVectorType &rStrainVector,
+        const double ReferenceTemperature,
+        ConstitutiveLaw::Parameters &rParameters,
+        const bool IsPlaneStrain = false);
+
+    /**
+     * @brief This retrieves an interpolated nodal variable to a GP
+     */
+    static double CalculateInGaussPoint(
+        const Variable<double> &rVariableInput,
+        ConstitutiveLaw::Parameters &rParameters,
+        unsigned int step = 0);
 
 }; // class AdvancedConstitutiveLawUtilities
 } // namespace Kratos

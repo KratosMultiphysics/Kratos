@@ -29,6 +29,7 @@
 #include "custom_conditions/U_Pw_force_condition.hpp"
 #include "custom_conditions/U_Pw_face_load_condition.hpp"
 #include "custom_conditions/U_Pw_normal_face_load_condition.hpp"
+#include "custom_conditions/U_Pw_discharge_condition.hpp"
 #include "custom_conditions/U_Pw_normal_flux_condition.hpp"
 #include "custom_conditions/U_Pw_normal_flux_FIC_condition.hpp"
 #include "custom_conditions/U_Pw_face_load_interface_condition.hpp"
@@ -50,6 +51,12 @@
 #include "custom_constitutive/bilinear_cohesive_2D_law.hpp"
 #include "custom_constitutive/elastic_cohesive_3D_law.hpp"
 #include "custom_constitutive/elastic_cohesive_2D_law.hpp"
+#include "custom_constitutive/isotropic_damage_cohesive_3D_law.hpp"
+#include "custom_constitutive/isotropic_damage_cohesive_2D_law.hpp"
+#include "custom_constitutive/elastoplastic_mohr_coulomb_cohesive_3D_law.hpp"
+#include "custom_constitutive/elastoplastic_mohr_coulomb_cohesive_2D_law.hpp"
+#include "custom_constitutive/elastoplastic_mod_mohr_coulomb_cohesive_3D_law.hpp"
+#include "custom_constitutive/elastoplastic_mod_mohr_coulomb_cohesive_2D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_3D_law.hpp"
 #include "custom_constitutive/exponential_cohesive_2D_law.hpp"
 
@@ -158,7 +165,6 @@ const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D10N;
 const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D20N;
 const SmallStrainUPwDiffOrderElement mSmallStrainUPwDiffOrderElement3D27N;
 
-
 const UPwForceCondition<2,1> mUPwForceCondition2D1N;
 const UPwForceCondition<3,1> mUPwForceCondition3D1N;
 const UPwFaceLoadCondition<2,2> mUPwFaceLoadCondition2D2N;
@@ -167,6 +173,8 @@ const UPwFaceLoadCondition<3,4> mUPwFaceLoadCondition3D4N;
 const UPwNormalFaceLoadCondition<2,2> mUPwNormalFaceLoadCondition2D2N;
 const UPwNormalFaceLoadCondition<3,3> mUPwNormalFaceLoadCondition3D3N;
 const UPwNormalFaceLoadCondition<3,4> mUPwNormalFaceLoadCondition3D4N;
+const UPwDischargeCondition<2,1> mUPwDischargeCondition2D1N;
+const UPwDischargeCondition<3,1> mUPwDischargeCondition3D1N;
 const UPwNormalFluxCondition<2,2> mUPwNormalFluxCondition2D2N;
 const UPwNormalFluxCondition<3,3> mUPwNormalFluxCondition3D3N;
 const UPwNormalFluxCondition<3,4> mUPwNormalFluxCondition3D4N;
@@ -193,6 +201,12 @@ const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrde
 const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D8N;
 const SurfaceNormalFluidFlux3DDiffOrderCondition mSurfaceNormalFluidFluxDiffOrderCondition3D9N;
 
+const ElastoPlasticMohrCoulombCohesive3DLaw mElastoPlasticMohrCoulombCohesive3DLaw;
+const ElastoPlasticMohrCoulombCohesive2DLaw mElastoPlasticMohrCoulombCohesive2DLaw;
+const ElastoPlasticModMohrCoulombCohesive3DLaw mElastoPlasticModMohrCoulombCohesive3DLaw;
+const ElastoPlasticModMohrCoulombCohesive2DLaw mElastoPlasticModMohrCoulombCohesive2DLaw;
+const IsotropicDamageCohesive3DLaw mIsotropicDamageCohesive3DLaw;
+const IsotropicDamageCohesive2DLaw mIsotropicDamageCohesive2DLaw;
 const BilinearCohesive3DLaw mBilinearCohesive3DLaw;
 const BilinearCohesive2DLaw mBilinearCohesive2DLaw;
 const ElasticCohesive3DLaw mElasticCohesive3DLaw;

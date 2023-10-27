@@ -27,7 +27,7 @@ endif(POLICY CMP0057)
 
 # Set here the version number **** only update upon tagging a release!
 set (KratosMultiphysics_MAJOR_VERSION 9)
-set (KratosMultiphysics_MINOR_VERSION 3)
+set (KratosMultiphysics_MINOR_VERSION 4)
 set (KratosMultiphysics_PATCH_VERSION 1)
 
 # If KRATOS_SOURCE_DIR is not defined use the CMAKE_SOURCE_DIR
@@ -46,6 +46,9 @@ if(NOT DEFINED INSTALL_RUNKRATOS)
   set(INSTALL_RUNKRATOS ON)
 endif(NOT DEFINED INSTALL_RUNKRATOS)
 
+option(REMOVE_INSTALL_DIRECTORIES "Remove the install directories to achieve a clean compilation" ON)
+
+
 # Link on install
 if(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
   message("-- No KRATOS_INSTALL_PYTHON_USING_LINKS is defined, setting to OFF")
@@ -55,10 +58,18 @@ else(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 endif(NOT DEFINED ENV{KRATOS_INSTALL_PYTHON_USING_LINKS})
 
 # Setting the libs folder for the shared objects built in kratos
-set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+if (APPLE)
+  cmake_policy(SET CMP0042 NEW)
+  set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/libs")
+else()
+  set(CMAKE_INSTALL_RPATH "$ORIGIN/../libs")
+endif()
 
 # If no test policy enable by default
 option(KRATOS_BUILD_TESTING "KRATOS_BUILD_TESTING defines if the C++ tests are compiled. These increase compilation time, but if not set only python tests can be executed. Default setting is ON" ON)
+
+# If no pch policy disable by default
+option(KRATOS_USE_PCH "KRATOS_USE_PCH defines if pch will be used during the compilation. This may will decrease compilation for clean build or if core components are touched. Default setting is OFF" OFF)
 
 # If not defined mute the very verbose installation messages
 if(NOT DEFINED CMAKE_INSTALL_MESSAGE)
@@ -541,7 +552,7 @@ endif( FORCE_LOCAL_ZLIB_COMPILATION MATCHES ON )
 message("\n-- CMAKE_BUILD_TYPE ........ ${CMAKE_BUILD_TYPE}\n")
 
 # Include dir for external libraries
-include_directories( ${KRATOS_SOURCE_DIR}/external_libraries )
+include_directories( SYSTEM ${KRATOS_SOURCE_DIR}/external_libraries )
 
 # defines needed
 add_definitions( -DKRATOS_PYTHON )
@@ -609,6 +620,7 @@ message("\t Geometry old closest point methods deprecation: https://github.com/K
 message("\t Model 'CreateModelPart' behavior change (no error thrown if model part exists): https://github.com/KratosMultiphysics/Kratos/pull/9598")
 message("\t Make GetIntegrationMethod method of Condition const: https://github.com/KratosMultiphysics/Kratos/pull/9769")
 message("\t Behavior change of ModelPart.GetProperties (MeshIndex removed): https://github.com/KratosMultiphysics/Kratos/pull/9774")
+message("\t Behavior change of Testing. Please ensure you use KRATOS_EXPECT for testing instead of KRATOS_CHECK")
 
 # Compiling the clipper library
 add_subdirectory(${KRATOS_SOURCE_DIR}/external_libraries/clipper)
@@ -626,10 +638,12 @@ if(${INSTALL_RUNKRATOS} MATCHES ON )
 endif(${INSTALL_RUNKRATOS} MATCHES ON )
 
 # Clean the Module and libs install directories
-install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
-install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
-install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
-install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
+if(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )
+    install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
+    install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/KratosMultiphysics\")")
+    install(CODE "message(STATUS \"Deleting: ${CMAKE_INSTALL_PREFIX}/libs\")")
+    install(CODE "file(REMOVE_RECURSE \"${CMAKE_INSTALL_PREFIX}/libs\")")
+endif(${REMOVE_INSTALL_DIRECTORIES} MATCHES ON )
 
 # Install core files for the KratosMultiphysics python module
 kratos_python_install(${INSTALL_PYTHON_USING_LINKS} "${KRATOS_SOURCE_DIR}/kratos/python_interface/__init__.py" "KratosMultiphysics/__init__.py" )

@@ -29,7 +29,7 @@ namespace Kratos
 ///@{
 
     /// The definition of the size type
-    typedef std::size_t SizeType;
+    using SizeType = std::size_t;
 
 ///@}
 ///@name  Enum's
@@ -63,16 +63,15 @@ public:
     ///@{
 
     /// The definition of the base type
-    typedef BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster> BaseType;
+    using BaseType = BaseContactSearchProcess<TDim, TNumNodes, TNumNodesMaster>;
 
     /// General type definitions
-    typedef typename BaseType::NodesArrayType           NodesArrayType;
-    typedef typename BaseType::ConditionsArrayType ConditionsArrayType;
-    typedef typename BaseType::NodeType                       NodeType;
-    typedef typename BaseType::GeometryType               GeometryType;
+    using NodesArrayType = typename BaseType::NodesArrayType;
+    using ConditionsArrayType = typename BaseType::ConditionsArrayType;
+    using GeometryType = typename BaseType::GeometryType;
 
     /// Index type definition
-    typedef std::size_t IndexType;
+    using IndexType = std::size_t;
 
     /// The definition of zero tolerance
     static constexpr double GapThreshold = 2.0e-4;
@@ -178,7 +177,7 @@ protected:
      * @param ScaleFactor The scale factor
      */
     void SetActiveNode(
-        NodeType& rNode,
+        Node& rNode,
         const double CommonEpsilon,
         const double ScaleFactor = 1.0
         ) override;

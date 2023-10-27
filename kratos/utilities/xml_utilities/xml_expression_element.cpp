@@ -13,7 +13,7 @@
 // System includes
 
 // Project includes
-#include "containers/container_expression/expressions/literal/literal_flat_expression.h"
+#include "expression/literal_flat_expression.h"
 
 // Include base h
 #include "xml_expression_element.h"
@@ -27,7 +27,7 @@ XmlExpressionElement::XmlExpressionElement(const std::string& rTagName)
 
 XmlExpressionElement::XmlExpressionElement(
     const std::string& rDataName,
-    const std::vector<Expression::Pointer>& rExpressions)
+    const std::vector<Expression::ConstPointer>& rExpressions)
     : mTagName("DataArray"),
     mExpressions(rExpressions)
 {
@@ -133,7 +133,7 @@ void XmlExpressionElement::ClearElements()
     mXmlElements.clear();
 }
 
-const std::vector<Expression::Pointer> XmlExpressionElement::GetExpressions() const
+const std::vector<Expression::ConstPointer> XmlExpressionElement::GetExpressions() const
 {
     return mExpressions;
 }

@@ -144,7 +144,7 @@ class TestCase(KratosUnittest.TestCase):
             "file_access_mode" : "exclusive",
             "file_driver" : "core"
         }""")
-        return HDF5FileSerial(params)
+        return HDF5File(params)
 
     def _get_model_part_io(self, hdf5_file):
         return HDF5ModelPartIO(hdf5_file, "/ModelData")
