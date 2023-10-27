@@ -55,7 +55,6 @@ class EmpiricalCubatureMethod():
         elements_constraint = np.ones(total_number_of_entities)
         conditions_begin = total_number_of_entities - number_of_conditions
         elements_constraint[conditions_begin:] = 0
-        constrain_sum_of_weights = False
 
         if constrain_sum_of_weights and not constrain_conditions:
             """
