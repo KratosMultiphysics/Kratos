@@ -70,11 +70,23 @@ void EmbeddedFluidElement<TBaseElement>::Initialize(const ProcessInfo& rCurrentP
     TBaseElement::Initialize(rCurrentProcessInfo);
 
     // Initialize the nodal EMBEDDED_VELOCITY variable (make it threadsafe)
+    // Initialize nodal variables for constraints of negative nodes in split elements
     const array_1d<double,3> zero_vel = ZeroVector(3);
+    const std::vector<NodeType::Pointer> empty_masters;
+    const MatrixType empty_relation_matrix;
     for (auto &r_node : this->GetGeometry()) {
         r_node.SetLock();
         if (!r_node.Has(EMBEDDED_VELOCITY)) {
             r_node.SetValue(EMBEDDED_VELOCITY, zero_vel);
+        }
+        if (!r_node.Has(APPLY_EMBEDDED_CONSTRAINTS)) {
+            r_node.SetValue(APPLY_EMBEDDED_CONSTRAINTS, false);
+        }
+        if (!r_node.Has(EMBEDDED_CONSTRAINT_MASTERS)) {
+            r_node.SetValue(EMBEDDED_CONSTRAINT_MASTERS, empty_masters);
+        }
+        if (!r_node.Has(EMBEDDED_CONSTRAINT_MASTER_WEIGHTS)) {
+            r_node.SetValue(EMBEDDED_CONSTRAINT_MASTER_WEIGHTS, empty_relation_matrix);
         }
         r_node.UnSetLock();
     }

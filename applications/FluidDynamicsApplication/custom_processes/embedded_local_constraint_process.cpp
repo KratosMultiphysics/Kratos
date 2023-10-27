@@ -11,7 +11,7 @@
 //
 
 // System includes
-#include <unordered_set>
+#include <cstddef>
 
 // External includes
 
@@ -56,6 +56,21 @@ EmbeddedLocalConstraintProcess::EmbeddedLocalConstraintProcess(
 
     // Set which elements will not be active
     mNegElemDeactivation = rParameters["deactivate_full_negative_elements"].GetBool();
+
+    // Define dofs (components) of a node and variables to constrain
+    const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+    switch (n_dim) {
+        case 2:
+            mComponents = {"VELOCITY_X","VELOCITY_Y","PRESSURE"};
+            mVariables = {&VELOCITY_X, &VELOCITY_Y};
+            break;
+        case 3:
+            mComponents = {"VELOCITY_X","VELOCITY_Y","VELOCITY_Z","PRESSURE"};
+            mVariables = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};
+            break;
+        default:
+            KRATOS_ERROR << "Wrong domain size.";
+    }
 }
 
 void EmbeddedLocalConstraintProcess::Execute()
@@ -70,6 +85,8 @@ void EmbeddedLocalConstraintProcess::ExecuteInitialize()
 
     // Continuous distance modification historical variables check
     KRATOS_ERROR_IF_NOT(mpModelPart->HasNodalSolutionStepVariable(DISTANCE)) << "DISTANCE variable not found in solution step variables list in " << mpModelPart->FullName() << ".\n";
+
+    //TODO check for nodal variables (APPLY_EMBEDDED_CONSTRAINTS, EMBEDDED_CONSTRAINT_MASTERS, EMBEDDED_CONSTRAINT_MASTER_WEIGHTS)??
 
     KRATOS_CATCH("");
 }
@@ -96,13 +113,13 @@ void EmbeddedLocalConstraintProcess::ExecuteInitializeSolutionStep()
         // Calculate the negative nodes' clouds (support points)
         CalculateNodeClouds(clouds_map, offsets_map);
 
-        //TODO: hand over master weights to elements
-        //SetElementalValues(clouds_map);
+        // Hand over master node pointers and weights to slave nodes (for element)
+        SetNodalValues(clouds_map);
 
-        //TODO
-        //FixAndCalculateConstrainedDofs(clouds_map, offsets_map);
+        // Fix the slave dofs and calculate their values based on their master weights and offset (Dirichlet BC)
+        FixAndCalculateConstrainedDofs(clouds_map, offsets_map);
 
-        // Apply a constraint to negative nodes of split elements
+        //OLD Apply a constraint to negative nodes of split elements on system level
         //ApplyConstraints(clouds_map, offsets_map);
         mConstraintsAreCalculated = true;
     }
@@ -118,6 +135,13 @@ void EmbeddedLocalConstraintProcess::ExecuteFinalizeSolutionStep()
             // Recover the state previous to the element deactivation
             this->RecoverDeactivationPreviousState();
         }
+        // Free constrained dofs
+        for (const auto var : mVariables) {
+            block_for_each(mSlaveNodes,[&](NodeType::Pointer p_slave_node){
+                p_slave_node->Free(*var);
+            });
+        }
+        mSlaveNodes.clear();
     }
 }
 
@@ -138,8 +162,8 @@ void EmbeddedLocalConstraintProcess::CalculateNodeClouds(
     }
 
     // Containers for negative and positive side nodes of split element
-    std::vector<std::vector<NodeType::Pointer>> neg_nodes = {};
-    std::vector<std::vector<NodeType::Pointer>> pos_nodes = {};
+    std::vector<NodePointerVectorType> neg_nodes;
+    std::vector<NodePointerVectorType> pos_nodes;
 
     // Loop through all elements to get negative and positive nodes of split elements
     for (auto& rElement : mpModelPart->Elements()) {
@@ -147,8 +171,8 @@ void EmbeddedLocalConstraintProcess::CalculateNodeClouds(
         if (IsSplit(r_geom)) {
             if (mApplyToAllNegativeCutNodes || IsSmallCut(r_geom)) {
                 // Containers for negative and positive side nodes of split element
-                std::vector<NodeType::Pointer> neg_nodes_element = {};
-                std::vector<NodeType::Pointer> pos_nodes_element = {};
+                NodePointerVectorType neg_nodes_element;
+                NodePointerVectorType pos_nodes_element;
                 for (auto& rNode : r_geom) {
                     if (rNode.FastGetSolutionStepValue(DISTANCE) > 0.0) {
                         pos_nodes_element.push_back(&rNode);
@@ -156,43 +180,44 @@ void EmbeddedLocalConstraintProcess::CalculateNodeClouds(
                         neg_nodes_element.push_back(&rNode);
                     }
                 }
-                pos_nodes.push_back(pos_nodes_element);
                 neg_nodes.push_back(neg_nodes_element);
+                pos_nodes.push_back(pos_nodes_element);
             }
         }
     }
 
-    //TODO delete "used" entries for faster looping?
-    // Loop through cut elements to add single negative nodes first
     mNSmallCutPos = 0;
-    for(std::size_t it = 0; it < neg_nodes.size(); ++it) {
-        if (neg_nodes[it].size() == 1) {
-            (this->*fptrNodeClouds)(rCloudsMap, rOffsetsMap, neg_nodes[it], pos_nodes[it]);
-        }
-    }
-    // Loop for two negative nodes of cut elements
-    for(std::size_t it = 0; it < neg_nodes.size(); ++it) {
-        if (neg_nodes[it].size() == 2) {
-            (this->*fptrNodeClouds)(rCloudsMap, rOffsetsMap, neg_nodes[it], pos_nodes[it]);
-        }
-    }
-    // Loop for three negative nodes of cut elements if 3D
-    if (mpModelPart->GetProcessInfo()[DOMAIN_SIZE] == 3) {
-        for(std::size_t it = 0; it < neg_nodes.size(); ++it) {
-            if (neg_nodes[it].size() == 3) {
-                (this->*fptrNodeClouds)(rCloudsMap, rOffsetsMap, neg_nodes[it], pos_nodes[it]);
+    std::vector<NodePointerVectorType> neg_nodes_temp;
+    std::vector<NodePointerVectorType> pos_nodes_temp;
+
+    // Loop through cut elements to add single negative nodes first, then for two negative nodes of cut elements and so on
+    std::size_t n_nodes = mpModelPart->Elements().begin()->GetGeometry().size();
+    for (std::size_t n_neg_nodes = 1; n_neg_nodes < n_nodes; ++n_neg_nodes) {
+        for(std::size_t i_elem = 0; i_elem < neg_nodes.size(); ++i_elem) {
+            if (neg_nodes[i_elem].size() == n_neg_nodes) {
+                (this->*fptrNodeClouds)(rCloudsMap, rOffsetsMap, neg_nodes[i_elem], pos_nodes[i_elem]);
+            } else {
+                neg_nodes_temp.push_back(neg_nodes[i_elem]);
+                pos_nodes_temp.push_back(pos_nodes[i_elem]);
             }
         }
+        neg_nodes = neg_nodes_temp;
+        pos_nodes = pos_nodes_temp;
+        neg_nodes_temp.clear();
+        pos_nodes_temp.clear();
     }
     KRATOS_WATCH(mNSmallCutPos);
 }
 
-void EmbeddedLocalConstraintProcess::AddAveragedNodeClouds(NodesCloudMapType& rCloudsMap, NodesOffsetMapType& rOffsetsMap, std::vector<NodeType::Pointer> neg_nodes_element, std::vector<NodeType::Pointer> pos_nodes_element)
+void EmbeddedLocalConstraintProcess::AddAveragedNodeClouds(
+    NodesCloudMapType& rCloudsMap,
+    NodesOffsetMapType& rOffsetsMap,
+    std::vector<NodeType::Pointer> neg_nodes_element,
+    std::vector<NodeType::Pointer> pos_nodes_element)
 {
-
-    for (auto slave_node : neg_nodes_element) {
+    for (auto p_slave_node : neg_nodes_element) {
         // Check whether node was already added because of a previous element
-        if (!rCloudsMap.count(slave_node)) {
+        if (!rCloudsMap.count(p_slave_node)) {
             // Get number of positive element nodes
             const std::size_t n_cloud_nodes = pos_nodes_element.size();
             // Calculate weight as averaging of all master nodes
@@ -206,29 +231,31 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeClouds(NodesCloudMapType& rC
             }
 
             // Pair slave node and constraint offset as well as slave node and cloud vector and add to respective map
-            rOffsetsMap.insert(std::make_pair(slave_node, 0.0));
-            rCloudsMap.insert(std::make_pair(slave_node, cloud_data_vector));
+            rOffsetsMap.insert(std::make_pair(p_slave_node, 0.0));
+            rCloudsMap.insert(std::make_pair(p_slave_node, cloud_data_vector));
             KRATOS_WATCH("Added local averaged cloud for a negative node of a cut element");
         }
     }
 }
 
-void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloudMapType& rCloudsMap, NodesOffsetMapType& rOffsetsMap, std::vector<NodeType::Pointer> neg_nodes_element, std::vector<NodeType::Pointer> pos_nodes_element)
+void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(
+    NodesCloudMapType& rCloudsMap,
+    NodesOffsetMapType& rOffsetsMap,
+    std::vector<NodeType::Pointer> neg_nodes_element,
+    std::vector<NodeType::Pointer> pos_nodes_element)
 {
-    // TODO Get boundary condition value at structural interface from variable ???
-    //const double temp_bc = rElement.GetValue(EMBEDDED_SCALAR);
     // Scale enforcement of boundary condition using the slip length
     const double value_gamma = 0.0;
     const double slip_length_mod = (mSlipLength < 1.0) ? std::abs(mSlipLength) : 1.0;
 
-    for (auto slave_node : neg_nodes_element) {
+    for (auto p_slave_node : neg_nodes_element) {
         // Check whether node was already added because of a previous element
-        if (!rCloudsMap.count(slave_node)) {
+        if (!rCloudsMap.count(p_slave_node)) {
             // Get number of positive element nodes
             const std::size_t n_cloud_nodes = pos_nodes_element.size();
 
             // Get nodal distances
-            double dist_slave = slave_node->FastGetSolutionStepValue(DISTANCE);
+            double dist_slave = p_slave_node->FastGetSolutionStepValue(DISTANCE);
             double sum_dist_cloud_nodes = 0.0;
             for (auto pos_node : pos_nodes_element) {
                 sum_dist_cloud_nodes += pos_node->FastGetSolutionStepValue(DISTANCE);
@@ -261,31 +288,93 @@ void EmbeddedLocalConstraintProcess::AddAveragedNodeCloudsIncludingBC(NodesCloud
             const double offset = value_gamma * (1.0 - slip_length_mod) * (1.0 - dist_slave * n_cloud_nodes / sum_dist_cloud_nodes);
 
             // Pair slave node and constraint offset as well as slave node and cloud vector and add to respective map
-            rOffsetsMap.insert(std::make_pair(slave_node, offset));
-            rCloudsMap.insert(std::make_pair(slave_node, cloud_data_vector));
+            rOffsetsMap.insert(std::make_pair(p_slave_node, offset));
+            rCloudsMap.insert(std::make_pair(p_slave_node, cloud_data_vector));
             KRATOS_WATCH("Added local averaged cloud including intersection points for a negative node of a cut element");
         }
     }
 }
 
-void EmbeddedLocalConstraintProcess::ApplyConstraints(NodesCloudMapType& rCloudsMap, NodesOffsetMapType& rOffsetsMap)
+void EmbeddedLocalConstraintProcess::SetNodalValues(NodesCloudMapType& rCloudsMap)
+{
+    // Set APPLY_EMBEDDED_CONSTRAINTS to false for all nodes
+    block_for_each(mpModelPart->Nodes(), [](NodeType& rNode){
+        rNode.SetValue(APPLY_EMBEDDED_CONSTRAINTS, false);
+    });
+
+    const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
+
+    // Loop through all slave nodes
+    // TODO run parallel?
+    for (const auto& r_slave : rCloudsMap) {
+        const auto p_slave_node = r_slave.first;
+        auto& r_ext_op_data = r_slave.second;
+
+        // Create master vector and relation matrix for the negative node
+        NodePointerVectorType master_nodes;
+        MatrixType dof_relation_matrix;
+        master_nodes.reserve(r_ext_op_data.size());
+        dof_relation_matrix.resize(n_dim, r_ext_op_data.size()*n_dim, false);
+
+        // Fill vector of pointers to master nodes and Matrix of master dof weights
+        std::size_t i_master = 0;
+        for (auto& r_cloud_data : r_ext_op_data) {
+            const auto p_cloud_node = r_cloud_data.first;
+            const double cloud_node_weight = r_cloud_data.second;
+
+            // Fill vector of pointers to master nodes
+            master_nodes.push_back(p_cloud_node);
+
+            // Get weights for all dofs of the master node to build relation matrix of slave node
+            for (std::size_t d1 = 0; d1 < n_dim; ++d1) {
+                for (std::size_t d2 = 0; d2 < n_dim; ++d2) {
+                    dof_relation_matrix(d1, i_master*n_dim+d2) = (d1 == d2) ? cloud_node_weight : 0.0;
+                }
+            }
+            i_master++;
+        }
+
+        // Set nodal variables
+        //TODO Synchronize them?? //mrModelPart.GetCommunicator().AssembleNonHistoricalData(EMBEDDED_IS_ACTIVE);
+        p_slave_node->SetValue(APPLY_EMBEDDED_CONSTRAINTS, true);
+        p_slave_node->SetValue(EMBEDDED_CONSTRAINT_MASTERS, master_nodes);
+        p_slave_node->SetValue(EMBEDDED_CONSTRAINT_MASTER_WEIGHTS, dof_relation_matrix);
+    }
+}
+
+void EmbeddedLocalConstraintProcess::FixAndCalculateConstrainedDofs(
+    NodesCloudMapType& rCloudsMap,
+    NodesOffsetMapType& rOffsetsMap)
+{
+    // Loop through all slave nodes
+    // TODO run parallel?
+    for (const auto& r_slave : rCloudsMap) {
+        const auto p_slave_node = r_slave.first;
+        auto& r_ext_op_data = r_slave.second;
+
+        // Fix velocity dofs of constrained node and calculate their values
+        for (const auto var : mVariables) {
+            p_slave_node->Fix(*var);
+            mSlaveNodes.push_back(p_slave_node);
+
+            double dof_value = 0.0;
+            for (auto& r_cloud_data : r_ext_op_data) {
+                const auto p_cloud_node = r_cloud_data.first;
+                const double cloud_node_weight = r_cloud_data.second;
+
+                dof_value += cloud_node_weight * p_cloud_node->FastGetSolutionStepValue(*var);
+            }
+            p_slave_node->FastGetSolutionStepValue(*var) = dof_value;
+        }
+    }
+}
+
+void EmbeddedLocalConstraintProcess::ApplyConstraints(
+    NodesCloudMapType& rCloudsMap,
+    NodesOffsetMapType& rOffsetsMap)
 {
     // Initialize counter of master slave constraints
     ModelPart::IndexType id = mpModelPart->NumberOfMasterSlaveConstraints()+1;
-
-    // Define variables to constrain
-    std::vector<const Variable<double>*> variables;
-    const std::size_t n_dim = mpModelPart->GetProcessInfo()[DOMAIN_SIZE];
-    switch (n_dim) {
-        case 2:
-            variables = {&VELOCITY_X, &VELOCITY_Y};  //, &PRESSURE};
-            break;
-        case 3:
-            variables = {&VELOCITY_X, &VELOCITY_Y, &VELOCITY_Z};  //, &PRESSURE};
-            break;
-        default:
-            KRATOS_ERROR << "Wrong domain size.";
-    }
 
     // Loop through all negative nodes of split elements (slave nodes)
     for (const auto& r_slave : rCloudsMap) {
@@ -299,7 +388,7 @@ void EmbeddedLocalConstraintProcess::ApplyConstraints(NodesCloudMapType& rClouds
         MatrixType dof_relation_matrix;
         VectorType dof_offset;
 
-        const std::size_t n_var = variables.size();
+        const std::size_t n_var = mVariables.size();
         dof_offset.resize(n_var, false);
         dof_relation_matrix.resize(n_var, r_ext_op_data.size()*n_var, false);
         slave_dofs.reserve(n_var);
@@ -307,27 +396,27 @@ void EmbeddedLocalConstraintProcess::ApplyConstraints(NodesCloudMapType& rClouds
 
         // Get all dofs of the negative node and their constraint constants
         std::size_t i_var = 0;
-        for (const auto var : variables) {
+        for (const auto var : mVariables) {
             slave_dofs.push_back(p_slave_node->pGetDof(*var));
             dof_offset(i_var++) = offset;
         }
 
         // Get all dofs of all cloud nodes of the negative node and their weights
-        std::size_t it_cloud = 0;
+        std::size_t i_cloud = 0;
         for (auto& r_cloud_data : r_ext_op_data) {
             const auto p_cloud_node = r_cloud_data.first;
             const double cloud_node_N = r_cloud_data.second;
 
-            std::size_t it_cloud_var = 0;
-            for (const auto var : variables) {
+            std::size_t i_cloud_var = 0;
+            for (const auto var : mVariables) {
                 master_dofs.push_back(p_cloud_node->pGetDof(*var));
 
                 for (std::size_t i_var = 0; i_var < n_var; i_var++) {
-                    dof_relation_matrix(i_var, it_cloud*n_var+it_cloud_var) = (i_var == it_cloud_var) ? cloud_node_N : 0.0;
+                    dof_relation_matrix(i_var, i_cloud*n_var+i_cloud_var) = (i_var == i_cloud_var) ? cloud_node_N : 0.0;
                 }
-                it_cloud_var++;
+                i_cloud_var++;
             }
-            it_cloud++;
+            i_cloud++;
         }
 
         // Create new linear master-slave constraint for the negative node
@@ -422,8 +511,8 @@ void EmbeddedLocalConstraintProcess::ModifyDistances()
     const double tol_d = 1.0e-11;
 
     #pragma omp parallel for
-    for (int i = 0; i < static_cast<int>(r_nodes.size()); ++i) {
-        auto it_node = r_nodes.begin() + i;
+    for (int i_node = 0; i_node < static_cast<int>(r_nodes.size()); ++i_node) {
+        auto it_node = r_nodes.begin() + i_node;
         double& d = it_node->FastGetSolutionStepValue(DISTANCE);
 
         // Check if the distance values are close to zero, if so set the tolerance as distance value

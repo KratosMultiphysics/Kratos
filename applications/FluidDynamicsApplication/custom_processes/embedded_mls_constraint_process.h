@@ -60,18 +60,15 @@ public:
     ///@{
 
     using DofType = Dof<double>;
+    using IndexType = ModelPart::IndexType;
+    using NodeType = ModelPart::NodeType;
+    using GeometryType = ModelPart::GeometryType;
 
     using DofPointerVectorType = std::vector<DofType::Pointer>;
+    using NodePointerVectorType = std::vector<NodeType::Pointer>;
 
     using MatrixType = Matrix;
-
     using VectorType = Vector;
-
-    using IndexType = ModelPart::IndexType;
-
-    using NodeType = ModelPart::NodeType;
-
-    using GeometryType = ModelPart::GeometryType;
 
     using MLSShapeFunctionsFunctionType = std::function< void( const MatrixType&, const array_1d<double,3>&, const double, VectorType& ) >;
 
@@ -80,7 +77,6 @@ public:
     using CloudDataVectorType = DenseVector< std::pair<NodeType::Pointer, double> >;
 
     using NodesCloudMapType = std::unordered_map< NodeType::Pointer, CloudDataVectorType, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer> >;
-
     using NodesOffsetMapType = std::unordered_map<NodeType::Pointer, double, SharedPointerHasher<NodeType::Pointer>, SharedPointerComparator<NodeType::Pointer>>;
 
     ///@}
@@ -210,7 +206,9 @@ private:
     ///@{
 
     ModelPart* mpModelPart = nullptr;
-    const std::array<std::string,4> mComponents = {"PRESSURE","VELOCITY_X","VELOCITY_Y","VELOCITY_Z"};
+    NodePointerVectorType mSlaveNodes;
+    std::vector<std::string> mComponents;
+    std::vector<const Variable<double>*> mVariables;
 
     bool mConstraintsAreCalculated;
     bool mCheckAtEachStep;
@@ -238,6 +236,12 @@ private:
         NodesOffsetMapType& rOffsetsMap);
 
     void CalculateNodeCloudsIncludingBC(
+        NodesCloudMapType& rCloudsMap,
+        NodesOffsetMapType& rOffsetsMap);
+
+    void SetNodalValues(NodesCloudMapType& rCloudsMap);
+
+    void FixAndCalculateConstrainedDofs(
         NodesCloudMapType& rCloudsMap,
         NodesOffsetMapType& rOffsetsMap);
 
