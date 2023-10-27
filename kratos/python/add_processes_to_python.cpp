@@ -415,7 +415,6 @@ void  AddProcessesToPython(pybind11::module& m)
     // Check the same model part using skin distance
     py::class_<CheckSameModelPartUsingSkinDistanceProcess<2>, CheckSameModelPartUsingSkinDistanceProcess<2>::Pointer, Process>(m,"CheckSameModelPartUsingSkinDistanceProcess2D")
         .def(py::init<Model&, Parameters>())
-        //.def(py::init<ModelPart&, ModelPart&, Parameters>())
         ;
     py::class_<CheckSameModelPartUsingSkinDistanceProcess<3>, CheckSameModelPartUsingSkinDistanceProcess<3>::Pointer, Process>(m,"CheckSameModelPartUsingSkinDistanceProcess3D")
         .def(py::init<Model&, Parameters>())
