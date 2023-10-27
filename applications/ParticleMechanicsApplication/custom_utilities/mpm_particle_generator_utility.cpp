@@ -407,11 +407,8 @@ namespace MPMParticleGeneratorUtility
 
 
                             ProcessInfo process_info = ProcessInfo();
-                            if (is_interface)
-                            {
+                            if (is_interface){
                                 p_condition->Set(INTERFACE);
-                                p_condition->SetValuesOnIntegrationPoints(POINT_LOAD,  mpc_contact_force , process_info);
-                                
                             }
 
                             // Setting particle condition's initial condition
@@ -453,8 +450,6 @@ namespace MPMParticleGeneratorUtility
                                     pelem->pGetGeometry(), mpc_xg[0],
                                     mpc_area[0]);
                                 
-
-
                                 // Particle condition are not created twice
                                 bool create_condition = true;
                                 // loop only necessary for equal particle distribution to avoid doubled conditions
@@ -469,7 +464,6 @@ namespace MPMParticleGeneratorUtility
                                             it->CalculateOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
                                             area_temp[0] += mpc_area[0];
                                             it->SetValuesOnIntegrationPoints(MPC_AREA, area_temp, rMPMModelPart.GetProcessInfo());
-                                            
                                         }
                                     }
                                 }
@@ -488,14 +482,14 @@ namespace MPMParticleGeneratorUtility
                                     p_condition->SetValuesOnIntegrationPoints(MPC_COORD, mpc_xg , process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_AREA,  mpc_area  , process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
-
-
                                     p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
                                     p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
+                                    p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE,  mpc_contact_force , process_info);
+                                
                                     // Mark as boundary condition
                                     p_condition->Set(BOUNDARY, true);
 
@@ -510,9 +504,7 @@ namespace MPMParticleGeneratorUtility
                                     if (is_contact)
                                         p_condition->Set(CONTACT);
                                     if (is_interface)
-                                    {
                                         p_condition->Set(INTERFACE);
-                                    }
 
                                     // Add the MP Condition to the model part
                                     rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
