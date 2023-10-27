@@ -134,8 +134,15 @@ class AlgorithmSystemIdentification(Algorithm):
 
     def ComputeControlUpdate(self, alpha) -> KratosOA.CollectiveExpression:
         with TimeLogger("AlgorithmSystemIdentification::ComputeControlUpdate", None, "Finished"):
-            update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
-            self.algorithm_data.GetBufferedData()["parameter_update_in_iteration"] = update
+            search_direction = self.algorithm_data.GetBufferedData()["search_direction"]
+            if isinstance(alpha, float):
+                update = search_direction * alpha
+            elif isinstance(alpha, KratosOA.CollectiveExpression):
+                update = search_direction.Scale(alpha)
+            self.algorithm_data.GetBufferedData()["parameter_update_in_iteration"] = update.Clone()
+
+            # update = self.algorithm_data.GetBufferedData()["search_direction"] * alpha
+            # self.algorithm_data.GetBufferedData()["parameter_update_in_iteration"] = update
 
         return self.UpdateControl
 
@@ -169,10 +176,13 @@ class AlgorithmSystemIdentification(Algorithm):
 
     def Solve(self) -> bool:
         np.random.seed = 123456789
+        iteration_counter = 0
 
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("AlgorithmSystemIdentification", self._optimization_problem.GetStep()):
+                iteration_counter += 1
+                self.algorithm_data.GetBufferedData()["iteration"] = iteration_counter
 
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
 
