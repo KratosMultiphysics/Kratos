@@ -39,7 +39,7 @@ GeometricalObjectsBins::CellType& GeometricalObjectsBins::GetCell(
 /***********************************************************************************/
 /***********************************************************************************/
 
-BoundingBox<PointType> GeometricalObjectsBins::GetCellBoundingBox(
+BoundingBox<GeometricalObjectsBins::PointType> GeometricalObjectsBins::GetCellBoundingBox(
     const std::size_t I,
     const std::size_t J,
     const std::size_t K
