@@ -454,7 +454,8 @@ ModelPart& KratosGeoSettlement::GetMainModelPart()
     return mModel.GetModelPart(mModelPartName);
 }
 
-ModelPart& KratosGeoSettlement::GetComputationalModelPart() {
+ModelPart& KratosGeoSettlement::GetComputationalModelPart()
+{
     return GetMainModelPart().GetSubModelPart(mComputationalSubModelPartName);
 }
 
