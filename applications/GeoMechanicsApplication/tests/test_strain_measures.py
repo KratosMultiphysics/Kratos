@@ -6,6 +6,15 @@ import test_helper
 class KratosGeoMechanicsStrainMeasureTests(KratosUnittest.TestCase):
     """
     This class contains tests which check the displacement result of a column with linear elastic and linear or Hencky ( = natural = logarithmic ) strains
+The analytical solution for these tests is:
+
+For linear strain: ∆H = H0 * (σ / E)
+For logarithmic strain: ∆H = H0 * (exp (σ / E) -1)
+
+∆H : top total displacement (m)
+H_0 : Original height of column (m)
+σ : Compressive stress (N/m2)
+E : Young's Modulus (N/m2)'
     """
 
     def test_same_order_elements_column_small_deformation_linear_strain(self):
