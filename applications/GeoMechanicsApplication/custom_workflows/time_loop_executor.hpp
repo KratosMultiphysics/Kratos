@@ -28,10 +28,11 @@ namespace Kratos
 
 class Process;
 
-class TimeLoopExecutor : public TimeLoopExecutorInterface{
+class TimeLoopExecutor : public TimeLoopExecutorInterface {
 public :
     void SetCancelDelegate(const std::function<bool()>& rCancelDelegate) override
     {
+        mCancelDelegateAvailable = true;
         mCancelDelegate = rCancelDelegate;
     }
 
@@ -56,7 +57,7 @@ public :
         mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfTimeLoop();
         std::vector<TimeStepEndState> result;
         TimeStepEndState NewEndState = EndState;
-        while (mTimeIncrementor->WantNextStep(NewEndState) && !mCancelDelegate()) {
+        while (mTimeIncrementor->WantNextStep(NewEndState) && (!mCancelDelegateAvailable || !mCancelDelegate())) {
             mStrategyWrapper->IncrementStepNumber();
             // clone without end time, the end time is overwritten anyway
             mStrategyWrapper->CloneTimeStep();
@@ -98,6 +99,7 @@ private:
     }
 
     std::unique_ptr<TimeIncrementor>  mTimeIncrementor;
+    bool                              mCancelDelegateAvailable = false;
     std::function<bool()>             mCancelDelegate;
     std::unique_ptr<TimeStepExecutor> mTimeStepExecutor = std::make_unique<TimeStepExecutor>();
     std::shared_ptr<StrategyWrapper>  mStrategyWrapper;
