@@ -201,6 +201,27 @@ namespace Kratos
             }
         }
 
+        if (TDim > 2) {
+            if (!rProp.Has(THERMAL_CONDUCTIVITY_SOLID_ZZ) || rProp[THERMAL_CONDUCTIVITY_SOLID_ZZ] < 0.0) {
+                KRATOS_ERROR
+                    << "THERMAL_CONDUCTIVITY_SOLID_ZZ does not exist in the "
+                       "material properties or has an invalid value at element"
+                    << this->Id() << std::endl;
+            }
+            if (!rProp.Has(THERMAL_CONDUCTIVITY_SOLID_YZ) || rProp[THERMAL_CONDUCTIVITY_SOLID_YZ] < 0.0) {
+                KRATOS_ERROR
+                    << "THERMAL_CONDUCTIVITY_SOLID_YZ does not exist in the "
+                       "material properties or has an invalid value at element"
+                    << this->Id() << std::endl;
+            }
+            if (!rProp.Has(THERMAL_CONDUCTIVITY_SOLID_ZX) || rProp[THERMAL_CONDUCTIVITY_SOLID_ZX] < 0.0) {
+                KRATOS_ERROR
+                    << "THERMAL_CONDUCTIVITY_SOLID_ZX does not exist in the "
+                       "material properties or has an invalid value at element"
+                    << this->Id() << std::endl;
+            }
+        }
+
         KRATOS_CATCH("");
 
         return 0;
