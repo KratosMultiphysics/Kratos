@@ -19,7 +19,7 @@ class RomManager(object):
         # - Not yet paralellised with COMPSs
         self.project_parameters_name = project_parameters_name
         self.general_rom_manager_parameters = general_rom_manager_parameters
-        self.rom_training_parameters = self._SetRomTrainintParameters()
+        self.rom_training_parameters = self._SetRomTrainingParameters()
         self.hrom_training_parameters = self.SetHromTrainingParameters()
         self.CustomizeSimulation = CustomizeSimulation
         self.UpdateProjectParameters = UpdateProjectParameters
@@ -501,14 +501,13 @@ class RomManager(object):
 
 
     def _AddHromParametersToRomParameters(self,f):
-        f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
-        f["hrom_settings"]["element_selection_type"] = self.general_rom_manager_parameters["HROM"]["element_selection_type"].GetString()
-        f["hrom_settings"]["element_selection_svd_truncation_tolerance"] = self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble()
-        f["hrom_settings"]["create_hrom_visualization_model_part"] = self.general_rom_manager_parameters["HROM"]["create_hrom_visualization_model_part"].GetBool()
-        f["hrom_settings"]["echo_level"] = self.general_rom_manager_parameters["HROM"]["echo_level"].GetInt()
-        f["hrom_settings"]["include_condition_parents"] = self.general_rom_manager_parameters["HROM"]["include_condition_parents"].GetBool() if self.general_rom_manager_parameters["HROM"].Has("include_condition_parents") else False
-        f["hrom_settings"]["initial_candidate_elements_model_part_list"] = self.general_rom_manager_parameters["HROM"]["initial_candidate_elements_model_part_list"].GetStringArray() if self.general_rom_manager_parameters["HROM"].Has("initial_candidate_elements_model_part_list") else []
-        f["hrom_settings"]["initial_candidate_conditions_model_part_list"] = self.general_rom_manager_parameters["HROM"]["initial_candidate_conditions_model_part_list"].GetStringArray() if self.general_rom_manager_parameters["HROM"].Has("initial_candidate_conditions_model_part_list") else []
+        f["hrom_settings"]["element_selection_type"] = self.hrom_training_parameters["element_selection_type"].GetString()
+        f["hrom_settings"]["element_selection_svd_truncation_tolerance"] = self.hrom_training_parameters["element_selection_svd_truncation_tolerance"].GetDouble()
+        f["hrom_settings"]["create_hrom_visualization_model_part"] = self.hrom_training_parameters["create_hrom_visualization_model_part"].GetBool()
+        f["hrom_settings"]["echo_level"] = self.hrom_training_parameters["echo_level"].GetInt()
+        f["hrom_settings"]["include_condition_parents"] = self.hrom_training_parameters["include_condition_parents"].GetBool()
+        f["hrom_settings"]["initial_candidate_elements_model_part_list"] = self.hrom_training_parameters["initial_candidate_elements_model_part_list"].GetStringArray()
+        f["hrom_settings"]["initial_candidate_conditions_model_part_list"] = self.hrom_training_parameters["initial_candidate_conditions_model_part_list"].GetStringArray()
 
     def _ChangeRomFlags(self, simulation_to_run = 'ROM'):
         """
@@ -533,16 +532,16 @@ class RomManager(object):
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=False
-                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
+                self.set_monotonicity_preserving_settings(f)
             elif simulation_to_run=='trainHROMGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
-                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
+                self.set_monotonicity_preserving_settings(f)
             elif simulation_to_run=='runHROMGalerkin':
                 f['projection_strategy']="galerkin"
                 f['train_hrom']=False
                 f['run_hrom']=True
-                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
+                self.set_monotonicity_preserving_settings(f)
             elif simulation_to_run == 'lspg':
                 f['train_hrom'] = False
                 f['run_hrom'] = False
@@ -585,6 +584,9 @@ class RomManager(object):
             json.dump(f,parameter_file,indent=4)
             parameter_file.truncate()
 
+
+    def set_monotonicity_preserving_settings(self,f):
+        f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.rom_training_parameters["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
 
     def set_lspg_rom_bns_settings(self, f):
         settings = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]
@@ -647,35 +649,49 @@ class RomManager(object):
 
 
 
-    def _SetRomTrainintParameters(self):
+    def _SetRomTrainingParameters(self):
         defaults = self._GetDefaulRomBasisOutputParameters()
-        defaults["Parameters"]["rom_manager"].SetBool(True) #we set the flag to true when inside the RomManager to trigger particular behaviour for multiple parameters
+        defaults["Parameters"]["rom_manager"].SetBool(True)  # Set the flag to true when inside the RomManager to trigger particular behavior for multiple parameters
 
-        if self.general_rom_manager_parameters["ROM"].Has("svd_truncation_tolerance"):
-            defaults["Parameters"]["svd_truncation_tolerance"].SetDouble(self.general_rom_manager_parameters["ROM"]["svd_truncation_tolerance"].GetDouble())
-        if self.general_rom_manager_parameters["ROM"].Has("model_part_name"):
-            defaults["Parameters"]["model_part_name"].SetString(self.general_rom_manager_parameters["ROM"]["model_part_name"].GetString())
-        if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_format"):
-            defaults["Parameters"]["rom_basis_output_format"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_format"].GetString())
-        if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_name"):
-            defaults["Parameters"]["rom_basis_output_name"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_name"].GetString())
-        if self.general_rom_manager_parameters["ROM"].Has("rom_basis_output_folder"):
-            defaults["Parameters"]["rom_basis_output_folder"].SetString(self.general_rom_manager_parameters["ROM"]["rom_basis_output_folder"].GetString())
-        if self.general_rom_manager_parameters["ROM"].Has("nodal_unknowns"):
-            defaults["Parameters"]["nodal_unknowns"].SetStringArray(self.general_rom_manager_parameters["ROM"]["nodal_unknowns"].GetStringArray())
-        if self.general_rom_manager_parameters["ROM"].Has("snapshots_interval"):
-            defaults["Parameters"]["snapshots_interval"].SetDouble(self.general_rom_manager_parameters["ROM"]["snapshots_interval"].GetDouble())
+        rom_params = self.general_rom_manager_parameters["ROM"]
+
+        keys_to_copy = [
+            "svd_truncation_tolerance",
+            "model_part_name",
+            "rom_basis_output_format",
+            "rom_basis_output_name",
+            "rom_basis_output_folder",
+            "nodal_unknowns",
+            "snapshots_interval",
+        ]
+
+        for key in keys_to_copy:
+            if key in rom_params.keys():
+                defaults["Parameters"][key] = rom_params[key]
 
         return defaults
+
+
+
 
     def SetHromTrainingParameters(self):
         defaults = self._GetDefaulHromTrainingParameters()
-        defaults["element_selection_type"].SetString(self.general_rom_manager_parameters["HROM"]["element_selection_type"].GetString())
-        defaults["element_selection_svd_truncation_tolerance"].SetDouble(self.general_rom_manager_parameters["HROM"]["element_selection_svd_truncation_tolerance"].GetDouble())
-        defaults["create_hrom_visualization_model_part"].SetBool(self.general_rom_manager_parameters["HROM"]["create_hrom_visualization_model_part"].GetBool())
-        defaults["echo_level"].SetInt(self.general_rom_manager_parameters["HROM"]["echo_level"].GetInt())
+        hrom_params = self.general_rom_manager_parameters["HROM"]
+
+        keys_to_copy = [
+            "element_selection_type",
+            "element_selection_svd_truncation_tolerance",
+            "create_hrom_visualization_model_part",
+            "echo_level",
+            "constraint_sum_weights",
+        ]
+
+        for key in keys_to_copy:
+            if key in hrom_params.keys():
+                defaults[key] = hrom_params[key]
 
         return defaults
+
 
 
     def _GetAnalysisStageClass(self, parameters):
@@ -727,7 +743,8 @@ class RomManager(object):
                 "initial_candidate_conditions_model_part_list" : [],
                 "include_nodal_neighbouring_elements_model_parts_list":[],
                 "include_minimum_condition": false,
-                "include_condition_parents": false
+                "include_condition_parents": false,
+                "constraint_sum_weights": true
             }""")
         return hrom_training_parameters
 
