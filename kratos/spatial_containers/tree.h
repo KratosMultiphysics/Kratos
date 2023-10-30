@@ -259,71 +259,79 @@ public:
 
     /**
      * @brief Construct a new Tree object
-     * @param PointsBegin Iterator to the first point
-     * @param PointsEnd Iterator to the last point
+     * @param itPointsBegin Iterator to the first point
+     * @param itPointsEnd Iterator to the last point
      * @param BucketSize Size of the bucket
      */
     Tree(
-        IteratorType PointsBegin,
-        IteratorType PointsEnd,
+        IteratorType itPointsBegin,
+        IteratorType itPointsEnd,
         SizeType BucketSize = 1
         ) : mBucketSize(BucketSize),
-            mPointsBegin(PointsBegin),
-            mPointsEnd(PointsEnd)
+            mitPointsBegin(itPointsBegin),
+            mitPointsEnd(itPointsEnd)
     {
-        if(mPointsBegin == mPointsEnd)
+        if(mitPointsBegin == mitPointsEnd)
             return;
 
+        // The BB points
+        auto& r_high_point = BoundingBoxHighPoint();
+        auto& r_low_point = BoundingBoxLowPoint();
+
         for(SizeType i = 0 ; i < Dimension ; i++) {
-            mBoundingBoxHighPoint[i] = (**mPointsBegin)[i];
-            mBoundingBoxLowPoint[i] = (**mPointsBegin)[i];
+            r_high_point[i] = (**mitPointsBegin)[i];
+            r_low_point[i] = (**mitPointsBegin)[i];
         }
 
-        for(IteratorType point_iterator = mPointsBegin ; point_iterator != mPointsEnd ; point_iterator++) {
+        for(IteratorType point_iterator = mitPointsBegin ; point_iterator != mitPointsEnd ; point_iterator++) {
             for(SizeType i = 0 ; i < Dimension ; i++) {
-                if((**point_iterator)[i] > mBoundingBoxHighPoint[i]) {
-                    mBoundingBoxHighPoint[i] = (**point_iterator)[i];
-                } else if((**point_iterator)[i] < mBoundingBoxLowPoint[i]) {
-                   mBoundingBoxLowPoint[i]  = (**point_iterator)[i];
+                if((**point_iterator)[i] > r_high_point[i]) {
+                    r_high_point[i] = (**point_iterator)[i];
+                } else if((**point_iterator)[i] < r_low_point[i]) {
+                   r_low_point[i]  = (**point_iterator)[i];
                 }
             }
         }
 
-       mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, mBoundingBoxHighPoint, mBoundingBoxLowPoint, mBucketSize);
+       mRoot = TPartitionType::Construct(mitPointsBegin, mitPointsEnd, r_high_point, r_low_point, mBucketSize);
     }
 
     /**
      * @brief Construct a new Tree object
-     * @param PointsBegin Iterator to the first point
-     * @param PointsEnd Iterator to the last point
+     * @param itPointsBegin Iterator to the first point
+     * @param itPointsEnd Iterator to the last point
      * @param Parts The partitions definition
      */
     Tree(
-        IteratorType PointsBegin,
-        IteratorType PointsEnd,
+        IteratorType itPointsBegin,
+        IteratorType itPointsEnd,
         Partitions Parts
-        ) : mPointsBegin(PointsBegin), 
-            mPointsEnd(PointsEnd)
+        ) : mitPointsBegin(itPointsBegin), 
+            mitPointsEnd(itPointsEnd)
     {
-        if(mPointsBegin == mPointsEnd)
+        if(mitPointsBegin == mitPointsEnd)
             return;
 
-        SizeType NumPoints = SearchUtils::PointerDistance(mPointsBegin,mPointsEnd);
+        // The BB points
+        auto& r_high_point = BoundingBoxHighPoint();
+        auto& r_low_point = BoundingBoxLowPoint();
+
+        const SizeType NumPoints = SearchUtils::PointerDistance(mitPointsBegin,mitPointsEnd);
         mBucketSize = static_cast<std::size_t>( (double) NumPoints / (double) Parts.mNumPartitions ) + 1;
 
-        mBoundingBoxHighPoint = **mPointsBegin;
-        mBoundingBoxLowPoint = **mPointsBegin;
-        for(IteratorType point_iterator = mPointsBegin ; point_iterator != mPointsEnd ; point_iterator++) {
+        r_high_point = **mitPointsBegin;
+        r_low_point = **mitPointsBegin;
+        for(IteratorType point_iterator = mitPointsBegin ; point_iterator != mitPointsEnd ; point_iterator++) {
             for(SizeType i = 0 ; i < Dimension ; i++) {
-                if((**point_iterator)[i] > mBoundingBoxHighPoint[i]) {
-                    mBoundingBoxHighPoint[i] = (**point_iterator)[i];
-                } else if((**point_iterator)[i] < mBoundingBoxLowPoint[i]) {
-                    mBoundingBoxLowPoint[i] = (**point_iterator)[i];
+                if((**point_iterator)[i] > r_high_point[i]) {
+                    r_high_point[i] = (**point_iterator)[i];
+                } else if((**point_iterator)[i] < r_low_point[i]) {
+                    r_low_point[i] = (**point_iterator)[i];
                 }
             }
         }
 
-        mRoot = TPartitionType::Construct(mPointsBegin, mPointsEnd, mBoundingBoxHighPoint, mBoundingBoxLowPoint, mBucketSize);
+        mRoot = TPartitionType::Construct(mitPointsBegin, mitPointsEnd, r_high_point, r_low_point, mBucketSize);
     }
 
     /// Destructor.
@@ -351,7 +359,7 @@ public:
         CoordinateType const Tolerance = static_cast<CoordinateType>(10.0*DBL_EPSILON) 
         )
     {
-        PointerType Result = *mPointsBegin;
+        PointerType Result = *mitPointsBegin;
         CoordinateType ResultDistance = static_cast<CoordinateType>(DBL_MAX);
         // Searching the tree
         mRoot->SearchNearestPoint(*ThisPoint, Result, ResultDistance);
@@ -370,8 +378,8 @@ public:
         CoordinateType& rResultDistance
         )
     {
-        PointerType Result = *mPointsBegin;
-        rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
+        PointerType Result = *mitPointsBegin;
+        rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mitPointsBegin);
 
         // Searching the tree
         mRoot->SearchNearestPoint(ThisPoint, Result, rResultDistance);
@@ -390,8 +398,8 @@ public:
      */
     PointerType SearchNearestPoint(PointType const& ThisPoint)
     {
-        PointerType Result = *mPointsBegin; // NULL ??
-        CoordinateType rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mPointsBegin);
+        PointerType Result = *mitPointsBegin; // NULL ??
+        CoordinateType rResultDistance = static_cast<CoordinateType>(DBL_MAX); // DistanceFunction()(ThisPoint,**mitPointsBegin);
 
         // Searching the tree
         mRoot->SearchNearestPoint(ThisPoint, Result, rResultDistance);
@@ -480,7 +488,7 @@ public:
      */
     PointType& BoundingBoxLowPoint()
     {
-        return mBoundingBoxLowPoint;
+        return mBoundingBox.GetMinPoint();
     }
 
     /**
@@ -489,7 +497,7 @@ public:
      */
     PointType& BoundingBoxHighPoint()
     {
-        return mBoundingBoxHighPoint;
+        return mBoundingBox.GetMaxPoint();
     }
 
     /**
@@ -497,10 +505,9 @@ public:
      * @details This function creates a bounding box using the low and high points and returns it.
      * @return The bounding box.
      */
-    BoundingBox<PointType> GetBoundingBox()
+    BoundingBox<PointType>& GetBoundingBox()
     {
-        BoundingBox<PointType> bb(mBoundingBoxLowPoint, mBoundingBoxHighPoint);
-        return bb;
+        return mBoundingBox;
     }
 
     ///@}
@@ -538,21 +545,20 @@ private:
     ///@name Static Member Variables
     ///@{
 
-    static LeafType msEmptyLeaf;
+    static LeafType msEmptyLeaf; /// The empty leaf
 
     ///@}
     ///@name Member Variables
     ///@{
 
-    SizeType mBucketSize;
+    SizeType mBucketSize;                /// The bucket size
 
-    PointType mBoundingBoxLowPoint;
-    PointType mBoundingBoxHighPoint;
+    BoundingBox<PointType> mBoundingBox; /// The bounding box of the tree
 
-    IteratorType mPointsBegin;
-    IteratorType mPointsEnd;
+    IteratorType mitPointsBegin;         /// Iterator to the first point
+    IteratorType mitPointsEnd;           /// Iterator to the last point
 
-    NodeType* mRoot;
+    NodeType* mRoot;                     /// The root node of the tree
 
     ///@}
     ///@name Private Operators:
