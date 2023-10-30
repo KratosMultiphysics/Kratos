@@ -141,6 +141,10 @@ public:
     }
     bool SolveSolutionStep()      override {return false;}
     void FinalizeSolutionStep()   override {++mCountFinalizeSolutionStepCalled;}
+    void FinalizeOutput() override
+    {
+        // intentionally empty
+    }
 
 private:
     TimeStepEndState::ConvergenceState mConvergenceState{TimeStepEndState::ConvergenceState::converged};

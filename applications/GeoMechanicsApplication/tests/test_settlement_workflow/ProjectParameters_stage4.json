@@ -19,7 +19,7 @@
             "materials_filename":       "MaterialParameters.json"
         },
         "time_stepping":              {
-            "time_step":                1.0,
+            "time_step":                0.2,
             "max_delta_time_factor":    1000
         },
         "buffer_size":                        2,
