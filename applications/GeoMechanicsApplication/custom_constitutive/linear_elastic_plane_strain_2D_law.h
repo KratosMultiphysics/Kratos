@@ -17,24 +17,6 @@
 
 namespace Kratos
 {
-///@name Kratos Globals
-///@{
-
-///@}
-///@name Type Definitions
-///@{
-
-///@}
-///@name  Enum's
-///@{
-
-///@}
-///@name  Functions
-///@{
-
-///@}
-///@name Kratos Classes
-///@{
 
 /**
  * @class GeoLinearElasticPlaneStrain2DLaw
@@ -47,12 +29,6 @@ class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoLinearElasticPlaneStrain2DLaw
     : public LinearPlaneStrainK0Law
 {
 public:
-    ///@name Type Definitions
-    ///@{
-
-    /// The base class ConstitutiveLaw type definition
-    using CLBaseType = ConstitutiveLaw;
-
     /// The base class ElasticIsotropicK03DLaw type definition
     using BaseType = LinearPlaneStrainK0Law;
 
@@ -69,21 +45,10 @@ public:
     /// Counted pointer of LinearPlaneStrainK0Law
     KRATOS_CLASS_POINTER_DEFINITION( GeoLinearElasticPlaneStrain2DLaw );
 
-    ///@name Life Cycle
-    ///@{
-
     /**
      * @brief The clone operation
      */
     ConstitutiveLaw::Pointer Clone() const override;
-
-    ///@}
-    ///@name Operators
-    ///@{
-
-    ///@}
-    ///@name Operations
-    ///@{
 
     /**
      * @brief This function is designed to be called once to check compatibility with element
@@ -109,22 +74,6 @@ public:
         return VoigtSize;
     }
 
-    ///@}
-    ///@name Access
-    ///@{
-
-    ///@}
-    ///@name Inquiry
-    ///@{
-
-    ///@}
-    ///@name Input and output
-    ///@{
-
-    ///@}
-    ///@name Friends
-    ///@{
-
     /**
      * @brief  Itreturns the value of a specified variable
      * @param rThisVariable the variable to be returned
@@ -133,25 +82,7 @@ public:
      */
     bool& GetValue(const Variable<bool>& rThisVariable, bool& rValue) override;
 
-    ///@}
-
 protected:
-
-    ///@name Protected static Member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected member Variables
-    ///@{
-
-    ///@}
-    ///@name Protected Operators
-    ///@{
-
-    ///@}
-    ///@name Protected Operations
-    ///@{
-
     /**
      * @brief It calculates the constitutive matrix C
      * @param C The constitutive matrix
@@ -169,34 +100,26 @@ protected:
                             Vector& rStressVector,
                             ConstitutiveLaw::Parameters& rValues) override;
 
+    virtual void UpdateInternalDeltaStrainVector(ConstitutiveLaw::Parameters &rValues);
+    virtual void UpdateInternalStrainVectorFinalized(ConstitutiveLaw::Parameters &rValues);
+    virtual void SetExternalStressVector(Vector& rStressVector);
+    virtual void SetInternalStressVector(const Vector& rStressVector);
+    virtual void SetInternalStrainVector(const Vector& rStrainVector);
+    virtual void InitializeMaterialResponseCauchy(ConstitutiveLaw::Parameters& rValues);
+    virtual void FinalizeMaterialResponseCauchy(ConstitutiveLaw::Parameters & rValues);
+    virtual void FinalizeMaterialResponsePK2(ConstitutiveLaw::Parameters& rValues);
+
     ///@}
 
 private:
+    array_1d<double, VoigtSize> mStressVector;
+    array_1d<double, VoigtSize> mStressVectorFinalized;
 
-    ///@name Static Member Variables
-    ///@{
+    array_1d<double, VoigtSize> mDeltaStrainVector;
+    array_1d<double, VoigtSize> mStrainVectorFinalized;
+    bool                        mIsModelInitialized = false;
 
-    ///@}
-    ///@name Member Variables
-    ///@{
 
-    ///@}
-    ///@name Private Operators
-    ///@{
-
-    ///@}
-    ///@name Private Operations
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Private  Access
-    ///@{
-    ///@}
-
-    ///@}
-    ///@name Serialization
-    ///@{
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override
