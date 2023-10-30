@@ -110,4 +110,9 @@ void ApplyVectorConstraintTableProcess::ExecuteInitializeSolutionStep()
     }
 }
 
+std::string ApplyVectorConstraintTableProcess::Info() const
+{
+    return "ApplyVectorConstraintTableProcess";
+}
+
 }

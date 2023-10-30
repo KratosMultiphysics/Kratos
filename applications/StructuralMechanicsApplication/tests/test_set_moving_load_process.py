@@ -463,14 +463,14 @@ class TestSetMovingLoadProcess(KratosUnittest.TestCase):
         #create nodes
         second_coord = [1.0, 0.0, 0.0]
         third_coord = [2.0, 0.0, 0.0]
-        mp.CreateNewNode(1, 0.0, 0.0, 0.0)
+        mp.CreateNewNode(4, 0.0, 0.0, 0.0)
         mp.CreateNewNode(2, second_coord[0],second_coord[1],second_coord[2])
         mp.CreateNewNode(3, third_coord[0], third_coord[1], third_coord[2])
 
         strategy = self.setup_strategy(mp)
         # create condition
         conditions = []
-        conditions.append(mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [1, 2], mp.GetProperties()[1]))
+        conditions.append(mp.CreateNewCondition("MovingLoadCondition2D2N", 1, [4, 2], mp.GetProperties()[1]))
         conditions.append(mp.CreateNewCondition("MovingLoadCondition2D2N", 2, [2, 3], mp.GetProperties()[1]))
 
         parameters = KratosMultiphysics.Parameters("""

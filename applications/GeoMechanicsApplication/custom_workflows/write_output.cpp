@@ -18,279 +18,37 @@
 namespace
 {
 
-class NodeOperation
-{
-  public:
-    virtual ~NodeOperation() = default;
-    virtual void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) = 0;
-};
+using namespace Kratos;
 
-class NodeDISPLACEMENT : public NodeOperation
+using NodalResultWriter = std::function<void(GidIO<>&, const ModelPart&)>;
+
+template <typename VariableType>
+NodalResultWriter MakeNodalResultWriterFor(const VariableType& rVariable)
 {
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
+    return [&rVariable](GidIO<>& rGidIO, const ModelPart& rModelPart)
     {
-        rGidIO.WriteNodalResults(Kratos::DISPLACEMENT, rModelPart.Nodes(), 0, 0);
-    }
-};
-
-class NodeTOTAL_DISPLACEMENT : public NodeOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.WriteNodalResults(Kratos::TOTAL_DISPLACEMENT, rModelPart.Nodes(), 0, 0);
-    }
-};
-
-class NodeWATER_PRESSURE : public NodeOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.WriteNodalResults(Kratos::WATER_PRESSURE, rModelPart.Nodes(), 0, 0);
-    }
-};
-
-class NodeNORMAL_FLUID_FLUX : public NodeOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.WriteNodalResults(Kratos::NORMAL_FLUID_FLUX, rModelPart.Nodes(), 0, 0);
-    }
-};
-
-class NodeVOLUME_ACCELERATION : public NodeOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.WriteNodalResults(Kratos::VOLUME_ACCELERATION, rModelPart.Nodes(), 0, 0);
-    }
-};
-
-class NodeHYDRAULIC_DISCHARGE : public NodeOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.WriteNodalResults(Kratos::HYDRAULIC_DISCHARGE, rModelPart.Nodes(), 0, 0);
-    }
-};
-
-class NodeHYDRAULIC_HEAD : public NodeOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.WriteNodalResults(Kratos::HYDRAULIC_HEAD, rModelPart.Nodes(), 0, 0);
-    }
-};
-
-
-class GaussOperation
-{
-  public:
-    virtual ~GaussOperation() = default;
-    virtual void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) = 0;
-};
-
-class GaussFLUID_FLUX_VECTOR : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::FLUID_FLUX_VECTOR, rModelPart, 0, 0);
-    }
-};
-
-class GaussHYDRAULIC_HEAD : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::HYDRAULIC_HEAD, rModelPart, 0, 0);
-    }
-};
-
-class GaussLOCAL_FLUID_FLUX_VECTOR : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::LOCAL_FLUID_FLUX_VECTOR, rModelPart, 0, 0);
-    }
-};
-
-class GaussLOCAL_PERMEABILITY_MATRIX : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::LOCAL_PERMEABILITY_MATRIX, rModelPart, 0, 0);
-    }
-};
-
-class GaussPERMEABILITY_MATRIX : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::PERMEABILITY_MATRIX, rModelPart, 0, 0);
-    }
-};
-
-class GaussDEGREE_OF_SATURATION : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::DEGREE_OF_SATURATION, rModelPart, 0, 0);
-    }
-};
-
-class GaussDERIVATIVE_OF_SATURATION : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::DERIVATIVE_OF_SATURATION, rModelPart, 0, 0);
-    }
-};
-
-class GaussRELATIVE_PERMEABILITY : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::RELATIVE_PERMEABILITY, rModelPart, 0, 0);
-    }
-};
-
-class GaussPIPE_ACTIVE : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::PIPE_ACTIVE, rModelPart, 0, 0);
-    }
-};
-
-class GaussPIPE_HEIGHT : public GaussOperation
-{
-  public:
-    void write(Kratos::GidIO<>& rGidIO, Kratos::ModelPart& rModelPart) override
-    {
-        rGidIO.PrintOnGaussPoints(Kratos::PIPE_HEIGHT, rModelPart, 0, 0);
-    }
-};
-
+        const auto     Time  = rModelPart.GetProcessInfo()[TIME];
+        constexpr auto Index = 0;
+        rGidIO.WriteNodalResults(rVariable, rModelPart.Nodes(), Time, Index);
+    };
 }
 
+using IntegrationPointResultWriter = std::function<void(GidIO<>&, const ModelPart&)>;
 
-namespace Kratos
+template <typename VariableType>
+IntegrationPointResultWriter MakeIntegrationPointResultWriterFor(const VariableType& rVariable)
 {
-
-void GeoOutputWriter::WriteGiDOutput(ModelPart&         rModelPart,
-                                     Parameters         Settings,
-                                     const std::string& rWorkingDirectory)
-{
-    auto output_parameters = Settings["output_processes"]["gid_output"].GetArrayItem(0)["Parameters"];
-    auto gid_post_flags = output_parameters["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"];
-
-    GidIO<> gid_io{rWorkingDirectory + "/" + output_parameters["output_name"].GetString(),
-                   GetGiDPostModeFrom(gid_post_flags),
-                   GetMultiFileFlagFrom(gid_post_flags),
-                   GetWriteDeformedMeshFlagFrom(gid_post_flags),
-                   GetWriteConditionsFlagFrom(gid_post_flags)};
-
-    gid_io.InitializeMesh(0.0);
-    gid_io.WriteMesh(rModelPart.GetMesh());
-    gid_io.FinalizeMesh();
-
-    gid_io.InitializeResults(0, rModelPart.GetMesh());
-
-    // Calculate hydraulic head on the nodes
-    auto gauss_outputs = output_parameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
-    if (std::find(gauss_outputs.begin(), gauss_outputs.end(), "HYDRAULIC_HEAD") != gauss_outputs.end())
+    return [&rVariable](GidIO<>& rGidIO, const ModelPart& rModelPart)
     {
-        CalculateNodalHydraulicHead(gid_io, rModelPart);
-    }
-
-    const auto nodal_outputs = output_parameters["postprocess_parameters"]["result_file_configuration"]["nodal_results"].GetStringArray();
-    WriteNodalOutput(nodal_outputs, gid_io, rModelPart);
-    WriteIntegrationPointOutput(gauss_outputs, gid_io, rModelPart);
-
-    gid_io.FinalizeResults();
+        const auto     Time  = rModelPart.GetProcessInfo()[TIME];
+        constexpr auto Index = 0;
+        rGidIO.PrintOnGaussPoints(rVariable, rModelPart, Time, Index);
+    };
 }
 
-
-void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputItemNames,
-                                       GidIO<>&                        rGidIO,
-                                       ModelPart&                      rModelPart)
+GiD_PostMode GetGiDPostModeFrom(const Parameters& rGiDPostFlags)
 {
-    std::map<std::string, std::unique_ptr<NodeOperation>, std::less<>> output_writer_map;
-    output_writer_map["DISPLACEMENT"]        = std::make_unique<NodeDISPLACEMENT>();
-    output_writer_map["TOTAL_DISPLACEMENT"]  = std::make_unique<NodeTOTAL_DISPLACEMENT>();
-    output_writer_map["WATER_PRESSURE"]      = std::make_unique<NodeWATER_PRESSURE>();
-    output_writer_map["NORMAL_FLUID_FLUX"]   = std::make_unique<NodeNORMAL_FLUID_FLUX>();
-    output_writer_map["VOLUME_ACCELERATION"] = std::make_unique<NodeVOLUME_ACCELERATION>();
-    output_writer_map["HYDRAULIC_DISCHARGE"] = std::make_unique<NodeHYDRAULIC_DISCHARGE>();
-    output_writer_map["HYDRAULIC_HEAD"]      = std::make_unique<NodeHYDRAULIC_HEAD>();
-
-    for (const auto& name : rOutputItemNames)
-    {
-        output_writer_map.at(name)->write(rGidIO, rModelPart);
-    }
-}
-
-
-void GeoOutputWriter::WriteIntegrationPointOutput(const std::vector<std::string>& rOutputItemNames,
-                                                  GidIO<>&                        rGidIO,
-                                                  ModelPart&                      rModelPart)
-{
-    std::map<std::string, std::unique_ptr<GaussOperation>, std::less<>> output_writer_map;
-    output_writer_map["FLUID_FLUX_VECTOR"]         = std::make_unique<GaussFLUID_FLUX_VECTOR>();
-    output_writer_map["HYDRAULIC_HEAD"]            = std::make_unique<GaussHYDRAULIC_HEAD>();
-    output_writer_map["LOCAL_FLUID_FLUX_VECTOR"]   = std::make_unique<GaussLOCAL_FLUID_FLUX_VECTOR>();
-    output_writer_map["LOCAL_PERMEABILITY_MATRIX"] = std::make_unique<GaussLOCAL_PERMEABILITY_MATRIX>();
-    output_writer_map["PERMEABILITY_MATRIX"]       = std::make_unique<GaussPERMEABILITY_MATRIX>();
-    output_writer_map["DEGREE_OF_SATURATION"]      = std::make_unique<GaussDEGREE_OF_SATURATION>();
-    output_writer_map["DERIVATIVE_OF_SATURATION"]  = std::make_unique<GaussDERIVATIVE_OF_SATURATION>();
-    output_writer_map["RELATIVE_PERMEABILITY"]     = std::make_unique<GaussRELATIVE_PERMEABILITY>();
-    output_writer_map["PIPE_ACTIVE"]               = std::make_unique<GaussPIPE_ACTIVE>();
-    output_writer_map["PIPE_HEIGHT"]               = std::make_unique<GaussPIPE_HEIGHT>();
-
-    for (const auto& name : rOutputItemNames)
-    {
-        output_writer_map.at(name)->write(rGidIO, rModelPart);
-    }
-}
-
-
-void GeoOutputWriter::CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart& rModelPart)
-{
-    const auto& element_var = KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD");
-
-    for (Element element : rModelPart.Elements())
-    {
-        auto& rGeom = element.GetGeometry();
-        const auto& rProp = element.GetProperties();
-
-        const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures<3>(rGeom, rProp);
-
-        for (unsigned int node = 0; node < 3; ++node)
-        {
-            rGeom[node].SetValue(element_var, NodalHydraulicHead[node]);
-        }
-    }
-    rGidIO.WriteNodalResultsNonHistorical(element_var, rModelPart.Nodes(), 0);
-}
-
-GiD_PostMode GeoOutputWriter::GetGiDPostModeFrom(const Parameters& rGiDPostFlags)
-{
-    const std::map<std::string, GiD_PostMode, std::less<>> to_post_mode{
+    const auto to_post_mode = std::map<std::string, GiD_PostMode, std::less<>>{
         {"GiD_PostAscii",       GiD_PostAscii},
         {"GiD_PostAsciiZipped", GiD_PostAsciiZipped},
         {"GiD_PostBinary",      GiD_PostBinary},
@@ -299,32 +57,147 @@ GiD_PostMode GeoOutputWriter::GetGiDPostModeFrom(const Parameters& rGiDPostFlags
     return to_post_mode.at(rGiDPostFlags["GiDPostMode"].GetString());
 }
 
-MultiFileFlag GeoOutputWriter::GetMultiFileFlagFrom(const Parameters& rGiDPostFlags)
+MultiFileFlag GetMultiFileFlagFrom(const Parameters& rGiDPostFlags)
 {
-    const std::map<std::string, MultiFileFlag, std::less<>> to_multi_file_flag{
+    const auto to_multi_file_flag = std::map<std::string, MultiFileFlag, std::less<>>{
         {"SingleFile",    SingleFile},
         {"MultipleFiles", MultipleFiles}
     };
     return to_multi_file_flag.at(rGiDPostFlags["MultiFileFlag"].GetString());
 }
 
-WriteDeformedMeshFlag GeoOutputWriter::GetWriteDeformedMeshFlagFrom(const Parameters& rGiDPostFlags)
+WriteDeformedMeshFlag GetWriteDeformedMeshFlagFrom(const Parameters& rGiDPostFlags)
 {
-    const std::map<std::string, WriteDeformedMeshFlag, std::less<>> to_write_deformed_flag{
+    const auto to_write_deformed_flag = std::map<std::string, WriteDeformedMeshFlag, std::less<>>{
         {"WriteDeformed",   WriteDeformed},
         {"WriteUndeformed", WriteUndeformed}
     };
     return to_write_deformed_flag.at(rGiDPostFlags["WriteDeformedMeshFlag"].GetString());
 }
 
-WriteConditionsFlag GeoOutputWriter::GetWriteConditionsFlagFrom(const Parameters& rGiDPostFlags)
+WriteConditionsFlag GetWriteConditionsFlagFrom(const Parameters& rGiDPostFlags)
 {
-    const std::map<std::string, WriteConditionsFlag, std::less<>> to_write_conditions_flag{
+    const auto to_write_conditions_flag = std::map<std::string, WriteConditionsFlag, std::less<>>{
         {"WriteConditions",     WriteConditions},
         {"WriteElementsOnly",   WriteElementsOnly},
         {"WriteConditionsOnly", WriteConditionsOnly}
     };
     return to_write_conditions_flag.at(rGiDPostFlags["WriteConditionsFlag"].GetString());
+}
+
+}
+
+
+namespace Kratos
+{
+
+GeoOutputWriter::GeoOutputWriter(const Parameters&  rGidOutputSettings,
+                                 const std::string& rWorkingDirectory,
+                                 ModelPart&         rModelPart) :
+    mGidIO{MakeGidIO(rWorkingDirectory, rGidOutputSettings)}
+{
+    mGidIO.InitializeMesh(0.0);
+    mGidIO.WriteMesh(rModelPart.GetMesh());
+    mGidIO.FinalizeMesh();
+    mGidIO.InitializeResults(0, rModelPart.GetMesh());
+}
+
+void GeoOutputWriter::WriteGiDOutput(ModelPart&         rModelPart,
+                                     Parameters         Settings,
+                                     bool WriteHydraulicHeadToNodes)
+{
+    // Calculate hydraulic head on the nodes
+    const auto gauss_outputs = Settings["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
+    if (WriteHydraulicHeadToNodes && std::find(gauss_outputs.begin(), gauss_outputs.end(), "HYDRAULIC_HEAD") != gauss_outputs.end())
+    {
+        CalculateNodalHydraulicHead(rModelPart);
+    }
+
+    const auto nodal_outputs = Settings["postprocess_parameters"]["result_file_configuration"]["nodal_results"].GetStringArray();
+    WriteNodalOutput(nodal_outputs, rModelPart);
+    WriteIntegrationPointOutput(gauss_outputs, rModelPart);
+}
+
+
+void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputItemNames,
+                                       const ModelPart&                rModelPart)
+{
+    const auto output_writer_map = std::map<std::string, NodalResultWriter, std::less<>>{
+            {"DISPLACEMENT",        MakeNodalResultWriterFor(DISPLACEMENT)},
+            {"TOTAL_DISPLACEMENT",  MakeNodalResultWriterFor(TOTAL_DISPLACEMENT)},
+            {"WATER_PRESSURE",      MakeNodalResultWriterFor(WATER_PRESSURE)},
+            {"NORMAL_FLUID_FLUX",   MakeNodalResultWriterFor(NORMAL_FLUID_FLUX)},
+            {"VOLUME_ACCELERATION", MakeNodalResultWriterFor(VOLUME_ACCELERATION)},
+            {"HYDRAULIC_DISCHARGE", MakeNodalResultWriterFor(HYDRAULIC_DISCHARGE)},
+            {"HYDRAULIC_HEAD",      MakeNodalResultWriterFor(HYDRAULIC_HEAD)}
+    };
+
+    for (const auto& name : rOutputItemNames)
+    {
+        output_writer_map.at(name)(mGidIO, rModelPart);
+    }
+}
+
+
+void GeoOutputWriter::WriteIntegrationPointOutput(const std::vector<std::string>& rOutputItemNames,
+                                                  const ModelPart&                rModelPart)
+{
+    const auto output_writer_map = std::map<std::string, IntegrationPointResultWriter, std::less<>>{
+            {"FLUID_FLUX_VECTOR",            MakeIntegrationPointResultWriterFor(FLUID_FLUX_VECTOR)},
+            {"HYDRAULIC_HEAD",               MakeIntegrationPointResultWriterFor(HYDRAULIC_HEAD)},
+            {"LOCAL_FLUID_FLUX_VECTOR",      MakeIntegrationPointResultWriterFor(LOCAL_FLUID_FLUX_VECTOR)},
+            {"LOCAL_PERMEABILITY_MATRIX",    MakeIntegrationPointResultWriterFor(LOCAL_PERMEABILITY_MATRIX)},
+            {"PERMEABILITY_MATRIX",          MakeIntegrationPointResultWriterFor(PERMEABILITY_MATRIX)},
+            {"DEGREE_OF_SATURATION",         MakeIntegrationPointResultWriterFor(DEGREE_OF_SATURATION)},
+            {"DERIVATIVE_OF_SATURATION",     MakeIntegrationPointResultWriterFor(DERIVATIVE_OF_SATURATION)},
+            {"RELATIVE_PERMEABILITY",        MakeIntegrationPointResultWriterFor(RELATIVE_PERMEABILITY)},
+            {"PIPE_ACTIVE",                  MakeIntegrationPointResultWriterFor(PIPE_ACTIVE)},
+            {"PIPE_HEIGHT",                  MakeIntegrationPointResultWriterFor(PIPE_HEIGHT)},
+            {"GREEN_LAGRANGE_STRAIN_TENSOR", MakeIntegrationPointResultWriterFor(GREEN_LAGRANGE_STRAIN_TENSOR)},
+            {"ENGINEERING_STRAIN_TENSOR",    MakeIntegrationPointResultWriterFor(ENGINEERING_STRAIN_TENSOR)},
+            {"CAUCHY_STRESS_TENSOR",         MakeIntegrationPointResultWriterFor(CAUCHY_STRESS_TENSOR)},
+            {"TOTAL_STRESS_TENSOR",          MakeIntegrationPointResultWriterFor(TOTAL_STRESS_TENSOR)},
+            {"VON_MISES_STRESS",             MakeIntegrationPointResultWriterFor(VON_MISES_STRESS)}
+    };
+
+    for (const auto& name : rOutputItemNames)
+    {
+        output_writer_map.at(name)(mGidIO, rModelPart);
+    }
+}
+
+void GeoOutputWriter::CalculateNodalHydraulicHead(ModelPart& rModelPart)
+{
+    const auto& element_var = KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD");
+
+    for (Element element : rModelPart.Elements())
+    {
+        auto& rGeom = element.GetGeometry();
+        const auto& rProp = element.GetProperties();
+        const auto NodalHydraulicHead = GeoElementUtilities::CalculateNodalHydraulicHeadFromWaterPressures(rGeom, rProp);
+
+        for (unsigned int node = 0; node < rGeom.PointsNumber(); ++node)
+        {
+            rGeom[node].SetValue(element_var, NodalHydraulicHead[node]);
+        }
+    }
+    mGidIO.WriteNodalResultsNonHistorical(element_var, rModelPart.Nodes(), 0);
+}
+
+void GeoOutputWriter::FinalizeResults()
+{
+    mGidIO.FinalizeResults();
+}
+
+GidIO<> GeoOutputWriter::MakeGidIO(const std::string& rWorkingDirectory,
+                                   const Parameters&  rGidOutputSettings)
+{
+    const auto gid_post_flags = rGidOutputSettings["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"];
+    return GidIO<>{rWorkingDirectory + "/" + rGidOutputSettings["output_name"].GetString(),
+                   GetGiDPostModeFrom(gid_post_flags),
+                   GetMultiFileFlagFrom(gid_post_flags),
+                   GetWriteDeformedMeshFlagFrom(gid_post_flags),
+                   GetWriteConditionsFlagFrom(gid_post_flags)};
 }
 
 }

@@ -106,11 +106,14 @@ class KratosGeoMechanicsAbsorbingBoundaryColumnTests(KratosUnittest.TestCase):
             expected_ini_time = dist/self.vp
 
             # find index of expected time of wave arrival in time list
-            ini_time_idx = test_helper.find_closest_index_greater_than_value(res["time"], expected_ini_time)
+            res_keys = list(res.keys())
+            ini_time_idx = test_helper.find_closest_index_greater_than_value(res_keys, expected_ini_time)
 
             # calculate velocity after wave arrival
-            dt = (res["time"][-1] - res["time"][ini_time_idx])
-            velocity_part_two = (res[str(node_nbr)][-1][direction] - res[str(node_nbr)][ini_time_idx][direction])/dt
+            t1 = res_keys[ini_time_idx]
+            t2 = res_keys[-1]
+            dt = t2 - t1
+            velocity_part_two = (res[t2][node_nbr][direction] - res[t1][node_nbr][direction])/dt
 
             # assert velocities
             self.assertAlmostEqual(velocity_part_two, self.expected_velocity, 2)
