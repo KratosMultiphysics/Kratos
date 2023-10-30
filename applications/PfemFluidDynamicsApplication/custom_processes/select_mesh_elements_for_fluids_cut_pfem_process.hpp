@@ -170,7 +170,6 @@ namespace Kratos
                     normVelocityP.resize(nds, false);
                     SizeType checkedNodes = 0;
                     box_side_element = false;
-                    SizeType countIsolatedWallNodes = 0;
                     bool increaseAlfa = false;
                     SizeType previouslyFreeSurfaceNodes = 0;
                     SizeType previouslyIsolatedNodes = 0;
@@ -223,30 +222,16 @@ namespace Kratos
                             noremesh = true;
                         }
 
-                        // if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID) || vertices.back().GetSolutionStepValue(DISTANCE) < 0.0)
-                        if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
+                        if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID) || (vertices.back().GetSolutionStepValue(DISTANCE) < 0.0 && dimension==3))
+                        //if (vertices.back().Is(RIGID) || vertices.back().Is(SOLID))
                         {
-                            if (vertices.back().Is(RIGID))
+                            if (vertices.back().Is(RIGID) || (vertices.back().GetSolutionStepValue(DISTANCE) < 0.0 && dimension==3))
                             {
                                 rigidNodeLocalMeshSize += vertices.back().FastGetSolutionStepValue(NODAL_H_WALL);
                                 rigidNodeMeshCounter += 1.0;
                             }
 
                             numrigid++;
-
-                            NodeWeakPtrVectorType &rN = vertices.back().GetValue(NEIGHBOUR_NODES);
-                            bool localIsolatedWallNode = true;
-                            for (SizeType i = 0; i < rN.size(); i++)
-                            {
-                                if (rN[i].IsNot(RIGID))
-                                {
-                                    localIsolatedWallNode = false;
-                                }
-                            }
-                            if (localIsolatedWallNode == true)
-                            {
-                                countIsolatedWallNodes++;
-                            }
                         }
 
                         if (vertices.back().IsNot(RIGID) && vertices.back().Is(BOUNDARY) && vertices.back().GetSolutionStepValue(DISTANCE) > distance_tolerance)
@@ -269,7 +254,7 @@ namespace Kratos
                             numInletNodes++;
                         }
 
-                        if (refiningBox == true && vertices.back().IsNot(RIGID))
+                        if (refiningBox == true && vertices.back().IsNot(RIGID) && vertices.back().GetSolutionStepValue(DISTANCE) > distance_tolerance)
                         {
                             if (dimension == 2)
                             {
@@ -577,7 +562,7 @@ namespace Kratos
                 {
                     if (i_node->IsNot(BLOCKED))
                     {
-                        if (!(i_node->Is(FREE_SURFACE) || i_node->Is(RIGID)))
+                        if (!(i_node->Is(FREE_SURFACE) || i_node->Is(RIGID) || i_node->GetSolutionStepValue(DISTANCE) < 0.0))
                         {
                             i_node->Set(TO_ERASE);
                             if (mEchoLevel > 0)

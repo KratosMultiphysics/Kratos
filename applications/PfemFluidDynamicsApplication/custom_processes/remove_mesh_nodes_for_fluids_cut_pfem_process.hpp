@@ -399,7 +399,7 @@ namespace Kratos
 				if (in->Is(TO_SPLIT) || in->Is(CONTACT))
 					on_contact_tip = true;
 
-				if (in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(ISOLATED) && in->IsNot(RIGID) && in->IsNot(SOLID))
+				if (in->IsNot(NEW_ENTITY) && in->IsNot(INLET) && in->IsNot(ISOLATED) && in->IsNot(RIGID) && in->IsNot(SOLID) && (dimension == 2 || (dimension == 3 && in->GetSolutionStepValue(DISTANCE) > 0)))
 				{
 					SizeType neighErasedNodes = 0;
 					SizeType freeSurfaceNeighNodes = 0;
@@ -473,18 +473,24 @@ namespace Kratos
 					}
 					if (in->GetSolutionStepValue(DISTANCE) < distance_tolerance)
 					{
-						radius = 0.2 * meshSize; // 1/3 of normal nodes
+						if (dimension == 2)
+							radius = 0.2 * meshSize; // 1/3 of normal nodes
+						if (dimension == 3)
+							radius = 0.15 * meshSize; // 1/3 of normal nodes
 					}
-					if (in->GetSolutionStepValue(DISTANCE) < distance_tolerance * 2.0)
+					else if (in->GetSolutionStepValue(DISTANCE) < distance_tolerance * 2.0)
 					{
-						radius = 0.4 * meshSize; // 2/3 of normal nodes
+						if (dimension == 2)
+							radius = 0.4 * meshSize; // 1/3 of normal nodes
+						if (dimension == 3)
+							radius = 0.3 * meshSize; // 1/3 of normal nodes
 					}
 					n_points_in_radius = nodes_tree.SearchInRadius(work_point, radius, neighbours.begin(), neighbour_distances.begin(), num_neighbours);
 
 					if (n_points_in_radius > 1 && neighErasedNodes == 0 && in->IsNot(INLET))
 					{
 
-						if (in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED) && in->GetSolutionStepValue(DISTANCE) > distance_tolerance)
+						if (in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(ISOLATED) )
 						{
 							if (mrRemesh.Refine->RemovingOptions.Is(MesherUtilities::REMOVE_NODES_ON_DISTANCE))
 							{
@@ -574,7 +580,7 @@ namespace Kratos
 								k++;
 							}
 
-							if (counter > 1 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && !on_contact_tip)
+							if (counter > 1 && in->IsNot(RIGID) && in->IsNot(SOLID) && in->IsNot(NEW_ENTITY) && !on_contact_tip && (dimension == 2 || (dimension == 3 && in->GetSolutionStepValue(DISTANCE) > distance_tolerance)))
 							{ // Can be inserted in the boundary refine
 
 								in->Set(TO_ERASE);
@@ -873,7 +879,7 @@ namespace Kratos
 				if (elementVolume < criticalVolume)
 				{
 
-					if (eElement[i].IsNot(RIGID) && eElement[i].IsNot(SOLID) && eElement[i].IsNot(TO_ERASE))
+					if (eElement[i].IsNot(RIGID) && eElement[i].IsNot(SOLID) && eElement[i].IsNot(TO_ERASE) && eElement[i].GetSolutionStepValue(DISTANCE) > 0)
 					{
 						eElement[i].Set(TO_ERASE);
 						if (mEchoLevel > 1)
@@ -945,13 +951,13 @@ namespace Kratos
 
 					if (inletElement)
 					{
-						nodes_removed_inlet_zone++;
+							nodes_removed_inlet_zone++;
 					}
 
 					const SizeType propertyIdNode = eElement[notRigidNodeId].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 					{
-						mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
+							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
 					}
 				}
 
@@ -1013,22 +1019,22 @@ namespace Kratos
 					SecondEdgeNode[counter] = i;
 					if (eElement[i].Is(RIGID) && eElement[j].Is(RIGID) && (wallLength == 0 || Edges[counter] > wallLength))
 					{
-						wallLength = Edges[counter];
+							wallLength = Edges[counter];
 					}
 					if (((eElement[i].Is(RIGID) && eElement[j].IsNot(RIGID)) ||
 						 (eElement[j].Is(RIGID) && eElement[i].IsNot(RIGID))) &&
 						eElement[i].IsNot(TO_ERASE) && eElement[j].IsNot(TO_ERASE) &&
 						(Edges[counter] < minimumLength || minimumLength == 0))
 					{
-						minimumLength = Edges[counter];
-						if (eElement[i].IsNot(RIGID))
-						{
-							erasableNode = i;
-						}
-						else
-						{
-							erasableNode = j;
-						}
+							minimumLength = Edges[counter];
+							if (eElement[i].IsNot(RIGID))
+							{
+								erasableNode = i;
+							}
+							else
+							{
+								erasableNode = j;
+							}
 					}
 				}
 			}
@@ -1041,24 +1047,24 @@ namespace Kratos
 					//////it is evident when a freesurface particle in touch with wall is erased --> reduce the safety coeff
 					if (eElement[i].Is(FREE_SURFACE))
 					{
-						NodeWeakPtrVectorType &neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
-						SizeType countRigid = 0;
-						SizeType countFreeSurface = 0;
-						for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
-						{
-							if ((nn)->Is(RIGID) || (nn)->Is(SOLID))
+							NodeWeakPtrVectorType &neighb_nodes = eElement[i].GetValue(NEIGHBOUR_NODES);
+							SizeType countRigid = 0;
+							SizeType countFreeSurface = 0;
+							for (NodeWeakPtrVectorType::iterator nn = neighb_nodes.begin(); nn != neighb_nodes.end(); nn++)
 							{
-								countRigid++;
+								if ((nn)->Is(RIGID) || (nn)->Is(SOLID))
+								{
+									countRigid++;
+								}
+								if ((nn)->Is(FREE_SURFACE) && (nn)->IsNot(RIGID) && (nn)->IsNot(SOLID))
+								{
+									countFreeSurface++;
+								}
 							}
-							if ((nn)->Is(FREE_SURFACE) && (nn)->IsNot(RIGID) && (nn)->IsNot(SOLID))
+							if ((countRigid + countFreeSurface) == neighb_nodes.size() && countRigid > 0)
 							{
-								countFreeSurface++;
+								safetyCoefficient3D = 0.25;
 							}
-						}
-						if ((countRigid + countFreeSurface) == neighb_nodes.size() && countRigid > 0)
-						{
-							safetyCoefficient3D = 0.25;
-						}
 					}
 				}
 			}
@@ -1072,12 +1078,12 @@ namespace Kratos
 
 					if (inletElement)
 					{
-						nodes_removed_inlet_zone++;
+							nodes_removed_inlet_zone++;
 					}
 					const SizeType propertyIdNode = eElement[erasableNode].FastGetSolutionStepValue(PROPERTY_ID);
 					if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
 					{
-						mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
+							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
 					}
 				}
 			}
@@ -1093,11 +1099,11 @@ namespace Kratos
 					double deltaTime = rCurrentProcessInfo[DELTA_TIME];
 					if (freeSurfaceNodes == 0 && currentTime > 2.0 * deltaTime)
 					{
-						safetyCoefficient3D *= 0.7;
+							safetyCoefficient3D *= 0.7;
 					}
 					if (currentTime < 2.0 * deltaTime)
 					{
-						safetyCoefficient3D *= 1.05;
+							safetyCoefficient3D *= 1.05;
 					}
 				}
 				if (((eElement[FirstEdgeNode[i]].Is(RIGID) && eElement[SecondEdgeNode[i]].IsNot(RIGID)) ||
@@ -1113,13 +1119,13 @@ namespace Kratos
 						inside_nodes_removed++;
 
 						if (inletElement)
-						{
-							nodes_removed_inlet_zone++;
-						}
+							{
+								nodes_removed_inlet_zone++;
+							}
 
-						const SizeType propertyIdNode = eElement[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
-						{
+							const SizeType propertyIdNode = eElement[FirstEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+							if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
+							{
 							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
 						}
 					}
@@ -1129,15 +1135,15 @@ namespace Kratos
 						inside_nodes_removed++;
 
 						if (inletElement)
-						{
-							nodes_removed_inlet_zone++;
-						}
+							{
+								nodes_removed_inlet_zone++;
+							}
 
-						const SizeType propertyIdNode = eElement[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
-						if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
-						{
-							mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
-						}
+							const SizeType propertyIdNode = eElement[SecondEdgeNode[i]].FastGetSolutionStepValue(PROPERTY_ID);
+							if (propertyIdNode != principalModelPartId) // this is to conserve the number of nodes of the smaller domain in case of a two-fluid analysis
+							{
+								mrRemesh.Info->BalancePrincipalSecondaryPartsNodes += -1;
+							}
 					}
 				}
 			}
@@ -1163,13 +1169,13 @@ namespace Kratos
 					double squaredDistance = CoorNeighDifference[0] * CoorNeighDifference[0] + CoorNeighDifference[1] * CoorNeighDifference[1];
 					if (dimension == 3)
 					{
-						squaredDistance += CoorNeighDifference[2] * CoorNeighDifference[2];
+							squaredDistance += CoorNeighDifference[2] * CoorNeighDifference[2];
 					}
 					if (squaredDistance > maxSquaredDistance)
 					{
-						// std::cout<<"(distances:  "<<squaredDistance<<" vs "<<maxSquaredDistance<<")"<<std::endl;
-						maxSquaredDistance = squaredDistance;
-						j = nn;
+							// std::cout<<"(distances:  "<<squaredDistance<<" vs "<<maxSquaredDistance<<")"<<std::endl;
+							maxSquaredDistance = squaredDistance;
+							j = nn;
 					}
 				}
 			}
@@ -1182,30 +1188,30 @@ namespace Kratos
 					if (nn == j)
 					{
 
-						SizeType idMaster = CheckedNode.GetId();
-						SizeType idSlave = (j)->GetId();
-						InterpolateFromTwoNodes(idMaster, idMaster, idSlave);
-						std::vector<double> NewCoordinates(3);
-						NewCoordinates[0] = (CheckedNode.X() + (j)->X()) * 0.5;
-						NewCoordinates[1] = (CheckedNode.Y() + (j)->Y()) * 0.5;
-						CheckedNode.X() = NewCoordinates[0];
-						CheckedNode.Y() = NewCoordinates[1];
-						CheckedNode.X0() = NewCoordinates[0];
-						CheckedNode.Y0() = NewCoordinates[1];
-						CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_X, 0) = 0;
-						CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Y, 0) = 0;
-						CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_X, 1) = 0;
-						CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Y, 1) = 0;
-						if (dimension == 3)
-						{
-							NewCoordinates[2] = (CheckedNode.Z() + (j)->Z()) * 0.5;
-							CheckedNode.Z() = NewCoordinates[2];
-							CheckedNode.Z0() = NewCoordinates[2];
-							CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Z, 0) = 0;
-							CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Z, 1) = 0;
-						}
-						// std::cout<<"new coordinates: "<<CheckedNode.X()<<" "<<CheckedNode.Y()<<std::endl;
-						// std::cout<<"(distances:  "<<maxNeighDistance<<" vs "<<wallLength<<")"<<std::endl;
+							SizeType idMaster = CheckedNode.GetId();
+							SizeType idSlave = (j)->GetId();
+							InterpolateFromTwoNodes(idMaster, idMaster, idSlave);
+							std::vector<double> NewCoordinates(3);
+							NewCoordinates[0] = (CheckedNode.X() + (j)->X()) * 0.5;
+							NewCoordinates[1] = (CheckedNode.Y() + (j)->Y()) * 0.5;
+							CheckedNode.X() = NewCoordinates[0];
+							CheckedNode.Y() = NewCoordinates[1];
+							CheckedNode.X0() = NewCoordinates[0];
+							CheckedNode.Y0() = NewCoordinates[1];
+							CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_X, 0) = 0;
+							CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Y, 0) = 0;
+							CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_X, 1) = 0;
+							CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Y, 1) = 0;
+							if (dimension == 3)
+							{
+								NewCoordinates[2] = (CheckedNode.Z() + (j)->Z()) * 0.5;
+								CheckedNode.Z() = NewCoordinates[2];
+								CheckedNode.Z0() = NewCoordinates[2];
+								CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Z, 0) = 0;
+								CheckedNode.FastGetSolutionStepValue(DISPLACEMENT_Z, 1) = 0;
+							}
+							// std::cout<<"new coordinates: "<<CheckedNode.X()<<" "<<CheckedNode.Y()<<std::endl;
+							// std::cout<<"(distances:  "<<maxNeighDistance<<" vs "<<wallLength<<")"<<std::endl;
 					}
 					eraseNode = false;
 				}
@@ -1239,13 +1245,13 @@ namespace Kratos
 					const Variable<double> &variable = KratosComponents<Variable<double>>::Get(variable_name);
 					for (SizeType step = 0; step < buffer_size; step++)
 					{
-						// getting the data of the solution step
-						double &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
+							// getting the data of the solution step
+							double &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 
-						double node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-						double node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+							double node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+							double node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 
-						node_data = (0.5 * node0_data + 0.5 * node1_data);
+							node_data = (0.5 * node0_data + 0.5 * node1_data);
 					}
 				}
 				else if (KratosComponents<Variable<array_1d<double, 3>>>::Has(variable_name))
@@ -1254,11 +1260,11 @@ namespace Kratos
 					const Variable<array_1d<double, 3>> &variable = KratosComponents<Variable<array_1d<double, 3>>>::Get(variable_name);
 					for (SizeType step = 0; step < buffer_size; step++)
 					{
-						// getting the data of the solution step
-						array_1d<double, 3> &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
-						const array_1d<double, 3> &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-						const array_1d<double, 3> &node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
-						noalias(node_data) = (0.5 * node0_data + 0.5 * node1_data);
+							// getting the data of the solution step
+							array_1d<double, 3> &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
+							const array_1d<double, 3> &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+							const array_1d<double, 3> &node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+							noalias(node_data) = (0.5 * node0_data + 0.5 * node1_data);
 					}
 				}
 				else if (KratosComponents<Variable<int>>::Has(variable_name))
@@ -1277,20 +1283,20 @@ namespace Kratos
 					const Variable<Matrix> &variable = KratosComponents<Variable<Matrix>>::Get(variable_name);
 					for (SizeType step = 0; step < buffer_size; step++)
 					{
-						// getting the data of the solution step
-						Matrix &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
+							// getting the data of the solution step
+							Matrix &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 
-						Matrix &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-						Matrix &node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+							Matrix &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+							Matrix &node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 
-						if (node_data.size1() > 0 && node_data.size2())
-						{
-							if (node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
-								node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2())
+							if (node_data.size1() > 0 && node_data.size2())
 							{
-								noalias(node_data) = (0.5 * node0_data + 0.5 * node1_data);
+								if (node_data.size1() == node0_data.size1() && node_data.size2() == node0_data.size2() &&
+									node_data.size1() == node1_data.size1() && node_data.size2() == node1_data.size2())
+								{
+									noalias(node_data) = (0.5 * node0_data + 0.5 * node1_data);
+								}
 							}
-						}
 					}
 				}
 				else if (KratosComponents<Variable<Vector>>::Has(variable_name))
@@ -1299,21 +1305,21 @@ namespace Kratos
 					const Variable<Vector> &variable = KratosComponents<Variable<Vector>>::Get(variable_name);
 					for (SizeType step = 0; step < buffer_size; step++)
 					{
-						// getting the data of the solution step
-						Vector &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
+							// getting the data of the solution step
+							Vector &node_data = MasterNode->FastGetSolutionStepValue(variable, step);
 
-						Vector &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
-						Vector &node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
+							Vector &node0_data = SlaveNode1->FastGetSolutionStepValue(variable, step);
+							Vector &node1_data = SlaveNode2->FastGetSolutionStepValue(variable, step);
 
-						if (node_data.size() > 0)
-						{
-							if (node_data.size() == node0_data.size() &&
-								node_data.size() == node1_data.size())
+							if (node_data.size() > 0)
 							{
-								noalias(node_data) = (0.5 * node0_data + 0.5 * node1_data);
-								// node_data = (0.5*node0_data + 0.5*node1_data);
+								if (node_data.size() == node0_data.size() &&
+									node_data.size() == node1_data.size())
+								{
+									noalias(node_data) = (0.5 * node0_data + 0.5 * node1_data);
+									// node_data = (0.5*node0_data + 0.5*node1_data);
+								}
 							}
-						}
 					}
 				}
 			}
