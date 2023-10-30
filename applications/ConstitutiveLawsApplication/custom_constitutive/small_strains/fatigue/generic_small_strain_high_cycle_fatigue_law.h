@@ -432,6 +432,8 @@ private:
     double mCyclesToFailure = 0.0; // Nf. Required for the advanciing process.
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
+    double mAITControlParameter = 0.0;
+    double mReversionFactor = 0.0;
 
     ///@}
     ///@name Private Operators

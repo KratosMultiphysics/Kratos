@@ -104,6 +104,73 @@ TractionSeparationLaw3D<TDim>::~TractionSeparationLaw3D()
 /***********************************************************************************/
 
 template<unsigned int TDim>
+bool TractionSeparationLaw3D<TDim>::Has(const Variable<bool>& rThisVariable)
+{
+    bool has = false;
+
+    if (rThisVariable == CYCLE_INDICATOR) {
+        has = true;
+    } else {
+        BaseType::Has(rThisVariable);
+    }
+
+    return has;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+bool TractionSeparationLaw3D<TDim>::Has(const Variable<int>& rThisVariable)
+{
+    bool has = false;
+
+    if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
+        has = true;
+    } else if (rThisVariable == NUMBER_OF_CYCLES) {
+        has = true;
+    } else {
+        BaseType::Has(rThisVariable);
+    }
+
+    return has;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+bool TractionSeparationLaw3D<TDim>::Has(const Variable<double>& rThisVariable)
+{
+    bool has = false;
+
+    if (rThisVariable == DAMAGE) {
+        has = true;
+    } else if (rThisVariable == PREVIOUS_CYCLE) {
+        has = true;
+    } else if (rThisVariable == CYCLE_PERIOD) {
+        has = true;
+    } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
+        has = true;
+    } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
+        has = true;
+    } else if (rThisVariable == THRESHOLD_STRESS) {
+        has = true;
+    } else if (rThisVariable == MAX_STRESS) {
+        has = true;
+    } else if (rThisVariable == CYCLES_TO_FAILURE) {
+        has = true;
+    } else {
+        BaseType::Has(rThisVariable);
+    }
+
+    return has;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
 bool TractionSeparationLaw3D<TDim>::Has(const Variable<Vector>& rThisVariable)
 {
     bool has = false;
@@ -130,6 +197,92 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<Vector>& rThisVariable)
     }
 
     return has;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+bool& TractionSeparationLaw3D<TDim>::GetValue(
+    const Variable<bool>& rThisVariable,
+    bool& rValue
+    )
+{
+    if (rThisVariable == CYCLE_INDICATOR) {
+
+        rValue = mFatigueDataContainersModeTwo[0].GetNewCycleIndicator();
+        return rValue;
+    } else {
+        return BaseType::GetValue(rThisVariable, rValue);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+int& TractionSeparationLaw3D<TDim>::GetValue(
+    const Variable<int>& rThisVariable,
+    int& rValue
+    )
+{
+    if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
+
+        rValue = mFatigueDataContainersModeTwo[0].GetLocalNumberOfCycles();
+        return rValue;
+    } else if (rThisVariable == NUMBER_OF_CYCLES) {
+
+        rValue = mFatigueDataContainersModeTwo[0].GetGlobalNumberOfCycles();
+        return rValue;
+    } else {
+        return BaseType::GetValue(rThisVariable, rValue);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+double& TractionSeparationLaw3D<TDim>::GetValue(
+    const Variable<double>& rThisVariable,
+    double& rValue
+    )
+{
+    if (rThisVariable == DAMAGE) {
+
+        rValue = mDelaminationDamageModeTwo[1];
+        return rValue;
+    } else if (rThisVariable == PREVIOUS_CYCLE) {
+
+        rValue = mFatigueDataContainersModeTwo[0].GetPreviousCycleTime();
+        return rValue;
+    } else if (rThisVariable == CYCLE_PERIOD) {
+
+        rValue = mFatigueDataContainersModeTwo[0].GetCyclePeriod();
+        return rValue;
+    } else if (rThisVariable == MAX_STRESS_RELATIVE_ERROR) {
+
+        rValue = mFatigueDataContainersModeTwo[0].GetMaxStressRelativeError();
+        return rValue;
+    } else if (rThisVariable == REVERSION_FACTOR_RELATIVE_ERROR) {
+
+        rValue = mFatigueDataContainersModeTwo[0].GetReversionFactorRelativeError();
+        return rValue;
+    } else if (rThisVariable == THRESHOLD_STRESS) {
+
+        rValue = mFatigueDataContainersModeTwo[0].GetThresholdStress();
+        return rValue;
+    } else if (rThisVariable == MAX_STRESS) {
+
+        rValue = mFatigueDataContainersModeTwo[0].GetMaximumStress();
+        return rValue;
+    } else if (rThisVariable == CYCLES_TO_FAILURE) {
+
+        rValue = mFatigueDataContainersModeTwo[0].GetCyclesToFailure();
+        return rValue;
+    } else {
+        return BaseType::GetValue(rThisVariable, rValue);
+    }
 }
 
 /***********************************************************************************/
@@ -200,10 +353,52 @@ Vector& TractionSeparationLaw3D<TDim>::GetValue(
         }
         return rValue;
     } else {
-        BaseType::GetValue(rThisVariable,rValue);
+        return BaseType::GetValue(rThisVariable,rValue);
     }
 
     return rValue;
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+void TractionSeparationLaw3D<TDim>::SetValue(
+    const Variable<int>& rThisVariable,
+    const int& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rThisVariable == LOCAL_NUMBER_OF_CYCLES) {
+
+        mFatigueDataContainersModeTwo[0].SetLocalNumberOfCycles(rValue);
+    } else if (rThisVariable == NUMBER_OF_CYCLES) {
+
+        mFatigueDataContainersModeTwo[0].SetGlobalNumberOfCycles(rValue);
+    } else {
+        BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<unsigned int TDim>
+void TractionSeparationLaw3D<TDim>::SetValue(
+    const Variable<double>& rThisVariable,
+    const double& rValue,
+    const ProcessInfo& rCurrentProcessInfo
+    )
+{
+    if (rThisVariable == PREVIOUS_CYCLE) {
+
+        mFatigueDataContainersModeTwo[0].SetPreviousCycleTime(rValue);
+    } else if (rThisVariable == CYCLE_PERIOD) {
+
+        mFatigueDataContainersModeTwo[0].SetCyclePeriod(rValue);
+    } else {
+        BaseType::SetValue(rThisVariable, rValue, rCurrentProcessInfo);
+    }
 }
 
 /***********************************************************************************/
@@ -310,6 +505,7 @@ double& TractionSeparationLaw3D<TDim>::CalculateValue(
         }
 
     }
+    return rValue;
 
 }
 
@@ -411,10 +607,11 @@ Vector& TractionSeparationLaw3D<TDim>::CalculateValue(
             interfacial_stress[i][2] = (layer_stress[i][5] + layer_stress[i+1][5]) * 0.5; // interfacial shear stress
         }
 
-    noalias(rValue) = interfacial_stress[interface_identifier];
+        noalias(rValue) = interfacial_stress[interface_identifier];
 
-    return rValue;
+        return rValue;
     }
+    return rValue;
 }
 
 /***********************************************************************************/
@@ -803,8 +1000,8 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
             HCFDataContainer::FatigueVariables HCFVariablesModeOne = HCFDataContainer::FatigueVariables();
             HCFDataContainer::FatigueVariables HCFVariablesModeTwo = HCFDataContainer::FatigueVariables();
 
-            mFatigueDataContainersModeOne[i].InitializeFatigueVariables(HCFVariablesModeOne);
-            mFatigueDataContainersModeTwo[i].InitializeFatigueVariables(HCFVariablesModeTwo);
+            mFatigueDataContainersModeOne[i].InitializeFatigueVariables(HCFVariablesModeOne, rValues);
+            mFatigueDataContainersModeTwo[i].InitializeFatigueVariables(HCFVariablesModeTwo, rValues);
 
             Vector fatigue_interfacial_stress_vector_mode_one = ZeroVector(VoigtSize);
             Vector fatigue_interfacial_stress_vector_mode_two = ZeroVector(VoigtSize);
@@ -825,8 +1022,16 @@ void TractionSeparationLaw3D<TDim>::FinalizeMaterialResponsePK2(ConstitutiveLaw:
                                             rValues.GetProcessInfo(),
                                             fatigue_interfacial_stress_vector_mode_two,
                                             equivalent_stress_mode_two,
-                                            INTERFACIAL_SHEAR_STRENGTH);
+                                            INTERFACIAL_SHEAR_STRENGTH,
+                                            USER_DEFINED_METHOD);
             // End fatigue calculations
+
+            // KRATOS_WATCH("------------------------------------------------------");
+            // KRATOS_WATCH(mFatigueDataContainersModeTwo[0].GetMaxStressRelativeError());
+            // KRATOS_WATCH(mFatigueDataContainersModeTwo[0].GetReversionFactorRelativeError());
+            // KRATOS_WATCH(mFatigueDataContainersModeTwo[0].GetMaximumStress());
+            // KRATOS_WATCH(mFatigueDataContainersModeTwo[0].GetPreviousMaximumStress());
+            // KRATOS_WATCH("------------------------------------------------------");
 
             if ((layer_stress[i][2] + layer_stress[i+1][2] * 0.5) < tolerance) {
                 negative_interfacial_stress_indicator[i+1] = true;

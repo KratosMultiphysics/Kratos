@@ -20,6 +20,8 @@
 
 // Project includes
 #include "includes/constitutive_law.h"
+#include "constitutive_laws_application_variables.h"
+
 
 namespace Kratos
 {
@@ -67,6 +69,11 @@ public:
 
     static constexpr double tolerance = 1.0e-3;
 
+    typedef std::size_t SizeType;
+
+    /// The define the working dimension size, already defined in the integrator
+    static constexpr SizeType VoigtSize = 6;
+
     HCFDataContainer()
     {};
 
@@ -108,7 +115,7 @@ public:
      * @brief This method initializes all the values
      * in the FatigueVariables
      */
-    void InitializeFatigueVariables(HCFDataContainer::FatigueVariables &rFatigueVariables);
+    void InitializeFatigueVariables(HCFDataContainer::FatigueVariables &rFatigueVariables, ConstitutiveLaw::Parameters& rValues);
 
 
     /**
@@ -125,7 +132,8 @@ public:
                             const ProcessInfo& rCurrentProcessInfo,
                             ConstitutiveLaw::StressVectorType stress_vector,
                             double uniaxial_stress,
-                            const Variable<double>& rVariable = YIELD_STRESS);
+                            const Variable<double>& rVariable = YIELD_STRESS,
+                            const Variable<bool>& rMethodVariable = DEFAULT_METHOD);
 
     /**
      * @brief This method returns fatigue reduction factor
@@ -146,6 +154,104 @@ public:
      */
     int GetLocalNumberOfCycles() {
         return mNumberOfCyclesLocal;
+    }
+
+    /**
+     * @brief This method sets local number of cycles
+     */
+    void SetLocalNumberOfCycles(int rValue) {
+        mNumberOfCyclesLocal = rValue;
+    }
+
+    /**
+     * @brief This method returns the previous cycle time
+     */
+    double GetPreviousCycleTime() {
+        return mPreviousCycleTime;
+    }
+
+    /**
+     * @brief This method sets the previous cycle time
+     */
+    void SetPreviousCycleTime(double rValue) {
+        mPreviousCycleTime = rValue;
+    }
+
+    /**
+     * @brief This method returns the cycle period
+     */
+    double GetCyclePeriod() {
+        return mPeriod;
+    }
+
+    /**
+     * @brief This method sets the cycle period
+     */
+    void SetCyclePeriod(double rValue) {
+        mPeriod = rValue;
+    }
+
+    /**
+     * @brief This method returns maximum stress relative error
+     */
+    double GetMaxStressRelativeError() {
+        return mMaxStressRelativeError;
+    }
+
+    /**
+     * @brief This method returns reversion factor relative error
+     */
+    double GetReversionFactorRelativeError() {
+        return mReversionFactorRelativeError;
+    }
+
+    /**
+     * @brief This method returns the threshold stress
+     */
+    double GetThresholdStress() {
+        return mThresholdStress;
+    }
+
+    /**
+     * @brief This method returns the maximum stress
+     */
+    double GetMaximumStress() {
+        return mMaxStress;
+    }
+
+    /**
+     * @brief This method returns the maximum stress
+     */
+    double GetPreviousMaximumStress() {
+        return mPreviousMaxStress;
+    }
+
+    /**
+     * @brief This method returns cycles to failure
+     */
+    double GetCyclesToFailure() {
+        return mCyclesToFailure;
+    }
+
+    /**
+     * @brief This method returns the global number of cycles
+     */
+    int GetGlobalNumberOfCycles() {
+        return mNumberOfCyclesGlobal;
+    }
+
+    /**
+     * @brief This method sets global number of cycles
+     */
+    void SetGlobalNumberOfCycles(int rValue) {
+        mNumberOfCyclesGlobal = rValue;
+    }
+
+    /**
+     * @brief This method returns the new cycle indicator
+     */
+    bool GetNewCycleIndicator() {
+        return mNewCycleIndicator;
     }
 
 
@@ -180,6 +286,8 @@ private:
     double mThresholdStress = 0.0;
     double mCyclesToFailure = std::numeric_limits<double>::infinity();
     bool mNewCycleIndicator = false;
+    double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
+    double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     ///@}
 
 friend class Serializer;

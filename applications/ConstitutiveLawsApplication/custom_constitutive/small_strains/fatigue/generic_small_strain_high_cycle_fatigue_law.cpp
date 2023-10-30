@@ -103,6 +103,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
         const double previous_reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(previous_max_stress, previous_min_stress);
         const double reversion_factor = HighCycleFatigueLawIntegrator<6>::CalculateReversionFactor(max_stress, min_stress);
         double alphat;
+        mReversionFactor = reversion_factor;
         HighCycleFatigueLawIntegrator<6>::CalculateFatigueParameters(
             max_stress,
             reversion_factor,
@@ -162,6 +163,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
                                                                                         alphat,
                                                                                         fatigue_reduction_factor,
                                                                                         wohler_stress);
+        mAITControlParameter = 0.0;
     }
     mNumberOfCyclesGlobal = global_number_of_cycles;
     mNumberOfCyclesLocal = local_number_of_cycles;
@@ -176,6 +178,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::InitializeM
     mWohlerStress = wohler_stress;
     mNewCycleIndicator = new_cycle;
     mThresholdStress = s_th;
+    mAITControlParameter += 1.0;
 }
 
 
@@ -358,6 +361,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         bool min_indicator = mMinDetected;
         double fatigue_reduction_factor = mFatigueReductionFactor;
 
+        if (mAITControlParameter > 10.0) {
         HighCycleFatigueLawIntegrator<6>::CalculateMaximumAndMinimumStresses(
             uniaxial_stress,
             max_stress,
@@ -369,6 +373,7 @@ void GenericSmallStrainHighCycleFatigueLaw<TConstLawIntegratorType>::FinalizeMat
         mMinStress = min_stress;
         mMaxDetected = max_indicator;
         mMinDetected = min_indicator;
+        }
 
         uniaxial_stress *= sign_factor;
         uniaxial_stress /= fatigue_reduction_factor;  // Fatigue contribution

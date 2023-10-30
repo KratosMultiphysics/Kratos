@@ -39,9 +39,12 @@ void HCFDataContainer::CalculateSminAndSmax(const double CurrentStress,
                                                                         rFatigueVariables.PreviousStresses,
                                                                         rFatigueVariables.MaxIndicator,
                                                                         rFatigueVariables.MinIndicator);
+    // KRATOS_WATCH(mPreviousStresses);
+    // KRATOS_WATCH(CurrentStress);
     const Vector& r_aux_stresses = mPreviousStresses;
     rFatigueVariables.PreviousStresses[1] = CurrentStress;
     rFatigueVariables.PreviousStresses[0] = r_aux_stresses[1];
+    // KRATOS_WATCH(rFatigueVariables.PreviousStresses);
 }
 
 /***********************************************************************************/
@@ -140,7 +143,7 @@ void HCFDataContainer::CalculateFatigueReductionFactorAndWohlerStress(const Prop
 /***********************************************************************************/
 /***********************************************************************************/
 
-void HCFDataContainer::InitializeFatigueVariables(HCFDataContainer::FatigueVariables &rFatigueVariables)
+void HCFDataContainer::InitializeFatigueVariables(HCFDataContainer::FatigueVariables &rFatigueVariables, ConstitutiveLaw::Parameters& rValues)
 {
     rFatigueVariables.MaxStress = mMaxStress;
     rFatigueVariables.MinStress = mMinStress;
@@ -158,6 +161,8 @@ void HCFDataContainer::InitializeFatigueVariables(HCFDataContainer::FatigueVaria
     rFatigueVariables.NewCycle = false;
     rFatigueVariables.Sth = mThresholdStress;
     rFatigueVariables.CyclesToFailure = mCyclesToFailure;
+    rFatigueVariables.DamageActivation = rValues.GetProcessInfo()[DAMAGE_ACTIVATION];
+    rFatigueVariables.AdvanceStrategyApplied = rValues.GetProcessInfo()[ADVANCE_STRATEGY_APPLIED];
 }
 
 /***********************************************************************************/
@@ -190,9 +195,24 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
                         const ProcessInfo& rCurrentProcessInfo,
                         ConstitutiveLaw::StressVectorType stress_vector,
                         double uniaxial_stress,
-                        const Variable<double>& rVariable)
+                        const Variable<double>& rVariable,
+                        const Variable<bool>& rMethodVariable)
 {
-    const double sign_factor = CalculateTensionOrCompressionIdentifier(stress_vector);
+    double sign_factor = 0;
+
+    if (rMethodVariable == DEFAULT_METHOD) {
+        sign_factor = CalculateTensionOrCompressionIdentifier(stress_vector);
+    } else if (rMethodVariable == USER_DEFINED_METHOD) {
+        double aux_sum = AdvancedConstitutiveLawUtilities<VoigtSize>::MacaullyBrackets(stress_vector[4]) + AdvancedConstitutiveLawUtilities<VoigtSize>::MacaullyBrackets(stress_vector[5]);
+        double resultant_shear_stress = std::sqrt(std::pow(stress_vector[4],2.0)+std::pow(stress_vector[5],2.0));
+        const double pre_indicator = aux_sum / resultant_shear_stress;
+
+        if (pre_indicator < 0.7) {
+            sign_factor = -1.0;
+        } else {
+            sign_factor = 1.0;
+        }
+    }
     uniaxial_stress *= sign_factor;
 
     CalculateSminAndSmax(uniaxial_stress, rFatigueVariables);
