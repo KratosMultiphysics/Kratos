@@ -1,3 +1,4 @@
 # ignore .txt and .npy files from inverseforming tests
 inverseforming_*/*.txt
 inverseforming_*/*.npy
+!inverseforming_*/DISPLACEMENTS_U0.txt
