@@ -10,8 +10,13 @@
 //  Main authors:    Vahid Galavi
 //
 
+// System includes
+#include <iostream>
+
 // Project includes
 #include "custom_constitutive/linear_elastic_plane_strain_2D_law.h"
+
+#include "geo_mechanics_application_variables.h"
 
 namespace Kratos
 {
