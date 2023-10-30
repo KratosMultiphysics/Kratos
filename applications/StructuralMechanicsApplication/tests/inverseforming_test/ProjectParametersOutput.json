@@ -94,7 +94,7 @@
         "echo_level": 3,
         "end_time": 1.0,
         "parallel_type": "OpenMP",
-        "problem_name": "cyl",
+        "problem_name": "plate",
         "start_time": 0.0
     },
     "processes": {

@@ -1,6 +1,6 @@
 {
     "problem_data"     : {
-        "problem_name"  : "cyl",
+        "problem_name"  : "plate",
         "parallel_type" : "OpenMP",
         "echo_level"    : 3,
         "start_time"    : 0.0,

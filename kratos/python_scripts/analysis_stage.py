@@ -290,8 +290,8 @@ class AnalysisStage(object):
         print("\n ::TESTING:: FINISH Calculate normals \n")
 
         # flatten geometry
-        #for node in self._GetSolver().GetComputingModelPart().Nodes:
-        #   node.Z0 = 0.0
+        for node in self._GetSolver().GetComputingModelPart().Nodes:
+            node.Z0 = 0.0
         #    node.Z  = 0.0
         normal_calculation_utils = KratosMultiphysics.NormalCalculationUtils()
         normal_calculation_utils.CalculateUnitNormalsNonHistorical(self._GetSolver().GetComputingModelPart(), 0)
@@ -315,15 +315,13 @@ class AnalysisStage(object):
 
         for process in self._GetListOfProcesses():
             process.ExecuteInitializeSolutionStep()
-
+        # INITIAL GUESS FOR NEWTON RAPHSON
         for node in self._GetSolver().GetComputingModelPart().Nodes:
-            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, node.Z)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_X, 0, node.X - node.X0)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Y, 0, node.Y - node.Y0)
+            node.SetSolutionStepValue(KratosMultiphysics.DISPLACEMENT_Z, 0, node.Z - node.Z0)
             print("NODE:", node.Id, node.GetSolutionStepValue(KratosMultiphysics.DISPLACEMENT))
-
-        for node in self._GetSolver().GetComputingModelPart().Nodes:
-            node.Z0 = 0.0
-            node.Z  = 0.0
-        print("CALLING THIS BCS!!!")
+        print("INITIALIZING GUESS HERE!!!")
 
         #other operations as needed
 

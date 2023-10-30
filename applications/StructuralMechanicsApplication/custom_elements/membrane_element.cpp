@@ -180,55 +180,46 @@ void MembraneElement::CalculateRightHandSide(MatrixType& rLeftHandSideVector,
     noalias(rRightHandSideVector) = ZeroVector(system_size);
     noalias(rRightHandSideVector) -= internal_forces;
 
-    // KRATOS_WATCH(internal_forces)
-    // KRATOS_WATCH(rRightHandSideVector)
-
-    Matrix normals = ZeroMatrix(3,6);
-    normals(0,0) = 0.0         ;
-    normals(0,1) = -0.35920894;
-    normals(0,2) = -0.49999801;
-    normals(0,3) = 0.0         ;
-    normals(0,4) = -0.18898127;
-    normals(0,5) = -0.49999801;
-
-    normals(1,0) = 0.0;
-    normals(1,1) = 0.0;
-    normals(1,2) = 0.0;
-    normals(1,3) = 0.0;
-    normals(1,4) = 0.0;
-    normals(1,5) = 0.0;
-
-    normals(2,0) = 1.0       ;
-    normals(2,1) = 0.93325716;
-    normals(2,2) = 0.86602655;
-    normals(2,3) = 1.0       ;
-    normals(2,4) = 0.98198069;
-    normals(2,5) = 0.86602655;
-
     KRATOS_WATCH(internal_forces)
     KRATOS_WATCH(rRightHandSideVector)
-    double p_0 = 0.0;
+
+
+    // INTENSITY OF EXTERNAL FORCE PER NODE
+    double p_0 = 0.0; // INTENSITY NODE 1
     double p_1 = 0.0;
     double p_2 = 0.0;
 
-    if (abs(internal_forces[2]) > 1e-10){
-        p_0 = internal_forces[2] / normals(2, GetGeometry()[0].Id() - 1);
+    KRATOS_WATCH("NORMALS, INSIDE ELEMENT")
+
+    array_1d<double, 3> normal_0 = GetGeometry()[0].GetValue(NORMAL);
+    array_1d<double, 3> normal_1 = GetGeometry()[1].GetValue(NORMAL);
+    array_1d<double, 3> normal_2 = GetGeometry()[2].GetValue(NORMAL);
+
+    KRATOS_WATCH(normal_0)
+    KRATOS_WATCH(normal_1)
+    KRATOS_WATCH(normal_2)
+
+
+    if (abs(internal_forces[2]) > 1e-15){
+        p_0 = internal_forces[2] / normal_0[2];
     }
-    if (abs(internal_forces[5]) > 1e-10){
-        p_1 = internal_forces[5] / normals(2, GetGeometry()[1].Id() - 1);
+    if (abs(internal_forces[5]) > 1e-15){
+        p_1 = internal_forces[5] / normal_1[2];
     }
-    if (abs(internal_forces[8]) > 1e-10){
-        p_2 = internal_forces[8] / normals(2, GetGeometry()[2].Id() - 1);
+    if (abs(internal_forces[8]) > 1e-15){
+        p_2 = internal_forces[8] / normal_2[2];
     }
-    external_forces(0) = p_0 * normals(0, GetGeometry()[0].Id() - 1);
-    external_forces(1) = p_0 * normals(1, GetGeometry()[0].Id() - 1);
-    external_forces(2) = p_0 * normals(2, GetGeometry()[0].Id() - 1);
-    external_forces(3) = p_1 * normals(0, GetGeometry()[1].Id() - 1);
-    external_forces(4) = p_1 * normals(1, GetGeometry()[1].Id() - 1);
-    external_forces(5) = p_1 * normals(2, GetGeometry()[1].Id() - 1);
-    external_forces(6) = p_2 * normals(0, GetGeometry()[2].Id() - 1);
-    external_forces(7) = p_2 * normals(1, GetGeometry()[2].Id() - 1);
-    external_forces(8) = p_2 * normals(2, GetGeometry()[2].Id() - 1);
+    // external_forces = [ 0,    1,   2,    3,    4,    5,    6,    7,    8    ]
+    //                 = [fex1, fey1, fez1, fex2, fey2, fez2, fex3, fey3, fez3,]
+    external_forces(0) = p_0 * normal_0[0];
+    external_forces(1) = p_0 * normal_0[1];
+    external_forces(2) = p_0 * normal_0[2];
+    external_forces(3) = p_1 * normal_1[0];
+    external_forces(4) = p_1 * normal_1[1];
+    external_forces(5) = p_1 * normal_1[2];
+    external_forces(6) = p_2 * normal_2[0];
+    external_forces(7) = p_2 * normal_2[1];
+    external_forces(8) = p_2 * normal_2[2];
     noalias(rRightHandSideVector) += external_forces;
     KRATOS_WATCH(rRightHandSideVector)
     CalculateAndAddBodyForce(rRightHandSideVector,rCurrentProcessInfo);

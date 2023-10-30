@@ -160,7 +160,7 @@ public:
         KRATOS_TRY
 
         mpDofUpdater->UpdateDofs(rDofSet, rDx);
-
+        KRATOS_WATCH("INSIDE RESIDUAL SCHEME")
         KRATOS_CATCH("")
     }
 

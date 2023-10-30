@@ -1285,7 +1285,9 @@ class ResidualBasedNewtonRaphsonStrategy
         typename TBuilderAndSolverType::Pointer p_builder_and_solver = GetBuilderAndSolver();
 
         p_scheme->Update(BaseType::GetModelPart(), p_builder_and_solver->GetDofSet(), rA, rDx, rb);
-
+        KRATOS_WATCH("UPDATE HERE!!!")
+        KRATOS_WATCH(rb)
+        KRATOS_WATCH(rDx)
         // Move the mesh if needed
         if (MoveMesh == true)
             BaseType::MoveMesh();
