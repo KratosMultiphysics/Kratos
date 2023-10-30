@@ -68,7 +68,7 @@ public:
 
 
     ApplyConstantBoundaryHydrostaticPressureProcess(const ApplyConstantBoundaryHydrostaticPressureProcess&) = delete;
-    ApplyConstantHydrostaticPressureProcess& operator=(const ApplyConstantBoundaryHydrostaticPressureProcess&) = delete;
+    ApplyConstantBoundaryHydrostaticPressureProcess& operator=(const ApplyConstantBoundaryHydrostaticPressureProcess&) = delete;
     ~ApplyConstantBoundaryHydrostaticPressureProcess() override = default;
 
     /// this function is designed for being called at the beginning of the computations

@@ -119,8 +119,8 @@ void PropertiesVariableExpressionIO::Check(
         });
 
         const auto& r_data_communicator = rContainerExpression.GetModelPart().GetCommunicator().GetDataCommunicator();
-        const IndexType number_of_values = r_data_communicator.SumAll(value_ptrs.size());
-        const IndexType number_of_entities = r_data_communicator.SumAll(rContainerExpression.GetContainer().size());
+        const auto number_of_values = r_data_communicator.SumAll(static_cast<unsigned int>(value_ptrs.size()));
+        const auto number_of_entities = r_data_communicator.SumAll(static_cast<unsigned int>(rContainerExpression.GetContainer().size()));
 
         KRATOS_ERROR_IF_NOT(number_of_values == number_of_entities)
             << "Number of different values in properties for variable "
@@ -149,9 +149,9 @@ void PropertiesVariableExpressionIO::Write(
 }
 
 #define KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(CONTAINER_TYPE, MESH_TYPE)                                                                                      \
-    template void PropertiesVariableExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);          \
-    template void PropertiesVariableExpressionIO::Check(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);   \
-    template void PropertiesVariableExpressionIO::Write(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void PropertiesVariableExpressionIO::Read(ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);          \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void PropertiesVariableExpressionIO::Check(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);   \
+    template KRATOS_API(OPTIMIZATION_APPLICATION) void PropertiesVariableExpressionIO::Write(const ContainerExpression<CONTAINER_TYPE, MESH_TYPE>&, const PropertiesVariableExpressionIO::VariableType&);
 
 #define KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS_1(CONTAINER_TYPE)                \
     KRATOS_INSTANTIATE_ENTITY_CONTAINER_IO_METHODS(CONTAINER_TYPE, MeshType::Local)

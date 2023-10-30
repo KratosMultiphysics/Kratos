@@ -32,9 +32,9 @@ namespace Kratos::Testing {
         test_container.push_back(p_element_2);
         test_container.push_back(p_element_3);
 
-        KRATOS_CHECK_EQUAL(test_container.begin()->Id(), 1);
-        KRATOS_CHECK_EQUAL((test_container.begin()+1)->Id(), 2);
-        KRATOS_CHECK_EQUAL((test_container.end()-1)->Id(), 3);
+        KRATOS_EXPECT_EQ(test_container.begin()->Id(), 1);
+        KRATOS_EXPECT_EQ((test_container.begin()+1)->Id(), 2);
+        KRATOS_EXPECT_EQ((test_container.end()-1)->Id(), 3);
     }
     KRATOS_TEST_CASE_IN_SUITE(PointerVectorEmplaceBack, KratosCoreFastSuite)
     {
@@ -43,9 +43,9 @@ namespace Kratos::Testing {
         test_container.emplace_back(Kratos::make_intrusive<Element>(2));
         test_container.emplace_back(Kratos::make_intrusive<Element>(3));
 
-        KRATOS_CHECK_EQUAL(test_container.begin()->Id(), 1);
-        KRATOS_CHECK_EQUAL((test_container.begin()+1)->Id(), 2);
-        KRATOS_CHECK_EQUAL((test_container.end()-1)->Id(), 3);
+        KRATOS_EXPECT_EQ(test_container.begin()->Id(), 1);
+        KRATOS_EXPECT_EQ((test_container.begin()+1)->Id(), 2);
+        KRATOS_EXPECT_EQ((test_container.end()-1)->Id(), 3);
     }
 
 } // namespace Kratos.

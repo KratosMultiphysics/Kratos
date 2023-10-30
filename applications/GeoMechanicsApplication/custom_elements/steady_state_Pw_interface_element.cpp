@@ -41,7 +41,6 @@ int SteadyStatePwInterfaceElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SteadyStatePwInterfaceElement::Check()") << std::endl;
 
     int ierr = Element::Check(rCurrentProcessInfo);
     if (ierr != 0) return ierr;
@@ -107,14 +106,10 @@ int SteadyStatePwInterfaceElement<TDim,TNumNodes>::
                      << this->Id()
                      << std::endl;
 
-
-    // KRATOS_INFO("1-SteadyStatePwInterfaceElement::Check()") << std::endl;
-
     return ierr;
 
     KRATOS_CATCH( "" );
 }
-
 
 //----------------------------------------------------------------------------------------
 template< unsigned int TDim, unsigned int TNumNodes >
@@ -126,7 +121,6 @@ void SteadyStatePwInterfaceElement<TDim,TNumNodes>::
                  const bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SteadyStatePwInterfaceElement:::CalculateAll()") << std::endl;
 
     //Previous definitions
     const PropertiesType& Prop = this->GetProperties();
@@ -204,7 +198,6 @@ void SteadyStatePwInterfaceElement<TDim,TNumNodes>::
 
     }
 
-    // KRATOS_INFO("1-SteadyStatePwInterfaceElement:::CalculateAll()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -215,11 +208,8 @@ void SteadyStatePwInterfaceElement<TDim,TNumNodes>::
                        InterfaceElementVariables& rVariables)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-SteadyStatePwInterfaceElement::CalculateAndAddLHS()") << std::endl;
 
     this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix,rVariables);
-
-    // KRATOS_INFO("1-SteadyStatePwInterfaceElement::CalculateAndAddLHS()") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -232,18 +222,14 @@ void SteadyStatePwInterfaceElement<TDim,TNumNodes>::
                        unsigned int GPoint)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-SteadyStatePwInterfaceElement::CalculateAndAddRHS()") << std::endl;
 
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
-
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
 
-    // KRATOS_INFO("1-SteadyStatePwInterfaceElement::CalculateAndAddRHS()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
 //----------------------------------------------------------------------------------------------------
-
 template class SteadyStatePwInterfaceElement<2,4>;
 template class SteadyStatePwInterfaceElement<3,6>;
 template class SteadyStatePwInterfaceElement<3,8>;

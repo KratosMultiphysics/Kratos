@@ -47,7 +47,6 @@ int GeoStructuralBaseElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoStructuralBaseElement::Check") << std::endl;
 
     const PropertiesType& rProp = this->GetProperties();
     const GeometryType& rGeom = this->GetGeometry();
@@ -110,8 +109,6 @@ int GeoStructuralBaseElement<TDim,TNumNodes>::
         }
     }
 
-    // KRATOS_INFO("1-GeoStructuralBaseElement::Check") << std::endl;
-
     return 0;
 
     KRATOS_CATCH( "" );
@@ -123,7 +120,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoStructuralBaseElement::Initialize") << std::endl;
 
     const PropertiesType &rProp = this->GetProperties();
     const GeometryType &rGeom = this->GetGeometry();
@@ -150,8 +146,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
        }
     }
 
-    // KRATOS_INFO("1-GeoStructuralBaseElement::Initialize") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -162,7 +156,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
                 const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoStructuralBaseElement::GetDofList") << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -189,8 +182,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
         KRATOS_ERROR << " Unspecified dimension in GetDofList: " << this->Id() << std::endl;
     }
 
-    // KRATOS_INFO("1-GeoStructuralBaseElement::GetDofList") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -210,7 +201,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
                           const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoStructuralBaseElement::CalculateLocalSystem") << std::endl;
 
     //Resetting the LHS
     if ( rLeftHandSideMatrix.size1() != N_DOF_ELEMENT )
@@ -231,8 +221,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
                  rCurrentProcessInfo,
                  CalculateStiffnessMatrixFlag,
                  CalculateResidualVectorFlag);
-
-    // KRATOS_INFO("1-GeoStructuralBaseElement::CalculateLocalSystem") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -266,7 +254,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
                             const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoStructuralBaseElement::CalculateRightHandSide") << std::endl;
 
     //Resetting the RHS
     if ( rRightHandSideVector.size() != N_DOF_ELEMENT )
@@ -283,8 +270,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
                  CalculateStiffnessMatrixFlag,
                  CalculateResidualVectorFlag);
 
-    // KRATOS_INFO("1-GeoStructuralBaseElement::CalculateRightHandSide") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -295,7 +280,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
                      const ProcessInfo& rCurrentProcessInfo) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoStructuralBaseElement::EquationIdVector") << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -322,8 +306,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
         KRATOS_ERROR << "undefined dimension in EquationIdVector... illegal operation!! element: " << this->Id() << std::endl;
     }
 
-    // KRATOS_INFO("1-GeoStructuralBaseElement::EquationIdVector") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -345,7 +327,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     CalculateDampingMatrix(MatrixType& rDampingMatrix, const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoStructuralBaseElement::CalculateDampingMatrix") << std::endl;
 
     // Rayleigh Method (Damping Matrix = alpha*M + beta*K)
 
@@ -367,8 +348,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_ALPHA] * MassMatrix;
     noalias(rDampingMatrix) += rCurrentProcessInfo[RAYLEIGH_BETA] * StiffnessMatrix;
 
-    // KRATOS_INFO("1-GeoStructuralBaseElement::CalculateDampingMatrix") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -378,8 +357,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     GetValuesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
-
-    // KRATOS_INFO("0-GeoStructuralBaseElement::GetValuesVector") << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -406,8 +383,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
         KRATOS_ERROR << " Unspecified dimension in GetValuesVector: " << this->Id() << std::endl;
     }
 
-    // KRATOS_INFO("1-GeoStructuralBaseElement::GetValuesVector") << std::endl;
-
     KRATOS_CATCH( "" )
 }
 
@@ -417,7 +392,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     GetFirstDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoStructuralBaseElement::GetFirstDerivativesVector") << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -440,11 +414,10 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ANGULAR_VELOCITY_Y, Step );
             rValues[index++] = rGeom[i].FastGetSolutionStepValue( ANGULAR_VELOCITY_Z, Step );
         }
-    } else {
+    } 
+    else {
         KRATOS_ERROR << " Unspecified dimension in GetFirstDerivativesVector: " << this->Id() << std::endl;
     }
-
-    // KRATOS_INFO("1-GeoStructuralBaseElement::GetFirstDerivativesVector") << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -455,8 +428,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
     GetSecondDerivativesVector( Vector& rValues, int Step ) const
 {
     KRATOS_TRY
-
-    // KRATOS_INFO("0-GeoStructuralBaseElement::GetSecondDerivativesVector") << std::endl;
 
     const GeometryType& rGeom = this->GetGeometry();
 
@@ -484,8 +455,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
         KRATOS_ERROR << " Unspecified dimension in GetSecondDerivativesVector: " << this->Id() << std::endl;
     }
 
-    // KRATOS_INFO("1-GeoStructuralBaseElement::GetSecondDerivativesVector") << std::endl;
-
     KRATOS_CATCH("")
 }
 
@@ -497,12 +466,9 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
                                 const ProcessInfo& rCurrentProcessInfo )
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoStructuralBaseElement::SetValuesOnIntegrationPoints") << std::endl;
 
     for ( unsigned int i = 0; i < mConstitutiveLawVector.size(); ++i )
         mConstitutiveLawVector[i]->SetValue( rVariable, rValues[i], rCurrentProcessInfo );
-
-    // KRATOS_INFO("1-GeoStructuralBaseElement::SetValuesOnIntegrationPoints") << std::endl;
 
     KRATOS_CATCH( "" )
 }
@@ -599,7 +565,6 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
                              IndexType SolutionStepIndex) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoStructuralBaseElement::GetNodalDofValuesVector") << std::endl;
 
     unsigned int index = 0;
     if constexpr (TDim == 2) {
@@ -621,9 +586,7 @@ void GeoStructuralBaseElement<TDim,TNumNodes>::
         KRATOS_ERROR << " Unspecified dimension in GetNodalDofValuesVector: " << this->Id() << std::endl;
     }
 
-    // KRATOS_INFO("1-GeoStructuralBaseElement::GetNodalDofValuesVector") << std::endl;
     KRATOS_CATCH( "" )
-
 }
 
 //-------------------------------------------------------------------------------------------------------------------------------
