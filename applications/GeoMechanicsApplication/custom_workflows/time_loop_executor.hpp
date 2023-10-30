@@ -48,6 +48,7 @@ public :
 
     std::vector<TimeStepEndState> Run(const TimeStepEndState& EndState) override
     {
+        mStrategyWrapper->Initialize();
         mStrategyWrapper->SaveTotalDisplacementFieldAtStartOfTimeLoop();
         std::vector<TimeStepEndState> result;
         TimeStepEndState NewEndState = EndState;
@@ -61,6 +62,9 @@ public :
             mStrategyWrapper->OutputProcess();
             result.emplace_back(NewEndState);
         }
+
+        mStrategyWrapper->FinalizeOutput();
+
         return result;
     }
 
