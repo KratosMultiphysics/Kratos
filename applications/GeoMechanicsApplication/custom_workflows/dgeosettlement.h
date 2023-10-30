@@ -22,6 +22,7 @@
 #include "geo_mechanics_application.h"
 #include "linear_solvers_application.h"
 #include "structural_mechanics_application.h"
+#include "utilities/variable_utils.h"
 
 namespace Kratos
 {
@@ -56,6 +57,9 @@ private:
     ModelPart& AddNewModelPart(const std::string& rModelPartName);
     void PrepareModelPart(const Parameters& rSolverSettings);
 
+    ModelPart& GetMainModelPart();
+    ModelPart& GetComputationalModelPart();
+
     static void AddNodalSolutionStepVariablesTo(ModelPart& rModelPart);
     static void AddDegreesOfFreedomTo(ModelPart& rModelPart);
     void InitializeProcessFactory();
@@ -65,6 +69,22 @@ private:
                                                          const std::filesystem::path& rWorkingDirectory);
     LoggerOutput::Pointer CreateLoggingOutput(std::stringstream& rKratosLogBuffer) const;
     void FlushLoggingOutput(const std::function<void(const char*)>& rLogCallback, LoggerOutput::Pointer pLoggerOutput, const std::stringstream& rKratosLogBuffer) const;
+
+    template <typename TVariableType>
+    void RestoreValuesOfNodalVariable(const TVariableType& rVariable,
+                                      Node::IndexType      SourceIndex,
+                                      Node::IndexType      DestinationIndex)
+    {
+        if (!GetComputationalModelPart().HasNodalSolutionStepVariable(rVariable))
+            return;
+
+        VariableUtils{}.SetHistoricalVariableToZero(rVariable, GetComputationalModelPart().Nodes());
+
+        block_for_each(GetComputationalModelPart().Nodes(),
+                       [&rVariable, SourceIndex, DestinationIndex](auto& node) {
+            node.GetSolutionStepValue(rVariable, DestinationIndex) = node.GetSolutionStepValue(rVariable, SourceIndex);
+        });
+    }
 
     Kernel mKernel;
     Model mModel;
