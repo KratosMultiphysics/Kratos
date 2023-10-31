@@ -82,7 +82,7 @@ namespace MPMParticleGeneratorUtility
                     else {
                         std::string warning_msg = "PARTICLES_PER_ELEMENT is not specified in Properties, ";
                         warning_msg += "1 Particle per element is assumed.";
-                        KRATOS_WARNING("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                        KRATOS_WARNING("MPMParticleGeneratorUtility") << warning_msg << std::endl;
                         particles_per_element = 1;
                     }
 
@@ -282,9 +282,7 @@ namespace MPMParticleGeneratorUtility
                             particles_per_condition = i->GetValue(PARTICLES_PER_CONDITION);
                         }
                         else{
-                            std::string warning_msg = "PARTICLES_PER_CONDITION is not specified, ";
-                            warning_msg += "Only one particle is assumed";
-                            KRATOS_WARNING("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                            KRATOS_WARNING("MPMParticleGeneratorUtility") << "PARTICLES_PER_CONDITION is not specified. Only one particle is assumed." << std::endl;
                         }
 
                         // Get condition variables:
@@ -322,8 +320,7 @@ namespace MPMParticleGeneratorUtility
                                 integration_method = integration_info.GetIntegrationMethod(0);
                             }
                             else{
-                                std::string warning_msg = "Equal distribution of particle conditions only available for line segments: ";
-                                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                                KRATOS_WARNING("MPMParticleGeneratorUtility") << "Equal distribution of particle conditions only available for line segments:  "  << std::endl;
 
                             }
                         }
@@ -826,16 +823,15 @@ namespace MPMParticleGeneratorUtility
             case 16:
                 if (domain_size == 2) {
                     IsEqualVolumes = true;
-                    KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: "
-                        << "16 particles per triangle element is only valid for undistorted triangles." << std::endl;
+                    
+                    KRATOS_WARNING("MPMParticleGeneratorUtility") << "16 particles per triangle element is only valid for undistorted triangles." << std::endl;
                     rN = MP16ShapeFunctions();
                     break;
                 }
             case 33:
                 if (domain_size == 2) {
                     IsEqualVolumes = true;
-                    KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: "
-                        << "33 particles per triangle element is only valid for undistorted triangles." << std::endl;
+                    KRATOS_WARNING("MPMParticleGeneratorUtility") << "33 particles per triangle element is only valid for undistorted triangles." << std::endl;
                     rN = MP33ShapeFunctions();
                     break;
                 }
@@ -846,7 +842,7 @@ namespace MPMParticleGeneratorUtility
                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1, 3, 6, 12, 16 (only 2D), and 33 (only 2D).\n";
                 warning_msg += "The default number of particle: 3 is currently assumed.";
-                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
                 break;
             }
         }
@@ -873,7 +869,7 @@ namespace MPMParticleGeneratorUtility
                 warning_msg += " is not available for Quadrilateral" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1, 4, 9, 16.\n";
                 warning_msg += "The default number of particle: 4 is currently assumed.";
-                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
                 break;
             }
         }
@@ -898,7 +894,7 @@ namespace MPMParticleGeneratorUtility
                 warning_msg += " is not available for Line" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1 (default), 2, 3, 4, 5.\n";
                 warning_msg += "The default number of particle: 1 is currently assumed.";
-                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
             }
             
         }
@@ -924,7 +920,7 @@ namespace MPMParticleGeneratorUtility
                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1 (default), 3, 6 and 12.\n";
                 warning_msg += "The default number of particle: 1 is currently assumed.";
-                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                KRATOS_WARNING("MPMParticleGeneratorUtility") << warning_msg << std::endl;
                 break;
             }
 
@@ -951,7 +947,7 @@ namespace MPMParticleGeneratorUtility
                 warning_msg += " is not available for Triangular" + std::to_string(domain_size) + "D.\n";
                 warning_msg += "Available options are: 1 (default), 4, 9 and 16.\n";
                 warning_msg += "The default number of particle: 1 is currently assumed.";
-                KRATOS_INFO("MPMParticleGeneratorUtility") << "WARNING: " << warning_msg << std::endl;
+                KRATOS_WARNING("MPMParticleGeneratorUtility") <<  warning_msg << std::endl;
                 break;
             }
 
