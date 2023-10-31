@@ -231,16 +231,26 @@ void SearchWrapper<TSearchObject>::LocalSearchNearest(
     if constexpr (IsGeometricalObjectBins) {
         rResult = mpSearchObject->SearchNearest(rPoint);
     } else { // Using trees
-        // Get the rank
-        const int rank = GetRank();
+        // The local bounding box
+        const auto& r_local_bb = mpSearchObject->GetBoundingBox(); 
 
-        // Search nearest
-        double distance;
-        auto p_point = mpSearchObject->SearchNearestPoint(rPoint, distance);
+        // Compute the bounding box max radius
+        const array_1d<double, 3> box_size = r_local_bb.GetMaxPoint() - r_local_bb.GetMinPoint();
+        const double max_radius= *std::max_element(box_size.begin(), box_size.end());
 
-        // Set the result
-        rResult = ResultType((p_point->pGetObject()).get(), rank);
-        rResult.SetDistance(distance);
+        // We search in a radius of the maximum radius
+        if (max_radius > ZeroTolerance) {
+            // Get the rank
+            const int rank = GetRank();
+
+            // Search nearest
+            double distance;
+            auto p_point = mpSearchObject->SearchNearestPoint(rPoint, distance);
+
+            // Set the result
+            rResult = ResultType((p_point->pGetObject()).get(), rank);
+            rResult.SetDistance(distance);
+        }
     }
 }
 

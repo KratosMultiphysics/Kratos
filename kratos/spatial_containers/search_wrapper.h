@@ -69,6 +69,9 @@ public:
     /// Trees types definitions
     using DistanceVector = std::vector<double>;
 
+    /// Define Zero tolerance as epsilon
+    static constexpr double ZeroTolerance = std::numeric_limits<double>::epsilon();
+
     /// Some constexpr flags
     static constexpr bool IsGeometricalObjectBins = std::is_same_v<TSearchObject, GeometricalObjectsBins>;
 
