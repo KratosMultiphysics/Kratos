@@ -179,6 +179,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         Matrix shape_function = ZeroMatrix(block_size, matrix_size);
         for (unsigned int i = 0; i < number_of_nodes; i++)
         {
+            // constrain only the movement of the nodes which are conntected to the body
             if (r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0) >= std::numeric_limits<double>::epsilon() )
             {
                 for (unsigned int j = 0; j < dimension; j++)
@@ -243,14 +244,10 @@ void MPMParticlePenaltyDirichletCondition::FinalizeNonLinearIteration(const Proc
         for (unsigned int j = 0; j < dimension; j++)
             nodal_force[j] = rRightHandSideVector[block_size * i + j];
 
-        // Check whether there nodes are active and associated to material point elements
-        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
-        if (nodal_mass > std::numeric_limits<double>::epsilon())
-        {
             r_geometry[i].SetLock();
             r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
             r_geometry[i].UnSetLock();
-        }
+
 
     }
 
@@ -298,15 +295,13 @@ void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(const 
     array_1d<double, 3 > mpc_force = ZeroVector(3);
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        // Check whether there is material point inside the node
-        const double& nodal_mass = r_geometry[i].FastGetSolutionStepValue(NODAL_MASS, 0);
         double nodal_area  = 0.0;        
         if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
             nodal_area= r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
 
         const Vector nodal_force = r_geometry[i].FastGetSolutionStepValue(REACTION);
 
-        if (nodal_mass > std::numeric_limits<double>::epsilon() && nodal_area > std::numeric_limits<double>::epsilon())
+        if (nodal_area > std::numeric_limits<double>::epsilon())
         {
             mpc_force += Variables.N[i] * nodal_force * r_mpc_area / nodal_area;
         }
