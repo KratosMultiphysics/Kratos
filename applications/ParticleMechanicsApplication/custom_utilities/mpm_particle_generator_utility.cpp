@@ -274,8 +274,6 @@ namespace MPMParticleGeneratorUtility
                         const bool is_neumann_condition = i->GetValue(MPC_IS_NEUMANN);
                         const int boundary_condition_type = i->GetValue(MPC_BOUNDARY_CONDITION_TYPE);
 
-
-
                         // Check number of particles per condition to be created
                         unsigned int particles_per_condition = 0; // Default zero
                         if (i->Has( PARTICLES_PER_CONDITION )){
@@ -321,11 +319,9 @@ namespace MPMParticleGeneratorUtility
                             }
                             else{
                                 KRATOS_WARNING("MPMParticleGeneratorUtility") << "Equal distribution of particle conditions only available for line segments:  "  << std::endl;
-
                             }
                         }
                         else{
-
                             if (geo_type != GeometryData::KratosGeometryType::Kratos_Point2D  && geo_type != GeometryData::KratosGeometryType::Kratos_Point3D)
                             {
                                 DetermineGeometryIntegrationMethod(r_geometry, particles_per_condition,
@@ -335,7 +331,6 @@ namespace MPMParticleGeneratorUtility
                                 r_geometry.CreateIntegrationPoints(integration_points,integration_info);
                                 integration_method = integration_info.GetIntegrationMethod(0);
                             }
-
                         }
                         
                         // Check condition variables
@@ -389,7 +384,6 @@ namespace MPMParticleGeneratorUtility
                             typename BinBasedFastPointLocator<TDimension>::ResultIteratorType result_begin = results.begin();
                             Element::Pointer pelem;
                             Vector N;
-
 
                             // FindPointOnMesh find the background element in which a given point falls and the relative shape functions
                             bool is_found = SearchStructure.FindPointOnMesh(mpc_xg[0], N, pelem, result_begin);
@@ -494,7 +488,6 @@ namespace MPMParticleGeneratorUtility
                                     {
                                         p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor , process_info);
                                     }
-
 
                                     if (is_slip)
                                         p_condition->Set(SLIP);
