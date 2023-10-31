@@ -88,10 +88,10 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Calculat
 
         if constexpr (Dimension == 2) {
             CLutils::CalculateElasticMatrixPlaneStrain(r_constitutive_matrix, E, poisson_ratio);
-            AdvCLutils::SubstractThermalStrain(r_strain_vector, ReferenceTemperature, rParameters, true);
+            AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues, true);
         } else if constexpr (Dimension == 3) {
             CLutils::CalculateElasticMatrix(r_constitutive_matrix, E, poisson_ratio);
-            AdvCLutils::SubstractThermalStrain(r_strain_vector, ReferenceTemperature, rParameters);
+            AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
         }
 
         this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
@@ -160,10 +160,13 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Finalize
         auto& r_constitutive_matrix = rValues.GetConstitutiveMatrix();
         const double E = AdvCLutils::GetMaterialPropertyThroughAccessor(YOUNG_MODULUS, rValues);
         const double poisson_ratio = AdvCLutils::GetMaterialPropertyThroughAccessor(POISSON_RATIO, rValues);
+
         if constexpr (Dimension == 2) {
             CLutils::CalculateElasticMatrixPlaneStrain(r_constitutive_matrix, E, poisson_ratio);
+            AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues, true);
         } else if constexpr (Dimension == 3) {
             CLutils::CalculateElasticMatrix(r_constitutive_matrix, E, poisson_ratio);
+            AdvCLutils::SubstractThermalStrain(r_strain_vector, mReferenceTemperature, rValues);
         }
 
         this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
