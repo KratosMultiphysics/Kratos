@@ -349,32 +349,6 @@ void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Va
     }
 }
 
-void MPMParticlePenaltyDirichletCondition::CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-    std::vector<array_1d<double, 3 > >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    if (rValues.size() != 1)
-        rValues.resize(1);
-
-    MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints(
-        rVariable, rValues, rCurrentProcessInfo);
-
-}
-
-void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(
-    const Variable<array_1d<double, 3 > >& rVariable,
-    const std::vector<array_1d<double, 3 > >& rValues,
-    const ProcessInfo& rCurrentProcessInfo)
-{
-    KRATOS_ERROR_IF(rValues.size() > 1)
-        << "Only 1 value per integration point allowed! Passed values vector size: "
-        << rValues.size() << std::endl;
-
-    MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints(
-        rVariable, rValues, rCurrentProcessInfo);
-
-}
-
 void MPMParticlePenaltyDirichletCondition::SetValuesOnIntegrationPoints(const Variable<double>& rVariable,
     const std::vector<double>& rValues,
     const ProcessInfo& rCurrentProcessInfo)

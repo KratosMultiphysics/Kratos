@@ -60,6 +60,9 @@ public:
     /// Counted pointer of MPMParticlePenaltyDirichletCondition
     KRATOS_CLASS_INTRUSIVE_POINTER_DEFINITION( MPMParticlePenaltyDirichletCondition );
 
+    using MPMParticleBaseDirichletCondition::CalculateOnIntegrationPoints;
+    using MPMParticleBaseDirichletCondition::SetValuesOnIntegrationPoints;
+
     ///@}
     ///@name Life Cycle
     ///@{
@@ -132,10 +135,6 @@ public:
         std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void CalculateOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
-
     ///@}
     ///@name Access Set Values
     ///@{
@@ -144,9 +143,6 @@ public:
         const std::vector<double>& rValues,
         const ProcessInfo& rCurrentProcessInfo) override;
 
-    void SetValuesOnIntegrationPoints(const Variable<array_1d<double, 3 > >& rVariable,
-        const std::vector<array_1d<double, 3 > >& rValues,
-        const ProcessInfo& rCurrentProcessInfo) override;
     ///@}
 
 protected:
