@@ -511,25 +511,25 @@ KRATOS_TEST_CASE_IN_SUITE(SearchWrapperKDTreeElementSearchNearestEmpty, KratosCo
     TestTreeSearchNearestEmpty<SearchWrapperKDTreeElement>();
 }
 
-// /** Checks SearchWrapper works for OCTreeElement search nearest
-// */
-// KRATOS_TEST_CASE_IN_SUITE(SearchWrapperOCTreeElementSearchNearestEmpty, KratosCoreFastSuite)
-// {
-//     TestTreeSearchNearestEmpty<SearchWrapperOCTreeElement>();
-// }
+/** Checks SearchWrapper works for OCTreeElement search nearest
+*/
+KRATOS_TEST_CASE_IN_SUITE(SearchWrapperOCTreeElementSearchNearestEmpty, KratosCoreFastSuite)
+{
+    TestTreeSearchNearestEmpty<SearchWrapperOCTreeElement>();
+}
 
-// /** Checks SearchWrapper works for StaticBinsTree search nearest
-// */
-// KRATOS_TEST_CASE_IN_SUITE(SearchWrapperStaticBinsTreeElementSearchNearestEmpty, KratosCoreFastSuite)
-// {
-//     TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElement>();
-// }
+/** Checks SearchWrapper works for StaticBinsTree search nearest
+*/
+KRATOS_TEST_CASE_IN_SUITE(SearchWrapperStaticBinsTreeElementSearchNearestEmpty, KratosCoreFastSuite)
+{
+    TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElement>();
+}
 
-// /** Checks SearchWrapper works for BinsDynamicElement search nearest
-// */
-// KRATOS_TEST_CASE_IN_SUITE(SearchWrapperBinsDynamicElementSearchNearestEmpty, KratosCoreFastSuite)
-// {
-//     TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElement>();
-// }
+/** Checks SearchWrapper works for BinsDynamicElement search nearest
+*/
+KRATOS_TEST_CASE_IN_SUITE(SearchWrapperBinsDynamicElementSearchNearestEmpty, KratosCoreFastSuite)
+{
+    TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElement>();
+}
 
 } // namespace Kratos::Testing.
