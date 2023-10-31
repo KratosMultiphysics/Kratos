@@ -240,6 +240,19 @@ public:
     ///@name Public operators
     ///@{
 
+    /**
+     * @brief Returns a flattened container expression.
+     *
+     * This returns a flattened container expression (which does not include any
+     * combination of any Expression except for a LiteralFlatExpression). A
+     * LiteralFlatExpression is created. The data represented by the underlying Expression
+     * in this ContainerExpression is put on that LiteralFlatExpression. Shape of the
+     * original ContainerExpression is preserved.
+     *
+     * @return ContainerExpression          Returns a flattened container expression.
+     */
+    ContainerExpression Flatten() const;
+
     /** @brief Returns a slice of the provided expression. Slicing is based on item components.
      *  @details @see Kratos::Slice.
      *  @param Offset Offset of the component to start slicing at.
@@ -264,6 +277,15 @@ public:
      *  @param rOthers Expressions to comb components from.
      */
     ContainerExpression Comb(const std::vector<Pointer>& rOthers) const;
+
+    /**
+     * @brief Returns a ContainerExpression having absolute values in all components.
+     *
+     * The ItemShape, number of entities are preserved.
+     *
+     * @return ContainerExpression  Expression with absolute values.
+     */
+    ContainerExpression Abs() const;
 
     ContainerExpression& operator+=(const double Value);
 

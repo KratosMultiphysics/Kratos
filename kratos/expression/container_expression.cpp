@@ -16,6 +16,7 @@
 
 // Project includes
 #include "includes/define.h"
+#include "expression/unary_abs_expression.h"
 #include "expression/unary_combine_expression.h"
 #include "expression/unary_reshape_expression.h"
 #include "expression/unary_slice_expression.h"
@@ -259,6 +260,16 @@ std::string ContainerExpression<TContainerType, TMeshType>::PrintData() const
     return msg.str();
 }
 
+template <class TContainer, MeshType TMesh>
+ContainerExpression<TContainer, TMesh> ContainerExpression<TContainer,TMesh>::Flatten() const
+{
+    KRATOS_TRY
+    auto copy = *this;
+    copy.SetExpression(this->GetExpression().Flatten());
+    return copy;
+    KRATOS_CATCH("");
+}
+
 
 template <class TContainer, MeshType TMesh>
 ContainerExpression<TContainer, TMesh> ContainerExpression<TContainer,TMesh>::Slice(IndexType Offset, IndexType Stride) const
@@ -329,6 +340,18 @@ ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Com
     ));
 
     return copy;
+    KRATOS_CATCH("");
+}
+
+template <class TContainer, MeshType TMesh>
+ContainerExpression<TContainer,TMesh> ContainerExpression<TContainer,TMesh>::Abs() const
+{
+    KRATOS_TRY
+
+    auto copy = *this;
+    copy.SetExpression(UnaryAbsExpression::Create(this->pGetExpression()));
+    return copy;
+
     KRATOS_CATCH("");
 }
 
