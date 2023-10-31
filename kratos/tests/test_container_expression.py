@@ -665,6 +665,21 @@ class TestContainerExpression(ABC):
             velocity = Kratos.Array3([vector[i * 3], vector[i * 3 + 1], vector[i * 3 + 2]])
             self.assertVectorAlmostEqual(velocity, self._GetValue(entity, Kratos.VELOCITY))
 
+    def test_Abs(self):
+        a = self._GetContainerExpression()
+        self._Read(a, Kratos.VELOCITY)
+
+        a *= -1
+        vector = Kratos.Vector()
+        Kratos.Expression.CArrayExpressionIO.Write(a, vector)
+
+        b = a.Abs()
+        self._Evaluate(b, Kratos.ACCELERATION)
+        for i, entity in enumerate(a.GetContainer()):
+            velocity = Kratos.Array3([vector[i * 3], vector[i * 3 + 1], vector[i * 3 + 2]]) * -1
+            self.assertVectorAlmostEqual(velocity, self._GetValue(entity, Kratos.VELOCITY))
+            self.assertVectorAlmostEqual(velocity, self._GetValue(entity, Kratos.ACCELERATION))
+
     @abstractmethod
     def _GetContainerExpression(self) -> Union[Kratos.Expression.NodalExpression, Kratos.Expression.ElementExpression, Kratos.Expression.ConditionExpression]:
         pass
