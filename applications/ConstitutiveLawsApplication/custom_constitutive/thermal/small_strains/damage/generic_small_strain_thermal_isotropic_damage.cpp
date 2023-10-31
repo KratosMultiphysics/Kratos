@@ -88,8 +88,10 @@ void GenericSmallStrainThermalIsotropicDamage<TConstLawIntegratorType>::Calculat
 
         if constexpr (Dimension == 2) {
             CLutils::CalculateElasticMatrixPlaneStrain(r_constitutive_matrix, E, poisson_ratio);
+            AdvCLutils::SubstractThermalStrain(r_strain_vector, ReferenceTemperature, rParameters, true);
         } else if constexpr (Dimension == 3) {
             CLutils::CalculateElasticMatrix(r_constitutive_matrix, E, poisson_ratio);
+            AdvCLutils::SubstractThermalStrain(r_strain_vector, ReferenceTemperature, rParameters);
         }
 
         this->template AddInitialStrainVectorContribution<Vector>(r_strain_vector);
