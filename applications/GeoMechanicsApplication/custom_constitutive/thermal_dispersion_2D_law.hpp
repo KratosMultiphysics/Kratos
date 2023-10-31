@@ -37,7 +37,8 @@ public:
      * @brief It calculates the constitutive matrix C
      * @param C The constitutive matrix
      */
-    static void CalculateThermalDispersionMatrix(Matrix& C, const Properties& rValues);
+    static void CalculateThermalDispersionMatrix(Matrix& rThermalDispersionMatrix,
+                                                 const Properties& rValues);
 
 private:
     friend class Serializer;
