@@ -47,7 +47,6 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
                 first_code_line = False
                 restart_code_line = False
 
-            # self.TimePreviousPlotting = self.time
             id_for_print = self.project_parameters["fatigue"]["element_gausspoint_print"][0].GetInt()
             id_gauss_point = self.project_parameters["fatigue"]["element_gausspoint_print"][1].GetInt()
             self.main_model_part = self.model.GetModelPart(self.project_parameters["solver_settings"]["model_part_name"].GetString())
@@ -60,13 +59,10 @@ class HighCycleFatigueAnalysis(StructuralMechanicsAnalysis):
                     if elem.Id == id_for_print:
                         if self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.STEP] == 1:
                             previous_number_of_cycles = 0
-                            # first_step = True
                         elif self._GetSolver().GetComputingModelPart().ProcessInfo[KratosMultiphysics.IS_RESTARTED]:
                             previous_number_of_cycles = elem.CalculateOnIntegrationPoints(KratosMultiphysics.NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)[id_gauss_point] - 1
-                            # first_step = False
                         else:                        
                             previous_number_of_cycles = self.project_parameters["fatigue"]["previous_cycle"].GetInt()
-                            # first_step = False
                         
                         number_of_cycles = elem.CalculateOnIntegrationPoints(KratosMultiphysics.NUMBER_OF_CYCLES, self.main_model_part.ProcessInfo)
                         if number_of_cycles[id_gauss_point] > previous_number_of_cycles:
