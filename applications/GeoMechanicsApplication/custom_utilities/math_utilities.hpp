@@ -11,8 +11,7 @@
 //                   Vahid Galavi
 //
 
-#if !defined(KRATOS_GEO_MECHANICS_MATH_UTILITIES_H_INCLUDED)
-#define KRATOS_GEO_MECHANICS_MATH_UTILITIES_H_INCLUDED
+#pragma once
 
 
 #ifdef FIND_MAX
@@ -1233,8 +1232,6 @@ public:
         else
             return true;
     }
-
-private:
 };// class GeoMechanicsMathUtilities
+
 }
-#endif /* KRATOS_GEO_MECHANICS_MATH_UTILITIESS_H_INCLUDED defined */
