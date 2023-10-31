@@ -25,7 +25,6 @@ namespace Kratos {
  */
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalDispersion2DLaw : public ConstitutiveLaw {
 public:
-    using CLBaseType = ConstitutiveLaw;
 
     /// Counted pointer of LinearPlaneStrainK0Law
     KRATOS_CLASS_POINTER_DEFINITION(GeoThermalDispersion2DLaw);

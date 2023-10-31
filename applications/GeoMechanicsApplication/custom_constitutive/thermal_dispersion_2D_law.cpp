@@ -22,9 +22,10 @@ ConstitutiveLaw::Pointer GeoThermalDispersion2DLaw::Clone() const
     return Kratos::make_shared<GeoThermalDispersion2DLaw>(*this);
 }
 
-SizeType ConstitutiveLaw::WorkingSpaceDimension()
+SizeType GeoThermalDispersion2DLaw::WorkingSpaceDimension()
 {
-    return 2;
+    constexpr SizeType space_dimension = 2;
+    return space_dimension;
 }
 
 void GeoThermalDispersion2DLaw::CalculateThermalDispersionMatrix(Matrix& C, const Properties& rProp)
