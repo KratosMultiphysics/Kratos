@@ -105,15 +105,18 @@ public:
         if constexpr (IsGeometricalObjectBins) {
             mpSearchObject = Kratos::make_shared<TSearchObject>(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end());
         } else { // Otherwise we assume it will be some kind of spatial search
-            // Defining the PointVector
-            mpPointVector = Kratos::make_unique<PointVector>(SearchUtilities::PreparePointsSearch(rGeometricalObjectsVector));
-            
-            // Create the search object
-            if constexpr (!IsDynamicBins) {
-                const int bucket_size = mSettings["bucket_size"].GetInt();
-                mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end(), bucket_size);
-            } else {
-                mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end());
+            // Prepare the point vector if geometrical objects are provided
+            if (rGeometricalObjectsVector.size() > 0) {
+                // Defining the PointVector
+                mpPointVector = Kratos::make_unique<PointVector>(SearchUtilities::PreparePointsSearch(rGeometricalObjectsVector));
+                
+                // Create the search object
+                if constexpr (!IsDynamicBins) {
+                    const int bucket_size = mSettings["bucket_size"].GetInt();
+                    mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end(), bucket_size);
+                } else {
+                    mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end());
+                }
             }
         }
 

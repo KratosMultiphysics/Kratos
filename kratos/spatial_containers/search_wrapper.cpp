@@ -161,20 +161,23 @@ void SearchWrapper<TSearchObject>::LocalSearchInRadius(
     if constexpr (IsGeometricalObjectBins) {
         mpSearchObject->SearchInRadius(rPoint, Radius, rResults);
     } else { // Using trees
-        PointVector results(AllocationSize);
-        DistanceVector results_distances(AllocationSize);
-        const std::size_t number_of_results = mpSearchObject->SearchInRadius(rPoint, Radius, results.begin(), results_distances.begin(), AllocationSize);
-        if (number_of_results > 0) {
-            // Get the rank
-            const int rank = GetRank();
+        // We search if geometrical objects are provided
+        if (mpPointVector) {
+            PointVector results(AllocationSize);
+            DistanceVector results_distances(AllocationSize);
+            const std::size_t number_of_results = mpSearchObject->SearchInRadius(rPoint, Radius, results.begin(), results_distances.begin(), AllocationSize);
+            if (number_of_results > 0) {
+                // Get the rank
+                const int rank = GetRank();
 
-            // Set the results
-            rResults.reserve(number_of_results);
-            for (std::size_t i = 0; i < number_of_results; ++i) {
-                auto p_point = results[i];
-                const double distance = results_distances[i];
-                rResults.emplace_back((p_point->pGetObject()).get(), rank);
-                rResults[i].SetDistance(distance);
+                // Set the results
+                rResults.reserve(number_of_results);
+                for (std::size_t i = 0; i < number_of_results; ++i) {
+                    auto p_point = results[i];
+                    const double distance = results_distances[i];
+                    rResults.emplace_back((p_point->pGetObject()).get(), rank);
+                    rResults[i].SetDistance(distance);
+                }
             }
         }
     }
@@ -195,25 +198,28 @@ void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
     if constexpr (IsGeometricalObjectBins) {
         rResult = mpSearchObject->SearchNearestInRadius(rPoint, Radius);
     } else { // Using trees
-        PointVector results(AllocationSize);
-        DistanceVector results_distances(AllocationSize);
-        const std::size_t number_of_results = mpSearchObject->SearchInRadius(rPoint, Radius, results.begin(), results_distances.begin(), AllocationSize);
-        if (number_of_results > 0) {
-            // Resize the results
-            results_distances.resize(number_of_results);
+        // We search if geometrical objects are provided
+        if (mpPointVector) {
+            PointVector results(AllocationSize);
+            DistanceVector results_distances(AllocationSize);
+            const std::size_t number_of_results = mpSearchObject->SearchInRadius(rPoint, Radius, results.begin(), results_distances.begin(), AllocationSize);
+            if (number_of_results > 0) {
+                // Resize the results
+                results_distances.resize(number_of_results);
 
-            // Get the rank
-            const int rank = GetRank();
-            
-            // Find the iterator pointing to the smallest value
-            auto it_min = std::min_element(results_distances.begin(), results_distances.end());
+                // Get the rank
+                const int rank = GetRank();
+                
+                // Find the iterator pointing to the smallest value
+                auto it_min = std::min_element(results_distances.begin(), results_distances.end());
 
-            // Calculate the index
-            IndexType index = std::distance(results_distances.begin(), it_min);
+                // Calculate the index
+                IndexType index = std::distance(results_distances.begin(), it_min);
 
-            // Set the result
-            rResult = ResultType((results[index]->pGetObject()).get(), rank);
-            rResult.SetDistance(results_distances[index]);
+                // Set the result
+                rResult = ResultType((results[index]->pGetObject()).get(), rank);
+                rResult.SetDistance(results_distances[index]);
+            }
         }
     }
 }
@@ -231,15 +237,8 @@ void SearchWrapper<TSearchObject>::LocalSearchNearest(
     if constexpr (IsGeometricalObjectBins) {
         rResult = mpSearchObject->SearchNearest(rPoint);
     } else { // Using trees
-        // The local bounding box
-        const auto& r_local_bb = mpSearchObject->GetBoundingBox(); 
-
-        // Compute the bounding box max radius
-        const array_1d<double, 3> box_size = r_local_bb.GetMaxPoint() - r_local_bb.GetMinPoint();
-        const double max_radius= *std::max_element(box_size.begin(), box_size.end());
-
-        // We search in a radius of the maximum radius
-        if (max_radius > ZeroTolerance) {
+        // We search if geometrical objects are provided
+        if (mpPointVector) {
             // Get the rank
             const int rank = GetRank();
 
