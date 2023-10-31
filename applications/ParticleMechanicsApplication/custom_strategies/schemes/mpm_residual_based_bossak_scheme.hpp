@@ -551,9 +551,7 @@ protected:
         #pragma omp parallel for
         for (int iter = 0; iter < static_cast<int>(mGridModelPart.Nodes().size()); ++iter) {
             auto i = mGridModelPart.NodesBegin() + iter;
-            (i)->SetLock();
             (i)->FastGetSolutionStepValue(REACTION).clear();
-            (i)->UnSetLock();
         }
     }
 
