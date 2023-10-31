@@ -244,9 +244,9 @@ void MPMParticlePenaltyDirichletCondition::FinalizeNonLinearIteration(const Proc
         for (unsigned int j = 0; j < dimension; j++)
             nodal_force[j] = rRightHandSideVector[block_size * i + j];
 
-            r_geometry[i].SetLock();
-            r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
-            r_geometry[i].UnSetLock();
+        r_geometry[i].SetLock();
+        r_geometry[i].FastGetSolutionStepValue(REACTION) += nodal_force;
+        r_geometry[i].UnSetLock();
 
 
     }
