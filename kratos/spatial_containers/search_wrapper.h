@@ -102,13 +102,13 @@ public:
             mpSearchObject = Kratos::make_shared<TSearchObject>(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end());
         } else { // Otherwise we assume it will be some kind of spatial search
             // Defining the PointVector
-            PointVector points = SearchUtilities::PreparePointsSearch(rGeometricalObjectsVector);
+            mpPointVector = Kratos::make_unique<PointVector>(SearchUtilities::PreparePointsSearch(rGeometricalObjectsVector));
             
             // Retrieving parameters
             const int bucket_size = mSettings["bucket_size"].GetInt();
 
             // Create the search
-            mpSearchObject = Kratos::make_shared<TSearchObject>(points.begin(), points.end(), bucket_size);
+            mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end(), bucket_size);
         }
 
     #ifdef KRATOS_USING_MPI
@@ -306,10 +306,11 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename TSearchObject::Pointer mpSearchObject; /// The pointer to the base search considered
-    std::vector<double> mGlobalBoundingBoxes;       /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
-    const DataCommunicator& mrDataCommunicator;     /// The data communicator
-    Parameters mSettings;                           /// The settings considered
+    typename TSearchObject::Pointer mpSearchObject;            /// The pointer to the base search considered
+    Kratos::unique_ptr<PointVector> mpPointVector =  nullptr;  /// The point vector considered in the search trees
+    std::vector<double> mGlobalBoundingBoxes;                  /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
+    const DataCommunicator& mrDataCommunicator;                /// The data communicator
+    Parameters mSettings;                                      /// The settings considered
 
     ///@}
     ///@name Private Operators
