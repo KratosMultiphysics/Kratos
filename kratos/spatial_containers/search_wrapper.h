@@ -74,6 +74,7 @@ public:
 
     /// Some constexpr flags
     static constexpr bool IsGeometricalObjectBins = std::is_same_v<TSearchObject, GeometricalObjectsBins>;
+    static constexpr bool IsDynamicBins = std::is_same_v<TSearchObject, BinsDynamic<3ul, PointType, PointVector>>;
 
     ///@}
     ///@name Life Cycle
@@ -107,11 +108,13 @@ public:
             // Defining the PointVector
             mpPointVector = Kratos::make_unique<PointVector>(SearchUtilities::PreparePointsSearch(rGeometricalObjectsVector));
             
-            // Retrieving parameters
-            const int bucket_size = mSettings["bucket_size"].GetInt();
-
-            // Create the search
-            mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end(), bucket_size);
+            // Create the search object
+            if constexpr (!IsDynamicBins) {
+                const int bucket_size = mSettings["bucket_size"].GetInt();
+                mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end(), bucket_size);
+            } else {
+                mpSearchObject = Kratos::make_shared<TSearchObject>(mpPointVector->begin(), mpPointVector->end());
+            }
         }
 
     #ifdef KRATOS_USING_MPI

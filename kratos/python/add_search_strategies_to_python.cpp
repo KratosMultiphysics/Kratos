@@ -757,6 +757,11 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     DefineSearchWrapper<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>(m, "SearchWrapperStaticBinsTreeNode");
     DefineSearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>(m, "SearchWrapperStaticBinsTreeElement");
     DefineSearchWrapper<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>(m, "SearchWrapperStaticBinsTreeCondition");
+
+    // DynamicBins
+    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>(m, "SearchWrapperDynamicBinsNode");
+    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>(m, "SearchWrapperDynamicBinsElement");
+    DefineSearchWrapper<BinsDynamic<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>(m, "SearchWrapperDynamicBinsCondition");
 }
 
 }  // namespace Kratos::Python.
