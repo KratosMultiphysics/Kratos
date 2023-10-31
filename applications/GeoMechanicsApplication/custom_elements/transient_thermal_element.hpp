@@ -137,12 +137,10 @@ protected:
     GeometryData::IntegrationMethod GetIntegrationMethod() const override;
 
 private:
-    void VerifyProperty(Kratos::Variable<double>& rVariable,
-                        const std::string& rVariableName) const;
+    void VerifyProperty(Kratos::Variable<double>& rVariable) const;
     void CheckDomainSize() const;
     void CheckSolutionStepsData(int rId,
-                                Kratos::Variable<double>& rVariable,
-                                const std::string& rVariableName) const;
+                                Kratos::Variable<double>& rVariable) const;
 
     bool mIsInitialised = false;
 

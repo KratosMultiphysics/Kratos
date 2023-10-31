@@ -119,32 +119,27 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     const GeometryType& rGeom = GetGeometry();
 
     for (unsigned int i = 0; i < TNumNodes; ++i) {
-        CheckSolutionStepsData(i, TEMPERATURE, "TEMPERATURE");
-        CheckSolutionStepsData(i, DT_TEMPERATURE, "DT_TEMPERATURE");
+        CheckSolutionStepsData(i, TEMPERATURE);
+        CheckSolutionStepsData(i, DT_TEMPERATURE);
         if (!rGeom[i].HasDofFor(TEMPERATURE)) {
             KRATOS_ERROR << "missing degree of freedom for TEMPERATURE on node "
                          << rGeom[i].Id() << std::endl;
         }
     }
 
-    VerifyProperty(DENSITY_WATER, "DENSITY_WATER");
-    VerifyProperty(POROSITY, "POROSITY");
-    VerifyProperty(SATURATION, "SATURATION");
-    VerifyProperty(DENSITY_SOLID, "DENSITY_SOLID");
-    VerifyProperty(SPECIFIC_HEAT_CAPACITY_WATER,
-                   "SPECIFIC_HEAT_CAPACITY_WATER");
-    VerifyProperty(SPECIFIC_HEAT_CAPACITY_SOLID,
-                   "SPECIFIC_HEAT_CAPACITY_SOLID");
-    VerifyProperty(THERMAL_CONDUCTIVITY_WATER, "THERMAL_CONDUCTIVITY_WATER");
-    VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XX,
-                   "THERMAL_CONDUCTIVITY_SOLID_XX");
-    VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_YY,
-                   "THERMAL_CONDUCTIVITY_SOLID_YY");
-    VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XY,
-                   "THERMAL_CONDUCTIVITY_SOLID_XY");
-    VerifyProperty(LONGITUDINAL_DISPERSIVITY, "LONGITUDINAL_DISPERSIVITY");
-    VerifyProperty(TRANSVERSE_DISPERSIVITY, "TRANSVERSE_DISPERSIVITY");
-    VerifyProperty(SOLID_COMPRESSIBILITY, "SOLID_COMPRESSIBILITY");
+    VerifyProperty(DENSITY_WATER);
+    VerifyProperty(POROSITY);
+    VerifyProperty(SATURATION);
+    VerifyProperty(DENSITY_SOLID);
+    VerifyProperty(SPECIFIC_HEAT_CAPACITY_WATER);
+    VerifyProperty(SPECIFIC_HEAT_CAPACITY_SOLID);
+    VerifyProperty(THERMAL_CONDUCTIVITY_WATER);
+    VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XX);
+    VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_YY);
+    VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XY);
+    VerifyProperty(LONGITUDINAL_DISPERSIVITY);
+    VerifyProperty(TRANSVERSE_DISPERSIVITY);
+    VerifyProperty(SOLID_COMPRESSIBILITY);
 
     if (TDim == 2) {
         auto pos = std::find_if(rGeom.begin(), rGeom.end(),
@@ -156,12 +151,9 @@ int TransientThermalElement<TDim, TNumNodes>::Check(const ProcessInfo& rCurrentP
     }
 
     if (TDim > 2) {
-        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ,
-                       "THERMAL_CONDUCTIVITY_SOLID_ZZ");
-        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_YZ,
-                       "THERMAL_CONDUCTIVITY_SOLID_YZ");
-        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XZ,
-                       "THERMAL_CONDUCTIVITY_SOLID_XZ");
+        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_ZZ);
+        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_YZ);
+        VerifyProperty(THERMAL_CONDUCTIVITY_SOLID_XZ);
     }
 
     KRATOS_CATCH("");
@@ -482,16 +474,15 @@ GeometryData::IntegrationMethod TransientThermalElement<TDim, TNumNodes>::GetInt
 }
 
 template <unsigned int TDim, unsigned int TNumNodes>
-void TransientThermalElement<TDim, TNumNodes>::VerifyProperty(
-    Kratos::Variable<double>& rVariable, const std::string& rVariableName) const
+void TransientThermalElement<TDim, TNumNodes>::VerifyProperty(Kratos::Variable<double>& rVariable) const
 {
     const PropertiesType& rProp = GetProperties();
     if (!rProp.Has(rVariable)) {
-        KRATOS_ERROR << rVariableName
+        KRATOS_ERROR << rVariable.Name()
                      << " does not exist in the material properties." << std::endl;
     }
     else if (rProp[rVariable] < 0.0) {
-        KRATOS_ERROR << rVariableName << " has an invalid value at element"
+        KRATOS_ERROR << rVariable.Name() << " has an invalid value at element"
                      << Id() << "." << std::endl;
     }
 }
@@ -507,11 +498,11 @@ void TransientThermalElement<TDim, TNumNodes>::CheckDomainSize() const
 
 template <unsigned int TDim, unsigned int TNumNodes>
 void TransientThermalElement<TDim, TNumNodes>::CheckSolutionStepsData(
-    int rId, Kratos::Variable<double>& rVariable, const std::string& rVariableName) const
+    int rId, Kratos::Variable<double>& rVariable) const
 {
     const GeometryType& rGeom = GetGeometry();
     if (rGeom[rId].SolutionStepsDataHas(rVariable)) {
-        KRATOS_ERROR << "missing variable" << rVariableName << " on node "
+        KRATOS_ERROR << "missing variable" << rVariable.Name() << " on node "
                      << rGeom[rId].Id() << std::endl;
     }
 }
