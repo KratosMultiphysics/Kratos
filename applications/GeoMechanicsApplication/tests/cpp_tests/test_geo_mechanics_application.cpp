@@ -39,7 +39,10 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalAnalysisVariablesExistAfterRegistration, Kratos
                                                          "SOLID_COMPRESSIBILITY",
                                                          "DT_TEMPERATURE_COEFFICIENT",
                                                          "DT_TEMPERATURE",
-                                                         "NORMAL_HEAT_FLUX"};
+                                                         "NORMAL_HEAT_FLUX",
+                                                         "INDEX_2D_THERMAL_FLUX_X",
+                                                         "INDEX_2D_THERMAL_FLUX_Y",
+                                                         "INDEX_2D_THERMAL_FLUX_Z"};
     for (const auto& name : variable_names) {
         KRATOS_EXPECT_TRUE(KratosComponents<VariableData>::Has(name))
     }
