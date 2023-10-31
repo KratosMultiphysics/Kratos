@@ -14,6 +14,8 @@
 #include <numeric>
 
 // Project includes
+#include "utilities/parallel_utilities.h"
+#include "expression/literal_flat_expression.h"
 
 // Include base h
 #include "expression.h"
@@ -108,6 +110,25 @@ std::size_t Expression::GetItemComponentCount() const
         r_shape.begin(),
         r_shape.end(), 1UL,
         [](const auto V1, const auto V2) { return V1 * V2; });
+}
+
+Expression::ConstPointer Expression::Flatten() const
+{
+    KRATOS_TRY
+
+    auto p_expression = LiteralFlatExpression<double>::Create(this->NumberOfEntities(), this->GetItemShape());
+    const auto number_of_components = this->GetItemComponentCount();
+
+    IndexPartition<IndexType>(this->NumberOfEntities()).for_each([&](const auto Index) {
+        const auto data_begin_index = Index * number_of_components;
+        for (IndexType i = 0; i < number_of_components; ++i) {
+            p_expression->SetData(data_begin_index, i, this->Evaluate(Index, data_begin_index, i));
+        }
+    });
+
+    return p_expression;
+
+    KRATOS_CATCH("");
 }
 
 std::size_t Expression::size() const
