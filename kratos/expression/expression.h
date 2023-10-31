@@ -187,6 +187,19 @@ public:
      */
     IndexType GetItemComponentCount() const;
 
+    /**
+     * @brief Get the Flat Expression
+     *
+     * Returns an expression containing a flattened expression. This will always
+     * be a LiteralFlatExpression. This keeps the item shape as it is.
+     *
+     * The flattened expression does not include any other expression combinations
+     * except the LiteralFlatExpression.
+     *
+     * @return Expression::ConstPointer     Flattened expression
+     */
+    ConstPointer Flatten() const;
+
     ///@}
     ///@name Input and output
     ///@{
