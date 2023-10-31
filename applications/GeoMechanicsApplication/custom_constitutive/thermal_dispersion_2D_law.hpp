@@ -33,10 +33,6 @@ public:
 
     SizeType WorkingSpaceDimension() override;
 
-    /**
-     * @brief It calculates the constitutive matrix C
-     * @param C The constitutive matrix
-     */
     static void CalculateThermalDispersionMatrix(Matrix& rThermalDispersionMatrix,
                                                  const Properties& rValues);
 
