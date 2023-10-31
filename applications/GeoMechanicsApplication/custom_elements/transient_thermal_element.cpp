@@ -193,8 +193,8 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateAll(
         CalculateKinematics(Variables, GPoint);
 
         // Compute weighting coefficient for integration
-        Variables.IntegrationCoefficient = CalculateIntegrationCoefficient(
-            IntegrationPoints, GPoint, Variables.detJ);
+        Variables.IntegrationCoefficient =
+            CalculateIntegrationCoefficient(IntegrationPoints, GPoint, Variables.detJ);
 
         if (CalculateStiffnessMatrixFlag) {
             CalculateAndAddLHS(rLeftHandSideMatrix, Variables);
@@ -235,9 +235,8 @@ void TransientThermalElement<TDim, TNumNodes>::InitializeElementVariables(
     // gradient of shape functions and determinant of Jacobian
     rVariables.detJContainer.resize(NumGPoints, false);
 
-    rGeom.ShapeFunctionsIntegrationPointsGradients(rVariables.DN_DXContainer,
-                                                   rVariables.detJContainer,
-                                                   GetIntegrationMethod());
+    rGeom.ShapeFunctionsIntegrationPointsGradients(
+        rVariables.DN_DXContainer, rVariables.detJContainer, GetIntegrationMethod());
 
     KRATOS_CATCH("")
 }
@@ -467,7 +466,7 @@ template <unsigned int TDim, unsigned int TNumNodes>
 GeometryData::IntegrationMethod TransientThermalElement<TDim, TNumNodes>::GetIntegrationMethod() const
 {
     using Data = GeometryData::IntegrationMethod;
-    
+
     switch (TNumNodes) {
     case 3:
         return Data::GI_GAUSS_2;
