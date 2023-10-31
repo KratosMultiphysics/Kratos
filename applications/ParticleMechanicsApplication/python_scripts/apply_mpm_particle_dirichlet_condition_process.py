@@ -18,7 +18,6 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 "imposition_type"           : "penalty",
                 "penalty_factor"            : 0,
                 "variable_name"             : "DISPLACEMENT",
-                "modulus"                   : 1.0,
                 "constrained"               : "fixed",
                 "value"                     : [0.0, "0*t", 0.0],
                 "interval"                  : [0.0, 1e30],
@@ -102,7 +101,6 @@ class ApplyMPMParticleDirichletConditionProcess(KratosMultiphysics.Process):
                 self.function_string = settings["value"][i].GetString()
                 self.aux_function[i] = KratosMultiphysics.GenericFunctionUtility(self.function_string, settings["local_axes"])
 
-        self.modulus = settings["modulus"].GetDouble()
 
         # Compute the normal on the nodes of interest
         KratosMultiphysics.NormalCalculationUtils().CalculateOnSimplex(self.model_part, self.model_part.ProcessInfo[KratosMultiphysics.DOMAIN_SIZE])
