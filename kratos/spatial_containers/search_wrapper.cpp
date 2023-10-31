@@ -82,9 +82,9 @@ void SearchWrapper<TSearchObject>::InitializeGlobalBoundingBoxes()
 
         // Set up the local bounding boxes
         std::vector<double> local_bounding_box(6);
-        const auto& r_bb = mpSearchObject->GetBoundingBox();
-        const auto& r_max = r_bb.GetMaxPoint();
-        const auto& r_min = r_bb.GetMinPoint();
+        const auto& r_local_bb = mpSearchObject->GetBoundingBox();
+        const auto& r_max = r_local_bb.GetMaxPoint();
+        const auto& r_min = r_local_bb.GetMinPoint();
         for (int i = 0; i < 3; ++i) {
             local_bounding_box[2 * i] = r_max[i];
             local_bounding_box[2 * i + 1] = r_min[i];
@@ -150,6 +150,118 @@ std::vector<int> SearchWrapper<TSearchObject>::RansksPointIsInsideBoundingBoxWit
 /***********************************************************************************/
 
 template<class TSearchObject>
+void SearchWrapper<TSearchObject>::LocalSearchInRadius(
+    const PointType& rPoint,
+    const double Radius,
+    std::vector<ResultType>& rResults,
+    const int AllocationSize
+    )
+{
+    // If we are using GeometricalObjectBins we can use the optimized search
+    if constexpr (IsGeometricalObjectBins) {
+        mpSearchObject->SearchInRadius(rPoint, Radius, rResults);
+    } else { // Using trees
+        PointVector results(AllocationSize);
+        DistanceVector results_distances(AllocationSize);
+        const std::size_t number_of_results = mpSearchObject->SearchInRadius(rPoint, Radius, results.begin(), results_distances.begin(), AllocationSize);
+        if (number_of_results > 0) {
+            // Get the rank
+            const int rank = GetRank();
+
+            // Set the results
+            rResults.reserve(number_of_results);
+            for (std::size_t i = 0; i < number_of_results; ++i) {
+                auto p_point = results[i];
+                const double distance = results_distances[i];
+                rResults.emplace_back((p_point->pGetObject()).get(), rank);
+                rResults[i].SetDistance(distance);
+            }
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TSearchObject>
+void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
+    const PointType& rPoint,
+    const double Radius, 
+    ResultType& rResult,
+    const int AllocationSize
+    )
+{
+    // If we are using GeometricalObjectBins we can use the optimized search
+    if constexpr (IsGeometricalObjectBins) {
+        rResult = mpSearchObject->SearchNearestInRadius(rPoint, Radius);
+    } else { // Using trees
+        PointVector results(AllocationSize);
+        DistanceVector results_distances(AllocationSize);
+        const std::size_t number_of_results = mpSearchObject->SearchInRadius(rPoint, Radius, results.begin(), results_distances.begin(), AllocationSize);
+        if (number_of_results > 0) {
+            // Get the rank
+            const int rank = GetRank();
+            
+            // Find the iterator pointing to the smallest value
+            auto it_min = std::min_element(results_distances.begin(), results_distances.end());
+
+            // Calculate the index
+            IndexType index = std::distance(results_distances.begin(), it_min);
+
+            // Set the result
+            rResult = ResultType((results[index]->pGetObject()).get(), rank);
+            rResult.SetDistance(results_distances[index]);
+        }
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TSearchObject>
+void SearchWrapper<TSearchObject>::LocalSearchNearest(
+    const PointType& rPoint, 
+    ResultType& rResult
+    )
+{
+    // If we are using GeometricalObjectBins we can use the optimized search
+    if constexpr (IsGeometricalObjectBins) {
+        rResult = mpSearchObject->SearchNearest(rPoint);
+    } else { // Using trees
+        // Get the rank
+        const int rank = GetRank();
+
+        // Search nearest
+        double distance;
+        auto p_point = mpSearchObject->SearchNearestPoint(rPoint, distance);
+
+        // Set the result
+        rResult = ResultType((p_point->pGetObject()).get(), rank);
+        rResult.SetDistance(distance);
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TSearchObject>
+void SearchWrapper<TSearchObject>::LocalSearchIsInside(
+    const PointType& rPoint, 
+    ResultType& rResult
+    )
+{
+    // If we are using GeometricalObjectBins we can use the optimized search
+    if constexpr (IsGeometricalObjectBins) {
+        rResult = mpSearchObject->SearchIsInside(rPoint);
+    } else { // Using trees
+        KRATOS_ERROR << "SearchIsInside not compatible with Search trees" << std::endl;
+    }
+}
+
+/***********************************************************************************/
+/***********************************************************************************/
+
+template<class TSearchObject>
 const Parameters SearchWrapper<TSearchObject>::GetDefaultParameters() const 
 {
     const Parameters default_parameters = Parameters(R"(
@@ -163,6 +275,13 @@ const Parameters SearchWrapper<TSearchObject>::GetDefaultParameters() const
 /***********************************************************************************/
 /***********************************************************************************/
 
+// GeometricalObjectsBins
 template class SearchWrapper<GeometricalObjectsBins>;
+
+// KDTree
+template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>>;
+template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<GeometricalObject>, std::vector<PointObject<GeometricalObject>::Pointer>>>>>;
+template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>;
+template class SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>>;
 
 }  // namespace Kratos.

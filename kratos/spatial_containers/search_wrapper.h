@@ -22,7 +22,7 @@
 #include "includes/kratos_parameters.h"
 #include "utilities/search_utilities.h"
 #include "spatial_containers/geometrical_objects_bins.h"
-#include "spatial_containers/specialized_spatial_search.h"
+#include "spatial_containers/spatial_containers.h"
 #include "spatial_containers/spatial_search_result_container.h"
 #include "spatial_containers/spatial_search_result_container_vector.h"
 
@@ -62,6 +62,13 @@ public:
     using ResultContainerType = SpatialSearchResultContainer<ObjectType>;
     using ResultContainerVectorType = SpatialSearchResultContainerVector<ObjectType>;
 
+    /// Defining the point type for the search
+    using PointType = typename TSearchObject::PointType;
+    using PointVector = std::vector<typename PointType::Pointer>;
+
+    /// Trees types definitions
+    using DistanceVector = std::vector<double>;
+
     /// Some constexpr flags
     static constexpr bool IsGeometricalObjectBins = std::is_same_v<TSearchObject, GeometricalObjectsBins>;
 
@@ -93,6 +100,15 @@ public:
         // Create base search object
         if constexpr (IsGeometricalObjectBins) {
             mpSearchObject = Kratos::make_shared<TSearchObject>(rGeometricalObjectsVector.begin(), rGeometricalObjectsVector.end());
+        } else { // Otherwise we assume it will be some kind of spatial search
+            // Defining the PointVector
+            PointVector points = SearchUtilities::PreparePointsSearch(rGeometricalObjectsVector);
+            
+            // Retrieving parameters
+            const int bucket_size = mSettings["bucket_size"].GetInt();
+
+            // Create the search
+            mpSearchObject = Kratos::make_shared<TSearchObject>(points.begin(), points.end(), bucket_size);
         }
 
     #ifdef KRATOS_USING_MPI
@@ -128,7 +144,7 @@ public:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void SearchInRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -161,7 +177,7 @@ public:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void SearchNearestInRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -192,7 +208,7 @@ public:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void SearchNearest(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -224,7 +240,7 @@ public:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void SearchIsInside(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -348,7 +364,7 @@ private:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void SerialSearchInRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -362,8 +378,12 @@ private:
             rResults.Clear();
         }
 
+        // Retrieving parameters
+        const int allocation_size = mSettings["allocation_size"].GetInt();
+
         // Adding the results to the container
         std::size_t counter = 0, id = 0;
+        // TODO: Use ParallelUtilities
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 id = it_point->Id();
@@ -374,7 +394,7 @@ private:
 
             // Search
             std::vector<ResultType> results;
-            mpSearchObject->SearchInRadius(*it_point, Radius, results);
+            LocalSearchInRadius(*it_point, Radius, results, allocation_size);
             for (auto& r_result : results) {
                 r_partial_result.AddResult(r_result);
             }
@@ -399,7 +419,7 @@ private:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void SerialSearchNearestInRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -413,8 +433,12 @@ private:
             rResults.Clear();
         }
 
+        // Retrieving parameters
+        const int allocation_size = mSettings["allocation_size"].GetInt();
+
         // Adding the results to the container
         std::size_t counter = 0, id = 0;
+        // TODO: Use ParallelUtilities
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 id = it_point->Id();
@@ -422,7 +446,8 @@ private:
                 id = counter;
             }
             auto& r_point_result = rResults.InitializeResult(id);
-            auto result = mpSearchObject->SearchNearestInRadius(*it_point, Radius);
+            ResultType result;
+            LocalSearchNearestInRadius(*it_point, Radius, result, allocation_size);
             r_point_result.AddResult(result);
             
             // Synchronize
@@ -443,7 +468,7 @@ private:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void SerialSearchNearest(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -458,6 +483,7 @@ private:
 
         // Adding the results to the container
         std::size_t counter = 0, id = 0;
+        // TODO: Use ParallelUtilities
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 id = it_point->Id();
@@ -465,7 +491,8 @@ private:
                 id = counter;
             }
             auto& r_point_result = rResults.InitializeResult(id);
-            auto result = mpSearchObject->SearchNearest(*it_point);
+            ResultType result;
+            LocalSearchNearest(*it_point, result);
             r_point_result.AddResult(result);
             
             // Synchronize
@@ -488,7 +515,7 @@ private:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void SerialSearchIsInside(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -503,6 +530,7 @@ private:
 
         // Adding the results to the container
         std::size_t counter = 0, id = 0;
+        // TODO: Use ParallelUtilities
         for (auto it_point = itPointBegin ; it_point != itPointEnd ; it_point++) {
             if constexpr (std::is_same<TPointIteratorType, ModelPart::NodeIterator>::value || std::is_same<TPointIteratorType, ModelPart::NodeConstantIterator>::value) {
                 id = it_point->Id();
@@ -510,7 +538,8 @@ private:
                 id = counter;
             }
             auto& r_point_result = rResults.InitializeResult(id);
-            auto result = mpSearchObject->SearchIsInside(*it_point);
+            ResultType result;
+            LocalSearchIsInside(*it_point, result);
             r_point_result.AddResult(result);
 
             // Synchronize
@@ -533,7 +562,7 @@ private:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void DistributedSearchInRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -547,6 +576,9 @@ private:
             rResults.Clear();
         }
 
+        // Retrieving parameters
+        const int allocation_size = mSettings["allocation_size"].GetInt();
+
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         std::vector<IndexType> all_points_ids;
@@ -557,6 +589,7 @@ private:
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        // TODO: Use ParallelUtilities
         for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
@@ -565,7 +598,7 @@ private:
             if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, Radius)) {
                 // Search
                 std::vector<ResultType> results;
-                mpSearchObject->SearchInRadius(point, Radius, results);
+                LocalSearchInRadius(point, Radius, results, allocation_size);
                 for (auto& r_result : results) {
                     r_partial_result.AddResult(r_result);
                 }
@@ -588,7 +621,7 @@ private:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void DistributedSearchNearestInRadius(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -601,6 +634,9 @@ private:
         if (ClearSolution) {
             rResults.Clear();
         }
+
+        // Retrieving parameters
+        const int allocation_size = mSettings["allocation_size"].GetInt();
 
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -615,6 +651,7 @@ private:
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        // TODO: Use ParallelUtilities
         for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
@@ -626,7 +663,7 @@ private:
             // Check if the point is inside the set
             if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, Radius)) {
                 // Call local search
-                local_result = mpSearchObject->SearchNearestInRadius(point, Radius);
+                LocalSearchNearestInRadius(point, Radius, local_result, allocation_size);
             }
 
             /* Now sync results between partitions */
@@ -658,7 +695,7 @@ private:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void DistributedSearchNearest(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -670,6 +707,9 @@ private:
         if (ClearSolution) {
             rResults.Clear();
         }
+
+        // Retrieving parameters
+        const int allocation_size = mSettings["allocation_size"].GetInt();
         
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
@@ -689,6 +729,7 @@ private:
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        // TODO: Use ParallelUtilities
         for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
@@ -698,7 +739,7 @@ private:
             ResultType local_result;
             if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point, max_radius)) {
                 // Call local search
-                local_result = mpSearchObject->SearchNearestInRadius(point, max_radius);
+                LocalSearchNearestInRadius(point, max_radius, local_result, allocation_size);
             }
 
             /* Now sync results between partitions */
@@ -732,7 +773,7 @@ private:
      * @param ClearSolution Clear the current solution
      * @tparam TPointIteratorType The type of the point iterator
      */
-    template<typename TPointIteratorType>
+    template<class TPointIteratorType>
     void DistributedSearchIsInside(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
@@ -758,6 +799,7 @@ private:
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
+        // TODO: Use ParallelUtilities
         for (std::size_t i_point = 0; i_point < total_number_of_points; ++i_point) {
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
@@ -768,7 +810,7 @@ private:
             ResultType local_result;
             if (SearchUtilities::PointIsInsideBoundingBox(r_local_bb, point)) {
                 // Call local search
-                local_result = mpSearchObject->SearchIsInside(point);
+                LocalSearchIsInside(point, local_result);
 
                 // Set current rank
                 computed_rank = current_rank;
@@ -792,6 +834,64 @@ private:
     }
 
 #endif
+
+    /**
+     * @brief This method takes a point and finds all of the objects in the given radius to it.
+     * @details The result contains the object and also its distance to the point.
+     * @param rPoint The point to be checked
+     * @param Radius The radius to be checked
+     * @param rResults The results of the search
+     * @param AllocationSize The allocation size of the results
+     */
+    void LocalSearchInRadius(
+        const PointType& rPoint,
+        const double Radius,
+        std::vector<ResultType>& rResults,
+        const int AllocationSize = 1000
+        );
+
+    /**
+     * @brief This method takes a point and finds the nearest object to it in a given radius.
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * If there are no objects in that radius the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * @param rPoint The point to be checked
+     * @param Radius The radius to be checked
+     * @param rResult The result of the search
+     * @param AllocationSize The allocation size of the results
+     */
+    void LocalSearchNearestInRadius(
+        const PointType& rPoint,
+        const double Radius, 
+        ResultType& rResult,
+        const int AllocationSize = 1000
+        );
+
+    /**
+     * @brief This method takes a point and finds the nearest object to it.
+     * @details If there are more than one object in the same minimum distance only one is returned
+     * Result contains a flag is the object has been found or not.
+     * @param rPoint The point to be checked
+     * @param rResult The result of the search
+    */
+    void LocalSearchNearest(
+        const PointType& rPoint, 
+        ResultType& rResult
+        );
+
+    /**
+     * @brief This method takes a point and search if it's inside an geometrical object of the domain.
+     * @details If it is inside an object, it returns it, and search distance is set to zero.
+     * If there is no object, the result will be set to not found.
+     * Result contains a flag is the object has been found or not.
+     * This method is a simplified and faster method of SearchNearest.
+     * @param rPoint The point to be checked
+     * @param rResult The result of the search
+     */
+    void LocalSearchIsInside(
+        const PointType& rPoint, 
+        ResultType& rResult
+        );
 
     /**
      * @brief This method returns the default parameters of the search
