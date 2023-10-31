@@ -199,6 +199,9 @@ void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
         DistanceVector results_distances(AllocationSize);
         const std::size_t number_of_results = mpSearchObject->SearchInRadius(rPoint, Radius, results.begin(), results_distances.begin(), AllocationSize);
         if (number_of_results > 0) {
+            // Resize the results
+            results_distances.resize(number_of_results);
+
             // Get the rank
             const int rank = GetRank();
             
