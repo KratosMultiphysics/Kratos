@@ -219,39 +219,49 @@ void DefineSearchWrapper(pybind11::module& m, const std::string& rClassName)
     using SearchWrapperType = SearchWrapper<TSearchObject>;
     using SearchWrapperPointerType = typename SearchWrapper<TSearchObject>::Pointer;
 
-    pybind11::class_<SearchWrapperType, SearchWrapperPointerType>(m, rClassName.c_str())
-    //.def(pybind11::init<NodesContainerType&, const DataCommunicator&>())
-    //.def(pybind11::init<NodesContainerType&, const DataCommunicator&, Parameters>())
-    .def(pybind11::init<ElementsContainerType&, const DataCommunicator&>())
-    .def(pybind11::init<ElementsContainerType&, const DataCommunicator&, Parameters>())
-    .def(pybind11::init<ConditionsContainerType&, const DataCommunicator&>())
-    .def(pybind11::init<ConditionsContainerType&, const DataCommunicator&, Parameters>())
-    .def("GetBoundingBox", &SearchWrapperType::GetBoundingBox)
-    .def("SearchInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
+    /// Some constexpr flags
+    static constexpr bool IsGeometricalObjectBins = std::is_same_v<TSearchObject, GeometricalObjectsBins>;
+
+    auto search_wrapper = pybind11::class_<SearchWrapperType, SearchWrapperPointerType>(m, rClassName.c_str());
+    if constexpr (std::is_same<ObjectType, Node>::value) {
+        search_wrapper.def(pybind11::init<NodesContainerType&, const DataCommunicator&>());
+        search_wrapper.def(pybind11::init<NodesContainerType&, const DataCommunicator&, Parameters>());
+    }
+    if constexpr (std::is_same<ObjectType, Element>::value || std::is_same<ObjectType, GeometricalObject>::value) {
+        search_wrapper.def(pybind11::init<ElementsContainerType&, const DataCommunicator&>());
+        search_wrapper.def(pybind11::init<ElementsContainerType&, const DataCommunicator&, Parameters>());
+    }
+    if constexpr (std::is_same<ObjectType, Condition>::value || std::is_same<ObjectType, GeometricalObject>::value) {
+        search_wrapper.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&>());
+        search_wrapper.def(pybind11::init<ConditionsContainerType&, const DataCommunicator&, Parameters>());
+    }
+    search_wrapper.def("GetBoundingBox", &SearchWrapperType::GetBoundingBox);
+    search_wrapper.def("SearchInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>(); 
         self.SearchInRadius(rNodes.begin(), rNodes.end(), Radius, *p_results);
         return p_results;
-    })
-    .def("SearchNearestInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
+    });
+    search_wrapper.def("SearchNearestInRadius", [&](SearchWrapperType& self, const NodesContainerType& rNodes, const double Radius) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>(); 
         self.SearchNearestInRadius(rNodes.begin(), rNodes.end(), Radius, *p_results);
         return p_results;
-    })
-    .def("SearchNearest", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
+    });
+    search_wrapper.def("SearchNearest", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
         // Perform the search
         auto p_results = Kratos::make_shared<ResultTypeContainerVector>(); 
         self.SearchNearest(rNodes.begin(), rNodes.end(), *p_results);
         return p_results;
-    })
-    .def("SearchIsInside", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
-        // Perform the search
-        auto p_results = Kratos::make_shared<ResultTypeContainerVector>(); 
-        self.SearchIsInside(rNodes.begin(), rNodes.end(), *p_results);
-        return p_results;
-    })
-    ;
+    });
+    if constexpr (IsGeometricalObjectBins) {
+        search_wrapper.def("SearchIsInside", [&](SearchWrapperType& self, const NodesContainerType& rNodes) {
+            // Perform the search
+            auto p_results = Kratos::make_shared<ResultTypeContainerVector>(); 
+            self.SearchIsInside(rNodes.begin(), rNodes.end(), *p_results);
+            return p_results;
+        });
+    }
 }
 
 void AddSearchStrategiesToPython(pybind11::module& m)
@@ -729,8 +739,24 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     })
     ;
     
-    // Define the search wrappers
+    /* Define the search wrappers */
+    // GeometricalObjectsBins
     DefineSearchWrapper<GeometricalObjectsBins>(m, "SearchWrapperGeometricalObjectBins");
+
+    // KDTree
+    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>>(m, "SearchWrapperKDTreeNode");
+    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>(m, "SearchWrapperKDTreeElement");
+    DefineSearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>>(m, "SearchWrapperKDTreeCondition");
+
+    // OCTree
+    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>>(m, "SearchWrapperOCTreeNode");
+    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>(m, "SearchWrapperOCTreeElement");
+    DefineSearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>>(m, "SearchWrapperOCTreeCondition");
+
+    // StaticBinsTree
+    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Node>, std::vector<PointObject<Node>::Pointer>>>>(m, "SearchWrapperStaticBinsTreeNode");
+    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>(m, "SearchWrapperStaticBinsTreeElement");
+    DefineSearchWrapper<Tree<Bins<3ul, PointObject<Condition>, std::vector<PointObject<Condition>::Pointer>>>>(m, "SearchWrapperStaticBinsTreeCondition");
 }
 
 }  // namespace Kratos::Python.
