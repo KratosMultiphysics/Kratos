@@ -18,7 +18,6 @@
 // Project includes
 #include "custom_conditions/particle_based_conditions/mpm_particle_base_condition.h"
 #include "includes/checks.h"
-#include "utilities/math_utils.h"
 #include "custom_utilities/particle_mechanics_math_utilities.h"
 
 namespace Kratos
