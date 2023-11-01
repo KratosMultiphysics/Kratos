@@ -10,8 +10,7 @@
 //  Main authors:
 //
 
-#if !defined(KRATOS_RESIDUAL_BASED_ADJOINT_STATIC_SCHEME_H_INCLUDED)
-#define KRATOS_RESIDUAL_BASED_ADJOINT_STATIC_SCHEME_H_INCLUDED
+#pragma once
 
 // System includes
 #include <vector>
@@ -75,6 +74,7 @@ public:
 
         int num_threads = ParallelUtilities::GetNumThreads();
         mAdjointValues.resize(num_threads);
+        mLHS.resize(num_threads);
     }
 
     /// Destructor.
@@ -89,6 +89,22 @@ public:
     ///@}
     ///@name Operations
     ///@{
+
+    /**
+     * @brief Set the Response Function
+     *
+     * This sets the response function used in the sensitivity builder. This
+     * is useful in cases where the LHS of the adjoint problem does not change,
+     * but the RHS changes due to change in the the response function. In these
+     * cases, this allows re-use of the already constructed LHS with different
+     * RHSs.
+     *
+     * @param pResponseFunction         New Response function to be set.
+     */
+    void SetResponseFunction(AdjointResponseFunction::Pointer pResponseFunction)
+    {
+        mpResponseFunction = pResponseFunction;
+    }
 
     void Initialize(ModelPart& rModelPart) override
     {
@@ -166,6 +182,34 @@ public:
         KRATOS_CATCH("");
     }
 
+    void CalculateRHSContribution(
+        Element& rCurrentElement,
+        LocalSystemVectorType& rRHS_Contribution,
+        Element::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        int thread_id = OpenMPUtils::ThisThread();
+
+        const auto& r_const_elem_ref = rCurrentElement;
+        auto& lhs = mLHS[thread_id];
+
+        rCurrentElement.CalculateLeftHandSide(lhs, rCurrentProcessInfo);
+
+        if (rRHS_Contribution.size() != lhs.size1())
+            rRHS_Contribution.resize(lhs.size1(), false);
+
+        mpResponseFunction->CalculateGradient(
+            rCurrentElement, lhs, rRHS_Contribution, rCurrentProcessInfo);
+
+        noalias(rRHS_Contribution) = -rRHS_Contribution;
+
+        // Calculate system contributions in residual form.
+        r_const_elem_ref.GetValuesVector(mAdjointValues[thread_id]);
+        noalias(rRHS_Contribution) -= prod(lhs, mAdjointValues[thread_id]);
+
+        r_const_elem_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
+    }
+
     void CalculateSystemContributions(Condition& rCurrentCondition,
                                       LocalSystemMatrixType& rLHS_Contribution,
                                       LocalSystemVectorType& rRHS_Contribution,
@@ -208,6 +252,34 @@ public:
         KRATOS_CATCH("");
     }
 
+    void CalculateRHSContribution(
+        Condition& rCurrentCondition,
+        LocalSystemVectorType& rRHS_Contribution,
+        Condition::EquationIdVectorType& rEquationId,
+        const ProcessInfo& rCurrentProcessInfo) override
+    {
+        int thread_id = OpenMPUtils::ThisThread();
+
+        const auto& r_const_elem_ref = rCurrentCondition;
+        auto& lhs = mLHS[thread_id];
+
+        rCurrentCondition.CalculateLeftHandSide(lhs, rCurrentProcessInfo);
+
+        if (rRHS_Contribution.size() != lhs.size1())
+            rRHS_Contribution.resize(lhs.size1(), false);
+
+        mpResponseFunction->CalculateGradient(
+            rCurrentCondition, lhs, rRHS_Contribution, rCurrentProcessInfo);
+
+        noalias(rRHS_Contribution) = -rRHS_Contribution;
+
+        // Calculate system contributions in residual form.
+        r_const_elem_ref.GetValuesVector(mAdjointValues[thread_id]);
+        noalias(rRHS_Contribution) -= prod(lhs, mAdjointValues[thread_id]);
+
+        r_const_elem_ref.EquationIdVector(rEquationId, rCurrentProcessInfo);
+    }
+
     void Clear() override
     {
         this->mpDofUpdater->Clear();
@@ -237,6 +309,7 @@ protected:
 
     AdjointResponseFunction::Pointer mpResponseFunction;
     std::vector<LocalSystemVectorType> mAdjointValues;
+    std::vector<LocalSystemMatrixType> mLHS;
 
     ///@}
     ///@name Protected Operators
@@ -303,5 +376,3 @@ private:
 ///@}
 
 } /* namespace Kratos.*/
-
-#endif /* KRATOS_RESIDUAL_BASED_ADJOINT_STATIC_SCHEME_H_INCLUDED defined */
