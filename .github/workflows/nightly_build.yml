@@ -39,7 +39,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Installing dependencies
       shell: bash
@@ -108,7 +108,7 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - uses: actions/setup-python@v4
       with:
