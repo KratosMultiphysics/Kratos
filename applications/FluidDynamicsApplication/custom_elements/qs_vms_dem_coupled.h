@@ -349,6 +349,9 @@ protected:
         const TElementData& rData,
         double &rPressureSubscale) const override;
 
+    array_1d<double,3> FullConvectiveVelocity(
+    const TElementData& rData) const;
+
     ///@}
     ///@name Protected  Access
     ///@{

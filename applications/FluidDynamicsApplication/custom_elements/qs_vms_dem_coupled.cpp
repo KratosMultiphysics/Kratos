@@ -517,7 +517,6 @@ void QSVMSDEMCoupled<TElementData>::InitializeNonLinearIteration(const ProcessIn
         this->UpdateIntegrationPointDataSecondDerivatives(data, g, gauss_weights[g],row(shape_functions,g),shape_function_derivatives[g],shape_function_second_derivatives[g]);
 
         this->CalculateResistanceTensor(data);
-        //this->UpdateSubscaleVelocity(data);
     }
 }
 
@@ -580,7 +579,7 @@ void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
 
     const double density = this->GetAtCoordinate(rData.Density,rData.N);
     const double viscosity = this->GetAtCoordinate(rData.DynamicViscosity, rData.N);
-    const auto& r_body_forces = rData.BodyForce;
+    const auto& body_force = this->GetAtCoordinate(rData.BodyForce, rData.N);
     const auto& r_velocities = rData.Velocity;
     const auto& r_pressures = rData.Pressure;
 
@@ -601,9 +600,11 @@ void QSVMSDEMCoupled<TElementData>::AlgebraicMomentumResidual(
                 else
                     div_sym_grad_u[d] += 1.0/2.0 * (rData.DDN_DDX[i](e,d) * r_velocities(i,e) + rData.DDN_DDX[i](e,e) * r_velocities(i,d));
             }
-            rResidual[d] += density * ( rData.N[i]*(r_body_forces(i,d) - r_acceleration[d]) - convection[i]*r_velocities(i,d)) + 2.0 * viscosity * div_sym_grad_u[d] - 2.0/3.0 * viscosity * grad_div_u[d] - rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
+            rResidual[d] += density * ( rData.N[i]*(/*r_body_forces(i,d)*/ - r_acceleration[d]) - convection[i]*r_velocities(i,d)) + 2.0 * viscosity * div_sym_grad_u[d] - 2.0/3.0 * viscosity * grad_div_u[d] - rData.DN_DX(i,d) * r_pressures[i] - sigma_U[d];
         }
     }
+    for (unsigned int d = 0; d < Dim; d++)
+        rResidual[d] += density * body_force[d];
 }
 
 template< class TElementData >
@@ -657,9 +658,7 @@ void QSVMSDEMCoupled<TElementData>::AddReactionStabilization(
 
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
-    const array_1d<double, 3> convective_velocity =
-        this->GetAtCoordinate(rData.Velocity, rData.N) -
-        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
+    const array_1d<double, 3> convective_velocity = this->FullConvectiveVelocity(rData);
 
     this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
 
@@ -740,9 +739,7 @@ void QSVMSDEMCoupled<TElementData>::AddMassStabilization(
 
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
-    const array_1d<double, 3> convective_velocity=
-        this->GetAtCoordinate(rData.Velocity, rData.N) -
-        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
+    const array_1d<double, 3> convective_velocity = this->FullConvectiveVelocity(rData);
 
     this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
 
@@ -804,12 +801,16 @@ void QSVMSDEMCoupled<TElementData>::AddVelocitySystem(
 
     const array_1d<double,3> momentum_projection = this->GetAtCoordinate(rData.MomentumProjection, rData.N);
     double mass_projection = this->GetAtCoordinate(rData.MassProjection, rData.N);
+    array_1d<double,3> velocity = this->GetAtCoordinate(rData.Velocity,rData.N);
+
+    array_1d<double,Dim>& r_prev_velocity = mPreviousVelocity[rData.IntegrationPointIndex];
+    for (unsigned int n = 0; n < Dim; n++){
+        r_prev_velocity[n] = velocity[n];
+    }
 
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
-    const array_1d<double, 3> convective_velocity =
-        this->GetAtCoordinate(rData.Velocity, rData.N) -
-        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
+    const array_1d<double, 3> convective_velocity = this->FullConvectiveVelocity(rData);
 
     this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
 
@@ -1184,7 +1185,7 @@ void QSVMSDEMCoupled<TElementData>::CalculateProjections(const ProcessInfo &rCur
 
         array_1d<double, 3> MomentumRes = ZeroVector(3);
         double MassRes = 0.0;
-        array_1d<double,3> convective_velocity = this->GetAtCoordinate(data.Velocity,data.N) - this->GetAtCoordinate(data.MeshVelocity,data.N);
+        array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(data);
 
         this->MomentumProjTerm(data, convective_velocity, MomentumRes);
         this->MassProjTerm(data,MassRes);
@@ -1221,7 +1222,7 @@ void QSVMSDEMCoupled<TElementData>::SubscaleVelocity(
 {
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
-    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
+    array_1d<double,3> convective_velocity = this->FullConvectiveVelocity(rData);
     this->CalculateTau(rData,convective_velocity,tau_one,tau_two);
 
     array_1d<double,3> Residual = ZeroVector(3);
@@ -1242,9 +1243,7 @@ void QSVMSDEMCoupled<TElementData>::SubscalePressure(
 {
     BoundedMatrix<double,Dim,Dim> tau_one = ZeroMatrix(Dim, Dim);
     double tau_two;
-    array_1d<double, 3> convective_velocity =
-        this->GetAtCoordinate(rData.Velocity, rData.N) -
-        this->GetAtCoordinate(rData.MeshVelocity, rData.N);
+    array_1d<double, 3> convective_velocity = this->FullConvectiveVelocity(rData);
     this->CalculateTau(rData, convective_velocity, tau_one, tau_two);
 
     double Residual = 0.0;
@@ -1255,6 +1254,21 @@ void QSVMSDEMCoupled<TElementData>::SubscalePressure(
         this->OrthogonalMassResidual(rData,Residual);
 
     rPressureSubscale = tau_two*Residual;
+}
+
+template< class TElementData >
+array_1d<double,3> QSVMSDEMCoupled<TElementData>::FullConvectiveVelocity(
+    const TElementData& rData) const
+{
+    array_1d<double,3> convective_velocity = this->GetAtCoordinate(rData.Velocity,rData.N) - this->GetAtCoordinate(rData.MeshVelocity,rData.N);
+    //Adding subscale term componentwise because return type is of size 3, but subscale is of size Dim
+    const array_1d<double,Dim>& r_predicted_subscale = mPredictedSubscaleVelocity[rData.IntegrationPointIndex];
+
+    for (unsigned int d = 0; d < Dim; d++) {
+        convective_velocity[d] += r_predicted_subscale[d];
+    }
+
+    return convective_velocity;
 }
 
 template< class TElementData >
