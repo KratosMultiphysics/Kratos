@@ -27,11 +27,11 @@
 #include "mpi/includes/mpi_data_communicator.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 #include "mpi/utilities/model_part_communicator_utilities.h"
-#include "mpi/utilities/mpi_cpp_test_utilities.h"
+#include "mpi/tests/test_utilities/mpi_cpp_test_utilities.h"
 
 /* Element include */
 #include "geometries/line_2d_2.h"
-#include "tests/cpp_tests/auxiliar_files_for_cpp_unnitest/test_bar_element.h"
+#include "tests/test_utilities/test_bar_element.h"
 
 /* Linear solvers */
 #include "linear_solvers/linear_solver.h"
