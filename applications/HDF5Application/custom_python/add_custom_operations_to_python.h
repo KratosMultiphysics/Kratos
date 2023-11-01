@@ -5,7 +5,7 @@
 //                   Multi-Physics
 //
 //  License:         BSD License
-//                   license: HDF5Application/license.txt
+//                   Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
 //                   Suneth Warnakulasuriya
@@ -16,17 +16,14 @@
 // System includes
 
 // External includes
+#include "pybind11/pybind11.h"
 
 // Project includes
-#include "includes/define.h"
-#include "containers/variable.h"
 
-// Application includes
-#include "custom_utilities/mesh_location_container.h"
+namespace Kratos {
+namespace Python {
 
-namespace Kratos
-{
+void  AddCustomOperationsToPython(pybind11::module& m);
 
-    KRATOS_DEFINE_APPLICATION_VARIABLE(HDF5_APPLICATION, HDF5::MeshLocationContainer::Pointer, HDF5_MESH_LOCATION_CONTAINER)
-
+}  // namespace Python.
 }  // namespace Kratos.

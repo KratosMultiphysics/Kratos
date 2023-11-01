@@ -16,6 +16,7 @@
 // System includes
 #include <string>
 #include <tuple>
+#include <optional>
 
 // External includes
 
@@ -115,6 +116,10 @@ private:
     ///@{
 
     const bool mWriteEntityProperyIds;
+
+    std::optional<int> mHDF5RankId;
+
+    std::optional<int> mHDF5ProcessId;
 
     Parameters mCustomAttributes;
 

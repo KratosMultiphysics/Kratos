@@ -61,6 +61,11 @@ class SingleMeshXdmfOutputProcess(HDF5OutputProcess):
                     "time_format": "0.4f",
                     "custom_attributes": {}
                 },
+                "xdmf_output_settings": {
+                    "dataset_pattern"         : "",
+                    "temporal_tag_value_index": 0,
+                    "single_mesh_datasets"    : true
+                },
                 "nodal_solution_step_data_settings": {
                     "prefix"           : "/ResultsData/NodalSolutionStepData/",
                     "list_of_variables": [],
@@ -120,11 +125,11 @@ class SingleMeshXdmfOutputProcess(HDF5OutputProcess):
     def __init__(self, model: KratosMultiphysics.Model, parameters: KratosMultiphysics.Parameters) -> None:
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         model_part = model[parameters["model_part_name"].GetString()]
-        super().__init__()
+        super().__init__(model_part)
 
         # default controller
         initialize_operation = AggregatedControlledOperations(model_part, parameters["file_settings"])
-        initialize_operation.AddControlledOperation(ControlledOperation(DeleteOldH5Files, None, DefaultController()))
+        initialize_operation.AddControlledOperation(ControlledOperation(DeleteOldH5Files, KratosMultiphysics.Parameters("""{}"""), DefaultController()))
         self.AddInitialize(initialize_operation)
 
         # create temporal controller
@@ -148,7 +153,7 @@ class SingleMeshXdmfOutputProcess(HDF5OutputProcess):
         operations.AddControlledOperation(ControlledOperation(ConditionDataValueOutput, self._GetOperationParameters("condition_data_value_settings", parameters), temporal_controller))
         operations.AddControlledOperation(ControlledOperation(ConditionGaussPointOutput, self._GetOperationParameters("condition_gauss_point_value_settings", parameters), temporal_controller))
         operations.AddControlledOperation(ControlledOperation(ConditionFlagValueOutput, self._GetOperationParameters("condition_flag_value_settings", parameters), temporal_controller))
-        operations.AddControlledOperation(ControlledOperation(XdmfOutput, None, temporal_controller))
+        operations.AddControlledOperation(ControlledOperation(XdmfOutput,  self._GetValidatedParameters("xdmf_output_settings", parameters), temporal_controller))
 
         # now add all operations to PrintOutput method
         self.AddPrintOutput(operations)

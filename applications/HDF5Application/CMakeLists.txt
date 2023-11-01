@@ -18,11 +18,12 @@ set( KRATOS_HDF5_APPLICATION_CORE
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_container_component_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_vertex_container_io.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_io/hdf5_expression_io.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_processes/hdf5_xdmf_connectivities_writer_process.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_operations/hdf5_xdmf_connectivities_writer_operation.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/hdf5_data_set_partition_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/factor_elements_and_conditions_utility.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vertex.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/vertex_utilities.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mesh_location_container.cpp
 )
 
 ## HDF5Application python interface sources

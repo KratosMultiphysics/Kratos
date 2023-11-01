@@ -121,12 +121,9 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.assertEqual(self.HDF5File.call_args[0][1]['file_access_mode'].GetString(), 'truncate')
         self.assertEqual(self.HDF5File.call_args[0][1]['echo_level'].GetInt(), 1)
         call_args = self.HDF5ModelPartIO.call_args
-        params = KratosMultiphysics.Parameters("""{
-            "prefix": "/ModelData/test_model_part",
-            "time_format": "0.4f",
-            "custom_attributes": {}
-        }""")
-        self.assertTrue(params.IsEquivalentTo(call_args[0][0]))
+        self.assertEqual(call_args[0][0]["prefix"].GetString(), "/ModelData/test_model_part")
+        self.assertEqual(call_args[0][0]["time_format"].GetString(), "0.4f")
+        self.assertTrue(call_args[0][0]["custom_attributes"].Has("__hdf5_process_id"))
         self.assertEqual(call_args[0][1], self.HDF5File.return_value)
         self.HDF5ModelPartIO.return_value.WriteModelPart.assert_called_once_with(
             self.model_part)
@@ -241,12 +238,9 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             self.HDF5File.call_args[0][1]['echo_level'].GetInt(), 0)
         self.assertEqual(self.HDF5ModelPartIO.call_count, 2)
         call_args = self.HDF5ModelPartIO.call_args
-        params = KratosMultiphysics.Parameters("""{
-            "prefix": "/ModelData",
-            "time_format": "0.4f",
-            "custom_attributes": {}
-        }""")
-        self.assertTrue(params.IsEquivalentTo(call_args[0][0]))
+        self.assertEqual(call_args[0][0]["prefix"].GetString(), "/ModelData")
+        self.assertEqual(call_args[0][0]["time_format"].GetString(), "0.4f")
+        self.assertTrue(call_args[0][0]["custom_attributes"].Has("__hdf5_process_id"))
         self.assertEqual(call_args[0][1], self.HDF5File.return_value)
         self.assertEqual(
             self.HDF5ModelPartIO.return_value.WriteModelPart.call_count, 2)
@@ -401,12 +395,15 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                     "output_time_settings": {
                     "output_control_type": "time",
                     "output_interval"    : 0.1
+                    },
+                    "xdmf_output_settings": {
+                        "dataset_pattern": "test_model_part-<time>.h5"
                     }
                 }
             }
             ''')
 
-        with patch('KratosMultiphysics.HDF5Application.core.operations.xdmf.WriteMultifileTemporalAnalysisToXdmf', autospec=True) as WriteMultifileTemporalAnalysisToXdmf:
+        with patch('KratosMultiphysics.HDF5Application.core.operations.xdmf.WriteDatasetsToXdmf', autospec=True) as WriteDatasetsToXdmf:
             with patch('KratosMultiphysics.HDF5Application.core.operations.system.DeleteFileIfExisting', autospec=True) as DeleteFileIfExisting:
                 with patch('pathlib.Path.glob', autospec=True) as listdir:
                     self.HDF5File().GetFileName.return_value = settings["Parameters"]["model_part_name"].GetString() + ".h5"
@@ -419,12 +416,9 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                         self.model_part.CloneTimeStep(time)
                         if process.IsOutputStep():
                             process.PrintOutput()
-                    self.assertEqual(WriteMultifileTemporalAnalysisToXdmf.call_count, 2)
-                    WriteMultifileTemporalAnalysisToXdmf.assert_called_with('test_model_part.h5',
-                                                                            '/ModelData',
-                                                                            '/ResultsData')
+                    self.assertEqual(WriteDatasetsToXdmf.call_count, 2)
                     DeleteFileIfExisting.assert_called_once_with(
-                        str(pathlib.Path('./test_model_part-0.1000.h5').absolute()))
+                         str(pathlib.Path('./test_model_part-0.1000.h5').absolute()))
 
     def test_ImportModelPartFromHDF5Process(self):
         settings = KratosMultiphysics.Parameters('''

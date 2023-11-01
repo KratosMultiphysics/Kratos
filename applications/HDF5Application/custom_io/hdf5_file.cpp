@@ -65,7 +65,12 @@ namespace Internals
 
 bool IsPath(const std::string& rPath)
 {
-    return regex_match(rPath, std::regex("(/[\\w\\(\\)]+)+"));
+    bool is_path = true;
+    is_path = is_path && !rPath.empty();
+    is_path = is_path && rPath.front() == '/';
+    is_path = is_path && (rPath.size() == 1 || (rPath.size() > 1 && rPath.back() != '/'));
+    is_path = is_path && (rPath.find("//") == std::string::npos);
+    return is_path;
 }
 
 std::vector<hsize_t> GetDataDimensions(
@@ -418,6 +423,24 @@ std::vector<std::string> File::GetGroupNames(const std::string& rGroupPath) cons
     KRATOS_CATCH("");
 }
 
+std::vector<std::string> File::GetRootGroupNames() const
+{
+    KRATOS_TRY;
+
+    std::vector<std::string> names;
+    std::vector<std::string> link_names = GetLinkNames("/");
+    names.reserve(link_names.size());
+    for (const auto& r_name : link_names) {
+        if (IsGroup('/' + r_name)) {
+            names.emplace_back(std::move(r_name));
+        }
+    }
+
+    return names;
+
+    KRATOS_CATCH("");
+}
+
 std::vector<std::string> File::GetDataSetNames(const std::string& rGroupPath) const
 {
     KRATOS_TRY;
@@ -427,6 +450,23 @@ std::vector<std::string> File::GetDataSetNames(const std::string& rGroupPath) co
     names.reserve(link_names.size());
     for (const auto& r_name : link_names) {
         if (IsDataSet(rGroupPath + '/' + r_name)) {
+            names.push_back(r_name);
+        }
+    }
+    return names;
+
+    KRATOS_CATCH("");
+}
+
+std::vector<std::string> File::GetRootDataSetNames() const
+{
+    KRATOS_TRY;
+
+    std::vector<std::string> names;
+    std::vector<std::string> link_names = GetLinkNames("/");
+    names.reserve(link_names.size());
+    for (const auto& r_name : link_names) {
+        if (IsDataSet('/' + r_name)) {
             names.push_back(r_name);
         }
     }

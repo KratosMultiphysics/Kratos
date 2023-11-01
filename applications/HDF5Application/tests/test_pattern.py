@@ -129,5 +129,12 @@ class TestGetMachingEntitiesString(KratosUnittest.TestCase):
         self.assertEqual(IdentifyPattern("1test/model_part/hello1.23/test_1/test_3.4e5.h5"), ("<float_1>test/model_part/hello<float_2>/test_<float_3>/test_<float_4>.h<float_5>", {"<float_1>": float, "<float_2>": float, "<float_3>": float, "<float_4>": float, "<float_4>": float, "<float_5>": float}))
 
 
+    def testIdentifyPattern(self):
+        self.assertEqual(IdentifyPattern("test"), ("test", {}))
+        self.assertEqual(IdentifyPattern("test/model_part/hello.h"), ("test/model_part/hello.h", {}))
+        self.assertEqual(IdentifyPattern("test/model_part/hello1.23/test_1/test_3.4e5.h5"), ("test/model_part/hello<float_1>/test_<float_2>/test_<float_3>.h<float_4>", {"<float_1>": float, "<float_2>": float, "<float_3>": float, "<float_4>": float, "<float_4>": float}))
+        self.assertEqual(IdentifyPattern("1test/model_part/hello1.23/test_1/test_3.4e5.h5"), ("<float_1>test/model_part/hello<float_2>/test_<float_3>/test_<float_4>.h<float_5>", {"<float_1>": float, "<float_2>": float, "<float_3>": float, "<float_4>": float, "<float_4>": float, "<float_5>": float}))
+
+
 if __name__ == "__main__":
     KratosUnittest.main()

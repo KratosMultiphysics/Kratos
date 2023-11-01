@@ -8,11 +8,10 @@
 //					 Kratos default license: kratos/license.txt
 //
 //  Main authors:    Jordi Cotela
+//					 Suneth Warnakulasuriya
 //
 
-
 // System includes
-
 
 // External includes
 
@@ -26,7 +25,10 @@ namespace Kratos {
 
 KratosHDF5Application::KratosHDF5Application() : KratosApplication("HDF5Application") {}
 
-void KratosHDF5Application::Register() {
+void KratosHDF5Application::Register()
+{
  	KRATOS_INFO("") << "Initializing KratosHDF5Application..." << std::endl;
+
+	KRATOS_REGISTER_VARIABLE(HDF5_MESH_LOCATION_CONTAINER)
 }
 }  // namespace Kratos.

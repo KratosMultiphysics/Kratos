@@ -22,6 +22,7 @@
 
 // Application includes
 #include "custom_utilities/container_io_utils.h"
+#include "custom_utilities/mesh_location_container.h"
 
 // Include base h
 #include "hdf5_expression_io.h"
@@ -199,6 +200,21 @@ void ExpressionIO::Write(
     KRATOS_ERROR_IF(appended_attribs.Has("__container_type"))
         << "The reserved keyword \"__container_type\" is found. Please remove it from attributes.";
     appended_attribs.AddString("__container_type", Internals::GetContainerType<TContainerType>());
+
+    KRATOS_ERROR_IF(appended_attribs.Has("__mesh_location"))
+        << "The reserved keyword \"__mesh_location\" is found. Please remove it from attributes.";
+
+    const auto& r_model_part = rContainerExpression.GetModelPart();
+
+    if (HasMeshLocationContainer(r_model_part) && HasProcessId(appended_attribs)) {
+        const auto& mesh_location_container = GetMeshLocationContainer(r_model_part);
+        int hdf5_rank_id, hdf5_process_id;
+        std::tie(hdf5_rank_id, hdf5_process_id) = GetProcessId(appended_attribs);
+
+        if (mesh_location_container.Has(hdf5_rank_id, hdf5_process_id)) {
+            appended_attribs.AddString("__mesh_location", mesh_location_container.Get(hdf5_rank_id, hdf5_process_id));
+        }
+    }
 
     Write(rContainerExpressionName, rContainerExpression.GetExpression(), appended_attribs);
 

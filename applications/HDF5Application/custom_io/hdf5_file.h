@@ -206,12 +206,26 @@ public:
     std::vector<std::string> GetGroupNames(const std::string& rGroupPath) const;
 
     /**
+     * @brief Get the sub group names at root ("/").
+     *
+     * @return std::vector<std::string>     List of link names.
+     */
+    std::vector<std::string> GetRootGroupNames() const;
+
+    /**
      * @brief Get the dataset names under a group.
      *
      * @param rGroupPath                    Group path.
      * @return std::vector<std::string>     List of sub dataset names.
      */
     std::vector<std::string> GetDataSetNames(const std::string& rGroupPath) const;
+
+    /**
+     * @brief Get the dataset names at root ("/").
+     *
+     * @return std::vector<std::string>     List of sub dataset names.
+     */
+    std::vector<std::string> GetRootDataSetNames() const;
 
     /**
      * @brief Add a group to the path recursively.
