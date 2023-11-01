@@ -24,9 +24,6 @@ class MPMSolver(PythonSolver):
         # Add model part containers
         self._AddModelPartContainers()
 
-        # Default settings
-        self.min_buffer_size = 2
-
         KratosMultiphysics.Logger.PrintInfo("::[MPMSolver]:: ", "Solver is constructed correctly.")
 
     @classmethod
@@ -96,6 +93,9 @@ class MPMSolver(PythonSolver):
 
     ### Solver public functions
 
+    def GetMinimumBufferSize(self):
+        return 2
+
     def AddVariables(self):
         # Add variables to background grid model part
         self._AddVariablesToModelPart(self.grid_model_part)
@@ -110,7 +110,7 @@ class MPMSolver(PythonSolver):
 
     def PrepareModelPart(self):
         # Set buffer size
-        self._SetBufferSize()
+        self._SetAndFillBuffer()
 
         # Executes the check and prepare model process
         self.__ExecuteCheckAndPrepare()
@@ -229,7 +229,6 @@ class MPMSolver(PythonSolver):
         self.material_point_model_part.SetNodes(self.grid_model_part.GetNodes())
 
         if not self.is_restarted():
-            self.material_point_model_part.SetBufferSize(self.grid_model_part.GetBufferSize())
             self.material_point_model_part.ProcessInfo = self.grid_model_part.ProcessInfo
 
             # Generate MP Element and Condition
@@ -441,25 +440,15 @@ class MPMSolver(PythonSolver):
                                                               calc_norm_dx_flag,
                                                               self.settings["move_mesh_flag"].GetBool())
 
-    def _SetBufferSize(self):
-        current_buffer_size = self.grid_model_part.GetBufferSize()
-        if self.min_buffer_size > current_buffer_size:
-            self.grid_model_part.SetBufferSize(self.min_buffer_size)
-        else:
-            self.grid_model_part.SetBufferSize(current_buffer_size)
-
+    def _SetAndFillBuffer(self):
+        delta_time = self.material_point_model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME]
         if not self.is_restarted():
-            current_buffer_size = self.initial_mesh_model_part.GetBufferSize()
-            if self.min_buffer_size > current_buffer_size:
-                self.initial_mesh_model_part.SetBufferSize(self.min_buffer_size)
-            else:
-                self.initial_mesh_model_part.SetBufferSize(current_buffer_size)
+            required_buffer_size = self.GetMinimumBufferSize()
+            auxiliary_solver_utilities.SetAndFillBuffer(self.material_point_model_part, required_buffer_size, delta_time)
+            auxiliary_solver_utilities.SetAndFillBuffer(self.grid_model_part, required_buffer_size, delta_time)
         else:
-            current_buffer_size = self.material_point_model_part.GetBufferSize()
-            if self.min_buffer_size > current_buffer_size:
-                self.material_point_model_part.SetBufferSize(self.min_buffer_size)
-            else:
-                self.material_point_model_part.SetBufferSize(current_buffer_size)
+            required_buffer_size = self.material_point_model_part.GetBufferSize()
+            auxiliary_solver_utilities.SetAndFillBuffer(self.grid_model_part, required_buffer_size, delta_time)
 
     ### Solver private functions
 

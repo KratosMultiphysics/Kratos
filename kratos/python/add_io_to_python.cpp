@@ -38,10 +38,7 @@
 #include "includes/json_io.h"
 #endif
 
-namespace Kratos
-{
-
-namespace Python
+namespace Kratos::Python
 {
 
 void (GidIO<>::*pointer_to_io_read_single_properties)(Properties& rThisProperties ) = &IO::ReadProperties;
@@ -242,8 +239,6 @@ void  AddIOToPython(pybind11::module& m)
     vtu_output.attr("CONDITIONS") = VtuOutput::CONDITIONS;
     vtu_output.attr("ELEMENTS") = VtuOutput::ELEMENTS;
 }
-}  // namespace Python.
-
-} // Namespace Kratos
+}  // namespace Kratos::Python.
 
 
