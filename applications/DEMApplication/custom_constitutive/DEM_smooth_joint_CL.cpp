@@ -225,9 +225,9 @@ void DEM_smooth_joint::CalculateElasticConstants(double& kn_el, double& kt_el, d
     kt_el = (*mpProperties)[JOINT_TANGENTIAL_STIFFNESS];
 
     double GlobalJointNormal[3] = {0.0};
-    GlobalJointNormal[0] = (*mpProperties)[JOINT_NORMAL_DIRECTION_X];
-    GlobalJointNormal[1] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Y];
-    GlobalJointNormal[2] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Z];
+    GlobalJointNormal[0] = (*mpProperties)[JOINT_NORMAL_DIRECTION_X]; // X = -1 * sin(alpha) 
+    GlobalJointNormal[1] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Y]; // Y = cos(alpha)
+    GlobalJointNormal[2] = (*mpProperties)[JOINT_NORMAL_DIRECTION_Z]; // Z = 0
     array_1d<double, 3> OtherToMeVector;
     noalias(OtherToMeVector) = element1->GetGeometry()[0].Coordinates() - element2->GetGeometry()[0].Coordinates();
     double LocalCoordSystem[3][3];
