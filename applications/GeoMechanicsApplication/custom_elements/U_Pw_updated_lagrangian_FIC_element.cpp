@@ -50,8 +50,6 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
 {
     KRATOS_TRY;
 
-    // KRATOS_INFO("0-UPwUpdatedLagrangianFICElement::CalculateAll()") << CalculateStiffnessMatrixFlag << " " << CalculateStiffnessMatrixFlag << std::endl;
-
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
     const GeometryType::IntegrationPointsArrayType& IntegrationPoints = Geom.IntegrationPoints( mThisIntegrationMethod );
@@ -142,8 +140,6 @@ void UPwUpdatedLagrangianFICElement<TDim,TNumNodes>::
             this->CalculateAndAddRHSStabilization(rRightHandSideVector, Variables, FICVariables);
         }
     }
-
-    // KRATOS_INFO("1-UPwUpdatedLagrangianFICElement::CalculateAll()") << std::endl;
 
     KRATOS_CATCH( "" )
 }

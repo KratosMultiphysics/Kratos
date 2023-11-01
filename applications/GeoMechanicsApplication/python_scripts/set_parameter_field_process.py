@@ -36,14 +36,40 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
         self.model_part = Model[settings["model_part_name"].GetString()]
 
         self.params = KratosMultiphysics.Parameters("{}")
-        self.params.AddValue("model_part_name",settings["model_part_name"])
+        self.params.AddValue("model_part_name", settings["model_part_name"])
         self.params.AddValue("variable_name", settings["variable_name"])
         self.params.AddValue("func_type", settings["func_type"])
         self.params.AddValue("function", settings["function"])
         self.params.AddValue("dataset", settings["dataset"])
+        is_variable_vector_type = isinstance(self.GetVariableBasedOnString(), KratosMultiphysics.VectorVariable)
+        if "input" in settings["func_type"].GetString() and is_variable_vector_type:
+            self.params.AddValue("vector_variable_indices", settings["vector_variable_indices"])
         if "json_file" in settings["func_type"].GetString():
             self.params.AddValue("dataset_file_name", settings["dataset_file_name"])
         self.process = KratosGeo.SetParameterFieldProcess(self.model_part, self.params)
+
+    def GetVariableBasedOnString(self):
+        """
+        This function returns the variable based on the variable name string.
+
+
+        Returns
+        -------
+        variable : KratosMultiphysics.Variable
+
+        """
+
+        # Get variable object
+        imported_modules = [KratosGeo, KratosMultiphysics]
+
+        for kratos_module in imported_modules:
+            if hasattr(kratos_module, self.params["variable_name"].GetString()):
+                variable = getattr(kratos_module, self.params["variable_name"].GetString())
+                return variable
+
+        raise AttributeError(f'The variable: {self.params["variable_name"].GetString()} is not present within '
+                             f'the imported modules')
+
 
     def ExecuteInitialize(self):
         """
@@ -67,19 +93,7 @@ class SetParameterFieldProcess(KratosMultiphysics.Process):
             values = []
             all_coordinates = []
 
-            # Get variable object
-            imported_modules = [KratosGeo, KratosMultiphysics]
-
-            variable = None
-            for kratos_module in imported_modules:
-                if hasattr(kratos_module, self.params["variable_name"].GetString()):
-                    variable = getattr(kratos_module, self.params["variable_name"].GetString())
-                    break
-
-            # raise an error if the variable is not imported
-            if variable is None:
-                raise AttributeError(f'The variable: {self.params["variable_name"].GetString()} is not present within the '
-                                     f'imported modules')
+            variable = self.GetVariableBasedOnString()
 
             for element in self.model_part.Elements:
 
