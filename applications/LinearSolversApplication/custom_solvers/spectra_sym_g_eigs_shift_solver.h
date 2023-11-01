@@ -156,11 +156,9 @@ class SpectraSymGEigsShiftSolver
 
         // --- output
         if (echo_level > 0) {
-            double duration = timer.ElapsedSeconds();
-
             Eigen::IOFormat fmt(Eigen::StreamPrecision, Eigen::DontAlignCols, ", ", ", ", "", "", "[ ", " ]");
 
-            KRATOS_INFO("SpectraSymGEigsShiftSolver:") << "Completed in " << duration << " seconds" << std::endl
+            KRATOS_INFO("SpectraSymGEigsShiftSolver:") << "Completed in " << timer << std::endl
                       << "                   Eigenvalues = " << eigvals.transpose().format(fmt) << std::endl;
         }
     }

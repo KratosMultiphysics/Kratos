@@ -43,7 +43,6 @@ void SmallStrainUPwDiffOrderAxisymmetricElement::
                      const Vector& Np)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SmallStrainUPwDiffOrderAxisymmetricElement::CalculateBMatrix()") << std::endl;
 
     const double radius = GeoElementUtilities::CalculateRadius(Np, this->GetGeometry());
 
@@ -60,7 +59,6 @@ void SmallStrainUPwDiffOrderAxisymmetricElement::
         rB( INDEX_2D_PLANE_STRAIN_XY, index + INDEX_Y ) = GradNpT( i, INDEX_X );
     }
 
-    // KRATOS_INFO("1-SmallStrainUPwDiffOrderAxisymmetricElement::CalculateBMatrix()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
