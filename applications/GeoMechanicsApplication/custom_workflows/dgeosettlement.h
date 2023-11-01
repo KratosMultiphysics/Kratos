@@ -21,6 +21,7 @@
 
 #include "geo_mechanics_application.h"
 #include "linear_solvers_application.h"
+#include "structural_mechanics_application.h"
 #include "utilities/variable_utils.h"
 
 namespace Kratos
@@ -90,6 +91,7 @@ private:
     std::string mModelPartName;
     KratosGeoMechanicsApplication::Pointer mpGeoApp;
     KratosLinearSolversApplication::Pointer mpLinearSolversApp;
+    KratosStructuralMechanicsApplication::Pointer mpStructuralMechanicsApp;
     std::unique_ptr<ProcessFactory> mProcessFactory = std::make_unique<ProcessFactory>();
     std::unique_ptr<InputUtility> mpInputUtility;
     std::unique_ptr<ProcessInfoParser> mpProcessInfoParser;

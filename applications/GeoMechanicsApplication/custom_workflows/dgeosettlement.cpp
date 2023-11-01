@@ -115,6 +115,12 @@ KratosGeoSettlement::KratosGeoSettlement(std::unique_ptr<InputUtility> pInputUti
         mpLinearSolversApp = Kratos::make_shared<KratosLinearSolversApplication>();
         mKernel.ImportApplication(mpLinearSolversApp);
     }
+    if (!mKernel.IsImported("StructuralMechanicsApplication"))
+    {
+        KRATOS_INFO("KratosGeoSettlement") << "Importing StructuralMechanicsApplication" << std::endl;
+        mpStructuralMechanicsApp = Kratos::make_shared<KratosStructuralMechanicsApplication>();
+        mKernel.ImportApplication(mpStructuralMechanicsApp);
+    }
 
     ParallelUtilities::SetNumThreads(1);
 
@@ -280,6 +286,7 @@ void KratosGeoSettlement::AddNodalSolutionStepVariablesTo(ModelPart& rModelPart)
     rModelPart.AddNodalSolutionStepVariable(REACTION);
     rModelPart.AddNodalSolutionStepVariable(POINT_LOAD);
     rModelPart.AddNodalSolutionStepVariable(LINE_LOAD);
+    rModelPart.AddNodalSolutionStepVariable(LINE_LOAD_Y);
     rModelPart.AddNodalSolutionStepVariable(SURFACE_LOAD);
     rModelPart.AddNodalSolutionStepVariable(VOLUME_ACCELERATION);
     rModelPart.AddNodalSolutionStepVariable(NORMAL_CONTACT_STRESS);
