@@ -48,8 +48,8 @@ public:
 
     /// Constructor.
     SensorSpecification(
-        const IndexType NewId,
         const std::string &rName,
+        const IndexType NewId,
         const double SensorValue);
 
     /// Destructor.
@@ -172,7 +172,7 @@ public:
 
     void PrintInfo(std::ostream& rOStream) const override;
 
-    virtual void PrintData(std::ostream& rOStream) const override;
+    void PrintData(std::ostream& rOStream) const override;
 
     ///@}
 

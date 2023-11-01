@@ -25,8 +25,8 @@ namespace Kratos
 {
 
 SensorSpecification::SensorSpecification(
-    const IndexType NewId,
     const std::string &rName,
+    const IndexType NewId,
     const double SensorValue)
     : IndexedObject(NewId),
       mName(rName),
