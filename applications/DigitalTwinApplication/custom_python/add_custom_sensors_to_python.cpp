@@ -19,6 +19,7 @@
 
 // Application includes
 #include "custom_sensors/sensor_specification.h"
+#include "custom_sensors/nodal_sensor_specification.h"
 
 // Include base h
 #include "custom_python/add_custom_sensors_to_python.h"
@@ -46,6 +47,11 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def("GetElementExpression", &SensorSpecification::GetElementExpression, py::arg("element_expression_name"))
         .def("GetElementExpressionsMap", &SensorSpecification::GetElementExpressionsMap)
         .def("__str__", PrintObject<SensorSpecification>);
+        ;
+
+    py::class_<NodalSensorSpecification, NodalSensorSpecification::Pointer, SensorSpecification>(sensor_module, "NodalSensorSpecification")
+        .def(py::init<const std::string&, const IndexType, const double, const double, const ModelPart::NodeType::Pointer>(), py::arg("sensor_name"), py::arg("sensor_id"), py::arg("sensor_value"), py::arg("sensor_weight"), py::arg("sensor_node"))
+        .def("GetNode", &NodalSensorSpecification::GetNode)
         ;
 }
 
