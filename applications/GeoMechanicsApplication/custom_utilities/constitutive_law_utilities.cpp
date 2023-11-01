@@ -16,11 +16,11 @@
 namespace Kratos
 {
 
-int ConstitutiveLawUtilities::GetStateVariableIndex(const Variable<double> &rThisVariable) {
+int ConstitutiveLawUtilities::GetStateVariableIndex(const Variable<double>& rThisVariable)
+{
    int index = -1;
-
-   const std::string prefix{"STATE_VARIABLE_"};
-   if (rThisVariable.Name().substr(0, prefix.length()) == prefix) {
+   if (const std::string prefix{"STATE_VARIABLE_"};
+       rThisVariable.Name().substr(0, prefix.length()) == prefix) {
        index = std::stoi(rThisVariable.Name().substr(prefix.length()));
    }
 
