@@ -56,6 +56,8 @@ void PointObject<TObject>::UpdatePoint()
         noalias(this->Coordinates()) = mpObject->Coordinates();
     } else if constexpr (std::is_same<TObject, GeometricalObject>::value || std::is_same<TObject, Condition>::value || std::is_same<TObject, Element>::value) {
         noalias(this->Coordinates()) = mpObject->GetGeometry().Center().Coordinates();
+    } else if constexpr (std::is_same<TObject, Geometry<Node>>::value || std::is_same<TObject, Condition>::value || std::is_same<TObject, Element>::value) {
+        noalias(this->Coordinates()) = mpObject->Center().Coordinates();
     } else {
         static_assert((std::is_same<TObject, Node>::value || std::is_same<TObject, GeometricalObject>::value || std::is_same<TObject, Condition>::value || std::is_same<TObject, Element>::value), "PointObject is implemented for Node, GeometricalObject, Condition and Element");
     }
@@ -102,5 +104,6 @@ template class PointObject<Node>;
 template class PointObject<GeometricalObject>;
 template class PointObject<Condition>;
 template class PointObject<Element>;
+template class PointObject<Geometry<Node>>;
 
 } // namespace Kratos.

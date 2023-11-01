@@ -129,12 +129,17 @@ void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputIt
             {"NORMAL_FLUID_FLUX",   MakeNodalResultWriterFor(NORMAL_FLUID_FLUX)},
             {"VOLUME_ACCELERATION", MakeNodalResultWriterFor(VOLUME_ACCELERATION)},
             {"HYDRAULIC_DISCHARGE", MakeNodalResultWriterFor(HYDRAULIC_DISCHARGE)},
-            {"HYDRAULIC_HEAD",      MakeNodalResultWriterFor(HYDRAULIC_HEAD)}
+            {"HYDRAULIC_HEAD",      MakeNodalResultWriterFor(HYDRAULIC_HEAD)},
+            {"LINE_LOAD_Y",         MakeNodalResultWriterFor(LINE_LOAD_Y)},
     };
 
     for (const auto& name : rOutputItemNames)
     {
-        output_writer_map.at(name)(mGidIO, rModelPart);
+        auto iter = output_writer_map.find(name);
+        KRATOS_ERROR_IF(iter == output_writer_map.end())
+            << "Output item '" << name << "' is not available for nodal output" << std::endl;
+
+        iter->second(mGidIO, rModelPart);
     }
 }
 
@@ -162,7 +167,11 @@ void GeoOutputWriter::WriteIntegrationPointOutput(const std::vector<std::string>
 
     for (const auto& name : rOutputItemNames)
     {
-        output_writer_map.at(name)(mGidIO, rModelPart);
+        auto iter = output_writer_map.find(name);
+        KRATOS_ERROR_IF(iter == output_writer_map.end())
+                    << "Output item '" << name << "' is not available for integration point output" << std::endl;
+
+        iter->second(mGidIO, rModelPart);
     }
 }
 
