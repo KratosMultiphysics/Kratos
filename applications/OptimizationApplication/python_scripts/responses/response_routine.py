@@ -59,13 +59,16 @@ class ResponseRoutine:
                     self.__contributing_controls_list.append(control)
 
         if not self.__contributing_controls_list:
-            raise RuntimeError(f"The controls does not have any influence over the response {self.GetReponseName()}.")
+            raise RuntimeError(f"The controls does not have any influence over the response {self.GetResponseName()}.")
 
     def Check(self):
         pass
 
     def Finalize(self):
         pass
+
+    def GetResponseName(self):
+        return self.__response.GetName()
 
     def GetReponse(self) -> ResponseFunction:
         return self.__response
@@ -84,13 +87,14 @@ class ResponseRoutine:
             float: Respone value.
         """
         # update using the master control and get updated states.
-        update_states = self.__master_control.Update(control_field)
-
+        self.__master_control.Update(control_field)
         compute_response_value_flag = False
-        for control, is_updated in update_states.items():
-            if is_updated and control in self.__contributing_controls_list:
-                compute_response_value_flag = True
-
+        if self.__response_value is None:
+            self.my_current_control_field = control_field.Clone()
+        diff = self.my_current_control_field - control_field
+        norm = KratosOA.ExpressionUtils.NormInf(diff)
+        if norm > 1e-12:
+            compute_response_value_flag = True
         compute_response_value_flag = compute_response_value_flag or self.__response_value is None
 
         # TODO: In the case of having two analysis with the same mesh (model parts) for two different

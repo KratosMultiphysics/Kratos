@@ -178,7 +178,7 @@ protected:
     Info GetMyInfo() const;
     Info GetPartnerInfo() const {return mPartnerInfo;};
 
-    fs::path GetTempFileName(
+    fs::path GetTmpFileName(
         const fs::path& rPath,
         const bool UseAuxFileForFileAvailability=true) const;
 

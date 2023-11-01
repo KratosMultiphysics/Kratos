@@ -21,8 +21,7 @@
 #include "solving_strategies/convergence_accelerators/convergence_accelerator.h"
 #include "spaces/ublas_space.h"
 
-namespace Kratos {
-namespace Python {
+namespace Kratos::Python {
 
 void AddConvergenceAcceleratorsToPython(pybind11::module &m)
 {
@@ -50,5 +49,4 @@ void AddConvergenceAcceleratorsToPython(pybind11::module &m)
 
 }
 
-}  // namespace Python.
-} // Namespace Kratos
+}  // namespace Kratos::Python.
