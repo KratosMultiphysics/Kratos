@@ -10,7 +10,7 @@ license: HDF5Application/license.txt
 # Kratos imports
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
-from .operations.aggregated_operations import AggregatedControlledOperations
+from KratosMultiphysics.HDF5Application.core.operations.aggregated_operations import AggregatedControlledOperations
 
 ##!@addtogroup HDF5Application
 ##!@{
@@ -43,8 +43,9 @@ class HDF5Process(KratosMultiphysics.Process):
     def GetProcessId(self) -> 'list[int]':
         return self.__process_id
 
-    def Check(self) -> None:
+    def Check(self) -> int:
         list(map(lambda x: x.Check(), *self.__aggregated_operations_dict.values()))
+        return 0
 
     def Clear(self) -> None:
         self.__aggregated_operations_dict: 'dict[str, list[AggregatedControlledOperations]]' = {}

@@ -9,7 +9,7 @@ import KratosMultiphysics
 
 # --- HDF5 Imports ---
 import KratosMultiphysics.HDF5Application as KratosHDF5
-from ..pattern import EvaluatePattern
+from KratosMultiphysics.HDF5Application.core.pattern import EvaluatePattern
 
 # --- STD Imports ---
 import sys
@@ -175,7 +175,7 @@ class VariableInputOperation(IOOperation):
 
     @property
     def attributes(self) -> 'dict[str, KratosMultiphysics.Parameters]':
-        if hasattr("_attributes", self):
+        if hasattr(self, "_attributes"):
             return self._attributes
         else:
             raise RuntimeError("Please run Execute method before retireving attributes.")

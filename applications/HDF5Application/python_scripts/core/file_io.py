@@ -12,9 +12,9 @@ from pathlib import Path
 import KratosMultiphysics
 import KratosMultiphysics.HDF5Application as KratosHDF5
 import KratosMultiphysics.kratos_utilities as kratos_utils
-from .pattern import EvaluatePattern
-from .pattern import GetMachingEntities
-from .pattern import PathPatternEntity
+from KratosMultiphysics.HDF5Application.core.pattern import EvaluatePattern
+from KratosMultiphysics.HDF5Application.core.pattern import GetMachingEntities
+from KratosMultiphysics.HDF5Application.core.pattern import PathPatternEntity
 
 def GetFileName(model_part: KratosMultiphysics.ModelPart, file_name_pattern: str, time_format: str) -> str:
     if not file_name_pattern.endswith(".h5"):
@@ -60,7 +60,7 @@ def CreateHDF5File(model_part: KratosMultiphysics.ModelPart, settings: KratosMul
 
     # create directories
     dirname = Path(file_name).absolute().parent
-    KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(str(dirname))
+    KratosMultiphysics.FilesystemExtensions.MPISafeCreateDirectories(dirname)
 
     if current_file_settings["file_access_mode"].GetString() in ["truncate", "exclusive", "read_write"]:
         # this is a writing file, hence check whether max files to keep is used.
@@ -73,17 +73,15 @@ class OpenHDF5File:
     def __init__(self, parameters: KratosMultiphysics.Parameters, model_part: KratosMultiphysics.ModelPart) -> None:
         self.__model_part = model_part
         self.__parameters = parameters
-        self.__file: 'typing.Optional[KratosHDF5.HDF5File]' = None
+        self.__file = CreateHDF5File(self.__model_part, self.__parameters)
 
     def __enter__(self) -> KratosHDF5.HDF5File:
-        self.__file = CreateHDF5File(self.__model_part, self.__parameters)
         return self.__file
 
     def __exit__(self, exit_type, exit_value, exit_traceback) -> None:
         self.__file.Close()
-        self.__file = None
 
     @property
-    def file(self) -> KratosHDF5.HDF5File:
+    def file(self) -> 'typing.Optional[KratosHDF5.HDF5File]':
         return self.__file
 

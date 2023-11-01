@@ -4,10 +4,13 @@ import KratosMultiphysics as Kratos
 import KratosMultiphysics.HDF5Application as KratosHDF5
 
 from KratosMultiphysics.HDF5Application.core.file_io import OpenHDF5File
+from KratosMultiphysics.HDF5Application.core.operations.model_part import IOOperation
+from KratosMultiphysics.HDF5Application.core.operations.system import DeleteOldH5Files
+from KratosMultiphysics.HDF5Application.core.operations.xdmf import XdmfOutput
 
 class ControlledOperation:
     def __init__(self,
-                 operation_type: 'typing.Type[Kratos.Operation]',
+                 operation_type: 'typing.Type[typing.Union[IOOperation, DeleteOldH5Files, XdmfOutput]]',
                  parameters: Kratos.Parameters,
                  controller: Kratos.Controller,
                  *args) -> None:
