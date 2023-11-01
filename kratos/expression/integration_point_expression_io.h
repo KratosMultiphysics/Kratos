@@ -33,21 +33,16 @@ public:
     ///@name Type definitions
     ///@{
 
-    // using VariableType = std::variant<
-    //                             const Variable<int>*,
-    //                             const Variable<double>*,
-    //                             const Variable<array_1d<double, 3>>*,
-    //                             const Variable<array_1d<double, 4>>*,
-    //                             const Variable<array_1d<double, 6>>*,
-    //                             const Variable<array_1d<double, 9>>*,
-    //                             const Variable<Vector>*,
-    //                             const Variable<Matrix>*>;
-
     using VariableType = std::variant<
+                                const Variable<int>*,
                                 const Variable<double>*,
                                 const Variable<array_1d<double, 3>>*,
+                                const Variable<array_1d<double, 4>>*,
+                                const Variable<array_1d<double, 6>>*,
+                                const Variable<array_1d<double, 9>>*,
                                 const Variable<Vector>*,
                                 const Variable<Matrix>*>;
+
 
     ///}
     ///@name Public classes

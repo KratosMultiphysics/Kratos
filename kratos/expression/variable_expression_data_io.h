@@ -38,7 +38,11 @@ public:
 
     using IndexType = std::size_t;
 
-    using RawType = std::conditional_t<std::is_same_v<TDataType, int>, int, double>;
+    using RawType = std::conditional_t<
+                            std::disjunction_v<
+                                std::is_same<TDataType, int>,
+                                std::is_same<TDataType, std::vector<int>>
+                            >, int, double>;
 
     using RawLiteralFlatExpression = LiteralFlatExpression<RawType>;
 
