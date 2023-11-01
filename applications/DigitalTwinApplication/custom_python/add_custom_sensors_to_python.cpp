@@ -1,0 +1,52 @@
+//    |  /           |
+//    ' /   __| _` | __|  _ \   __|
+//    . \  |   (   | |   (   |\__ `
+//   _|\_\_|  \__,_|\__|\___/ ____/
+//                   Multi-Physics
+//
+//  License:         BSD License
+//                   Kratos default license: kratos/license.txt
+//
+//  Main authors:    Suneth Warnakulasuriya
+//
+
+// System includes
+
+// External includes
+#include <pybind11/stl.h>
+
+// Project includes
+
+// Application includes
+#include "custom_sensors/sensor_specification.h"
+
+// Include base h
+#include "custom_python/add_custom_sensors_to_python.h"
+
+namespace Kratos::Python {
+
+void  AddCustomSensorsToPython(pybind11::module& m)
+{
+    namespace py = pybind11;
+
+    auto sensor_module = m.def_submodule("Sensors");
+
+    // Add sensor specifications
+    py::class_<SensorSpecification, SensorSpecification::Pointer, IndexedObject, DataValueContainer>(sensor_module, "SensorSpecification")
+        .def("GetLocation", &SensorSpecification::GetLocation)
+        .def("GetName", &SensorSpecification::GetName)
+        .def("GetSensorValue", &SensorSpecification::GetSensorValue)
+        .def("AddNodalExpression", &SensorSpecification::AddNodalExpression, py::arg("nodal_expression_name"), py::arg("nodal_expression"))
+        .def("GetNodalExpression", &SensorSpecification::GetNodalExpression, py::arg("nodal_expression_name"))
+        .def("GetNodalExpressionsMap", &SensorSpecification::GetNodalExpressionsMap)
+        .def("AddConditionExpression", &SensorSpecification::AddConditionExpression, py::arg("condition_expression_name"), py::arg("condition_expression"))
+        .def("GetConditionExpression", &SensorSpecification::GetConditionExpression, py::arg("condition_expression_name"))
+        .def("GetConditionExpressionsMap", &SensorSpecification::GetConditionExpressionsMap)
+        .def("AddElementExpression", &SensorSpecification::AddElementExpression, py::arg("element_expression_name"), py::arg("element_expression"))
+        .def("GetElementExpression", &SensorSpecification::GetElementExpression, py::arg("element_expression_name"))
+        .def("GetElementExpressionsMap", &SensorSpecification::GetElementExpressionsMap)
+        .def("__str__", PrintObject<SensorSpecification>);
+        ;
+}
+
+} // namespace Kratos::Python

@@ -22,6 +22,7 @@
 // Application includes
 #include "custom_python/add_custom_strategies_to_python.h"
 #include "custom_python/add_custom_utilities_to_python.h"
+#include "custom_python/add_custom_sensors_to_python.h"
 #include "digital_twin_application.h"
 #include "digital_twin_application_variables.h"
 
@@ -37,6 +38,7 @@ PYBIND11_MODULE(KratosDigitalTwinApplication, m)
 
     AddCustomStrategiesToPython(m);
     AddCustomUtilitiesToPython(m);
+    AddCustomSensorsToPython(m);
 
     // registering variables in python
     KRATOS_REGISTER_IN_PYTHON_VARIABLE(m, PERTURBATION_SIZE)
