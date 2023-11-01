@@ -22,28 +22,15 @@ debugApp = ApplicationGenerator(appNameCamel)
 
 # Add KratosVariables
 debugApp.AddVariables([
-    VariableCreator(name='DOF_1', vtype='double'),
-    VariableCreator(name='DOF_2', vtype='double'),
-    VariableCreator(name='ScalarVariable', vtype='double'),
-    VariableCreator(name='VectorVariable', vtype='double', is3D=True),
+    VariableCreator(name='PERTURBATION_SIZE', vtype='double'),
+    VariableCreator(name='ADAPT_PERTURBATION_SIZE', vtype='bool'),
+    VariableCreator(name='HAS_ROTATION_DOFS', vtype='bool'),
+    VariableCreator(name='SENSOR_NODE_ID', vtype='int'),
+    VariableCreator(name='SENSOR_WEIGHT', vtype='double'),
+    VariableCreator(name='SENSOR_DIRECTION', vtype='double', is3D=True),
 ])
 
 # Add test element
-debugApp.AddElements([
-    ElementCreator('CustomTestElement')
-    .AddDofs(['DOF_1', 'DOF_2'])
-    .AddFlags(['FLAG_1', 'FLAG_2'])
-    .AddClassMemberVariables([
-        ClassMemberCreator(name='VariableA', vtype='double *', default='nullptr'),
-        ClassMemberCreator(name='VariableB', vtype='int', default='0'),
-        ClassMemberCreator(name='VariableC', vtype='std::string', default='"Useful String"'),
-    ])
-])
-
-debugApp.AddConditions([
-    ConditionCreator('CustomTestCondition')
-])
-
 debugApp.Generate()
 
 print(f"Your application has been generated in: applications/{appNameCamel}Application")
