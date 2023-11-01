@@ -213,7 +213,58 @@ private:
     ///@}
 };
 
-class VertexValueIO
+class VertexHistoricalValueIO
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    template<class TDataType>
+    using TLSType = char;
+
+    template<class TDataType>
+    using ComponentDataType = TDataType;
+
+    ///@}
+    ///@name Life cycle
+    ///@{
+
+    VertexHistoricalValueIO(const unsigned int StepIndex) : mHistoricalIO(StepIndex) {}
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    template<class TDataType>
+    inline TDataType GetValue(
+        const Detail::Vertex& rVertex,
+        const Variable<TDataType>& rVariable,
+        char& rTLS) const
+    {
+        return rVertex.GetValue(rVariable, mHistoricalIO);
+    }
+
+    template<class TDataType>
+    inline void SetValue(
+        Detail::Vertex& rEntity,
+        const Variable<TDataType>& rVariable,
+        const TDataType& rValue) const
+    {
+        KRATOS_ERROR << "VertexValueIO does not support setting values from vertices";
+    }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    const HistoricalIO mHistoricalIO;
+
+    ///@}
+};
+
+class VertexNonHistoricalValueIO
 {
 public:
     ///@name Type definitions
@@ -235,7 +286,7 @@ public:
         const Variable<TDataType>& rVariable,
         char& rTLS) const
     {
-        return rVertex.GetValue(rVariable);
+        return rVertex.GetValue(rVariable, mNonHistoricalIO);
     }
 
     template<class TDataType>
@@ -246,6 +297,14 @@ public:
     {
         KRATOS_ERROR << "VertexValueIO does not support setting values from vertices";
     }
+
+    ///@}
+
+private:
+    ///@name Private member variables
+    ///@{
+
+    const NonHistoricalIO mNonHistoricalIO{};
 
     ///@}
 };
@@ -333,6 +392,75 @@ private:
     ///@}
 };
 
+class NodesIO
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using IndexType = int;
+
+    using ContainerType = ModelPart::NodesContainerType;
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    inline void GetData(
+        IndexType& rId,
+        array_1d<double, 3>& rCoordinates,
+        const ModelPart::NodeType& rNode) const
+    {
+        rId = rNode.Id();
+        noalias(rCoordinates) = rNode.GetInitialPosition().Coordinates();
+    }
+
+    inline void AddPoint(
+        ModelPart::NodesContainerType& rNodes,
+        const IndexType Id,
+        const array_1d<double, 3>& rCoordinates) const
+    {
+        auto p_node = Kratos::make_intrusive<ModelPart::NodeType>(Id, rCoordinates[0], rCoordinates[1], rCoordinates[2]);
+        rNodes.push_back(p_node);
+    }
+
+    ///@}
+};
+
+class VerticesIO
+{
+public:
+    ///@name Type definitions
+    ///@{
+
+    using IndexType = int;
+
+    using ContainerType = Detail::VertexContainerType;
+
+    ///@}
+    ///@name Public operations
+    ///@{
+
+    inline void GetData(
+        IndexType& rId,
+        array_1d<double, 3>& rCoordinates,
+        const Detail::Vertex& rVertex) const
+    {
+        rId = rVertex.GetID();
+        noalias(rCoordinates) = rVertex.Coordinates();
+    }
+
+    inline void AddPoint(
+        Detail::VertexContainerType& rVertices,
+        const IndexType Id,
+        const array_1d<double, 3>& rCoordinates) const
+    {
+        KRATOS_ERROR << "Reading vertices are not allowed.";
+    }
+
+    ///@}
+};
+
 template<class TContainerIOType>
 std::string GetContainerIOType()
 {
@@ -344,8 +472,10 @@ std::string GetContainerIOType()
         return "FLAGS";
     } else if constexpr(std::is_same_v<TContainerIOType, BossakIO>) {
         return "HISTORICAL_BOSSAK";
-    } else if constexpr(std::is_same_v<TContainerIOType, VertexValueIO>) {
-        return "INTERPOLATED";
+    } else if constexpr(std::is_same_v<TContainerIOType, VertexHistoricalValueIO>) {
+        return "INTERPOLATED_HISTORICAL";
+    } else if constexpr(std::is_same_v<TContainerIOType, VertexNonHistoricalValueIO>) {
+        return "INTERPOLATED_NONHISTORICAL";
     } else if constexpr(std::is_same_v<TContainerIOType, GaussPointValueIO>) {
         return "GAUSS_POINT";
     } else {

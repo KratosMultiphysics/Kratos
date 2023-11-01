@@ -350,9 +350,25 @@ void AddCustomIOToPython(pybind11::module& m)
         .def("Write", &HDF5::VertexContainerCoordinateIO::Write, py::arg("vertices"), py::arg("attributes") = Parameters("""{}"""))
         ;
 
-    py::class_<HDF5::VertexContainerVariableIO, HDF5::VertexContainerVariableIO::Pointer>(m, "VertexContainerVariableIO")
+    using historical_vertex_output = HDF5::VertexContainerVariableIO<HDF5::Internals::VertexHistoricalValueIO>;
+    py::class_<historical_vertex_output, historical_vertex_output::Pointer>(m, "VertexContainerHistoricalVariableIO")
         .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
-        .def("Write", &HDF5::VertexContainerVariableIO::Write, py::arg("vertices"), py::arg("attributes") = Parameters("""{}"""))
+        .def("Write", [](historical_vertex_output& rSelf, const HDF5::Detail::VertexContainerType& rVertices, const Parameters Attributes, const IndexType StepIndex) {
+                rSelf.Write(rVertices, HDF5::Internals::VertexHistoricalValueIO(StepIndex), Attributes);
+            },
+            py::arg("vertices"),
+            py::arg("attributes") = Parameters("""{}"""),
+            py::arg("step_index") = 0)
+        ;
+
+    using non_historical_vertex_output = HDF5::VertexContainerVariableIO<HDF5::Internals::VertexNonHistoricalValueIO>;
+    py::class_<non_historical_vertex_output, non_historical_vertex_output::Pointer>(m, "VertexContainerNonHistoricalVariableIO")
+        .def(py::init<Parameters, HDF5::File::Pointer>(), py::arg("settings"), py::arg("hdf5_file"))
+        .def("Write", [](non_historical_vertex_output& rSelf, const HDF5::Detail::VertexContainerType& rVertices, const Parameters Attributes) {
+                rSelf.Write(rVertices, HDF5::Internals::VertexNonHistoricalValueIO{}, Attributes);
+            },
+            py::arg("vertices"),
+            py::arg("attributes") = Parameters("""{}"""))
         ;
 
 #ifdef KRATOS_USING_MPI

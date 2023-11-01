@@ -66,7 +66,8 @@ class TestPointSetOutputProcess(UnitTest.TestCase):
             # Check output file structure
             root = "/test_point_set_output_{}".format(parameters["model_part_name"].GetString())
             self.assertTrue(file.IsGroup(root))
-            self.assertTrue(file.IsDataSet(root + "/POSITION"))
+            self.assertTrue(file.IsDataSet(root + "/Ids"))
+            self.assertTrue(file.IsDataSet(root + "/Coordinates"))
 
     @property
     def parameters(self) -> KratosMultiphysics.Parameters:

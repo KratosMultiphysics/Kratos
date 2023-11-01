@@ -14,6 +14,7 @@
 
 // Application includes
 #include "custom_io/hdf5_container_component_io.h"
+#include "custom_io/hdf5_points_data.h"
 #include "custom_utilities/container_io_utils.h"
 #include "custom_utilities/vertex.h"
 
@@ -36,11 +37,13 @@ namespace HDF5
  *      "write_vertex_ids" : false
  *  }
  */
-class KRATOS_API(HDF5_APPLICATION) VertexContainerCoordinateIO
+class KRATOS_API(HDF5_APPLICATION) VertexContainerCoordinateIO : protected Internals::PointsData<Internals::VerticesIO>
 {
 public:
     ///@name Type Definitions
     ///@{
+
+    using BaseType = Internals::PointsData<Internals::VerticesIO>;
 
     /// Pointer definition
     KRATOS_CLASS_POINTER_DEFINITION(VertexContainerCoordinateIO);
@@ -64,18 +67,6 @@ public:
     ///@}
 
 private:
-    ///@name Private Operations
-    ///@{
-
-    void WriteWithoutIDs(
-        const Detail::VertexContainerType& rVertices,
-        Parameters Attributes);
-
-    void WriteWithIDs(
-        const Detail::VertexContainerType& rVertices,
-        Parameters Attributes);
-
-    ///@}
     ///@name Private Member Variables
     ///@{
 
@@ -100,9 +91,10 @@ private:
  *      "list_of_variables" : []
  *  }
  */
+template<class TVertexDataIOType>
 class KRATOS_API(HDF5_APPLICATION) VertexContainerVariableIO: protected ContainerComponentIO<
                                                                                 Detail::VertexContainerType,
-                                                                                Internals::VertexValueIO,
+                                                                                TVertexDataIOType,
                                                                                 Variable<int>,
                                                                                 Variable<double>,
                                                                                 Variable<array_1d<double, 3>>,
@@ -118,7 +110,7 @@ public:
 
     using BaseType = ContainerComponentIO<
                                 Detail::VertexContainerType,
-                                Internals::VertexValueIO,
+                                TVertexDataIOType,
                                 Variable<int>,
                                 Variable<double>,
                                 Variable<array_1d<double, 3>>,
@@ -145,7 +137,8 @@ public:
 
     void Write(
         const Detail::VertexContainerType& rVertices,
-        Parameters Attributes);
+        const TVertexDataIOType& rVertexDataIO,
+        const Parameters Attributes);
 
     ///@}
 
