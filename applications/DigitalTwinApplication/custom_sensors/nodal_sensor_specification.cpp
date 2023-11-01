@@ -34,6 +34,7 @@ NodalSensorSpecification::NodalSensorSpecification(
 {
     KRATOS_TRY
 
+    this->SetValue(SENSOR_NODE_ID, static_cast<int>(pNode->Id()));
     this->SetValue(SENSOR_WEIGHT, SensorWeight);
 
     KRATOS_CATCH("");
