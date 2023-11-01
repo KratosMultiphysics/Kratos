@@ -16,31 +16,18 @@ void WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const&
 
     const std::string partition_path = rPath + PartitionSuffix;
     Vector<int> data;
-    if (rFile.GetPID() == rFile.GetTotalProcesses() - 1)
-    {
+    if (rFile.GetPID() == rFile.GetTotalProcesses() - 1) {
         data.resize(2, false);
         data[0] = rInfo.StartIndex;
         data[1] = rInfo.TotalSize;
-    }
-    else
-    {
+    } else  {
         data.resize(1, false);
         data[0] = rInfo.StartIndex;
     }
 
     WriteInfo dummy;
     rFile.WriteDataSet(partition_path, data, dummy);
-
-    KRATOS_CATCH("");
-}
-
-void WritePartitionTableIndependent(File& rFile, std::string const& rPath, Vector<int> const& rPartition)
-{
-    KRATOS_TRY;
-
-    const std::string partition_path = rPath + PartitionSuffix;
-    WriteInfo info;
-    rFile.WriteDataSetIndependent(partition_path, rPartition, info);
+    rFile.WriteAttribute(partition_path, "Size", static_cast<int>(rInfo.TotalSize));
 
     KRATOS_CATCH("");
 }
@@ -60,12 +47,19 @@ std::tuple<unsigned, unsigned> StartIndexAndBlockSize(File& rFile, std::string c
     KRATOS_TRY;
 
     const std::string partition_path = rPath + PartitionSuffix;
-    const unsigned my_pid = rFile.GetPID();
-    Vector<int> my_partition;
-    rFile.ReadDataSet(partition_path, my_partition, my_pid, 2);
-    const unsigned start_index = my_partition[0];
-    const unsigned block_size = my_partition[1] - my_partition[0];
-    return std::make_tuple(start_index, block_size);
+
+    if (rFile.GetDataCommunicator().IsDistributed()) {
+        const unsigned my_pid = rFile.GetPID();
+        Vector<int> my_partition;
+        rFile.ReadDataSet(partition_path, my_partition, my_pid, 2);
+        const unsigned start_index = my_partition[0];
+        const unsigned block_size = my_partition[1] - my_partition[0];
+        return std::make_tuple(start_index, block_size);
+    } else {
+        int size;
+        rFile.ReadAttribute(partition_path, "Size", size);
+        return std::make_tuple(0, size);
+    }
 
     KRATOS_CATCH("");
 }

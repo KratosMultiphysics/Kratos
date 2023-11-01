@@ -12,7 +12,7 @@
 
 /** @file hdf5_data_set_partition_utility.h
  *  @brief Methods for setting and retrieving information about a partition table.
- *   
+ *
  *   The partition table describes how a data set is divided across partitions.
  */
 
@@ -42,16 +42,10 @@ namespace HDF5
 /// Write the start and end indices of data blocks (by process rank).
 /**
  * Performs collective write.
- * 
+ *
  * @param[in] rInfo Information returned by file after writing a data set.
  */
 void WritePartitionTable(File& rFile, std::string const& rPath, WriteInfo const& rInfo);
-
-/// Write a user-defined partition table of start and end indices (by process rank).
-/**
- * Performs independent write.
- */
-void WritePartitionTableIndependent(File& rFile, std::string const& rPath, Vector<int> const& rPartition);
 
 // Check if a path has a data set partition.
 bool HasPartitionTable(File& rFile, std::string const& rPath);
