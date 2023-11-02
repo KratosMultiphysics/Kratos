@@ -13,6 +13,7 @@
 #include <iostream>
 #include <fstream>
 #include <ostream>
+#include <math.h>
 
 // External includes
 #include <boost/property_tree/json_parser.hpp>
@@ -143,9 +144,29 @@ namespace Kratos
 
                             simulated_displacement_projected_on_measurement = inner_prod(simulated_displacement, measurement_normal);
 
+                            // // MSE - gradient
                             rResponseGradient[i + 0] = measurement_normal[0] * (measurement_value - simulated_displacement_projected_on_measurement);
                             rResponseGradient[i + 1] = measurement_normal[1] * (measurement_value - simulated_displacement_projected_on_measurement);
                             rResponseGradient[i + 2] = measurement_normal[2] * (measurement_value - simulated_displacement_projected_on_measurement);
+
+                            // x^p error gradient
+                            // double error = measurement_value - simulated_displacement_projected_on_measurement;
+                            // double p = 4.0;
+                            // double p_error = p * error * pow(abs(error), (p - 2.0));
+
+                            // rResponseGradient[i + 0] = measurement_normal[0] * p_error;
+                            // rResponseGradient[i + 1] = measurement_normal[1] * p_error;
+                            // rResponseGradient[i + 2] = measurement_normal[2] * p_error;
+
+                            // // KS error gradient
+                            // double error = measurement_value - simulated_displacement_projected_on_measurement;
+                            // double sqr_error = error * error;
+                            // double radius = 30.0;
+                            // double ks_error_deriv = (error/radius) * exp(sqr_error / (2 *radius));
+
+                            // rResponseGradient[i + 0] = measurement_normal[0] * ks_error_deriv;
+                            // rResponseGradient[i + 1] = measurement_normal[1] * ks_error_deriv;
+                            // rResponseGradient[i + 2] = measurement_normal[2] * ks_error_deriv;
 
                             break;
                         }

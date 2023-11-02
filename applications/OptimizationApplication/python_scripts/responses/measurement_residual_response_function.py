@@ -1,5 +1,6 @@
 from __future__ import annotations
 import json
+import math
 
 import numpy as np
 
@@ -116,15 +117,26 @@ class MeasurementResidualResponseFunction(ResponseFunction):
                 node_displacement = mesh_node.GetSolutionStepValue(Kratos.KratosGlobals.GetVariable(sensor["type_of_sensor"]))
                 in_measurement_direction_projected_vector = (measured_direction[0]*node_displacement[0])+(measured_direction[1]*node_displacement[1])+(measured_direction[2]*node_displacement[2])
 
+                # MSE
                 square_error = (measured_displacement-in_measurement_direction_projected_vector)**2
-
                 temp_objective += square_error
+
+                # x^p error
+                # p = 4.0
+                # error = (measured_displacement-in_measurement_direction_projected_vector)**p
+                # temp_objective += error
+
+                # KS - 10.7712/140121.7952.18383
+                # square_error = (measured_displacement-in_measurement_direction_projected_vector)**2
+                # radius = 30.0
+                # ks_error = math.exp(square_error/(2 * radius))-1.0
+                # temp_objective += ks_error
 
                 # if abs(square_error) > abs_max_obj:
                 #     abs_max_obj = abs(square_error)
 
             # temp_objective /= abs_max_obj
-            self.latest_objective_values[i]=temp_objective
+            self.latest_objective_values[i] = temp_objective
 
             # if abs_max_obj > max_abs_max_obj:
             #     max_abs_max_obj = abs_max_obj
