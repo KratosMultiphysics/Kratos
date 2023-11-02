@@ -16,6 +16,7 @@
 
 #include <vector>
 #include <memory>
+#include <functional>
 
 #include "time_step_end_state.hpp"
 #include "time_incrementor.h"
