@@ -1,7 +1,7 @@
 # This function manages application dependencies
 macro(kratos_add_dependency application_path)
     get_filename_component(application_name ${application_path} NAME )
-    IF(NOT TARGET Kratos${application_name})
+    IF(NOT TARGET Kratos${application_name} AND ${EXCLUDE_AUTOMATIC_DEPENDENCIES} MATCHES OFF)
         message("-- [Info] Adding dependency ${application_name}")
         add_subdirectory(${application_path} ${CMAKE_BINARY_DIR}/applications/${application_name} )
 
