@@ -326,4 +326,318 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     KRATOS_EXPECT_FALSE(results[outside_point_id].IsObjectFound());
 }
 
+// Definition of the trees search wrapper
+using SearchWrapperKDTreeElement = SearchWrapper<Tree<KDTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>;
+using SearchWrapperOCTreeElement = SearchWrapper<Tree<OCTreePartition<Bucket<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>>;
+using SearchWrapperStaticBinsTreeElement = SearchWrapper<Tree<Bins<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>>;
+using SearchWrapperBinsDynamicElement = SearchWrapper<BinsDynamic<3ul, PointObject<Element>, std::vector<PointObject<Element>::Pointer>>>;
+
+/**
+ * @brief A function to test tree-based search in a specified radius.
+ * @details This function tests the tree-based search algorithm within a specified radius.
+ * @tparam TSearchWrapper The type of the search wrapper.
+ */
+template<class TSearchWrapper>
+void TestTreeSearchInRadius()
+{
+    Model current_model;
+
+    // Generate the cube skin
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model);
+
+    // Generate the search wrapper for bins
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+    TSearchWrapper search_wrapper(r_skin_part.Elements(), r_data_comm);
+
+    // Generate new model part
+    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
+    r_point_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    // We generate only in first rank
+    const int rank = r_data_comm.Rank();
+    const std::size_t point_id = 1;
+    if (rank == 0) {
+        auto p_node = r_point_model_part.CreateNewNode(point_id, 0.0, 0.0, 0.0);
+        p_node->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+    }
+    auto& r_array_nodes = r_point_model_part.Nodes();
+
+    typename TSearchWrapper::ResultContainerVectorType results;
+
+    // 0.3 radius
+    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.3, results);
+    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+    KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 0);
+
+    // 2.0 radius
+    search_wrapper.SearchInRadius(r_array_nodes.begin(), r_array_nodes.end(), 2.0, results);
+    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+    KRATOS_EXPECT_TRUE(results[point_id].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[point_id].NumberOfGlobalResults(), 12);
+}
+
+/** Checks SearchWrapper works for KDTreeElement search in radius
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchInRadius, KratosMPICoreFastSuite)
+{
+    TestTreeSearchInRadius<SearchWrapperKDTreeElement>();
+}
+
+/** Checks SearchWrapper works for OCTreeElement search in radius
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchInRadius, KratosMPICoreFastSuite)
+{
+    TestTreeSearchInRadius<SearchWrapperOCTreeElement>();
+}
+
+/** Checks SearchWrapper works for StaticBinsTree search in radius
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchInRadius, KratosMPICoreFastSuite)
+{
+    TestTreeSearchInRadius<SearchWrapperStaticBinsTreeElement>();
+}
+
+/** Checks SearchWrapper works for BinsDynamicElement search in radius
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchInRadius, KratosMPICoreFastSuite)
+{
+    TestTreeSearchInRadius<SearchWrapperBinsDynamicElement>();
+}
+
+/**
+ * @brief A function to test tree-based nearest search in a specified radius.
+ * @details This function tests the tree-based nearest search algorithm within a specified radius.
+ * @tparam TSearchWrapper The type of the search wrapper.
+ */
+template<class TSearchWrapper>
+void TestTreeSearchNearestInRadius()
+{
+    constexpr double tolerance = 1e-6;
+
+    Model current_model;
+
+    // Cube coordinates
+    const double cube_z = 0.3;
+
+    // Generate the cube skin
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
+
+    // Generate the search wrapper for bins
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+    TSearchWrapper search_wrapper(r_skin_part.Elements(), r_data_comm);
+
+    double epsilon = 1.0e-6;
+    const std::size_t near_point_id = 1;
+
+    // Generate new model part
+    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
+    r_point_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    // We generate only in first rank
+    const int rank = r_data_comm.Rank();
+    if (rank == 0) {
+        auto p_node = r_point_model_part.CreateNewNode(near_point_id, epsilon,epsilon,epsilon);
+        p_node->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+    }
+    auto& r_array_nodes = r_point_model_part.Nodes();
+
+    typename TSearchWrapper::ResultContainerVectorType results;
+    search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), cube_z, results);
+
+    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+    KRATOS_EXPECT_FALSE(results[near_point_id].IsObjectFound());
+
+    search_wrapper.SearchNearestInRadius(r_array_nodes.begin(), r_array_nodes.end(), 0.6, results);
+
+    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+    KRATOS_EXPECT_TRUE(results[near_point_id].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[near_point_id].NumberOfGlobalResults(), 1);
+
+    // Distances
+    auto distances = results[near_point_id].GetDistances();
+    KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
+
+    // Compute indices
+    auto indices = results[near_point_id].GetResultIndices();
+    const std::size_t id = indices[0];
+    KRATOS_EXPECT_EQ(id, 4);
+}
+
+/** Checks SearchWrapper works for KDTreeElement search nearest in radius
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearestInRadius<SearchWrapperKDTreeElement>();
+}
+
+/** Checks SearchWrapper works for OCTreeElement search nearest in radius
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearestInRadius<SearchWrapperOCTreeElement>();
+}
+
+/** Checks SearchWrapper works for StaticBinsTree search nearest in radius
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearestInRadius, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearestInRadius<SearchWrapperStaticBinsTreeElement>();
+}
+
+/** Checks SearchWrapper works for BinsDynamicElement search nearest in radius
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearestInRadius, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearestInRadius<SearchWrapperBinsDynamicElement>();
+}
+
+/**
+ * @brief A function to test tree-based nearest search
+ * @details This function tests the tree-based nearest search algorithm
+ * @tparam TSearchWrapper The type of the search wrapper.
+ */
+template<class TSearchWrapper>
+void TestTreeSearchNearest()
+{
+    constexpr double tolerance = 1e-6;
+
+    Model current_model;
+    
+    // Cube coordinates
+    const double cube_z = 0.3;
+
+    // Generate the cube skin
+    ModelPart& r_skin_part = CppTestsUtilities::CreateCubeSkinModelPart(current_model, 0.6, 0.9, cube_z);
+
+    // Generate the search wrapper for bins
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+    TSearchWrapper search_wrapper(r_skin_part.Elements(), r_data_comm);
+
+    double epsilon = 1.0e-6;
+    const std::size_t near_point_id = 1;
+
+    // Generate new model part
+    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
+    r_point_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+    // We generate only in first rank
+    const int rank = r_data_comm.Rank();
+    if (rank == 0) {
+        auto p_node = r_point_model_part.CreateNewNode(near_point_id, epsilon,epsilon,epsilon);
+        p_node->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+    }
+    auto& r_array_nodes = r_point_model_part.Nodes();
+
+    typename TSearchWrapper::ResultContainerVectorType results;
+    search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+
+    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+    KRATOS_EXPECT_TRUE(results[near_point_id].IsObjectFound());
+    KRATOS_EXPECT_EQ(results[near_point_id].NumberOfGlobalResults(), 1);
+
+    // Distances
+    auto distances = results[near_point_id].GetDistances();
+    KRATOS_EXPECT_NEAR(distances[0], (cube_z - 0.08 - epsilon), tolerance);
+
+    // Compute indices
+    auto indices = results[near_point_id].GetResultIndices();
+    const std::size_t id = indices[0];
+    KRATOS_EXPECT_EQ(id, 4);
+}
+
+/** Checks SearchWrapper works for KDTreeElement search nearest
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearest, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearest<SearchWrapperKDTreeElement>();
+}
+
+/** Checks SearchWrapper works for OCTreeElement search nearest
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearest, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearest<SearchWrapperOCTreeElement>();
+}
+
+/** Checks SearchWrapper works for StaticBinsTree search nearest
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearest, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearest<SearchWrapperStaticBinsTreeElement>();
+}
+
+/** Checks SearchWrapper works for BinsDynamicElement search nearest
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearest, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearest<SearchWrapperBinsDynamicElement>();
+}
+
+// /**
+//  * @brief A function to test tree-based nearest search (empty)
+//  * @details This function tests the tree-based nearest search algorithm (empty)
+//  * @tparam TSearchWrapper The type of the search wrapper.
+//  */
+// template<class TSearchWrapper>
+// void TestTreeSearchNearestEmpty()
+// {
+//     Model current_model;
+
+//     // Generate the cube skin
+//     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
+
+//     // Generate the search wrapper for bins
+//     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+//     TSearchWrapper search_wrapper(r_skin_part.Elements(), r_data_comm);
+
+//     const std::size_t point_id = 1;
+
+//     // Generate new model part
+//     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
+//     r_point_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+
+//     // We generate only in first rank
+//     const int rank = r_data_comm.Rank();
+//     if (rank == 0) {
+//         auto p_node = r_point_model_part.CreateNewNode(point_id, 0.0,0.0,0.0);
+//         p_node->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+//     }
+//     auto& r_array_nodes = r_point_model_part.Nodes();
+
+//     typename TSearchWrapper::ResultContainerVectorType results;
+//     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+
+//     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+//     KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
+// }
+
+// /** Checks SearchWrapper works for KDTreeElement search nearest
+// */
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
+// {
+//     TestTreeSearchNearestEmpty<SearchWrapperKDTreeElement>();
+// }
+
+// /** Checks SearchWrapper works for OCTreeElement search nearest
+// */
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
+// {
+//     TestTreeSearchNearestEmpty<SearchWrapperOCTreeElement>();
+// }
+
+// /** Checks SearchWrapper works for StaticBinsTree search nearest
+// */
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
+// {
+//     TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElement>();
+// }
+
+// /** Checks SearchWrapper works for BinsDynamicElement search nearest
+// */
+// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearestEmpty, KratosMPICoreFastSuite)
+// {
+//     TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElement>();
+// }
+
 } // namespace Kratos::Testing.
