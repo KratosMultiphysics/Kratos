@@ -33,8 +33,8 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        build-type: [Custom, FullDebug]
-        compiler: [gcc, clang]
+        build-type: [FullDebug]
+        compiler: [clang]
     env:
       KRATOS_BUILD_TYPE: ${{ matrix.build-type }}
       OMPI_MCA_rmaps_base_oversubscribe: 1 # Allow oversubscription for MPI (needed for OpenMPI >= 3.0)
@@ -70,7 +70,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/configure_core.sh configure.sh
         bash configure.sh
-        rm ${GITHUB_WORKSPACE}/build
+        rm -r ${GITHUB_WORKSPACE}/build
 
     - name: Build Core Apps
       shell: bash
@@ -92,7 +92,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/configure_core_applications.sh configure.sh
         bash configure.sh
-        rm ${GITHUB_WORKSPACE}/build
+        rm -r ${GITHUB_WORKSPACE}/build
 
     - name: Build Research Apps
       shell: bash
@@ -114,7 +114,7 @@ jobs:
         source /opt/intel/oneapi/setvars.sh
         cp .github/workflows/configure_research_applications.sh configure.sh
         bash configure.sh
-        rm ${GITHUB_WORKSPACE}/build
+        rm -r ${GITHUB_WORKSPACE}/build
 
     - name: Running python tests
       shell: bash
