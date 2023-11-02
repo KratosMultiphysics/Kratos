@@ -8,12 +8,14 @@ script_name="$(basename ${BASH_SOURCE[0]})"
 # Function for printing usage info
 print_help() {
     echo "$script_name - Configure, build, and install KratosMultiphysics."
+    echo "Usage: $script_name [-h] [-C] [-b <build-dir>] [-i <install-dir>] [-t <build-type>] [-a <app-name>] [-o <cmake-opt>]"
     echo "-h                    : print this help and exit"
     echo "-C                    : clean build and install directories, then exit"
-    echo "-b build_path         : path to the build directory (created if it does not exist yet)"
-    echo "-i install_path       : path to the install directory (created if it does not exist yet)"
-    echo "-t build_type         : build type [FullDebug, Debug, Release, RelWithDebInfo] (Default: Release)"
-    echo "-a application_name   : name of the application to build (can be passed repeatedly to add more applications)"
+    echo "-b <build_path>       : path to the build directory (created if it does not exist yet)"
+    echo "-i <install_path>     : path to the install directory (created if it does not exist yet)"
+    echo "-t <build_type>       : build type [FullDebug, Debug, Release, RelWithDebInfo] (Default: Release)"
+    echo "-a <app-name>         : name of the application to build (can be passed repeatedly to add more applications)"
+    echo "-o <cmake-opt>        : options/arguments to pass on to CMake. Semicolon (;) delimited, or defined repeatedly."
     echo
     echo "This script provides a build environment for KratosMultiphysics targeting systems running on Apple Silicon."
     echo "The interface is minimal, so users seeking more control over the build process are invited to tweak this"
@@ -94,7 +96,7 @@ add_app() {
 }
 
 # Parse command line arguments
-while getopts "hCb:i:t:a:" arg; do
+while getopts ":h C b: i: t: a:" arg; do
     case "$arg" in
         h)  # Print help and exit without doing anything
             print_help
@@ -111,13 +113,20 @@ while getopts "hCb:i:t:a:" arg; do
             ;;
         t)  # Set build type
             build_type="$OPTARG"
-            (("${build_type}" == "FullDebug" || "${build_type}" == "Debug" || "${build_type}" == "RelWithDebInfo" || "${build_type}" == "Release")) || (print_help && echo "Error: invalid build type: ${build_type}" && exit 1)
+            if [[ "${build_type}" == "FullDebug"
+                  || "${build_type}" == "Debug"
+                  || "${build_type}" == "RelWithDebInfo"
+                  || "${build_type}" == "Release" ]]; then
+                print_help
+                echo "Error: invalid build type: ${build_type}"
+                exit 1
+            fi
             ;;
         a)  # Add application
             add_app "$OPTARG"
             ;;
         \?) # Unrecognized argumnet
-            echo "Error: unrecognized argument: $arg"
+            echo "Error: unrecognized argument: $OPTARG"
             exit 1
     esac
 done
@@ -215,6 +224,12 @@ if [ ! -d "$build_dir" ]; then
     mkdir -p "$build_dir"
 fi
 
+# Symlink python scripts to the install directory
+# instead of copying them. Unset this option if you
+# need multiple versions of Kratos installed at the
+# same time.
+export KRATOS_INSTALL_PYTHON_USING_LINKS=ON
+
 # Configure
 if ! cmake                                                  \
     "-H$source_dir"                                         \
@@ -233,15 +248,14 @@ if ! cmake                                                  \
     "-DUSE_MPI:BOOL=$mpi_flag"                              \
     "-DUSE_EIGEN_MKL:BOOL=OFF"                              \
     "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
-    "-DKRATOS_INSTALL_PYTHON_USING_LINKS:BOOL=ON"           \
     "-DKRATOS_ENABLE_PROFILING:BOOL=OFF"                    \
     ; then
-    exit $?
+    exit 1
 fi
 
 # Build and install
 if ! cmake --build "$build_dir" --target install -j; then
-    exit $?
+    exit 1
 fi
 
 exit 0
