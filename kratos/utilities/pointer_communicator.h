@@ -69,7 +69,7 @@ class ResultsProxy
 {
 public:
     /// Type alias for the result of applying the functor to a global pointer of TPointerDataType
-    using TSendType = std::invoke_result_t< TFunctorType(GlobalPointer<TPointerDataType>&)>;
+    using TSendType = std::invoke_result_t<TFunctorType,GlobalPointer<TPointerDataType>&>;
 
     /**
      * @brief Constructor.
