@@ -9,5 +9,5 @@ macro(kratos_add_dependency application_path)
         list(APPEND tmp ${application_name})
         set_property(GLOBAL PROPERTY LIST_OF_APPLICATIONS_ADDED_THROUGH_DEPENDENCIES ${tmp})
 
-    endif(NOT TARGET Kratos${application_name})
+    endif()
 endmacro(kratos_add_dependency)
