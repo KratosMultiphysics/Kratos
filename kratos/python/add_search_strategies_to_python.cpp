@@ -78,6 +78,28 @@ void CopyRadiusArrayToPython(
 }
 
 /**
+ * @brief Binds a SpatialSearchResult class to Python using pybind11.
+ * @tparam TObjectType The type of object stored in the container.
+ * @param m The pybind11 module to bind the class to.
+ * @param rClassName The name of the class.
+ */
+template<typename TObjectType>
+void BindSpatialSearchResult(pybind11::module& m, const std::string& rClassName) {
+    using ResultType = SpatialSearchResult<TObjectType>;
+    auto cls = pybind11::class_<ResultType, typename ResultType::Pointer>(m, rClassName.c_str())
+    .def(pybind11::init< >())
+    .def(pybind11::init<TObjectType*>())
+    .def("Reset", &ResultType::Reset)
+    .def("Get", [&](ResultType& self) {return self.Get().get();})
+    .def("Set", &ResultType::Set)
+    .def("GetDistance", &ResultType::GetDistance)
+    .def("SetDistance", &ResultType::SetDistance)
+    .def("IsObjectFound", &ResultType::IsObjectFound)
+    .def("IsDistanceCalculated", &ResultType::IsDistanceCalculated)
+    ;
+}
+
+/**
  * @brief Binds a SpatialSearchResultContainer class to Python using pybind11.
  * @tparam TObjectType The type of object stored in the container.
  * @param m The pybind11 module to bind the class to.
@@ -629,32 +651,26 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     DefineSpecializedSpatialSearch<SpatialContainer::BinsStatic>(m, "SpatialSearchBinsStatic");
     DefineSpecializedSpatialSearch<SpatialContainer::BinsDynamic>(m, "SpatialSearchBinsDynamic");
 
-    using ResultTypeGeometricalObject = SpatialSearchResult<GeometricalObject>;
-
-    py::class_<ResultTypeGeometricalObject, ResultTypeGeometricalObject::Pointer>(m, "ResultTypeGeometricalObject")
-    .def(py::init< >())
-    .def(py::init<GeometricalObject*>())
-    .def("Reset", &ResultTypeGeometricalObject::Reset)
-    .def("Get", [&](ResultTypeGeometricalObject& self) {return self.Get().get();})
-    .def("Set", &ResultTypeGeometricalObject::Set)
-    .def("GetDistance", &ResultTypeGeometricalObject::GetDistance)
-    .def("SetDistance", &ResultTypeGeometricalObject::SetDistance)
-    .def("IsObjectFound", &ResultTypeGeometricalObject::IsObjectFound)
-    .def("IsDistanceCalculated", &ResultTypeGeometricalObject::IsDistanceCalculated)
-    ;
+    // Result types
+    BindSpatialSearchResult<Node>(m, "SpatialSearchResultNode");
+    BindSpatialSearchResult<GeometricalObject>(m, "SpatialSearchResultGeometricalObject");
+    BindSpatialSearchResult<Element>(m, "SpatialSearchResultElement");
+    BindSpatialSearchResult<Condition>(m, "SpatialSearchResultCondition");
 
     // Containers
-    BindSpatialSearchResultContainer<Node>(m, "ResultTypeContainerNode");
-    BindSpatialSearchResultContainer<GeometricalObject>(m, "ResultTypeContainerGeometricalObject");
-    BindSpatialSearchResultContainer<Element>(m, "ResultTypeContainerElement");
-    BindSpatialSearchResultContainer<Condition>(m, "ResultTypeContainerCondition");
+    BindSpatialSearchResultContainer<Node>(m, "SpatialSearchResultContainerNode");
+    BindSpatialSearchResultContainer<GeometricalObject>(m, "SpatialSearchResultContainerGeometricalObject");
+    BindSpatialSearchResultContainer<Element>(m, "SpatialSearchResultContainerElement");
+    BindSpatialSearchResultContainer<Condition>(m, "SpatialSearchResultContainerCondition");
 
     // Containers map
-    BindSpatialSearchResultContainerVector<Node>(m, "ResultTypeContainerVectorNode");
-    BindSpatialSearchResultContainerVector<GeometricalObject>(m, "ResultTypeContainerVectorGeometricalObject");
-    BindSpatialSearchResultContainerVector<Element>(m, "ResultTypeContainerVectorElement");
-    BindSpatialSearchResultContainerVector<Condition>(m, "ResultTypeContainerVectorCondition");
+    BindSpatialSearchResultContainerVector<Node>(m, "SpatialSearchResultContainerVectorNode");
+    BindSpatialSearchResultContainerVector<GeometricalObject>(m, "SpatialSearchResultContainerVectorGeometricalObject");
+    BindSpatialSearchResultContainerVector<Element>(m, "SpatialSearchResultContainerVectorElement");
+    BindSpatialSearchResultContainerVector<Condition>(m, "SpatialSearchResultContainerVectorCondition");
 
+    // GeometricalObjectsBins
+    using ResultTypeGeometricalObject = SpatialSearchResult<GeometricalObject>;
     using NodesContainerType = ModelPart::NodesContainerType;
     using ElementsContainerType = ModelPart::ElementsContainerType;
     using ConditionsContainerType = ModelPart::ConditionsContainerType;
