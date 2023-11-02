@@ -356,7 +356,7 @@ private:
     void load( Serializer& rSerializer ) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS( rSerializer, BaseLoadCondition );
-        rSerializer.save("mIsMovingLoad", mIsMovingLoad);
+        rSerializer.load("mIsMovingLoad", mIsMovingLoad);
     }
 
     ///@}

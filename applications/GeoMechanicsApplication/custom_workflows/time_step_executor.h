@@ -30,12 +30,12 @@ public:
     using ProcessRefVec = std::vector<ProcessRef>;
 
     void SetSolverStrategy(std::shared_ptr<StrategyWrapper> SolverStrategy);
-    void SetProcessReferences(ProcessRefVec ProcessRefs);
+    void SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables);
     TimeStepEndState Run(double Time);
 
 private:
     std::shared_ptr<StrategyWrapper> mStrategyWrapper;
-    ProcessRefVec                    mProcessRefs;
+    std::vector<std::weak_ptr<Process>> mProcessObservables;
 };
 
 }
