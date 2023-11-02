@@ -21,30 +21,31 @@ void TimeStepExecutor::SetSolverStrategy(std::shared_ptr<StrategyWrapper> Solver
     mStrategyWrapper = std::move(SolverStrategy);
 }
 
-void TimeStepExecutor::SetProcessReferences(ProcessRefVec ProcessRefs)
+void TimeStepExecutor::SetProcessObservables(const std::vector<std::weak_ptr<Process>>& rProcessObservables)
 {
-    mProcessRefs = std::move(ProcessRefs);
+    mProcessObservables = rProcessObservables;
 }
 
 TimeStepEndState TimeStepExecutor::Run(double Time)
 {
-    mStrategyWrapper->Initialize();
+    KRATOS_INFO("TimeStepExecutor") << "Running time step at time " << Time << std::endl;
+
     mStrategyWrapper->InitializeSolutionStep();
 
-    for (const auto& process : mProcessRefs)
+    for (const auto& process_observable : mProcessObservables)
     {
-        process.get().ExecuteInitializeSolutionStep();
+        auto process = process_observable.lock();
+        if (process) process->ExecuteInitializeSolutionStep();
     }
 
     mStrategyWrapper->Predict();
     mStrategyWrapper->SolveSolutionStep();
 
-    for (const auto& process : mProcessRefs)
+    for (const auto& process_observable : mProcessObservables)
     {
-         process.get().ExecuteFinalizeSolutionStep();
+        auto process = process_observable.lock();
+        if (process) process->ExecuteFinalizeSolutionStep();
     }
-
-    mStrategyWrapper->FinalizeSolutionStep();
 
     TimeStepEndState result;
     result.time              = Time;
