@@ -26,22 +26,26 @@ BoundingBox<Point> SearchWrapper<TSearchObject>::GetBoundingBox() const
 {
     // Generate BB
     BoundingBox<Point> bb;
-    auto& r_max = bb.GetMaxPoint();
-    auto& r_min = bb.GetMinPoint();
+    
+    // We get the global bounding box
+    if (mpSearchObject) {
+        auto& r_max = bb.GetMaxPoint();
+        auto& r_min = bb.GetMinPoint();
 
-    const auto& r_local_bb = mpSearchObject->GetBoundingBox();
-    const auto& r_local_max = r_local_bb.GetMaxPoint();
-    const auto& r_local_min = r_local_bb.GetMinPoint();
+        const auto& r_local_bb = mpSearchObject->GetBoundingBox();
+        const auto& r_local_max = r_local_bb.GetMaxPoint();
+        const auto& r_local_min = r_local_bb.GetMinPoint();
 
-    // Getting max values
-    r_max[0] = mrDataCommunicator.MaxAll(r_local_max[0]);
-    r_max[1] = mrDataCommunicator.MaxAll(r_local_max[1]);
-    r_max[2] = mrDataCommunicator.MaxAll(r_local_max[2]);
+        // Getting max values
+        r_max[0] = mrDataCommunicator.MaxAll(r_local_max[0]);
+        r_max[1] = mrDataCommunicator.MaxAll(r_local_max[1]);
+        r_max[2] = mrDataCommunicator.MaxAll(r_local_max[2]);
 
-    // Getting min values
-    r_min[0] = mrDataCommunicator.MinAll(r_local_min[0]);
-    r_min[1] = mrDataCommunicator.MinAll(r_local_min[1]);
-    r_min[2] = mrDataCommunicator.MinAll(r_local_min[2]);
+        // Getting min values
+        r_min[0] = mrDataCommunicator.MinAll(r_local_min[0]);
+        r_min[1] = mrDataCommunicator.MinAll(r_local_min[1]);
+        r_min[2] = mrDataCommunicator.MinAll(r_local_min[2]);
+    }
 
     return bb;
 }
@@ -71,7 +75,7 @@ template<class TSearchObject>
 void SearchWrapper<TSearchObject>::InitializeGlobalBoundingBoxes()
 {
     // Just executed in MPI
-    if (mrDataCommunicator.IsDistributed()) {
+    if (mrDataCommunicator.IsDistributed() && mpSearchObject) {
         // We get the world size
         const int world_size = GetWorldSize();
 
@@ -243,7 +247,7 @@ void SearchWrapper<TSearchObject>::LocalSearchNearest(
             const int rank = GetRank();
 
             // Search nearest
-            double distance;
+            double distance = 0.0;
             auto p_point = mpSearchObject->SearchNearestPoint(rPoint, distance);
 
             // Set the result

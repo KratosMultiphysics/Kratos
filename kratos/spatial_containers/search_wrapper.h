@@ -595,7 +595,7 @@ private:
         SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // The local bounding box
-        const auto& r_local_bb = mpSearchObject->GetBoundingBox(); 
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>(); 
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
@@ -657,7 +657,7 @@ private:
         const int current_rank = GetRank();
 
         // The local bounding box
-        const auto& r_local_bb = mpSearchObject->GetBoundingBox(); 
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>(); 
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
@@ -735,7 +735,7 @@ private:
         const double max_radius= *std::max_element(box_size.begin(), box_size.end());
 
         // The local bounding box
-        const auto& r_local_bb = mpSearchObject->GetBoundingBox(); 
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>(); 
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
@@ -805,7 +805,7 @@ private:
         const int current_rank = GetRank();
 
         // The local bounding box
-        const auto& r_local_bb = mpSearchObject->GetBoundingBox(); 
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>(); 
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
