@@ -646,10 +646,14 @@ void AddSearchStrategiesToPython(pybind11::module& m)
     // Containers
     BindSpatialSearchResultContainer<Node>(m, "ResultTypeContainerNode");
     BindSpatialSearchResultContainer<GeometricalObject>(m, "ResultTypeContainerGeometricalObject");
+    BindSpatialSearchResultContainer<Element>(m, "ResultTypeContainerElement");
+    BindSpatialSearchResultContainer<Condition>(m, "ResultTypeContainerCondition");
 
     // Containers map
     BindSpatialSearchResultContainerVector<Node>(m, "ResultTypeContainerVectorNode");
     BindSpatialSearchResultContainerVector<GeometricalObject>(m, "ResultTypeContainerVectorGeometricalObject");
+    BindSpatialSearchResultContainerVector<Element>(m, "ResultTypeContainerVectorElement");
+    BindSpatialSearchResultContainerVector<Condition>(m, "ResultTypeContainerVectorCondition");
 
     using NodesContainerType = ModelPart::NodesContainerType;
     using ElementsContainerType = ModelPart::ElementsContainerType;
