@@ -126,7 +126,7 @@ while getopts ":h C b: i: t: a:" arg; do
             add_app "$OPTARG"
             ;;
         \?) # Unrecognized argumnet
-            echo "Error: unrecognized argument: $OPTARG"
+            echo "Error: unrecognized argument: -$OPTARG"
             exit 1
     esac
 done
