@@ -574,70 +574,70 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNe
     TestTreeSearchNearest<SearchWrapperBinsDynamicElement>();
 }
 
-// /**
-//  * @brief A function to test tree-based nearest search (empty)
-//  * @details This function tests the tree-based nearest search algorithm (empty)
-//  * @tparam TSearchWrapper The type of the search wrapper.
-//  */
-// template<class TSearchWrapper>
-// void TestTreeSearchNearestEmpty()
-// {
-//     Model current_model;
+/**
+ * @brief A function to test tree-based nearest search (empty)
+ * @details This function tests the tree-based nearest search algorithm (empty)
+ * @tparam TSearchWrapper The type of the search wrapper.
+ */
+template<class TSearchWrapper>
+void TestTreeSearchNearestEmpty()
+{
+    Model current_model;
 
-//     // Generate the cube skin
-//     ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
+    // Generate the cube skin
+    ModelPart& r_skin_part = current_model.CreateModelPart("Skin");
 
-//     // Generate the search wrapper for bins
-//     const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
-//     TSearchWrapper search_wrapper(r_skin_part.Elements(), r_data_comm);
+    // Generate the search wrapper for bins
+    const DataCommunicator& r_data_comm = Testing::GetDefaultDataCommunicator();
+    TSearchWrapper search_wrapper(r_skin_part.Elements(), r_data_comm);
 
-//     const std::size_t point_id = 1;
+    const std::size_t point_id = 1;
 
-//     // Generate new model part
-//     ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
-//     r_point_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
+    // Generate new model part
+    ModelPart& r_point_model_part = current_model.CreateModelPart("PointModelPart");
+    r_point_model_part.AddNodalSolutionStepVariable(PARTITION_INDEX);
 
-//     // We generate only in first rank
-//     const int rank = r_data_comm.Rank();
-//     if (rank == 0) {
-//         auto p_node = r_point_model_part.CreateNewNode(point_id, 0.0,0.0,0.0);
-//         p_node->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
-//     }
-//     auto& r_array_nodes = r_point_model_part.Nodes();
+    // We generate only in first rank
+    const int rank = r_data_comm.Rank();
+    if (rank == 0) {
+        auto p_node = r_point_model_part.CreateNewNode(point_id, 0.0,0.0,0.0);
+        p_node->FastGetSolutionStepValue(PARTITION_INDEX) = 0;
+    }
+    auto& r_array_nodes = r_point_model_part.Nodes();
 
-//     typename TSearchWrapper::ResultContainerVectorType results;
-//     search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
+    typename TSearchWrapper::ResultContainerVectorType results;
+    search_wrapper.SearchNearest(r_array_nodes.begin(), r_array_nodes.end(), results);
 
-//     KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
-//     KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
-// }
+    KRATOS_EXPECT_EQ(results.NumberOfSearchResults(), 1);
+    KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
+}
 
-// /** Checks SearchWrapper works for KDTreeElement search nearest
-// */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
-// {
-//     TestTreeSearchNearestEmpty<SearchWrapperKDTreeElement>();
-// }
+/** Checks SearchWrapper works for KDTreeElement search nearest
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperKDTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearestEmpty<SearchWrapperKDTreeElement>();
+}
 
-// /** Checks SearchWrapper works for OCTreeElement search nearest
-// */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
-// {
-//     TestTreeSearchNearestEmpty<SearchWrapperOCTreeElement>();
-// }
+/** Checks SearchWrapper works for OCTreeElement search nearest
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperOCTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearestEmpty<SearchWrapperOCTreeElement>();
+}
 
-// /** Checks SearchWrapper works for StaticBinsTree search nearest
-// */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
-// {
-//     TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElement>();
-// }
+/** Checks SearchWrapper works for StaticBinsTree search nearest
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperStaticBinsTreeElementSearchNearestEmpty, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearestEmpty<SearchWrapperStaticBinsTreeElement>();
+}
 
-// /** Checks SearchWrapper works for BinsDynamicElement search nearest
-// */
-// KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearestEmpty, KratosMPICoreFastSuite)
-// {
-//     TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElement>();
-// }
+/** Checks SearchWrapper works for BinsDynamicElement search nearest
+*/
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperBinsDynamicElementSearchNearestEmpty, KratosMPICoreFastSuite)
+{
+    TestTreeSearchNearestEmpty<SearchWrapperBinsDynamicElement>();
+}
 
 } // namespace Kratos::Testing.
