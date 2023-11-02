@@ -9,6 +9,7 @@
 //
 //  Main authors:    Mohamed Nabi
 //                   John van Esch
+//                   Gennady Markelov
 //
 
 #pragma once
@@ -18,25 +19,27 @@
 namespace Kratos {
 
 /**
- * @class GeoThermalDispersion2DLaw
+ * @class GeoThermalDispersionLaw
  * @ingroup GeoMechanicsApplication
  * @brief This class defines the thermal dispersion for heat cases
  * @details This class derives from the linear elastic case on 3D
  */
-class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalDispersion2DLaw : public ConstitutiveLaw {
+class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalDispersionLaw : public ConstitutiveLaw {
 public:
+    /// Counted pointer of GeoThermalDispersionLaw
+    KRATOS_CLASS_POINTER_DEFINITION(GeoThermalDispersionLaw);
 
-    /// Counted pointer of LinearPlaneStrainK0Law
-    KRATOS_CLASS_POINTER_DEFINITION(GeoThermalDispersion2DLaw);
+    explicit GeoThermalDispersionLaw(SizeType NumberOfDimensions);
 
     ConstitutiveLaw::Pointer Clone() const override;
 
     SizeType WorkingSpaceDimension() override;
 
-    static void CalculateThermalDispersionMatrix(Matrix& rThermalDispersionMatrix,
-                                                 const Properties& rValues);
+    Matrix CalculateThermalDispersionMatrix(const Properties& rValues) const;
 
 private:
+    SizeType mNumberOfDimensions;
+
     friend class Serializer;
 
     void save(Serializer& rSerializer) const override

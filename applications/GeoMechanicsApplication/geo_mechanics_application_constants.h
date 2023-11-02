@@ -94,10 +94,10 @@ namespace Kratos
                               INDEX_2D_BEAM_T };
 
     // Heat vector indices:
-    enum indexHeat2D : int {
-        INDEX_2D_THERMAL_FLUX_X,
-        INDEX_2D_THERMAL_FLUX_Y,
-        INDEX_2D_THERMAL_FLUX_Z
+    enum indexHeat : int {
+        INDEX_THERMAL_FLUX_X,
+        INDEX_THERMAL_FLUX_Y,
+        INDEX_THERMAL_FLUX_Z
     };
 
 }
