@@ -91,7 +91,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         # If distributed run, add PARTITION_INDEX to model part
         if KM.IsDistributedRun():
             cls.model_part.AddNodalSolutionStepVariable(KM.PARTITION_INDEX)
-        
+
         # Define mdpa file name and read it into the model part
         cls.mdpa_name = GetFilePath("auxiliar_files_for_python_unittest/mdpa_files/coarse_sphere_with_conditions")
         ReadModelPart(cls.mdpa_name, cls.model_part)
@@ -173,7 +173,7 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         radius = 0.35
 
         # Nodes array search
-        results = self.search.SearchNearestInRadius(self.sub_model_part.Nodes, radius)   
+        results = self.search.SearchNearestInRadius(self.sub_model_part.Nodes, radius)
         self.assertEqual(results.NumberOfSearchResults(), 1)
         node_results = results[self.node_id]
         self.assertEqual(node_results.NumberOfGlobalResults(), 1)
@@ -197,9 +197,9 @@ class TestSearchWrapper(KratosUnittest.TestCase):
         self._create_search(search_type)
 
         # Nodes array search
-        results = self.search.SearchNearest(self.sub_model_part.Nodes) 
+        results = self.search.SearchNearest(self.sub_model_part.Nodes)
         self.assertEqual(results.NumberOfSearchResults(), 1)
-        node_results = results[self.node_id] 
+        node_results = results[self.node_id]
         self.assertEqual(node_results.NumberOfGlobalResults(), 1)
         # Local result
         if node_results.NumberOfLocalResults() == 1:
@@ -234,14 +234,14 @@ class TestSearchWrapper(KratosUnittest.TestCase):
     def test_SearchWrapperGeometricalObjectBins_SearchIsInside(self):
         """
         Test for the 'SearchIsInside' method of the GeometricalObjectBins search wrapper.
-        """       
+        """
         # Create search
         self._create_search("GeometricalObjectBins")
 
         # Nodes array search
-        results = self.search.SearchIsInside(self.sub_model_part.Nodes) 
+        results = self.search.SearchIsInside(self.sub_model_part.Nodes)
         self.assertEqual(results.NumberOfSearchResults(), 1)
-        node_results = results[self.node_id] 
+        node_results = results[self.node_id]
         self.assertFalse(node_results.IsObjectFound())
 
     def test_SearchWrapperKDTree_SearchInRadius(self):
