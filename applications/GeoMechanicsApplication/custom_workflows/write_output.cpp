@@ -46,49 +46,80 @@ IntegrationPointResultWriter MakeIntegrationPointResultWriterFor(const VariableT
     };
 }
 
+GiD_PostMode GetGiDPostModeFrom(const Parameters& rGiDPostFlags)
+{
+    const auto to_post_mode = std::map<std::string, GiD_PostMode, std::less<>>{
+        {"GiD_PostAscii",       GiD_PostAscii},
+        {"GiD_PostAsciiZipped", GiD_PostAsciiZipped},
+        {"GiD_PostBinary",      GiD_PostBinary},
+        {"GiD_PostHDF5",        GiD_PostHDF5}
+    };
+    return to_post_mode.at(rGiDPostFlags["GiDPostMode"].GetString());
+}
+
+MultiFileFlag GetMultiFileFlagFrom(const Parameters& rGiDPostFlags)
+{
+    const auto to_multi_file_flag = std::map<std::string, MultiFileFlag, std::less<>>{
+        {"SingleFile",    SingleFile},
+        {"MultipleFiles", MultipleFiles}
+    };
+    return to_multi_file_flag.at(rGiDPostFlags["MultiFileFlag"].GetString());
+}
+
+WriteDeformedMeshFlag GetWriteDeformedMeshFlagFrom(const Parameters& rGiDPostFlags)
+{
+    const auto to_write_deformed_flag = std::map<std::string, WriteDeformedMeshFlag, std::less<>>{
+        {"WriteDeformed",   WriteDeformed},
+        {"WriteUndeformed", WriteUndeformed}
+    };
+    return to_write_deformed_flag.at(rGiDPostFlags["WriteDeformedMeshFlag"].GetString());
+}
+
+WriteConditionsFlag GetWriteConditionsFlagFrom(const Parameters& rGiDPostFlags)
+{
+    const auto to_write_conditions_flag = std::map<std::string, WriteConditionsFlag, std::less<>>{
+        {"WriteConditions",     WriteConditions},
+        {"WriteElementsOnly",   WriteElementsOnly},
+        {"WriteConditionsOnly", WriteConditionsOnly}
+    };
+    return to_write_conditions_flag.at(rGiDPostFlags["WriteConditionsFlag"].GetString());
+}
+
 }
 
 
 namespace Kratos
 {
 
+GeoOutputWriter::GeoOutputWriter(const Parameters&  rGidOutputSettings,
+                                 const std::string& rWorkingDirectory,
+                                 ModelPart&         rModelPart) :
+    mGidIO{MakeGidIO(rWorkingDirectory, rGidOutputSettings)}
+{
+    mGidIO.InitializeMesh(0.0);
+    mGidIO.WriteMesh(rModelPart.GetMesh());
+    mGidIO.FinalizeMesh();
+    mGidIO.InitializeResults(0, rModelPart.GetMesh());
+}
+
 void GeoOutputWriter::WriteGiDOutput(ModelPart&         rModelPart,
                                      Parameters         Settings,
-                                     const std::string& rWorkingDirectory,
                                      bool WriteHydraulicHeadToNodes)
 {
-    auto output_parameters = Settings["output_processes"]["gid_output"].GetArrayItem(0)["Parameters"];
-    auto gid_post_flags = output_parameters["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"];
-
-    GidIO<> gid_io{rWorkingDirectory + "/" + output_parameters["output_name"].GetString(),
-                   GetGiDPostModeFrom(gid_post_flags),
-                   GetMultiFileFlagFrom(gid_post_flags),
-                   GetWriteDeformedMeshFlagFrom(gid_post_flags),
-                   GetWriteConditionsFlagFrom(gid_post_flags)};
-
-    gid_io.InitializeMesh(0.0);
-    gid_io.WriteMesh(rModelPart.GetMesh());
-    gid_io.FinalizeMesh();
-
-    gid_io.InitializeResults(0, rModelPart.GetMesh());
-
     // Calculate hydraulic head on the nodes
-    auto gauss_outputs = output_parameters["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
+    const auto gauss_outputs = Settings["postprocess_parameters"]["result_file_configuration"]["gauss_point_results"].GetStringArray();
     if (WriteHydraulicHeadToNodes && std::find(gauss_outputs.begin(), gauss_outputs.end(), "HYDRAULIC_HEAD") != gauss_outputs.end())
     {
-        CalculateNodalHydraulicHead(gid_io, rModelPart);
+        CalculateNodalHydraulicHead(rModelPart);
     }
 
-    const auto nodal_outputs = output_parameters["postprocess_parameters"]["result_file_configuration"]["nodal_results"].GetStringArray();
-    WriteNodalOutput(nodal_outputs, gid_io, rModelPart);
-    WriteIntegrationPointOutput(gauss_outputs, gid_io, rModelPart);
-
-    gid_io.FinalizeResults();
+    const auto nodal_outputs = Settings["postprocess_parameters"]["result_file_configuration"]["nodal_results"].GetStringArray();
+    WriteNodalOutput(nodal_outputs, rModelPart);
+    WriteIntegrationPointOutput(gauss_outputs, rModelPart);
 }
 
 
 void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputItemNames,
-                                       GidIO<>&                        rGidIO,
                                        const ModelPart&                rModelPart)
 {
     const auto output_writer_map = std::map<std::string, NodalResultWriter, std::less<>>{
@@ -98,18 +129,22 @@ void GeoOutputWriter::WriteNodalOutput(const std::vector<std::string>& rOutputIt
             {"NORMAL_FLUID_FLUX",   MakeNodalResultWriterFor(NORMAL_FLUID_FLUX)},
             {"VOLUME_ACCELERATION", MakeNodalResultWriterFor(VOLUME_ACCELERATION)},
             {"HYDRAULIC_DISCHARGE", MakeNodalResultWriterFor(HYDRAULIC_DISCHARGE)},
-            {"HYDRAULIC_HEAD",      MakeNodalResultWriterFor(HYDRAULIC_HEAD)}
+            {"HYDRAULIC_HEAD",      MakeNodalResultWriterFor(HYDRAULIC_HEAD)},
+            {"LINE_LOAD_Y",         MakeNodalResultWriterFor(LINE_LOAD_Y)},
     };
 
     for (const auto& name : rOutputItemNames)
     {
-        output_writer_map.at(name)(rGidIO, rModelPart);
+        auto iter = output_writer_map.find(name);
+        KRATOS_ERROR_IF(iter == output_writer_map.end())
+            << "Output item '" << name << "' is not available for nodal output" << std::endl;
+
+        iter->second(mGidIO, rModelPart);
     }
 }
 
 
 void GeoOutputWriter::WriteIntegrationPointOutput(const std::vector<std::string>& rOutputItemNames,
-                                                  GidIO<>&                        rGidIO,
                                                   const ModelPart&                rModelPart)
 {
     const auto output_writer_map = std::map<std::string, IntegrationPointResultWriter, std::less<>>{
@@ -132,11 +167,15 @@ void GeoOutputWriter::WriteIntegrationPointOutput(const std::vector<std::string>
 
     for (const auto& name : rOutputItemNames)
     {
-        output_writer_map.at(name)(rGidIO, rModelPart);
+        auto iter = output_writer_map.find(name);
+        KRATOS_ERROR_IF(iter == output_writer_map.end())
+                    << "Output item '" << name << "' is not available for integration point output" << std::endl;
+
+        iter->second(mGidIO, rModelPart);
     }
 }
 
-void GeoOutputWriter::CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart& rModelPart)
+void GeoOutputWriter::CalculateNodalHydraulicHead(ModelPart& rModelPart)
 {
     const auto& element_var = KratosComponents<Variable<double>>::Get("HYDRAULIC_HEAD");
 
@@ -151,46 +190,23 @@ void GeoOutputWriter::CalculateNodalHydraulicHead(GidIO<>& rGidIO, ModelPart& rM
             rGeom[node].SetValue(element_var, NodalHydraulicHead[node]);
         }
     }
-    rGidIO.WriteNodalResultsNonHistorical(element_var, rModelPart.Nodes(), 0);
+    mGidIO.WriteNodalResultsNonHistorical(element_var, rModelPart.Nodes(), 0);
 }
 
-GiD_PostMode GeoOutputWriter::GetGiDPostModeFrom(const Parameters& rGiDPostFlags)
+void GeoOutputWriter::FinalizeResults()
 {
-    const std::map<std::string, GiD_PostMode, std::less<>> to_post_mode{
-        {"GiD_PostAscii",       GiD_PostAscii},
-        {"GiD_PostAsciiZipped", GiD_PostAsciiZipped},
-        {"GiD_PostBinary",      GiD_PostBinary},
-        {"GiD_PostHDF5",        GiD_PostHDF5}
-    };
-    return to_post_mode.at(rGiDPostFlags["GiDPostMode"].GetString());
+    mGidIO.FinalizeResults();
 }
 
-MultiFileFlag GeoOutputWriter::GetMultiFileFlagFrom(const Parameters& rGiDPostFlags)
+GidIO<> GeoOutputWriter::MakeGidIO(const std::string& rWorkingDirectory,
+                                   const Parameters&  rGidOutputSettings)
 {
-    const std::map<std::string, MultiFileFlag, std::less<>> to_multi_file_flag{
-        {"SingleFile",    SingleFile},
-        {"MultipleFiles", MultipleFiles}
-    };
-    return to_multi_file_flag.at(rGiDPostFlags["MultiFileFlag"].GetString());
-}
-
-WriteDeformedMeshFlag GeoOutputWriter::GetWriteDeformedMeshFlagFrom(const Parameters& rGiDPostFlags)
-{
-    const std::map<std::string, WriteDeformedMeshFlag, std::less<>> to_write_deformed_flag{
-        {"WriteDeformed",   WriteDeformed},
-        {"WriteUndeformed", WriteUndeformed}
-    };
-    return to_write_deformed_flag.at(rGiDPostFlags["WriteDeformedMeshFlag"].GetString());
-}
-
-WriteConditionsFlag GeoOutputWriter::GetWriteConditionsFlagFrom(const Parameters& rGiDPostFlags)
-{
-    const std::map<std::string, WriteConditionsFlag, std::less<>> to_write_conditions_flag{
-        {"WriteConditions",     WriteConditions},
-        {"WriteElementsOnly",   WriteElementsOnly},
-        {"WriteConditionsOnly", WriteConditionsOnly}
-    };
-    return to_write_conditions_flag.at(rGiDPostFlags["WriteConditionsFlag"].GetString());
+    const auto gid_post_flags = rGidOutputSettings["postprocess_parameters"]["result_file_configuration"]["gidpost_flags"];
+    return GidIO<>{rWorkingDirectory + "/" + rGidOutputSettings["output_name"].GetString(),
+                   GetGiDPostModeFrom(gid_post_flags),
+                   GetMultiFileFlagFrom(gid_post_flags),
+                   GetWriteDeformedMeshFlagFrom(gid_post_flags),
+                   GetWriteConditionsFlagFrom(gid_post_flags)};
 }
 
 }

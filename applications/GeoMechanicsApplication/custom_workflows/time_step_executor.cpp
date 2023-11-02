@@ -30,7 +30,6 @@ TimeStepEndState TimeStepExecutor::Run(double Time)
 {
     KRATOS_INFO("TimeStepExecutor") << "Running time step at time " << Time << std::endl;
 
-    mStrategyWrapper->Initialize();
     mStrategyWrapper->InitializeSolutionStep();
 
     for (const auto& process_observable : mProcessObservables)
