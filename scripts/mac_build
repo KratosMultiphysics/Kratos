@@ -78,6 +78,7 @@ build_dir="${source_dir}/build"         # <== path to the build directory
 install_dir="$(get_site_packages_dir)"  # <== path to install kratos to
 clean=0                                 # <== clean the build and install directories, then exit
 app_names=""                            # <== list of app names to build
+cmake_arguments=""                      # <== semicolon-separated list of options to pass to CMake
 
 # Function to append the list of applications to build
 add_app() {
@@ -96,7 +97,7 @@ add_app() {
 }
 
 # Parse command line arguments
-while getopts ":h C b: i: t: a:" arg; do
+while getopts ":h C b: i: t: a: o:" arg; do
     case "$arg" in
         h)  # Print help and exit without doing anything
             print_help
@@ -113,10 +114,10 @@ while getopts ":h C b: i: t: a:" arg; do
             ;;
         t)  # Set build type
             build_type="$OPTARG"
-            if [[ "${build_type}" == "FullDebug"
-                  || "${build_type}" == "Debug"
-                  || "${build_type}" == "RelWithDebInfo"
-                  || "${build_type}" == "Release" ]]; then
+            if ! [[ "${build_type}" == "FullDebug"
+                 || "${build_type}" == "Debug"
+                 || "${build_type}" == "RelWithDebInfo"
+                 || "${build_type}" == "Release" ]]; then
                 print_help
                 echo "Error: invalid build type: ${build_type}"
                 exit 1
@@ -125,8 +126,12 @@ while getopts ":h C b: i: t: a:" arg; do
         a)  # Add application
             add_app "$OPTARG"
             ;;
+        o)  # Add CMake option
+            cmake_arguments="$cmake_arguments;$OPTARG"
+            ;;
         \?) # Unrecognized argumnet
             echo "Error: unrecognized argument: -$OPTARG"
+            print_help
             exit 1
     esac
 done
@@ -137,6 +142,9 @@ if [ -d "$build_dir" ]; then
         echo "Error: user '$(hostname)' has no write access to the build directory: '$build_dir'"
         exit 1
     fi
+
+    rm -f "$build_dir/CMakeCache.txt"
+    rm -rf "$build_dir/CMakeFiles"
 fi
 
 # Check write access to the install dir
@@ -249,6 +257,7 @@ if ! cmake                                                  \
     "-DUSE_EIGEN_MKL:BOOL=OFF"                              \
     "-DKRATOS_GENERATE_PYTHON_STUBS:BOOL=ON"                \
     "-DKRATOS_ENABLE_PROFILING:BOOL=OFF"                    \
+    $(echo $cmake_arguments | tr '\;' '\n')                 \
     ; then
     exit 1
 fi
