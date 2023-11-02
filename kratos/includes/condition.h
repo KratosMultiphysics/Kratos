@@ -785,6 +785,7 @@ public:
         const ProcessInfo& rCurrentProcessInfo)
     {
     }
+
     virtual void SetValuesOnIntegrationPoints(
         const Variable<int>& rVariable,
         const std::vector<int>& rValues,
