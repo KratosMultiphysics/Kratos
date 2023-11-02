@@ -17,7 +17,7 @@
         "analysis_type"                        : "non_linear",
         "model_import_settings"                : {
             "input_type"     : "mdpa",
-            "input_filename" : "cylinder_symmetric_short_flat"
+            "input_filename" : "cylinder_aligned_short_flat"
         },
         "material_import_settings"             : {
             "materials_filename" : "StructuralMaterials.json"

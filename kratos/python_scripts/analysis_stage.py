@@ -268,6 +268,7 @@ class AnalysisStage(object):
     
         # Calculate Jacobians from deformed configuration
         self.deformed_config_jacobians = []
+        self.deformed_config_jacobians_global = []
         for elem in self._GetSolver().GetComputingModelPart().Elements:
             H0 = elem.Properties[KratosMultiphysics.THICKNESS]
             # TODO: See if numpy objects can be replaced all by Kratos-type elements. Check KratosMultiphysics.Matrix available methods
@@ -291,12 +292,18 @@ class AnalysisStage(object):
             T_elm[2, 1] = local_axis_3[0][1]
             T_elm[2, 2] = local_axis_3[0][2]
 
+            self.deformed_config_jacobians_global.append(J_X)
+            print(elem.Id, "J_X:", J_X)
             J_X = T_elm.transpose() @ J_X
             self.deformed_config_jacobians.append(J_X)
         # export Jacobians J
         np.save("jacobians_J_" + str(self.case), self.deformed_config_jacobians)
         J0txt = np.reshape(self.deformed_config_jacobians, (-1,3))
         np.savetxt("jacobians_J_" + str(self.case) + ".txt", J0txt)
+        # export Jacobians J global reference
+        np.save("jacobians_J_" + str(self.case) + "GLOBAL", self.deformed_config_jacobians_global)
+        J0txt_G = np.reshape(self.deformed_config_jacobians_global, (-1,3))
+        np.savetxt("jacobians_J_" + str(self.case) + "GLOBAL" + ".txt", J0txt_G)
 
         # Calculate normals from deformed configuration
         print("\n ::TESTING:: START Calculate normals \n")
@@ -363,6 +370,7 @@ class AnalysisStage(object):
     
     def InitializeMyStrains(self):
         self.flat_config_jacobians = []
+        self.flat_config_jacobians_global = []
         for element in self._GetSolver().GetComputingModelPart().Elements:
             H0 = element.Properties[KratosMultiphysics.THICKNESS]
             extracolumn = np.array([[0.0, 0.0, H0/2.0]])
@@ -384,19 +392,28 @@ class AnalysisStage(object):
             T0_elm[2, 1] = local_axis_3[0][1]
             T0_elm[2, 2] = local_axis_3[0][2]
 
+            self.flat_config_jacobians_global.append(J_X0)
             J_X0 = T0_elm.transpose() @ J_X0
             self.flat_config_jacobians.append(J_X0)
         # export Jacobians J0
         np.save("jacobians_J0_" + str(self.case), self.flat_config_jacobians)
         Jtxt = np.reshape(self.flat_config_jacobians, (-1,3))
         np.savetxt("jacobians_J0_" + str(self.case) + ".txt", Jtxt)
+        # export Jacobians J0 global reference
+        np.save("jacobians_J0_" + str(self.case) + "GLOBAL", self.flat_config_jacobians_global)
+        Jtxt_G = np.reshape(self.flat_config_jacobians_global, (-1,3))
+        np.savetxt("jacobians_J0_" + str(self.case) + "GLOBAL" + ".txt", Jtxt_G)
 
         F_list = []
         strains_list = []
+        F_global_list = []
+        strains_global_list = []
         # Read pre-calculated strains
         # strains_def_config = np.load('strains_cylinder.npy')
-        for J, J0, element in zip(self.deformed_config_jacobians,self.flat_config_jacobians, self._GetSolver().GetComputingModelPart().Elements):
+        for J, J0, J_G, J0_G, element in zip(self.deformed_config_jacobians,self.flat_config_jacobians,
+                                  self.deformed_config_jacobians_global,self.flat_config_jacobians_global, self._GetSolver().GetComputingModelPart().Elements):
             J0_inv = np.linalg.inv(J0)
+            J0_inv_G = np.linalg.inv(J0_G)
 
             # Calculate strain by Jacobians
             JTJ = J.T @ J
@@ -407,9 +424,13 @@ class AnalysisStage(object):
 
             # Calculate strain by Deformation Gradient F
             defgrad = J @ J0_inv
+            defgrad_G = J_G @ J0_inv_G
             C3D_FFT = defgrad.T @ defgrad
+            C3D_FFT_G = defgrad_G.T @ defgrad_G
             F_list.append(defgrad)
+            F_global_list.append(defgrad_G)
             E3D_FFT = 0.5 * (C3D_FFT - np.eye(3))
+            E3D_FFT_G = 0.5 * (C3D_FFT_G - np.eye(3))
             
             # Check matrix operations
             print("F[", element.Id, "]:\n", defgrad)
@@ -423,11 +444,19 @@ class AnalysisStage(object):
             E_voigt[1] = E3D_FFT[1, 1]
             E_voigt[2] = (E3D_FFT[0, 1] + E3D_FFT[1, 0])
 
+            E_voigt_G = KratosMultiphysics.Vector(3)
+            E_voigt_G[0] = E3D_FFT_G[0, 0]
+            E_voigt_G[1] = E3D_FFT_G[1, 1]
+            E_voigt_G[2] = (E3D_FFT_G[0, 1] + E3D_FFT_G[1, 0])
+            
             # apply pre-calculated strains from original deformed configuration to flat input
             element.SetValue(KratosMultiphysics.INITIAL_STRAIN_VECTOR, E_voigt)
             strainvalue = np.array(E_voigt)
+            strainvalue_G = np.array(E_voigt_G)
             print("E[", element.Id, "]:\n", strainvalue)
+            print("E_G[", element.Id, "]:\n", strainvalue_G)
             strains_list.append(strainvalue)
+            strains_global_list.append(strainvalue_G)
             # TODO later - Create condition for PointLoad, reference command:
             # self._GetSolver().GetComputingModelPart().CreateCondition()
         
@@ -437,6 +466,12 @@ class AnalysisStage(object):
         np.savetxt("F" + str(self.case) + "_defgrad.txt", Ftxt)
         np.save("E" + str(self.case) + "_strains", strains_list)
         np.savetxt("E" + str(self.case) + "_strains.txt", strains_list)
+        # export F, E (global)
+        np.save("F_G" + str(self.case) + "_defgrad", F_global_list)
+        Ftxt_G = np.reshape(F_global_list, (-1,3))
+        np.savetxt("F_G" + str(self.case) + "_defgrad.txt", Ftxt_G)
+        np.save("E_G" + str(self.case) + "_strains", strains_global_list)
+        np.savetxt("E_G" + str(self.case) + "_strains.txt", strains_global_list)
 
 
     def ModifyAfterSolverInitialize(self):
