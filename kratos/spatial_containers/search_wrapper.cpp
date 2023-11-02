@@ -26,7 +26,7 @@ BoundingBox<Point> SearchWrapper<TSearchObject>::GetBoundingBox() const
 {
     // Generate BB
     BoundingBox<Point> bb;
-    
+
     // We get the global bounding box
     if (mpSearchObject) {
         auto& r_max = bb.GetMaxPoint();
@@ -193,7 +193,7 @@ void SearchWrapper<TSearchObject>::LocalSearchInRadius(
 template<class TSearchObject>
 void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
     const PointType& rPoint,
-    const double Radius, 
+    const double Radius,
     ResultType& rResult,
     const int AllocationSize
     )
@@ -213,7 +213,7 @@ void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
 
                 // Get the rank
                 const int rank = GetRank();
-                
+
                 // Find the iterator pointing to the smallest value
                 auto it_min = std::min_element(results_distances.begin(), results_distances.end());
 
@@ -233,7 +233,7 @@ void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
 
 template<class TSearchObject>
 void SearchWrapper<TSearchObject>::LocalSearchNearest(
-    const PointType& rPoint, 
+    const PointType& rPoint,
     ResultType& rResult
     )
 {
@@ -262,7 +262,7 @@ void SearchWrapper<TSearchObject>::LocalSearchNearest(
 
 template<class TSearchObject>
 void SearchWrapper<TSearchObject>::LocalSearchIsInside(
-    const PointType& rPoint, 
+    const PointType& rPoint,
     ResultType& rResult
     )
 {
