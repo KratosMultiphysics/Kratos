@@ -62,7 +62,12 @@ class PythonSolver:
         will be added and the values are sets with the names of the variables.
         It has to be called BEFORE the ModelPart is read!
         """
-        pass
+        for model_part_name, vars in map_additional_variables.items():
+            model_part = self.model[model_part_name]
+            for variable_name in vars:
+                variable = KratosMultiphysics.KratosGlobals.GetVariable(variable_name)
+                model_part.AddNodalSolutionStepVariable(variable)
+
 
     def AddDofs(self):
         """This function add the Dofs needed by this PythonSolver to the the ModelPart
