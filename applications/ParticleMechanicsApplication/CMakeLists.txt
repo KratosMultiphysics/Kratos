@@ -20,13 +20,6 @@ file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE
     ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/*.cpp
 )
 
-# If there is mpi support, use..
-if((${USE_MPI} MATCHES ON) )
-  file( GLOB KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE ${KRATOS_PARTICLE_MECHANICS_APPLICATION_CORE}
-  ${CMAKE_CURRENT_SOURCE_DIR}/custom_utilities/mpi/*.cpp
-  )
-endif((${USE_MPI} MATCHES ON) )
-
 # Define python interface sources
 file(GLOB_RECURSE KRATOS_PARTICLE_MECHANICS_APPLICATION_PYTHON_INTERFACE ${CMAKE_CURRENT_SOURCE_DIR}/custom_python/*.cpp)
 
@@ -41,7 +34,7 @@ set_target_properties(KratosParticleMechanicsCore PROPERTIES COMPILE_DEFINITIONS
 
 # Define Kratos library which defines the basic python interface
 pybind11_add_module(KratosParticleMechanicsApplication MODULE THIN_LTO ${KRATOS_PARTICLE_MECHANICS_APPLICATION_PYTHON_INTERFACE})
-target_link_libraries(KratosParticleMechanicsApplication PRIVATE KratosParticleMechanicsCore)
+target_link_libraries(KratosParticleMechanicsApplication PRIVATE KratosParticleMechanicsCore )
 set_target_properties(KratosParticleMechanicsApplication PROPERTIES PREFIX "")
 
 # Set batch size in the unity build
@@ -86,3 +79,9 @@ install(TARGETS KratosParticleMechanicsApplication DESTINATION libs )
 # Define custom targets
 set(KRATOS_KERNEL "${KRATOS_KERNEL};KratosParticleMechanicsCore" PARENT_SCOPE)
 set(KRATOS_PYTHON_INTERFACE "${KRATOS_PYTHON_INTERFACE};KratosParticleMechanicsApplication" PARENT_SCOPE)
+
+## If trilinos is avaliable, switch on the ParticleMecchanics trilinos extension
+if((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))
+  message("Enabling trilinos extension for KratosParticleMechanicsApplication")
+  add_subdirectory(trilinos_extension)
+endif((${USE_MPI} MATCHES ON) AND (${TRILINOS_FOUND}))

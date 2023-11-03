@@ -26,10 +26,18 @@ def CreateSolverByParameters(model, solver_settings, parallelism):
             err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
             err_msg += "Available options are: \"static\", \"dynamic\", \"quasi_static\""
             raise Exception(err_msg)
-
+    elif (parallelism == "MPI"):
+        if (solver_type == "Static" or solver_type == "static"):
+            solver_module_name = "trilinos_mpm_static_solver"
+        elif (solver_type == "Dynamic" or solver_type == "dynamic"):
+            solver_module_name = "trilinos_mpm_implicit_dynamic_solver"
+        else:
+            err_msg =  "The requested solver type \"" + solver_type + "\" is not in the python solvers wrapper\n"
+            err_msg += "Available options are: \"static\", \"dynamic\""
+            raise Exception(err_msg)
     else:
         err_msg =  "The requested parallel type \"" + parallelism + "\" is not available!\n"
-        err_msg += "Available options are: \"OpenMP\""
+        err_msg += "Available options are: \"OpenMP\", \"MPI\""
         raise Exception(err_msg)
 
     # Remove settings that are not needed any more

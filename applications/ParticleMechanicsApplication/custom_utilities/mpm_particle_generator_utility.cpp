@@ -236,9 +236,29 @@ namespace MPMParticleGeneratorUtility
         SearchStructure.UpdateSearchDatabase();
         typename BinBasedFastPointLocator<TDimension>::ResultContainerType results(100);
 
+        //NOTE: For a mpi-run, unique Id's across all mpi nodes are required.
+        // unsigned int size = 1;
+        // unsigned int rank = 0;
+        // Synchronize condition id's in mpi run, to ensure unique condition id's across mpi-processes
+        // if( rBackgroundGridModelPart.GetCommunicator().IsDistributed() ){
+        //     size = rBackgroundGridModelPart.GetCommunicator().TotalProcesses();
+        //     rank = rBackgroundGridModelPart.GetCommunicator().MyPID();
+        //     last_condition_id = rBackgroundGridModelPart.GetCommunicator().GetDataCommunicator().SumAll(last_condition_id) + rank;
+        // }
+        // unsigned int new_condition_id = last_condition_id;
+
         // Loop over the submodelpart of rBackgroundGridModelPart
         for (auto& submodelpart : rBackgroundGridModelPart.SubModelParts())
         {
+            // mpi implementation start
+            // ModelPart& submodelpart = *submodelpart_it;
+            // std::string submodelpart_name = submodelpart.Name();
+
+            // if( !rMPMModelPart.HasSubModelPart("submodelpart_name")){
+            //     rMPMModelPart.CreateSubModelPart(submodelpart_name);
+            // }
+            // mpi implementation end
+
             // For submodelpart without condition, exit
             if (submodelpart.NumberOfConditions() != 0){
 
@@ -349,6 +369,15 @@ namespace MPMParticleGeneratorUtility
                         // Check Normal direction
                         if (flip_normal_direction) mpc_normal *= -1.0;
 
+                        // mpi implementation start
+                        // 1. Loop over the conditions to create inner particle condition
+                        // for ( unsigned int point_number = 0; point_number < integration_point_per_conditions; point_number++ )
+                        // {
+                        //     // Create new material point condition
+                        //     new_condition_id += size;
+                        //     Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
+                        // mpi implementation end
+                        
                         unsigned int new_condition_id = 0;
 
                         // Create Particle Point Load Condition
@@ -475,6 +504,80 @@ namespace MPMParticleGeneratorUtility
                                 rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
 
                             }
+
+                        // mpi implementation start
+                        //     // Mark as boundary condition
+                        //     p_condition->Set(BOUNDARY, true);
+                        //     // Add the MP Condition to the model part
+                        //     rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                        //     //TODO: Test if this also works in python..
+                        //     rMPMModelPart.GetCommunicator().LocalMesh().AddCondition(p_condition);
+                        // }
+
+                        // last_condition_id += integration_point_per_conditions;
+
+                        // // 2. Loop over the nodes associated to each condition to create nodal particle condition
+                        // for ( unsigned int j = 0; j < r_geometry.size(); j ++)
+                        // {
+                        //     // Nodal normal vector is used
+                        //     if (r_geometry[j].Has(NORMAL)) mpc_normal = r_geometry[j].FastGetSolutionStepValue(NORMAL);
+                        //     const double denominator = std::sqrt(mpc_normal[0]*mpc_normal[0] + mpc_normal[1]*mpc_normal[1] + mpc_normal[2]*mpc_normal[2]);
+                        //     if (std::abs(denominator) > std::numeric_limits<double>::epsilon() ) mpc_normal *= 1.0 / denominator;
+
+
+                        //     // Create new material point condition
+                        //     new_condition_id += size;
+                        //     Condition::Pointer p_condition = new_condition.Create(new_condition_id, rBackgroundGridModelPart.ElementsBegin()->GetGeometry(), properties);
+
+                        //     mpc_xg.clear();
+                        //     for (unsigned int dimension = 0; dimension < r_geometry.WorkingSpaceDimension(); dimension++){
+                        //         mpc_xg[dimension] = r_geometry[j].Coordinates()[dimension];
+                        //     }
+
+                        //     ProcessInfo process_info = ProcessInfo();
+
+                        //     // Setting particle condition's initial condition
+                        //     // TODO: If any variable is added or remove here, please add and remove also at the first loop above
+                        //     p_condition->SetValuesOnIntegrationPoints(MPC_COORD, { mpc_xg }, process_info);
+                        //     std::vector<double> mpc_area_vector = { mpc_area };
+                        //     p_condition->SetValuesOnIntegrationPoints(MPC_AREA, mpc_area_vector, process_info);
+                        //     p_condition->SetValuesOnIntegrationPoints(MPC_NORMAL, { mpc_normal }, process_info);
+
+                        //     if (is_neumann_condition)
+                        //         p_condition->SetValuesOnIntegrationPoints(POINT_LOAD, { point_load }, process_info);
+                        //     else{
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_DISPLACEMENT, { mpc_displacement }, process_info);
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_DISPLACEMENT, { mpc_imposed_displacement }, process_info);
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_VELOCITY, { mpc_velocity }, process_info);
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_VELOCITY, { mpc_imposed_velocity }, process_info);
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_ACCELERATION, { mpc_acceleration }, process_info);
+                        //         p_condition->SetValuesOnIntegrationPoints(MPC_IMPOSED_ACCELERATION, { mpc_imposed_acceleration }, process_info);
+
+                        //          if (boundary_condition_type == 1){
+                        //             std::vector<double> mpc_penalty_factor_vector = { mpc_penalty_factor };
+                        //             p_condition->SetValuesOnIntegrationPoints(PENALTY_FACTOR, mpc_penalty_factor_vector, process_info);
+                        //          }
+
+
+                        //         if (is_slip)
+                        //             p_condition->Set(SLIP);
+                        //         if (is_contact)
+                        //             p_condition->Set(CONTACT);
+                        //         if (is_interface)
+                        //         {
+                        //             p_condition->Set(INTERFACE);
+                        //             p_condition->SetValuesOnIntegrationPoints(MPC_CONTACT_FORCE, { mpc_contact_force }, process_info);
+                        //         }
+                        //     }
+                        //     // Mark as boundary condition
+                        //     p_condition->Set(BOUNDARY, true);
+                        //     // Add the MP Condition to the model part
+                        //     rMPMModelPart.GetSubModelPart(submodelpart_name).AddCondition(p_condition);
+                        //     //TODO: Test if this also works in python..
+                        //     rMPMModelPart.GetCommunicator().LocalMesh().AddCondition(p_condition);
+                        // }
+                        // mpi implementation end
+
                             last_condition_id += integration_point_per_conditions;
 
                         }

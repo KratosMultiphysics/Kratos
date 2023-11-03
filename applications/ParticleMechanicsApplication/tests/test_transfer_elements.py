@@ -1,9 +1,8 @@
-
 import KratosMultiphysics
 from KratosMultiphysics import KratosUnittest
 import KratosMultiphysics.mpi as KratosMPI
 import KratosMultiphysics.ParticleMechanicsApplication as KratosParticle
-data_comm = KratosMultiphysics.DataCommunicator.GetDefault()
+from KratosMultiphysics.ParticleMechanicsApplication import TrilinosExtension as TrilinosParticle
 
 class TestTransferElements(KratosUnittest.TestCase):
     ''' This class provides all required methods to test the MPM_MPI_Utilities::TransferElements function.
@@ -198,17 +197,19 @@ class TestTransferElements(KratosUnittest.TestCase):
         ''' One element is created in rank=0 and send to all other processes.
             The test is passed if the recieving processes hold the element with the correct properties.'''
         KratosMultiphysics.Logger.GetDefaultOutput().SetSeverity(KratosMultiphysics.Logger.Severity.WARNING)
+
+        data_comm = KratosMultiphysics.ParallelEnvironment.GetDefaultDataCommunicator()
         rank = data_comm.Rank()
         size = data_comm.Size()
 
         current_model = KratosMultiphysics.Model()
-        send_elements = []
-
-        for i in range(size):
-            send_elements.append( KratosMultiphysics.ElementsArray() )
-
         self._set_up_model_parts(current_model,dimension,is_pqmpm)
+
+        send_elements = [ KratosMultiphysics.ElementsArray() for _ in range(size) ]
+        recv_elements = [ KratosMultiphysics.ElementsArray() for _ in range(size) ]
+
         num_particle = 1
+
         if( rank == 0): # Sender
             self._generate_particle_elements(current_model, dimension, geometry_element, num_particle, is_mixed_formulation)
             mp = current_model.GetModelPart("MPMModelPart")
@@ -235,9 +236,11 @@ class TestTransferElements(KratosUnittest.TestCase):
             mp.CreateSubModelPart("Elements")
 
         sub_mp = mp.GetSubModelPart("Elements")
-        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(sub_mp)
+        KratosMPI.ModelPartCommunicatorUtilities.SetMPICommunicator(sub_mp, data_comm)
+
         #Send elements from rank=0 to all other
-        KratosParticle.MPM_MPI_Utilities.TransferElements(sub_mp, send_elements)
+        TrilinosParticle.MPM_MPI_Utilities.TransferElements(sub_mp, send_elements, recv_elements)
+
         #Check if model_parts hold the correct elements
         if rank == 0:
             self.assertEqual(mp.NumberOfElements(), 0) #Check if element was removed after sent

@@ -267,6 +267,7 @@ namespace Kratos
                 rVariable, rValues, rCurrentProcessInfo);
         }
     }
+    
     void MPMParticlePointLoadCondition::SetValuesOnIntegrationPoints(
         const Variable<array_1d<double, 3 > >& rVariable,
         const std::vector<array_1d<double, 3 > >& rValues,
@@ -287,4 +288,6 @@ namespace Kratos
                 rVariable, rValues, rCurrentProcessInfo);
         }
     }
+
+
 } // Namespace Kratos
