@@ -315,7 +315,7 @@ private:
     ///@name Member Variables
     ///@{
 
-    typename TSearchObject::Pointer mpSearchObject;            /// The pointer to the base search considered
+    typename TSearchObject::Pointer mpSearchObject=  nullptr;  /// The pointer to the base search considered
     Kratos::unique_ptr<PointVector> mpPointVector =  nullptr;  /// The point vector considered in the search trees
     std::vector<double> mGlobalBoundingBoxes;                  /// All the global BB, data is xmax, xmin,  ymax, ymin,  zmax, zmin
     const DataCommunicator& mrDataCommunicator;                /// The data communicator

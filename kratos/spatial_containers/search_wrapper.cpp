@@ -26,26 +26,29 @@ BoundingBox<Point> SearchWrapper<TSearchObject>::GetBoundingBox() const
 {
     // Generate BB
     BoundingBox<Point> bb;
+    auto& r_max = bb.GetMaxPoint();
+    auto& r_min = bb.GetMinPoint();
 
     // We get the global bounding box
+    array_1d<double, 3> local_max, local_min;
     if (mpSearchObject) {
-        auto& r_max = bb.GetMaxPoint();
-        auto& r_min = bb.GetMinPoint();
-
         const auto& r_local_bb = mpSearchObject->GetBoundingBox();
-        const auto& r_local_max = r_local_bb.GetMaxPoint();
-        const auto& r_local_min = r_local_bb.GetMinPoint();
-
-        // Getting max values
-        r_max[0] = mrDataCommunicator.MaxAll(r_local_max[0]);
-        r_max[1] = mrDataCommunicator.MaxAll(r_local_max[1]);
-        r_max[2] = mrDataCommunicator.MaxAll(r_local_max[2]);
-
-        // Getting min values
-        r_min[0] = mrDataCommunicator.MinAll(r_local_min[0]);
-        r_min[1] = mrDataCommunicator.MinAll(r_local_min[1]);
-        r_min[2] = mrDataCommunicator.MinAll(r_local_min[2]);
+        noalias(local_max) = r_local_bb.GetMaxPoint().Coordinates();
+        noalias(local_min) = r_local_bb.GetMinPoint().Coordinates();
+    } else {
+        noalias(local_max) = ZeroVector(3);
+        noalias(local_min) = ZeroVector(3);
     }
+
+    // Getting max values
+    r_max[0] = mrDataCommunicator.MaxAll(local_max[0]);
+    r_max[1] = mrDataCommunicator.MaxAll(local_max[1]);
+    r_max[2] = mrDataCommunicator.MaxAll(local_max[2]);
+
+    // Getting min values
+    r_min[0] = mrDataCommunicator.MinAll(local_min[0]);
+    r_min[1] = mrDataCommunicator.MinAll(local_min[1]);
+    r_min[2] = mrDataCommunicator.MinAll(local_min[2]);
 
     return bb;
 }
@@ -75,7 +78,7 @@ template<class TSearchObject>
 void SearchWrapper<TSearchObject>::InitializeGlobalBoundingBoxes()
 {
     // Just executed in MPI
-    if (mrDataCommunicator.IsDistributed() && mpSearchObject) {
+    if (mrDataCommunicator.IsDistributed()) {
         // We get the world size
         const int world_size = GetWorldSize();
 
@@ -86,12 +89,20 @@ void SearchWrapper<TSearchObject>::InitializeGlobalBoundingBoxes()
 
         // Set up the local bounding boxes
         std::vector<double> local_bounding_box(6);
-        const auto& r_local_bb = mpSearchObject->GetBoundingBox();
-        const auto& r_max = r_local_bb.GetMaxPoint();
-        const auto& r_min = r_local_bb.GetMinPoint();
+        array_1d<double, 3> local_max, local_min;
+        if (mpSearchObject) {
+            const auto& r_local_bb = mpSearchObject->GetBoundingBox();
+            noalias(local_max) = r_local_bb.GetMaxPoint().Coordinates();
+            noalias(local_min) = r_local_bb.GetMinPoint().Coordinates();
+        } else {
+            noalias(local_max) = ZeroVector(3);
+            noalias(local_min) = ZeroVector(3);
+        }
+
+        // Assign local BB
         for (int i = 0; i < 3; ++i) {
-            local_bounding_box[2 * i] = r_max[i];
-            local_bounding_box[2 * i + 1] = r_min[i];
+            local_bounding_box[2 * i] = local_max[i];
+            local_bounding_box[2 * i + 1] = local_min[i];
         }
 
         // Gather all bounding boxes
