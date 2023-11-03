@@ -21,8 +21,6 @@
 #include "includes/node.h"
 #include "includes/geometrical_object.h"
 #include "spatial_containers/spatial_search_result_container.h"
-// NOTE: GlobalRetrieveGlobalPointers is an expensive function, therefore we will build the global result manually, this way avoiding the problematic coming from the need of a indexed class and the computational cost of the call. This will therefore assume that every local result doesn't have repeated values (aka not including ghost nodes in case nodes are considered)
-// #include "utilities/global_pointer_utilities.h"
 
 namespace Kratos
 {
