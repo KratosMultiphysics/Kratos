@@ -49,11 +49,13 @@ private:
     void save(Serializer& rSerializer) const override
     {
         KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.save("NumberOfDimensions", mNumberOfDimensions);
     }
 
     void load(Serializer& rSerializer) override
     {
         KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, ConstitutiveLaw)
+        rSerializer.load("NumberOfDimensions", mNumberOfDimensions);
     }
 };
 } // namespace Kratos.
