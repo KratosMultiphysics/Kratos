@@ -23,11 +23,11 @@
 #include "linear_solvers_application.h"
 #include "structural_mechanics_application.h"
 #include "utilities/variable_utils.h"
+#include "custom_utilities/process_factory.hpp"
 
 namespace Kratos
 {
 
-class ProcessFactory;
 class InputUtility;
 class ProcessInfoParser;
 class Process;
