@@ -86,6 +86,16 @@ private:
         });
     }
 
+    template <typename ProcessType>
+    std::function<ProcessFactory::ProductType(const Parameters&)> MakeCreatorFor()
+    {
+        return [&model = mModel](const Parameters& rProcessSettings)
+        {
+            auto& model_part = model.GetModelPart(rProcessSettings["model_part_name"].GetString());
+            return std::make_unique<ProcessType>(model_part, rProcessSettings);
+        };
+    }
+
     Kernel mKernel;
     Model mModel;
     std::string mModelPartName;
