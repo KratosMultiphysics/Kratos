@@ -18,7 +18,7 @@
 #include "geo_mechanics_application_variables.h"
 #include "includes/variables.h"
 #include "solving_strategies/strategies/solving_strategy.h"
-#include "write_output.h"
+#include "geo_output_writer.h"
 
 namespace Kratos {
 
