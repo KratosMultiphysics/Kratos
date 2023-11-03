@@ -32,12 +32,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanics
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_XY, 2000.0);
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_YY, 1200.0);
 
-    SizeType dimension = 2;
+    const SizeType dimension = 2;
     GeoThermalDispersionLaw geo_thermal_dispersion2d_law(dimension);
     ProcessInfo info;
     Geometry<Node> geometry;
 
-    Matrix thermal_dispersion_matrix =
+    const Matrix thermal_dispersion_matrix =
         geo_thermal_dispersion2d_law.CalculateThermalDispersionMatrix(
             *cond_prop, info, geometry);
 
@@ -74,12 +74,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_YZ, 2000.0);
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_ZZ, 500.0);
 
-    SizeType dimension = 3;
+    const SizeType dimension = 3;
     GeoThermalDispersionLaw geo_thermal_dispersion_2d_law(dimension);
     ProcessInfo info;
     Geometry<Node> geometry;
 
-    Matrix thermal_dispersion_matrix =
+    const Matrix thermal_dispersion_matrix =
         geo_thermal_dispersion_2d_law.CalculateThermalDispersionMatrix(
             *cond_prop, info, geometry);
 
@@ -106,7 +106,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
 
 KRATOS_TEST_CASE_IN_SUITE(GetWorkingSpaceDimension_ReturnsCorrectValue, KratosGeoMechanicsFastSuite)
 {
-    SizeType dimension = 3;
+    const SizeType dimension = 3;
     GeoThermalDispersionLaw geo_thermal_dispersion_2D_law(dimension);
 
     KRATOS_EXPECT_EQ(geo_thermal_dispersion_2D_law.WorkingSpaceDimension(), 3);
