@@ -55,6 +55,15 @@ class PythonSolver:
         """
         pass
 
+    def AddAdditionalHistoricalVariables(self, map_additional_variables):
+        """This function adds additional historical variables to the ModelPart
+        Those can e.g. be needed by processes or utilities. A dictionary is given
+        as a parameter where the keys are the model part names where variables
+        will be added and the values are sets with the names of the variables.
+        It has to be called BEFORE the ModelPart is read!
+        """
+        pass
+
     def AddDofs(self):
         """This function add the Dofs needed by this PythonSolver to the the ModelPart
         It has to be called AFTER the ModelPart is read!

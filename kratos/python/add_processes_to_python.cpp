@@ -154,6 +154,7 @@ void  AddProcessesToPython(pybind11::module& m)
     .def("Clear",&Process::Clear)
     .def("GetDefaultParameters",&Process::GetDefaultParameters)
     .def("__str__", PrintObject<Process>)
+    .def_static("GetHistoricalVariables",&Process::GetHistoricalVariables)
     ;
 
     py::class_<OutputProcess, OutputProcess::Pointer, Process>

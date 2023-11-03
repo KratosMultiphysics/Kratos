@@ -51,6 +51,8 @@ public:
     ///@name Type Definitions
     ///@{
 
+    using HistoricalVarsMap = std::unordered_map<std::string,std::vector<std::string>>;
+
     /// Pointer definition of Process
     KRATOS_CLASS_POINTER_DEFINITION(Process);
 
@@ -180,6 +182,13 @@ public:
         const Parameters default_parameters = Parameters(R"({})" );
 
         return default_parameters;
+    }
+
+    static HistoricalVarsMap GetHistoricalVariables(
+        Parameters Settings)
+    {
+        HistoricalVarsMap empty_map;
+        return empty_map;
     }
 
     ///@}
