@@ -184,6 +184,12 @@ public:
         return default_parameters;
     }
 
+    /**
+     * @brief This static function returns a map that contains the variables that
+     * have to be added to each model part so this process can work correctly.
+     * @param Settings Input settings from user
+     * @return Map with needed variables for each model part
+     */
     static HistoricalVarsMap GetHistoricalVariables(
         Parameters Settings)
     {
