@@ -13,13 +13,14 @@
 //
 
 #include "custom_constitutive/thermal_dispersion_law.hpp"
+#include "custom_retention/retention_law_factory.h"
 #include "geo_mechanics_application_variables.h"
 #include <iostream>
 
 namespace Kratos {
 
-GeoThermalDispersionLaw::GeoThermalDispersionLaw(std::size_t NumberOfDimensions) :
-    mNumberOfDimensions{NumberOfDimensions}
+GeoThermalDispersionLaw::GeoThermalDispersionLaw(std::size_t NumberOfDimensions)
+    : mNumberOfDimensions{NumberOfDimensions}
 {
 }
 
@@ -33,13 +34,17 @@ SizeType GeoThermalDispersionLaw::WorkingSpaceDimension()
     return mNumberOfDimensions;
 }
 
-Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Properties& rProp) const
+Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(
+    const Properties& rProp, const ProcessInfo& rProcessInfo, const Geometry<Node>& rElementGeometry) const
 {
     KRATOS_TRY
 
     Matrix result = ZeroMatrix(mNumberOfDimensions, mNumberOfDimensions);
 
-    const double coefficient_water = rProp[POROSITY] * rProp[SATURATION];
+    RetentionLaw::Parameters parameters(rElementGeometry, rProp, rProcessInfo);
+    auto retention_law = RetentionLawFactory::Clone(rProp);
+    const double saturation = retention_law->CalculateSaturation(parameters);
+    const double coefficient_water = rProp[POROSITY] * saturation;
     const double coefficient_solid = 1.0 - rProp[POROSITY];
 
     result(INDEX_THERMAL_FLUX_X, INDEX_THERMAL_FLUX_X) =
@@ -71,6 +76,5 @@ Matrix GeoThermalDispersionLaw::CalculateThermalDispersionMatrix(const Propertie
 
     KRATOS_CATCH("")
 }
-
 
 } // Namespace Kratos

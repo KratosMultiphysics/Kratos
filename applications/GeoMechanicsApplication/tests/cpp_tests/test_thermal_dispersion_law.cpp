@@ -25,7 +25,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanics
 
     auto cond_prop = r_model_part.CreateNewProperties(0);
     cond_prop->SetValue(POROSITY, 0.5);
-    cond_prop->SetValue(SATURATION, 0.75);
+    cond_prop->SetValue(SATURATED_SATURATION, 0.75);
+    cond_prop->SetValue(RETENTION_LAW, "SaturatedLaw");
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_WATER, 1000.0);
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_XX, 1500.0);
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_XY, 2000.0);
@@ -33,9 +34,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanics
 
     SizeType dimension = 2;
     GeoThermalDispersionLaw geo_thermal_dispersion2d_law(dimension);
+    ProcessInfo info;
+    Geometry<Node> geometry;
 
     Matrix thermal_dispersion_matrix =
-        geo_thermal_dispersion2d_law.CalculateThermalDispersionMatrix(*cond_prop);
+        geo_thermal_dispersion2d_law.CalculateThermalDispersionMatrix(
+            *cond_prop, info, geometry);
 
     Matrix expected_solution = ZeroMatrix(2, 2);
     expected_solution(0, 0) = 1125.0;
@@ -60,7 +64,8 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
 
     auto cond_prop = r_model_part.CreateNewProperties(0);
     cond_prop->SetValue(POROSITY, 0.5);
-    cond_prop->SetValue(SATURATION, 0.75);
+    cond_prop->SetValue(SATURATED_SATURATION, 0.75);
+    cond_prop->SetValue(RETENTION_LAW, "SaturatedLaw");
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_WATER, 800.0);
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_XX, 1000.0);
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_XY, 2000.0);
@@ -71,9 +76,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
 
     SizeType dimension = 3;
     GeoThermalDispersionLaw geo_thermal_dispersion_2d_law(dimension);
+    ProcessInfo info;
+    Geometry<Node> geometry;
 
     Matrix thermal_dispersion_matrix =
-        geo_thermal_dispersion_2d_law.CalculateThermalDispersionMatrix(*cond_prop);
+        geo_thermal_dispersion_2d_law.CalculateThermalDispersionMatrix(
+            *cond_prop, info, geometry);
 
     Matrix expected_solution = ZeroMatrix(3, 3);
     expected_solution(0, 0) = 800.0;

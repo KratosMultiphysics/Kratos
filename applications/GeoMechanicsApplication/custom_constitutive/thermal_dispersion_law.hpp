@@ -18,6 +18,8 @@
 
 namespace Kratos {
 
+class RetentionLaw;
+
 /**
  * @class GeoThermalDispersionLaw
  * @ingroup GeoMechanicsApplication
@@ -35,7 +37,9 @@ public:
 
     SizeType WorkingSpaceDimension() override;
 
-    Matrix CalculateThermalDispersionMatrix(const Properties& rValues) const;
+    Matrix CalculateThermalDispersionMatrix(const Properties& rProp,
+                                            const ProcessInfo& rProcessInfo,
+                                            const Geometry<Node>& rElementGeometry) const;
 
 private:
     SizeType mNumberOfDimensions;
