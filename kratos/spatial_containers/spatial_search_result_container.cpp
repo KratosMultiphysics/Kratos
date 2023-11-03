@@ -67,7 +67,7 @@ void SpatialSearchResultContainer<TObjectType>::AddResult(
 
 template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::AddResult(
-    TObjectType* pResult, 
+    TObjectType* pResult,
     const double Distance,
     const int Rank
     )
@@ -183,8 +183,7 @@ void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommuni
     } else { // Serial code
         // Fill global vector
         for (auto& r_value : mLocalResults) {
-            auto p_result = Kratos::make_shared<SpatialSearchResultType>(r_value);
-            mGlobalResults.push_back(p_result);
+            mGlobalResults.push_back(&r_value);
         }
     }
 
@@ -200,7 +199,7 @@ std::vector<double> SpatialSearchResultContainer<TObjectType>::GetDistances()
 {
     // Check if the communicator has been created
     KRATOS_ERROR_IF(mpGlobalPointerCommunicator == nullptr) << "The communicator has not been created." << std::endl;
-    
+
     // Define the coordinates vector
     const std::size_t number_of_gp = mGlobalResults.size();
     std::vector<double> distances(number_of_gp);
@@ -242,11 +241,11 @@ std::vector<Vector> SpatialSearchResultContainer<TObjectType>::GetResultShapeFun
             r_geometry.PointLocalCoordinates(local_coordinates, rPoint);
             r_geometry.ShapeFunctionsValues(N, local_coordinates);
             return N;
-        } else if constexpr (std::is_same<TObjectType, Node>::value) {   
+        } else if constexpr (std::is_same<TObjectType, Node>::value) {
             KRATOS_ERROR << "Nodes do not provide shape functions. Not possible to compute shape functions for point: " << rPoint[0]<< "\t" << rPoint[1] << "\t" << rPoint[2] << std::endl;
             Vector N;
             return N;
-        } else {   
+        } else {
             KRATOS_ERROR << "Not implemented yet. Not possible to compute shape functions for point: " << rPoint[0]<< "\t" << rPoint[1] << "\t" << rPoint[2] << std::endl;
             Vector N;
             return N;
@@ -306,17 +305,17 @@ std::vector<std::vector<std::size_t>> SpatialSearchResultContainer<TObjectType>:
     // Call Apply to get the proxy
     auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::vector<std::size_t> {
         auto p_object = rGP->Get();
-        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {   
+        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
             auto& r_geometry = p_object->GetGeometry();
             std::vector<std::size_t> gp_indices(r_geometry.size());
             for (unsigned int i = 0; i < r_geometry.size(); ++i) {
                 gp_indices[i] = r_geometry[i].Id();
             }
             return gp_indices;
-        } else if constexpr (std::is_same<TObjectType, Node>::value) {   
+        } else if constexpr (std::is_same<TObjectType, Node>::value) {
             std::vector<std::size_t> gp_indices(1, p_object->Id());
             return gp_indices;
-        } else {   
+        } else {
             KRATOS_ERROR << "Not implemented yet" << std::endl;
             std::vector<std::size_t> gp_indices;
             return gp_indices;
@@ -348,17 +347,17 @@ std::vector<std::vector<std::size_t>> SpatialSearchResultContainer<TObjectType>:
     // Call Apply to get the proxy
     auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::vector<std::size_t> {
         auto p_object = rGP->Get();
-        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {   
+        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
             auto& r_geometry = p_object->GetGeometry();
             std::vector<std::size_t> gp_indices(r_geometry.size());
             for (unsigned int i = 0; i < r_geometry.size(); ++i) {
                 gp_indices[i] = r_geometry[i].FastGetSolutionStepValue(PARTITION_INDEX);
             }
             return gp_indices;
-        } else if constexpr (std::is_same<TObjectType, Node>::value) {   
+        } else if constexpr (std::is_same<TObjectType, Node>::value) {
             std::vector<std::size_t> gp_indices(1, p_object->FastGetSolutionStepValue(PARTITION_INDEX));
             return gp_indices;
-        } else {   
+        } else {
             KRATOS_ERROR << "Not implemented yet" << std::endl;
             std::vector<std::size_t> gp_indices;
             return gp_indices;
@@ -390,17 +389,17 @@ std::vector<std::vector<array_1d<double, 3>>> SpatialSearchResultContainer<TObje
     // Call Apply to get the proxy
     auto proxy = this->Apply([](GlobalPointerResultType& rGP) -> std::vector<array_1d<double, 3>> {
         auto p_object = rGP->Get();
-        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {   
+        if constexpr (std::is_same<TObjectType, GeometricalObject>::value) {
             auto& r_geometry = p_object->GetGeometry();
             std::vector<array_1d<double, 3>> coordinates(r_geometry.size());
             for (unsigned int i = 0; i < r_geometry.size(); ++i) {
                 coordinates[i] = r_geometry[i].Coordinates();
             }
             return coordinates;
-        } else if constexpr (std::is_same<TObjectType, Node>::value) {   
+        } else if constexpr (std::is_same<TObjectType, Node>::value) {
             std::vector<array_1d<double, 3>> coordinates(1, p_object->Coordinates());
             return coordinates;
-        } else {   
+        } else {
             KRATOS_ERROR << "Not implemented yet" << std::endl;
             std::vector<array_1d<double, 3>> coordinates;
             return coordinates;
@@ -431,7 +430,7 @@ std::string SpatialSearchResultContainer<TObjectType>::Info() const
 /***********************************************************************************/
 
 template <class TObjectType>
-void SpatialSearchResultContainer<TObjectType>::PrintInfo(std::ostream& rOStream) const 
+void SpatialSearchResultContainer<TObjectType>::PrintInfo(std::ostream& rOStream) const
 {
     rOStream << "SpatialSearchResultContainer" << "\n";
 }
@@ -452,7 +451,7 @@ void SpatialSearchResultContainer<TObjectType>::PrintData(std::ostream& rOStream
 
 template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::save(Serializer& rSerializer) const
-{ 
+{
     rSerializer.save("LocalResults", mLocalResults);
     rSerializer.save("GlobalResults", mGlobalResults);
     //rSerializer.save("GlobalPointerCommunicator", mpGlobalPointerCommunicator); // Not necessary, is created and filled during use

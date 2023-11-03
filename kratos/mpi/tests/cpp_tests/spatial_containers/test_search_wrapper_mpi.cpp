@@ -22,7 +22,7 @@
 #include "utilities/cpp_tests_utilities.h"
 #include "mpi/utilities/parallel_fill_communicator.h"
 
-namespace Kratos::Testing 
+namespace Kratos::Testing
 {
 
 // Definition of the geometrical object bins search wrapper
@@ -125,7 +125,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
 
 /** Checks search_wrapper_bins search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchNearestInRadius, KratosMPICoreFastSuite) 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchNearestInRadius, KratosMPICoreFastSuite)
 {
     constexpr double tolerance = 1e-12;
 
@@ -179,12 +179,12 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
 
 /** Checks search_wrapper_bins search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchNearest, KratosMPICoreFastSuite) 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchNearest, KratosMPICoreFastSuite)
 {
     constexpr double tolerance = 1e-12;
 
     Model current_model;
-    
+
     // Cube coordinates
     const double cube_z = 0.3;
 
@@ -226,9 +226,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
     KRATOS_EXPECT_EQ(id, 3);
 }
 
-/** Checks search_wrapper_bins empty search nearest 
+/** Checks search_wrapper_bins empty search nearest
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmptySearchNearest, KratosMPICoreFastSuite) 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmptySearchNearest, KratosMPICoreFastSuite)
 {
     Model current_model;
 
@@ -259,9 +259,9 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsEmpt
     KRATOS_EXPECT_FALSE(results[point_id].IsObjectFound());
 }
 
-/** Checks search_wrapper_bins search is inside 
+/** Checks search_wrapper_bins search is inside
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsInside, KratosMPICoreFastSuite) 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsInside, KratosMPICoreFastSuite)
 {
     Model current_model;
 
@@ -295,7 +295,7 @@ KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSear
 
 /** Checks search_wrapper_bins search is inside = not found
 */
-KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsNotInside, KratosMPICoreFastSuite) 
+KRATOS_DISTRIBUTED_TEST_CASE_IN_SUITE(MPISearchWrapperGeometricalObjectsBinsSearchIsNotInside, KratosMPICoreFastSuite)
 {
     Model current_model;
 
@@ -503,7 +503,7 @@ void TestTreeSearchNearest()
     constexpr double tolerance = 1e-6;
 
     Model current_model;
-    
+
     // Cube coordinates
     const double cube_z = 0.3;
 
