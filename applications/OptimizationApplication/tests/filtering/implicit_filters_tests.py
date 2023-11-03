@@ -29,6 +29,9 @@ class HelmholtzAnalysisTest(TestCase):
                                         "model_part_name" : "solid_scalar.structure",
                                         "model_import_settings"              : {
                                             "input_type"     : "use_input_model_part"
+                                        },
+                                        "linear_solver_settings": {
+                                            "solver_type": "LinearSolversApplication.pardiso_lu"
                                         }
                                     },
                                     "problem_data": {
@@ -49,6 +52,9 @@ class HelmholtzAnalysisTest(TestCase):
                                         "model_part_name" : "solid_vector.structure",
                                         "model_import_settings"              : {
                                             "input_type"     : "use_input_model_part"
+                                        },
+                                        "linear_solver_settings": {
+                                            "solver_type": "LinearSolversApplication.pardiso_lu"
                                         }
                                     },
                                     "problem_data": {
@@ -69,6 +75,9 @@ class HelmholtzAnalysisTest(TestCase):
                                         "model_part_name" : "solid_bulk_surf.design",
                                         "model_import_settings"              : {
                                             "input_type"     : "use_input_model_part"
+                                        },
+                                        "linear_solver_settings": {
+                                            "solver_type": "LinearSolversApplication.pardiso_lu"
                                         }
                                     },
                                     "problem_data": {
@@ -98,6 +107,9 @@ class HelmholtzAnalysisTest(TestCase):
                                         "model_part_name" : "shell",
                                         "model_import_settings"              : {
                                             "input_type"     : "use_input_model_part"
+                                        },
+                                        "linear_solver_settings": {
+                                            "solver_type": "LinearSolversApplication.pardiso_lu"
                                         }
                                     },
                                     "problem_data": {
@@ -146,6 +158,9 @@ class HelmholtzAnalysisTest(TestCase):
                                         "model_part_name" : "closed_surface_shell",
                                         "model_import_settings"              : {
                                             "input_type"     : "use_input_model_part"
+                                        },
+                                        "linear_solver_settings": {
+                                            "solver_type": "LinearSolversApplication.pardiso_lu"
                                         }
                                     },
                                     "problem_data": {
@@ -277,7 +292,7 @@ class HelmholtzAnalysisTest(TestCase):
 
         filtered_field = self.shell_vector_filter.UnFilterField(unfiltered_uniform_field_nodal)
         filtered_field = self.shell_vector_filter.FilterField(filtered_field)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 5.196058, 4)
+        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 5.196153341144455, 4)
 
         filtered_field = self.shell_vector_filter.FilterField(unfiltered_uniform_field_nodal)
         self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 5.1961524, 4)
@@ -295,7 +310,7 @@ class HelmholtzAnalysisTest(TestCase):
         KM.Expression.VariableExpressionIO.Read(nodal_area, KM.VELOCITY, False)
 
         filtered_field = self.shell_vector_filter.FilterIntegratedField(nodal_area)
-        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 5.1961524, 4)
+        self.assertAlmostEqual(KOA.ExpressionUtils.NormL2(filtered_field), 5.196118198546968, 4)
 
     def test_bulk_surface_shape(self):
         # initialization of the filter done here so that filtering radius is set.
