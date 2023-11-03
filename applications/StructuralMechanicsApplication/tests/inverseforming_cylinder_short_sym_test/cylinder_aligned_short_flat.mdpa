@@ -119,6 +119,7 @@ End SubModelPart
 Begin SubModelPart DISPLACEMENT_Displacement_Nodes_Fixed // Group Displacement_Nodes_Fixed // Subtree DISPLACEMENT
     Begin SubModelPartNodes
            10
+           11
            12
     End SubModelPartNodes
 End SubModelPart
@@ -145,6 +146,24 @@ End SubModelPart
 Begin SubModelPart DISPLACEMENT_Displacement_YSYMM_Node_Down // Group Displacement_YSYMM_Node_Down // Subtree DISPLACEMENT
     Begin SubModelPartNodes
            18
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_AllNodesUp // Group Displacement_AllNodesUp // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           10
+           13
+           16
+           19
+           22
+    End SubModelPartNodes
+End SubModelPart
+Begin SubModelPart DISPLACEMENT_Displacement_AllNodesDown // Group Displacement_AllNodesDown // Subtree DISPLACEMENT
+    Begin SubModelPartNodes
+           12
+           15
+           18
+           21
+           24
     End SubModelPartNodes
 End SubModelPart
 Begin SubModelPart PointLoad3D_PointLoad_Dummy_Zero_AllNodes // Group PointLoad_Dummy_Zero_AllNodes // Subtree PointLoad3D
