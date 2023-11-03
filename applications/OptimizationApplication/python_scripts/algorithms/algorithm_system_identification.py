@@ -104,29 +104,31 @@ class AlgorithmSystemIdentification(Algorithm):
 
             for container_expression in obj_gradient_expressions_output.GetContainerExpressions():
 
-                # Automated adjustment of the initial step
-                elements = container_expression.GetModelPart().Elements
-                gradient_vector = np.reshape(container_expression.Evaluate(), (len(elements), 1))
+                container_expression *= -1
 
-                if search_direction == None:
-                    search_direction = np.zeros(shape=(len(elements)))
+                # # Automated adjustment of the initial step
+                # elements = container_expression.GetModelPart().Elements
+                # gradient_vector = np.reshape(container_expression.Evaluate(), (len(elements), 1))
 
-                gauss_newton_likelihood = gradient_vector * self.GetCurrentObjValue()
-                gauss_newton_gradient = gradient_vector@gradient_vector.T
+                # if search_direction == None:
+                #     search_direction = np.zeros(shape=(len(elements)))
 
-                search_direction += ssl.lsmr(
-                    gauss_newton_gradient,
-                    gauss_newton_likelihood,
-                    damp=0.0,
-                    # damp=1e-26,
-                )[0]
+                # gauss_newton_likelihood = gradient_vector * self.GetCurrentObjValue()
+                # gauss_newton_gradient = gradient_vector@gradient_vector.T
 
-                search_direction *= -1.0
+                # search_direction += ssl.lsmr(
+                #     gauss_newton_gradient,
+                #     gauss_newton_likelihood,
+                #     damp=0.0,
+                #     # damp=1e-26,
+                # )[0]
 
-                # Standrad version
-                # search_direction = container_expression.Evaluate() * -1
+                # search_direction *= -1.0
 
-                Kratos.Expression.CArrayExpressionIO.Read(container_expression, search_direction)
+                # # Standrad version
+                # # search_direction = container_expression.Evaluate() * -1
+
+                # Kratos.Expression.CArrayExpressionIO.Read(container_expression, search_direction)
 
         self.algorithm_data.GetBufferedData()["search_direction"] = obj_gradient_expressions_output
 

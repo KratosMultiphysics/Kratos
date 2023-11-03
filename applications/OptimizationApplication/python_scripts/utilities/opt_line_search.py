@@ -14,7 +14,7 @@ import numpy as np
 def CreateLineSearch(parameters: Kratos.Parameters, optimization_problem: OptimizationProblem, objective: StandardizedObjective):
     type = parameters["type"].GetString()
     if type == "const_step":
-        return ConstStep(parameters, optimization_problem)
+        return ConstStep(parameters, optimization_problem, objective)
     elif type == "adam_step":
         return AdamStep(parameters, optimization_problem)
     elif type == "poly_step":
@@ -32,11 +32,12 @@ class ConstStep(object):
             "gradient_scaling": ": inf_norm"
         }""")
 
-    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem):
+    def __init__(self, parameters: Kratos.Parameters, optimization_problem: OptimizationProblem, objective: StandardizedObjective):
         parameters.ValidateAndAssignDefaults(self.GetDefaultParameters())
         self.init_step = parameters["init_step"].GetDouble()
         self.__optimization_problem = optimization_problem
         self.__gradient_scaling = parameters["gradient_scaling"].GetString()
+        self.__objective = objective
 
     def ComputeStep(self) -> float:
         with TimeLogger("ConstStep::ComputeStep", None, "Finished"):
@@ -51,6 +52,14 @@ class ConstStep(object):
                 norm = KratosOA.ExpressionUtils.NormL2(algorithm_buffered_data["search_direction"])
             elif self.__gradient_scaling == "none":
                 norm = 1.0
+            elif self.__gradient_scaling == "obj_norm":
+                i = algorithm_buffered_data["iteration"]
+                if i == 1:
+                    norm = 1.0
+                    self.initial_error = self.__objective.GetStandardizedValue()
+                else:
+                    scale = self.__objective.GetStandardizedValue() / self.initial_error
+                    norm = 1.0 / scale
             else:
                 raise RuntimeError("\"gradient_scaling\" has unknown type.")
             if not math.isclose(norm, 0.0, abs_tol=1e-16):
@@ -134,8 +143,8 @@ class AdamStep(object):
 
             # maybe add iteration depending scaling here
             t = algorithm_buffered_data["iteration"]
-            v_dPhi_cor =self.__v_dPhi / (1-self.__beta1**t) # i is the current iteration starting at 1
-            s_dPhi_cor =self.__s_dPhi / (1-self.__beta2**t) # i is the current iteration starting at 1
+            v_dPhi_cor = self.__v_dPhi / (1-self.__beta1**t)  # i is the current iteration starting at 1
+            s_dPhi_cor = self.__s_dPhi / (1-self.__beta2**t)  # i is the current iteration starting at 1
 
             step_length_per_element = v_dPhi_cor/(np.sqrt(s_dPhi_cor) + self.__epsilon)
             step_length_per_element *= self.step
