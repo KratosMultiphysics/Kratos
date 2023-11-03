@@ -45,12 +45,6 @@ public:
      */
     KRATOS_CLASS_POINTER_DEFINITION(RetentionLaw);
 
-    /**
-     * Flags related to the Parameters of the Contitutive Law
-     */
-    // KRATOS_DEFINE_LOCAL_FLAG( USE_ELEMENT_PROVIDED_DATA );
-    // KRATOS_DEFINE_LOCAL_FLAG( COMPUTE_SATURATION );
-
     class Parameters
     {
         KRATOS_CLASS_POINTER_DEFINITION(Parameters);
@@ -74,12 +68,6 @@ public:
 
         */
 
-    private:
-        double mFluidPressure = 0.0;
-        const ProcessInfo &mrCurrentProcessInfo;
-        const Properties &mrMaterialProperties;
-        const GeometryType &mrElementGeometry;
-
     public:
         Parameters(const GeometryType &rElementGeometry,
                    const Properties &rMaterialProperties,
@@ -91,22 +79,40 @@ public:
 
         ~Parameters() = default;
 
-        void SetFluidPressure   (const double rFluidPressure)    { mFluidPressure = rFluidPressure; };
+        void SetFluidPressure (double rFluidPressure)
+        {
+            mFluidPressure = rFluidPressure;
+            mFluidPressureIsSet = true;
+        };
 
-        double GetFluidPressure()    const { return mFluidPressure;    }
+        double GetFluidPressure() const
+        {
+            KRATOS_ERROR_IF_NOT(mFluidPressureIsSet) << "Fluid pressure is not yet set in the retention "
+                                                        "law when trying to retrieve it, aborting.\n";
+            return mFluidPressure;
+        }
 
         const ProcessInfo &GetProcessInfo() const
         {
             return mrCurrentProcessInfo;
         }
+
         const Properties &GetMaterialProperties() const
         {
             return mrMaterialProperties;
         }
+
         const GeometryType &GetElementGeometry() const
         {
             return mrElementGeometry;
         }
+
+    private:
+        double mFluidPressure = 0.0;
+        bool mFluidPressureIsSet = false;
+        const ProcessInfo &mrCurrentProcessInfo;
+        const Properties &mrMaterialProperties;
+        const GeometryType &mrElementGeometry;
 
     }; // class Parameters end
 
