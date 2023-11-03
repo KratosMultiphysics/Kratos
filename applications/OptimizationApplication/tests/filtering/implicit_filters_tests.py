@@ -31,7 +31,7 @@ class HelmholtzAnalysisTest(TestCase):
                                             "input_type"     : "use_input_model_part"
                                         },
                                         "linear_solver_settings": {
-                                            "solver_type": "LinearSolversApplication.pardiso_lu"
+                                            "solver_type": "skyline_lu_factorization"
                                         }
                                     },
                                     "problem_data": {
@@ -54,7 +54,7 @@ class HelmholtzAnalysisTest(TestCase):
                                             "input_type"     : "use_input_model_part"
                                         },
                                         "linear_solver_settings": {
-                                            "solver_type": "LinearSolversApplication.pardiso_lu"
+                                            "solver_type": "skyline_lu_factorization"
                                         }
                                     },
                                     "problem_data": {
@@ -77,7 +77,7 @@ class HelmholtzAnalysisTest(TestCase):
                                             "input_type"     : "use_input_model_part"
                                         },
                                         "linear_solver_settings": {
-                                            "solver_type": "LinearSolversApplication.pardiso_lu"
+                                            "solver_type": "skyline_lu_factorization"
                                         }
                                     },
                                     "problem_data": {
@@ -109,7 +109,7 @@ class HelmholtzAnalysisTest(TestCase):
                                             "input_type"     : "use_input_model_part"
                                         },
                                         "linear_solver_settings": {
-                                            "solver_type": "LinearSolversApplication.pardiso_lu"
+                                            "solver_type": "skyline_lu_factorization"
                                         }
                                     },
                                     "problem_data": {
@@ -160,7 +160,7 @@ class HelmholtzAnalysisTest(TestCase):
                                             "input_type"     : "use_input_model_part"
                                         },
                                         "linear_solver_settings": {
-                                            "solver_type": "LinearSolversApplication.pardiso_lu"
+                                            "solver_type": "skyline_lu_factorization"
                                         }
                                     },
                                     "problem_data": {
