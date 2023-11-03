@@ -139,22 +139,15 @@ protected:
 private:
     void VerifyProperty(Kratos::Variable<double>& rVariable) const;
     void CheckDomainSize() const;
-    void CheckSolutionStepsData(int rId,
-                                Kratos::Variable<double>& rVariable) const;
+    void CheckSolutionStepsData(int rId, Kratos::Variable<double>& rVariable) const;
 
     bool mIsInitialised = false;
 
     friend class Serializer;
 
-    void save(Serializer& rSerializer) const override
-    {
-        KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
-    }
+    void save(Serializer& rSerializer) const override;
 
-    void load(Serializer& rSerializer) override
-    {
-        KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
-    }
+    void load(Serializer& rSerializer) override;
 };
 
 } // namespace Kratos

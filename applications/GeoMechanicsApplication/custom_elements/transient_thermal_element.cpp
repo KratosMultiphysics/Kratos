@@ -11,7 +11,7 @@
 //                   John van Esch
 //
 
-#include "custom_elements/transient_thermal_element.hpp"
+#include "custom_elements/transient_thermal_element.h"
 #include "custom_constitutive/thermal_dispersion_2D_law.hpp"
 #include "includes/condition.h"
 
@@ -505,6 +505,18 @@ void TransientThermalElement<TDim, TNumNodes>::CheckSolutionStepsData(
         KRATOS_ERROR << "missing variable" << rVariable.Name() << " on node "
                      << rGeom[rId].Id() << std::endl;
     }
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TransientThermalElement<TDim, TNumNodes>::save(Serializer& rSerializer) const
+{
+    KRATOS_SERIALIZE_SAVE_BASE_CLASS(rSerializer, Element)
+}
+
+template <unsigned int TDim, unsigned int TNumNodes>
+void TransientThermalElement<TDim, TNumNodes>::load(Serializer& rSerializer)
+{
+    KRATOS_SERIALIZE_LOAD_BASE_CLASS(rSerializer, Element)
 }
 
 template class TransientThermalElement<2, 3>;

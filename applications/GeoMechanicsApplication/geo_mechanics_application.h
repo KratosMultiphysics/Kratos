@@ -110,6 +110,7 @@
 #include "custom_elements/geo_linear_truss_element.hpp"
 #include "custom_elements/geo_cable_element.hpp"
 #include "custom_elements/geo_curved_beam_element.hpp"
+#include "custom_elements/transient_thermal_element.h"
 
 // constitutive models
 #include "custom_constitutive/bilinear_cohesive_3D_law.hpp"
@@ -443,6 +444,8 @@ private:
     const GeoCableElement<2,2>       mGeoCableElement2D2N       { 0, Kratos::make_shared< Line2D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoCableElement<3,2>       mGeoCableElement3D2N       { 0, Kratos::make_shared< Line3D2 <NodeType> >(Element::GeometryType::PointsArrayType(2)) };
     const GeoCurvedBeamElement<2,3>  mGeoCurvedBeamElement2D3N  { 0, Kratos::make_shared< Line2D3 <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
+
+    const TransientThermalElement<2,3> mTransientThermalElement2D3N{ 0, Kratos::make_shared< Triangle2D3 <NodeType> >(Element::GeometryType::PointsArrayType(3)) };
 
     // conditions
     const UPwForceCondition<2,1> mUPwForceCondition2D1N{ 0, Kratos::make_shared< Point2D <NodeType> >(Condition::GeometryType::PointsArrayType(1)) };
