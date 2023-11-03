@@ -161,9 +161,15 @@ void SearchWrapper<TSearchObject>::LocalSearchInRadius(
     const int AllocationSize
     )
 {
+    // Get the rank
+    const int rank = GetRank();
+
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
         mpSearchObject->SearchInRadius(rPoint, Radius, rResults);
+        for(auto& r_result : rResults) {
+            r_result.Get().SetRank(rank);
+        }
     } else { // Using trees
         // We search if geometrical objects are provided
         if (mpPointVector) {
@@ -171,9 +177,6 @@ void SearchWrapper<TSearchObject>::LocalSearchInRadius(
             DistanceVector results_distances(AllocationSize);
             const std::size_t number_of_results = mpSearchObject->SearchInRadius(rPoint, Radius, results.begin(), results_distances.begin(), AllocationSize);
             if (number_of_results > 0) {
-                // Get the rank
-                const int rank = GetRank();
-
                 // Set the results
                 rResults.reserve(number_of_results);
                 for (std::size_t i = 0; i < number_of_results; ++i) {
@@ -198,9 +201,13 @@ void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
     const int AllocationSize
     )
 {
+    // Get the rank
+    const int rank = GetRank();
+
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
         rResult = mpSearchObject->SearchNearestInRadius(rPoint, Radius);
+        rResult.Get().SetRank(rank);
     } else { // Using trees
         // We search if geometrical objects are provided
         if (mpPointVector) {
@@ -210,9 +217,6 @@ void SearchWrapper<TSearchObject>::LocalSearchNearestInRadius(
             if (number_of_results > 0) {
                 // Resize the results
                 results_distances.resize(number_of_results);
-
-                // Get the rank
-                const int rank = GetRank();
 
                 // Find the iterator pointing to the smallest value
                 auto it_min = std::min_element(results_distances.begin(), results_distances.end());
@@ -237,15 +241,16 @@ void SearchWrapper<TSearchObject>::LocalSearchNearest(
     ResultType& rResult
     )
 {
+    // Get the rank
+    const int rank = GetRank();
+
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
         rResult = mpSearchObject->SearchNearest(rPoint);
+        rResult.Get().SetRank(rank);
     } else { // Using trees
         // We search if geometrical objects are provided
         if (mpPointVector) {
-            // Get the rank
-            const int rank = GetRank();
-
             // Search nearest
             double distance = 0.0;
             auto p_point = mpSearchObject->SearchNearestPoint(rPoint, distance);
@@ -266,9 +271,13 @@ void SearchWrapper<TSearchObject>::LocalSearchIsInside(
     ResultType& rResult
     )
 {
+    // Get the rank
+    const int rank = GetRank();
+
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
         rResult = mpSearchObject->SearchIsInside(rPoint);
+        rResult.Get().SetRank(rank);
     } else { // Using trees
         KRATOS_ERROR << "SearchIsInside not compatible with Search trees" << std::endl;
     }

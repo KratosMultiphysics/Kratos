@@ -109,7 +109,7 @@ public:
             if (rGeometricalObjectsVector.size() > 0) {
                 // Defining the PointVector
                 mpPointVector = Kratos::make_unique<PointVector>(SearchUtilities::PreparePointsSearch(rGeometricalObjectsVector));
-                
+
                 // Create the search object
                 if constexpr (!IsDynamicBins) {
                     const int bucket_size = mSettings["bucket_size"].GetInt();
@@ -379,7 +379,7 @@ private:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         const double Radius,
-        ResultContainerVectorType& rResults, 
+        ResultContainerVectorType& rResults,
         const bool ClearSolution = true
         )
     {
@@ -434,7 +434,7 @@ private:
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
         const double Radius,
-        ResultContainerVectorType& rResults, 
+        ResultContainerVectorType& rResults,
         const bool ClearSolution = true
         )
     {
@@ -459,7 +459,7 @@ private:
             ResultType result;
             LocalSearchNearestInRadius(*it_point, Radius, result, allocation_size);
             r_point_result.AddResult(result);
-            
+
             // Synchronize
             r_point_result.SynchronizeAll(mrDataCommunicator);
 
@@ -482,7 +482,7 @@ private:
     void SerialSearchNearest(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
-        ResultContainerVectorType& rResults, 
+        ResultContainerVectorType& rResults,
         const bool ClearSolution = true
         )
     {
@@ -504,10 +504,10 @@ private:
             ResultType result;
             LocalSearchNearest(*it_point, result);
             r_point_result.AddResult(result);
-            
+
             // Synchronize
             r_point_result.SynchronizeAll(mrDataCommunicator);
-            
+
             // Update counter
             ++counter;
         }
@@ -529,7 +529,7 @@ private:
     void SerialSearchIsInside(
         TPointIteratorType itPointBegin,
         TPointIteratorType itPointEnd,
-        ResultContainerVectorType& rResults, 
+        ResultContainerVectorType& rResults,
         const bool ClearSolution = true
         )
     {
@@ -595,7 +595,7 @@ private:
         SearchUtilities::SynchronousPointSynchronization(itPointBegin, itPointEnd, all_points_coordinates, all_points_ids, mrDataCommunicator);
 
         // The local bounding box
-        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>(); 
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
@@ -657,7 +657,7 @@ private:
         const int current_rank = GetRank();
 
         // The local bounding box
-        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>(); 
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
@@ -666,7 +666,7 @@ private:
             // Perform local search
             const Point point(all_points_coordinates[i_point * 3 + 0], all_points_coordinates[i_point * 3 + 1], all_points_coordinates[i_point * 3 + 2]);
             auto& r_partial_result = rResults.InitializeResult(all_points_ids[i_point]);
-            
+
             // Result of search
             ResultType local_result;
 
@@ -720,7 +720,7 @@ private:
 
         // Retrieving parameters
         const int allocation_size = mSettings["allocation_size"].GetInt();
-        
+
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         std::vector<IndexType> all_points_ids;
@@ -795,7 +795,7 @@ private:
         if (ClearSolution) {
             rResults.Clear();
         }
-        
+
         // Prepare MPI search
         std::vector<double> all_points_coordinates;
         std::vector<IndexType> all_points_ids;
@@ -805,7 +805,7 @@ private:
         const int current_rank = GetRank();
 
         // The local bounding box
-        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>(); 
+        const auto& r_local_bb = mpSearchObject ? mpSearchObject->GetBoundingBox() : BoundingBox<PointType>();
 
         // Perform the corresponding searches
         const std::size_t total_number_of_points = all_points_coordinates.size()/3;
@@ -872,7 +872,7 @@ private:
      */
     void LocalSearchNearestInRadius(
         const PointType& rPoint,
-        const double Radius, 
+        const double Radius,
         ResultType& rResult,
         const int AllocationSize = 1000
         );
@@ -885,7 +885,7 @@ private:
      * @param rResult The result of the search
     */
     void LocalSearchNearest(
-        const PointType& rPoint, 
+        const PointType& rPoint,
         ResultType& rResult
         );
 
@@ -899,7 +899,7 @@ private:
      * @param rResult The result of the search
      */
     void LocalSearchIsInside(
-        const PointType& rPoint, 
+        const PointType& rPoint,
         ResultType& rResult
         );
 
