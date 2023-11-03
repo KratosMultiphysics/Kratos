@@ -282,13 +282,10 @@ void SearchWrapper<TSearchObject>::LocalSearchIsInside(
     ResultType& rResult
     )
 {
-    // Get the rank
-    const int rank = GetRank();
-
     // If we are using GeometricalObjectBins we can use the optimized search
     if constexpr (IsGeometricalObjectBins) {
         rResult = mpSearchObject->SearchIsInside(rPoint);
-        rResult.Get().SetRank(rank);
+        rResult.Get().SetRank(GetRank());
     } else { // Using trees
         KRATOS_ERROR << "SearchIsInside not compatible with Search trees" << std::endl;
     }
