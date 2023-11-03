@@ -9,6 +9,7 @@
 //
 //  Main authors:    Mohamed Nabi
 //                   John van Esch
+//                   Gennady Markelov
 //
 
 #include "custom_elements/transient_thermal_element.h"
@@ -502,7 +503,7 @@ void TransientThermalElement<TDim, TNumNodes>::CheckSolutionStepsData(
 {
     const GeometryType& rGeom = GetGeometry();
     if (rGeom[rId].SolutionStepsDataHas(rVariable)) {
-        KRATOS_ERROR << "missing variable" << rVariable.Name() << " on node "
+        KRATOS_ERROR << "missing variable " << rVariable.Name() << " on node "
                      << rGeom[rId].Id() << std::endl;
     }
 }

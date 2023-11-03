@@ -206,6 +206,20 @@ void KratosGeoMechanicsApplication::Register() {
     KRATOS_REGISTER_ELEMENT("GeoCrBeamElementLinear3D2N", mGeoCrBeamElementLinear3D2N)
     KRATOS_REGISTER_ELEMENT("GeoCurvedBeamElement2D3N", mGeoCurvedBeamElement2D3N)
 
+    // Updated-Lagrangian elements
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D3N", mTransientThermalElement2D3N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D4N", mTransientThermalElement2D4N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D4N", mTransientThermalElement3D4N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D8N", mTransientThermalElement3D8N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D6N", mTransientThermalElement2D6N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D8N", mTransientThermalElement2D8N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D9N", mTransientThermalElement2D9N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D10N", mTransientThermalElement2D10N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement2D15N", mTransientThermalElement2D15N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D10N", mTransientThermalElement3D10N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D20N", mTransientThermalElement3D20N)
+    KRATOS_REGISTER_ELEMENT("TransientThermalElement3D27N", mTransientThermalElement3D27N)
+
     //Register Conditions
     KRATOS_REGISTER_CONDITION("UPwForceCondition2D1N", mUPwForceCondition2D1N)
     KRATOS_REGISTER_CONDITION("UPwForceCondition3D1N", mUPwForceCondition3D1N)
