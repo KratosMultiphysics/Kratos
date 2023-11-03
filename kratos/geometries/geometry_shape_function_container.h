@@ -313,7 +313,7 @@ public:
     /*
     * @brief access to the shape function derivatives.
     * @param DerivativeOrderIndex defines the wanted order of the derivative
-    * @param IntegrationPointIndex the corresponding contorl point of this geometry
+    * @param IntegrationPointIndex the corresponding control point of this geometry
     * @return the shape function or derivative value related to the input parameters
     *         The matrix is structured: (the corresponding node, derivative direction)
     *         The derivative direction within the matrix is structured as following:
