@@ -408,7 +408,7 @@ jobs:
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
-      # options: --user 1001
+      # options: --user 1001 # must run as root to install the intel compiler
 
     steps:
     - uses: actions/checkout@v4
@@ -498,17 +498,13 @@ jobs:
 
     container:
       image: kratosmultiphysics/kratos-image-ci-ubuntu-22-04:latest
-      # options: --user 1001
+      options: --user 1001
 
     steps:
     - uses: actions/checkout@v4
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
-
-    - name: Install intel compiler
-      shell: bash
-      run: sudo apt-get install -y --no-install-recommends intel-oneapi-compiler-dpcpp-cpp
 
     - name: Build
       shell: bash
