@@ -39,6 +39,7 @@ namespace Kratos{
         void CalculateElasticConstants(double& kn_el, double& kt_el, double initial_dist, double equiv_young,
                                     double equiv_poisson, double calculation_area, SphericContinuumParticle* element1, SphericContinuumParticle* element2, double indentation) override;
         //virtual void InitializeContact(SphericParticle* const element1, SphericParticle* const element2, const double indentation);
+        void GetGlobalJointNormal(double GlobalJointNormal[3]) override;
 
         double LocalMaxSearchDistance(const int i,
                                     SphericContinuumParticle* element1,
@@ -145,6 +146,7 @@ namespace Kratos{
         double mKn;
         double mKt;
         double mLocalJointNormal[3] = {0.0};
+        double mGlobalJointNormal[3] = {0.0};
         double mInitialDistanceJoint = 0.0;
 
     protected:

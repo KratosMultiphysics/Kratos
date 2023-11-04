@@ -87,6 +87,10 @@ namespace Kratos {
             KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::CalculateElasticConstants) shouldn't be accessed, use derived class instead"<<std::endl;
         };
 
+        virtual void GetGlobalJointNormal(double LocalJointNormal[3]){
+            KRATOS_ERROR << "This function (DEMContinuumConstitutiveLaw::GetGlobalJointNormal) shouldn't be accessed, use derived class instead"<<std::endl;
+        };
+
         virtual void CalculateViscoDampingCoeff(double &equiv_visco_damp_coeff_normal,
                                                 double &equiv_visco_damp_coeff_tangential,
                                                 SphericContinuumParticle* element1,
