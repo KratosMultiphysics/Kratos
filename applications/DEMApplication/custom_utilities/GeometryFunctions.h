@@ -936,6 +936,7 @@ namespace Kratos {
 
     }*/
 
+    /* -------------Not verified function
     static inline void RotateCoordToDirection(const double OLdCoordSystem[3][3], double Vector[3], double NewCoordSystem[3][3])
     {
         double x_axis[3] = {0.0};
@@ -971,6 +972,83 @@ namespace Kratos {
         NewCoordSystem[2][0] = rotation_matrix[1][0] * x_axis[0] + rotation_matrix[1][1] * y_axis[0] + rotation_matrix[1][2] * z_axis[0];
         NewCoordSystem[2][1] = rotation_matrix[1][0] * x_axis[1] + rotation_matrix[1][1] * y_axis[1] + rotation_matrix[1][2] * z_axis[1];
         NewCoordSystem[2][2] = rotation_matrix[1][0] * x_axis[2] + rotation_matrix[1][1] * y_axis[2] + rotation_matrix[1][2] * z_axis[2];
+    }
+    */
+
+   static inline void RotateVectorToVector(double InitialVector[3], double TargetVector[3], double NewVector[3])
+    {
+        if (InitialVector[0] == 0.0 && InitialVector[1] == 0.0 && InitialVector[2] == 0.0) {
+            NewVector[0] = 0.0;
+            NewVector[1] = 0.0;
+            NewVector[2] = 0.0;
+        } else {
+            double InitialVector_BeforeNormalize[3] = {0.0};
+            InitialVector_BeforeNormalize[0] = InitialVector[0];
+            InitialVector_BeforeNormalize[1] = InitialVector[1];
+            InitialVector_BeforeNormalize[2] = InitialVector[2];
+
+            normalize(InitialVector);
+            normalize(TargetVector);
+
+            double InitialVector_AfterNormalize[3] = {0.0};
+            InitialVector_AfterNormalize[0] = InitialVector[0];
+            InitialVector_AfterNormalize[1] = InitialVector[1];
+            InitialVector_AfterNormalize[2] = InitialVector[2];
+
+            double TargetVector_AfterNormalize[3] = {0.0};
+            TargetVector_AfterNormalize[0] = TargetVector[0];
+            TargetVector_AfterNormalize[1] = TargetVector[1];
+            TargetVector_AfterNormalize[2] = TargetVector[2];
+            
+            //Pay attention here! This function will rotate the InitialVector to the direction of TargetVector if the angle between them is smaller than 90 degree. Otherwise, rotating to the opposite direction.
+            if (DotProduct(InitialVector_AfterNormalize, TargetVector_AfterNormalize) < 0.0){
+                TargetVector_AfterNormalize[0] = -1 * TargetVector_AfterNormalize[0];
+                TargetVector_AfterNormalize[1] = -1 * TargetVector_AfterNormalize[1];
+                TargetVector_AfterNormalize[2] = -1 * TargetVector_AfterNormalize[2];
+            }
+            
+            double rotation_angle = acos(DotProduct(InitialVector_AfterNormalize, TargetVector_AfterNormalize));
+
+            // Calculate the cross product
+            std::vector<double> crossProduct;
+            crossProduct.push_back(InitialVector_AfterNormalize[1] * TargetVector_AfterNormalize[2] - InitialVector_AfterNormalize[2] * TargetVector_AfterNormalize[1]);
+            crossProduct.push_back(InitialVector_AfterNormalize[2] * TargetVector_AfterNormalize[0] - InitialVector_AfterNormalize[0] * TargetVector_AfterNormalize[2]);
+            crossProduct.push_back(InitialVector_AfterNormalize[0] * TargetVector_AfterNormalize[1] - InitialVector_AfterNormalize[1] * TargetVector_AfterNormalize[0]);
+
+            double norm_cross_product = std::sqrt(crossProduct[0] * crossProduct[0] + crossProduct[1] * crossProduct[1] + crossProduct[2] * crossProduct[2]);
+            crossProduct[0] = crossProduct[0] / norm_cross_product;
+            crossProduct[1] = crossProduct[1] / norm_cross_product;
+            crossProduct[2] = crossProduct[2] / norm_cross_product;
+
+
+            // Calculate the rotation matrix
+            double c = cos(rotation_angle);
+            double s = sin(rotation_angle);
+            double t = 1 - c;
+            double x = crossProduct[0];
+            double y = crossProduct[1];
+            double z = crossProduct[2];
+
+            // Apply the rotation matrix to the vector
+            std::vector<double> rotatedVector;
+            rotatedVector.push_back(t * x * x + c);
+            rotatedVector.push_back(t * x * y - s * z);
+            rotatedVector.push_back(t * x * z + s * y);
+
+            rotatedVector.push_back(t * x * y + s * z);
+            rotatedVector.push_back(t * y * y + c);
+            rotatedVector.push_back(t * y * z - s * x);
+
+            rotatedVector.push_back(t * x * z - s * y);
+            rotatedVector.push_back(t * y * z + s * x);
+            rotatedVector.push_back(t * z * z + c);
+
+            // Apply the rotation to the vector
+            NewVector[0] = rotatedVector[0] * InitialVector_BeforeNormalize[0] + rotatedVector[1] * InitialVector_BeforeNormalize[1] + rotatedVector[2] * InitialVector_BeforeNormalize[2];
+            NewVector[1] = rotatedVector[3] * InitialVector_BeforeNormalize[0] + rotatedVector[4] * InitialVector_BeforeNormalize[1] + rotatedVector[5] * InitialVector_BeforeNormalize[2];
+            NewVector[2] = rotatedVector[6] * InitialVector_BeforeNormalize[0] + rotatedVector[7] * InitialVector_BeforeNormalize[1] + rotatedVector[8] * InitialVector_BeforeNormalize[2];
+        }
+        
     }
 
     static inline  bool InsideOutside(const array_1d<double, 3>& Coord1,

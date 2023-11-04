@@ -361,9 +361,17 @@ namespace Kratos {
             ComputeOtherBallToBallForces(other_ball_to_ball_forces);
 
             if (i < (int)mContinuumInitialNeighborsSize && mContinuumConstitutiveLawArray[i]->GetTypeOfLaw() == "smooth_joint_CL") {
-                double JointLocalCoordSystem[3][3];
-                GeometryFunctions::RotateCoordToDirection(data_buffer.mLocalCoordSystem, mLocalJointNormal, JointLocalCoordSystem);
-                GeometryFunctions::VectorLocal2Global(JointLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+                //double JointLocalCoordSystem[3][3];
+                double GlobalJointNormal[3];
+                mContinuumConstitutiveLawArray[i]->GetGlobalJointNormal(GlobalJointNormal);
+                //GeometryFunctions::RotateCoordToDirection(data_buffer.mLocalCoordSystem, LocalJointNormal, JointLocalCoordSystem);
+                //GeometryFunctions::VectorLocal2Global(JointLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+                GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
+                //GlobalElasticContactForce[0] = LocalElasticContactForce[0]; //LocalElasticContactForce is acturlly a global force for "smooth_joint_CL"
+                //GlobalElasticContactForce[1] = LocalElasticContactForce[1];
+                //GlobalElasticContactForce[2] = LocalElasticContactForce[2];
+                GeometryFunctions::RotateVectorToVector(GlobalElasticContactForce, GlobalJointNormal, GlobalElasticContactForce);
+
             } else {
                 GeometryFunctions::VectorLocal2Global(data_buffer.mLocalCoordSystem, LocalElasticContactForce, GlobalElasticContactForce);
             }
