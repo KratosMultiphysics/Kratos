@@ -514,13 +514,6 @@ void AMGCLHierarchicalSolver<TSparseSpace,TDenseSpace,TReorderer>::ProvideAdditi
     auto& r_lower_dof_mask = mpImpl->mLowerDofMask.value();
     r_lower_dof_mask.resize(TSparseSpace::Size1(rA), false);
 
-    //for (const auto& r_dof : rDofs) {
-    //    const auto equation_id = r_dof.EquationId();
-    //    if (equation_id < TSparseSpace::Size1(rA)) {
-    //        r_lower_dof_mask[equation_id] = r_dof.GetVariable().Key() == PRESSURE;
-    //    }
-    //}
-
     // Construct lower order DoF mask
     // Loop through elements and collect the DoFs' IDs
     // that are related to corner vertices.
