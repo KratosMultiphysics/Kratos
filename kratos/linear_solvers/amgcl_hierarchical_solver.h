@@ -58,25 +58,11 @@ public:
      * @param rX. Solution vector.
      * @param rB. Right hand side vector.
      */
-    bool Solve(SparseMatrix& rA, DenseMatrix& rX, DenseMatrix& rB) override
-    {
-        return false;
-    }
+    bool Solve(SparseMatrix& rA, DenseMatrix& rX, DenseMatrix& rB) override;
 
-    /**
-     * Print information about this object.
-     */
-    void  PrintInfo(std::ostream& rOStream) const override
-    {
-        rOStream << "AMGCL NS Solver finished.";
-    }
+    void  PrintInfo(std::ostream& rOStream) const override;
 
-    /**
-     * Print object's data.
-     */
-    void  PrintData(std::ostream& rOStream) const override
-    {
-    }
+    void  PrintData(std::ostream& rOStream) const override;
 
     /** Some solvers may require a minimum degree of knowledge of the structure of the matrix. To make an example
      * when solving a mixed u-p problem, it is important to identify the row associated to v and p.
