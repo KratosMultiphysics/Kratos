@@ -68,7 +68,7 @@ public:
      */
     void  PrintInfo(std::ostream& rOStream) const override
     {
-        rOStream << "AMGCL NS Solver finished.";
+        rOStream << "AMGCL Hierarchical Solver finished.";
     }
 
     /**
