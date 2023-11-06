@@ -81,7 +81,7 @@ void GeoTrussElement<TDim,TNumNodes>::
     Initialize(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-GeoTrussElement<TDim,TNumNodes>::: Initialize()") << std::endl;
+
     GeoTrussElementBase<TDim,TNumNodes>::Initialize(rCurrentProcessInfo);
 
     if (rCurrentProcessInfo.Has(RESET_DISPLACEMENTS)) {
@@ -92,8 +92,6 @@ void GeoTrussElement<TDim,TNumNodes>::
             mInternalStressesFinalized = mInternalStressesFinalizedPrevious;
         }
     }
-
-    // KRATOS_INFO("1-GeoTrussElement<TDim,TNumNodes>::: Initialize()") << std::endl;
 
     KRATOS_CATCH("")
 }
@@ -263,17 +261,12 @@ void GeoTrussElement<TDim,TNumNodes>::
     FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-GeoTrussElement<TDim,TNumNodes>::: FinalizeSolutionStep()") << std::endl;
 
     GeoTrussElementBase<TDim,TNumNodes>::FinalizeSolutionStep(rCurrentProcessInfo);
-
     mInternalStressesFinalized = mInternalStresses + mInternalStressesFinalizedPrevious;
-
-    // KRATOS_INFO("1-GeoTrussElement<TDim,TNumNodes>::: FinalizeSolutionStep()") << std::endl;
 
     KRATOS_CATCH("");
 }
-
 
 //--------------------------------------------------------------------------------------------
 template class GeoTrussElement<2,2>;

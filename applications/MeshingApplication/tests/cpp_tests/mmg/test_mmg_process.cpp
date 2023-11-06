@@ -93,10 +93,10 @@ namespace Kratos
             const double tolerance = 1.0e-4;
             for (auto& i_node : r_model_part.Nodes())
                 if (i_node.X() < 0.001 || i_node.X() > 1.9999)
-                    KRATOS_CHECK_LESS_EQUAL(i_node.GetValue(NODAL_H) - 1.0, tolerance);
+                    KRATOS_EXPECT_LE(i_node.GetValue(NODAL_H) - 1.0, tolerance);
 
             for (auto& i_elem : r_model_part.Elements())
-                KRATOS_CHECK(i_elem.Is(ACTIVE));
+                KRATOS_EXPECT_TRUE(i_elem.Is(ACTIVE));
         }
 
         /**
@@ -151,10 +151,10 @@ namespace Kratos
                     max = i_node.GetValue(NODAL_H);
 
             const double tolerance = 1.0e-2;
-            KRATOS_CHECK_LESS_EQUAL(std::abs(max - 1.0/std::sqrt(2.0))/max, tolerance);
+            KRATOS_EXPECT_LE(std::abs(max - 1.0/std::sqrt(2.0))/max, tolerance);
 
             for (auto& i_elem : r_model_part.Elements())
-                KRATOS_CHECK(i_elem.Is(ACTIVE));
+                KRATOS_EXPECT_TRUE(i_elem.Is(ACTIVE));
         }
     } // namespace Testing
 }  // namespace Kratos.

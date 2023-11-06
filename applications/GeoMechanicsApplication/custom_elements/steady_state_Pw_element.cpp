@@ -44,7 +44,6 @@ int SteadyStatePwElement<TDim,TNumNodes>::
     Check( const ProcessInfo& rCurrentProcessInfo ) const
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SteadyStatePwElement::Check()") << this->Id() << std::endl;
 
     const PropertiesType& Prop = this->GetProperties();
     const GeometryType& Geom = this->GetGeometry();
@@ -105,15 +104,12 @@ int SteadyStatePwElement<TDim,TNumNodes>::
             KRATOS_ERROR << "PERMEABILITY_ZX does not exist in the material properties or has an invalid value at element" << this->Id() << std::endl;
     }
 
-
     // Verify that the constitutive law has the correct dimension
 
     // Check constitutive law
     if ( mRetentionLawVector.size() > 0 ) {
         return mRetentionLawVector[0]->Check( Prop, rCurrentProcessInfo );
     }
-
-    // KRATOS_INFO("1-SteadyStatePwElement::Check()") << std::endl;
 
     return 0;
 
@@ -131,7 +127,6 @@ void SteadyStatePwElement<TDim,TNumNodes>::
                   const bool CalculateResidualVectorFlag)
 {
     KRATOS_TRY
-    // KRATOS_INFO("0-SteadyStatePwElement::CalculateAll()") << std::endl;
 
     //Previous definitions
     const GeometryType& Geom = this->GetGeometry();
@@ -175,7 +170,6 @@ void SteadyStatePwElement<TDim,TNumNodes>::
         if (CalculateResidualVectorFlag)  this->CalculateAndAddRHS(rRightHandSideVector, Variables, GPoint);
     }
 
-    // KRATOS_INFO("1-SteadyStatePwElement::CalculateAll()") << std::endl;
     KRATOS_CATCH( "" )
 }
 
@@ -185,11 +179,8 @@ void SteadyStatePwElement<TDim,TNumNodes>::
     CalculateAndAddLHS(MatrixType& rLeftHandSideMatrix, ElementVariables& rVariables)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-SteadyStatePwElement::CalculateAndAddLHS()") << std::endl;
 
     this->CalculateAndAddPermeabilityMatrix(rLeftHandSideMatrix,rVariables);
-
-    // KRATOS_INFO("1-SteadyStatePwElement::CalculateAndAddLHS()") << std::endl;
 
     KRATOS_CATCH("");
 }
@@ -200,20 +191,14 @@ void SteadyStatePwElement<TDim,TNumNodes>::
     CalculateAndAddRHS(VectorType& rRightHandSideVector, ElementVariables& rVariables, unsigned int GPoint)
 {
     KRATOS_TRY;
-    // KRATOS_INFO("0-SteadyStatePwElement::CalculateAndAddRHS()") << std::endl;
 
     this->CalculateAndAddPermeabilityFlow(rRightHandSideVector, rVariables);
-
     this->CalculateAndAddFluidBodyFlow(rRightHandSideVector, rVariables);
-
-    // KRATOS_INFO("1-SteadyStatePwElement::CalculateAndAddRHS()") << std::endl;
 
     KRATOS_CATCH("");
 }
 
-
 //----------------------------------------------------------------------------------------------------
-
 template class SteadyStatePwElement<2,3>;
 template class SteadyStatePwElement<2,4>;
 template class SteadyStatePwElement<3,4>;

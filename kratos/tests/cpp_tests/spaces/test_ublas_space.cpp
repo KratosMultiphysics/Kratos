@@ -38,8 +38,8 @@ KRATOS_TEST_CASE_IN_SUITE(UblasSpaceNormSparseMatrix, KratosCoreFastSuite)
         if (i+1<mat.size2()) {mat.push_back(i, i+1, 2.336);}
     }
 
-    KRATOS_CHECK_NEAR(16.216110045260546, SparseSpaceType::TwoNorm(mat), 1e-12);
-    KRATOS_CHECK_NEAR(31.131, SparseSpaceType::JacobiNorm(mat), 1e-12);
+    KRATOS_EXPECT_NEAR(16.216110045260546, SparseSpaceType::TwoNorm(mat), 1e-12);
+    KRATOS_EXPECT_NEAR(31.131, SparseSpaceType::JacobiNorm(mat), 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(UblasSpaceNormDenseMatrix, KratosCoreFastSuite)
@@ -56,8 +56,8 @@ KRATOS_TEST_CASE_IN_SUITE(UblasSpaceNormDenseMatrix, KratosCoreFastSuite)
         if (i+1<mat.size2()) {mat(i,i+1) = 2.336;}
     }
 
-    KRATOS_CHECK_NEAR(16.216110045260546, LocalSpaceType::TwoNorm(mat), 1e-12);
-    KRATOS_CHECK_NEAR(31.131, LocalSpaceType::JacobiNorm(mat), 1e-12);
+    KRATOS_EXPECT_NEAR(16.216110045260546, LocalSpaceType::TwoNorm(mat), 1e-12);
+    KRATOS_EXPECT_NEAR(31.131, LocalSpaceType::JacobiNorm(mat), 1e-12);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(CheckAndCorrectZeroDiagonalValues, KratosCoreFastSuite)
@@ -80,8 +80,8 @@ KRATOS_TEST_CASE_IN_SUITE(CheckAndCorrectZeroDiagonalValues, KratosCoreFastSuite
     // Test the norm of the matrix
     double norm = 0.0;
     norm = SparseSpaceType::CheckAndCorrectZeroDiagonalValues(r_process_info, matrix12x12, vector12, SCALING_DIAGONAL::NO_SCALING);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
-    KRATOS_CHECK_DOUBLE_EQUAL(matrix12x12(0, 0), 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(matrix12x12(0, 0), 1.0);
 }
 
 KRATOS_TEST_CASE_IN_SUITE(GetScaleNorm, KratosCoreFastSuite)
@@ -103,17 +103,17 @@ KRATOS_TEST_CASE_IN_SUITE(GetScaleNorm, KratosCoreFastSuite)
     // Test the norm of the matrix
     double norm = 0.0;
     norm = SparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::NO_SCALING);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 1.0);
     norm = SparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_PRESCRIBED_DIAGONAL);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 3.0);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 3.0);
     norm = SparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_NORM_DIAGONAL);
-    KRATOS_CHECK_NEAR(norm, 2.124591464, 1.0e-6);
+    KRATOS_EXPECT_NEAR(norm, 2.124591464, 1.0e-6);
     norm = SparseSpaceType::GetScaleNorm(r_process_info, matrix12x12, SCALING_DIAGONAL::CONSIDER_MAX_DIAGONAL);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 12.0);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 12.0);
     norm = SparseSpaceType::GetAveragevalueDiagonal(matrix12x12);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 6.5);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 6.5);
     norm = SparseSpaceType::GetMinDiagonal(matrix12x12);
-    KRATOS_CHECK_DOUBLE_EQUAL(norm, 1.0);
+    KRATOS_EXPECT_DOUBLE_EQ(norm, 1.0);
 }
 
 } // namespace Testing

@@ -45,7 +45,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
@@ -144,7 +144,7 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
@@ -223,7 +223,7 @@ jobs:
         CCACHE_MAXSIZE: 500M
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - name: Cache Build
       id: cache-build
@@ -335,7 +335,7 @@ jobs:
       KRATOS_BUILD_TYPE: Custom
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
     - uses: actions/setup-python@v4
       with:
         python-version: '3.8'
@@ -411,7 +411,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run
@@ -497,7 +497,7 @@ jobs:
       options: --user 1001
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     # - name: Installing dependencies
     # => must be added to the docker container to avoid reinstalling it in every CI run

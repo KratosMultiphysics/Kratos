@@ -1,3 +1,4 @@
+# --- Kratos Imports ---
 import KratosMultiphysics
 import KratosMultiphysics.KratosUnittest as KratosUnittest
 import KratosMultiphysics.kratos_utilities as kratos_utilities
@@ -8,6 +9,8 @@ import KratosMultiphysics.HDF5Application.initialization_from_hdf5_process as in
 import KratosMultiphysics.HDF5Application.single_mesh_temporal_input_process as single_mesh_temporal_input_process
 import KratosMultiphysics.HDF5Application.single_mesh_xdmf_output_process as single_mesh_xdmf_output_process
 import KratosMultiphysics.HDF5Application.import_model_part_from_hdf5_process as import_model_part_from_hdf5_process
+
+# --- STD Imports ---
 from unittest.mock import patch
 import pathlib
 
@@ -20,7 +23,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         self.model_part.ProcessInfo[KratosMultiphysics.TIME] = 0.0
         self.model_part.ProcessInfo[KratosMultiphysics.DELTA_TIME] = 0.1
         self.patcher1 = patch(
-            'KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5FileSerial', autospec=True)
+            'KratosMultiphysics.HDF5Application.core.file_io.KratosHDF5.HDF5File', autospec=True)
         self.patcher2 = patch(
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ModelPartIO', autospec=True)
         self.patcher3 = patch(
@@ -43,7 +46,7 @@ class TestHDF5Processes(KratosUnittest.TestCase):
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ElementGaussPointOutput', autospec=True)
         self.patcher12 = patch(
             'KratosMultiphysics.HDF5Application.core.operations.KratosHDF5.HDF5ConditionGaussPointOutput', autospec=True)
-        self.HDF5FileSerial = self.patcher1.start()
+        self.HDF5File = self.patcher1.start()
         self.HDF5ModelPartIO = self.patcher2.start()
         self.HDF5NodalSolutionStepDataIO = self.patcher3.start()
         self.HDF5NodalDataValueIO = self.patcher4.start()
@@ -118,109 +121,109 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         process = single_mesh_temporal_output_process.Factory(
             settings, self.model)
         process.ExecuteBeforeSolutionLoop()
-        self.assertEqual(self.HDF5FileSerial.call_count, 1)
+        self.assertEqual(self.HDF5File.call_count, 1)
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]['file_name'].GetString(), 'test_model_part.h5')
+            self.HDF5File.call_args[0][0]['file_name'].GetString(), 'test_model_part.h5')
         for time in [0.09999999, 0.19999998]:
             self.model_part.CloneTimeStep(time)
+            self.model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             process.ExecuteFinalizeSolutionStep()
-        self.assertEqual(self.HDF5FileSerial.call_count, 2)
-        self.assertEqual(self.HDF5FileSerial.call_args[0][0]['file_name'].GetString(
+        self.assertEqual(self.HDF5File.call_count, 2)
+        self.assertEqual(self.HDF5File.call_args[0][0]['file_name'].GetString(
         ), 'test_model_part-0.2000.h5')
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]['file_access_mode'].GetString(), 'truncate')
+            self.HDF5File.call_args[0][0]['file_access_mode'].GetString(), 'truncate')
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]['echo_level'].GetInt(), 1)
+            self.HDF5File.call_args[0][0]['echo_level'].GetInt(), 1)
         self.HDF5ModelPartIO.assert_called_once_with(
-            self.HDF5FileSerial.return_value, '/ModelData/test_model_part')
+            self.HDF5File.return_value, '/ModelData/test_model_part')
         self.HDF5ModelPartIO.return_value.WriteModelPart.assert_called_once_with(
             self.model_part)
-        self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_count, 2)
-        self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_args[0][0]['prefix'].GetString(
-        ), '/ResultsData/test_model_part/0.20')
+        self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_count, 1)
+        self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_args[0][0]['prefix'].GetString(), '/ResultsData/test_model_part/0.20')
         self.assertEqual(
             self.HDF5NodalSolutionStepDataIO.call_args[0][0]['list_of_variables'][0].GetString(), 'DISPLACEMENT')
         self.assertEqual(
-            self.HDF5NodalSolutionStepDataIO.return_value.WriteNodalResults.call_count, 2)
+            self.HDF5NodalSolutionStepDataIO.return_value.WriteNodalResults.call_count, 1)
         self.HDF5NodalSolutionStepDataIO.return_value.WriteNodalResults.assert_called_with(
             self.model_part, 0)
-        self.assertEqual(self.HDF5NodalDataValueIO.call_count, 2)
+        self.assertEqual(self.HDF5NodalDataValueIO.call_count, 1)
         self.assertEqual(
             self.HDF5NodalDataValueIO.call_args[0][0]['prefix'].GetString(), '/ResultsData')
         self.assertEqual(
             self.HDF5NodalDataValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
-            self.HDF5NodalDataValueIO.return_value.WriteNodalResults.call_count, 2)
+            self.HDF5NodalDataValueIO.return_value.WriteNodalResults.call_count, 1)
         self.HDF5NodalDataValueIO.return_value.WriteNodalResults.assert_called_with(
             self.model_part.Nodes)
 
-        self.assertEqual(self.HDF5NodalFlagValueIO.call_count, 2)
+        self.assertEqual(self.HDF5NodalFlagValueIO.call_count, 1)
         self.assertEqual(
             self.HDF5NodalFlagValueIO.call_args[0][0]['prefix'].GetString(), '/ResultsData/NodalFlagValues')
         self.assertEqual(
             self.HDF5NodalFlagValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
-            self.HDF5NodalFlagValueIO.return_value.WriteNodalFlags.call_count, 2)
+            self.HDF5NodalFlagValueIO.return_value.WriteNodalFlags.call_count, 1)
         self.HDF5NodalFlagValueIO.return_value.WriteNodalFlags.assert_called_with(
             self.model_part.Nodes)
 
-        self.assertEqual(self.HDF5ElementDataValueIO.call_count, 2)
+        self.assertEqual(self.HDF5ElementDataValueIO.call_count, 1)
         self.assertEqual(self.HDF5ElementDataValueIO.call_args[0][0]['prefix'].GetString(
         ), '/ResultsData/ElementDataValues')
         self.assertEqual(
             self.HDF5ElementDataValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
-            self.HDF5ElementDataValueIO.return_value.WriteElementResults.call_count, 2)
+            self.HDF5ElementDataValueIO.return_value.WriteElementResults.call_count, 1)
         self.HDF5ElementDataValueIO.return_value.WriteElementResults.assert_called_with(
             self.model_part.Elements)
 
-        self.assertEqual(self.HDF5ElementFlagValueIO.call_count, 2)
+        self.assertEqual(self.HDF5ElementFlagValueIO.call_count, 1)
         self.assertEqual(self.HDF5ElementFlagValueIO.call_args[0][0]['prefix'].GetString(
         ), '/ResultsData/ElementFlagValues')
         self.assertEqual(
             self.HDF5ElementFlagValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
-            self.HDF5ElementFlagValueIO.return_value.WriteElementFlags.call_count, 2)
+            self.HDF5ElementFlagValueIO.return_value.WriteElementFlags.call_count, 1)
         self.HDF5ElementFlagValueIO.return_value.WriteElementFlags.assert_called_with(
             self.model_part.Elements)
 
-        self.assertEqual(self.HDF5ElementGaussPointOutput.call_count, 2)
+        self.assertEqual(self.HDF5ElementGaussPointOutput.call_count, 1)
         self.assertEqual(self.HDF5ElementGaussPointOutput.call_args[0][0]['prefix'].GetString(
         ), '/ResultsData/ElementGaussPointValues')
         self.assertEqual(
             self.HDF5ElementGaussPointOutput.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
-            self.HDF5ElementGaussPointOutput.return_value.WriteElementGaussPointValues.call_count, 2)
+            self.HDF5ElementGaussPointOutput.return_value.WriteElementGaussPointValues.call_count, 1)
         self.HDF5ElementGaussPointOutput.return_value.WriteElementGaussPointValues.assert_called_with(
             self.model_part.Elements, self.model_part.GetCommunicator().GetDataCommunicator(), self.model_part.ProcessInfo)
 
-        self.assertEqual(self.HDF5ConditionDataValueIO.call_count, 2)
+        self.assertEqual(self.HDF5ConditionDataValueIO.call_count, 1)
         self.assertEqual(self.HDF5ConditionDataValueIO.call_args[0][0]['prefix'].GetString(
         ), '/ResultsData/ConditionDataValues')
         self.assertEqual(
             self.HDF5ConditionDataValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
-            self.HDF5ConditionDataValueIO.return_value.WriteConditionResults.call_count, 2)
+            self.HDF5ConditionDataValueIO.return_value.WriteConditionResults.call_count, 1)
         self.HDF5ConditionDataValueIO.return_value.WriteConditionResults.assert_called_with(
             self.model_part.Conditions)
 
-        self.assertEqual(self.HDF5ConditionFlagValueIO.call_count, 2)
+        self.assertEqual(self.HDF5ConditionFlagValueIO.call_count, 1)
         self.assertEqual(self.HDF5ConditionFlagValueIO.call_args[0][0]['prefix'].GetString(
         ), '/ResultsData/ConditionFlagValues')
         self.assertEqual(
             self.HDF5ConditionFlagValueIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
-            self.HDF5ConditionFlagValueIO.return_value.WriteConditionFlags.call_count, 2)
+            self.HDF5ConditionFlagValueIO.return_value.WriteConditionFlags.call_count, 1)
         self.HDF5ConditionFlagValueIO.return_value.WriteConditionFlags.assert_called_with(
             self.model_part.Conditions)
 
-        self.assertEqual(self.HDF5ConditionGaussPointOutput.call_count, 2)
+        self.assertEqual(self.HDF5ConditionGaussPointOutput.call_count, 1)
         self.assertEqual(self.HDF5ConditionGaussPointOutput.call_args[0][0]['prefix'].GetString(
         ), '/ResultsData/ConditionGaussPointValues')
         self.assertEqual(
             self.HDF5ConditionGaussPointOutput.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
-            self.HDF5ConditionGaussPointOutput.return_value.WriteConditionGaussPointValues.call_count, 2)
+            self.HDF5ConditionGaussPointOutput.return_value.WriteConditionGaussPointValues.call_count, 1)
         self.HDF5ConditionGaussPointOutput.return_value.WriteConditionGaussPointValues.assert_called_with(
             self.model_part.Conditions, self.model_part.GetCommunicator().GetDataCommunicator(), self.model_part.ProcessInfo)
 
@@ -242,24 +245,22 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         process = multiple_mesh_temporal_output_process.Factory(
             settings, self.model)
         process.ExecuteBeforeSolutionLoop()
-        self.assertEqual(self.HDF5FileSerial.call_count, 1)
-        self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]['file_name'].GetString(), 'kratos-0.0000.h5')
         for time in [0.09999999, 0.19999998]:
             self.model_part.CloneTimeStep(time)
+            self.model_part.ProcessInfo[KratosMultiphysics.STEP] += 1
             process.ExecuteFinalizeSolutionStep()
-        self.assertEqual(self.HDF5FileSerial.call_count, 3)
+        self.assertEqual(self.HDF5File.call_count, 2)
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]['file_name'].GetString(), 'kratos-0.2000.h5')
+            self.HDF5File.call_args[0][0]['file_name'].GetString(), 'kratos-0.2000.h5')
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]['file_access_mode'].GetString(), 'exclusive')
+            self.HDF5File.call_args[0][0]['file_access_mode'].GetString(), 'exclusive')
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]['echo_level'].GetInt(), 0)
-        self.assertEqual(self.HDF5ModelPartIO.call_count, 3)
+            self.HDF5File.call_args[0][0]['echo_level'].GetInt(), 0)
+        self.assertEqual(self.HDF5ModelPartIO.call_count, 2)
         self.HDF5ModelPartIO.assert_called_with(
-            self.HDF5FileSerial.return_value, '/ModelData')
+            self.HDF5File.return_value, '/ModelData')
         self.assertEqual(
-            self.HDF5ModelPartIO.return_value.WriteModelPart.call_count, 3)
+            self.HDF5ModelPartIO.return_value.WriteModelPart.call_count, 2)
         self.HDF5ModelPartIO.return_value.WriteModelPart.assert_called_with(
             self.model_part)
 
@@ -284,19 +285,19 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         for time in [0.09999999, 0.19999998]:
             self.model_part.CloneTimeStep(time)
             process.ExecuteFinalizeSolutionStep()
-        self.assertEqual(self.HDF5NodalSolutionStepBossakIO.call_count, 3)
+        self.assertEqual(self.HDF5NodalSolutionStepBossakIO.call_count, 2)
         self.assertEqual(
             self.HDF5NodalSolutionStepBossakIO.call_args[0][0]['prefix'].GetString(), '/ResultsData')
         self.assertEqual(
             self.HDF5NodalSolutionStepBossakIO.call_args[0][0]['list_of_variables'].size(), 0)
         self.assertEqual(
-            self.HDF5NodalSolutionStepBossakIO.call_args[0][1], self.HDF5FileSerial.return_value)
+            self.HDF5NodalSolutionStepBossakIO.call_args[0][1], self.HDF5File.return_value)
         self.assertEqual(
-            self.HDF5NodalSolutionStepBossakIO.return_value.SetAlphaBossak.call_count, 3)
+            self.HDF5NodalSolutionStepBossakIO.return_value.SetAlphaBossak.call_count, 2)
         self.HDF5NodalSolutionStepBossakIO.return_value.SetAlphaBossak.assert_called_with(
             -0.2)
         self.assertEqual(
-            self.HDF5NodalSolutionStepBossakIO.return_value.WriteNodalResults.call_count, 3)
+            self.HDF5NodalSolutionStepBossakIO.return_value.WriteNodalResults.call_count, 2)
         self.HDF5NodalSolutionStepBossakIO.return_value.WriteNodalResults.assert_called_with(
             self.model_part)
 
@@ -314,11 +315,11 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         process = initialization_from_hdf5_process.Factory(
             settings, self.model)
         process.ExecuteInitialize()
-        self.assertEqual(self.HDF5FileSerial.call_count, 1)
+        self.assertEqual(self.HDF5File.call_count, 1)
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]["file_name"].GetString(), "kratos.h5")
+            self.HDF5File.call_args[0][0]["file_name"].GetString(), "kratos.h5")
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]["file_access_mode"].GetString(), "read_only")
+            self.HDF5File.call_args[0][0]["file_access_mode"].GetString(), "read_only")
         self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_count, 1)
         self.assertEqual(
             self.HDF5NodalSolutionStepDataIO.return_value.ReadNodalResults.call_count, 1)
@@ -362,11 +363,11 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         for time in [0.1, 0.2]:
             self.model_part.CloneTimeStep(time)
             process.ExecuteInitializeSolutionStep()
-        self.assertEqual(self.HDF5FileSerial.call_count, 2)
+        self.assertEqual(self.HDF5File.call_count, 2)
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]["file_name"].GetString(), "test_model_part-0.2000.h5")
+            self.HDF5File.call_args[0][0]["file_name"].GetString(), "test_model_part-0.2000.h5")
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]["file_access_mode"].GetString(), "read_only")
+            self.HDF5File.call_args[0][0]["file_access_mode"].GetString(), "read_only")
         self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_count, 2)
         self.assertEqual(
             self.HDF5NodalSolutionStepDataIO.return_value.ReadNodalResults.call_count, 2)
@@ -413,30 +414,25 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 }
             }
             ''')
-        patcher1 = patch(
-            'KratosMultiphysics.HDF5Application.xdmf_utils.WriteMultifileTemporalAnalysisToXdmf', autospec=True)
-        patcher2 = patch(
-            'KratosMultiphysics.kratos_utilities.DeleteFileIfExisting', autospec=True)
-        patcher3 = patch('os.listdir', autospec=True)
-        WriteMultifileTemporalAnalysisToXdmf = patcher1.start()
-        DeleteFileIfExisting = patcher2.start()
-        listdir = patcher3.start()
-        listdir.return_value = [
-            'test_model_part-0.0000.h5', 'test_model_part-0.1000.h5']
-        process = single_mesh_xdmf_output_process.Factory(settings, self.model)
-        process.ExecuteInitialize()
-        process.ExecuteBeforeSolutionLoop()
-        for time in [0.09999999, 0.19999998]:
-            self.model_part.CloneTimeStep(time)
-            process.ExecuteFinalizeSolutionStep()
-        self.assertEqual(WriteMultifileTemporalAnalysisToXdmf.call_count, 2)
-        WriteMultifileTemporalAnalysisToXdmf.assert_called_with(
-            'test_model_part.h5', '/ModelData', '/ResultsData')
-        DeleteFileIfExisting.assert_called_once_with(
-            './test_model_part-0.1000.h5')
-        patcher1.stop()
-        patcher2.stop()
-        patcher3.stop()
+        with patch('KratosMultiphysics.HDF5Application.xdmf_utils.WriteMultifileTemporalAnalysisToXdmf', autospec=True) as WriteMultifileTemporalAnalysisToXdmf:
+            with patch('KratosMultiphysics.kratos_utilities.DeleteFileIfExisting', autospec=True) as DeleteFileIfExisting:
+                with patch('pathlib.Path.glob', autospec=True) as listdir:
+                    self.HDF5File().GetFileName.return_value = settings["Parameters"]["model_part_name"].GetString() + ".h5"
+                    listdir.return_value = [
+                        pathlib.Path('test_model_part-0.0000.h5').absolute(),
+                        pathlib.Path('test_model_part-0.1000.h5').absolute()]
+                    process = single_mesh_xdmf_output_process.Factory(settings, self.model)
+                    process.ExecuteInitialize()
+                    process.ExecuteBeforeSolutionLoop()
+                    for time in [0.09999999, 0.19999998]:
+                        self.model_part.CloneTimeStep(time)
+                        process.ExecuteFinalizeSolutionStep()
+                    self.assertEqual(WriteMultifileTemporalAnalysisToXdmf.call_count, 2)
+                    WriteMultifileTemporalAnalysisToXdmf.assert_called_with('test_model_part.h5',
+                                                                            '/ModelData',
+                                                                            '/ResultsData')
+                    DeleteFileIfExisting.assert_called_once_with(
+                        str(pathlib.Path('./test_model_part-0.1000.h5').absolute()))
 
     def test_ImportModelPartFromHDF5Process(self):
         settings = KratosMultiphysics.Parameters('''
@@ -449,11 +445,11 @@ class TestHDF5Processes(KratosUnittest.TestCase):
         process = import_model_part_from_hdf5_process.Factory(
             settings, self.model)
         process.ExecuteInitialize()
-        self.assertEqual(self.HDF5FileSerial.call_count, 1)
+        self.assertEqual(self.HDF5File.call_count, 1)
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]["file_name"].GetString(), "test_model_part.h5")
+            self.HDF5File.call_args[0][0]["file_name"].GetString(), "test_model_part.h5")
         self.assertEqual(
-            self.HDF5FileSerial.call_args[0][0]["file_access_mode"].GetString(), "read_only")
+            self.HDF5File.call_args[0][0]["file_access_mode"].GetString(), "read_only")
         self.assertEqual(self.HDF5NodalSolutionStepDataIO.call_count, 1)
         self.assertEqual(
             self.HDF5NodalSolutionStepDataIO.return_value.ReadNodalResults.call_count, 1)
@@ -550,13 +546,13 @@ class TestHDF5Processes(KratosUnittest.TestCase):
                 }]}}
             ''')
 
-        with patch("KratosMultiphysics.HDF5Application.core.controllers.Controller.ExecuteOperations") as mocked_execute:
+        with patch("KratosMultiphysics.HDF5Application.core.controllers.Controller.ExecuteOperation") as mocked_execute:
+            self.assertEqual(mocked_execute.call_count, 0)
             with ScopedMDPA("test_OutputProcess"):
                 from KratosMultiphysics.StructuralMechanicsApplication.structural_mechanics_analysis import StructuralMechanicsAnalysis
                 model = KratosMultiphysics.Model()
                 simulation = StructuralMechanicsAnalysis(model, settings)
                 simulation.Run()
-
             self.assertEqual(mocked_execute.call_count, 1 + 5)
 
 
