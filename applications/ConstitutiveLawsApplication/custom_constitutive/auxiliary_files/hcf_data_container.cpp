@@ -208,14 +208,16 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
         const double pre_indicator = aux_sum / resultant_shear_stress;
 
         if (pre_indicator < 0.7) {
-            sign_factor = -1.0;
-        } else {
             sign_factor = 1.0;
+        } else {
+            sign_factor = -1.0;
         }
     }
     uniaxial_stress *= sign_factor;
 
+    if (mAITControlParameter > 10.0) {
     CalculateSminAndSmax(uniaxial_stress, rFatigueVariables);
+    }
 
     rFatigueVariables.AdvanceStrategyApplied = rCurrentProcessInfo.Has(ADVANCE_STRATEGY_APPLIED) ? rCurrentProcessInfo[ADVANCE_STRATEGY_APPLIED] : false;
     rFatigueVariables.DamageActivation = rCurrentProcessInfo.Has(DAMAGE_ACTIVATION) ? rCurrentProcessInfo[DAMAGE_ACTIVATION] : false;
@@ -223,6 +225,8 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
     if (rFatigueVariables.MaxIndicator && rFatigueVariables.MinIndicator) {
         rFatigueVariables.PreviousReversionFactor = CalculateReversionFactor(rFatigueVariables.PreviousMaxStress, rFatigueVariables.PreviousMinStress);
         rFatigueVariables.ReversionFactor = CalculateReversionFactor(rFatigueVariables.MaxStress, rFatigueVariables.MinStress);
+
+        mReversionFactor = rFatigueVariables.ReversionFactor;
 
         CalculateFatigueParameters(rMaterialProperties, rFatigueVariables, rVariable);
 
@@ -260,7 +264,10 @@ void HCFDataContainer::FinalizeSolutionStep(HCFDataContainer::FatigueVariables &
     if (rFatigueVariables.MaxStress > rFatigueVariables.Sth) {
         CalculateFatigueReductionFactorAndWohlerStress(rMaterialProperties, rFatigueVariables, rVariable);
     }
+    mAITControlParameter = 0.0;
     }
+
+    mAITControlParameter += 1.0;
 }
 
 /***********************************************************************************/

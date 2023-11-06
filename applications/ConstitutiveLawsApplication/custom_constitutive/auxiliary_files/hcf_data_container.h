@@ -222,6 +222,20 @@ public:
     /**
      * @brief This method returns the maximum stress
      */
+    double GetMinimumStress() {
+        return mMinStress;
+    }
+
+    /**
+     * @brief This method returns the maximum stress
+     */
+    double GetReversionFactor() {
+        return mReversionFactor;
+    }
+
+    /**
+     * @brief This method returns the maximum stress
+     */
     double GetPreviousMaximumStress() {
         return mPreviousMaxStress;
     }
@@ -288,6 +302,8 @@ private:
     bool mNewCycleIndicator = false;
     double mPreviousCycleTime = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
     double mPeriod = 0.0; // Instanced variable used in the advanciing process for the conversion between time and number of cycles.
+    double mReversionFactor = 0.0;
+    double mAITControlParameter = 0.0;
     ///@}
 
 friend class Serializer;

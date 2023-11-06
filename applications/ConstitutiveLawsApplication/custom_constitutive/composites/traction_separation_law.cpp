@@ -160,7 +160,9 @@ bool TractionSeparationLaw3D<TDim>::Has(const Variable<double>& rThisVariable)
         has = true;
     } else if (rThisVariable == CYCLES_TO_FAILURE) {
         has = true;
-    } else {
+    } else if (rThisVariable == WOHLER_STRESS) {
+        has = true;
+    }else {
         BaseType::Has(rThisVariable);
     }
 
@@ -279,6 +281,10 @@ double& TractionSeparationLaw3D<TDim>::GetValue(
     } else if (rThisVariable == CYCLES_TO_FAILURE) {
 
         rValue = mFatigueDataContainersModeTwo[0].GetCyclesToFailure();
+        return rValue;
+    } else if (rThisVariable == WOHLER_STRESS) {
+
+        rValue = mFatigueDataContainersModeTwo[0].GetReversionFactor();
         return rValue;
     } else {
         return BaseType::GetValue(rThisVariable, rValue);
