@@ -64,12 +64,15 @@ public:
      * @return The vector containing the local coordinates of the point
      */
     template<class TGeometryType>
-    static inline typename TGeometryType::CoordinatesArrayType& PointLocalCoordinatesTetrahedra3D4N(
+    static inline typename TGeometryType::CoordinatesArrayType& PointLocalCoordinatesPlanarFaceTetrahedra(
         const TGeometryType& rGeometry,
         typename TGeometryType::CoordinatesArrayType& rResult,
         const typename TGeometryType::CoordinatesArrayType& rPoint
         )
     {
+        // Debug check that it is at least a tetrahedra
+        KRATOS_DEBUG_ERROR_IF_NOT(rGeometry.GetGeometryFamily() == GeometryData::KratosGeometryFamily::Kratos_Tetrahedra) << "Geometry should be a tetrahedra in order to use PointLocalCoordinatesPlanarFaceTetrahedra" << std::endl;
+
         // Compute RHS
         array_1d<double,4> X;
         X[0] = 1.0;

@@ -970,7 +970,7 @@ public:
         const CoordinatesArrayType& rPoint
         ) const override
     {
-        return GeometryUtils::PointLocalCoordinatesTetrahedra3D4N(*this, rResult, rPoint);
+        return GeometryUtils::PointLocalCoordinatesPlanarFaceTetrahedra(*this, rResult, rPoint);
     }
 
     /**

@@ -442,7 +442,7 @@ public:
     {
         // Using linear approximation for planar faces
         if (this->FacesArePlanar()) {
-            return GeometryUtils::PointLocalCoordinatesTetrahedra3D4N(*this, rResult, rPoint);
+            return GeometryUtils::PointLocalCoordinatesPlanarFaceTetrahedra(*this, rResult, rPoint);
         } else {
             return BaseType::PointLocalCoordinates( rResult, rPoint );
         }
