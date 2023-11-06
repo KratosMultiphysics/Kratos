@@ -169,10 +169,13 @@ class AlgorithmSystemIdentification(Algorithm):
     @time_decorator()
     def Solve(self) -> bool:
         np.random.seed = 123456789
+        iteration_counter = 0
 
         self.algorithm_data = ComponentDataView("algorithm", self._optimization_problem)
         while not self.converged:
             with OptimizationAlgorithmTimeLogger("AlgorithmSystemIdentification", self._optimization_problem.GetStep()):
+                iteration_counter += 1
+                self.algorithm_data.GetBufferedData()["iteration"] = iteration_counter
 
                 self.__obj_val = self.__objective.CalculateStandardizedValue(self.__control_field)
 

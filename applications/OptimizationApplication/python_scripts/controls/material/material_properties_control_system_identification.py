@@ -40,9 +40,8 @@ class MaterialPropertiesControlSystemIdentification(Control):
                 "technique_sequence":[""],
                 "smoothing_technique":"element_node_element",
                 "num_smoothing_iterations" : 3,
-                "set_sensitivity_to_zero_for_nodes": [],
-                "exponential_mapping_exponent": 2
-
+                "exponential_mapping_exponent": 2,
+                "set_sensitivity_to_zero_model_parts":[]
             }
         }""")
 
@@ -65,7 +64,10 @@ class MaterialPropertiesControlSystemIdentification(Control):
             raise RuntimeError(f"No model parts were provided for MaterialPropertiesControl. [ control name = \"{self.GetName()}\"]")
 
         self.model_part_operation = ModelPartOperation(self.model, ModelPartOperation.OperationType.UNION, f"control_{self.GetName()}", controlled_model_part_names, False)
-        self.model_part: Optional[Kratos.ModelPart] = None
+        # self.model_part: Optional[Kratos.ModelPart] = None
+        # self.model_part = ModelPartUtilities.GetOperatingModelPart(ModelPartUtilities.OperationType.UNION, f"control_{self.GetName()}", controlled_model_parts, False)
+
+        self.set_sensitivity_to_zero_model_parts = self.mapping_options["set_sensitivity_to_zero_model_parts"].GetStringArray()
 
     def Initialize(self) -> None:
         self.model_part = self.model_part_operation.GetModelPart()
@@ -73,6 +75,21 @@ class MaterialPropertiesControlSystemIdentification(Control):
         if not KratosOA.ModelPartUtils.CheckModelPartStatus(self.model_part, "element_specific_properties_created"):
             KratosOA.OptimizationUtils.CreateEntitySpecificPropertiesForContainer(self.model_part, self.model_part.Elements)
             KratosOA.ModelPartUtils.LogModelPartStatus(self.model_part, "element_specific_properties_created")
+
+        # Find all element connected to nodes of the model part and add element ids to
+        self.excluded_element_ids = []
+        for model_part_name in self.set_sensitivity_to_zero_model_parts:
+            model_part = self.model.GetModelPart(model_part_name)
+            for element_global in self.model.GetModelPart("Structure").GetElements():
+                if self.does_node_list_contain_same_nodes(model_part.GetNodes(),element_global.GetNodes()):
+                    self.excluded_element_ids.append(element_global.Id)
+
+    def does_node_list_contain_same_nodes(self,first_list,second_list):
+        for first in first_list:
+            for second in second_list:
+                if first.Id == second.Id:
+                    return True
+        return False
 
     def Check(self) -> None:
         pass
@@ -92,6 +109,15 @@ class MaterialPropertiesControlSystemIdentification(Control):
         field = self.GetEmptyField()
         KratosOA.PropertiesVariableExpressionIO.Read(field, self.controlled_physical_variable)
         return field
+
+    def _SetSensitivitiesToZero(self, container_expression: "ContainerExpressionTypes", list_of_element_ids: "list" = []):
+        if len(list_of_element_ids) > 0:
+            sensitivities = container_expression.Evaluate()
+
+            for ID in list_of_element_ids:
+                sensitivities[int(ID)] = 0.0
+
+            Kratos.Expression.CArrayExpressionIO.Read(container_expression, sensitivities)
 
     def MapGradient(self, physical_gradient_variable_container_expression_map: 'dict[SupportedSensitivityFieldVariableTypes, ContainerExpressionTypes]') -> ContainerExpressionTypes:
         keys = physical_gradient_variable_container_expression_map.keys()
@@ -142,15 +168,6 @@ class MaterialPropertiesControlSystemIdentification(Control):
 
         return cloned_container_expression
 
-    def _SetSensitivitiesToZero(self, container_expression: "ContainerExpressionTypes", list_of_ids: Kratos.Vector):
-        if list_of_ids.Size() > 0:
-            sensitivities = container_expression.Evaluate()
-
-            for ID in list_of_ids:
-                sensitivities[int(ID)] = 0
-
-            Kratos.Expression.CArrayExpressionIO.Read(container_expression, sensitivities)
-
     def _ElementNodeElementSmoothingForExpressionValues(self, container_expression: "ContainerExpressionTypes") -> None:
 
         neighbors_per_node = Kratos.Expression.NodalExpression(self.model_part)
@@ -160,7 +177,7 @@ class MaterialPropertiesControlSystemIdentification(Control):
 
         for i in range(self.mapping_options["num_smoothing_iterations"].GetInt()):
             KratosOA.ExpressionUtils.MapContainerVariableToNodalVariable(node_sensitivity_expression, container_expression, neighbors_per_node)
-            self._SetSensitivitiesToZero(node_sensitivity_expression, self.excluded_nodes)
+            self._SetSensitivitiesToZero(node_sensitivity_expression, self.excluded_element_ids)
             KratosOA.ExpressionUtils.MapNodalVariableToContainerVariable(container_expression, node_sensitivity_expression)
 
     def Update(self, control_field: ContainerExpressionTypes) -> bool:
