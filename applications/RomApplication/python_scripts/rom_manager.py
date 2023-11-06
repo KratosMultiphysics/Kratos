@@ -67,8 +67,19 @@ class RomManager(object):
                     self._StoreSnapshotsMatrix('rom_snapshots', rom_snapshots)
                 self.ROMvsFOM_train = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in training_stages):
-                raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
-        #######################################
+                # Change the flags to train the HROM for LSPG
+                self._ChangeRomFlags(simulation_to_run = "trainHROMLSPG")
+                self.__LaunchTrainHROM(mu_train, store_residuals_projected)
+
+                # Change the flags to run the HROM for LSPG
+                self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+                hrom_snapshots = self.__LaunchHROM(mu_train)
+
+                if store_all_snapshots or store_hrom_snapshots:
+                    self._StoreSnapshotsMatrix('hrom_snapshots', hrom_snapshots)
+
+                self.ROMvsHROM_train = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
+                #######################################
 
         ##########################
         ###  Petrov Galerkin   ###
@@ -128,7 +139,9 @@ class RomManager(object):
                 rom_snapshots = self.__LaunchTestROM(mu_test)
                 self.ROMvsFOM_test = np.linalg.norm(fom_snapshots - rom_snapshots)/ np.linalg.norm(fom_snapshots)
             if any(item == "HROM" for item in testing_stages):
-                raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
+                self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
+                hrom_snapshots = self.__LaunchTestHROM(mu_test)
+                self.ROMvsHROM_test = np.linalg.norm(rom_snapshots - hrom_snapshots) / np.linalg.norm(rom_snapshots)
         #######################################
 
 
@@ -184,7 +197,7 @@ class RomManager(object):
         #######################################
         ##  Least-Squares Petrov Galerkin   ###
         elif chosen_projection_strategy == "lspg":
-            raise Exception('Sorry, Hyper Reduction not yet implemented for lspg')
+            self._ChangeRomFlags(simulation_to_run = "runHROMLSPG")
         ##########################
         ###  Petrov Galerkin   ###
         elif chosen_projection_strategy == "petrov_galerkin":
@@ -201,11 +214,11 @@ class RomManager(object):
         testing_stages = self.general_rom_manager_parameters["rom_stages_to_test"].GetStringArray()
         if any(item == "ROM" for item in training_stages):
             print("approximation error in train set FOM vs ROM: ", self.ROMvsFOM_train)
-        if any(item == "HROM" for item in training_stages) and not(chosen_projection_strategy == "lspg"):
+        if any(item == "HROM" for item in training_stages):
             print("approximation error in train set ROM vs HROM: ", self.ROMvsHROM_train)
         if any(item == "ROM" for item in testing_stages):
             print("approximation error in test set FOM vs ROM: ", self.ROMvsFOM_test)
-        if any(item == "HROM" for item in testing_stages) and not(chosen_projection_strategy == "lspg"):
+        if any(item == "HROM" for item in testing_stages):
             print("approximation error in test set ROM vs HROM: ",  self.ROMvsHROM_test)
 
 
@@ -530,26 +543,27 @@ class RomManager(object):
                 f['train_hrom']=False
                 f['run_hrom']=True
                 f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
-            elif simulation_to_run=='lspg':
-                f['train_hrom']=False
-                f['run_hrom']=False
-                f['projection_strategy']="lspg"
-                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["train_petrov_galerkin"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("train_petrov_galerkin") else False
-                f["rom_settings"]['rom_bns_settings']['basis_strategy'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("basis_strategy") else "residuals"
-                f["rom_settings"]['rom_bns_settings']['include_phi'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("include_phi") else False
-                f["rom_settings"]['rom_bns_settings']['svd_truncation_tolerance'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("svd_truncation_tolerance") else 1e-4
-                f["rom_settings"]['rom_bns_settings']['solving_technique'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("solving_technique") else "normal_equations"
-                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
-            elif simulation_to_run=='TrainPG':
-                f['train_hrom']=False
-                f['run_hrom']=False
-                f['projection_strategy']="lspg"
-                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = True
-                f["rom_settings"]['rom_bns_settings']['basis_strategy'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["basis_strategy"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("basis_strategy") else "residuals"
-                f["rom_settings"]['rom_bns_settings']['include_phi'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["include_phi"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("include_phi") else False
-                f["rom_settings"]['rom_bns_settings']['svd_truncation_tolerance'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["svd_truncation_tolerance"].GetDouble() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("svd_truncation_tolerance") else 1e-4
-                f["rom_settings"]['rom_bns_settings']['solving_technique'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["solving_technique"].GetString() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("solving_technique") else "normal_equations"
-                f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
+            elif simulation_to_run == 'lspg':
+                f['train_hrom'] = False
+                f['run_hrom'] = False
+                f['projection_strategy'] = "lspg"
+                self.set_lspg_rom_bns_settings(f)
+            elif simulation_to_run == 'trainHROMLSPG':
+                f['train_hrom'] = True
+                f['run_hrom'] = False
+                f['projection_strategy'] = "lspg"
+                self.set_lspg_rom_bns_settings(f)
+            elif simulation_to_run == 'runHROMLSPG':
+                f['train_hrom'] = False
+                f['run_hrom'] = True
+                f['projection_strategy'] = "lspg"
+                self.set_lspg_rom_bns_settings(f)
+            elif simulation_to_run == 'TrainPG':
+                f['train_hrom'] = False
+                f['run_hrom'] = False
+                f['projection_strategy'] = "lspg"
+                self.set_lspg_rom_bns_settings(f)
+                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = True  # Override the default
             elif simulation_to_run=='PG':
                 f['train_hrom']=False
                 f['run_hrom']=False
@@ -572,6 +586,28 @@ class RomManager(object):
             parameter_file.truncate()
 
 
+    def set_lspg_rom_bns_settings(self, f):
+        settings = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]
+        keys_with_defaults = {
+            'train_petrov_galerkin': False,
+            'basis_strategy': "residuals",
+            'include_phi': False,
+            'svd_truncation_tolerance': 1e-4,
+            'solving_technique': "normal_equations",
+            'monotonicity_preserving': False
+        }
+
+        for key, default_value in keys_with_defaults.items():
+            if settings.Has(key):
+                if isinstance(default_value, bool):
+                    f["rom_settings"]['rom_bns_settings'][key] = settings[key].GetBool()
+                elif isinstance(default_value, str):
+                    f["rom_settings"]['rom_bns_settings'][key] = settings[key].GetString()
+                elif isinstance(default_value, float):
+                    f["rom_settings"]['rom_bns_settings'][key] = settings[key].GetDouble()
+                # Add more types as needed
+            else:
+                f["rom_settings"]['rom_bns_settings'][key] = default_value
 
 
 
