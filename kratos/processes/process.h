@@ -51,6 +51,7 @@ public:
     ///@name Type Definitions
     ///@{
 
+    /// The historical variables map. Hash is a variable defined as a string, and it contains a list of variables (vector of strings)
     using HistoricalVarsMap = std::unordered_map<std::string,std::vector<std::string>>;
 
     /// Pointer definition of Process
