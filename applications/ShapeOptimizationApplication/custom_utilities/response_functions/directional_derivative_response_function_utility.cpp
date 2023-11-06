@@ -57,12 +57,12 @@ void DirectionalDerivativeResponseFunctionUtility::Initialize()
         NEIGHBOUR_CONDITIONS);
     find_condition_neighbours_process.Execute();
 
-	this->FindConditionsWhichShareEdge();
+	this->FindAdjacentConditions();
 
 	KRATOS_CATCH("");
 }
 
-void DirectionalDerivativeResponseFunctionUtility::FindConditionsWhichShareEdge() {
+void DirectionalDerivativeResponseFunctionUtility::FindAdjacentConditions() {
 
 	KRATOS_TRY;
 
@@ -73,9 +73,6 @@ void DirectionalDerivativeResponseFunctionUtility::FindConditionsWhichShareEdge(
 			auto& r_condition_neighbours = r_node_i.GetValue(NEIGHBOUR_CONDITIONS);  // does not work with const
 			for(auto& r_condition_neighbour : r_condition_neighbours) {
 				if (r_condition_neighbour.Id() == rCond.Id()) {
-					continue;
-				}
-				if (!this->CheckIfConditionsShareEdge(rCond, r_condition_neighbour)) {
 					continue;
 				}
 				if(std::find(condition_neighbours.begin(), condition_neighbours.end(), r_condition_neighbour.Id()) == condition_neighbours.end()){
@@ -91,30 +88,6 @@ void DirectionalDerivativeResponseFunctionUtility::FindConditionsWhichShareEdge(
 			r_neighbouring_conditions.push_back( Condition::WeakPointer( p_condition_neigbour ) );
 		}
 	});
-
-	KRATOS_CATCH("");
-
-}
-
-bool DirectionalDerivativeResponseFunctionUtility::CheckIfConditionsShareEdge(Condition& rConditionI, Condition& rConditionJ) {
-
-	KRATOS_TRY;
-
-	int number_of_shared_nodes = 0;
-
-	for (auto& r_node_i : rConditionI.GetGeometry()) {
-		for (auto& r_node_j : rConditionJ.GetGeometry()) {
-			if (r_node_i.Id() == r_node_j.Id()) {
-				number_of_shared_nodes += 1;
-				break;
-			}
-		}
-		if (number_of_shared_nodes > 1) {
-			return true;
-		}
-	}
-
-	return false;
 
 	KRATOS_CATCH("");
 
@@ -145,7 +118,6 @@ void DirectionalDerivativeResponseFunctionUtility::CalculateGradient()
 		cond_i.SetValue(THICKNESS_SENSITIVITY, 0.0);
 	}
 
-	double count = 0;
 	for (auto& cond_i : mrModelPart.Conditions()){
 
 		auto& r_condition_neighbours = cond_i.GetValue(ADJACENT_FACES);
@@ -158,8 +130,7 @@ void DirectionalDerivativeResponseFunctionUtility::CalculateGradient()
 			const double neighbour_thickness = r_condition_neighbour.GetProperties().GetValue(THICKNESS);
 
 			const array_3d d = neighbour_center - condition_center;
-
-			if (norm_2(d) > 0 && abs(inner_prod(mMainDirection, d)) > 1E-8) {
+			if (norm_2(d) > 0 && std::abs(inner_prod(mMainDirection, d)) > 1E-8) {
 				const array_3d dt_dx = (neighbour_thickness - condition_thickness) * d / pow(norm_2(d), 2);
 				const double g_j = inner_prod(mMainDirection, dt_dx) + mTanAngle;
 
@@ -177,7 +148,6 @@ void DirectionalDerivativeResponseFunctionUtility::CalculateGradient()
 				r_condition_neighbour.GetValue(THICKNESS_SENSITIVITY) += 1/mValue * g_j * dgj_dtj;
 			}
 		}
-		count += 1;
 	}
 
 	KRATOS_CATCH("");
@@ -202,7 +172,7 @@ double DirectionalDerivativeResponseFunctionUtility::CalculateConditionValue(Con
 		const array_3d d = neighbour_center - condition_center;
 
 		double g_j = 0.0;
-		if (norm_2(d) > 0 && abs(inner_prod(mMainDirection, d)) > 1E-8) {
+		if (norm_2(d) > 0 && std::abs(inner_prod(mMainDirection, d)) > 1E-8) {
 			const array_3d dt_dx = (neighbour_thickness - condition_thickness) * d / pow(norm_2(d), 2);
 			g_j = inner_prod(mMainDirection, dt_dx) + mTanAngle;
 		}

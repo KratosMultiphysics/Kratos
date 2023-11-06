@@ -130,9 +130,7 @@ private:
 
 	double CalculateConditionValue(Condition& rFace);
 
-	void FindConditionsWhichShareEdge();
-
-	bool CheckIfConditionsShareEdge(Condition& rConditionI, Condition& rConditionJ);
+	void FindAdjacentConditions();
 
 	///@}
 	///@name Static Member Variables
