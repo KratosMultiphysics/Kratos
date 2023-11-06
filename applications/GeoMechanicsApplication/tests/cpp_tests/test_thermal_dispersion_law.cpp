@@ -7,11 +7,10 @@
 //
 //  License:         geo_mechanics_application/license.txt
 //
-//  Main authors:    Anne van de Graaf
-//                   Gennady Markelov
+//  Main authors:    Gennady Markelov
 //
 
-#include "custom_constitutive/thermal_dispersion_law.hpp"
+#include "custom_constitutive/thermal_dispersion_law.h"
 #include "geo_mechanics_application.h"
 #include "includes/ublas_interface.h"
 #include "testing/testing.h"
@@ -21,7 +20,7 @@ namespace Kratos::Testing {
 KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanicsFastSuite)
 {
     Model current_model;
-    auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
+    auto& r_model_part = current_model.CreateModelPart("ModelPart");
 
     auto cond_prop = r_model_part.CreateNewProperties(0);
     cond_prop->SetValue(POROSITY, 0.5);
@@ -33,12 +32,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanics
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_YY, 1200.0);
 
     const SizeType dimension = 2;
-    GeoThermalDispersionLaw geo_thermal_dispersion2d_law(dimension);
+    GeoThermalDispersionLaw geo_thermal_dispersion_2D_law(dimension);
     ProcessInfo info;
     Geometry<Node> geometry;
 
     const Matrix thermal_dispersion_matrix =
-        geo_thermal_dispersion2d_law.CalculateThermalDispersionMatrix(
+        geo_thermal_dispersion_2D_law.CalculateThermalDispersionMatrix(
             *cond_prop, info, geometry);
 
     Matrix expected_solution = ZeroMatrix(2, 2);
@@ -60,7 +59,7 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix2D, KratosGeoMechanics
 KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanicsFastSuite)
 {
     Model current_model;
-    auto& r_model_part = current_model.CreateModelPart("ModelPart", 1);
+    auto& r_model_part = current_model.CreateModelPart("ModelPart");
 
     auto cond_prop = r_model_part.CreateNewProperties(0);
     cond_prop->SetValue(POROSITY, 0.5);
@@ -75,12 +74,12 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
     cond_prop->SetValue(THERMAL_CONDUCTIVITY_SOLID_ZZ, 500.0);
 
     const SizeType dimension = 3;
-    GeoThermalDispersionLaw geo_thermal_dispersion_2d_law(dimension);
+    GeoThermalDispersionLaw geo_thermal_dispersion_3D_law(dimension);
     ProcessInfo info;
     Geometry<Node> geometry;
 
     const Matrix thermal_dispersion_matrix =
-        geo_thermal_dispersion_2d_law.CalculateThermalDispersionMatrix(
+        geo_thermal_dispersion_3D_law.CalculateThermalDispersionMatrix(
             *cond_prop, info, geometry);
 
     Matrix expected_solution = ZeroMatrix(3, 3);
@@ -106,10 +105,10 @@ KRATOS_TEST_CASE_IN_SUITE(CalculateThermalDispersionMatrix3D, KratosGeoMechanics
 
 KRATOS_TEST_CASE_IN_SUITE(GetWorkingSpaceDimension_ReturnsCorrectValue, KratosGeoMechanicsFastSuite)
 {
-    const SizeType dimension = 3;
-    GeoThermalDispersionLaw geo_thermal_dispersion_2D_law(dimension);
+    constexpr SizeType dimension = 3;
+    GeoThermalDispersionLaw geo_thermal_dispersion_3D_law(dimension);
 
-    KRATOS_EXPECT_EQ(geo_thermal_dispersion_2D_law.WorkingSpaceDimension(), 3);
+    KRATOS_EXPECT_EQ(geo_thermal_dispersion_3D_law.WorkingSpaceDimension(), dimension);
 }
 
 } // namespace Kratos::Testing

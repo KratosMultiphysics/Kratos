@@ -24,8 +24,7 @@ class RetentionLaw;
  * @class GeoThermalDispersionLaw
  * @ingroup GeoMechanicsApplication
  * @brief This class defines the thermal dispersion for heat cases
- * @details This class derives from the linear elastic case on 3D
- */
+*/
 class KRATOS_API(GEO_MECHANICS_APPLICATION) GeoThermalDispersionLaw : public ConstitutiveLaw {
 public:
     /// Counted pointer of GeoThermalDispersionLaw
