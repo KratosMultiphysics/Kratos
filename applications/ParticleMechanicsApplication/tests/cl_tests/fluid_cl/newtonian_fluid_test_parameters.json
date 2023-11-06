@@ -86,7 +86,8 @@
                 "modulus"         : 9.81,
                 "direction"       : [0.0,-1.0,0.0]
             }
-        }],
+        }]
+    },
     "print_output_process" : [{
     	"python_module"   : "particle_json_output_process",
 	"kratos_module" : "KratosMultiphysics.ParticleMechanicsApplication",
@@ -97,7 +98,6 @@
 	    "model_part_name"   : "MPM_Material",
 	    "time_frequency"    : 0.1
 	}
-	}]
-    },
+	}],
     "analysis_stage"   : "KratosMultiphysics.ParticleMechanicsApplication.particle_mechanics_analysis"
 }
