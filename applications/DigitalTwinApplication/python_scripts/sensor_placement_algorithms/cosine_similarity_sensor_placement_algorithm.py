@@ -1,10 +1,7 @@
 import typing
-import matplotlib.pyplot as plt
-from pathlib import Path
-from sklearn.metrics import pairwise_distances
-from scipy.spatial.distance import cosine
-import seaborn as sns
+import scipy.cluster.hierarchy as sch
 import numpy as np
+from pathlib import Path
 
 import KratosMultiphysics as Kratos
 import KratosMultiphysics.OptimizationApplication as KratosOA
@@ -19,7 +16,8 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
             "number_of_sensors": 20,
             "output_to_vtu"    : true,
             "output_to_csv"    : true,
-            "output_folder"    : "sensor_placement/cosine_similarity",
+            "output_folder"    : "sensor_placement/cluster_average",
+            "clustering_method": "average",
             "filtering": {
                 "filter_radius"             : 5.0,
                 "filter_function_type"      : "linear",
@@ -42,101 +40,59 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
 
         self.SmoothenSensitivityFields()
 
-        # first get the similarity matrix
         retrieval_mathod: 'typing.Callable[[KratosDT.Sensors.SensorSpecification], typing.Union[Kratos.Expression.NodalExpression, Kratos.Expression.ConditionExpression, Kratos.Expression.ElementExpression]]' = lambda x: x.GetElementExpression("YOUNG_MODULUS_SENSITIVITY")
-        valid_specifications, similarity_matrix = self.ComputeSimilarityMatrix(retrieval_mathod)
 
-        # rearange the valid_specifications to hold clusters
-        # first item of tuple holds the average of the cluster, second hold the list of specs
-        valid_specifications = [(retrieval_mathod(v), [v]) for v in valid_specifications]
+        data: 'list[np.ndarray]' = []
+        indices: 'list[int]' = []
+        for i, spec in enumerate(list_of_specifications):
+            cexp = retrieval_mathod(spec)
+            l2_norm = KratosOA.ExpressionUtils.NormL2(cexp)
+            if l2_norm > 0.0:
+                indices.append(i)
+                data.append(cexp.Evaluate() / l2_norm)
 
-        number_of_required_sensors = self.parameters["number_of_sensors"].GetInt()
-        number_of_found_clusters = len(valid_specifications)
-        cluster_iteration = 0
+        number_of_sensors = self.parameters["number_of_sensors"].GetInt()
+        distances = sch.distance.pdist(data, metric="cosine")
+        linkage = sch.linkage(distances, method=self.parameters["clustering_method"].GetString())
+        clusters = sch.fcluster(linkage, number_of_sensors, 'maxclust')
 
-        vtu_output = Kratos.VtuOutput(retrieval_mathod(valid_specifications[0][1][0]).GetModelPart())
+        # group clusters
+        clustered_specs:'dict[int, list[KratosDT.Sensors.SensorSpecification]]' = {}
+        for i, cluster_id in enumerate(clusters):
+            if cluster_id not in clustered_specs.keys():
+                clustered_specs[cluster_id] = []
+            spec = list_of_specifications[indices[i]]
+            spec.SetValue(KratosDT.SENSOR_CLUSTER_ID, cluster_id)
+            clustered_specs[cluster_id].append(spec)
 
-        while number_of_found_clusters > number_of_required_sensors:
-            # find the max in the similarity matrix
-            best_value = -1
-            best_index_i = -1
-            best_index_j = -1
-            for i in range(similarity_matrix.Size1()):
-                for j in range(i+1, similarity_matrix.Size2()):
-                    if best_value < similarity_matrix[i, j]:
-                        best_value = similarity_matrix[i, j]
-                        best_index_i = i
-                        best_index_j = j
+        best_sensors: 'list[KratosDT.Sensors.SensorSpecification]' = []
+        for _, list_of_cluster_specs in clustered_specs.items():
+            best_sensors.append(max(list_of_cluster_specs, key=lambda x: abs(x.GetSensorValue())))
 
-            # now found a pair then remove the higher index
-            valid_specifications[best_index_i][1].extend(valid_specifications[best_index_j][1])
-            valid_specifications[best_index_j][1].clear()
-            valid_specifications[best_index_j][0].SetExpression((valid_specifications[best_index_j][0] * 0.0).Flatten().GetExpression())
+        output_path = Path(self.parameters["output_folder"].GetString())
+        self.PrintSpecificationDataToCSV([list_of_specifications[i] for i in indices], output_path / f"sensors/clusters_{number_of_sensors:05d}.csv")
+        self.PrintSpecificationDataToCSV(best_sensors, output_path / f"sensors/best_placement_{number_of_sensors:05d}.csv")
 
-            # now get the average vector
-            average_vector = retrieval_mathod(valid_specifications[best_index_i][1][0])
-            for specification in valid_specifications[best_index_i][1][1:]:
-                average_vector += retrieval_mathod(specification)
-            average_vector /= KratosOA.ExpressionUtils.NormL2(average_vector)
-            valid_specifications[best_index_i][0].SetExpression(average_vector.Flatten().GetExpression())
+        if self.is_vtu_output and len(best_sensors) > 0:
+            model_part = retrieval_mathod(best_sensors[0]).GetModelPart()
+            vtu_output = Kratos.VtuOutput(model_part)
+            heat_map = retrieval_mathod(best_sensors[0])
+            for spec in best_sensors[1:]:
+                heat_map += retrieval_mathod(spec)
+            heat_map /= KratosOA.ExpressionUtils.NormL2(heat_map)
+            vtu_output.AddContainerExpression("heat_map", heat_map)
+            vtu_output.PrintOutput(str(output_path / f"sensors/heat_map_{number_of_sensors:05d}"))
 
-            # now update the similarity matrix
-            for i in range(similarity_matrix.Size2()):
-                similarity_matrix[best_index_i, i] = KratosOA.ExpressionUtils.InnerProduct(valid_specifications[best_index_i][0], valid_specifications[i][0])
-                similarity_matrix[i, best_index_i] = similarity_matrix[best_index_i, i]
-                similarity_matrix[best_index_j, i] = 0.0
-                similarity_matrix[i, best_index_j] = 0.0
-
-            number_of_found_clusters -= 1
-            cluster_iteration += 1
-
-            # output csv
-            if self.is_csv_output:
-                self.PrintClusterDataToCSV(cluster_iteration, valid_specifications)
-
-            # calculate the best sensor configuration for this iteration
-            best_sensor_specifications:'list[KratosDT.Sensors.SensorSpecification]' = []
-            for i in range(similarity_matrix.Size1()):
-                if len(valid_specifications[i][1]) > 0:
-                    best_sensor_specifications.append(self.GetBestSpecification(retrieval_mathod, valid_specifications[i][0], valid_specifications[i][1]))
-
-            # now print bes specifications
-            self.PrintDataToCSV(cluster_iteration, best_sensor_specifications)
-
-            heat_map = retrieval_mathod(best_sensor_specifications[0])
-            for i, spec in enumerate(best_sensor_specifications[1:]):
-                heat_map = ((heat_map * (i + 1) + retrieval_mathod(spec)) / (i + 2)).Flatten()
-
-            output_path = Path(self.parameters["output_folder"].GetString())
-            vtu_output_path = output_path / f"sensors/placements_{cluster_iteration:05d}"
-
-            vtu_output.ClearCellContainerExpressions()
-            vtu_output.ClearNodalContainerExpressions()
-            vtu_output.AddContainerExpression("heat_map", heat_map.Clone())
-            vtu_output.PrintOutput(str(vtu_output_path))
-
-    def GetBestSpecification(self, retrieval_method: 'typing.Callable[[KratosDT.Sensors.SensorSpecification], typing.Union[Kratos.Expression.NodalExpression, Kratos.Expression.ConditionExpression, Kratos.Expression.ElementExpression]]',  cluster_expression, list_of_cluster_specifications: 'list[KratosDT.Sensors.SensorSpecification]') -> KratosDT.Sensors.SensorSpecification:
-        max_similarity = 0.0
-        for spec in list_of_cluster_specifications:
-            similarity = KratosOA.ExpressionUtils.InnerProduct(cluster_expression, retrieval_method(spec))
-            if similarity > max_similarity:
-                max_similarity = similarity
-                best_specification = spec
-
-        return best_specification
-
-    def PrintDataToCSV(self, cluster_iteration:int, list_of_specifications: 'list[KratosDT.Sensors.SensorSpecification]') -> None:
+    def PrintSpecificationDataToCSV(self, list_of_specifications:'list[KratosDT.Sensors.SensorSpecification]', output_file_name: Path) -> None:
         number_of_clusters = len(list_of_specifications)
 
         # do nothing if number of clusters is zero
         if number_of_clusters == 0:
             return
 
-        output_path = Path(self.parameters["output_folder"].GetString())
-        csv_output_path = output_path / f"sensors/placements_{cluster_iteration:05d}"
-        csv_output_path.parent.mkdir(exist_ok=True, parents=True)
+        output_file_name.parent.mkdir(exist_ok=True, parents=True)
 
-        with open(str(csv_output_path) + ".csv", "w") as csv_output:
+        with open(str(output_file_name), "w") as csv_output:
             # write the headers of spec
             csv_output.write("#; name; value; location_x; location_y; location_z")
             # now write the headers of data containers
@@ -155,75 +111,6 @@ class CosineSimilaritySensorPlacementAlgorithm(SensorPlacementAlgorithm):
                 for var in list_of_vars:
                     csv_output.write(f"; {spec.GetValue(var)}")
                 csv_output.write("\n")
-
-    def PrintClusterDataToCSV(self, cluster_iteration:int, clustered_data: 'list[tuple[typing.Union[Kratos.Expression.NodalExpression, Kratos.Expression.ConditionExpression, Kratos.Expression.ElementExpression], list[KratosDT.Sensors.SensorSpecification]]]') -> None:
-        number_of_clusters = len(clustered_data)
-
-        # do nothing if number of clusters is zero
-        if number_of_clusters == 0:
-            return
-
-        output_path = Path(self.parameters["output_folder"].GetString())
-        csv_output_path = output_path / f"sensors/clusters_{cluster_iteration:05d}"
-        csv_output_path.parent.mkdir(exist_ok=True, parents=True)
-
-        with open(str(csv_output_path) + ".csv", "w") as csv_output:
-            # write the headers of spec
-            csv_output.write("#; name; value; location_x; location_y; location_z; cluster_id")
-            # now write the headers of data containers
-            list_of_vars = []
-            for var_name in clustered_data[0][1][0].GetDataVariableNames():
-                csv_output.write(f"; {var_name}")
-                list_of_vars.append(Kratos.KratosGlobals.GetVariable(var_name))
-            csv_output.write("\n")
-
-            # now write the data
-            sensor_id = 0
-            for i, (_, list_of_specifications) in enumerate(clustered_data):
-                for spec in list_of_specifications:
-                    sensor_id += 1
-                    loc = spec.GetLocation()
-                    csv_output.write(f"{sensor_id}; {spec.GetName()}; {spec.GetSensorValue()}; {loc[0]}; {loc[1]}; {loc[2]}; {i + 1}")
-                    for var in list_of_vars:
-                        csv_output.write(f"; {spec.GetValue(var)}")
-                    csv_output.write("\n")
-
-    def ComputeSimilarityMatrix(self, specification_expression_retireval_func: 'typing.Callable[[KratosDT.Sensors.SensorSpecification], typing.Union[Kratos.Expression.NodalExpression, Kratos.Expression.ConditionExpression, Kratos.Expression.ElementExpression]]') -> 'tuple[list[KratosDT.Sensors.SensorSpecification], Kratos.Matrix]':
-        current_specifications_list: 'list[KratosDT.Sensors.SensorSpecification]' = []
-
-        # only take the non-zero sensitivity fields and make them all
-        # unit vectors
-        for specification in self.list_of_specifications:
-            cexp = specification_expression_retireval_func(specification)
-            l2_norm = KratosOA.ExpressionUtils.NormL2(cexp)
-            if l2_norm > 0.0:
-                cexp.SetExpression((cexp / l2_norm).Flatten().GetExpression())
-                current_specifications_list.append(specification)
-
-        number_of_specifications = len(current_specifications_list)
-        cosine_similarity = Kratos.Matrix(number_of_specifications, number_of_specifications, 0.0)
-        data = []
-        for i, specification_i in enumerate(current_specifications_list):
-            cexp_i = specification_expression_retireval_func(specification_i).Evaluate()
-            data.append(cexp_i)
-            # cosine_similarity[i, i] = 1.0
-            # for j, specification_j in enumerate(current_specifications_list[i + 1:]):
-            #     cexp_j = specification_expression_retireval_func(specification_j)
-            #     cosine_similarity[i, j + i + 1] = KratosOA.ExpressionUtils.InnerProduct(cexp_i, cexp_j)
-            #     cosine_similarity[j + i + 1, i] = cosine_similarity[i, j + i + 1]
-
-        cluster_grid = sns.clustermap(np.array(data).transpose(), metric="cosine", method="average")
-        # cluster_grid.
-
-        # fig, ax = plt.subplots()
-        # dist_out = 1-pairwise_distances(cosine_similarity, metric="cosine")
-        # plt.matshow(dist_out, cmap=plt.cm.Blues)
-        # ax.grid()
-
-        plt.show()
-        raise RuntimeError(1)
-
-        return current_specifications_list, cosine_similarity
 
     def SmoothenSensitivityFields(self) -> None:
         mp_nodal, nodal_filter = self.__GetFilter(KratosOA.NodalExplicitFilter)
