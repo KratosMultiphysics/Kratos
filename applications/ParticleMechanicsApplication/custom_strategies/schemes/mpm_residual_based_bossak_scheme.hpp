@@ -268,6 +268,7 @@ public:
     void FinalizeNonLinIteration(ModelPart &rModelPart, TSystemMatrixType &rA, TSystemVectorType &rDx,
                                    TSystemVectorType &rb) override {
 
+        // clear nodal reaction values if they were assigned a value outside from the condition 
         ClearReaction();
         
         BossakBaseType::FinalizeNonLinIteration(rModelPart, rA, rDx, rb);
