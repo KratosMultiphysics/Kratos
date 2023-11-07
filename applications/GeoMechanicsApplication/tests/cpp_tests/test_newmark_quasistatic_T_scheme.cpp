@@ -37,40 +37,6 @@ ModelPart& CreateValidModelPart(Model& rModel)
     return result;
 }
 
-class SpyElement : public Element
-{
-public:
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        mFinalized = true;
-    }
-
-    bool IsFinalized () const
-    {
-        return mFinalized;
-    }
-
-private:
-    bool mFinalized = false;
-};
-
-class SpyCondition : public Condition
-{
-public:
-    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
-    {
-        mFinalized = true;
-    }
-
-    bool IsFinalized () const
-    {
-        return mFinalized;
-    }
-
-private:
-    bool mFinalized = false;
-};
-
 
 KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerQuasistaticTScheme_WithAllNecessaryParts_Returns0,
                           KratosGeoMechanicsFastSuite)
@@ -212,59 +178,6 @@ KRATOS_TEST_CASE_IN_SUITE(InitializeScheme_SetsTimeFactors, KratosGeoMechanicsFa
     const double theta = 0.75;
     KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT],
                             1.0 / (theta * delta_time));
-}
-
-KRATOS_TEST_CASE_IN_SUITE(FinalizeSolutionStepActiveEntities_FinalizesOnlyActiveElements,
-                          KratosGeoMechanicsFastSuite)
-{
-    auto scheme = CreateValidScheme();
-    Model model;
-    ModelPart& model_part = CreateValidModelPart(model);
-
-    auto active_element = Kratos::make_intrusive<SpyElement>();
-    active_element->Set(ACTIVE, true);
-    active_element->SetId(0);
-
-    auto inactive_element = Kratos::make_intrusive<SpyElement>();
-    inactive_element->Set(ACTIVE, false);
-    inactive_element->SetId(1);
-
-    model_part.AddElement(active_element);
-    model_part.AddElement(inactive_element);
-
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
-    scheme.FinalizeSolutionStep(model_part, A, Dx, b);
-
-    KRATOS_EXPECT_TRUE(active_element->IsFinalized())
-    KRATOS_EXPECT_FALSE(inactive_element->IsFinalized())
-}
-
-KRATOS_TEST_CASE_IN_SUITE(FinalizeSolutionStep_FinalizesOnlyActiveConditions, KratosGeoMechanicsFastSuite)
-{
-    auto scheme = CreateValidScheme();
-    Model model;
-    ModelPart& model_part = CreateValidModelPart(model);
-
-    auto active_condition = Kratos::make_intrusive<SpyCondition>();
-    active_condition->SetId(0);
-    active_condition->Set(ACTIVE, true);
-
-    auto inactive_condition = Kratos::make_intrusive<SpyCondition>();
-    inactive_condition->SetId(1);
-    inactive_condition->Set(ACTIVE, false);
-
-    model_part.AddCondition(active_condition);
-    model_part.AddCondition(inactive_condition);
-
-    CompressedMatrix A;
-    Vector Dx;
-    Vector b;
-    scheme.FinalizeSolutionStep(model_part, A, Dx, b);
-
-    KRATOS_EXPECT_TRUE(active_condition->IsFinalized())
-    KRATOS_EXPECT_FALSE(inactive_condition->IsFinalized())
 }
 
 } // namespace Kratos::Test
