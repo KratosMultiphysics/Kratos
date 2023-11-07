@@ -28,7 +28,6 @@
 namespace Kratos
 {
 
-class ProcessFactory;
 class InputUtility;
 class ProcessInfoParser;
 class Process;
