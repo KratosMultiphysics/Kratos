@@ -76,7 +76,7 @@ void MPMParticleBaseCondition::GetDofList(
         if ( dimension == 3 ){
             rElementalDofList.push_back( r_geometry[i].pGetDof( DISPLACEMENT_Z ) );
         }
-        
+
     }
 
     KRATOS_CATCH("")

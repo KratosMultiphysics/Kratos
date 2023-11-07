@@ -201,7 +201,7 @@ private:
 
     ///@}
     ///@name Member Variables
-    ///@{   
+    ///@{
 
     ///@}
     ///@name Private Operators

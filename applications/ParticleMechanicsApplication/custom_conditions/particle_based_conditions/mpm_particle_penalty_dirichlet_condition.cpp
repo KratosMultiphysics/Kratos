@@ -160,7 +160,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         // NOTE: the unit_normal_vector is assumed always pointing outside the boundary
         array_1d<double, 3 > field_displacement = ZeroVector(3);
         for ( unsigned int i = 0; i < number_of_nodes; i++ )
-        {  
+        {
             for ( unsigned int j = 0; j < dimension; j++)
                 field_displacement[j] += Variables.N[i] * Variables.CurrentDisp(i,j);
         }
@@ -172,7 +172,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
             apply_constraints = false;
 
     }
- 
+
     if (apply_constraints)
     {
         // Arrange shape function
@@ -195,7 +195,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateAll(
         {
             for ( unsigned int j = 0; j < dimension; j++)
                 gap_function[block_size * i + j] = (Variables.CurrentDisp(i,j) - m_imposed_displacement[j]);
-            
+
         }
 
         // Calculate LHS Matrix and RHS Vector
@@ -283,7 +283,7 @@ void MPMParticlePenaltyDirichletCondition::FinalizeSolutionStep( const ProcessIn
 
 void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(const ProcessInfo& rCurrentProcessInfo )
 {
-    GeometryType& r_geometry = GetGeometry();  
+    GeometryType& r_geometry = GetGeometry();
     const unsigned int number_of_nodes = r_geometry.PointsNumber();
 
     // Prepare variables
@@ -295,7 +295,7 @@ void MPMParticlePenaltyDirichletCondition::CalculateInterfaceContactForce(const 
     array_1d<double, 3 > mpc_force = ZeroVector(3);
     for (unsigned int i = 0; i < number_of_nodes; i++)
     {
-        double nodal_area  = 0.0;        
+        double nodal_area  = 0.0;
         if (r_geometry[i].SolutionStepsDataHas(NODAL_AREA))
             nodal_area= r_geometry[i].FastGetSolutionStepValue(NODAL_AREA, 0);
 

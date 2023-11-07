@@ -71,7 +71,7 @@ namespace MPMParticleGeneratorUtility
     void GenerateMaterialPointElement(  ModelPart& rBackgroundGridModelPart,
                                         ModelPart& rInitialModelPart,
                                         ModelPart& rMPMModelPart,
-                                        bool IsMixedFormulation=false); 
+                                        bool IsMixedFormulation=false);
     /**
      * @brief Function to Initiate material point condition.
      * @details Generating particle condition using a designated shape functions
