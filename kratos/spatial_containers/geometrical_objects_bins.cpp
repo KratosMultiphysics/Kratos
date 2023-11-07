@@ -71,7 +71,7 @@ void GeometricalObjectsBins::SearchInRadius(
     std::vector<ResultType>& rResults
     )
 {
-    std::unordered_set<GeometricalObject*> results;
+    std::unordered_map<GeometricalObject*, double> results;
 
     array_1d<std::size_t, Dimension> min_position;
     array_1d<std::size_t, Dimension> max_position;
@@ -90,8 +90,10 @@ void GeometricalObjectsBins::SearchInRadius(
     }
 
     rResults.clear();
-    for(auto p_object : results){
-        rResults.push_back(ResultType(p_object));
+    rResults.reserve(results.size());
+    for(auto& object : results){
+        rResults.push_back(ResultType(object.first));
+        rResults.back().SetDistance(object.second);
     }
 }
 
@@ -270,7 +272,7 @@ void GeometricalObjectsBins::SearchInRadiusInCell(
     const CellType& rCell,
     const PointType& rPoint,
     const double Radius,
-    std::unordered_set<GeometricalObject*>& rResults
+    std::unordered_map<GeometricalObject*, double>& rResults
     )
 {
     double distance = 0.0;
@@ -278,7 +280,7 @@ void GeometricalObjectsBins::SearchInRadiusInCell(
         auto& r_geometry = p_geometrical_object->GetGeometry();
         distance = r_geometry.CalculateDistance(rPoint, mTolerance);
         if((Radius + mTolerance) > distance){
-            rResults.insert(p_geometrical_object);
+            rResults.insert({p_geometrical_object, distance});
         }
     }
 }
