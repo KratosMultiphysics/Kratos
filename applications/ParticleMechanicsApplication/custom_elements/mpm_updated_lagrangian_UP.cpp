@@ -12,6 +12,7 @@
 
 
 // System includes
+#include <boost/token_functions.hpp>
 #include <omp.h>
 #include <sstream>
 
@@ -20,6 +21,8 @@
 // Project includes
 #include "includes/define.h"
 #include "custom_elements/mpm_updated_lagrangian_UP.hpp"
+#include "includes/mat_variables.h"
+#include "includes/variables.h"
 #include "utilities/math_utils.h"
 #include "includes/constitutive_law.h"
 #include "particle_mechanics_application_variables.h"
@@ -532,14 +535,22 @@ void MPMUpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHan
     const unsigned int dimension = r_geometry.WorkingSpaceDimension();
     unsigned int index_p = dimension;
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    //double& bulk_modulus = 1.0; // initialization
+    const double& bulk_modulus = GetProperties()[BULK_MODULUS];
 
-    const double& young_modulus = GetProperties()[YOUNG_MODULUS];
-    const double& poisson_ratio    = GetProperties()[POISSON_RATIO];
-    double bulk_modulus  = young_modulus/(3.0*(1.0-2.0*poisson_ratio));
+     if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
+    {
+        const double& young_modulus = GetProperties()[YOUNG_MODULUS];
+        const double& poisson_ratio   = GetProperties()[POISSON_RATIO];
+        double bulk_modulus  = young_modulus/(3.0*(1.0-2.0*poisson_ratio));
+        // Check if Bulk Modulus is not NaN
+        if (bulk_modulus != bulk_modulus)
+            bulk_modulus = 1e16;
+    }
+    else if (GetProperties().Has(DYNAMIC_VISCOSITY) ) {
+            const double& bulk_modulus = GetProperties()[BULK_MODULUS];
+    }
 
-    // Check if Bulk Modulus is not NaN
-    if (bulk_modulus != bulk_modulus)
-        bulk_modulus = 1.e16;
 
     double VolumetricStrainFunction = this->CalculateVolumetricStrainFunction( VolumetricStrainFunction, rVariables );
 
@@ -552,8 +563,8 @@ void MPMUpdatedLagrangianUP::CalculateAndAddPressureForces(VectorType& rRightHan
             rRightHandSideVector[index_p] += (1.0 / bulk_modulus) * r_N(0, i) * r_N(0, j) * pressure * rIntegrationWeight;  //2D-3D
         }
 
-        rRightHandSideVector[index_p] -=  VolumetricStrainFunction * r_N(0, i) * rIntegrationWeight;
-
+         rRightHandSideVector[index_p] -=  VolumetricStrainFunction * r_N(0, i) * rIntegrationWeight; //FLUID-UP
+	     //rRightHandSideVector[index_p] -= (1.0 - 1.0 / rVariables.detFT) * r_N(0, i) * rIntegrationWeight;
         index_p += (dimension + 1);
     }
 
@@ -822,14 +833,24 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
     const unsigned int number_of_nodes = GetGeometry().size();
     const unsigned int dimension = GetGeometry().WorkingSpaceDimension();
     const Matrix& r_N = GetGeometry().ShapeFunctionsValues();
+    const double& bulk_modulus  = GetProperties()[BULK_MODULUS];
 
-    const double& young_modulus = GetProperties()[YOUNG_MODULUS];
-    const double& poisson_ratio = GetProperties()[POISSON_RATIO];
-    double bulk_modulus = young_modulus / (3.0 * (1.0 - 2.0 * poisson_ratio));
 
-    // Check if Bulk Modulus is not NaN
-    if (bulk_modulus != bulk_modulus)
-        bulk_modulus = 1.e16;
+   if (GetProperties().Has(YOUNG_MODULUS) && GetProperties().Has(POISSON_RATIO))
+    {
+        const double& young_modulus = GetProperties()[YOUNG_MODULUS];
+        const double& poisson_ratio    = GetProperties()[POISSON_RATIO];
+        double bulk_modulus  = young_modulus/(3.0*(1.0-2.0*poisson_ratio));
+        // Check if Bulk Modulus is not NaN
+        if (bulk_modulus != bulk_modulus)
+            bulk_modulus = 1e16;
+    }
+    else {
+        const double& bulk_modulus  = GetProperties()[BULK_MODULUS];
+    }
+
+
+    double delta_coefficient = rVariables.detF0 - 1; //FLUID
 
     unsigned int indexpi = dimension;
 
@@ -838,7 +859,9 @@ void MPMUpdatedLagrangianUP::CalculateAndAddKpp (MatrixType& rLeftHandSideMatrix
         unsigned int indexpj = dimension;
         for (unsigned int j = 0; j < number_of_nodes; j++)
         {
-            rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight;
+             rLeftHandSideMatrix(indexpi,indexpj)  -= ((1.0)/(bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight;
+	    // FLUID-UP	
+           //rLeftHandSideMatrix(indexpi, indexpj) -= ((1.0) / (bulk_modulus)) * r_N(0, i) * r_N(0, j) * rIntegrationWeight / (delta_coefficient * (rVariables.detF0 / rVariables.detF));
 
             indexpj += (dimension + 1);
         }
