@@ -148,20 +148,20 @@ class TSolver(GeoSolver):
             KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, solution_type", solution_type)
             if (solution_type.lower() == "transient-heat-transfer" or solution_type.lower() == "transient_heat_transfer"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Newmark Transient heat transfer.")
-                scheme = scheme = KratosGeo.NewmarkQuasistaticTScheme(theta)
+                scheme = KratosGeo.NewmarkQuasistaticTScheme(theta)
             elif (solution_type.lower() == "steady-state-heat-transfer" or solution_type.lower() == "steady_state_heat_transfer"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Newmark Steady-state heat transfer.")
-                scheme = scheme = KratosGeo.NewmarkQuasistaticTScheme(theta)
+                scheme = KratosGeo.NewmarkQuasistaticTScheme(theta)
 
             else:
               raise Exception("Undefined solution type", solution_type)
         elif (scheme_type.lower() == "backward_euler"):
             if (solution_type.lower() == "transient-heat-transfer" or solution_type.lower() == "transient_heat_transfer"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Backward Euler Transient heat transfer.")
-                scheme = scheme = KratosGeo.BackwardEulerQuasistaticTScheme()
+                scheme = KratosGeo.BackwardEulerQuasistaticTScheme()
             elif (solution_type.lower() == "steady-state-heat-transfer" or solution_type.lower() == "steady_state_heat_transfer"):
                 KratosMultiphysics.Logger.PrintInfo("GeoMechanics_T_Solver, scheme", "Backward Euler Steady-state heat transfer.")
-                scheme = scheme = KratosGeo.BackwardEulerQuasistaticTScheme()
+                scheme = KratosGeo.BackwardEulerQuasistaticTScheme()
         else:
             raise Exception("Apart from Newmark and Backward Euler, other scheme_type are not available.")
 
