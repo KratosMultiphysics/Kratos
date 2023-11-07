@@ -568,17 +568,17 @@ class RomManager(object):
                 f['train_hrom']=False
                 f['run_hrom']=False
                 f['projection_strategy']="petrov_galerkin"
-                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = False
+                self.set_pg_rom_bns_settings(f)
             elif simulation_to_run=='trainHROMPetrovGalerkin':
                 f['train_hrom']=True
                 f['run_hrom']=False
                 f['projection_strategy']="petrov_galerkin"
-                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = False
+                self.set_pg_rom_bns_settings(f)
             elif simulation_to_run=='runHROMPetrovGalerkin':
                 f['train_hrom']=False
                 f['run_hrom']=True
                 f['projection_strategy']="petrov_galerkin"
-                f["rom_settings"]['rom_bns_settings']['train_petrov_galerkin'] = False
+                self.set_pg_rom_bns_settings(f)
             else:
                 raise Exception(f'Unknown flag "{simulation_to_run}" change for RomParameters.json')
             parameter_file.seek(0)
@@ -587,7 +587,7 @@ class RomManager(object):
 
 
     def set_monotonicity_preserving_settings(self,f):
-        f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.rom_training_parameters["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"].Has("monotonicity_preserving") else False
+        f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool() if self.general_rom_manager_parameters["ROM"]["galerkin_rom_bns_settings"].Has("monotonicity_preserving") else False
 
     def set_lspg_rom_bns_settings(self, f):
         settings = self.general_rom_manager_parameters["ROM"]["lspg_rom_bns_settings"]
@@ -612,6 +612,16 @@ class RomManager(object):
             else:
                 f["rom_settings"]['rom_bns_settings'][key] = default_value
 
+    def set_pg_rom_bns_settings(self, f):
+        # Clear existing rom_bns_settings
+        f["rom_settings"]['rom_bns_settings'] = {}
+
+        # Set 'monotonicity_preserving' based on the settings or default to False
+        f["rom_settings"]['rom_bns_settings']['monotonicity_preserving'] = (
+            self.general_rom_manager_parameters["ROM"]["petrov_galerkin_rom_bns_settings"]["monotonicity_preserving"].GetBool()
+            if self.general_rom_manager_parameters["ROM"]["petrov_galerkin_rom_bns_settings"].Has("monotonicity_preserving")
+            else False
+        )
 
 
     def _AddBasisCreationToProjectParameters(self, parameters):
