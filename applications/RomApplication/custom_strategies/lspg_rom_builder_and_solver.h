@@ -387,6 +387,35 @@ public:
         KRATOS_CATCH("")
     }
 
+    void WriteReactionDataToMatrixMarket(ModelPart& rModelPart) 
+    {
+        std::vector<double> aux_data_array;
+
+        // Loop over all nodes in the ModelPart
+        for (auto& node : rModelPart.Nodes()) {
+            // aux_data_array.push_back(node.FastGetSolutionStepValue(REACTION_WATER_PRESSURE));
+
+            // Append the value of REACTION_X for the current node
+            aux_data_array.push_back(node.FastGetSolutionStepValue(REACTION_Y));
+
+            // Append the value of REACTION_Y for the current node
+            aux_data_array.push_back(node.FastGetSolutionStepValue(REACTION_X));
+        }
+
+        // Convert std::vector to Ublas Vector
+        Vector aux_vector(aux_data_array.size());
+        std::copy(aux_data_array.begin(), aux_data_array.end(), aux_vector.begin());
+
+        // Create the file name
+        std::stringstream matrix_market_vector_name;
+        matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME] 
+                                << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] 
+                                << ".res.mm";
+
+        // Write the vector to a MatrixMarket file
+        SparseSpaceType::WriteMatrixMarketVector(matrix_market_vector_name.str().c_str(), aux_vector);
+    }
+
     void BuildAndSolve(
         typename TSchemeType::Pointer pScheme,
         ModelPart &rModelPart,
@@ -399,11 +428,20 @@ public:
         BuildAndProjectROM(pScheme, rModelPart, A, b, Dx);
 
         // Obtain the assembled residuals vector (To build a basis for Petrov-Galerkin)
-        if (mTrainPetrovGalerkinFlag & mBasisStrategy=="residuals"){
-            std::stringstream matrix_market_vector_name;
-            matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME] << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] <<  ".res.mm";
-            SparseSpaceType::WriteMatrixMarketVector((matrix_market_vector_name.str()).c_str(), b);
+        if (mTrainPetrovGalerkinFlag) {
+            if (mBasisStrategy == "reactions") {
+                std::stringstream matrix_market_vector_name;
+                matrix_market_vector_name << "R_" << rModelPart.GetProcessInfo()[TIME] 
+                                        << "_" << rModelPart.GetProcessInfo()[NL_ITERATION_NUMBER] 
+                                        << ".res.mm";
+                SparseSpaceType::WriteMatrixMarketVector(matrix_market_vector_name.str().c_str(), b);
+            } 
+            else if (mBasisStrategy == "residuals") {  // Assuming "reactions" or another suitable keyword
+                BaseType::CalculateReactions(pScheme, rModelPart, A, Dx, b);
+                WriteReactionDataToMatrixMarket(rModelPart);
+            }
         }
+
         
         if (mSolvingTechnique == "normal_equations"){
             BaseType::SolveROM(rModelPart, mEigenRomA, mEigenRomB, Dx);
