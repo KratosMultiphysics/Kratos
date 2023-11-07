@@ -52,7 +52,7 @@ std::size_t TDimension,
     class TDistanceIteratorType = typename std::vector<double>::iterator,
     class TDistanceFunction = Kratos::SearchUtils::SquaredDistanceFunction<TDimension,TPointType>
     >
-class BinsDynamic 
+class BinsDynamic
     : public TreeNode<TDimension,TPointType, TPointerType, TIteratorType, TDistanceIteratorType, typename std::vector<TPointerType>::iterator >
 {
 public:
@@ -76,6 +76,7 @@ public:
     enum { Dimension = TDimension };
 
     using PointType = TPointType;
+    using BoundingBoxType = BoundingBox<PointType>;
     using ObjectType = typename GetObjectType<PointType>::type;
     using ContainerType = TContainerType;
     using IteratorType = TIteratorType;
@@ -155,18 +156,12 @@ public:
      * @param BucketSize   Optional parameter to specify the bucket size (default is 1).
      */
     BinsDynamic(IteratorType const& PointBegin, IteratorType const& PointEnd, PointType const& MinPoint, PointType const& MaxPoint, SizeType BucketSize = 1)
-        : mitPointsBegin(PointBegin), mitPointsEnd(PointEnd)
+        : mitPointsBegin(PointBegin), mitPointsEnd(PointEnd), mBoundingBox(MinPoint, MaxPoint)
     {
         if (mitPointsBegin == mitPointsEnd)
             return;
 
         mNumCells = std::distance(mitPointsBegin, mitPointsEnd);
-        auto& r_min_point = GetMinPoint();
-        auto& r_max_point = GetMaxPoint();
-        for (SizeType i = 0; i < Dimension; i++) {
-            r_min_point[i] = MinPoint[i];
-            r_max_point[i] = MaxPoint[i];
-        }
         CalculateCellSize(mNumCells);
         AllocateCellsContainer();
         GenerateBins();
@@ -179,14 +174,8 @@ public:
      * @param BucketSize   Optional parameter to specify the bucket size (default is 1).
      */
     BinsDynamic(PointType const& MinPoint, PointType const& MaxPoint, SizeType BucketSize)
-        : mNumCells(0)
+        : mBoundingBox(MinPoint, MaxPoint), mNumCells(0)
     {
-        auto& r_min_point = GetMinPoint();
-        auto& r_max_point = GetMaxPoint();
-        for (SizeType i = 0; i < Dimension; i++) {
-            r_min_point[i] = MinPoint[i];
-            r_max_point[i] = MaxPoint[i];
-        }
         AssignCellSize(BucketSize);
         AllocateCellsContainer();
     }
@@ -265,7 +254,7 @@ public:
      * @brief Get the Cell Container object
      * @return CellContainerType& The Cell Container object
      */
-    CellContainerType& GetCellContainer() 
+    CellContainerType& GetCellContainer()
     {
         return mCells;
     }
@@ -274,7 +263,7 @@ public:
      * @brief Get the Divisions object
      * @return SizeArray& Array containing the number of Cells in each dimension
      */
-    SizeArray& GetDivisions() 
+    SizeArray& GetDivisions()
     {
         return mN;
     }
@@ -328,18 +317,17 @@ public:
     {
         auto& r_min_point = GetMinPoint();
         auto& r_max_point = GetMaxPoint();
-        for (SizeType i = 0; i < Dimension; i++) {
-            r_min_point[i] = (**mitPointsBegin)[i];
-            r_max_point[i] = (**mitPointsBegin)[i];
-        }
-        
-        for (IteratorType Point = mitPointsBegin; Point != mitPointsEnd; Point++) {
+        noalias(r_min_point.Coordinates()) = (**mitPointsBegin).Coordinates();
+        noalias(r_max_point.Coordinates()) = (**mitPointsBegin).Coordinates();
+
+        for (IteratorType it_point = mitPointsBegin; it_point != mitPointsEnd; it_point++) {
+            const auto& r_coordinates = (**it_point).Coordinates();
             for (SizeType i = 0; i < Dimension; i++) {
-                if ((**Point)[i] < r_min_point[i]) {
-                    r_min_point[i] = (**Point)[i];
+                if (r_coordinates[i] < r_min_point[i]) {
+                    r_min_point[i] = r_coordinates[i];
                 }
-                if ((**Point)[i] > r_max_point[i]) {
-                    r_max_point[i] = (**Point)[i];
+                if (r_coordinates[i] > r_max_point[i]) {
+                    r_max_point[i] = r_coordinates[i];
                 }
             }
         }
@@ -350,18 +338,18 @@ public:
      * @details Calculates the cell size of the bins using an average approximation of the objects in the bins.
      * @param ApproximatedSize Approximate number of objects that will be stored in the bins
      */
-    void CalculateCellSize(std::size_t ApproximatedSize)
+    void CalculateCellSize(const std::size_t ApproximatedSize)
     {
         std::size_t average_number_of_cells = static_cast<std::size_t>(std::pow(static_cast<double>(ApproximatedSize), 1.00 / Dimension));
 
         std::array<double, 3> lengths;
-        double average_length = 0.00;
+        double average_length = 0.0;
 
         for (int i = 0; i < Dimension; i++) {
             lengths[i] = GetMaxPoint()[i] - GetMinPoint()[i];
             average_length += lengths[i];
         }
-        average_length *= 1.00 / 3.00;
+        average_length *= 1.0 / 3.0;
 
         if (average_length < std::numeric_limits<double>::epsilon()) {
             for(int i = 0; i < Dimension; i++) {
@@ -392,7 +380,7 @@ public:
     {
         for (SizeType i = 0; i < Dimension; i++) {
             mCellSize[i] = BoxSize;
-            mInvCellSize[i] = 1.00 / mCellSize[i];
+            mInvCellSize[i] = 1.0 / mCellSize[i];
             mN[i] = static_cast<SizeType>((GetMaxPoint()[i] - GetMinPoint()[i]) / mCellSize[i]) + 1;
         }
     }
@@ -604,8 +592,7 @@ public:
         ++Box;
         SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
         // increase mBox and try again
-        while(!Found)
-        {
+        while(!Found) {
             ++Box;
             SearchNearestInBox( ThisPoint, rResult, rResultDistance, Box, Found );
         }
@@ -918,20 +905,20 @@ private:
     ///@name Member Variables
     ///@{
 
-    IteratorType mitPointsBegin;         /// Iterator to the first point
-    IteratorType mitPointsEnd;           /// Iterator to the last point
+    IteratorType mitPointsBegin;  /// Iterator to the first point
+    IteratorType mitPointsEnd;    /// Iterator to the last point
 
-    BoundingBox<PointType> mBoundingBox; /// The bounding box of the tree
+    BoundingBoxType mBoundingBox; /// The bounding box of the tree
 
-    CoordinateArray mCellSize;           /// Array representing the size of each cell in each dimension.
+    CoordinateArray mCellSize;    /// Array representing the size of each cell in each dimension.
 
-    CoordinateArray mInvCellSize;        /// Array representing the inverse of the cell size in each dimension.
+    CoordinateArray mInvCellSize; /// Array representing the inverse of the cell size in each dimension.
 
-    SizeArray mN;                        /// Array representing the number of cells in each dimension.
+    SizeArray mN;                 /// Array representing the number of cells in each dimension.
 
-    SizeType mNumCells;                  /// The total number of cells in the data structure.
+    SizeType mNumCells;           /// The total number of cells in the data structure.
 
-    CellContainerType mCells;            /// Bins Access Vector ( vector<Iterator> )
+    CellContainerType mCells;     /// Bins Access Vector ( vector<Iterator> )
 
     // Work Variables ( For non-copy of Search Variables )
     //BinBox SearchBox;
@@ -940,12 +927,10 @@ private:
 public:
     static TreeNodeType* Construct(IteratorType PointsBegin, IteratorType PointsEnd, PointType MaxPoint, PointType MinPoint, SizeType BucketSize)
     {
-
-        SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
-        if (number_of_points == 0)
+        const SizeType number_of_points = SearchUtils::PointerDistance(PointsBegin,PointsEnd);
+        if (number_of_points == 0) {
             return NULL;
-        else
-        {
+        } else {
             return new BinsDynamic( PointsBegin, PointsEnd, MinPoint, MaxPoint, BucketSize );
         }
 
