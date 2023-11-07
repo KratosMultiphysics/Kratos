@@ -50,6 +50,7 @@ class CheckAndPrepareModelProcess(KratosMultiphysics.Process):
                 list_of_ids.add(elem.Id)
         computing_model_part.AddElements(list(list_of_ids))
         # Adding Conditions to Computing Model Part
+        computing_model_part.Conditions.clear()
         domain_conditions = []
         for i in range(self.processes_sub_model_part_list.size()):
             domain_conditions.append(self.main_model_part.GetSubModelPart(self.processes_sub_model_part_list[i].GetString()))
