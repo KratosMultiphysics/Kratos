@@ -143,6 +143,7 @@ private:
     void CheckSolutionStepsData(int rId, Kratos::Variable<double>& rVariable) const;
 
     bool mIsInitialised = false;
+    const ProcessInfo * mpCurrentProcessInfo;
 
     friend class Serializer;
 

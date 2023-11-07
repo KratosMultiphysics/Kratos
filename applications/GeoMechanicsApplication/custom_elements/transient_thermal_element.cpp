@@ -107,6 +107,7 @@ void TransientThermalElement<TDim, TNumNodes>::Initialize(const ProcessInfo& rCu
     KRATOS_TRY
 
     mIsInitialised = true;
+    mpCurrentProcessInfo = &rCurrentProcessInfo;
 
     KRATOS_CATCH("")
 }
@@ -350,9 +351,13 @@ void TransientThermalElement<TDim, TNumNodes>::CalculateConductivityMatrix(Eleme
 {
     KRATOS_TRY
 
-    rVariables.ConstitutiveMatrix = ZeroMatrix(TDim, TDim);
-    GeoThermalDispersion2DLaw::CalculateThermalDispersionMatrix(
-        rVariables.ConstitutiveMatrix, GetProperties());
+    KRATOS_ERROR_IF_NOT(mIsInitialised)
+        << " ProcessInfo is not initialised in TransientThermalElement " << std::endl;
+
+    GeoThermalDispersionLaw geo(TDim);
+
+    rVariables.ConstitutiveMatrix = geo.CalculateThermalDispersionMatrix(
+        GetProperties(), *mpCurrentProcessInfo, GetGeometry());
 
     BoundedMatrix<double, TDim, TNumNodes> Temp =
         prod(rVariables.ConstitutiveMatrix, trans(rVariables.GradNT));
