@@ -13,7 +13,7 @@
 //
 
 #include "custom_elements/transient_thermal_element.h"
-#include "custom_constitutive/thermal_dispersion_2D_law.hpp"
+#include "custom_constitutive/thermal_dispersion_law.h"
 #include "includes/condition.h"
 
 namespace Kratos {
