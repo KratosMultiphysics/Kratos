@@ -41,11 +41,6 @@ public:
     using TSystemVectorType = typename BaseType::TSystemVectorType;
     using LocalSystemVectorType = typename BaseType::LocalSystemVectorType;
     using LocalSystemMatrixType = typename BaseType::LocalSystemMatrixType;
-    using MotherType = NewmarkQuasistaticUPwScheme<TSparseSpace, TDenseSpace>;
-    using MotherType::mDeltaTime;
-    using MotherType::mBeta;
-    using MotherType::mGamma;
-    using MotherType::mTheta;
 
     explicit NewmarkQuasistaticTScheme(double theta) :
         NewmarkQuasistaticUPwScheme<TSparseSpace,TDenseSpace>(0.25, 0.5, theta)
@@ -93,23 +88,6 @@ public:
 
         KRATOS_CATCH( "" )
     }
-
-
-    // ============================================================================================
-    // ============================================================================================
-    void FinalizeSolutionStep(
-        ModelPart& rModelPart,
-        TSystemMatrixType& A,
-        TSystemVectorType& Dx,
-        TSystemVectorType& b) override
-    {
-        KRATOS_TRY
-
-        MotherType::FinalizeSolutionStepActiveEntities(rModelPart,A,Dx,b);
-
-        KRATOS_CATCH("")
-    }
-
 
 protected:
     inline void UpdateVariablesDerivatives(ModelPart& rModelPart) override

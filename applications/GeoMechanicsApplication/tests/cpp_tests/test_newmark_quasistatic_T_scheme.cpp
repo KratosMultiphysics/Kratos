@@ -37,6 +37,41 @@ ModelPart& CreateValidModelPart(Model& rModel)
     return result;
 }
 
+class SpyElement : public Element
+{
+public:
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mFinalized = true;
+    }
+
+    bool IsFinalized () const
+    {
+        return mFinalized;
+    }
+
+private:
+    bool mFinalized = false;
+};
+
+class SpyCondition : public Condition
+{
+public:
+    void FinalizeSolutionStep(const ProcessInfo& rCurrentProcessInfo) override
+    {
+        mFinalized = true;
+    }
+
+    bool IsFinalized () const
+    {
+        return mFinalized;
+    }
+
+private:
+    bool mFinalized = false;
+};
+
+
 KRATOS_TEST_CASE_IN_SUITE(CheckBackwardEulerQuasistaticTScheme_WithAllNecessaryParts_Returns0,
                           KratosGeoMechanicsFastSuite)
 {
@@ -135,14 +170,23 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalSchemeUpdate_SetsDtTemperature, KratosGeoMechan
     auto scheme = CreateValidScheme();
     Model model;
     ModelPart& model_part = CreateValidModelPart(model);
-    model_part.GetProcessInfo()[DELTA_TIME] = 2.0;
 
+    const double current_temperature = 10.0;
+    const double previous_temperature = 5.0;
+    const double previous_dt_temperature = 3.0;
+    const double theta = 0.75;
+    const double delta_time = 2.0;
+
+    model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
     Node& node = model_part.Nodes()[0];
-    node.FastGetSolutionStepValue(TEMPERATURE) = 10.0;
-    node.FastGetSolutionStepValue(TEMPERATURE, 1) = 5.0;
-    node.FastGetSolutionStepValue(DT_TEMPERATURE, 1) = 3.0;
+    node.FastGetSolutionStepValue(TEMPERATURE) = current_temperature;
+    node.FastGetSolutionStepValue(TEMPERATURE, 1) = previous_temperature;
+    node.FastGetSolutionStepValue(DT_TEMPERATURE, 1) = previous_dt_temperature;
 
-    double expected_value = 1.0 / (0.75 * 2.0) * (5.0 - (1.0 - 0.75) * 2.0 * 3.0);
+    double expected_value = 1.0 / (theta * delta_time) *
+                            (current_temperature - previous_temperature -
+                             (1.0 - theta) * delta_time * previous_dt_temperature);
+
     ModelPart::DofsArrayType dof_set;
     CompressedMatrix A;
     Vector Dx;
@@ -154,4 +198,73 @@ KRATOS_TEST_CASE_IN_SUITE(ThermalSchemeUpdate_SetsDtTemperature, KratosGeoMechan
     KRATOS_EXPECT_DOUBLE_EQ(node.FastGetSolutionStepValue(DT_TEMPERATURE), expected_value);
 }
 
-} // namespace Kratos::Testing
+KRATOS_TEST_CASE_IN_SUITE(InitializeScheme_SetsTimeFactors, KratosGeoMechanicsFastSuite)
+{
+    auto scheme = CreateValidScheme();
+    Model model;
+    ModelPart& model_part = CreateValidModelPart(model);
+    const double delta_time = 3.0;
+    model_part.GetProcessInfo()[DELTA_TIME] = delta_time;
+
+    scheme.Initialize(model_part);
+
+    KRATOS_EXPECT_TRUE(scheme.SchemeIsInitialized())
+    const double theta = 0.75;
+    KRATOS_EXPECT_DOUBLE_EQ(model_part.GetProcessInfo()[DT_TEMPERATURE_COEFFICIENT],
+                            1.0 / (theta * delta_time));
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FinalizeSolutionStepActiveEntities_FinalizesOnlyActiveElements,
+                          KratosGeoMechanicsFastSuite)
+{
+    auto scheme = CreateValidScheme();
+    Model model;
+    ModelPart& model_part = CreateValidModelPart(model);
+
+    auto active_element = Kratos::make_intrusive<SpyElement>();
+    active_element->Set(ACTIVE, true);
+    active_element->SetId(0);
+
+    auto inactive_element = Kratos::make_intrusive<SpyElement>();
+    inactive_element->Set(ACTIVE, false);
+    inactive_element->SetId(1);
+
+    model_part.AddElement(active_element);
+    model_part.AddElement(inactive_element);
+
+    CompressedMatrix A;
+    Vector Dx;
+    Vector b;
+    scheme.FinalizeSolutionStep(model_part, A, Dx, b);
+
+    KRATOS_EXPECT_TRUE(active_element->IsFinalized())
+    KRATOS_EXPECT_FALSE(inactive_element->IsFinalized())
+}
+
+KRATOS_TEST_CASE_IN_SUITE(FinalizeSolutionStep_FinalizesOnlyActiveConditions, KratosGeoMechanicsFastSuite)
+{
+    auto scheme = CreateValidScheme();
+    Model model;
+    ModelPart& model_part = CreateValidModelPart(model);
+
+    auto active_condition = Kratos::make_intrusive<SpyCondition>();
+    active_condition->SetId(0);
+    active_condition->Set(ACTIVE, true);
+
+    auto inactive_condition = Kratos::make_intrusive<SpyCondition>();
+    inactive_condition->SetId(1);
+    inactive_condition->Set(ACTIVE, false);
+
+    model_part.AddCondition(active_condition);
+    model_part.AddCondition(inactive_condition);
+
+    CompressedMatrix A;
+    Vector Dx;
+    Vector b;
+    scheme.FinalizeSolutionStep(model_part, A, Dx, b);
+
+    KRATOS_EXPECT_TRUE(active_condition->IsFinalized())
+    KRATOS_EXPECT_FALSE(inactive_condition->IsFinalized())
+}
+
+} // namespace Kratos::Test
