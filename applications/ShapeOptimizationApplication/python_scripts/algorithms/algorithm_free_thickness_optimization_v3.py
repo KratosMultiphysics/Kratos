@@ -253,10 +253,8 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
             node.SetSolutionStepValue(KSO.THICKNESS, 0, new_thickness)
 
         # visualization on mesh
-        element_thicknesses = {}
         for condition in self.optimization_model_part.Conditions:
-            element_thicknesses[condition.Id] = condition.Properties.GetValue(KM.THICKNESS)
-        self.__mapElementGradientToNode(element_thicknesses, KSO.THICKNESS_ELEMENTAL)
+            condition.SetValue(KSO.THICKNESS, condition.Properties.GetValue(KM.THICKNESS))
 
         self.model_part_controller.SetReferenceMeshToMesh()
 
@@ -680,12 +678,12 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
                 KM.Logger.PrintInfo("ShapeOpt", "Maximal iterations of optimization problem reached!")
                 return True
 
-            # # Check for relative tolerance
-            # relative_change_of_objective_value = self.data_logger.GetValues("rel_change_objective")[self.optimization_iteration]
-            # if abs(relative_change_of_objective_value) < self.relative_tolerance:
-            #     KM.Logger.Print("")
-            #     KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
-            #     return True
+            # Check for relative tolerance
+            relative_change_of_objective_value = self.data_logger.GetValues("rel_change_objective")[self.optimization_iteration]
+            if abs(relative_change_of_objective_value) < self.relative_tolerance:
+                KM.Logger.Print("")
+                KM.Logger.PrintInfo("ShapeOpt", "Optimization problem converged within a relative objective tolerance of ",self.relative_tolerance,"%.")
+                return True
 
     # --------------------------------------------------------------------------
     def __updateBeta(self):
@@ -733,6 +731,7 @@ class AlgorithmFreeThicknessOptimizationv3(OptimizationAlgorithm):
         for condition in self.optimization_model_part.Conditions:
             element_thicknesses[condition.Id] = condition.Properties.GetValue(KM.THICKNESS)
             condition.Properties.SetValue(KSO.THICKNESS_INITIAL, element_thicknesses[condition.Id])
+            # condition.SetValue(KSO.THICKNESS_INITIAL, element_thicknesses[condition.Id])
 
         self.__mapElementGradientToNode(element_thicknesses, KSO.THICKNESS)
         self.__mapElementGradientToNode(element_thicknesses, KSO.THICKNESS_INITIAL)

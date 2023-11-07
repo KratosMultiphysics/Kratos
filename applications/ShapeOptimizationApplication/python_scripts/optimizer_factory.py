@@ -88,7 +88,6 @@ class Optimizer:
 
         model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_INITIAL)
         model_part.AddNodalSolutionStepVariable(KSO.THICKNESS)
-        model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_ELEMENTAL)
         model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_UPDATE)
         model_part.AddNodalSolutionStepVariable(KSO.THICKNESS_CHANGE)
 
