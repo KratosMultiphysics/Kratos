@@ -27,10 +27,10 @@ namespace Kratos {
 NodalSensorSpecification::NodalSensorSpecification(
     const std::string& rName,
     const IndexType NewId,
-    const double SensorValue,
     const double SensorWeight,
     const NodeType::Pointer pNode)
-    : BaseType(rName, NewId, SensorValue)
+    : BaseType(rName, NewId),
+      mpNode(pNode)
 {
     KRATOS_TRY
 

@@ -49,7 +49,6 @@ public:
     NodalSensorSpecification(
         const std::string& rName,
         const IndexType NewId,
-        const double SensorValue,
         const double SensorWeight,
         const NodeType::Pointer pNode);
 

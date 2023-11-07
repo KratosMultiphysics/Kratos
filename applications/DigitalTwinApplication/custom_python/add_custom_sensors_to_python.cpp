@@ -39,6 +39,7 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def("GetLocation", &SensorSpecification::GetLocation)
         .def("GetName", &SensorSpecification::GetName)
         .def("GetSensorValue", &SensorSpecification::GetSensorValue)
+        .def("SetSensorValue", &SensorSpecification::SetSensorValue, py::arg("sensor_value"))
         .def("AddNodalExpression", &SensorSpecification::AddNodalExpression, py::arg("nodal_expression_name"), py::arg("nodal_expression"))
         .def("GetNodalExpression", &SensorSpecification::GetNodalExpression, py::arg("nodal_expression_name"))
         .def("GetNodalExpressionsMap", &SensorSpecification::GetNodalExpressionsMap)
@@ -48,11 +49,12 @@ void  AddCustomSensorsToPython(pybind11::module& m)
         .def("AddElementExpression", &SensorSpecification::AddElementExpression, py::arg("element_expression_name"), py::arg("element_expression"))
         .def("GetElementExpression", &SensorSpecification::GetElementExpression, py::arg("element_expression_name"))
         .def("GetElementExpressionsMap", &SensorSpecification::GetElementExpressionsMap)
+        .def("GetDataVariableNames", &SensorSpecification::GetDataVariableNames)
         .def("__str__", PrintObject<SensorSpecification>);
         ;
 
     py::class_<NodalSensorSpecification, NodalSensorSpecification::Pointer, SensorSpecification>(sensor_module, "NodalSensorSpecification")
-        .def(py::init<const std::string&, const IndexType, const double, const double, const ModelPart::NodeType::Pointer>(), py::arg("sensor_name"), py::arg("sensor_id"), py::arg("sensor_value"), py::arg("sensor_weight"), py::arg("sensor_node"))
+        .def(py::init<const std::string&, const IndexType, const double, const ModelPart::NodeType::Pointer>(), py::arg("sensor_name"), py::arg("sensor_id"), py::arg("sensor_weight"), py::arg("sensor_node"))
         .def("GetNode", &NodalSensorSpecification::GetNode)
         ;
 
