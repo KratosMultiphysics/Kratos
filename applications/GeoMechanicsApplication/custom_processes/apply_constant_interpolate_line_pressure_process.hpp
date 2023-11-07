@@ -293,7 +293,6 @@ private:
                                          const bool isBottom)
     {
         const double HorizontalCoordinate = rNode.Coordinates()[mHorizontalDirection];
-        Node *pNode;
         std::vector< Node*> FoundNodes;
 
         double horizontalDistance = LARGE;
@@ -304,11 +303,12 @@ private:
             }
         }
 
+        Node* result = nullptr;
         if (isBottom) {
             double height = LARGE;
             for (auto found_node : FoundNodes) {
                 if (found_node->Coordinates()[mGravityDirection] < height) {
-                    pNode = found_node;
+                    result = found_node;
                     height = found_node->Coordinates()[mGravityDirection];
                 }
             }
@@ -316,13 +316,13 @@ private:
             double height = -LARGE;
             for (auto found_node : FoundNodes) {
                 if (found_node->Coordinates()[mGravityDirection] > height) {
-                    pNode = found_node;
+                    result = found_node;
                     height = found_node->Coordinates()[mGravityDirection];
                 }
             }
         }
 
-        return pNode;
+        return result;
     }
 
     void FindTopBoundaryNodes(const Node &rNode,
