@@ -16,6 +16,7 @@
 #include <string>
 #include <iostream>
 #include <cmath>
+#include <type_traits>
 
 // External includes
 
@@ -191,6 +192,17 @@ public:
     ///@name Type Definitions
     ///@{
 
+    // Helper template to extract ObjectType or default to void
+    template <typename T, typename = void>
+    struct GetObjectType {
+        using type = void;
+    };
+
+    template <typename T>
+    struct GetObjectType<T, std::void_t<typename T::ObjectType>> {
+        using type = typename T::ObjectType;
+    };
+
     /**
      * @class Partitions
      * @brief Class to represent partitions for the tree.
@@ -225,6 +237,9 @@ public:
 
     /// The iterator type definition
     using IteratorType = typename PartitionType::IteratorType;
+
+    /// The object type
+    using ObjectType = typename GetObjectType<PointType>::type;
 
     /// The distance iterator type definition
     using DistanceIteratorType = typename PartitionType::DistanceIteratorType;

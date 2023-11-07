@@ -20,7 +20,7 @@
 #include "input_output/logger_output.h"
 #include "input_output/logger_table_output.h"
 #include "includes/model_part_io.h"
-#include "write_output.h"
+#include "geo_output_writer.h"
 #include "custom_utilities/file_input_utility.h"
 
 
