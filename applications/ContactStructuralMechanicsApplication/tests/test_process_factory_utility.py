@@ -7,7 +7,7 @@ class DummyClass():
     def DummyMethod(self):
         self.this_assert = True
 
-class TestProcessFactory(KratosUnittest.TestCase):
+class TestProcessFactoryUtility(KratosUnittest.TestCase):
     def setUp(self):
         pass
 
