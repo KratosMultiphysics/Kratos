@@ -46,7 +46,7 @@ public:
                 "table" : 1
             }  )" );
 
-        // Some values need to be mandatorily prescribed since no meaningful default value exist. For this reason try accessing to them
+        // Some values need to be mandatory prescribed since no meaningful default value exist. For this reason try accessing to them
         // So that an error is thrown if they don't exist
         rParameters["reference_coordinate"];
         rParameters["variable_name"];
@@ -59,7 +59,7 @@ public:
 
         mVariableName        = rParameters["variable_name"].GetString();
         mIsFixed             = rParameters["is_fixed"].GetBool();
-        mGravityDirection    = rParameters["gravity_direction"].GetInt();
+        mGravityDirection    = static_cast<unsigned int>(rParameters["gravity_direction"].GetInt());
         mReferenceCoordinate = rParameters["reference_coordinate"].GetDouble();
         mSpecificWeight      = rParameters["specific_weight"].GetDouble();
 
@@ -77,13 +77,13 @@ public:
     {
         KRATOS_TRY
 
-        const Variable<double> &var = KratosComponents< Variable<double> >::Get(mVariableName);
+        const auto& var = KratosComponents<Variable<double>>::Get(GetVariableName());
 
-        block_for_each(mrModelPart.Nodes(), [&var, this](Node& rNode) {
+        block_for_each(GetModelPart().Nodes(), [&var, this](Node& rNode) {
             if (mIsFixed) rNode.Fix(var);
             else if (mIsFixedProvided) rNode.Free(var);
 
-            const double pressure = mSpecificWeight * (mReferenceCoordinate - rNode.Coordinates()[mGravityDirection]);
+            const double pressure = GetSpecificWeight() * (GetReferenceCoordinate() - rNode.Coordinates()[GetGravityDirection()]);
             rNode.FastGetSolutionStepValue(var) = std::max(pressure, 0.);
         });
 
@@ -96,15 +96,39 @@ public:
         return "ApplyConstantBoundaryHydrostaticPressureProcess";
     }
 
-protected:
-    /// Member Variables
-    ModelPart& mrModelPart;
-    std::string mVariableName;
-    bool mIsFixed;
-    bool mIsFixedProvided;
+    ModelPart& GetModelPart()
+    {
+        return mrModelPart;
+    }
+
+    [[nodiscard]] const std::string& GetVariableName() const
+    {
+        return mVariableName;
+    }
+
+    [[nodiscard]] unsigned int GetGravityDirection() const
+    {
+        return mGravityDirection;
+    }
+
+    [[nodiscard]] double GetReferenceCoordinate() const
+    {
+        return mReferenceCoordinate;
+    }
+
+    [[nodiscard]] double GetSpecificWeight() const
+    {
+        return mSpecificWeight;
+    }
+
+private:
+    ModelPart&   mrModelPart;
+    std::string  mVariableName;
+    bool         mIsFixed;
+    bool         mIsFixedProvided;
     unsigned int mGravityDirection;
-    double mReferenceCoordinate;
-    double mSpecificWeight;
+    double       mReferenceCoordinate;
+    double       mSpecificWeight;
 };
 
 }
