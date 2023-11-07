@@ -127,7 +127,6 @@ namespace Kratos {
         KRATOS_TRY
 
         ModelPart& r_model_part = GetModelPart();
-
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         SendProcessInfoToClustersModelPart();
 
@@ -157,10 +156,9 @@ namespace Kratos {
         GetSearchControl() = r_process_info[SEARCH_CONTROL];
 
         InitializeDEMElements();
-
         InitializeFEMElements();
+
         UpdateMaxIdOfCreatorDestructor();
-        InitializeClusters(); // This adds elements to the balls modelpart
 
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
@@ -177,93 +175,10 @@ namespace Kratos {
         SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
         ComputeNewRigidFaceNeighboursHistoricalData();
 
-        if (mRemoveBallsInitiallyTouchingWallsOption) {
-            MarkToDeleteAllSpheresInitiallyIndentedWithFEM(*mpDem_model_part);
-            mpParticleCreatorDestructor->DestroyParticles<SphericParticle>(r_model_part);
-            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
-            RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().GhostMesh().Elements(), mListOfGhostSphericParticles);
-
-            // Search Neighbours and related operations
-            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT], 1.0);
-            SearchNeighbours();
-            ComputeNewNeighboursHistoricalData();
-
-            SetSearchRadiiOnAllParticles(*mpDem_model_part, mpDem_model_part->GetProcessInfo()[SEARCH_RADIUS_INCREMENT_FOR_WALLS], 1.0);
-            SearchRigidFaceNeighbours(); //initial search is performed with hierarchical method in any case MSI
-            ComputeNewRigidFaceNeighboursHistoricalData();
-        }
-
-        AttachSpheresToStickyWalls();
-
-        if (r_process_info[CONTACT_MESH_OPTION] == 1) {
-            CreateContactElements();
-            InitializeContactElements();
-        }
-
         //set flag to 2 (search performed this timestep)
         mSearchControl = 2;
 
-        // Finding overlapping of initial configurations
-        if (r_process_info[CLEAN_INDENT_OPTION]) {
-            for (int i = 0; i < 10; i++) CalculateInitialMaxIndentations(r_process_info);
-        }
-
-        //FinalizeSolutionStep();
-
         ComputeNodalArea();
-
-        KRATOS_CATCH("")
-    } // Initialize()
-
-    void ExplicitSolverStrategy::AttachSpheresToStickyWalls() {
-        KRATOS_TRY
-        for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = GetFemModelPart().SubModelPartsBegin(); sub_model_part != GetFemModelPart().SubModelPartsEnd(); ++sub_model_part) {
-
-            ModelPart& submp = *sub_model_part;
-            if(!submp[IS_STICKY]) continue;
-
-            ConditionsArrayType& rConditions = submp.GetCommunicator().LocalMesh().Conditions();
-
-            block_for_each(rConditions, [&](ModelPart::ConditionType& rCondition){
-                rCondition.Set(DEMFlags::STICKY, true);
-            });
-        }
-
-        const int number_of_particles = (int) mListOfSphericParticles.size();
-
-        #pragma omp parallel for schedule(dynamic, 100)
-        for (int i = 0; i < number_of_particles; i++) {
-            std::vector<DEMWall*>& neighbour_walls_vector = mListOfSphericParticles[i]->mNeighbourPotentialRigidFaces;
-            for (int j = 0; j<(int)neighbour_walls_vector.size(); j++) {
-                if( neighbour_walls_vector[j]->Is(DEMFlags::STICKY) ) {
-                    const bool is_inside = mListOfSphericParticles[i]->SwapIntegrationSchemeToGluedToWall(neighbour_walls_vector[j]);
-                    if(is_inside) {
-                        #pragma omp critical
-                        {
-                            neighbour_walls_vector[j]->GetVectorOfGluedParticles().push_back(mListOfSphericParticles[i]);
-                        }
-                        mListOfSphericParticles[i]->Set(DEMFlags::STICKY, true);
-                        break;
-                    }
-                }
-            }
-        }
-        KRATOS_CATCH("")
-    }
-
-    void ExplicitSolverStrategy::MarkToDeleteAllSpheresInitiallyIndentedWithFEM(ModelPart& rSpheresModelPart) {
-        KRATOS_TRY
-        ElementsArrayType& rElements = rSpheresModelPart.GetCommunicator().LocalMesh().Elements();
-
-        block_for_each(rElements, [&](ModelPart::ElementType& rElement) {
-            Element* p_element = &(rElement);
-            SphericParticle* p_sphere = dynamic_cast<SphericParticle*>(p_element);
-
-            if (p_sphere->mNeighbourRigidFaces.size()) {
-                p_sphere->Set(TO_ERASE);
-                p_sphere->GetGeometry()[0].Set(TO_ERASE);
-            }
-        });
 
         KRATOS_CATCH("")
     }
@@ -287,7 +202,6 @@ namespace Kratos {
         ConditionsArrayType::iterator it_end = pConditions.ptr_end();
 
         for (ConditionsArrayType::iterator it = it_begin; it != it_end; ++it) { //each iteration refers to a different triangle or quadrilateral
-
             Condition::GeometryType& geometry = it->GetGeometry();
             double Element_Area = geometry.Area();
             const double inv_geometry_size = 1.0 / geometry.size();
@@ -295,7 +209,6 @@ namespace Kratos {
                 double& node_area = geometry[i].FastGetSolutionStepValue(DEM_NODAL_AREA);
                 node_area += inv_geometry_size * Element_Area;
             }
-
         }
 
         KRATOS_CATCH("")
@@ -304,83 +217,6 @@ namespace Kratos {
     void ExplicitSolverStrategy::Check_MPI(bool& has_mpi) {
         VariablesList r_modelpart_nodal_variables_list = GetModelPart().GetNodalSolutionStepVariablesList();
         if (r_modelpart_nodal_variables_list.Has(PARTITION_INDEX)) has_mpi = true;
-    }
-
-    double ExplicitSolverStrategy::CalculateMaxInletTimeStep() {
-        for (PropertiesIterator props_it = mpInlet_model_part->GetMesh(0).PropertiesBegin(); props_it != mpInlet_model_part->GetMesh(0).PropertiesEnd(); props_it++) {
-            if ((*props_it).Has(PARTICLE_DENSITY)) {
-                int inlet_prop_id = props_it->GetId();
-                double young = (*props_it)[YOUNG_MODULUS];
-                double density = (*props_it)[PARTICLE_DENSITY];
-                double poisson = (*props_it)[POISSON_RATIO];
-
-                for (ModelPart::SubModelPartsContainerType::iterator sub_model_part = mpInlet_model_part->SubModelPartsBegin(); sub_model_part != mpInlet_model_part->SubModelPartsEnd(); ++sub_model_part) {
-                    KRATOS_ERROR_IF(!(*sub_model_part).Has(PROPERTIES_ID))<<"PROPERTIES_ID is not set for SubModelPart "<<(*sub_model_part).Name()<<" . Make sure the Materials file contains material assignation for this SubModelPart"<<std::endl;
-                    int smp_prop_id = (*sub_model_part)[PROPERTIES_ID];
-                    if (smp_prop_id == inlet_prop_id) {
-                        double radius = (*sub_model_part)[RADIUS];
-                        double shear_modulus = young/(2.0*(1.0+poisson));
-                        double t = (Globals::Pi*radius*sqrt(density/shear_modulus))/(0.1630*poisson+0.8766);
-                        return t;
-                    }
-                }
-            }
-        }
-        return 0.0;
-    }
-
-    void ExplicitSolverStrategy::InitializeClusters() {
-        KRATOS_TRY
-        ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
-        const int number_of_clusters = pElements.size();
-        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
-        bool continuum_strategy = r_process_info[CONTINUUM_OPTION];
-        std::vector<PropertiesProxy>& vector_of_properties_proxies = PropertiesProxiesManager().GetPropertiesProxies(*mpDem_model_part);
-
-        //mpParticleCreatorDestructor->FindAndSaveMaxNodeIdInModelPart(*mpDem_model_part); //This has been moved to python main script and checks both dem model part and walls model part (also important!)
-
-        #pragma omp parallel for schedule(dynamic, 100)
-        for (int k = 0; k < number_of_clusters; k++) {
-
-            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
-            Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
-
-            cluster_element.Initialize(r_process_info);
-
-            PropertiesProxy* p_fast_properties = NULL;
-            int general_properties_id = cluster_element.GetProperties().Id();
-            for (unsigned int i = 0; i < vector_of_properties_proxies.size(); i++) {
-                int fast_properties_id = vector_of_properties_proxies[i].GetId();
-                if (fast_properties_id == general_properties_id) {
-                    p_fast_properties = &(vector_of_properties_proxies[i]);
-                    break;
-                }
-            }
-            cluster_element.CreateParticles(mpParticleCreatorDestructor.get(), *mpDem_model_part, p_fast_properties, continuum_strategy);
-        }
-        KRATOS_CATCH("")
-    }
-
-    void ExplicitSolverStrategy::GetClustersForce() {
-        KRATOS_TRY
-        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo(); //Getting the Process Info of the Balls ModelPart!
-        const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
-
-        ElementsArrayType& pElements = mpCluster_model_part->GetCommunicator().LocalMesh().Elements();
-        const int number_of_clusters = pElements.size();
-
-        #pragma omp parallel for schedule(dynamic, 50)
-        for (int k = 0; k < number_of_clusters; k++) {
-
-            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
-            Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
-
-            cluster_element.GetGeometry()[0].FastGetSolutionStepValue(TOTAL_FORCES).clear();
-            cluster_element.GetGeometry()[0].FastGetSolutionStepValue(PARTICLE_MOMENT).clear();
-
-            cluster_element.GetClustersForce(gravity);
-        } // loop over clusters
-        KRATOS_CATCH("")
     }
 
     void ExplicitSolverStrategy::GetRigidBodyElementsForce() {
@@ -415,7 +251,7 @@ namespace Kratos {
         ForceOperations(r_model_part);
         PerformTimeIntegrationOfMotion();
 
-        return 0.00;
+        return 0.0;
 
         KRATOS_CATCH("")
     }
@@ -428,7 +264,6 @@ namespace Kratos {
         const bool is_time_to_search_neighbours = (time_step + 1) % mNStepSearch == 0 && (time_step > 0); //Neighboring search. Every N times.
         const bool is_time_to_print_results = r_process_info[IS_TIME_TO_PRINT];
         const bool is_time_to_mark_and_remove = is_time_to_search_neighbours && (r_process_info[BOUNDING_BOX_OPTION] && time >= r_process_info[BOUNDING_BOX_START_TIME] && time <= r_process_info[BOUNDING_BOX_STOP_TIME]);
-        BoundingBoxUtility(is_time_to_mark_and_remove);
 
         if (is_time_to_search_neighbours) {
             if (!is_time_to_mark_and_remove) { //Just in case that some entities were marked as TO_ERASE without a bounding box (manual removal)
@@ -456,15 +291,10 @@ namespace Kratos {
             mSearchControl = 1; // Search is active but no search has been done this time step;
         }
 
-        if (is_time_to_print_results && r_process_info[CONTACT_MESH_OPTION] == 1) {
-            CreateContactElements();
-            InitializeContactElements();
-        }
-
         //RebuildPropertiesProxyPointers(mListOfSphericParticles);
         //RebuildPropertiesProxyPointers(mListOfGhostSphericParticles);
         KRATOS_CATCH("")
-    }//SearchDEMOperations;
+    }
 
     void ExplicitSolverStrategy::SearchFEMOperations(ModelPart& r_model_part, bool has_mpi) {
         KRATOS_TRY
@@ -490,65 +320,29 @@ namespace Kratos {
             }
         }
         KRATOS_CATCH("")
-    }//SearchFEMOperations
+    }
 
     void ExplicitSolverStrategy::ForceOperations(ModelPart& r_model_part) {
         KRATOS_TRY
 
-        GetForce(); // Basically only calls CalculateRightHandSide()
-        //FastGetForce();
-        GetClustersForce();
+        GetForce();
         GetRigidBodyElementsForce();
-
-        if (r_model_part.GetProcessInfo()[COMPUTE_FEM_RESULTS_OPTION]) {
-            CalculateNodalPressuresAndStressesOnWalls();
-        }
-
-        // Synchronize (should be just FORCE and TORQUE)
         SynchronizeRHS(r_model_part);
 
         KRATOS_CATCH("")
-    }//ForceOperations;
+    }
 
     void ExplicitSolverStrategy::GetForce() {
-
         KRATOS_TRY
 
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         double dt = r_process_info[DELTA_TIME];
         const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
-
         const int number_of_particles = (int) mListOfSphericParticles.size();
 
         #pragma omp parallel for schedule(dynamic, 100)
         for (int i = 0; i < number_of_particles; i++) {
             mListOfSphericParticles[i]->CalculateRightHandSide(r_process_info, dt, gravity);
-        }
-
-        KRATOS_CATCH("")
-    }
-
-    void ExplicitSolverStrategy::FastGetForce() {
-        KRATOS_TRY
-        ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
-        double dt = r_process_info[DELTA_TIME];
-        const array_1d<double, 3>& gravity = r_process_info[GRAVITY];
-        const int number_of_particles = (int) mListOfSphericParticles.size();
-
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericParticles[i]->FirstCalculateRightHandSide(r_process_info, dt);
-            }
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericParticles[i]->CollectCalculateRightHandSide(r_process_info);
-            }
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericParticles[i]->FinalCalculateRightHandSide(r_process_info, dt, gravity);
-            }
         }
 
         KRATOS_CATCH("")
@@ -560,23 +354,11 @@ namespace Kratos {
 
         ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
         double delta_t = r_process_info[DELTA_TIME];
-        double virtual_mass_coeff = r_process_info[NODAL_MASS_COEFF]; //TODO: change the name of this variable to FORCE_REDUCTION_FACTOR
-        bool virtual_mass_option = (bool) r_process_info[VIRTUAL_MASS_OPTION];
-        double force_reduction_factor = 1.0;
-        if (virtual_mass_option) {
-            force_reduction_factor = virtual_mass_coeff;
-            KRATOS_ERROR_IF((force_reduction_factor > 1.0) || (force_reduction_factor < 0.0)) << "The force reduction factor is either larger than 1 or negative: FORCE_REDUCTION_FACTOR= "<< virtual_mass_coeff << std::endl;
-        }
-
         bool rotation_option = r_process_info[ROTATION_OPTION];
-
-        const int number_of_particles       = (int) mListOfSphericParticles.size();
+        double force_reduction_factor = 1.0;
+        const int number_of_particles= (int) mListOfSphericParticles.size();
         const int number_of_ghost_particles = (int) mListOfGhostSphericParticles.size();
-
-        ModelPart& r_clusters_model_part  = *mpCluster_model_part;
-        ElementsArrayType& pLocalClusters = r_clusters_model_part.GetCommunicator().LocalMesh().Elements();
-        ElementsArrayType& pGhostClusters = r_clusters_model_part.GetCommunicator().GhostMesh().Elements();
-        ModelPart& r_fem_model_part  = *mpFem_model_part;
+        ModelPart& r_fem_model_part = *mpFem_model_part;
         ElementsArrayType& pFemElements = r_fem_model_part.GetCommunicator().LocalMesh().Elements();
 
         #pragma omp parallel
@@ -587,25 +369,6 @@ namespace Kratos {
             }
 
             #pragma omp for nowait
-            for (int i = 0; i < number_of_ghost_particles; i++) {
-                mListOfGhostSphericParticles[i]->Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
-            }
-
-            #pragma omp for nowait
-            for (int k = 0; k < (int) pLocalClusters.size(); k++) {
-                ElementsArrayType::iterator it = pLocalClusters.ptr_begin() + k;
-                Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
-                cluster_element.RigidBodyElement3D::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
-            }
-
-            #pragma omp for nowait
-            for (int k = 0; k < (int) pGhostClusters.size(); k++) {
-                ElementsArrayType::iterator it = pGhostClusters.ptr_begin() + k;
-                Cluster3D& cluster_element = dynamic_cast<Kratos::Cluster3D&> (*it);
-                cluster_element.RigidBodyElement3D::Move(delta_t, rotation_option, force_reduction_factor, StepFlag);
-            }
-
-            #pragma omp for nowait
             for (int k = 0; k < (int) pFemElements.size(); k++) {
                 ElementsArrayType::iterator it = pFemElements.ptr_begin() + k;
                 RigidBodyElement3D& rigid_body_element = dynamic_cast<Kratos::RigidBodyElement3D&> (*it);
@@ -613,8 +376,6 @@ namespace Kratos {
             }
         }
 
-        //GetScheme()->Calculate(GetModelPart(), StepFlag);
-        //GetScheme()->Calculate(*mpCluster_model_part, StepFlag);
         KRATOS_CATCH("")
     }
 
@@ -625,48 +386,16 @@ namespace Kratos {
         const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
         ElementsArrayType& pElements = r_model_part.GetCommunicator().LocalMesh().Elements();
 
-        ModelPart& r_fem_model_part = GetFemModelPart();
-        const ProcessInfo& r_fem_process_info = r_fem_model_part.GetProcessInfo();
-        ConditionsArrayType& pConditions = r_fem_model_part.GetCommunicator().LocalMesh().Conditions();
-
         RebuildListOfSphericParticles<SphericParticle>(r_model_part.GetCommunicator().LocalMesh().Elements(), mListOfSphericParticles);
-
         SetNormalRadiiOnAllParticles(*mpDem_model_part);
-
-        #pragma omp parallel
-        {
-            #pragma omp for nowait
-            for (int k = 0; k < (int) pElements.size(); k++) {
-                ElementsArrayType::iterator it = pElements.ptr_begin() + k;
-                (it)->InitializeSolutionStep(r_process_info);
-            }
-
-            #pragma omp for nowait
-            for (int k = 0; k < (int) pConditions.size(); k++) {
-                ConditionsArrayType::iterator it = pConditions.ptr_begin() + k;
-                (it)->InitializeSolutionStep(r_fem_process_info);
-            }
+        
+        #pragma omp parallel for schedule(dynamic, 100)
+        for (int k = 0; k < (int) pElements.size(); k++) {
+            ElementsArrayType::iterator it = pElements.ptr_begin() + k;
+            (it)->InitializeSolutionStep(r_process_info);
         }
 
         ApplyPrescribedBoundaryConditions();
-        KRATOS_CATCH("")
-    }
-
-    void ExplicitSolverStrategy::BoundingBoxUtility(bool is_time_to_mark_and_remove) {
-        KRATOS_TRY
-        ModelPart& r_model_part = GetModelPart();
-        ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-
-        if (r_process_info[DOMAIN_IS_PERIODIC]) {
-            mpParticleCreatorDestructor->MoveParticlesOutsideBoundingBoxBackInside(r_model_part);
-        } else if (is_time_to_mark_and_remove) {
-            mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox<Cluster3D>(*mpCluster_model_part);
-            mpParticleCreatorDestructor->DestroyParticlesOutsideBoundingBox<SphericParticle>(r_model_part);
-        }
-        if (r_process_info[CONTACT_MESH_OPTION] == 1) {
-            mpParticleCreatorDestructor->MarkContactElementsForErasing(r_model_part, *mpContact_model_part);
-            mpParticleCreatorDestructor->DestroyContactElements(*mpContact_model_part);
-        }
         KRATOS_CATCH("")
     }
 
@@ -681,20 +410,6 @@ namespace Kratos {
             rElement.FinalizeSolutionStep(r_process_info);
         });
 
-        //if (true) AuxiliaryFunctions::ComputeReactionOnTopAndBottomSpheres(r_model_part);
-        KRATOS_CATCH("")
-    }
-
-    void ExplicitSolverStrategy::InitializeElements() {
-        KRATOS_TRY
-        ModelPart& r_model_part = GetModelPart();
-        const ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
-        ElementsArrayType& rElements = r_model_part.GetCommunicator().LocalMesh().Elements();
-
-        block_for_each(rElements, [&r_process_info](ModelPart::ElementType& rElement) {
-            rElement.Initialize(r_process_info);
-        });
-
         KRATOS_CATCH("")
     }
 
@@ -705,11 +420,9 @@ namespace Kratos {
         ModelPart& r_model_part = GetModelPart();
         ProcessInfo& r_process_info = r_model_part.GetProcessInfo();
 
-        double total_mass = 0.0;
         IndexPartition<unsigned int>(mListOfSphericParticles.size()).for_each([&](unsigned int i){
             mListOfSphericParticles[i]->ComputeNewRigidFaceNeighboursHistoricalData();
             mListOfSphericParticles[i]->Initialize(r_process_info);
-            total_mass += mListOfSphericParticles[i]->GetMass();
         });
 
         KRATOS_CATCH("")
@@ -912,14 +625,12 @@ namespace Kratos {
             array_1d<double, 3>& node_rhs_elas = rNode.FastGetSolutionStepValue(ELASTIC_FORCES);
             array_1d<double, 3>& node_rhs_tang = rNode.FastGetSolutionStepValue(TANGENTIAL_ELASTIC_FORCES);
             double& node_pressure = rNode.GetSolutionStepValue(DEM_PRESSURE);
-            //double& node_area = rNode.GetSolutionStepValue(DEM_NODAL_AREA);
             double& shear_stress = rNode.FastGetSolutionStepValue(SHEAR_STRESS);
 
             noalias(node_rhs) = ZeroVector(3);
             noalias(node_rhs_elas) = ZeroVector(3);
             noalias(node_rhs_tang) = ZeroVector(3);
             node_pressure = 0.0;
-            //node_area = 0.0;
             shear_stress = 0.0;
         });
         KRATOS_CATCH("")
@@ -1405,137 +1116,6 @@ namespace Kratos {
         KRATOS_CATCH("")
     }
 
-    void ExplicitSolverStrategy::CreateContactElements() {
-        KRATOS_TRY
-
-        std::string ElementName;
-        ElementName = std::string("ParticleContactElement");
-        const Element& rReferenceElement = KratosComponents<Element>::Get(ElementName);
-
-        //Here we are going to create contact elements when we are on a target particle and we see a neighbor whose id is higher than ours.
-        //We create also a pointer from the node to the element, after creating it.
-        //When our particle has a higher ID than the neighbor we also create a pointer to the (previously) created contact element.
-        //We proceed in this way because we want to have the pointers to contact elements in a list in the same order as the initial elements order.
-
-        const int number_of_particles = (int) mListOfSphericParticles.size();
-        int used_bonds_counter = 0;
-
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-                unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighbourElements.size();
-                mListOfSphericParticles[i]->mBondElements.resize(neighbors_size);
-                for (unsigned int j = 0; j < mListOfSphericParticles[i]->mBondElements.size(); j++) {
-                    mListOfSphericParticles[i]->mBondElements[j] = NULL;
-                }
-            }
-
-            int private_counter = 0;
-            Element::Pointer p_new_contact_element;
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-                bool add_new_bond = true;
-                std::vector<SphericParticle*>& neighbour_elements = mListOfSphericParticles[i]->mNeighbourElements;
-                unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighbourElements.size();
-
-                for (unsigned int j = 0; j < neighbors_size; j++) {
-                    SphericParticle* neighbour_element = dynamic_cast<SphericParticle*> (neighbour_elements[j]);
-                    if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
-                    if (mListOfSphericParticles[i]->Id() > neighbour_element->Id()) continue;
-
-                    #pragma omp critical
-                    {
-                        if (used_bonds_counter < (int) (*mpContact_model_part).Elements().size()) {
-                            add_new_bond = false;
-                            private_counter = used_bonds_counter;
-                            used_bonds_counter++;
-                        }
-                    }
-                    if (!add_new_bond) {
-                        Element::Pointer& p_old_contact_element = (*mpContact_model_part).Elements().GetContainer()[private_counter];
-                        p_old_contact_element->GetGeometry()(0) = mListOfSphericParticles[i]->GetGeometry()(0);
-                        p_old_contact_element->GetGeometry()(1) = neighbour_element->GetGeometry()(0);
-                        p_old_contact_element->SetId(used_bonds_counter);
-                        p_old_contact_element->SetProperties(mListOfSphericParticles[i]->pGetProperties());
-                        ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (p_old_contact_element.get());
-                        mListOfSphericParticles[i]->mBondElements[j] = p_bond;
-                    } else {
-                        Geometry<Node >::PointsArrayType NodeArray(2);
-                        NodeArray.GetContainer()[0] = mListOfSphericParticles[i]->GetGeometry()(0);
-                        NodeArray.GetContainer()[1] = neighbour_element->GetGeometry()(0);
-                        const Properties::Pointer& properties = mListOfSphericParticles[i]->pGetProperties();
-                        p_new_contact_element = rReferenceElement.Create(used_bonds_counter + 1, NodeArray, properties);
-
-                        #pragma omp critical
-                        {
-                            (*mpContact_model_part).Elements().push_back(p_new_contact_element);
-                            used_bonds_counter++;
-                        }
-                        ParticleContactElement* p_bond = dynamic_cast<ParticleContactElement*> (p_new_contact_element.get());
-                        mListOfSphericParticles[i]->mBondElements[j] = p_bond;
-                    }
-
-                }
-            }
-
-            #pragma omp single
-            {
-                if ((int) (*mpContact_model_part).Elements().size() > used_bonds_counter) {
-                    (*mpContact_model_part).Elements().erase((*mpContact_model_part).Elements().ptr_begin() + used_bonds_counter, (*mpContact_model_part).Elements().ptr_end());
-                }
-            }
-
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-                std::vector<SphericParticle*>& neighbour_elements = mListOfSphericParticles[i]->mNeighbourElements;
-                unsigned int neighbors_size = mListOfSphericParticles[i]->mNeighbourElements.size();
-
-                for (unsigned int j = 0; j < neighbors_size; j++) {
-                    SphericParticle* neighbour_element = dynamic_cast<SphericParticle*> (neighbour_elements[j]);
-                    if (neighbour_element == NULL) continue; //The initial neighbor was deleted at some point in time!!
-                    //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!!
-                    if (mListOfSphericParticles[i]->Id() < neighbour_element->Id()) continue;
-                    //In all functions using mBondElements we must check that this bond is not used.
-
-                    for (unsigned int k = 0; k < neighbour_element->mNeighbourElements.size(); k++) {
-                        //ATTENTION: Ghost nodes do not have mContinuumIniNeighbourElements in general, so this bond will remain as NULL!!
-                        //In all functions using mBondElements we must check that this bond is not used.
-                        if (neighbour_element->mNeighbourElements[k] == NULL) continue; //The initial neighbor was deleted at some point in time!!
-                        if (neighbour_element->mNeighbourElements[k]->Id() == mListOfSphericParticles[i]->Id()) {
-                            ParticleContactElement* bond = neighbour_element->mBondElements[k];
-                            mListOfSphericParticles[i]->mBondElements[j] = bond;
-                            break;
-                        }
-                    }
-                }
-            }
-
-            //Renumbering the Id's of the bonds to make them unique and consecutive (otherwise the Id's are repeated)
-            #pragma omp for
-            for(int i=0; i<(int)(*mpContact_model_part).Elements().size(); i++) {
-                (*mpContact_model_part).Elements().GetContainer()[i]->SetId(i+1);
-            }
-
-        } //#pragma omp parallel
-        KRATOS_CATCH("")
-    } //CreateContactElements
-
-    void ExplicitSolverStrategy::InitializeContactElements() {
-
-        KRATOS_TRY
-
-        //CONTACT MODEL PART
-        ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
-        const ProcessInfo& r_process_info = GetModelPart().GetProcessInfo();
-
-        block_for_each(pContactElements, [&r_process_info](ModelPart::ElementType& rContactElement) {
-            rContactElement.Initialize(r_process_info);
-        });
-
-        KRATOS_CATCH("")
-    }
-
     void ExplicitSolverStrategy::PrepareContactElementsForPrinting() {
 
         ElementsArrayType& pContactElements = GetAllElements(*mpContact_model_part);
@@ -1709,53 +1289,6 @@ namespace Kratos {
         KRATOS_CATCH("")
         }//CheckHierarchyWithCurrentNeighbours
 
-    void ExplicitSolverStrategy::CalculateInitialMaxIndentations(const ProcessInfo& r_process_info) {
-        KRATOS_TRY
-        std::vector<double> indentations_list, indentations_list_ghost;
-        indentations_list.resize(mListOfSphericParticles.size());
-        indentations_list_ghost.resize(mListOfGhostSphericParticles.size());
-
-        const int number_of_particles = (int) mListOfSphericParticles.size();
-
-        #pragma omp parallel
-        {
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-                double indentation;
-                mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation, r_process_info);
-                double max_indentation = std::max(0.0, 0.5 * indentation); // reducing the radius by half the indentation is enough
-
-                mListOfSphericParticles[i]->CalculateMaxBallToFaceIndentation(indentation);
-                max_indentation = std::max(max_indentation, indentation);
-                indentations_list[i] = max_indentation;
-            }
-
-            #pragma omp for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
-            for (int i = 0; i < number_of_particles; i++) {
-                mListOfSphericParticles[i]->SetInteractionRadius(mListOfSphericParticles[i]->GetInteractionRadius() - indentations_list[i]);
-            }
-
-            #pragma omp single
-            {
-                SynchronizeHistoricalVariables(GetModelPart());
-            }
-            const int number_of_ghost_particles = (int) mListOfGhostSphericParticles.size();
-
-            #pragma omp for //THESE TWO LOOPS CANNOT BE JOINED, BECAUSE THE RADII ARE CHANGING.
-            for (int i = 0; i < number_of_ghost_particles; i++) {
-                mListOfGhostSphericParticles[i]->SetInteractionRadius(mListOfGhostSphericParticles[i]->GetInteractionRadius() - indentations_list_ghost[i]);
-            }
-
-            #pragma omp for
-            for (int i = 0; i < number_of_particles; i++) {
-                double indentation;
-                mListOfSphericParticles[i]->CalculateMaxBallToBallIndentation(indentation, r_process_info);
-            }
-        } //#pragma omp parallel
-
-        KRATOS_CATCH("")
-    } // CalculateInitialMaxIndentations()
-
     void ExplicitSolverStrategy::PrepareContactModelPart(ModelPart& r_model_part, ModelPart& mcontacts_model_part) {
         mcontacts_model_part.GetCommunicator().SetNumberOfColors(r_model_part.GetCommunicator().GetNumberOfColors());
         mcontacts_model_part.GetCommunicator().NeighbourIndices() = r_model_part.GetCommunicator().NeighbourIndices();
@@ -1782,14 +1315,5 @@ namespace Kratos {
     void ExplicitSolverStrategy::SynchronizeRHS(ModelPart& r_model_part) {
         r_model_part.GetCommunicator().SynchronizeVariable(TOTAL_FORCES);
         r_model_part.GetCommunicator().SynchronizeVariable(PARTICLE_MOMENT);
-    }
-
-    double ExplicitSolverStrategy::ComputeCoordinationNumber(double& standard_dev) {
-        
-        KRATOS_TRY
-
-        return 0.0;
-
-        KRATOS_CATCH("")
     }
 }

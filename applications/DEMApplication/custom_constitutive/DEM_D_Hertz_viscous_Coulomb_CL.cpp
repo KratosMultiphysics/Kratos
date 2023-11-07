@@ -169,8 +169,7 @@ namespace Kratos {
 
     void DEM_D_Hertz_viscous_Coulomb::InitializeContactWithFEM(SphericParticle* const element, Condition* const wall, const double indentation, const double ini_delta) {
         //Get effective Radius
-        const double my_radius           = element->GetRadius(); //Get equivalent Radius
-        const double effective_radius    = my_radius - ini_delta;
+        const double effective_radius    = element->GetRadius();
 
         //Get equivalent Young's Modulus
         const double my_young            = element->GetYoung();
@@ -206,8 +205,6 @@ namespace Kratos {
         InitializeContactWithFEM(element, wall, indentation);
 
         LocalElasticContactForce[2] = CalculateNormalForce(element, wall, indentation);
-        cohesive_force              = CalculateCohesiveNormalForceWithFEM(element, wall, indentation);
-
         CalculateViscoDampingForceWithFEM(LocalRelVel, ViscoDampingLocalContactForce, element, wall);
 
         double normal_contact_force = LocalElasticContactForce[2] + ViscoDampingLocalContactForce[2];
@@ -220,8 +217,7 @@ namespace Kratos {
         double AuxElasticShearForce;
         double MaximumAdmisibleShearForce;
 
-        CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp,
-                                              LocalRelVel, sliding, element, wall, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
+        CalculateTangentialForceWithNeighbour(normal_contact_force, OldLocalElasticContactForce, LocalElasticContactForce, ViscoDampingLocalContactForce, LocalDeltDisp, LocalRelVel, sliding, element, wall, indentation, previous_indentation, AuxElasticShearForce, MaximumAdmisibleShearForce);
 
         double& elastic_energy = element->GetElasticEnergy();
         CalculateElasticEnergyFEM(elastic_energy, indentation, LocalElasticContactForce);//MSIMSI
