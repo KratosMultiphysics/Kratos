@@ -26,11 +26,10 @@ namespace Kratos
 
 SensorSpecification::SensorSpecification(
     const std::string &rName,
-    const IndexType NewId,
-    const double SensorValue)
+    const IndexType NewId)
     : IndexedObject(NewId),
       mName(rName),
-      mSensorValue(SensorValue)
+      mSensorValue(0.0)
 {
 }
 
@@ -47,6 +46,11 @@ std::string SensorSpecification::GetName() const
 double SensorSpecification::GetSensorValue() const
 {
     return mSensorValue;
+}
+
+void SensorSpecification::SetSensorValue(const double SensorValue)
+{
+    mSensorValue = SensorValue;
 }
 
 void SensorSpecification::AddNodalExpression(
@@ -152,6 +156,15 @@ ContainerExpression<ModelPart::ElementsContainerType>::Pointer SensorSpecificati
 std::unordered_map<std::string, ContainerExpression<ModelPart::ElementsContainerType>::Pointer> SensorSpecification::GetElementExpressionsMap() const
 {
     return mElementExpressions;
+}
+
+std::vector<std::string> SensorSpecification::GetDataVariableNames() const
+{
+    std::vector<std::string> result;
+    for (auto i_ptr = this->begin(); i_ptr != this->end(); ++i_ptr) {
+        result.push_back(i_ptr->first->Name());
+    }
+    return result;
 }
 
 std::string SensorSpecification::Info() const

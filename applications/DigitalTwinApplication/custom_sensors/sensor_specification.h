@@ -49,8 +49,7 @@ public:
     /// Constructor.
     SensorSpecification(
         const std::string &rName,
-        const IndexType NewId,
-        const double SensorValue);
+        const IndexType NewId);
 
     /// Destructor.
     virtual ~SensorSpecification() = default;
@@ -79,6 +78,13 @@ public:
      * @return double
      */
     double GetSensorValue() const;
+
+    /**
+     * @brief Set the Sensor Value
+     *
+     * @param SensorValue   Sensor value to be set.
+     */
+    void SetSensorValue(const double SensorValue);
 
     /**
      * @brief Adds a given nodal expression under the given name.
@@ -164,6 +170,13 @@ public:
      */
     std::unordered_map<std::string, ContainerExpression<ModelPart::ElementsContainerType>::Pointer> GetElementExpressionsMap() const;
 
+    /**
+     * @brief Get the list of variable names in the specification.
+     *
+     * @return std::vector<std::string>     List of variable names in the specification.
+     */
+    std::vector<std::string> GetDataVariableNames() const;
+
     ///@}
     ///@name Input and output
     ///@{
@@ -182,7 +195,7 @@ private:
 
     const std::string mName;
 
-    const double mSensorValue;
+    double mSensorValue;
 
     std::unordered_map<std::string, ContainerExpression<ModelPart::NodesContainerType>::Pointer> mNodalExpressions;
 
