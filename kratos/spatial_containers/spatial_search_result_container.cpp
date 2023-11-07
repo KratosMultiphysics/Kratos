@@ -104,10 +104,7 @@ template <class TObjectType>
 void SpatialSearchResultContainer<TObjectType>::SynchronizeAll(const DataCommunicator& rDataCommunicator)
 {
     // Synchronize local results to global results
-    // NOTE: GlobalRetrieveGlobalPointers is an expensive function, therefore we will build the global result manually, this way avoiding the problematic coming from the need of a indexed class and the computational cost of the call. This will therefore assume that every local result doesn't have repeated values (aka not including ghost nodes in case nodes are considered)
-    //mGlobalResults = GlobalPointerUtilities::GlobalRetrieveGlobalPointers(mLocalResults, rDataCommunicator);
-    // MPI code
-    if(rDataCommunicator.IsDistributed()) {
+    if(rDataCommunicator.IsDistributed()) { // MPI code
         const int local_result_size = mLocalResults.size();
         const int global_result_size = rDataCommunicator.SumAll(local_result_size);
         mGlobalResults.reserve(global_result_size);
